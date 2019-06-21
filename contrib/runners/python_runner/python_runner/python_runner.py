@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -23,6 +22,7 @@ import uuid
 import functools
 from subprocess import list2cmdline
 
+import six
 from eventlet.green import subprocess
 from oslo_config import cfg
 from six.moves import StringIO
@@ -202,7 +202,7 @@ class PythonRunner(GitWorktreeActionRunner):
             try:
                 pack_common_libs_path = self._get_pack_common_libs_path(pack_ref=pack)
             except Exception as e:
-                LOG.debug('Failed to retrieve pack common lib path: %s' % (str(e)))
+                LOG.debug('Failed to retrieve pack common lib path: %s' % (six.text_type(e)))
                 # There is no MongoDB connection available in Lambda and pack common lib
                 # functionality is not also mandatory for Lambda so we simply ignore those errors.
                 # Note: We should eventually refactor this code to make runner standalone and not
@@ -325,7 +325,8 @@ class PythonRunner(GitWorktreeActionRunner):
             action_result = json.loads(action_result)
         except Exception as e:
             # Failed to de-serialize the result, probably it contains non-simple type or similar
-            LOG.warning('Failed to de-serialize result "%s": %s' % (str(action_result), str(e)))
+            LOG.warning('Failed to de-serialize result "%s": %s' % (str(action_result),
+                                                                    six.text_type(e)))
 
         if action_result:
             if isinstance(action_result, dict):

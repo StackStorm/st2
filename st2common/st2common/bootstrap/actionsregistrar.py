@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -139,7 +138,7 @@ class ActionsRegistrar(ResourceRegistrar):
             action_api.validate()
         except jsonschema.ValidationError as e:
             # We throw a more user-friendly exception on invalid parameter name
-            msg = str(e)
+            msg = six.text_type(e)
 
             is_invalid_parameter_name = 'does not match any of the regexes: ' in msg
 
@@ -196,12 +195,12 @@ class ActionsRegistrar(ResourceRegistrar):
             except Exception as e:
                 # We ignore mistral-v2 runner not found errors since those represent installations
                 # without Mistral
-                if 'mistral-v2 is not found' in str(e):
+                if 'mistral-v2 is not found' in six.text_type(e):
                     continue
 
                 if self._fail_on_failure:
                     msg = ('Failed to register action "%s" from pack "%s": %s' % (action, pack,
-                                                                                  str(e)))
+                                                                                  six.text_type(e)))
                     raise ValueError(msg)
 
                 LOG.exception('Unable to register action: %s', action)

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,6 +14,7 @@
 
 from __future__ import absolute_import
 
+import six
 import eventlet
 
 __all__ = ['ConnectionRetryWrapper', 'ClusterRetryContext']
@@ -41,7 +41,7 @@ class ClusterRetryContext(object):
         # during tests on Travis and block and slown down the tests
         # NOTE: This error is not fatal during tests and we can simply switch to a next connection
         # without sleeping.
-        if "second 'channel.open' seen" in str(e):
+        if "second 'channel.open' seen" in six.text_type(e):
             return False, -1
 
         should_stop = True
@@ -140,7 +140,7 @@ class ConnectionRetryWrapper(object):
 
                 # -1, 0 and 1+ are handled properly by eventlet.sleep
                 self._logger.debug('Received RabbitMQ server error, sleeping for %s seconds '
-                                   'before retrying: %s' % (wait, str(e)))
+                                   'before retrying: %s' % (wait, six.text_type(e)))
                 eventlet.sleep(wait)
 
                 connection.close()
@@ -152,7 +152,7 @@ class ConnectionRetryWrapper(object):
 
                 def log_error_on_conn_failure(exc, interval):
                     self._logger.debug('Failed to re-establish connection to RabbitMQ server, '
-                                       'retrying in %s seconds: %s' % (interval, str(e)))
+                                       'retrying in %s seconds: %s' % (interval, six.text_type(e)))
 
                 try:
                     # NOTE: This function blocks and tries to restablish a connection for
@@ -161,11 +161,11 @@ class ConnectionRetryWrapper(object):
                                                  errback=log_error_on_conn_failure)
                 except Exception:
                     self._logger.exception('Connections to RabbitMQ cannot be re-established: %s',
-                                           str(e))
+                                           six.text_type(e))
                     raise
             except Exception as e:
                 self._logger.exception('Connections to RabbitMQ cannot be re-established: %s',
-                                       str(e))
+                                       six.text_type(e))
                 # Not being able to publish a message could be a significant issue for an app.
                 raise
             finally:

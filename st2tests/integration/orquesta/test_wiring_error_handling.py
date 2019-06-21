@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -111,7 +110,8 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
                     '\'<% ctx().name.value %>\'. NoFunctionRegisteredException: '
                     'Unknown function "#property#value"'
                 ),
-                'task_id': 'task1'
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
@@ -128,8 +128,9 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
                     'YaqlEvaluationException: Unable to resolve key \'value\' '
                     'in expression \'<% succeeded() and result().value %>\' from context.'
                 ),
-                'task_transition_id': 'task2__0',
-                'task_id': 'task1'
+                'task_transition_id': 'task2__t0',
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
@@ -150,8 +151,9 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
                     'YaqlEvaluationException: Unable to resolve key \'value\' '
                     'in expression \'<% result().value %>\' from context.'
                 ),
-                'task_transition_id': 'task2__0',
-                'task_id': 'task1'
+                'task_transition_id': 'task2__t0',
+                'task_id': 'task1',
+                'route': 0
             }
         ]
 
@@ -214,5 +216,37 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
 
         ex = self._execute_workflow('examples.orquesta-fail-inspection-task-contents')
         ex = self._wait_for_completion(ex)
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
+
+    def test_fail_manually(self):
+        expected_errors = [
+            {
+                'task_id': 'task1',
+                'type': 'error',
+                'message': 'Execution failed. See result for details.',
+                'result': {
+                    'failed': True,
+                    'return_code': 1,
+                    'stderr': '',
+                    'stdout': '',
+                    'succeeded': False
+                }
+            },
+            {
+                'task_id': 'fail',
+                'type': 'error',
+                'message': 'Execution failed. See result for details.'
+            }
+        ]
+
+        ex = self._execute_workflow('examples.orquesta-fail-manually')
+        ex = self._wait_for_completion(ex)
+
+        # Assert that the log task is executed.
+        self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_FAILED)
+        self._wait_for_task(ex, 'log', ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Assert workflow status and result.
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})

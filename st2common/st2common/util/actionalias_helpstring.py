@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -60,14 +59,14 @@ def generate_helpstring_result(aliases, filter=None, pack=None, limit=0, offset=
                     continue
                 # Skip over help strings not within the requested offset/limit range.
                 if (offset == 0 and limit > 0) and count >= limit:
-                        count += 1
-                        continue
+                    count += 1
+                    continue
                 elif (offset > 0 and limit == 0) and count < offset:
-                        count += 1
-                        continue
+                    count += 1
+                    continue
                 elif (offset > 0 and limit > 0) and (count < offset or count >= offset + limit):
-                        count += 1
-                        continue
+                    count += 1
+                    continue
 
                 matches.append({
                     "pack": alias.pack,

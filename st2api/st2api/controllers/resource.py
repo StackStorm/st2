@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -27,7 +26,7 @@ from st2common import log as logging
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.rbac import ResourceAccessDeniedPermissionIsolationError
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.util import schema as util_schema
 from st2common.router import abort
@@ -217,7 +216,7 @@ class ResourceController(object):
                     self.model.model._lookup_field(path)
                     filters['__'.join(path)] = v
                 except LookUpError as e:
-                    raise ValueError(str(e))
+                    raise ValueError(six.text_type(e))
 
         instances = self.access.query(exclude_fields=exclude_fields, only_fields=include_fields,
                                       **filters)
@@ -265,15 +264,19 @@ class ResourceController(object):
         return item
 
     def _get_one_by_id(self, id, requester_user, permission_type, exclude_fields=None,
-                       from_model_kwargs=None):
+                       include_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
+        :param include_fields: A list of object fields to include.
+        :type include_fields: ``list``
         """
 
-        instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
+        instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields,
+                                   include_fields=include_fields)
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,
                                                               permission_type=permission_type)
@@ -299,15 +302,19 @@ class ResourceController(object):
         return result
 
     def _get_one_by_name_or_id(self, name_or_id, requester_user, permission_type,
-                               exclude_fields=None, from_model_kwargs=None):
+                               exclude_fields=None, include_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
+        :param include_fields: A list of object fields to include.
+        :type include_fields: ``list``
         """
 
-        instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields)
+        instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields,
+                                           include_fields=include_fields)
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,
                                                               permission_type=permission_type)
@@ -479,6 +486,7 @@ class BaseResourceIsolationControllerMixin(object):
 
             return result
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
         user_is_system_user = (requester_user.name == cfg.CONF.system_user.user)
 
@@ -513,11 +521,12 @@ class ContentPackResourceController(ResourceController):
             instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields,
                                               include_fields=include_fields)
         except Exception as e:
-            LOG.exception(str(e))
-            abort(http_client.NOT_FOUND, str(e))
+            LOG.exception(six.text_type(e))
+            abort(http_client.NOT_FOUND, six.text_type(e))
             return
 
         if permission_type:
+            rbac_utils = get_rbac_backend().get_utils_class()
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=instance,
                                                               permission_type=permission_type)
@@ -611,6 +620,7 @@ def validate_limit_query_param(limit, requester_user=None):
     Note: We only perform max_page_size check for non-admin users. Admin users
     can provide arbitrary limit value.
     """
+    rbac_utils = get_rbac_backend().get_utils_class()
     user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
 
     if limit:

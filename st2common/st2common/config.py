@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -61,6 +60,9 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             'enable', default=False,
             help='Enable RBAC.'),
+        cfg.StrOpt(
+            'backend', default='noop',
+            help='RBAC backend to use.'),
         cfg.BoolOpt(
             'sync_remote_groups', default=False,
             help='True to synchronize remote groups returned by the auth backed for each '
@@ -226,7 +228,28 @@ def register_opts(ignore_errors=False):
             help='How many times should we retry connection before failing.'),
         cfg.IntOpt(
             'connection_retry_wait', default=10000,
-            help='How long should we wait between connection retries.')
+            help='How long should we wait between connection retries.'),
+        cfg.BoolOpt(
+            'ssl', default=False,
+            help='Use SSL / TLS to connect to the messaging server. Same as '
+                 'appending "?ssl=true" at the end of the connection URL string.'),
+        cfg.StrOpt(
+            'ssl_keyfile', default=None,
+            help='Private keyfile used to identify the local connection against RabbitMQ.'),
+        cfg.StrOpt(
+            'ssl_certfile', default=None,
+            help='Certificate file used to identify the local connection (client).'),
+        cfg.StrOpt(
+            'ssl_cert_reqs', default=None, choices='none, optional, required',
+            help='Specifies whether a certificate is required from the other side of the '
+                 'connection, and whether it will be validated if provided.'),
+        cfg.StrOpt(
+            'ssl_ca_certs', default=None,
+            help='ca_certs file contains a set of concatenated CA certificates, which are '
+                 'used to validate certificates passed from RabbitMQ.'),
+        cfg.StrOpt(
+            'login_method', default=None,
+            help='Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).')
     ]
 
     do_register_opts(messaging_opts, 'messaging', ignore_errors)
@@ -335,7 +358,11 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             'python3_binary', default=default_python3_bin_path,
             help='Python 3 binary which will be used by Python actions for packs which '
-                 'use Python 3 virtual environment'),
+                 'use Python 3 virtual environment.'),
+        cfg.StrOpt(
+            'python3_prefix', default=None,
+            help='Prefix for Python 3 installation (e.g. /opt/python3.6). If not specified, it '
+                 'tries to find Python 3 libraries in /usr/lib and /usr/local/lib.'),
         cfg.StrOpt(
             'virtualenv_binary', default=default_virtualenv_bin_path,
             help='Virtualenv binary which should be used to create pack virtualenvs.'),
@@ -420,7 +447,10 @@ def register_opts(ignore_errors=False):
             help='Endpoint for the coordination server.'),
         cfg.IntOpt(
             'lock_timeout', default=60,
-            help='TTL for the lock if backend suports it.')
+            help='TTL for the lock if backend suports it.'),
+        cfg.BoolOpt(
+            'service_registry', default=False,
+            help='True to register StackStorm services in a service registry.'),
     ]
 
     do_register_opts(coord_opts, 'coordination', ignore_errors)
@@ -600,6 +630,25 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(timer_opts, group='timer', ignore_errors=ignore_errors)
     do_register_opts(timers_engine_opts, group='timersengine', ignore_errors=ignore_errors)
+
+    # Workflow engine options
+    workflow_engine_opts = [
+        cfg.IntOpt(
+            'retry_stop_max_msec', default=60000,
+            help='Max time to stop retrying.'),
+        cfg.IntOpt(
+            'retry_wait_fixed_msec', default=1000,
+            help='Interval inbetween retries.'),
+        cfg.FloatOpt(
+            'retry_max_jitter_msec', default=1000,
+            help='Max jitter interval to smooth out retries.'),
+        cfg.IntOpt(
+            'gc_max_idle_sec', default=900,
+            help='Max seconds to allow workflow execution be idled before it is identified as '
+                 'orphaned and cancelled by the garbage collector.')
+    ]
+
+    do_register_opts(workflow_engine_opts, group='workflow_engine', ignore_errors=ignore_errors)
 
 
 def parse_args(args=None):

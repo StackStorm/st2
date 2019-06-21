@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,11 +13,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common import log as logging
 from st2common.constants.triggers import KEY_VALUE_PAIR_CREATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_UPDATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_DELETE_TRIGGER
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.db.keyvalue import keyvaluepair_access
 from st2common.models.system.common import ResourceReference
@@ -108,6 +109,11 @@ class KeyValuePair(Access):
         :rtype: :class:`KeyValuePairDB` or ``None``
         """
         query_result = cls.impl.query(scope=scope, name=name)
+
+        if not query_result:
+            msg = 'The key "%s" does not exist in the StackStorm datastore.'
+            raise StackStormDBObjectNotFoundError(msg % name)
+
         return query_result.first() if query_result else None
 
     @classmethod

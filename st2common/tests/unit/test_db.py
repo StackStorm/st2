@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,8 +13,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import jsonschema
 
+import ssl
+
+import jsonschema
 import mock
 import mongoengine.connection
 from oslo_config import cfg
@@ -37,6 +38,9 @@ from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
 
+from unittest2 import TestCase
+from st2tests.base import ALL_MODELS
+
 
 __all__ = [
     'DbConnectionTestCase',
@@ -48,6 +52,38 @@ __all__ = [
 
 SKIP_DELETE = False
 DUMMY_DESCRIPTION = 'Sample Description.'
+
+
+class DbIndexNameTestCase(TestCase):
+    """
+    Test which verifies that model index name are not longer than the specified limit.
+    """
+    LIMIT = 65
+
+    def test_index_name_length(self):
+        db_name = 'st2'
+
+        for model in ALL_MODELS:
+            collection_name = model._get_collection_name()
+            model_indexes = model._meta['index_specs']
+
+            for index_specs in model_indexes:
+                index_name = index_specs.get('name', None)
+                if index_name:
+                    # Custom index name defined by the developer
+                    index_field_name = index_name
+                else:
+                    # No explicit index name specified, one is auto-generated using
+                    # <db name>.<collection name>.<index field names> schema
+                    index_fields = dict(index_specs['fields']).keys()
+                    index_field_name = '.'.join(index_fields)
+
+                index_name = '%s.%s.%s' % (db_name, collection_name, index_field_name)
+
+                if len(index_name) > self.LIMIT:
+                    self.fail('Index name "%s" for model "%s" is longer than %s characters. '
+                              'Please manually define name for this index so it\'s shorter than '
+                              'that' % (index_name, model.__name__, self.LIMIT))
 
 
 class DbConnectionTestCase(DbTestCase):
@@ -77,6 +113,55 @@ class DbConnectionTestCase(DbTestCase):
             'ssl': True,
             'ssl_match_hostname': True,
             'authentication_mechanism': 'MONGODB-X509'
+        })
+
+        # 3. ssl_keyfile provided
+        ssl_kwargs = _get_ssl_kwargs(ssl_keyfile='/tmp/keyfile')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_keyfile': '/tmp/keyfile',
+            'ssl_match_hostname': True
+        })
+
+        # 4. ssl_certfile provided
+        ssl_kwargs = _get_ssl_kwargs(ssl_certfile='/tmp/certfile')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_certfile': '/tmp/certfile',
+            'ssl_match_hostname': True
+        })
+
+        # 5. ssl_ca_certs provided
+        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_ca_certs': '/tmp/ca_certs',
+            'ssl_match_hostname': True
+        })
+
+        # 6. ssl_ca_certs and ssl_cert_reqs combinations
+        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs', ssl_cert_reqs='none')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_ca_certs': '/tmp/ca_certs',
+            'ssl_cert_reqs': ssl.CERT_NONE,
+            'ssl_match_hostname': True
+        })
+
+        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs', ssl_cert_reqs='optional')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_ca_certs': '/tmp/ca_certs',
+            'ssl_cert_reqs': ssl.CERT_OPTIONAL,
+            'ssl_match_hostname': True
+        })
+
+        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs', ssl_cert_reqs='required')
+        self.assertEqual(ssl_kwargs, {
+            'ssl': True,
+            'ssl_ca_certs': '/tmp/ca_certs',
+            'ssl_cert_reqs': ssl.CERT_REQUIRED,
+            'ssl_match_hostname': True
         })
 
     @mock.patch('st2common.models.db.mongoengine')

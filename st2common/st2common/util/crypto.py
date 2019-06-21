@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -176,7 +175,7 @@ def read_crypto_key(key_path):
                          mode=content['mode'].upper(),
                          size=content['size'])
     except KeyError as e:
-        msg = 'Invalid or malformed key file "%s": %s' % (key_path, str(e))
+        msg = 'Invalid or malformed key file "%s": %s' % (key_path, six.text_type(e))
         raise KeyError(msg)
 
     return aes_key
@@ -216,8 +215,14 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     assert isinstance(aes_key_bytes, six.binary_type)
     assert isinstance(hmac_key_bytes, six.binary_type)
 
+    if isinstance(plaintext, (six.text_type, six.string_types)):
+        # Convert data to bytes
+        data = plaintext.encode('utf-8')
+    else:
+        data = plaintext
+
     # Pad data
-    data = pkcs5_pad(plaintext)
+    data = pkcs5_pad(data)
 
     # Generate IV
     iv_bytes = os.urandom(KEYCZAR_AES_BLOCK_SIZE)
@@ -229,10 +234,6 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     # NOTE: We don't care about actual Keyczar header value, we only care about the length (5
     # bytes) so we simply add 5 0's
     header_bytes = b'00000'
-
-    if isinstance(data, (six.text_type, six.string_types)):
-        # Convert data to bytes
-        data = data.encode('utf-8')
 
     ciphertext_bytes = encryptor.update(data) + encryptor.finalize()
     msg_bytes = header_bytes + iv_bytes + ciphertext_bytes
@@ -368,7 +369,7 @@ def pkcs5_pad(data):
     Pad data using PKCS5
     """
     pad = KEYCZAR_AES_BLOCK_SIZE - len(data) % KEYCZAR_AES_BLOCK_SIZE
-    data = data + pad * chr(pad)
+    data = data + pad * chr(pad).encode('utf-8')
     return data
 
 
@@ -440,4 +441,4 @@ def Base64WSDecode(s):
         return base64.urlsafe_b64decode(s)
     except TypeError as e:
         # Decoding raises TypeError if s contains invalid characters.
-        raise ValueError('Base64 decoding error: %s' % (str(e)))
+        raise ValueError('Base64 decoding error: %s' % (six.text_type(e)))

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -25,6 +24,7 @@ from st2common.bootstrap.policiesregistrar import register_policy_types
 from st2common.constants import action as action_constants
 from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import LiveAction
+from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.persistence.policy import Policy
 from st2common.services import action as action_service
@@ -98,6 +98,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
     @classmethod
     def tearDownClass(cls):
         # Reset the coordinator.
+        coordination.coordinator_teardown(coordination.COORDINATOR)
         coordination.COORDINATOR = None
 
         super(ConcurrencyPolicyTestCase, cls).tearDownClass()
@@ -149,14 +150,20 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo-last'})
         liveaction, _ = action_service.request(liveaction)
-        expected_num_exec += 1  # This request is expected to be executed.
+
         expected_num_pubs += 1  # Tally requested state.
+        self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
 
         # Run the scheduler to schedule action executions.
         self._process_scheduling_queue()
 
         # Since states are being processed async, wait for the liveaction to go into delayed state.
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_DELAYED)
+
+        expected_num_exec += 0  # This request will not be scheduled for execution.
+        expected_num_pubs += 0  # The delayed status change should not be published.
+        self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
+        self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
 
         # Mark one of the scheduled/running execution as completed.
         action_service.update_status(
@@ -165,18 +172,26 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
             publish=True
         )
 
-        expected_num_pubs += 1  # Tally requested state.
-
-        # Once capacity freed up, the delayed execution is published as requested again.
-        expected_num_pubs += 3  # Tally requested, scheduled, and running state.
+        expected_num_pubs += 1  # Tally succeeded state.
+        self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
 
         # Run the scheduler to schedule action executions.
         self._process_scheduling_queue()
+
+        # Once capacity freed up, the delayed execution is published as scheduled.
+        expected_num_exec += 1  # This request is expected to be executed.
+        expected_num_pubs += 2  # Tally scheduled and running state.
 
         # Since states are being processed async, wait for the liveaction to be scheduled.
         liveaction = self._wait_on_statuses(liveaction, SCHEDULED_STATES)
         self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
+
+        # Check the status changes.
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+        expected_status_changes = ['requested', 'delayed', 'requested', 'scheduled', 'running']
+        actual_status_changes = [entry['status'] for entry in execution.log]
+        self.assertListEqual(actual_status_changes, expected_status_changes)
 
     @mock.patch.object(
         runner.MockActionRunner, 'run',
@@ -212,8 +227,9 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         # Execution is expected to be canceled since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-2', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
-        expected_num_exec += 0  # This request will not be scheduled for execution.
+
         expected_num_pubs += 1  # Tally requested state.
+        self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
 
         # Run the scheduler to schedule action executions.
         self._process_scheduling_queue()
@@ -222,6 +238,9 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         calls = [call(liveaction, action_constants.LIVEACTION_STATUS_CANCELING)]
         LiveActionPublisher.publish_state.assert_has_calls(calls)
         expected_num_pubs += 2  # Tally canceling and canceled state changes.
+        expected_num_exec += 0  # This request will not be scheduled for execution.
+        self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
+        self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
 
         # Assert the action is canceled.
         liveaction = LiveAction.get_by_id(str(liveaction.id))
@@ -262,8 +281,9 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
-        expected_num_exec += 1  # This request will be scheduled for execution.
+
         expected_num_pubs += 1  # Tally requested state.
+        self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
 
         # Run the scheduler to schedule action executions.
         self._process_scheduling_queue()
@@ -271,15 +291,22 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         # Since states are being processed async, wait for the liveaction to go into delayed state.
         liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_DELAYED)
 
+        expected_num_exec += 0  # This request will not be scheduled for execution.
+        expected_num_pubs += 0  # The delayed status change should not be published.
+        self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
+        self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
+
         # Cancel execution.
         action_service.request_cancellation(scheduled[0], 'stanley')
         expected_num_pubs += 2  # Tally the canceling and canceled states.
-
-        # Once capacity freed up, the delayed execution is published as requested again.
-        expected_num_pubs += 3  # Tally requested, scheduled, and running state.
+        self.assertEqual(expected_num_pubs, LiveActionPublisher.publish_state.call_count)
 
         # Run the scheduler to schedule action executions.
         self._process_scheduling_queue()
+
+        # Once capacity freed up, the delayed execution is published as requested again.
+        expected_num_exec += 1  # This request is expected to be executed.
+        expected_num_pubs += 2  # Tally scheduled and running state.
 
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(liveaction.id))

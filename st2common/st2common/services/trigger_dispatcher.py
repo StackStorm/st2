@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,6 +14,7 @@
 
 from __future__ import absolute_import
 
+import six
 from oslo_config import cfg
 from jsonschema import ValidationError
 
@@ -84,13 +84,14 @@ class TriggerDispatcherService(object):
                                      throw_on_inexistent_trigger=True)
         except (ValidationError, ValueError, Exception) as e:
             self._logger.warn('Failed to validate payload (%s) for trigger "%s": %s' %
-                              (str(payload), trigger, str(e)))
+                              (str(payload), trigger, six.text_type(e)))
 
             # If validation is disabled, still dispatch a trigger even if it failed validation
             # This condition prevents unexpected restriction.
             if cfg.CONF.system.validate_trigger_payload:
                 msg = ('Trigger payload validation failed and validation is enabled, not '
-                       'dispatching a trigger "%s" (%s): %s' % (trigger, str(payload), str(e)))
+                       'dispatching a trigger "%s" (%s): %s' % (trigger, str(payload),
+                                                                six.text_type(e)))
 
                 if throw_on_validation_error:
                     raise ValueError(msg)

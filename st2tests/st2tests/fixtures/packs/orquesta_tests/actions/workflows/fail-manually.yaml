@@ -1,0 +1,22 @@
+version: 1.0
+
+description: A workflow that demonstrates how to fail manually.
+
+tasks:
+  # On task failure, we want to run a task that
+  # logs the error before failing the workflow.
+  task1:
+    action: core.local cmd="exit 1"
+    next:
+      - when: <% failed() %>
+        publish:
+          - task_name: <% task().task_name %>
+          - task_exit_code: <% task().result.stdout %>
+        do:
+          - log
+          - fail
+
+  log:
+    action: core.echo
+    input:
+      message: "<% ctx().task_name %> failed with exit code: <% ctx().task_exit_code %>"

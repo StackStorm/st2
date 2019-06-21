@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -64,7 +63,7 @@ class TriggersRegistrar(ResourceRegistrar):
                     raise e
 
                 LOG.exception('Failed registering all triggers from pack "%s": %s', triggers_dir,
-                              str(e))
+                              six.text_type(e))
 
         return registered_count
 
@@ -97,7 +96,7 @@ class TriggersRegistrar(ResourceRegistrar):
                 raise e
 
             LOG.exception('Failed registering all triggers from pack "%s": %s', triggers_dir,
-                          str(e))
+                          six.text_type(e))
 
         return registered_count
 
@@ -117,10 +116,10 @@ class TriggersRegistrar(ResourceRegistrar):
             except Exception as e:
                 if self._fail_on_failure:
                     msg = ('Failed to register trigger "%s" from pack "%s": %s' % (trigger, pack,
-                                                                                   str(e)))
+                        six.text_type(e)))
                     raise ValueError(msg)
 
-                LOG.debug('Failed to register trigger "%s": %s', trigger, str(e))
+                LOG.debug('Failed to register trigger "%s": %s', trigger, six.text_type(e))
             else:
                 LOG.debug('Trigger "%s" successfully registered', trigger)
                 registered_count += 1

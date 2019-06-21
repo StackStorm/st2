@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -21,7 +20,6 @@ import six
 
 from st2common import log as logging
 from st2common.persistence import policy as policy_access
-from st2common.services import coordination
 
 LOG = logging.getLogger(__name__)
 
@@ -48,10 +46,6 @@ class ResourcePolicyApplicator(object):
 
         :rtype: ``object``
         """
-        # Warn users that the coordination service is not configured
-        if not coordination.configured():
-            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
-
         return target
 
     def apply_after(self, target):
@@ -63,10 +57,6 @@ class ResourcePolicyApplicator(object):
 
         :rtype: ``object``
         """
-        # Warn users that the coordination service is not configured
-        if not coordination.configured():
-            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
-
         return target
 
     def _get_lock_name(self, values):

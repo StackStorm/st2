@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,7 +18,6 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.base import Access
-from st2common.transport import utils as transport_utils
 
 __all__ = [
     'ActionExecution',
@@ -38,8 +36,7 @@ class ActionExecution(Access):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.execution.ActionExecutionPublisher(
-                urls=transport_utils.get_messaging_urls())
+            cls.publisher = transport.execution.ActionExecutionPublisher()
         return cls.publisher
 
     @classmethod
@@ -57,8 +54,7 @@ class ActionExecutionOutput(Access):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.execution.ActionExecutionOutputPublisher(
-                urls=transport_utils.get_messaging_urls())
+            cls.publisher = transport.execution.ActionExecutionOutputPublisher()
         return cls.publisher
 
     @classmethod

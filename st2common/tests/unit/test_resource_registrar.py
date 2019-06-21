@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,8 +13,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 
+import six
 import mock
 from jsonschema import ValidationError
 
@@ -155,7 +156,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         try:
             registrar._register_pack_db(pack_name=None, pack_dir=PACK_PATH_13)
         except ValidationError as e:
-            self.assertTrue("'invalid-has-dash' does not match '^[a-z0-9_]+$'" in str(e))
+            self.assertTrue("'invalid-has-dash' does not match '^[a-z0-9_]+$'" in six.text_type(e))
         else:
             self.fail('Exception not thrown')
 

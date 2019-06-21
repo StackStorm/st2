@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -21,6 +20,7 @@ import logging
 import os
 
 import requests
+import six
 from six.moves.configparser import ConfigParser
 from six.moves import http_client
 
@@ -155,7 +155,7 @@ class LoginCommand(resource.ResourceCommand):
             if self.app.client.debug:
                 raise
 
-            raise Exception('Failed to log in as %s: %s' % (args.username, str(e)))
+            raise Exception('Failed to log in as %s: %s' % (args.username, six.text_type(e)))
 
         print('Logged in as %s' % (args.username))
 
@@ -315,7 +315,7 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
             if not instance:
                 raise Exception('Server did not create instance.')
         except Exception as e:
-            message = str(e)
+            message = six.text_type(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
         if args.only_key:

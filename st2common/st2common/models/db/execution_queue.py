@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -46,9 +45,15 @@ class ActionExecutionSchedulingQueueItemDB(stormbase.StormFoundationDB,
 
     liveaction_id = me.StringField(required=True,
         help_text='Foreign key to the LiveActionDB which is to be scheduled')
+    action_execution_id = me.StringField(
+        help_text='Foreign key to the ActionExecutionDB which is to be scheduled')
+    original_start_timestamp = ComplexDateTimeField(
+        default=date_utils.get_datetime_utc_now,
+        help_text='The timestamp when the liveaction was created and originally be scheduled to '
+                  'run.')
     scheduled_start_timestamp = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
-        help_text='The timestamp when the liveaction was created.')
+        help_text='The timestamp when liveaction is scheduled to run.')
     delay = me.IntField()
     handling = me.BooleanField(default=False,
         help_text='Flag indicating if this item is currently being handled / '
@@ -56,8 +61,13 @@ class ActionExecutionSchedulingQueueItemDB(stormbase.StormFoundationDB,
 
     meta = {
         'indexes': [
-            {'fields': ['liveaction_id']},
-            {'fields': ['scheduled_start_timestamp']},
+            # NOTE: We limit index names to 65 characters total for compatibility with AWS
+            # DocumentDB.
+            # See https://github.com/StackStorm/st2/pull/4690 for details.
+            {'fields': ['action_execution_id'], 'name': 'ac_exc_id'},
+            {'fields': ['liveaction_id'], 'name': 'lv_ac_id'},
+            {'fields': ['original_start_timestamp'], 'name': 'orig_s_ts'},
+            {'fields': ['scheduled_start_timestamp'], 'name': 'schd_s_ts'},
         ]
     }
 

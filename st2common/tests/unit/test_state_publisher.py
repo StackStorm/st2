@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import kombu
 import mock
 import mongoengine as me
@@ -22,7 +22,7 @@ from st2common.models import db
 from st2common.models.db import stormbase
 from st2common.persistence import base as persistence
 from st2common.transport import publishers
-from st2common.transport import utils as transport_utils
+
 from st2tests import DbTestCase
 
 
@@ -30,8 +30,8 @@ FAKE_STATE_MGMT_XCHG = kombu.Exchange('st2.fake.state', type='topic')
 
 
 class FakeModelPublisher(publishers.StatePublisherMixin):
-    def __init__(self, url):
-        super(FakeModelPublisher, self).__init__(url, FAKE_STATE_MGMT_XCHG)
+    def __init__(self):
+        super(FakeModelPublisher, self).__init__(exchange=FAKE_STATE_MGMT_XCHG)
 
 
 class FakeModelDB(stormbase.StormBaseDB):
@@ -49,7 +49,7 @@ class FakeModel(persistence.Access):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = FakeModelPublisher(transport_utils.get_messaging_urls())
+            cls.publisher = FakeModelPublisher()
         return cls.publisher
 
     @classmethod

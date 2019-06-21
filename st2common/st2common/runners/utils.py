@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -133,7 +132,7 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
     try:
         action_instance = action_cls(**kwargs)
     except TypeError as e:
-        if 'unexpected keyword argument \'action_service\'' not in str(e):
+        if 'unexpected keyword argument \'action_service\'' not in six.text_type(e):
             raise e
 
         LOG.debug('Action class (%s) constructor doesn\'t take "action_service" argument, '

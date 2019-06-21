@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,6 +14,8 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import six
 import mongoengine as me
 
 from st2common import config
@@ -130,7 +131,7 @@ def migrate_rules():
             print('Migrating rule: %s to rule: %s' % (rule.name, rule_with_pack.ref))
             RuleWithPack.add_or_update(rule_with_pack)
     except Exception as e:
-        print('Migration failed. %s' % str(e))
+        print('Migration failed. %s' % six.text_type(e))
 
 
 def main():

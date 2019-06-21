@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,6 +14,8 @@
 
 import os
 import os.path
+import stat
+import errno
 
 import six
 from mongoengine import ValidationError
@@ -33,7 +34,7 @@ from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 from st2common.validators.api.misc import validate_not_part_of_system_pack
@@ -100,6 +101,7 @@ class ActionsController(resource.ContentPackResourceController):
         """
 
         permission_type = PermissionType.ACTION_CREATE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
                                                            resource_api=action,
                                                            permission_type=permission_type)
@@ -111,7 +113,7 @@ class ActionsController(resource.ContentPackResourceController):
         except (ValidationError, ValueError,
                 ValueValidationException, InvalidActionParameterException) as e:
             LOG.exception('Unable to create action data=%s', action)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         # Write pack data files to disk (if any are provided)
@@ -144,6 +146,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         # Assert permissions
         permission_type = PermissionType.ACTION_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_db,
                                                           permission_type=permission_type)
@@ -172,7 +175,7 @@ class ActionsController(resource.ContentPackResourceController):
             LOG.debug('/actions/ PUT after add_or_update: %s', action_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Unable to update action data=%s', action)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         # Dispatch an internal trigger for each written data file. This way user
@@ -199,6 +202,7 @@ class ActionsController(resource.ContentPackResourceController):
         action_id = action_db.id
 
         permission_type = PermissionType.ACTION_DELETE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_db,
                                                           permission_type=permission_type)
@@ -206,7 +210,7 @@ class ActionsController(resource.ContentPackResourceController):
         try:
             validate_not_part_of_system_pack(action_db)
         except ValueValidationException as e:
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         LOG.debug('DELETE /actions/ lookup with ref_or_id=%s found object: %s',
                   ref_or_id, action_db)
@@ -216,7 +220,7 @@ class ActionsController(resource.ContentPackResourceController):
         except Exception as e:
             LOG.error('Database delete encountered exception during delete of id="%s". '
                       'Exception was %s', action_id, e)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
         extra = {'action_db': action_db}
@@ -258,7 +262,18 @@ class ActionsController(resource.ContentPackResourceController):
                                                         file_path=file_path)
 
             LOG.debug('Writing data file "%s" to "%s"' % (str(data_file), file_path))
-            self._write_data_file(pack_ref=pack_ref, file_path=file_path, content=content)
+
+            try:
+                self._write_data_file(pack_ref=pack_ref, file_path=file_path, content=content)
+            except (OSError, IOError) as e:
+                # Throw a more user-friendly exception on Permission denied error
+                if e.errno == errno.EACCES:
+                    msg = ('Unable to write data to "%s" (permission denied). Make sure '
+                           'permissions for that pack directory are configured correctly so '
+                           'st2api can write to it.' % (file_path))
+                    raise ValueError(msg)
+                raise e
+
             written_file_paths.append(file_path)
 
         return written_file_paths
@@ -293,7 +308,10 @@ class ActionsController(resource.ContentPackResourceController):
         directory = os.path.dirname(file_path)
 
         if not os.path.isdir(directory):
-            os.makedirs(directory)
+            # NOTE: We apply same permission bits as we do on pack install. If we don't do that,
+            # st2api won't be able to write to pack sub-directory
+            mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH
+            os.makedirs(directory, mode)
 
         with open(file_path, 'w') as fp:
             fp.write(content)

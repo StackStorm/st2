@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -49,7 +48,6 @@ setup(
         'bin/st2-bootstrap-rmq',
         'bin/st2-cleanup-db',
         'bin/st2-register-content',
-        'bin/st2-apply-rbac-definitions',
         'bin/st2-purge-executions',
         'bin/st2-purge-trigger-instances',
         'bin/st2-run-pack-tests',
@@ -68,7 +66,10 @@ setup(
         'st2common.metrics.driver': [
             'statsd = st2common.metrics.drivers.statsd_driver:StatsdDriver',
             'noop = st2common.metrics.drivers.noop_driver:NoopDriver',
-            'echo = st2common.metrics.drivers.echo_driver:EchoDriver',
+            'echo = st2common.metrics.drivers.echo_driver:EchoDriver'
+        ],
+        'st2common.rbac.backend': [
+            'noop = st2common.rbac.backends.noop:NoOpRBACBackend'
         ],
     }
 )

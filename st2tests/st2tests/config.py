@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -21,6 +20,8 @@ from oslo_config import cfg, types
 
 from st2common import log as logging
 import st2common.config as common_config
+from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
+from st2common.constants.garbage_collection import DEFAULT_SLEEP_DELAY
 from st2common.constants.sensors import DEFAULT_PARTITION_LOADER
 from st2tests.fixturesloader import get_fixtures_packs_base_path
 
@@ -28,13 +29,17 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-def parse_args(coordinator_noop=False):
+def reset():
+    cfg.CONF.reset()
+
+
+def parse_args(coordinator_noop=True):
     _setup_config_opts(coordinator_noop=coordinator_noop)
     CONF(args=[])
 
 
-def _setup_config_opts(coordinator_noop=False):
-    cfg.CONF.reset()
+def _setup_config_opts(coordinator_noop=True):
+    reset()
 
     try:
         _register_config_opts()
@@ -53,6 +58,7 @@ def _override_config_opts(coordinator_noop=False):
     _override_api_opts()
     _override_keyvalue_opts()
     _override_scheduler_opts()
+    _override_workflow_engine_opts()
     _override_coordinator_opts(noop=coordinator_noop)
 
 
@@ -66,6 +72,7 @@ def _register_config_opts():
     _register_scheduler_opts()
     _register_exporter_opts()
     _register_sensor_container_opts()
+    _register_garbage_collector_opts()
 
 
 def _override_db_opts():
@@ -110,6 +117,13 @@ def _override_coordinator_opts(noop=False):
     CONF.set_override(name='lock_timeout', override=1, group='coordination')
 
 
+def _override_workflow_engine_opts():
+    cfg.CONF.set_override('retry_stop_max_msec', 500, group='workflow_engine')
+    cfg.CONF.set_override('retry_wait_fixed_msec', 100, group='workflow_engine')
+    cfg.CONF.set_override('retry_max_jitter_msec', 100, group='workflow_engine')
+    cfg.CONF.set_override('gc_max_idle_sec', 1, group='workflow_engine')
+
+
 def _register_common_opts():
     try:
         common_config.register_opts(ignore_errors=True)
@@ -149,7 +163,34 @@ def _register_api_opts():
             help='URL of the messaging server.'),
         cfg.ListOpt(
             'cluster_urls', default=[],
-            help='URL of all the nodes in a messaging service cluster.')
+            help='URL of all the nodes in a messaging service cluster.'),
+        cfg.IntOpt(
+            'connection_retries', default=10,
+            help='How many times should we retry connection before failing.'),
+        cfg.IntOpt(
+            'connection_retry_wait', default=10000,
+            help='How long should we wait between connection retries.'),
+        cfg.BoolOpt(
+            'ssl', default=False,
+            help='Use SSL / TLS to connect to the messaging server. Same as '
+                 'appending "?ssl=true" at the end of the connection URL string.'),
+        cfg.StrOpt(
+            'ssl_keyfile', default=None,
+            help='Private keyfile used to identify the local connection against RabbitMQ.'),
+        cfg.StrOpt(
+            'ssl_certfile', default=None,
+            help='Certificate file used to identify the local connection (client).'),
+        cfg.StrOpt(
+            'ssl_cert_reqs', default=None, choices='none, optional, required',
+            help='Specifies whether a certificate is required from the other side of the '
+                 'connection, and whether it will be validated if provided.'),
+        cfg.StrOpt(
+            'ssl_ca_certs', default=None,
+            help='ca_certs file contains a set of concatenated CA certificates, which are '
+                 'used to validate certificates passed from RabbitMQ.'),
+        cfg.StrOpt(
+            'login_method', default=None,
+            help='Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).')
     ]
 
     _register_opts(messaging_opts, group='messaging')
@@ -251,6 +292,12 @@ def _register_scheduler_opts():
         cfg.FloatOpt(
             'gc_interval', default=5,
             help='How often to look for zombie executions before rescheduling them (in ms).'),
+        cfg.IntOpt(
+            'retry_max_attempt', default=3,
+            help='The maximum number of attempts that the scheduler retries on error.'),
+        cfg.IntOpt(
+            'retry_wait_msec', default=100,
+            help='The number of milliseconds to wait in between retries.')
     ]
 
     _register_opts(scheduler_opts, group='scheduler')
@@ -305,6 +352,45 @@ def _register_sensor_container_opts():
     ]
 
     _register_cli_opts(cli_opts)
+
+
+def _register_garbage_collector_opts():
+    common_opts = [
+        cfg.IntOpt(
+            'collection_interval', default=DEFAULT_COLLECTION_INTERVAL,
+            help='How often to check database for old data and perform garbage collection.'),
+        cfg.FloatOpt(
+            'sleep_delay', default=DEFAULT_SLEEP_DELAY,
+            help='How long to wait / sleep (in seconds) between '
+                 'collection of different object types.')
+    ]
+
+    _register_opts(common_opts, group='garbagecollector')
+
+    ttl_opts = [
+        cfg.IntOpt(
+            'action_executions_ttl', default=None,
+            help='Action executions and related objects (live actions, action output '
+                 'objects) older than this value (days) will be automatically deleted.'),
+        cfg.IntOpt(
+            'action_executions_output_ttl', default=7,
+            help='Action execution output objects (ones generated by action output '
+                 'streaming) older than this value (days) will be automatically deleted.'),
+        cfg.IntOpt(
+            'trigger_instances_ttl', default=None,
+            help='Trigger instances older than this value (days) will be automatically deleted.')
+    ]
+
+    _register_opts(ttl_opts, group='garbagecollector')
+
+    inquiry_opts = [
+        cfg.BoolOpt(
+            'purge_inquiries', default=False,
+            help='Set to True to perform garbage collection on Inquiries (based on '
+                 'the TTL value per Inquiry)')
+    ]
+
+    _register_opts(inquiry_opts, group='garbagecollector')
 
 
 def _register_opts(opts, group=None):

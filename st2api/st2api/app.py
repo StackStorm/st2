@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -45,6 +44,13 @@ def setup_app(config={}):
         monkey_patch()
 
         st2api_config.register_opts()
+        capabilities = {
+            'name': 'api',
+            'listen_host': cfg.CONF.api.host,
+            'listen_port': cfg.CONF.api.port,
+            'type': 'active'
+        }
+
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
@@ -53,6 +59,8 @@ def setup_app(config={}):
                      register_signal_handlers=True,
                      register_internal_trigger_types=True,
                      run_migrations=True,
+                     service_registry=True,
+                     capabilities=capabilities,
                      config_args=config.get('config_args', None))
 
     # Additional pre-run time checks

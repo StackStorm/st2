@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,7 +18,7 @@ from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 
 import st2tests
-import tests as st2api_tests
+from st2tests.api import FunctionalTest
 
 
 TEST_PACK = 'orquesta_tests'
@@ -27,7 +26,7 @@ TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + 
 PACKS = [TEST_PACK_PATH, st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core']
 
 
-class WorkflowInspectionControllerTest(st2api_tests.FunctionalTest, st2tests.WorkflowTestCase):
+class WorkflowInspectionControllerTest(FunctionalTest, st2tests.WorkflowTestCase):
 
     @classmethod
     def setUpClass(cls):

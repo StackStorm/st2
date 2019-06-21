@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,7 +16,7 @@
 from __future__ import absolute_import
 
 from st2common.runners import get_available_backends
-from st2common.runners import get_backend_instance
+from st2common.runners import get_backend_driver
 
 from st2common import config
 config.parse_args()
@@ -26,7 +25,7 @@ runner_names = get_available_backends()
 
 print('Available / installed action runners:')
 for name in runner_names:
-    runner_driver = get_backend_instance(name)
+    runner_driver = get_backend_driver(name)
     runner_instance = runner_driver.get_runner()
     runner_metadata = runner_driver.get_metadata()
 

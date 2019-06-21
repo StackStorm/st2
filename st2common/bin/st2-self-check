@@ -107,6 +107,7 @@ fi
 
 echo "Copying asserts, fixtures, tests and examples packs."
 chown -R root:st2packs st2tests/packs/
+chmod -R 775 st2tests/packs/*
 cp -R --preserve st2tests/packs/* /opt/stackstorm/packs/
 cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
 
@@ -119,14 +120,23 @@ rm -R st2tests/
 popd
 
 # Retrieve test action list
-TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
+TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref" | grep tests.test_`
 
 # Run all the tests
 for TEST in $TEST_ACTION_LIST
 do
     # If -w option is not set, skip Windows related tests
-    # because smbclient is not installed by default.
     if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_windows_runners" ]; then
+        echo "Skipping ${TEST}..."
+        continue
+    fi
+
+    if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_winrm_runners" ]; then
+        echo "Skipping ${TEST}..."
+        continue
+    fi
+
+    if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_winrm_large_script" ]; then
         echo "Skipping ${TEST}..."
         continue
     fi
@@ -140,13 +150,15 @@ do
     echo -n "Attempting Test ${TEST}..."
 
     START_TS=$(date +%s)
-    st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} | grep "status" | grep -q "succeeded"
+    OUTPUT=$(st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN})
+    echo ${OUTPUT} | grep "status" | grep -q "succeeded"
     EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
 
     if [ ${EXIT_CODE} -ne 0 ]; then
         echo -e "ERROR! (${DURATION}s)"
+        echo "Test output: ${OUTPUT}"
         ((ERRORS++))
     else
         echo "OK! (${DURATION}s)"
@@ -157,13 +169,15 @@ if [ ${RUN_MISTRAL_TESTS} = "true" ]; then
     echo -n "Attempting Example examples.mistral_examples..."
 
     START_TS=$(date +%s)
-    st2 run examples.mistral_examples | grep "status" | grep -q "succeeded"
+    OUTPUT=$(st2 run examples.mistral_examples)
+    echo ${OUTPUT} | grep "status" | grep -q "succeeded"
     EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
 
     if [ ${EXIT_CODE} -ne 0 ]; then
         echo -e "ERROR! (${DURATION}s)"
+        echo "Test output: ${OUTPUT}"
         ((ERRORS++))
     else
         echo "OK! (${DURATION}s)"
@@ -176,13 +190,15 @@ if [ ${RUN_ORQUESTA_TESTS} = "true" ]; then
     echo -n "Attempting Example examples.orquesta-examples..."
 
     START_TS=$(date +%s)
-    st2 run examples.orquesta-examples | grep "status" | grep -q "succeeded"
+    OUTPUT=$(st2 run examples.orquesta-examples)
+    echo ${OUTPUT} | grep "status" | grep -q "succeeded"
     EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
 
     if [ ${EXIT_CODE} -ne 0 ]; then
         echo -e "ERROR! (${DURATION}s)"
+        echo "Test output: ${OUTPUT}"
         ((ERRORS++))
     else
         echo "OK! (${DURATION}s)"

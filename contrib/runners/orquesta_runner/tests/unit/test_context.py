@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -18,7 +17,7 @@ from __future__ import absolute_import
 import copy
 import mock
 
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -107,15 +106,16 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(str(t1_ex_db.id))
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(t1_ex_db.status, wf_states.SUCCEEDED)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Check result.
         expected_st2_ctx = {
             'action_execution_id': str(ac_ex_db.id),
             'api_url': 'http://127.0.0.1/v1',
-            'user': 'stanley'
+            'user': 'stanley',
+            'pack': 'orquesta_tests'
         }
 
         expected_st2_ctx_with_wf_ex_id = copy.deepcopy(expected_st2_ctx)
@@ -145,9 +145,9 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
         t1_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))[0]
         t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
-        self.assertEqual(t1_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t1_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Complete subworkflow under task1.
         query_filters = {'workflow_execution': str(t1_wf_ex_db.id), 'task_id': 'task1'}
@@ -167,7 +167,7 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
 
         t1_wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(t1_wf_ex_db.id))
         t1_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(t1_ac_ex_db.id))
-        self.assertEqual(t1_wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.SUCCEEDED)
         self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Complete task1 and main workflow.
@@ -175,8 +175,8 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(str(t1_ex_db.id))
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(t1_ex_db.status, wf_states.SUCCEEDED)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Check result.
@@ -201,9 +201,9 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
         t1_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))[0]
         t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
-        self.assertEqual(t1_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
-        self.assertEqual(t1_wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Complete subworkflow under task1.
         query_filters = {'workflow_execution': str(t1_wf_ex_db.id), 'task_id': 'task1'}
@@ -223,7 +223,7 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
 
         t1_wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(t1_wf_ex_db.id))
         t1_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(t1_ac_ex_db.id))
-        self.assertEqual(t1_wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.SUCCEEDED)
         self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Complete task1 and main workflow.
@@ -231,14 +231,127 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(str(t1_ex_db.id))
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(t1_ex_db.status, wf_states.SUCCEEDED)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Check result.
         expected_result = {
             'output': {
                 'msg': 'Thanos, All your base are belong to us!'
+            }
+        }
+
+        self.assertDictEqual(lv_ac_db.result, expected_result)
+
+    def test_action_context_no_channel(self):
+        wf_name = 'subworkflow-source-channel-from-action-context'
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_name + '.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+
+        # Identify the records for the main workflow.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        t1_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))[0]
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
+        t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
+        self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
+        self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
+
+        # Complete subworkflow under task1.
+        query_filters = {'workflow_execution': str(t1_wf_ex_db.id), 'task_id': 'task1'}
+        t1_t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        t1_t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_t1_ex_db.id))[0]
+        wf_svc.handle_action_execution_completion(t1_t1_ac_ex_db)
+
+        query_filters = {'workflow_execution': str(t1_wf_ex_db.id), 'task_id': 'task2'}
+        t1_t2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        t1_t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_t2_ex_db.id))[0]
+        wf_svc.handle_action_execution_completion(t1_t2_ac_ex_db)
+
+        query_filters = {'workflow_execution': str(t1_wf_ex_db.id), 'task_id': 'task3'}
+        t1_t3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        t1_t3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_t3_ex_db.id))[0]
+        wf_svc.handle_action_execution_completion(t1_t3_ac_ex_db)
+
+        t1_wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(t1_wf_ex_db.id))
+        t1_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(t1_ac_ex_db.id))
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.SUCCEEDED)
+        self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Complete task1 and main workflow.
+        wf_svc.handle_action_execution_completion(t1_ac_ex_db)
+        t1_ex_db = wf_db_access.TaskExecution.get_by_id(str(t1_ex_db.id))
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Check result.
+        expected_result = {
+            'output': {
+                'msg': 'no_channel, All your base are belong to us!'
+            }
+        }
+
+        self.assertDictEqual(lv_ac_db.result, expected_result)
+
+    def test_action_context_source_channel(self):
+        wf_name = 'subworkflow-source-channel-from-action-context'
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_name + '.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'],
+                                             context={'source_channel': 'general'})
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+
+        # Identify the records for the main workflow.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        t1_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))[0]
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
+        t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
+        self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
+        self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
+
+        # Complete subworkflow under task1.
+        query_filters = {'workflow_execution': str(t1_wf_ex_db.id), 'task_id': 'task1'}
+        t1_t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        t1_t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_t1_ex_db.id))[0]
+        wf_svc.handle_action_execution_completion(t1_t1_ac_ex_db)
+
+        query_filters = {'workflow_execution': str(t1_wf_ex_db.id), 'task_id': 'task2'}
+        t1_t2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        t1_t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_t2_ex_db.id))[0]
+        wf_svc.handle_action_execution_completion(t1_t2_ac_ex_db)
+
+        query_filters = {'workflow_execution': str(t1_wf_ex_db.id), 'task_id': 'task3'}
+        t1_t3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        t1_t3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_t3_ex_db.id))[0]
+        wf_svc.handle_action_execution_completion(t1_t3_ac_ex_db)
+
+        t1_wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(t1_wf_ex_db.id))
+        t1_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(t1_ac_ex_db.id))
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.SUCCEEDED)
+        self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Complete task1 and main workflow.
+        wf_svc.handle_action_execution_completion(t1_ac_ex_db)
+        t1_ex_db = wf_db_access.TaskExecution.get_by_id(str(t1_ex_db.id))
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Check result.
+        expected_result = {
+            'output': {
+                'msg': 'general, All your base are belong to us!'
             }
         }
 

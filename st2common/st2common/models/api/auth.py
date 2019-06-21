@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -143,11 +142,13 @@ class ApiKeyAPI(BaseAPI, APIUIDMixin):
 
     @classmethod
     def to_model(cls, instance):
+        # If PrimaryKey ID is provided, - we want to work with existing ST2 API key
+        id = getattr(instance, 'id', None)
         user = str(instance.user) if instance.user else None
         key_hash = getattr(instance, 'key_hash', None)
         metadata = getattr(instance, 'metadata', {})
         enabled = bool(getattr(instance, 'enabled', True))
-        model = cls.model(user=user, key_hash=key_hash, metadata=metadata, enabled=enabled)
+        model = cls.model(id=id, user=user, key_hash=key_hash, metadata=metadata, enabled=enabled)
         return model
 
 

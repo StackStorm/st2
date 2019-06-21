@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,7 +19,6 @@ import socket
 import six
 import retrying
 from oslo_config import cfg
-from kombu import Connection
 from kombu.serialization import register
 from kombu.serialization import pickle
 from kombu.serialization import pickle_protocol
@@ -141,7 +139,8 @@ def _do_predeclare_queue(channel, queue):
 def register_exchanges():
     LOG.debug('Registering exchanges...')
     connection_urls = transport_utils.get_messaging_urls()
-    with Connection(connection_urls) as conn:
+
+    with transport_utils.get_connection() as conn:
         # Use ConnectionRetryWrapper to deal with rmq clustering etc.
         retry_wrapper = ConnectionRetryWrapper(cluster_size=len(connection_urls), logger=LOG)
 

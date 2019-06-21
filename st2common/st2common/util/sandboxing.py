@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -117,7 +116,10 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
     if inherit_parent_virtualenv and hasattr(sys, 'real_prefix'):
         # We are running inside virtualenv
         site_packages_dir = get_python_lib()
-        assert sys.prefix in site_packages_dir
+
+        sys_prefix = os.path.abspath(sys.prefix)
+        assert sys_prefix in site_packages_dir
+
         sandbox_python_path.append(site_packages_dir)
 
     sandbox_python_path = ':'.join(sandbox_python_path)
@@ -158,8 +160,42 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
         python3_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
                                                        virtualenv_directories[0],
                                                        'site-packages')
-        sandbox_python_path = (python3_lib_directory + ':' + python3_site_packages_directory + ':' +
-                               pack_actions_lib_paths + ':' + sandbox_python_path)
+
+        # Work around to make sure we also add system lib dir to PYTHONPATH and not just virtualenv
+        # one (e.g. /usr/lib/python3.6)
+        # NOTE: We can't simply use sys.prefix dir since it will be set to /opt/stackstorm/st2
+
+        system_prefix_dirs = []
+        # Take custom prefix into account (if specified)
+        if cfg.CONF.actionrunner.python3_prefix:
+            system_prefix_dirs.append(cfg.CONF.actionrunner.python3_prefix)
+
+        # By default, Python libs are installed either in /usr/lib/python3.x or
+        # /usr/local/lib/python3.x
+        system_prefix_dirs.extend(['/usr/lib', '/usr/local/lib'])
+
+        for system_prefix_dir in system_prefix_dirs:
+            python3_system_lib_directory = os.path.join(system_prefix_dir,
+                                                        virtualenv_directories[0])
+
+            if os.path.exists(python3_system_lib_directory):
+                break
+
+        if not python3_system_lib_directory or not os.path.exists(python3_system_lib_directory):
+            python3_system_lib_directory = None
+
+        full_sandbox_python_path = []
+
+        # NOTE: Order here is very important for imports to function correctly
+        if python3_system_lib_directory:
+            full_sandbox_python_path.append(python3_system_lib_directory)
+
+        full_sandbox_python_path.append(python3_lib_directory)
+        full_sandbox_python_path.append(python3_site_packages_directory)
+        full_sandbox_python_path.append(pack_actions_lib_paths)
+        full_sandbox_python_path.append(sandbox_python_path)
+
+        sandbox_python_path = ':'.join(full_sandbox_python_path)
 
     return sandbox_python_path
 

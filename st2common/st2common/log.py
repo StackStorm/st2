@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -46,6 +45,9 @@ __all__ = [
     'ignore_statsd_log_messages'
 ]
 
+# NOTE: We set AUDIT to the highest log level which means AUDIT log messages will always be
+# included (e.g. also if log level is set to INFO). To avoid that, we need to explicitly filter
+# out AUDIT log level in service setup code.
 logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
@@ -107,7 +109,7 @@ def decorate_log_method(func):
             # See:
             # - https://docs.python.org/release/2.7.3/library/logging.html#logging.Logger.exception
             # - https://docs.python.org/release/2.7.7/library/logging.html#logging.Logger.exception
-            if 'got an unexpected keyword argument \'extra\'' in str(e):
+            if 'got an unexpected keyword argument \'extra\'' in six.text_type(e):
                 kwargs.pop('extra', None)
                 return func(*args, **kwargs)
             raise e

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -128,7 +127,7 @@ class ResourceRegistrar(object):
             pack_db, _ = self._register_pack(pack_name=pack_name, pack_dir=pack_dir)
         except Exception as e:
             if self._fail_on_failure:
-                msg = 'Failed to register pack "%s": %s' % (pack_name, str(e))
+                msg = 'Failed to register pack "%s": %s' % (pack_name, six.text_type(e))
                 raise ValueError(msg)
 
             LOG.exception('Failed to register pack "%s"' % (pack_name))

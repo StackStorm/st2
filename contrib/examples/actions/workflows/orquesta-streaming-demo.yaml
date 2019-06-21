@@ -1,0 +1,80 @@
+version: 1.0
+description: A workflow which demonstrates action output streaming functionality.
+
+input:
+  - count
+  - sleep_delay
+
+tasks:
+  task1:
+    action: core.local
+    input:
+      cmd: "echo 'Task 1'"
+    next:
+      - when: <% succeeded() %>
+        do: task2
+  task2:
+    action: examples.local_command_runner_print_to_stdout_and_stderr
+    input:
+      count: <% ctx(count) %>
+      sleep_delay: <% ctx(sleep_delay) %>
+    next:
+      - when: <% succeeded() %>
+        do: task3
+  task3:
+    action: core.local
+    input:
+      cmd: "echo 'Task 3'"
+    next:
+      - when: <% succeeded() %>
+        do: task4
+  task4:
+    action: examples.local_script_runner_print_to_stdout_and_stderr
+    input:
+      count: <% ctx(count) %>
+      sleep_delay: <% ctx(sleep_delay) %>
+    next:
+      - when: <% succeeded() %>
+        do: task5
+  task5:
+    action: core.local
+    input:
+      cmd: "echo 'Task 5'"
+    next:
+      - when: <% succeeded() %>
+        do: task6
+  task6:
+    action: examples.python_runner_print_to_stdout_and_stderr
+    input:
+      count: <% ctx(count) %>
+      sleep_delay: <% ctx(sleep_delay) %>
+    next:
+      - when: <% succeeded() %>
+        do: task7
+  task7:
+    action: core.local
+    input:
+      cmd: "echo 'Task 7'"
+    next:
+      - when: <% succeeded() %>
+        do: task8
+  task8:
+    action: examples.remote_command_runner_print_to_stdout_and_stderr
+    input:
+      count: <% ctx(count) %>
+      sleep_delay: <% ctx(sleep_delay) %>
+    next:
+      - when: <% succeeded() %>
+        do: task9
+  task9:
+    action: core.local
+    input:
+      cmd: "echo 'Task 9'"
+    next:
+      - when: <% succeeded() %>
+        do: task10
+  task10:
+    action: examples.remote_script_runner_print_to_stdout_and_stderr
+    input:
+      count: <% ctx(count) %>
+      sleep_delay: <% ctx(sleep_delay) %>

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,12 +13,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import json
 import atexit
 import argparse
 import traceback
 
+import six
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -229,7 +230,7 @@ class SensorWrapper(object):
         except Exception as e:
             # Include traceback
             msg = ('Sensor "%s" run method raised an exception: %s.' %
-                   (self._class_name, str(e)))
+                   (self._class_name, six.text_type(e)))
             self._logger.warn(msg, exc_info=True)
             raise Exception(msg)
 
@@ -288,7 +289,7 @@ class SensorWrapper(object):
         except Exception as e:
             tb_msg = traceback.format_exc()
             msg = ('Failed to load sensor class from file "%s" (sensor file most likely doesn\'t '
-                   'exist or contains invalid syntax): %s' % (self._file_path, str(e)))
+                   'exist or contains invalid syntax): %s' % (self._file_path, six.text_type(e)))
             msg += '\n\n' + tb_msg
             exc_cls = type(e)
             raise exc_cls(msg)

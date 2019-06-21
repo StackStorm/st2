@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -706,7 +705,7 @@ class ActionRunCommandMixin(object):
                 except Exception as e:
                     # TODO: Move transformers in a separate module and handle
                     # exceptions there
-                    if 'malformed string' in str(e):
+                    if 'malformed string' in six.text_type(e):
                         message = ('Invalid value for boolean parameter. '
                                    'Valid values are: true, false')
                         raise ValueError(message)
@@ -1085,6 +1084,8 @@ class ActionExecutionListCommand(ResourceViewCommand):
                                                   status. Possible values are \'%s\', \'%s\', \
                                                   \'%s\', \'%s\', \'%s\', \'%s\' or \'%s\''
                                                   '.' % POSSIBLE_ACTION_STATUS_VALUES))
+        self.group.add_argument('--user',
+                                help='Only return executions created by the provided user.')
         self.group.add_argument('--trigger_instance',
                                 help='Trigger instance id to filter the list.')
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
@@ -1117,6 +1118,8 @@ class ActionExecutionListCommand(ResourceViewCommand):
             kwargs['action'] = args.action
         if args.status:
             kwargs['status'] = args.status
+        if args.user:
+            kwargs['user'] = args.user
         if args.trigger_instance:
             kwargs['trigger_instance'] = args.trigger_instance
         if not args.showall:
@@ -1165,6 +1168,8 @@ class ActionExecutionListCommand(ResourceViewCommand):
 class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+    include_attributes = ['action.ref', 'action.runner_type', 'start_timestamp',
+                          'end_timestamp']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionGetCommand, self).__init__(
@@ -1181,7 +1186,8 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         # We only retrieve attributes which are needed to speed things up
-        include_attributes = self._get_include_attributes(args=args)
+        include_attributes = self._get_include_attributes(args=args,
+                                                          extra_attributes=self.include_attributes)
         if include_attributes:
             include_attributes = ','.join(include_attributes)
             kwargs['params'] = {'include_attributes': include_attributes}

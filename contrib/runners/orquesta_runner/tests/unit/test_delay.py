@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,7 +16,7 @@ from __future__ import absolute_import
 
 import mock
 
-from orquesta import states as wf_states
+from orquesta import statuses as wf_statuses
 
 import st2tests
 
@@ -152,11 +151,11 @@ class OrquestaRunnerDelayTest(st2tests.ExecutionDbTestCase):
             workflows.get_engine().process(t1_ac_ex_db)
 
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
-        self.assertEqual(t1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert the main workflow is completed.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
@@ -205,10 +204,10 @@ class OrquestaRunnerDelayTest(st2tests.ExecutionDbTestCase):
             workflows.get_engine().process(t1_ac_ex_db)
 
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
-        self.assertEqual(t1_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
 
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.RUNNING)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Process the second set of action executions from with items concurrency.
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))
@@ -245,10 +244,10 @@ class OrquestaRunnerDelayTest(st2tests.ExecutionDbTestCase):
             workflows.get_engine().process(t1_ac_ex_db)
 
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
-        self.assertEqual(t1_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Assert the main workflow is completed.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_states.SUCCEEDED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -32,10 +31,9 @@ from st2common.services import coordination
 from st2common.services.keyvalues import get_key_reference
 from st2common.util.keyvalue import get_datastore_full_scope
 from st2common.exceptions.rbac import AccessDeniedError
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
-from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
 
 http_client = six.moves.http_client
 
@@ -93,10 +91,12 @@ class KeyValuePairController(ResourceController):
         current_user = requester_user.name
         user = user or requester_user.name
 
+        rbac_utils = get_rbac_backend().get_utils_class()
+
         # Validate that the authenticated user is admin if user query param is provided
-        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user,
-                                                             require_rbac=True)
+        rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                                        user=user,
+                                                                        require_rbac=True)
 
         # Additional guard to ensure there is no information leakage across users
         is_admin = rbac_utils.user_is_admin(user_db=requester_user)
@@ -159,10 +159,12 @@ class KeyValuePairController(ResourceController):
         current_user = requester_user.name
         user = user or requester_user.name
 
+        rbac_utils = get_rbac_backend().get_utils_class()
+
         # Validate that the authenticated user is admin if user query param is provided
-        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user,
-                                                             require_rbac=True)
+        rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                                        user=user,
+                                                                        require_rbac=True)
 
         from_model_kwargs = {'mask_secrets': not decrypt}
 
@@ -270,9 +272,15 @@ class KeyValuePairController(ResourceController):
         user = getattr(kvp, 'user', requester_user.name) or requester_user.name
 
         # Validate that the authenticated user is admin if user query param is provided
-        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user,
-                                                             require_rbac=True)
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                                        user=user,
+                                                                        require_rbac=True)
+
+        # Validate that encrypted option can only be used by admins
+        encrypted = getattr(kvp, 'encrypted', False)
+        self._validate_encrypted_query_parameter(encrypted=encrypted, scope=scope,
+                                                 requester_user=requester_user)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
@@ -306,15 +314,15 @@ class KeyValuePairController(ResourceController):
                 kvp_db = KeyValuePair.add_or_update(kvp_db)
             except (ValidationError, ValueError) as e:
                 LOG.exception('Validation failed for key value data=%s', kvp)
-                abort(http_client.BAD_REQUEST, str(e))
+                abort(http_client.BAD_REQUEST, six.text_type(e))
                 return
             except CryptoKeyNotSetupException as e:
-                LOG.exception(str(e))
-                abort(http_client.BAD_REQUEST, str(e))
+                LOG.exception(six.text_type(e))
+                abort(http_client.BAD_REQUEST, six.text_type(e))
                 return
             except InvalidScopeException as e:
-                LOG.exception(str(e))
-                abort(http_client.BAD_REQUEST, str(e))
+                LOG.exception(six.text_type(e))
+                abort(http_client.BAD_REQUEST, six.text_type(e))
                 return
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair updated. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
@@ -341,9 +349,10 @@ class KeyValuePairController(ResourceController):
         user = user or requester_user.name
 
         # Validate that the authenticated user is admin if user query param is provided
-        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
-                                                             user=user,
-                                                             require_rbac=True)
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                                        user=user,
+                                                                        require_rbac=True)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
@@ -367,7 +376,7 @@ class KeyValuePairController(ResourceController):
             except Exception as e:
                 LOG.exception('Database delete encountered exception during '
                               'delete of name="%s". ', name)
-                abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+                abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
                 return
 
         extra = {'kvp_db': kvp_db}
@@ -391,6 +400,7 @@ class KeyValuePairController(ResourceController):
         """
         scope = get_datastore_full_scope(scope)
         is_all_scope = (scope == ALL_SCOPE)
+        rbac_utils = get_rbac_backend().get_utils_class()
         is_admin = rbac_utils.user_is_admin(user_db=requester_user)
 
         if is_all_scope and not is_admin:
@@ -402,11 +412,19 @@ class KeyValuePairController(ResourceController):
         Validate that the provider user is either admin or requesting to decrypt value for
         themselves.
         """
+        rbac_utils = get_rbac_backend().get_utils_class()
         is_admin = rbac_utils.user_is_admin(user_db=requester_user)
         is_user_scope = (scope == USER_SCOPE or scope == FULL_USER_SCOPE)
 
         if decrypt and (not is_user_scope and not is_admin):
             msg = 'Decrypt option requires administrator access'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
+
+    def _validate_encrypted_query_parameter(self, encrypted, scope, requester_user):
+        rbac_utils = get_rbac_backend().get_utils_class()
+        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+        if encrypted and not is_admin:
+            msg = 'Pre-encrypted option requires administrator access'
             raise AccessDeniedError(message=msg, user_db=requester_user)
 
     def _validate_scope(self, scope):

@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -18,6 +17,8 @@ Module with utility functions for purging old trigger instance objects.
 """
 
 from __future__ import absolute_import
+
+import six
 from mongoengine.errors import InvalidQueryError
 
 from st2common.persistence.trigger import TriggerInstance
@@ -45,7 +46,7 @@ def purge_trigger_instances(logger, timestamp):
         deleted_count = TriggerInstance.delete_by_query(**query_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete trigger instances: %s'
-               'Please contact support.' % (query_filters, str(e)))
+               'Please contact support.' % (query_filters, six.text_type(e)))
         raise InvalidQueryError(msg)
     except:
         logger.exception('Deleting instances using query_filters %s failed.', query_filters)

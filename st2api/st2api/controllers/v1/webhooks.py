@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -25,7 +24,7 @@ from st2common.models.api.trigger import TriggerAPI
 from st2common.models.db.webhook import WebhookDB
 import st2common.services.triggers as trigger_service
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.services.trigger_dispatcher import TriggerDispatcherService
 from st2common.router import abort
@@ -108,6 +107,7 @@ class WebhooksController(object):
             return
 
         permission_type = PermissionType.WEBHOOK_VIEW
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=WebhookDB(name=url),
                                                           permission_type=permission_type)
@@ -119,6 +119,7 @@ class WebhooksController(object):
         body = webhook_body_api.data
 
         permission_type = PermissionType.WEBHOOK_SEND
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=WebhookDB(name=hook),
                                                           permission_type=permission_type)

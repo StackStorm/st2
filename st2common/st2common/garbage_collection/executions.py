@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,14 +18,18 @@ corresponding live action objects.
 """
 
 from __future__ import absolute_import
+
 import copy
 
+import six
 from mongoengine.errors import InvalidQueryError
 
 from st2common.constants import action as action_constants
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
+from st2common.services import action as action_service
+from st2common.services import workflows as workflow_service
 
 __all__ = [
     'purge_executions',
@@ -86,7 +89,7 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
         deleted_count = ActionExecution.delete_by_query(**exec_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete execution instances: %s'
-               'Please contact support.' % (exec_filters, str(e)))
+               'Please contact support.' % (exec_filters, six.text_type(e)))
         raise InvalidQueryError(msg)
     except:
         logger.exception('Deletion of execution models failed for query with filters: %s.',
@@ -99,7 +102,7 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
         deleted_count = LiveAction.delete_by_query(**liveaction_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete liveaction instances: %s'
-               'Please contact support.' % (liveaction_filters, str(e)))
+               'Please contact support.' % (liveaction_filters, six.text_type(e)))
         raise InvalidQueryError(msg)
     except:
         logger.exception('Deletion of liveaction models failed for query with filters: %s.',
@@ -116,7 +119,7 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
         deleted_count = ActionExecutionOutput.delete_by_query(**output_dbs_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete execution output instances: %s'
-               'Please contact support.' % (output_dbs_filters, str(e)))
+               'Please contact support.' % (output_dbs_filters, six.text_type(e)))
         raise InvalidQueryError(msg)
     except:
         logger.exception('Deletion of execution output models failed for query with filters: %s.',
@@ -165,10 +168,26 @@ def purge_execution_output_objects(logger, timestamp, action_ref=None):
         deleted_count = ActionExecutionOutput.delete_by_query(**filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete execution output instances: %s'
-               'Please contact support.' % (filters, str(e)))
+               'Please contact support.' % (filters, six.text_type(e)))
         raise InvalidQueryError(msg)
     except:
         logger.exception('Deletion of execution output models failed for query with filters: %s.',
                          filters)
     else:
         logger.info('Deleted %s execution output objects' % (deleted_count))
+
+
+def purge_orphaned_workflow_executions(logger):
+    """
+    Purge workflow executions that are idled and identified as orphans.
+    """
+    # Cancel workflow executions that are identified as orphans. The workflow executions are
+    # marked as canceled instead of failed because error handling during normal operation
+    # failed and the system does not know what state the workflow execution is in. A failed
+    # workflow execution can be rerun from failed task(s). Since we do not know what state
+    # the workflow execution is in because correct data may not be recorded in the database
+    # as a result of the original failure, the garbage collection routine here cancels
+    # the workflow execution so it cannot be rerun from failed task(s).
+    for ac_ex_db in workflow_service.identify_orphaned_workflows():
+        lv_ac_db = LiveAction.get(id=ac_ex_db.liveaction['id'])
+        action_service.request_cancellation(lv_ac_db, None)

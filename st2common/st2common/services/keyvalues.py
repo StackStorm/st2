@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,12 +13,15 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common import log as logging
 
+from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE
 from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
 from st2common.constants.keyvalue import ALLOWED_SCOPES
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.models.system.keyvalue import UserKeyReference
 from st2common.persistence.keyvalue import KeyValuePair
@@ -66,7 +68,35 @@ def get_values_for_names(names, default_value=None):
     return result
 
 
-class KeyValueLookup(object):
+class BaseKeyValueLookup(object):
+
+    scope = None
+    _key_prefix = None
+
+    def get_key_name(self):
+        """
+        Function which returns an original key name.
+
+        :rtype: ``str``
+        """
+        key_name_parts = [DATASTORE_PARENT_SCOPE, self.scope]
+        key_name = self._key_prefix.split(':', 1)
+
+        if len(key_name) == 1:
+            key_name = key_name[0]
+        elif len(key_name) >= 2:
+            key_name = key_name[1]
+        else:
+            key_name = ''
+
+        key_name_parts.append(key_name)
+        key_name = '.'.join(key_name_parts)
+        return key_name
+
+
+class KeyValueLookup(BaseKeyValueLookup):
+
+    scope = SYSTEM_SCOPE
 
     def __init__(self, prefix=None, key_prefix=None, cache=None, scope=FULL_SYSTEM_SCOPE):
         if not scope:
@@ -119,13 +149,20 @@ class KeyValueLookup(object):
     def _get_kv(self, key):
         scope = self._scope
         LOG.debug('Lookup system kv: scope: %s and key: %s', scope, key)
-        kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+
+        try:
+            kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+        except StackStormDBObjectNotFoundError:
+            kvp = None
+
         if kvp:
             LOG.debug('Got value %s from datastore.', kvp.value)
         return kvp.value if kvp else ''
 
 
-class UserKeyValueLookup(object):
+class UserKeyValueLookup(BaseKeyValueLookup):
+
+    scope = USER_SCOPE
 
     def __init__(self, user, prefix=None, key_prefix=None, cache=None, scope=FULL_USER_SCOPE):
         if not scope:
@@ -172,7 +209,12 @@ class UserKeyValueLookup(object):
 
     def _get_kv(self, key):
         scope = self._scope
-        kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+
+        try:
+            kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+        except StackStormDBObjectNotFoundError:
+            kvp = None
+
         return kvp.value if kvp else ''
 
 

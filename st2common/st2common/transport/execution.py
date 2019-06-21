@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -32,13 +31,13 @@ EXECUTION_OUTPUT_XCHG = Exchange('st2.execution.output', type='topic')
 
 
 class ActionExecutionPublisher(publishers.CUDPublisher):
-    def __init__(self, urls):
-        super(ActionExecutionPublisher, self).__init__(urls, EXECUTION_XCHG)
+    def __init__(self):
+        super(ActionExecutionPublisher, self).__init__(exchange=EXECUTION_XCHG)
 
 
 class ActionExecutionOutputPublisher(publishers.CUDPublisher):
-    def __init__(self, urls):
-        super(ActionExecutionOutputPublisher, self).__init__(urls, EXECUTION_OUTPUT_XCHG)
+    def __init__(self):
+        super(ActionExecutionOutputPublisher, self).__init__(exchange=EXECUTION_OUTPUT_XCHG)
 
 
 def get_queue(name=None, routing_key=None, exclusive=False, auto_delete=False):

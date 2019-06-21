@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,15 +13,27 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import time
 import types
 import itertools
 
+from oslo_config import cfg
+
 from st2common.constants.api import REQUEST_ID_HEADER
+from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
+from st2common.constants.auth import QUERY_PARAM_API_KEY_ATTRIBUTE_NAME
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
+from st2common.constants.secrets import MASKED_ATTRIBUTES_BLACKLIST
 from st2common import log as logging
 from st2common.router import Request, NotFoundException
 
 LOG = logging.getLogger(__name__)
+
+SECRET_QUERY_PARAMS = [
+    QUERY_PARAM_ATTRIBUTE_NAME,
+    QUERY_PARAM_API_KEY_ATTRIBUTE_NAME
+] + MASKED_ATTRIBUTES_BLACKLIST
 
 try:
     clock = time.perf_counter
@@ -46,12 +57,20 @@ class LoggingMiddleware(object):
 
         request = Request(environ)
 
+        query_params = request.GET.dict_of_lists()
+
+        # Mask secret / sensitive query params
+        secret_query_params = SECRET_QUERY_PARAMS + cfg.CONF.log.mask_secrets_blacklist
+        for param_name in secret_query_params:
+            if param_name in query_params:
+                query_params[param_name] = MASKED_ATTRIBUTE_VALUE
+
         # Log the incoming request
         values = {
             'method': request.method,
             'path': request.path,
             'remote_addr': request.remote_addr,
-            'query': request.GET.dict_of_lists(),
+            'query': query_params,
             'request_id': request.headers.get(REQUEST_ID_HEADER, None)
         }
 

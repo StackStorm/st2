@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,11 +13,12 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rbac import PermissionGrantDB
-from st2common.services.rbac import validate_roles_exists
+from st2common.rbac.backends import get_rbac_backend
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import GLOBAL_PERMISSION_TYPES
 from st2common.util.uid import parse_uid
@@ -250,7 +250,8 @@ class BaseRoleAssigmentAPI(BaseAPI):
         # Custom validation
         if validate_role_exists:
             # Validate that the referenced roles exist in the db
-            validate_roles_exists(role_names=self.roles)  # pylint: disable=no-member
+            rbac_service = get_rbac_backend().get_service_class()
+            rbac_service.validate_roles_exists(role_names=self.roles)  # pylint: disable=no-member
 
         return cleaned
 

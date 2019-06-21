@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,13 +13,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from kombu import Connection
 
 from st2common import log as logging
 from st2common.util import date
 from st2common.constants import action as action_constants
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
+from st2common.persistence.execution import ActionExecution
 from st2common.transport import consumers
 from st2common.transport import utils as transport_utils
 from st2common.transport.queues import ACTIONSCHEDULER_REQUEST_QUEUE
@@ -93,8 +92,12 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         """
         Create ActionExecutionSchedulingQueueItemDB from live action.
         """
+        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+
         execution_queue_item_db = ActionExecutionSchedulingQueueItemDB()
+        execution_queue_item_db.action_execution_id = str(execution.id)
         execution_queue_item_db.liveaction_id = str(liveaction.id)
+        execution_queue_item_db.original_start_timestamp = liveaction.start_timestamp
         execution_queue_item_db.scheduled_start_timestamp = date.append_milliseconds_to_time(
             liveaction.start_timestamp,
             delay or 0
@@ -105,5 +108,5 @@ class SchedulerEntrypoint(consumers.MessageHandler):
 
 
 def get_scheduler_entrypoint():
-    with Connection(transport_utils.get_messaging_urls()) as conn:
+    with transport_utils.get_connection() as conn:
         return SchedulerEntrypoint(conn, [ACTIONSCHEDULER_REQUEST_QUEUE])

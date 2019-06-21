@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -22,7 +21,7 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.services import action as action_service
 from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+from st2tests.api import FunctionalTest
 
 FIXTURES_PACK = 'aliases'
 
@@ -188,9 +187,9 @@ class AliasExecutionTestCase(FunctionalTest):
                        return_value=(None, EXECUTION))
     def test_match_and_execute_matches_one(self, mock_request):
         base_data = {
-            'source_channel': 'chat',
+            'source_channel': 'chat-channel',
             'notification_route': 'hubot',
-            'user': 'chat-user'
+            'user': 'chat-user',
         }
 
         # Command matches - should result in action execution
@@ -204,6 +203,15 @@ class AliasExecutionTestCase(FunctionalTest):
 
         expected_parameters = {'cmd': 'date', 'hosts': 'localhost'}
         self.assertEquals(mock_request.call_args[0][0].parameters, expected_parameters)
+
+        # Also check for source_channel - see
+        # https://github.com/StackStorm/st2/issues/4650
+        actual_context = mock_request.call_args[0][0].context
+
+        self.assertTrue('source_channel' in mock_request.call_args[0][0].context.keys())
+        self.assertEquals(actual_context['source_channel'], 'chat-channel')
+        self.assertEquals(actual_context['api_user'], 'chat-user')
+        self.assertEquals(actual_context['user'], 'stanley')
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))

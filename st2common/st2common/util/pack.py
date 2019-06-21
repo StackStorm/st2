@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -18,6 +17,8 @@ from __future__ import absolute_import
 import os
 import re
 import collections
+
+import six
 
 from st2common.util import schema as util_schema
 from st2common.constants.pack import MANIFEST_FILE_NAME
@@ -119,7 +120,7 @@ def validate_config_against_schema(config_schema, config_object, config_path,
             attribute = str(attribute)
 
         msg = ('Failed validating attribute "%s" in config for pack "%s" (%s): %s' %
-               (attribute, pack_name, config_path, str(e)))
+               (attribute, pack_name, config_path, six.text_type(e)))
         raise jsonschema.ValidationError(msg)
 
     return cleaned

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,11 +14,20 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import re
 import sys
 
 from distutils.version import StrictVersion
+
+# NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    text_type = str
+else:
+    text_type = unicode
 
 GET_PIP = 'curl https://bootstrap.pypa.io/get-pip.py | python'
 
@@ -27,7 +35,7 @@ try:
     import pip
     from pip import __version__ as pip_version
 except ImportError as e:
-    print('Failed to import pip: %s' % (str(e)))
+    print('Failed to import pip: %s' % (text_type(e)))
     print('')
     print('Download pip:\n%s' % (GET_PIP))
     sys.exit(1)
@@ -41,7 +49,7 @@ except ImportError:
     try:
         from pip._internal.req.req_file import parse_requirements
     except ImportError as e:
-        print('Failed to import parse_requirements from pip: %s' % (str(e)))
+        print('Failed to import parse_requirements from pip: %s' % (text_type(e)))
         print('Using pip: %s' % (str(pip_version)))
         sys.exit(1)
 

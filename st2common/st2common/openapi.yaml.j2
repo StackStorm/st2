@@ -1073,6 +1073,20 @@ paths:
           description: Entity id
           type: string
           required: true
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
+          required: false
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -4296,6 +4310,49 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/service_registry/groups:
+    get:
+      operationId: st2api.controllers.v1.service_registry:groups_controller.get_all
+      description: Retrieve available service registry groups.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of available groups.
+          schema:
+            type: object
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/service_registry/groups/{group_id}/members:
+    get:
+      operationId: st2api.controllers.v1.service_registry:members_controller.get_one
+      description: Retrieve active / available members for a particular group.
+      parameters:
+        - name: group_id
+          in: path
+          description: Group ID.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of available members.
+          schema:
+            type: object
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
 
   /auth/v1/tokens:
     post:
@@ -4884,6 +4941,9 @@ definitions:
         type: string
       secret:
         description: Encrypt value before saving the value.
+        type: boolean
+      encrypted:
+        description: Value provided is already encrypted with this instances crypto key and should be stored as-is. This is useful when migrating / loading keys from one StackStorm instance to another.
         type: boolean
       scope:
         description: "Scope the item is under. Example: 'user'."

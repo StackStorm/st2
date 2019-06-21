@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,7 +16,7 @@ from __future__ import absolute_import
 
 import kombu
 
-from orquesta import states
+from orquesta import statuses
 
 from st2common.constants import action as ac_const
 from st2common import log as logging
@@ -80,7 +79,52 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             msg = 'Handler function for message type "%s" is not defined.' % type(message)
             raise ValueError(msg)
 
-        handler_function(message)
+        try:
+            handler_function(message)
+        except Exception as e:
+            # If the exception is caused by DB connection error, then the following
+            # error handling routine will fail as well because it will try to update
+            # the database and fail the workflow execution gracefully. In this case,
+            # the garbage collector will find and cancel these workflow executions.
+            self.fail_workflow_execution(message, e)
+
+    def fail_workflow_execution(self, message, exception):
+        # Prepare attributes based on message type.
+        if isinstance(message, wf_db_models.WorkflowExecutionDB):
+            msg_type = 'workflow'
+            wf_ex_db = message
+            wf_ex_id = str(wf_ex_db.id)
+            task = None
+        else:
+            msg_type = 'task'
+            ac_ex_db = message
+            wf_ex_id = ac_ex_db.context['orquesta']['workflow_execution_id']
+            task_ex_id = ac_ex_db.context['orquesta']['task_execution_id']
+            wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+            task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+            task = {'id': task_ex_db.task_id, 'route': task_ex_db.task_route}
+
+        # Log the error.
+        LOG.error(
+            '[%s] Unknown error while processing %s execution. %s: %s',
+            wf_ex_db.action_execution,
+            msg_type,
+            exception.__class__.__name__,
+            str(exception)
+        )
+
+        # Fail the task execution so it's marked correctly in the
+        # conductor state to allow for task rerun if needed.
+        if isinstance(message, ex_db_models.ActionExecutionDB):
+            msg = '[%s] Unknown error while processing %s execution. Failing task execution "%s".'
+            LOG.error(msg, wf_ex_db.action_execution, msg_type, task_ex_id)
+            wf_svc.update_task_execution(task_ex_id, ac_const.LIVEACTION_STATUS_FAILED)
+            wf_svc.update_task_state(task_ex_id, ac_const.LIVEACTION_STATUS_FAILED)
+
+        # Fail the workflow execution.
+        msg = '[%s] Unknown error while processing %s execution. Failing workflow execution "%s".'
+        LOG.error(msg, wf_ex_db.action_execution, msg_type, wf_ex_id)
+        wf_svc.fail_workflow_execution(wf_ex_id, exception, task=task)
 
     def handle_workflow_execution(self, wf_ex_db):
         # Request the next set of tasks to execute.
@@ -105,17 +149,11 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         LOG.info(msg, wf_ac_ex_id, str(ac_ex_db.id), task_ex_db.task_id, ac_ex_db.status)
 
         # Skip if task execution is already in completed state.
-        if task_ex_db.status in states.COMPLETED_STATES:
-            LOG.info(
-                '[%s] Action execution "%s" for task "%s" is not processed because '
-                'task execution "%s" is already in completed state "%s".',
-                wf_ac_ex_id,
-                str(ac_ex_db.id),
-                task_ex_db.task_id,
-                str(task_ex_db.id),
-                task_ex_db.status
-            )
-
+        if task_ex_db.status in statuses.COMPLETED_STATUSES:
+            msg = ('[%s] Action execution "%s" for task "%s (%s)", route "%s", is not processed '
+                   'because task execution "%s" is already in completed state "%s".')
+            LOG.info(msg, wf_ac_ex_id, str(ac_ex_db.id), task_ex_db.task_id,
+                     str(task_ex_db.task_route), str(task_ex_db.id), task_ex_db.status)
             return
 
         # Process pending request on the action execution.

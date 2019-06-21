@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -13,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
 from mongoengine import ValidationError
 from six.moves import http_client
 
@@ -25,7 +25,7 @@ from st2common.persistence.policy import PolicyType, Policy
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 
@@ -63,6 +63,7 @@ class PolicyTypeController(resource.ResourceController):
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
         permission_type = PermissionType.POLICY_TYPE_VIEW
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=instance,
                                                           permission_type=permission_type)
@@ -152,6 +153,7 @@ class PolicyController(resource.ContentPackResourceController):
                 POST /policies/
         """
         permission_type = PermissionType.POLICY_CREATE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
                                                            resource_api=instance,
                                                            permission_type=permission_type)
@@ -177,6 +179,7 @@ class PolicyController(resource.ContentPackResourceController):
         LOG.debug('%s found object: %s', op, db_model)
 
         permission_type = PermissionType.POLICY_MODIFY
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=db_model,
                                                           permission_type=permission_type)
@@ -187,7 +190,7 @@ class PolicyController(resource.ContentPackResourceController):
             validate_not_part_of_system_pack(db_model)
         except ValueValidationException as e:
             LOG.exception('%s unable to update object from system pack.', op)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         if not getattr(instance, 'pack', None):
             instance.pack = db_model.pack
@@ -198,7 +201,7 @@ class PolicyController(resource.ContentPackResourceController):
             db_model = self.access.add_or_update(db_model)
         except (ValidationError, ValueError) as e:
             LOG.exception('%s unable to update object: %s', op, db_model)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         LOG.debug('%s updated object: %s', op, db_model)
@@ -222,6 +225,7 @@ class PolicyController(resource.ContentPackResourceController):
         LOG.debug('%s found object: %s', op, db_model)
 
         permission_type = PermissionType.POLICY_DELETE
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=db_model,
                                                           permission_type=permission_type)
@@ -230,13 +234,13 @@ class PolicyController(resource.ContentPackResourceController):
             validate_not_part_of_system_pack(db_model)
         except ValueValidationException as e:
             LOG.exception('%s unable to delete object from system pack.', op)
-            abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, six.text_type(e))
 
         try:
             self.access.delete(db_model)
         except Exception as e:
             LOG.exception('%s unable to delete object: %s', op, db_model)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
         LOG.debug('%s deleted object: %s', op, db_model)

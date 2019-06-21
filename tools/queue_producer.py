@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,20 +18,21 @@ A utility script which sends test messages to a queue.
 """
 
 from __future__ import absolute_import
+
 import argparse
 
+import eventlet
 from kombu import Exchange
 
 from st2common import config
-
-from st2common.transport import utils as transport_utils
 from st2common.transport.publishers import PoolPublisher
 
 
 def main(exchange, routing_key, payload):
     exchange = Exchange(exchange, type='topic')
-    publisher = PoolPublisher(urls=transport_utils.get_messaging_urls())
+    publisher = PoolPublisher()
     publisher.publish(payload=payload, exchange=exchange, routing_key=routing_key)
+    eventlet.sleep(0.5)
 
 
 if __name__ == '__main__':

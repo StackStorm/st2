@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,8 +13,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import sys
 
+import six
 import editor
 import yaml
 
@@ -81,7 +82,7 @@ class PackResourceCommand(resource.ResourceCommand):
         except resource.ResourceNotFoundError:
             print("No matching items found")
         except Exception as e:
-            message = str(e)
+            message = six.text_type(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
 
@@ -401,7 +402,7 @@ class PackConfigCommand(resource.ResourceCommand):
                 modified = editor.edit(contents=contents)
                 config = yaml.safe_load(modified)
             except editor.EditorError as e:
-                print(str(e))
+                print(six.text_type(e))
 
         message = '---\nDo you want me to save it?'
         save_dialog = interactive.Question(message, {'default': 'y'})
@@ -426,6 +427,6 @@ class PackConfigCommand(resource.ResourceCommand):
             if self.app.client.debug:
                 raise
 
-            message = str(e)
+            message = six.text_type(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)

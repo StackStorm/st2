@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import six
 
 from mongoengine import ValidationError
@@ -23,7 +23,8 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.constants.triggers import (INTERNAL_TRIGGER_TYPES, ACTION_SENSOR_TRIGGER)
 from st2common.exceptions.db import StackStormDBObjectConflictError
-from st2common.services.triggers import create_trigger_type_db, create_shadow_trigger
+from st2common.services.triggers import create_trigger_type_db
+from st2common.services.triggers import create_shadow_trigger
 from st2common.services.triggers import get_trigger_type_db
 from st2common.models.system.common import ResourceReference
 
@@ -36,11 +37,12 @@ LOG = logging.getLogger(__name__)
 
 def _register_internal_trigger_type(trigger_definition):
     try:
-        trigger_type_db = create_trigger_type_db(trigger_type=trigger_definition)
+        trigger_type_db = create_trigger_type_db(trigger_type=trigger_definition,
+                                                 log_not_unique_error_as_debug=True)
     except (NotUniqueError, StackStormDBObjectConflictError):
         # We ignore conflict error since this operation is idempotent and race is not an issue
-        LOG.debug('Internal trigger type "%s" already exists, ignoring...' %
-                  (trigger_definition['name']), exc_info=True)
+        LOG.debug('Internal trigger type "%s" already exists, ignoring error...' %
+                  (trigger_definition['name']))
 
         ref = ResourceReference.to_string_reference(name=trigger_definition['name'],
                                                     pack=trigger_definition['pack'])
@@ -52,12 +54,13 @@ def _register_internal_trigger_type(trigger_definition):
     # trigger types with parameters do no require a shadow trigger.
     if trigger_type_db and not trigger_type_db.parameters_schema:
         try:
-            trigger_db = create_shadow_trigger(trigger_type_db)
+            trigger_db = create_shadow_trigger(trigger_type_db,
+                log_not_unique_error_as_debug=True)
 
             extra = {'trigger_db': trigger_db}
             LOG.audit('Trigger created for parameter-less internal TriggerType. Trigger.id=%s' %
                       (trigger_db.id), extra=extra)
-        except StackStormDBObjectConflictError:
+        except (NotUniqueError, StackStormDBObjectConflictError):
             LOG.debug('Shadow trigger "%s" already exists. Ignoring.',
                       trigger_type_db.get_reference().ref, exc_info=True)
 
@@ -73,7 +76,11 @@ def register_internal_trigger_types():
     """
     Register internal trigger types.
 
-    Note: This method blocks until all the trigger types have been registered.
+    NOTE 1: This method blocks until all the trigger types have been registered.
+
+    NOTE 2: We log "NotUniqueError" errors under debug and not error. Those errors are not fatal
+    because this operation is idempotent and NotUniqueError simply means internal trigger type
+    has already been registered by some other service.
     """
     action_sensor_enabled = cfg.CONF.action_sensor.enable
 

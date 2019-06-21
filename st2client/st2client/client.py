@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -34,6 +33,8 @@ from st2client.models.core import ConfigManager
 from st2client.models.core import WebhookManager
 from st2client.models.core import StreamManager
 from st2client.models.core import WorkflowManager
+from st2client.models.core import ServiceRegistryGroupsManager
+from st2client.models.core import ServiceRegistryMembersManager
 from st2client.models.core import add_auth_token_to_kwargs_from_env
 
 
@@ -167,6 +168,15 @@ class Client(object):
             self.endpoints['stream'], cacert=self.cacert, debug=self.debug)
         self.managers['Workflow'] = WorkflowManager(
             self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+
+        # Service Registry
+        self.managers['ServiceRegistryGroups'] = ServiceRegistryGroupsManager(
+            models.ServiceRegistryGroup, self.endpoints['api'], cacert=self.cacert,
+            debug=self.debug)
+
+        self.managers['ServiceRegistryMembers'] = ServiceRegistryMembersManager(
+            models.ServiceRegistryMember, self.endpoints['api'], cacert=self.cacert,
+            debug=self.debug)
 
         # RBAC
         self.managers['Role'] = ResourceManager(

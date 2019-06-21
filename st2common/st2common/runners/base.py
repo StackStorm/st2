@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -89,7 +88,7 @@ def get_runner(name, config=None):
                    (name, available_runners))
             LOG.exception(msg)
 
-            raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, str(e)))
+            raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, six.text_type(e)))
 
     LOG.debug('Instance of runner module: %s', module)
 

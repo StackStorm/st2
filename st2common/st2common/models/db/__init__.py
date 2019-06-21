@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -137,7 +136,7 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
         connection.admin.command('ismaster')
     except ConnectionFailure as e:
         LOG.error('Failed to connect to database "%s" @ "%s" as user "%s": %s' %
-                  (db_name, host_string, str(username_string), str(e)))
+                  (db_name, host_string, str(username_string), six.text_type(e)))
         raise e
 
     LOG.info('Successfully connected to database "%s" @ "%s" as user "%s".' % (
@@ -198,14 +197,14 @@ def db_ensure_indexes(model_classes=None):
             # already exists" error.
             # Note: This condition would only be encountered when upgrading existing StackStorm
             # installation from MongoDB 3.2 to 3.4.
-            msg = str(e)
+            msg = six.text_type(e)
             if 'already exists with different options' in msg and 'uid_1' in msg:
                 drop_obsolete_types_indexes(model_class=model_class)
             else:
                 raise e
         except Exception as e:
             tb_msg = traceback.format_exc()
-            msg = 'Failed to ensure indexes for model "%s": %s' % (class_name, str(e))
+            msg = 'Failed to ensure indexes for model "%s": %s' % (class_name, six.text_type(e))
             msg += '\n\n' + tb_msg
             exc_cls = type(e)
             raise exc_cls(msg)
@@ -306,11 +305,11 @@ def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_req
         ssl_kwargs['ssl'] = True
         ssl_kwargs['ssl_certfile'] = ssl_certfile
     if ssl_cert_reqs:
-        if ssl_cert_reqs is 'none':
+        if ssl_cert_reqs == 'none':
             ssl_cert_reqs = ssl_lib.CERT_NONE
-        elif ssl_cert_reqs is 'optional':
+        elif ssl_cert_reqs == 'optional':
             ssl_cert_reqs = ssl_lib.CERT_OPTIONAL
-        elif ssl_cert_reqs is 'required':
+        elif ssl_cert_reqs == 'required':
             ssl_cert_reqs = ssl_lib.CERT_REQUIRED
         ssl_kwargs['ssl_cert_reqs'] = ssl_cert_reqs
     if ssl_ca_certs:
@@ -363,7 +362,7 @@ class MongoDBAccess(object):
             try:
                 instances = instances.only(*only_fields)
             except (mongoengine.errors.LookUpError, AttributeError) as e:
-                msg = ('Invalid or unsupported include attribute specified: %s' % str(e))
+                msg = ('Invalid or unsupported include attribute specified: %s' % six.text_type(e))
                 raise ValueError(msg)
 
         instance = instances[0] if instances else None
@@ -507,9 +506,15 @@ class MongoDBAccess(object):
     def _process_null_filters(self, filters):
         result = copy.deepcopy(filters)
 
-        null_filters = {k: v for k, v in six.iteritems(filters)
-                        if v is None or
-                        (type(v) in [str, six.text_type] and str(v.lower()) == 'null')}
+        null_filters = {}
+
+        for key, value in six.iteritems(filters):
+            if value is None:
+                null_filters[key] = value
+            elif isinstance(value, (str, six.text_type)) and value.lower() == 'null':
+                null_filters[key] = value
+            else:
+                continue
 
         for key in null_filters.keys():
             result['%s__exists' % (key)] = False

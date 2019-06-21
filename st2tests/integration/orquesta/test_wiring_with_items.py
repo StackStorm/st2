@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -55,6 +54,16 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
 
+    def test_with_items_failure(self):
+        wf_name = 'examples.orquesta-test-with-items-failure'
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        self._wait_for_task(ex, 'task1', num_task_exs=10)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+
     def test_with_items_concurrency(self):
         wf_name = 'examples.orquesta-test-with-items'
 
@@ -101,6 +110,14 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         wf_input = {'tempfiles': self.tempfiles, 'concurrency': concurrency}
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
+
+        # Wait for action executions to run.
+        self._wait_for_task(
+            ex,
+            'task1',
+            ac_const.LIVEACTION_STATUS_RUNNING,
+            num_task_exs=concurrency
+        )
 
         # Cancel the workflow execution.
         self.st2client.executions.delete(ex)

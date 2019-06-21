@@ -1,9 +1,8 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -27,7 +26,7 @@ from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.services import packs as packs_service
 from st2common.models.api.pack import ConfigAPI
@@ -88,6 +87,7 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
             msg = 'Unable to identify resource with pack_ref "%s".' % (pack_ref)
             abort(http_client.NOT_FOUND, msg)
 
+        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=instance,
                                                           permission_type=PermissionType.PACK_VIEW)
@@ -106,7 +106,7 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
             config_api = ConfigAPI(pack=pack_ref, values=vars(pack_config_content))
             config_api.validate(validate_against_schema=True)
         except jsonschema.ValidationError as e:
-            raise ValueValidationException(str(e))
+            raise ValueValidationException(six.text_type(e))
 
         self._dump_config_to_disk(config_api)
 
