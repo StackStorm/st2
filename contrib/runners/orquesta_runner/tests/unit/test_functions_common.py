@@ -163,7 +163,8 @@ class OrquestaFunctionTest(st2tests.ExecutionDbTestCase):
             'data_query_1': ['foobar'],
             'data_pipe_str_1': '{"foo": {"bar": "foobar"}}',
             'data_none_str': data_funcs.NONE_MAGIC_VALUE,
-            'data_str': 'foobar'
+            'data_str': 'foobar',
+            'data_list_str': '- a: 1\n  b: 2\n- x: 3\n  y: 4\n'
         }
 
         self._execute_workflow(wf_name, expected_output)

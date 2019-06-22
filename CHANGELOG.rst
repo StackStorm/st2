@@ -16,6 +16,7 @@ Fixed
 * Fix orquesta st2kv to return empty string and null values. (bug fix) #4678
 * Allow tasks defined in the same task transition with ``fail`` to run for orquesta. (bug fix)
 * Fix workflow service to handle unexpected coordinator and database errors. (bug fix) #4704 #4705
+* Fix filter ``to_yaml_string`` to handle mongoengine base types for dict and list. (bug fix) #4700
 
 3.0.1 - May 24, 2019
 --------------------
