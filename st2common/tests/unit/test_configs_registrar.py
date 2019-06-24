@@ -37,6 +37,7 @@ PACK_1_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy
 PACK_6_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_6')
 PACK_19_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_19')
 PACK_11_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_11')
+PACK_22_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_22')
 
 
 class ConfigsRegistrarTestCase(CleanDbTestCase):
@@ -151,6 +152,9 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
                                 base_dirs=packs_base_paths)
 
     def test_register_all_configs_with_config_schema_validation_validation_failure_3(self):
+        # This test checks for values containing "decrypt_kv" jinja filter in the config
+        # object where keys have "secret: True" set in the schema.
+
         # Verify DB is empty
         pack_dbs = Pack.get_all()
         config_dbs = Config.get_all()
@@ -170,7 +174,38 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
 
         expected_msg = ('Values specified as "secret: True" in config schema are automatically '
                         'decrypted by default. Use of "decrypt_kv" jinja filter is not allowed '
-                        'for such values.')
+                        'for such values. Please check the specified values in the config or '
+                        'the default values in the schema.')
+
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                registrar.register_from_packs,
+                                base_dirs=packs_base_paths)
+
+    def test_register_all_configs_with_config_schema_validation_validation_failure_4(self):
+        # This test checks for default values containing "decrypt_kv" jinja filter for
+        # keys which have "secret: True" set.
+
+        # Verify DB is empty
+        pack_dbs = Pack.get_all()
+        config_dbs = Config.get_all()
+
+        self.assertEqual(len(pack_dbs), 0)
+        self.assertEqual(len(config_dbs), 0)
+
+        registrar = ConfigsRegistrar(use_pack_cache=False, fail_on_failure=True,
+                                     validate_configs=True)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_22': PACK_22_PATH}
+
+        # Register ConfigSchema for pack
+        registrar._register_pack_db = mock.Mock()
+        registrar._register_pack(pack_name='dummy_pack_22', pack_dir=PACK_22_PATH)
+        packs_base_paths = content_utils.get_packs_base_paths()
+
+        expected_msg = ('Values specified as "secret: True" in config schema are automatically '
+                        'decrypted by default. Use of "decrypt_kv" jinja filter is not allowed '
+                        'for such values. Please check the specified values in the config or '
+                        'the default values in the schema.')
 
         self.assertRaisesRegexp(ValueError, expected_msg,
                                 registrar.register_from_packs,

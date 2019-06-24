@@ -104,14 +104,6 @@ def validate_config_against_schema(config_schema, config_object, config_path,
 
     pack_name = pack_name or 'unknown'
 
-    for key in config_object:
-        if (jinja_utils.is_jinja_expression(value=config_object.get(key)) and
-                "decrypt_kv" in config_object.get(key) and config_schema.get(key).get('secret')):
-            raise ValueValidationException('Values specified as "secret: True" in config schema '
-                                           'are automatically decrypted by default. Use of '
-                                           '"decrypt_kv" jinja filter is not allowed for such '
-                                           'values.')
-
     schema = util_schema.get_schema_for_resource_parameters(parameters_schema=config_schema,
                                                             allow_additional_properties=True)
     instance = config_object
@@ -120,6 +112,14 @@ def validate_config_against_schema(config_schema, config_object, config_path,
         cleaned = util_schema.validate(instance=instance, schema=schema,
                                        cls=util_schema.CustomValidator, use_default=True,
                                        allow_default_none=True)
+        for key in cleaned:
+            if (jinja_utils.is_jinja_expression(value=cleaned.get(key)) and
+                    "decrypt_kv" in cleaned.get(key) and config_schema.get(key).get('secret')):
+                raise ValueValidationException('Values specified as "secret: True" in config '
+                                               'schema are automatically decrypted by default. Use '
+                                               'of "decrypt_kv" jinja filter is not allowed for '
+                                               'such values. Please check the specified values in '
+                                               'the config or the default values in the schema.')
     except jsonschema.ValidationError as e:
         attribute = getattr(e, 'path', [])
 

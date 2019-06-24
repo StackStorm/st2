@@ -1,0 +1,9 @@
+---
+  wrong_key_with_invalid_default_value:
+    type: "string"
+    secret: true
+    required: true
+    default: "{{st2kv.user.api_key | decrypt_kv}}"
+  key_with_no_secret_and_no_default:
+    type: "string"
+
