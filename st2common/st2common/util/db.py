@@ -19,16 +19,16 @@ import six
 
 
 def mongodb_to_python_types(value):
+    # Convert MongoDB BaseDict and BaseList types to python dict and list types.
     if isinstance(value, mongoengine.base.datastructures.BaseDict):
         value = dict(value)
-
-    if isinstance(value, mongoengine.base.datastructures.BaseList):
+    elif isinstance(value, mongoengine.base.datastructures.BaseList):
         value = list(value)
 
+    # Recursively traverse the dict and list to convert values.
     if isinstance(value, dict):
         value = {k: mongodb_to_python_types(v) for k, v in six.iteritems(value)}
-
-    if isinstance(value, list):
+    elif isinstance(value, list):
         value = [mongodb_to_python_types(v) for v in value]
 
     return value
