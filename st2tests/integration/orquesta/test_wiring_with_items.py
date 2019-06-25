@@ -171,8 +171,9 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         # Expecting the ex to be canceling, waiting for task1 to complete.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELING)
 
-        # Delete the temporary files.
-        for f in self.tempfiles[0:concurrency]:
+        # Delete all the temporary files. There could be a race as to which
+        # files were picked up in the first batch by with items concurrency.
+        for f in self.tempfiles:
             os.remove(f)
             self.assertFalse(os.path.exists(f))
 
