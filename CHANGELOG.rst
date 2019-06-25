@@ -17,6 +17,12 @@ Fixed
 * Allow tasks defined in the same task transition with ``fail`` to run for orquesta. (bug fix)
 * Fix workflow service to handle unexpected coordinator and database errors. (bug fix) #4704 #4705
 * Fix filter ``to_yaml_string`` to handle mongoengine base types for dict and list. (bug fix) #4700
+* Fixed logging middleware to output a ``content_length`` of ``0`` instead of ``Infinity``
+  when the type of data being returned is not supported. Previously, when the value was
+  set to ``Infinity`` this would result in invalid JSON being output into structured
+  logs. (bug fix) #4722
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
 
 3.0.1 - May 24, 2019
 --------------------
