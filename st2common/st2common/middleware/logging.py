@@ -99,7 +99,7 @@ class LoggingMiddleware(object):
         if isinstance(retval, (types.GeneratorType, itertools.chain)):
             # Note: We don't log the result when return value is a generator, because this would
             # result in calling str() on the generator and as such, exhausting it
-            content_length = [float('inf')]
+            content_length = [0]
             log_result = False
 
         # Log the response
