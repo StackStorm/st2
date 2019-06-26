@@ -107,6 +107,8 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
             config_api.validate(validate_against_schema=True)
         except jsonschema.ValidationError as e:
             raise ValueValidationException(six.text_type(e))
+        except ValueValidationException as e:
+            raise ValueValidationException(six.text_type(e))
 
         self._dump_config_to_disk(config_api)
 
