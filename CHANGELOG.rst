@@ -9,6 +9,8 @@ Changed
 
 * Allow the orquesta st2kv function to return default for nonexistent key. (improvement) #4678
 * Update requests library to latest version (2.22.0) in requirements. (improvement) #4680
+* Disallow "decrypt_kv" filter to be specified in the config for values that are marked as
+  "secret: True" in the schema. (improvement) #4709
 
 Fixed
 ~~~~~
