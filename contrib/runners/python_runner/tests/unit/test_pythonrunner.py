@@ -251,7 +251,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         expected_msg = 'Action .*? is missing entry_point attribute'
         self.assertRaisesRegexp(Exception, expected_msg, runner.run, {})
 
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_action_with_user_supplied_env_vars(self, mock_popen):
         env_vars = {'key1': 'val1', 'key2': 'val2', 'PYTHONPATH': 'foobar'}
 
@@ -275,8 +275,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             else:
                 self.assertEqual(actual_env[key], value)
 
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
-    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
+    @mock.patch('st2common.util.concurrency.spawn')
     def test_action_stdout_and_stderr_is_not_stored_in_db_by_default(self, mock_spawn, mock_popen):
         # Feature should be disabled by default
         values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
@@ -344,8 +344,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         output_dbs = ActionExecutionOutput.get_all()
         self.assertEqual(len(output_dbs), 0)
 
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
-    @mock.patch('st2common.util.green.shell.eventlet.spawn')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
+    @mock.patch('st2common.util.concurrency.spawn')
     def test_action_stdout_and_stderr_is_stored_in_the_db(self, mock_spawn, mock_popen):
         # Feature is enabled
         cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
@@ -406,7 +406,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output_dbs[1].data, mock_stderr[1])
         self.assertEqual(output_dbs[2].data, mock_stderr[2])
 
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
         values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}
 
@@ -478,7 +478,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['exit_code'], 0)
         self.assertEqual(status, 'succeeded')
 
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_common_st2_env_vars_are_available_to_the_action(self, mock_popen):
         mock_process = mock.Mock()
         mock_process.communicate.return_value = ('', '')
@@ -495,7 +495,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         actual_env = call_kwargs['env']
         self.assertCommonSt2EnvVarsAvailableInEnv(env=actual_env)
 
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_pythonpath_env_var_contains_common_libs_config_enabled(self, mock_popen):
         mock_process = mock.Mock()
         mock_process.communicate.return_value = ('', '')
@@ -515,7 +515,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue('PYTHONPATH' in actual_env)
         self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
 
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_pythonpath_env_var_not_contains_common_libs_config_disabled(self, mock_popen):
         mock_process = mock.Mock()
         mock_process.communicate.return_value = ('', '')
@@ -806,7 +806,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
 
     @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
-    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_content_version_contains_common_libs_config_enabled(self, mock_popen,
                                                                  mock_get_sandbox_virtualenv_path):
         # Verify that the common libs path correctly reflects directory in git worktree

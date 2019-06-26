@@ -11,6 +11,10 @@ Changed
 * Update requests library to latest version (2.22.0) in requirements. (improvement) #4680
 * Disallow "decrypt_kv" filter to be specified in the config for values that are marked as
   "secret: True" in the schema. (improvement) #4709
+* Upgrade ``tooz`` library to latest stable version (1.65.0) so it uses latest version of
+  ``grpcio`` library. (improvement) #4713
+* Update ``st2-pack-install`` and ``st2-pack-download`` CLI command so it supports installing
+  packs from local directories which are not git repositories. (improvement) #4713
 
 Fixed
 ~~~~~
@@ -19,6 +23,14 @@ Fixed
 * Allow tasks defined in the same task transition with ``fail`` to run for orquesta. (bug fix)
 * Fix workflow service to handle unexpected coordinator and database errors. (bug fix) #4704 #4705
 * Fix filter ``to_yaml_string`` to handle mongoengine base types for dict and list. (bug fix) #4700
+* Fix timeout handling in the Python runner. In some scenarios where action would time out before
+  producing any output (stdout, stder), timeout was not correctly propagated to the user. (bug fix)
+  #4713
+* Update ``st2common/setup.py`` file so it correctly declares all the dependencies and script
+  files it provides. This way ``st2-pack-*`` commands can be used in a standalone fashion just by
+  installing ``st2common`` Python package and nothing else. (bug fix) #4713
+* Fix ``st2-pack-download`` command so it works in the environments where ``sudo`` binary is not
+  available (e.g. Docker). (bug fix) #4713
 
 3.0.1 - May 24, 2019
 --------------------

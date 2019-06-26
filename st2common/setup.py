@@ -53,14 +53,13 @@ setup(
         'bin/st2-run-pack-tests',
         'bin/st2ctl',
         'bin/st2-generate-symmetric-crypto-key',
-        'bin/migrations/v1.5/st2-migrate-datastore-to-include-scope-secret.py',
-        'bin/migrations/v2.1/st2-migrate-datastore-scopes.py',
-        'bin/migrations/v2.1/st2-migrate-runners.sh',
         'bin/st2-self-check',
         'bin/st2-track-result',
         'bin/st2-validate-pack-config',
         'bin/st2-check-license',
-        'bin/st2-pack-install'
+        'bin/st2-pack-install',
+        'bin/st2-pack-download',
+        'bin/st2-pack-setup-virtualenv'
     ],
     entry_points={
         'st2common.metrics.driver': [
