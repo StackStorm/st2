@@ -57,7 +57,8 @@ class FunctionsWiringTest(base.TestWorkflowExecution):
             'data_query_1': ['foobar'],
             'data_pipe_str_1': '{"foo": {"bar": "foobar"}}',
             'data_none_str': '%*****__%NONE%__*****%',
-            'data_str': 'foobar'
+            'data_str': 'foobar',
+            'data_list_str': '- a: 1\n  b: 2\n- x: 3\n  y: 4\n'
         }
 
         expected_result = {'output': expected_output}
