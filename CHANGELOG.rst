@@ -9,6 +9,8 @@ Changed
 
 * Allow the orquesta st2kv function to return default for nonexistent key. (improvement) #4678
 * Update requests library to latest version (2.22.0) in requirements. (improvement) #4680
+* Disallow "decrypt_kv" filter to be specified in the config for values that are marked as
+  "secret: True" in the schema. (improvement) #4709
 * Upgrade ``tooz`` library to latest stable version (1.65.0) so it uses latest version of
   ``grpcio`` library. (improvement) #4713
 * Update ``st2-pack-install`` and ``st2-pack-download`` CLI command so it supports installing
@@ -19,6 +21,8 @@ Fixed
 
 * Fix orquesta st2kv to return empty string and null values. (bug fix) #4678
 * Allow tasks defined in the same task transition with ``fail`` to run for orquesta. (bug fix)
+* Fix workflow service to handle unexpected coordinator and database errors. (bug fix) #4704 #4705
+* Fix filter ``to_yaml_string`` to handle mongoengine base types for dict and list. (bug fix) #4700
 * Fix timeout handling in the Python runner. In some scenarios where action would time out before
   producing any output (stdout, stder), timeout was not correctly propagated to the user. (bug fix)
   #4713
