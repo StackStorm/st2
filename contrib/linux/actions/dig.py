@@ -39,11 +39,17 @@ class DigAction(Action):
             cmd_args.append('+' + v)
 
         cmd_args.append(hostname)
-        result_list = filter(None, subprocess.Popen(cmd_args,
-                                                    stderr=subprocess.PIPE,
-                                                    stdout=subprocess.PIPE)
-                                             .communicate()[0]
-                                             .split('\n'))
+
+        try:
+            result_list = filter(None, subprocess.Popen(cmd_args,
+                                                        stderr=subprocess.PIPE,
+                                                        stdout=subprocess.PIPE)
+                                 .communicate()[0]
+                                 .split('\n'))
+        except OSError as e:
+            return False, "Can\'t find dig installed in our path (Usually /usr/bin/dig). Is dig installed? \n" + \
+                   "Exception: OSError: " + str(e)
+
         if int(count) > len(result_list) or count <= 0:
             count = len(result_list)
 
