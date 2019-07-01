@@ -1,0 +1,2 @@
+---
+  api_key: "{{st2kv.user.api_key | decrypt_kv}}"

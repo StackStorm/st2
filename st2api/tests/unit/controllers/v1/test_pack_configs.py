@@ -18,7 +18,6 @@ import mock
 
 from st2tests.api import FunctionalTest
 from st2api.controllers.v1.pack_configs import PackConfigsController
-
 from st2tests.fixturesloader import get_fixtures_packs_base_path
 
 __all__ = [
@@ -79,3 +78,16 @@ class PackConfigsControllerTestCase(FunctionalTest):
                                           get_resp.json['values'], expect_errors=True)
         self.assertEqual(put_resp.status_int, 200)
         self.assertEqual(get_resp.json, put_resp_undo.json)
+
+    @mock.patch.object(PackConfigsController, '_dump_config_to_disk', mock.MagicMock())
+    def test_put_invalid_pack_config(self):
+        get_resp = self.app.get('/v1/configs/dummy_pack_11', params={'show_secrets': True},
+                                expect_errors=True)
+        config = copy.copy(get_resp.json['values'])
+        put_resp = self.app.put_json('/v1/configs/dummy_pack_11', config, expect_errors=True)
+        self.assertEqual(put_resp.status_int, 400)
+        expected_msg = ('Values specified as "secret: True" in config schema are automatically '
+                        'decrypted by default. Use of "decrypt_kv" jinja filter is not allowed '
+                        'for such values. Please check the specified values in the config or '
+                        'the default values in the schema.')
+        self.assertTrue(expected_msg in put_resp.json['faultstring'])

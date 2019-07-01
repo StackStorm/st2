@@ -30,6 +30,7 @@ from oslo_config import cfg
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
+from distutils.spawn import find_executable
 
 from st2common import log as logging
 from st2common.content import utils
@@ -62,6 +63,8 @@ LOG = logging.getLogger(__name__)
 CONFIG_FILE = 'config.yaml'
 CURRENT_STACKSTORM_VERSION = get_stackstorm_version()
 CURRENT_PYTHON_VERSION = get_python_version()
+
+SUDO_BINARY = find_executable('sudo')
 
 
 def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, force=False,
@@ -128,9 +131,28 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
             user_home = os.path.expanduser('~')
             abs_local_path = os.path.join(user_home, temp_dir_name)
 
-            # 1. Clone / download the repo
-            clone_repo(temp_dir=abs_local_path, repo_url=pack_url, verify_ssl=verify_ssl,
-                       ref=pack_version)
+            if pack_url.startswith('file://'):
+                # Local pack
+                local_pack_directory = os.path.abspath(os.path.join(pack_url.split('file://')[1]))
+            else:
+                local_pack_directory = None
+
+            # If it's a local pack which is not a git repository, just copy the directory content
+            # over
+            if local_pack_directory and not os.path.isdir(
+                    os.path.join(local_pack_directory, '.git')):
+                if not os.path.isdir(local_pack_directory):
+                    raise ValueError('Local pack directory "%s" doesn\'t exist' %
+                                     (local_pack_directory))
+
+                logger.debug('Detected local pack directory which is not a git repository, just '
+                             'copying files over...')
+
+                shutil.copytree(local_pack_directory, abs_local_path)
+            else:
+                # 1. Clone / download the repo
+                clone_repo(temp_dir=abs_local_path, repo_url=pack_url, verify_ssl=verify_ssl,
+                           ref=pack_version)
 
             pack_ref = get_pack_ref(pack_dir=abs_local_path)
             result[1] = pack_ref
@@ -237,7 +259,7 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
 
 
 def move_pack(abs_repo_base, pack_name, abs_local_path, force_owner_group=True,
-             force_permissions=True, logger=LOG):
+              force_permissions=True, logger=LOG):
     """
     Move pack directory into the final location.
     """
@@ -289,7 +311,14 @@ def apply_pack_owner_group(pack_path):
 
     if pack_group:
         LOG.debug('Changing owner group of "%s" directory to %s' % (pack_path, pack_group))
-        exit_code, _, stderr, _ = shell.run_command(['sudo', 'chgrp', '-R', pack_group, pack_path])
+
+        if SUDO_BINARY:
+            args = ['sudo', 'chgrp', '-R', pack_group, pack_path]
+        else:
+            # Environments where sudo is not available (e.g. docker)
+            args = ['chgrp', '-R', pack_group, pack_path]
+
+        exit_code, _, stderr, _ = shell.run_command(args)
 
         if exit_code != 0:
             # Non fatal, but we still log it

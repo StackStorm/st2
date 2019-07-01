@@ -25,6 +25,8 @@ from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.content.loader import MetaLoader
 from st2common.persistence.pack import Pack
+from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.util import jinja as jinja_utils
 
 __all__ = [
     'get_pack_ref_from_metadata',
@@ -110,6 +112,14 @@ def validate_config_against_schema(config_schema, config_object, config_path,
         cleaned = util_schema.validate(instance=instance, schema=schema,
                                        cls=util_schema.CustomValidator, use_default=True,
                                        allow_default_none=True)
+        for key in cleaned:
+            if (jinja_utils.is_jinja_expression(value=cleaned.get(key)) and
+                    "decrypt_kv" in cleaned.get(key) and config_schema.get(key).get('secret')):
+                raise ValueValidationException('Values specified as "secret: True" in config '
+                                               'schema are automatically decrypted by default. Use '
+                                               'of "decrypt_kv" jinja filter is not allowed for '
+                                               'such values. Please check the specified values in '
+                                               'the config or the default values in the schema.')
     except jsonschema.ValidationError as e:
         attribute = getattr(e, 'path', [])
 
