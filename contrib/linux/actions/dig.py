@@ -47,8 +47,8 @@ class DigAction(Action):
                                  .communicate()[0]
                                  .split('\n'))
         except OSError as e:
-            return False, "Can\'t find dig installed in our path (Usually /usr/bin/dig). Is dig installed? \n" + \
-                   "Exception: OSError: " + str(e)
+            return False, "Can\'t find dig installed in our path (Usually /usr/bin/dig). " \
+                "Is dig installed? \n" + "Exception: OSError: " + str(e)
 
         if int(count) > len(result_list) or count <= 0:
             count = len(result_list)
