@@ -1237,8 +1237,9 @@ def identify_orphaned_workflows():
         runtime = (utc_now_dt - status_change_logs[0]['timestamp']).total_seconds()
 
         # Fetch the task executions for the workflow execution.
+        # Ensure that the root action execution is not being selected.
         wf_ex_id = ac_ex_db.context['workflow_execution']
-        query_filters = {'workflow_execution': wf_ex_id}
+        query_filters = {'workflow_execution': wf_ex_id, 'id__ne': ac_ex_db.id}
         tk_ac_ex_dbs = ex_db_access.ActionExecution.query(**query_filters)
 
         # The workflow execution is orphaned if there are
@@ -1265,9 +1266,7 @@ def identify_orphaned_workflows():
             if len(completed_tasks) > 0 else False
         )
 
-        if (len(tk_ac_ex_dbs) > 0 and (
-                has_active_tasks or (
-                not has_active_tasks and most_recent_completed_task_expired))):
+        if len(tk_ac_ex_dbs) > 0 and not has_active_tasks and most_recent_completed_task_expired:
             msg = '[%s] Workflow action execution will be canceled by garbage collector.'
             LOG.info(msg, str(ac_ex_db.id))
             orphaned.append(ac_ex_db)
