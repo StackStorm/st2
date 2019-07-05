@@ -643,9 +643,10 @@ def register_opts(ignore_errors=False):
             'retry_max_jitter_msec', default=1000,
             help='Max jitter interval to smooth out retries.'),
         cfg.IntOpt(
-            'gc_max_idle_sec', default=900,
+            'gc_max_idle_sec', default=0,
             help='Max seconds to allow workflow execution be idled before it is identified as '
-                 'orphaned and cancelled by the garbage collector.')
+                 'orphaned and cancelled by the garbage collector. A value of zero means the '
+                 'feature is disabled. This is disabled by default.')
     ]
 
     do_register_opts(workflow_engine_opts, group='workflow_engine', ignore_errors=ignore_errors)

@@ -371,6 +371,6 @@ retry_stop_max_msec = 60000
 retry_max_jitter_msec = 1000
 # Interval inbetween retries.
 retry_wait_fixed_msec = 1000
-# Max seconds to allow workflow execution be idled before it is identified as orphaned and cancelled by the garbage collector.
-gc_max_idle_sec = 900
+# Max seconds to allow workflow execution be idled before it is identified as orphaned and cancelled by the garbage collector. A value of zero means the feature is disabled. This is disabled by default.
+gc_max_idle_sec = 0
 
