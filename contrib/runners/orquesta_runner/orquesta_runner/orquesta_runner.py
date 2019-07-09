@@ -14,6 +14,8 @@
 
 from __future__ import absolute_import
 
+import sys
+import traceback
 import uuid
 
 import six
@@ -199,6 +201,8 @@ class OrquestaRunner(runners.AsyncActionRunner):
         return wf_ex_cancelable or ac_ex_cancelable
 
     def cancel(self):
+        result = None
+
         # Try to cancel the target workflow execution.
         try:
             wf_svc.request_cancellation(self.execution)
@@ -208,11 +212,18 @@ class OrquestaRunner(runners.AsyncActionRunner):
         except (wf_svc_exc.WorkflowExecutionNotFoundException,
                 wf_svc_exc.WorkflowExecutionIsCompletedException):
             pass
-        # If there is an unknown exception, then log and rethrow the exception.
-        except Exception as e:
-            msg = '[%s] Unable to cancel workflow execution. %s'
-            LOG.error(msg, str(self.execution.id), str(e))
-            raise e
+        # If there is an unknown exception, then log the error. Continue with the
+        # cancelation sequence below to cancel children and determine final status.
+        # If we rethrow the exception here, the workflow will be stuck in a canceling
+        # state with no options for user to clean up. It is safer to continue with
+        # the cancel then to revert back to some other statuses because the workflow
+        # execution will be in an unknown state.
+        except Exception:
+            _, ex, tb = sys.exc_info()
+            msg = 'Error encountered when canceling workflow execution. %s'
+            result = {'error': msg % str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            msg = '[%s] Error encountered when canceling workflow execution.'
+            LOG.exception(msg, str(self.execution.id))
 
         # Request cancellation of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:
@@ -231,7 +242,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
 
         return (
             status,
-            self.liveaction.result,
+            result if result else self.liveaction.result,
             self.liveaction.context
         )
 
