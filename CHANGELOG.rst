@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix the workflow execution cancelation to proceed even if the workflow execution is not found or
+  completed. (bug fix) #4735
+
 
 3.1.0 - June 27, 2019
 ---------------------
