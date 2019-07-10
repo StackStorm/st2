@@ -14,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import errno
 import subprocess
 import random
 import re
+
 from st2common.runners.base_action import Action
 
 
@@ -46,9 +48,17 @@ class DigAction(Action):
                                                         stdout=subprocess.PIPE)
                                  .communicate()[0]
                                  .split('\n'))
+
+        # NOTE: Python3 supports the FileNotFoundError, the errono.ENOENT is for py2 compat
+        # for Python3:
+        # except FileNotFoundError as e:
+
         except OSError as e:
-            return False, "Can\'t find dig installed in our path (Usually /usr/bin/dig). " \
-                "Is dig installed? \n" + "Exception: OSError: " + str(e)
+            if e.errno == errno.ENOENT:
+                return False, "Can\'t find dig installed in our path (Usually /usr/bin/dig). " \
+                    "Is dig installed? \n" + "Exception: OSError: " + str(e)
+            else:
+                raise e
 
         if int(count) > len(result_list) or count <= 0:
             count = len(result_list)
