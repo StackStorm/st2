@@ -13,6 +13,8 @@ Fixed
   logs. (bug fix) #4722
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fix the workflow execution cancelation to proceed even if the workflow execution is not found or
+  completed. (bug fix) #4735
 
 3.1.0 - June 27, 2019
 ---------------------
