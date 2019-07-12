@@ -15,6 +15,10 @@ Fixed
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
 * Fix the workflow execution cancelation to proceed even if the workflow execution is not found or
   completed. (bug fix) #4735
+* Fixed ``st2 execution get`` and ``st2 run`` not printing the ``action.ref``
+  for non-workflow actions. (bug fix) #4739
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
 
 3.1.0 - June 27, 2019
 ---------------------
