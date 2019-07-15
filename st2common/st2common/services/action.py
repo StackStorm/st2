@@ -30,6 +30,7 @@ from st2common.services import trace as trace_service
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
+from st2common.util import param as param_utils
 
 
 __all__ = [
@@ -176,7 +177,20 @@ def publish_request(liveaction, execution):
 
 
 def request(liveaction):
-    liveaction, execution = create_request(liveaction)
+    # get action_db, runnertype_db for the latter render_live_params
+    action_db = action_utils.get_action_by_ref(liveaction.action)
+    if not action_db:
+        raise ValueError('Action "%s" cannot be found.' % liveaction.action)
+    if not action_db.enabled:
+        raise ValueError('Unable to execute. Action "%s" is disabled.' % liveaction.action)
+    runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
+
+    # try to render/resolve orignal action parameters, so it can pass the schema validation later
+    liveaction.parameters = param_utils.render_live_params(
+        runnertype_db.runner_parameters, action_db.parameters, liveaction.parameters,
+        liveaction.context)
+
+    liveaction, execution = create_request(liveaction, action_db, runnertype_db)
     liveaction, execution = publish_request(liveaction, execution)
 
     return liveaction, execution
