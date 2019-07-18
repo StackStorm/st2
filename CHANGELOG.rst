@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* Install pack with the latest tag version if it exists when branch is not specialized.
+  (improvement) #4743
+
 Fixed
 ~~~~~
 
