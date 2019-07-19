@@ -505,9 +505,6 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         ]
 
         for default_branch, ref in edge_cases:
-            if not ref:
-                ref = PACK_INDEX['test']['version']
-
             self.repo_instance.git = mock.MagicMock(
                 branch=(lambda *args: default_branch),
                 checkout=(lambda *args: True)
@@ -523,7 +520,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
             # Fool _get_gitref into working when its ref == our ref
             def fake_commit(arg_ref):
-                if arg_ref == ref:
+                if not ref or arg_ref == ref:
                     return gitref
                 else:
                     raise BadName()
@@ -532,7 +529,10 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
             action = self.get_action_instance()
 
-            packs = ['test=%s' % (ref)]
+            if ref:
+                packs = ['test=%s' % (ref)]
+            else:
+                packs = ['test']
 
             result = action.run(packs=packs, abs_repo_base=self.repo_base)
             self.assertEqual(result, {'test': 'Success.'})
