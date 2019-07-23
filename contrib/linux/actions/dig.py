@@ -55,8 +55,9 @@ class DigAction(Action):
 
         except OSError as e:
             if e.errno == errno.ENOENT:
-                return False, "Can\'t find dig installed in our path (Usually /usr/bin/dig). " \
-                    "Is dig installed? \n" + "Exception: OSError: " + str(e)
+                return False, "Can't find dig installed in the path (usually /usr/bin/dig). If " \
+                              "dig isn't installed, you can install it with 'sudo yum install " \
+                              "bind-utils' or 'sudo apt install dnsutils'"
             else:
                 raise e
 

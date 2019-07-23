@@ -4,6 +4,19 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fixed logging middleware to output a ``content_length`` of ``0`` instead of ``Infinity``
+  when the type of data being returned is not supported. Previously, when the value was
+  set to ``Infinity`` this would result in invalid JSON being output into structured
+  logs. (bug fix) #4722
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fix the workflow execution cancelation to proceed even if the workflow execution is not found or
+  completed. (bug fix) #4735
+* Added better error handling to `contrib/linux/actions/dig.py` to inform if dig is not installed.
+  Contributed by JP Bourget (@punkrokk Syncurity) #4732
 
 3.1.0 - June 27, 2019
 ---------------------
