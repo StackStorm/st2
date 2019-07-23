@@ -86,8 +86,13 @@ def mock_get_gitref(repo, ref):
     Mock get_gitref function which return mocked object if ref passed is
     PACK_INDEX['test']['version']
     """
-    if ref == 'v%s' % PACK_INDEX['test']['version']:
-        return mock.MagicMock(hexsha=PACK_INDEX['test']['version'])
+    if PACK_INDEX['test']['version'] in ref:
+        if ref[0] == 'v':
+            return mock.MagicMock(hexsha=PACK_INDEX['test']['version'])
+        else:
+            return None
+    elif ref:
+        return mock.MagicMock(hexsha="abcDef")
     else:
         return None
 
