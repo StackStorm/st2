@@ -39,6 +39,13 @@ from orquesta import events
 from orquesta.specs import loader as specs_loader
 from orquesta import statuses as wf_statuses
 
+# Import and parse the test config here otherwise config override at module level
+# will not be applied to the following st2common modules. There is another
+# parse_args when BaseDbTestCase runs class setup. If that is removed, unit tests
+# will failed due to conflict with duplicate DB keys.
+import st2tests.config as tests_config
+tests_config.parse_args()
+
 from st2common.util.api import get_full_public_api_url
 from st2common.constants import action as ac_const
 from st2common.constants.runners import COMMON_ACTION_ENV_VARIABLES
@@ -70,7 +77,10 @@ import st2common.models.db.execution_queue as execution_queue_model
 import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
-import st2tests.config
+
+# After the st2common modules are loaded, reset the test configuration
+# to avoid registration conflicts in other tests that loads st2tests.base.
+tests_config.reset()
 
 # Imports for backward compatibility (those classes have been moved to standalone modules)
 from st2tests.actions import BaseActionTestCase
@@ -203,7 +213,7 @@ class BaseDbTestCase(BaseTestCase):
 
     @classmethod
     def setUpClass(cls):
-        st2tests.config.parse_args()
+        tests_config.parse_args()
 
         if cls.DISPLAY_LOG_MESSAGES:
             config_path = os.path.join(BASE_DIR, '../conf/logging.conf')
@@ -690,6 +700,9 @@ class WorkflowTestCase(ExecutionDbTestCase):
         wf_svc.handle_action_execution_completion(ac_ex_db)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
         self.assertEqual(task_ex_db.status, wf_statuses.SUCCEEDED)
+
+    def sort_workflow_errors(self, errors):
+        return sorted(errors, key=lambda x: x.get('task_id', None))
 
     def assert_task_not_started(self, task_id, route):
         task_ex_dbs = wf_db_access.TaskExecution.query(task_id=task_id, task_route=route)
