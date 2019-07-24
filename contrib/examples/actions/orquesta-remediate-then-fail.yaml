@@ -1,0 +1,6 @@
+---
+name: orquesta-remediate-then-fail
+description: A workflow that demonstrates how to remediate and fail manually.
+runner_type: orquesta
+entry_point: workflows/orquesta-remediate-then-fail.yaml
+enabled: true

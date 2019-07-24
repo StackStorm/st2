@@ -219,6 +219,38 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
+    def test_remediate_then_fail(self):
+        expected_errors = [
+            {
+                'task_id': 'task1',
+                'type': 'error',
+                'message': 'Execution failed. See result for details.',
+                'result': {
+                    'failed': True,
+                    'return_code': 1,
+                    'stderr': '',
+                    'stdout': '',
+                    'succeeded': False
+                }
+            },
+            {
+                'task_id': 'fail',
+                'type': 'error',
+                'message': 'Execution failed. See result for details.'
+            }
+        ]
+
+        ex = self._execute_workflow('examples.orquesta-remediate-then-fail')
+        ex = self._wait_for_completion(ex)
+
+        # Assert that the log task is executed.
+        self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_FAILED)
+        self._wait_for_task(ex, 'log', ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Assert workflow status and result.
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
+
     def test_fail_manually(self):
         expected_errors = [
             {
@@ -240,13 +272,65 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
             }
         ]
 
-        ex = self._execute_workflow('examples.orquesta-fail-manually')
+        expected_output = {
+            'message': '$%#&@#$!!!'
+        }
+
+        wf_input = {'cmd': 'exit 1'}
+        ex = self._execute_workflow('examples.orquesta-error-handling-fail-manually', wf_input)
         ex = self._wait_for_completion(ex)
 
-        # Assert that the log task is executed.
+        # Assert task status.
         self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_FAILED)
-        self._wait_for_task(ex, 'log', ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self._wait_for_task(ex, 'task3', ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Assert workflow status and result.
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': expected_output})
+
+    def test_fail_continue(self):
+        expected_errors = [
+            {
+                'task_id': 'task1',
+                'type': 'error',
+                'message': 'Execution failed. See result for details.',
+                'result': {
+                    'failed': True,
+                    'return_code': 1,
+                    'stderr': '',
+                    'stdout': '',
+                    'succeeded': False
+                }
+            }
+        ]
+
+        expected_output = {
+            'message': '$%#&@#$!!!'
+        }
+
+        wf_input = {'cmd': 'exit 1'}
+        ex = self._execute_workflow('examples.orquesta-error-handling-continue', wf_input)
+        ex = self._wait_for_completion(ex)
+
+        # Assert task status.
+        self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_FAILED)
+
+        # Assert workflow status and result.
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': expected_output})
+
+    def test_fail_noop(self):
+        expected_output = {
+            'message': '$%#&@#$!!!'
+        }
+
+        wf_input = {'cmd': 'exit 1'}
+        ex = self._execute_workflow('examples.orquesta-error-handling-noop', wf_input)
+        ex = self._wait_for_completion(ex)
+
+        # Assert task status.
+        self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_FAILED)
+
+        # Assert workflow status and result.
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, {'output': expected_output})

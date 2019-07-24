@@ -1,0 +1,14 @@
+---
+name: orquesta-error-handling-continue
+pack: examples
+description: Run a local linux command and handle error appropriately.
+runner_type: orquesta
+entry_point: workflows/orquesta-error-handling-continue.yaml
+enabled: true
+parameters:
+  cmd:
+    required: true
+    type: string
+  timeout:
+    type: integer
+    default: 60
