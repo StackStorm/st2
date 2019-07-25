@@ -1,5 +1,6 @@
 ---
 name: orquesta-sequential
+pack: examples
 description: A basic sequential workflow.
 runner_type: orquesta
 entry_point: workflows/orquesta-sequential.yaml
