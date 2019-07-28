@@ -30,7 +30,8 @@ __all__ = [
     'DistUtilsTestCase'
 ]
 
-REQUIREMENTS_PATH = os.path.join(BASE_DIR, '../fixtures/requirements-used-for-tests.txt')
+REQUIREMENTS_PATH_1 = os.path.join(BASE_DIR, '../fixtures/requirements-used-for-tests.txt')
+REQUIREMENTS_PATH_2 = os.path.join(BASE_DIR, '../../../requirements.txt')
 
 
 class DistUtilsTestCase(unittest2.TestCase):
@@ -59,14 +60,22 @@ class DistUtilsTestCase(unittest2.TestCase):
             'git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file' # NOQA
         ]
 
-        reqs, links = fetch_requirements(REQUIREMENTS_PATH)
+        reqs, links = fetch_requirements(REQUIREMENTS_PATH_1)
         self.assertEqual(reqs, expected_reqs)
         self.assertEqual(links, expected_links)
 
         # Verify output of old and new function is the same
-        reqs_old, links_old = old_fetch_requirements(REQUIREMENTS_PATH)
+        reqs_old, links_old = old_fetch_requirements(REQUIREMENTS_PATH_1)
 
         self.assertEqual(reqs_old, expected_reqs)
         self.assertEqual(links_old, expected_links)
+
+        self.assertEqual(reqs_old, reqs)
+        self.assertEqual(links_old, links)
+
+        # Also test it on requirements.txt in repo root
+        reqs, links = fetch_requirements(REQUIREMENTS_PATH_2)
+        reqs_old, links_old = old_fetch_requirements(REQUIREMENTS_PATH_2)
+
         self.assertEqual(reqs_old, reqs)
         self.assertEqual(links_old, links)
