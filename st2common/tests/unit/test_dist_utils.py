@@ -21,9 +21,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_PATH = os.path.join(BASE_DIR, '../../../scripts/')
 
 # Add scripts/ which contain main dist_utils.py to PYTHONPATH
-sys.path.append(SCRIPTS_PATH)
+sys.path.insert(0, SCRIPTS_PATH)
 
 from dist_utils import fetch_requirements
+from dist_utils_old import fetch_requirements as old_fetch_requirements
 
 __all__ = [
     'DistUtilsTestCase'
@@ -53,12 +54,19 @@ class DistUtilsTestCase(unittest2.TestCase):
         ]
         expected_links = [
             'git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper',
-            'git+https://github.com/StackStorm/orquesta.git@224c1a589a6007eb0598a62ee99d674e7836d369#egg=orquesta',
+            'git+https://github.com/StackStorm/orquesta.git@224c1a589a6007eb0598a62ee99d674e7836d369#egg=orquesta', # NOQA
             'git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient',
-            'git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file'
+            'git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file' # NOQA
         ]
 
         reqs, links = fetch_requirements(REQUIREMENTS_PATH)
-
         self.assertEqual(reqs, expected_reqs)
         self.assertEqual(links, expected_links)
+
+        # Verify output of old and new function is the same
+        reqs_old, links_old = old_fetch_requirements(REQUIREMENTS_PATH)
+
+        self.assertEqual(reqs_old, expected_reqs)
+        self.assertEqual(links_old, expected_links)
+        self.assertEqual(reqs_old, reqs)
+        self.assertEqual(links_old, links)
