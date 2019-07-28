@@ -1,3 +1,4 @@
+# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY
 # -*- coding: utf-8 -*-
 # Copyright 2019 Extreme Networks, Inc.
 #
