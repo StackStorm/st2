@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+NOTE: This file is only used for backward compatibility tests with new dist_utils.py in
+st2common/tests/unit/test_dist_utils.py.
+
+DO NOT USE THIS FILE ANYWHERE ELSE!
+"""
+
 from __future__ import absolute_import
 
 import os

@@ -68,6 +68,20 @@ def fetch_requirements(requirements_file_path):
     links = []
     reqs = []
 
+    def _is_link(line):
+        vcs_prefixes = ['git+', 'svn+', 'hg+', 'bzr+']
+
+        for vcs_prefix in vcs_prefixes:
+            if line.startswith(vcs_prefix):
+                req_name = re.findall('.*#egg=(.+).*', line)
+
+                if not req_name:
+                    raise ValueError('Line "%s" is missing "#egg=<package name>"' % (line))
+
+                return True, req_name[0]
+
+        return False, None
+
     with open(requirements_file_path, 'r') as fp:
         for line in fp.readlines():
             line = line.strip()
@@ -75,10 +89,14 @@ def fetch_requirements(requirements_file_path):
             if line.startswith('#') or not line:
                 continue
 
-            if line.startswith('git+'):
+            is_link, req_name = _is_link(line=line)
+
+            if is_link:
                 links.append(line)
             else:
-                reqs.append(line)
+                req_name = line
+
+            reqs.append(req_name)
 
     return (reqs, links)
 
