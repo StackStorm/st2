@@ -8,9 +8,11 @@ OS := $(shell uname)
 ifeq ($(OS),Darwin)
 	VIRTUALENV_DIR ?= virtualenv-osx
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client-osx
+	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components-osx
 else
 	VIRTUALENV_DIR ?= virtualenv
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client
+	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
 PYTHON_VERSION ?= python2.7
@@ -166,6 +168,21 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
+
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
+
+	# Setup PYTHONPATH in bash activate script...
+	# Delete existing entries (if any)
+	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
+	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
+	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
+
+	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
+	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
+	echo 'export PYTHONPATH' >> $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	touch $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
+	chmod +x $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
+	
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \

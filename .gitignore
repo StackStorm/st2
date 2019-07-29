@@ -26,6 +26,8 @@ virtualenv-py3
 virtualenv-osx
 virtualenv-st2client
 virtualenv-st2client-osx
+virtualenv-components
+virtualenv-components-osx
 .venv-st2devbox
 
 # Installer logs
