@@ -1,0 +1,11 @@
+# Don't edit this file. It's generated automatically!
+eventlet==0.24.1
+git+https://github.com/StackStorm/python-mistralclient#egg=python-mistralclient
+gunicorn==19.9.0
+jsonschema==2.6.0
+kombu==4.5.0
+mongoengine==0.17.0
+oslo.config<1.13,>=1.12.1
+oslo.utils<=3.37.0,>=3.36.2
+pymongo==3.7.2
+six==1.12.0
