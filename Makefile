@@ -171,10 +171,8 @@ check-python-packages:
 		echo "Checking component:" $$component; \
 		echo "==========================================================="; \
 		(cd $$component; ../$(VIRTUALENV_DIR)/bin/python setup.py --version) || break; \
-		(cd $$component; ../$(VIRTUALENV_DIR)/bin/python setup.py sdist) || break; \
-		(cd $$component; ../$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps) || break; \
+		(cd $$component; ../$(VIRTUALENV_DIR)/bin/python setup.py sdist bdist_wheel) || break; \
 		(cd $$component; rm -rf dist/; rm -rf $$component.egg-info) || break; \
-		(cd $$component; ../$(VIRTUALENV_DIR)/bin/python setup.py develop --uninstall) || break; \
 	done
 
 .PHONY: checklogs
