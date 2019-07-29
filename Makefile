@@ -20,6 +20,7 @@ BINARIES := bin
 # All components are prefixed by st2 and not .egg-info.
 COMPONENTS := $(shell ls -a | grep ^st2 | grep -v .egg-info)
 COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
+COMPONENTS_WITHOUT_ST2TESTS := $(shell ls -a | grep ^st2 | grep -v .egg-info | grep -v st2tests)
 
 COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
 
@@ -158,6 +159,23 @@ check-requirements: requirements
 	# Update requirements and then make sure no files were changed
 	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit"
 	@echo "All requirements files up-to-date!"
+
+.PHONY: check-python-packages
+check-python-packages:
+	# Make target which verifies all the components Python packages are valid
+	@echo ""
+	@echo "================== CHECK PYTHON PACKAGES ===================="
+	@echo ""
+	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
+		echo "==========================================================="; \
+		echo "Checking component:" $$component; \
+		echo "==========================================================="; \
+		(cd $$component; ../$(VIRTUALENV_DIR)/bin/python setup.py --version) || break; \
+		(cd $$component; ../$(VIRTUALENV_DIR)/bin/python setup.py sdist) || break; \
+		(cd $$component; ../$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps) || break; \
+		(cd $$component; rm -rf dist/; rm -rf $$component.egg-info) || break; \
+		(cd $$component; ../$(VIRTUALENV_DIR)/bin/python setup.py develop --uninstall) || break; \
+	done
 
 .PHONY: checklogs
 checklogs:
@@ -861,7 +879,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
+ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: ci-py3-unit
 ci-py3-unit:
