@@ -24,6 +24,8 @@ Fixed
   completed. (bug fix) #4735
 * Added better error handling to `contrib/linux/actions/dig.py` to inform if dig is not installed.
   Contributed by JP Bourget (@punkrokk Syncurity) #4732
+* Update ``dist_utils`` module which is bundled with ``st2client`` and other Python packages so it
+  doesn't depend on internal pip API and so it works with latest pip version. (bug fix) #4750
 
 3.1.0 - June 27, 2019
 ---------------------

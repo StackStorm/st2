@@ -27,31 +27,18 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     text_type = str
 else:
-    text_type = unicode
+    text_type = unicode  # NOQA
 
 GET_PIP = 'curl https://bootstrap.pypa.io/get-pip.py | python'
 
 try:
     import pip
-    from pip import __version__ as pip_version
 except ImportError as e:
     print('Failed to import pip: %s' % (text_type(e)))
     print('')
     print('Download pip:\n%s' % (GET_PIP))
     sys.exit(1)
 
-try:
-    # pip < 10.0
-    from pip.req import parse_requirements
-except ImportError:
-    # pip >= 10.0
-
-    try:
-        from pip._internal.req.req_file import parse_requirements
-    except ImportError as e:
-        print('Failed to import parse_requirements from pip: %s' % (text_type(e)))
-        print('Using pip: %s' % (str(pip_version)))
-        sys.exit(1)
 
 __all__ = [
     'check_pip_version',
@@ -80,12 +67,43 @@ def fetch_requirements(requirements_file_path):
     """
     links = []
     reqs = []
-    for req in parse_requirements(requirements_file_path, session=False):
-        # Note: req.url was used before 9.0.0 and req.link is used in all the recent versions
-        link = getattr(req, 'link', getattr(req, 'url', None))
-        if link:
-            links.append(str(link))
-        reqs.append(str(req.req))
+
+    def _get_link(line):
+        vcs_prefixes = ['git+', 'svn+', 'hg+', 'bzr+']
+
+        for vcs_prefix in vcs_prefixes:
+            if line.startswith(vcs_prefix) or line.startswith('-e %s' % (vcs_prefix)):
+                req_name = re.findall('.*#egg=(.+)([&|@]).*$', line)
+
+                if not req_name:
+                    req_name = re.findall('.*#egg=(.+?)$', line)
+                else:
+                    req_name = req_name[0]
+
+                if not req_name:
+                    raise ValueError('Line "%s" is missing "#egg=<package name>"' % (line))
+
+                link = line.replace('-e ', '').strip()
+                return link, req_name[0]
+
+        return None, None
+
+    with open(requirements_file_path, 'r') as fp:
+        for line in fp.readlines():
+            line = line.strip()
+
+            if line.startswith('#') or not line:
+                continue
+
+            link, req_name = _get_link(line=line)
+
+            if link:
+                links.append(link)
+            else:
+                req_name = line
+
+            reqs.append(req_name)
+
     return (reqs, links)
 
 
