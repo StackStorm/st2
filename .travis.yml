@@ -12,7 +12,6 @@ branches:
 
 env:
   global:
-    - TRAVIS_EVENT_TYPE=cron
     - IS_NIGHTLY_BUILD=$([ "${TRAVIS_EVENT_TYPE}" = "cron" ] && echo "yes" || echo "no")
     # NOTE: We only enable coverage for master builds and not pull requests
     # since it has huge performance overhead (tests are 50% or so slower)
