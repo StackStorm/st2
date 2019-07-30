@@ -665,6 +665,28 @@ endif
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done
+	@echo
+	@echo "============== runners integration tests with coverage =============="
+	@echo
+	@echo "The tests assume st2 is running on 127.0.0.1."
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; \
+		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
+			nosetests $(NOSE_OPTS) -s -v \
+			$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/integration || exit 1; \
+	done
+	@echo
+	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
+	@echo "The tests assume st2 is running on 127.0.0.1."
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; \
+		COVERAGE_FILE=.coverage.integration.orquesta \
+		nosetests $(NOSE_OPTS) -s -v \
+		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
+
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
@@ -960,7 +982,7 @@ ci-unit: .unit-tests-coverage-html
 	sudo -E ./scripts/travis/prepare-integration.sh
 
 .PHONY: ci-integration
-ci-integration: .ci-prepare-integration .itests-coverage-html .runners-itests-coverage-html .orquesta-itests-coverage-html
+ci-integration: .ci-prepare-integration .itests-coverage-html
 
 .PHONY: ci-runners
 ci-runners: .ci-prepare-integration .runners-itests-coverage-html
