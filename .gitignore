@@ -2,8 +2,6 @@
 *.sqlite
 *.swp
 *.log
-*/requirements.txt
-!st2client/requirements.txt
 .stamp*
 
 # C extensions
@@ -28,6 +26,8 @@ virtualenv-py3
 virtualenv-osx
 virtualenv-st2client
 virtualenv-st2client-osx
+virtualenv-components
+virtualenv-components-osx
 .venv-st2devbox
 
 # Installer logs

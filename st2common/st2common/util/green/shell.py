@@ -127,6 +127,11 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             # Command has timed out, kill the process and propagate the error.
             # Note: We explicitly set the returncode to indicate the timeout.
             LOG.debug('Command execution timeout reached.')
+
+            # NOTE: It's important we set returncode twice - here and below to avoid race in this
+            # function because "kill_func()" is async and "process.kill()" is not.
+            process.returncode = TIMEOUT_EXIT_CODE
+
             if kill_func:
                 LOG.debug('Calling kill_func.')
                 kill_func(process=process)
@@ -134,8 +139,8 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 LOG.debug('Killing process.')
                 process.kill()
 
-            # NOTE: It's imporant to set returncode here, since call to kill()
-            # sets it and overwrites it if we set it earlier
+            # NOTE: It's imporant to set returncode here as well, since call to process.kill() sets
+            # it and overwrites it if we set it earlier.
             process.returncode = TIMEOUT_EXIT_CODE
 
             if read_stdout_func and read_stderr_func:

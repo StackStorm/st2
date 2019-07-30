@@ -1,0 +1,17 @@
+# Don't edit this file. It's generated automatically!
+apscheduler==3.6.0
+eventlet==0.24.1
+git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
+git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
+gitpython==2.1.11
+jinja2==2.10.1
+kombu==4.5.0
+lockfile==0.12.2
+oslo.config<1.13,>=1.12.1
+oslo.utils<=3.37.0,>=3.36.2
+pyinotify==0.9.6
+python-dateutil==2.8.0
+python-json-logger
+pyyaml==5.1
+requests[security]<2.23.0,>=2.22.0
+six==1.12.0

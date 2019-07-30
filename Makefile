@@ -8,9 +8,11 @@ OS := $(shell uname)
 ifeq ($(OS),Darwin)
 	VIRTUALENV_DIR ?= virtualenv-osx
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client-osx
+	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components-osx
 else
 	VIRTUALENV_DIR ?= virtualenv
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client
+	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
 PYTHON_VERSION ?= python2.7
@@ -20,6 +22,7 @@ BINARIES := bin
 # All components are prefixed by st2 and not .egg-info.
 COMPONENTS := $(shell ls -a | grep ^st2 | grep -v .egg-info)
 COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
+COMPONENTS_WITHOUT_ST2TESTS := $(shell ls -a | grep ^st2 | grep -v .egg-info | grep -v st2tests | grep -v st2exporter)
 
 COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
 
@@ -120,6 +123,8 @@ play:
 	@echo
 	@echo TRAVIS_PULL_REQUEST=$(TRAVIS_PULL_REQUEST)
 	@echo
+	@echo TRAVIS_EVENT_TYPE=$(TRAVIS_EVENT_TYPE)
+	@echo
 	@echo NOSE_OPTS=$(NOSE_OPTS)
 	@echo
 	@echo ENABLE_COVERAGE=$(ENABLE_COVERAGE)
@@ -158,6 +163,44 @@ check-requirements: requirements
 	# Update requirements and then make sure no files were changed
 	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit"
 	@echo "All requirements files up-to-date!"
+
+.PHONY: check-python-packages
+check-python-packages:
+	# Make target which verifies all the components Python packages are valid
+	@echo ""
+	@echo "================== CHECK PYTHON PACKAGES ===================="
+	@echo ""
+
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
+		echo "==========================================================="; \
+		echo "Checking component:" $$component; \
+		echo "==========================================================="; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
+	done
+
+.PHONY: check-python-packages-nightly
+check-python-packages-nightly:
+	# NOTE: This is subset of check-python-packages target.
+	# We run more extensive and slower tests as part of the nightly build to speed up PR builds
+	@echo ""
+	@echo "================== CHECK PYTHON PACKAGES ===================="
+	@echo ""
+
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
+		echo "==========================================================="; \
+		echo "Checking component:" $$component; \
+		echo "==========================================================="; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py sdist bdist_wheel) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py develop --no-deps) || exit 1; \
+		($(VIRTUALENV_COMPONENTS_DIR)/bin/python -c "import $$component") || exit 1; \
+		(set -e; cd $$component; rm -rf dist/; rm -rf $$component.egg-info) || exit 1; \
+	done
+
+.PHONY: ci-checks-nightly
+ci-checks-nightly: check-python-packages-nightly
 
 .PHONY: checklogs
 checklogs:
@@ -758,6 +801,8 @@ packs-tests: requirements .packs-tests
 	@echo
 	@echo "==================== packs-tests ===================="
 	@echo
+	# Install st2common to register metrics drivers
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -p FILENAME
 
 
@@ -862,7 +907,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
+ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: ci-py3-unit
 ci-py3-unit:

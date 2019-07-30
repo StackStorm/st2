@@ -1,0 +1,5 @@
+# Don't edit this file. It's generated automatically!
+eventlet==0.24.1
+kombu==4.5.0
+oslo.config<1.13,>=1.12.1
+six==1.12.0
