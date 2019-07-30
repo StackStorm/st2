@@ -15,6 +15,7 @@
 import os
 import sys
 
+import six
 import mock
 import unittest2
 
@@ -55,7 +56,12 @@ class DistUtilsTestCase(unittest2.TestCase):
 
     @mock.patch('sys.exit')
     def test_check_pip_is_installed_failure(self, mock_sys_exit):
-        with mock.patch('__builtin__.__import__') as mock_import:
+        if six.PY3:
+            module_name = 'builtins.__import__'
+        else:
+            module_name = '__builtin__.__import__'
+
+        with mock.patch(module_name) as mock_import:
             mock_import.side_effect = ImportError('not found')
 
             self.assertEqual(mock_sys_exit.call_count, 0)
