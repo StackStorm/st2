@@ -14,7 +14,7 @@ env:
   global:
     # NOTE: We only enable coverage for master builds and not pull requests
     # since it has huge performance overhead (etests are 50% or so slower)
-    - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && echo "yes" || echo "no")
+    - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_EVENT_TYPE}" != "cron" ] && echo "yes" || echo "no")
     # We need to explicitly specify terminal width otherwise some CLI tests fail on container
     # environments where small terminal size is used.
     - COLUMNS=120
@@ -132,7 +132,7 @@ script:
   # Clean up egg-info directories which get created when installing runners
   # NOTE: We enable code coverage and per test timing information on master so build can take twice
   # as long as PR builds
-  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then COMMAND_THRESHOLD=$(expr ${COMMAND_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${COMMAND_THRESHOLD}
+  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_EVENT_TYPE}" != "cron" ]; then COMMAND_THRESHOLD=$(expr ${COMMAND_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${COMMAND_THRESHOLD}
   # Run any additional nightly checks only as part of a nightly (cron) build
   - if [ "${TRAVIS_EVENT_TYPE}" = "cron" ] && [ "${TASK}" = "ci-checks ci-packs-tests" ]; then make ci-checks-nightly fi
   # NOTE: We only generate and submit coverage report for master and version branches
