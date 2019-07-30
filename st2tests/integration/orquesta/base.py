@@ -84,7 +84,7 @@ class TestWorkflowExecution(unittest2.TestCase):
 
     @retrying.retry(
         retry_on_exception=retry_on_exceptions,
-        wait_fixed=3000, stop_max_delay=900000)
+        wait_fixed=500, stop_max_delay=900000)
     def _wait_for_state(self, ex, states):
         if isinstance(states, six.string_types):
             states = [states]
@@ -113,7 +113,7 @@ class TestWorkflowExecution(unittest2.TestCase):
 
     @retrying.retry(
         retry_on_exception=retry_on_exceptions,
-        wait_fixed=3000, stop_max_delay=900000)
+        wait_fixed=500, stop_max_delay=900000)
     def _wait_for_task(self, ex, task, status=None, num_task_exs=1):
         ex = self.st2client.executions.get_by_id(ex.id)
 
