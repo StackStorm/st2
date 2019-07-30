@@ -170,19 +170,22 @@ check-python-packages:
 	@echo ""
 
 	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
+		echo "==========================================================="; \
+		echo "Checking component:" $$component; \
+		echo "==========================================================="; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
+	done
 
-	# Setup PYTHONPATH in bash activate script...
-	# Delete existing entries (if any)
-	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
-	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
-	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
+.PHONY: check-python-packages-nightly
+check-python-packages-nightly:
+	# NOTE: This is subset of check-python-packages target.
+	# We run more extensive and slower tests as part of the nightly build to speed up PR builds
+	@echo ""
+	@echo "================== CHECK PYTHON PACKAGES ===================="
+	@echo ""
 
-	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
-	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
-	echo 'export PYTHONPATH' >> $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
-	touch $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
-	chmod +x $(VIRTUALENV_COMPONENTS_DIR)/bin/activate
-	
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
