@@ -197,6 +197,9 @@ check-python-packages-nightly:
 		(set -e; cd $$component; rm -rf dist/; rm -rf $$component.egg-info) || exit 1; \
 	done
 
+.PHONY: ci-checks-nightly
+ci-checks-nightly: check-python-packages-nightly
+
 .PHONY: checklogs
 checklogs:
 	@echo
