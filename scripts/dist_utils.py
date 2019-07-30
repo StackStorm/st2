@@ -53,6 +53,8 @@ def check_pip_is_installed():
         print('Download pip:\n%s' % (GET_PIP))
         sys.exit(1)
 
+    return True
+
 
 def check_pip_version(min_version='6.0.0'):
     """
@@ -68,6 +70,8 @@ def check_pip_version(min_version='6.0.0'):
                                                                             min_version,
                                                                             GET_PIP))
         sys.exit(1)
+
+    return True
 
 
 def fetch_requirements(requirements_file_path):
