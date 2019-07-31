@@ -193,7 +193,7 @@ class PauseResumeWiringTest(base.TestWorkflowExecution, base.WorkflowControlTest
                                         wait_fixed=1500)
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_SUCCEEDED,
                                   wait_fixed=1500)
- 
+
     def test_pause_from_1_of_2_subworkflows_and_resume_subworkflow_when_workflow_paused(self):
         # Temp files are created during test setup. Ensure the temp files exist.
         path1 = self.temp_file_path_x
