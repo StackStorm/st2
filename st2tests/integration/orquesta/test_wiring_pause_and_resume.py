@@ -15,7 +15,6 @@
 from __future__ import absolute_import
 
 import os
-import eventlet
 
 from integration.orquesta import base
 
@@ -162,38 +161,39 @@ class PauseResumeWiringTest(base.TestWorkflowExecution, base.WorkflowControlTest
         # Launch the workflow. The workflow will wait for the temp file to be deleted.
         params = {'tempfile': path}
         ex = self._execute_workflow('examples.orquesta-test-pause-subworkflow', params)
-        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_RUNNING)
-        tk_exs = self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_RUNNING)
+
+        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_RUNNING, wait_fixed=1500)
+        tk_exs = self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_RUNNING,
+                                     wait_fixed=1500)
 
         # Pause the subworkflow before the temp file is deleted. The task will be
         # paused but workflow will still be running.
         tk_ac_ex = self.st2client.executions.pause(tk_exs[0].id)
 
         # Expecting the workflow is still running and task1 is pausing.
-        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_RUNNING)
-        tk_ac_ex = self._wait_for_state(tk_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING)
+        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_RUNNING,
+                                  wait_fixed=1500)
+        tk_ac_ex = self._wait_for_state(tk_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING,
+                                        wait_fixed=1500)
 
         # Delete the temporary file.
         os.remove(path)
         self.assertFalse(os.path.exists(path))
 
-        # Wait for the workflow and task to be paused.
-        # NOTE: There is a race wheen execution gets in a desired state, but before the child
-        # tasks are written. To avoid that, we use longer sleep delay here.
-        # Better approach would be to try to retry a couple of times until expected num of
-        # tasks is reached (With some hard limit) before failing
-        eventlet.sleep(3)
-
-        tk_ac_ex = self._wait_for_state(tk_ac_ex, ac_const.LIVEACTION_STATUS_PAUSED)
-        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSED)
+        tk_ac_ex = self._wait_for_state(tk_ac_ex, ac_const.LIVEACTION_STATUS_PAUSED,
+                                        wait_fixed=1500)
+        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSED,
+                                  wait_fixed=1500)
 
         # Resume the task.
         tk_ac_ex = self.st2client.executions.resume(tk_ac_ex.id)
 
         # Wait for completion.
-        tk_ac_ex = self._wait_for_state(tk_ac_ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-
+        tk_ac_ex = self._wait_for_state(tk_ac_ex, ac_const.LIVEACTION_STATUS_SUCCEEDED,
+                                        wait_fixed=1500)
+        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_SUCCEEDED,
+                                  wait_fixed=1500)
+ 
     def test_pause_from_1_of_2_subworkflows_and_resume_subworkflow_when_workflow_paused(self):
         # Temp files are created during test setup. Ensure the temp files exist.
         path1 = self.temp_file_path_x
@@ -305,8 +305,10 @@ class PauseResumeWiringTest(base.TestWorkflowExecution, base.WorkflowControlTest
         params = {'file1': path1, 'file2': path2}
         ex = self._execute_workflow('examples.orquesta-test-pause-subworkflows', params)
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_RUNNING)
-        tk1_exs = self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_RUNNING)
-        tk2_exs = self._wait_for_task(ex, 'task2', ac_const.LIVEACTION_STATUS_RUNNING)
+        tk1_exs = self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_RUNNING,
+                                      wait_fixed=1500)
+        tk2_exs = self._wait_for_task(ex, 'task2', ac_const.LIVEACTION_STATUS_RUNNING,
+                                      wait_fixed=1500)
 
         # Pause the subworkflow before the temp file is deleted. The task will be
         # paused but workflow and the other subworkflow will still be running.
@@ -314,8 +316,10 @@ class PauseResumeWiringTest(base.TestWorkflowExecution, base.WorkflowControlTest
 
         # Expecting the workflow is still running and task1 is pausing.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_RUNNING)
-        tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING)
-        tk2_ac_ex = self._wait_for_state(tk2_exs[0], ac_const.LIVEACTION_STATUS_RUNNING)
+        tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING,
+                                         wait_fixed=1500)
+        tk2_ac_ex = self._wait_for_state(tk2_exs[0], ac_const.LIVEACTION_STATUS_RUNNING,
+                                         wait_fixed=1500)
 
         # Pause the other subworkflow before the temp file is deleted. The main
         # workflow will still running because pause is initiated downstream.
@@ -323,8 +327,10 @@ class PauseResumeWiringTest(base.TestWorkflowExecution, base.WorkflowControlTest
 
         # Expecting workflow and subworkflows are pausing.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_RUNNING)
-        tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING)
-        tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING)
+        tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING,
+                                         wait_fixed=1500)
+        tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_PAUSING,
+                                         wait_fixed=1500)
 
         # Delete the temporary files for the subworkflows.
         os.remove(path1)
@@ -334,25 +340,33 @@ class PauseResumeWiringTest(base.TestWorkflowExecution, base.WorkflowControlTest
 
         # Wait for subworkflows to pause. The main workflow will also
         # pause now because no other task is running.
-        tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_PAUSED)
-        tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_PAUSED)
+        tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_PAUSED,
+                                         wait_fixed=1500)
+        tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_PAUSED,
+                                         wait_fixed=1500)
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSED)
 
         # Resume the subworkflow.
         tk1_ac_ex = self.st2client.executions.resume(tk1_ac_ex.id)
 
         # The subworkflow will succeed while the other subworkflow is still paused.
-        tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_PAUSED)
-        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSED)
+        tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_SUCCEEDED,
+                                         wait_fixed=1500)
+        tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_PAUSED,
+                                         wait_fixed=1500)
+        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSED,
+                                  wait_fixed=1500)
 
         # Resume the other subworkflow.
         tk2_ac_ex = self.st2client.executions.resume(tk2_ac_ex.id)
 
         # Wait for completion.
-        tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        tk1_ac_ex = self._wait_for_state(tk1_ac_ex, ac_const.LIVEACTION_STATUS_SUCCEEDED,
+                                         wait_fixed=1500)
+        tk2_ac_ex = self._wait_for_state(tk2_ac_ex, ac_const.LIVEACTION_STATUS_SUCCEEDED,
+                                         wait_fixed=1500)
+        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_SUCCEEDED,
+                                  wait_fixed=1500)
 
     def test_pause_from_all_subworkflows_and_resume_from_parent_workflow(self):
         # Temp files are created during test setup. Ensure the temp files exist.
