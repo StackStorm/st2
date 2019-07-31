@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 
 import os
+import eventlet
 
 from integration.orquesta import base
 
@@ -177,6 +178,12 @@ class PauseResumeWiringTest(base.TestWorkflowExecution, base.WorkflowControlTest
         self.assertFalse(os.path.exists(path))
 
         # Wait for the workflow and task to be paused.
+        # NOTE: There is a race wheen execution gets in a desired state, but before the child
+        # tasks are written. To avoid that, we use longer sleep delay here.
+        # Better approach would be to try to retry a couple of times until expected num of
+        # tasks is reached (With some hard limit) before failing
+        eventlet.sleep(3)
+
         tk_ac_ex = self._wait_for_state(tk_ac_ex, ac_const.LIVEACTION_STATUS_PAUSED)
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_PAUSED)
 

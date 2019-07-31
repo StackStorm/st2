@@ -14,6 +14,7 @@
 
 from __future__ import absolute_import
 
+import eventlet
 from integration.orquesta import base
 
 from st2common.constants import action as ac_const
@@ -244,6 +245,12 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._wait_for_completion(ex)
 
         # Assert that the log task is executed.
+        # NOTE: There is a race wheen execution gets in a desired state, but before the child
+        # tasks are written. To avoid that, we use longer sleep delay here.
+        # Better approach would be to try to retry a couple of times until expected num of
+        # tasks is reached (With some hard limit) before failing
+        eventlet.sleep(2)
+
         self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_FAILED)
         self._wait_for_task(ex, 'log', ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
