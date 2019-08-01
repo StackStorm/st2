@@ -85,99 +85,86 @@ class TestWorkflowExecution(unittest2.TestCase):
 
         return ex
 
-    def _wait_for_state(self, ex, states, wait_fixed=DEFAULT_WAIT_FIXED,
-                        stop_max_delay=DEFAULT_STOP_MAX_DELAY):
+    @retrying.retry(
+        retry_on_exception=retry_on_exceptions,
+        wait_fixed=DEFAULT_WAIT_FIXED, stop_max_delay=DEFAULT_STOP_MAX_DELAY)
+    def _wait_for_state(self, ex, states):
+        if isinstance(states, six.string_types):
+            states = [states]
 
-        @retrying.retry(
-            retry_on_exception=retry_on_exceptions,
-            wait_fixed=wait_fixed, stop_max_delay=stop_max_delay)
-        def inner(ex, states):
-            if isinstance(states, six.string_types):
-                states = [states]
+        for state in states:
+            if state not in action_constants.LIVEACTION_STATUSES:
+                raise ValueError('Status %s is not valid.' % state)
 
-            for state in states:
-                if state not in action_constants.LIVEACTION_STATUSES:
-                    raise ValueError('Status %s is not valid.' % state)
+        try:
+            ex = self.st2client.executions.get_by_id(ex.id)
+            self.assertIn(ex.status, states)
+        except:
+            if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                raise Exception(
+                    'Execution is in completed state "%s" and '
+                    'does not match expected state(s). %s' %
+                    (ex.status, ex.result)
+                )
+            else:
+                raise
 
-            try:
-                ex = self.st2client.executions.get_by_id(ex.id)
-                self.assertIn(ex.status, states)
-            except:
-                if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
-                    raise Exception(
-                        'Execution is in completed state "%s" and '
-                        'does not match expected state(s). %s' %
-                        (ex.status, ex.result)
-                    )
-                else:
-                    raise
-
-            return ex
-        return inner(ex=ex, states=states)
+        return ex
 
     def _get_children(self, ex):
         return self.st2client.executions.query(parent=ex.id)
 
-    def _wait_for_task(self, ex, task, status=None, num_task_exs=1,
-                       wait_fixed=DEFAULT_WAIT_FIXED,
-                       stop_max_delay=DEFAULT_STOP_MAX_DELAY):
+    @retrying.retry(
+        retry_on_exception=retry_on_exceptions,
+        wait_fixed=DEFAULT_WAIT_FIXED, stop_max_delay=DEFAULT_STOP_MAX_DELAY)
+    def _wait_for_task(self, ex, task, status=None, num_task_exs=1):
+        ex = self.st2client.executions.get_by_id(ex.id)
 
-        @retrying.retry(
-            retry_on_exception=retry_on_exceptions,
-            wait_fixed=wait_fixed, stop_max_delay=stop_max_delay)
-        def inner(ex, task, status, num_task_exs):
-            ex = self.st2client.executions.get_by_id(ex.id)
+        task_exs = [
+            task_ex for task_ex in self._get_children(ex)
+            if task_ex.context.get('orquesta', {}).get('task_name', '') == task
+        ]
 
-            task_exs = [
-                task_ex for task_ex in self._get_children(ex)
-                if task_ex.context.get('orquesta', {}).get('task_name', '') == task
-            ]
+        try:
+            self.assertEqual(len(task_exs), num_task_exs)
+        except:
+            if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                raise Exception(
+                    'Execution is in completed state and does not match expected number of '
+                    'tasks. Expected: %s Actual: %s' % (str(num_task_exs), str(len(task_exs)))
+                )
+            else:
+                raise
 
+        if status is not None:
             try:
-                self.assertEqual(len(task_exs), num_task_exs)
+                self.assertTrue(all([task_ex.status == status for task_ex in task_exs]))
             except:
                 if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
                     raise Exception(
-                        'Execution is in completed state and does not match expected number of '
-                        'tasks. Expected: %s Actual: %s' % (str(num_task_exs), str(len(task_exs)))
+                        'Execution is in completed state and not all tasks '
+                        'match expected status "%s".' % status
                     )
                 else:
                     raise
 
-            if status is not None:
-                try:
-                    self.assertTrue(all([task_ex.status == status for task_ex in task_exs]))
-                except:
-                    if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
-                        raise Exception(
-                            'Execution is in completed state and not all tasks '
-                            'match expected status "%s".' % status
-                        )
-                    else:
-                        raise
+        return task_exs
 
-            return task_exs
-        return inner(ex=ex, task=task, status=status, num_task_exs=num_task_exs)
+    @retrying.retry(
+        retry_on_exception=retry_on_exceptions,
+        wait_fixed=DEFAULT_WAIT_FIXED, stop_max_delay=DEFAULT_STOP_MAX_DELAY)
+    def _wait_for_completion(self, ex):
+        ex = self._wait_for_state(ex, action_constants.LIVEACTION_COMPLETED_STATES)
 
-    def _wait_for_completion(self, ex, wait_fixed=DEFAULT_WAIT_FIXED,
-                             stop_max_delay=DEFAULT_STOP_MAX_DELAY):
+        try:
+            self.assertTrue(hasattr(ex, 'result'))
+        except:
+            if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
+                raise Exception(
+                    'Execution is in completed state and does not '
+                    'contain expected result.'
+                )
+            else:
+                raise
 
-        @retrying.retry(
-            retry_on_exception=retry_on_exceptions,
-            wait_fixed=wait_fixed, stop_max_delay=stop_max_delay)
-        def inner(ex):
-            ex = self._wait_for_state(ex, action_constants.LIVEACTION_COMPLETED_STATES)
-
-            try:
-                self.assertTrue(hasattr(ex, 'result'))
-            except:
-                if ex.status in action_constants.LIVEACTION_COMPLETED_STATES:
-                    raise Exception(
-                        'Execution is in completed state and does not '
-                        'contain expected result.'
-                    )
-                else:
-                    raise
-
-            return ex
-        return inner(ex=ex)
+        return ex
