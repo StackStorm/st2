@@ -15,6 +15,8 @@
 
 from __future__ import absolute_import
 
+import re
+
 import six
 import mock
 import unittest2
@@ -212,3 +214,58 @@ class HTTPRunnerTestCase(unittest2.TestCase):
             expected_data = body
 
         self.assertEqual(call_kwargs['data'], expected_data)
+
+    @mock.patch('http_runner.http_runner.requests')
+    def test_blacklisted_url_netloc(self, mock_requests):
+        # Black list is empty
+        self.assertEqual(mock_requests.request.call_count, 0)
+
+        url = 'http://www.example.com'
+        client = HTTPClient(url=url, method='GET')
+        client.run()
+
+        self.assertEqual(mock_requests.request.call_count, 1)
+
+        # Blacklist is set
+        hosts_blacklist = [
+            'example.com',
+            '127.0.0.1',
+            '::1',
+            '2001:0db8:85a3:0000:0000:8a2e:0370:7334'
+        ]
+
+        # Blacklisted urls
+        urls = [
+            'https://example.com',
+            'http://example.com',
+            'http://example.com:81',
+            'http://example.com:80',
+            'http://example.com:9000',
+            'http://[::1]:80/',
+            'http://[::1]',
+            'http://[::1]:9000',
+            'http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]',
+            'https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:8000'
+        ]
+
+        for url in urls:
+            expected_msg = r'URL "%s" is blacklisted' % (re.escape(url))
+            client = HTTPClient(url=url, method='GET', hosts_blacklist=hosts_blacklist)
+            self.assertRaisesRegexp(ValueError, expected_msg, client.run)
+
+        # Non blacklisted URLs
+        urls = [
+            'https://example2.com',
+            'http://example3.com',
+            'http://example4.com:81'
+        ]
+
+        for url in urls:
+            mock_requests.request.reset_mock()
+
+            self.assertEqual(mock_requests.request.call_count, 0)
+
+            client = HTTPClient(url=url, method='GET')
+            client.run()
+
+            self.assertEqual(mock_requests.request.call_count, 1)

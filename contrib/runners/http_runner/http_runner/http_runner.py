@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import ast
 import copy
 import json
@@ -21,6 +22,7 @@ import uuid
 import requests
 from requests.auth import HTTPBasicAuth
 from oslo_config import cfg
+from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 
 from st2common.runners.base import ActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
@@ -55,6 +57,7 @@ RUNNER_HTTPS_PROXY = 'https_proxy'
 RUNNER_VERIFY_SSL_CERT = 'verify_ssl_cert'
 RUNNER_USERNAME = 'username'
 RUNNER_PASSWORD = 'password'
+RUNNER_HOSTS_BLACKLIST = 'hosts_blacklist'
 
 # Lookup constants for action params
 ACTION_AUTH = 'auth'
@@ -93,6 +96,7 @@ class HttpRunner(ActionRunner):
         self._http_proxy = self.runner_parameters.get(RUNNER_HTTP_PROXY, None)
         self._https_proxy = self.runner_parameters.get(RUNNER_HTTPS_PROXY, None)
         self._verify_ssl_cert = self.runner_parameters.get(RUNNER_VERIFY_SSL_CERT, None)
+        self._hosts_blacklist = self.runner_parameters.get(RUNNER_HOSTS_BLACKLIST, [])
 
     def run(self, action_parameters):
         client = self._get_http_client(action_parameters)
@@ -147,7 +151,8 @@ class HttpRunner(ActionRunner):
                           headers=headers, cookies=self._cookies, auth=auth,
                           timeout=timeout, allow_redirects=self._allow_redirects,
                           proxies=proxies, files=files, verify=self._verify_ssl_cert,
-                          username=self._username, password=self._password)
+                          username=self._username, password=self._password,
+                          hosts_blacklist=self._hosts_blacklist)
 
     @staticmethod
     def _get_result_status(status_code):
@@ -158,7 +163,8 @@ class HttpRunner(ActionRunner):
 class HTTPClient(object):
     def __init__(self, url=None, method=None, body='', params=None, headers=None, cookies=None,
                  auth=None, timeout=60, allow_redirects=False, proxies=None,
-                 files=None, verify=False, username=None, password=None):
+                 files=None, verify=False, username=None, password=None,
+                 hosts_blacklist=None):
         if url is None:
             raise Exception('URL must be specified.')
 
@@ -188,11 +194,18 @@ class HTTPClient(object):
         self.verify = verify
         self.username = username
         self.password = password
+        self.hosts_blacklist = hosts_blacklist or []
 
     def run(self):
         results = {}
         resp = None
         json_content = self._is_json_content()
+
+        # Check if the provided URL is blacklisted
+        is_url_blacklisted = self._is_url_blacklisted(url=self.url)
+
+        if is_url_blacklisted:
+            raise ValueError('URL "%s" is blacklisted' % (self.url))
 
         try:
             if json_content:
@@ -300,6 +313,27 @@ class HTTPClient(object):
                 return ast.literal_eval(value)
         else:
             return value
+
+    def _is_url_blacklisted(self, url):
+        """
+        Verify if the provided URL is blacklisted via hosts_blacklist runner parameter.
+        """
+        if not self.hosts_blacklist:
+            # Blacklist is empty
+            return False
+
+        parsed = urlparse.urlparse(url)
+
+        # Remove the port and []
+        host = parsed.netloc.replace('[', '').replace(']', '')
+
+        if parsed.port is not None:
+            host = host.replace(':%s' % (parsed.port), '')
+
+        if host in self.hosts_blacklist:
+            return True
+
+        return False
 
 
 def get_runner():
