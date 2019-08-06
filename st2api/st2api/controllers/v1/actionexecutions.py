@@ -83,9 +83,9 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     mandatory_include_fields_retrieve = [
         'action.parameters',
         'runner.runner_parameters',
-        'parameters'
+        'parameters',
         # necessary for ActionExecutionDB to determine permissions in enterprise ldap
-        'action.pack'
+        'action.pack',
         'action.uid'
     ]
 
