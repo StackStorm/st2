@@ -13,7 +13,10 @@ Changed
 
 Fixed
 ~~~~~
-
+* Fix rbac with execution view where the rbac is unable to verify the pack or uid of the execution
+  because it was not returned from the action execution db. This would result in an internal server 
+  error when trying to view the results of a single execution.
+  Contributed by Joshua Meyer (@jdmeyer3) #4758
 * Fixed logging middleware to output a ``content_length`` of ``0`` instead of ``Infinity``
   when the type of data being returned is not supported. Previously, when the value was
   set to ``Infinity`` this would result in invalid JSON being output into structured
