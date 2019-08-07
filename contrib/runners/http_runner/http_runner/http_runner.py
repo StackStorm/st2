@@ -57,7 +57,8 @@ RUNNER_HTTPS_PROXY = 'https_proxy'
 RUNNER_VERIFY_SSL_CERT = 'verify_ssl_cert'
 RUNNER_USERNAME = 'username'
 RUNNER_PASSWORD = 'password'
-RUNNER_HOSTS_BLACKLIST = 'hosts_blacklist'
+RUNNER_URL_HOSTS_BLACKLIST = 'url_hosts_blacklist'
+RUNNER_URL_HOSTS_WHITELIST = 'url_hosts_whitelist'
 
 # Lookup constants for action params
 ACTION_AUTH = 'auth'
@@ -96,10 +97,16 @@ class HttpRunner(ActionRunner):
         self._http_proxy = self.runner_parameters.get(RUNNER_HTTP_PROXY, None)
         self._https_proxy = self.runner_parameters.get(RUNNER_HTTPS_PROXY, None)
         self._verify_ssl_cert = self.runner_parameters.get(RUNNER_VERIFY_SSL_CERT, None)
-        self._hosts_blacklist = self.runner_parameters.get(RUNNER_HOSTS_BLACKLIST, [])
+        self._url_hosts_blacklist = self.runner_parameters.get(RUNNER_URL_HOSTS_BLACKLIST, [])
+        self._url_hosts_whitelist = self.runner_parameters.get(RUNNER_URL_HOSTS_WHITELIST, [])
 
     def run(self, action_parameters):
         client = self._get_http_client(action_parameters)
+
+        if self._url_hosts_blacklist and self._url_hosts_whitelist:
+            msg = ('"url_hosts_blacklist" and "url_hosts_whitelist" parameters are mutually '
+                   'exclusive. Only one should be provided.')
+            raise ValueError(msg)
 
         try:
             result = client.run()
@@ -152,7 +159,8 @@ class HttpRunner(ActionRunner):
                           timeout=timeout, allow_redirects=self._allow_redirects,
                           proxies=proxies, files=files, verify=self._verify_ssl_cert,
                           username=self._username, password=self._password,
-                          hosts_blacklist=self._hosts_blacklist)
+                          url_hosts_blacklist=self._url_hosts_blacklist,
+                          url_hosts_whitelist=self._url_hosts_whitelist)
 
     @staticmethod
     def _get_result_status(status_code):
@@ -164,7 +172,7 @@ class HTTPClient(object):
     def __init__(self, url=None, method=None, body='', params=None, headers=None, cookies=None,
                  auth=None, timeout=60, allow_redirects=False, proxies=None,
                  files=None, verify=False, username=None, password=None,
-                 hosts_blacklist=None):
+                 url_hosts_blacklist=None, url_hosts_whitelist=None):
         if url is None:
             raise Exception('URL must be specified.')
 
@@ -194,7 +202,8 @@ class HTTPClient(object):
         self.verify = verify
         self.username = username
         self.password = password
-        self.hosts_blacklist = hosts_blacklist or []
+        self.url_hosts_blacklist = url_hosts_blacklist or []
+        self.url_hosts_whitelist = url_hosts_whitelist or []
 
     def run(self):
         results = {}
@@ -206,6 +215,11 @@ class HTTPClient(object):
 
         if is_url_blacklisted:
             raise ValueError('URL "%s" is blacklisted' % (self.url))
+
+        is_url_whitelisted = self._is_url_whitelisted(url=self.url)
+
+        if not is_url_whitelisted:
+            raise ValueError('URL "%s" is not whitelisted' % (self.url))
 
         try:
             if json_content:
@@ -316,24 +330,46 @@ class HTTPClient(object):
 
     def _is_url_blacklisted(self, url):
         """
-        Verify if the provided URL is blacklisted via hosts_blacklist runner parameter.
+        Verify if the provided URL is blacklisted via url_hosts_blacklist runner parameter.
         """
-        if not self.hosts_blacklist:
+        if not self.url_hosts_blacklist:
             # Blacklist is empty
             return False
 
+        host = self._get_host_from_url(url=url)
+
+        if host in self.url_hosts_blacklist:
+            return True
+
+        return False
+
+    def _is_url_whitelisted(self, url):
+        """
+        Verify if the provided URL is whitelisted via url_hosts_whitelist runner parameter.
+        """
+        if not self.url_hosts_whitelist:
+            return True
+
+        host = self._get_host_from_url(url=url)
+
+        if host in self.url_hosts_whitelist:
+            return True
+
+        return False
+
+    def _get_host_from_url(self, url):
+        """
+        Return sanitized host (netloc) value from the provided url.
+        """
         parsed = urlparse.urlparse(url)
 
-        # Remove the port and []
+        # Remove port and []
         host = parsed.netloc.replace('[', '').replace(']', '')
 
         if parsed.port is not None:
             host = host.replace(':%s' % (parsed.port), '')
 
-        if host in self.hosts_blacklist:
-            return True
-
-        return False
+        return host
 
 
 def get_runner():

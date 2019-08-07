@@ -216,7 +216,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
         self.assertEqual(call_kwargs['data'], expected_data)
 
     @mock.patch('http_runner.http_runner.requests')
-    def test_blacklisted_url_netloc(self, mock_requests):
+    def test_blacklisted_url_url_hosts_blacklist_runner_parameter(self, mock_requests):
         # Black list is empty
         self.assertEqual(mock_requests.request.call_count, 0)
 
@@ -227,7 +227,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
         self.assertEqual(mock_requests.request.call_count, 1)
 
         # Blacklist is set
-        hosts_blacklist = [
+        url_hosts_blacklist = [
             'example.com',
             '127.0.0.1',
             '::1',
@@ -250,7 +250,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
 
         for url in urls:
             expected_msg = r'URL "%s" is blacklisted' % (re.escape(url))
-            client = HTTPClient(url=url, method='GET', hosts_blacklist=hosts_blacklist)
+            client = HTTPClient(url=url, method='GET', url_hosts_blacklist=url_hosts_blacklist)
             self.assertRaisesRegexp(ValueError, expected_msg, client.run)
 
         # Non blacklisted URLs
@@ -265,7 +265,62 @@ class HTTPRunnerTestCase(unittest2.TestCase):
 
             self.assertEqual(mock_requests.request.call_count, 0)
 
-            client = HTTPClient(url=url, method='GET')
+            client = HTTPClient(url=url, method='GET', url_hosts_blacklist=url_hosts_blacklist)
+            client.run()
+
+            self.assertEqual(mock_requests.request.call_count, 1)
+
+    @mock.patch('http_runner.http_runner.requests')
+    def test_whitelisted_url_url_hosts_whitelist_runner_parameter(self, mock_requests):
+        # Whitelist is empty
+        self.assertEqual(mock_requests.request.call_count, 0)
+
+        url = 'http://www.example.com'
+        client = HTTPClient(url=url, method='GET')
+        client.run()
+
+        self.assertEqual(mock_requests.request.call_count, 1)
+
+        # Whitelist is set
+        url_hosts_whitelist = [
+            'example.com',
+            '127.0.0.1',
+            '::1',
+            '2001:0db8:85a3:0000:0000:8a2e:0370:7334'
+        ]
+
+        # Non whitelisted urls
+        urls = [
+            'https://www.google.com',
+            'https://www.example2.com',
+            'http://127.0.0.2'
+        ]
+
+        for url in urls:
+            expected_msg = r'URL "%s" is not whitelisted' % (re.escape(url))
+            client = HTTPClient(url=url, method='GET', url_hosts_whitelist=url_hosts_whitelist)
+            self.assertRaisesRegexp(ValueError, expected_msg, client.run)
+
+        # Whitelisted URLS
+        urls = [
+            'https://example.com',
+            'http://example.com',
+            'http://example.com:81',
+            'http://example.com:80',
+            'http://example.com:9000',
+            'http://[::1]:80/',
+            'http://[::1]',
+            'http://[::1]:9000',
+            'http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]',
+            'https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:8000'
+        ]
+
+        for url in urls:
+            mock_requests.request.reset_mock()
+
+            self.assertEqual(mock_requests.request.call_count, 0)
+
+            client = HTTPClient(url=url, method='GET', url_hosts_whitelist=url_hosts_whitelist)
             client.run()
 
             self.assertEqual(mock_requests.request.call_count, 1)
