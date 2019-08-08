@@ -205,6 +205,11 @@ class HTTPClient(object):
         self.url_hosts_blacklist = url_hosts_blacklist or []
         self.url_hosts_whitelist = url_hosts_whitelist or []
 
+        if self.url_hosts_blacklist and self.url_hosts_whitelist:
+            msg = ('"url_hosts_blacklist" and "url_hosts_whitelist" parameters are mutually '
+                   'exclusive. Only one should be provided.')
+            raise ValueError(msg)
+
     def run(self):
         results = {}
         resp = None

@@ -324,3 +324,11 @@ class HTTPRunnerTestCase(unittest2.TestCase):
             client.run()
 
             self.assertEqual(mock_requests.request.call_count, 1)
+
+    def test_url_host_blacklist_and_url_host_blacklist_params_are_mutually_exclusive(self):
+        url = 'http://www.example.com'
+
+        expected_msg = (r'"url_hosts_blacklist" and "url_hosts_whitelist" parameters are mutually '
+                        'exclusive.')
+        self.assertRaisesRegexp(ValueError, expected_msg, HTTPClient, url=url, method='GET',
+                                url_hosts_blacklist=[url], url_hosts_whitelist=[url])
