@@ -135,7 +135,7 @@ script:
   # as long as PR builds
   - if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ]; then COMMAND_THRESHOLD=$(expr ${COMMAND_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${COMMAND_THRESHOLD}
   # Run any additional nightly checks only as part of a nightly (cron) build
-  - if [ "${IS_NIGHTLY_BUILD}" = "yes" ] && [ "${TASK}" = "ci-checks ci-packs-tests" ]; then make ci-checks-nightly; fi
+  - if [ "${IS_NIGHTLY_BUILD}" = "yes" ]; then ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"; fi
   # NOTE: We only generate and submit coverage report for master and version branches
   # NOTE: We put this here and not after_success so build is marked as failed if this step fails
   # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build
@@ -147,3 +147,13 @@ script:
 # Alternative: use strict pip pinning, including git-based pip packages
 before_cache:
   - if [ ${TRAVIS_PULL_REQUEST} = 'false' ] && [ "${IS_NIGHTLY_BUILD}" = "no" ]; then rm -rf virtualenv/; fi
+
+# We want to be notified when a master or nightly build fails
+notifications:
+  # Post build failures to '#stackstorm' channel in 'stackstorm' Slack
+  slack:
+    rooms:
+      - secure: "rPA22aDgvNe0/S/2e+cp1rSDdDUPufLXnCbfnRzMPVDSQ2UPdLmEl9IeOoEHZmq92AZtzY8UnQaPFuoM0HAPrYDgKopn4n4KpOo+xUlJ92qdNj5qk3Z1TmQHwUYFvCkMvaR/CpX2liRr/YB3qM+1vFAMsYgmqrBX8vcEqNJQy/M="
+    on_pull_requests: false
+    on_success: change # default: always
+    on_failure: always # default: always

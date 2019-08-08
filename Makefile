@@ -25,6 +25,7 @@ COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
 COMPONENTS_WITHOUT_ST2TESTS := $(shell ls -a | grep ^st2 | grep -v .egg-info | grep -v st2tests | grep -v st2exporter)
 
 COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
+COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER := $(foreach component,$(filter-out contrib/runners/mistral_v2,$(COMPONENTS_WITH_RUNNERS)),$(component))
 
 COMPONENTS_TEST_DIRS := $(wildcard st2*/tests) $(wildcard contrib/runners/*/tests)
 
@@ -42,6 +43,7 @@ space_char :=
 space_char +=
 COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS_WITH_RUNNERS)))
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS)),$(component))
+COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER)),$(component))
 COMPONENTS_TEST_COMMA := $(subst $(slash),$(dot),$(subst $(space_char),$(comma),$(COMPONENTS_TEST)))
 COMPONENTS_TEST_MODULES := $(subst $(slash),$(dot),$(COMPONENTS_TEST_DIRS))
 COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST_MODULES))
@@ -109,6 +111,8 @@ play:
 	@echo
 	@echo COMPONENTS_WITH_RUNNERS=$(COMPONENTS_WITH_RUNNERS)
 	@echo
+	@echo COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER=$(COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER)
+	@echo
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
 	@echo
 	@echo COMPONENTS_TEST_COMMA=$(COMPONENTS_TEST_COMMA)
@@ -118,6 +122,8 @@ play:
 	@echo COMPONENTS_TEST_MODULES=$(COMPONENTS_TEST_MODULES)
 	@echo
 	@echo COMPONENTS_TEST_MODULES_COMMA=$(COMPONENTS_TEST_MODULES_COMMA)
+	@echo
+	@echo COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER=$(COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER)
 	@echo
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
 	@echo
@@ -573,7 +579,7 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
-	for component in $(COMPONENTS_TEST); do\
+	for component in $(COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
@@ -939,6 +945,13 @@ ci-py3-unit:
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
 
+.PHONY: ci-py3-unit-nightly
+ci-py3-unit-nightly:
+	@echo
+	@echo "==================== ci-py3-unit ===================="
+	@echo
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit-nightly -vv
+
 .PHONY: ci-py3-integration
 ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 
@@ -976,6 +989,15 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 
 .PHONY: ci-unit
 ci-unit: .unit-tests-coverage-html
+
+.PHONY: ci-unit-nightly
+ci-unit-nightly:
+	# NOTE: We run mistral runner checks only as part of a nightly build to speed up
+	# non nightly builds (Mistral will be deprecated in the future)
+	@echo
+	@echo "============== ci-unit-nightly =============="
+	@echo
+	nosetests $(NOSE_OPTS) -s -v  contrib/runners/mistral_v2/tests/unit
 
 .PHONY: .ci-prepare-integration
 .ci-prepare-integration:
