@@ -22,7 +22,6 @@ BINARIES := bin
 # All components are prefixed by st2 and not .egg-info.
 COMPONENTS := $(shell ls -a | grep ^st2 | grep -v .egg-info)
 COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
-COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
 COMPONENTS_WITHOUT_ST2TESTS := $(shell ls -a | grep ^st2 | grep -v .egg-info | grep -v st2tests | grep -v st2exporter)
 
 COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
@@ -91,9 +90,6 @@ ifdef INCLUDE_TESTS_IN_COVERAGE
 endif
 
 .PHONY: all
-all: requirements configgen check tests
-
-.PHONY: foo
 all: requirements configgen check tests
 
 .PHONY: .coverage_globs
@@ -211,15 +207,6 @@ check-python-packages-nightly:
 
 .PHONY: ci-checks-nightly
 ci-checks-nightly: check-python-packages-nightly
-
-.PHONY: foo1-nightly
-foo1-nightly:
-	echo "foo1"
-
-.PHONY: foo2-nightly
-foo2-nightly:
-	echo "foo2"
-	exit 3
 
 .PHONY: checklogs
 checklogs:
@@ -966,7 +953,7 @@ ci-py3-unit-nightly:
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit-nightly -vv
 
 .PHONY: ci-py3-integration
-ci-py3-integration: requirementci-unit-nightlyi-py3-integration
+ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 
 .PHONY: .ci-py3-integration
 .ci-py3-integration:
@@ -974,9 +961,6 @@ ci-py3-integration: requirementci-unit-nightlyi-py3-integration
 	@echo "==================== ci-py3-integration ===================="
 	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration -vv
-
-.PHONY: ci-py3-integration
-ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration-nightly
 
 .PHONY: .rst-check
 .rst-check:
