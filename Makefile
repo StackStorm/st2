@@ -22,9 +22,11 @@ BINARIES := bin
 # All components are prefixed by st2 and not .egg-info.
 COMPONENTS := $(shell ls -a | grep ^st2 | grep -v .egg-info)
 COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
+COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
 COMPONENTS_WITHOUT_ST2TESTS := $(shell ls -a | grep ^st2 | grep -v .egg-info | grep -v st2tests | grep -v st2exporter)
 
 COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
+COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER := $(foreach component,$(filter-out contrib/runners/mistral_v2,$(COMPONENTS_WITH_RUNNERS)),$(component))
 
 COMPONENTS_TEST_DIRS := $(wildcard st2*/tests) $(wildcard contrib/runners/*/tests)
 
@@ -42,6 +44,7 @@ space_char :=
 space_char +=
 COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS_WITH_RUNNERS)))
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS)),$(component))
+COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER)),$(component))
 COMPONENTS_TEST_COMMA := $(subst $(slash),$(dot),$(subst $(space_char),$(comma),$(COMPONENTS_TEST)))
 COMPONENTS_TEST_MODULES := $(subst $(slash),$(dot),$(COMPONENTS_TEST_DIRS))
 COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST_MODULES))
@@ -90,6 +93,9 @@ endif
 .PHONY: all
 all: requirements configgen check tests
 
+.PHONY: foo
+all: requirements configgen check tests
+
 .PHONY: .coverage_globs
 .coverage_globs:
 	@for coverage_result in $$( \
@@ -109,6 +115,8 @@ play:
 	@echo
 	@echo COMPONENTS_WITH_RUNNERS=$(COMPONENTS_WITH_RUNNERS)
 	@echo
+	@echo COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER=$(COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER)
+	@echo
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
 	@echo
 	@echo COMPONENTS_TEST_COMMA=$(COMPONENTS_TEST_COMMA)
@@ -118,6 +126,8 @@ play:
 	@echo COMPONENTS_TEST_MODULES=$(COMPONENTS_TEST_MODULES)
 	@echo
 	@echo COMPONENTS_TEST_MODULES_COMMA=$(COMPONENTS_TEST_MODULES_COMMA)
+	@echo
+	@echo COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER=$(COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER)
 	@echo
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
 	@echo
@@ -201,6 +211,15 @@ check-python-packages-nightly:
 
 .PHONY: ci-checks-nightly
 ci-checks-nightly: check-python-packages-nightly
+
+.PHONY: foo1-nightly
+foo1-nightly:
+	echo "foo1"
+
+.PHONY: foo2-nightly
+foo2-nightly:
+	echo "foo2"
+	exit 3
 
 .PHONY: checklogs
 checklogs:
@@ -573,7 +592,7 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
-	for component in $(COMPONENTS_TEST); do\
+	for component in $(COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
@@ -947,7 +966,7 @@ ci-py3-unit-nightly:
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit-nightly -vv
 
 .PHONY: ci-py3-integration
-ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
+ci-py3-integration: requirementci-unit-nightlyi-py3-integration
 
 .PHONY: .ci-py3-integration
 .ci-py3-integration:
@@ -958,14 +977,6 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 
 .PHONY: ci-py3-integration
 ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration-nightly
-
-.PHONY: .ci-py3-integration-nightly
-.ci-py3-integration-nightly:
-	@echo
-	@echo "==================== ci-py3-integration ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration-nightly -vv
-
 
 .PHONY: .rst-check
 .rst-check:
@@ -994,6 +1005,15 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration-nig
 
 .PHONY: ci-unit
 ci-unit: .unit-tests-coverage-html
+
+.PHONY: ci-unit-nightly
+ci-unit-nightly:
+	# NOTE: We run mistral runner checks only as part of a nightly build to speed up
+	# non nightly builds (Mistral will be deprecated in the future)
+	@echo
+	@echo "============== ci-unit-nightly =============="
+	@echo
+	nosetests $(NOSE_OPTS) -s -v  contrib/runners/mistral_v2/tests/unit
 
 .PHONY: .ci-prepare-integration
 .ci-prepare-integration:
