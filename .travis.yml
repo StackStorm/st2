@@ -135,7 +135,7 @@ script:
   # as long as PR builds
   - if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ]; then COMMAND_THRESHOLD=$(expr ${COMMAND_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${COMMAND_THRESHOLD}
   # Run any additional nightly checks only as part of a nightly (cron) build
-  - if [ "${IS_NIGHTLY_BUILD}" = "yes" ]; then make ${TASK}-nightly; fi
+  - if [ "${IS_NIGHTLY_BUILD}" = "yes" ]; then ./scripts/travis/run-make-task-if-exists.sh ${TASK}-nightly; fi
   # NOTE: We only generate and submit coverage report for master and version branches
   # NOTE: We put this here and not after_success so build is marked as failed if this step fails
   # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build
