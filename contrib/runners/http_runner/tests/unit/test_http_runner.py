@@ -21,8 +21,16 @@ import six
 import mock
 import unittest2
 
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from http_runner.http_runner import HTTPClient
+from http_runner.http_runner import HttpRunner
+
 import st2tests.config as tests_config
+
+__all__ = [
+    'HTTPClientTestCase',
+    'HTTPRunnerTestCase'
+]
 
 
 if six.PY2:
@@ -35,7 +43,7 @@ class MockResult(object):
     close = mock.Mock()
 
 
-class HTTPRunnerTestCase(unittest2.TestCase):
+class HTTPClientTestCase(unittest2.TestCase):
     @classmethod
     def setUpClass(cls):
         tests_config.parse_args()
@@ -332,3 +340,45 @@ class HTTPRunnerTestCase(unittest2.TestCase):
                         'exclusive.')
         self.assertRaisesRegexp(ValueError, expected_msg, HTTPClient, url=url, method='GET',
                                 url_hosts_blacklist=[url], url_hosts_whitelist=[url])
+
+
+class HTTPRunnerTestCase(unittest2.TestCase):
+    @mock.patch('http_runner.http_runner.requests')
+    def test_get_success(self, mock_requests):
+        mock_result = MockResult()
+
+        # Unknown content type, body should be returned raw
+        mock_result.text = 'foo bar ponies'
+        mock_result.headers = {'Content-Type': 'text/html'}
+        mock_result.status_code = 200
+
+        mock_requests.request.return_value = mock_result
+
+        runner_parameters = {
+            'url': 'http://www.example.com',
+            'method': 'GET'
+        }
+        runner = HttpRunner('id')
+        runner.runner_parameters = runner_parameters
+        runner.pre_run()
+
+        status, result, _ = runner.run({})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(result['body'], 'foo bar ponies')
+        self.assertEqual(result['status_code'], 200)
+        self.assertEqual(result['parsed'], False)
+
+    def test_url_host_blacklist_and_url_host_blacklist_params_are_mutually_exclusive(self):
+        runner_parameters = {
+            'url': 'http://www.example.com',
+            'method': 'GET',
+            'url_hosts_blacklist': ['http://127.0.0.1'],
+            'url_hosts_whitelist': ['http://127.0.0.1'],
+        }
+        runner = HttpRunner('id')
+        runner.runner_parameters = runner_parameters
+        runner.pre_run()
+
+        expected_msg = (r'"url_hosts_blacklist" and "url_hosts_whitelist" parameters are mutually '
+                        'exclusive.')
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.run, {})
