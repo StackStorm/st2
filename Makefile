@@ -940,7 +940,7 @@ ci-py3-unit:
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
 
 .PHONY: ci-py3-unit-nightly
-ci-py3-unit:
+ci-py3-unit-nightly:
 	@echo
 	@echo "==================== ci-py3-unit ===================="
 	@echo
