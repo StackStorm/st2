@@ -36,6 +36,22 @@
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
       type: boolean
+    url_hosts_blacklist:
+      description: Optional list of hosts (network locations) to blacklist (e.g. example.com,
+        127.0.0.1, ::1, etc.). If action will try to access that endpoint, an exception will be
+        thrown and action will be marked as failed.
+      required: false
+      type: array
+      items:
+        type: string
+    url_hosts_whitelist:
+      description: Optional list of hosts (network locations) to whitelist (e.g. example.com,
+        127.0.0.1, ::1, etc.). If specified, actions will only be able to hit hosts on this
+        whitelist.
+      required: false
+      type: array
+      items:
+        type: string
   output_key: body
   output_schema:
     status_code:
