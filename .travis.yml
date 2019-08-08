@@ -154,8 +154,6 @@ notifications:
   slack:
     rooms:
       - secure: "rPA22aDgvNe0/S/2e+cp1rSDdDUPufLXnCbfnRzMPVDSQ2UPdLmEl9IeOoEHZmq92AZtzY8UnQaPFuoM0HAPrYDgKopn4n4KpOo+xUlJ92qdNj5qk3Z1TmQHwUYFvCkMvaR/CpX2liRr/YB3qM+1vFAMsYgmqrBX8vcEqNJQy/M="
-    on_pull_requests: true
-    on_success: always
-    on_failure: always
-    #on_success: change # default: always
-    #on_failure: always # default: always
+    on_pull_requests: false
+    on_success: change # default: always
+    on_failure: always # default: always
