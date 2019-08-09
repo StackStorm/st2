@@ -12,7 +12,8 @@ branches:
 
 env:
   global:
-    - IS_NIGHTLY_BUILD=$([ "${TRAVIS_EVENT_TYPE}" = "cron" ] && echo "yes" || echo "no")
+    - IS_NIGHTLY_BUILD=yes
+      #- IS_NIGHTLY_BUILD=$([ "${TRAVIS_EVENT_TYPE}" = "cron" ] && echo "yes" || echo "no")
     # NOTE: We only enable coverage for master builds and not pull requests
     # since it has huge performance overhead (tests are 50% or so slower)
     - ENABLE_COVERAGE=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
