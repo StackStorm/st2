@@ -84,9 +84,13 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         'action.parameters',
         'runner.runner_parameters',
         'parameters',
-        # necessary for ActionExecutionDB to determine permissions in enterprise ldap
+
+        # Attributes below are mandatory for RBAC installations
         'action.pack',
-        'action.uid'
+        'action.uid',
+
+        # Required when rbac.permission_isolation is enabled
+        'context'
     ]
 
     # A list of attributes which can be specified using ?exclude_attributes filter
