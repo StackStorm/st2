@@ -83,7 +83,14 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     mandatory_include_fields_retrieve = [
         'action.parameters',
         'runner.runner_parameters',
-        'parameters'
+        'parameters',
+
+        # Attributes below are mandatory for RBAC installations
+        'action.pack',
+        'action.uid',
+
+        # Required when rbac.permission_isolation is enabled
+        'context'
     ]
 
     # A list of attributes which can be specified using ?exclude_attributes filter
