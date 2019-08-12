@@ -997,7 +997,7 @@ ci-unit-nightly:
 	@echo
 	@echo "============== ci-unit-nightly =============="
 	@echo
-	nosetests $(NOSE_OPTS) -s -v  contrib/runners/mistral_v2/tests/unit
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v  contrib/runners/mistral_v2/tests/unit
 
 .PHONY: .ci-prepare-integration
 .ci-prepare-integration:
