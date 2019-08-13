@@ -18,14 +18,8 @@ tests_config.parse_args()
 import json
 import mock
 
-import six
-
-if six.PY2:
-    from urllib import unquote
-else:
-    from urllib.parse import unquote
-
 from six.moves import http_client
+from six.moves import urllib
 
 from st2auth.controllers.v1 import sso as sso_api_controller
 from st2auth.sso import noop
@@ -99,7 +93,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         self.assertEqual(len(set_cookies_list), 1)
         self.assertIn('st2-auth-token', set_cookies_list[0][1])
 
-        cookie = unquote(set_cookies_list[0][1]).split('=')
+        cookie = urllib.parse.unquote(set_cookies_list[0][1]).split('=')
         st2_auth_token = json.loads(cookie[1].split(';')[0])
         self.assertIn('token', st2_auth_token)
         self.assertEqual(st2_auth_token['user'], MOCK_USER)
