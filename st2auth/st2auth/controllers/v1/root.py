@@ -14,7 +14,9 @@
 # limitations under the License.
 
 from st2auth.controllers.v1 import auth
+from st2auth.controllers.v1 import sso as sso_auth
 
 
 class RootController(object):
     tokens = auth.TokenController()
+    sso = sso_auth.SingleSignOnController()
