@@ -65,9 +65,8 @@ class IdentityProviderCallbackController(object):
 class SingleSignOnController(object):
     callback = IdentityProviderCallbackController()
 
-    def get(self, **kwargs):
+    def get(self, referer):
         try:
-            referer = kwargs.get('referer')
             response = router.Response(status=http_client.TEMPORARY_REDIRECT)
             response.location = SSO_BACKEND.get_request_redirect_url(referer)
             return response
