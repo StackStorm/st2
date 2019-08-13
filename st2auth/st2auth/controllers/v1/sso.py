@@ -14,7 +14,12 @@
 
 import datetime
 import json
-import urllib
+import six
+
+if six.PY2:
+    from urllib import quote
+else:
+    from urllib.parse import quote
 
 from six.moves import http_client
 
@@ -106,7 +111,7 @@ def process_successful_response(referer, token):
 
     resp.set_cookie(
         'st2-auth-token',
-        value=urllib.quote(json.dumps(token_json)),
+        value=quote(json.dumps(token_json)),
         expires=datetime.timedelta(seconds=60),
         overwrite=True
     )

@@ -17,7 +17,13 @@ tests_config.parse_args()
 
 import json
 import mock
-import urllib
+
+import six
+
+if six.PY2:
+    from urllib import unquote
+else:
+    from urllib.parse import unquote
 
 from six.moves import http_client
 
@@ -87,13 +93,13 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         expected_body = sso_api_controller.CALLBACK_SUCCESS_RESPONSE_BODY % MOCK_REFERER
         response = self.app.post_json(SSO_CALLBACK_V1_PATH, {'foo': 'bar'}, expect_errors=False)
         self.assertTrue(response.status_code, http_client.OK)
-        self.assertEqual(expected_body, response.body)
+        self.assertEqual(expected_body, response.body.decode('utf-8'))
 
         set_cookies_list = [h for h in response.headerlist if h[0] == 'Set-Cookie']
         self.assertEqual(len(set_cookies_list), 1)
         self.assertIn('st2-auth-token', set_cookies_list[0][1])
 
-        cookie = urllib.unquote(set_cookies_list[0][1]).split('=')
+        cookie = unquote(set_cookies_list[0][1]).split('=')
         st2_auth_token = json.loads(cookie[1].split(';')[0])
         self.assertIn('token', st2_auth_token)
         self.assertEqual(st2_auth_token['user'], MOCK_USER)
