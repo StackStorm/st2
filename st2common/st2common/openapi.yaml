@@ -4447,6 +4447,45 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  /auth/v1/sso:
+    get:
+      operationId: st2auth.controllers.v1.sso:sso_controller.get
+      description: Redirects to the SSO Idp login page.
+      parameters:
+        - name: referer
+          in: header
+          description: set externally to indicate real source of the request
+          type: string
+      responses:
+        '307':
+          description: Temporary redirect
+      security: []
+  /auth/v1/sso/callback:
+    post:
+      operationId: st2auth.controllers.v1.sso:idp_callback_controller.post
+      description: Handle callback from the SSO Idp.
+      parameters:
+        - name: response
+          in: body
+          description: SSO response
+          schema:
+            type: object
+      responses:
+        '200':
+          description: SSO response valid
+        '401':
+          description: Invalid or missing credentials has been provided
+          schema:
+            $ref: '#/definitions/Error'
+          examples:
+            application/json:
+              faultstring: Invalid or missing credentials
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      security: []
+
   /stream/v1/stream:
     get:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
