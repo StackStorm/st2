@@ -71,7 +71,7 @@ sso = False
 mode = standalone
 # Specify to enable debug mode.
 debug = False
-# Single Sign On backend to use when SSO is enabled. Available backends: noop, saml2.
+# Single Sign On backend to use when SSO is enabled. Available backends: noop.
 sso_backend = noop
 
 # Standalone mode options - options below only apply when auth service is running in the standalone
