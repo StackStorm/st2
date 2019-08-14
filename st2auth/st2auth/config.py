@@ -25,7 +25,6 @@ from st2common.constants.auth import DEFAULT_BACKEND
 from st2common.constants.auth import DEFAULT_SSO_BACKEND
 from st2common.constants.auth import VALID_MODES
 from st2auth import backends as auth_backends
-from st2auth import sso as sso_backends
 
 
 def parse_args(args=None):
@@ -48,7 +47,6 @@ def _register_common_opts():
 
 def _register_app_opts():
     available_backends = auth_backends.get_available_backends()
-    available_sso_backends = sso_backends.get_available_backends()
 
     auth_opts = [
         cfg.StrOpt(
@@ -89,7 +87,7 @@ def _register_app_opts():
         cfg.StrOpt(
             'sso_backend', default=DEFAULT_SSO_BACKEND,
             help='Single Sign On backend to use when SSO is enabled. Available '
-                 'backends: %s.' % (', '.join(available_sso_backends))),
+                 'backends: noop, saml2.'),
         cfg.StrOpt(
             'sso_backend_kwargs', default=None,
             help='JSON serialized arguments which are passed to the SSO backend.')
