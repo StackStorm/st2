@@ -18,6 +18,7 @@ tests_config.parse_args()
 import json
 import mock
 
+from oslo_config import cfg
 from six.moves import http_client
 from six.moves import urllib
 
@@ -28,6 +29,7 @@ from tests.base import FunctionalTest
 
 
 SSO_V1_PATH = '/v1/sso'
+SSO_REQUEST_V1_PATH = SSO_V1_PATH + '/request'
 SSO_CALLBACK_V1_PATH = SSO_V1_PATH + '/callback'
 MOCK_REFERER = 'https://127.0.0.1'
 MOCK_USER = 'stanley'
@@ -35,19 +37,45 @@ MOCK_USER = 'stanley'
 
 class TestSingleSignOnController(FunctionalTest):
 
+    def test_sso_enabled(self):
+        cfg.CONF.set_override(group='auth', name='sso', override=True)
+        response = self.app.get(SSO_V1_PATH, expect_errors=False)
+        self.assertTrue(response.status_code, http_client.OK)
+        self.assertDictEqual(response.json, {'enabled': True})
+
+    def test_sso_disabled(self):
+        cfg.CONF.set_override(group='auth', name='sso', override=False)
+        response = self.app.get(SSO_V1_PATH, expect_errors=False)
+        self.assertTrue(response.status_code, http_client.OK)
+        self.assertDictEqual(response.json, {'enabled': False})
+
+    @mock.patch.object(
+        sso_api_controller.SingleSignOnController,
+        '_get_sso_enabled_config',
+        mock.MagicMock(side_effect=KeyError('foobar')))
+    def test_unknown_exception(self):
+        cfg.CONF.set_override(group='auth', name='sso', override=True)
+        response = self.app.get(SSO_V1_PATH, expect_errors=False)
+        self.assertTrue(response.status_code, http_client.OK)
+        self.assertDictEqual(response.json, {'enabled': False})
+        self.assertTrue(sso_api_controller.SingleSignOnController._get_sso_enabled_config.called)
+
+
+class TestSingleSignOnRequestController(FunctionalTest):
+
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
         'get_request_redirect_url',
         mock.MagicMock(side_effect=Exception('fooobar')))
     def test_default_backend_unknown_exception(self):
         expected_error = {'faultstring': 'Internal Server Error'}
-        response = self.app.get(SSO_V1_PATH, expect_errors=True)
+        response = self.app.get(SSO_REQUEST_V1_PATH, expect_errors=True)
         self.assertTrue(response.status_code, http_client.INTERNAL_SERVER_ERROR)
         self.assertDictEqual(response.json, expected_error)
 
     def test_default_backend_not_implemented(self):
         expected_error = {'faultstring': noop.NOT_IMPLEMENTED_MESSAGE}
-        response = self.app.get(SSO_V1_PATH, expect_errors=True)
+        response = self.app.get(SSO_REQUEST_V1_PATH, expect_errors=True)
         self.assertTrue(response.status_code, http_client.INTERNAL_SERVER_ERROR)
         self.assertDictEqual(response.json, expected_error)
 
@@ -56,7 +84,7 @@ class TestSingleSignOnController(FunctionalTest):
         'get_request_redirect_url',
         mock.MagicMock(return_value='https://127.0.0.1'))
     def test_idp_redirect(self):
-        response = self.app.get(SSO_V1_PATH, expect_errors=False)
+        response = self.app.get(SSO_REQUEST_V1_PATH, expect_errors=False)
         self.assertTrue(response.status_code, http_client.TEMPORARY_REDIRECT)
         self.assertEqual(response.location, 'https://127.0.0.1')
 

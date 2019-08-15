@@ -4450,6 +4450,23 @@ paths:
   /auth/v1/sso:
     get:
       operationId: st2auth.controllers.v1.sso:sso_controller.get
+      description: Returns a flag indicating if SSO is enabled or not.
+      responses:
+        '200':
+          description: Returns a flag indicating if SSO is enabled
+          schema:
+            $ref: '#/definitions/SSOEnabledResult'
+          examples:
+            application/json:
+              enabled: false
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      security: []
+  /auth/v1/sso/request:
+    get:
+      operationId: st2auth.controllers.v1.sso:sso_request_controller.get
       description: Redirects to the SSO Idp login page.
       parameters:
         - name: referer
@@ -5370,6 +5387,11 @@ definitions:
     type: object
     properties:
       valid:
+        type: boolean
+  SSOEnabledResult:
+    type: object
+    properties:
+      enabled:
         type: boolean
   ApiKey:
     x-api-model: st2common.models.api.auth:ApiKeyAPI

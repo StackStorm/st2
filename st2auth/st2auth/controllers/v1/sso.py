@@ -15,6 +15,7 @@
 import datetime
 import json
 
+from oslo_config import cfg
 from six.moves import http_client
 from six.moves import urllib
 
@@ -48,7 +49,7 @@ class IdentityProviderCallbackController(object):
                 headers={}
             )
 
-            return process_successful_response(verified_user['referer'], st2_auth_token)
+            return process_successful_authn_response(verified_user['referer'], st2_auth_token)
         except NotImplementedError as e:
             return process_failure_response(http_client.INTERNAL_SERVER_ERROR, e)
         except auth_exc.SSOVerificationError as e:
@@ -57,8 +58,7 @@ class IdentityProviderCallbackController(object):
             raise e
 
 
-class SingleSignOnController(object):
-    callback = IdentityProviderCallbackController()
+class SingleSignOnRequestController(object):
 
     def get(self, referer):
         try:
@@ -69,6 +69,23 @@ class SingleSignOnController(object):
             return process_failure_response(http_client.INTERNAL_SERVER_ERROR, e)
         except Exception as e:
             raise e
+
+
+class SingleSignOnController(object):
+    request = SingleSignOnRequestController()
+    callback = IdentityProviderCallbackController()
+
+    def _get_sso_enabled_config(self):
+        return {'enabled': cfg.CONF.auth.sso}
+
+    def get(self):
+        try:
+            result = self._get_sso_enabled_config()
+            return process_successful_response(http_client.OK, result)
+        except Exception:
+            LOG.exception('Error encountered while getting SSO configuration.')
+            result = {'enabled': False}
+            return process_successful_response(http_client.OK, result)
 
 
 CALLBACK_SUCCESS_RESPONSE_BODY = """
@@ -89,7 +106,7 @@ CALLBACK_SUCCESS_RESPONSE_BODY = """
 """
 
 
-def process_successful_response(referer, token):
+def process_successful_authn_response(referer, token):
     token_json = {
         'id': str(token.id),
         'user': token.user,
@@ -113,6 +130,10 @@ def process_successful_response(referer, token):
     return resp
 
 
+def process_successful_response(status_code, json_body):
+    return router.Response(status_code=status_code, json_body=json_body)
+
+
 def process_failure_response(status_code, exception):
     LOG.error(str(exception))
     json_body = {'faultstring': str(exception)}
@@ -120,4 +141,5 @@ def process_failure_response(status_code, exception):
 
 
 sso_controller = SingleSignOnController()
+sso_request_controller = SingleSignOnRequestController()
 idp_callback_controller = IdentityProviderCallbackController()
