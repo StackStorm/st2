@@ -101,7 +101,6 @@ CALLBACK_SUCCESS_RESPONSE_BODY = """
         window.localStorage.setItem('st2Session', JSON.stringify(data));
         window.location.replace("%s");
     </script>
-    <body/>
 </html>
 """
 
