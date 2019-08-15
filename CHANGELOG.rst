@@ -4,6 +4,16 @@ Changelog
 in development
 --------------
 
+3.1.1 - August 14, 2019
+-----------------------
+
+Fixed
+~~~~~
+
+* Fix rbac with execution view where the rbac is unable to verify the pack or uid of the execution
+  because it was not returned from the action execution db. This would result in an internal server
+  error when trying to view the results of a single execution.
+  Contributed by Joshua Meyer (@jdmeyer3) #4758
 
 3.1.0 - June 27, 2019
 ---------------------
