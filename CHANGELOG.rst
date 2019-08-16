@@ -18,7 +18,10 @@ Changed
   (improvement) #4743
 * Implement "continue" engine command to orquesta workflow. (improvement) #4740
 * Update various internal dependencies to latest stable versions (apscheduler, eventlet,
-  kombu, amqp, pyyaml, mongoengine, python-gnupg, paramiko, tooz, webob, bcrypt). #4767
+  kombu, amqp, pyyaml, mongoengine, python-gnupg, paramiko, tooz, webob, bcrypt).
+
+  Latest version of mongoengine should show some performance improvements (5-20%) when
+  writing very large executions (executions with large results) to the database. #4767
 
 Fixed
 ~~~~~
