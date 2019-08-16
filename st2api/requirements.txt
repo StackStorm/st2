@@ -7,5 +7,5 @@ kombu==4.6.4
 mongoengine==0.18.2
 oslo.config<1.13,>=1.12.1
 oslo.utils<=3.37.0,>=3.36.2
-pymongo==3.9.0
+pymongo==3.7.2
 six==1.12.0
