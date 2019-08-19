@@ -4,7 +4,7 @@ mock==2.0.0
 nose
 nose-parallel==0.3.1
 nose-timer==0.7.5
-psutil==5.6.1
+psutil==5.6.3
 pyrabbit
 rednose
 unittest2
