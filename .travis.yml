@@ -98,9 +98,10 @@ cache:
 
 before_install:
   # Add MongoDB and git apt repos
+  - sudo apt-get install -y apt-transport-https
   - sudo add-apt-repository -y ppa:git-core/ppa
   - curl https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
-  - echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
+  - echo "deb [arch=amd64] https://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
   # Work around for Travis timeout issues and apt-get getting stuck on waiting for headers, see:
   # https://github.com/travis-ci/travis-ci/issues/9112
   - sudo apt-get clean
