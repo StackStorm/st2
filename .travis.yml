@@ -97,18 +97,18 @@ cache:
     #- .tox/
 
 before_install:
-  # 1. Install MongoDB 3.4 and latest version of git
+  # Add MongoDB and git apt repos
   - sudo add-apt-repository -y ppa:git-core/ppa
   - curl https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
   - echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
-  # 2. Install RabbitMQ server
-  # Work around for Travis timeout issues and apt-get getting stuck on waiting for headers, see https://github.com/travis-ci/travis-ci/issues/9112
+  # Work around for Travis timeout issues and apt-get getting stuck on waiting for headers, see:
+  # https://github.com/travis-ci/travis-ci/issues/9112
   - sudo apt-get clean
-  - cd /var/lib/apt
-  - sudo mv lists lists.old
-  - sudo mkdir -p lists/partial
+  - sudo mv /var/lib/apt/lists /var/lib/apt/lists.old
+  - sudo mkdir -p /var/lib/apt/lists/partial
   - sudo apt-get clean
   - sudo apt-get update --option Acquire::ForceIPv4=true --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
+  # Install MongoDB 3.4, RabbitMQ and latest version of git
   - sudo apt-get install mongodb-org-server mongodb-org-shell erlang rabbitmq-server git libffi-dev -y
   - pip install --upgrade "pip>=19.0,<20.0"
   - sudo pip install --upgrade "virtualenv==16.6.0"
