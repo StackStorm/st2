@@ -62,25 +62,27 @@ matrix:
       python: 3.6
       name: "Integration Tests (Python 3.6)"
 
-addons:
-  apt:
-    sources:
-      - mongodb-upstart
-      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
-        key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
-      # NOTE: Precise repo doesn't contain Erlang 20.x, latest version is 19.x so we need to use RabbitMQ 3.7.6
-      #- sourceline: 'deb [arch=amd64] http://packages.erlang-solutions.com/ubuntu precise contrib'
-      #  key_url: 'https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
-      #- sourceline: 'deb [arch=amd64] https://dl.bintray.com/rabbitmq/debian precise rabbitmq-server-v3.6.x'
-      #  key_url: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
-      - sourceline: 'ppa:git-core/ppa'
-    packages:
-      - mongodb-org-server
-      - mongodb-org-shell
-      - erlang
-      - rabbitmq-server
-      - git
-      - libffi-dev
+# APT addon has been broken since 16.08.2019 and timing out on
+# travis_apt_get_update step
+#addons:
+#  apt:
+#    sources:
+#      - mongodb-upstart
+#      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
+#        key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
+#      # NOTE: Precise repo doesn't contain Erlang 20.x, latest version is 19.x so we need to use RabbitMQ 3.7.6
+#      #- sourceline: 'deb [arch=amd64] http://packages.erlang-solutions.com/ubuntu precise contrib'
+#      #  key_url: 'https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
+#      #- sourceline: 'deb [arch=amd64] https://dl.bintray.com/rabbitmq/debian precise rabbitmq-server-v3.6.x'
+#      #  key_url: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
+#      - sourceline: 'ppa:git-core/ppa'
+#    packages:
+#      - mongodb-org-server
+#      - mongodb-org-shell
+#      - erlang
+#      - rabbitmq-server
+#      - git
+#      - libffi-dev
 
 cache:
   pip: true
@@ -95,8 +97,14 @@ cache:
     #- .tox/
 
 before_install:
-  # Work around for apt Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
-  - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60
+  # 1. Install MongoDB 3.4 and latest version of git
+  - sudo add-apt-repository -y ppa:git-core/ppa
+  - curl https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
+  - echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
+  # 2. Install RabbitMQ server
+  # Work around for Travis timeout issues, see https://github.com/travis-ci/travis-ci/issues/9112
+  - sudo apt-get update --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
+  - sudo apt-get install mongodb-org-server mongodb-org-shell erlang rabbitmq-server git libffi-dev -y
   - pip install --upgrade "pip>=19.0,<20.0"
   - sudo pip install --upgrade "virtualenv==16.6.0"
 
