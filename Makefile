@@ -455,7 +455,7 @@ requirements: virtualenv .sdist-requirements install-runners
 	done
 
 	# Fix for Travis CI race
-	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
+	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
 
 	# Fix for Travis CI caching issue
 	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"
