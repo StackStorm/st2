@@ -104,7 +104,7 @@ class DistUtilsTestCase(unittest2.TestCase):
     def test_fetch_requirements(self):
         expected_reqs = [
             'RandomWords',
-            'amqp==2.4.2',
+            'amqp==2.5.1',
             'argcomplete',
             'bcrypt==3.1.6',
             'flex==6.14.0',
