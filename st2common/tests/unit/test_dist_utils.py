@@ -119,7 +119,7 @@ class DistUtilsTestCase(unittest2.TestCase):
             'gitpython==2.1.11',
             'ose-timer==0.7.5',
             'oslo.config<1.13,>=1.12.1',
-            'requests[security]<2.23.0,>=2.22.0',
+            'requests[security]<2.22.0,>=2.21.0',
             'retrying==1.3.3',
             'zake==0.2.2'
         ]
