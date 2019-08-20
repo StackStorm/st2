@@ -426,6 +426,11 @@ class LiveActionAPI(BaseAPI):
                 "description": ("How long (in milliseconds) to delay the execution before"
                                 "scheduling."),
                 "type": "integer",
+            },
+            "run_at": {
+                "description": ("Time (in ISO format) at which to execute the action."),
+                "type": "string",
+                "pattern": isotime.ISO8601_UTC_REGEX
             }
         },
         "additionalProperties": False
@@ -458,6 +463,11 @@ class LiveActionAPI(BaseAPI):
         else:
             end_timestamp = None
 
+        if getattr(live_action, 'run_at', None):
+            run_at = isotime.parse(live_action.run_at)
+        else:
+            run_at = None
+
         status = getattr(live_action, 'status', None)
         parameters = getattr(live_action, 'parameters', dict())
         context = getattr(live_action, 'context', dict())
@@ -473,7 +483,8 @@ class LiveActionAPI(BaseAPI):
         model = cls.model(action=action,
                           start_timestamp=start_timestamp, end_timestamp=end_timestamp,
                           status=status, parameters=parameters, context=context,
-                          callback=callback, result=result, notify=notify, delay=delay)
+                          callback=callback, result=result, notify=notify, delay=delay,
+                          run_at=run_at)
 
         return model
 

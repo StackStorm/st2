@@ -73,6 +73,8 @@ class LiveActionDB(stormbase.StormFoundationDB):
         min_value=0,
         help_text='How long (in milliseconds) to delay the execution before scheduling.'
     )
+    run_at = ComplexDateTimeField(
+        help_text='Time (in ISO format) at which to execute the action.')
 
     meta = {
         'indexes': [

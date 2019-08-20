@@ -953,6 +953,8 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         self._add_common_options()
 
         if self.name in ['run', 'execute']:
+            self.parser.add_argument('--run-at', type=parse_isotime, default=None,
+                                    help='Time (in ISO format) at which to execute the action.')
             self.parser.add_argument('--trace-tag', '--trace_tag',
                                      help='A trace tag string to track execution later.',
                                      dest='trace_tag', required=False)
@@ -1003,6 +1005,9 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         if args.delay:
             execution.delay = args.delay
+
+        if args.run_at:
+            execution.run_at = str(args.run_at)
 
         if not args.trace_id and args.trace_tag:
             execution.context = {'trace_context': {'trace_tag': args.trace_tag}}
