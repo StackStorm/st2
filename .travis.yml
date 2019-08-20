@@ -99,7 +99,9 @@ cache:
 before_install:
   # Add MongoDB and git apt repos
   - sudo apt-get install -y apt-transport-https
-  - sudo add-apt-repository -y ppa:git-core/ppa
+  # NOTE: xenial already ships with git version which is recent enough for content_version functionality
+  # - sudo add-apt-repository -y ppa:git-core/ppa
+  # - sudo apt-get install -y git
   - curl https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
   - echo "deb [arch=amd64] https://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee -a /etc/apt/sources.list
   # Work around for Travis timeout issues and apt-get getting stuck on waiting for headers, see:
@@ -110,7 +112,7 @@ before_install:
   - sudo apt-get clean
   - sudo apt-get update --option Acquire::ForceIPv4=true --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
   # Install MongoDB 3.4, RabbitMQ and latest version of git
-  - sudo apt-get install mongodb-org-server mongodb-org-shell erlang rabbitmq-server git libffi-dev -y
+  - sudo apt-get install mongodb-org-server mongodb-org-shell erlang rabbitmq-server libffi-dev -y
   - pip install --upgrade "pip>=19.0,<20.0"
   - sudo pip install --upgrade "virtualenv==16.6.0"
 
