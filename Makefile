@@ -478,7 +478,7 @@ requirements: virtualenv .sdist-requirements install-runners
 	# Note: We install prance here and not as part of any component
 	# requirements.txt because it has a conflict with our dependency (requires
 	# new version of requests) which we cant resolve at this moment
-	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
+	$(VIRTUALENV_DIR)/bin/pip install "prance==0.15.0"
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
