@@ -920,7 +920,7 @@ debs:
 	# Copy over shared dist utils module which is needed by setup.py
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
 		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
-		sed -i -e '1s;^;# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY\n;' $$component/dist_utils.py;\
+		scripts/write-headers.sh $$component/dist_utils.py || break;\
 	done
 
 	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
