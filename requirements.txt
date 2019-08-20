@@ -1,6 +1,6 @@
 # Don't edit this file. It's generated automatically!
 RandomWords
-amqp==2.5.0
+amqp==2.5.1
 apscheduler==3.6.1
 argcomplete
 bcrypt==3.1.7

@@ -7,7 +7,7 @@ eventlet==0.25.0
 gunicorn==19.9.0
 kombu==4.6.4
 # Note: amqp is used by kombu
-amqp==2.5.0
+amqp==2.5.1
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
