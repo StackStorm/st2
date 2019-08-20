@@ -104,6 +104,10 @@ before_install:
   # 2. Install RabbitMQ server
   # Work around for Travis timeout issues and apt-get getting stuck on waiting for headers, see https://github.com/travis-ci/travis-ci/issues/9112
   - sudo apt-get clean
+  - cd /var/lib/apt
+  - sudo mv lists lists.old
+  - sudo mkdir -p lists/partial
+  - sudo apt-get clean
   - sudo apt-get update --option Acquire::ForceIPv4=true --option Acquire::Retries=100 --option Acquire::http::Timeout="60"
   - sudo apt-get install mongodb-org-server mongodb-org-shell erlang rabbitmq-server git libffi-dev -y
   - pip install --upgrade "pip>=19.0,<20.0"
