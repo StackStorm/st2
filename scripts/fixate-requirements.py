@@ -183,6 +183,12 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
     data = '\n'.join(lines_to_write) + '\n'
     with open(output_file, 'w') as fp:
         fp.write('# Don\'t edit this file. It\'s generated automatically!\n')
+        fp.write('# If you want to update global dependencies, modify fixed-requirements.txt\n')
+        fp.write('# and then run \'make requirements\' to update requirements.txt for all\n')
+        fp.write('# components.\n')
+        fp.write('# If you want to update depdencies for a single component, modify the\n')
+        fp.write('# in-requirements.txt for that component and then run \'make requirements\' to\n')
+        fp.write('# update the component requirements.txt\n')
         fp.write(data)
 
     print('Requirements written to: {0}'.format(output_file))
