@@ -690,7 +690,7 @@ endif
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; \
 		COVERAGE_FILE=.coverage.integration.orquesta \
-		nosetests $(NOSE_OPTS) -s -v \
+		nosetests $(NOSE_OPTS) -s -v --exe \
 		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
 
 
