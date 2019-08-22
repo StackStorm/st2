@@ -14,7 +14,6 @@ Added
 Changed
 ~~~~~~~
 
-* Improved instructions in requirements.txt and dist_utils.py comment headers (improvement) #4774
 * Install pack with the latest tag version if it exists when branch is not specialized.
   (improvement) #4743
 * Implement "continue" engine command to orquesta workflow. (improvement) #4740
@@ -23,6 +22,8 @@ Changed
 
   Latest version of mongoengine should show some performance improvements (5-20%) when
   writing very large executions (executions with large results) to the database. #4767
+* Improved development instructions in requirements.txt and dist_utils.py comment headers
+  (improvement) #4774
 
 Fixed
 ~~~~~
