@@ -14,6 +14,7 @@ Added
 Changed
 ~~~~~~~
 
+* Improved instructions in requirements.txt and dist_utils.py comment headers (improvement) #4774
 * Install pack with the latest tag version if it exists when branch is not specialized.
   (improvement) #4743
 * Implement "continue" engine command to orquesta workflow. (improvement) #4740
@@ -42,6 +43,8 @@ Fixed
   Contributed by JP Bourget (@punkrokk Syncurity) #4732
 * Update ``dist_utils`` module which is bundled with ``st2client`` and other Python packages so it
   doesn't depend on internal pip API and so it works with latest pip version. (bug fix) #4750
+* Fix dependency conflicts in pack CI runs: downgrade requests dependency back to 0.21.0, update
+  internal dependencies (amqp, pyyaml, prance, six) (bugfix) #4774
 
 3.1.0 - June 27, 2019
 ---------------------
