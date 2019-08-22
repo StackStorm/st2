@@ -65,6 +65,14 @@ PACK_INDEX = {
         "keywords": ["some", "special", "terms"],
         "email": "info@stackstorm.com",
         "description": "another st2 pack to test package management pipeline"
+    },
+    "test4": {
+        "version": "0.5.0",
+        "name": "test4",
+        "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test4",
+        "author": "stanley",
+        "keywords": ["some", "special", "terms"], "email": "info@stackstorm.com",
+        "description": "another st2 pack to test package management pipeline"
     }
 }
 
@@ -147,6 +155,24 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.repo_instance.git.checkout.assert_called()
         self.repo_instance.git.branch.assert_called()
         self.repo_instance.git.checkout.assert_called()
+
+    def test_run_pack_download_dependencies(self):
+        action = self.get_action_instance()
+        result = action.run(packs=['test'], dependency_list=['test2', 'test4'],
+                            abs_repo_base=self.repo_base)
+        temp_dirs = [
+            hashlib.md5(PACK_INDEX['test2']['repo_url'].encode()).hexdigest(),
+            hashlib.md5(PACK_INDEX['test4']['repo_url'].encode()).hexdigest()
+        ]
+
+        self.assertEqual(result, {'test2': 'Success.', 'test4': 'Success.'})
+        self.clone_from.assert_any_call(PACK_INDEX['test2']['repo_url'],
+                                        os.path.join(os.path.expanduser('~'), temp_dirs[0]))
+        self.clone_from.assert_any_call(PACK_INDEX['test4']['repo_url'],
+                                        os.path.join(os.path.expanduser('~'), temp_dirs[1]))
+        self.assertEqual(self.clone_from.call_count, 2)
+        self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test2/pack.yaml')))
+        self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test4/pack.yaml')))
 
     def test_run_pack_download_existing_pack(self):
         action = self.get_action_instance()

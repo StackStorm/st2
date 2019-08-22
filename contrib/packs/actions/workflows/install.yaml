@@ -47,9 +47,7 @@ tasks:
   find_next_action:
     action: core.noop
     next:
-      - when: <% ctx().skip %>
-        do: install_pack_requirements
-      - when: <% ctx().nested = 0 and not ctx().skip %>
+      - when: <% ctx().skip or ctx().nested = 0 %>
         do: install_pack_requirements
       - when: <% ctx().nested > 0 and not ctx().skip %>
         do: get_pack_dependencies
