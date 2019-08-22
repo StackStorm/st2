@@ -14,3 +14,8 @@
       type: "string"
       default: "/opt/stackstorm/packs/"
       immutable: true
+    delete_env:
+      type: "boolean"
+      description: Flag for if need to delete virtual environment.
+      default: true
+      required: false

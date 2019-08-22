@@ -130,7 +130,8 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
                 if getattr(execution, 'parent', None) == parent_id:
                     status = execution.status
-                    name = execution.context['chain']['name']
+                    name = execution.context['orquesta']['task_name'] \
+                        if 'orquesta' in execution.context else execution.context['chain']['name']
 
                     if status == LIVEACTION_STATUS_SCHEDULED:
                         indicator.add_stage(status, name)
@@ -194,6 +195,10 @@ class PackInstallCommand(PackAsyncCommand):
                                  action='store_true',
                                  default=False,
                                  help='Force pack installation.')
+        self.parser.add_argument('--skip',
+                                 action='store_true',
+                                 default=False,
+                                 help='Skip pack dependency installation.')
 
     def run(self, args, **kwargs):
         is_structured_output = args.json or args.yaml
@@ -203,7 +208,8 @@ class PackInstallCommand(PackAsyncCommand):
         if not is_structured_output:
             self._get_content_counts_for_pack(args, **kwargs)
 
-        return self.manager.install(args.packs, python3=args.python3, force=args.force, **kwargs)
+        return self.manager.install(args.packs, python3=args.python3, force=args.force,
+                                    skip=args.skip, **kwargs)
 
     def _get_content_counts_for_pack(self, args, **kwargs):
         # Global content list, excluding "tests"
@@ -258,7 +264,7 @@ class PackInstallCommand(PackAsyncCommand):
     def run_and_print(self, args, **kwargs):
         instance = super(PackInstallCommand, self).run_and_print(args, **kwargs)
         # Hack to get a list of resolved references of installed packs
-        packs = instance.result['tasks'][1]['result']['result']
+        packs = instance.result['output']['packs_list']
 
         if len(packs) == 1:
             pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0], **kwargs)

@@ -1,0 +1,20 @@
+
+
+---
+  name: "get_pack_dependencies"
+  runner_type: "python-script"
+  description: "Get pack dependencies specified in pack.yaml"
+  enabled: true
+  pack: packs
+  entry_point: "pack_mgmt/get_pack_dependencies.py"
+  parameters:
+    packs_status:
+      type: object
+      description: Name of the pack in Exchange or a git repo URL and download status.
+      required: true
+      default: null
+    nested:
+      type: integer
+      description: Nested level of dependencies to prevent infinite or really long download loops.
+      required: true
+      default: 3
