@@ -96,7 +96,7 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         detail_arg_grp = self.parser.add_mutually_exclusive_group()
         detail_arg_grp.add_argument('--attr', nargs='+',
-                                    default=['name', 'description', 'version', 'author'],
+                                    default=['ref', 'name', 'description', 'version', 'author'],
                                     help=('List of attributes to include in the '
                                           'output. "all" or unspecified will '
                                           'return all attributes.'))
@@ -276,7 +276,7 @@ class PackInstallCommand(PackAsyncCommand):
             pack_instances = []
 
             for pack in all_pack_instances:
-                if pack.name in packs:
+                if pack.name in packs or pack.ref in packs:
                     pack_instances.append(pack)
 
             self.print_output(pack_instances, table.MultiColumnTable,
@@ -324,7 +324,7 @@ class PackRemoveCommand(PackAsyncCommand):
             pack_instances = []
 
             for pack in all_pack_instances:
-                if pack.name in packs:
+                if pack.name in packs or pack.ref in packs:
                     pack_instances.append(pack)
                 if pack in remaining_pack_instances:
                     raise OperationFailureException('Pack %s has not been removed properly'
