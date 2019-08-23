@@ -8,13 +8,13 @@ input:
   - env
   - force
   - python3
-  - skip
+  - no_deps
 
 vars:
   - packs_list: null
   - dependency_list: null
   - conflict_list: null
-  - nested: 3
+  - nested: 10
 
 tasks:
   init_task:
@@ -47,9 +47,9 @@ tasks:
   find_next_action:
     action: core.noop
     next:
-      - when: <% ctx().skip or ctx().nested = 0 %>
+      - when: <% ctx().no_deps or ctx().nested = 0 %>
         do: install_pack_requirements
-      - when: <% ctx().nested > 0 and not ctx().skip %>
+      - when: <% ctx().nested > 0 and not ctx().no_deps %>
         do: get_pack_dependencies
 
   get_pack_dependencies:
@@ -69,13 +69,13 @@ tasks:
     action: core.noop
     next:
       - when: <% ctx().conflict_list %>
-        do: stop_installation_and_cleanup
+        do: stop_installation_and_cleanup_because_conflict
       - when:  <% not ctx().conflict_list and ctx().dependency_list %>
         do: download_pack
       - when: <% not ctx().conflict_list and not ctx().dependency_list %>
         do: install_pack_requirements
 
-  stop_installation_and_cleanup:
+  stop_installation_and_cleanup_because_conflict:
     action: packs.delete
     input:
       packs: <% ctx().packs_list %>

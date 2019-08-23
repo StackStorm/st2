@@ -103,8 +103,8 @@ class PackInstallController(ActionExecutionsControllerMixin):
         if pack_install_request.force:
             parameters['force'] = True
 
-        if pack_install_request.skip:
-            parameters['skip'] = True
+        if pack_install_request.no_deps:
+            parameters['no_deps'] = True
 
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)

@@ -21,10 +21,21 @@ from st2tests.base import BaseActionTestCase
 from pack_mgmt.get_pack_dependencies import GetPackDependencies
 
 UNINSTALLED_PACK = 'uninstalled_pack'
-UNINSTALLED_PACK_URL = 'https://github.com/StackStorm-Exchange/stackstorm-' + UNINSTALLED_PACK\
-                       + '.git'
-UNINSTALLED_PRIVATE_PACK_URL = 'https://github.com/privaterepo/' + UNINSTALLED_PACK + '.git=v4.5.0'
-UNINSTALLED_LOCAL_PACK = 'file:///opt/pack_dir/' + UNINSTALLED_PACK + '=v4.5.0'
+UNINSTALLED_PACKS = [
+    UNINSTALLED_PACK,
+    'https://github.com/StackStorm-Exchange/stackstorm-pack1',
+    'https://github.com/StackStorm-Exchange/stackstorm-pack2.git',
+    'https://github.com/StackStorm-Exchange/stackstorm-pack3.git=v2.1.1',
+    'StackStorm-Exchange/stackstorm-pack4',
+    'git://StackStorm-Exchange/stackstorm-pack5=v2.1.1',
+    'git://StackStorm-Exchange/stackstorm-pack6.git',
+    'git@github.com:foo/pack7.git'
+    'git@github.com:foo/pack8.git=v3.2.1',
+    'file:///home/vagrant/stackstorm-pack9',
+    'file://localhost/home/vagrant/stackstorm-pack10',
+    'ssh://<user@host>/AutomationStackStorm11',
+    'ssh://joe@local/AutomationStackStorm12'
+]
 
 DOWNLOADED_OR_INSTALLED_PACK_METAdATA = {
     # No dependencies.
@@ -46,11 +57,9 @@ DOWNLOADED_OR_INSTALLED_PACK_METAdATA = {
         "keywords": ["some", "special", "terms"],
         "email": "info@stackstorm.com",
         "description": "another st2 pack to test package management pipeline",
-        "dependencies": [
-            UNINSTALLED_PACK, "test3"
-        ]
+        "dependencies": ['uninstalled_pack', 'no_dependencies']
     },
-    # One uninstalled, one installed and one conflict dependency packs.
+    # List of uninstalled dependency packs.
     "test3": {
         "version": "0.6.0",
         "stackstorm_version": ">=1.6.0, <2.2.0",
@@ -60,11 +69,9 @@ DOWNLOADED_OR_INSTALLED_PACK_METAdATA = {
         "keywords": ["some", "special", "terms"],
         "email": "info@stackstorm.com",
         "description": "another st2 pack to test package management pipeline",
-        "dependencies": [
-            UNINSTALLED_PACK, "test2=v0.4.0", "test4=v0.7.0"
-        ]
+        "dependencies": UNINSTALLED_PACKS
     },
-    # One uninstalled, one installed and one conflict with StackStorm Exchange urls.
+    # One conflict pack.
     "test4": {
         "version": "0.7.0",
         "stackstorm_version": ">=1.6.0, <2.2.0",
@@ -75,41 +82,7 @@ DOWNLOADED_OR_INSTALLED_PACK_METAdATA = {
         "email": "info@stackstorm.com",
         "description": "another st2 pack to test package management pipeline",
         "dependencies": [
-            UNINSTALLED_PACK_URL,
-            "https://github.com/StackStorm-Exchange/stackstorm-test2=v0.4.0",
-            "https://github.com/StackStorm-Exchange/stackstorm-test5.git"
-        ]
-    },
-    # One uninstalled, one installed and one conflict private urls.
-    "test5": {
-        "version": "0.8.0",
-        "stackstorm_version": ">=1.6.0, <2.2.0",
-        "name": "test3",
-        "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test5",
-        "author": "stanley",
-        "keywords": ["some", "special", "terms"],
-        "email": "info@stackstorm.com",
-        "description": "another st2 pack to test package management pipeline",
-        "dependencies": [
-            UNINSTALLED_PRIVATE_PACK_URL,
-            "https://github.com/privaterepo/test4.git=v0.5.0",
-            "https://github.com/privaterepo/test6.git"
-        ]
-    },
-    # One uninstalled, one installed and one conflict local files.
-    "test6": {
-        "version": "0.9.0",
-        "stackstorm_version": ">=1.6.0, <2.2.0",
-        "name": "test3",
-        "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test6",
-        "author": "stanley",
-        "keywords": ["some", "special", "terms"],
-        "email": "info@stackstorm.com",
-        "description": "another st2 pack to test package management pipeline",
-        "dependencies": [
-            UNINSTALLED_LOCAL_PACK,
-            "file:///opt/pack_dir/test2=v0.7.0",
-            "file:///opt/some_dir/test5=v0.8.0"
+            "test2=v0.4.0"
         ]
     }
 }
@@ -167,7 +140,7 @@ class GetPackDependenciesTestCase(BaseActionTestCase):
 
     def test_run_get_pack_dependencies_with_failed_packs_status(self):
         action = self.get_action_instance()
-        packs_status = {"test3": "Failed."}
+        packs_status = {"test": "Failed."}
         nested = 2
 
         result = action.run(packs_status=packs_status, nested=nested)
@@ -177,7 +150,7 @@ class GetPackDependenciesTestCase(BaseActionTestCase):
 
     def test_run_get_pack_dependencies_with_failed_and_succeeded_packs_status(self):
         action = self.get_action_instance()
-        packs_status = {"test3": "Failed.", "test2": "Success."}
+        packs_status = {"test": "Failed.", "test2": "Success."}
         nested = 2
 
         result = action.run(packs_status=packs_status, nested=nested)
@@ -195,44 +168,32 @@ class GetPackDependenciesTestCase(BaseActionTestCase):
         self.assertEqual(result['conflict_list'], [])
         self.assertEqual(result['nested'], nested - 1)
 
-    def test_run_get_pack_dependencies(self):
+    def test_run_get_pack_dependencies_with_dependency(self):
         action = self.get_action_instance()
-        packs_status = {"test3": "Success.", "test2": "Success."}
+        packs_status = {"test2": "Success."}
+        nested = 1
+
+        result = action.run(packs_status=packs_status, nested=nested)
+        self.assertEqual(result['dependency_list'], [UNINSTALLED_PACK])
+        self.assertEqual(result['conflict_list'], [])
+        self.assertEqual(result['nested'], nested - 1)
+
+    def test_run_get_pack_dependencies_with_dependencies(self):
+        action = self.get_action_instance()
+        packs_status = {"test3": "Success."}
+        nested = 1
+
+        result = action.run(packs_status=packs_status, nested=nested)
+        self.assertEqual(result['dependency_list'], UNINSTALLED_PACKS)
+        self.assertEqual(result['conflict_list'], [])
+        self.assertEqual(result['nested'], nested - 1)
+
+    def test_run_get_pack_dependencies_with_conflict(self):
+        action = self.get_action_instance()
+        packs_status = {"test2": "Success.", "test4": "Success."}
         nested = 1
 
         result = action.run(packs_status=packs_status, nested=nested)
         self.assertEqual(result['dependency_list'], [UNINSTALLED_PACK])
         self.assertEqual(result['conflict_list'], ['test2=v0.4.0'])
-        self.assertEqual(result['nested'], nested - 1)
-
-    def test_run_get_pack_dependencies_with_stackstorm_exchange_url(self):
-        action = self.get_action_instance()
-        packs_status = {"test4": "Success."}
-        nested = 3
-
-        result = action.run(packs_status=packs_status, nested=nested)
-        self.assertEqual(result['dependency_list'], [UNINSTALLED_PACK_URL])
-        self.assertEqual(result['conflict_list'],
-                         ['https://github.com/StackStorm-Exchange/stackstorm-test2=v0.4.0'])
-        self.assertEqual(result['nested'], nested - 1)
-
-    def test_run_get_pack_dependencies_with_private_url(self):
-        action = self.get_action_instance()
-        packs_status = {"test5": "Success."}
-        nested = 3
-
-        result = action.run(packs_status=packs_status, nested=nested)
-        self.assertEqual(result['dependency_list'], [UNINSTALLED_PRIVATE_PACK_URL])
-        self.assertEqual(result['conflict_list'],
-                         ['https://github.com/privaterepo/test4.git=v0.5.0'])
-        self.assertEqual(result['nested'], nested - 1)
-
-    def test_run_get_pack_dependencies_with_local_file(self):
-        action = self.get_action_instance()
-        packs_status = {"test6": "Success."}
-        nested = 3
-
-        result = action.run(packs_status=packs_status, nested=nested)
-        self.assertEqual(result['dependency_list'], [UNINSTALLED_LOCAL_PACK])
-        self.assertEqual(result['conflict_list'], ["file:///opt/pack_dir/test2=v0.7.0"])
         self.assertEqual(result['nested'], nested - 1)

@@ -19,15 +19,8 @@ from st2common.content.utils import get_pack_base_path
 from st2common.runners.base_action import Action
 from st2common.util.pack import get_pack_metadata
 
-STACKSTORM_EXCHANGE_PACK = 'StackStorm-Exchange/stackstorm-'
-LOCAL_FILE_PREFIX = 'file://'
-
 
 class GetPackDependencies(Action):
-    def __init__(self, config=None, action_service=None):
-        self.dependency_list = []
-        self.conflict_list = []
-
     def run(self, packs_status, nested):
         """
         :param packs_status: Name of the pack in Exchange or a git repo URL and download status.
@@ -38,6 +31,8 @@ class GetPackDependencies(Action):
         :type nested: ``integer``
         """
         result = {}
+        dependency_list = []
+        conflict_list = []
 
         if not packs_status or nested == 0:
             return result
@@ -50,67 +45,39 @@ class GetPackDependencies(Action):
             if not dependency_packs:
                 continue
 
-            for dependency_pack in dependency_packs:
-                pack_and_version = dependency_pack.split(PACK_VERSION_SEPARATOR)
+            for dep_pack in dependency_packs:
+                pack_and_version = dep_pack.split(PACK_VERSION_SEPARATOR)
                 name_or_url = pack_and_version[0]
                 pack_version = pack_and_version[1] if len(pack_and_version) > 1 else None
 
-                if name_or_url.startswith(LOCAL_FILE_PREFIX):
-                    self.get_local_pack_dependencies(name_or_url, pack_version, dependency_pack)
-                elif (len(name_or_url.split('/')) == 1 and STACKSTORM_EXCHANGE_PACK not in
-                      name_or_url) or STACKSTORM_EXCHANGE_PACK in name_or_url:
-                    self.get_exchange_pack_dependencies(name_or_url, pack_version, dependency_pack)
+                if len(name_or_url.split('/')) == 1:
+                    pack_name = name_or_url
                 else:
-                    self.get_none_exchange_pack_dependencies(name_or_url, pack_version,
-                                                             dependency_pack)
+                    name_or_git = name_or_url.split("/")[-1]
+                    pack_name = name_or_git if '.git' not in name_or_git else \
+                        name_or_git.split('.')[0]
 
-        result['dependency_list'] = self.dependency_list
-        result['conflict_list'] = self.conflict_list
+                # Check existing pack by pack name
+                existing_pack_version = get_pack_version(pack_name)
+
+                # Try one more time to get existing pack version by name if 'stackstorm-' is in
+                # pack name
+                if not existing_pack_version and 'stackstorm-' in pack_name.lower():
+                    existing_pack_version = get_pack_version(pack_name.split('stackstorm-')[-1])
+
+                if existing_pack_version:
+                    existing_pack_version = 'v' + existing_pack_version
+                    if pack_version and existing_pack_version != pack_version \
+                            and dep_pack not in conflict_list:
+                        conflict_list.append(dep_pack)
+                elif dep_pack not in dependency_list:
+                    dependency_list.append(dep_pack)
+
+        result['dependency_list'] = dependency_list
+        result['conflict_list'] = conflict_list
         result['nested'] = nested - 1
 
         return result
-
-    # For StackStorm Exchange packs. E.g.
-    # email
-    # https://github.com/StackStorm-Exchange/stackstorm-email
-    # https://github.com/StackStorm-Exchange/stackstorm-email.git
-    def get_exchange_pack_dependencies(self, name_or_url, pack_version, dependency_pack):
-        if len(name_or_url.split('/')) == 1:
-            pack_name = name_or_url
-        else:
-            name_or_git = name_or_url.split(STACKSTORM_EXCHANGE_PACK)[-1]
-            pack_name = name_or_git if '.git' not in name_or_git else name_or_git.split('.')[0]
-
-        existing_pack_version = get_pack_version(pack_name)
-        self.check_conflict(dependency_pack, pack_version, existing_pack_version)
-
-    # For None StackStorm Exchange packs. E.g.
-    # https://github.com/EncoreTechnologies/stackstorm-freeipa.git
-    # https://github.com/EncoreTechnologies/stackstorm-freeipa
-    # https://github.com/EncoreTechnologies/pack.git
-    def get_none_exchange_pack_dependencies(self, name_or_url, pack_version, dependency_pack):
-        name_or_git = name_or_url.split('/')[-1]
-        name = name_or_git if '.git' not in name_or_git else name_or_git.split('.')[0]
-        pack_name = name.split('-')[-1] if "stackstorm-" in name else name
-
-        existing_pack_version = get_pack_version(pack_name)
-        self.check_conflict(dependency_pack, pack_version, existing_pack_version)
-
-    # For local file. E.g
-    # file:///opt/stackstorm/st2/lib/python3.6/site-packages/st2tests/fixtures/packs/dummy_pack_3
-    def get_local_pack_dependencies(self, name_or_url, pack_version, dependency_pack):
-        pack_name = name_or_url.split("/")[-1]
-
-        existing_pack_version = get_pack_version(pack_name)
-        self.check_conflict(dependency_pack, pack_version, existing_pack_version)
-
-    def check_conflict(self, pack, version, existing_version):
-        if existing_version:
-            existing_version = 'v' + existing_version
-            if version and existing_version != version and pack not in self.conflict_list:
-                self.conflict_list.append(pack)
-        elif pack not in self.dependency_list:
-            self.dependency_list.append(pack)
 
 
 def get_pack_version(pack=None):

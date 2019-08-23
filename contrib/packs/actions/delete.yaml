@@ -16,6 +16,6 @@
       immutable: true
     delete_env:
       type: "boolean"
-      description: Flag for if need to delete virtual environment.
+      description: Delete virtual environment for pack when set to True.
       default: true
       required: false

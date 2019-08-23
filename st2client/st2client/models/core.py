@@ -494,13 +494,13 @@ class AsyncRequest(Resource):
 
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def install(self, packs, force=False, python3=False, skip=False, **kwargs):
+    def install(self, packs, force=False, python3=False, no_deps=False, **kwargs):
         url = '/%s/install' % (self.resource.get_url_path_name())
         payload = {
             'packs': packs,
             'force': force,
             'python3': python3,
-            'skip': skip
+            'no_deps': no_deps
         }
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != http_client.OK:

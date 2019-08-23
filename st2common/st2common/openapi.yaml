@@ -5028,7 +5028,7 @@ definitions:
         description: Force pack installation.
         type: boolean
         default: false
-      skip:
+      no_deps:
         type: boolean
         description: Set to True to skip pack dependency installations.
         required: false
