@@ -144,6 +144,11 @@ class ActionExecutionAPI(BaseAPI):
                 "description": ("How long (in milliseconds) to delay the execution before"
                                 "scheduling."),
                 "type": "integer",
+            },
+            "run_at": {
+                "description": "The timestamp when the action is scheduled to run.",
+                "type": "string",
+                "pattern": isotime.ISO8601_UTC_REGEX
             }
         },
         "additionalProperties": False
@@ -189,6 +194,7 @@ class ActionExecutionAPI(BaseAPI):
 
         values['start_timestamp'] = isotime.parse(instance.start_timestamp)
         values['end_timestamp'] = isotime.parse(instance.end_timestamp)
+        values['run_at'] = isotime.parse(instance.run_at)
 
         model = cls.model(**values)
         return model

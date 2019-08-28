@@ -443,6 +443,8 @@ class LiveActionAPI(BaseAPI):
             doc['start_timestamp'] = isotime.format(model.start_timestamp, offset=False)
         if model.end_timestamp:
             doc['end_timestamp'] = isotime.format(model.end_timestamp, offset=False)
+        if model.run_at:
+            doc['run_at'] = isotime.format(model.run_at, offset=False)
 
         if getattr(model, 'notify', None):
             doc['notify'] = NotificationsHelper.from_model(model.notify)

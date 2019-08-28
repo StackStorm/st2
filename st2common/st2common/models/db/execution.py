@@ -71,6 +71,9 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     children = me.ListField(field=me.StringField())
     log = me.ListField(field=me.DictField())
     delay = me.IntField(min_value=0)
+    run_at = ComplexDateTimeField(
+        default=date_utils.get_datetime_utc_now,
+        help_text='The timestamp when the liveaction is scheduled to run.')
     # Do not use URLField for web_url. If host doesn't have FQDN set, URLField validation blows.
     web_url = me.StringField(required=False)
 
