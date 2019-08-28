@@ -46,9 +46,7 @@ class GetPackDependencies(Action):
                 continue
 
             for dep_pack in dependency_packs:
-                pack_and_version = dep_pack.split(PACK_VERSION_SEPARATOR)
-                name_or_url = pack_and_version[0]
-                pack_version = pack_and_version[1] if len(pack_and_version) > 1 else None
+                name_or_url, pack_version = self.get_name_and_version(dep_pack)
 
                 if len(name_or_url.split('/')) == 1:
                     pack_name = name_or_url
@@ -70,14 +68,39 @@ class GetPackDependencies(Action):
                     if pack_version and existing_pack_version != pack_version \
                             and dep_pack not in conflict_list:
                         conflict_list.append(dep_pack)
-                elif dep_pack not in dependency_list:
-                    dependency_list.append(dep_pack)
+                else:
+                    conflict = self.check_dependency_list_for_conflict(name_or_url, pack_version,
+                                                                       dependency_list)
+                    if conflict:
+                        conflict_list.append(dep_pack)
+                    elif dep_pack not in dependency_list:
+                        dependency_list.append(dep_pack)
 
         result['dependency_list'] = dependency_list
         result['conflict_list'] = conflict_list
         result['nested'] = nested - 1
 
         return result
+
+    def check_dependency_list_for_conflict(self, name, version, dependency_list):
+        conflict = False
+
+        for pack in dependency_list:
+            name_or_url, pack_version = self.get_name_and_version(pack)
+            if name == name_or_url:
+                if version != pack_version:
+                    conflict = True
+                break
+
+        return conflict
+
+    @staticmethod
+    def get_name_and_version(pack):
+        pack_and_version = pack.split(PACK_VERSION_SEPARATOR)
+        name_or_url = pack_and_version[0]
+        pack_version = pack_and_version[1] if len(pack_and_version) > 1 else None
+
+        return name_or_url, pack_version
 
 
 def get_pack_version(pack=None):

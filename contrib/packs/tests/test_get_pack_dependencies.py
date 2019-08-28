@@ -71,7 +71,7 @@ DOWNLOADED_OR_INSTALLED_PACK_METAdATA = {
         "description": "another st2 pack to test package management pipeline",
         "dependencies": UNINSTALLED_PACKS
     },
-    # One conflict pack.
+    # One conflict pack with existing pack.
     "test4": {
         "version": "0.7.0",
         "stackstorm_version": ">=1.6.0, <2.2.0",
@@ -84,6 +84,28 @@ DOWNLOADED_OR_INSTALLED_PACK_METAdATA = {
         "dependencies": [
             "test2=v0.4.0"
         ]
+    },
+    # One uninstalled conflict pack.
+    "test5": {
+        "version": "0.7.0",
+        "stackstorm_version": ">=1.6.0, <2.2.0",
+        "name": "test4",
+        "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test4",
+        "author": "stanley",
+        "keywords": ["some", "special", "terms"], "email": "info@stackstorm.com",
+        "description": "another st2 pack to test package management pipeline",
+        "dependencies": ["uninstalled_pack=v0.4.0"]
+    },
+    # One dependency pack without version. It is not checked against conflict.
+    "test6": {
+        "version": "0.7.0",
+        "stackstorm_version": ">=1.6.0, <2.2.0",
+        "name": "test4",
+        "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test4",
+        "author": "stanley",
+        "keywords": ["some", "special", "terms"], "email": "info@stackstorm.com",
+        "description": "another st2 pack to test package management pipeline",
+        "dependencies": ["test2"]
     }
 }
 
@@ -188,7 +210,7 @@ class GetPackDependenciesTestCase(BaseActionTestCase):
         self.assertEqual(result['conflict_list'], [])
         self.assertEqual(result['nested'], nested - 1)
 
-    def test_run_get_pack_dependencies_with_conflict(self):
+    def test_run_get_pack_dependencies_with_existing_pack_conflict(self):
         action = self.get_action_instance()
         packs_status = {"test2": "Success.", "test4": "Success."}
         nested = 1
@@ -196,4 +218,24 @@ class GetPackDependenciesTestCase(BaseActionTestCase):
         result = action.run(packs_status=packs_status, nested=nested)
         self.assertEqual(result['dependency_list'], [UNINSTALLED_PACK])
         self.assertEqual(result['conflict_list'], ['test2=v0.4.0'])
+        self.assertEqual(result['nested'], nested - 1)
+
+    def test_run_get_pack_dependencies_with_dependency_conflict(self):
+        action = self.get_action_instance()
+        packs_status = {"test2": "Success.", "test5": "Success."}
+        nested = 1
+
+        result = action.run(packs_status=packs_status, nested=nested)
+        self.assertEqual(result['dependency_list'], ['uninstalled_pack'])
+        self.assertEqual(result['conflict_list'], ['uninstalled_pack=v0.4.0'])
+        self.assertEqual(result['nested'], nested - 1)
+
+    def test_run_get_pack_dependencies_with_no_version(self):
+        action = self.get_action_instance()
+        packs_status = {"test2": "Success.", "test6": "Success."}
+        nested = 1
+
+        result = action.run(packs_status=packs_status, nested=nested)
+        self.assertEqual(result['dependency_list'], [UNINSTALLED_PACK])
+        self.assertEqual(result['conflict_list'], [])
         self.assertEqual(result['nested'], nested - 1)
