@@ -378,7 +378,7 @@ class ActionAliasExecutionManager(ResourceManager):
 
 class ExecutionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, delay=0, **kwargs):
+    def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, user=None, delay=0, **kwargs):
         url = '/%s/%s/re_run' % (self.resource.get_url_path_name(), execution_id)
 
         tasks = tasks or []
@@ -391,7 +391,8 @@ class ExecutionResourceManager(ResourceManager):
             'parameters': parameters or {},
             'tasks': tasks,
             'reset': list(set(tasks) - set(no_reset)),
-            'delay': delay
+            'delay': delay,
+            'user': user
         }
 
         response = self.client.post(url, data, **kwargs)
