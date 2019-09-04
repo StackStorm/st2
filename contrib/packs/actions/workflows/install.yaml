@@ -8,7 +8,7 @@ input:
   - env
   - force
   - python3
-  - no_deps
+  - skip_dependencies
 
 vars:
   - packs_list: null
@@ -47,9 +47,9 @@ tasks:
   find_next_action:
     action: core.noop
     next:
-      - when: <% ctx().no_deps or ctx().nested = 0 %>
+      - when: <% ctx().skip_dependencies or ctx().nested = 0 %>
         do: install_pack_requirements
-      - when: <% ctx().nested > 0 and not ctx().no_deps %>
+      - when: <% ctx().nested > 0 and not ctx().skip_dependencies %>
         do: get_pack_dependencies
 
   get_pack_dependencies:

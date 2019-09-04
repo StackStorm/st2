@@ -195,7 +195,7 @@ class PackInstallCommand(PackAsyncCommand):
                                  action='store_true',
                                  default=False,
                                  help='Force pack installation.')
-        self.parser.add_argument('--no_deps',
+        self.parser.add_argument('--skip-dependencies',
                                  action='store_true',
                                  default=False,
                                  help='Skip pack dependency installation.')
@@ -209,7 +209,7 @@ class PackInstallCommand(PackAsyncCommand):
             self._get_content_counts_for_pack(args, **kwargs)
 
         return self.manager.install(args.packs, python3=args.python3, force=args.force,
-                                    no_deps=args.no_deps, **kwargs)
+                                    skip_dependencies=args.skip_dependencies, **kwargs)
 
     def _get_content_counts_for_pack(self, args, **kwargs):
         # Global content list, excluding "tests"
