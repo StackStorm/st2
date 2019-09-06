@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import print_function
 
 import six
 
@@ -119,5 +120,5 @@ def get_dependency_list(pack=None):
         pack_metadata = get_pack_metadata(pack_dir=pack_path)
         return pack_metadata.get('dependencies', None)
     except Exception:
-        print ('Could not open pack.yaml at location %s' % pack_path)
+        print('Could not open pack.yaml at location %s' % pack_path)
         return None
