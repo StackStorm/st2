@@ -108,9 +108,11 @@ def get_pack_version(pack=None):
     pack_path = get_pack_base_path(pack)
     try:
         pack_metadata = get_pack_metadata(pack_dir=pack_path)
-        return pack_metadata.get('version', None)
+        result = pack_metadata.get('version', None)
     except Exception:
-        return None
+        result = None
+    finally:
+        return result
 
 
 def get_dependency_list(pack=None):
@@ -118,7 +120,9 @@ def get_dependency_list(pack=None):
 
     try:
         pack_metadata = get_pack_metadata(pack_dir=pack_path)
-        return pack_metadata.get('dependencies', None)
+        result = pack_metadata.get('dependencies', None)
     except Exception:
         print('Could not open pack.yaml at location %s' % pack_path)
-        return None
+        result = None
+    finally:
+        return result
