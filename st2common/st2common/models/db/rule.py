@@ -13,16 +13,17 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import mongoengine as me
-from mongoengine.queryset import Q
-
 import copy
+import mongoengine as me
+
+from mongoengine.queryset import Q
 from st2common.persistence.action import Action
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
 from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_secret_parameters
+
 
 class RuleTypeDB(stormbase.StormBaseDB):
     enabled = me.BooleanField(
@@ -119,8 +120,9 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         action_db = self._get_referenced_models(rule=result)
 
         secret_parameters = get_secret_parameters(parameters=action_db['parameters'])
-        result['action']['parameters'] = mask_secret_parameters(parameters=result['action']['parameters'],
-                                                                secret_parameters=secret_parameters)
+        result['action']['parameters'] = mask_secret_parameters(
+            parameters=result['action']['parameters'],
+            secret_parameters=secret_parameters)
 
         return result
 
@@ -152,7 +154,6 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
             return model_persistence._get_impl().model.objects(q).first()
 
         return None
-
 
     def __init__(self, *args, **values):
         super(RuleDB, self).__init__(*args, **values)
