@@ -256,6 +256,21 @@ if [ "${JUST_TESTS}" = false ]; then
         echo "Installing pack-specific test dependencies..."
         pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
     fi
+
+# Since we install global pack test dependencies when JUST_TESTS = false we
+# don't need to do it explicitly there.
+# However, if JUST_TESTS = true, we still need to make sure that the coverage
+# module is installed if ENABLE_COVERAGE = true, so install it explicitly.
+elif [ "${ENABLE_COVERAGE}" = true ]; then
+    for((i = 0; i < ${#PACK_TEST_PYTHON_DEPENDENCIES_NAMES[@]}; i++)); do
+        DEPENDENCY_NAME="${PACK_TEST_PYTHON_DEPENDENCIES_NAMES[$i]}"
+
+        if [ "${DEPENDENCY_NAME}" = "coverage" ]; then
+            DEPENDENCY_VERSION="${PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS[$i]}"
+
+            echo ${INSTALLED_PIP_PACKAGES} | grep "${DEPENDENCY_NAME}"  > /dev/null || pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${DEPENDENCY_NAME}${DEPENDENCY_VERSION}"
+        fi
+    done
 fi
 
 # Set PYTHONPATH, make sure it contains st2 components in PYTHONPATH
