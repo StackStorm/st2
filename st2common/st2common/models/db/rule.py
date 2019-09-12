@@ -14,11 +14,15 @@
 
 from __future__ import absolute_import
 import mongoengine as me
+from mongoengine.queryset import Q
 
+import copy
+from st2common.persistence.action import Action
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
-
+from st2common.util.secrets import get_secret_parameters
+from st2common.util.secrets import mask_secret_parameters
 
 class RuleTypeDB(stormbase.StormBaseDB):
     enabled = me.BooleanField(
@@ -100,6 +104,55 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
              stormbase.TagsMixin.get_indexes() +
              stormbase.UIDFieldMixin.get_indexes())
     }
+
+    def mask_secrets(self, value):
+        """
+        Process the model dictionary and mask secret values.
+
+        :type value: ``dict``
+        :param value: Document dictionary.
+
+        :rtype: ``dict``
+        """
+        result = copy.deepcopy(value)
+
+        action_db = self._get_referenced_models(rule=result)
+
+        secret_parameters = get_secret_parameters(parameters=action_db['parameters'])
+        result['action']['parameters'] = mask_secret_parameters(parameters=result['action']['parameters'],
+                                                                secret_parameters=secret_parameters)
+
+        return result
+
+    def _get_referenced_models(self, rule):
+        """
+        Return the action model referenced from rule.
+
+        :type rule: ``dict``
+        :param rule: rule
+
+        :rtype: ``ActionDB``
+        """
+
+        action_ref = rule.get('action', {}).get('ref', None)
+
+        def ref_query_args(ref):
+            return {'ref': ref}
+
+        action_db = self._get_entity(model_persistence=Action,
+                                     ref=action_ref,
+                                     query_args=ref_query_args)
+
+        return action_db
+
+    def _get_entity(self, model_persistence, ref, query_args):
+        q = Q(**query_args(ref))
+
+        if q:
+            return model_persistence._get_impl().model.objects(q).first()
+
+        return None
+
 
     def __init__(self, *args, **values):
         super(RuleDB, self).__init__(*args, **values)
