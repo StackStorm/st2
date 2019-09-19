@@ -42,7 +42,8 @@ __all__ = [
     'wait',
     'cancel',
     'kill',
-    'sleep'
+    'sleep',
+    'get_greenlet_exit_exception_class'
 ]
 
 
