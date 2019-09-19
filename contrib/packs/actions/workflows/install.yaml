@@ -75,7 +75,9 @@ tasks:
     action: packs.delete
     input:
       packs: <% ctx().packs_list %>
-      delete_env: <% false %>
+      delete_env: false
+    next:
+      - do: fail
 
   install_pack_requirements:
     action: packs.setup_virtualenv
