@@ -121,3 +121,12 @@ def sleep(*args, **kwargs):
         return gevent.sleep(*args, **kwargs)
     else:
         raise ValueError('Unsupported concurrency library')
+
+
+def get_greenlet_exit_exception_class():
+    if CONCURRENCY_LIBRARY == 'eventlet':
+        return eventlet.support.greenlets.GreenletExit
+    elif CONCURRENCY_LIBRARY == 'gevent':
+        return gevent.GreenletExit
+    else:
+        raise ValueError('Unsupported concurrency library')
