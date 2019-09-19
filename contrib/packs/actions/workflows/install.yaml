@@ -54,23 +54,21 @@ tasks:
       packs_status: <% task(download_pack).result.result %>
       nested: <% ctx().nested%>
     next:
-      - when: <% succeeded() and result().result.conflict_list %>
+      - when: <% succeeded() %>
         publish:
           - dependency_list: <% result().result.dependency_list %>
           - conflict_list: <% result().result.conflict_list %>
           - nested: <% result().result.nested %>
+        do: check_dependency_and_conflict_list
+
+  check_dependency_and_conflict_list:
+    action: core.noop
+    next:
+      - when: <% ctx().conflict_list %>
         do: stop_installation_and_cleanup_because_conflict
-      - when: <% succeeded() and ctx().dependency_list and not ctx().conflict_list %>
-        publish:
-          - dependency_list: <% result().result.dependency_list %>
-          - conflict_list: <% result().result.conflict_list %>
-          - nested: <% result().result.nested %>
+      - when: <% not ctx().conflict_list and ctx().dependency_list %>
         do: download_pack
-      - when: <% succeeded() and not ctx().conflict_list and not ctx().dependency_list %>
-        publish:
-          - dependency_list: <% result().result.dependency_list %>
-          - conflict_list: <% result().result.conflict_list %>
-          - nested: <% result().result.nested %>
+      - when: <% not ctx().conflict_list and not ctx().dependency_list %>
         do: install_pack_requirements
 
   stop_installation_and_cleanup_because_conflict:
