@@ -19,9 +19,7 @@ import sys
 import signal
 import datetime
 
-import eventlet
-from eventlet.green import subprocess
-
+from st2common.util import concurrency
 from st2common.constants import action as action_constants
 from st2common.util import date as date_utils
 from st2common.models.db.execution import ActionExecutionDB
@@ -187,7 +185,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         process = self._start_garbage_collector()
 
         # Give it some time to perform garbage collection and kill it
-        eventlet.sleep(15)
+        concurrency.sleep(15)
         process.send_signal(signal.SIGKILL)
         self.remove_process(process=process)
 
@@ -235,7 +233,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         process = self._start_garbage_collector()
 
         # Give it some time to perform garbage collection and kill it
-        eventlet.sleep(15)
+        concurrency.sleep(15)
         process.send_signal(signal.SIGKILL)
         self.remove_process(process=process)
 
@@ -254,6 +252,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         executions.create_execution_object(liveaction_db)
 
     def _start_garbage_collector(self):
+        subprocess = concurrency.get_subprocess_module()
         process = subprocess.Popen(CMD_INQUIRY, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
         self.add_process(process=process)
