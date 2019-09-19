@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import sys
 import time
@@ -22,11 +23,10 @@ import subprocess
 from collections import defaultdict
 
 import six
-import eventlet
-from eventlet.support import greenlets as greenlet
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.util import concurrency
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.error_messages import PACK_VIRTUALENV_USES_PYTHON3
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
@@ -129,6 +129,8 @@ class ProcessSensorContainer(object):
     def run(self):
         self._run_all_sensors()
 
+        success_exception_cls = concurrency.get_greenlet_exit_exception_class()
+
         try:
             while not self._stopped:
                 # Poll for all running processes
@@ -140,8 +142,8 @@ class ProcessSensorContainer(object):
                 else:
                     LOG.debug('No active sensors')
 
-                eventlet.sleep(self._poll_interval)
-        except greenlet.GreenletExit:
+                concurrency.sleep(self._poll_interval)
+        except success_exception_cls:
             # This exception is thrown when sensor container manager
             # kills the thread which runs process container. Not sure
             # if this is the best thing to do.
@@ -180,8 +182,8 @@ class ProcessSensorContainer(object):
 
                 # Try to respawn a dead process (maybe it was a simple failure which can be
                 # resolved with a restart)
-                eventlet.spawn_n(self._respawn_sensor, sensor_id=sensor_id, sensor=sensor,
-                                 exit_code=status)
+                concurrency.spawn(self._respawn_sensor, sensor_id=sensor_id, sensor=sensor,
+                                  exit_code=status)
             else:
                 sensor_start_time = self._sensor_start_times[sensor_id]
                 sensor_respawn_count = self._sensor_respawn_counts[sensor_id]
@@ -434,7 +436,7 @@ class ProcessSensorContainer(object):
 
         self._sensor_respawn_counts[sensor_id] += 1
         sleep_delay = (SENSOR_RESPAWN_DELAY * self._sensor_respawn_counts[sensor_id])
-        eventlet.sleep(sleep_delay)
+        concurrency.sleep(sleep_delay)
 
         try:
             self._spawn_sensor_process(sensor=sensor)

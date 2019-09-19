@@ -23,11 +23,10 @@ import datetime
 import random
 
 import six
-import eventlet
-from eventlet.support import greenlets as greenlet
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.util import concurrency
 from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
@@ -81,11 +80,13 @@ class GarbageCollectorService(object):
         # Wait a couple of seconds before performing initial collection to prevent thundering herd
         # effect when restarting multiple services at the same time
         jitter_seconds = random.uniform(0, 3)
-        eventlet.sleep(jitter_seconds)
+        concurrency.sleep(jitter_seconds)
+
+        success_exception_cls = concurrency.get_greenlet_exit_exception_class()
 
         try:
             self._main_loop()
-        except greenlet.GreenletExit:
+        except success_exception_cls:
             self._running = False
             return SUCCESS_EXIT_CODE
         except Exception as e:
@@ -111,7 +112,7 @@ class GarbageCollectorService(object):
 
             LOG.info('Sleeping for %s seconds before next garbage collection...' %
                      (self._collection_interval))
-            eventlet.sleep(self._collection_interval)
+            concurrency.sleep(self._collection_interval)
 
     def _validate_ttl_values(self):
         """
@@ -142,7 +143,7 @@ class GarbageCollectorService(object):
         if self._action_executions_ttl and self._action_executions_ttl >= MINIMUM_TTL_DAYS:
             LOG.info(proc_message, obj_type)
             self._purge_action_executions()
-            eventlet.sleep(self._sleep_delay)
+            concurrency.sleep(self._sleep_delay)
         else:
             LOG.debug(skip_message, obj_type)
 
@@ -151,7 +152,7 @@ class GarbageCollectorService(object):
                 self._action_executions_output_ttl >= MINIMUM_TTL_DAYS_EXECUTION_OUTPUT:
             LOG.info(proc_message, obj_type)
             self._purge_action_executions_output()
-            eventlet.sleep(self._sleep_delay)
+            concurrency.sleep(self._sleep_delay)
         else:
             LOG.debug(skip_message, obj_type)
 
@@ -159,7 +160,7 @@ class GarbageCollectorService(object):
         if self._trigger_instances_ttl and self._trigger_instances_ttl >= MINIMUM_TTL_DAYS:
             LOG.info(proc_message, obj_type)
             self._purge_trigger_instances()
-            eventlet.sleep(self._sleep_delay)
+            concurrency.sleep(self._sleep_delay)
         else:
             LOG.debug(skip_message, obj_type)
 
@@ -167,7 +168,7 @@ class GarbageCollectorService(object):
         if self._purge_inquiries:
             LOG.info(proc_message, obj_type)
             self._timeout_inquiries()
-            eventlet.sleep(self._sleep_delay)
+            concurrency.sleep(self._sleep_delay)
         else:
             LOG.debug(skip_message, obj_type)
 
@@ -175,7 +176,7 @@ class GarbageCollectorService(object):
         if self._workflow_execution_max_idle > 0:
             LOG.info(proc_message, obj_type)
             self._purge_orphaned_workflow_executions()
-            eventlet.sleep(self._sleep_delay)
+            concurrency.sleep(self._sleep_delay)
         else:
             LOG.debug(skip_message, obj_type)
 
