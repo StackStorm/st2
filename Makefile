@@ -455,12 +455,14 @@ requirements: virtualenv .sdist-requirements install-runners
 	done
 
 	# Fix for Travis CI race
-	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
+	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
 
 	# Fix for Travis CI caching issue
-	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"
-	$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"
-	$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"
+	if [[ "$(TRAVIS_EVENT_TYPE)" != "" ]]; then\
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"; \
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"; \
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"; \
+	fi
 
 	# Install requirements
 	#
@@ -478,7 +480,7 @@ requirements: virtualenv .sdist-requirements install-runners
 	# Note: We install prance here and not as part of any component
 	# requirements.txt because it has a conflict with our dependency (requires
 	# new version of requests) which we cant resolve at this moment
-	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
+	$(VIRTUALENV_DIR)/bin/pip install "prance==0.15.0"
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
@@ -920,7 +922,7 @@ debs:
 	# Copy over shared dist utils module which is needed by setup.py
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
 		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
-		sed -i -e '1s;^;# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY\n;' $$component/dist_utils.py;\
+		scripts/write-headers.sh $$component/dist_utils.py || break;\
 	done
 
 	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
