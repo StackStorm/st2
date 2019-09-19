@@ -39,17 +39,13 @@ tasks:
       packs_status: <% task(download_pack).result.result %>
       packs_list: <% ctx().packs_list %>
     next:
-      - when: <% succeeded() %>
+      - when: <% succeeded() and (ctx().skip_dependencies or ctx().nested = 0) %>
         publish:
           - packs_list: <% task(make_a_prerun).result.result %>
-        do: find_next_action
-
-  find_next_action:
-    action: core.noop
-    next:
-      - when: <% ctx().skip_dependencies or ctx().nested = 0 %>
         do: install_pack_requirements
-      - when: <% ctx().nested > 0 and not ctx().skip_dependencies %>
+      - when: <% succeeded() and (ctx().nested > 0 and not ctx().skip_dependencies) %>
+        publish:
+          - packs_list: <% task(make_a_prerun).result.result %>
         do: get_pack_dependencies
 
   get_pack_dependencies:
