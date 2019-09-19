@@ -19,6 +19,7 @@ import sys
 import signal
 
 from st2common import log as logging
+from st2common.util import concurrency
 from st2reactor.container.process_container import ProcessSensorContainer
 from st2common.services.sensor_watcher import SensorWatcher
 from st2common.models.system.common import ResourceReference
