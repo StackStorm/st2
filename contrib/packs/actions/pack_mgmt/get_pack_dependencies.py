@@ -65,7 +65,10 @@ class GetPackDependencies(Action):
                     existing_pack_version = get_pack_version(pack_name.split('stackstorm-')[-1])
 
                 if existing_pack_version:
-                    existing_pack_version = 'v' + existing_pack_version
+                    if not existing_pack_version.startswith('v'):
+                        existing_pack_version = 'v' + existing_pack_version
+                    if not pack_version.startswith('v'):
+                        pack_version = 'v' + pack_version
                     if pack_version and existing_pack_version != pack_version \
                             and dep_pack not in conflict_list:
                         conflict_list.append(dep_pack)
