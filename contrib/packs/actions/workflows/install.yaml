@@ -15,6 +15,7 @@ vars:
   - dependency_list: null
   - conflict_list: null
   - nested: 10
+  - message: ""
 
 tasks:
   init_task:
@@ -77,7 +78,18 @@ tasks:
       packs: <% ctx().packs_list %>
       delete_env: false
     next:
-      - do: fail
+      - do: echo_pack_conflicts
+
+  echo_pack_conflicts:
+    action: core.noop
+    next:
+      - publish:
+          - message: >-
+              Unable to install packs due to conflicts. Review the
+              conflict_list and check the versions of corresponding installed
+              packs. You can also run the `st2 pack install` command with the
+              `--skip-dependencies` flag to skip installing dependent packs.
+        do: fail
 
   install_pack_requirements:
     action: packs.setup_virtualenv
@@ -94,6 +106,11 @@ tasks:
     input:
         register: <% ctx().register %>
         packs: <% ctx().packs_list %>
+    next:
+      - publish:
+          - message: Successfully installed packs
 
 output:
   - packs_list: <% ctx().packs_list %>
+  - message: <% ctx().message %>
+  - conflict_list: <% ctx().conflict_list %>
