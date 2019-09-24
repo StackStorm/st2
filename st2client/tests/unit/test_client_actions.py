@@ -71,18 +71,34 @@ class TestActionResourceManager(unittest2.TestCase):
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ENTRYPOINT), 200, 'OK')))
     def test_get_action_entry_point_by_ref(self):
-        self.client.actions.get_entrypoint(EXECUTION['action']['ref'])
+        actual_entrypoint = self.client.actions.get_entrypoint(EXECUTION['action']['ref'])
+        actual_entrypoint = json.loads(actual_entrypoint)
 
         endpoint = '/actions/views/entry_point/%s' % EXECUTION['action']['ref']
-
         httpclient.HTTPClient.get.assert_called_with(endpoint)
+
+        self.assertEqual(ENTRYPOINT, actual_entrypoint)
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(ENTRYPOINT), 200, 'OK')))
     def test_get_action_entry_point_by_id(self):
-        self.client.actions.get_entrypoint(EXECUTION['id'])
+        actual_entrypoint = self.client.actions.get_entrypoint(EXECUTION['id'])
+        actual_entrypoint = json.loads(actual_entrypoint)
 
         endpoint = '/actions/views/entry_point/%s' % EXECUTION['id']
+        httpclient.HTTPClient.get.assert_called_with(endpoint)
 
+        self.assertEqual(ENTRYPOINT, actual_entrypoint)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(
+            json.dumps({}), 404, '404 Client Error: Not Found'
+        )))
+    def test_get_non_existent_action_entry_point(self):
+        with self.assertRaises(Exception):
+            self.client.actions.get_entrypoint('nonexistentpack.nonexistentaction')
+
+        endpoint = '/actions/views/entry_point/%s' % 'nonexistentpack.nonexistentaction'
         httpclient.HTTPClient.get.assert_called_with(endpoint)
