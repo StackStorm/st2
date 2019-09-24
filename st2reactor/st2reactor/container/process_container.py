@@ -304,26 +304,7 @@ class ProcessSensorContainer(object):
             msg = PACK_VIRTUALENV_USES_PYTHON3 % format_values
             raise Exception(msg)
 
-        trigger_type_refs = sensor['trigger_types'] or []
-        trigger_type_refs = ','.join(trigger_type_refs)
-
-        parent_args = json.dumps(sys.argv[1:])
-
-        args = [
-            python_path,
-            self._wrapper_script_path,
-            '--pack=%s' % (sensor['pack']),
-            '--file-path=%s' % (sensor['file_path']),
-            '--class-name=%s' % (sensor['class_name']),
-            '--trigger-type-refs=%s' % (trigger_type_refs),
-            '--parent-args=%s' % (parent_args)
-        ]
-
-        if sensor['poll_interval']:
-            args.append('--poll-interval=%s' % (sensor['poll_interval']))
-
-        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                                      inherit_parent_virtualenv=True)
+        args = self._get_args_for_wrapper_script(python_binary=python_path, sensor=sensor)
 
         if self._enable_common_pack_libs:
             pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack_ref)
@@ -331,6 +312,9 @@ class ProcessSensorContainer(object):
             pack_common_libs_path = None
 
         env = os.environ.copy()
+
+        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                      inherit_parent_virtualenv=True)
 
         if self._enable_common_pack_libs and pack_common_libs_path:
             env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
@@ -472,6 +456,38 @@ class ProcessSensorContainer(object):
             return False
 
         return True
+
+    def _get_args_for_wrapper_script(self, python_binary, sensor):
+        """
+        Return CLI arguments passed to the sensor wrapper script.
+
+        :param python_binary: Python binary used to execute wrapper script.
+        :type python_binary: ``str``
+
+        :param sensor: Sensor object dictionary.
+        :type sensor: ``dict``
+
+        :rtype: ``list``
+        """
+        trigger_type_refs = sensor['trigger_types'] or []
+        trigger_type_refs = ','.join(trigger_type_refs)
+
+        parent_args = json.dumps(sys.argv[1:])
+
+        args = [
+            python_binary,
+            self._wrapper_script_path,
+            '--pack=%s' % (sensor['pack']),
+            '--file-path=%s' % (sensor['file_path']),
+            '--class-name=%s' % (sensor['class_name']),
+            '--trigger-type-refs=%s' % (trigger_type_refs),
+            '--parent-args=%s' % (parent_args)
+        ]
+
+        if sensor['poll_interval']:
+            args.append('--poll-interval=%s' % (sensor['poll_interval']))
+
+        return args
 
     def _get_sensor_id(self, sensor):
         """
