@@ -79,16 +79,26 @@ class ProcessSensorContainer(object):
     Sensor container which runs sensors in a separate process.
     """
 
-    def __init__(self, sensors, poll_interval=5, single_sensor_mode=False, dispatcher=None):
+    def __init__(self, sensors, poll_interval=5, single_sensor_mode=False, dispatcher=None,
+                 wrapper_script_path=WRAPPER_SCRIPT_PATH, create_token=True):
         """
         :param sensors: A list of sensor dicts.
         :type sensors: ``list`` of ``dict``
 
         :param poll_interval: How long to sleep between each poll for running / dead sensors.
         :type poll_interval: ``float``
+
+        :param wrapper_script_path: Path to the sensor wrapper script.
+        :type wrapper_script_path: ``str``
+
+        :param create_token: True to create temporary authentication token for the purpose for each
+                             sensor process and add it to that process environment variables.
+        :type create_token: ``bool``
         """
         self._poll_interval = poll_interval
         self._single_sensor_mode = single_sensor_mode
+        self._wrapper_script_path = wrapper_script_path
+        self._create_token = create_token
 
         if self._single_sensor_mode:
             # For more immediate feedback we use lower poll interval when running in single sensor
@@ -98,9 +108,7 @@ class ProcessSensorContainer(object):
         self._sensors = {}  # maps sensor_id -> sensor object
         self._processes = {}  # maps sensor_id -> sensor process
 
-        if not dispatcher:
-            dispatcher = TriggerDispatcher(LOG)
-        self._dispatcher = dispatcher
+        self._dispatcher = dispatcher or TriggerDispatcher(LOG)
 
         self._stopped = False
         self._exit_code = None  # exit code with which this process should exit
@@ -303,7 +311,7 @@ class ProcessSensorContainer(object):
 
         args = [
             python_path,
-            WRAPPER_SCRIPT_PATH,
+            self._wrapper_script_path,
             '--pack=%s' % (sensor['pack']),
             '--file-path=%s' % (sensor['file_path']),
             '--class-name=%s' % (sensor['class_name']),
@@ -329,22 +337,26 @@ class ProcessSensorContainer(object):
         else:
             env['PYTHONPATH'] = sandbox_python_path
 
-        # Include full api URL and API token specific to that sensor
-        ttl = cfg.CONF.auth.service_token_ttl
-        metadata = {
-            'service': 'sensors_container',
-            'sensor_path': sensor['file_path'],
-            'sensor_class': sensor['class_name']
-        }
-        temporary_token = create_token(username='sensors_container', ttl=ttl, metadata=metadata,
-                                       service=True)
+        if self._create_token:
+            # Include full api URL and API token specific to that sensor
+            LOG.debug('Creating temporary auth token for sensor %s' % (sensor['class_name']))
 
-        env[API_URL_ENV_VARIABLE_NAME] = get_full_public_api_url()
-        env[AUTH_TOKEN_ENV_VARIABLE_NAME] = temporary_token.token
+            ttl = cfg.CONF.auth.service_token_ttl
+            metadata = {
+                'service': 'sensors_container',
+                'sensor_path': sensor['file_path'],
+                'sensor_class': sensor['class_name']
+            }
+            temporary_token = create_token(username='sensors_container', ttl=ttl, metadata=metadata,
+                                           service=True)
 
-        # TODO 1: Purge temporary token when service stops or sensor process dies
-        # TODO 2: Store metadata (wrapper process id) with the token and delete
-        # tokens for old, dead processes on startup
+            env[API_URL_ENV_VARIABLE_NAME] = get_full_public_api_url()
+            env[AUTH_TOKEN_ENV_VARIABLE_NAME] = temporary_token.token
+
+            # TODO 1: Purge temporary token when service stops or sensor process dies
+            # TODO 2: Store metadata (wrapper process id) with the token and delete
+            # tokens for old, dead processes on startup
+
         cmd = ' '.join(args)
         LOG.debug('Running sensor subprocess (cmd="%s")', cmd)
 
