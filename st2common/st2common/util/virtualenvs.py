@@ -241,14 +241,6 @@ def install_requirements(virtualenv_path, requirements_file_path, proxy_config=N
 
     if proxy_config:
         cert = proxy_config.get('proxy_ca_bundle_path', None)
-        https_proxy = proxy_config.get('https_proxy', None)
-        http_proxy = proxy_config.get('http_proxy', None)
-
-        if http_proxy:
-            cmd.extend(['--proxy', http_proxy])
-
-        if https_proxy:
-            cmd.extend(['--proxy', https_proxy])
 
         if cert:
             cmd.extend(['--cert', cert])
@@ -282,15 +274,7 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=
 
     if proxy_config:
         cert = proxy_config.get('proxy_ca_bundle_path', None)
-        https_proxy = proxy_config.get('https_proxy', None)
-        http_proxy = proxy_config.get('http_proxy', None)
-
-        if http_proxy:
-            cmd.extend(['--proxy', http_proxy])
-
-        if https_proxy:
-            cmd.extend(['--proxy', https_proxy])
-
+ 
         if cert:
             cmd.extend(['--cert', cert])
 
