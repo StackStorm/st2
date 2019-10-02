@@ -97,7 +97,7 @@ class TestActionResourceManager(unittest2.TestCase):
             json.dumps({}), 404, '404 Client Error: Not Found'
         )))
     def test_get_non_existent_action_entry_point(self):
-        with self.assertRaises(Exception):
+        with self.assertRaisesRegexp(Exception, '404 Client Error: Not Found'):
             self.client.actions.get_entrypoint('nonexistentpack.nonexistentaction')
 
         endpoint = '/actions/views/entry_point/%s' % 'nonexistentpack.nonexistentaction'
