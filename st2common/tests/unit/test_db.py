@@ -441,6 +441,17 @@ class ReactorModelTestCase(DbTestCase):
                              'Incorrect trigger returned.')
         ReactorModelTestCase._delete([saved, triggertype])
 
+    def test_rule_with_secret_parameter_masked(self):
+        triggertype = ReactorModelTestCase._create_save_triggertype()
+        trigger = ReactorModelTestCase._create_save_trigger(triggertype)
+        runnertype = ActionModelTestCase._create_save_runnertype()
+        action = ActionModelTestCase._create_save_action(runnertype)
+        saved = ReactorModelTestCase._create_save_rule(trigger, action, False)
+        masked = RuleDB._mask_secrets(saved.action.)
+
+        for value in masked['parameters']['p4'].values():
+            self.assertEqual(value, MASKED_ATTRIBUTE_VALUE)
+
     @staticmethod
     def _create_save_triggertype():
         created = TriggerTypeDB(pack='dummy_pack_1', name='triggertype-1', description='',
@@ -666,7 +677,8 @@ class ActionModelTestCase(DbTestCase):
             created.parameters = {
                 'p1': {'type': 'string', 'required': True},
                 'p2': {'type': 'number', 'default': 2868},
-                'p3': {'type': 'boolean', 'default': False}
+                'p3': {'type': 'boolean', 'default': False},
+                'p4': {'type': 'secret', 'default': "*****"}
             }
         return Action.add_or_update(created)
 
