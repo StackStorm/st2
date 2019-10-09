@@ -86,12 +86,12 @@ class RuleViewControllerTestCase(FunctionalTest,
         resp = self.app.get('/v1/rules/1', expect_errors=True)
         self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
-    def test_get_one_parameters_mask_with_include_parameters(self):
+    def test_get_all_parameters_mask_with_include_parameters(self):
         resp = self.app.get('/api/v1/rules?include_attributes=action')
         self.assertEqual(resp.status_int, http_client.OK)
         pass
 
-    def test_get_one_parameters_mask_with_exclude_parameters(self):
+    def test_get_all_parameters_mask_with_exclude_parameters(self):
         resp = self.app.get('/api/v1/rules?exclude_attributes=action')
         self.assertEqual(resp.status_int, http_client.OK)
         pass
