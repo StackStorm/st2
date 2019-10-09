@@ -241,19 +241,27 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
     # We're trying to figure out which branch the ref is actually on,
     # since there's no direct way to check for this in git-python.
     branches = repo.git.branch('-a', '--contains', gitref.hexsha)  # pylint: disable=no-member
-    branches = branches.replace('*', '').split()
 
-    if active_branch.name not in branches or use_branch:
-        branch = 'origin/%s' % ref if use_branch else branches[0]
-        short_branch = ref if use_branch else branches[0].split('/')[-1]
-        repo.git.checkout('-b', short_branch, branch)
-        branch = repo.head.reference
+    # Git tags aren't necessarily on a branch.
+    # If this is the case, gitref will be the tag name, but branches will be
+    # empty.
+    # We also need to checkout tags slightly differently than branches.
+    if branches:
+        branches = branches.replace('*', '').split()
+
+        if active_branch.name not in branches or use_branch:
+            branch = 'origin/%s' % ref if use_branch else branches[0]
+            short_branch = ref if use_branch else branches[0].split('/')[-1]
+            repo.git.checkout('-b', short_branch, branch)
+            branch = repo.head.reference
+        else:
+            branch = repo.active_branch.name
+
+        repo.git.checkout(gitref.hexsha)  # pylint: disable=no-member
+        repo.git.branch('-f', branch, gitref.hexsha)  # pylint: disable=no-member
+        repo.git.checkout(branch)
     else:
-        branch = repo.active_branch.name
-
-    repo.git.checkout(gitref.hexsha)  # pylint: disable=no-member
-    repo.git.branch('-f', branch, gitref.hexsha)  # pylint: disable=no-member
-    repo.git.checkout(branch)
+        repo.git.checkout('v%s' % ref)  # pylint: disable=no-member
 
     return temp_dir
 
@@ -370,7 +378,7 @@ def get_repo_url(pack, proxy_config=None):
         if not pack:
             raise Exception('No record of the "%s" pack in the index.' % (name_or_url))
 
-        return (pack['repo_url'], version)
+        return (pack['repo_url'], version or pack['version'])
     else:
         return (eval_repo_url(name_or_url), version)
 

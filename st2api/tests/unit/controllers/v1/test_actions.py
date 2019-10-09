@@ -435,13 +435,20 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         # Verify that exception messages containing unicode characters don't result in internal
         # server errors
         action = copy.deepcopy(ACTION_1)
-        action['name'] = 'žactionćšžž'
+        # NOTE: We explicitly don't prefix this string value with u""
+        action['name'] = 'žactionćšžži💩'
 
         # 1. Initial creation
         post_resp = self.__do_post(action, expect_errors=True)
         self.assertEqual(post_resp.status_int, 201)
 
         # 2. Action already exists
+        post_resp = self.__do_post(action, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 409)
+        self.assertTrue('Tried to save duplicate unique keys' in post_resp.json['faultstring'])
+
+        # 3. Action already exists (this time with unicode type)
+        action['name'] = u'žactionćšžži💩'
         post_resp = self.__do_post(action, expect_errors=True)
         self.assertEqual(post_resp.status_int, 409)
         self.assertTrue('Tried to save duplicate unique keys' in post_resp.json['faultstring'])

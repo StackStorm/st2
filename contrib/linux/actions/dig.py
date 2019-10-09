@@ -14,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import errno
 import subprocess
 import random
 import re
+
 from st2common.runners.base_action import Action
 
 
@@ -39,11 +41,26 @@ class DigAction(Action):
             cmd_args.append('+' + v)
 
         cmd_args.append(hostname)
-        result_list = filter(None, subprocess.Popen(cmd_args,
-                                                    stderr=subprocess.PIPE,
-                                                    stdout=subprocess.PIPE)
-                                             .communicate()[0]
-                                             .split('\n'))
+
+        try:
+            result_list = filter(None, subprocess.Popen(cmd_args,
+                                                        stderr=subprocess.PIPE,
+                                                        stdout=subprocess.PIPE)
+                                 .communicate()[0]
+                                 .split('\n'))
+
+        # NOTE: Python3 supports the FileNotFoundError, the errono.ENOENT is for py2 compat
+        # for Python3:
+        # except FileNotFoundError as e:
+
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                return False, "Can't find dig installed in the path (usually /usr/bin/dig). If " \
+                              "dig isn't installed, you can install it with 'sudo yum install " \
+                              "bind-utils' or 'sudo apt install dnsutils'"
+            else:
+                raise e
+
         if int(count) > len(result_list) or count <= 0:
             count = len(result_list)
 

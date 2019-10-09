@@ -4,9 +4,37 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Add support for blacklisting / whitelisting hosts to the HTTP runner by adding new
+  ``url_hosts_blacklist`` and ``url_hosts_whitelist`` runner attribute. (new feature)
+  #4757
+* Add ``user`` parameter to ``re_run`` method of st2client. #4785
+* Install pack dependencies automatically. #4769
+* Add support for `immutable_parameters` on Action Aliases. This feature allows default parameters to be supplied to the action on every execution of the alias. #4786
+
+Changed
+~~~~~~~
+
+* Install pack with the latest tag version if it exists when branch is not specialized.
+  (improvement) #4743
+* Implement "continue" engine command to orquesta workflow. (improvement) #4740
+* Update various internal dependencies to latest stable versions (apscheduler, eventlet,
+  kombu, amqp, pyyaml, mongoengine, python-gnupg, paramiko, tooz, webob, bcrypt).
+
+  Latest version of mongoengine should show some performance improvements (5-20%) when
+  writing very large executions (executions with large results) to the database. #4767
+* Improved development instructions in requirements.txt and dist_utils.py comment headers
+  (improvement) #4774
+
 Fixed
 ~~~~~
 
+* Fix rbac with execution view where the rbac is unable to verify the pack or uid of the execution
+  because it was not returned from the action execution db. This would result in an internal server
+  error when trying to view the results of a single execution.
+  Contributed by Joshua Meyer (@jdmeyer3) #4758
 * Fixed logging middleware to output a ``content_length`` of ``0`` instead of ``Infinity``
   when the type of data being returned is not supported. Previously, when the value was
   set to ``Infinity`` this would result in invalid JSON being output into structured
@@ -15,11 +43,17 @@ Fixed
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
 * Fix the workflow execution cancelation to proceed even if the workflow execution is not found or
   completed. (bug fix) #4735
+* Added better error handling to `contrib/linux/actions/dig.py` to inform if dig is not installed.
+  Contributed by JP Bourget (@punkrokk Syncurity) #4732
+* Update ``dist_utils`` module which is bundled with ``st2client`` and other Python packages so it
+  doesn't depend on internal pip API and so it works with latest pip version. (bug fix) #4750
+* Fix dependency conflicts in pack CI runs: downgrade requests dependency back to 0.21.0, update
+  internal dependencies and test expectations (amqp, pyyaml, prance, six) (bugfix) #4774
 * Fixed ``st2 execution get`` and ``st2 run`` not printing the ``action.ref``
   for non-workflow actions. (bug fix) #4739
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
-
+  
 3.1.0 - June 27, 2019
 ---------------------
 

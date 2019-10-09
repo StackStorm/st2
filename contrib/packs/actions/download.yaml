@@ -27,3 +27,9 @@
       description: "True to use Python 3 binary for this pack."
       required: false
       default: false
+    dependency_list:
+      type: "array"
+      description: "Dependency list that needs to be downloaded."
+      items:
+        type: "string"
+      required: false

@@ -51,3 +51,8 @@ Example trigger payload:
 * ``check_loadavg`` - Action which retrieves load average from a remote host.
 * ``check_processes`` - Action which retrieves useful information about
   matching process on a remote host.
+* ``dig`` - Python wrapper for dig command. Requires ``bind-utils`` rpm or ``dnsutils`` deb installed.
+
+## Troubleshooting
+
+* On CentOS7/RHEL7, dig is not installed by default. Run ``sudo yum install bind-utils`` to install. 
