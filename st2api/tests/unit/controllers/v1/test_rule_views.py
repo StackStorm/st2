@@ -89,11 +89,13 @@ class RuleViewControllerTestCase(FunctionalTest,
     def test_get_all_parameters_mask_with_include_parameters(self):
         resp = self.app.get('/api/v1/rules?include_attributes=action')
         self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 3)
         pass
 
     def test_get_all_parameters_mask_with_exclude_parameters(self):
         resp = self.app.get('/api/v1/rules?exclude_attributes=action')
         self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 3)
         pass
 
     def _insert_mock_models(self):
