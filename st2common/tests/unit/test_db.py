@@ -680,7 +680,7 @@ class ActionModelTestCase(DbTestCase):
                 'p1': {'type': 'string', 'required': True},
                 'p2': {'type': 'number', 'default': 2868},
                 'p3': {'type': 'boolean', 'default': False},
-                'p4': {'type': 'secret', 'default': "*****"}
+                'p4': {'type': 'string', 'default': '******', 'secret': True}
             }
         return Action.add_or_update(created)
 
