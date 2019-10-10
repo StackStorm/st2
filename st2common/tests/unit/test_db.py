@@ -447,10 +447,12 @@ class ReactorModelTestCase(DbTestCase):
         runnertype = ActionModelTestCase._create_save_runnertype()
         action = ActionModelTestCase._create_save_action(runnertype)
         saved = ReactorModelTestCase._create_save_rule(trigger, action, False)
-        masked = RuleDB._mask_secrets(saved.action)
+        masked = RuleDB._mask_secrets(retrieved.action)
 
         for value in masked['parameters']['p4'].values():
             self.assertEqual(value, MASKED_ATTRIBUTE_VALUE)
+        ReactorModelTestCase._delete([saved, trigger, action, runnertype, triggertype])
+
 
     @staticmethod
     def _create_save_triggertype():
