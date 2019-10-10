@@ -13,6 +13,7 @@ Added
 * Add ``user`` parameter to ``re_run`` method of st2client. #4785
 * Install pack dependencies automatically. #4769
 * Add support for `immutable_parameters` on Action Aliases. This feature allows default parameters to be supplied to the action on every execution of the alias. #4786
+* Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client. #4791  
 
 Changed
 ~~~~~~~
