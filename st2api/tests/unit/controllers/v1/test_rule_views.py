@@ -86,16 +86,6 @@ class RuleViewControllerTestCase(FunctionalTest,
         resp = self.app.get('/v1/rules/1', expect_errors=True)
         self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
-    def test_get_all_parameters_mask_with_include_parameters(self):
-        resp = self.app.get('/v1/rules?include_attributes=action')
-        self.assertEqual(resp.status_int, http_client.OK)
-        self.assertEqual(len(resp.json), 3)
-
-    def test_get_all_parameters_mask_with_exclude_parameters(self):
-        resp = self.app.get('/v1/rules?exclude_attributes=action')
-        self.assertEqual(resp.status_int, http_client.OK)
-        self.assertEqual(len(resp.json), 3)
-
     def _insert_mock_models(self):
         rule_ids = [rule['id'] for rule in self.rules.values()]
         return rule_ids
