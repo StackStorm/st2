@@ -448,7 +448,7 @@ class ReactorModelTestCase(DbTestCase):
         action = ActionModelTestCase._create_save_action(runnertype)
         saved = ReactorModelTestCase._create_save_rule(trigger, action, False)
         retrieved = Rule.get_by_id(saved.id)
-        for value in masked['parameters']['p4'].values():
+        for value in retrieved['parameters']['p4'].values():
             self.assertEqual(value, MASKED_ATTRIBUTE_VALUE)
         ReactorModelTestCase._delete([retrieved, trigger, action, runnertype, triggertype])
 
