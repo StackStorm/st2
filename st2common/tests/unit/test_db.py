@@ -34,7 +34,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
 from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
 from st2common.persistence.cleanup import db_cleanup
-from st2common.persistence.rule import Rule, RuleTypeDB
+from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
 
@@ -447,10 +447,10 @@ class ReactorModelTestCase(DbTestCase):
         runnertype = ActionModelTestCase._create_save_runnertype()
         action = ActionModelTestCase._create_save_action(runnertype)
         saved = ReactorModelTestCase._create_save_rule(trigger, action, False)
-        masked = RuleTypeDB._mask_secrets(saved.action)
+        retrieved = Rule.get_by_id(saved.id)
         for value in masked['parameters']['p4'].values():
             self.assertEqual(value, MASKED_ATTRIBUTE_VALUE)
-        ReactorModelTestCase._delete([saved, trigger, action, runnertype, triggertype])
+        ReactorModelTestCase._delete([retrieved, trigger, action, runnertype, triggertype])
 
     @staticmethod
     def _create_save_triggertype():
