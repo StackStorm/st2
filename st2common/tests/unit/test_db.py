@@ -21,7 +21,6 @@ import mock
 import mongoengine.connection
 from oslo_config import cfg
 from pymongo.errors import ConnectionFailure
-from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.constants.triggers import TRIGGER_INSTANCE_PROCESSED
 from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
