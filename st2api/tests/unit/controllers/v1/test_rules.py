@@ -185,6 +185,14 @@ class RulesControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclude
         self.__do_delete(self.__get_rule_id(post_resp_rule_1))
         self.__do_delete(self.__get_rule_id(post_resp_rule_3))
 
+    def test_get_all_parameters_mask_with_include_parameters(self):
+        resp = self.app.get('/v1/rules?include_attributes=action')
+        self.assertEqual(resp.status_int, http_client.OK)
+
+    def test_get_all_parameters_mask_with_exclude_parameters(self):
+        resp = self.app.get('/v1/rules?exclude_attributes=action')
+        self.assertEqual(resp.status_int, http_client.OK)
+        
     def test_get_one_by_id(self):
         post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         rule_id = self.__get_rule_id(post_resp)
@@ -466,7 +474,7 @@ class RulesControllerTestCaseTriggerCreator(FunctionalTest):
         cls.RULE_1 = cls.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
-
+    
     def test_ref_count_trigger_increment(self):
         post_resp = self.__do_post(self.RULE_1)
         rule_1_id = self.__get_rule_id(post_resp)
