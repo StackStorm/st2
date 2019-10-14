@@ -72,6 +72,7 @@ class St2RegisterAction(Action):
             'types': types
         }
 
+        packs.reverse()
         if packs:
             method_kwargs['packs'] = packs
 

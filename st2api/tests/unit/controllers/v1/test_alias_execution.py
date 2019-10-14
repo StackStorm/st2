@@ -27,7 +27,7 @@ FIXTURES_PACK = 'aliases'
 
 TEST_MODELS = {
     'aliases': ['alias1.yaml', 'alias2.yaml', 'alias_with_undefined_jinja_in_ack_format.yaml',
-                'alias4.yaml', 'alias_fixes1.yaml', 'alias_fixes2.yaml',
+                'alias4.yaml', 'alias5.yaml', 'alias_fixes1.yaml', 'alias_fixes2.yaml',
                 'alias_match_multiple.yaml'],
     'actions': ['action1.yaml', 'action2.yaml'],
     'runners': ['runner1.yaml']
@@ -64,6 +64,7 @@ class AliasExecutionTestCase(FunctionalTest):
         cls.alias1 = cls.models['aliases']['alias1.yaml']
         cls.alias2 = cls.models['aliases']['alias2.yaml']
         cls.alias4 = cls.models['aliases']['alias4.yaml']
+        cls.alias5 = cls.models['aliases']['alias5.yaml']
         cls.alias_with_undefined_jinja_in_ack_format = \
             cls.models['aliases']['alias_with_undefined_jinja_in_ack_format.yaml']
 
@@ -74,6 +75,15 @@ class AliasExecutionTestCase(FunctionalTest):
         post_resp = self._do_post(alias_execution=self.alias1, command=command)
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param2': 'value2 value3'}
+        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+
+    @mock.patch.object(action_service, 'request',
+                       return_value=(None, EXECUTION))
+    def test_basic_execution_with_immutable_parameters(self, request):
+        command = 'lorem ipsum'
+        post_resp = self._do_post(alias_execution=self.alias5, command=command)
+        self.assertEqual(post_resp.status_int, 201)
+        expected_parameters = {'param1': 'value1', 'param2': 'value2'}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',

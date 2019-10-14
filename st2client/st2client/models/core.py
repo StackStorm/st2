@@ -376,9 +376,22 @@ class ActionAliasExecutionManager(ResourceManager):
         return instance
 
 
+class ActionResourceManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def get_entrypoint(self, ref_or_id, **kwargs):
+        url = '/%s/views/entry_point/%s' % (self.resource.get_url_path_name(), ref_or_id)
+
+        response = self.client.get(url, **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return response.text
+
+
 class ExecutionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, delay=0, **kwargs):
+    def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, user=None, delay=0,
+               **kwargs):
         url = '/%s/%s/re_run' % (self.resource.get_url_path_name(), execution_id)
 
         tasks = tasks or []
@@ -391,7 +404,8 @@ class ExecutionResourceManager(ResourceManager):
             'parameters': parameters or {},
             'tasks': tasks,
             'reset': list(set(tasks) - set(no_reset)),
-            'delay': delay
+            'delay': delay,
+            'user': user
         }
 
         response = self.client.post(url, data, **kwargs)
@@ -494,12 +508,13 @@ class AsyncRequest(Resource):
 
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def install(self, packs, force=False, python3=False, **kwargs):
+    def install(self, packs, force=False, python3=False, skip_dependencies=False, **kwargs):
         url = '/%s/install' % (self.resource.get_url_path_name())
         payload = {
             'packs': packs,
             'force': force,
-            'python3': python3
+            'python3': python3,
+            'skip_dependencies': skip_dependencies
         }
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != http_client.OK:
