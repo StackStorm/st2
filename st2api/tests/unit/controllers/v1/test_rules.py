@@ -128,6 +128,11 @@ class RulesControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclude
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
+        file_name = 'rule1.yaml'
+        RulesControllerTestCase.RULE_WITH_SECRET_PARAMETERS = RulesControllerTestCase.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
     @classmethod
     def tearDownClass(cls):
         # Replace original configured value for trigger parameter validation
@@ -186,13 +191,18 @@ class RulesControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclude
         self.__do_delete(self.__get_rule_id(post_resp_rule_3))
 
     def test_get_all_parameters_mask_with_include_parameters(self):
-        resp = self.app.get('/v1/rules?include_attributes=action')
-        self.assertEqual(resp.status_int, http_client.OK)
+        post_resp_rule_1 = self.__do_post(RulesControllerTestCase.RULE_1)
+        resp = self.app.get('/v1/rules?include-attributes=name')
+        self.assertEqual('name' in resp.json[0], True)
+        print(resp.json[0])
+        self.__do_delete(self.__get_rule_id(post_resp_rule_1))
 
     def test_get_all_parameters_mask_with_exclude_parameters(self):
+        post_resp_rule_1 = self.__do_post(RulesControllerTestCase.RULE_1)
         resp = self.app.get('/v1/rules?exclude_attributes=action')
-        self.assertEqual(resp.status_int, http_client.OK)
-        
+        self.assertEqual('action' in resp.json[0], False)
+        self.__do_delete(self.__get_rule_id(post_resp_rule_1))
+    
     def test_get_one_by_id(self):
         post_resp = self.__do_post(RulesControllerTestCase.RULE_1)
         rule_id = self.__get_rule_id(post_resp)

@@ -69,7 +69,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
 
     def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
                 limit=None, requester_user=None, **raw_filters):
-        from_model_kwargs = {'ignore_missing_trigger': True}
+        from_model_kwargs = {'ignore_missing_trigger': True, 'mask_secrets': True}
         return super(RuleController, self)._get_all(exclude_fields=exclude_attributes,
                                                     include_fields=include_attributes,
                                                     from_model_kwargs=from_model_kwargs,
@@ -80,7 +80,7 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
                                                     requester_user=requester_user)
 
     def get_one(self, ref_or_id, requester_user):
-        from_model_kwargs = {'ignore_missing_trigger': True}
+        from_model_kwargs = {'ignore_missing_trigger': True, 'mask_secrets': True}
         return super(RuleController, self)._get_one(ref_or_id, from_model_kwargs=from_model_kwargs,
                                                     requester_user=requester_user,
                                                     permission_type=PermissionType.RULE_VIEW)

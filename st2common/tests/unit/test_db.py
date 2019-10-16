@@ -520,6 +520,10 @@ PARAM_SCHEMA = {
         "p3": {
             "type": "boolean",
             "default": False
+        },
+        "p4": {
+            "type": "string",
+            "secret": True
         }
     },
     "additionalProperties": False
@@ -660,12 +664,13 @@ class ActionModelTestCase(DbTestCase):
                            runner_type={'name': runnertype.name})
 
         if not metadata:
-            created.parameters = {'p1': None, 'p2': None, 'p3': None}
+            created.parameters = {'p1': None, 'p2': None, 'p3': None, 'p4': None}
         else:
             created.parameters = {
                 'p1': {'type': 'string', 'required': True},
                 'p2': {'type': 'number', 'default': 2868},
-                'p3': {'type': 'boolean', 'default': False}
+                'p3': {'type': 'boolean', 'default': False},
+                'p4': {'type': 'string', 'secret': True}
             }
         return Action.add_or_update(created)
 

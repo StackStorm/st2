@@ -135,9 +135,8 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
 
         :rtype: ``ActionDB``
         """
-
-        action_ref = rule.get('action', {}).get('ref', None)
-
+        
+        action_ref = rule['action']['ref']
         def ref_query_args(ref):
             return {'ref': ref}
 
