@@ -63,7 +63,7 @@ class RuleViewControllerTestCase(FunctionalTest,
         resp = self.app.get('/v1/rules/views')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 3)
-        
+
     def test_get_one_by_id(self):
         rule_id = str(RuleViewControllerTestCase.RULE_1.id)
         get_resp = self.__do_get_one(rule_id)
