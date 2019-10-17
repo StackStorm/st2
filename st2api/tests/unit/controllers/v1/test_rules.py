@@ -192,9 +192,8 @@ class RulesControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclude
 
     def test_get_all_parameters_mask_with_include_parameters(self):
         post_resp_rule_1 = self.__do_post(RulesControllerTestCase.RULE_1)
-        resp = self.app.get('/v1/rules?include-attributes=name')
+        resp = self.app.get('/v1/rules?include_attributes=name')
         self.assertEqual('name' in resp.json[0], True)
-        print(resp.json[0])
         self.__do_delete(self.__get_rule_id(post_resp_rule_1))
 
     def test_get_all_parameters_mask_with_exclude_parameters(self):
