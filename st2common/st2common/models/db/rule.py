@@ -116,7 +116,8 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         :rtype: ``dict``
         """
         result = copy.deepcopy(value)
-
+        if('action' not in result):
+            return result
         action_db = self._get_referenced_models(rule=result)
 
         secret_parameters = get_secret_parameters(parameters=action_db['parameters'])
