@@ -107,7 +107,7 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     # GreenPipe so it doesn't block
     LOG.debug('Creating subprocess.')
     process = concurrency.subprocess_popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
-                                           env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
+                                           env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func, bufsize=-1)
 
     if read_stdout_func:
         LOG.debug('Spawning read_stdout_func function')
