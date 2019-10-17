@@ -137,8 +137,10 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         :rtype: ``ActionDB``
         """
         action_ref = rule['action']['ref']
+
         def ref_query_args(ref):
             return {'ref': ref}
+
         action_db = self._get_entity(model_persistence=Action,
                                      ref=action_ref,
                                      query_args=ref_query_args)
