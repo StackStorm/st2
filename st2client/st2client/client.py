@@ -25,6 +25,7 @@ from st2client.utils import httpclient
 from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import ActionAliasExecutionManager
+from st2client.models.core import ActionResourceManager
 from st2client.models.core import ExecutionResourceManager
 from st2client.models.core import InquiryResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
@@ -118,7 +119,7 @@ class Client(object):
             models.Token, self.endpoints['auth'], cacert=self.cacert, debug=self.debug)
         self.managers['RunnerType'] = ResourceManager(
             models.RunnerType, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Action'] = ResourceManager(
+        self.managers['Action'] = ActionResourceManager(
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['ActionAlias'] = ActionAliasResourceManager(
             models.ActionAlias, self.endpoints['api'], cacert=self.cacert, debug=self.debug)

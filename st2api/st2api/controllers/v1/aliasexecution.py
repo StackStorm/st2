@@ -30,6 +30,7 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.models.utils import action_param_utils
 from st2common.models.utils.action_alias_utils import extract_parameters_for_action_alias_db
+from st2common.models.utils.action_alias_utils import inject_immutable_parameters
 from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
 from st2common.util import action_db as action_utils
@@ -145,6 +146,11 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             'user': requester_user.name,
             'source_channel': payload.source_channel,
         }
+
+        inject_immutable_parameters(
+            action_alias_db=action_alias_db,
+            multiple_execution_parameters=multiple_execution_parameters,
+            action_context=context)
 
         results = []
         for execution_parameters in multiple_execution_parameters:
