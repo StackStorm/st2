@@ -158,7 +158,7 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
     python_binary = cfg.CONF.actionrunner.python_binary
     python3_binary = cfg.CONF.actionrunner.python3_binary
     virtualenv_binary = cfg.CONF.actionrunner.virtualenv_binary
-    virtualenv_opts = cfg.CONF.actionrunner.virtualenv_opts
+    virtualenv_opts = cfg.CONF.actionrunner.virtualenv_opts or []
 
     if not os.path.isfile(python_binary):
         raise Exception('Python binary "%s" doesn\'t exist' % (python_binary))
@@ -237,6 +237,7 @@ def install_requirements(virtualenv_path, requirements_file_path, proxy_config=N
     """
     logger = logger or LOG
     pip_path = os.path.join(virtualenv_path, 'bin/pip')
+    pip_opts = cfg.CONF.actionrunner.pip_opts or []
     cmd = [pip_path]
 
     if proxy_config:
@@ -253,7 +254,10 @@ def install_requirements(virtualenv_path, requirements_file_path, proxy_config=N
         if cert:
             cmd.extend(['--cert', cert])
 
-    cmd.extend(['install', '-U', '-r', requirements_file_path])
+    cmd.append('install')
+    cmd.extend(pip_opts)
+    cmd.extend(['-U', '-r', requirements_file_path])
+
     env = get_env_for_subprocess_command()
 
     logger.debug('Installing requirements from file %s with command %s.',
@@ -278,6 +282,7 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=
     """
     logger = logger or LOG
     pip_path = os.path.join(virtualenv_path, 'bin/pip')
+    pip_opts = cfg.CONF.actionrunner.pip_opts or []
     cmd = [pip_path]
 
     if proxy_config:
@@ -294,7 +299,9 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=
         if cert:
             cmd.extend(['--cert', cert])
 
-    cmd.extend(['install', requirement])
+    cmd.append('install')
+    cmd.extend(pip_opts)
+    cmd.extend([requirement])
     env = get_env_for_subprocess_command()
     logger.debug('Installing requirement %s with command %s.',
                  requirement, ' '.join(cmd))
