@@ -28,6 +28,9 @@ Changed
   writing very large executions (executions with large results) to the database. #4767
 * Improved development instructions in requirements.txt and dist_utils.py comment headers
   (improvement) #4774
+* Add new ``action_runner.pip_opts`` st2.conf config option which allows user to specify a list
+  of command line option which are passed to ``pip install`` command when installing pack
+  dependencies into a pack specific virtual environment. #4792
 
 Fixed
 ~~~~~

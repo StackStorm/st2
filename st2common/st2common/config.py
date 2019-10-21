@@ -374,6 +374,10 @@ def register_opts(ignore_errors=False):
             'virtualenv_opts', default=['--system-site-packages'],
             help='List of virtualenv options to be passsed to "virtualenv" command that '
                  'creates pack virtualenv.'),
+        cfg.ListOpt(
+            'pip_opts', default=[],
+            help='List of pip options to be passed to "pip install" command when installing pack '
+                 'dependencies into pack virtual environment.'),
         cfg.BoolOpt(
             'stream_output', default=True,
             help='True to store and stream action output (stdout and stderr) in real-time.')
