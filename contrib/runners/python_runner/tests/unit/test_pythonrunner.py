@@ -63,6 +63,8 @@ PRINT_VERSION_LOCAL_MODULE_ACTION = os.path.join(tests_base.get_fixtures_path(),
 
 PRINT_CONFIG_ITEM_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                         'pythonactions/actions/print_config_item_doesnt_exist.py')
+PRINT_TO_STDOUT_STDERR_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
+                                      'pythonactions/actions/print_to_stdout_and_stderr.py')
 
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
@@ -417,26 +419,19 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                   group='actionrunner')
 
             output_dbs = ActionExecutionOutput.get_all()
-            self.assertEqual(len(output_dbs), (index - 1) * 3)
+            self.assertEqual(len(output_dbs), (index - 1) * 4)
 
             runner = self._get_mock_runner_obj()
-            runner.runner_parameters = {'log_level': 'INFO'}
-            runner.entry_point = PASCAL_ROW_ACTION_PATH
+            runner.entry_point = PRINT_TO_STDOUT_STDERR_ACTION
             runner.pre_run()
-            (_, output, _) = runner.run({'row_index': 2})
+            (_, output, _) = runner.run({'stdout_count': 2, 'stderr_count': 2})
 
-            expected_stderr = ''.join([
-                'st2.actions.python.PascalRowAction: INFO     test info log message\n',
-                'st2.actions.python.PascalRowAction: ERROR    test error log message\n'
-            ])
-
-            self.assertEqual(output['stdout'], 'Pascal row action\n')
-            self.assertEqual(output['stderr'], expected_stderr)
-            self.assertEqual(output['result'], [1, 2, 1])
+            self.assertEqual(output['stdout'], 'stdout line 0\nstdout line 1\n')
+            self.assertEqual(output['stderr'], 'stderr line 0\nstderr line 1\n')
             self.assertEqual(output['exit_code'], 0)
 
             output_dbs = ActionExecutionOutput.get_all()
-            self.assertEqual(len(output_dbs), (index) * 3)
+            self.assertEqual(len(output_dbs), (index) * 4)
 
     @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
