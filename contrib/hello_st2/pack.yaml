@@ -16,6 +16,12 @@ version: 0.1.0
 python_versions:
   - "2"
   - "3"
+# New in StackStorm 3.2
+# Specify a list of dependency packs to install. If the pack is in StackStorm Exchange you can use
+# the pack name, or you can specify a full Git repository URL. Optionally, you can specify the
+# exact version, tag, or branch.
+dependencies:
+  - core
 # Name of the pack author.
 author: StackStorm, Inc.
 # Email of the pack author.

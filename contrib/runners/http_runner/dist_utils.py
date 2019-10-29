@@ -1,4 +1,6 @@
 # NOTE: This file is auto-generated - DO NOT EDIT MANUALLY
+#       Instead modify scripts/dist_utils.py and run 'make .sdist-requirements' to
+#       update dist_utils.py files for all components
 # -*- coding: utf-8 -*-
 # Copyright 2019 Extreme Networks, Inc.
 #

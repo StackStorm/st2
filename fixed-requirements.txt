@@ -7,14 +7,14 @@ eventlet==0.25.0
 gunicorn==19.9.0
 kombu==4.6.4
 # Note: amqp is used by kombu
-amqp==2.5.0
+amqp==2.5.1
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
 oslo.utils>=3.36.2,<=3.37.0
 six==1.12.0
 pyyaml==5.1.2
-requests[security]>=2.22.0,<2.23.0
+requests[security]>=2.21.0,<2.22.0
 apscheduler==3.6.1
 gitpython==2.1.11
 jsonschema==2.6.0

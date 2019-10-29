@@ -14,10 +14,12 @@
 
 from __future__ import absolute_import
 from sre_parse import (parse, AT, AT_BEGINNING, AT_BEGINNING_STRING, AT_END, AT_END_STRING)
+from mock import Mock
 from unittest2 import TestCase
 from st2common.exceptions.content import ParseException
 from st2common.models.utils.action_alias_utils import (
     ActionAliasFormatParser, search_regex_tokens,
+    inject_immutable_parameters
 )
 
 
@@ -320,3 +322,30 @@ class TestSearchRegexTokens(TestCase):
     def test_subpatterns(self):
         tokens = parse("^(?:asdf|fdsa$)")
         self.assertTrue(search_regex_tokens(self.end_tokens, tokens))
+
+
+class TestInjectImmutableParameters(TestCase):
+    def test_immutable_parameters_are_injected(self):
+        action_alias_db = Mock()
+        action_alias_db.immutable_parameters = {"env": "dev"}
+        exec_params = [{"param1": "value1", "param2": "value2"}]
+        inject_immutable_parameters(action_alias_db, exec_params, {})
+        self.assertEqual(
+            exec_params,
+            [{"param1": "value1", "param2": "value2", "env": "dev"}])
+
+    def test_immutable_parameters_with_jinja(self):
+        action_alias_db = Mock()
+        action_alias_db.immutable_parameters = {"env": '{{ "dev" + "1" }}'}
+        exec_params = [{"param1": "value1", "param2": "value2"}]
+        inject_immutable_parameters(action_alias_db, exec_params, {})
+        self.assertEqual(
+            exec_params,
+            [{"param1": "value1", "param2": "value2", "env": "dev1"}])
+
+    def test_override_raises_error(self):
+        action_alias_db = Mock()
+        action_alias_db.immutable_parameters = {"env": "dev"}
+        exec_params = [{"param1": "value1", "env": "prod"}]
+        with self.assertRaises(ValueError):
+            inject_immutable_parameters(action_alias_db, exec_params, {})

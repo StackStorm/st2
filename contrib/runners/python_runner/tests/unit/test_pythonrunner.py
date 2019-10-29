@@ -63,6 +63,8 @@ PRINT_VERSION_LOCAL_MODULE_ACTION = os.path.join(tests_base.get_fixtures_path(),
 
 PRINT_CONFIG_ITEM_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                         'pythonactions/actions/print_config_item_doesnt_exist.py')
+PRINT_TO_STDOUT_STDERR_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
+                                      'pythonactions/actions/print_to_stdout_and_stderr.py')
 
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
@@ -405,6 +407,31 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output_dbs[0].data, mock_stderr[0])
         self.assertEqual(output_dbs[1].data, mock_stderr[1])
         self.assertEqual(output_dbs[2].data, mock_stderr[2])
+
+    def test_real_time_output_streaming_bufsize(self):
+        # Test various values for bufsize and verify it works / doesn't hang the process
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
+
+        bufsize_values = [-100, -2, -1, 0, 1, 2, 1024, 2048, 4096, 10000]
+
+        for index, bufsize in enumerate(bufsize_values, 1):
+            cfg.CONF.set_override(name='stream_output_buffer_size', override=bufsize,
+                                  group='actionrunner')
+
+            output_dbs = ActionExecutionOutput.get_all()
+            self.assertEqual(len(output_dbs), (index - 1) * 4)
+
+            runner = self._get_mock_runner_obj()
+            runner.entry_point = PRINT_TO_STDOUT_STDERR_ACTION
+            runner.pre_run()
+            (_, output, _) = runner.run({'stdout_count': 2, 'stderr_count': 2})
+
+            self.assertEqual(output['stdout'], 'stdout line 0\nstdout line 1\n')
+            self.assertEqual(output['stderr'], 'stderr line 0\nstderr line 1\n')
+            self.assertEqual(output['exit_code'], 0)
+
+            output_dbs = ActionExecutionOutput.get_all()
+            self.assertEqual(len(output_dbs), (index) * 4)
 
     @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
