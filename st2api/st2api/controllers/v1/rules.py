@@ -40,7 +40,8 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class RuleController(BaseRestControllerMixin, BaseResourceIsolationControllerMixin, ContentPackResourceController):
+class RuleController(BaseRestControllerMixin, BaseResourceIsolationControllerMixin,
+                     ContentPackResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Rules in the system.
