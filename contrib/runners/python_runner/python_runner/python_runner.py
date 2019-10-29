@@ -248,8 +248,11 @@ class PythonRunner(GitWorktreeActionRunner):
         if stdin_params:
             command_string = 'echo %s | %s' % (quote_unix(stdin_params), command_string)
 
-        LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
-                                                                 command_string))
+        bufsize = cfg.CONF.actionrunner.stream_output_buffer_size
+
+        LOG.debug('Running command (bufsize=%s): PATH=%s PYTHONPATH=%s %s' % (bufsize, env['PATH'],
+                                                                              env['PYTHONPATH'],
+                                                                              command_string))
         exit_code, stdout, stderr, timed_out = run_command(cmd=args,
                                                            stdin=stdin,
                                                            stdout=subprocess.PIPE,
@@ -261,7 +264,8 @@ class PythonRunner(GitWorktreeActionRunner):
                                                            read_stderr_func=read_and_store_stderr,
                                                            read_stdout_buffer=stdout,
                                                            read_stderr_buffer=stderr,
-                                                           stdin_value=stdin_params)
+                                                           stdin_value=stdin_params,
+                                                           bufsize=bufsize)
         LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
         LOG.debug('Returning.')
         return self._get_output_values(exit_code, stdout, stderr, timed_out)
