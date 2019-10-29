@@ -15,8 +15,16 @@ source ./virtualenv/bin/activate
 python ./st2client/setup.py develop
 st2 --version
 
+# Clean up old screen log files
+rm -f logs/screen-*.log
+
 # start dev environment in screens
 ./tools/launchdev.sh start -x
+
+# Give processes some time to start and check logs to see if all the services
+# started or if there was any error / failure
+sleep 10
+cat logs/screen-*.log
 
 # This script runs as root on Travis which means other processes which don't run
 # as root can't write to logs/ directory and tests fail
