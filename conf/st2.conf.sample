@@ -22,6 +22,8 @@ python3_prefix = None
 virtualenv_binary = /usr/bin/virtualenv
 # Python 3 binary which will be used by Python actions for packs which use Python 3 virtual environment.
 python3_binary = /usr/bin/python3
+# Buffer size to use for real time action output streaming. 0 means unbuffered 1 means line buffered, -1 means system default, which usually means fully buffered and any other positive value means use a buffer of (approximately) that size
+stream_output_buffer_size = -1
 # List of virtualenv options to be passsed to "virtualenv" command that creates pack virtualenv.
 virtualenv_opts = --system-site-packages # comma separated list allowed here.
 # True to store and stream action output (stdout and stderr) in real-time.

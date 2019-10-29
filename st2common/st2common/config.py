@@ -380,7 +380,13 @@ def register_opts(ignore_errors=False):
                  'dependencies into pack virtual environment.'),
         cfg.BoolOpt(
             'stream_output', default=True,
-            help='True to store and stream action output (stdout and stderr) in real-time.')
+            help='True to store and stream action output (stdout and stderr) in real-time.'),
+        cfg.IntOpt(
+            'stream_output_buffer_size', default=-1,
+            help=('Buffer size to use for real time action output streaming. 0 means unbuffered '
+                  '1 means line buffered, -1 means system default, which usually means fully '
+                  'buffered and any other positive value means use a buffer of (approximately) '
+                  'that size'))
     ]
 
     do_register_opts(action_runner_opts, group='actionrunner')
