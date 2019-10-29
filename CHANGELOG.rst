@@ -28,6 +28,12 @@ Changed
   writing very large executions (executions with large results) to the database. #4767
 * Improved development instructions in requirements.txt and dist_utils.py comment headers
   (improvement) #4774
+* Add new ``actionrunner.stream_output_buffer_size`` config option and default it to ``-1``
+  (previously default value was ``0``). This should result in a better performance and smaller
+  CPU utilization for Python runner actions which produce a lot of output.
+  (improvement)
+
+  Reported and contributed by Joshua Meyer (@jdmeyer3) #4803
 
 Fixed
 ~~~~~
