@@ -16,7 +16,6 @@ from __future__ import absolute_import
 import copy
 import mongoengine as me
 
-from mongoengine.queryset import Q
 from st2common.persistence.action import Action
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
@@ -137,10 +136,9 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     def _get_referenced_action_model(self, action_ref):
         """
         Return Action object for the action referenced in a rule.
-        Return the action model referenced from rule.
 
-        :type rule: ``dict``
-        :param rule: rule
+        :param action_ref: Action reference.
+        :type action_ref: ``str``
 
         :rtype: ``ActionDB``
         """
@@ -150,14 +148,6 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
 
         if action_dbs:
             return action_dbs[0]
-
-        return None
-
-    def _get_entity(self, model_persistence, ref, query_args):
-        q = Q(**query_args(ref))
-
-        if q:
-            return model_persistence._get_impl().model.objects(q).first()
 
         return None
 
