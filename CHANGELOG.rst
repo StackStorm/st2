@@ -51,10 +51,10 @@ Fixed
 * Fix dependency conflicts in pack CI runs: downgrade requests dependency back to 0.21.0, update
   internal dependencies and test expectations (amqp, pyyaml, prance, six) (bugfix) #4774
 * Fix mask of rule action secret parameters:
-  When we had an action on a rule with secret type parameters, the parameters were visible. This behavior
-  has been resolved in PR4788.   
-  Contributed by @Nicodemos305 and @jeansfelix
 
+  When we had an action on a rule with secret type parameters, the parameters were visible. This
+  behavior has been resolved in #4788
+  Contributed by @Nicodemos305 and @jeansfelix #4788
 
 3.1.0 - June 27, 2019
 ---------------------
