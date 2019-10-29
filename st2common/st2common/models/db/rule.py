@@ -109,6 +109,9 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         """
         Process the model dictionary and mask secret values.
 
+        NOTE: This method results in one addition "get one" query where we retrieve corresponding
+        action model so we can correctly mask secret parameters.
+
         :type value: ``dict``
         :param value: Document dictionary.
 
