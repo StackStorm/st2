@@ -116,19 +116,27 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         :rtype: ``dict``
         """
         result = copy.deepcopy(value)
-        if('action' not in result):
-            return result
-        action_db = self._get_referenced_models(rule=result)
 
-        secret_parameters = get_secret_parameters(parameters=action_db['parameters'])
+        action_ref = result.get('action', {}).get('ref', None)
+
+        if not action_ref:
+            return result
+
+        action_db = self._get_referenced_action_model(action_ref=action_ref)
+
+        if not action_db:
+            return result
+
+        secret_parameters = get_secret_parameters(parameters=action_db.parameters)
         result['action']['parameters'] = mask_secret_parameters(
             parameters=result['action']['parameters'],
             secret_parameters=secret_parameters)
 
         return result
 
-    def _get_referenced_models(self, rule):
+    def _get_referenced_action_model(self, action_ref):
         """
+        Return Action object for the action referenced in a rule.
         Return the action model referenced from rule.
 
         :type rule: ``dict``
@@ -136,16 +144,14 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
 
         :rtype: ``ActionDB``
         """
-        action_ref = rule['action']['ref']
+        # NOTE: We need to retrieve pack and name since that's needed for the PK
+        action_dbs = Action.query(only_fields=['pack', 'ref', 'name', 'parameters'],
+                                  ref=action_ref, limit=1)
 
-        def ref_query_args(ref):
-            return {'ref': ref}
+        if action_dbs:
+            return action_dbs[0]
 
-        action_db = self._get_entity(model_persistence=Action,
-                                     ref=action_ref,
-                                     query_args=ref_query_args)
-
-        return action_db
+        return None
 
     def _get_entity(self, model_persistence, ref, query_args):
         q = Q(**query_args(ref))
