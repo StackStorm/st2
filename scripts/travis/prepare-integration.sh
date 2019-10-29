@@ -23,8 +23,12 @@ rm -f logs/screen-*.log
 
 # Give processes some time to start and check logs to see if all the services
 # started or if there was any error / failure
+echo "Giving screen processes some time to start..."
 sleep 10
+
+echo " === START: Catting screen process log files. ==="
 cat logs/screen-*.log
+echo " === END: Catting screen process log files. ==="
 
 # This script runs as root on Travis which means other processes which don't run
 # as root can't write to logs/ directory and tests fail
