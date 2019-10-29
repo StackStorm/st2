@@ -38,7 +38,8 @@ LOG = logging.getLogger(__name__)
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
                 cwd=None, env=None, timeout=60, preexec_func=None, kill_func=None,
                 read_stdout_func=None, read_stderr_func=None,
-                read_stdout_buffer=None, read_stderr_buffer=None, stdin_value=None):
+                read_stdout_buffer=None, read_stderr_buffer=None, stdin_value=None,
+                bufsize=0):
     """
     Run the provided command in a subprocess and wait until it completes.
 
@@ -82,6 +83,8 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                  using live read mode.
     :type read_stdout_func: ``func``
 
+    :param bufsize: Buffer size argument to pass to subprocess.popen function.
+    :type bufsize: ``int``
 
     :rtype: ``tuple`` (exit_code, stdout, stderr, timed_out)
     """
@@ -107,7 +110,8 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     # GreenPipe so it doesn't block
     LOG.debug('Creating subprocess.')
     process = concurrency.subprocess_popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
-                                           env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
+                                           env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func,
+                                           bufsize=bufsize)
 
     if read_stdout_func:
         LOG.debug('Spawning read_stdout_func function')
