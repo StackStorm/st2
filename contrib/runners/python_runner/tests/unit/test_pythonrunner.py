@@ -406,6 +406,38 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output_dbs[1].data, mock_stderr[1])
         self.assertEqual(output_dbs[2].data, mock_stderr[2])
 
+    def test_real_time_output_streaming_bufsize(self):
+        # Test various values for bufsize and verify it works / doesn't hang the process
+        cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
+
+        bufsize_values = [-100, -2, -1, 0, 1, 2, 1024, 2048, 4096, 10000]
+
+        for index, bufsize in enumerate(bufsize_values, 1):
+            cfg.CONF.set_override(name='stream_output_buffer_size', override=bufsize,
+                                  group='actionrunner')
+
+            output_dbs = ActionExecutionOutput.get_all()
+            self.assertEqual(len(output_dbs), (index - 1) * 3)
+
+            runner = self._get_mock_runner_obj()
+            runner.runner_parameters = {'log_level': 'INFO'}
+            runner.entry_point = PASCAL_ROW_ACTION_PATH
+            runner.pre_run()
+            (_, output, _) = runner.run({'row_index': 2})
+
+            expected_stderr = ''.join([
+                'st2.actions.python.PascalRowAction: INFO     test info log message\n',
+                'st2.actions.python.PascalRowAction: ERROR    test error log message\n'
+            ])
+
+            self.assertEqual(output['stdout'], 'Pascal row action\n')
+            self.assertEqual(output['stderr'], expected_stderr)
+            self.assertEqual(output['result'], [1, 2, 1])
+            self.assertEqual(output['exit_code'], 0)
+
+            output_dbs = ActionExecutionOutput.get_all()
+            self.assertEqual(len(output_dbs), (index) * 3)
+
     @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
         values = {'delimiter': ACTION_OUTPUT_RESULT_DELIMITER}

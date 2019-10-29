@@ -36,6 +36,8 @@ class PascalRowAction(Action):
 
     @staticmethod
     def _compute_pascal_row(row_index=0):
+        print('Pascal row action')
+
         if row_index == 'a':
             return False, 'This is suppose to fail don\'t worry!!'
         elif row_index == 'b':
