@@ -105,7 +105,8 @@ def _do_register_exchange(exchange, connection, channel, retry_wrapper):
         kwargs = {
             'exchange': exchange.name,
             'type': exchange.type,
-            'durable': exchange.durable,
+            'durable': False,
+            'delivery_mode': 1,   # transient
             'auto_delete': exchange.auto_delete,
             'arguments': exchange.arguments,
             'nowait': False,
