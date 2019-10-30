@@ -940,7 +940,7 @@ ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: ci-py3-unit
-ci-py3-unit:
+ci-py3-unit: .ci-travis-permissions-workaround
 	@echo
 	@echo "==================== ci-py3-unit ===================="
 	@echo
