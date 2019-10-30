@@ -12,8 +12,10 @@ Added
   #4757
 * Add ``user`` parameter to ``re_run`` method of st2client. #4785
 * Install pack dependencies automatically. #4769
-* Add support for `immutable_parameters` on Action Aliases. This feature allows default parameters to be supplied to the action on every execution of the alias. #4786
-* Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client. #4791  
+* Add support for `immutable_parameters` on Action Aliases. This feature allows default
+  parameters to be supplied to the action on every execution of the alias. #4786
+* Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client.
+  #4791  
 
 Changed
 ~~~~~~~
@@ -34,6 +36,9 @@ Changed
   (improvement)
 
   Reported and contributed by Joshua Meyer (@jdmeyer3) #4803
+* Add new ``action_runner.pip_opts`` st2.conf config option which allows user to specify a list
+  of command line option which are passed to ``pip install`` command when installing pack
+  dependencies into a pack specific virtual environment. #4792
 
 Fixed
 ~~~~~

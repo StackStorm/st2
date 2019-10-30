@@ -13,10 +13,12 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import abc
 
 import six
-import eventlet
+
+from st2common.util import concurrency
 
 __all__ = [
     'Sensor',
@@ -117,7 +119,7 @@ class PollingSensor(BaseSensor):
     def run(self):
         while True:
             self.poll()
-            eventlet.sleep(self._poll_interval)
+            concurrency.sleep(self._poll_interval)
 
     def get_poll_interval(self):
         """

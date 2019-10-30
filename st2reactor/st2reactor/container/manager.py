@@ -13,13 +13,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import sys
 import signal
 
-import eventlet
-
 from st2common import log as logging
+from st2common.util import concurrency
 from st2reactor.container.process_container import ProcessSensorContainer
 from st2common.services.sensor_watcher import SensorWatcher
 from st2common.models.system.common import ResourceReference
@@ -75,7 +75,7 @@ class SensorContainerManager(object):
             self._sensor_container = ProcessSensorContainer(
                 sensors=sensors,
                 single_sensor_mode=self._single_sensor_mode)
-            self._container_thread = eventlet.spawn(self._sensor_container.run)
+            self._container_thread = concurrency.spawn(self._sensor_container.run)
 
             LOG.debug('Starting sensor CUD watcher...')
             self._sensors_watcher.start()
@@ -90,7 +90,7 @@ class SensorContainerManager(object):
             LOG.info('(PID:%s) SensorContainer stopped. Reason - %s', os.getpid(),
                      sys.exc_info()[0].__name__)
 
-            eventlet.kill(self._container_thread)
+            concurrency.kill(self._container_thread)
             self._container_thread = None
 
             return exit_code
