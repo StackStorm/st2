@@ -1005,6 +1005,10 @@ ci-unit-nightly:
 .ci-prepare-integration:
 	sudo -E ./scripts/travis/prepare-integration.sh
 
+.PHONE: .ci-travis-permissions-workaround
+.ci-travis-permissions-workaround:
+	sudo -E ./scripts/travis/permissions-workaround.sh
+
 .PHONY: ci-integration
 ci-integration: .ci-prepare-integration .itests-coverage-html
 
@@ -1022,4 +1026,4 @@ ci-mistral: .ci-prepare-integration .ci-prepare-mistral .mistral-itests-coverage
 ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html
 
 .PHONY: ci-packs-tests
-ci-packs-tests: .packs-tests
+ci-packs-tests: .ci-travis-permissions-workaround .packs-tests
