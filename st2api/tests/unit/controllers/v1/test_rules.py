@@ -20,6 +20,7 @@ from oslo_config import cfg
 
 from st2common.constants.rules import RULE_TYPE_STANDARD, RULE_TYPE_BACKSTOP
 from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.persistence.trigger import Trigger
 from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
@@ -184,6 +185,58 @@ class RulesControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclude
 
         self.__do_delete(self.__get_rule_id(post_resp_rule_1))
         self.__do_delete(self.__get_rule_id(post_resp_rule_3))
+
+    def test_get_all_action_parameters_secrets_masking(self):
+        post_resp_rule_1 = self.__do_post(RulesControllerTestCase.RULE_1)
+
+        # Verify parameter is masked by default
+        resp = self.app.get('/v1/rules')
+        self.assertEqual('action' in resp.json[0], True)
+        self.assertEqual(resp.json[0]['action']['parameters']['action_secret'],
+                         MASKED_ATTRIBUTE_VALUE)
+
+        # Verify ?show_secrets=true works
+        resp = self.app.get('/v1/rules?include_attributes=action&show_secrets=true')
+        self.assertEqual('action' in resp.json[0], True)
+        self.assertEqual(resp.json[0]['action']['parameters']['action_secret'], 'secret')
+
+        self.__do_delete(self.__get_rule_id(post_resp_rule_1))
+
+    def test_get_all_parameters_mask_with_exclude_parameters(self):
+        post_resp_rule_1 = self.__do_post(RulesControllerTestCase.RULE_1)
+        resp = self.app.get('/v1/rules?exclude_attributes=action')
+        self.assertEqual('action' in resp.json[0], False)
+        self.__do_delete(self.__get_rule_id(post_resp_rule_1))
+
+    def test_get_all_parameters_mask_with_include_parameters(self):
+        post_resp_rule_1 = self.__do_post(RulesControllerTestCase.RULE_1)
+
+        # Verify parameter is masked by default
+        resp = self.app.get('/v1/rules?include_attributes=action')
+        self.assertEqual('action' in resp.json[0], True)
+        self.assertEqual(resp.json[0]['action']['parameters']['action_secret'],
+                         MASKED_ATTRIBUTE_VALUE)
+
+        # Verify ?show_secrets=true works
+        resp = self.app.get('/v1/rules?include_attributes=action&show_secrets=true')
+        self.assertEqual('action' in resp.json[0], True)
+        self.assertEqual(resp.json[0]['action']['parameters']['action_secret'], 'secret')
+
+        self.__do_delete(self.__get_rule_id(post_resp_rule_1))
+
+    def test_get_one_action_parameters_secrets_masking(self):
+        post_resp_rule_1 = self.__do_post(RulesControllerTestCase.RULE_1)
+
+        # Verify parameter is masked by default
+        resp = self.app.get('/v1/rules/%s' % (post_resp_rule_1.json['id']))
+        self.assertEqual(resp.json['action']['parameters']['action_secret'],
+                         MASKED_ATTRIBUTE_VALUE)
+
+        # Verify ?show_secrets=true works
+        resp = self.app.get('/v1/rules/%s?show_secrets=true' % (post_resp_rule_1.json['id']))
+        self.assertEqual(resp.json['action']['parameters']['action_secret'], 'secret')
+
+        self.__do_delete(self.__get_rule_id(post_resp_rule_1))
 
     def test_get_one_by_id(self):
         post_resp = self.__do_post(RulesControllerTestCase.RULE_1)

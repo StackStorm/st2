@@ -3,6 +3,7 @@ action:
   parameters:
     ip1: '{{trigger.t1_p}}'
     ip2: '{{trigger}}'
+    action_secret: 'secret'
   ref: wolfpack.action-1
 criteria:
   trigger.t1_p:

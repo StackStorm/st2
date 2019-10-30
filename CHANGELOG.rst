@@ -15,7 +15,7 @@ Added
 * Add support for `immutable_parameters` on Action Aliases. This feature allows default
   parameters to be supplied to the action on every execution of the alias. #4786
 * Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client.
-  #4791  
+  #4791
 
 Changed
 ~~~~~~~
@@ -61,6 +61,10 @@ Fixed
   doesn't depend on internal pip API and so it works with latest pip version. (bug fix) #4750
 * Fix dependency conflicts in pack CI runs: downgrade requests dependency back to 0.21.0, update
   internal dependencies and test expectations (amqp, pyyaml, prance, six) (bugfix) #4774
+* Fix secrets masking in action parameters section defined inside the rule when using
+  ``GET /v1/rules`` and ``GET /v1/rules/<ref>`` API endpoint. (bug fix) #4788 #4807
+
+  Contributed by @Nicodemos305 and @jeansfelix
 
 3.1.0 - June 27, 2019
 ---------------------

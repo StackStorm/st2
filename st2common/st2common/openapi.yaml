@@ -2649,6 +2649,10 @@ paths:
           in: query
           description: Enabled filter
           type: string
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -2710,6 +2714,10 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context

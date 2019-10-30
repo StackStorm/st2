@@ -13,11 +13,15 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+import copy
 import mongoengine as me
 
+from st2common.persistence.action import Action
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
+from st2common.util.secrets import get_secret_parameters
+from st2common.util.secrets import mask_secret_parameters
 
 
 class RuleTypeDB(stormbase.StormBaseDB):
@@ -100,6 +104,55 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
              stormbase.TagsMixin.get_indexes() +
              stormbase.UIDFieldMixin.get_indexes())
     }
+
+    def mask_secrets(self, value):
+        """
+        Process the model dictionary and mask secret values.
+
+        NOTE: This method results in one addition "get one" query where we retrieve corresponding
+        action model so we can correctly mask secret parameters.
+
+        :type value: ``dict``
+        :param value: Document dictionary.
+
+        :rtype: ``dict``
+        """
+        result = copy.deepcopy(value)
+
+        action_ref = result.get('action', {}).get('ref', None)
+
+        if not action_ref:
+            return result
+
+        action_db = self._get_referenced_action_model(action_ref=action_ref)
+
+        if not action_db:
+            return result
+
+        secret_parameters = get_secret_parameters(parameters=action_db.parameters)
+        result['action']['parameters'] = mask_secret_parameters(
+            parameters=result['action']['parameters'],
+            secret_parameters=secret_parameters)
+
+        return result
+
+    def _get_referenced_action_model(self, action_ref):
+        """
+        Return Action object for the action referenced in a rule.
+
+        :param action_ref: Action reference.
+        :type action_ref: ``str``
+
+        :rtype: ``ActionDB``
+        """
+        # NOTE: We need to retrieve pack and name since that's needed for the PK
+        action_dbs = Action.query(only_fields=['pack', 'ref', 'name', 'parameters'],
+                                  ref=action_ref, limit=1)
+
+        if action_dbs:
+            return action_dbs[0]
+
+        return None
 
     def __init__(self, *args, **values):
         super(RuleDB, self).__init__(*args, **values)

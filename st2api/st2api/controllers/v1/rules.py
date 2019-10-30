@@ -20,6 +20,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
+from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import BaseResourceIsolationControllerMixin
 from st2api.controllers.resource import ContentPackResourceController
 from st2api.controllers.controller_transforms import transform_to_bool
@@ -39,7 +40,8 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceController):
+class RuleController(BaseRestControllerMixin, BaseResourceIsolationControllerMixin,
+                     ContentPackResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of Rules in the system.
@@ -68,8 +70,11 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
     mandatory_include_fields_retrieve = ['pack', 'name', 'trigger']
 
     def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
-                limit=None, requester_user=None, **raw_filters):
-        from_model_kwargs = {'ignore_missing_trigger': True}
+                limit=None, show_secrets=False, requester_user=None, **raw_filters):
+        from_model_kwargs = {
+            'ignore_missing_trigger': True,
+            'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        }
         return super(RuleController, self)._get_all(exclude_fields=exclude_attributes,
                                                     include_fields=include_attributes,
                                                     from_model_kwargs=from_model_kwargs,
@@ -79,8 +84,11 @@ class RuleController(BaseResourceIsolationControllerMixin, ContentPackResourceCo
                                                     raw_filters=raw_filters,
                                                     requester_user=requester_user)
 
-    def get_one(self, ref_or_id, requester_user):
-        from_model_kwargs = {'ignore_missing_trigger': True}
+    def get_one(self, ref_or_id, requester_user, show_secrets=False):
+        from_model_kwargs = {
+            'ignore_missing_trigger': True,
+            'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        }
         return super(RuleController, self)._get_one(ref_or_id, from_model_kwargs=from_model_kwargs,
                                                     requester_user=requester_user,
                                                     permission_type=PermissionType.RULE_VIEW)
