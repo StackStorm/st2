@@ -16,11 +16,11 @@ from __future__ import absolute_import
 import os
 import time
 
-import eventlet
 from mock import (MagicMock, Mock, patch)
 import unittest2
 
 from st2reactor.container.process_container import ProcessSensorContainer
+from st2common.util import concurrency
 from st2common.models.db.pack import PackDB
 from st2common.persistence.pack import Pack
 
@@ -35,8 +35,8 @@ class ProcessContainerTests(unittest2.TestCase):
 
     def test_no_sensors_dont_quit(self):
         process_container = ProcessSensorContainer(None, poll_interval=0.1)
-        process_container_thread = eventlet.spawn(process_container.run)
-        eventlet.sleep(0.5)
+        process_container_thread = concurrency.spawn(process_container.run)
+        concurrency.sleep(0.5)
         self.assertEqual(process_container.running(), 0)
         self.assertEqual(process_container.stopped(), False)
         process_container.shutdown()

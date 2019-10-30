@@ -41,7 +41,9 @@ __all__ = [
     'spawn',
     'wait',
     'cancel',
-    'kill'
+    'kill',
+    'sleep',
+    'get_greenlet_exit_exception_class'
 ]
 
 
@@ -109,5 +111,23 @@ def kill(green_thread, *args, **kwargs):
         return green_thread.kill(*args, **kwargs)
     elif CONCURRENCY_LIBRARY == 'gevent':
         return green_thread.kill(*args, **kwargs)
+    else:
+        raise ValueError('Unsupported concurrency library')
+
+
+def sleep(*args, **kwargs):
+    if CONCURRENCY_LIBRARY == 'eventlet':
+        return eventlet.sleep(*args, **kwargs)
+    elif CONCURRENCY_LIBRARY == 'gevent':
+        return gevent.sleep(*args, **kwargs)
+    else:
+        raise ValueError('Unsupported concurrency library')
+
+
+def get_greenlet_exit_exception_class():
+    if CONCURRENCY_LIBRARY == 'eventlet':
+        return eventlet.support.greenlets.GreenletExit
+    elif CONCURRENCY_LIBRARY == 'gevent':
+        return gevent.GreenletExit
     else:
         raise ValueError('Unsupported concurrency library')

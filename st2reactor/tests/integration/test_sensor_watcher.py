@@ -13,10 +13,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import eventlet
+
 from monotonic import monotonic
 from pyrabbit.api import Client
 
+from st2common.util import concurrency
 from st2common.services.sensor_watcher import SensorWatcher
 from st2tests.base import IntegrationTestCase
 
@@ -50,7 +51,7 @@ class SensorWatcherTestCase(IntegrationTestCase):
         start = monotonic()
         done = False
         while not done:
-            eventlet.sleep(0.01)
+            concurrency.sleep(0.01)
             sw_queues = self._get_sensor_watcher_amqp_queues(queue_name='st2.sensor.watch.covfefe')
             done = len(sw_queues) > 0 or ((monotonic() - start) < 5)
 
