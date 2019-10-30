@@ -19,8 +19,7 @@ import sys
 import signal
 import tempfile
 
-from eventlet.green import subprocess
-
+from st2common.util import concurrency
 from st2common.constants.timer import TIMER_ENABLED_LOG_LINE
 from st2common.constants.timer import TIMER_DISABLED_LOG_LINE
 from st2tests.base import IntegrationTestCase
@@ -134,6 +133,7 @@ class TimersEngineServiceEnableDisableTestCase(IntegrationTestCase, CleanDbTestC
                                  (TIMER_DISABLED_LOG_LINE))
 
     def _start_times_engine(self, cmd):
+        subprocess = concurrency.get_subprocess_module()
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
         self.add_process(process=process)
