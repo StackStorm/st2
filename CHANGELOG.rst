@@ -65,6 +65,11 @@ Fixed
   ``GET /v1/rules`` and ``GET /v1/rules/<ref>`` API endpoint. (bug fix) #4788 #4807
 
   Contributed by @Nicodemos305 and @jeansfelix
+* Fix a bug with authentication API endpoint (``POST /auth/v1/tokens``) returning internal
+  server error when running under gunicorn and when``auth.api_url`` config option was not set.
+  (bug fix) #4809
+
+  Reported by @guzzijones
 
 3.1.0 - June 27, 2019
 ---------------------
