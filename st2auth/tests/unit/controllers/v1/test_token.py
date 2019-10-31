@@ -87,6 +87,7 @@ class TestTokenController(FunctionalTest):
         actual_expiry = isotime.parse(response.json['expiry'])
         self.assertLess(timestamp, actual_expiry)
         self.assertLess(actual_expiry, expected_expiry)
+        return response
 
     def test_token_post_unauthorized(self):
         response = self.app.post_json(TOKEN_V1_PATH, {}, expect_errors=True, extra_environ={
@@ -108,6 +109,22 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_existing_user(self):
         self._test_token_post()
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name=USERNAME)))
+    def test_token_post_success_x_api_url_header_value(self):
+        # auth.api_url option is explicitly set
+        cfg.CONF.set_override('api_url', override='https://example.com', group='auth')
+
+        resp = self._test_token_post()
+        self.assertEqual(resp.headers['X-API-URL'], 'https://example.com')
+
+        # auth.api_url option is not set, url is inferred from listen host and port
+        cfg.CONF.set_override('api_url', override=None, group='auth')
+
+        resp = self._test_token_post()
+        self.assertEqual(resp.headers['X-API-URL'], 'http://127.0.0.1:9101')
 
     @mock.patch.object(
         User, 'get_by_name',
