@@ -320,7 +320,15 @@ def render_final_params(runner_parameters, action_parameters, params, action_con
     plain values instead of trying to render them again. Returns dicts for action and runner
     parameters.
     '''
-    config = get_config(action_context.get('pack'), action_context.get('user'))
+    pack = action_context.get('pack')
+    user = action_context.get('user')
+
+    try:
+        config = get_config(pack, user)
+    except Exception as e:
+        LOG.info('Failed to retrieve config for pack %s and user %s: %s' % (pack, user,
+                 six.text_type(e)))
+        config = {}
 
     G = _create_graph(action_context, config)
 
