@@ -1,7 +1,11 @@
 id: 547e19561e2e2417d3dde321
-status: succeeded (1s elapsed)
+action.ref: core.local
+context.user: stanley
 parameters: 
   cmd: "echo '‡'"
+status: succeeded (1s elapsed)
+start_timestamp: Tue, 02 Dec 2014 19:56:06 UTC
+end_timestamp: Tue, 02 Dec 2014 19:56:07 UTC
 result: 
   failed: false
   return_code: 0

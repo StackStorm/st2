@@ -70,6 +70,12 @@ Fixed
   (bug fix) #4809
 
   Reported by @guzzijones
+* Fixed ``st2 execution get`` and ``st2 run`` not printing the ``action.ref`` for non-workflow
+  actions. (bug fix) #4739
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Update ``st2 execution get`` command to always include ``context.user``, ``start_timestamp`` and
+  ``end_timestamp`` attributes. (improvement) #4739
 
 3.1.0 - June 27, 2019
 ---------------------

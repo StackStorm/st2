@@ -296,7 +296,7 @@ class ActionRunCommandMixin(object):
 
         detail_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
         detail_arg_grp.add_argument('--attr', nargs='+',
-                                    default=['id', 'status', 'parameters', 'result'],
+                                    default=self.display_attributes,
                                     help=('List of attributes to include in the '
                                           'output. "all" or unspecified will '
                                           'return all attributes.'))
@@ -1167,7 +1167,7 @@ class ActionExecutionListCommand(ResourceViewCommand):
 
 class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
-                          'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+                          'start_timestamp', 'end_timestamp', 'result']
     include_attributes = ['action.ref', 'action.runner_type', 'start_timestamp',
                           'end_timestamp']
 
@@ -1321,7 +1321,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
 
 class ActionExecutionPauseCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
-                          'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+                          'start_timestamp', 'end_timestamp', 'result']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionPauseCommand, self).__init__(
@@ -1364,7 +1364,7 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ResourceViewCommand):
 
 class ActionExecutionResumeCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
-                          'start_timestamp', 'end_timestamp', 'result', 'liveaction']
+                          'start_timestamp', 'end_timestamp', 'result']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionResumeCommand, self).__init__(

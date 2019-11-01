@@ -1,6 +1,10 @@
 id: 547e19561e2e2417d3dde123
-status: succeeded (1s elapsed)
+action.ref: core.stacktrace
+context.user: stanley
 parameters: None
+status: succeeded (1s elapsed)
+start_timestamp: Tue, 02 Dec 2014 19:56:06 UTC
+end_timestamp: Tue, 02 Dec 2014 19:56:07 UTC
 result: 
   localhost:
     failed: false
