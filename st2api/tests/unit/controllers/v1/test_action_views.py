@@ -240,7 +240,8 @@ class ActionEntryPointViewControllerTestCase(FunctionalTest):
         try:
             get_resp = self.app.get('/v1/actions/views/entry_point/%s' % action_ref)
             self.assertEqual(get_resp.status_int, 200)
-            self.assertEqual(get_resp.headers['Content-Type'], 'application/x-python')
+            self.assertTrue(get_resp.headers['Content-Type'] in ['application/x-python',
+                                                                 'text/x-python'])
         finally:
             self.app.delete('/v1/actions/%s' % action_id)
 
