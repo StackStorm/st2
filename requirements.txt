@@ -14,7 +14,7 @@ cryptography==2.7
 eventlet==0.25.0
 flex==6.14.0
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
-git+https://github.com/StackStorm/orquesta.git@e6ebbbeb2c661486067e659dc7552f0a986603a6#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@5567763fd4ae10c307470d8957211bd11b6acfd4#egg=orquesta
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 gitpython==2.1.11
