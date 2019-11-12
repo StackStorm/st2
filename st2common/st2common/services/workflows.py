@@ -849,7 +849,22 @@ def update_task_state(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=Non
     # Update task flow if task execution is completed or paused.
     msg = '[%s] Publish task "%s", route "%s", with status "%s" to conductor.'
     LOG.info(msg, wf_ac_ex_id, task_ex_db.task_id, str(task_ex_db.task_route), task_ex_db.status)
-    ac_ex_event = events.ActionExecutionEvent(ac_ex_status, result=ac_ex_result, context=ac_ex_ctx)
+
+    if not ac_ex_ctx or 'item_id' not in ac_ex_ctx or ac_ex_ctx['item_id'] < 0:
+        ac_ex_event = events.ActionExecutionEvent(ac_ex_status, result=ac_ex_result)
+    else:
+        accumulated_result = [
+            item.get('result') if item else None
+            for item in task_ex_db.result['items']
+        ]
+
+        ac_ex_event = events.TaskItemActionExecutionEvent(
+            ac_ex_ctx['item_id'],
+            ac_ex_status,
+            result=ac_ex_result,
+            accumulated_result=accumulated_result
+        )
+
     LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
     conductor.update_task_state(task_ex_db.task_id, task_ex_db.task_route, ac_ex_event)
 
@@ -928,14 +943,16 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
             # If task contains multiple action execution (i.e. with items),
             # then mark each item individually.
             for action in task['actions']:
-                ac_ex_ctx = None
-
-                if 'item_id' in action and action['item_id'] is not None:
+                if 'item_id' not in action or action['item_id'] is None:
+                    ac_ex_event = events.ActionExecutionEvent(statuses.RUNNING)
+                else:
                     msg = '[%s] Mark task "%s", route "%s", item "%s" in conductor as running.'
                     LOG.info(msg, wf_ac_ex_id, task['id'], str(task['route']), action['item_id'])
-                    ac_ex_ctx = {'item_id': action['item_id']} if 'item_id' in action else None
+                    ac_ex_event = events.TaskItemActionExecutionEvent(
+                        action['item_id'],
+                        statuses.RUNNING
+                    )
 
-                ac_ex_event = events.ActionExecutionEvent(statuses.RUNNING, context=ac_ex_ctx)
                 conductor.update_task_state(task['id'], task['route'], ac_ex_event)
 
         # Update workflow execution and related liveaction and action execution.

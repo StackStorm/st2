@@ -39,6 +39,9 @@ Changed
 * Add new ``action_runner.pip_opts`` st2.conf config option which allows user to specify a list
   of command line option which are passed to ``pip install`` command when installing pack
   dependencies into a pack specific virtual environment. #4792
+* Refactor how orquesta handles individual item result for with items task. Before the fix,
+  when there are a lot of items and/or result size for each item is huge, there is a negative
+  performance impact on write to the database when recording the conductor state. (improvement)
 
 Fixed
 ~~~~~
