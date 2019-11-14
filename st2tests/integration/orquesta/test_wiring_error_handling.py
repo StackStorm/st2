@@ -103,6 +103,8 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         self.assertDictEqual(ex.result, {'errors': expected_errors, 'output': None})
 
     def test_start_task_error(self):
+        self.maxDiff = None
+
         expected_errors = [
             {
                 'type': 'error',
@@ -113,6 +115,13 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
                 ),
                 'task_id': 'task1',
                 'route': 0
+            },
+            {
+                'type': 'error',
+                'message': (
+                    'YaqlEvaluationException: Unable to resolve key \'greeting\' '
+                    'in expression \'<% ctx().greeting %>\' from context.'
+                )
             }
         ]
 
