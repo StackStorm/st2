@@ -1154,6 +1154,10 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_statuses=None,
 
     wf_ac_ex_id = wf_ex_db.action_execution
 
+    # If the workflow execution is completed, then render the workflow output.
+    if conductor.get_workflow_status() in statuses.COMPLETED_STATUSES:
+        conductor.render_workflow_output()
+
     # Determine if workflow status has changed.
     wf_old_status = wf_ex_db.status
     wf_ex_db.status = conductor.get_workflow_status()

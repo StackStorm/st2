@@ -42,6 +42,9 @@ Changed
 * Refactor how orquesta handles individual item result for with items task. Before the fix,
   when there are a lot of items and/or result size for each item is huge, there is a negative
   performance impact on write to the database when recording the conductor state. (improvement)
+* Remove automatic rendering of workflow output when updating task state for orquesta workflows.
+  This caused workflow output to render incorrectly in certain use case. The render_workflow_output
+  function must be called separately. (improvement)
 
 Fixed
 ~~~~~
