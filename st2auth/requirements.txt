@@ -11,6 +11,6 @@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-
 gunicorn==19.9.0
 oslo.config<1.13,>=1.12.1
 passlib==1.7.1
-pymongo==3.9.0
+pymongo==3.7.2
 six==1.13.0
 stevedore==1.30.1

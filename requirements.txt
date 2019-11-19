@@ -40,7 +40,7 @@ prettytable
 prompt-toolkit==1.0.15
 psutil==5.6.3
 pyinotify==0.9.6
-pymongo==3.9.0
+pymongo==3.7.2
 pyrabbit
 python-dateutil==2.8.0
 python-editor==1.0.4
