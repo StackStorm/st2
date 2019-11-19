@@ -46,7 +46,7 @@ Changed
   This caused workflow output to render incorrectly in certain use case. The render_workflow_output
   function must be called separately. (improvement)
 * Update various internal dependencies to latest stable versions (cryptography, jinja2, requests,
-  apscheduler, eventlet, amqp, kombu, semver, pymongo) #4819 (improvement)
+  apscheduler, eventlet, amqp, kombu, semver, six) #4819 (improvement)
 
 Fixed
 ~~~~~
