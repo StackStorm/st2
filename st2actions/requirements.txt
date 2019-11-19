@@ -20,4 +20,4 @@ python-dateutil==2.8.0
 python-json-logger
 pyyaml==5.1.2
 requests[security]==2.22.0
-six==1.12.0
+six==1.13.0
