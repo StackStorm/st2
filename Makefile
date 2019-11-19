@@ -441,7 +441,7 @@ requirements: virtualenv .sdist-requirements install-runners
 	$(VIRTUALENV_DIR)/bin/pip --version
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==19.3.1"
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==41.0.1"  # Required for packs.install in dev envs
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.0"  # workaround for pbr issue
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
