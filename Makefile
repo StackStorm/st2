@@ -446,6 +446,9 @@ requirements: virtualenv .sdist-requirements install-runners
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
+	# Remove any *.egg-info files which polute PYTHONPATH
+	rm -rf *.egg-info*
+
 	# Generate finall requirements.txt file for each component
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
 		echo "==========================================================="; \
