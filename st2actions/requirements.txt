@@ -7,7 +7,7 @@
 # update the component requirements.txt
 apscheduler==3.6.3
 eventlet==0.25.1
-git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
+git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 gitpython==2.1.11
 jinja2==2.10.3
