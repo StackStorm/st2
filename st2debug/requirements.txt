@@ -9,4 +9,4 @@ eventlet==0.25.1
 python-gnupg==0.4.5
 pyyaml==5.1.2
 requests[security]==2.22.0
-six==1.13.0
+six==1.12.0

@@ -8,4 +8,4 @@
 eventlet==0.25.1
 kombu==4.6.6
 oslo.config<1.13,>=1.12.1
-six==1.13.0
+six==1.12.0
