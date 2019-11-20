@@ -5,12 +5,12 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-eventlet==0.25.0
+eventlet==0.25.1
 gunicorn==19.9.0
 jsonschema==2.6.0
-kombu==4.6.4
+kombu==4.6.6
 mongoengine==0.18.2
 oslo.config<1.13,>=1.12.1
 oslo.utils<=3.37.0,>=3.36.2
 pymongo==3.7.2
-six==1.12.0
+six==1.13.0
