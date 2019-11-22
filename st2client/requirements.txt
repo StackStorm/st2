@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 argcomplete
-cryptography==2.7
+cryptography==2.8
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 prettytable
@@ -15,6 +15,6 @@ python-dateutil==2.8.0
 python-editor==1.0.4
 pytz==2019.1
 pyyaml==5.1.2
-requests[security]<2.22.0,>=2.21.0
-six==1.12.0
+requests[security]==2.22.0
+six==1.13.0
 sseclient-py==1.7
