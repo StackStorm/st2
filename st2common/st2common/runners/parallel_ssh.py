@@ -13,12 +13,12 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import json
 import re
 import os
 import traceback
 
-import eventlet
 from paramiko.ssh_exception import SSHException
 
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -28,6 +28,7 @@ from st2common import log as logging
 from st2common.exceptions.ssh import NoHostsConnectedToException
 import st2common.util.jsonify as jsonify
 from st2common.util import ip_utils
+from st2common.util import concurrency as concurrency_lib
 
 LOG = logging.getLogger(__name__)
 
@@ -65,7 +66,7 @@ class ParallelSSHClient(object):
         if not hosts:
             raise Exception('Need an non-empty list of hosts to talk to.')
 
-        self._pool = eventlet.GreenPool(concurrency)
+        self._pool = concurrency_lib.get_green_pool_class()(concurrency)
         self._hosts_client = {}
         self._bad_hosts = {}
         self._scan_interval = 0.1
@@ -88,12 +89,12 @@ class ParallelSSHClient(object):
         results = {}
 
         for host in self._hosts:
-            while not self._pool.free():
-                eventlet.sleep(self._scan_interval)
+            while not concurrency_lib.is_green_pool_free(self._pool):
+                concurrency_lib.sleep(self._scan_interval)
             self._pool.spawn(self._connect, host=host, results=results,
                              raise_on_any_error=raise_on_any_error)
 
-        self._pool.waitall()
+        concurrency_lib.green_pool_wait_all(self._pool)
 
         if self._successful_connects < 1:
             # We definitely have to raise an exception in this case.
@@ -226,10 +227,10 @@ class ParallelSSHClient(object):
 
         for host in self._hosts_client.keys():
             while not self._pool.free():
-                eventlet.sleep(self._scan_interval)
+                concurrency_lib.sleep(self._scan_interval)
             self._pool.spawn(execute_method, host=host, results=results, **kwargs)
 
-        self._pool.waitall()
+        concurrency_lib.green_pool_wait_all(self._pool)
         return results
 
     def _connect(self, host, results, raise_on_any_error=False):

@@ -23,13 +23,14 @@ import functools
 from subprocess import list2cmdline
 
 import six
-from eventlet.green import subprocess
+
 from oslo_config import cfg
 from six.moves import StringIO
 
 from st2common import log as logging
 from st2common.runners.base import GitWorktreeActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
+from st2common.util import concurrency
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -173,6 +174,7 @@ class PythonRunner(GitWorktreeActionRunner):
         stdin = None
         stdin_params = None
         if len(serialized_parameters) >= MAX_PARAM_LENGTH:
+            subprocess = concurrency.get_subprocess_module()
             stdin = subprocess.PIPE
             LOG.debug('Parameters are too big...changing to stdin')
             stdin_params = '{"parameters": %s}\n' % (serialized_parameters)

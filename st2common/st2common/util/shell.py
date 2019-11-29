@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import shlex
 import signal
@@ -20,11 +21,13 @@ from subprocess import list2cmdline
 from ctypes import cdll
 
 import six
-# NOTE: eventlet 0.19.0 removed support for sellect.poll() so we not only provide green version of
-# subprocess functionality and run_command
-from eventlet.green import subprocess
 
 from st2common import log as logging
+from st2common.util import concurrency
+
+# NOTE: eventlet 0.19.0 removed support for sellect.poll() so we not only provide green version of
+# subprocess functionality and run_command
+subprocess = concurrency.get_subprocess_module()
 
 __all__ = [
     'run_command',
@@ -75,8 +78,8 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     if not env:
         env = os.environ.copy()
 
-    process = subprocess.Popen(cmd, stdin=stdin, stdout=stdout, stderr=stderr,
-                               env=env, cwd=cwd, shell=shell)
+    process = concurrency.subprocess_popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
+                                           env=env, cwd=cwd, shell=shell)
     stdout, stderr = process.communicate()
     exit_code = process.returncode
 
