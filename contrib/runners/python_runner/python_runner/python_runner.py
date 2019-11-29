@@ -168,13 +168,14 @@ class PythonRunner(GitWorktreeActionRunner):
             '--parent-args=%s' % (parent_args),
         ]
 
+        subprocess = concurrency.get_subprocess_module()
+
         # If parameter size is larger than the maximum allowed by Linux kernel
         # we need to swap to stdin to communicate parameters. This avoids a
         # failure to fork the wrapper process when using large parameters.
         stdin = None
         stdin_params = None
         if len(serialized_parameters) >= MAX_PARAM_LENGTH:
-            subprocess = concurrency.get_subprocess_module()
             stdin = subprocess.PIPE
             LOG.debug('Parameters are too big...changing to stdin')
             stdin_params = '{"parameters": %s}\n' % (serialized_parameters)
