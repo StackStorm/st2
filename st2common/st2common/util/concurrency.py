@@ -26,6 +26,7 @@ except ImportError:
 
 try:
     import gevent  # pylint: disable=import-error
+    import gevent.pool
 except ImportError:
     gevent = None
 
@@ -43,7 +44,12 @@ __all__ = [
     'cancel',
     'kill',
     'sleep',
-    'get_greenlet_exit_exception_class'
+
+    'get_greenlet_exit_exception_class',
+
+    'get_green_pool_class',
+    'is_green_pool_free',
+    'green_pool_wait_all'
 ]
 
 
@@ -129,5 +135,40 @@ def get_greenlet_exit_exception_class():
         return eventlet.support.greenlets.GreenletExit
     elif CONCURRENCY_LIBRARY == 'gevent':
         return gevent.GreenletExit
+    else:
+        raise ValueError('Unsupported concurrency library')
+
+
+def get_green_pool_class():
+    if CONCURRENCY_LIBRARY == 'eventlet':
+        return eventlet.GreenPool
+    elif CONCURRENCY_LIBRARY == 'gevent':
+        return gevent.pool.Pool
+    else:
+        raise ValueError('Unsupported concurrency library')
+
+
+def is_green_pool_free(pool):
+    """
+    Return True if the provided green pool is free, False otherwise.
+    """
+    if CONCURRENCY_LIBRARY == 'eventlet':
+        return pool.free()
+    elif CONCURRENCY_LIBRARY == 'gevent':
+        return not pool.full()
+    else:
+        raise ValueError('Unsupported concurrency library')
+
+
+def green_pool_wait_all(pool):
+    """
+    Wait for all the green threads in the pool to finish.
+    """
+    if CONCURRENCY_LIBRARY == 'eventlet':
+        return pool.waitall()
+    elif CONCURRENCY_LIBRARY == 'gevent':
+        # NOTE: This mimicks eventlet.waitall() functionallity better than
+        # pool.join()
+        return all(gl.ready() for gl in pool.greenlets)
     else:
         raise ValueError('Unsupported concurrency library')

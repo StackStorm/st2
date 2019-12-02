@@ -23,7 +23,6 @@ from subprocess import list2cmdline
 import six
 import yaml
 from oslo_config import cfg
-from eventlet.green import subprocess
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
@@ -39,6 +38,9 @@ from st2common.util.loader import get_available_plugins
 from st2common.util.api import get_full_public_api_url
 from st2common.util.deprecation import deprecated
 from st2common.util.green.shell import run_command
+from st2common.util import concurrency
+
+subprocess = concurrency.get_subprocess_module()
 
 __all__ = [
     'ActionRunner',

@@ -14,7 +14,6 @@
 
 from __future__ import absolute_import
 import abc
-import eventlet
 import six
 
 from kombu.mixins import ConsumerMixin
@@ -22,6 +21,7 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.util.greenpooldispatch import BufferedDispatcher
+from st2common.util import concurrency
 
 __all__ = [
     'QueueConsumer',
@@ -169,7 +169,7 @@ class MessageHandler(object):
 
     def start(self, wait=False):
         LOG.info('Starting %s...', self.__class__.__name__)
-        self._consumer_thread = eventlet.spawn(self._queue_consumer.run)
+        self._consumer_thread = concurrency.spawn(self._queue_consumer.run)
 
         if wait:
             self.wait()

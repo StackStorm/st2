@@ -153,7 +153,9 @@ def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
     """
     # NOTE: This import has intentionally been moved here to avoid massive performance overhead
     # (1+ second) for other functions inside this module which don't need to use those imports.
-    import eventlet
+    from st2common.util import concurrency
+
+    greenlet_exit_exc_cls = concurrency.get_greenlet_exit_exception_class()
 
     def read_and_store_stream(stream, buff):
         try:
@@ -176,7 +178,7 @@ def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
         except RuntimeError:
             # process was terminated abruptly
             pass
-        except eventlet.support.greenlets.GreenletExit:
+        except greenlet_exit_exc_cls:
             # Green thread exited / was killed
             pass
 
