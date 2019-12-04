@@ -85,6 +85,9 @@ Fixed
 * Update ``st2 execution get`` command to always include ``context.user``, ``start_timestamp`` and
   ``end_timestamp`` attributes. (improvement) #4739
 
+  Contributed by @stevemuskiewicz and @guzzijones
+* Fixed ``core.sendmail`` base64 encoding of longer subject lines (bug fix) #4795
+
 3.1.0 - June 27, 2019
 ---------------------
 
