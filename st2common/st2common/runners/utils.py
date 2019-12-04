@@ -81,6 +81,22 @@ class PackConfigDict(dict):
     def __setitem__(self, key, value):
         super(PackConfigDict, self).__setitem__(key, value)
 
+    def query(self, yaql_expression, default=None):
+        """
+        Evaluate a YAQL expression against the pack config
+        """
+
+        # late import to avoid performance overhead in packs that do not need this functionality
+        import yaql
+
+        engine = yaql.factory.YaqlFactory().create()
+        expression = engine(yaql_expression)
+
+        try:
+            return expression.evaluate(data=self)
+        except KeyError:
+            return default
+
 
 def get_logger_for_python_runner_action(action_name, log_level='debug'):
     """
