@@ -116,7 +116,7 @@ class Resource(object):
         if cls._url_path:
             return cls._url_path
 
-        return cls.get_plural_name().lower()
+        return cls.get_plural_name()
 
     def serialize(self):
         return dict((k, v)
