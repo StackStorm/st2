@@ -88,6 +88,9 @@ Fixed
 * Fixed ``core.sendmail`` base64 encoding of longer subject lines (bug fix) #4795
 
   Contributed by @stevemuskiewicz and @guzzijones
+* Update all the various rule criteria comparison operators which also work with strings (equals,
+  icontains, nequals, etc.) to work correctly on Python 3 deployments if one of the operators is
+  of a type bytes and the other is of a type unicode / string. (bug fix) #4831
 
 3.1.0 - June 27, 2019
 ---------------------
