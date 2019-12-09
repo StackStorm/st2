@@ -332,11 +332,13 @@ def ninside(value, criteria_pattern):
 
 def ensure_operators_are_strings(value, criteria_pattern):
     """
-    This function ensure that both value and criteria_pattern arguments are unicode (string)
-    values if the input value is bytes.
+    This function ensures that both value and criteria_pattern arguments are unicode (string)
+    values if the input value type is bytes.
 
-    If a value is not a unicode, it's converted to it. This way we ensure all the operators
-    which expect string / unicode values work, even if one of the values is bytes.
+    If a value is of types bytes and not a unicode, it's converted to unicode. This way we
+    ensure all the operators which expect string / unicode values work, even if one of the
+    values is bytes (this can happen when input is not controlled by the end user - e.g. trigger
+    payload under Python 3 deployments).
 
     :return: tuple(value, criteria_pattern)
     """
