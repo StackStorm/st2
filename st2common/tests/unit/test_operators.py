@@ -499,6 +499,11 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op('bar', 'b*r'), 'Failed matchwildcard.')
         self.assertTrue(op('bar', 'b?r'), 'Failed matchwildcard.')
 
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'bar', 'b?r'), 'Failed matchwildcard.')
+        self.assertTrue(op('bar', b'b?r'), 'Failed matchwildcard.')
+        self.assertTrue(op(b'bar', b'b?r'), 'Failed matchwildcard.')
+
         self.assertFalse(op('1', None), 'Passed matchwildcard with None as criteria_pattern.')
 
     def test_matchregex(self):
@@ -517,12 +522,22 @@ class OperatorTest(unittest2.TestCase):
         string = 'foo\r\nponies\nbar\nfooooo'
         self.assertTrue(op(string, '.*ponies.*'), 'Failed matchregex.')
 
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'foo ponies bar', '.*ponies.*'), 'Failed matchregex.')
+        self.assertTrue(op('foo ponies bar', b'.*ponies.*'), 'Failed matchregex.')
+        self.assertTrue(op(b'foo ponies bar', b'.*ponies.*'), 'Failed matchregex.')
+
     def test_iregex(self):
         op = operators.get_operator('iregex')
         self.assertTrue(op('V1', 'v1$'), 'Failed iregex.')
 
         string = 'fooPONIESbarfooooo'
         self.assertTrue(op(string, 'ponies'), 'Failed iregex.')
+
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'fooPONIESbarfooooo', 'ponies'), 'Failed iregex.')
+        self.assertTrue(op('fooPONIESbarfooooo', b'ponies'), 'Failed iregex.')
+        self.assertTrue(op(b'fooPONIESbarfooooo', b'ponies'), 'Failed iregex.')
 
     def test_iregex_fail(self):
         op = operators.get_operator('iregex')
@@ -542,6 +557,11 @@ class OperatorTest(unittest2.TestCase):
 
         string = 'apple unicorns oranges'
         self.assertTrue(op(string, '(ponies|unicorns)'), 'Failed regex.')
+
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'apples unicorns oranges', '(ponies|unicorns)'), 'Failed regex.')
+        self.assertTrue(op('apples unicorns oranges', b'(ponies|unicorns)'), 'Failed regex.')
+        self.assertTrue(op(b'apples unicorns oranges', b'(ponies|unicorns)'), 'Failed regex.')
 
         string = 'apple unicorns oranges'
         self.assertFalse(op(string, '(pikachu|snorlax|charmander)'), 'Passed regex.')
@@ -575,6 +595,11 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op('1', '1'), 'Failed equals.')
         self.assertTrue(op('', ''), 'Failed equals.')
 
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'1', '1'), 'Failed equals.')
+        self.assertTrue(op('1', b'1'), 'Failed equals.')
+        self.assertTrue(op(b'1', b'1'), 'Failed equals.')
+
     def test_equals_fail(self):
         op = operators.get_operator('equals')
         self.assertFalse(op('1', '2'), 'Passed equals.')
@@ -597,6 +622,10 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op('ABC', 'abc'), 'Failed iequals.')
         self.assertTrue(op('AbC', 'aBc'), 'Failed iequals.')
 
+        self.assertTrue(op(b'AbC', 'aBc'), 'Failed iequals.')
+        self.assertTrue(op('AbC', b'aBc'), 'Failed iequals.')
+        self.assertTrue(op(b'AbC', b'aBc'), 'Failed iequals.')
+
     def test_iequals_fail(self):
         op = operators.get_operator('iequals')
         self.assertFalse(op('ABC', 'BCA'), 'Passed iequals.')
@@ -610,6 +639,11 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op('needle haystack', 'needle'))
         self.assertTrue(op('haystackneedle', 'needle'))
         self.assertTrue(op('haystack needle', 'needle'))
+
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'haystack needle', 'needle'))
+        self.assertTrue(op('haystack needle', b'needle'))
+        self.assertTrue(op(b'haystack needle', b'needle'))
 
     def test_contains_fail(self):
         op = operators.get_operator('contains')
@@ -626,6 +660,11 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op('haystackNEEDLE', 'needle'))
         self.assertTrue(op('haystack needle', 'NEEDLE'))
 
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'haystack needle', 'NEEDLE'))
+        self.assertTrue(op('haystack needle', b'NEEDLE'))
+        self.assertTrue(op(b'haystack needle', b'NEEDLE'))
+
     def test_icontains_fail(self):
         op = operators.get_operator('icontains')
         self.assertFalse(op('hasystack needl haystack', 'needle'))
@@ -640,6 +679,11 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op('needle haystack', 'needlex'))
         self.assertTrue(op('haystackneedle', 'needlex'))
         self.assertTrue(op('haystack needle', 'needlex'))
+
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'haystack needle', 'needlex'))
+        self.assertTrue(op('haystack needle', b'needlex'))
+        self.assertTrue(op(b'haystack needle', b'needlex'))
 
     def test_ncontains_fail(self):
         op = operators.get_operator('ncontains')
@@ -667,6 +711,11 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op('hasystack needle haystack', 'hasystack'))
         self.assertTrue(op('a hasystack needle haystack', 'a '))
 
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'haystack needle', 'haystack'))
+        self.assertTrue(op('haystack needle', b'haystack'))
+        self.assertTrue(op(b'haystack needle', b'haystack'))
+
     def test_startswith_fail(self):
         op = operators.get_operator('startswith')
         self.assertFalse(op('hasystack needle haystack', 'needle'))
@@ -678,6 +727,11 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op('haystack needle haystack', 'HAYstack'))
         self.assertTrue(op('HAYSTACK needle haystack', 'haystack'))
 
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'HAYSTACK needle haystack', 'haystack'))
+        self.assertTrue(op('HAYSTACK needle haystack', b'haystack'))
+        self.assertTrue(op(b'HAYSTACK needle haystack', b'haystack'))
+
     def test_istartswith_fail(self):
         op = operators.get_operator('istartswith')
         self.assertFalse(op('hasystack needle haystack', 'NEEDLE'))
@@ -688,6 +742,11 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('endswith')
         self.assertTrue(op('hasystack needle haystackend', 'haystackend'))
         self.assertTrue(op('a hasystack needle haystack b', 'b'))
+
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'a hasystack needle haystack b', 'b'))
+        self.assertTrue(op('a hasystack needle haystack b', b'b'))
+        self.assertTrue(op(b'a hasystack needle haystack b', b'b'))
 
     def test_endswith_fail(self):
         op = operators.get_operator('endswith')
@@ -775,6 +834,11 @@ class OperatorTest(unittest2.TestCase):
         self.assertFalse(op('a', None), 'Should return False')
         self.assertFalse(op('a', 'bcd'), 'Should return False')
         self.assertTrue(op('a', 'abc'), 'Should return True')
+
+        # Mixing bytes and strings / unicode should still work
+        self.assertTrue(op(b'a', 'abc'), 'Should return True')
+        self.assertTrue(op('a', b'abc'), 'Should return True')
+        self.assertTrue(op(b'a', b'abc'), 'Should return True')
 
     def test_ninside(self):
         op = operators.get_operator('ninside')
