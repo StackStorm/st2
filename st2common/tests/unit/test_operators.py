@@ -503,6 +503,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'bar', 'b?r'), 'Failed matchwildcard.')
         self.assertTrue(op('bar', b'b?r'), 'Failed matchwildcard.')
         self.assertTrue(op(b'bar', b'b?r'), 'Failed matchwildcard.')
+        self.assertTrue(op(u'bar', b'b?r'), 'Failed matchwildcard.')
+        self.assertTrue(op(u'bar', u'b?r'), 'Failed matchwildcard.')
 
         self.assertFalse(op('1', None), 'Passed matchwildcard with None as criteria_pattern.')
 
@@ -526,6 +528,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'foo ponies bar', '.*ponies.*'), 'Failed matchregex.')
         self.assertTrue(op('foo ponies bar', b'.*ponies.*'), 'Failed matchregex.')
         self.assertTrue(op(b'foo ponies bar', b'.*ponies.*'), 'Failed matchregex.')
+        self.assertTrue(op(b'foo ponies bar', u'.*ponies.*'), 'Failed matchregex.')
+        self.assertTrue(op(u'foo ponies bar', u'.*ponies.*'), 'Failed matchregex.')
 
     def test_iregex(self):
         op = operators.get_operator('iregex')
@@ -538,6 +542,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'fooPONIESbarfooooo', 'ponies'), 'Failed iregex.')
         self.assertTrue(op('fooPONIESbarfooooo', b'ponies'), 'Failed iregex.')
         self.assertTrue(op(b'fooPONIESbarfooooo', b'ponies'), 'Failed iregex.')
+        self.assertTrue(op(b'fooPONIESbarfooooo', u'ponies'), 'Failed iregex.')
+        self.assertTrue(op(u'fooPONIESbarfooooo', u'ponies'), 'Failed iregex.')
 
     def test_iregex_fail(self):
         op = operators.get_operator('iregex')
@@ -562,6 +568,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'apples unicorns oranges', '(ponies|unicorns)'), 'Failed regex.')
         self.assertTrue(op('apples unicorns oranges', b'(ponies|unicorns)'), 'Failed regex.')
         self.assertTrue(op(b'apples unicorns oranges', b'(ponies|unicorns)'), 'Failed regex.')
+        self.assertTrue(op(b'apples unicorns oranges', u'(ponies|unicorns)'), 'Failed regex.')
+        self.assertTrue(op(u'apples unicorns oranges', u'(ponies|unicorns)'), 'Failed regex.')
 
         string = 'apple unicorns oranges'
         self.assertFalse(op(string, '(pikachu|snorlax|charmander)'), 'Passed regex.')
@@ -599,6 +607,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'1', '1'), 'Failed equals.')
         self.assertTrue(op('1', b'1'), 'Failed equals.')
         self.assertTrue(op(b'1', b'1'), 'Failed equals.')
+        self.assertTrue(op(b'1', u'1'), 'Failed equals.')
+        self.assertTrue(op(u'1', u'1'), 'Failed equals.')
 
     def test_equals_fail(self):
         op = operators.get_operator('equals')
@@ -622,9 +632,12 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op('ABC', 'abc'), 'Failed iequals.')
         self.assertTrue(op('AbC', 'aBc'), 'Failed iequals.')
 
+        # Mixing bytes and strings / unicode should still work
         self.assertTrue(op(b'AbC', 'aBc'), 'Failed iequals.')
         self.assertTrue(op('AbC', b'aBc'), 'Failed iequals.')
         self.assertTrue(op(b'AbC', b'aBc'), 'Failed iequals.')
+        self.assertTrue(op(b'AbC', u'aBc'), 'Failed iequals.')
+        self.assertTrue(op(u'AbC', u'aBc'), 'Failed iequals.')
 
     def test_iequals_fail(self):
         op = operators.get_operator('iequals')
@@ -644,6 +657,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'haystack needle', 'needle'))
         self.assertTrue(op('haystack needle', b'needle'))
         self.assertTrue(op(b'haystack needle', b'needle'))
+        self.assertTrue(op(b'haystack needle', u'needle'))
+        self.assertTrue(op(u'haystack needle', b'needle'))
 
     def test_contains_fail(self):
         op = operators.get_operator('contains')
@@ -664,6 +679,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'haystack needle', 'NEEDLE'))
         self.assertTrue(op('haystack needle', b'NEEDLE'))
         self.assertTrue(op(b'haystack needle', b'NEEDLE'))
+        self.assertTrue(op(b'haystack needle', u'NEEDLE'))
+        self.assertTrue(op(u'haystack needle', b'NEEDLE'))
 
     def test_icontains_fail(self):
         op = operators.get_operator('icontains')
@@ -684,6 +701,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'haystack needle', 'needlex'))
         self.assertTrue(op('haystack needle', b'needlex'))
         self.assertTrue(op(b'haystack needle', b'needlex'))
+        self.assertTrue(op(b'haystack needle', u'needlex'))
+        self.assertTrue(op(u'haystack needle', b'needlex'))
 
     def test_ncontains_fail(self):
         op = operators.get_operator('ncontains')
@@ -715,6 +734,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'haystack needle', 'haystack'))
         self.assertTrue(op('haystack needle', b'haystack'))
         self.assertTrue(op(b'haystack needle', b'haystack'))
+        self.assertTrue(op(b'haystack needle', u'haystack'))
+        self.assertTrue(op(u'haystack needle', b'haystack'))
 
     def test_startswith_fail(self):
         op = operators.get_operator('startswith')
@@ -731,6 +752,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'HAYSTACK needle haystack', 'haystack'))
         self.assertTrue(op('HAYSTACK needle haystack', b'haystack'))
         self.assertTrue(op(b'HAYSTACK needle haystack', b'haystack'))
+        self.assertTrue(op(b'HAYSTACK needle haystack', u'haystack'))
+        self.assertTrue(op(u'HAYSTACK needle haystack', b'haystack'))
 
     def test_istartswith_fail(self):
         op = operators.get_operator('istartswith')
@@ -747,6 +770,8 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op(b'a hasystack needle haystack b', 'b'))
         self.assertTrue(op('a hasystack needle haystack b', b'b'))
         self.assertTrue(op(b'a hasystack needle haystack b', b'b'))
+        self.assertTrue(op(b'a hasystack needle haystack b', u'b'))
+        self.assertTrue(op(u'a hasystack needle haystack b', b'b'))
 
     def test_endswith_fail(self):
         op = operators.get_operator('endswith')
