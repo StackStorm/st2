@@ -134,7 +134,7 @@ Fixed
   value for SSH port is specified in the configured SSH config file
   (``ssh_runner.ssh_config_file_path``). (bug fix) #4660 #4661
 * Update pack install action so it works correctly when ``python_versions`` ``pack.yaml`` metadata
-  attribute is used in combination with ``--python3`` pack install flag. (bug fix) #4654 #4662
+  attribute is used in combination with ``--use-python3`` pack install flag. (bug fix) #4654 #4662
 * Add ``source_channel`` back to the context used by Mistral workflows for executions which are
   triggered via ChatOps (using action alias).
 
@@ -144,7 +144,7 @@ Fixed
   server time where st2api is running was not set to UTC. (bug fix) #4668
 
   Contributed by Igor Cherkaev. (@emptywee)
-* Fix a bug with some packs which use ``--python3`` flag (running Python 3 actions on installation
+* Fix a bug with some packs which use ``--use-python3`` flag (running Python 3 actions on installation
   where StackStorm components run under Python 2) which rely on modules from Python 3 standard
   library which are also available in Python 2 site-packages (e.g. ``concurrent``) not working
   correctly.
