@@ -20,6 +20,9 @@ from sre_parse import (
     BRANCH, SUBPATTERN,
 )
 
+from st2common.util.jinja import render_values
+from st2common.constants import keyvalue as kv_constants
+from st2common.services import keyvalues as kv_service
 from st2common.exceptions.content import ParseException
 from st2common import log
 
@@ -218,6 +221,41 @@ def extract_parameters(format_str, param_stream, match_multiple=False):
         return parser.get_multiple_extracted_param_value()
     else:
         return parser.get_extracted_param_value()
+
+
+def inject_immutable_parameters(action_alias_db, multiple_execution_parameters, action_context):
+    """
+    Inject immutable parameters from the alias definiton on the execution parameters.
+    Jinja expressions will be resolved.
+    """
+    immutable_parameters = action_alias_db.immutable_parameters or {}
+    if not immutable_parameters:
+        return multiple_execution_parameters
+
+    user = action_context.get('user', None)
+
+    context = {}
+    context.update({
+        kv_constants.DATASTORE_PARENT_SCOPE: {
+            kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
+                scope=kv_constants.FULL_SYSTEM_SCOPE),
+            kv_constants.USER_SCOPE: kv_service.UserKeyValueLookup(
+                scope=kv_constants.FULL_USER_SCOPE, user=user)
+        }
+    })
+    context.update(action_context)
+    rendered_params = render_values(immutable_parameters, context)
+
+    for exec_params in multiple_execution_parameters:
+        overriden = [param for param in immutable_parameters.keys() if param in exec_params]
+        if overriden:
+            raise ValueError(
+                "Immutable arguments cannot be overriden: {}".format(
+                    ','.join(overriden)))
+
+        exec_params.update(rendered_params)
+
+    return multiple_execution_parameters
 
 
 def search_regex_tokens(needle_tokens, haystack_tokens, backwards=False):

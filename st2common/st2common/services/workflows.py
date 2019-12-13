@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 
 import copy
+import datetime
 import retrying
 import six
 
@@ -24,6 +25,7 @@ from orquesta import exceptions as orquesta_exc
 from orquesta.expressions import base as expressions
 from orquesta.specs import loader as specs_loader
 from orquesta import statuses
+from oslo_config import cfg
 
 from st2common.constants import action as ac_const
 from st2common.exceptions import action as ac_exc
@@ -276,7 +278,15 @@ def request(wf_def, ac_ex_db, st2_ctx, notify_cfg=None):
     return wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def request_pause(ac_ex_db):
     wf_ac_ex_id = str(ac_ex_db.id)
     LOG.info('[%s] Processing pause request for workflow.', wf_ac_ex_id)
@@ -311,7 +321,15 @@ def request_pause(ac_ex_db):
     return wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def request_resume(ac_ex_db):
     wf_ac_ex_id = str(ac_ex_db.id)
     LOG.info('[%s] Processing resume request for workflow.', wf_ac_ex_id)
@@ -360,7 +378,15 @@ def request_resume(ac_ex_db):
     return wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def request_cancellation(ac_ex_db):
     wf_ac_ex_id = str(ac_ex_db.id)
     LOG.info('[%s] Processing cancelation request for workflow.', wf_ac_ex_id)
@@ -525,7 +551,15 @@ def eval_action_execution_delay(task_ex_req, ac_ex_req, itemized=False):
     return None
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=None):
     wf_ac_ex_id = wf_ex_db.action_execution
     action_ref = ac_ex_req['action']
@@ -716,6 +750,11 @@ def handle_action_execution_resume(ac_ex_db):
             handle_action_execution_resume(parent_ac_ex_db)
 
 
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def handle_action_execution_completion(ac_ex_db):
     # Check that the action execution is completed.
     if ac_ex_db.status not in ac_const.LIVEACTION_COMPLETED_STATES:
@@ -783,7 +822,15 @@ def refresh_conductor(wf_ex_id):
     return conductor, wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def update_task_state(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=None, publish=True):
     # Return if action execution status is not in the list of statuses to process.
     statuses_to_process = (
@@ -802,7 +849,22 @@ def update_task_state(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=Non
     # Update task flow if task execution is completed or paused.
     msg = '[%s] Publish task "%s", route "%s", with status "%s" to conductor.'
     LOG.info(msg, wf_ac_ex_id, task_ex_db.task_id, str(task_ex_db.task_route), task_ex_db.status)
-    ac_ex_event = events.ActionExecutionEvent(ac_ex_status, result=ac_ex_result, context=ac_ex_ctx)
+
+    if not ac_ex_ctx or 'item_id' not in ac_ex_ctx or ac_ex_ctx['item_id'] < 0:
+        ac_ex_event = events.ActionExecutionEvent(ac_ex_status, result=ac_ex_result)
+    else:
+        accumulated_result = [
+            item.get('result') if item else None
+            for item in task_ex_db.result['items']
+        ]
+
+        ac_ex_event = events.TaskItemActionExecutionEvent(
+            ac_ex_ctx['item_id'],
+            ac_ex_status,
+            result=ac_ex_result,
+            accumulated_result=accumulated_result
+        )
+
     LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
     conductor.update_task_state(task_ex_db.task_id, task_ex_db.task_route, ac_ex_event)
 
@@ -816,7 +878,15 @@ def update_task_state(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=Non
     )
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def request_next_tasks(wf_ex_db, task_ex_id=None):
     iteration = 0
 
@@ -873,14 +943,16 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
             # If task contains multiple action execution (i.e. with items),
             # then mark each item individually.
             for action in task['actions']:
-                ac_ex_ctx = None
-
-                if 'item_id' in action and action['item_id'] is not None:
+                if 'item_id' not in action or action['item_id'] is None:
+                    ac_ex_event = events.ActionExecutionEvent(statuses.RUNNING)
+                else:
                     msg = '[%s] Mark task "%s", route "%s", item "%s" in conductor as running.'
                     LOG.info(msg, wf_ac_ex_id, task['id'], str(task['route']), action['item_id'])
-                    ac_ex_ctx = {'item_id': action['item_id']} if 'item_id' in action else None
+                    ac_ex_event = events.TaskItemActionExecutionEvent(
+                        action['item_id'],
+                        statuses.RUNNING
+                    )
 
-                ac_ex_event = events.ActionExecutionEvent(statuses.RUNNING, context=ac_ex_ctx)
                 conductor.update_task_state(task['id'], task['route'], ac_ex_event)
 
         # Update workflow execution and related liveaction and action execution.
@@ -926,7 +998,15 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
             LOG.info('[%s] No tasks identified to execute next.', wf_ac_ex_id)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=None):
     if ac_ex_status not in statuses.COMPLETED_STATUSES + [statuses.PAUSED, statuses.PENDING]:
         return
@@ -981,7 +1061,15 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
     wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def resume_task_execution(task_ex_id):
     # Update task execution to running.
     task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
@@ -996,7 +1084,15 @@ def resume_task_execution(task_ex_id):
     wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def update_workflow_execution(wf_ex_id):
     conductor, wf_ex_db = refresh_conductor(wf_ex_id)
 
@@ -1006,7 +1102,15 @@ def update_workflow_execution(wf_ex_id):
         update_execution_records(wf_ex_db, conductor)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def resume_workflow_execution(wf_ex_id, task_ex_id):
     # Update workflow execution to running.
     conductor, wf_ex_db = refresh_conductor(wf_ex_id)
@@ -1021,7 +1125,15 @@ def resume_workflow_execution(wf_ex_id, task_ex_id):
     update_execution_records(wf_ex_db, conductor)
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
 def fail_workflow_execution(wf_ex_id, exception, task=None):
     conductor, wf_ex_db = refresh_conductor(wf_ex_id)
 
@@ -1041,6 +1153,10 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_statuses=None,
                              pub_wf_ex=False, pub_lv_ac=True, pub_ac_ex=True):
 
     wf_ac_ex_id = wf_ex_db.action_execution
+
+    # If the workflow execution is completed, then render the workflow output.
+    if conductor.get_workflow_status() in statuses.COMPLETED_STATUSES:
+        conductor.render_workflow_output()
 
     # Determine if workflow status has changed.
     wf_old_status = wf_ex_db.status
@@ -1108,3 +1224,73 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_statuses=None,
     if status_changed and wf_lv_ac_db.status in ac_const.LIVEACTION_COMPLETED_STATES:
         LOG.info('[%s] Workflow action execution is completed and invoking post run.', wf_ac_ex_id)
         runners_utils.invoke_post_run(wf_lv_ac_db)
+
+
+def identify_orphaned_workflows():
+    orphaned = []
+
+    # Identify expiry datetime.
+    gc_max_idle = cfg.CONF.workflow_engine.gc_max_idle_sec
+    utc_now_dt = date_utils.get_datetime_utc_now()
+    expiry_dt = utc_now_dt - datetime.timedelta(seconds=gc_max_idle)
+
+    # Identify action executions that are still running. The action execution start timestamp
+    # does not necessary means it is the max idle time. The use of workflow_executions_idled_ttl
+    # to filter is to reduce the number of action executions that need to be evaluated.
+    query_filters = {
+        'runner__name': 'orquesta',
+        'status': ac_const.LIVEACTION_STATUS_RUNNING,
+        'start_timestamp__lte': expiry_dt
+    }
+    ac_ex_dbs = ex_db_access.ActionExecution.query(**query_filters)
+
+    for ac_ex_db in ac_ex_dbs:
+        # Figure out the runtime for the action execution.
+        status_change_logs = sorted(
+            [log for log in ac_ex_db.log if log['status'] == ac_const.LIVEACTION_STATUS_RUNNING],
+            key=lambda x: x['timestamp'],
+            reverse=True
+        )
+
+        if len(status_change_logs) <= 0:
+            continue
+
+        runtime = (utc_now_dt - status_change_logs[0]['timestamp']).total_seconds()
+
+        # Fetch the task executions for the workflow execution.
+        # Ensure that the root action execution is not being selected.
+        wf_ex_id = ac_ex_db.context['workflow_execution']
+        query_filters = {'workflow_execution': wf_ex_id, 'id__ne': ac_ex_db.id}
+        tk_ac_ex_dbs = ex_db_access.ActionExecution.query(**query_filters)
+
+        # The workflow execution is orphaned if there are
+        # no task executions and runtime passed expiry.
+        if len(tk_ac_ex_dbs) <= 0 and runtime > gc_max_idle:
+            msg = '[%s] Workflow action execution will be canceled by garbage collector.'
+            LOG.info(msg, str(ac_ex_db.id))
+            orphaned.append(ac_ex_db)
+            continue
+
+        # The workflow execution is orphaned if there are no active task execution and
+        # the end_timestamp of the most recent task execution passed expiry.
+        has_active_tasks = len([t for t in tk_ac_ex_dbs if t.end_timestamp is None]) > 0
+
+        completed_tasks = [
+            t for t in tk_ac_ex_dbs
+            if t.end_timestamp is not None and t.end_timestamp <= expiry_dt
+        ]
+
+        completed_tasks = sorted(completed_tasks, key=lambda x: x.end_timestamp)
+
+        most_recent_completed_task_expired = (
+            completed_tasks[-1].end_timestamp <= expiry_dt
+            if len(completed_tasks) > 0 else False
+        )
+
+        if len(tk_ac_ex_dbs) > 0 and not has_active_tasks and most_recent_completed_task_expired:
+            msg = '[%s] Workflow action execution will be canceled by garbage collector.'
+            LOG.info(msg, str(ac_ex_db.id))
+            orphaned.append(ac_ex_db)
+            continue
+
+    return orphaned

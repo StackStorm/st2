@@ -1,0 +1,10 @@
+---
+    name: "alias5"
+    pack: "aliases"
+    description: "Static test"
+    action_ref: "wolfpack.action1"
+    formats:
+        - "lorem ipsum"
+    immutable_parameters:
+        param1: value1
+        param2: value2

@@ -245,15 +245,18 @@ function st2start(){
         screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs kill
     fi
 
+    # NOTE: We can't rely on latest version of screen with "-Logfile path"
+    # option so we need to use screen config file per screen window
+
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-api ${VIRTUALENV}/bin/gunicorn \
+        screen -L -c tools/screen-configs/st2api.conf -d -m -S st2-api ${VIRTUALENV}/bin/gunicorn \
             st2api.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
     else
-        screen -d -m -S st2-api ${VIRTUALENV}/bin/python \
+        screen -L -c tools/screen-configs/st2api.conf -d -m -S st2-api ${VIRTUALENV}/bin/python \
             ./st2api/bin/st2api \
             --config-file $ST2_CONF
     fi
@@ -262,10 +265,10 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-stream'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-stream ${VIRTUALENV}/bin/gunicorn \
+        screen -L -c tools/screen-configs/st2stream.conf -d -m -S st2-stream ${VIRTUALENV}/bin/gunicorn \
             st2stream.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
     else
-        screen -d -m -S st2-stream ${VIRTUALENV}/bin/python \
+        screen -L -c tools/screen-configs/st2stream.conf -d -m -S st2-stream ${VIRTUALENV}/bin/python \
             ./st2stream/bin/st2stream \
             --config-file $ST2_CONF
     fi
@@ -278,7 +281,7 @@ function st2start(){
         WORKFLOW_ENGINE_NAME=st2-workflow-$i
         WORKFLOW_ENGINE_SCREENS+=($WORKFLOW_ENGINE_NAME)
         echo '  starting '$WORKFLOW_ENGINE_NAME'...'
-        screen -d -m -S $WORKFLOW_ENGINE_NAME ${VIRTUALENV}/bin/python \
+        screen -L -c tools/screen-configs/st2workflowengine.conf -d -m -S $WORKFLOW_ENGINE_NAME ${VIRTUALENV}/bin/python \
             ./st2actions/bin/st2workflowengine \
             --config-file $ST2_CONF
     done
@@ -291,14 +294,14 @@ function st2start(){
         RUNNER_NAME=st2-actionrunner-$i
         RUNNER_SCREENS+=($RUNNER_NAME)
         echo '  starting '$RUNNER_NAME'...'
-        screen -d -m -S $RUNNER_NAME ${VIRTUALENV}/bin/python \
+        screen -L -c tools/screen-configs/st2actionrunner.conf -d -m -S $RUNNER_NAME ${VIRTUALENV}/bin/python \
             ./st2actions/bin/st2actionrunner \
             --config-file $ST2_CONF
     done
 
     # Run the garbage collector service
     echo 'Starting screen session st2-garbagecollector'
-    screen -d -m -S st2-garbagecollector ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2garbagecollector.conf -d -m -S st2-garbagecollector ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2garbagecollector \
         --config-file $ST2_CONF
 
@@ -310,38 +313,38 @@ function st2start(){
         SCHEDULER_NAME=st2-scheduler-$i
         SCHEDULER_SCREENS+=($SCHEDULER_NAME)
         echo '  starting '$SCHEDULER_NAME'...'
-        screen -d -m -S $SCHEDULER_NAME ${VIRTUALENV}/bin/python \
+        screen -L -c tools/screen-configs/st2scheduler.conf -d -m -S $SCHEDULER_NAME ${VIRTUALENV}/bin/python \
             ./st2actions/bin/st2scheduler \
             --config-file $ST2_CONF
     done
 
     # Run the sensor container server
     echo 'Starting screen session st2-sensorcontainer'
-    screen -d -m -S st2-sensorcontainer ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2sensorcontainer.conf -d -m -S st2-sensorcontainer ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2sensorcontainer \
         --config-file $ST2_CONF
 
     # Run the rules engine server
     echo 'Starting screen session st2-rulesengine...'
-    screen -d -m -S st2-rulesengine ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2rulesengine.conf -d -m -S st2-rulesengine ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2rulesengine \
         --config-file $ST2_CONF
 
     # Run the timer engine server
     echo 'Starting screen session st2-timersengine...'
-    screen -d -m -S st2-timersengine ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2timersengine.conf -d -m -S st2-timersengine ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2timersengine \
         --config-file $ST2_CONF
 
     # Run the results tracker
     echo 'Starting screen session st2-resultstracker...'
-    screen -d -m -S st2-resultstracker ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2resultstracker.conf -d -m -S st2-resultstracker ${VIRTUALENV}/bin/python \
         ./st2actions/bin/st2resultstracker \
         --config-file $ST2_CONF
 
     # Run the actions notifier
     echo 'Starting screen session st2-notifier...'
-    screen -d -m -S st2-notifier ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2notifier.conf -d -m -S st2-notifier ${VIRTUALENV}/bin/python \
         ./st2actions/bin/st2notifier \
         --config-file $ST2_CONF
 
@@ -350,10 +353,10 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-auth ${VIRTUALENV}/bin/gunicorn \
+        screen -L -c tools/screen-configs/st2auth.conf -d -m -S st2-auth ${VIRTUALENV}/bin/gunicorn \
             st2auth.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
     else
-        screen -d -m -S st2-auth ${VIRTUALENV}/bin/python \
+        screen -L -c tools/screen-configs/st2auth.conf -d -m -S st2-auth ${VIRTUALENV}/bin/python \
             ./st2auth/bin/st2auth \
             --config-file $ST2_CONF
     fi
@@ -364,18 +367,17 @@ function st2start(){
         sudo mkdir -p $EXPORTS_DIR
         sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $EXPORTS_DIR
         echo 'Starting screen session st2-exporter...'
-        screen -d -m -S st2-exporter ${VIRTUALENV}/bin/python \
+        screen -L -d -m -S st2-exporter ${VIRTUALENV}/bin/python \
             ./st2exporter/bin/st2exporter \
             --config-file $ST2_CONF
     fi
 
     if [ "${include_mistral}" = true ]; then
-
         LOGDIR=${ST2_REPO}/logs
 
         # Run mistral-server
         echo 'Starting screen session mistral-server...'
-        screen -d -m -S mistral-server ${MISTRAL_REPO}/.venv/bin/python \
+        screen -L -Logfile logs/screen-mistral-server.log -d -m -S mistral-server ${MISTRAL_REPO}/.venv/bin/python \
             ${MISTRAL_REPO}/.venv/bin/mistral-server \
             --server engine,executor \
             --config-file $MISTRAL_CONF \
@@ -383,7 +385,7 @@ function st2start(){
 
         # Run mistral-api
         echo 'Starting screen session mistral-api...'
-        screen -d -m -S mistral-api ${MISTRAL_REPO}/.venv/bin/python \
+        screen -L -Logfile logs/screen-mistral-server.log -d -m -S mistral-api ${MISTRAL_REPO}/.venv/bin/python \
             ${MISTRAL_REPO}/.venv/bin/mistral-server \
             --server api \
             --config-file $MISTRAL_CONF \

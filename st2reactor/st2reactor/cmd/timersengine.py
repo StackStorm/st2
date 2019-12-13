@@ -13,13 +13,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import sys
 
-import eventlet
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.util import concurrency
 from st2common.constants.timer import TIMER_ENABLED_LOG_LINE, TIMER_DISABLED_LOG_LINE
 from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
@@ -61,7 +62,7 @@ def _run_worker():
         if cfg.CONF.timer.enable or cfg.CONF.timersengine.enable:
             local_tz = cfg.CONF.timer.local_timezone or cfg.CONF.timersengine.local_timezone
             timer = St2Timer(local_timezone=local_tz)
-            timer_thread = eventlet.spawn(_kickoff_timer, timer)
+            timer_thread = concurrency.spawn(_kickoff_timer, timer)
             LOG.info(TIMER_ENABLED_LOG_LINE)
             return timer_thread.wait()
         else:
@@ -84,7 +85,7 @@ def main():
         return _run_worker()
     except SystemExit as exit_code:
         sys.exit(exit_code)
-    except:
+    except Exception:
         LOG.exception('(PID=%s) TimerEngine quit due to exception.', os.getpid())
         return 1
     finally:

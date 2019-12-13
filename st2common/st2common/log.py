@@ -181,10 +181,22 @@ def _redirect_stderr():
     sys.stderr = LoggingStream('STDERR')
 
 
-def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_loggers=False):
+def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_loggers=False,
+          st2_conf_path=None):
     """
     Configure logging from file.
+
+    :param st2_conf_path: Optional path to st2.conf file. If provided and "config_file" path is
+                          relative to st2.conf path, the config_file path will get resolved to full
+                          absolute path relative to st2.conf.
+    :type st2_conf_path: ``str``
     """
+    if st2_conf_path and config_file[:2] == './' and not os.path.isfile(config_file):
+        # Logging config path is relative to st2.conf, resolve it to full absolute path
+        directory = os.path.dirname(st2_conf_path)
+        config_file_name = os.path.basename(config_file)
+        config_file = os.path.join(directory, config_file_name)
+
     try:
         logging.config.fileConfig(config_file,
                                   defaults=None,

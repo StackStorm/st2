@@ -8,9 +8,11 @@ OS := $(shell uname)
 ifeq ($(OS),Darwin)
 	VIRTUALENV_DIR ?= virtualenv-osx
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client-osx
+	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components-osx
 else
 	VIRTUALENV_DIR ?= virtualenv
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client
+	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
 PYTHON_VERSION ?= python2.7
@@ -20,8 +22,10 @@ BINARIES := bin
 # All components are prefixed by st2 and not .egg-info.
 COMPONENTS := $(shell ls -a | grep ^st2 | grep -v .egg-info)
 COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
+COMPONENTS_WITHOUT_ST2TESTS := $(shell ls -a | grep ^st2 | grep -v .egg-info | grep -v st2tests | grep -v st2exporter)
 
 COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
+COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER := $(foreach component,$(filter-out contrib/runners/mistral_v2,$(COMPONENTS_WITH_RUNNERS)),$(component))
 
 COMPONENTS_TEST_DIRS := $(wildcard st2*/tests) $(wildcard contrib/runners/*/tests)
 
@@ -39,6 +43,7 @@ space_char :=
 space_char +=
 COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS_WITH_RUNNERS)))
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS)),$(component))
+COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER)),$(component))
 COMPONENTS_TEST_COMMA := $(subst $(slash),$(dot),$(subst $(space_char),$(comma),$(COMPONENTS_TEST)))
 COMPONENTS_TEST_MODULES := $(subst $(slash),$(dot),$(COMPONENTS_TEST_DIRS))
 COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST_MODULES))
@@ -106,6 +111,8 @@ play:
 	@echo
 	@echo COMPONENTS_WITH_RUNNERS=$(COMPONENTS_WITH_RUNNERS)
 	@echo
+	@echo COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER=$(COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER)
+	@echo
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
 	@echo
 	@echo COMPONENTS_TEST_COMMA=$(COMPONENTS_TEST_COMMA)
@@ -116,9 +123,13 @@ play:
 	@echo
 	@echo COMPONENTS_TEST_MODULES_COMMA=$(COMPONENTS_TEST_MODULES_COMMA)
 	@echo
+	@echo COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER=$(COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER)
+	@echo
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
 	@echo
 	@echo TRAVIS_PULL_REQUEST=$(TRAVIS_PULL_REQUEST)
+	@echo
+	@echo TRAVIS_EVENT_TYPE=$(TRAVIS_EVENT_TYPE)
 	@echo
 	@echo NOSE_OPTS=$(NOSE_OPTS)
 	@echo
@@ -139,7 +150,6 @@ check: check-requirements flake8 checklogs
 # make targets. This speeds up the build
 .PHONY: install-runners
 install-runners:
-
 	@echo ""
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
@@ -158,6 +168,44 @@ check-requirements: requirements
 	# Update requirements and then make sure no files were changed
 	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit"
 	@echo "All requirements files up-to-date!"
+
+.PHONY: check-python-packages
+check-python-packages:
+	# Make target which verifies all the components Python packages are valid
+	@echo ""
+	@echo "================== CHECK PYTHON PACKAGES ===================="
+	@echo ""
+
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
+		echo "==========================================================="; \
+		echo "Checking component:" $$component; \
+		echo "==========================================================="; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
+	done
+
+.PHONY: check-python-packages-nightly
+check-python-packages-nightly:
+	# NOTE: This is subset of check-python-packages target.
+	# We run more extensive and slower tests as part of the nightly build to speed up PR builds
+	@echo ""
+	@echo "================== CHECK PYTHON PACKAGES ===================="
+	@echo ""
+
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
+		echo "==========================================================="; \
+		echo "Checking component:" $$component; \
+		echo "==========================================================="; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py sdist bdist_wheel) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py develop --no-deps) || exit 1; \
+		($(VIRTUALENV_COMPONENTS_DIR)/bin/python -c "import $$component") || exit 1; \
+		(set -e; cd $$component; rm -rf dist/; rm -rf $$component.egg-info) || exit 1; \
+	done
+
+.PHONY: ci-checks-nightly
+ci-checks-nightly: check-python-packages-nightly
 
 .PHONY: checklogs
 checklogs:
@@ -280,7 +328,7 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==19.3.1"
 	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==41.0.1"
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
@@ -391,11 +439,15 @@ requirements: virtualenv .sdist-requirements install-runners
 	@echo
 	# Make sure we use latest version of pip which is 19
 	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.0,<20.0"
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "virtualenv==16.6.0" # Required for packs.install in dev envs.
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==19.3.1"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==41.0.1"  # Required for packs.install in dev envs
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+
+	# Remove any *.egg-info files which polute PYTHONPATH
+	rm -rf *.egg-info*
 
 	# Generate finall requirements.txt file for each component
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
@@ -406,12 +458,14 @@ requirements: virtualenv .sdist-requirements install-runners
 	done
 
 	# Fix for Travis CI race
-	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
+	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
 
 	# Fix for Travis CI caching issue
-	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"
-	$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"
-	$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"
+	if [[ "$(TRAVIS_EVENT_TYPE)" != "" ]]; then\
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"; \
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"; \
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"; \
+	fi
 
 	# Install requirements
 	#
@@ -429,7 +483,7 @@ requirements: virtualenv .sdist-requirements install-runners
 	# Note: We install prance here and not as part of any component
 	# requirements.txt because it has a conflict with our dependency (requires
 	# new version of requests) which we cant resolve at this moment
-	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
+	$(VIRTUALENV_DIR)/bin/pip install "prance==0.15.0"
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
@@ -439,6 +493,9 @@ requirements: virtualenv .sdist-requirements install-runners
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --recursive --remote
+
+	# Verify there are no conflicting dependencies
+	$(VIRTUALENV_DIR)/bin/pipconflictchecker
 
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure
@@ -530,7 +587,7 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
-	for component in $(COMPONENTS_TEST); do\
+	for component in $(COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
@@ -622,6 +679,28 @@ endif
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done
+	@echo
+	@echo "============== runners integration tests with coverage =============="
+	@echo
+	@echo "The tests assume st2 is running on 127.0.0.1."
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running tests in" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate; \
+		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
+			nosetests $(NOSE_OPTS) -s -v \
+			$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/integration || exit 1; \
+	done
+	@echo
+	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
+	@echo "The tests assume st2 is running on 127.0.0.1."
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; \
+		COVERAGE_FILE=.coverage.integration.orquesta \
+		nosetests $(NOSE_OPTS) -s -v \
+		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
+
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
@@ -758,6 +837,8 @@ packs-tests: requirements .packs-tests
 	@echo
 	@echo "==================== packs-tests ===================="
 	@echo
+	# Install st2common to register metrics drivers
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -p FILENAME
 
 
@@ -847,6 +928,7 @@ debs:
 	# Copy over shared dist utils module which is needed by setup.py
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
 		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
+		scripts/write-headers.sh $$component/dist_utils.py || break;\
 	done
 
 	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
@@ -861,7 +943,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check
+ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: ci-py3-unit
 ci-py3-unit:
@@ -870,6 +952,13 @@ ci-py3-unit:
 	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
+
+.PHONY: ci-py3-unit-nightly
+ci-py3-unit-nightly:
+	@echo
+	@echo "==================== ci-py3-unit ===================="
+	@echo
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit-nightly -vv
 
 .PHONY: ci-py3-integration
 ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
@@ -909,12 +998,21 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 .PHONY: ci-unit
 ci-unit: .unit-tests-coverage-html
 
+.PHONY: ci-unit-nightly
+ci-unit-nightly:
+	# NOTE: We run mistral runner checks only as part of a nightly build to speed up
+	# non nightly builds (Mistral will be deprecated in the future)
+	@echo
+	@echo "============== ci-unit-nightly =============="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v  contrib/runners/mistral_v2/tests/unit
+
 .PHONY: .ci-prepare-integration
 .ci-prepare-integration:
 	sudo -E ./scripts/travis/prepare-integration.sh
 
 .PHONY: ci-integration
-ci-integration: .ci-prepare-integration .itests-coverage-html .runners-itests-coverage-html .orquesta-itests-coverage-html
+ci-integration: .ci-prepare-integration .itests-coverage-html
 
 .PHONY: ci-runners
 ci-runners: .ci-prepare-integration .runners-itests-coverage-html

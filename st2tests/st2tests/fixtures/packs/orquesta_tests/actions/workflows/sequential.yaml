@@ -6,6 +6,7 @@ input:
   - who
 
 vars:
+  - message: null
   - msg1: "Veni, vidi, vici."
   - msg2: "Resistance is futile!"
   - msg3: "All your base are belong to us!"

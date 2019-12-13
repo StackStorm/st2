@@ -23,13 +23,14 @@ import functools
 from subprocess import list2cmdline
 
 import six
-from eventlet.green import subprocess
+
 from oslo_config import cfg
 from six.moves import StringIO
 
 from st2common import log as logging
 from st2common.runners.base import GitWorktreeActionRunner
 from st2common.runners.base import get_metadata as get_runner_metadata
+from st2common.util import concurrency
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -167,6 +168,8 @@ class PythonRunner(GitWorktreeActionRunner):
             '--parent-args=%s' % (parent_args),
         ]
 
+        subprocess = concurrency.get_subprocess_module()
+
         # If parameter size is larger than the maximum allowed by Linux kernel
         # we need to swap to stdin to communicate parameters. This avoids a
         # failure to fork the wrapper process when using large parameters.
@@ -248,8 +251,11 @@ class PythonRunner(GitWorktreeActionRunner):
         if stdin_params:
             command_string = 'echo %s | %s' % (quote_unix(stdin_params), command_string)
 
-        LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
-                                                                 command_string))
+        bufsize = cfg.CONF.actionrunner.stream_output_buffer_size
+
+        LOG.debug('Running command (bufsize=%s): PATH=%s PYTHONPATH=%s %s' % (bufsize, env['PATH'],
+                                                                              env['PYTHONPATH'],
+                                                                              command_string))
         exit_code, stdout, stderr, timed_out = run_command(cmd=args,
                                                            stdin=stdin,
                                                            stdout=subprocess.PIPE,
@@ -261,7 +267,8 @@ class PythonRunner(GitWorktreeActionRunner):
                                                            read_stderr_func=read_and_store_stderr,
                                                            read_stdout_buffer=stdout,
                                                            read_stderr_buffer=stderr,
-                                                           stdin_value=stdin_params)
+                                                           stdin_value=stdin_params,
+                                                           bufsize=bufsize)
         LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
         LOG.debug('Returning.')
         return self._get_output_values(exit_code, stdout, stderr, timed_out)
@@ -318,15 +325,17 @@ class PythonRunner(GitWorktreeActionRunner):
             action_result = split[1].strip()
             stdout = split[0] + split[2]
         else:
+            # Timeout or similar
             action_result = None
 
-        # Parse the serialized action result object
-        try:
-            action_result = json.loads(action_result)
-        except Exception as e:
-            # Failed to de-serialize the result, probably it contains non-simple type or similar
-            LOG.warning('Failed to de-serialize result "%s": %s' % (str(action_result),
-                                                                    six.text_type(e)))
+        # Parse the serialized action result object (if available)
+        if action_result:
+            try:
+                action_result = json.loads(action_result)
+            except Exception as e:
+                # Failed to de-serialize the result, probably it contains non-simple type or similar
+                LOG.warning('Failed to de-serialize result "%s": %s' % (str(action_result),
+                                                                        six.text_type(e)))
 
         if action_result:
             if isinstance(action_result, dict):

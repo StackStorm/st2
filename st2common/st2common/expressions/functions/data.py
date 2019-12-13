@@ -16,9 +16,10 @@ from __future__ import absolute_import
 
 import json
 import jsonpath_rw
-import mongoengine
 import six
 import yaml
+
+from st2common.util import db as db_util
 
 
 __all__ = [
@@ -56,8 +57,7 @@ def to_json_string(value, indent=None, sort_keys=False, separators=(',', ': ')):
 
 
 def to_yaml_string(value, indent=None, allow_unicode=True):
-    if isinstance(value, mongoengine.base.datastructures.BaseDict):
-        value = dict(value)
+    value = db_util.mongodb_to_python_types(value)
 
     options = {'default_flow_style': False}
 

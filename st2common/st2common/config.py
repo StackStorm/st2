@@ -374,9 +374,19 @@ def register_opts(ignore_errors=False):
             'virtualenv_opts', default=['--system-site-packages'],
             help='List of virtualenv options to be passsed to "virtualenv" command that '
                  'creates pack virtualenv.'),
+        cfg.ListOpt(
+            'pip_opts', default=[],
+            help='List of pip options to be passed to "pip install" command when installing pack '
+                 'dependencies into pack virtual environment.'),
         cfg.BoolOpt(
             'stream_output', default=True,
-            help='True to store and stream action output (stdout and stderr) in real-time.')
+            help='True to store and stream action output (stdout and stderr) in real-time.'),
+        cfg.IntOpt(
+            'stream_output_buffer_size', default=-1,
+            help=('Buffer size to use for real time action output streaming. 0 means unbuffered '
+                  '1 means line buffered, -1 means system default, which usually means fully '
+                  'buffered and any other positive value means use a buffer of (approximately) '
+                  'that size'))
     ]
 
     do_register_opts(action_runner_opts, group='actionrunner')
@@ -630,6 +640,26 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(timer_opts, group='timer', ignore_errors=ignore_errors)
     do_register_opts(timers_engine_opts, group='timersengine', ignore_errors=ignore_errors)
+
+    # Workflow engine options
+    workflow_engine_opts = [
+        cfg.IntOpt(
+            'retry_stop_max_msec', default=60000,
+            help='Max time to stop retrying.'),
+        cfg.IntOpt(
+            'retry_wait_fixed_msec', default=1000,
+            help='Interval inbetween retries.'),
+        cfg.FloatOpt(
+            'retry_max_jitter_msec', default=1000,
+            help='Max jitter interval to smooth out retries.'),
+        cfg.IntOpt(
+            'gc_max_idle_sec', default=0,
+            help='Max seconds to allow workflow execution be idled before it is identified as '
+                 'orphaned and cancelled by the garbage collector. A value of zero means the '
+                 'feature is disabled. This is disabled by default.')
+    ]
+
+    do_register_opts(workflow_engine_opts, group='workflow_engine', ignore_errors=ignore_errors)
 
 
 def parse_args(args=None):

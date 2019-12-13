@@ -22,6 +22,7 @@ from st2common.exceptions.param import ParamException
 from st2common.router import exc
 from st2common.router import Response
 from st2common.util import auth as auth_utils
+from st2common.util import api as api_utils
 from st2common import log as logging
 import st2auth.handlers as handlers
 
@@ -80,7 +81,8 @@ class TokenController(object):
 
 def process_successful_response(token):
     resp = Response(json=token, status=http_client.CREATED)
-    resp.headers['X-API-URL'] = cfg.CONF.auth.api_url
+    # NOTE: gunicon fails and throws an error if header value is not a string (e.g. if it's None)
+    resp.headers['X-API-URL'] = api_utils.get_base_public_api_url()
     return resp
 
 

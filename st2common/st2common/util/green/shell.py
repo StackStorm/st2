@@ -13,18 +13,18 @@
 # limitations under the License.
 
 """
-Shell utility functions which use non-blocking and eventlet friendly code.
+Shell utility functions which use non-blocking and eventlet / gevent friendly code.
 """
 
 from __future__ import absolute_import
 
 import os
+import subprocess
 
 import six
-import eventlet
-from eventlet.green import subprocess
 
 from st2common import log as logging
+from st2common.util import concurrency
 
 __all__ = [
     'run_command'
@@ -38,7 +38,8 @@ LOG = logging.getLogger(__name__)
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
                 cwd=None, env=None, timeout=60, preexec_func=None, kill_func=None,
                 read_stdout_func=None, read_stderr_func=None,
-                read_stdout_buffer=None, read_stderr_buffer=None, stdin_value=None):
+                read_stdout_buffer=None, read_stderr_buffer=None, stdin_value=None,
+                bufsize=0):
     """
     Run the provided command in a subprocess and wait until it completes.
 
@@ -82,6 +83,8 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                  using live read mode.
     :type read_stdout_func: ``func``
 
+    :param bufsize: Buffer size argument to pass to subprocess.popen function.
+    :type bufsize: ``int``
 
     :rtype: ``tuple`` (exit_code, stdout, stderr, timed_out)
     """
@@ -101,19 +104,22 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         LOG.debug('env argument not provided. using process env (os.environ).')
         env = os.environ.copy()
 
-    # Note: We are using eventlet friendly implementation of subprocess
-    # which uses GreenPipe so it doesn't block
+    subprocess = concurrency.get_subprocess_module()
+
+    # Note: We are using eventlet / gevent friendly implementation of subprocess which uses
+    # GreenPipe so it doesn't block
     LOG.debug('Creating subprocess.')
-    process = subprocess.Popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
-                               env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
+    process = concurrency.subprocess_popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
+                                           env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func,
+                                           bufsize=bufsize)
 
     if read_stdout_func:
         LOG.debug('Spawning read_stdout_func function')
-        read_stdout_thread = eventlet.spawn(read_stdout_func, process.stdout, read_stdout_buffer)
+        read_stdout_thread = concurrency.spawn(read_stdout_func, process.stdout, read_stdout_buffer)
 
     if read_stderr_func:
         LOG.debug('Spawning read_stderr_func function')
-        read_stderr_thread = eventlet.spawn(read_stderr_func, process.stderr, read_stderr_buffer)
+        read_stderr_thread = concurrency.spawn(read_stderr_func, process.stderr, read_stderr_buffer)
 
     def on_timeout_expired(timeout):
         global timed_out
@@ -125,6 +131,9 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             # Command has timed out, kill the process and propagate the error.
             # Note: We explicitly set the returncode to indicate the timeout.
             LOG.debug('Command execution timeout reached.')
+
+            # NOTE: It's important we set returncode twice - here and below to avoid race in this
+            # function because "kill_func()" is async and "process.kill()" is not.
             process.returncode = TIMEOUT_EXIT_CODE
 
             if kill_func:
@@ -134,13 +143,17 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 LOG.debug('Killing process.')
                 process.kill()
 
+            # NOTE: It's imporant to set returncode here as well, since call to process.kill() sets
+            # it and overwrites it if we set it earlier.
+            process.returncode = TIMEOUT_EXIT_CODE
+
             if read_stdout_func and read_stderr_func:
                 LOG.debug('Killing read_stdout_thread and read_stderr_thread')
-                read_stdout_thread.kill()
-                read_stderr_thread.kill()
+                concurrency.kill(read_stdout_thread)
+                concurrency.kill(read_stderr_thread)
 
     LOG.debug('Spawning timeout handler thread.')
-    timeout_thread = eventlet.spawn(on_timeout_expired, timeout)
+    timeout_thread = concurrency.spawn(on_timeout_expired, timeout)
     LOG.debug('Attaching to process.')
 
     if stdin_value:
@@ -156,13 +169,13 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         LOG.debug('Using delayed stdout and stderr read mode, calling process.communicate()')
         stdout, stderr = process.communicate()
 
-    timeout_thread.cancel()
+    concurrency.cancel(timeout_thread)
     exit_code = process.returncode
 
     if read_stdout_func and read_stderr_func:
         # Wait on those green threads to finish reading from stdout and stderr before continuing
-        read_stdout_thread.wait()
-        read_stderr_thread.wait()
+        concurrency.wait(read_stdout_thread)
+        concurrency.wait(read_stderr_thread)
 
         stdout = read_stdout_buffer.getvalue()
         stderr = read_stderr_buffer.getvalue()

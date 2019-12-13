@@ -23,7 +23,6 @@ from subprocess import list2cmdline
 import six
 import yaml
 from oslo_config import cfg
-from eventlet.green import subprocess
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
@@ -39,6 +38,9 @@ from st2common.util.loader import get_available_plugins
 from st2common.util.api import get_full_public_api_url
 from st2common.util.deprecation import deprecated
 from st2common.util.green.shell import run_command
+from st2common.util import concurrency
+
+subprocess = concurrency.get_subprocess_module()
 
 __all__ = [
     'ActionRunner',
@@ -47,6 +49,8 @@ __all__ = [
     'GitWorktreeActionRunner',
     'PollingAsyncActionRunner',
     'ShellRunnerMixin',
+
+    'get_runner_module',
 
     'get_runner',
     'get_metadata',
@@ -70,6 +74,25 @@ def get_runner(name, config=None):
     """
     LOG.debug('Runner loading Python module: %s', name)
 
+    module = get_runner_module(name=name)
+
+    LOG.debug('Instance of runner module: %s', module)
+
+    if config:
+        runner_kwargs = {'config': config}
+    else:
+        runner_kwargs = {}
+
+    runner = module.get_runner(**runner_kwargs)
+    LOG.debug('Instance of runner: %s', runner)
+    return runner
+
+
+def get_runner_module(name):
+    """
+    Load runner driver and return reference to the runner driver module.
+    """
+
     # NOTE: For backward compatibility we also support "_" in place of "-"
     from stevedore.exception import NoMatches
 
@@ -90,16 +113,7 @@ def get_runner(name, config=None):
 
             raise exc.ActionRunnerCreateError('%s\n\n%s' % (msg, six.text_type(e)))
 
-    LOG.debug('Instance of runner module: %s', module)
-
-    if config:
-        runner_kwargs = {'config': config}
-    else:
-        runner_kwargs = {}
-
-    runner = module.get_runner(**runner_kwargs)
-    LOG.debug('Instance of runner: %s', runner)
-    return runner
+    return module
 
 
 def get_query_module(name):

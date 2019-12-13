@@ -18,6 +18,7 @@ import mock
 
 import st2tests
 
+from orquesta import statuses as wf_ex_statuses
 from oslo_config import cfg
 
 # XXX: actionsensor import depends on config being setup.
@@ -235,3 +236,64 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         # Assert the main workflow is canceling.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+
+    def test_cancel_before_wf_ex_db_created(self):
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+
+        # Delete the workfow execution to mock issue where the record has not been created yet.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        wf_db_access.WorkflowExecution.delete(wf_ex_db, publish=False, dispatch_trigger=False)
+
+        # Cancel the action execution.
+        requester = cfg.CONF.system_user.user
+        lv_ac_db, ac_ex_db = ac_svc.request_cancellation(lv_ac_db, requester)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+
+    def test_cancel_after_wf_ex_db_completed(self):
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+
+        # Delete the workfow execution to mock issue where the workflow is already completed
+        # but the liveaction and action execution have not had time to be updated.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        wf_ex_db.status = wf_ex_statuses.SUCCEEDED
+        wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+
+        # Cancel the action execution.
+        requester = cfg.CONF.system_user.user
+        lv_ac_db, ac_ex_db = ac_svc.request_cancellation(lv_ac_db, requester)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+
+    @mock.patch.object(
+        wf_svc, 'request_cancellation',
+        mock.MagicMock(side_effect=Exception('foobar')))
+    def test_cancel_unexpected_exception(self):
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+
+        # Cancel the action execution.
+        requester = cfg.CONF.system_user.user
+        lv_ac_db, ac_ex_db = ac_svc.request_cancellation(lv_ac_db, requester)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+
+        # Make sure request cancellation is called.
+        self.assertTrue(wf_svc.request_cancellation.called)
+
+        # Make sure the live action and action execution still has a canceled
+        # status despite of cancelation failure. The other option would be
+        # to raise an exception and the records will be stuck in a canceling
+        # status and user is unable to easily clean up.
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
+        self.assertIn('Error encountered when canceling', lv_ac_db.result.get('error', ''))

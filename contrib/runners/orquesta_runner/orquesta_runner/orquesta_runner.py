@@ -14,6 +14,8 @@
 
 from __future__ import absolute_import
 
+import sys
+import traceback
 import uuid
 
 import six
@@ -24,6 +26,7 @@ from orquesta import statuses as wf_statuses
 
 from st2common.constants import action as ac_const
 from st2common import log as logging
+from st2common.exceptions import workflow as wf_svc_exc
 from st2common.models.api import notification as notify_api_models
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
@@ -198,8 +201,29 @@ class OrquestaRunner(runners.AsyncActionRunner):
         return wf_ex_cancelable or ac_ex_cancelable
 
     def cancel(self):
-        # Cancel the target workflow.
-        wf_svc.request_cancellation(self.execution)
+        result = None
+
+        # Try to cancel the target workflow execution.
+        try:
+            wf_svc.request_cancellation(self.execution)
+        # If workflow execution is not found because the action execution is cancelled
+        # before the workflow execution is created or if the workflow execution is
+        # already completed, then ignore the exception and proceed with cancellation.
+        except (wf_svc_exc.WorkflowExecutionNotFoundException,
+                wf_svc_exc.WorkflowExecutionIsCompletedException):
+            pass
+        # If there is an unknown exception, then log the error. Continue with the
+        # cancelation sequence below to cancel children and determine final status.
+        # If we rethrow the exception here, the workflow will be stuck in a canceling
+        # state with no options for user to clean up. It is safer to continue with
+        # the cancel then to revert back to some other statuses because the workflow
+        # execution will be in an unknown state.
+        except Exception:
+            _, ex, tb = sys.exc_info()
+            msg = 'Error encountered when canceling workflow execution. %s'
+            result = {'error': msg % str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            msg = '[%s] Error encountered when canceling workflow execution.'
+            LOG.exception(msg, str(self.execution.id))
 
         # Request cancellation of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:
@@ -218,7 +242,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
 
         return (
             status,
-            self.liveaction.result,
+            result if result else self.liveaction.result,
             self.liveaction.context
         )
 

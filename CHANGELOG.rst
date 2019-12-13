@@ -4,17 +4,124 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Add support for blacklisting / whitelisting hosts to the HTTP runner by adding new
+  ``url_hosts_blacklist`` and ``url_hosts_whitelist`` runner attribute. (new feature)
+  #4757
+* Add ``user`` parameter to ``re_run`` method of st2client. #4785
+* Install pack dependencies automatically. #4769
+* Add support for `immutable_parameters` on Action Aliases. This feature allows default
+  parameters to be supplied to the action on every execution of the alias. #4786
+* Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client.
+  #4791
+
+Changed
+~~~~~~~
+
+* Install pack with the latest tag version if it exists when branch is not specialized.
+  (improvement) #4743
+* Implement "continue" engine command to orquesta workflow. (improvement) #4740
+* Update various internal dependencies to latest stable versions (apscheduler, eventlet,
+  kombu, amqp, pyyaml, mongoengine, python-gnupg, paramiko, tooz, webob, bcrypt).
+
+  Latest version of mongoengine should show some performance improvements (5-20%) when
+  writing very large executions (executions with large results) to the database. #4767
+* Improved development instructions in requirements.txt and dist_utils.py comment headers
+  (improvement) #4774
+* Add new ``actionrunner.stream_output_buffer_size`` config option and default it to ``-1``
+  (previously default value was ``0``). This should result in a better performance and smaller
+  CPU utilization for Python runner actions which produce a lot of output.
+  (improvement)
+
+  Reported and contributed by Joshua Meyer (@jdmeyer3) #4803
+* Add new ``action_runner.pip_opts`` st2.conf config option which allows user to specify a list
+  of command line option which are passed to ``pip install`` command when installing pack
+  dependencies into a pack specific virtual environment. #4792
+* Refactor how orquesta handles individual item result for with items task. Before the fix,
+  when there are a lot of items and/or result size for each item is huge, there is a negative
+  performance impact on write to the database when recording the conductor state. (improvement)
+* Remove automatic rendering of workflow output when updating task state for orquesta workflows.
+  This caused workflow output to render incorrectly in certain use case. The render_workflow_output
+  function must be called separately. (improvement)
+* Update various internal dependencies to latest stable versions (cryptography, jinja2, requests,
+  apscheduler, eventlet, amqp, kombu, semver, six) #4819 (improvement)
+
+Fixed
+~~~~~
+
+* Fix rbac with execution view where the rbac is unable to verify the pack or uid of the execution
+  because it was not returned from the action execution db. This would result in an internal server
+  error when trying to view the results of a single execution.
+  Contributed by Joshua Meyer (@jdmeyer3) #4758
+* Fixed logging middleware to output a ``content_length`` of ``0`` instead of ``Infinity``
+  when the type of data being returned is not supported. Previously, when the value was
+  set to ``Infinity`` this would result in invalid JSON being output into structured
+  logs. (bug fix) #4722
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fix the workflow execution cancelation to proceed even if the workflow execution is not found or
+  completed. (bug fix) #4735
+* Added better error handling to `contrib/linux/actions/dig.py` to inform if dig is not installed.
+  Contributed by JP Bourget (@punkrokk Syncurity) #4732
+* Update ``dist_utils`` module which is bundled with ``st2client`` and other Python packages so it
+  doesn't depend on internal pip API and so it works with latest pip version. (bug fix) #4750
+* Fix dependency conflicts in pack CI runs: downgrade requests dependency back to 0.21.0, update
+  internal dependencies and test expectations (amqp, pyyaml, prance, six) (bugfix) #4774
+* Fix secrets masking in action parameters section defined inside the rule when using
+  ``GET /v1/rules`` and ``GET /v1/rules/<ref>`` API endpoint. (bug fix) #4788 #4807
+
+  Contributed by @Nicodemos305 and @jeansfelix
+* Fix a bug with authentication API endpoint (``POST /auth/v1/tokens``) returning internal
+  server error when running under gunicorn and when``auth.api_url`` config option was not set.
+  (bug fix) #4809
+
+  Reported by @guzzijones
+* Fixed ``st2 execution get`` and ``st2 run`` not printing the ``action.ref`` for non-workflow
+  actions. (bug fix) #4739
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Update ``st2 execution get`` command to always include ``context.user``, ``start_timestamp`` and
+  ``end_timestamp`` attributes. (improvement) #4739
+
+* Fixed ``core.sendmail`` base64 encoding of longer subject lines (bug fix) #4795
+
+  Contributed by @stevemuskiewicz and @guzzijones
+* Update all the various rule criteria comparison operators which also work with strings (equals,
+  icontains, nequals, etc.) to work correctly on Python 3 deployments if one of the operators is
+  of a type bytes and the other is of a type unicode / string. (bug fix) #4831
+
+3.1.0 - June 27, 2019
+---------------------
+
 Changed
 ~~~~~~~
 
 * Allow the orquesta st2kv function to return default for nonexistent key. (improvement) #4678
 * Update requests library to latest version (2.22.0) in requirements. (improvement) #4680
+* Disallow "decrypt_kv" filter to be specified in the config for values that are marked as
+  "secret: True" in the schema. (improvement) #4709
+* Upgrade ``tooz`` library to latest stable version (1.65.0) so it uses latest version of
+  ``grpcio`` library. (improvement) #4713
+* Update ``st2-pack-install`` and ``st2-pack-download`` CLI command so it supports installing
+  packs from local directories which are not git repositories. (improvement) #4713
 
 Fixed
 ~~~~~
 
 * Fix orquesta st2kv to return empty string and null values. (bug fix) #4678
 * Allow tasks defined in the same task transition with ``fail`` to run for orquesta. (bug fix)
+* Fix workflow service to handle unexpected coordinator and database errors. (bug fix) #4704 #4705
+* Fix filter ``to_yaml_string`` to handle mongoengine base types for dict and list. (bug fix) #4700
+* Fix timeout handling in the Python runner. In some scenarios where action would time out before
+  producing any output (stdout, stder), timeout was not correctly propagated to the user. (bug fix)
+  #4713
+* Update ``st2common/setup.py`` file so it correctly declares all the dependencies and script
+  files it provides. This way ``st2-pack-*`` commands can be used in a standalone fashion just by
+  installing ``st2common`` Python package and nothing else. (bug fix) #4713
+* Fix ``st2-pack-download`` command so it works in the environments where ``sudo`` binary is not
+  available (e.g. Docker). (bug fix) #4713
 
 3.0.1 - May 24, 2019
 --------------------
@@ -27,7 +134,7 @@ Fixed
   value for SSH port is specified in the configured SSH config file
   (``ssh_runner.ssh_config_file_path``). (bug fix) #4660 #4661
 * Update pack install action so it works correctly when ``python_versions`` ``pack.yaml`` metadata
-  attribute is used in combination with ``--python3`` pack install flag. (bug fix) #4654 #4662
+  attribute is used in combination with ``--use-python3`` pack install flag. (bug fix) #4654 #4662
 * Add ``source_channel`` back to the context used by Mistral workflows for executions which are
   triggered via ChatOps (using action alias).
 
@@ -37,7 +144,7 @@ Fixed
   server time where st2api is running was not set to UTC. (bug fix) #4668
 
   Contributed by Igor Cherkaev. (@emptywee)
-* Fix a bug with some packs which use ``--python3`` flag (running Python 3 actions on installation
+* Fix a bug with some packs which use ``--use-python3`` flag (running Python 3 actions on installation
   where StackStorm components run under Python 2) which rely on modules from Python 3 standard
   library which are also available in Python 2 site-packages (e.g. ``concurrent``) not working
   correctly.

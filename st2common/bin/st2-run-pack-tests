@@ -118,7 +118,7 @@ while getopts ":p:f:xjvct" o; do
 done
 
 function verbose_log() {
-    if [ ${VERBOSE} = true ]; then
+    if [ "${VERBOSE}" = true ]; then
         echo $@
     fi
 }
@@ -132,19 +132,19 @@ function activate_virtualenv() {
     fi
 }
 
-if [ ! ${PACK_PATH} ]; then
+if [ -z "${PACK_PATH}" ]; then
     # Missing required argument
     usage
     exit 2
 fi
 
 PACK_PATH=$(readlink -f ${PACK_PATH})
-if [ ! ${PACK_PATH} ]; then
+if [ -z "${PACK_PATH}" ]; then
     echo "Usage: $0 -p <pack path> [-x]"
     exit 2
 fi
 
-if [ ! -d ${PACK_PATH} ]; then
+if [ ! -d "${PACK_PATH}" ]; then
     echo "Invalid pack path: ${PACK_PATH}"
     exit 3
 fi
@@ -162,7 +162,7 @@ ETC_PATH="${PACK_PATH}/etc/"
 
 # Bail early if no tests are found, this way we don't need to wait for
 # environment set up.
-if [  ! -d ${PACK_TESTS_PATH} ]; then
+if [  ! -d "${PACK_TESTS_PATH}" ]; then
     echo "Running tests for pack: ${PACK_NAME}"
     echo "No tests found."
     exit 0
@@ -198,7 +198,7 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
         activate_virtualenv
 
         # Make sure virtualenv is using latest pip version
-        ${VIRTUALENV_DIR}/bin/pip install --upgrade "pip>=9.0,<9.1"
+        ${VIRTUALENV_DIR}/bin/pip install --upgrade "pip>=19.0.1,<20.0"
     fi
 
     if [ ! -d "${VIRTUALENV_DIR}" ]; then
@@ -214,7 +214,7 @@ fi
 
 # Note: If we are running outside of st2, we need to add all the st2 components
 # to PYTHONPATH
-if [ ${ST2_REPO_PATH} ]; then
+if [ -n "${ST2_REPO_PATH}" ]; then
     ST2_REPO_PATH=${ST2_REPO_PATH:-/tmp/st2}
     ST2_COMPONENTS=$(find ${ST2_REPO_PATH}/* -maxdepth 0 -name "st2*" -type d)
     ST2_RUNNERS=$(find ${ST2_REPO_PATH}/contrib/runners/* -maxdepth 0 -type d 2> /dev/null)
@@ -256,6 +256,21 @@ if [ "${JUST_TESTS}" = false ]; then
         echo "Installing pack-specific test dependencies..."
         pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
     fi
+
+# Since we install global pack test dependencies when JUST_TESTS = false we
+# don't need to do it explicitly there.
+# However, if JUST_TESTS = true, we still need to make sure that the coverage
+# module is installed if ENABLE_COVERAGE = true, so install it explicitly.
+elif [ "${ENABLE_COVERAGE}" = true ]; then
+    for((i = 0; i < ${#PACK_TEST_PYTHON_DEPENDENCIES_NAMES[@]}; i++)); do
+        DEPENDENCY_NAME="${PACK_TEST_PYTHON_DEPENDENCIES_NAMES[$i]}"
+
+        if [ "${DEPENDENCY_NAME}" = "coverage" ]; then
+            DEPENDENCY_VERSION="${PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS[$i]}"
+
+            echo ${INSTALLED_PIP_PACKAGES} | grep "${DEPENDENCY_NAME}"  > /dev/null || pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${DEPENDENCY_NAME}${DEPENDENCY_VERSION}"
+        fi
+    done
 fi
 
 # Set PYTHONPATH, make sure it contains st2 components in PYTHONPATH
@@ -274,12 +289,12 @@ fi
 TESTS_PYTHON_PATH+=("${PACK_PYTHONPATH}")
 
 # 3. Add any exist PYTHONPATH at the end
-if [ ! -z "${PYTHONPATH}" ]; then
+if [ -n "${PYTHONPATH}" ]; then
     TESTS_PYTHON_PATH+=("${PYTHONPATH}")
 fi
 
 # 4. Add in tests path if test file is provided
-if [ ! -z "${TEST_LOCATION}" ]; then
+if [ -n "${TEST_LOCATION}" ]; then
     TESTS_PYTHON_PATH+=("${PACK_TESTS_PATH}")
 fi
 
@@ -292,7 +307,7 @@ verbose_log "PATH=${PATH}"
 verbose_log "Virtualenv activated=${VIRTUALENV_ACTIVATED}"
 verbose_log "Installed Python dependencies:"
 
-if [ ${VERBOSE} = true ]; then
+if [ "${VERBOSE}" = true ]; then
     pip list --format columns
 fi
 
@@ -347,7 +362,7 @@ TESTS_EXIT_CODE=$?
 popd  > /dev/null # ${PACK_PATH}
 
 # Clean up and unset the variables
-if [ ${VIRTUALENV_ACTIVATED} = true ]; then
+if [ "${VIRTUALENV_ACTIVATED}" = true ]; then
     verbose_log "Deactivating virtualenv ${VIRTUALENVS_DIR}"
     deactivate
 fi

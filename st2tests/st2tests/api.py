@@ -180,7 +180,13 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
     # _get_model_instance method method
     test_exact_object_count = True
 
+    # True if those tests are running with rbac enabled
+    rbac_enabled = False
+
     def test_get_all_exclude_attributes_and_include_attributes_are_mutually_exclusive(self):
+        if self.rbac_enabled:
+            self.use_user(self.users['admin'])
+
         url = self.get_all_path + '?include_attributes=id&exclude_attributes=id'
         resp = self.app.get(url, expect_errors=True)
         self.assertEqual(resp.status_int, 400)
@@ -189,6 +195,9 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
 
     def test_get_all_invalid_exclude_and_include_parameter(self):
+        if self.rbac_enabled:
+            self.use_user(self.users['admin'])
+
         # 1. Invalid exclude_attributes field
         url = self.get_all_path + '?exclude_attributes=invalid_field'
         resp = self.app.get(url, expect_errors=True)
@@ -206,6 +215,9 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
 
     def test_get_all_include_attributes_filter(self):
+        if self.rbac_enabled:
+            self.use_user(self.users['admin'])
+
         mandatory_include_fields = self.controller_cls.mandatory_include_fields_response
 
         # Create any resources needed by those tests (if not already created inside setUp /
@@ -249,6 +261,9 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         self._delete_mock_models(object_ids)
 
     def test_get_all_exclude_attributes_filter(self):
+        if self.rbac_enabled:
+            self.use_user(self.users['admin'])
+
         # Create any resources needed by those tests (if not already created inside setUp /
         # setUpClass)
         object_ids = self._insert_mock_models()

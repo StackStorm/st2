@@ -116,7 +116,9 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         argv = ['execution', 'get', EXECUTION['id'], '-j']
         content = self._get_execution(argv)
         self.assertEqual(json.loads(content),
-                         jsutil.get_kvps(EXECUTION, ['id', 'status', 'parameters', 'result']))
+                         jsutil.get_kvps(EXECUTION, ['id', 'action.ref', 'context.user',
+                                                     'start_timestamp', 'end_timestamp', 'status',
+                                                     'parameters', 'result']))
 
     def test_execution_get_detail(self):
         argv = ['execution', 'get', EXECUTION['id'], '-d']
@@ -181,6 +183,9 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         # Sufficient to check if output contains all expected keys. The entire result will not
         # match as content will contain characters which improve rendering.
         for k in six.iterkeys(EXECUTION):
+            if k in ['liveaction', 'callback']:
+                continue
+
             if k in content:
                 continue
             self.assertTrue(False, 'Missing key %s. %s != %s' % (k, EXECUTION, content_dict))

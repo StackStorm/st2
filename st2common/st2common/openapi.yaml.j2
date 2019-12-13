@@ -2645,6 +2645,10 @@ paths:
           in: query
           description: Enabled filter
           type: string
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -2706,6 +2710,10 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -5023,6 +5031,11 @@ definitions:
       force:
         description: Force pack installation.
         type: boolean
+        default: false
+      skip_dependencies:
+        type: boolean
+        description: Set to True to skip pack dependency installations.
+        required: false
         default: false
   PacksUninstall:
     type: object

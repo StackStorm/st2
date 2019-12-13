@@ -35,6 +35,8 @@ from st2common.util.pack_management import eval_repo_url
 
 from pack_mgmt.download import DownloadGitRepoAction
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 PACK_INDEX = {
     "test": {
         "version": "0.4.0",
@@ -63,8 +65,44 @@ PACK_INDEX = {
         "keywords": ["some", "special", "terms"],
         "email": "info@stackstorm.com",
         "description": "another st2 pack to test package management pipeline"
+    },
+    "test4": {
+        "version": "0.5.0",
+        "name": "test4",
+        "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test4",
+        "author": "stanley",
+        "keywords": ["some", "special", "terms"], "email": "info@stackstorm.com",
+        "description": "another st2 pack to test package management pipeline"
     }
 }
+
+
+original_is_dir_func = os.path.isdir
+
+
+def mock_is_dir_func(path):
+    """
+    Mock function which returns True if path ends with .git
+    """
+    if path.endswith('.git'):
+        return True
+    return original_is_dir_func(path)
+
+
+def mock_get_gitref(repo, ref):
+    """
+    Mock get_gitref function which return mocked object if ref passed is
+    PACK_INDEX['test']['version']
+    """
+    if PACK_INDEX['test']['version'] in ref:
+        if ref[0] == 'v':
+            return mock.MagicMock(hexsha=PACK_INDEX['test']['version'])
+        else:
+            return None
+    elif ref:
+        return mock.MagicMock(hexsha="abcDef")
+    else:
+        return None
 
 
 @mock.patch.object(pack_service, 'fetch_pack_index', mock.MagicMock(return_value=(PACK_INDEX, {})))
@@ -79,8 +117,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.addCleanup(clone_from.stop)
         self.clone_from = clone_from.start()
 
+        self.expand_user_path = tempfile.mkdtemp()
         expand_user = mock.patch.object(os.path, 'expanduser',
-                                        mock.MagicMock(return_value=tempfile.mkdtemp()))
+                                        mock.MagicMock(return_value=self.expand_user_path))
 
         self.addCleanup(expand_user.stop)
         self.expand_user = expand_user.start()
@@ -116,6 +155,24 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.repo_instance.git.checkout.assert_called()
         self.repo_instance.git.branch.assert_called()
         self.repo_instance.git.checkout.assert_called()
+
+    def test_run_pack_download_dependencies(self):
+        action = self.get_action_instance()
+        result = action.run(packs=['test'], dependency_list=['test2', 'test4'],
+                            abs_repo_base=self.repo_base)
+        temp_dirs = [
+            hashlib.md5(PACK_INDEX['test2']['repo_url'].encode()).hexdigest(),
+            hashlib.md5(PACK_INDEX['test4']['repo_url'].encode()).hexdigest()
+        ]
+
+        self.assertEqual(result, {'test2': 'Success.', 'test4': 'Success.'})
+        self.clone_from.assert_any_call(PACK_INDEX['test2']['repo_url'],
+                                        os.path.join(os.path.expanduser('~'), temp_dirs[0]))
+        self.clone_from.assert_any_call(PACK_INDEX['test4']['repo_url'],
+                                        os.path.join(os.path.expanduser('~'), temp_dirs[1]))
+        self.assertEqual(self.clone_from.call_count, 2)
+        self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test2/pack.yaml')))
+        self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test4/pack.yaml')))
 
     def test_run_pack_download_existing_pack(self):
         action = self.get_action_instance()
@@ -505,7 +562,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
             # Fool _get_gitref into working when its ref == our ref
             def fake_commit(arg_ref):
-                if arg_ref == ref:
+                if not ref or arg_ref == ref:
                     return gitref
                 else:
                     raise BadName()
@@ -522,16 +579,63 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             result = action.run(packs=packs, abs_repo_base=self.repo_base)
             self.assertEqual(result, {'test': 'Success.'})
 
+    @mock.patch('os.path.isdir', mock_is_dir_func)
     def test_run_pack_dowload_local_git_repo_detached_head_state(self):
         action = self.get_action_instance()
 
         type(self.repo_instance).active_branch = \
             mock.PropertyMock(side_effect=TypeError('detached head'))
 
-        result = action.run(packs=['file:///stackstorm-test'], abs_repo_base=self.repo_base)
+        pack_path = os.path.join(BASE_DIR, 'fixtures/stackstorm-test')
+
+        result = action.run(packs=['file://%s' % (pack_path)], abs_repo_base=self.repo_base)
         self.assertEqual(result, {'test': 'Success.'})
 
         # Verify function has bailed out early
         self.repo_instance.git.checkout.assert_not_called()
         self.repo_instance.git.branch.assert_not_called()
         self.repo_instance.git.checkout.assert_not_called()
+
+    def test_run_pack_download_local_directory(self):
+        action = self.get_action_instance()
+
+        # 1. Local directory doesn't exist
+        expected_msg = r'Local pack directory ".*" doesn\'t exist'
+        self.assertRaisesRegexp(ValueError, expected_msg, action.run,
+                                packs=['file://doesnt_exist'], abs_repo_base=self.repo_base)
+
+        # 2. Local pack which is not a git repository
+        pack_path = os.path.join(BASE_DIR, 'fixtures/stackstorm-test4')
+
+        result = action.run(packs=['file://%s' % (pack_path)], abs_repo_base=self.repo_base)
+        self.assertEqual(result, {'test4': 'Success.'})
+
+        # Verify pack contents have been copied over
+        destination_path = os.path.join(self.repo_base, 'test4')
+        self.assertTrue(os.path.exists(destination_path))
+        self.assertTrue(os.path.exists(os.path.join(destination_path, 'pack.yaml')))
+
+    @mock.patch('st2common.util.pack_management.get_gitref', mock_get_gitref)
+    def test_run_pack_download_with_tag(self):
+        action = self.get_action_instance()
+        result = action.run(packs=['test'], abs_repo_base=self.repo_base)
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url'].encode()).hexdigest()
+
+        self.assertEqual(result, {'test': 'Success.'})
+        self.clone_from.assert_called_once_with(PACK_INDEX['test']['repo_url'],
+                                                os.path.join(os.path.expanduser('~'), temp_dir))
+        self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test/pack.yaml')))
+
+        # Check repo.git.checkout is called three times
+        self.assertEqual(self.repo_instance.git.checkout.call_count, 3)
+
+        # Check repo.git.checkout called with latest tag or branch
+        self.assertEqual(PACK_INDEX['test']['version'],
+                         self.repo_instance.git.checkout.call_args_list[1][0][0])
+
+        # Check repo.git.checkout called with head
+        self.assertEqual(self.repo_instance.head.reference,
+                         self.repo_instance.git.checkout.call_args_list[2][0][0])
+
+        self.repo_instance.git.branch.assert_called_with(
+            '-f', self.repo_instance.head.reference, PACK_INDEX['test']['version'])

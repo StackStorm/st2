@@ -1,0 +1,11 @@
+---
+name : test4
+description : st2 pack to test package management pipeline
+keywords:
+  - some
+  - search
+  - another
+  - terms
+version : "0.4.0"
+author : st2-dev
+email : info@stackstorm.com
