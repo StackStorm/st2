@@ -47,6 +47,7 @@ Changed
   function must be called separately. (improvement)
 * Update various internal dependencies to latest stable versions (cryptography, jinja2, requests,
   apscheduler, eventlet, amqp, kombu, semver, six) #4819 (improvement)
+* Upgrade ``pymongo`` to the latest stable version (``3.10.0.``). #4835 (improvement)
 
 Fixed
 ~~~~~
