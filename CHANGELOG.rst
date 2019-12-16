@@ -91,6 +91,11 @@ Fixed
 * Update all the various rule criteria comparison operators which also work with strings (equals,
   icontains, nequals, etc.) to work correctly on Python 3 deployments if one of the operators is
   of a type bytes and the other is of a type unicode / string. (bug fix) #4831
+* Fix SSL connection support for MongoDB and RabbitMQ which wouldn't work under Python 3 and would
+  result in cryptic "maximum recursion depth exceeded while calling a Python object" error on
+  connection failure. (bug fix) #4382 #4384
+
+  Reported by @alexku7.
 
 3.1.0 - June 27, 2019
 ---------------------
