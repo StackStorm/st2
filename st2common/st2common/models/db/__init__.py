@@ -131,6 +131,7 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
     connection = mongoengine.connection.connect(db_name, host=db_host,
                                                 port=db_port, tz_aware=True,
                                                 username=username, password=password,
+                                                connectTimeoutMS=connection_timeout,
                                                 serverSelectionTimeoutMS=connection_timeout,
                                                 **ssl_kwargs)
 

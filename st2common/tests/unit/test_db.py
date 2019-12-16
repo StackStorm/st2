@@ -192,6 +192,7 @@ class DbConnectionTestCase(DbTestCase):
             'authentication_mechanism': 'MONGODB-X509',
             'ssl': True,
             'ssl_match_hostname': True,
+            'connectTimeoutMS': 3000,
             'serverSelectionTimeoutMS': 3000
         })
 
