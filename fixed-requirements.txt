@@ -18,7 +18,7 @@ requests[security]==2.22.0
 apscheduler==3.6.3
 gitpython==2.1.11
 jsonschema==2.6.0
-pymongo==3.7.2
+pymongo==3.10.0
 mongoengine==0.18.2
 passlib==1.7.1
 lockfile==0.12.2
