@@ -14,6 +14,11 @@
 
 from __future__ import absolute_import
 
+# NOTE: We need to perform monkeypatch before importing ssl module otherwise tests will fail.
+# See https://github.com/StackStorm/st2/pull/4834 for details
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
+
 import ssl
 import time
 
