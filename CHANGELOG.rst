@@ -99,7 +99,7 @@ Fixed
   result in cryptic "maximum recursion depth exceeded while calling a Python object" error on
   connection failure.
 
-  NOTE: This issue only affected installations using Python 3. (bug fix) #4382 #4384
+  NOTE: This issue only affected installations using Python 3. (bug fix) #4832 #4834
 
   Reported by @alexku7.
 
