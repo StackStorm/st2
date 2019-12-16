@@ -15,6 +15,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+# NOTE: We need to perform monkeypatch before importing ssl module otherwise tests will fail.
+# See https://github.com/StackStorm/st2/pull/4834 for details
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
+
 try:
     import simplejson as json
 except ImportError:
