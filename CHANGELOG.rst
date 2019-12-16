@@ -47,6 +47,10 @@ Changed
   function must be called separately. (improvement)
 * Update various internal dependencies to latest stable versions (cryptography, jinja2, requests,
   apscheduler, eventlet, amqp, kombu, semver, six) #4819 (improvement)
+* Improve MongoDB connection timeout related code. Connection and server selection timeout is now
+  set to 3 seconds. Previously a default value of 30 seconds was used which means that for many
+  connection related errors, our code would first wait for this timeout to be reached (30 seconds)
+  before returning error to the end user. #4384
 
 Fixed
 ~~~~~
