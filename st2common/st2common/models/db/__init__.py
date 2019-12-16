@@ -20,6 +20,7 @@ import traceback
 import ssl as ssl_lib
 
 import six
+from oslo_config import cfg
 import mongoengine
 from mongoengine.queryset import visitor
 from pymongo import uri_parser
@@ -123,13 +124,14 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
                                  authentication_mechanism=authentication_mechanism,
                                  ssl_match_hostname=ssl_match_hostname)
 
-    # NOTE: We intentionally set "serverSelectionTimeoutMS" to 5 seconds. By default it's set to
+    # NOTE: We intentionally set "serverSelectionTimeoutMS" to 3 seconds. By default it's set to
     # 30 seconds, which means it will block up to 30 seconds and fail if there are any SSL related
-    # errors
+    # or other errors
+    connection_timeout = cfg.CONF.database.connection_timeout
     connection = mongoengine.connection.connect(db_name, host=db_host,
                                                 port=db_port, tz_aware=True,
                                                 username=username, password=password,
-                                                serverSelectionTimeoutMS=5000,
+                                                serverSelectionTimeoutMS=connection_timeout,
                                                 **ssl_kwargs)
 
     # NOTE: Since pymongo 3.0, connect() method is lazy and not blocking (always returns success)
