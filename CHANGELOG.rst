@@ -50,7 +50,7 @@ Changed
 * Improve MongoDB connection timeout related code. Connection and server selection timeout is now
   set to 3 seconds. Previously a default value of 30 seconds was used which means that for many
   connection related errors, our code would first wait for this timeout to be reached (30 seconds)
-  before returning error to the end user. #4384
+  before returning error to the end user. #4834
 
 Fixed
 ~~~~~
