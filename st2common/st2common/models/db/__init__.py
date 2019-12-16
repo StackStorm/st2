@@ -306,6 +306,9 @@ def db_cleanup(db_name, db_host, db_port, username=None, password=None,
 
 def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_reqs=None,
                     ssl_ca_certs=None, authentication_mechanism=None, ssl_match_hostname=True):
+    # NOTE: In pymongo 3.9.0 some of the ssl related arguments have been renamed -
+    # https://api.mongodb.com/python/current/changelog.html#changes-in-version-3-9-0
+    # Old names still work, but we should eventually update to new argument names.
     ssl_kwargs = {
         'ssl': ssl,
     }

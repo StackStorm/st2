@@ -51,6 +51,7 @@ Changed
   set to 3 seconds. Previously a default value of 30 seconds was used which means that for many
   connection related errors, our code would first wait for this timeout to be reached (30 seconds)
   before returning error to the end user. #4834
+* Upgrade ``pymongo`` to the latest stable version (``3.10.0.``). #4835 (improvement)
 
 Fixed
 ~~~~~
