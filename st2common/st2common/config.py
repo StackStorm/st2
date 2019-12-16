@@ -177,6 +177,9 @@ def register_opts(ignore_errors=False):
             'password',
             help='password for db login'),
         cfg.IntOpt(
+            'connection_timeout', default=3 * 1000,
+            help='Connection and server selection timeout (in ms).'),
+        cfg.IntOpt(
             'connection_retry_max_delay_m', default=3,
             help='Connection retry total time (minutes).'),
         cfg.IntOpt(

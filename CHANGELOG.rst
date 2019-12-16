@@ -47,6 +47,10 @@ Changed
   function must be called separately. (improvement)
 * Update various internal dependencies to latest stable versions (cryptography, jinja2, requests,
   apscheduler, eventlet, amqp, kombu, semver, six) #4819 (improvement)
+* Improve MongoDB connection timeout related code. Connection and server selection timeout is now
+  set to 3 seconds. Previously a default value of 30 seconds was used which means that for many
+  connection related errors, our code would first wait for this timeout to be reached (30 seconds)
+  before returning error to the end user. #4834
 
 Fixed
 ~~~~~
@@ -91,6 +95,13 @@ Fixed
 * Update all the various rule criteria comparison operators which also work with strings (equals,
   icontains, nequals, etc.) to work correctly on Python 3 deployments if one of the operators is
   of a type bytes and the other is of a type unicode / string. (bug fix) #4831
+* Fix SSL connection support for MongoDB and RabbitMQ which wouldn't work under Python 3 and would
+  result in cryptic "maximum recursion depth exceeded while calling a Python object" error on
+  connection failure.
+
+  NOTE: This issue only affected installations using Python 3. (bug fix) #4832 #4834
+
+  Reported by @alexku7.
 
 3.1.0 - June 27, 2019
 ---------------------
