@@ -25,6 +25,7 @@ from mongoengine.queryset import visitor
 from pymongo import uri_parser
 from pymongo.errors import OperationFailure
 from pymongo.errors import ConnectionFailure
+from pymongo.errors import ServerSelectionTimeoutError
 
 from st2common import log as logging
 from st2common.util import isotime
@@ -122,9 +123,13 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
                                  authentication_mechanism=authentication_mechanism,
                                  ssl_match_hostname=ssl_match_hostname)
 
+    # NOTE: We intentionally set "serverSelectionTimeoutMS" to 5 seconds. By default it's set to
+    # 30 seconds, which means it will block up to 30 seconds and fail if there are any SSL related
+    # errors
     connection = mongoengine.connection.connect(db_name, host=db_host,
                                                 port=db_port, tz_aware=True,
                                                 username=username, password=password,
+                                                serverSelectionTimeoutMS=5000,
                                                 **ssl_kwargs)
 
     # NOTE: Since pymongo 3.0, connect() method is lazy and not blocking (always returns success)
@@ -134,7 +139,10 @@ def _db_connect(db_name, db_host, db_port, username=None, password=None,
     try:
         # The ismaster command is cheap and does not require auth
         connection.admin.command('ismaster')
-    except ConnectionFailure as e:
+    except (ConnectionFailure, ServerSelectionTimeoutError) as e:
+        # NOTE: ServerSelectionTimeoutError can also be thrown if SSLHandShake fails in the server
+        # Sadly the client doesn't include more information about the error so in such scenarios
+        # user needs to check MongoDB server log
         LOG.error('Failed to connect to database "%s" @ "%s" as user "%s": %s' %
                   (db_name, host_string, str(username_string), six.text_type(e)))
         raise e
