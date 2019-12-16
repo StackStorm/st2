@@ -15,6 +15,13 @@
 import os
 import sys
 
+# NOTE: It's important that we perform monkey patch as early as possible before any other modules
+# are important, otherwise SSL support for MongoDB won't work.
+# See https://github.com/StackStorm/st2/issues/4832 and https://github.com/gevent/gevent/issues/1016
+# for details.
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
+
 import eventlet
 from oslo_config import cfg
 from eventlet import wsgi
@@ -22,7 +29,6 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
-from st2common.util.monkey_patch import monkey_patch
 from st2api import config
 config.register_opts()
 from st2api import app
@@ -32,8 +38,6 @@ from st2api.validation import validate_rbac_is_correctly_configured
 __all__ = [
     'main'
 ]
-
-monkey_patch()
 
 LOG = logging.getLogger(__name__)
 
