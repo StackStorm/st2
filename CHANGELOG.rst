@@ -97,7 +97,9 @@ Fixed
   of a type bytes and the other is of a type unicode / string. (bug fix) #4831
 * Fix SSL connection support for MongoDB and RabbitMQ which wouldn't work under Python 3 and would
   result in cryptic "maximum recursion depth exceeded while calling a Python object" error on
-  connection failure. (bug fix) #4382 #4384
+  connection failure.
+
+  NOTE: This issue only affected installations using Python 3. (bug fix) #4382 #4384
 
   Reported by @alexku7.
 
