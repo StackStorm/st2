@@ -1,9 +1,11 @@
 version: 1.0
 
 description: >
-  A sample workflow that illustrates the use of task retry to rerun task on error. In this example,
-  the workflow will loop until the file /tmp/done exists. A parallel task will wait for some time
-  before creating the file. When completed, /tmp/done will be deleted.
+  A sample workflow that illustrates what happens when the task retries are exhausted. In this
+  example, the workflow will loop until the file /tmp/done exists. A parallel task will wait for
+  some time before creating the file. When completed, /tmp/done will be deleted. In this case
+  where the retry will be exhausted, the wait will exit before the temp file is created and the
+  workflow will fail as a result.
 
 vars:
   - file: /tmp/<% str(random(1000000, 9999999)) %>
