@@ -16,6 +16,7 @@ Added
   parameters to be supplied to the action on every execution of the alias. #4786
 * Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client.
   #4791
+* Add support for orquesta task retry. (new feature)
 
 Changed
 ~~~~~~~
