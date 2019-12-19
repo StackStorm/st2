@@ -18,7 +18,7 @@ requests[security]==2.22.0
 apscheduler==3.6.3
 gitpython==2.1.11
 jsonschema==2.6.0
-git+https://github.com/closeio/mongoengine.git@master#egg=mongoengine
+git+https://github.com/StackStorm/mongoengine.git@master#egg=st2_patched_mallard
 pymongo==3.10.0
 passlib==1.7.1
 lockfile==0.12.2
