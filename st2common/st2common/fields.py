@@ -42,8 +42,11 @@ class ComplexDateTimeField(LongField):
         (which will be stored in MongoDB). This is the reverse function of
         `_convert_from_db`.
         """
-        result = self._datetime_to_microseconds_since_epoch(value=val)
-        return result
+        if isinstance(val, datetime.datetime):
+            return self._datetime_to_microseconds_since_epoch(value=val)
+
+        # Else we assume it's already in the correct format
+        return val
 
     def _convert_from_db(self, value):
         result = self._microseconds_since_epoch_to_datetime(data=value)
