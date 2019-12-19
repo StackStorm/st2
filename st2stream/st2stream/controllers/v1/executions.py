@@ -56,7 +56,7 @@ class ActionExecutionOutputStreamController(ResourceController):
     def get_one(self, id, output_type='all', requester_user=None):
         # Special case for id == "last"
         if id == 'last':
-            execution_db = ActionExecution.query().order_by('-id').limit(1).first()
+            execution_db = ActionExecution.query(order_by=['-id'], limit=1, first=True)
 
             if not execution_db:
                 raise ValueError('No executions found in the database')

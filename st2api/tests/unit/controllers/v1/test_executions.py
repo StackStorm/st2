@@ -496,7 +496,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         resp = self.app.get('/v1/executions?offset=%s&limit=1' % total_count)
         self.assertEqual(resp.status_int, 200)
-        self.assertTrue(len(resp.json), 0)
+        self.assertEqual(len(resp.json), 0)
 
     def test_get_one_fail(self):
         resp = self.app.get('/v1/executions/100', expect_errors=True)
@@ -1522,7 +1522,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 class ActionExecutionOutputControllerTestCase(BaseActionExecutionControllerTestCase,
                                               FunctionalTest):
     def test_get_output_id_last_no_executions_in_the_database(self):
-        ActionExecution.query().delete()
+        ActionExecution.raw_query().delete()
 
         resp = self.app.get('/v1/executions/last/output', expect_errors=True)
         self.assertEqual(resp.status_int, http_client.BAD_REQUEST)

@@ -1,4 +1,4 @@
-# Copyright 2019 Extreme Networks, Inc.
+# Copyrsght 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ class PolicyType(Access):
     def get_by_ref(cls, ref):
         if ref:
             ref_obj = PolicyTypeReference.from_string_reference(ref=ref)
-            result = cls.query(name=ref_obj.name, resource_type=ref_obj.resource_type).first()
+            result = cls.query(name=ref_obj.name, resource_type=ref_obj.resource_type, first=True)
             return result
         else:
             return None

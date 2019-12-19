@@ -218,11 +218,12 @@ class ResourceController(object):
                 except LookUpError as e:
                     raise ValueError(six.text_type(e))
 
+        if limit == 1:
+            filters['limit'] = 1
+
         instances = self.access.query(exclude_fields=exclude_fields, only_fields=include_fields,
                                       **filters)
-        if limit == 1:
-            # Perform the filtering on the DB side
-            instances = instances.limit(limit)
+        total_count = len(instances)
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self.from_model_kwargs)
@@ -235,7 +236,7 @@ class ResourceController(object):
                                              **from_model_kwargs)
 
         resp = Response(json=result)
-        resp.headers['X-Total-Count'] = str(instances.count())
+        resp.headers['X-Total-Count'] = str(total_count)
 
         if limit:
             resp.headers['X-Limit'] = str(limit)
@@ -609,7 +610,8 @@ class ContentPackResourceController(ResourceController):
 
         resource_db = self.access.query(name=ref.name, pack=ref.pack,
                                         exclude_fields=exclude_fields,
-                                        only_fields=include_fields).first()
+                                        only_fields=include_fields,
+                                        first=True)
         return resource_db
 
 

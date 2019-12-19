@@ -34,14 +34,14 @@ class User(Access):
         if not origin:
             raise NoNicknameOriginProvidedError()
 
-        result = cls.query(**{('nicknames__%s' % origin): nickname})
+        result = cls.query(first=True, **{('nicknames__%s' % origin): nickname})
 
-        if not result.first():
+        if not result:
             raise UserNotFoundError()
-        if result.count() > 1:
+        elif len(result) > 1:
             raise AmbiguousUserError()
 
-        return result.first()
+        return result[0]
 
     @classmethod
     def _get_impl(cls):
@@ -73,7 +73,7 @@ class Token(Access):
 
     @classmethod
     def get(cls, value):
-        result = cls.query(token=value).first()
+        result = cls.query(token=value, first=True)
 
         if not result:
             raise TokenNotFoundError()
@@ -92,7 +92,7 @@ class ApiKey(Access):
     def get(cls, value):
         # DB does not contain key but the key_hash.
         value_hash = hash_utils.hash(value)
-        result = cls.query(key_hash=value_hash).first()
+        result = cls.query(key_hash=value_hash, first=True)
 
         if not result:
             raise ApiKeyNotFoundError('ApiKey with key_hash=%s not found.' % value_hash)

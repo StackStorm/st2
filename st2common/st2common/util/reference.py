@@ -53,7 +53,7 @@ def get_model_by_resource_ref(db_api, ref):
     :return: Retrieved object.
     """
     ref_obj = ResourceReference.from_string_reference(ref=ref)
-    result = db_api.query(name=ref_obj.name, pack=ref_obj.pack).first()
+    result = db_api.query(name=ref_obj.name, pack=ref_obj.pack, first=True)
     return result
 
 

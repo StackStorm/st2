@@ -298,7 +298,7 @@ class BasePacksController(ResourceController):
         """
         Note: In this case "ref" is pack name and not StackStorm's ResourceReference.
         """
-        resource_db = self.access.query(ref=ref, exclude_fields=exclude_fields).first()
+        resource_db = self.access.query(ref=ref, exclude_fields=exclude_fields, first=True)
         return resource_db
 
 

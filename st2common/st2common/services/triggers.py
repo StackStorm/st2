@@ -88,7 +88,7 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
             # We need to do double query because some TriggeDB objects without
             # parameters have "parameters" attribute stored in the db and others
             # don't
-            trigger_db = Trigger.query(type=type, parameters=None).first()
+            trigger_db = Trigger.query(type=type, parameters=None, first=True)
 
         return trigger_db
     except StackStormDBObjectNotFoundError as e:

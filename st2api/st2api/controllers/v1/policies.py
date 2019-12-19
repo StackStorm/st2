@@ -113,7 +113,7 @@ class PolicyTypeController(resource.ResourceController):
         except Exception:
             return None
 
-        resource_db = self.access.query(name=ref.name, resource_type=ref.resource_type).first()
+        resource_db = self.access.query(name=ref.name, resource_type=ref.resource_type, first=True)
         return resource_db
 
 

@@ -325,7 +325,7 @@ class ActionExecutionOutputController(ActionExecutionsControllerMixin, ResourceC
                 requester_user=None):
         # Special case for id == "last"
         if id == 'last':
-            execution_db = ActionExecution.query().order_by('-id').limit(1).first()
+            execution_db = ActionExecution.query(order_by=['-id'], limit=1, first=True)
 
             if not execution_db:
                 raise ValueError('No executions found in the database')
@@ -545,7 +545,7 @@ class ActionExecutionsController(BaseResourceIsolationControllerMixin,
 
         # Special case for id == "last"
         if id == 'last':
-            execution_db = ActionExecution.query().order_by('-id').limit(1).only('id').first()
+            execution_db = ActionExecution.query(order_by=['-id'], limit=1, first=True)
 
             if not execution_db:
                 raise ValueError('No executions found in the database')

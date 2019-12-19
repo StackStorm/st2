@@ -460,12 +460,14 @@ class MongoDBAccess(object):
         mongoengine conversion so it's preferred over "raw_query".
         """
         first = filters.pop('first', False)
-        result = self.raw_query(*args, **filters)
 
+        result = self.raw_query(*args, **filters)
         result = self._process_as_pymongo_queryset(queryset=result, as_pymongo=True)
 
-        if first and len(result) >= 1:
-            result = result[0]
+        if first:
+            if len(result) >= 1:
+                return result[0]
+            return None
 
         return result
 

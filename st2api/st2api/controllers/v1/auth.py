@@ -105,8 +105,14 @@ class ApiKeyController(BaseRestControllerMixin):
 
         limit = resource.validate_limit_query_param(limit, requester_user=requester_user)
 
+        eop = offset + int(limit) if limit else None
+
         try:
-            api_key_dbs = ApiKey.get_all(limit=limit, offset=offset)
+            api_key_dbs = ApiKey.get_all()
+            # NOTE: This same late pagination approach we utilize is the same one we utilize in
+            # the base resource control. It's not ideal, but it is what it is
+            total_count = len(api_key_dbs)
+            api_key_dbs = api_key_dbs[offset:eop]
             api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
                         for api_key_db in api_key_dbs]
         except OverflowError:
@@ -114,7 +120,7 @@ class ApiKeyController(BaseRestControllerMixin):
             raise ValueError(msg)
 
         resp = Response(json=api_keys)
-        resp.headers['X-Total-Count'] = str(api_key_dbs.count())
+        resp.headers['X-Total-Count'] = str(total_count)
 
         if limit:
             resp.headers['X-Limit'] = str(limit)

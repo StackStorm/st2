@@ -220,7 +220,7 @@ class ActionExecutionSchedulingQueueHandler(object):
             ]
         }
 
-        execution_queue_item_db = ActionExecutionSchedulingQueue.query(**query).first()
+        execution_queue_item_db = ActionExecutionSchedulingQueue.query(first=True, **query)
 
         if not execution_queue_item_db:
             return None

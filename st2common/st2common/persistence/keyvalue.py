@@ -108,13 +108,13 @@ class KeyValuePair(Access):
 
         :rtype: :class:`KeyValuePairDB` or ``None``
         """
-        query_result = cls.impl.query(scope=scope, name=name)
+        query_result = cls.impl.query(scope=scope, name=name, first=True)
 
         if not query_result:
             msg = 'The key "%s" does not exist in the StackStorm datastore.'
             raise StackStormDBObjectNotFoundError(msg % name)
 
-        return query_result.first() if query_result else None
+        return query_result
 
     @classmethod
     def _get_impl(cls):

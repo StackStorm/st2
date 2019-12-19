@@ -32,9 +32,7 @@ def has_policies(lv_ac_db, policy_types=None):
     if policy_types:
         query_params['policy_type__in'] = policy_types
 
-    policy_dbs = pc_db_access.Policy.query(**query_params)
-
-    return policy_dbs.count() > 0
+    return pc_db_access.Policy.count(**query_params) > 0
 
 
 def apply_pre_run_policies(lv_ac_db):
