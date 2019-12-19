@@ -100,7 +100,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
-        self.assertEqual(execution.liveaction['callback'], liveaction.callback)
+        self.assertEqual(execution.liveaction.get('callback', {}), liveaction.callback)
         self.assertEqual(execution.liveaction['action'], liveaction.action)
 
     def test_basic_execution_history_create_failed(self):
@@ -127,7 +127,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
-        self.assertEqual(execution.liveaction['callback'], liveaction.callback)
+        self.assertEqual(execution.liveaction.get('callback', {}), liveaction.callback)
         self.assertEqual(execution.liveaction['action'], liveaction.action)
         self.assertGreater(len(execution.children), 0)
 
@@ -184,7 +184,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
-        self.assertEqual(execution.liveaction['callback'], liveaction.callback)
+        self.assertEqual(execution.liveaction.get('callback', {}), liveaction.callback)
         self.assertEqual(execution.liveaction['action'], liveaction.action)
 
     def _get_action_execution(self, **kwargs):
