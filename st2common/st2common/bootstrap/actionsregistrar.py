@@ -176,7 +176,10 @@ class ActionsRegistrar(ResourceRegistrar):
         else:
             LOG.debug('Action %s found. Will be updated from: %s to: %s',
                       action_ref, existing, model)
+            # NOTE: _lazy is needed because of mongo mallard changes to amke sure we update an
+            # existing object which doesn't have _db_data attribute populated
             model.id = existing.id
+            model._lazy = True
 
         try:
             model = Action.add_or_update(model)
