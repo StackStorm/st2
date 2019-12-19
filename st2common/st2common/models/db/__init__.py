@@ -607,7 +607,8 @@ class MongoDBAccess(object):
         for item in result:
             if '_id' in item:
                 item['id'] = str(item.pop('_id'))
-            model_db = self.model(**item)
+            # NOTE: We also avoid automatic expensive conversion which we don't need
+            model_db = self.model(__auto_convert=False, **item)
             models_result.append(model_db)
 
         return models_result
