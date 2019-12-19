@@ -103,7 +103,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     def mask_secrets(self, value):
         result = copy.deepcopy(value)
 
-        liveaction = result['liveaction']
+        liveaction = result.get('liveaction', {})
         parameters = {}
         # pylint: disable=no-member
         parameters.update(value.get('action', {}).get('parameters', {}))

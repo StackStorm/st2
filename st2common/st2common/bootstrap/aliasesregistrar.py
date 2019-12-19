@@ -146,6 +146,7 @@ class AliasesRegistrar(ResourceRegistrar):
 
         try:
             action_alias_db.id = ActionAlias.get_by_name(action_alias_db.name).id
+            action_alias._lazy = True
         except StackStormDBObjectNotFoundError:
             LOG.debug('ActionAlias %s not found. Creating new one.', action_alias)
 
