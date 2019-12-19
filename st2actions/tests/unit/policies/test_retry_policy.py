@@ -13,7 +13,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import mock
+from bson import ObjectId
 
 import st2actions
 from st2common.constants.action import LIVEACTION_STATUS_REQUESTED
@@ -258,7 +260,7 @@ class RetryPolicyTestCase(CleanDbTestCase):
         live_action_db = LiveActionDB(
             action='wolfpack.action-1',
             parameters={'actionstr': 'foo'},
-            context={'parent': {'execution_id': 'abcde'}}
+            context={'parent': {'execution_id': ObjectId('5609e91832ed356d04a93cc0')}}
         )
 
         live_action_db, execution_db = action_service.request(live_action_db)
