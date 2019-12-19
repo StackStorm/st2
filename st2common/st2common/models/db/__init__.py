@@ -487,7 +487,8 @@ class MongoDBAccess(object):
     def add_or_update(self, instance, validate=True, undo_dict_field_escape=True):
         instance.save(validate=validate)
         if undo_dict_field_escape:
-            return self._undo_dict_field_escape(instance)
+            instance = self._undo_dict_field_escape(instance)
+        instance.id = str(instance.id)
         return instance
 
     def update(self, instance, **kwargs):
@@ -609,8 +610,11 @@ class MongoDBAccess(object):
         for item in result:
             if '_id' in item:
                 item['id'] = str(item.pop('_id'))
-            # TODO: Also avoid expensive auto conversion since it's not needed in most cases
-            model_db = self.model(__auto_convert=True, **item)
+            # NOTE: Disabling auto_convert speeds it up by 50%
+            # Derefernces only need to happen where we use EmbeddedDocumentField which is only in
+            # a few places
+            model_db = self.model(__auto_convert=False, **item)
+            model_db.id = str(model_db.id)
             models_result.append(model_db)
 
         return models_result

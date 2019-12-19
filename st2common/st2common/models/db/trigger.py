@@ -64,6 +64,12 @@ class TriggerTypeDB(stormbase.StormBaseDB,
         # pylint: disable=no-member
         self.uid = self.get_uid()
 
+        # Manualy de-reference EmbeddedDocumentField fields to avoid overhead of de-referencing all
+        # the fields inside the base Document class constructor when __auto_convert is True.
+        # This approach means we need to update this code each time we add new
+        # EmbeddedDocumentField (which we should avoid anyway for performance reasons)
+        stormbase.TagsMixin.__init__(self)
+
 
 class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
                 stormbase.UIDFieldMixin):

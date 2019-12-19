@@ -159,6 +159,18 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         self.ref = self.get_reference().ref
         self.uid = self.get_uid()
 
+        # Manualy de-reference EmbeddedDocumentField fields to avoid overhead of de-referencing all
+        # the fields inside the base Document class constructor when __auto_convert is True.
+        # This approach means we need to update this code each time we add new
+        # EmbeddedDocumentField (which we should avoid anyway for performance reasons)
+        stormbase.TagsMixin.__init__(self)
+
+        if self.type:
+            self.type = self._fields['type'].to_python(self.type)
+
+        if self.action:
+            self.action = self._fields['action'].to_python(self.action)
+
 
 rule_access = MongoDBAccess(RuleDB)
 rule_type_access = MongoDBAccess(RuleTypeDB)

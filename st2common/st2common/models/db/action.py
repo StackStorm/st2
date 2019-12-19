@@ -94,6 +94,15 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         self.ref = self.get_reference().ref
         self.uid = self.get_uid()
 
+        # Manualy de-reference EmbeddedDocumentField fields to avoid overhead of de-referencing all
+        # the fields inside the base Document class constructor when __auto_convert is True.
+        # This approach means we need to update this code each time we add new
+        # EmbeddedDocumentField (which we should avoid anyway for performance reasons)
+        stormbase.TagsMixin.__init__(self)
+
+        if self.notify:
+            self.notify = self._fields['notify'].to_python(self.notify)
+
     def is_workflow(self):
         """
         Return True if this action is a workflow, False otherwise.

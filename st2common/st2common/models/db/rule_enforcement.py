@@ -80,6 +80,15 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     def __init__(self, *args, **values):
         super(RuleEnforcementDB, self).__init__(*args, **values)
 
+        # Manualy de-reference EmbeddedDocumentField fields to avoid overhead of de-referencing all
+        # the fields inside the base Document class constructor when __auto_convert is True.
+        # This approach means we need to update this code each time we add new
+        # EmbeddedDocumentField (which we should avoid anyway for performance reasons)
+        stormbase.TagsMixin.__init__(self)
+
+        if self.rule:
+            self.rule = self._fields['rule'].to_python(self.rule)
+
         # Set status to succeeded for old / existing RuleEnforcementDB which predate status field
         status = getattr(self, 'status', None)
         failure_reason = getattr(self, 'failure_reason', None)

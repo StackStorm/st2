@@ -87,6 +87,16 @@ class LiveActionDB(stormbase.StormFoundationDB):
         ]
     }
 
+    def __init__(self, *args, **kwargs):
+        super(LiveActionDB, self).__init__(*args, **kwargs)
+
+        # Manualy de-reference EmbeddedDocumentField fields to avoid overhead of de-referencing all
+        # the fields inside the base Document class constructor when __auto_convert is True.
+        # This approach means we need to update this code each time we add new
+        # EmbeddedDocumentField (which we should avoid anyway for performance reasons)
+        if self.notify:
+            self.notify = self._fields['notify'].to_python(self.notify)
+
     def mask_secrets(self, value):
         from st2common.util import action_db
 

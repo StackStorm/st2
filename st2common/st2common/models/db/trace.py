@@ -94,6 +94,22 @@ class TraceDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
         super(TraceDB, self).__init__(*args, **values)
         self.uid = self.get_uid()
 
+        # Manualy de-reference EmbeddedDocumentField fields to avoid overhead of de-referencing all
+        # the fields inside the base Document class constructor when __auto_convert is True.
+        # This approach means we need to update this code each time we add new
+        # EmbeddedDocumentField (which we should avoid anyway for performance reasons)
+        if self.trigger_instances:
+            self.trigger_instances = \
+                self._fields['trigger_instances'].to_python(self.trigger_instances)
+
+        if self.rules:
+            self.rules = \
+                self._fields['rules'].to_python(self.rules)
+
+        if self.action_executions:
+            self.action_executions = \
+                self._fields['action_executions'].to_python(self.action_executions)
+
     def get_uid(self):
         parts = []
         parts.append(self.RESOURCE_TYPE)

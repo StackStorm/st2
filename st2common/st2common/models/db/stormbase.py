@@ -165,6 +165,12 @@ class TagsMixin(object):
     """
     tags = me.ListField(field=me.EmbeddedDocumentField(TagField))
 
+    def __init__(self):
+        # Manualy de-reference EmbeddedDocumentField fields to avoid overhead of de-referencing all
+        # the fields inside the base Document class constructor when __auto_convert is True
+        if self.tags:
+            self.tags = self._fields['tags'].to_python(self.tags)
+
     @classmethod
     def get_indexes(cls):
         return ['tags.name', 'tags.value']
