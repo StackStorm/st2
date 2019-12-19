@@ -379,8 +379,11 @@ class MongoDBAccess(object):
                 msg = ('Invalid or unsupported include attribute specified: %s' % six.text_type(e))
                 raise ValueError(msg)
 
-        instance = instances[0] if instances else None
+        # NOTE: This needs to happen before we convert queryset to actual DB models
         log_query_and_profile_data_for_queryset(queryset=instances)
+
+        instances = self._process_as_pymongo_queryset(queryset=instances, as_pymongo=True)
+        instance = instances[0] if instances else None
 
         if not instance and raise_exception:
             msg = 'Unable to find the %s instance. %s' % (self.model.__name__, kwargs)
@@ -401,7 +404,7 @@ class MongoDBAccess(object):
     #
     #           def query(self, *args, offset=0, limit=None, order_by=None, exclude_fields=None,
     #                     **filters):
-    def query(self, *args, **filters):
+    def raw_query(self, *args, **filters):
         # Python 2: Pop keyword parameters that aren't actually filters off of the kwargs
         offset = filters.pop('offset', 0)
         limit = filters.pop('limit', None)
@@ -444,7 +447,25 @@ class MongoDBAccess(object):
 
         result = result.order_by(*order_by)
         result = result[offset:eop]
+
         log_query_and_profile_data_for_queryset(queryset=result)
+        return result
+
+    def query(self, *args, **filters):
+        """
+        Same as "raw_query()", but instead if returning a QuerySet object, this method returns
+        actual database model instances we are querying for.
+
+        This method is much more efficient than "raw_query()" since it avoids unnecessary
+        mongoengine conversion so it's preferred over "raw_query".
+        """
+        first = filters.pop('first', False)
+        result = self.raw_query(*args, **filters)
+
+        result = self._process_as_pymongo_queryset(queryset=result, as_pymongo=True)
+
+        if first and len(result) >= 1:
+            result = result[0]
 
         return result
 
@@ -461,9 +482,11 @@ class MongoDBAccess(object):
         instance = self.model.objects.insert(instance)
         return self._undo_dict_field_escape(instance)
 
-    def add_or_update(self, instance, validate=True):
+    def add_or_update(self, instance, validate=True, undo_dict_field_escape=True):
         instance.save(validate=validate)
-        return self._undo_dict_field_escape(instance)
+        if undo_dict_field_escape:
+            return self._undo_dict_field_escape(instance)
+        return instance
 
     def update(self, instance, **kwargs):
         return instance.update(**kwargs)
@@ -565,6 +588,29 @@ class MongoDBAccess(object):
                 order_by_list = [sort_key] + order_by_list
 
         return filters, order_by_list
+
+    def _process_as_pymongo_queryset(self, queryset, as_pymongo=False):
+        """
+        Method which converts result as returned by queryset.as_pymongo() aka dictionary into a
+        DB model class instance.
+
+        NOTE: We use as_pymongo() and manually instantiate DB models instead of letting mongoengine
+        do the actual conversion, because it's about 10x faster (mongoengine document conversion is
+        very slow).
+        """
+        if not as_pymongo or not queryset:
+            return queryset
+
+        result = queryset.as_pymongo()
+
+        models_result = []
+        for item in result:
+            if '_id' in item:
+                item['id'] = str(item.pop('_id'))
+            model_db = self.model(**item)
+            models_result.append(model_db)
+
+        return models_result
 
 
 class ChangeRevisionMongoDBAccess(MongoDBAccess):

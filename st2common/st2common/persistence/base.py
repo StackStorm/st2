@@ -110,6 +110,10 @@ class Access(object):
         return cls._get_impl().count(*args, **kwargs)
 
     @classmethod
+    def raw_query(cls, *args, **kwargs):
+        return cls._get_impl().raw_query(*args, **kwargs)
+
+    @classmethod
     def query(cls, *args, **kwargs):
         return cls._get_impl().query(*args, **kwargs)
 
@@ -345,7 +349,7 @@ class ContentPackResource(Access):
 
         ref_obj = ResourceReference.from_string_reference(ref=ref)
         result = cls.query(name=ref_obj.name,
-                           pack=ref_obj.pack).first()
+                           pack=ref_obj.pack, first=True)
         return result
 
     @classmethod
