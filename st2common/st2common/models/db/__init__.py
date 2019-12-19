@@ -236,9 +236,10 @@ def cleanup_extra_indexes(model_class):
     """
     Finds any extra indexes and removes those from mongodb.
     """
-    extra_indexes = model_class.compare_indexes().get('extra', None)
-    if not extra_indexes:
-        return 0
+    return 0
+    #extra_indexes = model_class.compare_indexes().get('extra', None)
+    #if not extra_indexes:
+    #    return 0
 
     # mongoengine does not have the necessary method so we need to drop to
     # pymongo interfaces via some private methods.

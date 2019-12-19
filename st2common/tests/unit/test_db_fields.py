@@ -68,7 +68,7 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
             expected_value = datetime_values[index]
             self.assertEqual(actual_value, expected_value)
 
-    @mock.patch('st2common.fields.LongField.__get__')
+    @mock.patch('st2common.fields.IntField.__get__')
     def test_get_(self, mock_get):
         field = ComplexDateTimeField()
 

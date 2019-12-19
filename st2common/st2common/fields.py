@@ -16,7 +16,7 @@ from __future__ import absolute_import
 import datetime
 import calendar
 
-from mongoengine import LongField
+from mongoengine import IntField
 
 from st2common.util import date as date_utils
 
@@ -27,7 +27,7 @@ __all__ = [
 SECOND_TO_MICROSECONDS = 1000000
 
 
-class ComplexDateTimeField(LongField):
+class ComplexDateTimeField(IntField):
     """
     Date time field which handles microseconds exactly and internally stores
     the timestamp as number of microseconds since the unix epoch.
@@ -92,6 +92,9 @@ class ComplexDateTimeField(LongField):
         return self._convert_from_db(data)
 
     def __set__(self, instance, value):
+        #if isinstance(value, int):
+        #    value = self.to_python(value)
+
         value = self._convert_from_datetime(value) if value else value
         return super(ComplexDateTimeField, self).__set__(instance, value)
 
@@ -109,8 +112,12 @@ class ComplexDateTimeField(LongField):
             return original_value
 
     def to_mongo(self, value):
+        if value is None:
+            return value
         value = self.to_python(value)
         return self._convert_from_datetime(value)
 
     def prepare_query_value(self, op, value):
-        return self._convert_from_datetime(value)
+        if isinstance(value, datetime.datetime):
+            return self._convert_from_datetime(value)
+        return value
