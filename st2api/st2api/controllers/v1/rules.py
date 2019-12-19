@@ -196,6 +196,8 @@ class RuleController(BaseRestControllerMixin, BaseResourceIsolationControllerMix
                                                                           rule_api=rule)
 
             rule_db.id = rule_ref_or_id
+            # mongo mallard way of saying that we are updating an existing document
+            rule_db._lazy = True
             rule_db = Rule.add_or_update(rule_db)
             # After the rule has been added modify the ref_count. This way a failure to add
             # the rule due to violated constraints will have no impact on ref_count.

@@ -205,6 +205,8 @@ class ApiKeyController(BaseRestControllerMixin):
             raise ValueError('Update of key_hash is not allowed.')
 
         api_key_db.id = old_api_key_db.id
+        # mongo mallard way of saying that we are updating an existing document
+        api_key_db._lazy = True
         api_key_db = ApiKey.add_or_update(api_key_db)
 
         extra = {'old_api_key_db': old_api_key_db, 'new_api_key_db': api_key_db}

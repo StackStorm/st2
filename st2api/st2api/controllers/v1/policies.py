@@ -198,6 +198,8 @@ class PolicyController(resource.ContentPackResourceController):
         try:
             db_model = self.model.to_model(instance)
             db_model.id = db_model_id
+            # mongo mallard way of saying that we are updating an existing document
+            db_model._lazy = True
             db_model = self.access.add_or_update(db_model)
         except (ValidationError, ValueError) as e:
             LOG.exception('%s unable to update object: %s', op, db_model)

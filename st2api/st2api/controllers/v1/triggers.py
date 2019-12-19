@@ -110,6 +110,8 @@ class TriggerTypeController(resource.ContentPackResourceController):
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             triggertype.id, triggertype_id)
             triggertype_db.id = triggertype_id
+            # mongo mallard way of saying that we are updating an existing document
+            triggertype_db._lazy = True
             old_triggertype_db = triggertype_db
             triggertype_db = TriggerType.add_or_update(triggertype_db)
         except (ValidationError, ValueError) as e:
@@ -254,6 +256,8 @@ class TriggerController(object):
                             trigger.id, trigger_id)
             trigger_db = TriggerAPI.to_model(trigger)
             trigger_db.id = trigger_id
+            # mongo mallard way of saying that we are updating an existing document
+            trigger_db._lazy = True
             trigger_db = Trigger.add_or_update(trigger_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s', trigger)

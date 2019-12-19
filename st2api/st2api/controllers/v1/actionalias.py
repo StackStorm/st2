@@ -166,6 +166,8 @@ class ActionAliasController(resource.ContentPackResourceController):
             old_action_alias_db = action_alias_db
             action_alias_db = ActionAliasAPI.to_model(action_alias)
             action_alias_db.id = ref_or_id
+            # mongo mallard way of saying that we are updating an existing document
+            action_alias_db._lazy = True
             action_alias_db = ActionAlias.add_or_update(action_alias_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for action alias data=%s', action_alias)

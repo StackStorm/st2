@@ -92,6 +92,8 @@ class SensorTypeController(resource.ContentPackResourceController):
         try:
             old_sensor_type_db = sensor_type_db
             sensor_type_db.id = sensor_type_id
+            # mongo mallard way of saying that we are updating an existing document
+            sensor_type_db._lazy = True
             sensor_type_db.enabled = getattr(sensor_type, 'enabled', False)
             sensor_type_db = SensorType.add_or_update(sensor_type_db)
         except (ValidationError, ValueError) as e:

@@ -171,6 +171,8 @@ class ActionsController(resource.ContentPackResourceController):
             action_db = ActionAPI.to_model(action)
             LOG.debug('/actions/ PUT incoming action: %s', action_db)
             action_db.id = action_id
+            # mongo mallard way of saying that we are updating an existing document
+            action_db._lazy = True
             action_db = Action.add_or_update(action_db)
             LOG.debug('/actions/ PUT after add_or_update: %s', action_db)
         except (ValidationError, ValueError) as e:

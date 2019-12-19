@@ -310,6 +310,8 @@ class KeyValuePairController(ResourceController):
 
                 if existing_kvp_api:
                     kvp_db.id = existing_kvp_api.id
+                    # mongo mallard way of saying that we are updating an existing document
+                    kvp_db._lazy = True
 
                 kvp_db = KeyValuePair.add_or_update(kvp_db)
             except (ValidationError, ValueError) as e:
