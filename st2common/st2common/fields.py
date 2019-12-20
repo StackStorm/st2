@@ -13,12 +13,17 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import datetime
 import calendar
 
+import six
+
 from mongoengine import LongField
+from mongoengine import BinaryField
 
 from st2common.util import date as date_utils
+from st2common.util import mongoescape
 
 __all__ = [
     'ComplexDateTimeField'
@@ -114,3 +119,79 @@ class ComplexDateTimeField(LongField):
 
     def prepare_query_value(self, op, value):
         return self._convert_from_datetime(value)
+
+
+
+class JSONDictField(BinaryField):
+    """
+    Custom field types which stores dictionary as JSON serialized strings.
+
+    This is done because storing large objects as JSON serialized strings is much more efficent
+    on the serialize and unserialize paths compared to used EscapedDictField which needs to escape
+    all the special values ($, .).
+
+    Only downside is that to MongoDB those values are plain raw strings which means you can't query
+    on actual dictionary field values. That's not an issue for us, because in places where we use
+    it, we already treat those values more or less as opaque strings.
+
+    # NOTE(Tomaz): I've done bencharmking of ujson and cjson and cjson is more performant on large
+    objects and ujson on smaller ones.
+    """
+    def __init__(self, *args, **kwargs):
+        json_backend = kwargs.pop('json_backend', 'ujson')
+
+        if json_backend not in ['ujson', 'cjson']:
+            raise ValueError('Unsupported backend: %s' % (json_backend))
+
+        super(JSONDictField, self).__init__(*args, **kwargs)
+
+        if json_backend == 'ujson':
+            import ujson
+
+            self.json_loads = ujson.loads
+            self.json_dumps = ujson.dumps
+        elif json_backend == 'cjson':
+            import cjson
+            self.json_loads = cjson.decode
+            self.json_dumps = cjson.encode
+
+    def to_mongo(self, value):
+        if not isinstance(value, dict):
+            raise ValueError('value argument must be a dictionary')
+        return self.json_dumps(value)
+
+    def to_python(self, value):
+        if isinstance(value, (six.text_type, six.binary_type)):
+            return self.json_loads(value)
+        return value
+
+    def validate(self, value):
+        value = self.to_mongo(value)
+
+        return super(JSONDictField, self).validate(value)
+
+
+class JSONDictEscapedFieldCompatibilityField(JSONDictField):
+    """
+    Special version of JSONDictField which takes care of compatibility between old EscapedDictField
+    and EscapedDynamicField format and the new one.
+
+    On retrieval, if an old format is detected it's correctly un-serialized and on insertion, we
+    always insert data in a new format.
+    """
+
+    def to_mongo(self, value):
+        if not isinstance(value, dict):
+            raise ValueError('value argument must be a dictionary')
+
+        return self.json_dumps(value)
+
+    def to_python(self, value):
+        if isinstance(value, dict) and True:
+            # Old format which used a native dict with escaped special characters
+            value = mongoescape.unescape_chars(value)
+            return value
+
+        if isinstance(value, (six.text_type, six.binary_type)):
+            return self.json_loads(value)
+        return value
