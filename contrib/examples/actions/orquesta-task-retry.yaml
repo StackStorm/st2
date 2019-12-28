@@ -1,0 +1,6 @@
+---
+name: orquesta-task-retry
+description: A workflow demonstrating how to use task retry.
+runner_type: orquesta
+entry_point: workflows/orquesta-task-retry.yaml
+enabled: true

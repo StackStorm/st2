@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import re
 import six
 import fnmatch
@@ -140,64 +141,85 @@ def search(value, criteria_pattern, criteria_condition, check_function):
 def equals(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return value == criteria_pattern
 
 
 def nequals(value, criteria_pattern):
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return value != criteria_pattern
 
 
 def iequals(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return value.lower() == criteria_pattern.lower()
 
 
 def contains(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return criteria_pattern in value
 
 
 def icontains(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return criteria_pattern.lower() in value.lower()
 
 
 def ncontains(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return criteria_pattern not in value
 
 
 def incontains(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return criteria_pattern.lower() not in value.lower()
 
 
 def startswith(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return value.startswith(criteria_pattern)
 
 
 def istartswith(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return value.lower().startswith(criteria_pattern.lower())
 
 
 def endswith(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return value.endswith(criteria_pattern)
 
 
 def iendswith(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return value.lower().endswith(criteria_pattern.lower())
 
 
@@ -217,6 +239,7 @@ def match_wildcard(value, criteria_pattern):
     if criteria_pattern is None:
         return False
 
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return fnmatch.fnmatch(value, criteria_pattern)
 
 
@@ -224,6 +247,8 @@ def match_regex(value, criteria_pattern):
     # match_regex is deprecated, please use 'regex' and 'iregex'
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     regex = re.compile(criteria_pattern, re.DOTALL)
     # check for a match and not for details of the match.
     return regex.match(value) is not None
@@ -232,6 +257,8 @@ def match_regex(value, criteria_pattern):
 def regex(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     regex = re.compile(criteria_pattern)
     # check for a match and not for details of the match.
     return regex.search(value) is not None
@@ -240,6 +267,8 @@ def regex(value, criteria_pattern):
 def iregex(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     regex = re.compile(criteria_pattern, re.IGNORECASE)
     # check for a match and not for details of the match.
     return regex.search(value) is not None
@@ -288,13 +317,38 @@ def nexists(value, criteria_pattern):
 def inside(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return value in criteria_pattern
 
 
 def ninside(value, criteria_pattern):
     if criteria_pattern is None:
         return False
+
+    value, criteria_pattern = ensure_operators_are_strings(value, criteria_pattern)
     return value not in criteria_pattern
+
+
+def ensure_operators_are_strings(value, criteria_pattern):
+    """
+    This function ensures that both value and criteria_pattern arguments are unicode (string)
+    values if the input value type is bytes.
+
+    If a value is of types bytes and not a unicode, it's converted to unicode. This way we
+    ensure all the operators which expect string / unicode values work, even if one of the
+    values is bytes (this can happen when input is not controlled by the end user - e.g. trigger
+    payload under Python 3 deployments).
+
+    :return: tuple(value, criteria_pattern)
+    """
+    if isinstance(value, bytes):
+        value = value.decode('utf-8')
+
+    if isinstance(criteria_pattern, bytes):
+        criteria_pattern = criteria_pattern.decode('utf-8')
+
+    return value, criteria_pattern
 
 
 # operator match strings

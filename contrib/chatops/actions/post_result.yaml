@@ -21,6 +21,9 @@ parameters:
     type: "string"
     description: "Channel to post to"
     required: true
+  route:
+    type: "string"
+    default: "chatops"
   context:
     type: "object"
     description: "Context for channel (includes type of channel, user, etc.)"

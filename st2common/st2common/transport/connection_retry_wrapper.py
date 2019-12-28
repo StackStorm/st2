@@ -15,7 +15,8 @@
 from __future__ import absolute_import
 
 import six
-import eventlet
+
+from st2common.util import concurrency
 
 __all__ = ['ConnectionRetryWrapper', 'ClusterRetryContext']
 
@@ -141,7 +142,7 @@ class ConnectionRetryWrapper(object):
                 # -1, 0 and 1+ are handled properly by eventlet.sleep
                 self._logger.debug('Received RabbitMQ server error, sleeping for %s seconds '
                                    'before retrying: %s' % (wait, six.text_type(e)))
-                eventlet.sleep(wait)
+                concurrency.sleep(wait)
 
                 connection.close()
                 # ensure_connection will automatically switch to an alternate. Other connections

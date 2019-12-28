@@ -16,6 +16,7 @@ Added
   parameters to be supplied to the action on every execution of the alias. #4786
 * Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client.
   #4791
+* Add support for orquesta task retry. (new feature)
 
 Changed
 ~~~~~~~
@@ -42,6 +43,16 @@ Changed
 * Refactor how orquesta handles individual item result for with items task. Before the fix,
   when there are a lot of items and/or result size for each item is huge, there is a negative
   performance impact on write to the database when recording the conductor state. (improvement)
+* Remove automatic rendering of workflow output when updating task state for orquesta workflows.
+  This caused workflow output to render incorrectly in certain use case. The render_workflow_output
+  function must be called separately. (improvement)
+* Update various internal dependencies to latest stable versions (cryptography, jinja2, requests,
+  apscheduler, eventlet, amqp, kombu, semver, six) #4819 (improvement)
+* Improve MongoDB connection timeout related code. Connection and server selection timeout is now
+  set to 3 seconds. Previously a default value of 30 seconds was used which means that for many
+  connection related errors, our code would first wait for this timeout to be reached (30 seconds)
+  before returning error to the end user. #4834
+* Upgrade ``pymongo`` to the latest stable version (``3.10.0.``). #4835 (improvement)
 
 Fixed
 ~~~~~
@@ -79,6 +90,20 @@ Fixed
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
 * Update ``st2 execution get`` command to always include ``context.user``, ``start_timestamp`` and
   ``end_timestamp`` attributes. (improvement) #4739
+
+* Fixed ``core.sendmail`` base64 encoding of longer subject lines (bug fix) #4795
+
+  Contributed by @stevemuskiewicz and @guzzijones
+* Update all the various rule criteria comparison operators which also work with strings (equals,
+  icontains, nequals, etc.) to work correctly on Python 3 deployments if one of the operators is
+  of a type bytes and the other is of a type unicode / string. (bug fix) #4831
+* Fix SSL connection support for MongoDB and RabbitMQ which wouldn't work under Python 3 and would
+  result in cryptic "maximum recursion depth exceeded while calling a Python object" error on
+  connection failure.
+
+  NOTE: This issue only affected installations using Python 3. (bug fix) #4832 #4834
+
+  Reported by @alexku7.
 
 3.1.0 - June 27, 2019
 ---------------------
@@ -122,7 +147,7 @@ Fixed
   value for SSH port is specified in the configured SSH config file
   (``ssh_runner.ssh_config_file_path``). (bug fix) #4660 #4661
 * Update pack install action so it works correctly when ``python_versions`` ``pack.yaml`` metadata
-  attribute is used in combination with ``--python3`` pack install flag. (bug fix) #4654 #4662
+  attribute is used in combination with ``--use-python3`` pack install flag. (bug fix) #4654 #4662
 * Add ``source_channel`` back to the context used by Mistral workflows for executions which are
   triggered via ChatOps (using action alias).
 
@@ -132,7 +157,7 @@ Fixed
   server time where st2api is running was not set to UTC. (bug fix) #4668
 
   Contributed by Igor Cherkaev. (@emptywee)
-* Fix a bug with some packs which use ``--python3`` flag (running Python 3 actions on installation
+* Fix a bug with some packs which use ``--use-python3`` flag (running Python 3 actions on installation
   where StackStorm components run under Python 2) which rely on modules from Python 3 standard
   library which are also available in Python 2 site-packages (e.g. ``concurrent``) not working
   correctly.

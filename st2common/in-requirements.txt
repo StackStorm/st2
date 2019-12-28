@@ -9,7 +9,7 @@ jsonschema
 kombu
 mongoengine
 networkx
-git+https://github.com/StackStorm/orquesta.git@5567763fd4ae10c307470d8957211bd11b6acfd4#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@9706dc1f13a44deadb6cefc8e92c83caad591127#egg=orquesta
 oslo.config
 paramiko
 pyyaml

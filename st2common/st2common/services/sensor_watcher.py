@@ -19,12 +19,12 @@
 from __future__ import absolute_import
 
 import six
-import eventlet
 from kombu.mixins import ConsumerMixin
 
 from st2common import log as logging
 from st2common.transport import reactor, publishers
 from st2common.transport import utils as transport_utils
+from st2common.util import concurrency
 import st2common.util.queues as queue_utils
 
 LOG = logging.getLogger(__name__)
@@ -90,7 +90,7 @@ class SensorWatcher(ConsumerMixin):
     def start(self):
         try:
             self.connection = transport_utils.get_connection()
-            self._updates_thread = eventlet.spawn(self.run)
+            self._updates_thread = concurrency.spawn(self.run)
         except:
             LOG.exception('Failed to start sensor_watcher.')
             self.connection.release()
@@ -99,7 +99,7 @@ class SensorWatcher(ConsumerMixin):
         LOG.debug('Shutting down sensor watcher.')
         try:
             if self._updates_thread:
-                self._updates_thread = eventlet.kill(self._updates_thread)
+                self._updates_thread = concurrency.kill(self._updates_thread)
 
             if self.connection:
                 channel = self.connection.channel()

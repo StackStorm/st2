@@ -19,16 +19,17 @@ nose-timer==0.7.5
 # splitting tests run on a separate CI machines
 nose-parallel==0.3.1
 # Required by st2client tests
-pyyaml==5.1
+pyyaml==5.1.2
 RandomWords
 gunicorn==19.9.0
-psutil==5.6.1
+psutil==5.6.3
 webtest==2.0.25
 rstcheck>=3.3.1,<3.4
-tox==3.13.2
+tox==3.14.1
 pyrabbit
 # Since StackStorm v2.8.0 we now use cryptography instead of keyczar, but we still have some tests
 # which utilize keyczar and ensure new cryptography code is fully compatible with keyczar code
 # (those tests only run under Python 2.7 since keyczar doesn't support Python 3.x).
 # See https://github.com/StackStorm/st2/pull/4165
 python-keyczar
+git+https://github.com/StackStorm/pip-conflict-checker.git@fix_pip_issue#egg=pip-conflict-checker
