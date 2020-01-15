@@ -172,7 +172,10 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
         elif req.req:
             project = req.name
             if project in fixedreq_hash:
-                rline = str(fixedreq_hash[project].req)
+                fixedreq = fixedreq_hash[project]
+                rline = str(fixedreq.req)
+                if fixedreq.markers:
+                    rline += ' ; ' + str(fixedreq.markers)
             else:
                 rline = str(req.req)
 

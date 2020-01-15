@@ -46,6 +46,8 @@ webob==1.8.5
 flex==6.14.0
 prance==0.9.0
 pywinrm==0.3.0
+# transitive-dep fixing for py2
+more-itertools<=5.0.0 ; python_version < '3'
 # test requirements below
 nose-timer==0.7.5
 nose-parallel==0.3.1
