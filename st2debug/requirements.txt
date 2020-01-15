@@ -6,6 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 eventlet==0.25.1
+more-itertools<=5.0.0 ; python_version < "3"
 python-gnupg==0.4.5
 pyyaml==5.1.2
 requests[security]==2.22.0

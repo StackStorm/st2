@@ -20,6 +20,7 @@ jsonschema==2.6.0
 kombu==4.6.6
 lockfile==0.12.2
 mongoengine==0.18.2
+more-itertools<=5.0.0 ; python_version < "3"
 networkx==1.11
 oslo.config<1.13,>=1.12.1
 paramiko==2.6.0

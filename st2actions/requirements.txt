@@ -13,6 +13,7 @@ gitpython==2.1.11
 jinja2==2.10.3
 kombu==4.6.6
 lockfile==0.12.2
+more-itertools<=5.0.0 ; python_version < "3"
 oslo.config<1.13,>=1.12.1
 oslo.utils<=3.37.0,>=3.36.2
 pyinotify==0.9.6

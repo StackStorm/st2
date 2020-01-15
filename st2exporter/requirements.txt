@@ -7,5 +7,6 @@
 # update the component requirements.txt
 eventlet==0.25.1
 kombu==4.6.6
+more-itertools<=5.0.0 ; python_version < "3"
 oslo.config<1.13,>=1.12.1
 six==1.13.0
