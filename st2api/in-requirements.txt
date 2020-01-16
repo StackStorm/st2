@@ -10,3 +10,5 @@ pymongo
 six
 git+https://github.com/StackStorm/python-mistralclient#egg=python-mistralclient
 gunicorn
+# transitive dep for python 2
+more-itertools

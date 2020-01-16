@@ -36,3 +36,5 @@ amqp
 # Used by st2-pack-* commands
 gitpython
 lockfile
+# transitive dep for python 2
+more-itertools

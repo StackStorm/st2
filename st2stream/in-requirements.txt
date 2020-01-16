@@ -9,3 +9,5 @@ oslo.utils
 pymongo
 six
 gunicorn
+# transitive dep for python 2
+more-itertools

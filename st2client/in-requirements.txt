@@ -12,3 +12,5 @@ sseclient-py
 python-editor
 prompt-toolkit
 cryptography
+# transitive dep for python 2
+more-itertools

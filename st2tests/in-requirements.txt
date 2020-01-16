@@ -9,3 +9,5 @@ nose-parallel
 rednose
 RandomWords
 pyrabbit
+# transitive dep for python 2
+more-itertools

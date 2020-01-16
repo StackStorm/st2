@@ -7,3 +7,5 @@ jsonschema
 kombu
 oslo.config
 six
+# transitive dep for python 2
+more-itertools

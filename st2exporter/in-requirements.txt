@@ -3,3 +3,5 @@ six
 eventlet
 kombu
 oslo.config
+# transitive dep for python 2
+more-itertools

@@ -19,3 +19,5 @@ pyinotify
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 # required by pack_mgmt/setup_virtualenv.py#L135
 virtualenv
+# transitive dep for python 2
+more-itertools
