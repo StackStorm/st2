@@ -21,6 +21,7 @@ import six
 
 from mongoengine import LongField
 from mongoengine import BinaryField
+from oslo_config import cfg
 
 from st2common.util import date as date_utils
 from st2common.util import mongoescape
@@ -181,12 +182,20 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
     """
 
     def to_mongo(self, value):
+        if not cfg.CONF.db.use_json_dict_field:
+            value = mongoescape.escape_chars(value)
+            return value
+
         if not isinstance(value, dict):
             raise ValueError('value argument must be a dictionary')
 
         return self.json_dumps(value)
 
     def to_python(self, value):
+        if not cfg.CONF.db.use_json_dict_field:
+            value = super(EscapedDictField, self).to_python(value)
+            return mongoescape.unescape_chars(value)
+
         if isinstance(value, dict) and True:
             # Old format which used a native dict with escaped special characters
             value = mongoescape.unescape_chars(value)

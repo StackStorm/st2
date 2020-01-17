@@ -212,7 +212,12 @@ def register_opts(ignore_errors=False):
             'authentication_mechanism', default=None,
             help='Specifies database authentication mechanisms. '
                  'By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, '
-                 'MONGODB-CR (MongoDB Challenge Response protocol) for older servers.')
+                 'MONGODB-CR (MongoDB Challenge Response protocol) for older servers.'),
+        cfg.BoolOpt(
+            'use_json_dict_field', default=False,
+            help='True to use a special implementation of escaped dict field which saves '
+            'value as JSON to avoid expensive escaping. NOTE: Experimental.'),
+
     ]
 
     do_register_opts(db_opts, 'database', ignore_errors)
