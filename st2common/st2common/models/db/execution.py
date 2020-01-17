@@ -19,6 +19,7 @@ import mongoengine as me
 
 from st2common import log as logging
 from st2common.models.db import stormbase
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
 from st2common.util.secrets import get_secret_parameters
@@ -61,7 +62,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     parameters = stormbase.EscapedDynamicField(
         default={},
         help_text='The key-value pairs passed as to the action runner & action.')
-    result = stormbase.EscapedDynamicField(
+    result = JSONDictEscapedFieldCompatibilityField(
         default={},
         help_text='Action defined result.')
     context = me.DictField(
