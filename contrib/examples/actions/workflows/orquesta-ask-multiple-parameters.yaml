@@ -26,15 +26,14 @@ tasks:
           extra_output:
             type: string
             description: "Your message to echo next if you approve to continue:"
-            default: "None"
       ttl: 60
     next:
-      - when: <% task(get_approval).result.response.extra_output != 'None' and task(get_approval).result.response.approved = true %>
-        publish: 
+      - when: <% task(get_approval).result.response.containsKey("extra_output") and task(get_approval).result.response.approved = true %>
+        publish:
           - custom_output: <% task(get_approval).result.response.extra_output %>
           - approver_department_id: <% task(get_approval).result.response.department_id %>
         do: echo_extra_message
-      - when: <% task(get_approval).result.response.approved = true %>
+      - when: <% not task(get_approval).result.response.containsKey("extra_output") and task(get_approval).result.response.approved = true %>
         publish:
           - approver_department_id: <% task(get_approval).result.response.department_id %>
         do: finish
