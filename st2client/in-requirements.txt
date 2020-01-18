@@ -12,3 +12,4 @@ sseclient-py
 python-editor
 prompt-toolkit
 cryptography
+more-itertools==5.0.0

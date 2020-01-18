@@ -28,6 +28,7 @@ kombu==4.6.6
 lockfile==0.12.2
 mock==2.0.0
 mongoengine==0.18.2
+more-itertools==5.0.0
 networkx==1.11
 nose
 nose-parallel==0.3.1

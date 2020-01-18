@@ -9,6 +9,7 @@ argcomplete
 cryptography==2.8
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
+more-itertools==5.0.0
 prettytable
 prompt-toolkit==1.0.15
 python-dateutil==2.8.0
