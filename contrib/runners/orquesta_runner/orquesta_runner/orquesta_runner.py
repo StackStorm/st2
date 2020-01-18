@@ -25,7 +25,6 @@ from orquesta import exceptions as wf_exc
 from orquesta import statuses as wf_statuses
 
 from st2common.constants import action as ac_const
-from st2common.exceptions import workflow as workflow_exc
 from st2common import log as logging
 from st2common.exceptions import workflow as wf_svc_exc
 from st2common.models.api import notification as notify_api_models
@@ -88,10 +87,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
 
         return st2_ctx
 
-    def _get_rerun_options(self):
-        return self.context.get('re-run', {})
-
-    def handle_workflow_return_value(self, wf_ex_db):
+    def _handle_workflow_return_value(self, wf_ex_db):
         if wf_ex_db.status in wf_statuses.COMPLETED_STATUSES:
             status = wf_ex_db.status
             result = {'output': wf_ex_db.output or None}
@@ -113,15 +109,15 @@ class OrquestaRunner(runners.AsyncActionRunner):
         return (status, partial_results, ctx)
 
     def run(self, action_parameters):
-        rerun_options = self._get_rerun_options()
-        tasks = rerun_options.get('tasks', None)
+        # If there is an action execution reference for rerun and there is task specified,
+        # then rerun the existing workflow execution.
+        rerun_options = self.context.get('re-run', {})
+        rerun_task_options = rerun_options.get('tasks', [])
 
-        if self.rerun_ex_ref and tasks:
-            result = self.rerun_workflow(ex_ref=self.rerun_ex_ref, options=rerun_options)
-        else:
-            result = self.start_workflow(action_parameters=action_parameters)
+        if self.rerun_ex_ref and rerun_task_options:
+            return self.rerun_workflow(self.rerun_ex_ref, options=rerun_options)
 
-        return result
+        return self.start_workflow(action_parameters)
 
     def start_workflow(self, action_parameters):
         # Read workflow definition from file.
@@ -131,7 +127,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
             # Request workflow execution.
             st2_ctx = self._construct_st2_context()
             notify_cfg = self._get_notify_config()
-            wf_ex_db = wf_svc.request(wf_def, self.execution, st2_ctx, notify_cfg)
+            wf_ex_db = wf_svc.request(wf_def, self.execution, st2_ctx, notify_cfg=notify_cfg)
         except wf_exc.WorkflowInspectionError as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
             result = {'errors': e.args[1], 'output': None}
@@ -141,26 +137,21 @@ class OrquestaRunner(runners.AsyncActionRunner):
             result = {'errors': [{'message': six.text_type(e)}], 'output': None}
             return (status, result, self.context)
 
-        return self.handle_workflow_return_value(wf_ex_db)
+        return self._handle_workflow_return_value(wf_ex_db)
 
-    def rerun_workflow(self, ex_ref, options):
-        wf_ex_id = ex_ref.context.get('workflow_execution')
-
+    def rerun_workflow(self, ac_ex_ref, options=None):
         try:
             # Request rerun of workflow execution.
+            wf_ex_id = ac_ex_ref.context.get('workflow_execution')
             st2_ctx = self._construct_st2_context()
             st2_ctx['workflow_execution_id'] = wf_ex_id
-            wf_ex_db = wf_svc.request_rerun(self.execution, st2_ctx, options)
-        except workflow_exc.WorkflowExecutionRerunException as e:
-            status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': [{'message': six.text_type(e)}], 'output': None}
-            return (status, result, self.context)
+            wf_ex_db = wf_svc.request_rerun(self.execution, st2_ctx, options=options)
         except Exception as e:
             status = ac_const.LIVEACTION_STATUS_FAILED
             result = {'errors': [{'message': six.text_type(e)}], 'output': None}
             return (status, result, self.context)
 
-        return self.handle_workflow_return_value(wf_ex_db)
+        return self._handle_workflow_return_value(wf_ex_db)
 
     @staticmethod
     def task_pauseable(ac_ex):

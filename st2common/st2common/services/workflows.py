@@ -23,6 +23,7 @@ from orquesta import conducting
 from orquesta import events
 from orquesta import exceptions as orquesta_exc
 from orquesta.expressions import base as expressions
+from orquesta import requests as orquesta_reqs
 from orquesta.specs import loader as specs_loader
 from orquesta import statuses
 from oslo_config import cfg
@@ -431,8 +432,16 @@ def request_cancellation(ac_ex_db):
     return wf_ex_db
 
 
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
-def request_rerun(ac_ex_db, st2_ctx, options):
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+def request_rerun(ac_ex_db, st2_ctx, options=None):
     ac_ex_id = str(ac_ex_db.id)
     LOG.info('[%s] Processing rerun request for workflow.', ac_ex_id)
 
@@ -458,13 +467,39 @@ def request_rerun(ac_ex_db, st2_ctx, options):
     conductor = deserialize_conductor(wf_ex_db)
 
     try:
-        conductor.request_workflow_rerun(options)
-    except orquesta_exc.InvalidWorkflowRerunStatus as e:
-        raise wf_exc.WorkflowExecutionRerunException(six.text_type(e))
-    except orquesta_exc.InvalidRerunTasks as e:
+        task_requests = None
+        problems = []
+
+        if options:
+            task_requests = []
+            task_names = options.get('tasks', [])
+            task_resets = options.get('reset', [])
+
+            for task_name in task_names:
+                reset_items = task_name in task_resets
+                task_state_entries = conductor.workflow_state.get_tasks(task_id=task_name)
+
+                if not task_state_entries:
+                    problems.append(task_name)
+                    continue
+
+                for _, task_state_entry in task_state_entries:
+                    route = task_state_entry['route']
+                    req = orquesta_reqs.TaskRerunRequest(task_name, route, reset_items=reset_items)
+                    task_requests.append(req)
+
+            if problems:
+                msg = (
+                    'Unable to rerun workflow because one or more tasks '
+                    'is not found or not in failed status: %s'
+                )
+                raise Exception(msg % ','.join(problems))
+
+        conductor.request_workflow_rerun(task_requests=task_requests)
+    except Exception as e:
         raise wf_exc.WorkflowExecutionRerunException(six.text_type(e))
 
-    if conductor.get_workflow_status() != statuses.RESUMING:
+    if conductor.get_workflow_status() not in statuses.RUNNING_STATUSES:
         msg = 'Unable to rerun workflow execution "%s" due to an unknown cause.'
         raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
 
@@ -1347,55 +1382,3 @@ def identify_orphaned_workflows():
             continue
 
     return orphaned
-
-
-@retrying.retry(retry_on_exception=wf_exc.retry_on_exceptions)
-def request_rerun(ac_ex_db, st2_ctx, options):
-    ac_ex_id = str(ac_ex_db.id)
-    LOG.info('[%s] Processing rerun request for workflow.', ac_ex_id)
-
-    wf_ex_id = st2_ctx.get('workflow_execution_id')
-
-    if not wf_ex_id:
-        msg = 'Unable to rerun workflow execution because workflow_execution_id is not provided.'
-        raise wf_exc.WorkflowExecutionRerunException(msg)
-
-    try:
-        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
-    except db_exc.StackStormDBObjectNotFoundError:
-        msg = 'Unable to rerun workflow execution "%s" because it does not exist.'
-        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
-
-    if wf_ex_db.status not in statuses.ABENDED_STATUSES:
-        msg = 'Unable to rerun workflow execution "%s" because it is not in a failed state.'
-        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
-
-    wf_ex_db.action_execution = ac_ex_id
-    wf_ex_db.context['st2'] = st2_ctx['st2']
-    wf_ex_db.context['parent'] = st2_ctx['parent']
-    conductor = deserialize_conductor(wf_ex_db)
-
-    try:
-        conductor.request_workflow_rerun(options)
-    except orquesta_exc.InvalidWorkflowRerunStatus as e:
-        raise wf_exc.WorkflowExecutionRerunException(six.text_type(e))
-    except orquesta_exc.InvalidRerunTasks as e:
-        raise wf_exc.WorkflowExecutionRerunException(six.text_type(e))
-
-    if conductor.get_workflow_status() != statuses.RESUMING:
-        msg = 'Unable to rerun workflow execution "%s" due to an unknown cause.'
-        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
-
-    data = conductor.serialize()
-    wf_ex_db.status = data['state']['status']
-    wf_ex_db.spec = data['spec']
-    wf_ex_db.graph = data['graph']
-    wf_ex_db.state = data['state']
-
-    wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
-    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
-
-    # Publish status change.
-    wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
-
-    return wf_ex_db

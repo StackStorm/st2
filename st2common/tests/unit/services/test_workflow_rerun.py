@@ -357,10 +357,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
         st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
         rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
-        expected_error = (
-            'Workflow execution cannot rerun from task\(s\) '   # noqa
-            'because it is not in a failed state'
-        )
+        expected_error = 'Unable to rerun workflow because it is not in a completed state.'
 
         self.assertRaisesRegexp(
             wf_exc.WorkflowExecutionRerunException,
@@ -382,7 +379,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
         lv_ac_db2, ac_ex_db2 = action_service.create_request(lv_ac_db2)
 
-        # Request workflow execution rerun with bogus workflow_execution_id.
+        # Request workflow execution.
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
         st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
         rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task5354']}
