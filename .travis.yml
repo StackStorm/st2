@@ -150,10 +150,10 @@ before_cache:
 
 # We want to be notified when a master or nightly build fails
 notifications:
-  # Post build failures to '#stackstorm' channel in 'stackstorm' Slack
+  # Post build failures to '#development' channel in 'stackstorm-community' Slack
   slack:
     rooms:
-      - secure: "rPA22aDgvNe0/S/2e+cp1rSDdDUPufLXnCbfnRzMPVDSQ2UPdLmEl9IeOoEHZmq92AZtzY8UnQaPFuoM0HAPrYDgKopn4n4KpOo+xUlJ92qdNj5qk3Z1TmQHwUYFvCkMvaR/CpX2liRr/YB3qM+1vFAMsYgmqrBX8vcEqNJQy/M="
+      - secure: "FNkr3XL19+a3qYwnQg6GRiS7ixZkHAYzqdmp+Kse2JROOalPy5vVK0wrmBRDJWA1gDDt2mMAnqAwFwID9n7rQv/oD1Ai10q7lCFVMbdAM4+yjYuXJ4i8zW0P6MIvxCb39tvEjq7g55ynE2cInpJRZ11RfbG259jBCbSzBaBtMos="
     on_pull_requests: false
     on_success: change # default: always
     on_failure: always # default: always
