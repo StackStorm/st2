@@ -65,3 +65,4 @@ unittest2
 webob==1.8.5
 webtest
 zake==0.2.2
+zipp<=1.0.0,>=0.5

@@ -19,3 +19,4 @@ pyyaml==5.1.2
 requests[security]==2.22.0
 six==1.13.0
 sseclient-py==1.7
+zipp<=1.0.0,>=0.5
