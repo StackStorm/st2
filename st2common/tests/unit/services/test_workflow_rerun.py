@@ -380,10 +380,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
         st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
         rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task5354']}
-        expected_error = (
-            '^Unable to rerun workflow because one or more tasks '
-            'is not found or not in failed status: .*$'
-        )
+        expected_error = '^Unable to rerun workflow because one or more tasks is not found: .*$'
 
         self.assertRaisesRegexp(
             wf_exc.WorkflowExecutionRerunException,

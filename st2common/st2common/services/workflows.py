@@ -489,10 +489,7 @@ def request_rerun(ac_ex_db, st2_ctx, options=None):
                     task_requests.append(req)
 
             if problems:
-                msg = (
-                    'Unable to rerun workflow because one or more tasks '
-                    'is not found or not in failed status: %s'
-                )
+                msg = 'Unable to rerun workflow because one or more tasks is not found: %s'
                 raise Exception(msg % ','.join(problems))
 
         conductor.request_workflow_rerun(task_requests=task_requests)
