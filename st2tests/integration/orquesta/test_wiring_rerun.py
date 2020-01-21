@@ -74,7 +74,24 @@ class RerunWiringTest(base.TestWorkflowExecution):
         with open(path, 'w') as f:
             f.write('0')
 
-        ex = self.st2client.executions.re_run(orig_st2_ex_id, tasks=['task1'])
+        ex = self.st2client.executions.re_run(orig_st2_ex_id, tasks=['task2'])
+        self.assertNotEqual(ex.id, orig_st2_ex_id)
+        ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(ex.context['workflow_execution'], orig_wf_ex_id)
+
+    def test_rerun_task_of_workflow_already_succeeded(self):
+        path = self.temp_dir_path
+
+        with open(path, 'w') as f:
+            f.write('0')
+
+        params = {'tempfile': path}
+        ex = self._execute_workflow('examples.orquesta-test-rerun', params)
+        ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        orig_st2_ex_id = ex.id
+        orig_wf_ex_id = ex.context['workflow_execution']
+
+        ex = self.st2client.executions.re_run(orig_st2_ex_id, tasks=['task2'])
         self.assertNotEqual(ex.id, orig_st2_ex_id)
         ex = self._wait_for_state(ex, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(ex.context['workflow_execution'], orig_wf_ex_id)

@@ -49,7 +49,7 @@ PACKS = [
 ]
 
 RUNNER_RESULT_FAILED = (action_constants.LIVEACTION_STATUS_FAILED, {}, {})
-RUNNER_RESULT_CANCELED = (action_constants.LIVEACTION_STATUS_CANCELED, {}, {})
+RUNNER_RESULT_RUNNING = (action_constants.LIVEACTION_STATUS_RUNNING, {'stdout': '...'}, {})
 RUNNER_RESULT_SUCCEEDED = (action_constants.LIVEACTION_STATUS_SUCCEEDED, {'stdout': 'foobar'}, {})
 
 
@@ -268,8 +268,8 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
 
     @mock.patch.object(
         local_shell_command_runner.LocalShellCommandRunner, 'run',
-        mock.MagicMock(side_effect=[RUNNER_RESULT_CANCELED]))
-    def test_rerun_with_unrerunnable_status(self):
+        mock.MagicMock(side_effect=[RUNNER_RESULT_RUNNING]))
+    def test_rerun_workflow_still_running(self):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
         wf_input = {'who': 'Thanos'}
         lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
@@ -281,18 +281,15 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
         tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
-        self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
-        workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
-        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
-        self.assertEqual(tk1_ex_db.status, wf_statuses.CANCELED)
+        self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
-        # Assert workflow is completed.
+        # Assert workflow is still running.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        self.assertEqual(wf_ex_db.status, wf_statuses.CANCELED)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
         lv_ac_db1 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db1.id))
-        self.assertEqual(lv_ac_db1.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        self.assertEqual(lv_ac_db1.status, action_constants.LIVEACTION_STATUS_RUNNING)
         ac_ex_db1 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db1.id))
-        self.assertEqual(ac_ex_db1.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        self.assertEqual(ac_ex_db1.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Rerun the execution.
         context = {
@@ -307,7 +304,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
 
         expected_error = (
             'Unable to rerun workflow execution "%s" because '
-            'it is not in a failed state.' % str(wf_ex_db.id)
+            'it is not in a completed state.' % str(wf_ex_db.id)
         )
 
         # Assert the workflow rerrun fails.
@@ -372,3 +369,117 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         ac_ex_db2 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db2.id))
         self.assertEqual(ac_ex_db2.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertEqual(expected_error, ac_ex_db2.result['errors'][0]['message'])
+
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner, 'run',
+        mock.MagicMock(return_value=RUNNER_RESULT_SUCCEEDED))
+    def test_rerun_workflow_already_succeeded(self):
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        wf_input = {'who': 'Thanos'}
+        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db1, ac_ex_db1 = action_service.request(lv_ac_db1)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db1.id))[0]
+
+        # Process task1.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
+        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.SUCCEEDED)
+
+        # Process task2.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
+        tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        workflow_service.handle_action_execution_completion(tk2_ac_ex_db)
+        tk2_ex_db = wf_db_access.TaskExecution.get_by_id(tk2_ex_db.id)
+        self.assertEqual(tk2_ex_db.status, wf_statuses.SUCCEEDED)
+
+        # Process task3.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task3'}
+        tk3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk3_ex_db.id))[0]
+        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        workflow_service.handle_action_execution_completion(tk3_ac_ex_db)
+        tk3_ex_db = wf_db_access.TaskExecution.get_by_id(tk3_ex_db.id)
+        self.assertEqual(tk3_ex_db.status, wf_statuses.SUCCEEDED)
+
+        # Assert workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
+        lv_ac_db1 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db1.id))
+        self.assertEqual(lv_ac_db1.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db1 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db1.id))
+        self.assertEqual(ac_ex_db1.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Rerun the execution.
+        context = {
+            're-run': {
+                'ref': str(ac_ex_db1.id),
+                'tasks': ['task1']
+            }
+        }
+
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'], context=context)
+        lv_ac_db2, ac_ex_db2 = action_service.request(lv_ac_db2)
+
+        # Assert the workflow reran ok and is running.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db2.id))[0]
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
+        lv_ac_db2 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db2.id))
+        self.assertEqual(lv_ac_db2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        ac_ex_db2 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db2.id))
+        self.assertEqual(ac_ex_db2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        # Assert there are two task1 and the last entry succeeded.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_dbs = wf_db_access.TaskExecution.query(**query_filters)
+        self.assertEqual(len(tk1_ex_dbs), 2)
+        tk1_ex_dbs = sorted(tk1_ex_dbs, key=lambda x: x.start_timestamp)
+        tk1_ex_db = tk1_ex_dbs[-1]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
+        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.SUCCEEDED)
+
+        # Assert there are two task2 and the last entry succeeded.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
+        tk2_ex_dbs = wf_db_access.TaskExecution.query(**query_filters)
+        self.assertEqual(len(tk2_ex_dbs), 2)
+        tk2_ex_dbs = sorted(tk2_ex_dbs, key=lambda x: x.start_timestamp)
+        tk2_ex_db = tk2_ex_dbs[-1]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        workflow_service.handle_action_execution_completion(tk2_ac_ex_db)
+        tk2_ex_db = wf_db_access.TaskExecution.get_by_id(tk2_ex_db.id)
+        self.assertEqual(tk2_ex_db.status, wf_statuses.SUCCEEDED)
+
+        # Assert there are two task3 and the last entry succeeded.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task3'}
+        tk3_ex_dbs = wf_db_access.TaskExecution.query(**query_filters)
+        self.assertEqual(len(tk3_ex_dbs), 2)
+        tk3_ex_dbs = sorted(tk3_ex_dbs, key=lambda x: x.start_timestamp)
+        tk3_ex_db = tk3_ex_dbs[-1]
+        tk3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk3_ex_db.id))[0]
+        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        workflow_service.handle_action_execution_completion(tk3_ac_ex_db)
+        tk3_ex_db = wf_db_access.TaskExecution.get_by_id(tk3_ex_db.id)
+        self.assertEqual(tk3_ex_db.status, wf_statuses.SUCCEEDED)
+
+        # Assert workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
+        lv_ac_db1 = lv_db_access.LiveAction.get_by_id(str(lv_ac_db1.id))
+        self.assertEqual(lv_ac_db1.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db1 = ex_db_access.ActionExecution.get_by_id(str(ac_ex_db1.id))
+        self.assertEqual(ac_ex_db1.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)

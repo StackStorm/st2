@@ -457,8 +457,8 @@ def request_rerun(ac_ex_db, st2_ctx, options=None):
         msg = 'Unable to rerun workflow execution "%s" because it does not exist.'
         raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
 
-    if wf_ex_db.status not in statuses.ABENDED_STATUSES:
-        msg = 'Unable to rerun workflow execution "%s" because it is not in a failed state.'
+    if wf_ex_db.status not in statuses.COMPLETED_STATUSES:
+        msg = 'Unable to rerun workflow execution "%s" because it is not in a completed state.'
         raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
 
     wf_ex_db.action_execution = ac_ex_id

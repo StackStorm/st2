@@ -97,9 +97,8 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         wf_ex_db = self.prep_wf_ex(wf_ex_db)
 
         # Fail workflow execution.
-        task_route = 0
         self.run_workflow_step(
-            wf_ex_db, 'task1', task_route,
+            wf_ex_db, 'task1', 0,
             expected_ac_ex_db_status=action_constants.LIVEACTION_STATUS_FAILED,
             expected_tk_ex_db_status=wf_statuses.FAILED)
 
@@ -138,8 +137,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Complete task1.
-        task_route = 0
-        self.run_workflow_step(wf_ex_db, 'task1', task_route)
+        self.run_workflow_step(wf_ex_db, 'task1', 0)
 
         # Check workflow status and make sure it is still running.
         conductor, wf_ex_db = workflow_service.refresh_conductor(str(wf_ex_db.id))
@@ -178,7 +176,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
         expected_error = (
             '^Unable to rerun workflow execution \".*\" '
-            'because it is not in a failed state.$'
+            'because it is not in a completed state.$'
         )
 
         self.assertRaisesRegexp(
@@ -214,8 +212,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Complete task1.
-        task_route = 0
-        self.run_workflow_step(wf_ex_db, 'task1', task_route)
+        self.run_workflow_step(wf_ex_db, 'task1', 0)
 
         # Check workflow status and make sure it is still running.
         conductor, wf_ex_db = workflow_service.refresh_conductor(str(wf_ex_db.id))
@@ -236,7 +233,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
         expected_error = (
             '^Unable to rerun workflow execution \".*\" '
-            'because it is not in a failed state.$'
+            'because it is not in a completed state.$'
         )
 
         self.assertRaisesRegexp(
@@ -326,7 +323,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
         expected_error = (
             '^Unable to rerun workflow execution \".*\" '
-            'because it is not in a failed state.$'
+            'because it is not in a completed state.$'
         )
 
         self.assertRaisesRegexp(
