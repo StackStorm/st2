@@ -425,8 +425,9 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
                                                  requester_user=requester_user,
                                                  permission_type=PermissionType.EXECUTION_VIEW)
 
-        if spec_api.tasks and existing_execution.runner['name'] != 'mistral-v2':
-            raise ValueError('Task option is only supported for Mistral workflows.')
+        if spec_api.tasks and existing_execution.runner['name'] != 'mistral-v2' and \
+                existing_execution.runner['name'] != 'orquesta':
+            raise ValueError('Task option is only supported for Orquesta and Mistral workflows.')
 
         # Merge in any parameters provided by the user
         new_parameters = {}

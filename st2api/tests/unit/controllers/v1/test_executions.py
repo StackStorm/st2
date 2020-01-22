@@ -941,7 +941,9 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
                                          data, expect_errors=True)
 
         self.assertEqual(re_run_resp.status_int, 400)
-        self.assertIn('only supported for Mistral workflows', re_run_resp.json['faultstring'])
+
+        expected_substring = 'only supported for Orquesta and Mistral workflows'
+        self.assertIn(expected_substring, re_run_resp.json['faultstring'])
 
     def test_re_run_workflow_failure_given_both_params_and_tasks(self):
         # Create a new execution
