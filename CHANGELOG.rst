@@ -105,6 +105,9 @@ Fixed
   NOTE: This issue only affected installations using Python 3. (bug fix) #4832 #4834
 
   Reported by @alexku7.
+* Fix the amqp connection setup for WorkflowExecutionHandler to pass SSL params. (bug fix) #4845
+
+  Contributed by Tatsuma Matsuki (@mtatsuma)
 
 3.1.0 - June 27, 2019
 ---------------------
