@@ -10,7 +10,7 @@ apscheduler==3.6.3
 cryptography==2.8
 eventlet==0.25.1
 flex==6.14.0
-git+https://github.com/StackStorm/orquesta.git@fc001fe8b7dcf4974c61a120e8a428e8e4b9565e#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@6e2fa8052cd62b07e96e540f68e7290b324d0f01#egg=orquesta
 gitpython==2.1.11
 greenlet==0.4.15
 ipaddr

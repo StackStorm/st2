@@ -14,8 +14,6 @@
 
 from __future__ import absolute_import
 
-import kombu
-
 from orquesta import statuses
 
 from st2common.constants import action as ac_const
@@ -179,5 +177,5 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
 
 
 def get_engine():
-    with kombu.Connection(txpt_utils.get_messaging_urls()) as conn:
+    with txpt_utils.get_connection() as conn:
         return WorkflowExecutionHandler(conn, WORKFLOW_EXECUTION_QUEUES)
