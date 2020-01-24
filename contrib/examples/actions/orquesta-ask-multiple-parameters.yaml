@@ -1,0 +1,7 @@
+---
+name: orquesta_ask_multiple_parameters
+description: A basic workflow that demonstrates inquiry with multiple parameters.
+runner_type: "orquesta"
+entry_point: "workflows/orquesta-ask-multiple-parameters.yaml"
+enabled: true
+parameters: {}
