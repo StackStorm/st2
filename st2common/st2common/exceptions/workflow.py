@@ -90,3 +90,9 @@ class WorkflowExecutionIsRunningException(st2_exc.StackStormBaseException):
 
     def __init__(self, wf_ex_id):
         Exception.__init__(self, 'Workflow execution "%s" is already active.' % wf_ex_id)
+
+
+class WorkflowExecutionRerunException(st2_exc.StackStormBaseException):
+
+    def __init__(self, msg):
+        Exception.__init__(self, msg)

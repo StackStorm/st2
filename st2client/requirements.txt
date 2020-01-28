@@ -9,6 +9,7 @@ argcomplete
 cryptography==2.8
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
+more-itertools==5.0.0
 prettytable
 prompt-toolkit==1.0.15
 python-dateutil==2.8.0
@@ -18,3 +19,4 @@ pyyaml==5.1.2
 requests[security]==2.22.0
 six==1.13.0
 sseclient-py==1.7
+zipp<=1.0.0,>=0.5
