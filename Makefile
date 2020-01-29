@@ -970,6 +970,31 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration -vv
 
+.PHONY: ci-py37-unit
+ci-py3-unit:
+	@echo
+	@echo "==================== ci-py37-unit ===================="
+	@echo
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py37-unit -vv
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py37-packs -vv
+
+.PHONY: ci-py37-unit-nightly
+ci-py3-unit-nightly:
+	@echo
+	@echo "==================== ci-py37-unit ===================="
+	@echo
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py37-unit-nightly -vv
+
+.PHONY: ci-py37-integration
+ci-py3-integration: requirements .ci-prepare-integration .ci-py37-integration
+
+.PHONY: .ci-py37-integration
+.ci-py3-integration:
+	@echo
+	@echo "==================== ci-py37-integration ===================="
+	@echo
+	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py37-integration -vv
+
 .PHONY: .rst-check
 .rst-check:
 	@echo
