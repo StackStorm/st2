@@ -54,6 +54,8 @@ Changed
   before returning error to the end user. #4834
 * Upgrade ``pymongo`` to the latest stable version (``3.10.0.``). #4835 (improvement)
 * Remove `.scrutinizer.yml` config file. No longer used.
+* Convert escaped dict and dynamic fields in workflow db models to normal dict and dynamic fields.
+  (performnce improvement)
 
 Fixed
 ~~~~~
