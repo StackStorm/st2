@@ -971,7 +971,7 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration -vv
 
 .PHONY: ci-py37-unit
-ci-py3-unit:
+ci-py37-unit:
 	@echo
 	@echo "==================== ci-py37-unit ===================="
 	@echo
@@ -979,17 +979,17 @@ ci-py3-unit:
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py37-packs -vv
 
 .PHONY: ci-py37-unit-nightly
-ci-py3-unit-nightly:
+ci-py37-unit-nightly:
 	@echo
 	@echo "==================== ci-py37-unit ===================="
 	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py37-unit-nightly -vv
 
 .PHONY: ci-py37-integration
-ci-py3-integration: requirements .ci-prepare-integration .ci-py37-integration
+ci-py37-integration: requirements .ci-prepare-integration .ci-py37-integration
 
 .PHONY: .ci-py37-integration
-.ci-py3-integration:
+.ci-py37-integration:
 	@echo
 	@echo "==================== ci-py37-integration ===================="
 	@echo
