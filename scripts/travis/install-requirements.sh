@@ -29,7 +29,7 @@ case "${TASK}" in
     "ci-py3-integration")
         run_tox "py36-integration"
         ;;
-    "compilepy37 ci-py37-unit")
+    "compilepy3 ci-py37-unit")
         run_tox "py37-unit"
         ;;
     "ci-py37-integration")

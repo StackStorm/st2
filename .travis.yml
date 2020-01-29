@@ -61,7 +61,7 @@ matrix:
     - env: TASK="ci-py3-integration" CACHE_NAME=py3 COMMAND_THRESHOLD=310
       python: 3.6
       name: "Integration Tests (Python 3.6)"
-    - env: TASK="compilepy37 ci-py37-unit" CACHE_NAME=py37 COMMAND_THRESHOLD=660
+    - env: TASK="compilepy3 ci-py37-unit" CACHE_NAME=py37 COMMAND_THRESHOLD=660
       python: 3.7
       dist: bionic
       name: "Unit Tests, Pack Tests (Python 3.7)"
