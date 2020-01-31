@@ -12,16 +12,16 @@ This group is responsible for all technical oversight of StackStorm as Open Sour
 ### Maintainer Roles
 The current list of maintainers is published and updated in [OWNERS.md](OWNERS.md).
 StackStorm uses a three-tiered system of Maintainer roles:
-* [Leaders](OWNERS.md#Leaders)
+* [Leaders](OWNERS.md#leaders-)
   * Head of Technical Steering Committee (TSC).
   * Responsible for Project Strategy, External Relations, Organizational aspects, coordinating Events, Partnerships.
   * Receive **three votes** in the [conflict resolution and voting process](#conflict-resolution-and-voting) described below.
-* [Senior Maintainers](OWNERS.md#SeniorMaintainers)
+* [Senior Maintainers](OWNERS.md#senior-maintainers-)
   * Have the most in-depth experience with the StackStorm project and are expected to have the knowledge and insight to lead the project's future, growth, standards and improvement.
   * Oversee the process for adding new maintainers and provide guidance, help and sharing their experience with the standard maintainers.
   * Have full owner access to all the resources and platforms that sustain StackStorm project.
   * Receive **two votes** in the voting process.
-* [Maintainers](OWNERS.md#maintainers)
+* [Maintainers](OWNERS.md#maintainers-)
   * Have good experience with the StackStorm codebase, expected to provide significant value to the project, helping it grow, improve and succeed.
   * Have full member write access to [StackStorm](https://github.com/stackstorm/) and [StackStorm-Exchange](https://github.com/stackstorm-exchange) Github organizations, Moderator at [forum](https://forum.stackstorm.com/), [Slack](https://stackstorm.com/community-signup) and other Community platforms.
   * Receive **one vote** in the voting process.
@@ -63,7 +63,7 @@ Any level of contribution is welcomed: starting from feedback, reporting bugs, m
   * any [documentation](https://github.com/stackstorm/st2docs) improvements are always appreciated
   * perform code reviews on other's pull requests. Second pair of eyes and a few cycles of manual testing can help to prevent bugs early
   * join the #development channel in StackStorm Community Slack for more pointers from the current Maintainers
-* After period of time you will be proposed to be added to the Contributors group of [OWNERS.md](OWNERS.md#Contributors).
+* After period of time you will be proposed to be added to the Contributors group of [OWNERS.md](OWNERS.md#contributors).
 
 ### How to become a Maintainer?
 Besides of activities listed in Contributing section, you need to demonstrate a strong commitment to the long term success of a project.
