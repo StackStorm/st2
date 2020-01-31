@@ -46,7 +46,7 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
 Contributors are using and occasionally contributing back to the project, might be active in conversations or express their opinion on the project’s direction.
 They're not part of the TSC voting process, but appreciated for their contribution, involvement and may become Maintainers in future.
 <!-- [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and we appreciate their contribution and involvement. -->
-* Carlos ([@carlos](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
+* Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
 * Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
 * Shu Sugimoto ([@shusugmt](https://github.com/shusugmt)) - Docker, StackStorm Exchange packs.
