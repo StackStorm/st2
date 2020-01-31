@@ -1,0 +1,37 @@
+version: 1.0
+
+description: >
+  A sample workflow that illustrates what happens when the task retries are exhausted. In this
+  example, the workflow will loop until the file /tmp/done exists. A parallel task will wait for
+  some time before creating the file. When completed, /tmp/done will be deleted. In this case
+  where the retry will be exhausted, the wait will exit before the temp file is created and the
+  workflow will fail as a result.
+
+vars:
+  - file: /tmp/<% str(random(1000000, 9999999)) %>
+
+tasks:
+  init:
+    action: core.local cmd="rm -rf <% ctx().file %>"
+    next:
+      - when: <% succeeded() %>
+        do: check, create
+
+  check:
+    action: core.local
+    input:
+      cmd: >
+        echo 'Do something useful here.';
+        if [ ! -e <% ctx().file %> ]; then exit 1; fi
+    retry:
+      when: <% failed() %>
+      count: 2
+    next:
+      - when: <% succeeded() %>
+        do: delete
+
+  create:
+    action: core.local cmd="sleep 3; touch <% ctx().file %>"
+
+  delete:
+    action: core.local cmd="rm -f <% ctx().file %>"

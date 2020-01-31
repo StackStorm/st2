@@ -15,6 +15,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+# NOTE: We need to perform monkeypatch before importing ssl module otherwise tests will fail.
+# See https://github.com/StackStorm/st2/pull/4834 for details
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
+
 try:
     import simplejson as json
 except ImportError:
@@ -678,7 +683,9 @@ class WorkflowTestCase(ExecutionDbTestCase):
         self.assertEqual(len(ac_ex_dbs), 1)
         return ac_ex_dbs[0]
 
-    def run_workflow_step(self, wf_ex_db, task_id, route, ctx=None):
+    def run_workflow_step(self, wf_ex_db, task_id, route, ctx=None,
+                          expected_ac_ex_db_status=ac_const.LIVEACTION_STATUS_SUCCEEDED,
+                          expected_tk_ex_db_status=wf_statuses.SUCCEEDED):
         spec_module = specs_loader.get_spec_module(wf_ex_db.spec['catalog'])
         wf_spec = spec_module.WorkflowSpec.deserialize(wf_ex_db.spec)
         st2_ctx = {'execution_id': wf_ex_db.action_execution}
@@ -695,11 +702,11 @@ class WorkflowTestCase(ExecutionDbTestCase):
 
         task_ex_db = wf_svc.request_task_execution(wf_ex_db, st2_ctx, task_req)
         ac_ex_db = self.get_action_ex(str(task_ex_db.id))
-        ac_ex_db = self._wait_on_ac_ex_status(ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db = self._wait_on_ac_ex_status(ac_ex_db, expected_ac_ex_db_status)
 
         wf_svc.handle_action_execution_completion(ac_ex_db)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))
-        self.assertEqual(task_ex_db.status, wf_statuses.SUCCEEDED)
+        self.assertEqual(task_ex_db.status, expected_tk_ex_db_status)
 
     def sort_workflow_errors(self, errors):
         return sorted(errors, key=lambda x: x.get('task_id', None))

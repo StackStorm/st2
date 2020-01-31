@@ -14,6 +14,16 @@
 
 import os
 
+from st2common.util.monkey_patch import monkey_patch
+# Note: We need to perform monkey patching in the worker. If we do it in
+# the master process (gunicorn_config.py), it breaks tons of things
+# including shutdown
+# NOTE: It's important that we perform monkey patch as early as possible before any other modules
+# are important, otherwise SSL support for MongoDB won't work.
+# See https://github.com/StackStorm/st2/issues/4832 and https://github.com/gevent/gevent/issues/1016
+# for details.
+monkey_patch()
+
 from st2auth import app
 
 config = {

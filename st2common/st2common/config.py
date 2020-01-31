@@ -177,6 +177,9 @@ def register_opts(ignore_errors=False):
             'password',
             help='password for db login'),
         cfg.IntOpt(
+            'connection_timeout', default=3 * 1000,
+            help='Connection and server selection timeout (in ms).'),
+        cfg.IntOpt(
             'connection_retry_max_delay_m', default=3,
             help='Connection retry total time (minutes).'),
         cfg.IntOpt(
@@ -374,9 +377,19 @@ def register_opts(ignore_errors=False):
             'virtualenv_opts', default=['--system-site-packages'],
             help='List of virtualenv options to be passsed to "virtualenv" command that '
                  'creates pack virtualenv.'),
+        cfg.ListOpt(
+            'pip_opts', default=[],
+            help='List of pip options to be passed to "pip install" command when installing pack '
+                 'dependencies into pack virtual environment.'),
         cfg.BoolOpt(
             'stream_output', default=True,
-            help='True to store and stream action output (stdout and stderr) in real-time.')
+            help='True to store and stream action output (stdout and stderr) in real-time.'),
+        cfg.IntOpt(
+            'stream_output_buffer_size', default=-1,
+            help=('Buffer size to use for real time action output streaming. 0 means unbuffered '
+                  '1 means line buffered, -1 means system default, which usually means fully '
+                  'buffered and any other positive value means use a buffer of (approximately) '
+                  'that size'))
     ]
 
     do_register_opts(action_runner_opts, group='actionrunner')

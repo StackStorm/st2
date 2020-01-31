@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.2] - 2019-11-22
+### Added
+- `route` to `post_result` parameters to be propogated through to `post_message`.
+
 ## [1.0.1] - 2018-11-06
 ### Added
 - `note` to `post_result` output to inform if the action-alias execution result was enabled or disabled.

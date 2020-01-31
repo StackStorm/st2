@@ -14,13 +14,21 @@
 
 from __future__ import absolute_import
 
+# NOTE: We need to perform monkeypatch before importing ssl module otherwise tests will fail.
+# See https://github.com/StackStorm/st2/pull/4834 for details
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
+
 import ssl
+import time
 
 import jsonschema
 import mock
 import mongoengine.connection
+from mongoengine.connection import disconnect
 from oslo_config import cfg
 from pymongo.errors import ConnectionFailure
+from pymongo.errors import ServerSelectionTimeoutError
 
 from st2common.constants.triggers import TRIGGER_INSTANCE_PROCESSED
 from st2common.models.system.common import ResourceReference
@@ -87,6 +95,13 @@ class DbIndexNameTestCase(TestCase):
 
 
 class DbConnectionTestCase(DbTestCase):
+    def setUp(self):
+        # NOTE: It's important we re-establish a connection on each setUp
+        self.setUpClass()
+
+    def tearDown(self):
+        # NOTE: It's important we disconnect here otherwise tests will fail
+        disconnect()
 
     def test_check_connect(self):
         """
@@ -181,7 +196,9 @@ class DbConnectionTestCase(DbTestCase):
             'tz_aware': True,
             'authentication_mechanism': 'MONGODB-X509',
             'ssl': True,
-            'ssl_match_hostname': True
+            'ssl_match_hostname': True,
+            'connectTimeoutMS': 3000,
+            'serverSelectionTimeoutMS': 3000
         })
 
     @mock.patch('st2common.models.db.mongoengine')
@@ -299,6 +316,37 @@ class DbConnectionTestCase(DbTestCase):
                             '"user_st2": Failed to connect')
         actual_message = mock_log.error.call_args_list[0][0][0]
         self.assertEqual(expected_message, actual_message)
+
+    def test_db_connect_server_selection_timeout_ssl_on_non_ssl_listener(self):
+        # Verify that the we wait connection_timeout ms (server selection timeout ms) before failing
+        # and propagating the error
+        disconnect()
+
+        db_name = 'st2'
+        db_host = 'localhost'
+        db_port = 27017
+
+        cfg.CONF.set_override(name='connection_timeout', group='database', override=1000)
+
+        start = time.time()
+        self.assertRaises(ServerSelectionTimeoutError, db_setup, db_name=db_name, db_host=db_host,
+                          db_port=db_port, ssl=True)
+        end = time.time()
+        diff = (end - start)
+
+        self.assertTrue(diff >= 1)
+
+        disconnect()
+
+        cfg.CONF.set_override(name='connection_timeout', group='database', override=400)
+
+        start = time.time()
+        self.assertRaises(ServerSelectionTimeoutError, db_setup, db_name=db_name, db_host=db_host,
+                          db_port=db_port, ssl=True)
+        end = time.time()
+        diff = (end - start)
+
+        self.assertTrue(diff >= 0.4)
 
 
 class DbCleanupTestCase(DbTestCase):
@@ -521,6 +569,10 @@ PARAM_SCHEMA = {
         "p3": {
             "type": "boolean",
             "default": False
+        },
+        "p4": {
+            "type": "string",
+            "secret": True
         }
     },
     "additionalProperties": False
@@ -661,12 +713,13 @@ class ActionModelTestCase(DbTestCase):
                            runner_type={'name': runnertype.name})
 
         if not metadata:
-            created.parameters = {'p1': None, 'p2': None, 'p3': None}
+            created.parameters = {'p1': None, 'p2': None, 'p3': None, 'p4': None}
         else:
             created.parameters = {
                 'p1': {'type': 'string', 'required': True},
                 'p2': {'type': 'number', 'default': 2868},
-                'p3': {'type': 'boolean', 'default': False}
+                'p3': {'type': 'boolean', 'default': False},
+                'p4': {'type': 'string', 'secret': True}
             }
         return Action.add_or_update(created)
 

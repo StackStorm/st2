@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import sys
 import time
@@ -22,11 +23,10 @@ import subprocess
 from collections import defaultdict
 
 import six
-import eventlet
-from eventlet.support import greenlets as greenlet
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.util import concurrency
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.error_messages import PACK_VIRTUALENV_USES_PYTHON3
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
@@ -79,16 +79,26 @@ class ProcessSensorContainer(object):
     Sensor container which runs sensors in a separate process.
     """
 
-    def __init__(self, sensors, poll_interval=5, single_sensor_mode=False, dispatcher=None):
+    def __init__(self, sensors, poll_interval=5, single_sensor_mode=False, dispatcher=None,
+                 wrapper_script_path=WRAPPER_SCRIPT_PATH, create_token=True):
         """
         :param sensors: A list of sensor dicts.
         :type sensors: ``list`` of ``dict``
 
         :param poll_interval: How long to sleep between each poll for running / dead sensors.
         :type poll_interval: ``float``
+
+        :param wrapper_script_path: Path to the sensor wrapper script.
+        :type wrapper_script_path: ``str``
+
+        :param create_token: True to create temporary authentication token for the purpose for each
+                             sensor process and add it to that process environment variables.
+        :type create_token: ``bool``
         """
         self._poll_interval = poll_interval
         self._single_sensor_mode = single_sensor_mode
+        self._wrapper_script_path = wrapper_script_path
+        self._create_token = create_token
 
         if self._single_sensor_mode:
             # For more immediate feedback we use lower poll interval when running in single sensor
@@ -98,9 +108,7 @@ class ProcessSensorContainer(object):
         self._sensors = {}  # maps sensor_id -> sensor object
         self._processes = {}  # maps sensor_id -> sensor process
 
-        if not dispatcher:
-            dispatcher = TriggerDispatcher(LOG)
-        self._dispatcher = dispatcher
+        self._dispatcher = dispatcher or TriggerDispatcher(LOG)
 
         self._stopped = False
         self._exit_code = None  # exit code with which this process should exit
@@ -129,6 +137,8 @@ class ProcessSensorContainer(object):
     def run(self):
         self._run_all_sensors()
 
+        success_exception_cls = concurrency.get_greenlet_exit_exception_class()
+
         try:
             while not self._stopped:
                 # Poll for all running processes
@@ -140,8 +150,8 @@ class ProcessSensorContainer(object):
                 else:
                     LOG.debug('No active sensors')
 
-                eventlet.sleep(self._poll_interval)
-        except greenlet.GreenletExit:
+                concurrency.sleep(self._poll_interval)
+        except success_exception_cls:
             # This exception is thrown when sensor container manager
             # kills the thread which runs process container. Not sure
             # if this is the best thing to do.
@@ -180,8 +190,8 @@ class ProcessSensorContainer(object):
 
                 # Try to respawn a dead process (maybe it was a simple failure which can be
                 # resolved with a restart)
-                eventlet.spawn_n(self._respawn_sensor, sensor_id=sensor_id, sensor=sensor,
-                                 exit_code=status)
+                concurrency.spawn(self._respawn_sensor, sensor_id=sensor_id, sensor=sensor,
+                                  exit_code=status)
             else:
                 sensor_start_time = self._sensor_start_times[sensor_id]
                 sensor_respawn_count = self._sensor_respawn_counts[sensor_id]
@@ -294,26 +304,7 @@ class ProcessSensorContainer(object):
             msg = PACK_VIRTUALENV_USES_PYTHON3 % format_values
             raise Exception(msg)
 
-        trigger_type_refs = sensor['trigger_types'] or []
-        trigger_type_refs = ','.join(trigger_type_refs)
-
-        parent_args = json.dumps(sys.argv[1:])
-
-        args = [
-            python_path,
-            WRAPPER_SCRIPT_PATH,
-            '--pack=%s' % (sensor['pack']),
-            '--file-path=%s' % (sensor['file_path']),
-            '--class-name=%s' % (sensor['class_name']),
-            '--trigger-type-refs=%s' % (trigger_type_refs),
-            '--parent-args=%s' % (parent_args)
-        ]
-
-        if sensor['poll_interval']:
-            args.append('--poll-interval=%s' % (sensor['poll_interval']))
-
-        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                                      inherit_parent_virtualenv=True)
+        args = self._get_args_for_wrapper_script(python_binary=python_path, sensor=sensor)
 
         if self._enable_common_pack_libs:
             pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack_ref)
@@ -322,27 +313,34 @@ class ProcessSensorContainer(object):
 
         env = os.environ.copy()
 
+        sandbox_python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                      inherit_parent_virtualenv=True)
+
         if self._enable_common_pack_libs and pack_common_libs_path:
             env['PYTHONPATH'] = pack_common_libs_path + ':' + sandbox_python_path
         else:
             env['PYTHONPATH'] = sandbox_python_path
 
-        # Include full api URL and API token specific to that sensor
-        ttl = cfg.CONF.auth.service_token_ttl
-        metadata = {
-            'service': 'sensors_container',
-            'sensor_path': sensor['file_path'],
-            'sensor_class': sensor['class_name']
-        }
-        temporary_token = create_token(username='sensors_container', ttl=ttl, metadata=metadata,
-                                       service=True)
+        if self._create_token:
+            # Include full api URL and API token specific to that sensor
+            LOG.debug('Creating temporary auth token for sensor %s' % (sensor['class_name']))
 
-        env[API_URL_ENV_VARIABLE_NAME] = get_full_public_api_url()
-        env[AUTH_TOKEN_ENV_VARIABLE_NAME] = temporary_token.token
+            ttl = cfg.CONF.auth.service_token_ttl
+            metadata = {
+                'service': 'sensors_container',
+                'sensor_path': sensor['file_path'],
+                'sensor_class': sensor['class_name']
+            }
+            temporary_token = create_token(username='sensors_container', ttl=ttl, metadata=metadata,
+                                           service=True)
 
-        # TODO 1: Purge temporary token when service stops or sensor process dies
-        # TODO 2: Store metadata (wrapper process id) with the token and delete
-        # tokens for old, dead processes on startup
+            env[API_URL_ENV_VARIABLE_NAME] = get_full_public_api_url()
+            env[AUTH_TOKEN_ENV_VARIABLE_NAME] = temporary_token.token
+
+            # TODO 1: Purge temporary token when service stops or sensor process dies
+            # TODO 2: Store metadata (wrapper process id) with the token and delete
+            # tokens for old, dead processes on startup
+
         cmd = ' '.join(args)
         LOG.debug('Running sensor subprocess (cmd="%s")', cmd)
 
@@ -434,7 +432,7 @@ class ProcessSensorContainer(object):
 
         self._sensor_respawn_counts[sensor_id] += 1
         sleep_delay = (SENSOR_RESPAWN_DELAY * self._sensor_respawn_counts[sensor_id])
-        eventlet.sleep(sleep_delay)
+        concurrency.sleep(sleep_delay)
 
         try:
             self._spawn_sensor_process(sensor=sensor)
@@ -458,6 +456,38 @@ class ProcessSensorContainer(object):
             return False
 
         return True
+
+    def _get_args_for_wrapper_script(self, python_binary, sensor):
+        """
+        Return CLI arguments passed to the sensor wrapper script.
+
+        :param python_binary: Python binary used to execute wrapper script.
+        :type python_binary: ``str``
+
+        :param sensor: Sensor object dictionary.
+        :type sensor: ``dict``
+
+        :rtype: ``list``
+        """
+        trigger_type_refs = sensor['trigger_types'] or []
+        trigger_type_refs = ','.join(trigger_type_refs)
+
+        parent_args = json.dumps(sys.argv[1:])
+
+        args = [
+            python_binary,
+            self._wrapper_script_path,
+            '--pack=%s' % (sensor['pack']),
+            '--file-path=%s' % (sensor['file_path']),
+            '--class-name=%s' % (sensor['class_name']),
+            '--trigger-type-refs=%s' % (trigger_type_refs),
+            '--parent-args=%s' % (parent_args)
+        ]
+
+        if sensor['poll_interval']:
+            args.append('--poll-interval=%s' % (sensor['poll_interval']))
+
+        return args
 
     def _get_sensor_id(self, sensor):
         """

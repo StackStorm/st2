@@ -30,7 +30,7 @@ class UninstallPackAction(Action):
         self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
 
-    def run(self, packs, abs_repo_base):
+    def run(self, packs, abs_repo_base, delete_env=True):
         intersection = BLOCKED_PACKS & frozenset(packs)
         if len(intersection) > 0:
             names = ', '.join(list(intersection))
@@ -43,12 +43,13 @@ class UninstallPackAction(Action):
                 self.logger.debug('Deleting pack directory "%s"' % (abs_fp))
                 shutil.rmtree(abs_fp)
 
-        # 2. Delete pack virtual environment
-        for pack_name in packs:
-            pack_name = quote_unix(pack_name)
-            virtualenv_path = os.path.join(self._base_virtualenvs_path, pack_name)
+        if delete_env:
+            # 2. Delete pack virtual environment
+            for pack_name in packs:
+                pack_name = quote_unix(pack_name)
+                virtualenv_path = os.path.join(self._base_virtualenvs_path, pack_name)
 
-            if os.path.isdir(virtualenv_path):
-                self.logger.debug('Deleting virtualenv "%s" for pack "%s"' %
-                                  (virtualenv_path, pack_name))
-                shutil.rmtree(virtualenv_path)
+                if os.path.isdir(virtualenv_path):
+                    self.logger.debug('Deleting virtualenv "%s" for pack "%s"' %
+                                      (virtualenv_path, pack_name))
+                    shutil.rmtree(virtualenv_path)

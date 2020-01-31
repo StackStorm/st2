@@ -24,7 +24,6 @@ from st2common.middleware.logging import LoggingMiddleware
 from st2common.middleware.instrumentation import RequestInstrumentationMiddleware
 from st2common.middleware.instrumentation import ResponseInstrumentationMiddleware
 from st2common.router import Router
-from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
@@ -33,16 +32,14 @@ from st2api.validation import validate_rbac_is_correctly_configured
 LOG = logging.getLogger(__name__)
 
 
-def setup_app(config={}):
+def setup_app(config=None):
+    config = config or {}
+
     LOG.info('Creating st2api: %s as OpenAPI app.', VERSION_STRING)
 
     is_gunicorn = config.get('is_gunicorn', False)
     if is_gunicorn:
-        # Note: We need to perform monkey patching in the worker. If we do it in
-        # the master process (gunicorn_config.py), it breaks tons of things
-        # including shutdown
-        monkey_patch()
-
+        # NOTE: We only want to perform this logic in the WSGI worker
         st2api_config.register_opts()
         capabilities = {
             'name': 'api',

@@ -8,6 +8,8 @@ enable = True
 emit_when = succeeded,failed,timeout,canceled,abandoned # comma separated list allowed here.
 
 [actionrunner]
+# List of pip options to be passed to "pip install" command when installing pack dependencies into pack virtual environment.
+pip_opts =  # comma separated list allowed here.
 # Internal pool size for dispatcher used by regular actions.
 actions_pool_size = 60
 # Default log level to use for Python runner actions. Can be overriden on invocation basis using "log_level" runner parameter.
@@ -20,6 +22,8 @@ python3_prefix = None
 virtualenv_binary = /usr/bin/virtualenv
 # Python 3 binary which will be used by Python actions for packs which use Python 3 virtual environment.
 python3_binary = /usr/bin/python3
+# Buffer size to use for real time action output streaming. 0 means unbuffered 1 means line buffered, -1 means system default, which usually means fully buffered and any other positive value means use a buffer of (approximately) that size
+stream_output_buffer_size = -1
 # List of virtualenv options to be passsed to "virtualenv" command that creates pack virtualenv.
 virtualenv_opts = --system-site-packages # comma separated list allowed here.
 # True to store and stream action output (stdout and stderr) in real-time.
@@ -115,6 +119,8 @@ ssl_ca_certs = None
 ssl_certfile = None
 # Connection retry backoff max (seconds).
 connection_retry_backoff_max_s = 10
+# If True and `ssl_cert_reqs` is not None, enables hostname verification
+ssl_match_hostname = True
 # Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided
 ssl_cert_reqs = None
 # Create the connection to mongodb using SSL
@@ -129,8 +135,8 @@ connection_retry_backoff_mul = 1
 authentication_mechanism = None
 # Private keyfile used to identify the local connection against MongoDB.
 ssl_keyfile = None
-# If True and `ssl_cert_reqs` is not None, enables hostname verification
-ssl_match_hostname = True
+# Connection and server selection timeout (in ms).
+connection_timeout = 3000
 # password for db login
 password = None
 # port of db server

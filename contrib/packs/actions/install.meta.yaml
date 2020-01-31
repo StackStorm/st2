@@ -1,6 +1,6 @@
 ---
   name: "install"
-  runner_type: "action-chain"
+  runner_type: "orquesta"
   description: "Installs or upgrades a pack into local content repository, either by
                 git URL or a short name matching an index entry.
                 Will download pack, load the actions, sensors and rules from the pack.
@@ -30,5 +30,10 @@
     python3:
       type: "boolean"
       description: "Use Python 3 binary when creating a virtualenv for this pack."
+      required: false
+      default: false
+    skip_dependencies:
+      type: "boolean"
+      description: "Set to True to skip pack dependency installations."
       required: false
       default: false

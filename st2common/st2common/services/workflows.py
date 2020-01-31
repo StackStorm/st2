@@ -23,12 +23,14 @@ from orquesta import conducting
 from orquesta import events
 from orquesta import exceptions as orquesta_exc
 from orquesta.expressions import base as expressions
+from orquesta import requests as orquesta_reqs
 from orquesta.specs import loader as specs_loader
 from orquesta import statuses
 from oslo_config import cfg
 
 from st2common.constants import action as ac_const
 from st2common.exceptions import action as ac_exc
+from st2common.exceptions import db as db_exc
 from st2common.exceptions import workflow as wf_exc
 from st2common import log as logging
 from st2common.models.api import notification as notify_api_models
@@ -426,6 +428,89 @@ def request_cancellation(ac_ex_db):
 
     LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
     LOG.info('[%s] Completed processing cancelation request for workflow.', wf_ac_ex_id)
+
+    return wf_ex_db
+
+
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+@retrying.retry(
+    retry_on_exception=wf_exc.retry_on_connection_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
+    wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
+    wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec)
+def request_rerun(ac_ex_db, st2_ctx, options=None):
+    ac_ex_id = str(ac_ex_db.id)
+    LOG.info('[%s] Processing rerun request for workflow.', ac_ex_id)
+
+    wf_ex_id = st2_ctx.get('workflow_execution_id')
+
+    if not wf_ex_id:
+        msg = 'Unable to rerun workflow execution because workflow_execution_id is not provided.'
+        raise wf_exc.WorkflowExecutionRerunException(msg)
+
+    try:
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    except db_exc.StackStormDBObjectNotFoundError:
+        msg = 'Unable to rerun workflow execution "%s" because it does not exist.'
+        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
+
+    if wf_ex_db.status not in statuses.COMPLETED_STATUSES:
+        msg = 'Unable to rerun workflow execution "%s" because it is not in a completed state.'
+        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
+
+    wf_ex_db.action_execution = ac_ex_id
+    wf_ex_db.context['st2'] = st2_ctx['st2']
+    wf_ex_db.context['parent'] = st2_ctx['parent']
+    conductor = deserialize_conductor(wf_ex_db)
+
+    try:
+        task_requests = None
+        problems = []
+
+        if options:
+            task_requests = []
+            task_names = options.get('tasks', [])
+            task_resets = options.get('reset', [])
+
+            for task_name in task_names:
+                reset_items = task_name in task_resets
+                task_state_entries = conductor.workflow_state.get_tasks(task_id=task_name)
+
+                if not task_state_entries:
+                    problems.append(task_name)
+                    continue
+
+                for _, task_state_entry in task_state_entries:
+                    route = task_state_entry['route']
+                    req = orquesta_reqs.TaskRerunRequest(task_name, route, reset_items=reset_items)
+                    task_requests.append(req)
+
+            if problems:
+                msg = 'Unable to rerun workflow because one or more tasks is not found: %s'
+                raise Exception(msg % ','.join(problems))
+
+        conductor.request_workflow_rerun(task_requests=task_requests)
+    except Exception as e:
+        raise wf_exc.WorkflowExecutionRerunException(six.text_type(e))
+
+    if conductor.get_workflow_status() not in statuses.RUNNING_STATUSES:
+        msg = 'Unable to rerun workflow execution "%s" due to an unknown cause.'
+        raise wf_exc.WorkflowExecutionRerunException(msg % wf_ex_id)
+
+    data = conductor.serialize()
+    wf_ex_db.status = data['state']['status']
+    wf_ex_db.spec = data['spec']
+    wf_ex_db.graph = data['graph']
+    wf_ex_db.state = data['state']
+
+    wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+
+    # Publish status change.
+    wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
 
     return wf_ex_db
 
@@ -849,7 +934,22 @@ def update_task_state(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx=Non
     # Update task flow if task execution is completed or paused.
     msg = '[%s] Publish task "%s", route "%s", with status "%s" to conductor.'
     LOG.info(msg, wf_ac_ex_id, task_ex_db.task_id, str(task_ex_db.task_route), task_ex_db.status)
-    ac_ex_event = events.ActionExecutionEvent(ac_ex_status, result=ac_ex_result, context=ac_ex_ctx)
+
+    if not ac_ex_ctx or 'item_id' not in ac_ex_ctx or ac_ex_ctx['item_id'] < 0:
+        ac_ex_event = events.ActionExecutionEvent(ac_ex_status, result=ac_ex_result)
+    else:
+        accumulated_result = [
+            item.get('result') if item else None
+            for item in task_ex_db.result['items']
+        ]
+
+        ac_ex_event = events.TaskItemActionExecutionEvent(
+            ac_ex_ctx['item_id'],
+            ac_ex_status,
+            result=ac_ex_result,
+            accumulated_result=accumulated_result
+        )
+
     LOG.debug('[%s] %s', wf_ac_ex_id, conductor.serialize())
     conductor.update_task_state(task_ex_db.task_id, task_ex_db.task_route, ac_ex_event)
 
@@ -928,14 +1028,16 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
             # If task contains multiple action execution (i.e. with items),
             # then mark each item individually.
             for action in task['actions']:
-                ac_ex_ctx = None
-
-                if 'item_id' in action and action['item_id'] is not None:
+                if 'item_id' not in action or action['item_id'] is None:
+                    ac_ex_event = events.ActionExecutionEvent(statuses.RUNNING)
+                else:
                     msg = '[%s] Mark task "%s", route "%s", item "%s" in conductor as running.'
                     LOG.info(msg, wf_ac_ex_id, task['id'], str(task['route']), action['item_id'])
-                    ac_ex_ctx = {'item_id': action['item_id']} if 'item_id' in action else None
+                    ac_ex_event = events.TaskItemActionExecutionEvent(
+                        action['item_id'],
+                        statuses.RUNNING
+                    )
 
-                ac_ex_event = events.ActionExecutionEvent(statuses.RUNNING, context=ac_ex_ctx)
                 conductor.update_task_state(task['id'], task['route'], ac_ex_event)
 
         # Update workflow execution and related liveaction and action execution.
@@ -1136,6 +1238,10 @@ def update_execution_records(wf_ex_db, conductor, update_lv_ac_on_statuses=None,
                              pub_wf_ex=False, pub_lv_ac=True, pub_ac_ex=True):
 
     wf_ac_ex_id = wf_ex_db.action_execution
+
+    # If the workflow execution is completed, then render the workflow output.
+    if conductor.get_workflow_status() in statuses.COMPLETED_STATUSES:
+        conductor.render_workflow_output()
 
     # Determine if workflow status has changed.
     wf_old_status = wf_ex_db.status

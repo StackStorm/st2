@@ -150,7 +150,6 @@ check: check-requirements flake8 checklogs
 # make targets. This speeds up the build
 .PHONY: install-runners
 install-runners:
-
 	@echo ""
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
@@ -329,7 +328,7 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip>=9.0,<9.1"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==19.3.1"
 	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==41.0.1"
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
@@ -440,11 +439,15 @@ requirements: virtualenv .sdist-requirements install-runners
 	@echo
 	# Make sure we use latest version of pip which is 19
 	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.0,<20.0"
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "virtualenv==16.6.0" # Required for packs.install in dev envs
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==19.3.1"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==41.0.1"  # Required for packs.install in dev envs
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+
+	# Remove any *.egg-info files which polute PYTHONPATH
+	rm -rf *.egg-info*
 
 	# Generate finall requirements.txt file for each component
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
@@ -455,12 +458,14 @@ requirements: virtualenv .sdist-requirements install-runners
 	done
 
 	# Fix for Travis CI race
-	$(VIRTUALENV_DIR)/bin/pip install "six==1.11.0"
+	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
 
 	# Fix for Travis CI caching issue
-	$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"
-	$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"
-	$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"
+	if [[ "$(TRAVIS_EVENT_TYPE)" != "" ]]; then\
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"; \
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"; \
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"; \
+	fi
 
 	# Install requirements
 	#
@@ -478,7 +483,7 @@ requirements: virtualenv .sdist-requirements install-runners
 	# Note: We install prance here and not as part of any component
 	# requirements.txt because it has a conflict with our dependency (requires
 	# new version of requests) which we cant resolve at this moment
-	$(VIRTUALENV_DIR)/bin/pip install "prance==0.6.1"
+	$(VIRTUALENV_DIR)/bin/pip install "prance==0.15.0"
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
@@ -488,6 +493,9 @@ requirements: virtualenv .sdist-requirements install-runners
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --recursive --remote
+
+	# Verify there are no conflicting dependencies
+	$(VIRTUALENV_DIR)/bin/pipconflictchecker
 
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure
@@ -920,7 +928,7 @@ debs:
 	# Copy over shared dist utils module which is needed by setup.py
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
 		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
-		sed -i -e '1s;^;# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY\n;' $$component/dist_utils.py;\
+		scripts/write-headers.sh $$component/dist_utils.py || break;\
 	done
 
 	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory

@@ -16,13 +16,13 @@
 from __future__ import absolute_import
 
 import six
-import eventlet
 from kombu.mixins import ConsumerMixin
 
 from st2common import log as logging
 from st2common.persistence.trigger import Trigger
 from st2common.transport import reactor, publishers
 from st2common.transport import utils as transport_utils
+from st2common.util import concurrency
 import st2common.util.queues as queue_utils
 
 LOG = logging.getLogger(__name__)
@@ -104,21 +104,21 @@ class TriggerWatcher(ConsumerMixin):
         finally:
             message.ack()
 
-        eventlet.sleep(self.sleep_interval)
+        concurrency.sleep(self.sleep_interval)
 
     def start(self):
         try:
             self.connection = transport_utils.get_connection()
-            self._updates_thread = eventlet.spawn(self.run)
-            self._load_thread = eventlet.spawn(self._load_triggers_from_db)
+            self._updates_thread = concurrency.spawn(self.run)
+            self._load_thread = concurrency.spawn(self._load_triggers_from_db)
         except:
             LOG.exception('Failed to start watcher.')
             self.connection.release()
 
     def stop(self):
         try:
-            self._updates_thread = eventlet.kill(self._updates_thread)
-            self._load_thread = eventlet.kill(self._load_thread)
+            self._updates_thread = concurrency.kill(self._updates_thread)
+            self._load_thread = concurrency.kill(self._load_thread)
         finally:
             self.connection.release()
 
@@ -129,11 +129,11 @@ class TriggerWatcher(ConsumerMixin):
     def on_consume_end(self, connection, channel):
         super(TriggerWatcher, self).on_consume_end(connection=connection,
                                                    channel=channel)
-        eventlet.sleep(seconds=self.sleep_interval)
+        concurrency.sleep(seconds=self.sleep_interval)
 
     def on_iteration(self):
         super(TriggerWatcher, self).on_iteration()
-        eventlet.sleep(seconds=self.sleep_interval)
+        concurrency.sleep(seconds=self.sleep_interval)
 
     def _load_triggers_from_db(self):
         for trigger_type in self._trigger_types:

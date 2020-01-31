@@ -19,11 +19,10 @@ import sys
 import signal
 
 import psutil
-import eventlet
-from eventlet.green import subprocess
 from oslo_config import cfg
 
 import st2tests.config
+from st2common.util import concurrency
 from st2common.models.db import db_setup
 from st2reactor.container.process_container import PROCESS_EXIT_TIMEOUT
 from st2common.util.green.shell import run_command
@@ -94,7 +93,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(5)
+        concurrency.sleep(5)
 
         # Assert process has started and is running
         self.assertProcessIsRunning(process=process)
@@ -110,7 +109,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGINT causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
+        concurrency.sleep(PROCESS_EXIT_TIMEOUT + 1)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -122,7 +121,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(3)
+        concurrency.sleep(3)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -135,7 +134,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGTERM causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 5)
+        concurrency.sleep(PROCESS_EXIT_TIMEOUT + 5)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -147,7 +146,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(4)
+        concurrency.sleep(4)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -159,7 +158,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process.send_signal(signal.SIGKILL)
 
         # Note: On SIGKILL processes should be killed instantly
-        eventlet.sleep(1)
+        concurrency.sleep(1)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -175,7 +174,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         pp = psutil.Process(process.pid)
 
         # Give it some time to start up
-        eventlet.sleep(4)
+        concurrency.sleep(4)
 
         stdout = process.stdout.read()
         self.assertTrue((b'--sensor-ref argument must be provided when running in single sensor '
@@ -191,7 +190,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         pp = psutil.Process(process.pid)
 
         # Give it some time to start up
-        eventlet.sleep(8)
+        concurrency.sleep(8)
 
         # Container should exit and not respawn a sensor in single sensor mode
         stdout = process.stdout.read()
@@ -200,12 +199,13 @@ class SensorContainerTestCase(IntegrationTestCase):
         self.assertTrue(b'Not respawning a sensor since running in single sensor mode')
         self.assertTrue(b'Process container quit with exit_code 110.')
 
-        eventlet.sleep(2)
+        concurrency.sleep(2)
         self.assertProcessExited(proc=pp)
 
         self.remove_process(process=process)
 
     def _start_sensor_container(self, cmd=DEFAULT_CMD):
+        subprocess = concurrency.get_subprocess_module()
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
         self.add_process(process=process)

@@ -13,13 +13,15 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import posixpath
 import time
 
-import eventlet
 from oslo_config import cfg
 from six.moves import StringIO
+
+import six
 
 import paramiko
 from paramiko.ssh_exception import SSHException
@@ -33,7 +35,7 @@ from st2common.util.misc import strip_shell_chars
 from st2common.util.misc import sanitize_output
 from st2common.util.shell import quote_unix
 from st2common.constants.runners import DEFAULT_SSH_PORT, REMOTE_RUNNER_PRIVATE_KEY_HEADER
-import six
+from st2common.util import concurrency
 
 __all__ = [
     'ParamikoSSHClient',
@@ -434,7 +436,7 @@ class ParamikoSSHClient(object):
                 break
 
             # Short sleep to prevent busy waiting
-            eventlet.sleep(self.SLEEP_DELAY)
+            concurrency.sleep(self.SLEEP_DELAY)
         # print('Wait over. Channel must be ready for host: %s' % self.hostname)
 
         # Receive the exit status code of the command we ran.

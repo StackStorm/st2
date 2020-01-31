@@ -18,6 +18,9 @@ parameters:
   async_test:
     default: false
     type: boolean
+  action_secret:
+     type: string
+     secret: true
   runnerdummy:
     default: actiondummy
     immutable: true
