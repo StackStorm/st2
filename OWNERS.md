@@ -2,13 +2,13 @@ StackStorm was founded in 2013. After several acquisitions project has finally j
 
 This page lists active project maintainers and their areas of expertise. This can be used for routing PRs, discussions, questions and overall coordination.
 
-* See [GOVERNANCE.md](TBD) that describes each major role and its responsibilities in detail.
+* See [GOVERNANCE.md](GOVERNANCE.md) that describes each major role and its responsibilities in detail.
 * See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) about maintainers standards in front of community.
 * See [CONTRIBUTING.rst](CONTRIBUTING.rst) for general contributing guidelines.
 
 # Leaders ***
 ###### 3 vote points
-[@StackStorm/leaders](https://github.com/orgs/StackStorm/teams/maintainers) is head of Technical Steering Committee (TSC).
+[@StackStorm/leaders](https://github.com/orgs/StackStorm/teams/leaders) is head of Technical Steering Committee (TSC).
 Responsible for Project Strategy, External Relations, Organizational aspects, Partnerships and Future.
 * Dmitri Zimine ([@dzimine](https://github.com/dzimine/)) <<dzimine@stackstorm.com>>
   - StackStorm co-founder. External Relations, Leadership.
