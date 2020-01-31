@@ -1,0 +1,6 @@
+# This is a comment.
+# Each line is a file pattern followed by one or more owners.
+
+# Set Voting Members as PR Reviewers for Changes to Governance and
+GOVERNANCE.md @StackStorm/Maintainers @StackStorm/Leaders
+OWNERS.md @StackStorm/Maintainers @StackStorm/Leaders
