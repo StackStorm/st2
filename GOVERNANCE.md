@@ -1,9 +1,9 @@
-StackStorm has joined LinuxFoundation in 2019.
+StackStorm has joined Linux Foundation in 2019.
 With the new Neutral Home we invite everyone: organizations, teams and individuals relying on StackStorm Automation in their operations to support the project by giving back and participating in development as well as influence on its future under the Open Governance.
 
 # StackStorm Governance
 This document defines governance policies for the StackStorm project.
-It extends [Technical Charter](https://stackstorm.com/wp/wp-content/uploads/2019/10/StackStorm-Technical-Charter-20191004.pdf) for StackStorm within LinuxFoundation.
+It extends [Technical Charter](https://stackstorm.com/wp/wp-content/uploads/2019/10/StackStorm-Technical-Charter-20191004.pdf) for StackStorm within the Linux Foundation.
 
 ## Technical Steering Committee (TSC)
 The Technical Steering Committee is a group of Maintainers (Committers) who have earned the ability to modify (“commit”) sourcecode, documentation or other artifacts.
@@ -23,7 +23,7 @@ StackStorm uses a three-tiered system of Maintainer roles:
   * Receive **two votes** in the voting process.
 * [Maintainers](OWNERS.md#maintainers-)
   * Have good experience with the StackStorm codebase, expected to provide significant value to the project, helping it grow, improve and succeed.
-  * Have full member write access to [StackStorm](https://github.com/stackstorm/) and [StackStorm-Exchange](https://github.com/stackstorm-exchange) Github organizations, Moderator at [forum](https://forum.stackstorm.com/), [Slack](https://stackstorm.com/community-signup) and other Community platforms.
+  * Have full member write access to [StackStorm](https://github.com/stackstorm/) and [StackStorm-Exchange](https://github.com/stackstorm-exchange) Github organizations, CI/CD, Moderator at [forum](https://forum.stackstorm.com/), [Slack](https://stackstorm.com/community-signup) and other Community platforms.
   * Receive **one vote** in the voting process.
 
 ### Maintainer responsibilities
@@ -47,7 +47,7 @@ StackStorm uses a three-tiered system of Maintainer roles:
 * Prioritize the work following [StackStorm Roadmap](https://docs.stackstorm.com/latest/roadmap.html) to move the project forward.
 * All maintainers ideally are expected to shoulder a proportional share of community work: Issues, Reviews, Slack, Forum, Releases, fixing CI/CD Builds, etc. Work upon to make sure the balance is kept within the team.
 * Encourage and guide other community members to contribute back to StackStorm. Even a simple bug report or a one-line documentation PR is a win!
-* Follow-up by filling undocumented issues found in community channels, show an example.
+* Follow-up by filing undocumented issues found in community channels, show an example.
 * Share the experience with other Maintainers and Contributors.
 
 ## Becoming a Maintainer
