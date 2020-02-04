@@ -34,7 +34,7 @@ Have deep platform knowledge & experience and demonstrate technical leadership a
 ###### 1 vote points
 Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/maintainers) provide significant and reliable value to the project helping it grow and improve through development and maintenance.
 * JP Bourget ([@punkrokk](https://github.com/punkrokk)) <<jp.bourget@gmail.com>>
-  - Systems, deb/rpm, Deployments, Community, StackStorm Exchange.
+  - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCi
 * Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)) <<mickmcgrath13@users.noreply.github.com>>
   - Systems, ST2 Exchange. [Case Study](https://stackstorm.com/case-study-bitovi/).
 * Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
