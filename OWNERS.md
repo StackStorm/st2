@@ -1,4 +1,4 @@
-StackStorm was founded in 2013. After several acquisitions project has finally joined [LinuxFoundation](https://www.linuxfoundation.org/projects/directory/) in 2019.<br>
+StackStorm was founded in 2013. After several acquisitions the project has finally joined [The Linux Foundation](https://www.linuxfoundation.org/projects/directory/) in 2019.<br>
 
 This page lists active project maintainers and their areas of expertise. This can be used for routing PRs, discussions, questions and overall coordination.
 
