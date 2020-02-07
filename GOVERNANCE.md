@@ -55,14 +55,15 @@ Any level of contribution is welcomed: starting from feedback, reporting bugs, m
 
 ### How to start Contributing?
 * Start helping StackStorm is easy. A few contributing activities that are highly valued:
-  * answer user questions and troubleshoot issues in Community: Slack, Forums, Github.
+  * answer user questions and troubleshoot issues in Community: Slack, Forums, Github
   * triaging issues with [**status: to be verified**](https://github.com/stackstorm/st2/issues?q=is%3Aissue+is%3Aopen+status+label%3A%22status%3Ato+be+verified%22) will help you to get familiar with the project functionality
   * working on issues tagged as [**good first issue**](https://github.com/stackstorm/st2/issues?q=is%3Aissue+is%3Aopen+good+label%3A%22good+first+issue%22)
   * [**bugs**](https://github.com/stackstorm/st2/issues?q=is%3Aissue+is%3Aopen+status+label%3Abug) are very important to address and will help you to get more familiar with the codebase
   * enhancements marked with [**refactoring**](https://github.com/stackstorm/st2/issues?q=is%3Aopen+is%3Aissue+label%3Arefactor) tag
   * any [documentation](https://github.com/stackstorm/st2docs) improvements are always appreciated
   * perform code reviews on other's pull requests. Second pair of eyes and a few cycles of manual testing can help to prevent bugs early
-  * join the #development channel in StackStorm Community Slack for more pointers from the current Maintainers
+  * join the *#development* channel in [StackStorm Slack](https://stackstorm.com/#community) for more pointers from the current Maintainers
+  * help growing community ecosystem by writing technical content about StackStorm like HOWTOs, Show Cases and Demos, Blog posts, Tutorials. We also accept [guest posts](https://stackstorm.com/blog/)!
 * After period of time you will be proposed to be added to the Contributors group of [OWNERS.md](OWNERS.md#contributors).
 
 ### How to become a Maintainer?
