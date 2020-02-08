@@ -24,6 +24,12 @@ preserve_logrotate() {
     [ -f /etc/logrotate.d/st2 ] && mv /etc/logrotate.d/st2-pkgsaved.disabled 1>/dev/null 2>&1 || :
   elif [ "$1" = purge ]; then
     rm -f /etc/logrotate.d/st2-pkgsaved.disabled 1>/dev/null 2>&1 || :
+    # Clean up other StackStorm related configs and directories
+    rm -rf /etc/st2 1>/dev/null 2>&1 || :
+    rm -rf /opt/stackstorm 1>/dev/null 2>&1 || :
+    rm -rf /root/.st2 1>/dev/null 2>&1 || :
+    rm -rf /var/log/st2 1>/dev/null 2>&1 || :
+    rm -f /etc/sudoers.d/st2 1>/dev/null 2>&1 || :
   fi
 }
 
