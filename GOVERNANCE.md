@@ -57,7 +57,7 @@ Any level of contribution is welcomed: starting from feedback, reporting bugs, m
 * Start helping StackStorm is easy. A few contributing activities that are highly valued:
   * answer user questions and troubleshoot issues in Community: Slack, Forums, Github
   * triaging issues with [**status: to be verified**](https://github.com/stackstorm/st2/issues?q=is%3Aissue+is%3Aopen+status+label%3A%22status%3Ato+be+verified%22) will help you to get familiar with the project functionality
-  * working on issues tagged as [**good first issue**](https://github.com/stackstorm/st2/issues?q=is%3Aissue+is%3Aopen+good+label%3A%22good+first+issue%22)
+  * working on issues tagged as [**good first issue**](https://github.com/StackStorm/st2/contribute)
   * [**bugs**](https://github.com/stackstorm/st2/issues?q=is%3Aissue+is%3Aopen+status+label%3Abug) are very important to address and will help you to get more familiar with the codebase
   * enhancements marked with [**refactoring**](https://github.com/stackstorm/st2/issues?q=is%3Aopen+is%3Aissue+label%3Arefactor) tag
   * any [documentation](https://github.com/stackstorm/st2docs) improvements are always appreciated
