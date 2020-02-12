@@ -33,7 +33,8 @@ jobs:
     # and this would cause too many intermediate failures / false positives
     - env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=740
       python: 2.7
-      name: "Unit Tests (Python 2.7 MongoDB 3.4)"
+      # bionic and xenial come with 4.0 and 3.4 is not available on bionic
+      name: "Unit Tests (Python 2.7 MongoDB 4.0)"
     - env: TASK=ci-integration CACHE_NAME=py2 COMMAND_THRESHOLD=740
       python: 2.7
       name: "Integration Tests (Python 2.7)"
@@ -50,19 +51,21 @@ jobs:
 addons:
   apt:
     sources:
-      # xenial has systemd not upstart
+      # xenial and bionic have systemd not upstart
       #- mongodb-upstart
-      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse'
-        key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
+      # mongodb 3.4 is available on precise, trusty, and xenial, but not bionic.
+      #- sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
+      #  key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
       - sourceline: 'deb [arch=amd64] http://packages.erlang-solutions.com/ubuntu bionic contrib'
         key_url: 'https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
       - sourceline: 'deb [arch=amd64] https://dl.bintray.com/rabbitmq/debian bionic rabbitmq-server-v3.8.x'
         key_url: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
-      #git is v2.21.0 in xenial
+      #git is v2.21.0 in xenial, v2.24.1 in bionic
       #- sourceline: 'ppa:git-core/ppa'
     packages:
-      - mongodb-org-server=3.4.24
-      - mongodb-org-shell=3.4.24
+      # bionic has mongodb 4.0.14 by default
+      #- mongodb-org-server=3.4.24
+      #- mongodb-org-shell=3.4.24
       - erlang
       - rabbitmq-server
       #- git
