@@ -55,14 +55,16 @@ class RabbitMQTLSListenerTestCase(unittest2.TestCase):
 
         expected_msg_1 = '[Errno 104] Connection reset by peer'
         expected_msg_2 = 'Socket closed'
+        expected_msg_3 = 'Server unexpectedly closed connection'
 
         try:
             connection.connect()
         except Exception as e:
             self.assertFalse(connection.connected)
             self.assertIsInstance(e, (IOError, socket.error))
-            self.assertTrue(expected_msg_1 in six.text_type(e) or expected_msg_2 in
-                            six.text_type(e))
+            self.assertTrue(expected_msg_1 in six.text_type(e) or
+                            expected_msg_2 in six.text_type(e) or
+                            expected_msg_3 in six.text_type(e))
         else:
             self.fail('Exception was not thrown')
 
