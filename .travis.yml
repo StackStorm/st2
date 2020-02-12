@@ -1,8 +1,7 @@
 # Used old infrastructure, needed for integration tests:
 # http://docs.travis-ci.com/user/workers/standard-infrastructure/
 sudo: required
-# NOTE: We use precise because tests finish faster than on Xenial
-dist: precise
+dist: xenial
 language: python
 
 branches:
@@ -44,7 +43,7 @@ matrix:
       #  apt:
       #    sources:
       #      - mongodb-upstart
-      #      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.6 multiverse'
+      #      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse'
       #        key_url: 'https://www.mongodb.org/static/pgp/server-3.6.asc'
       #      - sourceline: 'ppa:git-core/ppa'
       #    packages:
@@ -67,21 +66,23 @@ matrix:
 addons:
   apt:
     sources:
-      - mongodb-upstart
-      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
+      # xenial has systemd not upstart
+      #- mongodb-upstart
+      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse'
         key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
       # NOTE: Precise repo doesn't contain Erlang 20.x, latest version is 19.x so we need to use RabbitMQ 3.7.6
       #- sourceline: 'deb [arch=amd64] http://packages.erlang-solutions.com/ubuntu precise contrib'
       #  key_url: 'https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
       #- sourceline: 'deb [arch=amd64] https://dl.bintray.com/rabbitmq/debian precise rabbitmq-server-v3.6.x'
       #  key_url: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
-      - sourceline: 'ppa:git-core/ppa'
+      #git is v2.21.0 in xenial
+      #- sourceline: 'ppa:git-core/ppa'
     packages:
-      - mongodb-org-server
-      - mongodb-org-shell
+      - mongodb-org-server=3.4.24
+      - mongodb-org-shell=3.4.24
       - erlang
       - rabbitmq-server
-      - git
+      #- git
       - libffi-dev
 
 cache:
