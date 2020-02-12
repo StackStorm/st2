@@ -125,7 +125,8 @@ before_script:
   - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
   - sudo chmod +x /usr/local/bin/rabbitmqadmin
   - sudo service rabbitmq-server restart
-  - sudo tail -n 30 /var/log/rabbitmq/*
+  # chmod to make glob work (*.log to avoid log dir)
+  - sudo chmod a+rx /var/log/rabbitmq ; sudo tail -n 30 /var/log/rabbitmq/*.log
   # Print various binary versions
   - mongod --version
   - git --version
