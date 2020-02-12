@@ -38,7 +38,8 @@ jobs:
     # scripts/travis/run-nightly-make-task-if-exists.sh
     - env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
       python: 2.7
-      name: "Unit Tests (Python 2.7 MongoDB 3.4)"
+      # bionic comes with MongoDB 4.0 and 3.4 is not available on bionic
+      name: "Unit Tests (Python 2.7 MongoDB 4.0)"
     - env: TASK=ci-integration CACHE_NAME=py2 COMMAND_THRESHOLD=700
       python: 2.7
       name: "Integration Tests (Python 2.7)"
@@ -54,12 +55,7 @@ jobs:
 
 addons:
   apt:
-    sources:
-      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse'
-        key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
     packages:
-      - mongodb-org-server=3.4.*
-      - mongodb-org-shell=3.4.*
       - rabbitmq-server
       - libffi-dev
 
