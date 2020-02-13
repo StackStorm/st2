@@ -340,6 +340,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             'actionfloat': 1.5,
             'actionstr': 'string value',
             'actionbool': True,
+            'actionarray': ['foo', 'bar', 'baz', 'qux'],
             'actionlist': ['foo', 'bar', 'baz'],
             'actionobject': {'a': 1, 'b': '2'},
         }
@@ -348,6 +349,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             '1.5',
             'string value',
             '1',
+            'foo,bar,baz,qux',
             'foo,bar,baz',
             '{"a": 1, "b": "2"}',
             ''
@@ -361,6 +363,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             'actionfloat': 1.5,
             'actionstr': 'string value',
             'actionbool': False,
+            'actionarray': [],
             'actionlist': [],
             'actionobject': {'a': 1, 'b': '2'},
         }
@@ -369,6 +372,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             '1.5',
             'string value',
             '0',
+            '',
             '',
             '{"a": 1, "b": "2"}',
             ''
@@ -383,10 +387,12 @@ class ActionDBUtilsTestCase(DbTestCase):
             'actionfloat': None,
             'actionstr': None,
             'actionbool': None,
+            'actionarray': None,
             'actionlist': None,
             'actionobject': None,
         }
         expected_pos_args = [
+            '',
             '',
             '',
             '',
@@ -463,9 +469,10 @@ class ActionDBUtilsTestCase(DbTestCase):
             'actionfloat': {'type': 'float', 'required': False, 'position': 1},
             'actionstr': {'type': 'string', 'required': True, 'position': 2},
             'actionbool': {'type': 'boolean', 'required': False, 'position': 3},
-            'actionlist': {'type': 'list', 'required': False, 'position': 4},
-            'actionobject': {'type': 'object', 'required': False, 'position': 5},
-            'actionnull': {'type': 'null', 'required': False, 'position': 6},
+            'actionarray': {'type': 'array', 'required': False, 'position': 4},
+            'actionlist': {'type': 'list', 'required': False, 'position': 5},
+            'actionobject': {'type': 'object', 'required': False, 'position': 6},
+            'actionnull': {'type': 'null', 'required': False, 'position': 7},
 
             'runnerdummy': {'type': 'string', 'default': 'actiondummy'}
         }
