@@ -327,7 +327,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             'runnerint': 555
         }
         pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
-        self.assertListEqual(pos_args, ['20', '', 'foo', '', '', '', ''],
+        self.assertListEqual(pos_args, ['20', '', 'foo', '', '', '', '', ''],
                             'Positional args not parsed correctly.')
         self.assertTrue('actionint' not in named_args)
         self.assertTrue('actionstr' not in named_args)
@@ -392,7 +392,6 @@ class ActionDBUtilsTestCase(DbTestCase):
             'actionobject': None,
         }
         expected_pos_args = [
-            '',
             '',
             '',
             '',
