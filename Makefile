@@ -951,6 +951,12 @@ ci-py3-unit:
 	@echo "==================== ci-py3-unit ===================="
 	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
+
+.PHONY: ci-py3-packs-tests
+ci-py3-packs-tests:
+	@echo
+	@echo "==================== ci-py3-packs-tests ===================="
+	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
 
 .PHONY: ci-py3-unit-nightly

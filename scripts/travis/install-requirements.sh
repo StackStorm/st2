@@ -1,7 +1,23 @@
 #!/usr/bin/env bash
 
-if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then
+# This file gets run for all travis jobs.
+
+# virtualenv prepartion is different for python3, so we want all py3 targets here.
+# We use a glob instead of listing TASKs so TASK reorganization doesn't require so many changes.
+if [[ " ${TASK}" = *' ci-py3-'* ]]; then
     pip install "tox==3.8.6"
+
+    # NOTE: The makefile only checks to see if the activate script is present.
+    # It does not check if the virtualenv was built with the correct python version.
+    # Since the makefile defaults to python2.7, a 2.7 virtualenv might get cached.
+    # Specifying PYTHON_VERSION in .travis.yml should alleviate that,
+    # but we'll check the version here just to be sure a cached virtualenv doesn't
+    # silently invalidate the tests.
+
+    # cleanup any invalid python2 cache
+    test -d virtualenv/lib/${PYTHON_VERSION} || rm -rf virtualenv/*
+    # rebuild virtualenv if necessary
+    test -f virtualenv/bin/activate || virtualenv --python=${PYTHON_VERSION} virtualenv --no-download
 
     # Install runners
     . virtualenv/bin/activate
@@ -17,15 +33,23 @@ if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration
     # NOTE: We create the environment and install the dependencies first. This
     # means that the subsequent tox build / test command has a stable run time
     # since it doesn't depend on dependencies being installed.
-    if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then
-        TOX_TASK="py36-unit"
+    # NOTE: Travis jobs can have more than one TASK, so we search for all make
+    # targets that need a tox env. The spaces ensure we match entire make targets.
+    if [[ " ${TASK} " = *' ci-py3-unit '* ]]; then
+        tox -e py36-unit --notest
     fi
 
-    if [ "${TASK}" = 'ci-py3-integration' ]; then
-        TOX_TASK="py36-integration"
+    if [[ " ${TASK} " = *' ci-py3-unit-nightly '* ]]; then
+        tox -e py36-unit-nightly --notest
     fi
 
-    tox -e ${TOX_TASK} --notest
+    if [[ " ${TASK} " = *' ci-py3-packs-tests '* ]]; then
+        tox -e py36-packs --notest
+    fi
+
+    if [[ " ${TASK} " = *' ci-py3-integration '* ]]; then
+        tox -e py36-integration --notest
+    fi
 else
     make requirements
 fi
