@@ -3,6 +3,11 @@
 if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then
     pip install "tox==3.8.6"
 
+    # cleanup any invalid python2 cache
+    test -d virtualenv/lib/${PYTHON_VERSION} || rm -rf virtualenv/*
+    # rebuild virtualenv if necessary
+    test -f virtualenv/bin/activate || virtualenv --python=${PYTHON_VERSION} virtualenv --no-download
+
     # Install runners
     . virtualenv/bin/activate
 
