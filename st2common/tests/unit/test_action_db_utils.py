@@ -398,6 +398,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             '',
             '',
             '',
+            '',
             ''
         ]
         pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
@@ -414,6 +415,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             '20',
             '',
             u'bar č š hello đ č p ž Ž a 💩😁',
+            '',
             '',
             '',
             '',
