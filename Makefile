@@ -176,7 +176,7 @@ check-python-packages:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -192,7 +192,7 @@ check-python-packages-nightly:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -314,7 +314,7 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== st2client install check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_ST2CLIENT_DIR) --no-download
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -506,7 +506,7 @@ virtualenv:
 	@echo
 	# Note: We pass --no-download flag to make sure version of pip which we install (9.0.1) is used
 	# instead of latest version being downloaded from PyPi
-	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_DIR) --no-download
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_DIR) --no-download
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
