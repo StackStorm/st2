@@ -30,7 +30,7 @@ class ContentLoaderTest(unittest2.TestCase):
         packs_base_path = os.path.join(RESOURCES_DIR, 'packs/')
         loader = ContentPackLoader()
         pack_sensors = loader.get_content(base_dirs=[packs_base_path], content_type='sensors')
-        self.assertTrue(pack_sensors.get('pack1', None) is not None)
+        self.assertIsNotNone(pack_sensors.get('pack1', None))
 
     def test_get_sensors_pack_missing_sensors(self):
         loader = ContentPackLoader()

@@ -125,7 +125,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         executions_util.create_execution_object(liveaction)
         execution = self._get_action_execution(liveaction__id=str(liveaction.id),
                                                raise_exception=True)
-        self.assertTrue(execution.web_url is not None)
+        self.assertIsNotNone(execution.web_url)
         execution_id = str(execution.id)
         self.assertIn(('history/%s/general' % execution_id), execution.web_url)
 

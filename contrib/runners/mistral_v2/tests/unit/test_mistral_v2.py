@@ -225,7 +225,7 @@ class MistralRunnerTest(ExecutionDbTestCase):
         }
 
         context = MistralRunner._build_mistral_context(parent, current)
-        self.assertTrue(context is not None)
+        self.assertIsNotNone(context)
         self.assertIn('parent', list(context['mistral'].keys()))
 
         parent_dict = {

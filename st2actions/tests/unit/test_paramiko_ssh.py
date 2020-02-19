@@ -586,21 +586,21 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
         path = '/root/random_script.sh'
         client.put(path, path, mirror_local_mode=False)
 
-        self.assertTrue(client.sftp_client is not None)
+        self.assertIsNotNone(client.sftp_client)
 
         # exists
         client = ParamikoSSHClient(**conn_params)
         client.connect()
         client.exists('/root/somepath.txt')
 
-        self.assertTrue(client.sftp_client is not None)
+        self.assertIsNotNone(client.sftp_client)
 
         # mkdir
         client = ParamikoSSHClient(**conn_params)
         client.connect()
         client.mkdir('/root/somedirfoo')
 
-        self.assertTrue(client.sftp_client is not None)
+        self.assertIsNotNone(client.sftp_client)
 
         # Verify close doesn't throw if SFTP connection is not established
         client = ParamikoSSHClient(**conn_params)
@@ -614,7 +614,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
         client.connect()
         client.mkdir('/root/somedirfoo')
 
-        self.assertTrue(client.sftp_client is not None)
+        self.assertIsNotNone(client.sftp_client)
         client.close()
 
         self.assertEqual(client.sftp_client.close.call_count, 1)

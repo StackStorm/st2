@@ -89,7 +89,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     def test_runner_creation(self):
         runner = python_runner.get_runner()
-        self.assertTrue(runner is not None, 'Creation failed. No instance.')
+        self.assertIsNotNone(runner, 'Creation failed. No instance.')
         self.assertEqual(type(runner), python_runner.PythonRunner, 'Creation failed. No instance.')
 
     def test_action_returns_non_serializable_result(self):
@@ -101,7 +101,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         (status, output, _) = runner.run({})
 
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
 
         if six.PY2:
             expected_result_re = (r"\[{'a': '1'}, {'h': 3, 'c': 2}, {'e': "
@@ -119,7 +119,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 5})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 5, 10, 10, 5, 1])
 
     def test_simple_action_with_result_as_None_no_status(self):
@@ -128,7 +128,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'b'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['exit_code'], 0)
         self.assertEqual(output['result'], None)
 
@@ -140,7 +140,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 4})
         self.assertEqual(status, LIVEACTION_STATUS_TIMED_OUT)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['error'], 'Action failed to complete in 0 seconds')
         self.assertEqual(output['exit_code'], -9)
@@ -151,7 +151,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 4})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 4, 6, 4, 1])
 
     def test_simple_action_with_status_failed(self):
@@ -160,7 +160,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'a'})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], "This is suppose to fail don't worry!!")
 
     def test_simple_action_with_status_complex_type_returned_for_result(self):
@@ -172,7 +172,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         (status, output, _) = runner.run({'row_index': 'complex_type'})
 
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertIn('<pascal_row.PascalRowAction object at', output['result'])
 
     def test_simple_action_with_status_failed_result_none(self):
@@ -181,7 +181,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'c'})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], None)
 
     def test_exception_in_simple_action_with_invalid_status(self):
@@ -197,7 +197,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 2])
 
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
@@ -235,7 +235,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.pre_run()
         (status, result, _) = runner.run({'row_index': '4'})
-        self.assertTrue(result is not None)
+        self.assertIsNotNone(result)
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
     def test_simple_action_no_file(self):
@@ -243,7 +243,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.entry_point = 'foo.py'
         runner.pre_run()
         (status, result, _) = runner.run({})
-        self.assertTrue(result is not None)
+        self.assertIsNotNone(result)
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
     def test_simple_action_no_entry_point(self):
@@ -611,7 +611,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], 'test action')
 
     def test_python_action_wrapper_script_doesnt_get_added_to_sys_path(self):
@@ -623,7 +623,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         (status, output, _) = runner.run({})
 
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
 
         lines = output['stdout'].split('\n')
         process_sys_path = lines[0]
@@ -676,7 +676,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 2])
 
         self.assertIn(expected_msg_1, output['stderr'])
@@ -711,7 +711,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 2])
 
         self.assertIn(expected_msg_3, output['stderr'])
@@ -727,7 +727,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 2])
 
         self.assertNotIn(expected_msg_3, output['stderr'])
@@ -744,7 +744,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 2])
 
         self.assertIn(expected_msg_3, output['stderr'])
@@ -758,7 +758,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'f'})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
 
         expected_msg_1 = 'Traceback (most recent'
         expected_msg_2 = 'ValueError: Duplicate traceback test'
@@ -776,7 +776,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         large_value = ''.join(['1' for _ in range(MAX_PARAM_LENGTH)])
         (status, output, _) = runner.run({'action_input': large_value})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result']['action_input'], large_value)
 
     def test_execution_with_close_to_very_large_parameter(self):
@@ -790,7 +790,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         large_value = ''.join(['1' for _ in range(MAX_PARAM_LENGTH - 21)])
         (status, output, _) = runner.run({'action_input': large_value})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result']['action_input'], large_value)
 
     @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
@@ -942,7 +942,7 @@ fatal: invalid reference: vinvalid
         (status, output, _) = runner.run({})
 
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertIn('{}', output['stdout'])
         self.assertIn('default_value', output['stdout'])
         self.assertIn('Config for pack "core" is missing key "key"', output['stderr'])

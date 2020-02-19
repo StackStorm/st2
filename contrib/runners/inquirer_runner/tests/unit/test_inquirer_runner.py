@@ -84,7 +84,7 @@ class InquiryTestCase(st2tests.RunnerTestCase):
 
     def test_runner_creation(self):
         runner = inquirer_runner.get_runner()
-        self.assertTrue(runner is not None, 'Creation failed. No instance.')
+        self.assertIsNotNone(runner, 'Creation failed. No instance.')
         self.assertEqual(type(runner), inquirer_runner.Inquirer, 'Creation failed. No instance.')
 
     def test_simple_inquiry(self):

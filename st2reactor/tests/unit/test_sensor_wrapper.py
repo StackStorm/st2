@@ -53,8 +53,8 @@ class SensorWrapperTestCase(unittest2.TestCase):
                                 class_name='TestSensor',
                                 trigger_types=trigger_types,
                                 parent_args=parent_args)
-        self.assertTrue(getattr(wrapper._sensor_instance, 'sensor_service', None) is not None)
-        self.assertTrue(getattr(wrapper._sensor_instance, 'config', None) is not None)
+        self.assertIsNotNone(getattr(wrapper._sensor_instance, 'sensor_service', None))
+        self.assertIsNotNone(getattr(wrapper._sensor_instance, 'config', None))
 
     def test_trigger_cud_event_handlers(self):
         trigger_id = '57861fcb0640fd1524e577c0'

@@ -486,7 +486,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         post_resp = self.__do_post(ACTION_1)
         self.assertEqual(post_resp.status_int, 201)
         action_in_db = Action.get_by_name(ACTION_1.get('name'))
-        self.assertTrue(action_in_db is not None, 'Action must be in db.')
+        self.assertIsNotNone(action_in_db, 'Action must be in db.')
         action_ids.append(self.__get_action_id(post_resp))
 
         post_resp = self.__do_post(ACTION_1, expect_errors=True)
@@ -590,7 +590,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         get_resp = self.__do_get_one(action_id)
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self.__get_action_id(get_resp), action_id)
-        self.assertTrue(get_resp.json['notify']['on-complete'] is not None)
+        self.assertIsNotNone(get_resp.json['notify']['on-complete'])
         # Now post the same action with no notify
         ACTION_WITHOUT_NOTIFY = copy.copy(ACTION_WITH_NOTIFY)
         del ACTION_WITHOUT_NOTIFY['notify']

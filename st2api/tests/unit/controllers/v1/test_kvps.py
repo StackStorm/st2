@@ -481,7 +481,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         for stored_kvp in stored_kvps:
             self.assertFalse(stored_kvp['encrypted'])
             exp_kvp = kvps.get(stored_kvp['name'])
-            self.assertTrue(exp_kvp is not None)
+            self.assertIsNotNone(exp_kvp)
             self.assertEqual(exp_kvp['value'], stored_kvp['value'])
         self.__do_delete(kvp_id_1)
         self.__do_delete(kvp_id_2)
