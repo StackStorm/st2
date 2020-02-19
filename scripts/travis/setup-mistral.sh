@@ -144,7 +144,7 @@ setup_mistral() {
 
   # Setup virtualenv for running mistral.
   cd /opt/openstack/mistral
-  virtualenv --no-site-packages .venv
+  virtualenv .venv
   . /opt/openstack/mistral/.venv/bin/activate
   pip install -q -r requirements.txt
   pip install -q psycopg2
