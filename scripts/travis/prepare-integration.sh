@@ -32,3 +32,7 @@ echo " === END: Catting screen process log files. ==="
 # as root can't write to logs/ directory and tests fail
 chmod 777 logs/
 chmod 777 logs/*
+
+# root needs to access write some lock files when creating virtualenvs
+# o=other; X=only set execute bit if user execute bit is set (eg on dirs)
+chmod -R o+rwX ${HOME}/.local/share/virtualenv
