@@ -138,7 +138,7 @@ class ActionRunCommandTest(unittest2.TestCase):
 
         param = command._get_action_parameters_from_args(action=action, runner=runner, args=mockarg)
 
-        self.assertTrue(isinstance(param, dict))
+        self.assertIsInstance(param, dict)
         self.assertEqual(param['param_string'], 'hoge')
         self.assertEqual(param['param_integer'], 123)
         self.assertEqual(param['param_number'], 1.23)
@@ -147,15 +147,15 @@ class ActionRunCommandTest(unittest2.TestCase):
         self.assertEqual(param['param_array'], ['foo', 'bar', 'baz'])
 
         # checking the result of parsing for array of objects
-        self.assertTrue(isinstance(param['param_array_of_dicts'], list))
+        self.assertIsInstance(param['param_array_of_dicts'], list)
         self.assertEqual(len(param['param_array_of_dicts']), 2)
         for param in param['param_array_of_dicts']:
-            self.assertTrue(isinstance(param, dict))
-            self.assertTrue(isinstance(param['foo'], str))
-            self.assertTrue(isinstance(param['bar'], int))
-            self.assertTrue(isinstance(param['baz'], float))
-            self.assertTrue(isinstance(param['qux'], dict))
-            self.assertTrue(isinstance(param['quux'], bool))
+            self.assertIsInstance(param, dict)
+            self.assertIsInstance(param['foo'], str)
+            self.assertIsInstance(param['bar'], int)
+            self.assertIsInstance(param['baz'], float)
+            self.assertIsInstance(param['qux'], dict)
+            self.assertIsInstance(param['quux'], bool)
 
         # set auto_dict back to default
         mockarg.auto_dict = False

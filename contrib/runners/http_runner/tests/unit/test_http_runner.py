@@ -81,7 +81,7 @@ class HTTPClientTestCase(unittest2.TestCase):
         mock_requests.request.return_value = mock_result
         result = client.run()
 
-        self.assertTrue(isinstance(result['body'], dict))
+        self.assertIsInstance(result['body'], dict)
         self.assertEqual(result['body'], {'test1': 'val1'})
 
         # JSON content-type with charset and JSON body
@@ -91,7 +91,7 @@ class HTTPClientTestCase(unittest2.TestCase):
         mock_requests.request.return_value = mock_result
         result = client.run()
 
-        self.assertTrue(isinstance(result['body'], dict))
+        self.assertIsInstance(result['body'], dict)
         self.assertEqual(result['body'], {'test1': 'val1'})
 
         # JSON content-type and invalid json body

@@ -138,8 +138,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         execution_db = enforcer.enforce()
         self.assertIsNotNone(execution_db)
         self.assertTrue(action_service.request.called)
-        self.assertTrue(isinstance(action_service.request.call_args[0][0].parameters['objtype'],
-                                   dict))
+        self.assertIsInstance(action_service.request.call_args[0][0].parameters['objtype'], dict)
 
     @mock.patch.object(action_service, 'request', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))

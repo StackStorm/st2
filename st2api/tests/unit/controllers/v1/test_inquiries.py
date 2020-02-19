@@ -193,7 +193,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase,
         get_all_resp = self._do_get_all()
         inquiries = get_all_resp.json
         self.assertEqual(get_all_resp.headers['X-Total-Count'], str(len(inquiries)))
-        self.assertTrue(isinstance(inquiries, list))
+        self.assertIsInstance(inquiries, list)
         self.assertEqual(len(inquiries), inquiry_count)
 
     def test_get_all_empty(self):
@@ -202,7 +202,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase,
         inquiry_count = 0
         get_all_resp = self._do_get_all()
         inquiries = get_all_resp.json
-        self.assertTrue(isinstance(inquiries, list))
+        self.assertIsInstance(inquiries, list)
         self.assertEqual(len(inquiries), inquiry_count)
 
     def test_get_all_decrease_after_respond(self):
@@ -215,7 +215,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase,
             self._do_create_inquiry(INQUIRY_2, RESULT_DEFAULT)
         get_all_resp = self._do_get_all()
         inquiries = get_all_resp.json
-        self.assertTrue(isinstance(inquiries, list))
+        self.assertIsInstance(inquiries, list)
         self.assertEqual(len(inquiries), inquiry_count)
 
         # Respond to one of them
@@ -225,7 +225,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase,
         # Ensure the list is one smaller
         get_all_resp = self._do_get_all()
         inquiries = get_all_resp.json
-        self.assertTrue(isinstance(inquiries, list))
+        self.assertIsInstance(inquiries, list)
         self.assertEqual(len(inquiries), inquiry_count - 1)
 
     def test_get_all_limit(self):
@@ -239,7 +239,7 @@ class InquiryControllerTestCase(BaseInquiryControllerTestCase,
             self._do_create_inquiry(INQUIRY_1, RESULT_DEFAULT)
         get_all_resp = self._do_get_all(limit=limit)
         inquiries = get_all_resp.json
-        self.assertTrue(isinstance(inquiries, list))
+        self.assertIsInstance(inquiries, list)
         self.assertEqual(inquiry_count, int(get_all_resp.headers['X-Total-Count']))
         self.assertEqual(len(inquiries), limit)
 

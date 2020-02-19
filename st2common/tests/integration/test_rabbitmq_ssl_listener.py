@@ -63,7 +63,7 @@ class RabbitMQTLSListenerTestCase(unittest2.TestCase):
             connection.connect()
         except Exception as e:
             self.assertFalse(connection.connected)
-            self.assertTrue(isinstance(e, (IOError, socket.error)))
+            self.assertIsInstance(e, (IOError, socket.error))
             self.assertTrue(expected_msg_1 in six.text_type(e) or expected_msg_2 in
                             six.text_type(e))
         else:
