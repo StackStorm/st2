@@ -116,7 +116,7 @@ class TestActionExecutionFilters(FunctionalTest):
         response = self.app.get(path)
 
         self.assertEqual(response.status_int, 200)
-        self.assertFalse('result' in response.json[0])
+        self.assertNotIn('result', response.json[0])
 
     def test_get_one(self):
         obj_id = random.choice(list(self.refs.keys()))

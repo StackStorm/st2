@@ -141,8 +141,8 @@ class TestLoginPasswordAndConfig(TestLoginBase):
         with open(self.CONFIG_FILE, 'r') as config_file:
             for line in config_file.readlines():
                 # Make sure certain values are not present
-                self.assertFalse('password' in line)
-                self.assertFalse('olduser' in line)
+                self.assertNotIn('password', line)
+                self.assertNotIn('olduser', line)
 
                 # Make sure configured username is what we expect
                 if 'username' in line:
@@ -194,8 +194,8 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
         with open(self.CONFIG_FILE, 'r') as config_file:
             for line in config_file.readlines():
                 # Make sure certain values are not present
-                self.assertFalse('password' in line)
-                self.assertFalse('olduser' in line)
+                self.assertNotIn('password', line)
+                self.assertNotIn('olduser', line)
 
                 # Make sure configured username is what we expect
                 if 'username' in line:
@@ -250,7 +250,7 @@ class TestLoginWritePwdOkay(TestLoginBase):
             for line in config_file.readlines():
 
                 # Make sure certain values are not present
-                self.assertFalse('olduser' in line)
+                self.assertNotIn('olduser', line)
 
                 # Make sure configured username is what we expect
                 if 'username' in line:

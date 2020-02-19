@@ -293,7 +293,7 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         if self.test_exact_object_count:
             self.assertEqual(len(resp.json), len(object_ids))
 
-        self.assertFalse(exclude_attribute in resp.json[0])
+        self.assertNotIn(exclude_attribute, resp.json[0])
 
         self._delete_mock_models(object_ids)
 
