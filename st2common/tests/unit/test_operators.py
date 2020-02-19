@@ -874,8 +874,8 @@ class OperatorTest(unittest2.TestCase):
 
 class GetOperatorsTest(unittest2.TestCase):
     def test_get_operator(self):
-        self.assertTrue(bool(operators.get_operator('equals')))
-        self.assertTrue(bool(operators.get_operator('EQUALS')))
+        self.assertTrue(operators.get_operator('equals'))
+        self.assertTrue(operators.get_operator('EQUALS'))
 
     def test_get_operator_returns_same_operator_with_different_cases(self):
         equals = operators.get_operator('equals')
