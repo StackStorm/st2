@@ -23,6 +23,8 @@ env:
     # We only run tests with "--with-timer" flag on master and not for PRs since it adds 1-2
     # # minutes of overhead to each build.
     - NOSE_TIME=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
+    # Travis-specific st2.conf (with travis user instead of stanley)
+    - ST2_CONF=conf/st2.travis.conf
 matrix:
   include:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
@@ -100,6 +102,9 @@ before_install:
 
 install:
   - ./scripts/travis/install-requirements.sh
+  # prep a travis-specific dev conf file that uses travis instead of stanley
+  - cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
+  - sudo scripts/travis/add-itest-user-key.sh
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'ci-checks ci-packs-tests' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
 
 # Let's enable rabbitmqadmin
