@@ -67,8 +67,8 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         status, result, _ = runner.run({})
         runner.post_run(status, result)
 
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEquals(result['stdout'], 10)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(result['stdout'], 10)
 
         # End result should be the same when streaming is enabled
         cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
@@ -82,8 +82,8 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         status, result, _ = runner.run({})
         runner.post_run(status, result)
 
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEquals(result['stdout'], 10)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(result['stdout'], 10)
 
         output_dbs = ActionExecutionOutput.get_all()
         self.assertEqual(len(output_dbs), 1)
@@ -99,7 +99,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         status, result, _ = runner.run({})
         runner.post_run(status, result)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_TIMED_OUT)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_TIMED_OUT)
 
     @mock.patch.object(
         shell, 'run_command',
@@ -111,7 +111,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner = self._get_runner(action_db, cmd='sleep 0.1')
         runner.pre_run()
         status, result, _ = runner.run({})
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_ABANDONED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_ABANDONED)
 
     def test_common_st2_env_vars_are_available_to_the_action(self):
         models = self.fixtures_loader.load_models(
@@ -123,7 +123,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         status, result, _ = runner.run({})
         runner.post_run(status, result)
 
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(result['stdout'].strip(), get_full_public_api_url())
 
         runner = self._get_runner(action_db, cmd='echo $ST2_ACTION_AUTH_TOKEN')
@@ -131,7 +131,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         status, result, _ = runner.run({})
         runner.post_run(status, result)
 
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(result['stdout'].strip(), 'mock-token')
 
     def test_sudo_and_env_variable_preservation(self):
@@ -149,7 +149,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         status, result, _ = runner.run({})
         runner.post_run(status, result)
 
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(result['stdout'].strip(), 'root\nponiesponies')
 
     @mock.patch('st2common.util.concurrency.subprocess_popen')
@@ -192,7 +192,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         status, result, _ = runner.run({})
         runner.post_run(status, result)
 
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         self.assertEqual(result['stdout'], 'stdout line 1\nstdout line 2')
         self.assertEqual(result['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3')
@@ -260,7 +260,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             runner.pre_run()
             status, result, _ = runner.run({})
 
-            self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+            self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
             self.assertEqual(result['stdout'], 'stdout line 1\nstdout line 2')
             self.assertEqual(result['stderr'], 'stderr line 1\nstderr line 2')
@@ -313,9 +313,9 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             status, result, _ = runner.run({})
             runner.post_run(status, result)
 
-            self.assertEquals(status,
+            self.assertEqual(status,
                     action_constants.LIVEACTION_STATUS_SUCCEEDED)
-            self.assertEquals(result['stdout'], sudo_password)
+            self.assertEqual(result['stdout'], sudo_password)
 
         # with sudo
         for sudo_password in sudo_passwords:
@@ -326,9 +326,9 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             status, result, _ = runner.run({})
             runner.post_run(status, result)
 
-            self.assertEquals(status,
+            self.assertEqual(status,
                     action_constants.LIVEACTION_STATUS_SUCCEEDED)
-            self.assertEquals(result['stdout'], sudo_password)
+            self.assertEqual(result['stdout'], sudo_password)
 
         # Verify new process which provides password via stdin to the command is created
         with mock.patch('st2common.util.concurrency.subprocess_popen') as mock_subproc_popen:
@@ -369,9 +369,9 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         expected_error = ('Invalid sudo password provided or sudo is not configured for this '
                           'user (bar)')
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertEqual(result['error'], expected_error)
-        self.assertEquals(result['stdout'], '')
+        self.assertEqual(result['stdout'], '')
 
     @staticmethod
     def _get_runner(action_db,
@@ -592,8 +592,8 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         status, result, _ = runner.run({'chars': 1000})
         runner.post_run(status, result)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEquals(len(result['stdout']), 1000)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(len(result['stdout']), 1000)
 
     def test_large_stdout(self):
         models = self.fixtures_loader.load_models(
@@ -606,8 +606,8 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         char_count = 10 ** 6  # Note 10^7 succeeds but ends up being slow.
         status, result, _ = runner.run({'chars': char_count})
         runner.post_run(status, result)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEquals(len(result['stdout']), char_count)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(len(result['stdout']), char_count)
 
     def _get_runner(self, action_db, entry_point):
         runner = LocalShellScriptRunner(uuid.uuid4().hex)

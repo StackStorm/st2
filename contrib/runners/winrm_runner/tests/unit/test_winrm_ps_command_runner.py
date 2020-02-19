@@ -31,7 +31,7 @@ class WinRmPsCommandRunnerTestCase(RunnerTestCase):
         runner = winrm_ps_command_runner.WinRmPsCommandRunner('abcdef')
         self.assertIsInstance(runner, WinRmBaseRunner)
         self.assertIsInstance(runner, ActionRunner)
-        self.assertEquals(runner.runner_id, 'abcdef')
+        self.assertEqual(runner.runner_id, 'abcdef')
 
     @mock.patch('winrm_runner.winrm_ps_command_runner.WinRmPsCommandRunner.run_ps')
     def test_run(self, mock_run_ps):
@@ -40,5 +40,5 @@ class WinRmPsCommandRunnerTestCase(RunnerTestCase):
         self._runner.runner_parameters = {'cmd': 'Get-ADUser stanley'}
         result = self._runner.run({})
 
-        self.assertEquals(result, 'expected')
+        self.assertEqual(result, 'expected')
         mock_run_ps.assert_called_with('Get-ADUser stanley')

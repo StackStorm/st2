@@ -121,7 +121,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
                                 poll_interval=poll_interval)
         self.assertIsNotNone(wrapper._sensor_instance)
         self.assertIsInstance(wrapper._sensor_instance, PollingSensor)
-        self.assertEquals(wrapper._sensor_instance._poll_interval, poll_interval)
+        self.assertEqual(wrapper._sensor_instance._poll_interval, poll_interval)
 
     def test_sensor_init_fails_file_doesnt_exist(self):
         file_path = os.path.join(RESOURCES_DIR, 'test_sensor_doesnt_exist.py')

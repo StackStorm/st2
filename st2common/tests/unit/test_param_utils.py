@@ -789,7 +789,7 @@ class ParamsUtilsTest(DbTestCase):
             'templateparam': '3'
         }
         result = param_utils._cast_params_from({}, context, schemas)
-        self.assertEquals(result, {})
+        self.assertEqual(result, {})
 
         # Test with no live params, and two parameters - one should make it through because
         # it was a template, and the other shouldn't because its default wasn't a template
@@ -805,7 +805,7 @@ class ParamsUtilsTest(DbTestCase):
             'templateparam': '3'
         }
         result = param_utils._cast_params_from({}, context, schemas)
-        self.assertEquals(result, {'templateparam': 3})
+        self.assertEqual(result, {'templateparam': 3})
 
         # Ensure parameter is skipped if the value in context is identical to default
         schemas = [
@@ -820,7 +820,7 @@ class ParamsUtilsTest(DbTestCase):
             'nottemplateparam': '4',
         }
         result = param_utils._cast_params_from({}, context, schemas)
-        self.assertEquals(result, {})
+        self.assertEqual(result, {})
 
         # Ensure parameter is skipped if the parameter doesn't have a default
         schemas = [
@@ -834,7 +834,7 @@ class ParamsUtilsTest(DbTestCase):
             'nottemplateparam': '4',
         }
         result = param_utils._cast_params_from({}, context, schemas)
-        self.assertEquals(result, {})
+        self.assertEqual(result, {})
 
         # Skip if the default value isn't a Jinja expression
         schemas = [
@@ -849,7 +849,7 @@ class ParamsUtilsTest(DbTestCase):
             'nottemplateparam': '4',
         }
         result = param_utils._cast_params_from({}, context, schemas)
-        self.assertEquals(result, {})
+        self.assertEqual(result, {})
 
         # Ensure parameter is skipped if the parameter is being overridden
         schemas = [
@@ -864,7 +864,7 @@ class ParamsUtilsTest(DbTestCase):
             'templateparam': '4',
         }
         result = param_utils._cast_params_from({'templateparam': '4'}, context, schemas)
-        self.assertEquals(result, {'templateparam': 4})
+        self.assertEqual(result, {'templateparam': 4})
 
     def test_render_final_params_and_shell_script_action_command_strings(self):
         runner_parameters = {}

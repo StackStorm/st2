@@ -67,7 +67,7 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
                          'send_mail running on %s' % (HOSTNAME))
 
         status, _, email_data, message = self._run_action(action_parameters=action_parameters)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         # Verify subject contains utf-8 charset and is base64 encoded
         self.assertIn('SUBJECT: =?UTF-8?B?', email_data)
@@ -96,7 +96,7 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
                          'send_mail running on %s' % (HOSTNAME))
 
         status, _, email_data, message = self._run_action(action_parameters=action_parameters)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         # Verify subject contains utf-8 charset and is base64 encoded
         self.assertIn('SUBJECT: =?UTF-8?B?', email_data)
@@ -133,7 +133,7 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
                              u'send_mail running on %s' % (HOSTNAME))
 
         status, _, email_data, message = self._run_action(action_parameters=action_parameters)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         # Verify subject contains utf-8 charset and is base64 encoded
         self.assertIn('SUBJECT: =?UTF-8?B?', email_data)
@@ -167,7 +167,7 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
                              u'send_mail running on %s' % (HOSTNAME))
 
         status, _, email_data, message = self._run_action(action_parameters=action_parameters)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         self.assertEqual(message.to[0][1], action_parameters['to'])
         self.assertEqual(message.from_[0][1], action_parameters['from'])
@@ -207,7 +207,7 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
                          'send_mail running on %s' % (HOSTNAME))
 
         status, _, email_data, message = self._run_action(action_parameters=action_parameters)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         # Verify subject contains utf-8 charset and is base64 encoded
         self.assertIn('SUBJECT: =?UTF-8?B?', email_data)

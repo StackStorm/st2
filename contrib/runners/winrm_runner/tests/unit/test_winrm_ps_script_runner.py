@@ -36,7 +36,7 @@ class WinRmPsScriptRunnerTestCase(RunnerTestCase):
         runner = winrm_ps_script_runner.WinRmPsScriptRunner('abcdef')
         self.assertIsInstance(runner, WinRmBaseRunner)
         self.assertIsInstance(runner, ActionRunner)
-        self.assertEquals(runner.runner_id, 'abcdef')
+        self.assertEqual(runner.runner_id, 'abcdef')
 
     @mock.patch('winrm_runner.winrm_ps_script_runner.WinRmPsScriptRunner._get_script_args')
     @mock.patch('winrm_runner.winrm_ps_script_runner.WinRmPsScriptRunner.run_ps')
@@ -52,7 +52,7 @@ class WinRmPsScriptRunnerTestCase(RunnerTestCase):
 
         result = self._runner.run({})
 
-        self.assertEquals(result, 'expected')
+        self.assertEqual(result, 'expected')
         mock_run_ps.assert_called_with('''[CmdletBinding()]
 Param(
   [bool]$p_bool,

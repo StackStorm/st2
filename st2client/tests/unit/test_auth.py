@@ -146,7 +146,7 @@ class TestLoginPasswordAndConfig(TestLoginBase):
 
                 # Make sure configured username is what we expect
                 if 'username' in line:
-                    self.assertEquals(line.split(' ')[2][:-1], expected_username)
+                    self.assertEqual(line.split(' ')[2][:-1], expected_username)
 
             # validate token was created
             self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
@@ -199,7 +199,7 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
 
                 # Make sure configured username is what we expect
                 if 'username' in line:
-                    self.assertEquals(line.split(' ')[2][:-1], expected_username)
+                    self.assertEqual(line.split(' ')[2][:-1], expected_username)
 
             # validate token was created
             self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
@@ -254,7 +254,7 @@ class TestLoginWritePwdOkay(TestLoginBase):
 
                 # Make sure configured username is what we expect
                 if 'username' in line:
-                    self.assertEquals(line.split(' ')[2][:-1], expected_username)
+                    self.assertEqual(line.split(' ')[2][:-1], expected_username)
 
             # validate token was created
             self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))

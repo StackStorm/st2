@@ -289,7 +289,7 @@ class TestTimerContextManager(unittest2.TestCase):
                 (end_time - middle_time).total_seconds()
             )
             time_delta = timer.get_time_delta()
-            self.assertEquals(
+            self.assertEqual(
                 time_delta.total_seconds(),
                 (end_time - middle_time).total_seconds()
             )
@@ -330,7 +330,7 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
                 (self.end_time - self.middle_time).total_seconds()
             )
             time_delta = timer.get_time_delta()
-            self.assertEquals(
+            self.assertEqual(
                 time_delta.total_seconds(),
                 (self.end_time - self.middle_time).total_seconds()
             )
@@ -373,7 +373,7 @@ class TestCounterWithTimerDecorator(unittest2.TestCase):
                 (end_time - middle_time).total_seconds()
             )
             time_delta = metrics_counter_with_timer.get_time_delta()
-            self.assertEquals(
+            self.assertEqual(
                 time_delta.total_seconds(),
                 (end_time - middle_time).total_seconds()
             )
@@ -431,7 +431,7 @@ class TestTimerDecorator(unittest2.TestCase):
                 (end_time - middle_time).total_seconds()
             )
             time_delta = metrics_timer.get_time_delta()
-            self.assertEquals(
+            self.assertEqual(
                 time_delta.total_seconds(),
                 (end_time - middle_time).total_seconds()
             )
