@@ -251,12 +251,12 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         with open(mistral_config_path, 'r') as fp:
             mistral_config_content = fp.read()
 
-        self.assertTrue('ponies' not in st2_config_content)
+        self.assertNotIn('ponies', st2_config_content)
         self.assertIn('username = **removed**', st2_config_content)
         self.assertIn('password = **removed**', st2_config_content)
         self.assertIn('url = **removed**', st2_config_content)
 
-        self.assertTrue('StackStorm' not in mistral_config_content)
+        self.assertNotIn('StackStorm', mistral_config_content)
         self.assertIn('connection = **removed**', mistral_config_content)
 
         # Very config.yaml has been removed from the content pack directories

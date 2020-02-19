@@ -83,8 +83,9 @@ class ActionParamsUtilsTest(DbTestCase):
         # Validate required params.
         self.assertEqual(len(required), 1, 'Required should contain only one param.')
         self.assertIn('actionstr', required, 'actionstr param is a required param.')
-        self.assertTrue('actionstr' not in optional and 'actionstr' not in immutable and
-                        'actionstr' in merged)
+        self.assertNotIn('actionstr', optional, 'actionstr should not be in optional parameters')
+        self.assertNotIn('actionstr', immutable, 'actionstr should not be in immutable parameters')
+        self.assertIn('actionstr', merged, 'actionstr should be in action parameters')
 
         # Validate immutable params.
         self.assertIn('runnerimmutable', immutable, 'runnerimmutable should be in immutable.')
@@ -92,8 +93,9 @@ class ActionParamsUtilsTest(DbTestCase):
 
         # Validate optional params.
         for opt in optional:
-            self.assertTrue(opt not in required and opt not in immutable and opt in merged,
-                            'Optional parameter %s failed validation.' % opt)
+            self.assertIn(opt, merged, 'Optional %s should be in action parameters' % opt)
+            self.assertNotIn(opt, required, 'Optional %s should not be in required params' % opt)
+            self.assertNotIn(opt, immutable, 'Optional %s should not be in immutable params' % opt)
 
     def test_merge_param_meta_values(self):
         runner_meta = copy.deepcopy(

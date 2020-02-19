@@ -306,7 +306,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         self.assertEqual(parsed['_value'], 'bar')
         self.assertEqual(parsed['timestamp'], 1234)
         self.assertEqual(parsed['timestamp_f'], 1234.5678)
-        self.assertTrue('ignored' not in parsed)
+        self.assertNotIn('ignored', parsed)
 
         # Record with an exception
         mock_exception = Exception('mock exception bar')

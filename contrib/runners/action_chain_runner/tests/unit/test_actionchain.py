@@ -842,7 +842,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
         action_parameters = {}
         _, result, _ = chain_runner.run(action_parameters=action_parameters)
 
-        self.assertTrue('published' not in result)
+        self.assertNotIn('published', result)
         self.assertEqual(result.get('published', {}), {})
 
     @classmethod

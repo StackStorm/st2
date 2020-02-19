@@ -391,7 +391,7 @@ class RulesControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclude
         test_rule = post_resp.json
         if 'pack' in test_rule:
             del test_rule['pack']
-        self.assertTrue('pack' not in test_rule)
+        self.assertNotIn('pack', test_rule)
         put_resp = self.__do_put(self.__get_rule_id(post_resp), test_rule)
         self.assertEqual(put_resp.json['pack'], DEFAULT_PACK_NAME)
         self.assertEqual(put_resp.status_int, http_client.OK)

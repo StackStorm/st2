@@ -389,7 +389,7 @@ class TestActionExecutionFilters(FunctionalTest):
 
             # Verify empty (None / null) filters are excluded
             if key not in FILTERS_WITH_VALID_NULL_VALUES:
-                self.assertTrue(None not in filter_values)
+                self.assertNotIn(None, filter_values)
 
             if None in value or None in filter_values:
                 filter_values = [item for item in filter_values if item is not None]

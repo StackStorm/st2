@@ -560,7 +560,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         actual_env = call_kwargs['env']
         pack_common_lib_path = '/mnt/src/storm/st2/st2tests/st2tests/fixtures/packs/core/lib'
         self.assertIn('PYTHONPATH', actual_env)
-        self.assertTrue(pack_common_lib_path not in actual_env['PYTHONPATH'])
+        self.assertNotIn(pack_common_lib_path, actual_env['PYTHONPATH'])
 
     def test_action_class_instantiation_action_service_argument(self):
         class Action1(Action):
@@ -635,8 +635,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         wrapper_script_path = 'st2common/runners'
 
         assertion_msg = 'Found python wrapper script path in subprocess path'
-        self.assertTrue(wrapper_script_path not in process_sys_path, assertion_msg)
-        self.assertTrue(wrapper_script_path not in process_pythonpath, assertion_msg)
+        self.assertNotIn(wrapper_script_path, process_sys_path, assertion_msg)
+        self.assertNotIn(wrapper_script_path, process_pythonpath, assertion_msg)
 
     def test_python_action_wrapper_action_script_file_doesnt_exist_friendly_error(self):
         # File in a directory which is not a Python package
@@ -715,7 +715,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], [1, 2])
 
         self.assertIn(expected_msg_3, output['stderr'])
-        self.assertTrue(expected_msg_4 not in output['stderr'])
+        self.assertNotIn(expected_msg_4, output['stderr'])
         self.assertIn(expected_msg_5, output['stderr'])
 
         # Only log messages with level error and above should be displayed
@@ -730,8 +730,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertTrue(expected_msg_3 not in output['stderr'])
-        self.assertTrue(expected_msg_4 not in output['stderr'])
+        self.assertNotIn(expected_msg_3, output['stderr'])
+        self.assertNotIn(expected_msg_4, output['stderr'])
         self.assertIn(expected_msg_5, output['stderr'])
 
         # Default log level is changed in st2.config
@@ -748,7 +748,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], [1, 2])
 
         self.assertIn(expected_msg_3, output['stderr'])
-        self.assertTrue(expected_msg_4 not in output['stderr'])
+        self.assertNotIn(expected_msg_4, output['stderr'])
         self.assertIn(expected_msg_5, output['stderr'])
 
     def test_traceback_messages_are_not_duplicated_in_stderr(self):

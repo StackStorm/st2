@@ -44,16 +44,16 @@ class ActionRunCommandTest(unittest2.TestCase):
         self.assertEqual(len(list(params.keys())), 3)
 
         self.assertIn('foo', imm, '"foo" param should be in immutable set.')
-        self.assertTrue('foo' not in rqd, '"foo" param should not be in required set.')
-        self.assertTrue('foo' not in opt, '"foo" param should not be in optional set.')
+        self.assertNotIn('foo', rqd, '"foo" param should not be in required set.')
+        self.assertNotIn('foo', opt, '"foo" param should not be in optional set.')
 
         self.assertIn('bar', opt, '"bar" param should be in optional set.')
-        self.assertTrue('bar' not in rqd, '"bar" param should not be in required set.')
-        self.assertTrue('bar' not in imm, '"bar" param should not be in immutable set.')
+        self.assertNotIn('bar', rqd, '"bar" param should not be in required set.')
+        self.assertNotIn('bar', imm, '"bar" param should not be in immutable set.')
 
         self.assertIn('stuff', rqd, '"stuff" param should be in required set.')
-        self.assertTrue('stuff' not in opt, '"stuff" param should be in optional set.')
-        self.assertTrue('stuff' not in imm, '"stuff" param should be in immutable set.')
+        self.assertNotIn('stuff', opt, '"stuff" param should not be in optional set.')
+        self.assertNotIn('stuff', imm, '"stuff" param should not be in immutable set.')
         self.assertEqual(runner.runner_parameters, orig_runner_params, 'Runner params modified.')
         self.assertEqual(action.parameters, orig_action_params, 'Action params modified.')
 

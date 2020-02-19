@@ -120,7 +120,7 @@ class ProcessContainerTests(unittest2.TestCase):
         actual_env = call_kwargs['env']
         self.assertIn('PYTHONPATH', actual_env)
         pack_common_lib_path = '/opt/stackstorm/packs/wolfpack/lib'
-        self.assertTrue(pack_common_lib_path not in actual_env['PYTHONPATH'])
+        self.assertNotIn(pack_common_lib_path, actual_env['PYTHONPATH'])
 
     @patch.object(time, 'time', MagicMock(return_value=1439441533))
     def test_dispatch_triggers_on_spawn_exit(self):

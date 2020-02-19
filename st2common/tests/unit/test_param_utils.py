@@ -92,7 +92,7 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(action_params.get('action_api_user'), 'noob')
         # Assert that none of runner params are present in action_params.
         for k in action_params:
-            self.assertTrue(k not in runner_params, 'Param ' + k + ' is a runner param.')
+            self.assertNotIn(k, runner_params, 'Param ' + k + ' is a runner param.')
 
     def test_get_finalized_params_system_values(self):
         KeyValuePair.add_or_update(KeyValuePairDB(name='actionstr', value='foo'))

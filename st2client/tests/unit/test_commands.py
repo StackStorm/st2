@@ -362,6 +362,6 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
             # Verify that the actual help usage string was triggered and not the invalid
             # "too few arguments" which would indicate command doesn't actually correctly handle
             # --help flag
-            self.assertTrue('too few arguments' not in stdout)
+            self.assertNotIn('too few arguments', stdout)
 
             self._reset_output_streams()

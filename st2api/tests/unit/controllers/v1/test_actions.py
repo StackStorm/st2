@@ -507,7 +507,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
     def test_post_include_files(self):
         # Verify initial state
         pack_db = Pack.get_by_ref(ACTION_12['pack'])
-        self.assertTrue('actions/filea.txt' not in pack_db.files)
+        self.assertNotIn('actions/filea.txt', pack_db.files)
 
         action = copy.deepcopy(ACTION_12)
         action['data_files'] = [

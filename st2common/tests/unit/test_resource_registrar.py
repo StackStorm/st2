@@ -90,7 +90,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         ]
 
         for excluded_file in excluded_files:
-            self.assertTrue(excluded_file not in pack_db.files)
+            self.assertNotIn(excluded_file, pack_db.files)
 
     def test_register_pack_arbitrary_properties_are_allowed(self):
         # Test registering a pack which has "arbitrary" properties in pack.yaml
