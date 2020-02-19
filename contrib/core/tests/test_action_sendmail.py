@@ -70,7 +70,7 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         # Verify subject contains utf-8 charset and is base64 encoded
-        self.assertTrue('SUBJECT: =?UTF-8?B?' in email_data)
+        self.assertIn('SUBJECT: =?UTF-8?B?', email_data)
 
         self.assertEqual(message.to[0][1], action_parameters['to'])
         self.assertEqual(message.from_[0][1], action_parameters['from'])
@@ -99,7 +99,7 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         # Verify subject contains utf-8 charset and is base64 encoded
-        self.assertTrue('SUBJECT: =?UTF-8?B?' in email_data)
+        self.assertIn('SUBJECT: =?UTF-8?B?', email_data)
 
         self.assertEqual(message.to[0][1], action_parameters['to'])
         self.assertEqual(message.from_[0][1], action_parameters['from'])
@@ -136,7 +136,7 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         # Verify subject contains utf-8 charset and is base64 encoded
-        self.assertTrue('SUBJECT: =?UTF-8?B?' in email_data)
+        self.assertIn('SUBJECT: =?UTF-8?B?', email_data)
 
         self.assertEqual(message.to[0][1], action_parameters['to'])
         self.assertEqual(message.from_[0][1], action_parameters['from'])
@@ -210,7 +210,7 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
         # Verify subject contains utf-8 charset and is base64 encoded
-        self.assertTrue('SUBJECT: =?UTF-8?B?' in email_data)
+        self.assertIn('SUBJECT: =?UTF-8?B?', email_data)
 
         self.assertEqual(message.to[0][1], action_parameters['to'])
         self.assertEqual(message.from_[0][1], action_parameters['from'])
@@ -224,8 +224,8 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
 
         # There should be 2 attachments
         self.assertEqual(email_data.count('Content-Transfer-Encoding: base64'), 2)
-        self.assertTrue(base64.b64encode(b'content 1').decode('utf-8') in email_data)
-        self.assertTrue(base64.b64encode(b'content 2').decode('utf-8') in email_data)
+        self.assertIn(base64.b64encode(b'content 1').decode('utf-8'), email_data)
+        self.assertIn(base64.b64encode(b'content 2').decode('utf-8'), email_data)
 
     def _run_action(self, action_parameters):
         """

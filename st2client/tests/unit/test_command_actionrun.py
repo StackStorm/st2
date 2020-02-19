@@ -43,15 +43,15 @@ class ActionRunCommandTest(unittest2.TestCase):
         params, rqd, opt, imm = ActionRunCommand._get_params_types(runner, action)
         self.assertEqual(len(list(params.keys())), 3)
 
-        self.assertTrue('foo' in imm, '"foo" param should be in immutable set.')
+        self.assertIn('foo', imm, '"foo" param should be in immutable set.')
         self.assertTrue('foo' not in rqd, '"foo" param should not be in required set.')
         self.assertTrue('foo' not in opt, '"foo" param should not be in optional set.')
 
-        self.assertTrue('bar' in opt, '"bar" param should be in optional set.')
+        self.assertIn('bar', opt, '"bar" param should be in optional set.')
         self.assertTrue('bar' not in rqd, '"bar" param should not be in required set.')
         self.assertTrue('bar' not in imm, '"bar" param should not be in immutable set.')
 
-        self.assertTrue('stuff' in rqd, '"stuff" param should be in required set.')
+        self.assertIn('stuff', rqd, '"stuff" param should be in required set.')
         self.assertTrue('stuff' not in opt, '"stuff" param should be in optional set.')
         self.assertTrue('stuff' not in imm, '"stuff" param should be in immutable set.')
         self.assertEqual(runner.runner_parameters, orig_runner_params, 'Runner params modified.')

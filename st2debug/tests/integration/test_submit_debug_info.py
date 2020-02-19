@@ -126,9 +126,9 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         self.assertEqual(len(command_files), 3)
 
         # Verify command output file names
-        self.assertTrue('echofoo.txt' in command_files)
-        self.assertTrue('echobar12.txt' in command_files)
-        self.assertTrue('pwd.txt' in command_files)
+        self.assertIn('echofoo.txt', command_files)
+        self.assertIn('echobar12.txt', command_files)
+        self.assertIn('pwd.txt', command_files)
 
         # Verify "cwd" is set correctly for the shells where commands run
         file_path = os.path.join(commands_path, 'pwd.txt')
@@ -138,7 +138,7 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         # cwd for the process where commands run should be set to temporary directory where
         # commands output is stored
         expected_cwd_path = os.path.join(debug_collector._temp_dir_path, 'commands')
-        self.assertTrue(expected_cwd_path in content)
+        self.assertIn(expected_cwd_path, content)
 
         # Verify file contents
         with open(os.path.join(commands_path, 'echofoo.txt')) as f:
@@ -252,12 +252,12 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
             mistral_config_content = fp.read()
 
         self.assertTrue('ponies' not in st2_config_content)
-        self.assertTrue('username = **removed**' in st2_config_content)
-        self.assertTrue('password = **removed**' in st2_config_content)
-        self.assertTrue('url = **removed**' in st2_config_content)
+        self.assertIn('username = **removed**', st2_config_content)
+        self.assertIn('password = **removed**', st2_config_content)
+        self.assertIn('url = **removed**', st2_config_content)
 
         self.assertTrue('StackStorm' not in mistral_config_content)
-        self.assertTrue('connection = **removed**' in mistral_config_content)
+        self.assertIn('connection = **removed**', mistral_config_content)
 
         # Very config.yaml has been removed from the content pack directories
         pack_dir = os.path.join(content_path, 'twilio')

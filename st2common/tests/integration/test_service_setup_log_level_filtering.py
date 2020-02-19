@@ -69,7 +69,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         # First 3 log lines are debug messages about the environment which are always logged
         stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
-        self.assertTrue('INFO [-]' in stdout)
+        self.assertIn('INFO [-]', stdout)
         self.assertTrue('DEBUG [-]' not in stdout)
         self.assertTrue('AUDIT [-]' not in stdout)
 
@@ -84,9 +84,9 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         # First 3 log lines are debug messages about the environment which are always logged
         stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
-        self.assertTrue('INFO [-]' in stdout)
-        self.assertTrue('DEBUG [-]' in stdout)
-        self.assertTrue('AUDIT [-]' in stdout)
+        self.assertIn('INFO [-]', stdout)
+        self.assertIn('DEBUG [-]', stdout)
+        self.assertIn('AUDIT [-]', stdout)
 
         # 3. AUDIT log level - audit messages should be included
         process = self._start_process(config_path=ST2_CONFIG_AUDIT_LL_PATH)
@@ -101,7 +101,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
 
         self.assertTrue('INFO [-]' not in stdout)
         self.assertTrue('DEBUG [-]' not in stdout)
-        self.assertTrue('AUDIT [-]' in stdout)
+        self.assertIn('AUDIT [-]', stdout)
 
         # 2. INFO log level but system.debug set to True
         process = self._start_process(config_path=ST2_CONFIG_SYSTEM_DEBUG_PATH)
@@ -114,9 +114,9 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         # First 3 log lines are debug messages about the environment which are always logged
         stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
-        self.assertTrue('INFO [-]' in stdout)
-        self.assertTrue('DEBUG [-]' in stdout)
-        self.assertTrue('AUDIT [-]' in stdout)
+        self.assertIn('INFO [-]', stdout)
+        self.assertIn('DEBUG [-]', stdout)
+        self.assertIn('AUDIT [-]', stdout)
 
     def test_kombu_heartbeat_tick_log_messages_are_excluded(self):
         # 1. system.debug = True config option is set, verify heartbeat_tick message is not logged

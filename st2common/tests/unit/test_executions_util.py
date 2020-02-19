@@ -127,7 +127,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
                                                raise_exception=True)
         self.assertTrue(execution.web_url is not None)
         execution_id = str(execution.id)
-        self.assertTrue(('history/%s/general' % execution_id) in execution.web_url)
+        self.assertIn(('history/%s/general' % execution_id), execution.web_url)
 
     def test_execution_creation_chains(self):
         childliveaction = self.MODELS['liveactions']['childliveaction.yaml']
@@ -135,7 +135,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         parent_execution_id = childliveaction.context['parent']['execution_id']
         parent_execution = ActionExecution.get_by_id(parent_execution_id)
         child_execs = parent_execution.children
-        self.assertTrue(str(child_exec.id) in child_execs)
+        self.assertIn(str(child_exec.id), child_execs)
 
     def test_execution_update(self):
         liveaction = self.MODELS['liveactions']['liveaction1.yaml']

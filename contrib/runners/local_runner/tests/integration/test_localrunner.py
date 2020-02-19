@@ -433,12 +433,12 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         status, result, _ = runner.run(action_parameters=action_parameters)
         runner.post_run(status, result)
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue('PARAM_STRING=test string' in result['stdout'])
-        self.assertTrue('PARAM_INTEGER=1' in result['stdout'])
-        self.assertTrue('PARAM_FLOAT=2.55' in result['stdout'])
-        self.assertTrue('PARAM_BOOLEAN=1' in result['stdout'])
-        self.assertTrue('PARAM_LIST=a,b,c' in result['stdout'])
-        self.assertTrue('PARAM_OBJECT={"foo": "bar"}' in result['stdout'])
+        self.assertIn('PARAM_STRING=test string', result['stdout'])
+        self.assertIn('PARAM_INTEGER=1', result['stdout'])
+        self.assertIn('PARAM_FLOAT=2.55', result['stdout'])
+        self.assertIn('PARAM_BOOLEAN=1', result['stdout'])
+        self.assertIn('PARAM_LIST=a,b,c', result['stdout'])
+        self.assertIn('PARAM_OBJECT={"foo": "bar"}', result['stdout'])
 
         action_parameters = {
             'param_string': 'test string',
@@ -455,7 +455,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.post_run(status, result)
 
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue('PARAM_BOOLEAN=0' in result['stdout'])
+        self.assertIn('PARAM_BOOLEAN=0', result['stdout'])
 
         action_parameters = {
             'param_string': '',
@@ -469,9 +469,9 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.post_run(status, result)
 
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue('PARAM_STRING=\n' in result['stdout'])
-        self.assertTrue('PARAM_INTEGER=\n' in result['stdout'])
-        self.assertTrue('PARAM_FLOAT=\n' in result['stdout'])
+        self.assertIn('PARAM_STRING=\n', result['stdout'])
+        self.assertIn('PARAM_INTEGER=\n', result['stdout'])
+        self.assertIn('PARAM_FLOAT=\n', result['stdout'])
 
         # End result should be the same when streaming is enabled
         cfg.CONF.set_override(name='stream_output', group='actionrunner', override=True)
@@ -495,12 +495,12 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.post_run(status, result)
 
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue('PARAM_STRING=test string' in result['stdout'])
-        self.assertTrue('PARAM_INTEGER=1' in result['stdout'])
-        self.assertTrue('PARAM_FLOAT=2.55' in result['stdout'])
-        self.assertTrue('PARAM_BOOLEAN=1' in result['stdout'])
-        self.assertTrue('PARAM_LIST=a,b,c' in result['stdout'])
-        self.assertTrue('PARAM_OBJECT={"foo": "bar"}' in result['stdout'])
+        self.assertIn('PARAM_STRING=test string', result['stdout'])
+        self.assertIn('PARAM_INTEGER=1', result['stdout'])
+        self.assertIn('PARAM_FLOAT=2.55', result['stdout'])
+        self.assertIn('PARAM_BOOLEAN=1', result['stdout'])
+        self.assertIn('PARAM_LIST=a,b,c', result['stdout'])
+        self.assertIn('PARAM_OBJECT={"foo": "bar"}', result['stdout'])
 
         output_dbs = ActionExecutionOutput.query(output_type='stdout')
         self.assertEqual(len(output_dbs), 6)

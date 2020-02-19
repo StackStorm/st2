@@ -173,7 +173,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertTrue(output is not None)
-        self.assertTrue('<pascal_row.PascalRowAction object at' in output['result'])
+        self.assertIn('<pascal_row.PascalRowAction object at', output['result'])
 
     def test_simple_action_with_status_failed_result_none(self):
         runner = self._get_mock_runner_obj()
@@ -539,8 +539,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
         pack_common_lib_path = 'fixtures/packs/core/lib'
-        self.assertTrue('PYTHONPATH' in actual_env)
-        self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
+        self.assertIn('PYTHONPATH', actual_env)
+        self.assertIn(pack_common_lib_path, actual_env['PYTHONPATH'])
 
     @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_pythonpath_env_var_not_contains_common_libs_config_disabled(self, mock_popen):
@@ -559,7 +559,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
         pack_common_lib_path = '/mnt/src/storm/st2/st2tests/st2tests/fixtures/packs/core/lib'
-        self.assertTrue('PYTHONPATH' in actual_env)
+        self.assertIn('PYTHONPATH', actual_env)
         self.assertTrue(pack_common_lib_path not in actual_env['PYTHONPATH'])
 
     def test_action_class_instantiation_action_service_argument(self):
@@ -679,11 +679,11 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertTrue(expected_msg_1 in output['stderr'])
-        self.assertTrue(expected_msg_2 in output['stderr'])
-        self.assertTrue(expected_msg_3 in output['stderr'])
-        self.assertTrue(expected_msg_4 in output['stderr'])
-        self.assertTrue(expected_msg_5 in output['stderr'])
+        self.assertIn(expected_msg_1, output['stderr'])
+        self.assertIn(expected_msg_2, output['stderr'])
+        self.assertIn(expected_msg_3, output['stderr'])
+        self.assertIn(expected_msg_4, output['stderr'])
+        self.assertIn(expected_msg_5, output['stderr'])
 
         stderr = output['stderr'].strip().split('\n')
         expected_count = 5
@@ -714,9 +714,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertTrue(expected_msg_3 in output['stderr'])
+        self.assertIn(expected_msg_3, output['stderr'])
         self.assertTrue(expected_msg_4 not in output['stderr'])
-        self.assertTrue(expected_msg_5 in output['stderr'])
+        self.assertIn(expected_msg_5, output['stderr'])
 
         # Only log messages with level error and above should be displayed
         runner = self._get_mock_runner_obj()
@@ -732,7 +732,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         self.assertTrue(expected_msg_3 not in output['stderr'])
         self.assertTrue(expected_msg_4 not in output['stderr'])
-        self.assertTrue(expected_msg_5 in output['stderr'])
+        self.assertIn(expected_msg_5, output['stderr'])
 
         # Default log level is changed in st2.config
         cfg.CONF.set_override(name='python_runner_log_level', override='INFO',
@@ -747,9 +747,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertTrue(expected_msg_3 in output['stderr'])
+        self.assertIn(expected_msg_3, output['stderr'])
         self.assertTrue(expected_msg_4 not in output['stderr'])
-        self.assertTrue(expected_msg_5 in output['stderr'])
+        self.assertIn(expected_msg_5, output['stderr'])
 
     def test_traceback_messages_are_not_duplicated_in_stderr(self):
         # Verify tracebacks are not duplicated
@@ -763,8 +763,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         expected_msg_1 = 'Traceback (most recent'
         expected_msg_2 = 'ValueError: Duplicate traceback test'
 
-        self.assertTrue(expected_msg_1 in output['stderr'])
-        self.assertTrue(expected_msg_2 in output['stderr'])
+        self.assertIn(expected_msg_1, output['stderr'])
+        self.assertIn(expected_msg_2, output['stderr'])
 
         self.assertEqual(output['stderr'].count(expected_msg_1), 1)
         self.assertEqual(output['stderr'].count(expected_msg_2), 1)
@@ -855,8 +855,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
         pack_common_lib_path = os.path.join(runner.git_worktree_path, 'lib')
-        self.assertTrue('PYTHONPATH' in actual_env)
-        self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
+        self.assertIn('PYTHONPATH', actual_env)
+        self.assertIn(pack_common_lib_path, actual_env['PYTHONPATH'])
 
     @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
     def test_content_version_success_local_modules_work_fine(self,
@@ -943,10 +943,10 @@ fatal: invalid reference: vinvalid
 
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertTrue(output is not None)
-        self.assertTrue('{}' in output['stdout'])
-        self.assertTrue('default_value' in output['stdout'])
-        self.assertTrue('Config for pack "core" is missing key "key"' in output['stderr'])
-        self.assertTrue('make sure you run "st2ctl reload --register-configs"' in output['stderr'])
+        self.assertIn('{}', output['stdout'])
+        self.assertIn('default_value', output['stdout'])
+        self.assertIn('Config for pack "core" is missing key "key"', output['stderr'])
+        self.assertIn('make sure you run "st2ctl reload --register-configs"', output['stderr'])
 
     def _get_mock_runner_obj(self, pack=None, sandbox=None):
         runner = python_runner.get_runner()

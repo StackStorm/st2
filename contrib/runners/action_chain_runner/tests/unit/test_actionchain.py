@@ -448,7 +448,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
                            {u'p2': u'1', u'p3': u'1', u'p1': u'1'}]
         # Each of the call_args must be one of
         for call_args in request.call_args_list:
-            self.assertTrue(call_args[0][0].parameters in expected_values)
+            self.assertIn(call_args[0][0].parameters, expected_values)
             expected_values.remove(call_args[0][0].parameters)
         self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
 
@@ -478,7 +478,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
         # Each of the call_args must be one of
         self.assertEqual(request.call_count, 3)
         for call_args in request.call_args_list:
-            self.assertTrue(call_args[0][0].parameters in expected_values)
+            self.assertIn(call_args[0][0].parameters, expected_values)
             expected_values.remove(call_args[0][0].parameters)
 
         self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
@@ -515,10 +515,10 @@ class TestActionChainRunner(ExecutionDbTestCase):
         # No tasks ran because rendering of parameters for the first task failed
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertEqual(result['tasks'], [])
-        self.assertTrue('error' in result)
-        self.assertTrue('traceback' in result)
-        self.assertTrue('Failed to run task "c1". Parameter rendering failed' in result['error'])
-        self.assertTrue('Traceback' in result['traceback'])
+        self.assertIn('error', result)
+        self.assertIn('traceback', result)
+        self.assertIn('Failed to run task "c1". Parameter rendering failed', result['error'])
+        self.assertIn('Traceback', result['traceback'])
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
@@ -542,11 +542,11 @@ class TestActionChainRunner(ExecutionDbTestCase):
         expected_error = ('Failed rendering value for action parameter "p1" in '
                           'task "c2" (template string={{s1}}):')
 
-        self.assertTrue('error' in result)
-        self.assertTrue('traceback' in result)
-        self.assertTrue('Failed to run task "c2". Parameter rendering failed' in result['error'])
-        self.assertTrue(expected_error in result['error'])
-        self.assertTrue('Traceback' in result['traceback'])
+        self.assertIn('error', result)
+        self.assertIn('traceback', result)
+        self.assertIn('Failed to run task "c2". Parameter rendering failed', result['error'])
+        self.assertIn(expected_error, result['error'])
+        self.assertIn('Traceback', result['traceback'])
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
@@ -686,7 +686,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
             # rendering failure
             expected_error = ('Failed rendering value for publish parameter "p1" in '
                               'task "c2" (template string={{ not_defined }}):')
-            self.assertTrue(expected_error in six.text_type(e))
+            self.assertIn(expected_error, six.text_type(e))
             pass
         else:
             self.fail('Exception was not thrown')
@@ -725,8 +725,8 @@ class TestActionChainRunner(ExecutionDbTestCase):
         expected_error = ('Failed to run task "c1". Action with reference "wolfpack.a2" '
                           'doesn\'t exist.')
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(expected_error in output['error'])
-        self.assertTrue('Traceback' in output['traceback'], output['traceback'])
+        self.assertIn(expected_error, output['error'])
+        self.assertIn('Traceback', output['traceback'])
 
     def test_exception_is_thrown_if_both_params_and_parameters_attributes_are_provided(self):
         chain_runner = acr.get_runner()

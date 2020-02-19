@@ -146,7 +146,7 @@ class RunnerTestCase(unittest2.TestCase):
         environment.
         """
         for var_name in COMMON_ACTION_ENV_VARIABLES:
-            self.assertTrue(var_name in env)
+            self.assertIn(var_name, env)
         self.assertEqual(env['ST2_ACTION_API_URL'], get_full_public_api_url())
         self.assertTrue(env[AUTH_TOKEN_ENV_VARIABLE_NAME] is not None)
 

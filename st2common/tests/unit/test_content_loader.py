@@ -53,8 +53,8 @@ class ContentLoaderTest(unittest2.TestCase):
 
         loader = ContentPackLoader()
         sensors = loader.get_content(base_dirs=base_dirs, content_type='sensors')
-        self.assertTrue('pack1' in sensors)  # from packs/
-        self.assertTrue('pack3' in sensors)  # from packs2/
+        self.assertIn('pack1', sensors)  # from packs/
+        self.assertIn('pack3', sensors)  # from packs2/
 
         # Assert that a warning is emitted when a duplicated pack is found
         expected_msg = ('Pack "pack1" already found in '

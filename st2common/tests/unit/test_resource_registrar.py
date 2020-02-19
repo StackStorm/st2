@@ -77,8 +77,8 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(len(pack_db.contributors), 2)
         self.assertEqual(pack_db.contributors[0], 'John Doe1 <john.doe1@gmail.com>')
         self.assertEqual(pack_db.contributors[1], 'John Doe2 <john.doe2@gmail.com>')
-        self.assertTrue('api_key' in config_schema_db.attributes)
-        self.assertTrue('api_secret' in config_schema_db.attributes)
+        self.assertIn('api_key', config_schema_db.attributes)
+        self.assertIn('api_secret', config_schema_db.attributes)
 
         # Verify pack_db.files is correct and doesn't contain excluded files (*.pyc, .git/*, etc.)
         # Note: We can't test that .git/* files are excluded since git doesn't allow you to add
@@ -156,7 +156,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         try:
             registrar._register_pack_db(pack_name=None, pack_dir=PACK_PATH_13)
         except ValidationError as e:
-            self.assertTrue("'invalid-has-dash' does not match '^[a-z0-9_]+$'" in six.text_type(e))
+            self.assertIn("'invalid-has-dash' does not match '^[a-z0-9_]+$'", six.text_type(e))
         else:
             self.fail('Exception not thrown')
 

@@ -445,13 +445,13 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         # 2. Action already exists
         post_resp = self.__do_post(action, expect_errors=True)
         self.assertEqual(post_resp.status_int, 409)
-        self.assertTrue('Tried to save duplicate unique keys' in post_resp.json['faultstring'])
+        self.assertIn('Tried to save duplicate unique keys', post_resp.json['faultstring'])
 
         # 3. Action already exists (this time with unicode type)
         action['name'] = u'žactionćšžži💩'
         post_resp = self.__do_post(action, expect_errors=True)
         self.assertEqual(post_resp.status_int, 409)
-        self.assertTrue('Tried to save duplicate unique keys' in post_resp.json['faultstring'])
+        self.assertIn('Tried to save duplicate unique keys', post_resp.json['faultstring'])
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
@@ -465,7 +465,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
             expected_error = \
                 b'[u\'string\', u\'object\'] is not valid under any of the given schemas'
 
-        self.assertTrue(expected_error in post_resp.body)
+        self.assertIn(expected_error, post_resp.body)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
@@ -524,7 +524,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
 
         # Verify PackDB.files has been updated
         pack_db = Pack.get_by_ref(ACTION_12['pack'])
-        self.assertTrue('actions/filea.txt' in pack_db.files)
+        self.assertIn('actions/filea.txt', pack_db.files)
         self.__do_delete(self.__get_action_id(post_resp))
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(

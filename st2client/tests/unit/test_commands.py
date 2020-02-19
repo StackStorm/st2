@@ -334,10 +334,10 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
 
             stdout = self.stdout.getvalue()
 
-            self.assertTrue('usage:' in stdout)
-            self.assertTrue(' '.join(command) in stdout)
-            # self.assertTrue('positional arguments:' in stdout)
-            self.assertTrue('optional arguments:' in stdout)
+            self.assertIn('usage:', stdout)
+            self.assertIn(' '.join(command), stdout)
+            # self.assertIn('positional arguments:', stdout)
+            self.assertIn('optional arguments:', stdout)
 
             # Reset stdout and stderr after each iteration
             self._reset_output_streams()
@@ -354,10 +354,10 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
 
             stdout = self.stdout.getvalue()
 
-            self.assertTrue('usage:' in stdout)
-            self.assertTrue(' '.join(command) in stdout)
-            # self.assertTrue('positional arguments:' in stdout)
-            self.assertTrue('optional arguments:' in stdout)
+            self.assertIn('usage:', stdout)
+            self.assertIn(' '.join(command), stdout)
+            # self.assertIn('positional arguments:', stdout)
+            self.assertIn('optional arguments:', stdout)
 
             # Verify that the actual help usage string was triggered and not the invalid
             # "too few arguments" which would indicate command doesn't actually correctly handle

@@ -82,13 +82,13 @@ class ActionParamsUtilsTest(DbTestCase):
 
         # Validate required params.
         self.assertEqual(len(required), 1, 'Required should contain only one param.')
-        self.assertTrue('actionstr' in required, 'actionstr param is a required param.')
+        self.assertIn('actionstr', required, 'actionstr param is a required param.')
         self.assertTrue('actionstr' not in optional and 'actionstr' not in immutable and
                         'actionstr' in merged)
 
         # Validate immutable params.
-        self.assertTrue('runnerimmutable' in immutable, 'runnerimmutable should be in immutable.')
-        self.assertTrue('actionimmutable' in immutable, 'actionimmutable should be in immutable.')
+        self.assertIn('runnerimmutable', immutable, 'runnerimmutable should be in immutable.')
+        self.assertIn('actionimmutable', immutable, 'actionimmutable should be in immutable.')
 
         # Validate optional params.
         for opt in optional:

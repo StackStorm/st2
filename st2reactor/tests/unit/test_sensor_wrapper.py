@@ -152,8 +152,8 @@ class SensorWrapperTestCase(unittest2.TestCase):
             SensorWrapper(pack='core', file_path=file_path, class_name='TestSensor',
                           trigger_types=trigger_types, parent_args=parent_args)
         except NameError as e:
-            self.assertTrue('Traceback (most recent call last)' in six.text_type(e))
-            self.assertTrue('line 19, in <module>' in six.text_type(e))
+            self.assertIn('Traceback (most recent call last)', six.text_type(e))
+            self.assertIn('line 19, in <module>', six.text_type(e))
         else:
             self.fail('NameError not thrown')
 

@@ -252,7 +252,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
                              r"u?'parameter2': u?'\*\*\*\*\*\*\*\*'}")
 
         message = formatter.format(record=record)
-        self.assertTrue('test message 1' in message)
+        self.assertIn('test message 1', message)
         self.assertRegexpMatches(message, expected_msg_part)
 
 
@@ -277,7 +277,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         parsed = json.loads(message)
 
         for key in expected_keys:
-            self.assertTrue(key in parsed)
+            self.assertIn(key, parsed)
 
         self.assertEqual(parsed['short_message'], mock_message)
         self.assertEqual(parsed['full_message'], mock_message)
@@ -298,7 +298,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         parsed = json.loads(message)
 
         for key in expected_keys:
-            self.assertTrue(key in parsed)
+            self.assertIn(key, parsed)
 
         self.assertEqual(parsed['short_message'], mock_message)
         self.assertEqual(parsed['full_message'], mock_message)
@@ -327,13 +327,13 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         parsed = json.loads(message)
 
         for key in expected_keys:
-            self.assertTrue(key in parsed)
+            self.assertIn(key, parsed)
 
         self.assertEqual(parsed['short_message'], mock_message)
-        self.assertTrue(mock_message in parsed['full_message'])
-        self.assertTrue('Traceback' in parsed['full_message'])
-        self.assertTrue('_exception' in parsed)
-        self.assertTrue('_traceback' in parsed)
+        self.assertIn(mock_message, parsed['full_message'])
+        self.assertIn('Traceback', parsed['full_message'])
+        self.assertIn('_exception', parsed)
+        self.assertIn('_traceback', parsed)
 
     def test_extra_object_serialization(self):
         class MyClass1(object):

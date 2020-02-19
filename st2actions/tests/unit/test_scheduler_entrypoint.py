@@ -57,7 +57,7 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
         self.assertEqual(result, 1)
 
         mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
-        self.assertTrue('Scheduler unexpectedly stopped' in mock_log_exception_call)
+        self.assertIn('Scheduler unexpectedly stopped', mock_log_exception_call)
 
     @mock.patch.object(ActionExecutionSchedulingQueueHandler, 'cleanup', mock_handler_cleanup)
     @mock.patch('st2actions.cmd.scheduler.LOG')
@@ -68,7 +68,7 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
         self.assertEqual(result, 1)
 
         mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
-        self.assertTrue('Scheduler unexpectedly stopped' in mock_log_exception_call)
+        self.assertIn('Scheduler unexpectedly stopped', mock_log_exception_call)
 
     @mock.patch.object(SchedulerEntrypoint, 'start', mock_entrypoint_start)
     @mock.patch('st2actions.cmd.scheduler.LOG')
@@ -79,4 +79,4 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
         self.assertEqual(result, 1)
 
         mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
-        self.assertTrue('Scheduler unexpectedly stopped' in mock_log_exception_call)
+        self.assertIn('Scheduler unexpectedly stopped', mock_log_exception_call)

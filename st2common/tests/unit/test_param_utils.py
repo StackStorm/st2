@@ -308,7 +308,7 @@ class ParamsUtilsTest(DbTestCase):
         except ParamException as e:
             error_msg = 'Failed to render parameter "a2": \'dict object\' ' + \
                         'has no attribute \'lorem_ipsum\''
-            self.assertTrue(error_msg in six.text_type(e))
+            self.assertIn(error_msg, six.text_type(e))
             pass
 
     def test_unicode_value_casting(self):

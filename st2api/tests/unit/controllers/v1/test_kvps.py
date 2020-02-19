@@ -550,7 +550,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
 
         expected_error = ('Failed to verify the integrity of the provided value for key '
                           '"secret_key1".')
-        self.assertTrue(expected_error in put_resp.json['faultstring'])
+        self.assertIn(expected_error, put_resp.json['faultstring'])
 
         data = copy.deepcopy(ENCRYPTED_KVP)
         data['value'] = str(data['value'][:-2])
@@ -559,7 +559,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
 
         expected_error = ('Failed to verify the integrity of the provided value for key '
                           '"secret_key1".')
-        self.assertTrue(expected_error in put_resp.json['faultstring'])
+        self.assertIn(expected_error, put_resp.json['faultstring'])
 
     def test_put_delete(self):
         put_resp = self.__do_put('key1', KVP)

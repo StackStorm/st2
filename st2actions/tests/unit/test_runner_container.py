@@ -310,8 +310,8 @@ class RunnerContainerTest(DbTestCase):
         runner_container.dispatch(liveaction_db)
         # pickup updated liveaction_db
         liveaction_db = LiveAction.get_by_id(liveaction_db.id)
-        self.assertTrue('error' in liveaction_db.result)
-        self.assertTrue('traceback' in liveaction_db.result)
+        self.assertIn('error', liveaction_db.result)
+        self.assertIn('traceback', liveaction_db.result)
 
     def test_dispatch_override_default_action_params(self):
         runner_container = get_runner_container()

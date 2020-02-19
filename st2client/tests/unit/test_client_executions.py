@@ -225,5 +225,5 @@ class TestExecutionResourceManager(unittest2.TestCase):
 
         expected_msg = 'st2client.liveactions has been renamed'
         self.assertTrue(len(mock_warn.call_args_list) >= 1)
-        self.assertTrue(expected_msg in mock_warn.call_args_list[0][0][0])
+        self.assertIn(expected_msg, mock_warn.call_args_list[0][0][0])
         self.assertEqual(mock_warn.call_args_list[0][0][1], DeprecationWarning)

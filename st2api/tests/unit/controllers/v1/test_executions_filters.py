@@ -109,7 +109,7 @@ class TestActionExecutionFilters(FunctionalTest):
         response = self.app.get('/v1/executions?action=executions.local&limit=1')
 
         self.assertEqual(response.status_int, 200)
-        self.assertTrue('result' in response.json[0])
+        self.assertIn('result', response.json[0])
 
         # Exclude "result" attribute
         path = '/v1/executions?action=executions.local&limit=1&exclude_attributes=result'

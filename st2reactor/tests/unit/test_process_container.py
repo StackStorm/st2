@@ -78,9 +78,9 @@ class ProcessContainerTests(unittest2.TestCase):
 
         _, call_kwargs = mock_subproc_popen.call_args
         actual_env = call_kwargs['env']
-        self.assertTrue('PYTHONPATH' in actual_env)
+        self.assertIn('PYTHONPATH', actual_env)
         pack_common_lib_path = '/opt/stackstorm/packs/wolfpack/lib'
-        self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
+        self.assertIn(pack_common_lib_path, actual_env['PYTHONPATH'])
 
     @patch.object(ProcessSensorContainer, '_get_sensor_id',
                   MagicMock(return_value='wolfpack.StupidSensor'))
@@ -118,7 +118,7 @@ class ProcessContainerTests(unittest2.TestCase):
 
         _, call_kwargs = mock_subproc_popen.call_args
         actual_env = call_kwargs['env']
-        self.assertTrue('PYTHONPATH' in actual_env)
+        self.assertIn('PYTHONPATH', actual_env)
         pack_common_lib_path = '/opt/stackstorm/packs/wolfpack/lib'
         self.assertTrue(pack_common_lib_path not in actual_env['PYTHONPATH'])
 

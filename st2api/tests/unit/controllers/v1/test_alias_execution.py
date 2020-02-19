@@ -96,7 +96,7 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(post_resp.status_int, 400)
         expected_msg = ('Format string "some invalid not supported string" is '
                         'not available on the alias "alias1"')
-        self.assertTrue(expected_msg in post_resp.json['faultstring'])
+        self.assertIn(expected_msg, post_resp.json['faultstring'])
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -218,7 +218,7 @@ class AliasExecutionTestCase(FunctionalTest):
         # https://github.com/StackStorm/st2/issues/4650
         actual_context = mock_request.call_args[0][0].context
 
-        self.assertTrue('source_channel' in mock_request.call_args[0][0].context.keys())
+        self.assertIn('source_channel', mock_request.call_args[0][0].context.keys())
         self.assertEquals(actual_context['source_channel'], 'chat-channel')
         self.assertEquals(actual_context['api_user'], 'chat-user')
         self.assertEquals(actual_context['user'], 'stanley')
