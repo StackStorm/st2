@@ -237,7 +237,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
     def test_ruleenforcement_create_on_fail(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule1.yaml'])
         execution_db = enforcer.enforce()
-        self.assertTrue(execution_db is None)
+        self.assertIsNone(execution_db)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].failure_reason,
                          FAILURE_REASON)
@@ -304,7 +304,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, rule)
         execution_db = enforcer.enforce()
 
-        self.assertTrue(execution_db is None)
+        self.assertIsNone(execution_db)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref, rule.ref)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,

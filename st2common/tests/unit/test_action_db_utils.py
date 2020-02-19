@@ -67,7 +67,7 @@ class ActionDBUtilsTestCase(DbTestCase):
                           'somedummyactionid')
         # By ref.
         action = action_db_utils.get_action_by_ref('packaintexist.somedummyactionname')
-        self.assertTrue(action is None)
+        self.assertIsNone(action)
 
     def test_get_action_existing(self):
         # Lookup by id and verify name equals

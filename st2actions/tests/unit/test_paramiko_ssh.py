@@ -570,14 +570,14 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
         client = ParamikoSSHClient(**conn_params)
         client.connect()
 
-        self.assertTrue(client.sftp_client is None)
+        self.assertIsNone(client.sftp_client)
 
         # run method doesn't require sftp access so it shouldn't establish connection
         client = ParamikoSSHClient(**conn_params)
         client.connect()
         client.run(cmd='whoami')
 
-        self.assertTrue(client.sftp_client is None)
+        self.assertIsNone(client.sftp_client)
 
         # Methods below require SFTP access so they should cause SFTP connection to be established
         # put
@@ -606,7 +606,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
         client = ParamikoSSHClient(**conn_params)
         client.connect()
 
-        self.assertTrue(client.sftp_client is None)
+        self.assertIsNone(client.sftp_client)
         client.close()
 
         # Verify SFTP connection is closed if it's opened
