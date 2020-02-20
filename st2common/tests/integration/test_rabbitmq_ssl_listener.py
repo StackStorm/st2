@@ -53,7 +53,7 @@ class RabbitMQTLSListenerTestCase(unittest2.TestCase):
     def test_non_ssl_connection_on_ssl_listener_port_failure(self):
         connection = transport_utils.get_connection(urls='amqp://guest:guest@127.0.0.1:5671/')
 
-        expected_msg_1 = '[Errno 104] Connection reset by peer'
+        expected_msg_1 = '[Errno 104]'  # followed by: ' Connection reset by peer' or ' ECONNRESET'
         expected_msg_2 = 'Socket closed'
         expected_msg_3 = 'Server unexpectedly closed connection'
 
