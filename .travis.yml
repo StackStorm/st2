@@ -1,6 +1,4 @@
-# Used old infrastructure, needed for integration tests:
-# http://docs.travis-ci.com/user/workers/standard-infrastructure/
-sudo: required
+os: linux
 dist: xenial
 language: python
 
@@ -24,7 +22,7 @@ env:
     - NOSE_TIME=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
     # Travis-specific st2.conf (with travis user instead of stanley)
     - ST2_CONF=conf/st2.travis.conf
-matrix:
+jobs:
   include:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
     # builds and having 6 tasks / builds means 1 tasks will need to wait for one
