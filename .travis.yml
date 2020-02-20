@@ -106,7 +106,7 @@ install:
   - cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
   - sudo scripts/travis/add-itest-user-key.sh
   - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'ci-checks ci-packs-tests' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
-  - if [[ "${TASK}" = *'ci-packs-tests'* ]]; then sudo scripts/travis/permissions-workaround.sh; fi
+  - if [[ "${TASK}" = *'ci-packs-tests'* ]] || [[ "${TASK}" = *'-integration'* ]]; then sudo scripts/travis/permissions-workaround.sh; fi
 
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
