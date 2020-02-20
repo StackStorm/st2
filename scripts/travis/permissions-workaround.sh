@@ -6,9 +6,15 @@ if [ "$(whoami)" != 'root' ]; then
     exit 2
 fi
 
-# stanley needs to work with some fixtures during the tests
+# rabbitmq user needs access to the ssl_certs fixtures during integration tests
+# stanley needs to work with packs fixtures during the packs tests
 # this can't be the travis user because 'stanley' is the hardcoded user in the tests
 # o=other; X=only set execute bit if user execute bit is set (eg on dirs)
-chmod -R o+rX ${TRAVIS_BUILD_DIR}/st2tests/st2tests/fixtures/packs
-# rabbitmq user needs access to these certs
-chmod -R o+rX ${TRAVIS_BUILD_DIR}/st2tests/st2tests/fixtures/ssl_certs
+chmod -R o+rX ${TRAVIS_BUILD_DIR}/st2tests/st2tests/fixtures ${TRAVIS_BUILD_DIR}/contrib
+
+# make sure parent directories are traversable
+d=${TRAVIS_BUILD_DIR}/st2tests/st2tests
+while [[ "${d}" != "/" ]]; do
+    chmod o+rx "${d}"
+    d=$(dirname "${d}")
+done
