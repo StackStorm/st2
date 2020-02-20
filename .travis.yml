@@ -85,6 +85,7 @@ install:
   - cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
   - sudo scripts/travis/add-itest-user-key.sh
   - sudo .circle/add-itest-user.sh
+  - if [[ "${TASK}" = *'-packs-tests'* ]] || [[ "${TASK}" = *'-integration'* ]]; then sudo scripts/travis/permissions-workaround.sh; fi
 
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
