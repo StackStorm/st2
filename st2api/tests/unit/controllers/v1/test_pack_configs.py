@@ -56,14 +56,14 @@ class PackConfigsControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/configs/dummy_pack_2',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
-        self.assertTrue('Unable to identify resource with pack_ref ' in resp.json['faultstring'])
+        self.assertIn('Unable to identify resource with pack_ref ', resp.json['faultstring'])
 
         # Pack doesn't exist
         resp = self.app.get('/v1/configs/pack_doesnt_exist',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
         # Changed from : 'Unable to find the PackDB instance.'
-        self.assertTrue('Unable to identify resource with pack_ref' in resp.json['faultstring'])
+        self.assertIn('Unable to identify resource with pack_ref', resp.json['faultstring'])
 
     @mock.patch.object(PackConfigsController, '_dump_config_to_disk', mock.MagicMock())
     def test_put_pack_config(self):
@@ -90,4 +90,4 @@ class PackConfigsControllerTestCase(FunctionalTest):
                         'decrypted by default. Use of "decrypt_kv" jinja filter is not allowed '
                         'for such values. Please check the specified values in the config or '
                         'the default values in the schema.')
-        self.assertTrue(expected_msg in put_resp.json['faultstring'])
+        self.assertIn(expected_msg, put_resp.json['faultstring'])

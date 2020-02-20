@@ -157,13 +157,13 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Check graph.
         self.assertIsNotNone(wf_ex_db.graph)
-        self.assertTrue(isinstance(wf_ex_db.graph, dict))
+        self.assertIsInstance(wf_ex_db.graph, dict)
         self.assertIn('nodes', wf_ex_db.graph)
         self.assertIn('adjacency', wf_ex_db.graph)
 
         # Check task states.
         self.assertIsNotNone(wf_ex_db.state)
-        self.assertTrue(isinstance(wf_ex_db.state, dict))
+        self.assertIsInstance(wf_ex_db.state, dict)
         self.assertIn('tasks', wf_ex_db.state)
         self.assertIn('sequence', wf_ex_db.state)
 

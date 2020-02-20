@@ -106,7 +106,7 @@ class RunnerContainerTest(DbTestCase):
 
     def test_get_runner_module(self):
         runner = get_runner(name='local-shell-script')
-        self.assertTrue(runner is not None, 'TestRunner must be valid.')
+        self.assertIsNotNone(runner, 'TestRunner must be valid.')
 
     def test_pre_run_runner_is_disabled(self):
         runnertype_db = RunnerContainerTest.runnertype_db
@@ -310,8 +310,8 @@ class RunnerContainerTest(DbTestCase):
         runner_container.dispatch(liveaction_db)
         # pickup updated liveaction_db
         liveaction_db = LiveAction.get_by_id(liveaction_db.id)
-        self.assertTrue('error' in liveaction_db.result)
-        self.assertTrue('traceback' in liveaction_db.result)
+        self.assertIn('error', liveaction_db.result)
+        self.assertIn('traceback', liveaction_db.result)
 
     def test_dispatch_override_default_action_params(self):
         runner_container = get_runner_container()
@@ -355,8 +355,8 @@ class RunnerContainerTest(DbTestCase):
 
         self.assertTrue(len(found) > 0, 'There should be a state db object.')
         self.assertTrue(len(found) == 1, 'There should only be one state db object.')
-        self.assertTrue(found[0].query_context is not None)
-        self.assertTrue(found[0].query_module is not None)
+        self.assertIsNotNone(found[0].query_context)
+        self.assertIsNotNone(found[0].query_module)
 
     @mock.patch.object(
         PollingAsyncActionRunner,

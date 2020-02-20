@@ -31,7 +31,7 @@ class WinRmCommandRunnerTestCase(RunnerTestCase):
         runner = winrm_command_runner.WinRmCommandRunner('abcdef')
         self.assertIsInstance(runner, WinRmBaseRunner)
         self.assertIsInstance(runner, ActionRunner)
-        self.assertEquals(runner.runner_id, 'abcdef')
+        self.assertEqual(runner.runner_id, 'abcdef')
 
     @mock.patch('winrm_runner.winrm_command_runner.WinRmCommandRunner.run_cmd')
     def test_run(self, mock_run_cmd):
@@ -40,5 +40,5 @@ class WinRmCommandRunnerTestCase(RunnerTestCase):
         self._runner.runner_parameters = {'cmd': 'ipconfig /all'}
         result = self._runner.run({})
 
-        self.assertEquals(result, 'expected')
+        self.assertEqual(result, 'expected')
         mock_run_cmd.assert_called_with('ipconfig /all')

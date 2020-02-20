@@ -275,7 +275,7 @@ class TestTimerContextManager(unittest2.TestCase):
         ]
         test_key = "test_key"
         with base.Timer(test_key) as timer:
-            self.assertTrue(isinstance(timer._start_time, datetime))
+            self.assertIsInstance(timer._start_time, datetime)
             metrics_patch.time.assert_not_called()
             timer.send_time()
             metrics_patch.time.assert_called_with(
@@ -289,7 +289,7 @@ class TestTimerContextManager(unittest2.TestCase):
                 (end_time - middle_time).total_seconds()
             )
             time_delta = timer.get_time_delta()
-            self.assertEquals(
+            self.assertEqual(
                 time_delta.total_seconds(),
                 (end_time - middle_time).total_seconds()
             )
@@ -317,7 +317,7 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
         ]
         test_key = "test_key"
         with base.CounterWithTimer(test_key) as timer:
-            self.assertTrue(isinstance(timer._start_time, datetime))
+            self.assertIsInstance(timer._start_time, datetime)
             metrics_patch.time.assert_not_called()
             timer.send_time()
             metrics_patch.time.assert_called_with(test_key,
@@ -330,7 +330,7 @@ class TestCounterWithTimerContextManager(unittest2.TestCase):
                 (self.end_time - self.middle_time).total_seconds()
             )
             time_delta = timer.get_time_delta()
-            self.assertEquals(
+            self.assertEqual(
                 time_delta.total_seconds(),
                 (self.end_time - self.middle_time).total_seconds()
             )
@@ -360,7 +360,7 @@ class TestCounterWithTimerDecorator(unittest2.TestCase):
 
         @base.CounterWithTimer(test_key, include_parameter=True)
         def _get_tested(metrics_counter_with_timer=None):
-            self.assertTrue(isinstance(metrics_counter_with_timer._start_time, datetime))
+            self.assertIsInstance(metrics_counter_with_timer._start_time, datetime)
             metrics_patch.time.assert_not_called()
             metrics_counter_with_timer.send_time()
             metrics_patch.time.assert_called_with(test_key,
@@ -373,7 +373,7 @@ class TestCounterWithTimerDecorator(unittest2.TestCase):
                 (end_time - middle_time).total_seconds()
             )
             time_delta = metrics_counter_with_timer.get_time_delta()
-            self.assertEquals(
+            self.assertEqual(
                 time_delta.total_seconds(),
                 (end_time - middle_time).total_seconds()
             )
@@ -417,7 +417,7 @@ class TestTimerDecorator(unittest2.TestCase):
 
         @base.Timer(test_key, include_parameter=True)
         def _get_tested(metrics_timer=None):
-            self.assertTrue(isinstance(metrics_timer._start_time, datetime))
+            self.assertIsInstance(metrics_timer._start_time, datetime)
             metrics_patch.time.assert_not_called()
             metrics_timer.send_time()
             metrics_patch.time.assert_called_with(
@@ -431,7 +431,7 @@ class TestTimerDecorator(unittest2.TestCase):
                 (end_time - middle_time).total_seconds()
             )
             time_delta = metrics_timer.get_time_delta()
-            self.assertEquals(
+            self.assertEqual(
                 time_delta.total_seconds(),
                 (end_time - middle_time).total_seconds()
             )

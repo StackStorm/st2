@@ -87,8 +87,8 @@ class WorkerTestCase(DbTestCase):
         except InvalidStringData:
             liveaction_db = LiveAction.get_by_id(liveaction_db.id)
             self.assertEqual(liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED)
-            self.assertTrue('error' in liveaction_db.result)
-            self.assertTrue('traceback' in liveaction_db.result)
+            self.assertIn('error', liveaction_db.result)
+            self.assertIn('traceback', liveaction_db.result)
             execution_db = ActionExecution.get_by_id(execution_db.id)
             self.assertEqual(liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED)
 

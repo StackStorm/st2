@@ -57,7 +57,7 @@ class TestTimersHolder(DbTestCase):
     def test_remove_trigger(self):
         holder = TimersHolder()
         model = TestTimersHolder.MODELS.get('cron1.yaml', None)
-        self.assertTrue(model is not None)
+        self.assertIsNotNone(model)
         ref = ResourceReference.to_string_reference(pack=model['pack'], name=model['name'])
         holder.add_trigger(ref, model)
         self.assertEqual(len(holder._timers), 1)

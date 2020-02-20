@@ -255,7 +255,7 @@ class ParallelSSHTests(unittest2.TestCase):
                                    pkey_file='~/.ssh/id_rsa',
                                    connect=True)
         results = client.run('stuff', timeout=60)
-        self.assertTrue('127.0.0.1' in results)
+        self.assertIn('127.0.0.1', results)
         self.assertDictEqual(results['127.0.0.1']['stdout'], {'foo': 'bar'})
 
     @patch('paramiko.SSHClient', Mock)
@@ -277,7 +277,7 @@ class ParallelSSHTests(unittest2.TestCase):
                           'Invalid sudo password provided or sudo is not configured for '
                           'this user (bar)')
 
-        self.assertTrue('127.0.0.1' in results)
+        self.assertIn('127.0.0.1', results)
         self.assertEqual(results['127.0.0.1']['succeeded'], False)
         self.assertEqual(results['127.0.0.1']['failed'], True)
-        self.assertTrue(expected_error in results['127.0.0.1']['error'])
+        self.assertIn(expected_error, results['127.0.0.1']['error'])

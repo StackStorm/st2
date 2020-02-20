@@ -44,9 +44,9 @@ class FromJsonStringFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         jinja_dict = ex.result['result_jinja']
         yaql_dict = ex.result['result_yaql']
-        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertIsInstance(jinja_dict, dict)
         self.assertEqual(jinja_dict["a"], "b")
-        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertIsInstance(yaql_dict, dict)
         self.assertEqual(yaql_dict["a"], "b")
 
 
@@ -64,9 +64,9 @@ class FromYamlStringFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         jinja_dict = ex.result['result_jinja']
         yaql_dict = ex.result['result_yaql']
-        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertIsInstance(jinja_dict, dict)
         self.assertEqual(jinja_dict["a"], "b")
-        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertIsInstance(yaql_dict, dict)
         self.assertEqual(yaql_dict["a"], "b")
 
 
@@ -80,9 +80,9 @@ class JsonEscapeFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         jinja_dict = json.loads(ex.result['result_jinja'])[0]
         yaql_dict = json.loads(ex.result['result_yaql'])[0]
-        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertIsInstance(jinja_dict, dict)
         self.assertEqual(jinja_dict['title'], breaking_str)
-        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertIsInstance(yaql_dict, dict)
         self.assertEqual(yaql_dict['title'], breaking_str)
 
 
@@ -106,9 +106,9 @@ class JsonpathQueryFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         jinja_result = ex.result['result_jinja']
         yaql_result = ex.result['result_yaql']
-        self.assertTrue(isinstance(jinja_result, list))
+        self.assertIsInstance(jinja_result, list)
         self.assertEqual(jinja_result, expected_result)
-        self.assertTrue(isinstance(yaql_result, list))
+        self.assertIsInstance(yaql_result, list)
         self.assertEqual(yaql_result, expected_result)
 
 
@@ -214,9 +214,9 @@ class ToComplexFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         jinja_dict = json.loads(ex.result['result_jinja'])
         yaql_dict = json.loads(ex.result['result_yaql'])
-        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertIsInstance(jinja_dict, dict)
         self.assertEqual(jinja_dict['a'], 'b')
-        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertIsInstance(yaql_dict, dict)
         self.assertEqual(yaql_dict['a'], 'b')
 
 
@@ -229,9 +229,9 @@ class ToJsonStringFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         jinja_dict = json.loads(ex.result['result_jinja'])
         yaql_dict = json.loads(ex.result['result_yaql'])
-        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertIsInstance(jinja_dict, dict)
         self.assertEqual(jinja_dict['a'], 'b')
-        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertIsInstance(yaql_dict, dict)
         self.assertEqual(yaql_dict['a'], 'b')
 
 
@@ -244,9 +244,9 @@ class ToYamlStringFiltersTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         jinja_dict = yaml.safe_load(ex.result['result_jinja'])
         yaql_dict = yaml.safe_load(ex.result['result_yaql'])
-        self.assertTrue(isinstance(jinja_dict, dict))
+        self.assertIsInstance(jinja_dict, dict)
         self.assertEqual(jinja_dict['a'], 'b')
-        self.assertTrue(isinstance(yaql_dict, dict))
+        self.assertIsInstance(yaql_dict, dict)
         self.assertEqual(yaql_dict['a'], 'b')
 
 

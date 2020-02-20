@@ -300,33 +300,33 @@ class RulesControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclude
         else:
             expected_msg = b'Additional properties are not allowed (u\'minutex\' was unexpected)'
 
-        self.assertTrue(expected_msg in post_resp.body)
+        self.assertIn(expected_msg, post_resp.body)
 
     def test_post_trigger_parameter_schema_validation_fails_missing_required_param(self):
         post_resp = self.__do_post(RulesControllerTestCase.RULE_5)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = b'\'date\' is a required property'
-        self.assertTrue(expected_msg in post_resp.body)
+        self.assertIn(expected_msg, post_resp.body)
 
     def test_post_invalid_crontimer_trigger_parameters(self):
         post_resp = self.__do_post(RulesControllerTestCase.RULE_6)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = b'1000 is greater than the maximum of 6'
-        self.assertTrue(expected_msg in post_resp.body)
+        self.assertIn(expected_msg, post_resp.body)
 
         post_resp = self.__do_post(RulesControllerTestCase.RULE_7)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = b'Invalid weekday name \\"abcdef\\"'
-        self.assertTrue(expected_msg in post_resp.body)
+        self.assertIn(expected_msg, post_resp.body)
 
         post_resp = self.__do_post(RulesControllerTestCase.RULE_8)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = b'Invalid weekday name \\"a\\"'
-        self.assertTrue(expected_msg in post_resp.body)
+        self.assertIn(expected_msg, post_resp.body)
 
     def test_post_invalid_custom_trigger_parameter_trigger_param_validation_enabled(self):
         # Invalid custom trigger parameter (invalid type) and non-system trigger parameter
@@ -343,8 +343,8 @@ class RulesControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclude
             expected_msg_1 = "Failed validating u'type' in schema[u'properties'][u'param1']:"
             expected_msg_2 = '12345 is not of type u\'string\''
 
-        self.assertTrue(expected_msg_1 in post_resp.json['faultstring'])
-        self.assertTrue(expected_msg_2 in post_resp.json['faultstring'])
+        self.assertIn(expected_msg_1, post_resp.json['faultstring'])
+        self.assertIn(expected_msg_2, post_resp.json['faultstring'])
 
     def test_post_invalid_custom_trigger_parameter_trigger_param_validation_disabled(self):
         # Invalid custom trigger parameter (invalid type) and non-system trigger parameter
@@ -391,7 +391,7 @@ class RulesControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclude
         test_rule = post_resp.json
         if 'pack' in test_rule:
             del test_rule['pack']
-        self.assertTrue('pack' not in test_rule)
+        self.assertNotIn('pack', test_rule)
         put_resp = self.__do_put(self.__get_rule_id(post_resp), test_rule)
         self.assertEqual(put_resp.json['pack'], DEFAULT_PACK_NAME)
         self.assertEqual(put_resp.status_int, http_client.OK)

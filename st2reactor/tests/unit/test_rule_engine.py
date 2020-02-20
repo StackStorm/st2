@@ -78,7 +78,7 @@ class RuleEngineTest(DbTestCase):
         matching_rules = rules_engine.get_matching_rules_for_trigger(trigger_instance)
         expected_rules = ['st2.test.rule2']
         for rule in matching_rules:
-            self.assertTrue(rule.name in expected_rules)
+            self.assertIn(rule.name, expected_rules)
 
     def test_handle_trigger_instance_no_rules(self):
         trigger_instance = container_utils.create_trigger_instance(

@@ -174,7 +174,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
 
         schedule_q_db = self.scheduling_queue._get_next_execution()
 
-        self.assertEquals(schedule_q_db, None)
+        self.assertEqual(schedule_q_db, None)
 
     def test_no_double_entries(self):
         self.reset()
