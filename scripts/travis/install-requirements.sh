@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then
+if [[ "${TASK}" = *'ci-py3'* ]]; then
     pip install "tox==3.8.6"
 
     # cleanup any invalid python2 cache
@@ -22,15 +22,21 @@ if [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration
     # NOTE: We create the environment and install the dependencies first. This
     # means that the subsequent tox build / test command has a stable run time
     # since it doesn't depend on dependencies being installed.
-    if [ "${TASK}" = 'compilepy3 ci-py3-unit' ]; then
-        TOX_TASK="py36-unit"
+    build_tox_env() {
+        tox -e $1 --notest
+    }
+
+    if [[ "${TASK}" = *'ci-py3-unit'* ]]; then
+        build_tox_env py36-unit
     fi
 
-    if [ "${TASK}" = 'ci-py3-integration' ]; then
-        TOX_TASK="py36-integration"
+    if [[ "${TASK}" = *'ci-py3-packs-tests'* ]]; then
+        build_tox_env py36-packs
     fi
 
-    tox -e ${TOX_TASK} --notest
+    if [[ "${TASK}" = *'ci-py3-integration'* ]]; then
+        build_tox_env py36-integration
+    fi
 else
     make requirements
 fi
