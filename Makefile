@@ -672,7 +672,7 @@ endif
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
-		    nosetests $(NOSE_OPTS) -s -v --exe $(NOSE_COVERAGE_FLAGS) \
+		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
 		    $(NOSE_COVERAGE_PACKAGES) \
 		    $$component/tests/integration || exit 1; \
 		echo "-----------------------------------------------------------"; \
@@ -951,6 +951,12 @@ ci-py3-unit:
 	@echo "==================== ci-py3-unit ===================="
 	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
+
+.PHONY: ci-py3-packs-tests
+ci-py3-packs-tests:
+	@echo
+	@echo "==================== ci-py3-packs-tests ===================="
+	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
 
 .PHONY: ci-py3-unit-nightly
