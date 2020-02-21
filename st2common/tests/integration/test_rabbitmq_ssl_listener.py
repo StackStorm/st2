@@ -39,10 +39,7 @@ SSL_LISTENER_PORT = 5671
 
 # NOTE: We only run those tests on Travis because at the moment, local vagrant dev VM doesn't
 # expose RabbitMQ SSL listener by default
-# TODO: Re-enable once we upgrade Travis from Precise to Xenial where latest version of RabbitMQ
-# and OpenSSL is available
-@unittest2.skip('Skipping until we upgrade to Xenial on Travis')
-# @unittest2.skipIf(not ON_TRAVIS, 'Skipping tests because not running on Travis')
+@unittest2.skipIf(not ON_TRAVIS, 'Skipping tests because not running on Travis')
 class RabbitMQTLSListenerTestCase(unittest2.TestCase):
 
     def setUp(self):
@@ -56,16 +53,18 @@ class RabbitMQTLSListenerTestCase(unittest2.TestCase):
     def test_non_ssl_connection_on_ssl_listener_port_failure(self):
         connection = transport_utils.get_connection(urls='amqp://guest:guest@127.0.0.1:5671/')
 
-        expected_msg_1 = '[Errno 104] Connection reset by peer'
+        expected_msg_1 = '[Errno 104]'  # followed by: ' Connection reset by peer' or ' ECONNRESET'
         expected_msg_2 = 'Socket closed'
+        expected_msg_3 = 'Server unexpectedly closed connection'
 
         try:
             connection.connect()
         except Exception as e:
             self.assertFalse(connection.connected)
-            self.assertTrue(isinstance(e, (IOError, socket.error)))
-            self.assertTrue(expected_msg_1 in six.text_type(e) or expected_msg_2 in
-                            six.text_type(e))
+            self.assertIsInstance(e, (IOError, socket.error))
+            self.assertTrue(expected_msg_1 in six.text_type(e) or
+                            expected_msg_2 in six.text_type(e) or
+                            expected_msg_3 in six.text_type(e))
         else:
             self.fail('Exception was not thrown')
 

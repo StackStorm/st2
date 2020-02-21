@@ -109,6 +109,8 @@ Fixed
 
   Contributed by Tatsuma Matsuki (@mtatsuma)
 
+* Fix dependency conflicts by updating ``requests`` (2.23.0) and ``gitpython`` (2.1.15). #4869
+
 3.1.0 - June 27, 2019
 ---------------------
 

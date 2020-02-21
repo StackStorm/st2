@@ -46,7 +46,7 @@ class WinRmBaseTestCase(RunnerTestCase):
     def test_win_rm_runner_timout_error(self):
         error = WinRmRunnerTimoutError('test_response')
         self.assertIsInstance(error, Exception)
-        self.assertEquals(error.response, 'test_response')
+        self.assertEqual(error.response, 'test_response')
         with self.assertRaises(WinRmRunnerTimoutError):
             raise WinRmRunnerTimoutError('test raising')
 
@@ -54,7 +54,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         runner = winrm_ps_command_runner.WinRmPsCommandRunner('abcdef')
         self.assertIsInstance(runner, WinRmBaseRunner)
         self.assertIsInstance(runner, ActionRunner)
-        self.assertEquals(runner.runner_id, "abcdef")
+        self.assertEqual(runner.runner_id, "abcdef")
 
     @mock.patch('winrm_runner.winrm_base.ActionRunner.pre_run')
     def test_pre_run(self, mock_pre_run):
@@ -72,21 +72,21 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner.runner_parameters = runner_parameters
         self._runner.pre_run()
         mock_pre_run.assert_called_with()
-        self.assertEquals(self._runner._session, None)
-        self.assertEquals(self._runner._host, 'host@domain.tld')
-        self.assertEquals(self._runner._username, 'user@domain.tld')
-        self.assertEquals(self._runner._password, 'abc123')
-        self.assertEquals(self._runner._timeout, 99)
-        self.assertEquals(self._runner._read_timeout, 100)
-        self.assertEquals(self._runner._port, 1234)
-        self.assertEquals(self._runner._scheme, 'http')
-        self.assertEquals(self._runner._transport, 'ntlm')
-        self.assertEquals(self._runner._winrm_url, 'http://host@domain.tld:1234/wsman')
-        self.assertEquals(self._runner._verify_ssl, False)
-        self.assertEquals(self._runner._server_cert_validation, 'ignore')
-        self.assertEquals(self._runner._cwd, 'C:\\Test')
-        self.assertEquals(self._runner._env, {'TEST_VAR': 'TEST_VALUE'})
-        self.assertEquals(self._runner._kwarg_op, '/')
+        self.assertEqual(self._runner._session, None)
+        self.assertEqual(self._runner._host, 'host@domain.tld')
+        self.assertEqual(self._runner._username, 'user@domain.tld')
+        self.assertEqual(self._runner._password, 'abc123')
+        self.assertEqual(self._runner._timeout, 99)
+        self.assertEqual(self._runner._read_timeout, 100)
+        self.assertEqual(self._runner._port, 1234)
+        self.assertEqual(self._runner._scheme, 'http')
+        self.assertEqual(self._runner._transport, 'ntlm')
+        self.assertEqual(self._runner._winrm_url, 'http://host@domain.tld:1234/wsman')
+        self.assertEqual(self._runner._verify_ssl, False)
+        self.assertEqual(self._runner._server_cert_validation, 'ignore')
+        self.assertEqual(self._runner._cwd, 'C:\\Test')
+        self.assertEqual(self._runner._env, {'TEST_VAR': 'TEST_VALUE'})
+        self.assertEqual(self._runner._kwarg_op, '/')
 
     @mock.patch('winrm_runner.winrm_base.ActionRunner.pre_run')
     def test_pre_run_defaults(self, mock_pre_run):
@@ -96,20 +96,20 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner.runner_parameters = runner_parameters
         self._runner.pre_run()
         mock_pre_run.assert_called_with()
-        self.assertEquals(self._runner._host, 'host@domain.tld')
-        self.assertEquals(self._runner._username, 'user@domain.tld')
-        self.assertEquals(self._runner._password, 'abc123')
-        self.assertEquals(self._runner._timeout, 60)
-        self.assertEquals(self._runner._read_timeout, 61)
-        self.assertEquals(self._runner._port, 5986)
-        self.assertEquals(self._runner._scheme, 'https')
-        self.assertEquals(self._runner._transport, 'ntlm')
-        self.assertEquals(self._runner._winrm_url, 'https://host@domain.tld:5986/wsman')
-        self.assertEquals(self._runner._verify_ssl, True)
-        self.assertEquals(self._runner._server_cert_validation, 'validate')
-        self.assertEquals(self._runner._cwd, None)
-        self.assertEquals(self._runner._env, {})
-        self.assertEquals(self._runner._kwarg_op, '-')
+        self.assertEqual(self._runner._host, 'host@domain.tld')
+        self.assertEqual(self._runner._username, 'user@domain.tld')
+        self.assertEqual(self._runner._password, 'abc123')
+        self.assertEqual(self._runner._timeout, 60)
+        self.assertEqual(self._runner._read_timeout, 61)
+        self.assertEqual(self._runner._port, 5986)
+        self.assertEqual(self._runner._scheme, 'https')
+        self.assertEqual(self._runner._transport, 'ntlm')
+        self.assertEqual(self._runner._winrm_url, 'https://host@domain.tld:5986/wsman')
+        self.assertEqual(self._runner._verify_ssl, True)
+        self.assertEqual(self._runner._server_cert_validation, 'validate')
+        self.assertEqual(self._runner._cwd, None)
+        self.assertEqual(self._runner._env, {})
+        self.assertEqual(self._runner._kwarg_op, '-')
 
     @mock.patch('winrm_runner.winrm_base.ActionRunner.pre_run')
     def test_pre_run_5985_force_http(self, mock_pre_run):
@@ -121,22 +121,22 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner.runner_parameters = runner_parameters
         self._runner.pre_run()
         mock_pre_run.assert_called_with()
-        self.assertEquals(self._runner._host, 'host@domain.tld')
-        self.assertEquals(self._runner._username, 'user@domain.tld')
-        self.assertEquals(self._runner._password, 'abc123')
-        self.assertEquals(self._runner._timeout, 60)
-        self.assertEquals(self._runner._read_timeout, 61)
+        self.assertEqual(self._runner._host, 'host@domain.tld')
+        self.assertEqual(self._runner._username, 'user@domain.tld')
+        self.assertEqual(self._runner._password, 'abc123')
+        self.assertEqual(self._runner._timeout, 60)
+        self.assertEqual(self._runner._read_timeout, 61)
         # ensure port is still 5985
-        self.assertEquals(self._runner._port, 5985)
+        self.assertEqual(self._runner._port, 5985)
         # ensure scheme is set back to http
-        self.assertEquals(self._runner._scheme, 'http')
-        self.assertEquals(self._runner._transport, 'ntlm')
-        self.assertEquals(self._runner._winrm_url, 'http://host@domain.tld:5985/wsman')
-        self.assertEquals(self._runner._verify_ssl, True)
-        self.assertEquals(self._runner._server_cert_validation, 'validate')
-        self.assertEquals(self._runner._cwd, None)
-        self.assertEquals(self._runner._env, {})
-        self.assertEquals(self._runner._kwarg_op, '-')
+        self.assertEqual(self._runner._scheme, 'http')
+        self.assertEqual(self._runner._transport, 'ntlm')
+        self.assertEqual(self._runner._winrm_url, 'http://host@domain.tld:5985/wsman')
+        self.assertEqual(self._runner._verify_ssl, True)
+        self.assertEqual(self._runner._server_cert_validation, 'validate')
+        self.assertEqual(self._runner._cwd, None)
+        self.assertEqual(self._runner._env, {})
+        self.assertEqual(self._runner._kwarg_op, '-')
 
     @mock.patch('winrm_runner.winrm_base.ActionRunner.pre_run')
     def test_pre_run_none_env(self, mock_pre_run):
@@ -148,7 +148,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner.pre_run()
         mock_pre_run.assert_called_with()
         # ensure that env is set to {} even though we passed in None
-        self.assertEquals(self._runner._env, {})
+        self.assertEqual(self._runner._env, {})
 
     @mock.patch('winrm_runner.winrm_base.ActionRunner.pre_run')
     def test_pre_run_ssl_verify_true(self, mock_pre_run):
@@ -159,8 +159,8 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner.runner_parameters = runner_parameters
         self._runner.pre_run()
         mock_pre_run.assert_called_with()
-        self.assertEquals(self._runner._verify_ssl, True)
-        self.assertEquals(self._runner._server_cert_validation, 'validate')
+        self.assertEqual(self._runner._verify_ssl, True)
+        self.assertEqual(self._runner._server_cert_validation, 'validate')
 
     @mock.patch('winrm_runner.winrm_base.ActionRunner.pre_run')
     def test_pre_run_ssl_verify_false(self, mock_pre_run):
@@ -171,8 +171,8 @@ class WinRmBaseTestCase(RunnerTestCase):
         self._runner.runner_parameters = runner_parameters
         self._runner.pre_run()
         mock_pre_run.assert_called_with()
-        self.assertEquals(self._runner._verify_ssl, False)
-        self.assertEquals(self._runner._server_cert_validation, 'ignore')
+        self.assertEqual(self._runner._verify_ssl, False)
+        self.assertEqual(self._runner._server_cert_validation, 'ignore')
 
     @mock.patch('winrm_runner.winrm_base.Session')
     def test_get_session(self, mock_session):
@@ -187,8 +187,8 @@ class WinRmBaseTestCase(RunnerTestCase):
         mock_session.return_value = "session"
 
         result = self._runner._get_session()
-        self.assertEquals(result, "session")
-        self.assertEquals(result, self._runner._session)
+        self.assertEqual(result, "session")
+        self.assertEqual(result, self._runner._session)
         mock_session.assert_called_with('https://host@domain.tld:5986/wsman',
                                         auth=('user@domain.tld', 'abc123'),
                                         transport='ntlm',
@@ -199,7 +199,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         # ensure calling _get_session again doesn't create a new one, it reuses the existing
         old_session = self._runner._session
         result = self._runner._get_session()
-        self.assertEquals(result, old_session)
+        self.assertEqual(result, old_session)
 
     def test_winrm_get_command_output(self):
         self._runner._timeout = 0
@@ -212,7 +212,7 @@ class WinRmBaseTestCase(RunnerTestCase):
 
         result = self._runner._winrm_get_command_output(mock_protocol, 567, 890)
 
-        self.assertEquals(result, (b'output1output2output3', b'error1error2error3', 789))
+        self.assertEqual(result, (b'output1output2output3', b'error1error2error3', 789))
         mock_protocol._raw_get_command_output.assert_has_calls = [
             mock.call(567, 890),
             mock.call(567, 890),
@@ -274,7 +274,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         expected_response = Response((b'output', b'error', 9))
         expected_response.timeout = False
 
-        self.assertEquals(result.__dict__, expected_response.__dict__)
+        self.assertEqual(result.__dict__, expected_response.__dict__)
         mock_protocol.open_shell.assert_called_with(env_vars={'PATH': 'C:\\st2\\bin'},
                                                     working_directory='C:\\st2')
         mock_protocol.run_command.assert_called_with(123, 'fake-command', ['arg1', 'arg2'])
@@ -298,7 +298,7 @@ class WinRmBaseTestCase(RunnerTestCase):
         expected_response = Response(('', '', 5))
         expected_response.timeout = True
 
-        self.assertEquals(result.__dict__, expected_response.__dict__)
+        self.assertEqual(result.__dict__, expected_response.__dict__)
         mock_protocol.open_shell.assert_called_with(env_vars={'PATH': 'C:\\st2\\bin'},
                                                     working_directory='C:\\st2')
         mock_protocol.run_command.assert_called_with(123, 'fake-command', ['arg1', 'arg2'])
@@ -308,11 +308,11 @@ class WinRmBaseTestCase(RunnerTestCase):
     def test_winrm_encode(self):
         result = self._runner._winrm_encode('hello world')
         # result translated into UTF-16 little-endian
-        self.assertEquals(result, 'aABlAGwAbABvACAAdwBvAHIAbABkAA==')
+        self.assertEqual(result, 'aABlAGwAbABvACAAdwBvAHIAbABkAA==')
 
     def test_winrm_ps_cmd(self):
         result = self._runner._winrm_ps_cmd('abc123==')
-        self.assertEquals(result, 'powershell -encodedcommand abc123==')
+        self.assertEqual(result, 'powershell -encodedcommand abc123==')
 
     @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_run_cmd')
     def test_winrm_run_ps(self, mock_run_cmd):
@@ -323,8 +323,8 @@ class WinRmBaseTestCase(RunnerTestCase):
                                             env={'PATH': 'C:\\st2\\bin'},
                                             cwd='C:\\st2')
 
-        self.assertEquals(result.__dict__,
-                          Response(('output', '', 3)).__dict__)
+        self.assertEqual(result.__dict__,
+                         Response(('output', '', 3)).__dict__)
         expected_ps = ('powershell -encodedcommand ' +
                        b64encode("Get-ADUser stanley".encode('utf_16_le')).decode('ascii'))
         mock_run_cmd.assert_called_with("session",
@@ -343,8 +343,8 @@ class WinRmBaseTestCase(RunnerTestCase):
                                             env={'PATH': 'C:\\st2\\bin'},
                                             cwd='C:\\st2')
 
-        self.assertEquals(result.__dict__,
-                          Response(('output', 'e', 3)).__dict__)
+        self.assertEqual(result.__dict__,
+                         Response(('output', 'e', 3)).__dict__)
         expected_ps = ('powershell -encodedcommand ' +
                        b64encode("Get-ADUser stanley".encode('utf_16_le')).decode('ascii'))
         mock_run_cmd.assert_called_with(mock_session,
@@ -358,47 +358,46 @@ class WinRmBaseTestCase(RunnerTestCase):
         response.timeout = False
 
         result = self._runner._translate_response(response)
-        self.assertEquals(result, ('succeeded',
-                                   {'failed': False,
-                                    'succeeded': True,
-                                    'return_code': 0,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
-                                   None))
+        self.assertEqual(result, ('succeeded',
+                                  {'failed': False,
+                                   'succeeded': True,
+                                   'return_code': 0,
+                                   'stdout': 'output1',
+                                   'stderr': 'error1'},
+                                  None))
 
     def test_translate_response_failure(self):
         response = Response(('output1', 'error1', 123))
         response.timeout = False
 
         result = self._runner._translate_response(response)
-        self.assertEquals(result, ('failed',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': 123,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
-
-                                   None))
+        self.assertEqual(result, ('failed',
+                                  {'failed': True,
+                                   'succeeded': False,
+                                   'return_code': 123,
+                                   'stdout': 'output1',
+                                   'stderr': 'error1'},
+                                  None))
 
     def test_translate_response_timeout(self):
         response = Response(('output1', 'error1', 123))
         response.timeout = True
 
         result = self._runner._translate_response(response)
-        self.assertEquals(result, ('timeout',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': -1,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
-                                   None))
+        self.assertEqual(result, ('timeout',
+                                  {'failed': True,
+                                   'succeeded': False,
+                                   'return_code': -1,
+                                   'stdout': 'output1',
+                                   'stderr': 'error1'},
+                                  None))
 
     @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps_or_raise')
     def test_make_tmp_dir(self, mock_run_ps_or_raise):
         mock_run_ps_or_raise.return_value = {'stdout': ' expected \n'}
 
         result = self._runner._make_tmp_dir('C:\\Windows\\Temp')
-        self.assertEquals(result, 'expected')
+        self.assertEqual(result, 'expected')
         mock_run_ps_or_raise.assert_called_with('''$parent = C:\\Windows\\Temp
 $name = [System.IO.Path]::GetRandomFileName()
 $path = Join-Path $parent $name
@@ -478,7 +477,7 @@ Add-Content -value $data -encoding byte -path $filePath
         mock_make_tmp_dir.return_value = 'C:\\Windows\\Temp\\abc123'
 
         with self._runner._tmp_script('C:\\Windows\\Temp', 'Get-ChildItem') as tmp:
-            self.assertEquals(tmp, 'C:\\Windows\\Temp\\abc123\\script.ps1')
+            self.assertEqual(tmp, 'C:\\Windows\\Temp\\abc123\\script.ps1')
         mock_make_tmp_dir.assert_called_with('C:\\Windows\\Temp')
         mock_upload.assert_called_with('Get-ChildItem',
                                        'C:\\Windows\\Temp\\abc123\\script.ps1')
@@ -494,7 +493,7 @@ Add-Content -value $data -encoding byte -path $filePath
 
         with self.assertRaises(RuntimeError):
             with self._runner._tmp_script('C:\\Windows\\Temp', 'Get-ChildItem') as tmp:
-                self.assertEquals(tmp, "can never get here")
+                self.assertEqual(tmp, "can never get here")
         mock_make_tmp_dir.assert_called_with('C:\\Windows\\Temp')
         mock_upload.assert_called_with('Get-ChildItem',
                                        'C:\\Windows\\Temp\\abc123\\script.ps1')
@@ -512,13 +511,13 @@ Add-Content -value $data -encoding byte -path $filePath
 
         self._init_runner()
         result = self._runner.run_cmd("ipconfig /all")
-        self.assertEquals(result, ('succeeded',
-                                   {'failed': False,
-                                    'succeeded': True,
-                                    'return_code': 0,
-                                    'stdout': 'output1output2output3',
-                                    'stderr': 'error1error2error3'},
-                                   None))
+        self.assertEqual(result, ('succeeded',
+                                  {'failed': False,
+                                   'succeeded': True,
+                                   'return_code': 0,
+                                   'stdout': 'output1output2output3',
+                                   'stderr': 'error1error2error3'},
+                                  None))
 
     @mock.patch('winrm.Protocol')
     def test_run_cmd_failed(self, mock_protocol_init):
@@ -532,13 +531,13 @@ Add-Content -value $data -encoding byte -path $filePath
 
         self._init_runner()
         result = self._runner.run_cmd("ipconfig /all")
-        self.assertEquals(result, ('failed',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': 1,
-                                    'stdout': 'output1output2output3',
-                                    'stderr': 'error1error2error3'},
-                                   None))
+        self.assertEqual(result, ('failed',
+                                  {'failed': True,
+                                   'succeeded': False,
+                                   'return_code': 1,
+                                   'stdout': 'output1output2output3',
+                                   'stderr': 'error1error2error3'},
+                                  None))
 
     @mock.patch('winrm.Protocol')
     def test_run_cmd_timeout(self, mock_protocol_init):
@@ -554,13 +553,13 @@ Add-Content -value $data -encoding byte -path $filePath
         mock_protocol_init.return_value = mock_protocol
 
         result = self._runner.run_cmd("ipconfig /all")
-        self.assertEquals(result, ('timeout',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': -1,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
-                                   None))
+        self.assertEqual(result, ('timeout',
+                                  {'failed': True,
+                                   'succeeded': False,
+                                   'return_code': -1,
+                                   'stdout': 'output1',
+                                   'stderr': 'error1'},
+                                  None))
 
     @mock.patch('winrm.Protocol')
     def test_run_ps(self, mock_protocol_init):
@@ -574,13 +573,13 @@ Add-Content -value $data -encoding byte -path $filePath
 
         self._init_runner()
         result = self._runner.run_ps("Get-Location")
-        self.assertEquals(result, ('succeeded',
-                                   {'failed': False,
-                                    'succeeded': True,
-                                    'return_code': 0,
-                                    'stdout': 'output1output2output3',
-                                    'stderr': 'error1error2error3'},
-                                   None))
+        self.assertEqual(result, ('succeeded',
+                                  {'failed': False,
+                                   'succeeded': True,
+                                   'return_code': 0,
+                                   'stdout': 'output1output2output3',
+                                   'stderr': 'error1error2error3'},
+                                  None))
 
     @mock.patch('winrm.Protocol')
     def test_run_ps_failed(self, mock_protocol_init):
@@ -594,13 +593,13 @@ Add-Content -value $data -encoding byte -path $filePath
 
         self._init_runner()
         result = self._runner.run_ps("Get-Location")
-        self.assertEquals(result, ('failed',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': 1,
-                                    'stdout': 'output1output2output3',
-                                    'stderr': 'error1error2error3'},
-                                   None))
+        self.assertEqual(result, ('failed',
+                                  {'failed': True,
+                                   'succeeded': False,
+                                   'return_code': 1,
+                                   'stdout': 'output1output2output3',
+                                   'stderr': 'error1error2error3'},
+                                  None))
 
     @mock.patch('winrm.Protocol')
     def test_run_ps_timeout(self, mock_protocol_init):
@@ -616,13 +615,13 @@ Add-Content -value $data -encoding byte -path $filePath
         mock_protocol_init.return_value = mock_protocol
 
         result = self._runner.run_ps("Get-Location")
-        self.assertEquals(result, ('timeout',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': -1,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
-                                   None))
+        self.assertEqual(result, ('timeout',
+                                  {'failed': True,
+                                   'succeeded': False,
+                                   'return_code': -1,
+                                   'stdout': 'output1',
+                                   'stderr': 'error1'},
+                                  None))
 
     @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._run_ps')
     @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_encode')
@@ -633,7 +632,7 @@ Add-Content -value $data -encoding byte -path $filePath
         self._init_runner()
         result = self._runner.run_ps("Get-Location", '-param1 value1 arg1')
 
-        self.assertEquals(result, "expected")
+        self.assertEqual(result, "expected")
         mock_winrm_encode.assert_called_with('& {Get-Location} -param1 value1 arg1')
         mock_run_ps.assert_called_with('xyz123==', is_b64=True)
 
@@ -651,7 +650,7 @@ Add-Content -value $data -encoding byte -path $filePath
         self._init_runner()
         result = self._runner.run_ps('$PSVersionTable')
 
-        self.assertEquals(result, "expected")
+        self.assertEqual(result, "expected")
         mock_run_ps_script.assert_called_with('$PSVersionTable', None)
 
     @mock.patch('winrm.Protocol')
@@ -666,13 +665,13 @@ Add-Content -value $data -encoding byte -path $filePath
 
         self._init_runner()
         result = self._runner._run_ps("Get-Location")
-        self.assertEquals(result, ('succeeded',
-                                   {'failed': False,
-                                    'succeeded': True,
-                                    'return_code': 0,
-                                    'stdout': 'output1output2output3',
-                                    'stderr': 'error1error2error3'},
-                                   None))
+        self.assertEqual(result, ('succeeded',
+                                  {'failed': False,
+                                   'succeeded': True,
+                                   'return_code': 0,
+                                   'stdout': 'output1output2output3',
+                                   'stderr': 'error1error2error3'},
+                                  None))
 
     @mock.patch('winrm.Protocol')
     def test__run_ps_failed(self, mock_protocol_init):
@@ -686,13 +685,13 @@ Add-Content -value $data -encoding byte -path $filePath
 
         self._init_runner()
         result = self._runner._run_ps("Get-Location")
-        self.assertEquals(result, ('failed',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': 1,
-                                    'stdout': 'output1output2output3',
-                                    'stderr': 'error1error2error3'},
-                                   None))
+        self.assertEqual(result, ('failed',
+                                  {'failed': True,
+                                   'succeeded': False,
+                                   'return_code': 1,
+                                   'stdout': 'output1output2output3',
+                                   'stderr': 'error1error2error3'},
+                                  None))
 
     @mock.patch('winrm.Protocol')
     def test__run_ps_timeout(self, mock_protocol_init):
@@ -708,13 +707,13 @@ Add-Content -value $data -encoding byte -path $filePath
         mock_protocol_init.return_value = mock_protocol
 
         result = self._runner._run_ps("Get-Location")
-        self.assertEquals(result, ('timeout',
-                                   {'failed': True,
-                                    'succeeded': False,
-                                    'return_code': -1,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
-                                   None))
+        self.assertEqual(result, ('timeout',
+                                  {'failed': True,
+                                   'succeeded': False,
+                                   'return_code': -1,
+                                   'stdout': 'output1',
+                                   'stderr': 'error1'},
+                                  None))
 
     @mock.patch('winrm_runner.winrm_base.WinRmBaseRunner._winrm_run_ps')
     def test__run_ps_b64_default(self, mock_winrm_run_ps):
@@ -725,13 +724,13 @@ Add-Content -value $data -encoding byte -path $filePath
 
         self._init_runner()
         result = self._runner._run_ps("$PSVersionTable")
-        self.assertEquals(result, ('succeeded',
-                                   {'failed': False,
-                                    'succeeded': True,
-                                    'return_code': 0,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
-                                   None))
+        self.assertEqual(result, ('succeeded',
+                                  {'failed': False,
+                                   'succeeded': True,
+                                   'return_code': 0,
+                                   'stdout': 'output1',
+                                   'stderr': 'error1'},
+                                  None))
         mock_winrm_run_ps.assert_called_with(self._runner._session,
                                              '$PSVersionTable',
                                              env={},
@@ -747,13 +746,13 @@ Add-Content -value $data -encoding byte -path $filePath
 
         self._init_runner()
         result = self._runner._run_ps("xyz123", is_b64=True)
-        self.assertEquals(result, ('succeeded',
-                                   {'failed': False,
-                                    'succeeded': True,
-                                    'return_code': 0,
-                                    'stdout': 'output1',
-                                    'stderr': 'error1'},
-                                   None))
+        self.assertEqual(result, ('succeeded',
+                                  {'failed': False,
+                                   'succeeded': True,
+                                   'return_code': 0,
+                                   'stdout': 'output1',
+                                   'stderr': 'error1'},
+                                  None))
         mock_winrm_run_ps.assert_called_with(self._runner._session,
                                              'xyz123',
                                              env={},
@@ -768,7 +767,7 @@ Add-Content -value $data -encoding byte -path $filePath
 
         self._init_runner()
         result = self._runner._run_ps_script("$PSVersionTable")
-        self.assertEquals(result, 'expected')
+        self.assertEqual(result, 'expected')
         mock_tmp_script.assert_called_with('[System.IO.Path]::GetTempPath()',
                                            '$PSVersionTable')
         mock_run_ps.assert_called_with('& {C:\\tmpscript.ps1}')
@@ -781,7 +780,7 @@ Add-Content -value $data -encoding byte -path $filePath
 
         self._init_runner()
         result = self._runner._run_ps_script("Get-ChildItem", '-param1 value1 arg1')
-        self.assertEquals(result, 'expected')
+        self.assertEqual(result, 'expected')
         mock_tmp_script.assert_called_with('[System.IO.Path]::GetTempPath()',
                                            'Get-ChildItem')
         mock_run_ps.assert_called_with('& {C:\\tmpscript.ps1} -param1 value1 arg1')
@@ -799,7 +798,7 @@ Add-Content -value $data -encoding byte -path $filePath
                                     None)
         self._init_runner()
         result = self._runner._run_ps_or_raise('Get-ChildItem', 'my error message')
-        self.assertEquals(result, {
+        self.assertEqual(result, {
             'failed': False,
             'succeeded': True,
             'return_code': 0,
@@ -827,7 +826,7 @@ Add-Content -value $data -encoding byte -path $filePath
                             'c': 'y',
                             'aaa': 'z'}
         result = self._runner._multireplace('aaaccaa', multireplace_map)
-        self.assertEquals(result, 'zyyxx')
+        self.assertEqual(result, 'zyyxx')
 
     def test_multireplace_powershell(self):
         param_str = (
@@ -845,7 +844,7 @@ Add-Content -value $data -encoding byte -path $filePath
             '$'
         )
         result = self._runner._multireplace(param_str, PS_ESCAPE_SEQUENCES)
-        self.assertEquals(result, (
+        self.assertEqual(result, (
             '`n'
             '`r'
             '`t'
@@ -864,41 +863,41 @@ Add-Content -value $data -encoding byte -path $filePath
         # test None/null
         param = None
         result = self._runner._param_to_ps(param)
-        self.assertEquals(result, '$null')
+        self.assertEqual(result, '$null')
 
     def test_param_to_ps_string(self):
         # test ascii
         param_str = 'StackStorm 1234'
         result = self._runner._param_to_ps(param_str)
-        self.assertEquals(result, '"StackStorm 1234"')
+        self.assertEqual(result, '"StackStorm 1234"')
 
         # test escaped
         param_str = '\n\r\t'
         result = self._runner._param_to_ps(param_str)
-        self.assertEquals(result, '"`n`r`t"')
+        self.assertEqual(result, '"`n`r`t"')
 
     def test_param_to_ps_bool(self):
         # test True
         result = self._runner._param_to_ps(True)
-        self.assertEquals(result, '$true')
+        self.assertEqual(result, '$true')
 
         # test False
         result = self._runner._param_to_ps(False)
-        self.assertEquals(result, '$false')
+        self.assertEqual(result, '$false')
 
     def test_param_to_ps_integer(self):
         result = self._runner._param_to_ps(9876)
-        self.assertEquals(result, '9876')
+        self.assertEqual(result, '9876')
 
         result = self._runner._param_to_ps(-765)
-        self.assertEquals(result, '-765')
+        self.assertEqual(result, '-765')
 
     def test_param_to_ps_float(self):
         result = self._runner._param_to_ps(98.76)
-        self.assertEquals(result, '98.76')
+        self.assertEqual(result, '98.76')
 
         result = self._runner._param_to_ps(-76.5)
-        self.assertEquals(result, '-76.5')
+        self.assertEqual(result, '-76.5')
 
     def test_param_to_ps_list(self):
         input_list = ['StackStorm Test String',
@@ -906,12 +905,12 @@ Add-Content -value $data -encoding byte -path $filePath
                       True,
                       99]
         result = self._runner._param_to_ps(input_list)
-        self.assertEquals(result, '@("StackStorm Test String", "```0`$", $true, 99)')
+        self.assertEqual(result, '@("StackStorm Test String", "```0`$", $true, 99)')
 
     def test_param_to_ps_list_nested(self):
         input_list = [['a'], ['b'], [['c']]]
         result = self._runner._param_to_ps(input_list)
-        self.assertEquals(result, '@(@("a"), @("b"), @(@("c")))')
+        self.assertEqual(result, '@(@("a"), @("b"), @(@("c")))')
 
     def test_param_to_ps_dict(self):
         input_list = collections.OrderedDict(
@@ -928,7 +927,7 @@ Add-Content -value $data -encoding byte -path $filePath
             '11 = 99; '
             '18.3 = 12.34}'
         )
-        self.assertEquals(result, expected_str)
+        self.assertEqual(result, expected_str)
 
     def test_param_to_ps_dict_nexted(self):
         input_list = collections.OrderedDict(
@@ -939,7 +938,7 @@ Add-Content -value $data -encoding byte -path $filePath
             '@{"a" = @{"deep_a" = "value"}; '
             '"b" = @{"deep_b" = @{"deep_deep_b" = "value"}}}'
         )
-        self.assertEquals(result, expected_str)
+        self.assertEqual(result, expected_str)
 
     def test_param_to_ps_deep_nested_dict_outer(self):
         ####
@@ -952,7 +951,7 @@ Add-Content -value $data -encoding byte -path $filePath
             '@{"a" = @(@{"deep_a" = "value"}, '
             '@{"deep_b" = @("a", "b", "c")})}'
         )
-        self.assertEquals(result, expected_str)
+        self.assertEqual(result, expected_str)
 
     def test_param_to_ps_deep_nested_list_outer(self):
         ####
@@ -966,7 +965,7 @@ Add-Content -value $data -encoding byte -path $filePath
             '@{"deep_b" = @("a", "b", "c")}, '
             '@{"deep_c" = @(@{"x" = "y"})})'
         )
-        self.assertEquals(result, expected_str)
+        self.assertEqual(result, expected_str)
 
     def test_transform_params_to_ps(self):
         positional_args = [1, 'a', '\n']
@@ -979,8 +978,8 @@ Add-Content -value $data -encoding byte -path $filePath
 
         result_pos, result_named = self._runner._transform_params_to_ps(positional_args,
                                                                         named_args)
-        self.assertEquals(result_pos, ['1', '"a"', '"`n"'])
-        self.assertEquals(result_named, collections.OrderedDict([
+        self.assertEqual(result_pos, ['1', '"a"', '"`n"'])
+        self.assertEqual(result_named, collections.OrderedDict([
             ('a', '"value1"'),
             ('b', '$true'),
             ('c', '@("x", "y")'),
@@ -992,8 +991,8 @@ Add-Content -value $data -encoding byte -path $filePath
 
         result_pos, result_named = self._runner._transform_params_to_ps(positional_args,
                                                                         named_args)
-        self.assertEquals(result_pos, None)
-        self.assertEquals(result_named, None)
+        self.assertEqual(result_pos, None)
+        self.assertEqual(result_named, None)
 
     def test_create_ps_params_string(self):
         positional_args = [1, 'a', '\n']
@@ -1006,12 +1005,12 @@ Add-Content -value $data -encoding byte -path $filePath
 
         result = self._runner.create_ps_params_string(positional_args, named_args)
 
-        self.assertEquals(result,
-                          '-a "value1" -b $true -c @("x", "y") -d @{"z" = "w"} 1 "a" "`n"')
+        self.assertEqual(result,
+                         '-a "value1" -b $true -c @("x", "y") -d @{"z" = "w"} 1 "a" "`n"')
 
     def test_create_ps_params_string_none(self):
         positional_args = None
         named_args = None
 
         result = self._runner.create_ps_params_string(positional_args, named_args)
-        self.assertEquals(result, "")
+        self.assertEqual(result, "")

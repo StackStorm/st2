@@ -14,9 +14,9 @@ oslo.config>=1.12.1,<1.13
 oslo.utils>=3.36.2,<=3.37.0
 six==1.13.0
 pyyaml==5.1.2
-requests[security]==2.22.0
+requests[security]==2.23.0
 apscheduler==3.6.3
-gitpython==2.1.11
+gitpython==2.1.15
 jsonschema==2.6.0
 pymongo==3.10.0
 mongoengine==0.18.2

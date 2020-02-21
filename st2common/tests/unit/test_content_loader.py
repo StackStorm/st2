@@ -30,7 +30,7 @@ class ContentLoaderTest(unittest2.TestCase):
         packs_base_path = os.path.join(RESOURCES_DIR, 'packs/')
         loader = ContentPackLoader()
         pack_sensors = loader.get_content(base_dirs=[packs_base_path], content_type='sensors')
-        self.assertTrue(pack_sensors.get('pack1', None) is not None)
+        self.assertIsNotNone(pack_sensors.get('pack1', None))
 
     def test_get_sensors_pack_missing_sensors(self):
         loader = ContentPackLoader()
@@ -53,8 +53,8 @@ class ContentLoaderTest(unittest2.TestCase):
 
         loader = ContentPackLoader()
         sensors = loader.get_content(base_dirs=base_dirs, content_type='sensors')
-        self.assertTrue('pack1' in sensors)  # from packs/
-        self.assertTrue('pack3' in sensors)  # from packs2/
+        self.assertIn('pack1', sensors)  # from packs/
+        self.assertIn('pack3', sensors)  # from packs2/
 
         # Assert that a warning is emitted when a duplicated pack is found
         expected_msg = ('Pack "pack1" already found in '

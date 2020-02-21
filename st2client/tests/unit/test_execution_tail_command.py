@@ -287,7 +287,7 @@ class ActionExecutionTailCommandTestCase(BaseCLITestCase):
         self.assertEqual(self.shell.run(argv), 0)
         stdout = self.stdout.getvalue()
         stderr = self.stderr.getvalue()
-        self.assertTrue('Execution idfoo1 has completed (status=succeeded)' in stdout)
+        self.assertIn('Execution idfoo1 has completed (status=succeeded)', stdout)
         self.assertEqual(stderr, '')
 
     @mock.patch.object(
@@ -300,7 +300,7 @@ class ActionExecutionTailCommandTestCase(BaseCLITestCase):
         self.assertEqual(self.shell.run(argv), 0)
         stdout = self.stdout.getvalue()
         stderr = self.stderr.getvalue()
-        self.assertTrue('Execution idfoo2 has completed (status=failed)' in stdout)
+        self.assertIn('Execution idfoo2 has completed (status=failed)', stdout)
         self.assertEqual(stderr, '')
 
     @mock.patch.object(

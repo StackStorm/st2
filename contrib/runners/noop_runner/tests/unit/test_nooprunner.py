@@ -38,10 +38,10 @@ class TestNoopRunner(TestCase):
         runner = TestNoopRunner._get_runner(action_db)
         status, result, _ = runner.run({})
 
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEquals(result['failed'], False)
-        self.assertEquals(result['succeeded'], True)
-        self.assertEquals(result['return_code'], 0)
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(result['failed'], False)
+        self.assertEqual(result['succeeded'], True)
+        self.assertEqual(result['return_code'], 0)
 
     @staticmethod
     def _get_runner(action_db):

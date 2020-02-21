@@ -115,13 +115,11 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
 
         exec_id = str(ResultsTrackerTests.states['state1.yaml'].execution_id)
         exec_db = LiveAction.get_by_id(exec_id)
-        self.assertTrue(exec_db.result['called_with'][exec_id] is not None,
-                        exec_db.result)
+        self.assertIsNotNone(exec_db.result['called_with'][exec_id], exec_db.result)
 
         exec_id = str(ResultsTrackerTests.states['state2.yaml'].execution_id)
         exec_db = LiveAction.get_by_id(exec_id)
-        self.assertTrue(exec_db.result['called_with'][exec_id] is not None,
-                        exec_db.result)
+        self.assertIsNotNone(exec_db.result['called_with'][exec_id], exec_db.result)
 
         tracker.shutdown()
 
@@ -149,7 +147,7 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
 
     def test_get_querier_success(self):
         tracker = self._get_tracker()
-        self.assertTrue(tracker.get_querier('test_querymodule') is not None)
+        self.assertIsNotNone(tracker.get_querier('test_querymodule'))
 
     def test_get_querier_not_found(self):
         with mock.patch('st2actions.resultstracker.resultstracker.get_query_module',
@@ -339,13 +337,11 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
 
         exec_id = str(ResultsTrackerTests.states['state1.yaml'].execution_id)
         exec_db = LiveAction.get_by_id(exec_id)
-        self.assertTrue(exec_db.result['called_with'][exec_id] is not None,
-                        exec_db.result)
+        self.assertIsNotNone(exec_db.result['called_with'][exec_id], exec_db.result)
 
         exec_id = str(ResultsTrackerTests.states['state2.yaml'].execution_id)
         exec_db = LiveAction.get_by_id(exec_id)
-        self.assertTrue(exec_db.result['called_with'][exec_id] is not None,
-                        exec_db.result)
+        self.assertIsNotNone(exec_db.result['called_with'][exec_id], exec_db.result)
 
         tracker.shutdown()
 

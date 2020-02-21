@@ -164,16 +164,16 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         self.assertEqual(len(split), 4)
 
         # First entry should be system lib/python3 dir
-        self.assertTrue('/usr/lib/python3.6' in split[0])
+        self.assertIn('/usr/lib/python3.6', split[0])
 
         # Second entry should be lib/python3 dir from venv
-        self.assertTrue('virtualenvs/dummy_pack/lib/python3.6' in split[1])
+        self.assertIn('virtualenvs/dummy_pack/lib/python3.6', split[1])
 
         # Third entry should be python3 site-packages dir from venv
-        self.assertTrue('virtualenvs/dummy_pack/lib/python3.6/site-packages' in split[2])
+        self.assertIn('virtualenvs/dummy_pack/lib/python3.6/site-packages', split[2])
 
         # Fourth entry should be actions/lib dir from pack root directory
-        self.assertTrue('packs/dummy_pack/actions/lib/' in split[3])
+        self.assertIn('packs/dummy_pack/actions/lib/', split[3])
 
         # Inherit python path from current process
         # Mock the current process python path
@@ -222,13 +222,13 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         self.assertEqual(len(split), 4)
 
         # First entry should be system lib/python3 dir
-        self.assertTrue('/opt/lib/python3.6' in split[0])
+        self.assertIn('/opt/lib/python3.6', split[0])
 
         # Second entry should be lib/python3 dir from venv
-        self.assertTrue('virtualenvs/dummy_pack/lib/python3.6' in split[1])
+        self.assertIn('virtualenvs/dummy_pack/lib/python3.6', split[1])
 
         # Third entry should be python3 site-packages dir from venv
-        self.assertTrue('virtualenvs/dummy_pack/lib/python3.6/site-packages' in split[2])
+        self.assertIn('virtualenvs/dummy_pack/lib/python3.6/site-packages', split[2])
 
         # Fourth entry should be actions/lib dir from pack root directory
-        self.assertTrue('packs/dummy_pack/actions/lib/' in split[3])
+        self.assertIn('packs/dummy_pack/actions/lib/', split[3])

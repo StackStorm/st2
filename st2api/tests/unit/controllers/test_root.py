@@ -24,5 +24,5 @@ class RootControllerTestCase(FunctionalTest):
         paths = ['/', '/v1/', '/v1']
         for path in paths:
             resp = self.app.get(path)
-            self.assertTrue('version' in resp.json)
-            self.assertTrue('docs_url' in resp.json)
+            self.assertIn('version', resp.json)
+            self.assertIn('docs_url', resp.json)

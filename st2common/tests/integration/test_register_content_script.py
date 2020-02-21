@@ -51,7 +51,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         ]
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
         exit_code, _, stderr = run_command(cmd=cmd)
-        self.assertTrue('Registered 1 actions.' in stderr)
+        self.assertIn('Registered 1 actions.', stderr)
         self.assertEqual(exit_code, 0)
 
     def test_register_from_pack_fail_on_failure_pack_dir_doesnt_exist(self):
@@ -76,7 +76,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         ]
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
         exit_code, _, stderr = run_command(cmd=cmd)
-        self.assertTrue('Directory "doesntexistblah" doesn\'t exist' in stderr)
+        self.assertIn('Directory "doesntexistblah" doesn\'t exist', stderr)
         self.assertEqual(exit_code, 1)
 
     def test_register_from_pack_action_metadata_fails_validation(self):
@@ -92,7 +92,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
 
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
         exit_code, _, stderr = run_command(cmd=cmd)
-        self.assertTrue('Registered 0 actions.' in stderr)
+        self.assertIn('Registered 0 actions.', stderr)
         self.assertEqual(exit_code, 0)
 
         # Fail on failure, should fail
@@ -104,7 +104,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         ]
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
         exit_code, _, stderr = run_command(cmd=cmd)
-        self.assertTrue('object has no attribute \'get\'' in stderr)
+        self.assertIn('object has no attribute \'get\'', stderr)
         self.assertEqual(exit_code, 1)
 
     def test_register_from_packs_doesnt_throw_on_missing_pack_resource_folder(self):
@@ -116,15 +116,15 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         cmd = [sys.executable, SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v',
                '--register-sensors']
         exit_code, _, stderr = run_command(cmd=cmd)
-        self.assertTrue('Registered 0 sensors.' in stderr, 'Actual stderr: %s' % (stderr))
+        self.assertIn('Registered 0 sensors.', stderr, 'Actual stderr: %s' % (stderr))
         self.assertEqual(exit_code, 0)
 
         cmd = [sys.executable, SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v',
                '--register-all', '--register-no-fail-on-failure']
         exit_code, _, stderr = run_command(cmd=cmd)
-        self.assertTrue('Registered 0 actions.' in stderr)
-        self.assertTrue('Registered 0 sensors.' in stderr)
-        self.assertTrue('Registered 0 rules.' in stderr)
+        self.assertIn('Registered 0 actions.', stderr)
+        self.assertIn('Registered 0 sensors.', stderr)
+        self.assertIn('Registered 0 rules.', stderr)
         self.assertEqual(exit_code, 0)
 
     def test_register_all_and_register_setup_virtualenvs(self):
@@ -138,9 +138,9 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             '--register-no-fail-on-failure'
         ]
         exit_code, stdout, stderr = run_command(cmd=cmd)
-        self.assertTrue('Registering actions' in stderr, 'Actual stderr: %s' % (stderr))
-        self.assertTrue('Registering rules' in stderr)
-        self.assertTrue('Setup virtualenv for %s pack(s)' % ('1') in stderr)
+        self.assertIn('Registering actions', stderr, 'Actual stderr: %s' % (stderr))
+        self.assertIn('Registering rules', stderr)
+        self.assertIn('Setup virtualenv for %s pack(s)' % ('1'), stderr)
         self.assertEqual(exit_code, 0)
 
     def test_register_setup_virtualenvs(self):
@@ -151,6 +151,6 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
                                '--register-no-fail-on-failure']
         exit_code, stdout, stderr = run_command(cmd=cmd)
 
-        self.assertTrue('Setting up virtualenv for pack "dummy_pack_1"' in stderr)
-        self.assertTrue('Setup virtualenv for 1 pack(s)' in stderr)
+        self.assertIn('Setting up virtualenv for pack "dummy_pack_1"', stderr)
+        self.assertIn('Setup virtualenv for 1 pack(s)', stderr)
         self.assertEqual(exit_code, 0)

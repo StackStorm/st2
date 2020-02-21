@@ -34,7 +34,7 @@ class AnnouncementRunnerTestCase(RunnerTestCase):
 
     def test_runner_creation(self, dispatch):
         runner = announcement_runner.get_runner()
-        self.assertTrue(runner is not None, 'Creation failed. No instance.')
+        self.assertIsNotNone(runner, 'Creation failed. No instance.')
         self.assertEqual(type(runner), announcement_runner.AnnouncementRunner,
                          'Creation failed. No instance.')
         self.assertEqual(runner._dispatcher.dispatch, dispatch)
@@ -51,7 +51,7 @@ class AnnouncementRunnerTestCase(RunnerTestCase):
         (status, result, _) = runner.run({'test': 'passed'})
 
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(result is not None)
+        self.assertIsNotNone(result)
         self.assertEqual(result['test'], 'passed')
         dispatch.assert_called_once_with('general', payload={'test': 'passed'},
                                          trace_context=None)
@@ -85,7 +85,7 @@ class AnnouncementRunnerTestCase(RunnerTestCase):
         (status, result, _) = runner.run({'test': 'passed'})
 
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(result is not None)
+        self.assertIsNotNone(result)
         self.assertEqual(result['test'], 'passed')
         context.assert_called_once_with(TraceContext,
                                         **runner.liveaction.context['trace_context'])

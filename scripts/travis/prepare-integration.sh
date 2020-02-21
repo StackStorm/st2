@@ -6,8 +6,6 @@ if [ "$(whoami)" != 'root' ]; then
     exit 2
 fi
 
-UBUNTU_VERSION=`lsb_release -a 2>&1 | grep Codename | grep -v "LSB" | awk '{print $2}'`
-
 # Activate the virtualenv created during make requirements phase
 source ./virtualenv/bin/activate
 
@@ -35,11 +33,6 @@ echo " === END: Catting screen process log files. ==="
 chmod 777 logs/
 chmod 777 logs/*
 
-# Workaround for Travis on Ubuntu Xenial so local runner integration tests work
-# when executing them under user "stanley" (by default Travis checks out the
-# code and runs tests under a different system user).
-# NOTE: We need to pass "--exe" flag to nosetests when using this workaround.
-if [ "${UBUNTU_VERSION}" == "xenial" ]; then
-  echo "Applying workaround for stanley user permissions issue to /home/travis on Xenial"
-  chmod 777 -R /home/travis
-fi
+# root needs to access write some lock files when creating virtualenvs
+# o=other; X=only set execute bit if user execute bit is set (eg on dirs)
+chmod -R o+rwX ${HOME}/.local/share/virtualenv

@@ -53,8 +53,8 @@ class SensorWrapperTestCase(unittest2.TestCase):
                                 class_name='TestSensor',
                                 trigger_types=trigger_types,
                                 parent_args=parent_args)
-        self.assertTrue(getattr(wrapper._sensor_instance, 'sensor_service', None) is not None)
-        self.assertTrue(getattr(wrapper._sensor_instance, 'config', None) is not None)
+        self.assertIsNotNone(getattr(wrapper._sensor_instance, 'sensor_service', None))
+        self.assertIsNotNone(getattr(wrapper._sensor_instance, 'config', None))
 
     def test_trigger_cud_event_handlers(self):
         trigger_id = '57861fcb0640fd1524e577c0'
@@ -121,7 +121,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
                                 poll_interval=poll_interval)
         self.assertIsNotNone(wrapper._sensor_instance)
         self.assertIsInstance(wrapper._sensor_instance, PollingSensor)
-        self.assertEquals(wrapper._sensor_instance._poll_interval, poll_interval)
+        self.assertEqual(wrapper._sensor_instance._poll_interval, poll_interval)
 
     def test_sensor_init_fails_file_doesnt_exist(self):
         file_path = os.path.join(RESOURCES_DIR, 'test_sensor_doesnt_exist.py')
@@ -152,8 +152,8 @@ class SensorWrapperTestCase(unittest2.TestCase):
             SensorWrapper(pack='core', file_path=file_path, class_name='TestSensor',
                           trigger_types=trigger_types, parent_args=parent_args)
         except NameError as e:
-            self.assertTrue('Traceback (most recent call last)' in six.text_type(e))
-            self.assertTrue('line 19, in <module>' in six.text_type(e))
+            self.assertIn('Traceback (most recent call last)', six.text_type(e))
+            self.assertIn('line 19, in <module>', six.text_type(e))
         else:
             self.fail('NameError not thrown')
 

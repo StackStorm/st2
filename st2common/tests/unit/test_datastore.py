@@ -105,8 +105,8 @@ class DatastoreServiceTestCase(DbTestCase):
         value = self._datastore_service.set_value(name='test1', value='foo', local=False)
         self.assertTrue(value)
         kvp = mock_api_client.keys.update.call_args[1]['instance']
-        self.assertEquals(kvp.value, 'foo')
-        self.assertEquals(kvp.scope, SYSTEM_SCOPE)
+        self.assertEqual(kvp.value, 'foo')
+        self.assertEqual(kvp.scope, SYSTEM_SCOPE)
 
     def test_datastore_operations_delete_value(self):
         mock_api_client = mock.Mock()
@@ -124,9 +124,9 @@ class DatastoreServiceTestCase(DbTestCase):
             encrypt=True)
         self.assertTrue(value)
         kvp = mock_api_client.keys.update.call_args[1]['instance']
-        self.assertEquals(kvp.value, 'foo')
+        self.assertEqual(kvp.value, 'foo')
         self.assertTrue(kvp.secret)
-        self.assertEquals(kvp.scope, SYSTEM_SCOPE)
+        self.assertEqual(kvp.scope, SYSTEM_SCOPE)
 
     def test_datastore_unsupported_scope(self):
         self.assertRaises(ValueError, self._datastore_service.get_value, name='test1',
@@ -141,14 +141,14 @@ class DatastoreServiceTestCase(DbTestCase):
         mock_api_client.keys.get_by_id.side_effect = ValueError("Exception test")
         self._set_mock_api_client(mock_api_client)
         value = self._datastore_service.get_value(name='test1')
-        self.assertEquals(value, None)
+        self.assertEqual(value, None)
 
     def test_datastore_delete_exception(self):
         mock_api_client = mock.Mock()
         mock_api_client.keys.delete.side_effect = ValueError("Exception test")
         self._set_mock_api_client(mock_api_client)
         delete_success = self._datastore_service.delete_value(name='test1')
-        self.assertEquals(delete_success, False)
+        self.assertEqual(delete_success, False)
 
     def test_datastore_token_timeout(self):
         datastore_service = SensorDatastoreService(logger=mock.Mock(),

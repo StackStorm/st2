@@ -40,14 +40,14 @@ class PackConfigSchemasControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/config_schemas/dummy_pack_1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['pack'], 'dummy_pack_1')
-        self.assertTrue('api_key' in resp.json['attributes'])
+        self.assertIn('api_key', resp.json['attributes'])
 
     def test_get_one_doesnt_exist(self):
         # Pack exists, schema doesnt
         resp = self.app.get('/v1/config_schemas/dummy_pack_2',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
-        self.assertTrue('Unable to identify resource with pack_ref ' in resp.json['faultstring'])
+        self.assertIn('Unable to identify resource with pack_ref ', resp.json['faultstring'])
 
         # Pack doesn't exist
         ref_or_id = 'pack_doesnt_exist'
