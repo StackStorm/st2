@@ -58,8 +58,8 @@ addons:
       #- sourceline: 'deb [arch=amd64] https://dl.bintray.com/rabbitmq/debian precise rabbitmq-server-v3.6.x'
       #  key_url: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
     packages:
-      - mongodb-org-server
-      - mongodb-org-shell
+      - mongodb-org-server=3.4.*
+      - mongodb-org-shell=3.4.*
       - erlang
       - rabbitmq-server
       - libffi-dev
