@@ -59,7 +59,10 @@ Changed
 
 Fixed
 ~~~~~
+* Fix the action query when filtering tags. The old implementation returned actions which have the
+  provided name as action name and not as tag name. #4828
 
+  Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem) 
 * Fix rbac with execution view where the rbac is unable to verify the pack or uid of the execution
   because it was not returned from the action execution db. This would result in an internal server
   error when trying to view the results of a single execution.
