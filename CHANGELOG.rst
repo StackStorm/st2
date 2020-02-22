@@ -110,6 +110,7 @@ Fixed
   Contributed by Tatsuma Matsuki (@mtatsuma)
 
 * Fix dependency conflicts by updating ``requests`` (2.23.0) and ``gitpython`` (2.1.15). #4869
+* Fixed serializing array parameters (bug fix) #4804, #4861, #4872
 
 3.1.0 - June 27, 2019
 ---------------------
