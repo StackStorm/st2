@@ -115,6 +115,8 @@ username = None
 connection_retry_max_delay_m = 3
 # ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from MongoDB.
 ssl_ca_certs = None
+# True to use a special implementation of escaped dict field which saves value as JSON to avoid expensive escaping. NOTE: Experimental.
+use_json_dict_field = False
 # Certificate file used to identify the localconnection
 ssl_certfile = None
 # Connection retry backoff max (seconds).
@@ -141,6 +143,8 @@ connection_timeout = 3000
 password = None
 # port of db server
 port = 27017
+# The backend to use for marshalling JSON to the JSONDictField.
+json_dict_field_backend = ujson
 
 [exporter]
 # location of the logging.exporter.conf file

@@ -23,6 +23,7 @@ from mongoengine import LongField
 from mongoengine import BinaryField
 from oslo_config import cfg
 
+from st2common.models.db import stormbase
 from st2common.util import date as date_utils
 from st2common.util import mongoescape
 
@@ -32,6 +33,8 @@ __all__ = [
 
 SECOND_TO_MICROSECONDS = 1000000
 
+from st2common import log as logging
+LOG = logging.getLogger(__name__)
 
 class ComplexDateTimeField(LongField):
     """
@@ -122,7 +125,6 @@ class ComplexDateTimeField(LongField):
         return self._convert_from_datetime(value)
 
 
-
 class JSONDictField(BinaryField):
     """
     Custom field types which stores dictionary as JSON serialized strings.
@@ -139,16 +141,18 @@ class JSONDictField(BinaryField):
     objects and ujson on smaller ones.
     """
     def __init__(self, *args, **kwargs):
-        json_backend = kwargs.pop('json_backend', 'ujson')
+        json_backend = kwargs.pop('json_backend', None)
+
+        if not json_backend:
+            json_backend = cfg.CONF.database.json_dict_field_backend
 
         if json_backend not in ['ujson', 'cjson']:
-            raise ValueError('Unsupported backend: %s' % (json_backend))
+            raise ValueError('Unsupported backend "%s" specified for JSONDictField.' % json_backend)
 
         super(JSONDictField, self).__init__(*args, **kwargs)
 
         if json_backend == 'ujson':
             import ujson
-
             self.json_loads = ujson.loads
             self.json_dumps = ujson.dumps
         elif json_backend == 'cjson':
@@ -158,16 +162,20 @@ class JSONDictField(BinaryField):
 
     def to_mongo(self, value):
         if not isinstance(value, dict):
-            raise ValueError('value argument must be a dictionary')
+            message = 'The value argument must be a dictionary. Type: %s Content: %s'
+            raise ValueError(message % (type(value), str(value)))
+
         return self.json_dumps(value)
 
     def to_python(self, value):
-        if isinstance(value, (six.text_type, six.binary_type)):
+        if isinstance(value, six.text_type) or isinstance(value, six.binary_type):
             return self.json_loads(value)
+
         return value
 
     def validate(self, value):
-        value = self.to_mongo(value)
+        if isinstance(value, dict):
+            value = self.to_mongo(value)
 
         return super(JSONDictField, self).validate(value)
 
@@ -181,26 +189,29 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
     always insert data in a new format.
     """
 
-    def to_mongo(self, value):
-        if not cfg.CONF.db.use_json_dict_field:
+    def to_mongo(self, value, use_db_field=True, fields=None):
+        if not cfg.CONF.database.use_json_dict_field:
             value = mongoescape.escape_chars(value)
-            return value
+            return super(stormbase.EscapedDynamicField, self).to_mongo(
+                value=value, use_db_field=use_db_field, fields=fields)
 
         if not isinstance(value, dict):
-            raise ValueError('value argument must be a dictionary')
+            message = 'The value argument must be a dictionary. Type: %s Content: %s'
+            raise ValueError(message % (type(value), str(value)))
 
         return self.json_dumps(value)
 
     def to_python(self, value):
-        if not cfg.CONF.db.use_json_dict_field:
-            value = super(EscapedDictField, self).to_python(value)
+        if not cfg.CONF.database.use_json_dict_field:
+            value = super(stormbase.EscapedDynamicField, self).to_python(value)
             return mongoescape.unescape_chars(value)
 
-        if isinstance(value, dict) and True:
+        if isinstance(value, dict):
             # Old format which used a native dict with escaped special characters
             value = mongoescape.unescape_chars(value)
             return value
 
-        if isinstance(value, (six.text_type, six.binary_type)):
+        if isinstance(value, six.text_type) or isinstance(value, six.binary_type):
             return self.json_loads(value)
+
         return value

@@ -217,7 +217,9 @@ def register_opts(ignore_errors=False):
             'use_json_dict_field', default=False,
             help='True to use a special implementation of escaped dict field which saves '
             'value as JSON to avoid expensive escaping. NOTE: Experimental.'),
-
+        cfg.StrOpt(
+            'json_dict_field_backend', default='ujson', choices='cjson, ujson',
+            help='The backend to use for marshalling JSON to the JSONDictField.'),
     ]
 
     do_register_opts(db_opts, 'database', ignore_errors)
