@@ -31,7 +31,7 @@ class WiringTest(base.TestWorkflowExecution):
         delay_poll = load_count * 5
 
         wf_name = 'examples.orquesta-mock-create-vm'
-        wf_input = {'vm_name': 'demo1'}
+        wf_input = {'vm_name': 'demo1', 'meta': {'demo1.itests.org': '10.3.41.99'}}
         exs = [self._execute_workflow(wf_name, wf_input) for i in range(load_count)]
 
         eventlet.sleep(delay_poll)

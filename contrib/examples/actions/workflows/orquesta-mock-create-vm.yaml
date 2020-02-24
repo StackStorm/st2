@@ -6,10 +6,16 @@ input:
   - vm_name
   - cpu_cores
   - memory_mb
+  - ip
+  - meta
+
+vars:
+  - extra: <% ctx().meta %>
 
 output:
   - vm_id: <% ctx().vm_id %>
   - ip: <% ctx().ip %>
+  - extra: <% ctx().extra %>
 
 tasks:
   register_dns:
@@ -19,7 +25,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - ip: "10.1.23.99"
+          - ip: <% ctx().ip %>
           - status_message: "DNS for <% ctx().vm_name %> is registered."
         do:
           - configure_vm
@@ -27,14 +33,16 @@ tasks:
 
 
   create_vm:
-    action: core.local
+    action: examples.python-mock-create-vm
     input:
-      cmd: "printf 'vm1234'; sleep 6"
+      vm_name: <% ctx().vm_name %>
+      ip: <% ctx().ip %>
     next:
       - when: <% succeeded() %>
         publish:
-          - vm_id: <% result().stdout %>
+          - vm_id: <% result().result.vm_id %>
           - status_message: "VM <% ctx().vm_name %> is created."
+          - extra: <% result().result %>
         do:
           - configure_vm
           - notify

@@ -1,0 +1,19 @@
+---
+name: python-mock-create-vm
+runner_type: python-script
+description: Action which mocks creation of a VM.
+enabled: true
+entry_point: python-mock-create-vm.py
+parameters:
+  cpu_cores:
+    default: 1
+    type: integer
+  memory_mb:
+    default: 1024
+    type: integer
+  vm_name:
+    required: true
+    type: string
+  ip:
+    required: true
+    type: string
