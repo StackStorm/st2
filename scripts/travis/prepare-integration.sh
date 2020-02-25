@@ -28,6 +28,9 @@ echo " === START: Catting screen process log files. ==="
 cat logs/screen-*.log
 echo " === END: Catting screen process log files. ==="
 
+# Setup the virtualenv for the examples pack which is required for orquesta integration tests.
+st2 run packs.setup_virtualenv packs=examples
+
 # This script runs as root on Travis which means other processes which don't run
 # as root can't write to logs/ directory and tests fail
 chmod 777 logs/
