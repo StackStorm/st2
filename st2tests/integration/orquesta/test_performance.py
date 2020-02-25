@@ -17,6 +17,7 @@
 from __future__ import absolute_import
 
 import eventlet
+import json
 
 from integration.orquesta import base
 from six.moves import range
@@ -38,7 +39,7 @@ class WiringTest(base.TestWorkflowExecution):
 
         for ex in exs:
             e = self._wait_for_completion(ex)
-            self.assertEqual(e.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+            self.assertEqual(e.status, ac_const.LIVEACTION_STATUS_SUCCEEDED, json.dumps(e.result))
             self.assertIn('output', e.result)
             self.assertIn('vm_id', e.result['output'])
 
