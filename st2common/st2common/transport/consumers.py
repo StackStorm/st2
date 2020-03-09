@@ -56,15 +56,15 @@ class QueueConsumer(ConsumerMixin):
 
     def process(self, body, message):
         try:
+            # Ack message first to prevent large messages from being processed by multiple workflow engines
+            message.ack()
             if not isinstance(body, self._handler.message_type):
                 raise TypeError('Received an unexpected type "%s" for payload.' % type(body))
-
             self._dispatcher.dispatch(self._process_message, body)
         except:
             LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
-        finally:
-            # At this point we will always ack a message.
-            message.ack()
+        finally:            
+            LOG.debug("message:" + str(message))
 
     def _process_message(self, body):
         try:
