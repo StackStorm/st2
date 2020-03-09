@@ -123,6 +123,7 @@ class ParamikoSSHClient(object):
 
         self.bastion_client = None
         self.bastion_socket = None
+        self.socket = None
 
     def connect(self):
         """
@@ -455,6 +456,12 @@ class ParamikoSSHClient(object):
 
         self.client.close()
 
+        if self.socket:
+            self.logger.debug('Closing proxycommand socket connection')
+            #https://github.com/paramiko/paramiko/issues/789  Avoid zombie ssh processes
+            self.socket.process.kill()
+            self.socket.process.poll()
+
         if self.sftp_client:
             self.sftp_client.close()
 
@@ -698,8 +705,8 @@ class ParamikoSSHClient(object):
                  '_username': self.username, '_timeout': self.timeout}
         self.logger.debug('Connecting to server', extra=extra)
 
-        socket = socket or ssh_config_file_info.get('sock', None)
-        if socket:
+        self.socket = self.socket or ssh_config_file_info.get('sock', None)
+        if self.socket:
             conninfo['sock'] = socket
 
         client = paramiko.SSHClient()
