@@ -879,9 +879,6 @@ def handle_action_execution_completion(ac_ex_db):
             ac_ex_ctx=ac_ex_db.context.get('orquesta')
         )
 
-        # Request the next set of tasks if workflow execution is not complete.
-        request_next_tasks(wf_ex_db, task_ex_id=task_ex_id)
-
         # Update workflow execution if completed.
         update_workflow_execution(wf_ex_id)
 
