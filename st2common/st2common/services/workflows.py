@@ -878,7 +878,8 @@ def handle_action_execution_completion(ac_ex_db):
             ac_ex_result=ac_ex_db.result,
             ac_ex_ctx=ac_ex_db.context.get('orquesta')
         )
-
+        if len(ac_ex_db.children) == 0:
+            request_next_tasks(wf_ex_db, task_ex_id=task_ex_id)
         # Update workflow execution if completed.
         update_workflow_execution(wf_ex_id)
 
