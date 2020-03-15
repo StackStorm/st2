@@ -232,7 +232,7 @@ class ActionExecutionSchedulingQueueHandler(object):
         execution_queue_item_db.handling = True
 
         try:
-            ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
+            #ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
             return execution_queue_item_db
         except db_exc.StackStormDBObjectWriteConflictError:
             LOG.info(
