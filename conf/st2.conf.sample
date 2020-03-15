@@ -279,6 +279,8 @@ pool_size = 10
 retry_wait_msec = 3000
 # How often (in seconds) to look for zombie execution requests before rescheduling them.
 gc_interval = 10
+# How often in minutes to check for unscheduled actions
+execution_scheduling_timeout_threshold_min = 1
 
 [schema]
 # Version of JSON schema to use.

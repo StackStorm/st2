@@ -17,6 +17,7 @@ Added
 * Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client.
   #4791
 * Add support for orquesta task retry. (new feature)
+* Add config option ``scheduler.execution_scheduling_timeout_threshold_min``. Fixes #4887
 
 Changed
 ~~~~~~~
