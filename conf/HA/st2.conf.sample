@@ -20,7 +20,8 @@ logging = /etc/st2/logging.rulesengine.conf
 
 [actionrunner]
 logging = /etc/st2/logging.actionrunner.conf
-virtualenv_opts = --always-copy
+# Leave until EL6 is removed. Causes problems with EL7 and user64
+# virtualenv_opts = --always-copy
 
 [resultstracker]
 logging = /etc/st2/logging.resultstracker.conf
