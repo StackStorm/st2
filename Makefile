@@ -439,8 +439,8 @@ requirements: virtualenv .sdist-requirements install-runners
 	@echo
 	# Make sure we use latest version of pip which is 19
 	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==19.3.1"
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==41.0.1"  # Required for packs.install in dev envs
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.3.1"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools>=41.0.1"  # Required for packs.install in dev envs
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Generate all requirements to support current CI pipeline.
