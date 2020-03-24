@@ -14,6 +14,11 @@
 
 from __future__ import absolute_import
 
+try:  # Python 3
+    from functools import singledispatch
+except ImportError:  # Python 2
+    from singledispatch import singledispatch
+
 import six
 from six.moves import zip
 
@@ -34,16 +39,12 @@ UNESCAPE_TRANSLATION = dict(
 )
 
 
+@singledispatch
 def _translate_chars(field, translation):
-    if isinstance(field, list):
-        return _translate_chars_in_list(field, translation)
-
-    if isinstance(field, dict):
-        return _translate_chars_in_dict(field, translation)
-
     return field
 
 
+@_translate_chars.register(list)
 def _translate_chars_in_list(field, translation):
     return [_translate_chars(value, translation) for value in field]
 
@@ -55,6 +56,7 @@ def _translate_chars_in_key(key, translation):
     return key
 
 
+@_translate_chars.register(dict)
 def _translate_chars_in_dict(field, translation):
     return {
         _translate_chars_in_key(k, translation): _translate_chars(v, translation)
@@ -63,18 +65,8 @@ def _translate_chars_in_dict(field, translation):
 
 
 def escape_chars(field):
-    if not isinstance(field, dict) and not isinstance(field, list):
-        return field
-
-    value = fast_deepcopy(field)
-
-    return _translate_chars(value, ESCAPE_TRANSLATION)
+    return _translate_chars(fast_deepcopy(field), ESCAPE_TRANSLATION)
 
 
 def unescape_chars(field):
-    if not isinstance(field, dict) and not isinstance(field, list):
-        return field
-
-    value = fast_deepcopy(field)
-
-    return _translate_chars(value, UNESCAPE_TRANSLATION)
+    return _translate_chars(fast_deepcopy(field), UNESCAPE_TRANSLATION)
