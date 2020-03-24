@@ -49,8 +49,9 @@ def _translate_chars_in_list(field, translation):
 
 
 def _translate_chars_in_key(key, translation):
-    for k, v in [(k, v) for k, v in six.iteritems(translation) if k in key]:
-        key = key.replace(k, v)
+    for k, v in six.iteritems(translation):
+        if k in key:
+            key = key.replace(k, v)
 
     return key
 
