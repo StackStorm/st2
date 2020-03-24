@@ -453,9 +453,10 @@ requirements: virtualenv .sdist-requirements install-runners
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Generating requirements.txt for" $$component; \
-		echo "==========================================================="; \
 		$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
 	done
+
+	@echo "==========================================================="
 
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
