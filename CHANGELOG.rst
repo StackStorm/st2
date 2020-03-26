@@ -56,6 +56,8 @@ Changed
 * Remove `.scrutinizer.yml` config file. No longer used.
 * Convert escaped dict and dynamic fields in workflow db models to normal dict and dynamic fields.
   (performnce improvement)
+* Add support for `PEP 508 <https://www.python.org/dev/peps/pep-0508/#environment-markers>`_ environment markers in generated ``requirements.txt`` files.
+  (improvement) #4895
 
 Fixed
 ~~~~~
