@@ -9,4 +9,6 @@ oslo.utils
 pymongo
 six
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
+# Need to specify this explicitly to pin it to 0.43.0
+openstacksdk
 gunicorn

@@ -5,6 +5,8 @@ eventlet
 jinja2
 kombu
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
+# Need to specify this explicitly to pin it to 0.43.0
+openstacksdk
 oslo.config
 oslo.utils
 requests

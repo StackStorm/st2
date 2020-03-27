@@ -33,6 +33,7 @@ networkx==1.11
 nose
 nose-parallel==0.3.1
 nose-timer==0.7.5
+openstacksdk<0.44.0
 oslo.config<1.13,>=1.12.1
 oslo.utils<=3.37.0,>=3.36.2
 paramiko==2.6.0

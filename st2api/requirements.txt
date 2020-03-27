@@ -11,6 +11,7 @@ gunicorn==19.9.0
 jsonschema==2.6.0
 kombu==4.6.6
 mongoengine==0.18.2
+openstacksdk<0.44.0
 oslo.config<1.13,>=1.12.1
 oslo.utils<=3.37.0,>=3.36.2
 pymongo==3.10.0

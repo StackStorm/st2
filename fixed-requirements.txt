@@ -59,3 +59,8 @@ bcrypt==3.1.7
 jinja2==2.10.3
 more-itertools==5.0.0
 zipp>=0.5,<=1.0.0
+# python-mistralclient
+#  --> osc-lib >= 1.8.0 --> 2.0.0
+#       --> openstacksdk >= 0.15.0 --> 0.44.0
+#            --> futurist >= 2.1.0, which is Python 3 only
+openstacksdk<0.44.0  # 0.43.0 --> futures 3.0.0, which also supports Python 2.7
