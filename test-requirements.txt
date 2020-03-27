@@ -32,4 +32,4 @@ pyrabbit
 # (those tests only run under Python 2.7 since keyczar doesn't support Python 3.x).
 # See https://github.com/StackStorm/st2/pull/4165
 python-keyczar
-git+https://github.com/StackStorm/pip-conflict-checker.git@fix_pip_issue#egg=pip-conflict-checker
+pip-tools  # For pip-compile, to check for version conflicts
