@@ -56,6 +56,7 @@ Changed
 * Remove `.scrutinizer.yml` config file. No longer used.
 * Convert escaped dict and dynamic fields in workflow db models to normal dict and dynamic fields.
   (performnce improvement)
+* Use ``pip-compile`` from ``pip-tools`` instead of ``pip-conflict-checker`` (improvement) #4896
 
 Fixed
 ~~~~~
@@ -112,6 +113,7 @@ Fixed
   Contributed by Tatsuma Matsuki (@mtatsuma)
 
 * Fix dependency conflicts by updating ``requests`` (2.23.0) and ``gitpython`` (2.1.15). #4869
+* Fix dependency conflicts by specifying ``openstacksdk`` < 0.44.0. #4896
 
 3.1.0 - June 27, 2019
 ---------------------
