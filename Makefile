@@ -446,10 +446,10 @@ requirements: virtualenv .sdist-requirements install-runners
 	# .st2client-install-check target and .travis.yml to match
 	# Make sure we use latest version of pip
 	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==19.3.1"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.3.1"
 	# setuptools >= 41.0.1 is required for packs.install in dev envs
 	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==41.0.1"  # Required for packs.install in dev envs
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools>=42"
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Generate all requirements to support current CI pipeline.
