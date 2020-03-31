@@ -36,21 +36,25 @@ jobs:
     # If you rename or reorder make targets in TASK, you may need to adjust:
     # scripts/travis/install-requirements.sh
     # scripts/travis/run-nightly-make-task-if-exists.sh
-    - env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
+    - name: "Unit Tests (Python 2.7 MongoDB 3.4)"
       python: 2.7
-      name: "Unit Tests (Python 2.7 MongoDB 3.4)"
-    - env: TASK=ci-integration CACHE_NAME=py2 COMMAND_THRESHOLD=700
+      env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
+
+    - name: "Integration Tests (Python 2.7)"
       python: 2.7
-      name: "Integration Tests (Python 2.7)"
-    - env: TASK="ci-checks ci-packs-tests" CACHE_NAME=py2 COMMAND_THRESHOLD=430
+      env: TASK=ci-integration CACHE_NAME=py2 COMMAND_THRESHOLD=700
+
+    - name: "Lint Checks, Packs Tests (Python 2.7)"
       python: 2.7
-      name: "Lint Checks, Packs Tests (Python 2.7)"
-    - env: TASK="compilepy3 ci-py3-unit ci-py3-packs-tests" CACHE_NAME=py3 PYTHON_VERSION=python3.6 COMMAND_THRESHOLD=750
+      env: TASK="ci-checks ci-packs-tests" CACHE_NAME=py2 COMMAND_THRESHOLD=430
+
+    - name: "Unit Tests, Pack Tests (Python 3.6)"
       python: 3.6
-      name: "Unit Tests, Pack Tests (Python 3.6)"
-    - env: TASK="ci-py3-integration" CACHE_NAME=py3 PYTHON_VERSION=python3.6 COMMAND_THRESHOLD=770
+      env: TASK="compilepy3 ci-py3-unit ci-py3-packs-tests" CACHE_NAME=py3 PYTHON_VERSION=python3.6 COMMAND_THRESHOLD=750
+
+    - name: "Integration Tests (Python 3.6)"
       python: 3.6
-      name: "Integration Tests (Python 3.6)"
+      env: TASK="ci-py3-integration" CACHE_NAME=py3 PYTHON_VERSION=python3.6 COMMAND_THRESHOLD=770
 
 addons:
   apt:
