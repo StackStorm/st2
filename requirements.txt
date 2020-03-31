@@ -40,7 +40,7 @@ passlib==1.7.1
 prettytable
 prompt-toolkit==1.0.15
 psutil==5.6.3
-pyinotify==0.9.6
+pyinotify==0.9.6 ; platform_system == "Linux"
 pymongo==3.10.0
 pyrabbit
 python-dateutil==2.8.0
