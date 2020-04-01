@@ -22,6 +22,15 @@ import sys
 from distutils.version import StrictVersion
 
 # NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
+#
+# TODO: Why can't this script rely on 3rd party dependencies? Is it because it has to import
+#       from pip?
+#
+# TODO: Dear future developer, if you are back here fixing a bug with how we parse
+#       requirements files, please look into using the packaging package on PyPI:
+#       https://packaging.pypa.io/en/latest/requirements/
+#       At the very least we can vendorize some of their code instead of reimplementing
+#       each piece of their code every time our parsing breaks.
 PY3 = sys.version_info[0] == 3
 
 if PY3:
@@ -114,6 +123,9 @@ def fetch_requirements(requirements_file_path):
                 links.append(link)
             else:
                 req_name = line
+
+                if ';' in req_name:
+                    req_name = req_name.split(';')[0].strip()
 
             reqs.append(req_name)
 
