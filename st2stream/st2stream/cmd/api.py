@@ -41,6 +41,12 @@ eventlet.monkey_patch(
     thread=False if '--use-debugger' in sys.argv else True,
     time=True)
 
+# Monkey patch the original current_thread to use the up-to-date _active
+# global variable. See https://github.com/eventlet/eventlet/issues/592
+import __original_module_threading as orig_threading
+import threading
+orig_threading.current_thread.__globals__['_active'] = threading._active
+
 LOG = logging.getLogger(__name__)
 
 # How much time to give to the request in progress to finish in seconds before killing them
