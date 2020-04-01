@@ -56,6 +56,8 @@ Changed
 * Remove `.scrutinizer.yml` config file. No longer used.
 * Convert escaped dict and dynamic fields in workflow db models to normal dict and dynamic fields.
   (performnce improvement)
+* Refactor how inbound criteria for join task in orquesta workflow is evaluated to count by
+  task completion instead of task transition. (improvement)
 
 Fixed
 ~~~~~
