@@ -131,7 +131,7 @@ class TestDumper(EventletTestCase):
         # Batch 1
         batch = self.execution_apis[0:5]
         new_marker = dumper._update_marker(batch)
-        self.assertTrue(new_marker is not None)
+        self.assertIsNotNone(new_marker)
         timestamps = [isotime.parse(execution.end_timestamp) for execution in batch]
         max_timestamp = max(timestamps)
         self.assertEqual(new_marker, max_timestamp)

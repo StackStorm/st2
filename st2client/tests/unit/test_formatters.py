@@ -276,12 +276,12 @@ class TestExecutionResultFormatter(unittest2.TestCase):
                 "more results."
             print(self.table.note_box("action executions", 1))
             content = (fackety_fake.getvalue().split("|")[1].strip())
-            self.assertEquals(content, expected)
+            self.assertEqual(content, expected)
 
     def test_SinlgeRowTable_notebox_zero(self):
         with mock.patch('sys.stderr', new=BytesIO()) as fackety_fake:
             contents = (fackety_fake.getvalue())
-            self.assertEquals(contents, b'')
+            self.assertEqual(contents, b'')
 
     def test_SinlgeRowTable_notebox_default(self):
         with mock.patch('sys.stderr', new=StringIO()) as fackety_fake:
@@ -289,10 +289,10 @@ class TestExecutionResultFormatter(unittest2.TestCase):
                 "for more results."
             print(self.table.note_box("action executions", 50))
             content = (fackety_fake.getvalue().split("|")[1].strip())
-            self.assertEquals(content, expected)
+            self.assertEqual(content, expected)
         with mock.patch('sys.stderr', new=StringIO()) as fackety_fake:
             expected = "Note: Only first 15 action executions are displayed. Use -n/--last flag " \
                 "for more results."
             print(self.table.note_box("action executions", 15))
             content = (fackety_fake.getvalue().split("|")[1].strip())
-            self.assertEquals(content, expected)
+            self.assertEqual(content, expected)

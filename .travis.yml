@@ -1,8 +1,5 @@
-# Used old infrastructure, needed for integration tests:
-# http://docs.travis-ci.com/user/workers/standard-infrastructure/
-sudo: required
-# NOTE: We use precise because tests finish faster than on Xenial
-dist: precise
+os: linux
+dist: xenial
 language: python
 
 branches:
@@ -23,7 +20,9 @@ env:
     # We only run tests with "--with-timer" flag on master and not for PRs since it adds 1-2
     # # minutes of overhead to each build.
     - NOSE_TIME=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
-matrix:
+    # Travis-specific st2.conf (with travis user instead of stanley)
+    - ST2_CONF=conf/st2.travis.conf
+jobs:
   include:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
     # builds and having 6 tasks / builds means 1 tasks will need to wait for one
@@ -32,62 +31,50 @@ matrix:
     # job which also includes "make requirements" and other steps
     # "make requirements" can take substantially lower if the cache is purged
     # and this would cause too many intermediate failures / false positives
-    - env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
+    # NOTE: TASK is inspected in commands below and other travis scripts.
+    # For example, ci-py3* targets trigger an alternate virtualenv build method.
+    # If you rename or reorder make targets in TASK, you may need to adjust:
+    # scripts/travis/install-requirements.sh
+    # scripts/travis/run-nightly-make-task-if-exists.sh
+    - name: "Unit Tests (Python 2.7 MongoDB 3.4)"
       python: 2.7
-      name: "Unit Tests (Python 2.7 MongoDB 3.4)"
-    #- env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
-      #python: 2.7
-      #name: "Unit Tests (Python 2.7 MongoDB 3.6)"
-      #addons:
-      #  apt:
-      #    sources:
-      #      - mongodb-upstart
-      #      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.6 multiverse'
-      #        key_url: 'https://www.mongodb.org/static/pgp/server-3.6.asc'
-      #      - sourceline: 'ppa:git-core/ppa'
-      #    packages:
-      #      - mongodb-org-server
-      #      - mongodb-org-shell
-      #      - git
-    - env: TASK=ci-integration CACHE_NAME=py2 COMMAND_THRESHOLD=700
+      env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
+
+    - name: "Integration Tests (Python 2.7)"
       python: 2.7
-      name: "Integration Tests (Python 2.7)"
-    - env: TASK="ci-checks ci-packs-tests" CACHE_NAME=py2 COMMAND_THRESHOLD=280
+      env: TASK=ci-integration CACHE_NAME=py2 COMMAND_THRESHOLD=700
+
+    - name: "Lint Checks, Packs Tests (Python 2.7)"
       python: 2.7
-      name: "Lint Checks, Packs Tests (Python 2.7)"
-    - env: TASK="compilepy3 ci-py3-unit" CACHE_NAME=py3 COMMAND_THRESHOLD=680
+      env: TASK="ci-checks ci-packs-tests" CACHE_NAME=py2 COMMAND_THRESHOLD=430
+
+    - name: "Unit Tests, Pack Tests (Python 3.6)"
       python: 3.6
-      name: "Unit Tests, Pack Tests (Python 3.6)"
-    - env: TASK="ci-py3-integration" CACHE_NAME=py3 COMMAND_THRESHOLD=310
+      env: TASK="compilepy3 ci-py3-unit ci-py3-packs-tests" CACHE_NAME=py3 PYTHON_VERSION=python3.6 COMMAND_THRESHOLD=750
+
+    - name: "Integration Tests (Python 3.6)"
       python: 3.6
-      name: "Integration Tests (Python 3.6)"
-    - env: TASK="compilepy3 ci-py37-unit" CACHE_NAME=py37 COMMAND_THRESHOLD=660
+      env: TASK="ci-py3-integration" CACHE_NAME=py3 PYTHON_VERSION=python3.6 COMMAND_THRESHOLD=770
+
+    - name: "Unit Tests, Pack Tests (Python 3.7)"
       python: 3.7
       dist: bionic
-      name: "Unit Tests, Pack Tests (Python 3.7)"
-    - env: TASK="ci-py37-integration" CACHE_NAME=py37 COMMAND_THRESHOLD=340
+      env: TASK="compilepy3 ci-py37-unit" CACHE_NAME=py37 COMMAND_THRESHOLD=750
+      
+    - name: "Integration Tests (Python 3.7)"
       python: 3.7
       dist: bionic
-      name: "Integration Tests (Python 3.7)"
+      env: TASK="ci-py37-integration" CACHE_NAME=py37 COMMAND_THRESHOLD=770
 
 addons:
   apt:
     sources:
-      - mongodb-upstart
-      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse'
+      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse'
         key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
-      # NOTE: Precise repo doesn't contain Erlang 20.x, latest version is 19.x so we need to use RabbitMQ 3.7.6
-      #- sourceline: 'deb [arch=amd64] http://packages.erlang-solutions.com/ubuntu precise contrib'
-      #  key_url: 'https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
-      #- sourceline: 'deb [arch=amd64] https://dl.bintray.com/rabbitmq/debian precise rabbitmq-server-v3.6.x'
-      #  key_url: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
-      - sourceline: 'ppa:git-core/ppa'
     packages:
-      - mongodb-org-server
-      - mongodb-org-shell
-      - erlang
+      - mongodb-org-server=3.4.*
+      - mongodb-org-shell=3.4.*
       - rabbitmq-server
-      - git
       - libffi-dev
 
 cache:
@@ -103,12 +90,18 @@ cache:
     #- .tox/
 
 before_install:
-  - pip install --upgrade "pip>=19.0,<20.0"
+  # If you update these versions, make sure you update the versions in the .st2client-install-check
+  # and the requirements targets in the Makefile to match
+  - pip install --upgrade "pip>=19.3.1"
   - sudo pip install --upgrade "virtualenv==16.6.0"
 
 install:
   - ./scripts/travis/install-requirements.sh
-  - if [ "${TASK}" = 'ci-unit' ] || [ "${TASK}" = 'ci-integration' ] || [ "${TASK}" = 'ci-checks ci-packs-tests' ] || [ "${TASK}" = 'compilepy3 ci-py3-unit' ] || [ "${TASK}" = 'ci-py3-integration' ]; then sudo .circle/add-itest-user.sh; fi
+  # prep a travis-specific dev conf file that uses travis instead of stanley
+  - cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
+  - sudo scripts/travis/add-itest-user-key.sh
+  - sudo .circle/add-itest-user.sh
+  - if [[ "${TASK}" = *'-packs-tests'* ]] || [[ "${TASK}" = *'-integration'* ]]; then sudo scripts/travis/permissions-workaround.sh; fi
 
 # Let's enable rabbitmqadmin
 # See https://github.com/messagebus/lapine/wiki/Testing-on-Travis.
@@ -128,7 +121,8 @@ before_script:
   - sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
   - sudo chmod +x /usr/local/bin/rabbitmqadmin
   - sudo service rabbitmq-server restart
-  - sudo tail -n 30 /var/log/rabbitmq/*
+  # chmod to make glob work (*.log to avoid log dir)
+  - sudo chmod a+rx /var/log/rabbitmq ; sudo tail -n 30 /var/log/rabbitmq/*.log
   # Print various binary versions
   - mongod --version
   - git --version

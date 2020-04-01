@@ -74,7 +74,7 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         # 2. First run it without time to verify path is valid
         command_string = 'python %s --file-path=foo.py' % (WRAPPER_SCRIPT_PATH)
         _, _, stderr = run_command(command_string, shell=True)
-        self.assertTrue('usage: python_action_wrapper.py' in stderr)
+        self.assertIn('usage: python_action_wrapper.py', stderr)
 
         expected_msg_1 = 'python_action_wrapper.py: error: argument --pack is required'
         expected_msg_2 = ('python_action_wrapper.py: error: the following arguments are '
@@ -121,7 +121,7 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
                          (WRAPPER_SCRIPT_PATH, file_path, config, parameters))
         exit_code, stdout, stderr = run_command(command_string, shell=True)
         self.assertEqual(exit_code, 0)
-        self.assertTrue('"status"' in stdout)
+        self.assertIn('"status"', stdout)
 
     def test_stdin_params_timeout_no_stdin_data_provided(self):
         config = {}
@@ -135,7 +135,7 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         expected_msg = ('ValueError: No input received and timed out while waiting for parameters '
                         'from stdin')
         self.assertEqual(exit_code, 1)
-        self.assertTrue(expected_msg in stderr)
+        self.assertIn(expected_msg, stderr)
 
     def test_stdin_params_invalid_format_friendly_error(self):
         config = {}
@@ -150,4 +150,4 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         expected_msg = ('ValueError: Failed to parse parameters from stdin. Expected a JSON '
                         'object with "parameters" attribute:')
         self.assertEqual(exit_code, 1)
-        self.assertTrue(expected_msg in stderr)
+        self.assertIn(expected_msg, stderr)

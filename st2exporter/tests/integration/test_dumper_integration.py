@@ -64,7 +64,7 @@ class TestDumper(DbTestCase):
         max_timestamp = max(timestamps)
         marker_db = dumper._write_marker_to_db(max_timestamp)
         persisted_marker = marker_db.marker
-        self.assertTrue(isinstance(persisted_marker, six.string_types))
+        self.assertIsInstance(persisted_marker, six.string_types)
         self.assertEqual(isotime.parse(persisted_marker), max_timestamp)
 
     @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))

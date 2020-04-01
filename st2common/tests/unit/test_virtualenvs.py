@@ -122,7 +122,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
             setup_pack_virtualenv(pack_name=pack_name, update=False,
                                   include_setuptools=False, include_wheel=False)
         except Exception as e:
-            self.assertTrue('Failed to install requirements from' in six.text_type(e))
+            self.assertIn('Failed to install requirements from', six.text_type(e))
             self.assertTrue('No matching distribution found for someinvalidname' in
                             six.text_type(e))
         else:
@@ -312,7 +312,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         actual_cmd = ' '.join(actual_cmd)
 
         self.assertEqual(mock_run_command.call_count, 2)
-        self.assertTrue('-p /usr/bin/python2.7' in actual_cmd)
+        self.assertIn('-p /usr/bin/python2.7', actual_cmd)
 
         mock_run_command.reset_mock()
 
@@ -325,15 +325,15 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
 
         actual_cmd = mock_run_command.call_args_list[0][1]['cmd']
         actual_cmd = ' '.join(actual_cmd)
-        self.assertTrue('-p /usr/bin/python3' in actual_cmd)
+        self.assertIn('-p /usr/bin/python3', actual_cmd)
 
         actual_cmd = mock_run_command.call_args_list[1][1]['cmd']
         actual_cmd = ' '.join(actual_cmd)
-        self.assertTrue('pip install pyyaml' in actual_cmd)
+        self.assertIn('pip install pyyaml', actual_cmd)
 
         actual_cmd = mock_run_command.call_args_list[2][1]['cmd']
         actual_cmd = ' '.join(actual_cmd)
-        self.assertTrue('pip install' in actual_cmd)
+        self.assertIn('pip install', actual_cmd)
 
     def assertVirtualenvExists(self, virtualenv_dir):
         self.assertTrue(os.path.exists(virtualenv_dir))

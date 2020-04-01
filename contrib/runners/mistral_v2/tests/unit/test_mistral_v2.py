@@ -225,8 +225,8 @@ class MistralRunnerTest(ExecutionDbTestCase):
         }
 
         context = MistralRunner._build_mistral_context(parent, current)
-        self.assertTrue(context is not None)
-        self.assertTrue('parent' in list(context['mistral'].keys()))
+        self.assertIsNotNone(context)
+        self.assertIn('parent', list(context['mistral'].keys()))
 
         parent_dict = {
             'workflow_name': parent['mistral']['workflow_name'],

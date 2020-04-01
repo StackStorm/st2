@@ -22,7 +22,7 @@ class JsonifyTests(unittest2.TestCase):
 
     def test_none_object(self):
         obj = None
-        self.assertTrue(jsonify.json_loads(obj) is None)
+        self.assertIsNone(jsonify.json_loads(obj))
 
     def test_no_keys(self):
         obj = {'foo': '{"bar": "baz"}'}

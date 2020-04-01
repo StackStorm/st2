@@ -67,7 +67,7 @@ class ActionDBUtilsTestCase(DbTestCase):
                           'somedummyactionid')
         # By ref.
         action = action_db_utils.get_action_by_ref('packaintexist.somedummyactionname')
-        self.assertTrue(action is None)
+        self.assertIsNone(action)
 
     def test_get_action_existing(self):
         # Lookup by id and verify name equals
@@ -329,8 +329,8 @@ class ActionDBUtilsTestCase(DbTestCase):
         pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
         self.assertListEqual(pos_args, ['20', '', 'foo', '', '', '', ''],
                             'Positional args not parsed correctly.')
-        self.assertTrue('actionint' not in named_args)
-        self.assertTrue('actionstr' not in named_args)
+        self.assertNotIn('actionint', named_args)
+        self.assertNotIn('actionstr', named_args)
         self.assertEqual(named_args.get('runnerint'), 555)
 
         # Test serialization for different positional argument types and values
@@ -416,8 +416,8 @@ class ActionDBUtilsTestCase(DbTestCase):
         ]
         pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
         self.assertListEqual(pos_args, expected_pos_args, 'Positional args not parsed correctly.')
-        self.assertTrue('actionint' not in named_args)
-        self.assertTrue('actionstr' not in named_args)
+        self.assertNotIn('actionint', named_args)
+        self.assertNotIn('actionstr', named_args)
         self.assertEqual(named_args.get('runnerint'), 555)
 
     @classmethod

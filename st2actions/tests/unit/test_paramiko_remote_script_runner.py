@@ -104,7 +104,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertEqual(result['failed'], True)
         self.assertEqual(result['succeeded'], False)
-        self.assertTrue('Failed copying content to remote boxes' in result['error'])
+        self.assertIn('Failed copying content to remote boxes', result['error'])
 
     def test_command_construction_correct_default_parameter_values_are_used(self):
         runner_parameters = {}

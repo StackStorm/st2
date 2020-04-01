@@ -84,7 +84,7 @@ class TestExportWorker(DbTestCase):
 
         count = 0
         while count < exec_exporter.pending_executions.qsize():
-            self.assertTrue(isinstance(exec_exporter.pending_executions.get(), ActionExecutionAPI))
+            self.assertIsInstance(exec_exporter.pending_executions.get(), ActionExecutionAPI)
             count += 1
 
     @mock.patch.object(os.path, 'exists', mock.MagicMock(return_value=True))

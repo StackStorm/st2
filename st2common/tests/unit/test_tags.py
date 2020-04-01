@@ -34,18 +34,18 @@ class TestTags(DbTestCase):
                          stormbase.TagField(name='tag2', value='v2')]
         saved = instance.save()
         retrieved = TaggedModel.objects(id=instance.id).first()
-        self.assertEquals(len(saved.tags), len(retrieved.tags), 'Failed to retrieve tags.')
+        self.assertEqual(len(saved.tags), len(retrieved.tags), 'Failed to retrieve tags.')
 
     def test_simple_value(self):
         instance = TaggedModel()
         instance.tags = [stormbase.TagField(name='tag1', value='v1')]
         saved = instance.save()
         retrieved = TaggedModel.objects(id=instance.id).first()
-        self.assertEquals(len(saved.tags), len(retrieved.tags), 'Failed to retrieve tags.')
+        self.assertEqual(len(saved.tags), len(retrieved.tags), 'Failed to retrieve tags.')
         saved_tag = saved.tags[0]
         retrieved_tag = retrieved.tags[0]
-        self.assertEquals(saved_tag.name, retrieved_tag.name, 'Failed to retrieve tag.')
-        self.assertEquals(saved_tag.value, retrieved_tag.value, 'Failed to retrieve tag.')
+        self.assertEqual(saved_tag.name, retrieved_tag.name, 'Failed to retrieve tag.')
+        self.assertEqual(saved_tag.value, retrieved_tag.value, 'Failed to retrieve tag.')
 
     def test_tag_max_size_restriction(self):
         instance = TaggedModel()
@@ -53,7 +53,7 @@ class TestTags(DbTestCase):
                                             value=self._gen_random_string())]
         saved = instance.save()
         retrieved = TaggedModel.objects(id=instance.id).first()
-        self.assertEquals(len(saved.tags), len(retrieved.tags), 'Failed to retrieve tags.')
+        self.assertEqual(len(saved.tags), len(retrieved.tags), 'Failed to retrieve tags.')
 
     def test_name_exceeds_max_size(self):
         instance = TaggedModel()
