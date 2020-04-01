@@ -59,6 +59,8 @@ Changed
 * Add support for `PEP 508 <https://www.python.org/dev/peps/pep-0508/#environment-markers>`_
   environment markers in generated ``requirements.txt`` files. (improvement) #4895
 * Use ``pip-compile`` from ``pip-tools`` instead of ``pip-conflict-checker`` (improvement) #4896
+* Refactor how inbound criteria for join task in orquesta workflow is evaluated to count by
+  task completion instead of task transition. (improvement)
 
 Fixed
 ~~~~~
