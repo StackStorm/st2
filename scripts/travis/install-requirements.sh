@@ -4,7 +4,7 @@
 
 # virtualenv prepartion is different for python3, so we want all py3 targets here.
 # We use a glob instead of listing TASKs so TASK reorganization doesn't require so many changes.
-if [[ " ${TASK}" = *' ci-py3-'* ]]; then
+if [[ " ${TASK}" = *' ci-py3-'* -o " ${TASK} " = *' ci-py37-'* ]]; then
     pip install "tox==3.8.6"
 
     # NOTE: The makefile only checks to see if the activate script is present.
