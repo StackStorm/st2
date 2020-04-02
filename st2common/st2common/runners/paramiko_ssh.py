@@ -458,7 +458,7 @@ class ParamikoSSHClient(object):
 
         if self.socket:
             self.logger.debug('Closing proxycommand socket connection')
-            #https://github.com/paramiko/paramiko/issues/789  Avoid zombie ssh processes
+            # https://github.com/paramiko/paramiko/issues/789  Avoid zombie ssh processes
             self.socket.process.kill()
             self.socket.process.poll()
 
