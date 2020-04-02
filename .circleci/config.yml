@@ -232,7 +232,7 @@ jobs:
       - image: circleci/ruby:2.4
     working_directory: /tmp/deploy
     environment:
-      - DISTROS: "xenial bionic el6 el7"
+      - DISTROS: "xenial bionic el6 el7 el8"
     steps:
       - attach_workspace:
           at: .
