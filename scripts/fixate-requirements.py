@@ -171,10 +171,13 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
                 rline = '-e %s' % (rline)
         elif req.req:
             project = req.name
-            if project in fixedreq_hash:
-                rline = str(fixedreq_hash[project].req)
-            else:
-                rline = str(req.req)
+            req_obj = fixedreq_hash.get(project, req)
+
+            rline = str(req_obj.req)
+
+            # Also write out environment markers
+            if req_obj.markers:
+                rline += " ; {}".format(str(req_obj.markers))
 
         lines_to_write.append(rline)
 
