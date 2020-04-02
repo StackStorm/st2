@@ -59,12 +59,12 @@ jobs:
     - name: "Unit Tests, Pack Tests (Python 3.7)"
       python: 3.7
       dist: bionic
-      env: TASK="compilepy3 ci-py37-unit" CACHE_NAME=py37 COMMAND_THRESHOLD=750
+      env: TASK="compilepy3 ci-py37-unit" CACHE_NAME=py37 PYTHON_VERSION=python3.7 COMMAND_THRESHOLD=750
       
     - name: "Integration Tests (Python 3.7)"
       python: 3.7
       dist: bionic
-      env: TASK="ci-py37-integration" CACHE_NAME=py37 COMMAND_THRESHOLD=770
+      env: TASK="ci-py37-integration" CACHE_NAME=py37 PYTHON_VERSION=python3.7 COMMAND_THRESHOLD=770
 
 addons:
   apt:
