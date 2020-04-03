@@ -331,11 +331,11 @@ flake8: requirements .flake8
 	# If you update these versions, make sure you also update the versions in the
 	# requirements target and .travis.yml to match
 	# Make sure we use the latest version of pip
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip>=19.3.1"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==20.0.2"
 	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
 	# Setuptools 42 added support for python_requires, which is used by the configparser package,
 	# which is required by the importlib-metadata package
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools>=42"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"
@@ -446,10 +446,10 @@ requirements: virtualenv .sdist-requirements install-runners
 	# .st2client-install-check target and .travis.yml to match
 	# Make sure we use latest version of pip
 	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.3.1"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==20.0.2"
 	# setuptools >= 41.0.1 is required for packs.install in dev envs
 	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools>=42"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Generate all requirements to support current CI pipeline.
