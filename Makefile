@@ -185,6 +185,31 @@ install-runners:
 .PHONY: check-requirements
 check-requirements: .requirements .check-requirements
 
+.PHONY: .check-sdist-requirements
+.check-sdist-requirements:
+	@echo
+	@echo "============== CHECKING SDIST REQUIREMENTS =============="
+	@echo
+	# Update requirements and then make sure no files were changed
+	git status -- */dist_utils.py contrib/runners/*/dist_utils.py | grep -q "nothing to commit" || { \
+		echo "It looks like you directly modified a dist_utils.py, or the source "; \
+		echo "scripts/dist_utils.py file without running:"; \
+		echo ""; \
+		echo "    make .sdist-requirements"; \
+		echo ""; \
+		echo "Please update all of the dist_utils.py files by running that command"; \
+		echo "and committing all of the changed files. You can quickly check the results"; \
+		echo "with:"; \
+		echo ""; \
+		echo "    make .check-sdist-requirements"; \
+		echo ""; \
+		exit 1; \
+	}
+	@echo "All dist_utils.py files are up-to-date!"
+
+.PHONY: check-sdist-requirements
+check-sdist-requirements: .sdist-requirements .check-sdist-requirements
+
 .PHONY: check-python-packages
 check-python-packages:
 	# Make target which verifies all the components Python packages are valid
