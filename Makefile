@@ -166,8 +166,21 @@ install-runners:
 	@echo "============== CHECKING REQUIREMENTS =============="
 	@echo
 	# Update requirements and then make sure no files were changed
-	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit"
-	@echo "All requirements files up-to-date!"
+	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit" || { \
+		echo "It looks like you directly modified a requirements.txt file, an"; \
+		echo "in-requirements.txt file, or fixed-requirements.txt without running:"; \
+		echo ""; \
+		echo "    make .requirements"; \
+		echo ""; \
+		echo "Please update all of the requirements.txt files by running that command"; \
+		echo "and committing all of the changed files. You can quickly check the results"; \
+		echo "with:"; \
+		echo ""; \
+		echo "    make .check-requirements"; \
+		echo ""; \
+		exit 1; \
+	}
+	@echo "All requirements files are up-to-date!"
 
 .PHONY: check-requirements
 check-requirements: .requirements .check-requirements
