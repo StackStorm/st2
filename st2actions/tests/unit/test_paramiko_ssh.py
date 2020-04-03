@@ -811,7 +811,6 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                        'password': 'pass',
                        'timeout': '600'}
         ssh_client = ParamikoSSHClient(**conn_params)
-        ssh_client.connect()
 
         # Make sure .close() doesn't actually call anything real
         ssh_client.client = Mock()
