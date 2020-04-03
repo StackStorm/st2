@@ -118,6 +118,11 @@ Fixed
 
 * Fix dependency conflicts by updating ``requests`` (2.23.0) and ``gitpython`` (2.1.15). #4869
 
+Removed
+~~~~~~~
+
+* Removed Ubuntu 14.04 from test matrix #4897
+
 3.1.0 - June 27, 2019
 ---------------------
 
