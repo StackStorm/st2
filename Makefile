@@ -437,6 +437,21 @@ distclean: clean
 	@echo
 	rm -rf $(VIRTUALENV_DIR)
 
+.PHONY: .sdist-requirements
+.sdist-requirements:
+	# Copy over shared dist utils module which is needed by setup.py
+	@for component in $(COMPONENTS_WITH_RUNNERS); do\
+		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
+		scripts/write-headers.sh $$component/dist_utils.py || break;\
+	done
+
+	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
+	#@for component in $(COMPONENTS_TEST); do\
+	#	test -s $$component/README.rst || cp -f README.rst $$component/; \
+	#	cp -f CONTRIBUTING.rst $$component/; \
+	#	cp -f LICENSE $$component/; \
+	#done
+
 .PHONY: requirements
 requirements: virtualenv .sdist-requirements install-runners
 	@echo
@@ -933,22 +948,6 @@ debs:
 	rm -Rf ~/debbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)
 	pushd st2client && make deb && popd
-
-# >>>>
-.PHONY: .sdist-requirements
-.sdist-requirements:
-	# Copy over shared dist utils module which is needed by setup.py
-	@for component in $(COMPONENTS_WITH_RUNNERS); do\
-		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
-		scripts/write-headers.sh $$component/dist_utils.py || break;\
-	done
-
-	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
-	#@for component in $(COMPONENTS_TEST); do\
-	#	test -s $$component/README.rst || cp -f README.rst $$component/; \
-	#	cp -f CONTRIBUTING.rst $$component/; \
-	#	cp -f LICENSE $$component/; \
-	#done
 
 
 .PHONY: ci
