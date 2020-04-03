@@ -452,21 +452,8 @@ distclean: clean
 	#	cp -f LICENSE $$component/; \
 	#done
 
-.PHONY: requirements
-requirements: virtualenv .sdist-requirements install-runners
-	@echo
-	@echo "==================== requirements ===================="
-	@echo
-	# If you update these versions, make sure you also update the versions in the
-	# .st2client-install-check target and .travis.yml to match
-	# Make sure we use latest version of pip
-	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==20.0.2"
-	# setuptools >= 41.0.1 is required for packs.install in dev envs
-	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
-
+.PHONY: .requirements
+.requirements: virtualenv
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
@@ -481,6 +468,21 @@ requirements: virtualenv .sdist-requirements install-runners
 	done
 
 	@echo "==========================================================="
+
+.PHONY: requirements
+requirements: virtualenv .requirements .sdist-requirements install-runners
+	@echo
+	@echo "==================== requirements ===================="
+	@echo
+	# If you update these versions, make sure you also update the versions in the
+	# .st2client-install-check target and .travis.yml to match
+	# Make sure we use latest version of pip
+	$(VIRTUALENV_DIR)/bin/pip --version
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.3.1"
+	# setuptools >= 41.0.1 is required for packs.install in dev envs
+	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools>=42"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
