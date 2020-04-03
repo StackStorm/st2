@@ -705,7 +705,7 @@ class ParamikoSSHClient(object):
                  '_username': self.username, '_timeout': self.timeout}
         self.logger.debug('Connecting to server', extra=extra)
 
-        self.socket = self.socket or ssh_config_file_info.get('sock', None)
+        self.socket = socket or ssh_config_file_info.get('sock', None)
         if self.socket:
             conninfo['sock'] = socket
 
