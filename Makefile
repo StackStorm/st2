@@ -161,13 +161,16 @@ install-runners:
 	done
 
 .PHONY: check-requirements
-check-requirements: requirements
+.check-requirements:
 	@echo
 	@echo "============== CHECKING REQUIREMENTS =============="
 	@echo
 	# Update requirements and then make sure no files were changed
 	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit"
 	@echo "All requirements files up-to-date!"
+
+.PHONY: check-requirements
+check-requirements: .requirements .check-requirements
 
 .PHONY: check-python-packages
 check-python-packages:
