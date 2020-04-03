@@ -111,7 +111,7 @@ class DbConnectionTestCase(DbTestCase):
         client = mongoengine.connection.get_connection()
 
         expected_str = "host=['%s:%s']" % (cfg.CONF.database.host, cfg.CONF.database.port)
-        self.assertTrue(expected_str in str(client), 'Not connected to desired host.')
+        self.assertIn(expected_str, str(client), 'Not connected to desired host.')
 
     def test_get_ssl_kwargs(self):
         # 1. No SSL kwargs provided

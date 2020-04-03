@@ -91,7 +91,7 @@ class CryptoUtilsTestCase(TestCase):
 
         for _ in range(0, 10000):
             crypto = symmetric_encrypt(CryptoUtilsTestCase.test_crypto_key, original)
-            self.assertTrue(crypto not in cryptos)
+            self.assertNotIn(crypto, cryptos)
             cryptos.add(crypto)
 
     def test_decrypt_ciphertext_is_too_short(self):

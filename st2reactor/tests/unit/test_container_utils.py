@@ -36,7 +36,7 @@ class ContainerUtilsTest(CleanDbTestCase):
         trigger_instance = 'dummy_pack.footrigger'
         instance = create_trigger_instance(trigger=trigger_instance, payload={},
                                            occurrence_time=None)
-        self.assertTrue(instance is None)
+        self.assertIsNone(instance)
 
     def test_create_trigger_instance_success(self):
         # Here we test trigger instance creation using various ways to look up corresponding

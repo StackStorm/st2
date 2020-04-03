@@ -170,10 +170,10 @@ class TestWebhooksController(FunctionalTest):
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = 'Trigger payload validation failed'
-        self.assertTrue(expected_msg in post_resp.json['faultstring'])
+        self.assertIn(expected_msg, post_resp.json['faultstring'])
 
         expected_msg = "'invalid' is not of type 'object'"
-        self.assertTrue(expected_msg in post_resp.json['faultstring'])
+        self.assertIn(expected_msg, post_resp.json['faultstring'])
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
@@ -189,7 +189,7 @@ class TestWebhooksController(FunctionalTest):
         return_value=True))
     def test_st2_webhook_body_missing_trigger(self):
         post_resp = self.__do_post('st2', {'payload': {}}, expect_errors=True)
-        self.assertTrue('Trigger not specified.' in post_resp)
+        self.assertIn('Trigger not specified.', post_resp)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
@@ -227,7 +227,7 @@ class TestWebhooksController(FunctionalTest):
         post_resp = self.app.post('/v1/webhooks/git', data, headers=headers,
                       expect_errors=True)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
-        self.assertTrue('Failed to parse request body' in post_resp)
+        self.assertIn('Failed to parse request body', post_resp)
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
@@ -261,8 +261,8 @@ class TestWebhooksController(FunctionalTest):
         post_resp = self.app.post('/v1/webhooks/git', json.dumps(data), headers=headers,
                                   expect_errors=True)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
-        self.assertTrue('Failed to parse request body' in post_resp)
-        self.assertTrue('Unsupported Content-Type' in post_resp)
+        self.assertIn('Failed to parse request body', post_resp)
+        self.assertIn('Unsupported Content-Type', post_resp)
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))

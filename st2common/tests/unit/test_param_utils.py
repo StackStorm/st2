@@ -92,7 +92,7 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(action_params.get('action_api_user'), 'noob')
         # Assert that none of runner params are present in action_params.
         for k in action_params:
-            self.assertTrue(k not in runner_params, 'Param ' + k + ' is a runner param.')
+            self.assertNotIn(k, runner_params, 'Param ' + k + ' is a runner param.')
 
     def test_get_finalized_params_system_values(self):
         KeyValuePair.add_or_update(KeyValuePairDB(name='actionstr', value='foo'))
@@ -308,7 +308,7 @@ class ParamsUtilsTest(DbTestCase):
         except ParamException as e:
             error_msg = 'Failed to render parameter "a2": \'dict object\' ' + \
                         'has no attribute \'lorem_ipsum\''
-            self.assertTrue(error_msg in six.text_type(e))
+            self.assertIn(error_msg, six.text_type(e))
             pass
 
     def test_unicode_value_casting(self):
@@ -789,7 +789,7 @@ class ParamsUtilsTest(DbTestCase):
             'templateparam': '3'
         }
         result = param_utils._cast_params_from({}, context, schemas)
-        self.assertEquals(result, {})
+        self.assertEqual(result, {})
 
         # Test with no live params, and two parameters - one should make it through because
         # it was a template, and the other shouldn't because its default wasn't a template
@@ -805,7 +805,7 @@ class ParamsUtilsTest(DbTestCase):
             'templateparam': '3'
         }
         result = param_utils._cast_params_from({}, context, schemas)
-        self.assertEquals(result, {'templateparam': 3})
+        self.assertEqual(result, {'templateparam': 3})
 
         # Ensure parameter is skipped if the value in context is identical to default
         schemas = [
@@ -820,7 +820,7 @@ class ParamsUtilsTest(DbTestCase):
             'nottemplateparam': '4',
         }
         result = param_utils._cast_params_from({}, context, schemas)
-        self.assertEquals(result, {})
+        self.assertEqual(result, {})
 
         # Ensure parameter is skipped if the parameter doesn't have a default
         schemas = [
@@ -834,7 +834,7 @@ class ParamsUtilsTest(DbTestCase):
             'nottemplateparam': '4',
         }
         result = param_utils._cast_params_from({}, context, schemas)
-        self.assertEquals(result, {})
+        self.assertEqual(result, {})
 
         # Skip if the default value isn't a Jinja expression
         schemas = [
@@ -849,7 +849,7 @@ class ParamsUtilsTest(DbTestCase):
             'nottemplateparam': '4',
         }
         result = param_utils._cast_params_from({}, context, schemas)
-        self.assertEquals(result, {})
+        self.assertEqual(result, {})
 
         # Ensure parameter is skipped if the parameter is being overridden
         schemas = [
@@ -864,7 +864,7 @@ class ParamsUtilsTest(DbTestCase):
             'templateparam': '4',
         }
         result = param_utils._cast_params_from({'templateparam': '4'}, context, schemas)
-        self.assertEquals(result, {'templateparam': 4})
+        self.assertEqual(result, {'templateparam': 4})
 
     def test_render_final_params_and_shell_script_action_command_strings(self):
         runner_parameters = {}

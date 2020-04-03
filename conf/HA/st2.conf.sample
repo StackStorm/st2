@@ -20,6 +20,7 @@ logging = /etc/st2/logging.rulesengine.conf
 
 [actionrunner]
 logging = /etc/st2/logging.actionrunner.conf
+# The line should be commented and 'always-copy' removed when using EL7 or EL8 as it causes virtualenv issues on pack install
 virtualenv_opts = --always-copy
 
 [resultstracker]

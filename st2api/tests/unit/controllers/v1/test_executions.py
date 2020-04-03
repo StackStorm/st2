@@ -380,9 +380,9 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         get_resp = self._do_get_one(actionexecution_id)
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
-        self.assertTrue('web_url' in get_resp)
+        self.assertIn('web_url', get_resp)
         if 'end_timestamp' in get_resp:
-            self.assertTrue('elapsed_seconds' in get_resp)
+            self.assertIn('elapsed_seconds', get_resp)
 
         get_resp = self._do_get_one('last')
         self.assertEqual(get_resp.status_int, 200)
@@ -401,7 +401,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
     def test_get_all_id_query_param_filtering_invalid_id(self):
         resp = self.app.get('/v1/executions?id=invalidid', expect_errors=True)
         self.assertEqual(resp.status_int, 400)
-        self.assertTrue('not a valid ObjectId' in resp.json['faultstring'])
+        self.assertIn('not a valid ObjectId', resp.json['faultstring'])
 
     def test_get_all_id_query_param_filtering_multiple_ids_provided(self):
         post_resp = self._do_post(LIVE_ACTION_1)
@@ -430,9 +430,9 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         for i in range(len(body) - 1):
             self.assertTrue(isotime.parse(body[i]['start_timestamp']) >=
                             isotime.parse(body[i + 1]['start_timestamp']))
-            self.assertTrue('web_url' in body[i])
+            self.assertIn('web_url', body[i])
             if 'end_timestamp' in body[i]:
-                self.assertTrue('elapsed_seconds' in body[i])
+                self.assertIn('elapsed_seconds', body[i])
 
     def test_get_all_invalid_offset_too_large(self):
         offset = '2141564789454123457895412237483648'
@@ -1350,7 +1350,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         for url in urls:
             resp = self.app.get(url + '&limit=1')
 
-            self.assertTrue('parameters' in resp.json[0])
+            self.assertIn('parameters', resp.json[0])
             self.assertEqual(resp.json[0]['parameters']['a'], 'param a')
             self.assertEqual(resp.json[0]['parameters']['d'], MASKED_ATTRIBUTE_VALUE)
             self.assertEqual(resp.json[0]['parameters']['password'], MASKED_ATTRIBUTE_VALUE)
@@ -1367,7 +1367,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         for url in urls:
             resp = self.app.get(url + '&limit=1&show_secrets=True')
 
-            self.assertTrue('parameters' in resp.json[0])
+            self.assertIn('parameters', resp.json[0])
             self.assertEqual(resp.json[0]['parameters']['a'], 'param a')
             self.assertEqual(resp.json[0]['parameters']['d'], 'secretpassword1')
             self.assertEqual(resp.json[0]['parameters']['password'], 'secretpassword2')
@@ -1452,7 +1452,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             url = item['url']
             resp = self.app.get(url)
 
-            self.assertTrue('parameters' in resp.json)
+            self.assertIn('parameters', resp.json)
             self.assertEqual(resp.json['parameters']['a'], 'param a')
             self.assertEqual(resp.json['parameters']['d'], MASKED_ATTRIBUTE_VALUE)
             self.assertEqual(resp.json['parameters']['password'], MASKED_ATTRIBUTE_VALUE)
@@ -1488,7 +1488,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             url = item['url']
             resp = self.app.get(url + '&show_secrets=True')
 
-            self.assertTrue('parameters' in resp.json)
+            self.assertIn('parameters', resp.json)
             self.assertEqual(resp.json['parameters']['a'], 'param a')
             self.assertEqual(resp.json['parameters']['d'], 'secretpassword1')
             self.assertEqual(resp.json['parameters']['password'], 'secretpassword2')

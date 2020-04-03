@@ -176,7 +176,7 @@ check-python-packages:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -192,7 +192,7 @@ check-python-packages-nightly:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -314,7 +314,7 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== st2client install check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_ST2CLIENT_DIR) --no-download
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -328,9 +328,14 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==19.3.1"
+	# If you update these versions, make sure you also update the versions in the
+	# requirements target and .travis.yml to match
+	# Make sure we use the latest version of pip
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip>=19.3.1"
 	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==41.0.1"
+	# Setuptools 42 added support for python_requires, which is used by the configparser package,
+	# which is required by the importlib-metadata package
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools>=42"
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"
@@ -437,10 +442,14 @@ requirements: virtualenv .sdist-requirements install-runners
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
-	# Make sure we use latest version of pip which is 19
+	# If you update these versions, make sure you also update the versions in the
+	# .st2client-install-check target and .travis.yml to match
+	# Make sure we use latest version of pip
 	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==19.3.1"
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==41.0.1"  # Required for packs.install in dev envs
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.3.1"
+	# setuptools >= 41.0.1 is required for packs.install in dev envs
+	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools>=42"
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Generate all requirements to support current CI pipeline.
@@ -453,9 +462,10 @@ requirements: virtualenv .sdist-requirements install-runners
 	@for component in $(COMPONENTS_WITH_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Generating requirements.txt for" $$component; \
-		echo "==========================================================="; \
 		$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
 	done
+
+	@echo "==========================================================="
 
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
@@ -495,7 +505,9 @@ requirements: virtualenv .sdist-requirements install-runners
 	git submodule update --recursive --remote
 
 	# Verify there are no conflicting dependencies
-	$(VIRTUALENV_DIR)/bin/pipconflictchecker
+	cat st2*/requirements.txt contrib/runners/*/requirements.txt | sort -u > req.txt && \
+	$(VIRTUALENV_DIR)/bin/pip-compile req.txt; \
+	if [[ -e req.txt ]]; then rm req.txt; fi
 
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure
@@ -506,7 +518,7 @@ virtualenv:
 	@echo
 	# Note: We pass --no-download flag to make sure version of pip which we install (9.0.1) is used
 	# instead of latest version being downloaded from PyPi
-	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) --no-site-packages $(VIRTUALENV_DIR) --no-download
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_DIR) --no-download
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -672,7 +684,7 @@ endif
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
-		    nosetests $(NOSE_OPTS) -s -v --exe $(NOSE_COVERAGE_FLAGS) \
+		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
 		    $(NOSE_COVERAGE_PACKAGES) \
 		    $$component/tests/integration || exit 1; \
 		echo "-----------------------------------------------------------"; \
@@ -951,6 +963,12 @@ ci-py3-unit:
 	@echo "==================== ci-py3-unit ===================="
 	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
+
+.PHONY: ci-py3-packs-tests
+ci-py3-packs-tests:
+	@echo
+	@echo "==================== ci-py3-packs-tests ===================="
+	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
 
 .PHONY: ci-py3-unit-nightly

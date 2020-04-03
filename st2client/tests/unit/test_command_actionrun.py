@@ -43,17 +43,17 @@ class ActionRunCommandTest(unittest2.TestCase):
         params, rqd, opt, imm = ActionRunCommand._get_params_types(runner, action)
         self.assertEqual(len(list(params.keys())), 3)
 
-        self.assertTrue('foo' in imm, '"foo" param should be in immutable set.')
-        self.assertTrue('foo' not in rqd, '"foo" param should not be in required set.')
-        self.assertTrue('foo' not in opt, '"foo" param should not be in optional set.')
+        self.assertIn('foo', imm, '"foo" param should be in immutable set.')
+        self.assertNotIn('foo', rqd, '"foo" param should not be in required set.')
+        self.assertNotIn('foo', opt, '"foo" param should not be in optional set.')
 
-        self.assertTrue('bar' in opt, '"bar" param should be in optional set.')
-        self.assertTrue('bar' not in rqd, '"bar" param should not be in required set.')
-        self.assertTrue('bar' not in imm, '"bar" param should not be in immutable set.')
+        self.assertIn('bar', opt, '"bar" param should be in optional set.')
+        self.assertNotIn('bar', rqd, '"bar" param should not be in required set.')
+        self.assertNotIn('bar', imm, '"bar" param should not be in immutable set.')
 
-        self.assertTrue('stuff' in rqd, '"stuff" param should be in required set.')
-        self.assertTrue('stuff' not in opt, '"stuff" param should be in optional set.')
-        self.assertTrue('stuff' not in imm, '"stuff" param should be in immutable set.')
+        self.assertIn('stuff', rqd, '"stuff" param should be in required set.')
+        self.assertNotIn('stuff', opt, '"stuff" param should not be in optional set.')
+        self.assertNotIn('stuff', imm, '"stuff" param should not be in immutable set.')
         self.assertEqual(runner.runner_parameters, orig_runner_params, 'Runner params modified.')
         self.assertEqual(action.parameters, orig_action_params, 'Action params modified.')
 
@@ -138,7 +138,7 @@ class ActionRunCommandTest(unittest2.TestCase):
 
         param = command._get_action_parameters_from_args(action=action, runner=runner, args=mockarg)
 
-        self.assertTrue(isinstance(param, dict))
+        self.assertIsInstance(param, dict)
         self.assertEqual(param['param_string'], 'hoge')
         self.assertEqual(param['param_integer'], 123)
         self.assertEqual(param['param_number'], 1.23)
@@ -147,15 +147,15 @@ class ActionRunCommandTest(unittest2.TestCase):
         self.assertEqual(param['param_array'], ['foo', 'bar', 'baz'])
 
         # checking the result of parsing for array of objects
-        self.assertTrue(isinstance(param['param_array_of_dicts'], list))
+        self.assertIsInstance(param['param_array_of_dicts'], list)
         self.assertEqual(len(param['param_array_of_dicts']), 2)
         for param in param['param_array_of_dicts']:
-            self.assertTrue(isinstance(param, dict))
-            self.assertTrue(isinstance(param['foo'], str))
-            self.assertTrue(isinstance(param['bar'], int))
-            self.assertTrue(isinstance(param['baz'], float))
-            self.assertTrue(isinstance(param['qux'], dict))
-            self.assertTrue(isinstance(param['quux'], bool))
+            self.assertIsInstance(param, dict)
+            self.assertIsInstance(param['foo'], str)
+            self.assertIsInstance(param['bar'], int)
+            self.assertIsInstance(param['baz'], float)
+            self.assertIsInstance(param['qux'], dict)
+            self.assertIsInstance(param['quux'], bool)
 
         # set auto_dict back to default
         mockarg.auto_dict = False

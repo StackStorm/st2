@@ -75,7 +75,7 @@ class AliasExecutionTestCase(FunctionalTest):
         post_resp = self._do_post(alias_execution=self.alias1, command=command)
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param2': 'value2 value3'}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -84,7 +84,7 @@ class AliasExecutionTestCase(FunctionalTest):
         post_resp = self._do_post(alias_execution=self.alias5, command=command)
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param2': 'value2'}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -96,7 +96,7 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(post_resp.status_int, 400)
         expected_msg = ('Format string "some invalid not supported string" is '
                         'not available on the alias "alias1"')
-        self.assertTrue(expected_msg in post_resp.json['faultstring'])
+        self.assertIn(expected_msg, post_resp.json['faultstring'])
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -104,7 +104,7 @@ class AliasExecutionTestCase(FunctionalTest):
         command = 'Lorem ipsum value1 dolor sit value2 amet.'
         self._do_post(alias_execution=self.alias2, command=command)
         expected_parameters = {'param1': 'value1', 'param3': ['value2']}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -113,7 +113,7 @@ class AliasExecutionTestCase(FunctionalTest):
         post_resp = self._do_post(alias_execution=self.alias2, command=command)
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param3': ['value2', 'value3']}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -127,7 +127,7 @@ class AliasExecutionTestCase(FunctionalTest):
         )
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'cmd': 'date', 'hosts': 'localhost'}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
         self.assertEqual(
             post_resp.json['message'],
             'Cannot render "format" in field "ack" for alias. \'cmd\' is undefined'
@@ -151,7 +151,7 @@ class AliasExecutionTestCase(FunctionalTest):
         post_resp = self._do_post(alias_execution=self.alias4, command=command)
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param4': SUPER_SECRET_PARAMETER}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
         post_resp = self._do_post(alias_execution=self.alias4, command=command, show_secrets=True,
                                   expect_errors=True)
         self.assertEqual(post_resp.status_int, 201)
@@ -212,16 +212,16 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(resp.json['results'][0]['execution']['status'], EXECUTION['status'])
 
         expected_parameters = {'cmd': 'date', 'hosts': 'localhost'}
-        self.assertEquals(mock_request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(mock_request.call_args[0][0].parameters, expected_parameters)
 
         # Also check for source_channel - see
         # https://github.com/StackStorm/st2/issues/4650
         actual_context = mock_request.call_args[0][0].context
 
-        self.assertTrue('source_channel' in mock_request.call_args[0][0].context.keys())
-        self.assertEquals(actual_context['source_channel'], 'chat-channel')
-        self.assertEquals(actual_context['api_user'], 'chat-user')
-        self.assertEquals(actual_context['user'], 'stanley')
+        self.assertIn('source_channel', mock_request.call_args[0][0].context.keys())
+        self.assertEqual(actual_context['source_channel'], 'chat-channel')
+        self.assertEqual(actual_context['api_user'], 'chat-user')
+        self.assertEqual(actual_context['user'], 'stanley')
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -253,7 +253,7 @@ class AliasExecutionTestCase(FunctionalTest):
         # We've also already checked the results array
         #
         expected_parameters = {'issue_key': 'DRSEUSS-12'}
-        self.assertEquals(mock_request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(mock_request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))

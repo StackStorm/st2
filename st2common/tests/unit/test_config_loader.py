@@ -398,7 +398,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         config_rendered = loader.get_config()
 
-        self.assertEquals(config_rendered, {'level0_key': 'v1'})
+        self.assertEqual(config_rendered, {'level0_key': 'v1'})
 
         config_db.delete()
 
@@ -426,16 +426,16 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         config_rendered = loader.get_config()
 
-        self.assertEquals(config_rendered,
-                          {
-                              'level0_key': 'v0',
-                              'level0_object': {
-                                  'level1_key': 'v1',
-                                  'level1_object': {
-                                      'level2_key': 'v2'
-                                  }
-                              }
-                          })
+        self.assertEqual(config_rendered,
+                         {
+                             'level0_key': 'v0',
+                             'level0_object': {
+                                 'level1_key': 'v1',
+                                 'level1_object': {
+                                     'level2_key': 'v2'
+                                 }
+                             }
+                         })
 
         config_db.delete()
 
@@ -461,15 +461,15 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         config_rendered = loader.get_config()
 
-        self.assertEquals(config_rendered,
-                          {
-                              'level0_key': [
-                                  'a',
-                                  'v0',
-                                  'b',
-                                  'v1'
-                              ]
-                          })
+        self.assertEqual(config_rendered,
+                         {
+                             'level0_key': [
+                                 'a',
+                                 'v0',
+                                 'b',
+                                 'v1'
+                             ]
+                         })
 
         config_db.delete()
 
@@ -506,25 +506,25 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         config_rendered = loader.get_config()
 
-        self.assertEquals(config_rendered,
-                          {
-                              'level0_key': [
-                                  {
-                                      'level1_key0': 'v0'
-                                  },
-                                  'v1',
-                                  [
-                                      'v0',
-                                      'v1',
-                                      'v2',
-                                  ],
-                                  {
-                                      'level1_key2': [
-                                          'v2',
-                                      ]
-                                  }
-                              ]
-                          })
+        self.assertEqual(config_rendered,
+                         {
+                             'level0_key': [
+                                 {
+                                     'level1_key0': 'v0'
+                                 },
+                                 'v1',
+                                 [
+                                     'v0',
+                                     'v1',
+                                     'v2',
+                                 ],
+                                 {
+                                     'level1_key2': [
+                                         'v2',
+                                     ]
+                                 }
+                             ]
+                         })
 
         config_db.delete()
 

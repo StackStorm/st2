@@ -280,7 +280,7 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         if self.test_exact_object_count:
             self.assertEqual(len(resp.json), len(object_ids))
 
-        self.assertTrue(exclude_attribute in resp.json[0])
+        self.assertIn(exclude_attribute, resp.json[0])
 
         # 2. Verify attribute is excluded when filter is provided
         exclude_attribute = self.exclude_attribute_field_name
@@ -293,7 +293,7 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         if self.test_exact_object_count:
             self.assertEqual(len(resp.json), len(object_ids))
 
-        self.assertFalse(exclude_attribute in resp.json[0])
+        self.assertNotIn(exclude_attribute, resp.json[0])
 
         self._delete_mock_models(object_ids)
 
@@ -303,13 +303,13 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
             split = field.split('.')
 
             for index, field_part in enumerate(split):
-                self.assertTrue(field_part in resp_item)
+                self.assertIn(field_part, resp_item)
                 resp_item = resp_item[field_part]
 
             # Additional safety check
             self.assertEqual(index, len(split) - 1)
         else:
-            self.assertTrue(field in resp_item)
+            self.assertIn(field, resp_item)
 
     def _insert_mock_models(self):
         """
