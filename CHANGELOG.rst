@@ -20,7 +20,6 @@ Added
 
 Changed
 ~~~~~~~
-* Fix ssh zombies when using ProxyCommand from ssh config #4881
 * Install pack with the latest tag version if it exists when branch is not specialized.
   (improvement) #4743
 * Implement "continue" engine command to orquesta workflow. (improvement) #4740
@@ -2428,6 +2427,7 @@ Deprecated
 Fixed
 ~~~~~
 
+* Fix ssh zombies when using ProxyCommand from ssh config #4881 [Eric Edgar]
 * Bug fixes to allow Sensors to have their own log files. #2487 [Andrew Regan]
 * Make sure that the ``filename``, ``module``, ``funcName`` and ``lineno`` attributes which are
   available in the log formatter string contain the correct values. (bug-fix)
