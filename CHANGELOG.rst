@@ -20,7 +20,7 @@ Added
 
 Changed
 ~~~~~~~
-
+* Fix ssh zombies when using ProxyCommand from ssh config #4881
 * Install pack with the latest tag version if it exists when branch is not specialized.
   (improvement) #4743
 * Implement "continue" engine command to orquesta workflow. (improvement) #4740
