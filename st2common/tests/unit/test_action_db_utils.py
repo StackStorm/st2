@@ -423,6 +423,26 @@ class ActionDBUtilsTestCase(DbTestCase):
         ]
         pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
         self.assertListEqual(pos_args, expected_pos_args, 'Positional args not parsed correctly.')
+
+        # Test arrays and lists with values of different types
+        params = {
+            'actionarray': [ None, False, 1, 4.2e1, 'foo' ],
+            'actionlist': [ None, False, 1, 73e-2, 'bar' ]
+        }
+        expected_pos_args = [
+            '',
+            '',
+            '',
+            '',
+            'None,False,1,42.0,foo',
+            'None,False,1,0.73,bar',
+            '',
+            ''
+        ]
+        pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
+        self.assertListEqual(pos_args, expected_pos_args,
+                             'Positional args not parsed / serialized correctly.')
+
         self.assertNotIn('actionint', named_args)
         self.assertNotIn('actionstr', named_args)
         self.assertEqual(named_args.get('runnerint'), 555)
