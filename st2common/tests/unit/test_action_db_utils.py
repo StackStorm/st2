@@ -426,16 +426,16 @@ class ActionDBUtilsTestCase(DbTestCase):
 
         # Test arrays and lists with values of different types
         params = {
-            'actionarray': [ None, False, 1, 4.2e1, 'foo' ],
-            'actionlist': [ None, False, 1, 73e-2, 'bar' ]
+            'actionarray': [ None, False, 1, 4.2e1, '1e3', 'foo' ],
+            'actionlist': [ None, False, 1, 73e-2, '1e2', 'bar' ]
         }
         expected_pos_args = [
             '',
             '',
             '',
             '',
-            'None,False,1,42.0,foo',
-            'None,False,1,0.73,bar',
+            'None,False,1,42.0,1e3,foo',
+            'None,False,1,0.73,1e2,bar',
             '',
             ''
         ]
