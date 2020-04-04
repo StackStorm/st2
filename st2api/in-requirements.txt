@@ -8,5 +8,5 @@ oslo.config
 oslo.utils
 pymongo
 six
-git+https://github.com/StackStorm/python-mistralclient#egg=python-mistralclient
+git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 gunicorn
