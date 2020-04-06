@@ -64,6 +64,7 @@ Changed
 Fixed
 ~~~~~
 
+* Fix ssh zombies when using ProxyCommand from ssh config #4881 [Eric Edgar]
 * Fix rbac with execution view where the rbac is unable to verify the pack or uid of the execution
   because it was not returned from the action execution db. This would result in an internal server
   error when trying to view the results of a single execution.
@@ -2427,7 +2428,6 @@ Deprecated
 Fixed
 ~~~~~
 
-* Fix ssh zombies when using ProxyCommand from ssh config #4881 [Eric Edgar]
 * Bug fixes to allow Sensors to have their own log files. #2487 [Andrew Regan]
 * Make sure that the ``filename``, ``module``, ``funcName`` and ``lineno`` attributes which are
   available in the log formatter string contain the correct values. (bug-fix)
