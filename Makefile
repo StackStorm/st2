@@ -143,7 +143,7 @@ play:
 	@echo
 
 .PHONY: check
-check: check-requirements flake8 checklogs
+check: check-requirements check-sdist-requirements flake8 checklogs
 
 # NOTE: We pass --no-deps to the script so we don't install all the
 # package dependencies which are already installed as part of "requirements"
@@ -161,13 +161,54 @@ install-runners:
 	done
 
 .PHONY: check-requirements
-check-requirements: requirements
+.check-requirements:
 	@echo
 	@echo "============== CHECKING REQUIREMENTS =============="
 	@echo
 	# Update requirements and then make sure no files were changed
-	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit"
-	@echo "All requirements files up-to-date!"
+	git status -- *requirements.txt */*requirements.txt | grep -q "nothing to commit" || { \
+		echo "It looks like you directly modified a requirements.txt file, an"; \
+		echo "in-requirements.txt file, or fixed-requirements.txt without running:"; \
+		echo ""; \
+		echo "    make .requirements"; \
+		echo ""; \
+		echo "Please update all of the requirements.txt files by running that command"; \
+		echo "and committing all of the changed files. You can quickly check the results"; \
+		echo "with:"; \
+		echo ""; \
+		echo "    make .check-requirements"; \
+		echo ""; \
+		exit 1; \
+	}
+	@echo "All requirements files are up-to-date!"
+
+.PHONY: check-requirements
+check-requirements: .requirements .check-requirements
+
+.PHONY: .check-sdist-requirements
+.check-sdist-requirements:
+	@echo
+	@echo "============== CHECKING SDIST REQUIREMENTS =============="
+	@echo
+	# Update requirements and then make sure no files were changed
+	git status -- */dist_utils.py contrib/runners/*/dist_utils.py | grep -q "nothing to commit" || { \
+		echo "It looks like you directly modified a dist_utils.py, or the source "; \
+		echo "scripts/dist_utils.py file without running:"; \
+		echo ""; \
+		echo "    make .sdist-requirements"; \
+		echo ""; \
+		echo "Please update all of the dist_utils.py files by running that command"; \
+		echo "and committing all of the changed files. You can quickly check the results"; \
+		echo "with:"; \
+		echo ""; \
+		echo "    make .check-sdist-requirements"; \
+		echo ""; \
+		exit 1; \
+	}
+	@echo "All dist_utils.py files are up-to-date!"
+
+.PHONY: check-sdist-requirements
+check-sdist-requirements: .sdist-requirements .check-sdist-requirements
 
 .PHONY: check-python-packages
 check-python-packages:
@@ -437,21 +478,23 @@ distclean: clean
 	@echo
 	rm -rf $(VIRTUALENV_DIR)
 
-.PHONY: requirements
-requirements: virtualenv .sdist-requirements install-runners
-	@echo
-	@echo "==================== requirements ===================="
-	@echo
-	# If you update these versions, make sure you also update the versions in the
-	# .st2client-install-check target and .travis.yml to match
-	# Make sure we use latest version of pip
-	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==20.0.2"
-	# setuptools >= 41.0.1 is required for packs.install in dev envs
-	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
+.PHONY: .sdist-requirements
+.sdist-requirements:
+	# Copy over shared dist utils module which is needed by setup.py
+	@for component in $(COMPONENTS_WITH_RUNNERS); do\
+		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
+		scripts/write-headers.sh $$component/dist_utils.py || break;\
+	done
 
+	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
+	#@for component in $(COMPONENTS_TEST); do\
+	#	test -s $$component/README.rst || cp -f README.rst $$component/; \
+	#	cp -f CONTRIBUTING.rst $$component/; \
+	#	cp -f LICENSE $$component/; \
+	#done
+
+.PHONY: .requirements
+.requirements: virtualenv
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
@@ -466,6 +509,21 @@ requirements: virtualenv .sdist-requirements install-runners
 	done
 
 	@echo "==========================================================="
+
+.PHONY: requirements
+requirements: virtualenv .requirements .sdist-requirements install-runners
+	@echo
+	@echo "==================== requirements ===================="
+	@echo
+	# If you update these versions, make sure you also update the versions in the
+	# .st2client-install-check target and .travis.yml to match
+	# Make sure we use latest version of pip
+	$(VIRTUALENV_DIR)/bin/pip --version
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.3.1"
+	# setuptools >= 41.0.1 is required for packs.install in dev envs
+	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools>=42"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
@@ -934,28 +992,12 @@ debs:
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)
 	pushd st2client && make deb && popd
 
-# >>>>
-.PHONY: .sdist-requirements
-.sdist-requirements:
-	# Copy over shared dist utils module which is needed by setup.py
-	@for component in $(COMPONENTS_WITH_RUNNERS); do\
-		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
-		scripts/write-headers.sh $$component/dist_utils.py || break;\
-	done
-
-	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
-	#@for component in $(COMPONENTS_TEST); do\
-	#	test -s $$component/README.rst || cp -f README.rst $$component/; \
-	#	cp -f CONTRIBUTING.rst $$component/; \
-	#	cp -f LICENSE $$component/; \
-	#done
-
 
 .PHONY: ci
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 check-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: compile .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: ci-py3-unit
 ci-py3-unit:
