@@ -60,6 +60,7 @@ Changed
 * Use ``pip-compile`` from ``pip-tools`` instead of ``pip-conflict-checker`` (improvement) #4896
 * Refactor how inbound criteria for join task in orquesta workflow is evaluated to count by
   task completion instead of task transition. (improvement)
+* Update tooz to v2.3.0 to apply fix for consul coordination session timeout (@punkrokk)
 
 Fixed
 ~~~~~
