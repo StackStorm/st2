@@ -65,7 +65,10 @@ Changed
 
 Fixed
 ~~~~~
+* Fix the passing of arrays to shell scripts where the arrays where not detected as such by the 
+  st2 action_db utility. This caused arrays to be passed as Python lists serialized into a string.
 
+  Reported by @kingsleyadam #4804 and contributed by Marcel Weinberg (@winem) #4861
 * Fix ssh zombies when using ProxyCommand from ssh config #4881 [Eric Edgar]
 * Fix rbac with execution view where the rbac is unable to verify the pack or uid of the execution
   because it was not returned from the action execution db. This would result in an internal server
