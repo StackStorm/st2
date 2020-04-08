@@ -118,7 +118,7 @@ Fixed
 
 * Fix dependency conflicts by updating ``requests`` (2.23.0) and ``gitpython`` (2.1.15). #4869
 * Fix orquesta syntax error for with items task where action is misindented or missing.
-  PR @ https://github.com/StackStorm/orquesta/pull/195 (bug fix)
+  StackStorm/orquesta#195 (bug fix)
 
 Removed
 ~~~~~~~
