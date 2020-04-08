@@ -52,6 +52,7 @@ Changed
   connection related errors, our code would first wait for this timeout to be reached (30 seconds)
   before returning error to the end user. #4834
 * Upgrade ``pymongo`` to the latest stable version (``3.10.0.``). #4835 (improvement)
+* Updated Paramiko to v2.7.1 to support new PEM ECDSA key formats #4901 (improvement)
 * Remove ``.scrutinizer.yml`` config file. No longer used.
 * Convert escaped dict and dynamic fields in workflow db models to normal dict and dynamic fields.
   (performnce improvement)
@@ -60,6 +61,7 @@ Changed
 * Use ``pip-compile`` from ``pip-tools`` instead of ``pip-conflict-checker`` (improvement) #4896
 * Refactor how inbound criteria for join task in orquesta workflow is evaluated to count by
   task completion instead of task transition. (improvement)
+
 
 Fixed
 ~~~~~
