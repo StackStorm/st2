@@ -12,7 +12,7 @@ Added
   #4757
 * Add ``user`` parameter to ``re_run`` method of st2client. #4785
 * Install pack dependencies automatically. #4769
-* Add support for `immutable_parameters` on Action Aliases. This feature allows default
+* Add support for ``immutable_parameters`` on Action Aliases. This feature allows default
   parameters to be supplied to the action on every execution of the alias. #4786
 * Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client.
   #4791
@@ -20,7 +20,6 @@ Added
 
 Changed
 ~~~~~~~
-
 * Install pack with the latest tag version if it exists when branch is not specialized.
   (improvement) #4743
 * Implement "continue" engine command to orquesta workflow. (improvement) #4740
@@ -53,9 +52,14 @@ Changed
   connection related errors, our code would first wait for this timeout to be reached (30 seconds)
   before returning error to the end user. #4834
 * Upgrade ``pymongo`` to the latest stable version (``3.10.0.``). #4835 (improvement)
-* Remove `.scrutinizer.yml` config file. No longer used.
+* Remove ``.scrutinizer.yml`` config file. No longer used.
 * Convert escaped dict and dynamic fields in workflow db models to normal dict and dynamic fields.
   (performnce improvement)
+* Add support for `PEP 508 <https://www.python.org/dev/peps/pep-0508/#environment-markers>`_
+  environment markers in generated ``requirements.txt`` files. (improvement) #4895
+* Use ``pip-compile`` from ``pip-tools`` instead of ``pip-conflict-checker`` (improvement) #4896
+* Refactor how inbound criteria for join task in orquesta workflow is evaluated to count by
+  task completion instead of task transition. (improvement)
 
 Fixed
 ~~~~~
@@ -63,6 +67,7 @@ Fixed
   provided name as action name and not as tag name. (bug fix) #4828
 
   Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem) 
+* Fix ssh zombies when using ProxyCommand from ssh config #4881 [Eric Edgar]
 * Fix rbac with execution view where the rbac is unable to verify the pack or uid of the execution
   because it was not returned from the action execution db. This would result in an internal server
   error when trying to view the results of a single execution.
@@ -75,7 +80,7 @@ Fixed
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
 * Fix the workflow execution cancelation to proceed even if the workflow execution is not found or
   completed. (bug fix) #4735
-* Added better error handling to `contrib/linux/actions/dig.py` to inform if dig is not installed.
+* Added better error handling to ``contrib/linux/actions/dig.py`` to inform if dig is not installed.
   Contributed by JP Bourget (@punkrokk Syncurity) #4732
 * Update ``dist_utils`` module which is bundled with ``st2client`` and other Python packages so it
   doesn't depend on internal pip API and so it works with latest pip version. (bug fix) #4750
@@ -115,6 +120,11 @@ Fixed
   Contributed by Tatsuma Matsuki (@mtatsuma)
 
 * Fix dependency conflicts by updating ``requests`` (2.23.0) and ``gitpython`` (2.1.15). #4869
+
+Removed
+~~~~~~~
+
+* Removed Ubuntu 14.04 from test matrix #4897
 
 3.1.0 - June 27, 2019
 ---------------------
@@ -1110,7 +1120,7 @@ Added
   after it has been scheduled. (new feature) #3867
 * Added flag ``--auto-dict`` to ``st2 run`` and ``st2 execution re-run`` commands. This flag must now
   be specified in order to automatically convert list items to dicts based on presence of colon
-  (`:`) in all of the list items (new feature) #3909
+  (``:``) in all of the list items (new feature) #3909
 * Allow user to set default log level used by all the Python runner actions by setting
   ``actionrunner.pythonrunner```` option in ``st2.conf`` (new feature) #3929
 * Update ``st2client`` package which is also utilized by the CLI so it also works under Python 3.
@@ -1283,8 +1293,8 @@ Added
   client commands for interacting with Inquiries
 
   Contributed by mierdin. #3653
-* Added two new rule operators, `inside` and `ninside` which allow for the reverse intent of
-  the `contains` and `ncontains` operators. #3781
+* Added two new rule operators, ``inside`` and ``ninside`` which allow for the reverse intent of
+  the ``contains`` and ``ncontains`` operators. #3781
 
   Contributed by @lampwins.
 * Allow user to use more expressive regular expressions inside action alias format string by
@@ -1477,7 +1487,7 @@ Fixed
 
   This also fixes an issue with Redis kombu backend not working. (bug fix) #3635 #3639 #3648
 * Fix logrotate configuration to delete stale compressed st2actionrunner logs #3647
-* Fix trace list API endpoint sorting by `start_timestamp`, using ``?sort_desc=True|False`` query
+* Fix trace list API endpoint sorting by ``start_timestamp``, using ``?sort_desc=True|False`` query
   parameters and by passing ``--sort=asc|desc`` parameter to the ``st2 trace list`` CLI command.
   Descending order by default.(bug fix) #3237 #3665
 * Fix pack index health endpoint. It now points to the right controller. #3672
@@ -1781,7 +1791,7 @@ Added
 Fixed
 ~~~~~
 
-* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
+* Fix ``st2ctl reload`` command so it preserves exit code from ``st2-register-content`` script and
   correctly fails on failure by default.
 * Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
   directory name doesn't match the pack name (this might be the case with new pack management
@@ -1850,8 +1860,8 @@ Added
   (it's disabled by default) and if trigger object defines ``payload_schema`` attribute.
 
   Contribution by Hiroyasu OHYAMA. #3094
-* Add support for `st2 login` and `st2 whoami` commands. These add some additional functionality
-  beyond the existing `st2 auth` command and actually works with the local configuration so that
+* Add support for ``st2 login`` and ``st2 whoami`` commands. These add some additional functionality
+  beyond the existing ``st2 auth`` command and actually works with the local configuration so that
   users do not have to.
 * Add support for complex rendering inside of array and object types. This allows the user to
   nest Jinja variables in array and object types.
@@ -1989,7 +1999,7 @@ Added
   chain or Mistral workflows where waiting / sleeping is desired before proceeding with a next
   task. Contribution by Paul Mulvihill. (new feature) #2933.
 * Allow user to supply multiple resource ids using ``?id`` query parameter when filtering
-  "get all" API endpoint result set (e.g. `?id=1,2,3,4`). This allows for a better client and
+  "get all" API endpoint result set (e.g. ``?id=1,2,3,4``). This allows for a better client and
   servers performance when user is polling and interested in multiple resources such as polling on
   multiple action executions. (improvement)
 * Add support for ssh config file for ParamikoSSHrunner. Now ``ssh_config_file_path`` can be set
@@ -2299,13 +2309,13 @@ Fixed
   parameter. Previously only raw key material was supported. (improvement)
 * Allow ``register-setup-virtualenvs`` flag to be used in combination with ``register-all`` in the
   ``st2-register-content`` script.
-* Add missing `pytz` dependency to ``st2client`` requirements file. (bug-fix)
+* Add missing ``pytz`` dependency to ``st2client`` requirements file. (bug-fix)
 * Fix datastore access on Python runner actions (set ``ST2_AUTH_TOKEN`` and ``ST2_API_URL`` env
   variables in Python runner actions to match sensors). (bug-fix)
 * Alias names are now correctly scoped to a pack. This means the same name for alias can be used
   across different packs. (bug-fix)
 * Fix a regression in filtering rules by pack with CLI. (bug-fix)
-* Make sure `st2-submit-debug-info` cleans up after itself and deletes a temporary directory it
+* Make sure ``st2-submit-debug-info`` cleans up after itself and deletes a temporary directory it
   creates. (improvement) #2714
   [Kale Blankenship]
 * Fix string parameter casting - leave actual ``None`` value as-is and don't try to cast it to a
@@ -2713,7 +2723,7 @@ Deprecated
 Fixed
 ~~~~~
 
-* Fix ``timestamp_lt`` and ``timestamp_gt`` filtering in the `/executions` API endpoint. Now we
+* Fix ``timestamp_lt`` and ``timestamp_gt`` filtering in the ``/executions`` API endpoint. Now we
   return a correct result which is expected from a user-perspective. (bug-fix)
 * Make sure that alias execution endpoint returns a correct status code and error message if the
   referenced action doesn't exist.
