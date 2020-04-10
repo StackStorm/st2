@@ -65,6 +65,10 @@ Changed
 
 Fixed
 ~~~~~
+* Fix the action query when filtering tags. The old implementation returned actions which have the
+  provided name as action name and not as tag name. (bug fix) #4828
+
+  Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem) 
 * Fix the passing of arrays to shell scripts where the arrays where not detected as such by the 
   st2 action_db utility. This caused arrays to be passed as Python lists serialized into a string.
 
