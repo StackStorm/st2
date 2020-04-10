@@ -126,8 +126,10 @@ Fixed
   Contributed by Tatsuma Matsuki (@mtatsuma)
 
 * Fix dependency conflicts by updating ``requests`` (2.23.0) and ``gitpython`` (2.1.15). #4869
-* Fix orquesta syntax error for with items task where action is misindented or missing.
-  StackStorm/orquesta#195 (bug fix)
+* Fix orquesta syntax error for with items task where action is misindented or missing. (bug fix)
+  PR StackStorm/orquesta#195.
+* Fix orquesta yaql/jinja vars extraction to ignore methods of base ctx() dict. (bug fix)
+  PR StackStorm/orquesta#196. Fixes #4866.
 
 Removed
 ~~~~~~~
