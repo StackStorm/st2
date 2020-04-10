@@ -283,9 +283,9 @@ def serialize_positional_argument(argument_type, argument_value):
             argument_value = '1' if bool(argument_value) else '0'
         else:
             argument_value = ''
-    elif argument_type == 'list':
+    elif argument_type in ['array', 'list']:
         # Lists are serialized a comma delimited string (foo,bar,baz)
-        argument_value = ','.join(argument_value) if argument_value else ''
+        argument_value = ','.join(map(str, argument_value)) if argument_value else ''
     elif argument_type == 'object':
         # Objects are serialized as JSON
         argument_value = json.dumps(argument_value) if argument_value else ''

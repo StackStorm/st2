@@ -125,20 +125,20 @@ script:
   # Clean up egg-info directories which get created when installing runners
   # NOTE: We enable code coverage and per test timing information on master so build can take twice
   # as long as PR builds
-  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ]; then COMMAND_THRESHOLD=$(expr ${COMMAND_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${COMMAND_THRESHOLD}
+  - if [[ "${TRAVIS_PULL_REQUEST}" = "false" ]] && [[ "${IS_NIGHTLY_BUILD}" = "no" ]]; then COMMAND_THRESHOLD=$(expr ${COMMAND_THRESHOLD} \* 2); fi; ./scripts/travis/time-command.sh "make ${TASK}" ${COMMAND_THRESHOLD}
   # Run any additional nightly checks only as part of a nightly (cron) build
-  - if [ "${IS_NIGHTLY_BUILD}" = "yes" ]; then ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"; fi
+  - if [[ "${IS_NIGHTLY_BUILD}" = "yes" ]]; then ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"; fi
   # NOTE: We only generate and submit coverage report for master and version branches
   # NOTE: We put this here and not after_success so build is marked as failed if this step fails
   # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build
   # https://github.com/travis-ci/travis-ci/issues/758#issuecomment-266756853
-  - if [ ${TASK} = 'ci-unit' ] || [ ${TASK} = 'ci-integration' ] && [ "${ENABLE_COVERAGE}" = 'yes' ]; then ./scripts/travis/submit-codecov-coverage.sh; fi
+  - if [[ ${TASK} = 'ci-unit' ]] || [[ ${TASK} = 'ci-integration' ]] && [[ "${ENABLE_COVERAGE}" = 'yes' ]]; then ./scripts/travis/submit-codecov-coverage.sh; fi
 
 # Don't store cache for target PR branch (typically `master`), because it will be re-used for opened PRs
 # See: https://docs.travis-ci.com/user/caching/#Pull-request-builds-and-caches
 # Alternative: use strict pip pinning, including git-based pip packages
 before_cache:
-  - if [ ${TRAVIS_PULL_REQUEST} = 'false' ] && [ "${IS_NIGHTLY_BUILD}" = "no" ]; then rm -rf virtualenv/; fi
+  - if [[ "${TRAVIS_PULL_REQUEST}" = 'false' ]] && [[ "${IS_NIGHTLY_BUILD}" = "no" ]]; then rm -rf virtualenv/; fi
 
 # We want to be notified when a master or nightly build fails
 notifications:
