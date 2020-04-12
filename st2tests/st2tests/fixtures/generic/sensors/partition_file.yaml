@@ -1,4 +1,0 @@
----
-sensornode1:
-    - generic.Sensor1
-    - generic.Sensor2

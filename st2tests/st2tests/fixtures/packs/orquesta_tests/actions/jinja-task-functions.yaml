@@ -1,7 +1,0 @@
----
-name: jinja-task-functions
-description: A basic workflow testing task related functions.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/jinja-task-functions.yaml
-enabled: true

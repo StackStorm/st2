@@ -1,7 +1,0 @@
----
-    name: "role_three_name_conflict"
-    permission_grants:
-        -
-            resource_uid: "action:dummy_pack_1:action_1"
-            permission_types:
-               - "action_execute"

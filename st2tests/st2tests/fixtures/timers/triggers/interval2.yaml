@@ -1,9 +1,0 @@
----
-  id: 58090c48d9d7ed55d3a378f1
-  name: d7ea7abf-29d9-4e4f-84dd-39a53982d397
-  uid: trigger:core:d7ea7abf-29d9-4e4f-84dd-39a53982d397:68764760e4f98f5f619aaa27b60eda1
-  pack: core
-  parameters:
-    delta: 3
-    unit : seconds
-  type: core.st2.IntervalTimer

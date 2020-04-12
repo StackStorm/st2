@@ -1,8 +1,0 @@
----
-name: render_config_context
-pack: orquesta_tests
-description: Run render config context workflow
-runner_type: orquesta
-entry_point: workflows/render_config_context.yaml
-enabled: true
-parameters: {}

@@ -1,8 +1,0 @@
----
-trace_tag : trace_for_test_enforce
-action_executions : []
-rules : []
-trigger_instances :
-    - object_id: 'triggerinstance-test'    # value from test_enforce.py
-      ref: pack1.trigger1
-      updated_at: '2014-09-01T00:00:02.000000Z'

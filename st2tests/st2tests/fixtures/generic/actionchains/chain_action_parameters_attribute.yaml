@@ -1,7 +1,0 @@
----
-chain:
-- name: c1
-  ref: wolfpack.a1
-  parameters:
-    pparameters: v1
-default: c1

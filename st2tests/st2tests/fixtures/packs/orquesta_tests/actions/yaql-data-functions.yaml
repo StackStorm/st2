@@ -1,7 +1,0 @@
----
-name: yaql-data-functions
-description: A basic workflow testing data related functions.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/yaql-data-functions.yaml
-enabled: true

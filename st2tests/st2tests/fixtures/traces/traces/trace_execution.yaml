@@ -1,8 +1,0 @@
----
-trace_tag : traceable_execution
-action_executions :
-    - object_id: 54c6bb640640fd5211edef0d
-      ref: core.local
-      updated_at : '2014-09-01T00:00:02.000000Z'
-rules : []
-trigger_instances : []

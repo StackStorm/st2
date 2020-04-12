@@ -1,8 +1,0 @@
----
-chain:
-- name: c1
-  params:
-    inttype: '{{st2kv.system.a}}'
-    strtype: '{{st2kv.system.a.b.c}}'
-  ref: wolfpack.a2
-default: c1

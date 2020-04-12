@@ -1,9 +1,0 @@
----
-  name: "config-context-action"
-  runner_type: "local-shell-cmd"
-  enabled: true
-  entry_point: ""
-  parameters:
-    cmd:
-      immutable: true
-      default: "echo \"{{ config_context.config_key_a }}\""

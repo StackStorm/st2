@@ -1,6 +1,0 @@
----
-name: 46f67652-20cd-4bab-94e2-4615baa846d0
-pack: dummy_pack_1
-parameters:
-  url: person
-type: dummy_pack_1.st2.webhook

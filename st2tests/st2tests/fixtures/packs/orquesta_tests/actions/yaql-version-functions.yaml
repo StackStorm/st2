@@ -1,7 +1,0 @@
----
-name: yaql-version-functions
-description: A basic workflow testing version related functions.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/yaql-version-functions.yaml
-enabled: true

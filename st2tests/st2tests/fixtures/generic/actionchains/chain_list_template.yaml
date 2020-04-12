@@ -1,7 +1,0 @@
----
-chain:
-- name: c1
-  parameters:
-    p1: '[{{s2}}, {{s3}}, {{s4}}]'
-  ref: wolfpack.a2
-default: c1

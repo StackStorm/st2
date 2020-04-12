@@ -1,4 +1,0 @@
----
-  # Mapping which is missing mandatory "group" attribute
-  roles:
-    - "role_one"

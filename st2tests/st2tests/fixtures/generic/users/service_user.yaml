@@ -1,5 +1,0 @@
----
-name: serviceuser
-is_service: true
-nicknames:
-    slack: 'mrservice'

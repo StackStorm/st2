@@ -1,4 +1,0 @@
----
-  api_key: "{{st2kv.user.api_key}}"
-  api_secret: "SUPER_SECRET_PARAMETER_THAT_SHOULD_NEVER_APPEAR_IN_RESPONSES_OR_LOGS"
-  region: "us-west-1"

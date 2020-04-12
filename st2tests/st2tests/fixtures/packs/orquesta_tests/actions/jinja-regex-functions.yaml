@@ -1,7 +1,0 @@
----
-name: jinja-regex-functions
-description: A basic workflow testing regex related functions.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/jinja-regex-functions.yaml
-enabled: true

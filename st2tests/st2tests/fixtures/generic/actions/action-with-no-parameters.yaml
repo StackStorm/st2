@@ -1,6 +1,0 @@
----
-name: list_dns_zones
-runner_type: "python-script"
-description: List all the DNS zones.
-enabled: true
-entry_point: list_dns_zones.py

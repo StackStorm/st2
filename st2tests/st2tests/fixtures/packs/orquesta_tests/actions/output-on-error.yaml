@@ -1,7 +1,0 @@
----
-name: output-on-error
-description: A workflow demonstrating output on error.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/output-on-error.yaml
-enabled: true

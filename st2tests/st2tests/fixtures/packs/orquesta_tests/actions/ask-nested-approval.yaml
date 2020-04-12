@@ -1,7 +1,0 @@
----
-name: ask-nested-approval
-description: A basic workflow that demonstrates inquiry nested in a subworkflow.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/ask-nested-approval.yaml
-enabled: true

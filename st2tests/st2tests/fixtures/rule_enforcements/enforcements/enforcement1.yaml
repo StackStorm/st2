@@ -1,9 +1,0 @@
----
-  enforced_at: "2015-12-01T21:49:02.418822Z"
-  execution_id: "565e15ce32ed350857dfa626"
-  id: "565e15ce32ed350857dfa627"
-  rule:
-    id: "565e15c032ed35086c54f331"
-    ref: "git.st2.webhook.github.pulls.merge.sample"
-    uid: "rule:git:st2.webhook.github.pulls.merge.sample"
-  trigger_instance_id: "565e15ce32ed350857dfa623"

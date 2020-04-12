@@ -1,6 +1,0 @@
----
-name: ask
-description: test description
-enabled: True
-pack: wolfpack
-runner_type: inquirer

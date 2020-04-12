@@ -1,9 +1,0 @@
----
-  id: 58090c48d9d7ed55d3a378e8
-  name: d7ea7abf-29d9-4e4f-84dd-39a53982d394
-  uid: trigger:core:d7ea7abf-29d9-4e4f-84dd-39a53982d394:68764760e4f98f5f619aaa27b60edf8
-  pack: core
-  parameters:
-    minute: 0
-    second : 0
-  type: core.st2.CronTimer

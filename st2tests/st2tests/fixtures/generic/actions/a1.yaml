@@ -1,8 +1,0 @@
----
-description: test description
-enabled: true
-entry_point: test/action1.sh
-name: a1
-pack: wolfpack
-parameters: {}
-runner_type: test-runner-2

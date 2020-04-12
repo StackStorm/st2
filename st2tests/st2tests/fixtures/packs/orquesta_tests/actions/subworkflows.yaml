@@ -1,7 +1,0 @@
----
-name: subworkflows
-description: A sample workflow that calls multiple subworkflows.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/subworkflows.yaml
-enabled: true

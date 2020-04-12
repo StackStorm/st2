@@ -1,6 +1,0 @@
----
-occurrence_time: '2014-09-01T00:00:01.000000Z'
-payload:
-    t1_p : magic8ball
-trigger: wolfpack.triggertype-1
-status: processed

@@ -1,9 +1,0 @@
----
-"name": "local"
-"runner_type": "local-shell-script"
-"description": "Action that executes an arbitrary Linux command on the localhost."
-"enabled": true
-"entry_point": "my_action.py"
-"parameters":
-    "sudo":
-        "immutable": true

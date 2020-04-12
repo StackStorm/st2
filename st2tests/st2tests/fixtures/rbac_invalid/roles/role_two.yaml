@@ -1,7 +1,0 @@
----
-    name: "role_two_invalid_permission_type"
-    permission_grants:
-        -
-            resource_uid: "action:dummy_pack_1:action_1"
-            permission_types:
-               - "action_foo_bar_invalid"  # Invalid permision which doesnt exist

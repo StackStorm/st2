@@ -1,7 +1,0 @@
----
-name: config-context
-description: Workflow which tests {{ config_context.foo }} notation works default parameter values for workflow actions.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/config-context.yaml
-enabled: true

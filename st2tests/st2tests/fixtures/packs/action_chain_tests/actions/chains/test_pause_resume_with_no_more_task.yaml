@@ -1,7 +1,0 @@
-chain:
-    -
-        name: task1
-        ref: core.local
-        params:
-            cmd: "while [ -e '{{tempfile}}' ]; do sleep 0.1; done"
-            timeout: 180

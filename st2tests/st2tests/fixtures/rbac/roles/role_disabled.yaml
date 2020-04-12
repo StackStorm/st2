@@ -1,4 +1,0 @@
----
-    name: "role_disabled"
-    description: "Role which is disabled"
-    enabled: false

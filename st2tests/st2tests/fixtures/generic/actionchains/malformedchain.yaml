@@ -1,5 +1,0 @@
----
-chain:
-- malformed_action: a1
-  malformed_name: c1
-default: c1

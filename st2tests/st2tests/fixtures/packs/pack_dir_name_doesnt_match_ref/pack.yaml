@@ -1,6 +1,0 @@
-ref: pack_name_not_the_same_as_dir_name
-name: pack_name_not_the_same_as_dir_name
-description: "test pack"
-author: Dummy
-email: "dev@stackstorm.com"
-version: 0.1.1

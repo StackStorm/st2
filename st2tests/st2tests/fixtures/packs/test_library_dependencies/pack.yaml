@@ -1,8 +1,0 @@
----
-name: test_library_dependencies
-description: A test pack to check library dependencies when an action was called.
-keywords:
-  - test
-version: 0.1.0
-author: st2-dev
-email: info@stackstorm.com

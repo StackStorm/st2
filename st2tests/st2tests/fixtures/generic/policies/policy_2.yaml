@@ -1,7 +1,0 @@
----
-name: action-1.raise
-pack: wolfpack
-description: Raise a policy error.
-enabled: true
-resource_ref: wolfpack.action-1
-policy_type: action.mock_policy_error

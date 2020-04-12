@@ -1,8 +1,0 @@
----
-    name: "role_one"
-    description: "Role which grants all the pack permissions on pack dummy_pack_1"
-    permission_grants:
-        -
-            resource_uid: "pack:dummy_pack_1"
-            permission_types:
-               - "pack_all"

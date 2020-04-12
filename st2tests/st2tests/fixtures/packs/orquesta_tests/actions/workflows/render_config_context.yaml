@@ -1,7 +1,0 @@
-version: 1.0
-description: Testing config context render".
-tasks:
-  task1:
-    action: dummy_pack_7.render_config_context
-output:
-  - context_value: <% task(task1).result.result.context_value %>

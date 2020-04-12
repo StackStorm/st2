@@ -1,7 +1,0 @@
----
-    username: "stackstorm_user"
-    description: "User role assignment file which servers for demonstration purposes"
-    enabled: false
-    roles:
-        - "observer"
-        - "my_custom_role"

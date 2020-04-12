@@ -1,5 +1,0 @@
----
-  api_key: "some_api_key"
-  api_secret: "{{st2kv.user.api_secret}}"  # user scoped datastore value
-  regions: 1000
-  private_key_path: "{{st2kv.system.private_key_path}}"  # global pack datastore value

@@ -1,6 +1,0 @@
-version: 1.0
-
-tasks:
-  task1:
-    with: <% range(0,10) %>
-    action: core.local cmd="exit $((<% item() %> % 2))"

@@ -1,6 +1,0 @@
----
-occurrence_time: '2014-09-01T00:00:01.000000Z'
-payload:
-  execution_id: 54c6bb640640fd5211edef0d
-trigger: core.st2.generic.actiontrigger
-status: processed

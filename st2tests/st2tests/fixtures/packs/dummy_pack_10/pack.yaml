@@ -1,9 +1,0 @@
----
-name : dummy_pack_10_wrong_deps
-description : dummy pack with wrong dependencies
-version : 0.1.0
-stackstorm_version : wrongstackstormversion
-author : st2-dev
-email : info@stackstorm.com
-dependencies :
-  - core=0.2.0

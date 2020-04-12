@@ -1,9 +1,0 @@
-version: 1.0
-
-description: A basic workflow that fails task execution.
-
-tasks:
-  task1:
-    action: core.local
-    input:
-      cmd: '>&2 echo "boom!"; exit 1'

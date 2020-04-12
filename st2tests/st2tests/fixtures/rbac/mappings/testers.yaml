@@ -1,6 +1,0 @@
----
-  group: "CN=testers,OU=groups,DC=stackstorm,DC=net"
-  description: "Automatically grant observer and qa_admin role to all testers group members."
-  roles:
-    - "observer"
-    - "qa_admin"

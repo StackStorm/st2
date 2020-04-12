@@ -1,8 +1,0 @@
----
-description: Action that does nothing
-enabled: true
-entry_point: ''
-name: noop
-pack: core
-parameters: {}
-runner_type: "noop"

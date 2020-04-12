@@ -1,8 +1,0 @@
----
-description: This action has an invalid runner.
-enabled: true
-entry_point: ''
-name: action-2
-pack: wolfpack
-parameters: {}
-runner_type: test-failingrunner-1

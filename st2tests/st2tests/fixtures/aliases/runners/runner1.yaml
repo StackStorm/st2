@@ -1,6 +1,0 @@
----
-    name: test-runner
-    description: A test runner.
-    enabled: true
-    runner_parameters: {}
-    runner_module: runner

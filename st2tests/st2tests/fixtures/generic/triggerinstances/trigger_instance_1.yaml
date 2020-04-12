@@ -1,7 +1,0 @@
----
-occurrence_time: '2014-09-01T00:00:01.000000Z'
-payload:
-  foo: bar
-  name: Joe
-trigger: dummy_pack_1.46f67652-20cd-4bab-94e2-4615baa846d0
-status: processed

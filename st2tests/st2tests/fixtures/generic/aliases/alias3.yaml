@@ -1,8 +1,0 @@
----
-    name: "alias3"
-    pack: "generic"
-    description: "DON'T CARE"
-    action_ref: "core.remote"
-    formats:
-        - "format1"
-        - "format2"

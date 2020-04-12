@@ -1,7 +1,0 @@
----
-name: test_pause_resume_context_result
-pack: action_chain_tests
-description: Simple action chain to test context is preserved during pause and resume when something else changes a task status
-runner_type: action-chain
-entry_point: chains/test_pause_resume_context_result.yaml
-enabled: true

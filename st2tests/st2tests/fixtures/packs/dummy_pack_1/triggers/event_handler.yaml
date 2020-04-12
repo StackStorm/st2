@@ -1,4 +1,0 @@
----
-name: event_handler
-pack: dummy_pack_1
-description: 'Trigger type for check_mk events'

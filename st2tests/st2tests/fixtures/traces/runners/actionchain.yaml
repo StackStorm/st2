@@ -1,6 +1,0 @@
----
-description: A runner for launching linear action chains.
-enabled: true
-name: action-chain
-runner_module: action_chain_runner
-runner_parameters: {}

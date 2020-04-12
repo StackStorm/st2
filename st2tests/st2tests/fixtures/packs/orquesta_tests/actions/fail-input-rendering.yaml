@@ -1,7 +1,0 @@
----
-name: fail-input-rendering
-description: A basic workflow with error while evaluating input.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/fail-input-rendering.yaml
-enabled: true

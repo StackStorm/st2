@@ -1,7 +1,0 @@
----
-name: ask-approval
-description: A basic workflow that demonstrates inquiry.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/ask-approval.yaml
-enabled: true

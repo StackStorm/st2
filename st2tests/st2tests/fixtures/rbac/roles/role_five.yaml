@@ -1,8 +1,0 @@
----
-    name: "role_five"
-    description: "Role which grants execute permission to my_action_1"
-    permission_grants:
-        -
-            resource_uid: "action:dummy_pack_1:my_action_1"
-            permission_types:
-               - "action_execute"

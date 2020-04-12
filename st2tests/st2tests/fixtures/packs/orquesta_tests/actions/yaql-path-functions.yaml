@@ -1,7 +1,0 @@
----
-name: yaql-path-functions
-description: A basic workflow testing path related functions.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/yaql-path-functions.yaml
-enabled: true

@@ -1,8 +1,0 @@
----
-    name: "alias1"
-    pack: "aliases"
-    description: "DON'T CARE"
-    action_ref: "core.local"
-    formats:
-        - "Lorem ipsum {{param1}} dolor sit {{param2}} amet."
-        - "foo bar ponies"

@@ -1,6 +1,0 @@
----
-name : dummy_pack_schema_with_nested_object_4
-description : dummy pack with nested object config
-version : 0.1.0
-author : st2-dev
-email : info@stackstorm.com

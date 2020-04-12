@@ -1,8 +1,0 @@
----
-    name: "alias_ubuntu_harden"
-    pack: "dummy_pack_1"
-    description: "DON'T CARE"
-    action_ref: "ubuntu.hardening"
-    formats:
-        - "format1"
-        - "format2"

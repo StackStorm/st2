@@ -1,9 +1,0 @@
----
-description: Action that executes an arbitrary Linux command on the localhost.
-enabled: true
-entry_point: my_action.py
-name: local
-parameters:
-  sudo:
-    immutable: true
-runner_type: "local-shell-cmd"

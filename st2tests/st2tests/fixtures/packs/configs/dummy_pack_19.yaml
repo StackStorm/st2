@@ -1,7 +1,0 @@
----
-  instances:
-    -
-      uid: "test-uid-1"
-      alias: {'not': 'string'}
-      base_url: 'foo'
-      token: 'bar'

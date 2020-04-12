@@ -1,8 +1,0 @@
----
-chain:
-- name: c1
-  ref: wolfpack.a1
-  # Note: "params" is deprecated and should be removed in a future release
-  params:
-    pparams: v1
-default: c1

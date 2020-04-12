@@ -1,7 +1,0 @@
----
-description: Inquiry workflow
-enabled: true
-entry_point: ''
-name: inquiry-workflow
-pack: wolfpack
-runner_type: action-chain

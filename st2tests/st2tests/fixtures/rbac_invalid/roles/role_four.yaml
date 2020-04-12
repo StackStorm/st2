@@ -1,6 +1,0 @@
----
-    name: "role_four_invalid_permission_type_for_no_resource_id"
-    permission_grants:
-        -
-            permission_types:
-               - "action_create"  # Invalid permision, can only be used in combination with resource_uid

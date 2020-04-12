@@ -1,6 +1,0 @@
----
-config_key_a:
-  description: "Sample config key."
-  type: "string"
-  default: "value of config key a"
-  required: true

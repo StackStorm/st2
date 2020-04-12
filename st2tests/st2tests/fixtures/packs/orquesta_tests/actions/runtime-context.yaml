@@ -1,7 +1,0 @@
----
-name: runtime-context
-description: A workflow to test access of st2 runtime context at various locations.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/runtime-context.yaml
-enabled: true

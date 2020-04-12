@@ -1,7 +1,0 @@
----
-name: yaql-task-functions
-description: A basic workflow testing task related functions.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/yaql-task-functions.yaml
-enabled: true

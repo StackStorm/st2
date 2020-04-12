@@ -1,7 +1,0 @@
----
-name: jinja-version-functions
-description: A basic workflow testing version related functions.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/jinja-version-functions.yaml
-enabled: true

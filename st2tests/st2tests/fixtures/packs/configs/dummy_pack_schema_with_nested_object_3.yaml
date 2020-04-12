@@ -1,8 +1,0 @@
-api_key: ""
-api_secret: ""
-regions:
-  - "us-west-1"
-  - "us-east-1"
-auth_settings:
-  host: "127.0.0.10"
-  token: "{{st2kv.system.auth_settings_token}}"

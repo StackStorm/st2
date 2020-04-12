@@ -1,7 +1,0 @@
----
-name: subworkflow
-description: A sample workflow that calls another subworkflow.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/subworkflow.yaml
-enabled: true

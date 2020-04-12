@@ -1,5 +1,0 @@
----
-  group: "CN=stormers,OU=groups,DC=stackstorm,DC=net"
-  description: "Automatically grant admin role to all stormers group members."
-  roles:
-    - "admin"

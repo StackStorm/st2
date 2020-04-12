@@ -1,9 +1,0 @@
----
-name : dummy_pack_1
-description : dummy pack
-version : 0.1.0
-author : st2-dev
-email : info@stackstorm.com
-contributors:
-  - "John Doe1 <john.doe1@gmail.com>"
-  - "John Doe2 <john.doe2@gmail.com>"

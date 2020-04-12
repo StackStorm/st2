@@ -1,9 +1,0 @@
----
-  id: 58090c48d9d7ed55d3a378e9
-  name: d7ea7abf-29d9-4e4f-84dd-39a53982d395
-  uid: trigger:core:d7ea7abf-29d9-4e4f-84dd-39a53982d395:68764760e4f98f5f619aaa27b60edf9
-  pack: core
-  parameters:
-    timezone: pdt
-    date : "2016-10-22T11:22:33.567890"
-  type: core.st2.DateTimer

@@ -1,7 +1,0 @@
----
-name: with-items-failure
-description: A workflow demonstrating items failure.
-pack: orquesta_tests
-runner_type: orquesta
-entry_point: workflows/with-items-failure.yaml
-enabled: true
