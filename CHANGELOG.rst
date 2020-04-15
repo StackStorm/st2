@@ -131,6 +131,10 @@ Fixed
   PR StackStorm/orquesta#195.
 * Fix orquesta yaql/jinja vars extraction to ignore methods of base ctx() dict. (bug fix)
   PR StackStorm/orquesta#196. Fixes #4866.
+* Fix parsing of array of dicts in YAQL functions. Fix regression in YAQL/Jinja conversion
+  functions as a result of the change. (bug fix) PR StackStorm/orquesta#191.
+
+  Contributed by Hiroyasu Ohyama (@userlocalhost)
 
 Removed
 ~~~~~~~
