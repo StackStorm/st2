@@ -14,6 +14,7 @@
 
 from __future__ import absolute_import
 
+import collections
 import mongoengine
 import six
 
@@ -24,6 +25,12 @@ def mongodb_to_python_types(value):
         value = dict(value)
     elif isinstance(value, mongoengine.base.datastructures.BaseList):
         value = list(value)
+    # Convert collections.Mapping types to python dict otherwise YAQL/Jinja related
+    # functions used to convert JSON/YAML objects/strings will errored. This is caused
+    # by the PR StackStorm/orquesta#191 which converts dict to collections.Mapping
+    # in YAQL related functions.
+    elif isinstance(value, collections.Mapping):
+        value = dict(value)
 
     # Recursively traverse the dict and list to convert values.
     if isinstance(value, dict):
