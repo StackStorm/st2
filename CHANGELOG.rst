@@ -62,7 +62,10 @@ Changed
 * Use ``pip-compile`` from ``pip-tools`` instead of ``pip-conflict-checker`` (improvement) #4896
 * Refactor how inbound criteria for join task in orquesta workflow is evaluated to count by
   task completion instead of task transition. (improvement)
-
+* The workflow engine orquesta is updated to v1.1.0 for the st2 v3.2 release. The version upgrade
+  contains various new features and bug fixes. Please review the release notes for the full list of
+  changes at https://github.com/StackStorm/orquesta/releases/tag/v1.1.0 and the st2 upgrade notes
+  for potential impact. (improvement)
 
 Fixed
 ~~~~~
