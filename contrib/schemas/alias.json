@@ -1,0 +1,115 @@
+{
+    "additionalProperties": false, 
+    "properties": {
+        "uid": {
+            "type": "string"
+        }, 
+        "extra": {
+            "type": "object", 
+            "description": "Extra parameters, usually adapter-specific."
+        }, 
+        "immutable_parameters": {
+            "type": "object", 
+            "description": "Parameters to be passed to the action on every execution."
+        }, 
+        "result": {
+            "type": "object", 
+            "properties": {
+                "extra": {
+                    "type": "object"
+                }, 
+                "enabled": {
+                    "type": "boolean"
+                }, 
+                "format": {
+                    "type": "string"
+                }
+            }, 
+            "description": "Execution message format."
+        }, 
+        "id": {
+            "type": "string", 
+            "description": "The unique identifier for the action alias."
+        }, 
+        "description": {
+            "default": null, 
+            "type": "string", 
+            "description": "Description of the action alias."
+        }, 
+        "name": {
+            "required": true, 
+            "type": "string", 
+            "description": "Name of the action alias."
+        }, 
+        "ack": {
+            "type": "object", 
+            "properties": {
+                "append_url": {
+                    "type": "boolean"
+                }, 
+                "extra": {
+                    "type": "object"
+                }, 
+                "enabled": {
+                    "type": "boolean"
+                }, 
+                "format": {
+                    "type": "string"
+                }
+            }, 
+            "description": "Acknowledgement message format."
+        }, 
+        "enabled": {
+            "default": true, 
+            "type": "boolean", 
+            "description": "Flag indicating of action alias is enabled."
+        }, 
+        "metadata_file": {
+            "default": "", 
+            "type": "string", 
+            "description": "Path to the metadata file relative to the pack directory."
+        }, 
+        "formats": {
+            "items": {
+                "anyOf": [
+                    {
+                        "type": "string"
+                    }, 
+                    {
+                        "type": "object", 
+                        "properties": {
+                            "representation": {
+                                "items": {
+                                    "type": "string"
+                                }, 
+                                "type": "array"
+                            }, 
+                            "display": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ]
+            }, 
+            "type": "array", 
+            "description": "Possible parameter format."
+        }, 
+        "action_ref": {
+            "required": true, 
+            "type": "string", 
+            "description": "Reference to the aliased action."
+        }, 
+        "ref": {
+            "type": "string", 
+            "description": "System computed user friendly reference for the alias.                                 Provided value will be overridden by computed value."
+        }, 
+        "pack": {
+            "required": true, 
+            "type": "string", 
+            "description": "The content pack this actionalias belongs to."
+        }
+    }, 
+    "type": "object", 
+    "description": "Alias for an action.", 
+    "title": "ActionAlias"
+}
