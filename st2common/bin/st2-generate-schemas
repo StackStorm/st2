@@ -28,11 +28,11 @@ from st2common.models.api import policy as policy_models
 from st2common.models.api import rule as rule_models
 
 content_models = {
-        'pack': pack_models.PackAPI,
-	'action': action_models.ActionAPI,
-        'alias': action_models.ActionAliasAPI,
-        'policy': policy_models.PolicyAPI,
-        'rule': rule_models.RuleAPI,
+    'pack': pack_models.PackAPI,
+    'action': action_models.ActionAPI,
+    'alias': action_models.ActionAliasAPI,
+    'policy': policy_models.PolicyAPI,
+    'rule': rule_models.RuleAPI,
 }
 
 def main():
