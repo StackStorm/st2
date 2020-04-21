@@ -271,6 +271,16 @@ configgen: requirements .configgen
 	echo "" >> conf/st2.conf.sample
 	. $(VIRTUALENV_DIR)/bin/activate; python ./tools/config_gen.py >> conf/st2.conf.sample;
 
+.PHONY: schemasgen
+schemasgen: requirements .schemasgen
+
+.PHONY: .schemasgen
+.schemasgen:
+	@echo
+	@echo "================== content model schemas gen ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; python ./st2common/bin/st2-generate-schemas;
+
 .PHONY: .pylint
 .pylint:
 	@echo
@@ -1054,7 +1064,18 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 	cp st2common/st2common/openapi.yaml /tmp/openapi.yaml.upstream
 	make .generate-api-spec
 	diff st2common/st2common/openapi.yaml  /tmp/openapi.yaml.upstream || (echo "st2common/st2common/openapi.yaml hasn't been re-generated and committed. Please run \"make generate-api-spec\" and include and commit the generated file." && exit 1)
-
+	# 3. Schemas for the content models - st2common/bin/st2-generate-schemas
+	cp contrib/schemas/pack.json /tmp/pack.json.upstream
+	cp contrib/schemas/action.json /tmp/action.json.upstream
+	cp contrib/schemas/alias.json /tmp/alias.json.upstream
+	cp contrib/schemas/policy.json /tmp/policy.json.upstream
+	cp contrib/schemas/rule.json /tmp/rule.json.upstream
+	make .schemasgen
+	diff contrib/schemas/pack.json /tmp/pack.json.upstream || (echo "contrib/schemas/pack.json hasn't been re-generated and committed. Please run \"make schemasgen\" and include and commit the generated file." && exit 1)
+	diff contrib/schemas/action.json /tmp/action.json.upstream || (echo "contrib/schemas/pack.json hasn't been re-generated and committed. Please run \"make schemasgen\" and include and commit the generated file." && exit 1)
+	diff contrib/schemas/alias.json /tmp/alias.json.upstream || (echo "contrib/schemas/pack.json hasn't been re-generated and committed. Please run \"make schemasgen\" and include and commit the generated file." && exit 1)
+	diff contrib/schemas/policy.json /tmp/policy.json.upstream || (echo "contrib/schemas/pack.json hasn't been re-generated and committed. Please run \"make schemasgen\" and include and commit the generated file." && exit 1)
+	diff contrib/schemas/rule.json /tmp/rule.json.upstream || (echo "contrib/schemas/pack.json hasn't been re-generated and committed. Please run \"make schemasgen\" and include and commit the generated file." && exit 1)
 	@echo "All automatically generated files are up to date."
 
 .PHONY: ci-unit
