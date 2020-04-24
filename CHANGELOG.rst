@@ -66,6 +66,7 @@ Changed
   contains various new features and bug fixes. Please review the release notes for the full list of
   changes at https://github.com/StackStorm/orquesta/releases/tag/v1.1.0 and the st2 upgrade notes
   for potential impact. (improvement)
+* Update st2 nginx config to remove deprecated ``ssl on`` option. #4917 (improvement)
 
 Fixed
 ~~~~~
