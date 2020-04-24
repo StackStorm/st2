@@ -273,6 +273,8 @@ retry_max_attempt = 10
 logging = /etc/st2/logging.scheduler.conf
 # How long (in seconds) to sleep between each action scheduler main loop run interval.
 sleep_interval = 0.1
+# How long GC to search back in minutes for orphaned scheduled actions
+execution_scheduling_timeout_threshold_min = 1
 # The size of the pool used by the scheduler for scheduling executions.
 pool_size = 10
 # The number of milliseconds to wait in between retries.

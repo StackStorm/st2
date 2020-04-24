@@ -283,6 +283,9 @@ def _register_ssh_runner_opts():
 
 def _register_scheduler_opts():
     scheduler_opts = [
+        cfg.FloatOpt(
+            'execution_scheduling_timeout_threshold_min', default=1,
+            help='How long GC to search back in minutes for orphaned scheduled actions'),
         cfg.IntOpt(
             'pool_size', default=10,
             help='The size of the pool used by the scheduler for scheduling executions.'),
