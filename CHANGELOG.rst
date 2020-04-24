@@ -69,6 +69,10 @@ Changed
 
 Fixed
 ~~~~~
+* Fix a typo that caused an internal server error when filtering actions by tags. Fixes #4918
+
+  Reported by @mweinberg-cm and contributed by Marcel Weinberg (@winem)
+
 * Fix the action query when filtering tags. The old implementation returned actions which have the
   provided name as action name and not as tag name. (bug fix) #4828
 
