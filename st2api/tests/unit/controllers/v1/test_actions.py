@@ -666,7 +666,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         return self.app.get('/v1/actions/%s' % action_id, expect_errors=expect_errors)
 
     def __do_get_actions_by_url_parameter(self, filter, value, expect_errors=False):
-        return self.app.get('/v1/actions?%s=%s' % filter, value, expect_errors=expect_errors)
+        return self.app.get('/v1/actions?%s=%s' % (filter, value), expect_errors=expect_errors)
 
     def __do_post(self, action, expect_errors=False):
         return self.app.post_json('/v1/actions', action, expect_errors=expect_errors)
