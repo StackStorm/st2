@@ -626,7 +626,6 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         return_value=True))
     def test_get_one_using_tag_parameter(self):
         action_id, action_tags = self.__get_action_id_and_additional_attribute(self.__do_post(ACTION_1), 'tags')
-        #get_resp = self.__do_get_one(action_id)
         get_resp = self.__do_get_actions_by_url_parameter('tags', action_tags[0]['name'])
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(get_resp.json[0]['id'], action_id)
