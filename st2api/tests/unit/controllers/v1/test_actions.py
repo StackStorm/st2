@@ -600,6 +600,26 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         self.assertEqual(get_resp.json['notify'], {})
         self.__do_delete(action_id)
 
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_one_using_name_parameter(self):
+        action_id, action_name = self.__get_action_id_and_name(self.__do_post(ACTION_1))
+        get_resp = self.__do_get_actions_by_url_parameter('name', action_name)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_action_id_and_name(get_resp)[0], action_id)
+        self.assertEqual(get_resp.json['ref'], ref)
+        self.__do_delete(action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_one_using_tag_parameter(self):
+        action_id, action_tags = self.__get_action_id_and_tags(self.__do_post(ACTION_1))
+        get_resp = self.__do_get_actions_by_url_parameter('tags', action_tags[0]['value'])
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_action_id_and_tags(get_resp)[1], action_tags)
+        self.assertEqual(get_resp.json['ref'], ref)
+        self.__do_delete(action_id)
+
     # TODO: Re-enable those tests after we ensure DB is flushed in setUp
     # and each test starts in a clean state
 
@@ -634,8 +654,19 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
     def __get_action_name(resp):
         return resp.json['name']
 
+    @staticmethod
+    def __get_action_id_and_name(resp):
+        return resp.json['id'],resp.json['name']
+
+    @staticmethod
+    def __get_action_id_and_tags(resp):
+        return resp.json['id'],resp.json['tags']
+
     def __do_get_one(self, action_id, expect_errors=False):
         return self.app.get('/v1/actions/%s' % action_id, expect_errors=expect_errors)
+
+    def __do_get_actions_by_url_parameter(self, filter, value, expect_errors=False):
+        return self.app.post_json('/v1/actions?%s=%s', filter, value, expect_errors=expect_errors)
 
     def __do_post(self, action, expect_errors=False):
         return self.app.post_json('/v1/actions', action, expect_errors=expect_errors)
