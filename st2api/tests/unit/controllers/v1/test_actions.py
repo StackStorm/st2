@@ -606,18 +606,19 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         action_id, action_name = self.__get_action_id_and_name(self.__do_post(ACTION_1))
         get_resp = self.__do_get_actions_by_url_parameter('name', action_name)
         self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(self.__get_action_id(get_resp), action_id)
-        self.assertEqual(self.__get_action_name(get_resp), action_name)
+        self.assertEqual(get_resp.json[0]['id'], action_id)
+        self.assertEqual(get_resp.json[0]['name'], action_name)
         self.__do_delete(action_id)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one_using_tag_parameter(self):
         action_id, action_tags = self.__get_action_id_and_tags(self.__do_post(ACTION_1))
-        get_resp = self.__do_get_actions_by_url_parameter('tags', action_tags[0]['value'])
+        #get_resp = self.__do_get_one(action_id)
+        get_resp = self.__do_get_actions_by_url_parameter('tags', action_tags[0]['name'])
         self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(self.__get_action_id(get_resp), action_id)
-        self.assertEqual(self.__get_action_tags(get_resp), action_tags)
+        self.assertEqual(get_resp.json[0]['id'], action_id)
+        self.assertEqual(get_resp.json[0]['tags'], action_tags)
         self.__do_delete(action_id)
 
     # TODO: Re-enable those tests after we ensure DB is flushed in setUp
@@ -664,7 +665,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
 
     @staticmethod
     def __get_action_id_and_tags(resp):
-        return [resp.json['id'], resp.json['tags']]
+        return resp.json['id'], resp.json['tags']
 
     def __do_get_one(self, action_id, expect_errors=False):
         return self.app.get('/v1/actions/%s' % action_id, expect_errors=expect_errors)
