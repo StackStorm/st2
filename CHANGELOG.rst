@@ -143,6 +143,8 @@ Fixed
   functions as a result of the change. (bug fix) PR StackStorm/orquesta#191.
 
   Contributed by Hiroyasu Ohyama (@userlocalhost)
+* Fix retry in orquesta when a task that has a transition on failure will also be traversed on
+  retry. (bug fix) PR StackStorm/orquesta#200
 
 Removed
 ~~~~~~~
