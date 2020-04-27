@@ -41,6 +41,10 @@ class WorkflowExecution(persistence.StatusBasedResource):
 
         return cls.publisher
 
+    @classmethod
+    def delete_by_query(cls, *args, **query):
+        return cls._get_impl().delete_by_query(*args, **query)
+
 
 class TaskExecution(persistence.StatusBasedResource):
     impl = db.ChangeRevisionMongoDBAccess(wf_db_models.TaskExecutionDB)
@@ -49,3 +53,7 @@ class TaskExecution(persistence.StatusBasedResource):
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def delete_by_query(cls, *args, **query):
+        return cls._get_impl().delete_by_query(*args, **query)

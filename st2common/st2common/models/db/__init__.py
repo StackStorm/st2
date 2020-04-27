@@ -475,6 +475,7 @@ class MongoDBAccess(object):
         """
         Delete objects by query and return number of deleted objects.
         """
+        super(self)
         qs = self.model.objects.filter(*args, **query)
         count = qs.delete()
         log_query_and_profile_data_for_queryset(queryset=qs)
@@ -595,6 +596,19 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
                 raise db_exc.StackStormDBObjectWriteConflictError(instance)
 
             return self._undo_dict_field_escape(instance)
+
+    def delete(self, instance):
+        return instance.delete()
+
+    def delete_by_query(self, *args, **query):
+        """
+        Delete objects by query and return number of deleted objects.
+        """
+        qs = self.model.objects.filter(*args, **query)
+        count = qs.delete()
+        log_query_and_profile_data_for_queryset(queryset=qs)
+
+        return count
 
 
 def get_host_names_for_uri_dict(uri_dict):
