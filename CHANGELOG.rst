@@ -17,6 +17,7 @@ Added
 * Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client.
   #4791
 * Add support for orquesta task retry. (new feature)
+* Add config option ``scheduler.execution_scheduling_timeout_threshold_min`` to better control the cleanup of scheduled actions that were orphaned. #4886
 
 Changed
 ~~~~~~~
@@ -61,10 +62,18 @@ Changed
 * Use ``pip-compile`` from ``pip-tools`` instead of ``pip-conflict-checker`` (improvement) #4896
 * Refactor how inbound criteria for join task in orquesta workflow is evaluated to count by
   task completion instead of task transition. (improvement)
-
+* The workflow engine orquesta is updated to v1.1.0 for the st2 v3.2 release. The version upgrade
+  contains various new features and bug fixes. Please review the release notes for the full list of
+  changes at https://github.com/StackStorm/orquesta/releases/tag/v1.1.0 and the st2 upgrade notes
+  for potential impact. (improvement)
+* Update st2 nginx config to remove deprecated ``ssl on`` option. #4917 (improvement)
 
 Fixed
 ~~~~~
+* Fix a typo that caused an internal server error when filtering actions by tags. Fixes #4918
+
+  Reported by @mweinberg-cm and contributed by Marcel Weinberg (@winem)
+
 * Fix the action query when filtering tags. The old implementation returned actions which have the
   provided name as action name and not as tag name. (bug fix) #4828
 
@@ -130,6 +139,12 @@ Fixed
   PR StackStorm/orquesta#195.
 * Fix orquesta yaql/jinja vars extraction to ignore methods of base ctx() dict. (bug fix)
   PR StackStorm/orquesta#196. Fixes #4866.
+* Fix parsing of array of dicts in YAQL functions. Fix regression in YAQL/Jinja conversion
+  functions as a result of the change. (bug fix) PR StackStorm/orquesta#191.
+
+  Contributed by Hiroyasu Ohyama (@userlocalhost)
+* Fix retry in orquesta when a task that has a transition on failure will also be traversed on
+  retry. (bug fix) PR StackStorm/orquesta#200
 
 Removed
 ~~~~~~~
