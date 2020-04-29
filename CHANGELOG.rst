@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+3.2.0 - April 27, 2020
+----------------------
+
 Added
 ~~~~~
 
