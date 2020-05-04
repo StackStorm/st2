@@ -69,6 +69,7 @@ except ImportError:
         print('Using pip: %s' % (str(pip_version)))
         sys.exit(1)
 
+print("DEBUG: pip version = {}".format(pip.__version__))
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Tool for requirements.txt generation.')
@@ -117,6 +118,7 @@ def merge_source_requirements(sources):
     for infile_path in (locate_file(p, must_exist=True) for p in sources):
         for req in load_requirements(infile_path):
             # Requirements starting with project name "project ..."
+            print("DEBUG: type(req) = {}".format(type(req)))
             if req.req:
                 # Skip already added project name
                 if req.name in projects:
