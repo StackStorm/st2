@@ -496,6 +496,7 @@ distclean: clean
 .PHONY: .requirements
 .requirements: virtualenv
 	# Generate all requirements to support current CI pipeline.
+	$(VIRTUALENV_DIR)/bin/pip --version
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
 	# Remove any *.egg-info files which polute PYTHONPATH
