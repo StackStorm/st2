@@ -69,7 +69,6 @@ except ImportError:
         print('Using pip: %s' % (str(pip_version)))
         sys.exit(1)
 
-print("DEBUG: pip version = {}".format(pip.__version__))
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Tool for requirements.txt generation.')
@@ -108,14 +107,6 @@ def locate_file(path, must_exist=False):
         print("Error: couldn't locate file `{0}'".format(path))
     return path
 
-def get_req_attr(req):
-    # pip >= 20.0
-    requirement = getattr(req, 'requirement', None)
-    if not requirement:
-        # pip < 20.0
-        requirement = getattr(req, 'req', None)
-    return requirement
-
 
 def merge_source_requirements(sources):
     """
@@ -126,8 +117,7 @@ def merge_source_requirements(sources):
     for infile_path in (locate_file(p, must_exist=True) for p in sources):
         for req in load_requirements(infile_path):
             # Requirements starting with project name "project ..."
-            print("DEBUG: type(req) = {}".format(type(req)))
-            if get_req_attr(req):
+            if req.req:
                 # Skip already added project name
                 if req.name in projects:
                     continue
@@ -158,7 +148,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
     for req in fixed:
         project_name = req.name
 
-        if not get_req_attr(req):
+        if not req.req:
             continue
 
         if project_name in fixedreq_hash:
@@ -179,11 +169,11 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
 
             if req.editable:
                 rline = '-e %s' % (rline)
-        elif get_req_attr(req):
+        elif req.req:
             project = req.name
             req_obj = fixedreq_hash.get(project, req)
 
-            rline = str(get_req_attr(req_obj))
+            rline = str(req_obj.req)
 
             # Also write out environment markers
             if req_obj.markers:
