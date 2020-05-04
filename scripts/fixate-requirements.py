@@ -108,6 +108,14 @@ def locate_file(path, must_exist=False):
         print("Error: couldn't locate file `{0}'".format(path))
     return path
 
+def get_req_attr(req):
+    # pip >= 20.0
+    requirement = getattr(req, 'requirement', None)
+    if not requirement:
+        # pip < 20.0
+        requirement = getattr(req, 'req', None)
+    return requirement
+
 
 def merge_source_requirements(sources):
     """
@@ -119,7 +127,7 @@ def merge_source_requirements(sources):
         for req in load_requirements(infile_path):
             # Requirements starting with project name "project ..."
             print("DEBUG: type(req) = {}".format(type(req)))
-            if req.req:
+            if get_req_attr(req):
                 # Skip already added project name
                 if req.name in projects:
                     continue
@@ -150,7 +158,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
     for req in fixed:
         project_name = req.name
 
-        if not req.req:
+        if not get_req_attr(req):
             continue
 
         if project_name in fixedreq_hash:
@@ -171,11 +179,11 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
 
             if req.editable:
                 rline = '-e %s' % (rline)
-        elif req.req:
+        elif get_req_attr(req):
             project = req.name
             req_obj = fixedreq_hash.get(project, req)
 
-            rline = str(req_obj.req)
+            rline = str(get_req_attr(req_obj))
 
             # Also write out environment markers
             if req_obj.markers:
