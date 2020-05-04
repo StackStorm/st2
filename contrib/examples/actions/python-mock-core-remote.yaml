@@ -1,6 +1,5 @@
 ---
 name: python-mock-core-remote
-pack: default
 runner_type: python-script
 description: Action which mocks the core.remote action. It returns results with hostnames/IPs in them to ensure we are escaping the . properly. We set the output to the value of the command passed in
 enabled: true
