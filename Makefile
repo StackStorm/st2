@@ -495,6 +495,8 @@ distclean: clean
 
 .PHONY: .requirements
 .requirements: virtualenv
+	# Print out pip version so we can see what version was restored from the Travis cache
+	$(VIRTUALENV_DIR)/bin/pip --version
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
