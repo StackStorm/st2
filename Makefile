@@ -495,6 +495,8 @@ distclean: clean
 
 .PHONY: .requirements
 .requirements: virtualenv
+	# Print out pip version so we can see what version was restored from the Travis cache
+	$(VIRTUALENV_DIR)/bin/pip --version
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
@@ -519,10 +521,10 @@ requirements: virtualenv .requirements .sdist-requirements install-runners
 	# .st2client-install-check target and .travis.yml to match
 	# Make sure we use latest version of pip
 	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.3.1"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==20.0.2"
 	# setuptools >= 41.0.1 is required for packs.install in dev envs
 	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools>=42"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Fix for Travis CI race

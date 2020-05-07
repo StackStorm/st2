@@ -30,7 +30,6 @@ from dist_utils import check_pip_version
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
 from dist_utils import get_version_string
-from dist_utils_old import fetch_requirements as old_fetch_requirements
 
 __all__ = [
     'DistUtilsTestCase'
@@ -138,18 +137,7 @@ class DistUtilsTestCase(unittest2.TestCase):
         self.assertEqual(reqs, expected_reqs)
         self.assertEqual(links, expected_links)
 
-        # Verify output of old and new function is the same
-        reqs_old, links_old = old_fetch_requirements(REQUIREMENTS_PATH_1)
-
-        self.assertEqual(reqs_old, expected_reqs)
-        self.assertEqual(links_old, expected_links)
-
-        self.assertEqual(reqs_old, reqs)
-        self.assertEqual(links_old, links)
-
         # Also test it on requirements.txt in repo root
         reqs, links = fetch_requirements(REQUIREMENTS_PATH_2)
-        reqs_old, links_old = old_fetch_requirements(REQUIREMENTS_PATH_2)
-
-        self.assertEqual(reqs_old, reqs)
-        self.assertEqual(links_old, links)
+        self.assertGreater(len(reqs), 0)
+        self.assertGreater(len(links), 0)
