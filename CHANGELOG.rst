@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+* Add make command to autogen JSON schema from the models of action, rule, etc. Add check
+  to ensure update to the models require schema to be regenerated. (new feature)
+
 Fixed
 ~~~~~
 * Fixed a bug where persisting Orquesta to the MongoDB database returned an error
