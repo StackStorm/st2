@@ -291,10 +291,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
     @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
                 MOCK_MASKED_ATTRIBUTES_BLACKLIST)
     @mock.patch('st2common.models.db.rule.RuleDB._get_referenced_action_model')
-    # @mock.patch('st2common.models.db.stormbase.cfg')
     def test_format_secret_rule_parameters_are_masked(self, mock__get_referenced_action_model):
-        formatter = ConsoleLogFormatter()
-
         expected_result = {
             'description': 'Test description',
             'tags': [],
@@ -346,7 +343,6 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
 
         result = mock_rule_db.to_serializable_dict(True)
 
-        print result
         self.assertEqual(expected_result, result)
 
 
