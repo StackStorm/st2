@@ -550,8 +550,10 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
                 "type": "string"
             },
             "ref": {
-                "description": "System computed user friendly reference for the alias. \
-                                Provided value will be overridden by computed value.",
+                "description": (
+                    "System computed user friendly reference for the alias. "
+                    "Provided value will be overridden by computed value."
+                ),
                 "type": "string"
             },
             "uid": {
