@@ -11,6 +11,10 @@ Added
 
 Fixed
 ~~~~~
+* Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
+
+  Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)
+
 * Fixed a bug where persisting Orquesta to the MongoDB database returned an error
   ``message: key 'myvar.with.period' must not contain '.'``. This happened anytime an
   ``input``, ``output``, ``publish`` or context ``var`` contained a key with a ``.`` within
