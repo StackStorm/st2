@@ -44,7 +44,7 @@ class DistUtilsTestCase(unittest2.TestCase):
     def setUp(self):
         super(DistUtilsTestCase, self).setUp()
 
-        if 'pip'in sys.modules:
+        if 'pip' in sys.modules:
             del sys.modules['pip']
 
     def tearDown(self):
