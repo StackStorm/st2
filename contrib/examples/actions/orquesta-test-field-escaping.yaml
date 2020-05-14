@@ -1,0 +1,8 @@
+---
+name: orquesta-test-field-escaping
+description: A workflow used to test escaping of things like vars, task names, results, outputs, etc.
+pack: examples
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-field-escaping.yaml
+enabled: true
+parameters: {}

@@ -42,6 +42,8 @@ def from_yaml_string(value):
 
 
 def to_json_string(value, indent=None, sort_keys=False, separators=(',', ': ')):
+    value = db_util.mongodb_to_python_types(value)
+
     options = {}
 
     if indent is not None:

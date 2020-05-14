@@ -6,6 +6,31 @@ in development
 
 Added
 ~~~~~
+* Add make command to autogen JSON schema from the models of action, rule, etc. Add check
+  to ensure update to the models require schema to be regenerated. (new feature)
+
+Fixed
+~~~~~
+* Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
+
+  Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)
+
+* Fixed a bug where persisting Orquesta to the MongoDB database returned an error
+  ``message: key 'myvar.with.period' must not contain '.'``. This happened anytime an
+  ``input``, ``output``, ``publish`` or context ``var`` contained a key with a ``.`` within
+  the name (such as with hostnames and IP addresses). This was a regression introduced by
+  trying to improve performance. Fixing this bug means we are sacrificing performance of
+  serialization/deserialization in favor of correctness for persisting workflows and
+  their state to the MongoDB database. (bug fix) #4932
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
+
+3.2.0 - April 27, 2020
+----------------------
+
+Added
+~~~~~
 
 * Add support for blacklisting / whitelisting hosts to the HTTP runner by adding new
   ``url_hosts_blacklist`` and ``url_hosts_whitelist`` runner attribute. (new feature)
@@ -17,10 +42,10 @@ Added
 * Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client.
   #4791
 * Add support for orquesta task retry. (new feature)
+* Add config option ``scheduler.execution_scheduling_timeout_threshold_min`` to better control the cleanup of scheduled actions that were orphaned. #4886
 
 Changed
 ~~~~~~~
-
 * Install pack with the latest tag version if it exists when branch is not specialized.
   (improvement) #4743
 * Implement "continue" engine command to orquesta workflow. (improvement) #4740
@@ -53,6 +78,7 @@ Changed
   connection related errors, our code would first wait for this timeout to be reached (30 seconds)
   before returning error to the end user. #4834
 * Upgrade ``pymongo`` to the latest stable version (``3.10.0.``). #4835 (improvement)
+* Updated Paramiko to v2.7.1 to support new PEM ECDSA key formats #4901 (improvement)
 * Remove ``.scrutinizer.yml`` config file. No longer used.
 * Convert escaped dict and dynamic fields in workflow db models to normal dict and dynamic fields.
   (performnce improvement)
@@ -61,10 +87,27 @@ Changed
 * Use ``pip-compile`` from ``pip-tools`` instead of ``pip-conflict-checker`` (improvement) #4896
 * Refactor how inbound criteria for join task in orquesta workflow is evaluated to count by
   task completion instead of task transition. (improvement)
+* The workflow engine orquesta is updated to v1.1.0 for the st2 v3.2 release. The version upgrade
+  contains various new features and bug fixes. Please review the release notes for the full list of
+  changes at https://github.com/StackStorm/orquesta/releases/tag/v1.1.0 and the st2 upgrade notes
+  for potential impact. (improvement)
+* Update st2 nginx config to remove deprecated ``ssl on`` option. #4917 (improvement)
 
 Fixed
 ~~~~~
+* Fix a typo that caused an internal server error when filtering actions by tags. Fixes #4918
 
+  Reported by @mweinberg-cm and contributed by Marcel Weinberg (@winem)
+
+* Fix the action query when filtering tags. The old implementation returned actions which have the
+  provided name as action name and not as tag name. (bug fix) #4828
+
+  Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem) 
+* Fix the passing of arrays to shell scripts where the arrays where not detected as such by the 
+  st2 action_db utility. This caused arrays to be passed as Python lists serialized into a string.
+
+  Reported by @kingsleyadam #4804 and contributed by Marcel Weinberg (@winem) #4861
+* Fix ssh zombies when using ProxyCommand from ssh config #4881 [Eric Edgar]
 * Fix rbac with execution view where the rbac is unable to verify the pack or uid of the execution
   because it was not returned from the action execution db. This would result in an internal server
   error when trying to view the results of a single execution.
@@ -117,6 +160,21 @@ Fixed
   Contributed by Tatsuma Matsuki (@mtatsuma)
 
 * Fix dependency conflicts by updating ``requests`` (2.23.0) and ``gitpython`` (2.1.15). #4869
+* Fix orquesta syntax error for with items task where action is misindented or missing. (bug fix)
+  PR StackStorm/orquesta#195.
+* Fix orquesta yaql/jinja vars extraction to ignore methods of base ctx() dict. (bug fix)
+  PR StackStorm/orquesta#196. Fixes #4866.
+* Fix parsing of array of dicts in YAQL functions. Fix regression in YAQL/Jinja conversion
+  functions as a result of the change. (bug fix) PR StackStorm/orquesta#191.
+
+  Contributed by Hiroyasu Ohyama (@userlocalhost)
+* Fix retry in orquesta when a task that has a transition on failure will also be traversed on
+  retry. (bug fix) PR StackStorm/orquesta#200
+
+Removed
+~~~~~~~
+
+* Removed Ubuntu 14.04 from test matrix #4897
 
 3.1.0 - June 27, 2019
 ---------------------

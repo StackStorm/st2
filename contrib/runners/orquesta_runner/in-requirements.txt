@@ -1,1 +1,1 @@
-git+https://github.com/StackStorm/orquesta.git@359a33f3d51c82f0177b175998ecd99214f992e8#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@v1.1.1#egg=orquesta
