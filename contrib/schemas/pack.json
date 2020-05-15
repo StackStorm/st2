@@ -1,0 +1,109 @@
+{
+    "additionalProperties": true, 
+    "type": "object", 
+    "description": "Content pack schema.", 
+    "properties": {
+        "files": {
+            "default": [], 
+            "items": {
+                "type": "string"
+            }, 
+            "type": "array", 
+            "description": "A list of files inside the pack."
+        }, 
+        "name": {
+            "required": true, 
+            "type": "string", 
+            "description": "Display name of the pack. If the name only contains lowercaseletters, digits and underscores, the \"ref\" field is not required."
+        }, 
+        "contributors": {
+            "items": {
+                "type": "string", 
+                "maxLength": 100
+            }, 
+            "type": "array", 
+            "description": "A list of people who have contributed to the pack. Format is: Name <email address> e.g. Tomaz Muraus <tomaz@stackstorm.com>."
+        }, 
+        "author": {
+            "required": true, 
+            "type": "string", 
+            "description": "Pack author or authors."
+        }, 
+        "description": {
+            "required": true, 
+            "type": "string", 
+            "description": "Brief description of the pack and the service it integrates with."
+        }, 
+        "system": {
+            "default": {}, 
+            "type": "object", 
+            "description": "Specification for the system components and packages required for the pack."
+        }, 
+        "python_versions": {
+            "additionalItems": true, 
+            "description": "Major Python versions supported by this pack. E.g. \"2\" for Python 2.7.x and \"3\" for Python 3.6.x", 
+            "minItems": 1, 
+            "items": {
+                "enum": [
+                    "2", 
+                    "3"
+                ], 
+                "type": "string"
+            }, 
+            "maxItems": 2, 
+            "uniqueItems": true, 
+            "type": "array"
+        }, 
+        "stackstorm_version": {
+            "pattern": "^((>?>|>=|=|<=|<?<)\\s*[0-9]+\\.[0-9]+\\.[0-9]+?(\\s*,)?\\s*)+$", 
+            "type": "string", 
+            "description": "Required StackStorm version. Examples: \">1.6.0\", \">=1.8.0, <2.2.0\""
+        }, 
+        "email": {
+            "type": "string", 
+            "description": "E-mail of the pack author.", 
+            "format": "email"
+        }, 
+        "version": {
+            "pattern": "^(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)(?:-[\\da-z\\-]+(?:\\.[\\da-z\\-]+)*)?(?:\\+[\\da-z\\-]+(?:\\.[\\da-z\\-]+)*)?$", 
+            "required": true, 
+            "type": "string", 
+            "description": "Pack version. Must follow the semver format (for instance, \"0.1.0\")."
+        }, 
+        "dependencies": {
+            "default": [], 
+            "items": {
+                "type": "string"
+            }, 
+            "type": "array", 
+            "description": "A list of other StackStorm packs this pack depends upon. The same format as in \"st2 pack install\" is used: \"<name or full URL>[=<version or git ref>]\"."
+        }, 
+        "keywords": {
+            "default": [], 
+            "items": {
+                "type": "string"
+            }, 
+            "type": "array", 
+            "description": "Keywords describing the pack."
+        }, 
+        "path": {
+            "required": false, 
+            "type": "string", 
+            "description": "Location of the pack on disk in st2 system."
+        }, 
+        "ref": {
+            "default": null, 
+            "pattern": "^[a-z0-9_]+$", 
+            "type": "string", 
+            "description": "Reference for the pack, used as an internal id."
+        }, 
+        "id": {
+            "default": null, 
+            "type": "string", 
+            "description": "Unique identifier for the pack."
+        }, 
+        "uid": {
+            "type": "string"
+        }
+    }
+}

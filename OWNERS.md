@@ -51,6 +51,7 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
 * Shu Sugimoto ([@shusugmt](https://github.com/shusugmt)) - Docker, StackStorm Exchange packs.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
+* Marcel Weinberg ([@winem](https://github.com/winem)) - Community, Docker, Core.
 
 # Friends
 People that are currently not very active maintainers/contributors but who participated in and formed the project we have today.

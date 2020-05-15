@@ -271,6 +271,16 @@ configgen: requirements .configgen
 	echo "" >> conf/st2.conf.sample
 	. $(VIRTUALENV_DIR)/bin/activate; python ./tools/config_gen.py >> conf/st2.conf.sample;
 
+.PHONY: schemasgen
+schemasgen: requirements .schemasgen
+
+.PHONY: .schemasgen
+.schemasgen:
+	@echo
+	@echo "================== content model schemas gen ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; python ./st2common/bin/st2-generate-schemas;
+
 .PHONY: .pylint
 .pylint:
 	@echo
@@ -495,6 +505,8 @@ distclean: clean
 
 .PHONY: .requirements
 .requirements: virtualenv
+	# Print out pip version so we can see what version was restored from the Travis cache
+	$(VIRTUALENV_DIR)/bin/pip --version
 	# Generate all requirements to support current CI pipeline.
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
@@ -519,10 +531,10 @@ requirements: virtualenv .requirements .sdist-requirements install-runners
 	# .st2client-install-check target and .travis.yml to match
 	# Make sure we use latest version of pip
 	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=19.3.1"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==20.0.2"
 	# setuptools >= 41.0.1 is required for packs.install in dev envs
 	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools>=42"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Fix for Travis CI race
@@ -1052,7 +1064,18 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 	cp st2common/st2common/openapi.yaml /tmp/openapi.yaml.upstream
 	make .generate-api-spec
 	diff st2common/st2common/openapi.yaml  /tmp/openapi.yaml.upstream || (echo "st2common/st2common/openapi.yaml hasn't been re-generated and committed. Please run \"make generate-api-spec\" and include and commit the generated file." && exit 1)
-
+	# 3. Schemas for the content models - st2common/bin/st2-generate-schemas
+	cp contrib/schemas/pack.json /tmp/pack.json.upstream
+	cp contrib/schemas/action.json /tmp/action.json.upstream
+	cp contrib/schemas/alias.json /tmp/alias.json.upstream
+	cp contrib/schemas/policy.json /tmp/policy.json.upstream
+	cp contrib/schemas/rule.json /tmp/rule.json.upstream
+	make .schemasgen
+	diff contrib/schemas/pack.json /tmp/pack.json.upstream || (echo "contrib/schemas/pack.json hasn't been re-generated and committed. Please run \"make schemasgen\" and include and commit the generated file." && exit 1)
+	diff contrib/schemas/action.json /tmp/action.json.upstream || (echo "contrib/schemas/pack.json hasn't been re-generated and committed. Please run \"make schemasgen\" and include and commit the generated file." && exit 1)
+	diff contrib/schemas/alias.json /tmp/alias.json.upstream || (echo "contrib/schemas/pack.json hasn't been re-generated and committed. Please run \"make schemasgen\" and include and commit the generated file." && exit 1)
+	diff contrib/schemas/policy.json /tmp/policy.json.upstream || (echo "contrib/schemas/pack.json hasn't been re-generated and committed. Please run \"make schemasgen\" and include and commit the generated file." && exit 1)
+	diff contrib/schemas/rule.json /tmp/rule.json.upstream || (echo "contrib/schemas/pack.json hasn't been re-generated and committed. Please run \"make schemasgen\" and include and commit the generated file." && exit 1)
 	@echo "All automatically generated files are up to date."
 
 .PHONY: ci-unit

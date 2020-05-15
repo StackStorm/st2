@@ -156,3 +156,23 @@ class WiringTest(base.TestWorkflowExecution):
 
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertDictEqual(ex.result, expected_result)
+
+    def test_field_escaping(self):
+        wf_name = 'examples.orquesta-test-field-escaping'
+
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        expected_output = {
+            'wf.hostname.with.periods': {
+                'hostname.domain.tld': 'vars.value.with.periods',
+                'hostname2.domain.tld': {
+                    'stdout': 'vars.nested.value.with.periods',
+                },
+            },
+            'wf.output.with.periods': 'vars.nested.value.with.periods',
+        }
+        expected_result = {'output': expected_output}
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertDictEqual(ex.result, expected_result)

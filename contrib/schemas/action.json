@@ -1,0 +1,602 @@
+{
+    "additionalProperties": false, 
+    "properties": {
+        "uid": {
+            "type": "string"
+        }, 
+        "tags": {
+            "items": {
+                "type": "object"
+            }, 
+            "type": "array", 
+            "description": "User associated metadata assigned to this object."
+        }, 
+        "entry_point": {
+            "default": "", 
+            "type": "string", 
+            "description": "The entry point for the action."
+        }, 
+        "notify": {
+            "additionalProperties": false, 
+            "type": "object", 
+            "description": "Notification settings for action.", 
+            "properties": {
+                "on-failure": {
+                    "additionalProperties": false, 
+                    "type": "object", 
+                    "properties": {
+                        "routes": {
+                            "type": "array", 
+                            "description": "Channels to post notifications to."
+                        }, 
+                        "channels": {
+                            "type": "array", 
+                            "description": "Channels to post notifications to."
+                        }, 
+                        "message": {
+                            "type": "string", 
+                            "description": "Message to use for notification"
+                        }, 
+                        "data": {
+                            "type": "object", 
+                            "description": "Data to be sent as part of notification"
+                        }
+                    }
+                }, 
+                "on-complete": {
+                    "additionalProperties": false, 
+                    "type": "object", 
+                    "properties": {
+                        "routes": {
+                            "type": "array", 
+                            "description": "Channels to post notifications to."
+                        }, 
+                        "channels": {
+                            "type": "array", 
+                            "description": "Channels to post notifications to."
+                        }, 
+                        "message": {
+                            "type": "string", 
+                            "description": "Message to use for notification"
+                        }, 
+                        "data": {
+                            "type": "object", 
+                            "description": "Data to be sent as part of notification"
+                        }
+                    }
+                }, 
+                "on-success": {
+                    "additionalProperties": false, 
+                    "type": "object", 
+                    "properties": {
+                        "routes": {
+                            "type": "array", 
+                            "description": "Channels to post notifications to."
+                        }, 
+                        "channels": {
+                            "type": "array", 
+                            "description": "Channels to post notifications to."
+                        }, 
+                        "message": {
+                            "type": "string", 
+                            "description": "Message to use for notification"
+                        }, 
+                        "data": {
+                            "type": "object", 
+                            "description": "Data to be sent as part of notification"
+                        }
+                    }
+                }
+            }
+        }, 
+        "id": {
+            "type": "string", 
+            "description": "The unique identifier for the action."
+        }, 
+        "description": {
+            "type": "string", 
+            "description": "The description of the action."
+        }, 
+        "runner_type": {
+            "required": true, 
+            "type": "string", 
+            "description": "The type of runner that executes the action."
+        }, 
+        "parameters": {
+            "additionalProperties": false, 
+            "patternProperties": {
+                "^\\w+$": {
+                    "description": "Core schema meta-schema", 
+                    "default": {}, 
+                    "id": "http://json-schema.org/draft-04/schema#", 
+                    "dependencies": {
+                        "exclusiveMaximum": [
+                            "maximum"
+                        ], 
+                        "exclusiveMinimum": [
+                            "minimum"
+                        ]
+                    }, 
+                    "additionalProperties": false, 
+                    "definitions": {
+                        "simpleTypes": {
+                            "enum": [
+                                "array", 
+                                "boolean", 
+                                "integer", 
+                                "null", 
+                                "number", 
+                                "object", 
+                                "string"
+                            ]
+                        }, 
+                        "schemaArray": {
+                            "minItems": 1, 
+                            "items": {
+                                "$ref": "#"
+                            }, 
+                            "type": "array"
+                        }, 
+                        "positiveIntegerDefault0": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/positiveInteger"
+                                }, 
+                                {
+                                    "default": 0
+                                }
+                            ]
+                        }, 
+                        "positiveInteger": {
+                            "minimum": 0, 
+                            "type": "integer"
+                        }, 
+                        "stringArray": {
+                            "minItems": 1, 
+                            "items": {
+                                "type": "string"
+                            }, 
+                            "uniqueItems": true, 
+                            "type": "array"
+                        }
+                    }, 
+                    "$schema": "http://json-schema.org/draft-04/schema#", 
+                    "type": "object", 
+                    "properties": {
+                        "definitions": {
+                            "additionalProperties": {
+                                "$ref": "#"
+                            }, 
+                            "default": {}, 
+                            "type": "object"
+                        }, 
+                        "minProperties": {
+                            "$ref": "#/definitions/positiveIntegerDefault0"
+                        }, 
+                        "uniqueItems": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "minimum": {
+                            "type": "number"
+                        }, 
+                        "maxItems": {
+                            "$ref": "#/definitions/positiveInteger"
+                        }, 
+                        "$schema": {
+                            "type": "string", 
+                            "format": "uri"
+                        }, 
+                        "exclusiveMinimum": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "id": {
+                            "type": "string", 
+                            "format": "uri"
+                        }, 
+                        "exclusiveMaximum": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "title": {
+                            "type": "string"
+                        }, 
+                        "pattern": {
+                            "type": "string", 
+                            "format": "regex"
+                        }, 
+                        "patternProperties": {
+                            "additionalProperties": {
+                                "$ref": "#"
+                            }, 
+                            "default": {}, 
+                            "type": "object"
+                        }, 
+                        "multipleOf": {
+                            "type": "number", 
+                            "minimum": 0, 
+                            "exclusiveMinimum": true
+                        }, 
+                        "secret": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "maxProperties": {
+                            "$ref": "#/definitions/positiveInteger"
+                        }, 
+                        "type": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/definitions/simpleTypes"
+                                }
+                            ]
+                        }, 
+                        "immutable": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "description": {
+                            "type": "string"
+                        }, 
+                        "allOf": {
+                            "$ref": "#/definitions/schemaArray"
+                        }, 
+                        "minLength": {
+                            "$ref": "#/definitions/positiveIntegerDefault0"
+                        }, 
+                        "enum": {
+                            "minItems": 1, 
+                            "uniqueItems": true, 
+                            "type": "array"
+                        }, 
+                        "additionalItems": {
+                            "default": {}, 
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                }, 
+                                {
+                                    "$ref": "#"
+                                }
+                            ]
+                        }, 
+                        "dependencies": {
+                            "additionalProperties": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#"
+                                    }, 
+                                    {
+                                        "$ref": "#/definitions/stringArray"
+                                    }
+                                ]
+                            }, 
+                            "type": "object"
+                        }, 
+                        "anyOf": {
+                            "$ref": "#/definitions/schemaArray"
+                        }, 
+                        "maxLength": {
+                            "$ref": "#/definitions/positiveInteger"
+                        }, 
+                        "not": {
+                            "$ref": "#"
+                        }, 
+                        "properties": {
+                            "additionalProperties": {
+                                "$ref": "#"
+                            }, 
+                            "default": {}, 
+                            "type": "object"
+                        }, 
+                        "oneOf": {
+                            "$ref": "#/definitions/schemaArray"
+                        }, 
+                        "default": {}, 
+                        "items": {
+                            "default": {}, 
+                            "anyOf": [
+                                {
+                                    "$ref": "#"
+                                }, 
+                                {
+                                    "$ref": "#/definitions/schemaArray"
+                                }
+                            ]
+                        }, 
+                        "required": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "maximum": {
+                            "type": "number"
+                        }, 
+                        "minItems": {
+                            "$ref": "#/definitions/positiveIntegerDefault0"
+                        }, 
+                        "additionalProperties": {
+                            "default": {}, 
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                }, 
+                                {
+                                    "$ref": "#"
+                                }
+                            ]
+                        }, 
+                        "position": {
+                            "minimum": 0, 
+                            "type": "number"
+                        }
+                    }
+                }
+            }, 
+            "default": {}, 
+            "type": "object", 
+            "description": "Input parameters for the action."
+        }, 
+        "enabled": {
+            "default": true, 
+            "type": "boolean", 
+            "description": "Enable or disable the action from invocation."
+        }, 
+        "name": {
+            "required": true, 
+            "type": "string", 
+            "description": "The name of the action."
+        }, 
+        "metadata_file": {
+            "default": "", 
+            "type": "string", 
+            "description": "Path to the metadata file relative to the pack directory."
+        }, 
+        "output_schema": {
+            "additionalProperties": false, 
+            "patternProperties": {
+                "^\\w+$": {
+                    "description": "Core schema meta-schema", 
+                    "default": {}, 
+                    "id": "http://json-schema.org/draft-04/schema#", 
+                    "dependencies": {
+                        "exclusiveMaximum": [
+                            "maximum"
+                        ], 
+                        "exclusiveMinimum": [
+                            "minimum"
+                        ]
+                    }, 
+                    "definitions": {
+                        "simpleTypes": {
+                            "enum": [
+                                "array", 
+                                "boolean", 
+                                "integer", 
+                                "null", 
+                                "number", 
+                                "object", 
+                                "string"
+                            ]
+                        }, 
+                        "schemaArray": {
+                            "minItems": 1, 
+                            "items": {
+                                "$ref": "#"
+                            }, 
+                            "type": "array"
+                        }, 
+                        "positiveIntegerDefault0": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/positiveInteger"
+                                }, 
+                                {
+                                    "default": 0
+                                }
+                            ]
+                        }, 
+                        "positiveInteger": {
+                            "minimum": 0, 
+                            "type": "integer"
+                        }, 
+                        "stringArray": {
+                            "minItems": 1, 
+                            "items": {
+                                "type": "string"
+                            }, 
+                            "uniqueItems": true, 
+                            "type": "array"
+                        }
+                    }, 
+                    "$schema": "http://json-schema.org/draft-04/schema#", 
+                    "type": "object", 
+                    "properties": {
+                        "definitions": {
+                            "additionalProperties": {
+                                "$ref": "#"
+                            }, 
+                            "default": {}, 
+                            "type": "object"
+                        }, 
+                        "minProperties": {
+                            "$ref": "#/definitions/positiveIntegerDefault0"
+                        }, 
+                        "uniqueItems": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "minimum": {
+                            "type": "number"
+                        }, 
+                        "maxItems": {
+                            "$ref": "#/definitions/positiveInteger"
+                        }, 
+                        "$schema": {
+                            "type": "string", 
+                            "format": "uri"
+                        }, 
+                        "exclusiveMinimum": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "id": {
+                            "type": "string", 
+                            "format": "uri"
+                        }, 
+                        "exclusiveMaximum": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "title": {
+                            "type": "string"
+                        }, 
+                        "pattern": {
+                            "type": "string", 
+                            "format": "regex"
+                        }, 
+                        "patternProperties": {
+                            "additionalProperties": {
+                                "$ref": "#"
+                            }, 
+                            "default": {}, 
+                            "type": "object"
+                        }, 
+                        "multipleOf": {
+                            "type": "number", 
+                            "minimum": 0, 
+                            "exclusiveMinimum": true
+                        }, 
+                        "secret": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "maxProperties": {
+                            "$ref": "#/definitions/positiveInteger"
+                        }, 
+                        "type": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/definitions/simpleTypes"
+                                }
+                            ]
+                        }, 
+                        "immutable": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "description": {
+                            "type": "string"
+                        }, 
+                        "allOf": {
+                            "$ref": "#/definitions/schemaArray"
+                        }, 
+                        "minLength": {
+                            "$ref": "#/definitions/positiveIntegerDefault0"
+                        }, 
+                        "enum": {
+                            "minItems": 1, 
+                            "uniqueItems": true, 
+                            "type": "array"
+                        }, 
+                        "additionalItems": {
+                            "default": {}, 
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                }, 
+                                {
+                                    "$ref": "#"
+                                }
+                            ]
+                        }, 
+                        "dependencies": {
+                            "additionalProperties": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#"
+                                    }, 
+                                    {
+                                        "$ref": "#/definitions/stringArray"
+                                    }
+                                ]
+                            }, 
+                            "type": "object"
+                        }, 
+                        "anyOf": {
+                            "$ref": "#/definitions/schemaArray"
+                        }, 
+                        "maxLength": {
+                            "$ref": "#/definitions/positiveInteger"
+                        }, 
+                        "not": {
+                            "$ref": "#"
+                        }, 
+                        "properties": {
+                            "additionalProperties": {
+                                "$ref": "#"
+                            }, 
+                            "default": {}, 
+                            "type": "object"
+                        }, 
+                        "oneOf": {
+                            "$ref": "#/definitions/schemaArray"
+                        }, 
+                        "default": {}, 
+                        "items": {
+                            "default": {}, 
+                            "anyOf": [
+                                {
+                                    "$ref": "#"
+                                }, 
+                                {
+                                    "$ref": "#/definitions/schemaArray"
+                                }
+                            ]
+                        }, 
+                        "required": {
+                            "default": false, 
+                            "type": "boolean"
+                        }, 
+                        "maximum": {
+                            "type": "number"
+                        }, 
+                        "minItems": {
+                            "$ref": "#/definitions/positiveIntegerDefault0"
+                        }, 
+                        "additionalProperties": {
+                            "default": {}, 
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                }, 
+                                {
+                                    "$ref": "#"
+                                }
+                            ]
+                        }, 
+                        "position": {
+                            "minimum": 0, 
+                            "type": "number"
+                        }
+                    }
+                }
+            }, 
+            "default": {}, 
+            "type": "object", 
+            "description": "Schema for the action's output."
+        }, 
+        "ref": {
+            "type": "string", 
+            "description": "System computed user friendly reference for the action.                                 Provided value will be overridden by computed value."
+        }, 
+        "pack": {
+            "default": "default", 
+            "type": "string", 
+            "description": "The content pack this action belongs to."
+        }
+    }, 
+    "type": "object", 
+    "description": "An activity that happens as a response to the external event.", 
+    "title": "Action"
+}
