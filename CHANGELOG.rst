@@ -4,6 +4,33 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+* Add make command to autogen JSON schema from the models of action, rule, etc. Add check
+  to ensure update to the models require schema to be regenerated. (new feature)
+
+Fixed
+~~~~~
+* Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
+
+  Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)
+
+* Fixed a bug where persisting Orquesta to the MongoDB database returned an error
+  ``message: key 'myvar.with.period' must not contain '.'``. This happened anytime an
+  ``input``, ``output``, ``publish`` or context ``var`` contained a key with a ``.`` within
+  the name (such as with hostnames and IP addresses). This was a regression introduced by
+  trying to improve performance. Fixing this bug means we are sacrificing performance of
+  serialization/deserialization in favor of correctness for persisting workflows and
+  their state to the MongoDB database. (bug fix) #4932
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
+* Fixed bug where action information in RuleDB object was not being parsed properly
+  because mongoengine EmbeddedDocument objects were added to JSON_UNFRIENDLY_TYPES and skipped.
+  Removed this and added if to use to_json method so that mongoengine EmbeddedDocument
+  are parsed properly.
+
+  Contributed by Bradley Bishop (@bishopbm1 Encore Technologies)
 
 3.2.0 - April 27, 2020
 ----------------------
@@ -81,8 +108,8 @@ Fixed
 * Fix the action query when filtering tags. The old implementation returned actions which have the
   provided name as action name and not as tag name. (bug fix) #4828
 
-  Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem) 
-* Fix the passing of arrays to shell scripts where the arrays where not detected as such by the 
+  Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem)
+* Fix the passing of arrays to shell scripts where the arrays where not detected as such by the
   st2 action_db utility. This caused arrays to be passed as Python lists serialized into a string.
 
   Reported by @kingsleyadam #4804 and contributed by Marcel Weinberg (@winem) #4861

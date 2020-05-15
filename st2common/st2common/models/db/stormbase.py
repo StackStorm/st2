@@ -20,6 +20,7 @@ import bson
 import six
 import mongoengine as me
 from oslo_config import cfg
+import json
 
 from st2common.util import mongoescape
 from st2common.models.base import DictSerializableClassMixin
@@ -40,7 +41,7 @@ __all__ = [
     'ContentPackResourceMixin'
 ]
 
-JSON_UNFRIENDLY_TYPES = (datetime.datetime, bson.ObjectId, me.EmbeddedDocument)
+JSON_UNFRIENDLY_TYPES = (datetime.datetime, bson.ObjectId)
 
 
 class StormFoundationDB(me.Document, DictSerializableClassMixin):
@@ -98,7 +99,11 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
         serializable_dict = {}
         for k in sorted(six.iterkeys(self._fields)):
             v = getattr(self, k)
-            v = str(v) if isinstance(v, JSON_UNFRIENDLY_TYPES) else v
+            if isinstance(v, JSON_UNFRIENDLY_TYPES):
+                v = str(v)
+            elif isinstance(v, me.EmbeddedDocument):
+                v = json.loads(v.to_json())
+
             serializable_dict[k] = v
 
         if mask_secrets and cfg.CONF.log.mask_secrets:
