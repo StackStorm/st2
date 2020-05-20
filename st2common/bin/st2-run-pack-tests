@@ -78,10 +78,11 @@ function usage() {
     echo "       and virtualenv, if any, for subsequent test runs." >&2
     echo "  -t : Run tests with timing enabled" >&2
     echo "  -v : Verbose mode (log debug messages to stdout)." >&2
+    echo "  -3 : use python3" >&2
     echo "  -x : Do not create virtualenv for test for tests, e.g. when running in existing one." >&2
 }
 
-while getopts ":p:f:xjvct" o; do
+while getopts ":p:f:xjvct3" o; do
     case "${o}" in
         p)
             PACK_PATH=${OPTARG}
@@ -104,6 +105,14 @@ while getopts ":p:f:xjvct" o; do
         t)
             ENABLE_TIMING=true
             ;;
+        3)
+            PYTHON_3=true
+            if [ -z "$ST2_REPO_PATH" ]; then
+                echo "must set ST2_REPO_PATH variable"
+                exit 1
+            fi
+            ;;
+ 
         \?)
             echo "Invalid option: -$OPTARG" >&2
             usage
@@ -192,8 +201,11 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
     if [ "${JUST_TESTS}" = false ]; then
         echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
         mkdir -p ${VIRTUALENVS_DIR}
-        virtualenv --no-download --system-site-packages ${VIRTUALENV_DIR}
-
+        if [ "${PYTHON_3}" = false ]; then
+            virtualenv --no-download --system-site-packages ${VIRTUALENV_DIR}
+        else
+            virtualenv --no-download --system-site-packages ${VIRTUALENV_DIR} -p python3
+        fi
         # Activate the virtualenv
         activate_virtualenv
 
@@ -279,9 +291,12 @@ TESTS_PYTHON_PATH=()
 # 1. Add PYTHONPATH from StackStorm packages virtualenv (only applies when running on server when
 # StackStorm is installed using packages)
 if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
-    ST2_PYTHONPATH=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sys;print(':'.join([x for x in sys.path if x.strip()]))")
-    verbose_log "Adding entries from StackStorm virtualenv to PYTHONPATH: ${ST2_PYTHONPATH}"
-
+    if [ "${PYTHON_3}" = false ]; then
+        ST2_PYTHONPATH=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sys;print(':'.join([x for x in sys.path if x.strip()]))")
+        verbose_log "Adding entries from StackStorm virtualenv to PYTHONPATH: ${ST2_PYTHONPATH}"
+    else
+        verbose_log "skip Adding entries from StackStorm virtualenv to PYTHONPATH: ${ST2_PYTHONPATH}"
+    fi
     TESTS_PYTHON_PATH+=("${ST2_PYTHONPATH}")
 fi
 
@@ -314,7 +329,7 @@ fi
 echo "Running tests..."
 # Note: We run nosetests with "--exe" option so it also runs test files which are executable
 # (pack install command automatically makes all the files, including test files executable)
-NOSE_OPTS=(-s -v --exe --rednose --immediate)
+NOSE_OPTS=(-s -v --exe )
 
 # Is test coverage reporting enabled?
 if [ "${ENABLE_COVERAGE}" = true ]; then
