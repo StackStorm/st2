@@ -66,6 +66,8 @@ VIRTUALENV_ACTIVATED=false
 STACKSTORM_VIRTUALENV_BIN="/opt/stackstorm/st2/bin"
 STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
 
+PYTHON_3=false
+
 ####################
 # Script beings here
 ####################
