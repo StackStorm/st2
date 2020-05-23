@@ -581,8 +581,8 @@ virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	virtualenv --version
-	virtualenv --help
+	sudo virtualenv --version
+	sudo virtualenv --help
 	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_DIR) --pip $(PIP_VERSION)
 
 	# Setup PYTHONPATH in bash activate script...
