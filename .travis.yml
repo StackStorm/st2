@@ -81,7 +81,7 @@ cache:
 
 before_install:
   # Upgrade virtualenv to latest
-  - sudo pip install --upgrade "virtualenv"
+  - pip install --upgrade "virtualenv"
 
 install:
   - ./scripts/travis/install-requirements.sh
