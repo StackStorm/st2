@@ -79,10 +79,6 @@ cache:
     # are updated so it's disabled
     #- .tox/
 
-before_install:
-  # Upgrade virtualenv to latest
-  - pip install --upgrade "virtualenv"
-
 install:
   - ./scripts/travis/install-requirements.sh
   # prep a travis-specific dev conf file that uses travis instead of stanley
