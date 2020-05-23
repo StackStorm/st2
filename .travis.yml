@@ -80,9 +80,8 @@ cache:
     #- .tox/
 
 before_install:
-  # If you update these versions, make sure you update the versions in the .st2client-install-check
-  # and the requirements targets in the Makefile to match
-  - sudo pip install --upgrade "virtualenv==16.6.0"
+  # Upgrade virtualenv to latest
+  - sudo pip install --upgrade "virtualenv"
 
 install:
   - ./scripts/travis/install-requirements.sh
