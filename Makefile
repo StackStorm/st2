@@ -52,6 +52,9 @@ COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.* .coverage.mistral.*
 COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 
 REQUIREMENTS := test-requirements.txt requirements.txt
+# Pin common pip version here across all the targets
+# Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
+PIP_VERSION ?= 20.0.2
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
@@ -216,8 +219,7 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
-
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --pip $(PIP_VERSION)
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -233,7 +235,7 @@ check-python-packages-nightly:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --pip $(PIP_VERSION)
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -365,7 +367,7 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== st2client install check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --pip $(PIP_VERSION)
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -379,10 +381,6 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	# If you update these versions, make sure you also update the versions in the
-	# requirements target and .travis.yml to match
-	# Make sure we use the latest version of pip
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==20.0.2"
 	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
 	# Setuptools 42 added support for python_requires, which is used by the configparser package,
 	# which is required by the importlib-metadata package
@@ -527,11 +525,8 @@ requirements: virtualenv .requirements .sdist-requirements install-runners
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
-	# If you update these versions, make sure you also update the versions in the
-	# .st2client-install-check target and .travis.yml to match
-	# Make sure we use latest version of pip
+	# If you update these versions, make sure you also update the versions in the .st2client-install-check target to match
 	$(VIRTUALENV_DIR)/bin/pip --version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==20.0.2"
 	# setuptools >= 41.0.1 is required for packs.install in dev envs
 	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
@@ -586,9 +581,7 @@ virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	# Note: We pass --no-download flag to make sure version of pip which we install (9.0.1) is used
-	# instead of latest version being downloaded from PyPi
-	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_DIR) --no-download
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_DIR) --pip $(PIP_VERSION)
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
