@@ -4,6 +4,22 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+* Fixed a bug where persisting Orquesta to the MongoDB database returned an error
+  ``message: key 'myvar.with.period' must not contain '.'``. This happened anytime an
+  ``input``, ``output``, ``publish`` or context ``var`` contained a key with a ``.`` within
+  the name (such as with hostnames and IP addresses). This was a regression introduced by
+  trying to improve performance. Fixing this bug means we are sacrificing performance of
+  serialization/deserialization in favor of correctness for persisting workflows and
+  their state to the MongoDB database. (bug fix) #4932
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
+
+3.2.0 - April 27, 2020
+----------------------
+
 Added
 ~~~~~
 * Add support for a configurable connect timeout for SSH connections as requested in #4715
@@ -68,9 +84,14 @@ Changed
   contains various new features and bug fixes. Please review the release notes for the full list of
   changes at https://github.com/StackStorm/orquesta/releases/tag/v1.1.0 and the st2 upgrade notes
   for potential impact. (improvement)
+* Update st2 nginx config to remove deprecated ``ssl on`` option. #4917 (improvement)
 
 Fixed
 ~~~~~
+* Fix a typo that caused an internal server error when filtering actions by tags. Fixes #4918
+
+  Reported by @mweinberg-cm and contributed by Marcel Weinberg (@winem)
+
 * Fix the action query when filtering tags. The old implementation returned actions which have the
   provided name as action name and not as tag name. (bug fix) #4828
 
@@ -140,6 +161,8 @@ Fixed
   functions as a result of the change. (bug fix) PR StackStorm/orquesta#191.
 
   Contributed by Hiroyasu Ohyama (@userlocalhost)
+* Fix retry in orquesta when a task that has a transition on failure will also be traversed on
+  retry. (bug fix) PR StackStorm/orquesta#200
 
 Removed
 ~~~~~~~

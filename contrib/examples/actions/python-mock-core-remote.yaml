@@ -1,0 +1,17 @@
+---
+name: python-mock-core-remote
+runner_type: python-script
+description: Action which mocks the core.remote action. It returns results with hostnames/IPs in them to ensure we are escaping the . properly. We set the output to the value of the command passed in
+enabled: true
+entry_point: python-mock-core-remote.py
+parameters:
+  cmd:
+    type: string
+    required: false
+  hosts:
+    type: string
+    required: false
+  hosts_dict:
+    type: object
+    description: "If specified, just returns this dict back out. Used for testing inputs and outputs of dicts with keys containing '.' character."
+    required: false
