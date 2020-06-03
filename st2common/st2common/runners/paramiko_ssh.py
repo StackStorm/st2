@@ -104,11 +104,11 @@ class ParamikoSSHClient(object):
         self.username = username
         self.password = password
         self.key_files = key_files
-        self.timeout = timeout
+        self.timeout = int(timeout)
         self.key_material = key_material
         self.bastion_host = bastion_host
         self.passphrase = passphrase
-        self.ssh_connect_timeout = cfg.CONF.ssh_runner.ssh_connect_timeout
+        self.ssh_connect_timeout = int(cfg.CONF.ssh_runner.ssh_connect_timeout)
         self._handle_stdout_line_func = handle_stdout_line_func
         self._handle_stderr_line_func = handle_stderr_line_func
 
