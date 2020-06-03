@@ -104,11 +104,11 @@ class ParamikoSSHClient(object):
         self.username = username
         self.password = password
         self.key_files = key_files
-        self.timeout = int(timeout)
+        self.timeout = timeout
         self.key_material = key_material
         self.bastion_host = bastion_host
         self.passphrase = passphrase
-        self.ssh_connect_timeout = int(cfg.CONF.ssh_runner.ssh_connect_timeout)
+        self.ssh_connect_timeout = cfg.CONF.ssh_runner.ssh_connect_timeout
         self._handle_stdout_line_func = handle_stdout_line_func
         self._handle_stderr_line_func = handle_stderr_line_func
 
@@ -117,9 +117,9 @@ class ParamikoSSHClient(object):
             '~/.ssh/config'
         )
 
-        if self.timeout and self.ssh_connect_timeout > self.timeout - 2:
+        if self.timeout and int(self.ssh_connect_timeout) > int(self.timeout) - 2:
             # the connect timeout should not be greater than the action timeout
-            self.ssh_connect_timeout = self.timeout - 2
+            self.ssh_connect_timeout = int(self.timeout) - 2
 
         self.logger = logging.getLogger(__name__)
 
