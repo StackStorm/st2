@@ -48,7 +48,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                        'port': 8822,
                        'username': 'ubuntu',
                        'key_files': '~/.ssh/ubuntu_ssh',
-                       'timeout': '600'}
+                       'timeout': '60'}
         self.ssh_cli = ParamikoSSHClient(**conn_params)
 
     @patch('paramiko.SSHClient', Mock)
@@ -446,7 +446,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                          'allow_agent': False,
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
-                         'timeout': '600',
+                         'timeout': '60',
                          'port': 8822}
         mock_cli.connect.assert_called_once_with(**expected_conn)
 
