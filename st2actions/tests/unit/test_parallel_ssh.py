@@ -50,7 +50,7 @@ class ParallelSSHTests(unittest2.TestCase):
             'look_for_keys': False,
             'password': 'ubuntu',
             'username': 'ubuntu',
-            'timeout': 60,
+            'timeout': 30,
             'port': 22
         }
         for host in hosts:
@@ -72,7 +72,7 @@ class ParallelSSHTests(unittest2.TestCase):
             'look_for_keys': False,
             'password': 'ubuntu',
             'username': 'ubuntu',
-            'timeout': 60,
+            'timeout': 30,
             'port': 22
         }
         for host in hosts:
