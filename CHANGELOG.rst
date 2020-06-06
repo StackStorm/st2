@@ -24,6 +24,8 @@ Fixed
   their state to the MongoDB database. (bug fix) #4932
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fix a bug where passing an empty list to a with items task in a subworkflow causes
+  the parent workflow to be stuck in running status. (bug fix) #4954
 
 * Fixed bug where action information in RuleDB object was not being parsed properly
   because mongoengine EmbeddedDocument objects were added to JSON_UNFRIENDLY_TYPES and skipped.

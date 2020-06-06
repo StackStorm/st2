@@ -1,0 +1,6 @@
+---
+name: orquesta-test-subworkflow-empty-with-items
+description: A workflow for testing passing an emtpy list to with items task in a subworkflow.
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-subworkflow-empty-with-items.yaml
+enabled: true
