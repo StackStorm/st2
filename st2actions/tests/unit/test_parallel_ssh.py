@@ -22,7 +22,6 @@ import unittest2
 from st2common.runners.parallel_ssh import ParallelSSHClient
 from st2common.runners.paramiko_ssh import ParamikoSSHClient
 from st2common.runners.paramiko_ssh import SSHCommandTimeoutError
-
 import st2tests.config as tests_config
 tests_config.parse_args()
 
@@ -44,8 +43,7 @@ class ParallelSSHTests(unittest2.TestCase):
         client = ParallelSSHClient(hosts=hosts,
                                    user='ubuntu',
                                    password='ubuntu',
-                                   connect=False,
-                                   timeout=30)
+                                   connect=False)
         client.connect()
         expected_conn = {
             'allow_agent': False,
@@ -67,8 +65,7 @@ class ParallelSSHTests(unittest2.TestCase):
         client = ParallelSSHClient(hosts=hosts,
                                    user='ubuntu',
                                    password='ubuntu',
-                                   connect=False,
-                                   timeout=30)
+                                   connect=False)
         client.connect()
         expected_conn = {
             'allow_agent': False,
