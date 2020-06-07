@@ -191,7 +191,7 @@ def format_elapsed_time(delta_in_seconds):
     seconds = delta.seconds
 
     if days > 0:
-        elapsed_time_string = '%sd %sh%sm%ss' % (days, hours, minutes, seconds)
+        elapsed_time_string = '%sd%sh%sm%ss' % (days, hours, minutes, seconds)
     elif hours > 0:
         elapsed_time_string = '%sh%sm%ss' % (hours, minutes, seconds)
     elif minutes > 0:
