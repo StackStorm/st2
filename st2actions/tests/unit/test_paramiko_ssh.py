@@ -43,7 +43,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
         """
         cfg.CONF.set_override(name='ssh_key_file', override=None, group='system_user')
         cfg.CONF.set_override(name='use_ssh_config', override=False, group='ssh_runner')
-        cfg.CONF.set_override(name='ssh_connect_timeout', override='30', group='ssh_runner')
+        cfg.CONF.set_override(name='ssh_connect_timeout', override=30, group='ssh_runner')
 
         conn_params = {'hostname': 'dummy.host.org',
                        'port': 8822,
