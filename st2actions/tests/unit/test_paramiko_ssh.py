@@ -49,7 +49,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                        'port': 8822,
                        'username': 'ubuntu',
                        'key_files': '~/.ssh/ubuntu_ssh',
-                       'timeout': '60'}
+                       'timeout': '30'}
         self.ssh_cli = ParamikoSSHClient(**conn_params)
 
     @patch('paramiko.SSHClient', Mock)
@@ -109,7 +109,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                          'allow_agent': False,
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
-                         'timeout': 60,
+                         'timeout': 30,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -128,7 +128,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'key_filename': 'id_rsa',
-                         'timeout': 60,
+                         'timeout': 30,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -168,7 +168,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'pkey': pkey,
-                         'timeout': 60,
+                         'timeout': 30,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -232,7 +232,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'pkey': pkey,
-                         'timeout': 60,
+                         'timeout': 30,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -326,7 +326,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'key_filename': 'id_rsa',
-                         'timeout': 60,
+                         'timeout': 30,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -355,7 +355,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'key_filename': 'id_rsa',
-                         'timeout': 60,
+                         'timeout': 30,
                          'port': 22,
                          'sock': mock.bastion_socket}
         mock.client.connect.assert_called_once_with(**expected_conn)
@@ -377,7 +377,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'key_filename': 'id_rsa',
-                         'timeout': 60,
+                         'timeout': 30,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -418,7 +418,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                          'key_filename': 'stanley_rsa',
                          'allow_agent': False,
                          'look_for_keys': False,
-                         'timeout': 60,
+                         'timeout': 30,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
