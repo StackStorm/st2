@@ -185,8 +185,8 @@ def format_execution_status(instance):
 
 def format_elapsed_time(delta_in_seconds):
     delta = relativedelta(seconds=delta_in_seconds)
-    days    = delta.days
-    hours   = delta.hours
+    days = delta.days
+    hours = delta.hours
     minutes = delta.minutes
     seconds = delta.seconds
 
