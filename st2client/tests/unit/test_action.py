@@ -536,17 +536,3 @@ class ActionCommandTestCase(base.BaseCLITestCase):
                  mock.call('/executions/456', expected),
                  mock.call('/executions/789', expected)]
         httpclient.HTTPClient.put.assert_has_calls(calls)
-
-    @mock.patch.object(
-        models.ResourceManager, 'get_by_ref_or_id',
-        mock.MagicMock(side_effect=get_by_ref))
-    @mock.patch.object(
-        models.ResourceManager, 'get_by_name',
-        mock.MagicMock(side_effect=get_by_name))
-    @mock.patch.object(
-        httpclient.HTTPClient, 'put',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
-    def test_elapsed_time_string_fast_action(self):
-        self.shell.run(['run', 'core.pause', 'max_pause=10'])
-        expected = { 'status': 'succeeded (10s elapsed)'}
-        httpclient.HTTPClient.put.assert_called_with('/executions', expected)
