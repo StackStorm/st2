@@ -18,7 +18,7 @@
     },
     "status": "succeeded",
     "start_timestamp": "2014-12-02T19:56:06.900000Z",
-    "end_timestamp": "2014-12-02T21:56:07.000000Z",
+    "end_timestamp": "2014-12-02T21:56:07.100000Z",
     "action": {
         "ref": "core.ping"
     },
