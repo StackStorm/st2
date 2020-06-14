@@ -178,7 +178,7 @@ def format_execution_status(instance):
         end_timestamp = calendar.timegm(end_timestamp.timetuple())
 
         elapsed_time_string = format_elapsed_time(end_timestamp - start_timestamp)
-        instance.status = '%s (%s elapsed) %s %s' % (instance.status, elapsed_time_string, start_timestamp, end_timestamp)
+        instance.status = '%s (%s elapsed)' % (instance.status, elapsed_time_string)
 
     return instance
 
