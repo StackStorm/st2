@@ -8,12 +8,9 @@ choose_sysinit() {
   local service="$1" svinit="sysv"
   if [ -d /run/systemd/system ]; then
     svinit=systemd
-  elif [ "$(cat /proc/1/comm)" = init ] && [ -f /etc/init/${service}.conf ] &&
-         (/sbin/initctl version 2>&1 | grep -q upstart); then
-    svinit=upstart
   else
     if [ ! -x /etc/init.d/${service} ]; then
-      >&2 echo "Supported init systems: systemd, upstart and sysv"
+      >&2 echo "Supported init systems: systemd and sysv"
       >&2 echo "/etc/init.d/${service} not found or disabled"
       exit 99
     fi
@@ -34,10 +31,6 @@ spawn_workers() {
     systemd)
       echo "$seq" | xargs -I{} /bin/systemctl $action \
           st2actionrunner@{}
-      ;;
-    upstart)
-      echo "$seq" | xargs -I{} /sbin/initctl $action \
-          st2actionrunner-worker WORKERID={}
       ;;
     sysv)
       echo "$seq" | xargs -I{} /bin/sh -c \
