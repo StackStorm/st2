@@ -104,6 +104,13 @@ class ParamikoRemoteCommandActionTestCase(unittest2.TestCase):
         ex = 'export FOO=BAR && cd /tmp && echo boo bah baz'
         self.assertEqual(cmd_action.get_full_command_string(), ex)
 
+    def test_get_command_error_after_ssh_connect_timeout(self):
+        cmd_action = ParamikoRemoteCommandActionTestCase._get_test_command_action(
+            'echo foo bar')
+        cmd_action.port = 22222
+        ex = 'cd /tmp && echo foo bar'
+        self.assertEqual(cmd_action.get_full_command_string(), ex)
+
     @staticmethod
     def _get_test_command_action(command):
         cmd_action = ParamikoRemoteCommandAction('fixtures.remote_command',
