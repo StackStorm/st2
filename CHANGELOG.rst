@@ -10,8 +10,17 @@ Added
   group in st2.conf.
   This option was requested by Harry Lee (@tclh123) and contributed by Marcel Weinberg (@winem).
 
+Added
+~~~~~
+* Add make command to autogen JSON schema from the models of action, rule, etc. Add check
+  to ensure update to the models require schema to be regenerated. (new feature)
+
 Fixed
 ~~~~~
+* Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
+
+  Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)
+
 * Fixed a bug where persisting Orquesta to the MongoDB database returned an error
   ``message: key 'myvar.with.period' must not contain '.'``. This happened anytime an
   ``input``, ``output``, ``publish`` or context ``var`` contained a key with a ``.`` within
@@ -21,7 +30,11 @@ Fixed
   their state to the MongoDB database. (bug fix) #4932
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fix a bug where passing an empty list to a with items task in a subworkflow causes
+  the parent workflow to be stuck in running status. (bug fix) #4954
 
+* Fixed a bug in the example nginx HA template declared headers twice (bug fix) #4966
+  Contributed by @punkrokk
 
 3.2.0 - April 27, 2020
 ----------------------

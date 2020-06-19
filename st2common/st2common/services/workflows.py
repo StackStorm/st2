@@ -595,7 +595,7 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
 
             # Fast forward task execution to completion.
             update_task_execution(str(task_ex_db.id), statuses.SUCCEEDED)
-            update_task_state(str(task_ex_db.id), statuses.SUCCEEDED, publish=False)
+            update_task_state(str(task_ex_db.id), statuses.SUCCEEDED)
 
             # Refresh and return the task execution
             return wf_db_access.TaskExecution.get_by_id(str(task_ex_db.id))

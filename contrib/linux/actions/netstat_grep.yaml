@@ -9,5 +9,6 @@
       immutable: true
       default: "for pid in {{pids}}; do netstat -pant | grep $pid; done; exit 0"
     pids:
-      description: "List of pids"
+      description: "List of pids. ex: [1111, 2222]"
       required: true
+      type: "array"
