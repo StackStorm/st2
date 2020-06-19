@@ -49,7 +49,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                        'port': 8822,
                        'username': 'ubuntu',
                        'key_files': '~/.ssh/ubuntu_ssh',
-                       'timeout': '30'}
+                       'timeout': 28}
         self.ssh_cli = ParamikoSSHClient(**conn_params)
 
     @patch('paramiko.SSHClient', Mock)
@@ -346,7 +346,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                                  'hostname': 'bastion.host.org',
                                  'look_for_keys': False,
                                  'key_filename': 'id_rsa',
-                                 'timeout': 60,
+                                 'timeout': 30,
                                  'port': 22}
         mock.bastion_client.connect.assert_called_once_with(**expected_bastion_conn)
 
