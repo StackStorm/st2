@@ -447,7 +447,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
                          'allow_agent': False,
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
-                         'timeout': '60',
+                         'timeout': 30,
                          'port': 8822}
         mock_cli.connect.assert_called_once_with(**expected_conn)
 
