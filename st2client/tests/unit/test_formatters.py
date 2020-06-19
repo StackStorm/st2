@@ -115,10 +115,6 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         content = self._get_execution(argv)
         self.assertEqual(content, FIXTURES['results']['execution_get_attributes.txt'])
 
-    def test_execution_get_attribute_with_hours_in_elapsed_time(self):
-        argv = ['execution', 'get', DURATION_HOURS['id'], '--attr', 'status']
-        content = self._get_execution(argv)
-        self.assertEqual(content, FIXTURES['results']['execution_get_attribute_with_hours_in_elapsed_time.txt'])
 
     def test_execution_get_default_in_json(self):
         argv = ['execution', 'get', EXECUTION['id'], '-j']
@@ -137,6 +133,18 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         argv = ['execution', 'get', OUTPUT_SCHEMA['id']]
         content = self._get_schema_execution(argv)
         self.assertEqual(content, FIXTURES['results']['execution_get_has_schema.txt'])
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(DURATION_HOURS), 200, 'OK', {})))
+    def test_execution_get_attribute_with_hours_in_elapsed_time(self):
+        argv = ['execution', 'get', DURATION_HOURS['id']]
+        self.assertEqual(self.shell.run(argv), 0)
+        self._undo_console_redirect()
+        with open(self.path, 'r') as fd:
+            content = fd.read()
+
+        self.assertEqual(content, FIXTURES['results']['execution_get_attribute_with_hours_in_elapsed_time.txt'])
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
