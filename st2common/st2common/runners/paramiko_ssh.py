@@ -62,7 +62,7 @@ class SSHCommandTimeoutError(Exception):
         self.ssh_connect_timeout = ssh_connect_timeout
         self.stdout = stdout
         self.stderr = stderr
-        self.message = ('Command didn\'t finish in %s seconds or the SSH connection ' +
+        self.message = ('Command didn\'t finish in %s seconds or the SSH connection '
                        'did not succeed in %s seconds' % (timeout, ssh_connect_timeout))
         super(SSHCommandTimeoutError, self).__init__(self.message)
 
