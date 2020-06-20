@@ -30,8 +30,6 @@ server {
 server {
   listen       *:443 ssl;
 
-  ssl on;
-
   ssl_certificate           /etc/ssl/st2/st2.crt;
   ssl_certificate_key       /etc/ssl/st2/st2.key;
   ssl_session_cache         shared:SSL:10m;
@@ -70,7 +68,6 @@ server {
     chunked_transfer_encoding off;
     proxy_buffering off;
     proxy_cache off;
-    proxy_set_header Host $host;
   }
 
   location @streamError {
@@ -127,7 +124,6 @@ server {
     chunked_transfer_encoding off;
     proxy_buffering off;
     proxy_cache off;
-    proxy_set_header Host $host;
   }
 
   location /mistral/ {
@@ -146,7 +142,6 @@ server {
     chunked_transfer_encoding off;
     proxy_buffering off;
     proxy_cache off;
-    proxy_set_header Host $host;
   }
 
   location / {

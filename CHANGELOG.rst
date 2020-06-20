@@ -35,6 +35,8 @@ Fixed
 * Fix a bug where passing an empty list to a with items task in a subworkflow causes
   the parent workflow to be stuck in running status. (bug fix) #4954
 
+* Fixed a bug in the example nginx HA template declared headers twice (bug fix) #4966
+  Contributed by @punkrokk
 
 3.2.0 - April 27, 2020
 ----------------------
