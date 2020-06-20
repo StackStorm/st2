@@ -118,7 +118,8 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def test_execution_get_attribute_with_hours_in_elapsed_time(self):
         argv = ['execution', 'get', DURATION_HOURS['id'], '--attr', 'status']
         content = self._get_execution(argv)
-        self.assertEqual(content, FIXTURES['results']['execution_get_attribute_with_hours_in_elapsed_time.txt'])
+        self.assertEqual(
+            content, FIXTURES['results']['execution_get_attribute_with_hours_in_elapsed_time.txt'])
 
     def test_execution_get_default_in_json(self):
         argv = ['execution', 'get', EXECUTION['id'], '-j']
