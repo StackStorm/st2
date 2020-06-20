@@ -62,8 +62,8 @@ class SSHCommandTimeoutError(Exception):
         self.ssh_connect_timeout = ssh_connect_timeout
         self.stdout = stdout
         self.stderr = stderr
-        self.message = 'Command didn\'t finish in %s seconds or the SSH connection did not succeed in %s seconds' % \
-                        (timeout, ssh_connect_timeout)
+        self.message = ('Command didn\'t finish in %s seconds or the SSH connection ' +
+                       'did not succeed in %s seconds' % (timeout, ssh_connect_timeout))
         super(SSHCommandTimeoutError, self).__init__(self.message)
 
     def __repr__(self):
@@ -420,7 +420,7 @@ class ParamikoSSHClient(object):
 
                 stdout = sanitize_output(stdout.getvalue(), uses_pty=uses_pty)
                 stderr = sanitize_output(stderr.getvalue(), uses_pty=uses_pty)
-                raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout, 
+                raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout,
                                              ssh_connect_timeout=self.ssh_connect_timeout,
                                              stdout=stdout, stderr=stderr)
 
