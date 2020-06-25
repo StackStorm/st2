@@ -29,6 +29,11 @@ Fixed
 
 * Fixed a bug in the example nginx HA template declared headers twice (bug fix) #4966
   Contributed by @punkrokk
+* Fixed a bug in the ``paramiko_ssh`` runner where SSH sockets were not getting cleaned
+  up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+  
 
 3.2.0 - April 27, 2020
 ----------------------
