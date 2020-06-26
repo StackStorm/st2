@@ -31,7 +31,7 @@ Fixed
   Contributed by @punkrokk
 
 * Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. #4975 ( See also
-  #4832 and https://github.com/gevent/gevent/issues/1016)
+  #4832 and https://github.com/gevent/gevent/issues/1016) Contributed by @punkrokk
 
 3.2.0 - April 27, 2020
 ----------------------
