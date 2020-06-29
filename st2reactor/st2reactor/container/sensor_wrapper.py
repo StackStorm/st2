@@ -18,7 +18,7 @@ from __future__ import absolute_import
 # the master process (gunicorn_config.py), it breaks tons of things
 # including shutdown
 # NOTE: It's important that we perform monkey patch as early as possible before any other modules
-# are important, otherwise SSL support for sensor clients won't work.
+# are imported, otherwise SSL support for sensor clients won't work.
 # See https://github.com/StackStorm/st2/issues/4832, https://github.com/StackStorm/st2/issues/4975
 # and https://github.com/gevent/gevent/issues/1016
 # for details.
