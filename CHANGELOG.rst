@@ -29,6 +29,8 @@ Fixed
 
 * Fixed a bug in the example nginx HA template declared headers twice (bug fix) #4966
   Contributed by @punkrokk
+  
+* Switched mongo 4.0 as the default version in EL8 and Ubuntu 16.04 (xenail) @punkrokk
 
 3.2.0 - April 27, 2020
 ----------------------
