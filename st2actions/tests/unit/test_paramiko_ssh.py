@@ -855,20 +855,5 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
         ssh_client.socket = None
         ssh_client.bastion_socket = None
 
-        # Make sure we havent called any close methods at this point
-        # TODO: Replace these with .assert_not_called() once it's Python 3.6+ only
-        self.assertEqual(ssh_client.socket.close.call_count, 0)
-        self.assertEqual(ssh_client.client.close.call_count, 0)
-        self.assertEqual(ssh_client.sftp_client.close.call_count, 0)
-        self.assertEqual(ssh_client.bastion_socket.close.call_count, 0)
-        self.assertEqual(ssh_client.bastion_client.close.call_count, 0)
-
-        # Call the function that has changed
+        # Call the function, this should not throw an exception
         ssh_client.close()
-
-        # TODO: Replace these with .assert_called_once() once it's Python 3.6+ only
-        self.assertEqual(ssh_client.socket.close.call_count, 0)
-        self.assertEqual(ssh_client.client.close.call_count, 0)
-        self.assertEqual(ssh_client.sftp_client.close.call_count, 0)
-        self.assertEqual(ssh_client.bastion_socket.close.call_count, 0)
-        self.assertEqual(ssh_client.bastion_client.close.call_count, 0)
