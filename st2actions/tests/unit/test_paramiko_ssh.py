@@ -814,20 +814,46 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
 
         # Make sure .close() doesn't actually call anything real
         ssh_client.client = Mock()
-        ssh_client.sftp_client = None
-        ssh_client.bastion_client = None
+        ssh_client.sftp_client = Mock()
+        ssh_client.bastion_client = Mock()
 
         ssh_client.socket = Mock()
+        ssh_client.bastion_socket = Mock()
 
         # Make sure we havent called any close methods at this point
         # TODO: Replace these with .assert_not_called() once it's Python 3.6+ only
-        self.assertEqual(ssh_client.socket.process.kill.call_count, 0)
-        self.assertEqual(ssh_client.socket.process.poll.call_count, 0)
+        self.assertEqual(ssh_client.socket.close.call_count, 0)
+        self.assertEqual(ssh_client.client.close.call_count, 0)
+        self.assertEqual(ssh_client.sftp_client.close.call_count, 0)
+        self.assertEqual(ssh_client.bastion_socket.close.call_count, 0)
+        self.assertEqual(ssh_client.bastion_client.close.call_count, 0)
 
         # Call the function that has changed
         ssh_client.close()
 
-        # Make sure we have called kill and poll
         # TODO: Replace these with .assert_called_once() once it's Python 3.6+ only
-        self.assertEqual(ssh_client.socket.process.kill.call_count, 1)
-        self.assertEqual(ssh_client.socket.process.poll.call_count, 1)
+        self.assertEqual(ssh_client.socket.close.call_count, 1)
+        self.assertEqual(ssh_client.client.close.call_count, 1)
+        self.assertEqual(ssh_client.sftp_client.close.call_count, 1)
+        self.assertEqual(ssh_client.bastion_socket.close.call_count, 1)
+        self.assertEqual(ssh_client.bastion_client.close.call_count, 1)
+
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
+    def test_socket_not_closed_if_none(self):
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'password': 'pass',
+                       'timeout': '600'}
+        ssh_client = ParamikoSSHClient(**conn_params)
+
+        # Make sure .close() doesn't actually call anything real
+        ssh_client.client = None
+        ssh_client.sftp_client = None
+        ssh_client.bastion_client = None
+
+        ssh_client.socket = None
+        ssh_client.bastion_socket = None
+
+        # Call the function, this should not throw an exception
+        ssh_client.close()

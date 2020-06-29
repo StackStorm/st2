@@ -452,18 +452,17 @@ class ParamikoSSHClient(object):
         return [stdout, stderr, status]
 
     def close(self):
-        self.logger.debug('Closing server connection')
-
-        self.client.close()
-
         if self.socket:
-            self.logger.debug('Closing proxycommand socket connection')
-            # https://github.com/paramiko/paramiko/issues/789  Avoid zombie ssh processes
-            self.socket.process.kill()
-            self.socket.process.poll()
+            self.socket.close()
+
+        if self.client:
+            self.client.close()
 
         if self.sftp_client:
             self.sftp_client.close()
+
+        if self.bastion_socket:
+            self.bastion_socket.close()
 
         if self.bastion_client:
             self.bastion_client.close()
