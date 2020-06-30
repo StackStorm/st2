@@ -35,7 +35,6 @@ __all__ = [
 ]
 
 
-
 LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
 LOG = logging.getLogger(LOGGER_NAME)
 
