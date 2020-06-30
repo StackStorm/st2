@@ -12,7 +12,7 @@ Added
 Changed
 ~~~~~~~
 
-* Switched mongo 4.0 as the default version in EL8 and Ubuntu 16.04 (xenial) @punkrokk
+* Switched mongo 4.0 as the default version starting with all supported OS's in ST2 3.3.0 @punkrokk
 
 Fixed
 ~~~~~
