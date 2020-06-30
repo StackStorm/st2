@@ -9,6 +9,11 @@ Added
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
   to ensure update to the models require schema to be regenerated. (new feature)
 
+Changed
+~~~~~~~
+
+* Switched mongo 4.0 as the default version in EL8 and Ubuntu 16.04 (xenial) @punkrokk
+
 Fixed
 ~~~~~
 * Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
@@ -29,8 +34,6 @@ Fixed
 
 * Fixed a bug in the example nginx HA template declared headers twice (bug fix) #4966
   Contributed by @punkrokk
-
-* Switched mongo 4.0 as the default version in EL8 and Ubuntu 16.04 (xenail) @punkrokk
 
 * Fixed a bug in the ``paramiko_ssh`` runner where SSH sockets were not getting cleaned
   up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
