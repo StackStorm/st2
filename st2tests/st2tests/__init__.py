@@ -28,3 +28,5 @@ __all__ = [
     'DbModelTestCase',
     'WorkflowTestCase'
 ]
+
+__version__ = '3.3dev'
