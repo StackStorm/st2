@@ -11,7 +11,6 @@ Added
 
 Changed
 ~~~~~~~
-
 * Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2 ``v3.3.0`` (improvement) #4972
 Contributed by @punkrokk 
 
