@@ -515,8 +515,8 @@ class Router(object):
         try:
             resp = func(**kw)
         except StackStormDBObjectNotFoundError as e:
-            LOG.warning('Failed to call controller function "%s" for operation "%s": %s' %
-                       (func.__name__, endpoint['operationId'], six.text_type(e))))
+            LOG.warning('Failed to call controller function "%s" for operation "%s": %s, %s' %
+                       (func.__name__, endpoint['operationId'], six.text_type(e), str(e)))
             raise e
         except Exception as e:
             LOG.exception('Failed to call controller function "%s" for operation "%s": %s' %
