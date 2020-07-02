@@ -32,7 +32,7 @@ from webob.compat import url_unquote
 
 from st2common.exceptions import rbac as rbac_exc
 from st2common.exceptions import auth as auth_exc
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.exceptions.db import StackStormDBKeyNotFoundError
 from st2common import log as logging
 from st2common.persistence.auth import User
 from st2common.rbac.backends import get_rbac_backend
@@ -514,7 +514,7 @@ class Router(object):
 
         try:
             resp = func(**kw)
-        except StackStormDBObjectNotFoundError as e:
+        except StackStormDBKeyNotFoundError as e:
             LOG.warning('Failed to call controller function "%s" for operation "%s": %s, %s' %
                        (func.__name__, endpoint['operationId'], six.text_type(e), str(e)))
             raise e

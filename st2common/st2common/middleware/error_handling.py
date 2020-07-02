@@ -62,7 +62,8 @@ class ErrorHandlingMiddleware(object):
             if isinstance(e, exc.HTTPException):
                 status_code = status
                 message = six.text_type(e)
-            elif isinstance(e, db_exceptions.StackStormDBObjectNotFoundError):
+            elif isinstance(e, db_exceptions.StackStormDBObjectNotFoundError) or
+                 isinstance(e, db_exceptions.StackStormDBKeyNotFoundError):
                 status_code = exc.HTTPNotFound.code
                 message = six.text_type(e)
             elif isinstance(e, db_exceptions.StackStormDBObjectConflictError):
