@@ -28,7 +28,7 @@ elif [ -z "$sv" ] && ( /sbin/start 2>&1 | grep -q "missing job name" ); then
   sv=upstart
   svbin=$UPSTARTCTL
 else
-  # Old debians, redhats and centos, amazon etc
+  # Old debians, amazon etc
   sv=sysv
   svbin=/etc/init.d/$WORKERSVC
   if [ ! -x $svbin ]; then

@@ -6,6 +6,7 @@ in development
 
 Added
 ~~~~~
+* Removed EL6 support
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
   to ensure update to the models require schema to be regenerated. (new feature)
 
