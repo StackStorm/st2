@@ -329,7 +329,7 @@ class TestWebhooksController(FunctionalTest):
     def test_authentication_headers_should_be_removed(self, dispatch_mock):
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'St2-Api-_Key': 'foobar',
+            'St2-Api-Key': 'foobar',
             'X-Auth-Token': 'deadbeaf',
             'Cookie': 'foo=bar'
         }
