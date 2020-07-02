@@ -33,6 +33,10 @@ Fixed
   up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
+* Fixed a bug where authentication headers sent to a webhook trigger got stored in the database.
+
+  Contributed by @potato and @knagy
   
 
 3.2.0 - April 27, 2020
