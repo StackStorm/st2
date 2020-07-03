@@ -6,7 +6,8 @@ in development
 
 Added
 ~~~~~
-* Removed EL6 support
+* EL6 deprecation. Removed building of EL6 RPMs and associated jobs
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
   to ensure update to the models require schema to be regenerated. (new feature)
 
