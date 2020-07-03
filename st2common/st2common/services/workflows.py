@@ -1042,6 +1042,11 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
         update_progress(wf_ex_db, '\n', log=False)
         update_execution_records(wf_ex_db, conductor)
 
+        if conductor.get_workflow_status() in statuses.COMPLETED_STATUSES:
+            msg = 'The workflow execution is completed with status "%s".'
+            update_progress(wf_ex_db, msg % conductor.get_workflow_status())
+            update_progress(wf_ex_db, '\n', log=False)
+
     # Iterate while there are next tasks identified for processing. In the case for
     # task with no action execution defined, the task execution will complete
     # immediately with a new set of tasks available.
