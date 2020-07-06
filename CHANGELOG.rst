@@ -6,8 +6,6 @@ in development
 
 Added
 ~~~~~
-* EL6 deprecation. Removed building of EL6 RPMs and associated jobs
-  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
   to ensure update to the models require schema to be regenerated. (new feature)
 
@@ -35,8 +33,14 @@ Fixed
   up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
-  
 
+Removed
+~~~~~~~
+
+* Removed EL6 #4984
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+  
 3.2.0 - April 27, 2020
 ----------------------
 
