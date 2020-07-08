@@ -427,7 +427,7 @@ def get_root_execution(execution_db):
     return get_root_execution(parent_execution_db) if parent_execution_db else execution_db
 
 
-def store_execution_output_data(execution_db, data, action_db=None, output_type='output',
+def store_execution_output_data(execution_db, action_db, data, output_type='output',
                                 timestamp=None):
     """
     Store output from an execution as a new document in the collection.
