@@ -635,7 +635,9 @@ class WorkflowTestCase(ExecutionDbTestCase):
             'st2': {
                 'api_url': api_util.get_full_public_api_url(),
                 'action_execution_id': str(ac_ex_db.id),
-                'user': 'stanley'
+                'user': 'stanley',
+                'action': ac_ex_db.action['ref'],
+                'runner': ac_ex_db.runner['name']
             }
         }
 
