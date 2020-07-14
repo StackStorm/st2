@@ -33,6 +33,8 @@ Fixed
   up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
+  to fix the typo (bug fix) #4992
 
 Removed
 ~~~~~~~
