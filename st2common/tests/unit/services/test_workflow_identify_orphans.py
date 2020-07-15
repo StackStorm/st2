@@ -136,7 +136,9 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
 
         # Create the WorkflowExecutionDB record first since the ID needs to be
         # included in the LiveActionDB and ActionExecutionDB records.
+        st2_ctx = {'st2': {'action_execution_id': '123', 'action': 'foobar', 'runner': 'orquesta'}}
         wf_ex_db = wf_db_models.WorkflowExecutionDB(
+            context=st2_ctx,
             status=status,
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp

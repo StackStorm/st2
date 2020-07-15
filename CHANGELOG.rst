@@ -33,10 +33,18 @@ Fixed
   up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
-  
 
 * Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. #4975 ( See also
   #4832 and https://github.com/gevent/gevent/issues/1016) Contributed by @punkrokk
+
+=======
+Removed
+~~~~~~~
+
+* Removed ``CentOS 6``/``RHEL 6`` support #4984
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+  
 
 3.2.0 - April 27, 2020
 ----------------------
