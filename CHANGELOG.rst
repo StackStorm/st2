@@ -8,6 +8,8 @@ Added
 ~~~~~
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
   to ensure update to the models require schema to be regenerated. (new feature)
+* Improved st2sensor service logging message when a sensor will not be loaded when assigned to a
+  different partition (@punkrokk)
 
 Fixed
 ~~~~~
@@ -38,8 +40,14 @@ Fixed
   up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
-  
 
+Removed
+~~~~~~~
+
+* Removed ``CentOS 6``/``RHEL 6`` support #4984
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+  
 3.2.0 - April 27, 2020
 ----------------------
 

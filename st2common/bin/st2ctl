@@ -115,10 +115,8 @@ function service_manager() {
     /sbin/initctl $action $svcname
   elif command -v service > /dev/null 2>&1; then
     service $svcname $action
-  elif [ -x /etc/init.d/${1} ]; then
-    /etc/init.d/$svcname $action
   else
-    echo -e "\e[31mError: Unknown service manager, we ONLY support systemd, upstart and sysv! \e[0m\n"
+    echo -e "\e[31mError: Unknown service manager, we ONLY support systemd and upstart! \e[0m\n"
     exit 1
   fi
 }
