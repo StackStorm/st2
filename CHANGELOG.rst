@@ -45,7 +45,6 @@ Removed
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
   
-
 3.2.0 - April 27, 2020
 ----------------------
 
