@@ -49,8 +49,6 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Amanda McGuinness ([@amanda11](https://github.com/amanda11)) - StackStorm Exchange, Ansible, ChatOps, Documentation, core.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
-* Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
-* Shu Sugimoto ([@shusugmt](https://github.com/shusugmt)) - Docker, StackStorm Exchange packs.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
 * Marcel Weinberg ([@winem](https://github.com/winem)) - Community, Docker, Core.
 
