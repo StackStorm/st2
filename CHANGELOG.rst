@@ -35,6 +35,8 @@ Fixed
   up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fixed a bytes/string encoding bug in the ``linux.dig`` action so it should work on Python 3
+  (bug fix) #4993
 
 Removed
 ~~~~~~~
