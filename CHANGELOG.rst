@@ -36,6 +36,10 @@ Fixed
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
 
+* Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
+  
+  Contributed by @punkrokk
+
 Removed
 ~~~~~~~
 
