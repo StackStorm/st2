@@ -8,6 +8,8 @@ Added
 ~~~~~
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
   to ensure update to the models require schema to be regenerated. (new feature)
+* Improved st2sensor service logging message when a sensor will not be loaded when assigned to a
+  different partition (@punkrokk)
 * Add support for a configurable connect timeout for SSH connections as requested in #4715
   by adding the new configuration parameter ``ssh_connect_timeout`` to the ``ssh_runner``
   group in st2.conf.
@@ -33,7 +35,22 @@ Fixed
 
 * Fixed a bug in the example nginx HA template declared headers twice (bug fix) #4966
   Contributed by @punkrokk
+* Fixed a bug in the ``paramiko_ssh`` runner where SSH sockets were not getting cleaned
+  up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
 
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
+* Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
+  
+  Contributed by @punkrokk
+
+Removed
+~~~~~~~
+
+* Removed ``CentOS 6``/``RHEL 6`` support #4984
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+  
 3.2.0 - April 27, 2020
 ----------------------
 
