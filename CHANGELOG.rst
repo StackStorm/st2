@@ -13,6 +13,7 @@ Added
 * Add support for a configurable connect timeout for SSH connections as requested in #4715
   by adding the new configuration parameter ``ssh_connect_timeout`` to the ``ssh_runner``
   group in st2.conf.
+
   This option was requested by Harry Lee (@tclh123) and contributed by Marcel Weinberg (@winem).
 
 Fixed
