@@ -10,6 +10,11 @@ Added
   to ensure update to the models require schema to be regenerated. (new feature)
 * Improved st2sensor service logging message when a sensor will not be loaded when assigned to a
   different partition (@punkrokk)
+* Add support for a configurable connect timeout for SSH connections as requested in #4715
+  by adding the new configuration parameter ``ssh_connect_timeout`` to the ``ssh_runner``
+  group in st2.conf. (new feature) #4914
+
+  This option was requested by Harry Lee (@tclh123) and contributed by Marcel Weinberg (@winem).
 
 Fixed
 ~~~~~
@@ -38,6 +43,10 @@ Fixed
 * The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
   to fix the typo (bug fix) #4992
 
+* Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
+  
+  Contributed by @punkrokk
+
 Removed
 ~~~~~~~
 
@@ -50,7 +59,6 @@ Removed
 
 Added
 ~~~~~
-
 * Add support for blacklisting / whitelisting hosts to the HTTP runner by adding new
   ``url_hosts_blacklist`` and ``url_hosts_whitelist`` runner attribute. (new feature)
   #4757

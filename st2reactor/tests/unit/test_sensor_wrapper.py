@@ -14,6 +14,9 @@
 
 from __future__ import absolute_import
 
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
+
 import os
 import unittest2
 
@@ -21,8 +24,6 @@ import six
 import mock
 import eventlet
 
-from st2common.util.monkey_patch import monkey_patch
-monkey_patch()
 
 import st2tests.config as tests_config
 from st2tests.base import TESTS_CONFIG_PATH
