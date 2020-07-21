@@ -55,6 +55,7 @@ Removed
 * Removed ``CentOS 6``/``RHEL 6`` support #4984
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+* Removed our fork of ``codecov-python`` and have switched back to the upstream version
   
 3.2.0 - April 27, 2020
 ----------------------
