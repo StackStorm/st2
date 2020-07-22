@@ -981,14 +981,6 @@ rpms:
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make rpm; popd;)
 	pushd st2client && make rpm && popd
 
-rhel-rpms:
-	@echo
-	@echo "==================== rpm ===================="
-	@echo
-	rm -Rf ~/rpmbuild
-	$(foreach COM,$(COMPONENTS), pushd $(COM); make rhel-rpm; popd;)
-	pushd st2client && make rhel-rpm && popd
-
 .PHONY: debs
 debs:
 	@echo
