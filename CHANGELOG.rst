@@ -44,6 +44,8 @@ Fixed
 * Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
   
   Contributed by @punkrokk
+* Fix a regression when updated ``dnspython`` pip dependency resulted in
+  st2 services unable to connect to mongodb remote host (bug fix) #4997
 
 Removed
 ~~~~~~~
