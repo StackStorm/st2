@@ -48,6 +48,8 @@ Fixed
   are parsed properly.
 
   Contributed by Bradley Bishop (@bishopbm1 Encore Technologies)
+* Fix a regression when updated ``dnspython`` pip dependency resulted in
+  st2 services unable to connect to mongodb remote host (bug fix) #4997
 
 Changed
 ~~~~~~~
@@ -61,6 +63,7 @@ Removed
 * Removed ``CentOS 6``/``RHEL 6`` support #4984
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+* Removed our fork of ``codecov-python`` for CI and have switched back to the upstream version (improvement) #5002
   
 3.2.0 - April 27, 2020
 ----------------------
