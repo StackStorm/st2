@@ -48,6 +48,8 @@ Fixed
   are parsed properly.
 
   Contributed by Bradley Bishop (@bishopbm1 Encore Technologies)
+* Fix a regression when updated ``dnspython`` pip dependency resulted in
+  st2 services unable to connect to mongodb remote host (bug fix) #4997
 
 Removed
 ~~~~~~~
