@@ -20,7 +20,7 @@ if [ ${TRAVIS_TEST_RESULT} -eq 0 ]; then
     # Without eventlet being available to the coverage command it will fail with "Couldn't trace with concurrency=eventlet, the module isn't installed."
     pip install eventlet
     # NOTE: codecov only supports coverage==4.5.2
-    pip install coverage<5.0
+    pip install 'coverage<5.0'
     pip install codecov
 
     # 2. Combine coverage report and submit coverage report to codecovs.io
