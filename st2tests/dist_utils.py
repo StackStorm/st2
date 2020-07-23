@@ -3,6 +3,7 @@
 #       Instead modify scripts/dist_utils.py and run 'make .sdist-requirements' to
 #       update dist_utils.py files for all components
 
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
