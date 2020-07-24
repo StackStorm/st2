@@ -17,10 +17,10 @@ from __future__ import absolute_import
 
 import os
 import re
-import collections
 
 import six
 
+from collections.abc import Iterable
 from st2common.util import schema as util_schema
 from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
@@ -167,7 +167,7 @@ def validate_config_against_schema(
     except jsonschema.ValidationError as e:
         attribute = getattr(e, "path", [])
 
-        if isinstance(attribute, (tuple, list, collections.Iterable)):
+        if isinstance(attribute, (tuple, list, Iterable)):
             attribute = [str(item) for item in attribute]
             attribute = ".".join(attribute)
         else:
