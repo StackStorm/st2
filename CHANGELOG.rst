@@ -51,6 +51,12 @@ Fixed
 * Fix a regression when updated ``dnspython`` pip dependency resulted in
   st2 services unable to connect to mongodb remote host (bug fix) #4997
 
+Changed
+~~~~~~~
+
+* The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
+  to fix the typo (bug fix) #4992
+
 Removed
 ~~~~~~~
 
