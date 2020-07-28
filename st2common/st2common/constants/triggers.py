@@ -68,7 +68,7 @@ ACTION_SENSOR_TRIGGER = {
 }
 
 ACTION_FILE_WRITTEN_TRIGGER = {
-    'name': 'st2.action.file_writen',
+    'name': 'st2.action.file_written',
     'pack': SYSTEM_PACK_NAME,
     'description': 'Trigger encapsulating action file being written on disk.',
     'payload_schema': {
