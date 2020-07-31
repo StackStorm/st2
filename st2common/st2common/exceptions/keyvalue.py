@@ -30,6 +30,7 @@ class CryptoKeyNotSetupException(StackStormBaseException):
 class DataStoreKeyNotFoundError(StackStormDBObjectNotFoundError):
     pass
 
+
 class InvalidScopeException(StackStormBaseException):
     pass
 
