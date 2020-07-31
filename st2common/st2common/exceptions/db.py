@@ -16,10 +16,6 @@ from __future__ import absolute_import
 from st2common.exceptions import StackStormBaseException
 
 
-class StackStormDBKeyNotFoundError(StackStormBaseException):
-    pass
-
-
 class StackStormDBObjectNotFoundError(StackStormBaseException):
     pass
 
