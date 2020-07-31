@@ -22,13 +22,13 @@ Changed
 
 Contributed by @punkrokk 
 
+* Added an enhancement where ST2api.log no longer reports the entire traceback when trying to get a datastore value
+  that does not exist. It now reports a simplified log for cleaner reading. Addresses and Fixes #4979
+
+Contributed by Justin Sostre (@saucetray)
+
 Fixed
 ~~~~~
-* Fixed a bug where ST2api.log reports the entire traceback when trying to get a datastore value
-  that does not exist. Fixes #4979
-
-  Contributed by Justin Sostre (@saucetray)
-  
 * Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
 
   Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)
