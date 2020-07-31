@@ -10,6 +10,17 @@ Added
   to ensure update to the models require schema to be regenerated. (new feature)
 * Improved st2sensor service logging message when a sensor will not be loaded when assigned to a
   different partition (@punkrokk)
+* Add support for a configurable connect timeout for SSH connections as requested in #4715
+  by adding the new configuration parameter ``ssh_connect_timeout`` to the ``ssh_runner``
+  group in st2.conf. (new feature) #4914
+
+  This option was requested by Harry Lee (@tclh123) and contributed by Marcel Weinberg (@winem).
+
+Changed
+~~~~~~~
+* Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2 ``v3.3.0`` (improvement) #4972
+
+Contributed by @punkrokk 
 
 Fixed
 ~~~~~
@@ -33,13 +44,31 @@ Fixed
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
 * Fix a bug where passing an empty list to a with items task in a subworkflow causes
   the parent workflow to be stuck in running status. (bug fix) #4954
-
 * Fixed a bug in the example nginx HA template declared headers twice (bug fix) #4966
   Contributed by @punkrokk
+
 * Fixed a bug in the ``paramiko_ssh`` runner where SSH sockets were not getting cleaned
   up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
+* Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
+  
+  Contributed by @punkrokk
+* Fixed bug where action information in RuleDB object was not being parsed properly
+  because mongoengine EmbeddedDocument objects were added to JSON_UNFRIENDLY_TYPES and skipped.
+  Removed this and added if to use to_json method so that mongoengine EmbeddedDocument
+  are parsed properly.
+
+  Contributed by Bradley Bishop (@bishopbm1 Encore Technologies)
+* Fix a regression when updated ``dnspython`` pip dependency resulted in
+  st2 services unable to connect to mongodb remote host (bug fix) #4997
+
+Changed
+~~~~~~~
+
+* The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
+  to fix the typo (bug fix) #4992
 
 Removed
 ~~~~~~~
@@ -47,13 +76,13 @@ Removed
 * Removed ``CentOS 6``/``RHEL 6`` support #4984
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+* Removed our fork of ``codecov-python`` for CI and have switched back to the upstream version (improvement) #5002
   
 3.2.0 - April 27, 2020
 ----------------------
 
 Added
 ~~~~~
-
 * Add support for blacklisting / whitelisting hosts to the HTTP runner by adding new
   ``url_hosts_blacklist`` and ``url_hosts_whitelist`` runner attribute. (new feature)
   #4757
@@ -124,8 +153,8 @@ Fixed
 * Fix the action query when filtering tags. The old implementation returned actions which have the
   provided name as action name and not as tag name. (bug fix) #4828
 
-  Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem) 
-* Fix the passing of arrays to shell scripts where the arrays where not detected as such by the 
+  Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem)
+* Fix the passing of arrays to shell scripts where the arrays where not detected as such by the
   st2 action_db utility. This caused arrays to be passed as Python lists serialized into a string.
 
   Reported by @kingsleyadam #4804 and contributed by Marcel Weinberg (@winem) #4861

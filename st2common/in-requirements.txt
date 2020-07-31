@@ -1,5 +1,6 @@
 # Remeber to list implicit packages here, otherwise version won't be fixated!
 apscheduler
+dnspython
 python-dateutil
 eventlet
 # used by eventlet

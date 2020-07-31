@@ -421,7 +421,10 @@ def register_opts(ignore_errors=False):
             help='Use the .ssh/config file. Useful to override ports etc.'),
         cfg.StrOpt(
             'ssh_config_file_path', default='~/.ssh/config',
-            help='Path to the ssh config file.')
+            help='Path to the ssh config file.'),
+        cfg.IntOpt(
+            'ssh_connect_timeout', default=60,
+            help='Max time in seconds to establish the SSH connection.')
     ]
 
     do_register_opts(ssh_runner_opts, group='ssh_runner')
