@@ -11,3 +11,4 @@
     args:
       description: "Command line arguments"
       default: " "
+      type: "string"
