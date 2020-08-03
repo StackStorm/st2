@@ -16,6 +16,12 @@ Added
 
   This option was requested by Harry Lee (@tclh123) and contributed by Marcel Weinberg (@winem).
 
+Changed
+~~~~~~~
+* Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2 ``v3.3.0`` (improvement) #4972
+
+Contributed by @punkrokk 
+
 Fixed
 ~~~~~
 * Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
@@ -35,10 +41,12 @@ Fixed
   the parent workflow to be stuck in running status. (bug fix) #4954
 * Fixed a bug in the example nginx HA template declared headers twice (bug fix) #4966
   Contributed by @punkrokk
+
 * Fixed a bug in the ``paramiko_ssh`` runner where SSH sockets were not getting cleaned
   up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
 
-  Contributed by Nick Maludy (@nmaludy Encore Technologies
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
 * Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
   
   Contributed by @punkrokk
