@@ -5,7 +5,7 @@ Troubleshooting Guide
 
 **A: The default creds are**:
   user: testu
-  pass: test p
+  pass: testp
 
 **Q: After starting st2 server using** ``tools/launchdev.sh`` **script, getting following error:**::
 
