@@ -16,7 +16,7 @@ Added
 
   This option was requested by Harry Lee (@tclh123) and contributed by Marcel Weinberg (@winem).
 * Added a FAQ for the default user/pass for the `tools/launch_dev.sh` script and print out the
- default pass to screen when the script completes.
+  default pass to screen when the script completes.
 
 Contributed by @punkrokk
 
