@@ -25,7 +25,6 @@ COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
 COMPONENTS_WITHOUT_ST2TESTS := $(shell ls -a | grep ^st2 | grep -v .egg-info | grep -v st2tests | grep -v st2exporter)
 
 COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
-COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER := $(foreach component,$(filter-out contrib/runners/mistral_v2,$(COMPONENTS_WITH_RUNNERS)),$(component))
 
 COMPONENTS_TEST_DIRS := $(wildcard st2*/tests) $(wildcard contrib/runners/*/tests)
 
@@ -43,12 +42,11 @@ space_char :=
 space_char +=
 COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS_WITH_RUNNERS)))
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS)),$(component))
-COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER)),$(component))
 COMPONENTS_TEST_COMMA := $(subst $(slash),$(dot),$(subst $(space_char),$(comma),$(COMPONENTS_TEST)))
 COMPONENTS_TEST_MODULES := $(subst $(slash),$(dot),$(COMPONENTS_TEST_DIRS))
 COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST_MODULES))
 
-COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.* .coverage.mistral.*
+COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.*
 COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 
 REQUIREMENTS := test-requirements.txt requirements.txt
@@ -114,8 +112,6 @@ play:
 	@echo
 	@echo COMPONENTS_WITH_RUNNERS=$(COMPONENTS_WITH_RUNNERS)
 	@echo
-	@echo COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER=$(COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER)
-	@echo
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
 	@echo
 	@echo COMPONENTS_TEST_COMMA=$(COMPONENTS_TEST_COMMA)
@@ -125,8 +121,6 @@ play:
 	@echo COMPONENTS_TEST_MODULES=$(COMPONENTS_TEST_MODULES)
 	@echo
 	@echo COMPONENTS_TEST_MODULES_COMMA=$(COMPONENTS_TEST_MODULES_COMMA)
-	@echo
-	@echo COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER=$(COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER)
 	@echo
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
 	@echo
@@ -455,16 +449,6 @@ compilepy3:
 	@mongo --eval "rs.initiate()"
 	@sleep 15
 
-.PHONY: .cleanmysql
-.cleanmysql:
-	@echo "==================== cleanmysql ===================="
-	@echo "----- Dropping all Mistral MYSQL databases -----"
-	@mysql -uroot -pStackStorm -e "DROP DATABASE IF EXISTS mistral"
-	@mysql -uroot -pStackStorm -e "CREATE DATABASE mistral"
-	@mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'127.0.0.1' IDENTIFIED BY 'StackStorm'"
-	@mysql -uroot -pStackStorm -e "FLUSH PRIVILEGES"
-	@/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/tools/sync_db.py --config-file /etc/mistral/mistral.conf
-
 .PHONY: .cleanrabbitmq
 .cleanrabbitmq:
 	@echo "==================== cleanrabbitmq ===================="
@@ -479,7 +463,7 @@ compilepy3:
 	@echo "Removing all coverage results directories"
 	@echo
 	rm -rf .coverage $(COVERAGE_GLOBS) \
-		.coverage.unit .coverage.integration .coverage.mistral
+		.coverage.unit .coverage.integration
 
 .PHONY: distclean
 distclean: clean
@@ -663,7 +647,7 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
-	for component in $(COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER); do\
+	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
@@ -814,43 +798,8 @@ endif
 .PHONY: .itests-coverage-html
 .itests-coverage-html: .integration-tests-coverage-html
 
-.PHONY: mistral-itests
-mistral-itests: requirements .mistral-itests
-
-.PHONY: .mistral-itests
-.mistral-itests:
-	@echo
-	@echo "==================== MISTRAL integration tests ===================="
-	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/mistral || exit 1;
-
-.PHONY: .run-mistral-itests-coverage
-ifdef INCLUDE_TESTS_IN_COVERAGE
-.run-mistral-itests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),st2tests.mistral.integration
-endif
-.run-mistral-itests-coverage:
-	@echo
-	@echo "==================== MISTRAL integration tests with coverage ===================="
-	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; \
-	    COVERAGE_FILE=.coverage.mistral.integration \
-	    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
-	    $(NOSE_COVERAGE_PACKAGES) \
-		st2tests/integration/mistral || exit 1;
-
-.coverage.mistral.integration:
-	if [ ! -e .coverage.mistral.integration ]; then \
-		make .run-mistral-itests-coverage; \
-	fi
-
-.PHONY: .mistral-itests-coverage-html
-.mistral-itests-coverage-html: .coverage.mistral.integration
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.mistral.integration coverage html
-
 .PHONY: .coverage-combine
-.coverage-combine: .run-unit-tests-coverage .run-integration-tests-coverage .run-mistral-itests-coverage
+.coverage-combine: .run-unit-tests-coverage .run-integration-tests-coverage
 	. $(VIRTUALENV_DIR)/bin/activate; coverage combine $(COVERAGE_GLOBS)
 
 # This is a real target, but we need to do our own make trickery in case some
@@ -992,7 +941,7 @@ debs:
 
 
 .PHONY: ci
-ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
+ci: ci-checks ci-unit ci-integration ci-packs-tests
 
 .PHONY: ci-checks
 ci-checks: compile .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
@@ -1067,15 +1016,6 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 .PHONY: ci-unit
 ci-unit: .unit-tests-coverage-html
 
-.PHONY: ci-unit-nightly
-ci-unit-nightly:
-	# NOTE: We run mistral runner checks only as part of a nightly build to speed up
-	# non nightly builds (Mistral will be deprecated in the future)
-	@echo
-	@echo "============== ci-unit-nightly =============="
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v  contrib/runners/mistral_v2/tests/unit
-
 .PHONY: .ci-prepare-integration
 .ci-prepare-integration:
 	sudo -E ./scripts/travis/prepare-integration.sh
@@ -1085,13 +1025,6 @@ ci-integration: .ci-prepare-integration .itests-coverage-html
 
 .PHONY: ci-runners
 ci-runners: .ci-prepare-integration .runners-itests-coverage-html
-
-.PHONY: .ci-prepare-mistral
-.ci-prepare-mistral:
-	sudo -E ./scripts/travis/setup-mistral.sh
-
-.PHONY: ci-mistral
-ci-mistral: .ci-prepare-integration .ci-prepare-mistral .mistral-itests-coverage-html
 
 .PHONY: ci-orquesta
 ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html

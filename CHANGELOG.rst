@@ -68,6 +68,9 @@ Changed
 Removed
 ~~~~~~~
 
+* Removed ``Mistral``
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 * Removed ``CentOS 6``/``RHEL 6`` support #4984
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
