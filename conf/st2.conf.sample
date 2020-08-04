@@ -299,14 +299,16 @@ logging = /etc/st2/logging.sensorcontainer.conf
 sensor_node_name = sensornode1
 
 [ssh_runner]
+# Path to the ssh config file.
+ssh_config_file_path = ~/.ssh/config
 # Max number of parallel remote SSH actions that should be run. Works only with Paramiko SSH runner.
 max_parallel_actions = 50
+# Max time in seconds to establish the SSH connection.
+ssh_connect_timeout = 60
 # Location of the script on the remote filesystem.
 remote_dir = /tmp
 # Use the .ssh/config file. Useful to override ports etc.
 use_ssh_config = False
-# Path to the ssh config file.
-ssh_config_file_path = ~/.ssh/config
 # How partial success of actions run on multiple nodes should be treated.
 allow_partial_failure = False
 

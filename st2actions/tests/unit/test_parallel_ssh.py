@@ -152,7 +152,8 @@ class ParallelSSHTests(unittest2.TestCase):
                                    connect=True)
         mock_run = Mock(side_effect=SSHCommandTimeoutError(cmd='pwd', timeout=10,
                                                            stdout='a',
-                                                           stderr='b'))
+                                                           stderr='b',
+                                                           ssh_connect_timeout=30))
         for host in hosts:
             hostname, _ = client._get_host_port_info(host)
             host_client = client._hosts_client[host]
