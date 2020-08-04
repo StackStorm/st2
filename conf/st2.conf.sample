@@ -214,34 +214,6 @@ driver = noop
 # Destination port to connect to if driver requires connection.
 port = 8125
 
-[mistral]
-# URL Mistral uses to talk back to the API.If not provided it defaults to public API URL. Note: This needs to be a base URL without API version (e.g. http://127.0.0.1:9101)
-api_url = None
-# Multiplier for the exponential backoff.
-retry_exp_msec = 1000
-# Jitter interval to smooth out HTTP requests to mistral tasks and executions API.
-jitter_interval = 0.1
-# Allow insecure communication with Mistral.
-insecure = False
-# Username for authentication.
-keystone_username = None
-# Enable results tracking and disable callbacks.
-enable_polling = False
-# OpenStack project scope.
-keystone_project_name = None
-# Password for authentication.
-keystone_password = None
-# Auth endpoint for Keystone.
-keystone_auth_url = None
-# Optional certificate to validate endpoint.
-cacert = None
-# v2 API root endpoint.
-v2_base_url = http://127.0.0.1:8989/v2
-# Max time to stop retrying.
-retry_stop_max_msec = 600000
-# Max time for each set of backoff.
-retry_exp_max_msec = 300000
-
 [notifier]
 # Location of the logging configuration file.
 logging = /etc/st2/logging.notifier.conf

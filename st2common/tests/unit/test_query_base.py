@@ -40,9 +40,9 @@ class QueryBaseTests(TestCase):
         mock_query_state_1 = QueryContext(
             uuid.uuid4().hex,
             uuid.uuid4().hex,
-            'mistral_v2',
+            'orquesta_runner',
             {
-                'mistral': {
+                'orqesta': {
                     'workflow_name': 'st2ci.st2_pkg_e2e_test',
                     'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb2'
                 }
@@ -52,9 +52,9 @@ class QueryBaseTests(TestCase):
         mock_query_state_2 = QueryContext(
             uuid.uuid4().hex,
             uuid.uuid4().hex,
-            'mistral_v2',
+            'orquesta_runner',
             {
-                'mistral': {
+                'orquesta': {
                     'workflow_name': 'st2ci.st2_pkg_e2e_test',
                     'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb3'
                 }
@@ -64,9 +64,9 @@ class QueryBaseTests(TestCase):
         mock_query_state_3 = QueryContext(
             uuid.uuid4().hex,
             uuid.uuid4().hex,
-            'mistral_v2',
+            'orquesta_runner',
             {
-                'mistral': {
+                'orquesta': {
                     'workflow_name': 'st2ci.st2_pkg_e2e_test',
                     'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb4'
                 }
@@ -108,9 +108,9 @@ class QueryBaseTests(TestCase):
         mock_query_state_1 = QueryContext(
             uuid.uuid4().hex,
             uuid.uuid4().hex,
-            'mistral_v2',
+            'orquesta_runner',
             {
-                'mistral': {
+                'orquesta': {
                     'workflow_name': 'st2ci.st2_pkg_e2e_test',
                     'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb2'
                 }
@@ -156,9 +156,9 @@ class QueryBaseTests(TestCase):
         mock_query_state_1 = QueryContext(
             uuid.uuid4().hex,
             uuid.uuid4().hex,
-            'mistral_v2',
+            'orquesta_runner',
             {
-                'mistral': {
+                'orquesta': {
                     'workflow_name': 'st2ci.st2_pkg_e2e_test',
                     'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb2'
                 }
@@ -200,9 +200,9 @@ class QueryBaseTests(TestCase):
         mock_query_state_1 = QueryContext(
             uuid.uuid4().hex,
             uuid.uuid4().hex,
-            'mistral_v2',
+            'orquesta_runner',
             {
-                'mistral': {
+                'orquesta': {
                     'workflow_name': 'st2ci.st2_pkg_e2e_test',
                     'execution_id': '6d624534-42ca-425c-aa3a-ccc676386fb2'
                 }

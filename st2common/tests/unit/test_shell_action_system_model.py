@@ -366,19 +366,14 @@ class ShellScriptActionTestCase(unittest2.TestCase):
                 'position': 3,
                 'default': 'master',
             },
-            'update_mistral': {
+            'update_changelog': {
                 'type': 'boolean',
                 'position': 4,
                 'default': False
             },
-            'update_changelog': {
-                'type': 'boolean',
-                'position': 5,
-                'default': False
-            },
             'local_repo': {
                 'type': 'string',
-                'position': 6,
+                'position': 5,
             }
         }
         context = {}
@@ -407,7 +402,6 @@ class ShellScriptActionTestCase(unittest2.TestCase):
             'version': '3.0.0',
             'fork': 'StackStorm',
             'branch': 'master',  # default value used
-            'update_mistral': False,  # default value used
             'update_changelog': False,  # default value used
             'local_repo': '/tmp/repo'
         })
@@ -444,7 +438,6 @@ class ShellScriptActionTestCase(unittest2.TestCase):
             'version': '3.1.0',
             'fork': 'StackStorm1',
             'branch': 'master',  # default value used
-            'update_mistral': False,  # default value used
             'update_changelog': True,  # default value used
             'local_repo': '/tmp/repob'
         })
@@ -481,7 +474,6 @@ class ShellScriptActionTestCase(unittest2.TestCase):
             'version': '3.2.0',
             'fork': 'StackStorm2',
             'branch': 'master',  # default value used
-            'update_mistral': False,  # default value used
             'update_changelog': False,  # default value used
             'local_repo': '/tmp/repoc'
         })

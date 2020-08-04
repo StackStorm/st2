@@ -4292,32 +4292,6 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
-  /api/exp/validation/mistral:
-    post:
-      operationId: st2api.controllers.exp.validation:mistral_validation_controller.post
-      description: |
-        Validate Mistral YAML definition.
-      parameters:
-        - name: def_yaml
-          in: body
-          description: Mistral definition
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of validation errors
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/ValidationError'
-          examples:
-            application/json:
-              ref: 'core.local'
-              # and stuff
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
   /api/v1/service_registry/groups:
     get:
       operationId: st2api.controllers.v1.service_registry:groups_controller.get_all

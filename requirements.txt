@@ -16,7 +16,6 @@ eventlet==0.25.1
 flex==6.14.0
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/orquesta.git@v1.1.1#egg=orquesta
-git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 gitpython==2.1.15
 greenlet==0.4.15

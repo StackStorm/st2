@@ -6,7 +6,6 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 eventlet==0.25.1
-git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 gunicorn==19.9.0
 jsonschema==2.6.0
 kombu==4.6.6

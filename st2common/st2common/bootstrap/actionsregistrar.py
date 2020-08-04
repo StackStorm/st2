@@ -193,11 +193,6 @@ class ActionsRegistrar(ResourceRegistrar):
                 LOG.debug('Loading action from %s.', action)
                 self._register_action(pack=pack, action=action)
             except Exception as e:
-                # We ignore mistral-v2 runner not found errors since those represent installations
-                # without Mistral
-                if 'mistral-v2 is not found' in six.text_type(e):
-                    continue
-
                 if self._fail_on_failure:
                     msg = ('Failed to register action "%s" from pack "%s": %s' % (action, pack,
                                                                                   six.text_type(e)))

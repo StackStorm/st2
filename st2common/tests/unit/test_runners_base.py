@@ -36,9 +36,9 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
                                 get_runner, 'invalid-name-not-found')
 
     def test_get_query_module_success(self):
-        query_module = get_query_module('mistral-v2')
+        query_module = get_query_module('orquesta_runner')
 
-        self.assertEqual(query_module.__name__, 'mistral_v2.query')
+        self.assertEqual(query_module.__name__, 'orquesta_runner.query')
         self.assertTrue(query_module.get_instance())
 
     def test_get_query_module_failure_not_found(self):
@@ -47,9 +47,9 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
                                 get_query_module, 'invalid-name-not-found')
 
     def test_get_callback_module_success(self):
-        callback_module = get_callback_module('mistral-v2')
+        callback_module = get_callback_module('orquesta_runner')
 
-        self.assertEqual(callback_module.__name__, 'mistral_v2.callback')
+        self.assertEqual(callback_module.__name__, 'orquesta_runner.callback')
         self.assertTrue(callback_module.get_instance())
 
     def test_get_callback_module_failure_not_found(self):

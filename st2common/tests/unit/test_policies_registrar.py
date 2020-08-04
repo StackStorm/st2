@@ -88,7 +88,7 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
                 }
             },
             'cancel_on_concurrency': {
-                'pack': 'mistral_tests',
+                'pack': 'orquesta_tests',
                 'type': 'action.concurrency',
                 'parameters': {
                     'action': 'cancel',
@@ -96,7 +96,7 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
                 }
             },
             'cancel_on_concurrency_by_attr': {
-                'pack': 'mistral_tests',
+                'pack': 'orquesta_tests',
                 'type': 'action.concurrency.attr',
                 'parameters': {
                     'action': 'cancel',
