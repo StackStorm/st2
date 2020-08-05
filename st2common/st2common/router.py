@@ -516,7 +516,7 @@ class Router(object):
             resp = func(**kw)
         except DataStoreKeyNotFoundError as e:
             LOG.warning('Failed to call controller function "%s" for operation "%s": %s, %s' %
-                       (func.__name__, endpoint['operationId'], six.text_type(e), str(e)))
+                       (func.__name__, endpoint['operationId'], six.text_type(e)))
             raise e
         except Exception as e:
             LOG.exception('Failed to call controller function "%s" for operation "%s": %s' %
