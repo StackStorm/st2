@@ -23,7 +23,6 @@ from st2client.utils import httpclient
 from st2client.commands.action import LIVEACTION_STATUS_RUNNING
 from st2client.commands.action import LIVEACTION_STATUS_SUCCEEDED
 from st2client.commands.action import LIVEACTION_STATUS_FAILED
-from st2client.commands.action import LIVEACTION_STATUS_TIMED_OUT
 from st2client.shell import Shell
 
 __all__ = [

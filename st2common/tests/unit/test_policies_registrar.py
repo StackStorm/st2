@@ -87,23 +87,6 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
                     'max_retry_count': 5
                 }
             },
-            'cancel_on_concurrency': {
-                'pack': 'orquesta_tests',
-                'type': 'action.concurrency',
-                'parameters': {
-                    'action': 'cancel',
-                    'threshold': 3
-                }
-            },
-            'cancel_on_concurrency_by_attr': {
-                'pack': 'orquesta_tests',
-                'type': 'action.concurrency.attr',
-                'parameters': {
-                    'action': 'cancel',
-                    'threshold': 1,
-                    'attributes': ['friend']
-                }
-            },
             'sequential.retry_on_failure': {
                 'pack': 'orquesta_tests',
                 'type': 'action.retry',

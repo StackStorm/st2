@@ -35,22 +35,10 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
         self.assertRaisesRegexp(ActionRunnerCreateError, expected_msg,
                                 get_runner, 'invalid-name-not-found')
 
-    def test_get_query_module_success(self):
-        query_module = get_query_module('orquesta_runner')
-
-        self.assertEqual(query_module.__name__, 'orquesta_runner.query')
-        self.assertTrue(query_module.get_instance())
-
     def test_get_query_module_failure_not_found(self):
         expected_msg = 'No .*? driver found.*'
         self.assertRaisesRegexp(NoMatches, expected_msg,
                                 get_query_module, 'invalid-name-not-found')
-
-    def test_get_callback_module_success(self):
-        callback_module = get_callback_module('orquesta_runner')
-
-        self.assertEqual(callback_module.__name__, 'orquesta_runner.callback')
-        self.assertTrue(callback_module.get_instance())
 
     def test_get_callback_module_failure_not_found(self):
         expected_msg = 'No .*? driver found.*'

@@ -416,7 +416,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
                                                 positional_args=positional_args)
         command_string = shell_script_action.get_full_command_string()
 
-        expected = '/tmp/local.sh st2flow 3.0.0 StackStorm master 0 0 /tmp/repo'
+        expected = '/tmp/local.sh st2flow 3.0.0 StackStorm master 0 /tmp/repo'
         self.assertEqual(command_string, expected)
 
         # 2. Some default values used
@@ -452,7 +452,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
                                                 positional_args=positional_args)
         command_string = shell_script_action.get_full_command_string()
 
-        expected = '/tmp/local.sh st2web 3.1.0 StackStorm1 master 0 1 /tmp/repob'
+        expected = '/tmp/local.sh st2web 3.1.0 StackStorm1 master 1 /tmp/repob'
         self.assertEqual(command_string, expected)
 
         # 3. None is specified for a boolean parameter, should use a default
@@ -488,5 +488,5 @@ class ShellScriptActionTestCase(unittest2.TestCase):
                                                 positional_args=positional_args)
         command_string = shell_script_action.get_full_command_string()
 
-        expected = '/tmp/local.sh st2rbac 3.2.0 StackStorm2 master 0 0 /tmp/repoc'
+        expected = '/tmp/local.sh st2rbac 3.2.0 StackStorm2 master 0 /tmp/repoc'
         self.assertEqual(command_string, expected)

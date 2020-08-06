@@ -183,7 +183,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         )
 
         command_string = remote_action.get_full_command_string()
-        expected = 'cd /test/cwd/ && /tmp/script.sh st2flow 3.0.0 StackStorm master 0 0 /tmp/repo'
+        expected = 'cd /test/cwd/ && /tmp/script.sh st2flow 3.0.0 StackStorm master 0 /tmp/repo'
         self.assertEqual(command_string, expected)
 
         # 2. Some default values used
@@ -223,7 +223,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         )
 
         command_string = remote_action.get_full_command_string()
-        expected = 'cd /test/cwd/ && /tmp/script.sh st2web 3.1.0 StackStorm1 master 0 1 /tmp/repob'
+        expected = 'cd /test/cwd/ && /tmp/script.sh st2web 3.1.0 StackStorm1 master 1 /tmp/repob'
         self.assertEqual(command_string, expected)
 
         # 3. None is specified for a boolean parameter, should use a default
@@ -263,5 +263,5 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         )
 
         command_string = remote_action.get_full_command_string()
-        expected = 'cd /test/cwd/ && /tmp/script.sh st2rbac 3.2.0 StackStorm2 master 0 0 /tmp/repoc'
+        expected = 'cd /test/cwd/ && /tmp/script.sh st2rbac 3.2.0 StackStorm2 master 0 /tmp/repoc'
         self.assertEqual(command_string, expected)

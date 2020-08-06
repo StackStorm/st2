@@ -129,7 +129,7 @@ ACTION_4 = {
     'enabled': True,
     'entry_point': '/tmp/test/workflows/action4.yaml',
     'pack': 'starterpack',
-    'runner_type': 'orquesta-runner',
+    'runner_type': 'orquesta',
     'parameters': {
         'a': {
             'type': 'string',
