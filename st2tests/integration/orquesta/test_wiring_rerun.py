@@ -120,7 +120,6 @@ class RerunWiringTest(base.TestWorkflowExecution):
         children = self.st2client.executions.get_property(ex.id, 'children')
         self.assertEqual(len(children), 4)
 
-
     def test_rerun_and_resume_with_items_task(self):
         path = self.temp_dir_path
 

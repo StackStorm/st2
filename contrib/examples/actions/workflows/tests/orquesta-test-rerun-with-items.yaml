@@ -1,13 +1,13 @@
-version: '1.0'
+version: 1.0
 
 description: A sample workflow used to test the rerun feature.
 
 input:
   - tempfile
-
+  
 tasks:
   task1:
      with: [0, 1, 2, 3]
      action: core.local
      input:
-       cmd: 'x=`cat <% $.tempfile %>`; y=`echo "$x * <% item() %> % 2" | bc`; exit `echo $y`'
+       cmd: 'x=`cat <% ctx().tempfile %>`; y=`echo "$x * <% item() %> % 2" | bc`; exit `echo $y`'
