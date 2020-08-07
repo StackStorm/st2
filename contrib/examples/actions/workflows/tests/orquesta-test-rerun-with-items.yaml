@@ -7,7 +7,7 @@ input:
   
 tasks:
   task1:
-     with: [0, 1, 2, 3]
+     with: <% range(0,4) %>
      action: core.local
      input:
        cmd: 'x=`cat <% ctx().tempfile %>`; y=`echo "$x * <% item() %> % 2" | bc`; exit `echo $y`'
