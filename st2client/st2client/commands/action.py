@@ -1266,7 +1266,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
                                  help='Name of the workflow tasks to re-run.')
         self.parser.add_argument('--no-reset', dest='no_reset', nargs='*',
                                  help='Name of the with-items tasks to not reset. This only '
-                                      'applies to Mistral workflows. By default, all iterations '
+                                      'applies to Orquesta workflows. By default, all iterations '
                                       'for with-items tasks is rerun. If no reset, only failed '
                                       ' iterations are rerun.')
         self.parser.add_argument('-a', '--async',
