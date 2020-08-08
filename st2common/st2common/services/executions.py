@@ -94,7 +94,7 @@ def _create_execution_log_entry(status):
     Create execution log entry object for the provided execution status.
     """
     return {
-        'timestamp': date_utils.get_datetime_utc_now(),
+        'timestamp': date_utils.get_datetime_utc_now().isoformat(),
         'status': status
     }
 
