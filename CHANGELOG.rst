@@ -29,6 +29,15 @@ Changed
 
 Fixed
 ~~~~~
+* Fixed two bugs when running st2 from sources. ujson>=2.0.0 instead of 1.3.5 addresses
+  ``ImportError: /home/marcel/Sources/gitlab.winem/st2/virtualenv/lib/python2.7/site-packages/ujson.so:
+  undefined symbol: Buffer_AppendShortHexUnchecked`` when starting st2 with launchdev.sh start
+  or startclean. The iso formatted datetime addresses the error ``ERROR: 500 Server Error: Internal
+  Server Error; MESSAGE: datetime.datetime(2020, 4, 15, 0, 2, 54, 70199, tzinfo=tzutc()) is not JSON
+  serializable for url: http://127.0.0.1:9101/v1/executions`` when running commands like ``st2 action
+  execute core.local uname``. (bug fix) #4908
+
+  Reported and contributed by @winem.
 * Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
 
   Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)
