@@ -35,3 +35,7 @@ class DigActionTestCase(BaseActionTestCase):
                             queryopts='')
         self.assertIsInstance(result, list)
         self.assertGreater(len(result), 0)
+
+        first_result = result[0]
+        self.assertIsInstance(first_result, str)
+        self.assertGreater(len(first_result))
