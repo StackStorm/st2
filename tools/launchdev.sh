@@ -436,6 +436,9 @@ function st2start(){
         fi
     fi
 
+    # Print default creds to the screen
+    echo "The default creds are testu:testp"
+
     # List screen sessions
     screen -ls || exit 0
 }
