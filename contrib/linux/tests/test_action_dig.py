@@ -34,19 +34,22 @@ class DigActionTestCase(BaseActionTestCase):
     def test_run_with_empty_queryopts(self):
         action = self.get_action_instance()
 
-        result = action.run(rand=False, count=0, nameserver=None, hostname='google.com',
-                            queryopts='')
-        self.assertIsInstance(result, list)
-        self.assertEqual(len(result), 0)
+        results = action.run(rand=False, count=0, nameserver=None, hostname='google.com',
+                             queryopts='')
+        self.assertIsInstance(results, list)
+
+        for result in results:
+            self.assertIsInstance(result, str)
+            self.assertGreater(len(result), 0)
 
     def test_run(self):
         action = self.get_action_instance()
 
-        result = action.run(rand=False, count=0, nameserver=None, hostname='google.com',
-                            queryopts='short')
-        self.assertIsInstance(result, list)
-        self.assertGreater(len(result), 0)
+        results = action.run(rand=False, count=0, nameserver=None, hostname='google.com',
+                             queryopts='short')
+        self.assertIsInstance(results, list)
+        self.assertGreater(len(results), 0)
 
-        first_result = result[0]
-        self.assertIsInstance(first_result, str)
-        self.assertGreater(len(first_result))
+        for result in results:
+            self.assertIsInstance(result, str)
+            self.assertGreater(len(result), 0)
