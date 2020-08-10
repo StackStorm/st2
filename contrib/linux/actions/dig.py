@@ -37,8 +37,8 @@ class DigAction(Action):
             opt_list = queryopts.split(',')
         else:
             opt_list.append(queryopts)
-        for k, v in enumerate(opt_list):
-            cmd_args.append('+' + v)
+
+        cmd_args.extend(['+' + option for option in opt_list])
 
         cmd_args.append(hostname)
 
