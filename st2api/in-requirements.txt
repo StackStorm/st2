@@ -9,3 +9,4 @@ oslo.utils
 pymongo
 six
 gunicorn
+simplejson
