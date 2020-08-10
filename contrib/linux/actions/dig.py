@@ -18,6 +18,7 @@ import errno
 import locale
 import subprocess
 import random
+import sys
 
 from st2common.runners.base_action import Action
 
@@ -42,20 +43,24 @@ class DigAction(Action):
 
         cmd_args.append(hostname)
 
-        # This function might call getpreferred encoding unless we pass
-        # do_setlocale=False.
-        encoding = locale.getpreferredencoding(do_setlocale=False)
         try:
-            result_list = list(filter(None, subprocess.Popen(cmd_args,
-                                                             stderr=subprocess.PIPE,
-                                                             stdout=subprocess.PIPE)
-                                      .communicate()[0].decode(encoding)
-                                      .split('\n')))
+            raw_result = subprocess.Popen(cmd_args,
+                                          stderr=subprocess.PIPE,
+                                          stdout=subprocess.PIPE).communicate()[0]
+
+            if sys.version_info >= (3,):
+                # This function might call getpreferred encoding unless we pass
+                # do_setlocale=False.
+                encoding = locale.getpreferredencoding(do_setlocale=False)
+                result_list_str = raw_result.decode(encoding)
+            else:
+                result_list_str = str(raw_result)
+
+            result_list = list(filter(None, result_list_str.split('\n')))
 
         # NOTE: Python3 supports the FileNotFoundError, the errono.ENOENT is for py2 compat
         # for Python3:
         # except FileNotFoundError as e:
-
         except OSError as e:
             if e.errno == errno.ENOENT:
                 return False, "Can't find dig installed in the path (usually /usr/bin/dig). If " \
