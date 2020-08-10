@@ -18,7 +18,6 @@ import errno
 import locale
 import subprocess
 import random
-import re
 
 from st2common.runners.base_action import Action
 
@@ -34,7 +33,7 @@ class DigAction(Action):
             nameserver = '@' + nameserver
             cmd_args.append(nameserver)
 
-        if re.search(',', queryopts):
+        if isinstance(queryopts, str) and ',' in queryopts:
             opt_list = queryopts.split(',')
         else:
             opt_list.append(queryopts)
