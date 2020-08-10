@@ -31,6 +31,14 @@ class DigActionTestCase(BaseActionTestCase):
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 0)
 
+    def test_run_with_empty_queryopts(self):
+        action = self.get_action_instance()
+
+        result = action.run(rand=False, count=0, nameserver=None, hostname='google.com',
+                            queryopts='')
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 0)
+
     def test_run(self):
         action = self.get_action_instance()
 
