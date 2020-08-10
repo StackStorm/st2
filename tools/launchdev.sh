@@ -13,7 +13,7 @@ copy_test_packs=false
 load_content=true
 use_ipv6=false
 
-while getopts ":r:s:w:gxcu6m" o; do
+while getopts ":r:s:w:gxcu6" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
