@@ -35,7 +35,7 @@ class DigActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
 
         result = action.run(rand=False, count=0, nameserver=None, hostname='google.com',
-                            queryopts='')
+                            queryopts='short')
         self.assertIsInstance(result, list)
         self.assertGreater(len(result), 0)
 
