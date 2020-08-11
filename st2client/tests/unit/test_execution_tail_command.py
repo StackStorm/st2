@@ -23,6 +23,7 @@ from st2client.utils import httpclient
 from st2client.commands.action import LIVEACTION_STATUS_RUNNING
 from st2client.commands.action import LIVEACTION_STATUS_SUCCEEDED
 from st2client.commands.action import LIVEACTION_STATUS_FAILED
+from st2client.commands.action import LIVEACTION_STATUS_TIMED_OUT
 from st2client.shell import Shell
 
 __all__ = [
@@ -126,6 +127,130 @@ MOCK_LIVEACTION_3_CHILD_2_OUTPUT_1 = {
 
 MOCK_LIVEACTION_3_SUCCEDED = {
     'id': 'idfoo3',
+    'status': LIVEACTION_STATUS_SUCCEEDED
+}
+
+# Mock objects for Orquesta workflow execution
+MOCK_LIVEACTION_4_RUNNING = {
+    'id': 'idfoo4',
+    'status': LIVEACTION_STATUS_RUNNING
+}
+
+MOCK_LIVEACTION_4_CHILD_1_RUNNING = {
+    'id': 'idorquestachild1',
+    'context': {
+        'orquesta': {
+            'task_name': 'task_1'
+        },
+        'parent': {
+            'execution_id': 'idfoo4'
+        }
+    },
+    'status': LIVEACTION_STATUS_RUNNING
+}
+
+MOCK_LIVEACTION_4_CHILD_1_1_RUNNING = {
+    'id': 'idorquestachild1_1',
+    'context': {
+        'orquesta': {
+            'task_name': 'task_1'
+        },
+        'parent': {
+            'execution_id': 'idorquestachild1'
+        }
+    },
+    'status': LIVEACTION_STATUS_RUNNING
+}
+
+MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED = {
+    'id': 'idorquestachild1',
+    'context': {
+        'orquesta': {
+            'task_name': 'task_1',
+        },
+        'parent': {
+            'execution_id': 'idfoo4'
+        }
+    },
+    'status': LIVEACTION_STATUS_SUCCEEDED
+}
+
+MOCK_LIVEACTION_4_CHILD_1_1_SUCCEEDED = {
+    'id': 'idorquestachild1_1',
+    'context': {
+        'orquesta': {
+            'task_name': 'task_1',
+        },
+        'parent': {
+            'execution_id': 'idorquestachild1'
+        }
+    },
+    'status': LIVEACTION_STATUS_SUCCEEDED
+}
+
+MOCK_LIVEACTION_4_CHILD_1_OUTPUT_1 = {
+    'execution_id': 'idorquestachild1',
+    'timestamp': '1505732598',
+    'output_type': 'stdout',
+    'data': 'line orquesta 4\n'
+}
+
+MOCK_LIVEACTION_4_CHILD_1_OUTPUT_2 = {
+    'execution_id': 'idorquestachild1',
+    'timestamp': '1505732598',
+    'output_type': 'stderr',
+    'data': 'line orquesta 5\n'
+}
+
+MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_1 = {
+    'execution_id': 'idorquestachild1_1',
+    'timestamp': '1505732598',
+    'output_type': 'stdout',
+    'data': 'line orquesta 4\n'
+}
+
+MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_2 = {
+    'execution_id': 'idorquestachild1_1',
+    'timestamp': '1505732598',
+    'output_type': 'stderr',
+    'data': 'line orquesta 5\n'
+}
+
+MOCK_LIVEACTION_4_CHILD_2_RUNNING = {
+    'id': 'idorquestachild2',
+    'context': {
+        'orquesta': {
+            'task_name': 'task_2',
+        },
+        'parent': {
+            'execution_id': 'idfoo4'
+        }
+    },
+    'status': LIVEACTION_STATUS_RUNNING
+}
+
+MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT = {
+    'id': 'idorquestachild2',
+    'context': {
+        'orquesta': {
+            'task_name': 'task_2',
+        },
+        'parent': {
+            'execution_id': 'idfoo4'
+        }
+    },
+    'status': LIVEACTION_STATUS_TIMED_OUT
+}
+
+MOCK_LIVEACTION_4_CHILD_2_OUTPUT_1 = {
+    'execution_id': 'idorquestachild2',
+    'timestamp': '1505732598',
+    'output_type': 'stdout',
+    'data': 'line orquesta 100\n'
+}
+
+MOCK_LIVEACTION_4_SUCCEDED = {
+    'id': 'idfoo4',
     'status': LIVEACTION_STATUS_SUCCEEDED
 }
 
@@ -313,5 +438,219 @@ Child execution (task=task_2) idchild2 has finished (status=failed).
 
 Execution idfoo3 has completed (status=succeeded).
 """.lstrip()
+        self.assertEqual(stdout, expected_result)
+        self.assertEqual(stderr, '')
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_4_RUNNING),
+                                                     200, 'OK')))
+    @mock.patch('st2client.client.StreamManager', autospec=True)
+    def test_tail_orquesta_workflow_execution(self, mock_stream_manager):
+        argv = ['execution', 'tail', 'idfoo4']
+
+        MOCK_EVENTS = [
+            # Workflow started running
+            MOCK_LIVEACTION_4_RUNNING,
+
+            # Child task 1 started running
+            MOCK_LIVEACTION_4_CHILD_1_RUNNING,
+
+            # Output produced by the child task
+            MOCK_LIVEACTION_4_CHILD_1_OUTPUT_1,
+            MOCK_LIVEACTION_4_CHILD_1_OUTPUT_2,
+
+            # Child task 1 finished
+            MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED,
+
+            # Child task 2 started running
+            MOCK_LIVEACTION_4_CHILD_2_RUNNING,
+
+            # Output produced by child task
+            MOCK_LIVEACTION_4_CHILD_2_OUTPUT_1,
+
+            # Child task 2 finished
+            MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT,
+
+            # Parent workflow task finished
+            MOCK_LIVEACTION_4_SUCCEDED
+        ]
+
+        mock_cls = mock.Mock()
+        mock_cls.listen = mock.Mock()
+        mock_listen_generator = mock.Mock()
+        mock_listen_generator.return_value = MOCK_EVENTS
+        mock_cls.listen.side_effect = mock_listen_generator
+        mock_stream_manager.return_value = mock_cls
+
+        self.assertEqual(self.shell.run(argv), 0)
+        self.assertEqual(mock_listen_generator.call_count, 1)
+
+        stdout = self.stdout.getvalue()
+        stderr = self.stderr.getvalue()
+
+        expected_result = """
+Execution idfoo4 has started.
+
+Child execution (task=task_1) idorquestachild1 has started.
+
+line orquesta 4
+line orquesta 5
+
+Child execution (task=task_1) idorquestachild1 has finished (status=succeeded).
+Child execution (task=task_2) idorquestachild2 has started.
+
+line orquesta 100
+
+Child execution (task=task_2) idorquestachild2 has finished (status=timeout).
+
+Execution idfoo4 has completed (status=succeeded).
+""".lstrip()
+        self.assertEqual(stdout, expected_result)
+        self.assertEqual(stderr, '')
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_4_RUNNING),
+                                                     200, 'OK')))
+    @mock.patch('st2client.client.StreamManager', autospec=True)
+    def test_tail_double_nested_orquesta_workflow_execution(self, mock_stream_manager):
+        argv = ['execution', 'tail', 'idfoo4']
+
+        MOCK_EVENTS = [
+            # Workflow started running
+            MOCK_LIVEACTION_4_RUNNING,
+
+            # Child task 1 started running (sub workflow)
+            MOCK_LIVEACTION_4_CHILD_1_RUNNING,
+
+            # Child task 1 started running
+            MOCK_LIVEACTION_4_CHILD_1_1_RUNNING,
+
+            # Output produced by the child task
+            MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_1,
+            MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_2,
+
+            # Another execution has started, this output should not be included
+            MOCK_LIVEACTION_3_RUNNING,
+
+            # Child task 1 started running
+            MOCK_LIVEACTION_3_CHILD_1_RUNNING,
+
+            # Output produced by the child task
+            MOCK_LIVEACTION_3_CHILD_1_OUTPUT_1,
+            MOCK_LIVEACTION_3_CHILD_1_OUTPUT_2,
+
+            # Child task 1 finished
+            MOCK_LIVEACTION_3_CHILD_1_SUCCEEDED,
+
+            # Parent workflow task finished
+            MOCK_LIVEACTION_3_SUCCEDED,
+            # End another execution
+
+            # Child task 1 has finished
+            MOCK_LIVEACTION_4_CHILD_1_1_SUCCEEDED,
+
+            # Child task 1 finished (sub workflow)
+            MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED,
+
+            # Child task 2 started running
+            MOCK_LIVEACTION_4_CHILD_2_RUNNING,
+
+            # Output produced by child task
+            MOCK_LIVEACTION_4_CHILD_2_OUTPUT_1,
+
+            # Child task 2 finished
+            MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT,
+
+            # Parent workflow task finished
+            MOCK_LIVEACTION_4_SUCCEDED
+        ]
+
+        mock_cls = mock.Mock()
+        mock_cls.listen = mock.Mock()
+        mock_listen_generator = mock.Mock()
+        mock_listen_generator.return_value = MOCK_EVENTS
+        mock_cls.listen.side_effect = mock_listen_generator
+        mock_stream_manager.return_value = mock_cls
+
+        self.assertEqual(self.shell.run(argv), 0)
+        self.assertEqual(mock_listen_generator.call_count, 1)
+
+        stdout = self.stdout.getvalue()
+        stderr = self.stderr.getvalue()
+
+        expected_result = """
+Execution idfoo4 has started.
+
+Child execution (task=task_1) idorquestachild1 has started.
+
+Child execution (task=task_1) idorquestachild1_1 has started.
+
+line orquesta 4
+line orquesta 5
+
+Child execution (task=task_1) idorquestachild1_1 has finished (status=succeeded).
+
+Child execution (task=task_1) idorquestachild1 has finished (status=succeeded).
+Child execution (task=task_2) idorquestachild2 has started.
+
+line orquesta 100
+
+Child execution (task=task_2) idorquestachild2 has finished (status=timeout).
+
+Execution idfoo4 has completed (status=succeeded).
+""".lstrip()
+
+        self.assertEqual(stdout, expected_result)
+        self.assertEqual(stderr, '')
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_4_CHILD_2_RUNNING),
+                                                     200, 'OK')))
+    @mock.patch('st2client.client.StreamManager', autospec=True)
+    def test_tail_child_execution_directly(self, mock_stream_manager):
+        argv = ['execution', 'tail', 'idfoo4']
+
+        MOCK_EVENTS = [
+            # Child task 2 started running
+            MOCK_LIVEACTION_4_CHILD_2_RUNNING,
+
+            # Output produced by child task
+            MOCK_LIVEACTION_4_CHILD_2_OUTPUT_1,
+
+            # Other executions should not interfere
+            # Child task 1 started running
+            MOCK_LIVEACTION_3_CHILD_1_RUNNING,
+
+            # Child task 1 finished (sub workflow)
+            MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED,
+
+            # Child task 2 finished
+            MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT
+        ]
+
+        mock_cls = mock.Mock()
+        mock_cls.listen = mock.Mock()
+        mock_listen_generator = mock.Mock()
+        mock_listen_generator.return_value = MOCK_EVENTS
+        mock_cls.listen.side_effect = mock_listen_generator
+        mock_stream_manager.return_value = mock_cls
+
+        self.assertEqual(self.shell.run(argv), 0)
+        self.assertEqual(mock_listen_generator.call_count, 1)
+
+        stdout = self.stdout.getvalue()
+        stderr = self.stderr.getvalue()
+
+        expected_result = """
+Child execution (task=task_2) idorquestachild2 has started.
+
+line orquesta 100
+
+Child execution (task=task_2) idorquestachild2 has finished (status=timeout).
+""".lstrip()
+
         self.assertEqual(stdout, expected_result)
         self.assertEqual(stderr, '')
