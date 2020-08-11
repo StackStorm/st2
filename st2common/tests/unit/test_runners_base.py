@@ -35,10 +35,26 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
         self.assertRaisesRegexp(ActionRunnerCreateError, expected_msg,
                                 get_runner, 'invalid-name-not-found')
 
+    # Leave test commented so can uncomment when get a query runner, but
+    # could not find way to get stevedore to find runners from fixtures
+    #def test_get_query_module_success(self):
+    #    query_module = get_query_module('mistral-v2')
+    #
+    #    self.assertEqual(query_module.__name__, 'mistral_v2.query')
+    #    self.assertTrue(query_module.get_instance())
+
     def test_get_query_module_failure_not_found(self):
         expected_msg = 'No .*? driver found.*'
         self.assertRaisesRegexp(NoMatches, expected_msg,
                                 get_query_module, 'invalid-name-not-found')
+
+    # Leave test commented so can uncomment when get a query runner, but
+    # could not find way to get stevedore to find runners from fixtures
+    #def test_get_callback_module_success(self):
+    #    callback_module = get_callback_module('mistral-v2')
+    #
+    #    self.assertEqual(callback_module.__name__, 'mistral_v2.callback')
+    #    self.assertTrue(callback_module.get_instance())
 
     def test_get_callback_module_failure_not_found(self):
         expected_msg = 'No .*? driver found.*'
