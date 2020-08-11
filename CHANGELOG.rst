@@ -70,6 +70,9 @@ Fixed
   Contributed by Bradley Bishop (@bishopbm1 Encore Technologies)
 * Fix a regression when updated ``dnspython`` pip dependency resulted in
   st2 services unable to connect to mongodb remote host (bug fix) #4997
+* Fixed a regression in the ``linux.dig`` action on Python 3. (bug fix) #4993
+
+  Contributed by @blag
 
 Changed
 ~~~~~~~
