@@ -48,11 +48,11 @@ They're not part of the TSC voting process, but appreciated for their contributi
 <!-- [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and we appreciate their contribution and involvement. -->
 * Amanda McGuinness ([@amanda11](https://github.com/amanda11)) - StackStorm Exchange, Ansible, ChatOps, Documentation, core.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
-* Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
 * Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
-* Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
 * Marcel Weinberg ([@winem](https://github.com/winem)) - Community, Docker, Core.
+* Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
+* Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
 
 # Friends
 People that are currently not very active maintainers/contributors but who participated in and formed the project we have today.
