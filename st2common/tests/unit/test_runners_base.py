@@ -37,7 +37,7 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
 
     # Leave test commented so can uncomment when get a query runner, but
     # could not find way to get stevedore to find runners from fixtures
-    #def test_get_query_module_success(self):
+    # def test_get_query_module_success(self):
     #    query_module = get_query_module('mistral-v2')
     #
     #    self.assertEqual(query_module.__name__, 'mistral_v2.query')
@@ -50,7 +50,7 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
 
     # Leave test commented so can uncomment when get a query runner, but
     # could not find way to get stevedore to find runners from fixtures
-    #def test_get_callback_module_success(self):
+    # def test_get_callback_module_success(self):
     #    callback_module = get_callback_module('mistral-v2')
     #
     #    self.assertEqual(callback_module.__name__, 'mistral_v2.callback')
