@@ -9,18 +9,28 @@ Added
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
   to ensure update to the models require schema to be regenerated. (new feature)
 * Improved st2sensor service logging message when a sensor will not be loaded when assigned to a
-  different partition (@punkrokk)
+  different partition (@punkrokk) #4991
 * Add support for a configurable connect timeout for SSH connections as requested in #4715
   by adding the new configuration parameter ``ssh_connect_timeout`` to the ``ssh_runner``
   group in st2.conf. (new feature) #4914
 
   This option was requested by Harry Lee (@tclh123) and contributed by Marcel Weinberg (@winem).
+* Added a FAQ for the default user/pass for the `tools/launch_dev.sh` script and print out the
+  default pass to screen when the script completes. (improvement) #5013
+
+  Contributed by @punkrokk
 
 Changed
 ~~~~~~~
-* Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2 ``v3.3.0`` (improvement) #4972
+* Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2
+  ``v3.3.0`` (improvement) #4972
 
-Contributed by @punkrokk 
+  Contributed by @punkrokk
+
+* Added an enhancement where ST2api.log no longer reports the entire traceback when trying to get a datastore value
+  that does not exist. It now reports a simplified log for cleaner reading. Addresses and Fixes #4979. (improvement) #4981
+
+  Contributed by Justin Sostre (@saucetray)
 
 Fixed
 ~~~~~

@@ -15,14 +15,20 @@
 
 from __future__ import absolute_import
 from st2common.exceptions import StackStormBaseException
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
     'CryptoKeyNotSetupException',
+    'DataStoreKeyNotFoundError',
     'InvalidScopeException'
 ]
 
 
 class CryptoKeyNotSetupException(StackStormBaseException):
+    pass
+
+
+class DataStoreKeyNotFoundError(StackStormDBObjectNotFoundError):
     pass
 
 
