@@ -87,6 +87,10 @@ Removed
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 * Removed our fork of ``codecov-python`` for CI and have switched back to the upstream version (improvement) #5002
+
+* Removed mistral from the HA configuration samples as well as the st2.*.conf samples. #4762
+
+  Contributed by Marcel Weinberg (@winem)
   
 3.2.0 - April 27, 2020
 ----------------------
