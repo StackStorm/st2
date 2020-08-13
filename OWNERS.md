@@ -47,6 +47,7 @@ Contributors are using and occasionally contributing back to the project, might 
 They're not part of the TSC voting process, but appreciated for their contribution, involvement and may become Maintainers in future.
 <!-- [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and we appreciate their contribution and involvement. -->
 * Amanda McGuinness ([@amanda11](https://github.com/amanda11)) - StackStorm Exchange, Ansible, ChatOps, Documentation, core.
+* AJ Jonen ([@guzzijones](https://github.com/guzzijones)) - ST2 Web UI, Orquesta, Core.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
 * Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
