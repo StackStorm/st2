@@ -1,0 +1,11 @@
+# https://docs.python.org/2/distutils/sourcedist.html#commands
+# Include all files under the source tree by default.
+# Another behaviour can be used in the future though.
+include __init__.py
+include runner.yaml
+include dist_utils.py
+include requirements.txt
+include README.rst
+include CHANGELOG.rst
+include LICENSE
+global-exclude *.pyc

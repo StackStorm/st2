@@ -22,6 +22,7 @@ BINARIES := bin
 # All components are prefixed by st2 and not .egg-info.
 COMPONENTS := $(shell ls -a | grep ^st2 | grep -v .egg-info)
 COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
+MOCK_RUNNERS := $(wildcard st2common/tests/runners/*)
 COMPONENTS_WITHOUT_ST2TESTS := $(shell ls -a | grep ^st2 | grep -v .egg-info | grep -v st2tests | grep -v st2exporter)
 
 COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
@@ -153,6 +154,18 @@ install-runners:
 	@for component in $(COMPONENTS_RUNNERS); do \
 		echo "==========================================================="; \
 		echo "Installing runner:" $$component; \
+		echo "==========================================================="; \
+		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
+	done
+
+.PHONY: install-mock-runners
+install-mock-runners:
+	@echo ""
+	@echo "================== INSTALL MOCK RUNNERS ===================="
+	@echo ""
+	@for component in $(MOCK_RUNNERS); do \
+		echo "==========================================================="; \
+		echo "Installing mock runner:" $$component; \
 		echo "==========================================================="; \
 		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
 	done
@@ -508,7 +521,7 @@ distclean: clean
 	@echo "==========================================================="
 
 .PHONY: requirements
-requirements: virtualenv .requirements .sdist-requirements install-runners
+requirements: virtualenv .requirements .sdist-requirements install-runners install-mock-runners
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
