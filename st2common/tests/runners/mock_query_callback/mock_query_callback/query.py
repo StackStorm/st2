@@ -29,4 +29,5 @@ class MockQueryCallbackQuerier(Querier):
         super(MockQueryCallbackQuerier, self).__init__(*args, **kwargs)
 
     def query(self, execution_id, query_context, last_query_time=None):
-        return (action_constants.LIVEACTION_STATUS_SUCCEEDED, {'called_with': {execution_id: query_context}})
+        return (action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                {'called_with': {execution_id: query_context}})

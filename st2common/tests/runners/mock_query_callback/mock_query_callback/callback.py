@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-from st2common import log as logging
 from st2common.callback import base as callback
 
 
