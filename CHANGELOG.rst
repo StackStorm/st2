@@ -78,7 +78,7 @@ Changed
 Removed
 ~~~~~~~
 
-* Removed ``Mistral``
+* Removed ``Mistral`` workflow engine (deprecation) #5011
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 * Removed ``CentOS 6``/``RHEL 6`` support #4984
