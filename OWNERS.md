@@ -33,8 +33,10 @@ Have deep platform knowledge & experience and demonstrate technical leadership a
 # Maintainers *
 ###### 1 vote points
 Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/maintainers) provide significant and reliable value to the project helping it grow and improve through development and maintenance. See [Maintainer Responsibilities](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#maintainer-responsibilities) for more info.
+* Amanda McGuinness ([@amanda11](https://github.com/amanda11)) <<amanda.mcguinness@ammeonsolutions.com>>
+  - Ansible, Core, deb/rpm packages, CI/CD, Deployments, StackStorm Exchange, Documentation.
 * JP Bourget ([@punkrokk](https://github.com/punkrokk)) <<jp.bourget@gmail.com>>
-  - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCi
+  - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCI.
 * Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)) <<mick@bitovi.com>>
   - Systems, ST2 Exchange. [Case Study](https://stackstorm.com/case-study-bitovi/).
 * Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
@@ -46,11 +48,9 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
 Contributors are using and occasionally contributing back to the project, might be active in conversations or express their opinion on the project’s direction.
 They're not part of the TSC voting process, but appreciated for their contribution, involvement and may become Maintainers in the future depending on their effort and involvement. See [How to become a Maintainer?](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#how-to-become-a-maintainer)
 [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and have permissions to help triage the Issues and review PRs.
-* Amanda McGuinness ([@amanda11](https://github.com/amanda11)) - StackStorm Exchange, Ansible, ChatOps, Documentation, core.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
 * Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
-* Shu Sugimoto ([@shusugmt](https://github.com/shusugmt)) - Docker, StackStorm Exchange packs.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
 * Marcel Weinberg ([@winem](https://github.com/winem)) - Community, Docker, Core.
 
