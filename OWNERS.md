@@ -45,7 +45,7 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
 # Contributors
 Contributors are using and occasionally contributing back to the project, might be active in conversations or express their opinion on the project’s direction.
 They're not part of the TSC voting process, but appreciated for their contribution, involvement and may become Maintainers in the future depending on their effort and involvement. See [How to become a Maintainer?](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#how-to-become-a-maintainer)
-[@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and have permissions to help triaging the Issues and reviewing PRs.
+[@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and have permissions to help triage the Issues and review PRs.
 * Amanda McGuinness ([@amanda11](https://github.com/amanda11)) - StackStorm Exchange, Ansible, ChatOps, Documentation, core.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
