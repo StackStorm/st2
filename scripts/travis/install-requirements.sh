@@ -30,7 +30,7 @@ if [[ " ${TASK}" = *' ci-py3-'* ]]; then
       python setup.py develop --no-deps
     done
     # Install mock runners
-    for RUNNER in `ls -d $CURRENT_DIR/st2common/test/runners/*`
+    for RUNNER in `ls -d $CURRENT_DIR/st2common/tests/runners/*`
     do
       echo "Installing mock runner: $RUNNER..."
       cd $RUNNER
