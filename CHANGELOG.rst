@@ -31,6 +31,8 @@ Changed
   that does not exist. It now reports a simplified log for cleaner reading. Addresses and Fixes #4979. (improvement) #4981
 
   Contributed by Justin Sostre (@saucetray)
+* The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
+  to fix the typo (bug fix) #4992
 
 Fixed
 ~~~~~
@@ -56,6 +58,8 @@ Fixed
   up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
 
   Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fixed a bytes/string encoding bug in the ``linux.dig`` action so it should work on Python 3
+  (bug fix) #4993
 
 * Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
   
@@ -68,12 +72,9 @@ Fixed
   Contributed by Bradley Bishop (@bishopbm1 Encore Technologies)
 * Fix a regression when updated ``dnspython`` pip dependency resulted in
   st2 services unable to connect to mongodb remote host (bug fix) #4997
+* Fixed a regression in the ``linux.dig`` action on Python 3. (bug fix) #4993
 
-Changed
-~~~~~~~
-
-* The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
-  to fix the typo (bug fix) #4992
+  Contributed by @blag
 
 Removed
 ~~~~~~~
