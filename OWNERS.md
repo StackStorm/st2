@@ -12,8 +12,6 @@ This page lists active project maintainers and their areas of expertise. This ca
 Responsible for Project Strategy, External Relations, Organizational aspects, Partnerships and Future.
 * Dmitri Zimine ([@dzimine](https://github.com/dzimine/)) <<dzimine@stackstorm.com>>
   - StackStorm co-founder. External Relations, Leadership.
-* Lindsay Hill ([@LindsayHill](https://github.com/LindsayHill)) <<lindsay@stackstorm.com>>
-  - External Relations, Plans, Documentation, Community.
 
 # Senior Maintainers **
 ###### 2 vote points
