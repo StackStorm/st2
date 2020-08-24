@@ -26,7 +26,6 @@ from st2common.router import Router
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
-from st2common.util.monkey_patch import monkey_patch
 from st2common.util.monkey_patch import use_select_poll_workaround
 from st2auth import config as st2auth_config
 from st2auth.validation import validate_auth_backend_is_correctly_configured
