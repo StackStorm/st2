@@ -31,6 +31,8 @@ Changed
   that does not exist. It now reports a simplified log for cleaner reading. Addresses and Fixes #4979. (improvement) #4981
 
   Contributed by Justin Sostre (@saucetray)
+* The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
+  to fix the typo (bug fix) #4992
 
 Fixed
 ~~~~~
@@ -73,12 +75,6 @@ Fixed
 * Fixed a regression in the ``linux.dig`` action on Python 3. (bug fix) #4993
 
   Contributed by @blag
-
-Changed
-~~~~~~~
-
-* The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
-  to fix the typo (bug fix) #4992
 
 Removed
 ~~~~~~~
