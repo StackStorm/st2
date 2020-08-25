@@ -36,3 +36,4 @@ QUERY_PARAM_API_KEY_ATTRIBUTE_NAME = 'st2-api-key'
 DEFAULT_MODE = 'standalone'
 
 DEFAULT_BACKEND = 'flat_file'
+DEFAULT_SSO_BACKEND = 'noop'
