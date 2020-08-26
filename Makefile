@@ -564,6 +564,12 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	# make targets. This speeds up the build
 	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
+	# Install st2auth to register SSO drivers
+	# NOTE: We pass --no-deps to the script so we don't install all the
+	# package dependencies which are already installed as part of "requirements"
+	# make targets. This speeds up the build
+	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --recursive --remote
 

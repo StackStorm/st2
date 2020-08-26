@@ -50,6 +50,9 @@ AUTH_OPTIONS = {
         'api_url',
         'token_ttl',
         'service_token_ttl',
+        'sso',
+        'sso_backend',
+        'sso_backend_kwargs',
         'debug'
     ],
     'standalone': [

@@ -233,6 +233,9 @@ def _register_auth_opts():
         cfg.StrOpt('backend_kwargs', default=None),
         cfg.StrOpt('logging', default='conf/logging.conf'),
         cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.'),
+        cfg.BoolOpt('sso', default=True),
+        cfg.StrOpt('sso_backend', default='noop'),
+        cfg.StrOpt('sso_backend_kwargs', default=None),
         cfg.BoolOpt('debug', default=True)
     ]
 

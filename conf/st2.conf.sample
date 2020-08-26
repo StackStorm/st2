@@ -53,6 +53,8 @@ port = 9101
 # Common option - options below apply in both scenarios - when auth service is running as a WSGI
 # service (e.g. under Apache or Nginx) and when it's running in the standalone mode.
 
+# JSON serialized arguments which are passed to the SSO backend.
+sso_backend_kwargs = None
 # Enable authentication middleware.
 enable = True
 # Path to the logging config.
@@ -63,10 +65,14 @@ api_url = None
 service_token_ttl = 86400
 # Access token ttl in seconds.
 token_ttl = 86400
+# Enable Single Sign On for GUI if true.
+sso = False
 # Authentication mode (proxy,standalone)
 mode = standalone
 # Specify to enable debug mode.
 debug = False
+# Single Sign On backend to use when SSO is enabled. Available backends: noop, saml2.
+sso_backend = noop
 
 # Standalone mode options - options below only apply when auth service is running in the standalone
 # mode.
