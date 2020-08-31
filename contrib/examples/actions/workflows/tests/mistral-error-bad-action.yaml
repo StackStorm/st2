@@ -1,8 +1,0 @@
-version: '2.0'
-
-examples.mistral-error-bad-action:
-    description: A sample workflow for testing error handling if action does not exist.
-    type: direct
-    tasks:
-        task1:
-            action: core.foobar

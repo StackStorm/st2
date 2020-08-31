@@ -89,7 +89,6 @@ def _override_common_opts():
     CONF.set_override(name='packs_base_paths', override=packs_base_path, group='content')
     CONF.set_override(name='api_url', override='http://127.0.0.1', group='auth')
     CONF.set_override(name='mask_secrets', override=True, group='log')
-    CONF.set_override(name='jitter_interval', override=0, group='mistral')
     CONF.set_override(name='query_interval', override=0.1, group='resultstracker')
     CONF.set_override(name='stream_output', override=False, group='actionrunner')
 
