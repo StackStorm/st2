@@ -1,1 +1,2 @@
 pywinrm
+cryptography<3.1
