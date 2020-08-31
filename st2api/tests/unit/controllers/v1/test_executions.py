@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,7 +130,7 @@ ACTION_4 = {
     'enabled': True,
     'entry_point': '/tmp/test/workflows/action4.yaml',
     'pack': 'starterpack',
-    'runner_type': 'mistral-v2',
+    'runner_type': 'orquesta',
     'parameters': {
         'a': {
             'type': 'string',
@@ -942,7 +943,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         self.assertEqual(re_run_resp.status_int, 400)
 
-        expected_substring = 'only supported for Orquesta and Mistral workflows'
+        expected_substring = 'only supported for Orquesta workflows'
         self.assertIn(expected_substring, re_run_resp.json['faultstring'])
 
     def test_re_run_workflow_failure_given_both_params_and_tasks(self):

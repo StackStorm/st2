@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -576,6 +577,34 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
 
         # Manually process the last action execution.
         workflows.get_engine().process(t1_ac_ex_dbs[2])
+
+        # Check that the workflow execution is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+
+    def test_subworkflow_with_items_empty_list(self):
+        wf_input = {'members': []}
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'with-items-empty-parent.yaml')
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+
+        # Identify the records for the main workflow.
+        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))
+        self.assertEqual(len(tk_ex_dbs), 1)
+
+        # Identify the records for the tasks.
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[0].id))[0]
+        t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
+        self.assertEqual(t1_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(t1_wf_ex_db.status, wf_statuses.SUCCEEDED)
+
+        # Manually processing completion of the subworkflow in task1.
+        workflows.get_engine().process(t1_ac_ex_db)
+        t1_ex_db = wf_db_access.TaskExecution.get_by_id(tk_ex_dbs[0].id)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
 
         # Check that the workflow execution is completed.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)

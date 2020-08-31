@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +22,9 @@ from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.auth import DEFAULT_MODE
 from st2common.constants.auth import DEFAULT_BACKEND
+from st2common.constants.auth import DEFAULT_SSO_BACKEND
 from st2common.constants.auth import VALID_MODES
-from st2auth.backends import get_available_backends
+from st2auth import backends as auth_backends
 
 
 def parse_args(args=None):
@@ -44,7 +46,8 @@ def _register_common_opts():
 
 
 def _register_app_opts():
-    available_backends = get_available_backends()
+    available_backends = auth_backends.get_available_backends()
+
     auth_opts = [
         cfg.StrOpt(
             'host', default='127.0.0.1',
@@ -77,7 +80,17 @@ def _register_app_opts():
         cfg.StrOpt(
             'backend_kwargs', default=None,
             help='JSON serialized arguments which are passed to the authentication '
-                 'backend in a standalone mode.')
+                 'backend in a standalone mode.'),
+        cfg.BoolOpt(
+            'sso', default=False,
+            help='Enable Single Sign On for GUI if true.'),
+        cfg.StrOpt(
+            'sso_backend', default=DEFAULT_SSO_BACKEND,
+            help='Single Sign On backend to use when SSO is enabled. Available '
+                 'backends: noop, saml2.'),
+        cfg.StrOpt(
+            'sso_backend_kwargs', default=None,
+            help='JSON serialized arguments which are passed to the SSO backend.')
     ]
 
     cfg.CONF.register_cli_opts(auth_opts, group='auth')

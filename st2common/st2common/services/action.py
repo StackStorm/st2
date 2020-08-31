@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -433,18 +434,32 @@ def store_execution_output_data(execution_db, action_db, data, output_type='outp
     Store output from an execution as a new document in the collection.
     """
     execution_id = str(execution_db.id)
-    action_ref = action_db.ref
-    runner_ref = getattr(action_db, 'runner_type', {}).get('name', 'unknown')
+
+    if action_db is None:
+        action_ref = execution_db.action.get('ref', 'unknown')
+        runner_ref = execution_db.action.get('runner_type', 'unknown')
+    else:
+        action_ref = action_db.ref
+        runner_ref = getattr(action_db, 'runner_type', {}).get('name', 'unknown')
+
+    return store_execution_output_data_ex(
+        execution_id, action_ref, runner_ref, data,
+        output_type=output_type, timestamp=timestamp
+    )
+
+
+def store_execution_output_data_ex(execution_id, action_ref, runner_ref, data, output_type='output',
+                                   timestamp=None):
     timestamp = timestamp or date_utils.get_datetime_utc_now()
 
-    output_db = ActionExecutionOutputDB(execution_id=execution_id,
-                                        action_ref=action_ref,
-                                        runner_ref=runner_ref,
-                                        timestamp=timestamp,
-                                        output_type=output_type,
-                                        data=data)
-    output_db = ActionExecutionOutput.add_or_update(output_db, publish=True,
-                                                    dispatch_trigger=False)
+    output_db = ActionExecutionOutputDB(
+        execution_id=execution_id, action_ref=action_ref, runner_ref=runner_ref,
+        timestamp=timestamp, output_type=output_type, data=data
+    )
+
+    output_db = ActionExecutionOutput.add_or_update(
+        output_db, publish=True, dispatch_trigger=False
+    )
 
     return output_db
 

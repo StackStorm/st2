@@ -22,8 +22,6 @@ elif [ ${TASK} == 'unit' ]; then
   make .unit-tests-coverage-html
 elif [ ${TASK} == 'integration' ]; then
   make .itests-coverage-html
-elif [ ${TASK} == 'mistral' ]; then
-  make .mistral-itests-coverage-html
 elif [ ${TASK} == "packs-tests" ]; then
   make .packs-tests
 else

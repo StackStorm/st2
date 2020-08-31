@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +15,9 @@
 
 from __future__ import absolute_import
 
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
+
 import os
 import unittest2
 
@@ -21,8 +25,6 @@ import six
 import mock
 import eventlet
 
-from st2common.util.monkey_patch import monkey_patch
-monkey_patch()
 
 import st2tests.config as tests_config
 from st2tests.base import TESTS_CONFIG_PATH
@@ -153,7 +155,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
                           trigger_types=trigger_types, parent_args=parent_args)
         except NameError as e:
             self.assertIn('Traceback (most recent call last)', six.text_type(e))
-            self.assertIn('line 19, in <module>', six.text_type(e))
+            self.assertIn('line 20, in <module>', six.text_type(e))
         else:
             self.fail('NameError not thrown')
 

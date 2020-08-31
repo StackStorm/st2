@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,23 +86,6 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
                 'parameters': {
                     'retry_on': 'timeout',
                     'max_retry_count': 5
-                }
-            },
-            'cancel_on_concurrency': {
-                'pack': 'mistral_tests',
-                'type': 'action.concurrency',
-                'parameters': {
-                    'action': 'cancel',
-                    'threshold': 3
-                }
-            },
-            'cancel_on_concurrency_by_attr': {
-                'pack': 'mistral_tests',
-                'type': 'action.concurrency.attr',
-                'parameters': {
-                    'action': 'cancel',
-                    'threshold': 1,
-                    'attributes': ['friend']
                 }
             },
             'sequential.retry_on_failure': {

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -139,7 +140,8 @@ class SensorContainerManager(object):
 
     def _handle_update_sensor(self, sensor):
         if not self._sensors_partitioner.is_sensor_owner(sensor):
-            LOG.info('sensor %s is not supported. Ignoring update.', self._get_sensor_ref(sensor))
+            LOG.info('sensor %s is not assigned to this partition. Ignoring update. ',
+                     self._get_sensor_ref(sensor))
             return
         sensor_ref = self._get_sensor_ref(sensor)
         sensor_obj = self._to_sensor_object(sensor)

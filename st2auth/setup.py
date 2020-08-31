@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,5 +46,10 @@ setup(
     packages=find_packages(exclude=['setuptools', 'tests']),
     scripts=[
         'bin/st2auth'
-    ]
+    ],
+    entry_points={
+        'st2auth.sso.backends': [
+            'noop = st2auth.sso.noop:NoOpSingleSignOnBackend'
+        ]
+    }
 )

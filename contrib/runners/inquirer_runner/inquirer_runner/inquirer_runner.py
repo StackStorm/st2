@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -114,7 +115,7 @@ class Inquirer(runners.ActionRunner):
                 not workflow_service.is_action_execution_under_workflow_context(self.liveaction)
             )
 
-            # For action execution under Action Chain and Mistral workflows, request the entire
+            # For action execution under Action Chain workflows, request the entire
             # workflow to pause. Orquesta handles pause differently and so does not require parent
             # to pause. Orquesta allows for other branches to keep running. When there is no other
             # active branches, the conductor will see there is only the pending task and will know
