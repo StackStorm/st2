@@ -979,13 +979,6 @@ ci-py3-packs-tests:
 	@echo
 	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
 
-.PHONY: ci-py3-unit-nightly
-ci-py3-unit-nightly:
-	@echo
-	@echo "==================== ci-py3-unit ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit-nightly -vv
-
 .PHONY: ci-py3-integration
 ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 
