@@ -75,6 +75,9 @@ Fixed
 * Fixed a regression in the ``linux.dig`` action on Python 3. (bug fix) #4993
 
   Contributed by @blag
+* Fix actions from the contrib/linux pack that fail on CentOS-8 but work on other operating systems and distributions.
+
+  Reported by @blag and contributed by winem (bug fix) #4999
 
 Removed
 ~~~~~~~
