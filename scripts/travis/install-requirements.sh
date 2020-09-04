@@ -46,10 +46,6 @@ if [[ " ${TASK}" = *' ci-py3-'* ]]; then
         tox -e py36-unit --notest
     fi
 
-    if [[ " ${TASK} " = *' ci-py3-unit-nightly '* ]]; then
-        tox -e py36-unit-nightly --notest
-    fi
-
     if [[ " ${TASK} " = *' ci-py3-packs-tests '* ]]; then
         tox -e py36-packs --notest
     fi
