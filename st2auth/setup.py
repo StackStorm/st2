@@ -46,5 +46,10 @@ setup(
     packages=find_packages(exclude=['setuptools', 'tests']),
     scripts=[
         'bin/st2auth'
-    ]
+    ],
+    entry_points={
+        'st2auth.sso.backends': [
+            'noop = st2auth.sso.noop:NoOpSingleSignOnBackend'
+        ]
+    }
 )

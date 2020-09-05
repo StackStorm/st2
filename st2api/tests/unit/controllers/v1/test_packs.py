@@ -540,6 +540,7 @@ class PacksControllerTestCase(FunctionalTest,
                                   {'packs': ['dummy_pack_1'], 'types': ['action']})
 
         self.assertEqual(resp.status_int, 200)
+        # 14 real plus 1 mock runner
         self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
 
         # Verify that plural name form also works

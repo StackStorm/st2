@@ -1,9 +1,0 @@
----
-description: >
-    A sample workflow that accesses st2kv via jinja
-    to get a system scope kvp from st2.
-enabled: true
-entry_point: workflows/mistral-jinja-st2kv-system-scope.yaml
-name: mistral-jinja-st2kv-system-scope
-pack: examples
-runner_type: mistral-v2

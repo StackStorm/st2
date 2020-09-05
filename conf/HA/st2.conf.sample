@@ -82,7 +82,3 @@ use_paramiko_ssh_runner = True
 
 [database]
 host = st2-multi-node-controller
-
-[mistral]
-v2_base_url = https://st2-multi-node-controller/mistral/v2
-api_url = https://st2-multi-node-controller/api

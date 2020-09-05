@@ -1,7 +1,0 @@
----
-description: A sample workflow used to test bad task transition statement.
-enabled: true
-entry_point: workflows/tests/mistral-error-bad-task-transition.yaml
-name: mistral-error-bad-task-transition
-pack: examples
-runner_type: mistral-v2

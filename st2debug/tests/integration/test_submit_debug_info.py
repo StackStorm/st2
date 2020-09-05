@@ -45,8 +45,6 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
 
         configs_dir = os.path.join(FIXTURES_DIR, 'configs/')
         st2debug.cmd.submit_debug_info.ST2_CONFIG_FILE_PATH = os.path.join(configs_dir, 'st2.conf')
-        st2debug.cmd.submit_debug_info.MISTRAL_CONFIG_FILE_PATH = os.path.join(configs_dir,
-                                                                               'mistral.conf')
 
         # Mock get_packs_base_paths
         content_dir = os.path.join(FIXTURES_DIR, 'content/')
@@ -81,7 +79,6 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
                 'log/path/1'
             ],
             'st2_config_file_path': 'st2/config/path',
-            'mistral_config_file_path': 'mistral/config/path',
             's3_bucket_url': 'my_s3_url',
             'gpg_key_fingerprint': 'my_gpg_fingerprint',
             'gpg_key': 'my_gpg_key',
@@ -100,8 +97,6 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         self.assertEqual(debug_collector.log_file_paths, ['log/path/1', 'log/path/1'])
         self.assertEqual(debug_collector.st2_config_file_path, 'st2/config/path')
         self.assertEqual(debug_collector.st2_config_file_name, 'path')
-        self.assertEqual(debug_collector.mistral_config_file_path, 'mistral/config/path')
-        self.assertEqual(debug_collector.mistral_config_file_name, 'path')
         self.assertEqual(debug_collector.s3_bucket_url, 'my_s3_url')
         self.assertEqual(debug_collector.gpg_key, 'my_gpg_key')
         self.assertEqual(debug_collector.gpg_key_fingerprint, 'my_gpg_fingerprint')
@@ -236,9 +231,7 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
 
         # Verify configs have been copied
         st2_config_path = os.path.join(extract_path, 'configs', 'st2.conf')
-        mistral_config_path = os.path.join(extract_path, 'configs', 'mistral.conf')
         self.assertTrue(os.path.isfile(st2_config_path))
-        self.assertTrue(os.path.isfile(mistral_config_path))
 
         # Verify packs have been copied
         content_path = os.path.join(extract_path, 'content/dir-1')
@@ -249,16 +242,10 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         with open(st2_config_path, 'r') as fp:
             st2_config_content = fp.read()
 
-        with open(mistral_config_path, 'r') as fp:
-            mistral_config_content = fp.read()
-
         self.assertNotIn('ponies', st2_config_content)
         self.assertIn('username = **removed**', st2_config_content)
         self.assertIn('password = **removed**', st2_config_content)
         self.assertIn('url = **removed**', st2_config_content)
-
-        self.assertNotIn('StackStorm', mistral_config_content)
-        self.assertIn('connection = **removed**', mistral_config_content)
 
         # Very config.yaml has been removed from the content pack directories
         pack_dir = os.path.join(content_path, 'twilio')
@@ -273,7 +260,6 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
                 os.path.join(FIXTURES_DIR, 'logs/st2*.log')
             ],
             'st2_config_file_path': os.path.join(FIXTURES_DIR, 'configs/st2.conf'),
-            'mistral_config_file_path': os.path.join(FIXTURES_DIR, 'configs/mistral.conf'),
             's3_bucket_url': S3_BUCKET_URL,
             'gpg_key_fingerprint': GPG_KEY_FINGERPRINT,
             'gpg_key': GPG_KEY,
