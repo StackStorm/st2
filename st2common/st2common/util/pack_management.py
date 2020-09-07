@@ -155,16 +155,18 @@ def download_pack(pack, abs_repo_base='/opt/stackstorm/packs', verify_ssl=True, 
                 clone_repo(temp_dir=abs_local_path, repo_url=pack_url, verify_ssl=verify_ssl,
                            ref=pack_version)
 
+            pack_metadata = get_pack_metadata(pack_dir=abs_local_path)
             pack_ref = get_pack_ref(pack_dir=abs_local_path)
             result[1] = pack_ref
 
             # 2. Verify that the pack version if compatible with current StackStorm version
             if not force:
-                verify_pack_version(pack_dir=abs_local_path, use_python3=use_python3)
+                verify_pack_version(pack_metadata=pack_metadata, use_python3=use_python3)
 
             # 3. Move pack to the final location
             move_result = move_pack(abs_repo_base=abs_repo_base, pack_name=pack_ref,
                                     abs_local_path=abs_local_path,
+                                    pack_metadata=pack_metadata,
                                     force_owner_group=force_owner_group,
                                     force_permissions=force_permissions,
                                     logger=logger)
@@ -267,7 +269,7 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref='master'):
     return temp_dir
 
 
-def move_pack(abs_repo_base, pack_name, abs_local_path, force_owner_group=True,
+def move_pack(abs_repo_base, pack_name, abs_local_path, pack_metadata, force_owner_group=True,
               force_permissions=True, logger=LOG):
     """
     Move pack directory into the final location.
@@ -302,7 +304,14 @@ def move_pack(abs_repo_base, pack_name, abs_local_path, force_owner_group=True,
             # 2. Setup the right permissions and group ownership
             apply_pack_permissions(pack_path=dest_pack_path)
 
-        message = 'Success.'
+        # Raise warning if python2 only supported
+        supported_python_versions = pack_metadata.get('python_versions', None)
+        message = "Success."
+        if set(supported_python_versions) == set(['2']):
+           warning = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
+                     "ST2 will remove support for Python 2.x in a future release." \
+                     % pack_name
+           logger.warning(warning)
     elif message:
         message = 'Failure : %s' % message
 
@@ -420,11 +429,10 @@ def is_desired_pack(abs_pack_path, pack_name):
     return (True, '')
 
 
-def verify_pack_version(pack_dir, use_python3=False):
+def verify_pack_version(pack_metadata, use_python3=False):
     """
     Verify that the pack works with the currently running StackStorm version.
     """
-    pack_metadata = get_pack_metadata(pack_dir=pack_dir)
     pack_name = pack_metadata.get('name', None)
     required_stackstorm_version = pack_metadata.get('stackstorm_version', None)
     supported_python_versions = pack_metadata.get('python_versions', None)
@@ -456,7 +464,8 @@ def verify_pack_version(pack_dir, use_python3=False):
                    'the pack is not guaranteed to work.' % (pack_name, CURRENT_PYTHON_VERSION))
             raise ValueError(msg)
         else:
-            # Pack support Python 2.x and 3.x so no check is needed
+            # Pack support Python 2.x and 3.x so no check is needed, or
+            # supported version matches ST2 version
             pass
 
     return True

@@ -1,0 +1,15 @@
+
+
+---
+  name: "get_pack_warnings"
+  runner_type: "python-script"
+  description: "Get pack warnings specified in pack.yaml"
+  enabled: true
+  pack: packs
+  entry_point: "pack_mgmt/get_pack_warnings.py"
+  parameters:
+    packs_status:
+      type: object
+      description: Name of the pack in Exchange or a git repo URL and download status.
+      required: true
+      default: null

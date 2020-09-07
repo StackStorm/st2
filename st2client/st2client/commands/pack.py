@@ -284,6 +284,10 @@ class PackInstallCommand(PackAsyncCommand):
                               attributes=args.attr, widths=args.width,
                               json=args.json, yaml=args.yaml)
 
+        warnings = instance.result['output']['warning_list']
+        for warning in warnings:
+            print(warning)
+
 
 class PackRemoveCommand(PackAsyncCommand):
     def __init__(self, resource, *args, **kwargs):
