@@ -71,3 +71,10 @@ class PackUtilsTestCase(unittest2.TestCase):
         }
         warning = get_pack_warnings(pack_metadata)
         self.assertEqual(None, warning)
+
+    def test_get_pack_warnings_no_python(self):
+        pack_metadata = {
+            'name': 'PackNone'
+        }
+        warning = get_pack_warnings(pack_metadata)
+        self.assertEqual(None, warning)

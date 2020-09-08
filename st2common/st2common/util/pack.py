@@ -109,7 +109,7 @@ def get_pack_warnings(pack_metadata):
     warning = None
     versions = pack_metadata.get('python_versions', None)
     pack_name = pack_metadata.get('name', None)
-    if set(versions) == set(['2']):
+    if versions and set(versions) == set(['2']):
         warning = PACK_PYTHON2_WARNING % pack_name
     return warning
 
