@@ -66,7 +66,7 @@ class PackUtilsTestCase(unittest2.TestCase):
 
     def test_get_pack_warnings_python2_and_3(self):
         pack_metadata = {
-            'python_versions': ['2','3'],
+            'python_versions': ['2', '3'],
             'name': 'Pack23'
         }
         warning = get_pack_warnings(pack_metadata)
