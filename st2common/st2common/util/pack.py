@@ -44,7 +44,8 @@ __all__ = [
 
 # Common format for python 2.7 warning
 PACK_PYTHON2_WARNING = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
-                       "ST2 will remove support for Python 2.x in a future release."
+                       "Python 2 support will be dropped in future releases. " \
+                       "Please consider updating your packs to work with Python 3.x"
 
 
 def get_pack_ref_from_metadata(metadata, pack_directory_name=None):
@@ -99,7 +100,7 @@ def get_pack_metadata(pack_dir):
     return content
 
 
-def get_pack_warnings(pack_metadata, pack_name):
+def get_pack_warnings(pack_metadata):
     """
     Return warning string if pack metadata indicates only python 2 is supported
 
@@ -107,6 +108,7 @@ def get_pack_warnings(pack_metadata, pack_name):
     """
     warning = None
     versions = pack_metadata.get('python_versions', None)
+    pack_name = pack_metadata.get('name', None)
     if set(versions) == set(['2']):
         warning = PACK_PYTHON2_WARNING % pack_name
     return warning

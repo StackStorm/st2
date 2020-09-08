@@ -306,7 +306,7 @@ def move_pack(abs_repo_base, pack_name, abs_local_path, pack_metadata, force_own
             apply_pack_permissions(pack_path=dest_pack_path)
 
         # Log warning if python2 only supported
-        warning = get_pack_warnings(pack_metadata, pack_name)
+        warning = get_pack_warnings(pack_metadata)
         if warning:
             logger.warning(warning)
 

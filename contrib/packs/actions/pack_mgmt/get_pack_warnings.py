@@ -53,8 +53,7 @@ def get_warnings(pack=None):
     pack_path = get_pack_base_path(pack)
     try:
         pack_metadata = get_pack_metadata(pack_dir=pack_path)
-        pack_name = pack_metadata.get('name', None)
-        result = get_pack_warnings(pack_metadata, pack_name)
+        result = get_pack_warnings(pack_metadata)
     except Exception:
         print('Could not open pack.yaml at location %s' % pack_path)
     finally:
