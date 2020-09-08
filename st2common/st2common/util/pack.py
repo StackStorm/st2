@@ -32,6 +32,7 @@ from st2common.util import jinja as jinja_utils
 __all__ = [
     'get_pack_ref_from_metadata',
     'get_pack_metadata',
+    'get_pack_warnings',
 
     'get_pack_common_libs_path_for_pack_ref',
     'get_pack_common_libs_path_for_pack_db',
@@ -40,6 +41,10 @@ __all__ = [
 
     'normalize_pack_version'
 ]
+
+# Common format for python 2.7 warning
+PACK_PYTHON2_WARNING = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
+                       "ST2 will remove support for Python 2.x in a future release."
 
 
 def get_pack_ref_from_metadata(metadata, pack_directory_name=None):
@@ -92,6 +97,19 @@ def get_pack_metadata(pack_dir):
         raise ValueError('Pack "%s" metadata file is empty' % (pack_dir))
 
     return content
+
+
+def get_pack_warnings(pack_metadata, pack_name):
+    """
+    Return warning string if pack metadata indicates only python 2 is supported
+
+    :rtype: ``str``
+    """
+    warning = None
+    versions = pack_metadata.get('python_versions', None)
+    if set(versions) == set(['2']):
+        warning = PACK_PYTHON2_WARNING % pack_name
+    return warning
 
 
 def validate_config_against_schema(config_schema, config_object, config_path,

@@ -16,16 +16,16 @@ from __future__ import print_function
 
 import six
 
-from st2common.constants.pack import PACK_VERSION_SEPARATOR
 from st2common.content.utils import get_pack_base_path
 from st2common.runners.base_action import Action
 from st2common.util.pack import get_pack_metadata
+from st2common.util.pack import get_pack_warnings
 
 
 class GetPackWarnings(Action):
     def run(self, packs_status):
         """
-        :param packs_status: Name of the pack in Exchange or a git repo URL and download status.
+        :param packs_status: Name of the pack and download status.
         :type: packs_status: ``dict``
         """
         result = {}
@@ -54,11 +54,7 @@ def get_warnings(pack=None):
     try:
         pack_metadata = get_pack_metadata(pack_dir=pack_path)
         pack_name = pack_metadata.get('name', None)
-        versions = pack_metadata.get('python_versions', None)
-        if set(versions) == set(['2']):
-            result = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
-                     "ST2 will remove support for Python 2.x in a future release." \
-                     % pack_name
+        result = get_pack_warnings(pack_metadata, pack_name)
     except Exception:
         print('Could not open pack.yaml at location %s' % pack_path)
     finally:

@@ -42,6 +42,7 @@ from st2common.constants.pack import PACK_VERSION_REGEX
 from st2common.services.packs import get_pack_from_index
 from st2common.util.pack import get_pack_metadata
 from st2common.util.pack import get_pack_ref_from_metadata
+from st2common.util.pack import get_pack_warnings
 from st2common.util.green import shell
 from st2common.util.versioning import complex_semver_match
 from st2common.util.versioning import get_stackstorm_version
@@ -304,14 +305,12 @@ def move_pack(abs_repo_base, pack_name, abs_local_path, pack_metadata, force_own
             # 2. Setup the right permissions and group ownership
             apply_pack_permissions(pack_path=dest_pack_path)
 
-        # Raise warning if python2 only supported
-        supported_python_versions = pack_metadata.get('python_versions', None)
+        # Log warning if python2 only supported
+        warning = get_pack_warnings(pack_metadata, pack_name)
+        if warning:
+            logger.warning(warning)
+
         message = "Success."
-        if set(supported_python_versions) == set(['2']):
-           warning = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
-                     "ST2 will remove support for Python 2.x in a future release." \
-                     % pack_name
-           logger.warning(warning)
     elif message:
         message = 'Failure : %s' % message
 
