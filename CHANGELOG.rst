@@ -20,7 +20,7 @@ Added
 
   Contributed by @punkrokk
 * Added deprecation warning if attempt to install or download a pack that only supports
-  Python 2.
+  Python 2. (new feature) #5037
 
   Contributed by @amanda11
 
