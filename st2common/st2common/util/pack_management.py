@@ -310,7 +310,7 @@ def move_pack(abs_repo_base, pack_name, abs_local_path, pack_metadata, force_own
         if warning:
             logger.warning(warning)
 
-        message = "Success."
+        message = 'Success.'
     elif message:
         message = 'Failure : %s' % message
 
