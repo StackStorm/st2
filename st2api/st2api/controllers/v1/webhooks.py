@@ -16,6 +16,7 @@
 import six
 import uuid
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
+from six import iteritems
 urljoin = urlparse.urljoin
 
 from st2common import log as logging
@@ -159,6 +160,7 @@ class WebhooksController(object):
             payload = {}
 
             payload['headers'] = headers
+            payload['headers_lower'] = dict((k.lower(), v) for k, v in iteritems(headers))
             payload['body'] = body
 
             # Dispatch trigger instance for each of the trigger found
