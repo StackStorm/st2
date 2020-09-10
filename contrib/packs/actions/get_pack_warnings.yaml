@@ -1,7 +1,7 @@
 ---
   name: "get_pack_warnings"
   runner_type: "python-script"
-  description: "Get pack warnings specified in pack.yaml"
+  description: "Get pack warnings from analysing pack.yaml"
   enabled: true
   pack: packs
   entry_point: "pack_mgmt/get_pack_warnings.py"
