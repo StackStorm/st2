@@ -150,4 +150,3 @@ class GetPackWarningsTestCase(BaseActionTestCase):
                          "Pack py22 only supports Python 2" in warning1) or 
                          ("Pack py22 only supports Python 2" in warning0 and
                          "Pack py2 only supports Python 2" in warning1))
-                        
