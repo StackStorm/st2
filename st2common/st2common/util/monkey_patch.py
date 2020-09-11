@@ -50,15 +50,6 @@ def monkey_patch(patch_thread=None):
 
     eventlet.monkey_patch(os=True, select=True, socket=True, thread=patch_thread, time=True)
 
-    # Guard against importing non-existent _original_module_threading for Python 2.7
-    import sys
-    if (3, 7) == (sys.version_info.major, sys.version_info.minor):
-        # Monkey patch the original current_thread to use the up-to-date _active
-        # global variable. See https://github.com/eventlet/eventlet/issues/592
-        import __original_module_threading as orig_threading
-        import threading
-        orig_threading.current_thread.__globals__['_active'] = threading._active
-
 
 def use_select_poll_workaround(nose_only=True):
     """

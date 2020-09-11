@@ -5,9 +5,9 @@ apscheduler==3.6.3
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython>=1.16.0,<2.0.0
 cryptography==2.8
-# Note: 0.20.0 removed select.poll() on which some of our code and libraries we
-# depend on rely
-eventlet==0.25.1
+# Note: eventlet 0.27.0 required for correct threading support under Python3.7+ when monkeypatching.
+# see https://github.com/eventlet/eventlet/pull/611 for details.
+eventlet==0.27.0
 flex==6.14.0
 gitpython==2.1.15
 # Note: greenlet is used by eventlet
