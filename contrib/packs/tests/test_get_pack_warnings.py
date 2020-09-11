@@ -17,7 +17,6 @@
 import mock
 
 from st2tests.base import BaseActionTestCase
-
 from pack_mgmt.get_pack_warnings import GetPackWarnings
 
 PACK_METADATA = {
