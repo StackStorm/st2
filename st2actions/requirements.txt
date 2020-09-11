@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 apscheduler==3.6.3
-eventlet==0.25.1
+eventlet==0.27.0
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 gitpython==2.1.15
 jinja2==2.10.3

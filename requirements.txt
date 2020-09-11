@@ -12,7 +12,7 @@ argcomplete
 bcrypt==3.1.7
 cryptography==2.8
 dnspython<2.0.0,>=1.16.0
-eventlet==0.25.1
+eventlet==0.27.0
 flex==6.14.0
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/orquesta.git@v1.1.1#egg=orquesta
