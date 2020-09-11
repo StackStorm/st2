@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,7 +68,7 @@ ACTION_SENSOR_TRIGGER = {
 }
 
 ACTION_FILE_WRITTEN_TRIGGER = {
-    'name': 'st2.action.file_writen',
+    'name': 'st2.action.file_written',
     'pack': SYSTEM_PACK_NAME,
     'description': 'Trigger encapsulating action file being written on disk.',
     'payload_schema': {

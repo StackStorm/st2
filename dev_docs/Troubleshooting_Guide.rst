@@ -1,6 +1,12 @@
 Troubleshooting Guide
 =====================
 
+**Q: What is the default username and password for the** ``tools/launchdev.sh`` **script?**
+
+**A: The default creds are**:
+  user: testu
+  pass: testp
+
 **Q: After starting st2 server using** ``tools/launchdev.sh`` **script, getting following error:**::
 
   $ st2 action list

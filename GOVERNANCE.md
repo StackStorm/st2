@@ -3,7 +3,7 @@ With the new Neutral Home we invite everyone: organizations, teams and individua
 
 # StackStorm Governance
 This document defines governance policies for the StackStorm project.
-It extends [Technical Charter](https://stackstorm.com/wp/wp-content/uploads/2019/10/StackStorm-Technical-Charter-20191004.pdf) for StackStorm within the Linux Foundation.
+It extends [Technical Charter](https://stackstorm.com/wp/wp-content/uploads/2020/06/2019-09-03-StackStorm-Project-Technical-Charter.pdf) for StackStorm within the Linux Foundation.
 
 ## Technical Steering Committee (TSC)
 The Technical Steering Committee is a group of Maintainers (Committers) who have earned the ability to modify (“commit”) sourcecode, documentation or other artifacts.

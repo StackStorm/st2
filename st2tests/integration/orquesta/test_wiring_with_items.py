@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -287,3 +288,10 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
 
         # Wait for completion.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+    def test_subworkflow_empty_with_items(self):
+        wf_name = 'examples.orquesta-test-subworkflow-empty-with-items'
+        ex = self._execute_workflow(wf_name)
+        ex = self._wait_for_completion(ex)
+
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)

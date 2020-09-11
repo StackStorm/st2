@@ -1,5 +1,5 @@
 ---
-action: foo.mistral.wf1
+action: foo.orquesta.wf1
 callback: {}
 context:
   user: system

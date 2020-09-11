@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +50,7 @@ class SSHCommandTimeoutError(Exception):
     Exception which is raised when an SSH command times out.
     """
 
-    def __init__(self, cmd, timeout, stdout=None, stderr=None):
+    def __init__(self, cmd, timeout, ssh_connect_timeout, stdout=None, stderr=None):
         """
         :param stdout: Stdout which was consumed until the timeout occured.
         :type stdout: ``str``
@@ -59,14 +60,16 @@ class SSHCommandTimeoutError(Exception):
         """
         self.cmd = cmd
         self.timeout = timeout
+        self.ssh_connect_timeout = ssh_connect_timeout
         self.stdout = stdout
         self.stderr = stderr
-        self.message = 'Command didn\'t finish in %s seconds' % (timeout)
+        self.message = ('Command didn\'t finish in %s seconds or the SSH connection '
+                       'did not succeed in %s seconds' % (timeout, ssh_connect_timeout))
         super(SSHCommandTimeoutError, self).__init__(self.message)
 
     def __repr__(self):
-        return ('<SSHCommandTimeoutError: cmd="%s",timeout=%s)>' %
-                (self.cmd, self.timeout))
+        return ('<SSHCommandTimeoutError: cmd="%s", timeout=%s, ssh_connect_timeout=%s)>' %
+                (self.cmd, self.timeout, self.ssh_connect_timeout))
 
     def __str__(self):
         return self.message
@@ -82,9 +85,6 @@ class ParamikoSSHClient(object):
 
     # How long to sleep while waiting for command to finish to prevent busy waiting
     SLEEP_DELAY = 0.2
-
-    # Connect socket timeout
-    CONNECT_TIMEOUT = 60
 
     def __init__(self, hostname, port=DEFAULT_SSH_PORT, username=None, password=None,
                  bastion_host=None, key_files=None, key_material=None, timeout=None,
@@ -105,10 +105,11 @@ class ParamikoSSHClient(object):
         self.username = username
         self.password = password
         self.key_files = key_files
-        self.timeout = timeout or ParamikoSSHClient.CONNECT_TIMEOUT
+        self.timeout = timeout
         self.key_material = key_material
         self.bastion_host = bastion_host
         self.passphrase = passphrase
+        self.ssh_connect_timeout = cfg.CONF.ssh_runner.ssh_connect_timeout
         self._handle_stdout_line_func = handle_stdout_line_func
         self._handle_stderr_line_func = handle_stderr_line_func
 
@@ -116,6 +117,11 @@ class ParamikoSSHClient(object):
             cfg.CONF.ssh_runner.ssh_config_file_path or
             '~/.ssh/config'
         )
+
+        if self.timeout and int(self.ssh_connect_timeout) > int(self.timeout) - 2:
+            # the connect timeout should not be greater than the action timeout
+            self.ssh_connect_timeout = int(self.timeout) - 2
+
         self.logger = logging.getLogger(__name__)
 
         self.client = None
@@ -415,8 +421,9 @@ class ParamikoSSHClient(object):
 
                 stdout = sanitize_output(stdout.getvalue(), uses_pty=uses_pty)
                 stderr = sanitize_output(stderr.getvalue(), uses_pty=uses_pty)
-                raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout, stdout=stdout,
-                                             stderr=stderr)
+                raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout,
+                                             ssh_connect_timeout=self.ssh_connect_timeout,
+                                             stdout=stdout, stderr=stderr)
 
             stdout_data = self._consume_stdout(chan=chan,
                                                call_line_handler_func=call_line_handler_func)
@@ -452,18 +459,17 @@ class ParamikoSSHClient(object):
         return [stdout, stderr, status]
 
     def close(self):
-        self.logger.debug('Closing server connection')
-
-        self.client.close()
-
         if self.socket:
-            self.logger.debug('Closing proxycommand socket connection')
-            # https://github.com/paramiko/paramiko/issues/789  Avoid zombie ssh processes
-            self.socket.process.kill()
-            self.socket.process.poll()
+            self.socket.close()
+
+        if self.client:
+            self.client.close()
 
         if self.sftp_client:
             self.sftp_client.close()
+
+        if self.bastion_socket:
+            self.bastion_socket.close()
 
         if self.bastion_client:
             self.bastion_client.close()
@@ -633,7 +639,7 @@ class ParamikoSSHClient(object):
         conninfo = {'hostname': host,
                     'allow_agent': False,
                     'look_for_keys': False,
-                    'timeout': self.timeout}
+                    'timeout': self.ssh_connect_timeout}
 
         ssh_config_file_info = {}
         if cfg.CONF.ssh_runner.use_ssh_config:
@@ -702,7 +708,7 @@ class ParamikoSSHClient(object):
             conninfo['look_for_keys'] = True
 
         extra = {'_hostname': host, '_port': self.port,
-                 '_username': self.username, '_timeout': self.timeout}
+                 '_username': self.username, '_timeout': self.ssh_connect_timeout}
         self.logger.debug('Connecting to server', extra=extra)
 
         self.socket = socket or ssh_config_file_info.get('sock', None)

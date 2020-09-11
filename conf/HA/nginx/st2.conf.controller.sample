@@ -30,8 +30,6 @@ server {
 server {
   listen       *:443 ssl;
 
-  ssl on;
-
   ssl_certificate           /etc/ssl/st2/st2.crt;
   ssl_certificate_key       /etc/ssl/st2/st2.key;
   ssl_session_cache         shared:SSL:10m;
@@ -70,7 +68,6 @@ server {
     chunked_transfer_encoding off;
     proxy_buffering off;
     proxy_cache off;
-    proxy_set_header Host $host;
   }
 
   location @streamError {
@@ -127,26 +124,6 @@ server {
     chunked_transfer_encoding off;
     proxy_buffering off;
     proxy_cache off;
-    proxy_set_header Host $host;
-  }
-
-  location /mistral/ {
-    proxy_pass            https://st2/mistral/;
-    proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
-    proxy_read_timeout    90;
-    proxy_connect_timeout 90;
-    proxy_redirect        off;
-
-    proxy_set_header      Host $host;
-    proxy_set_header      X-Real-IP $remote_addr;
-    proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_pass_header     Authorization;
-
-    proxy_set_header Connection '';
-    chunked_transfer_encoding off;
-    proxy_buffering off;
-    proxy_cache off;
-    proxy_set_header Host $host;
   }
 
   location / {
