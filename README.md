@@ -48,7 +48,7 @@ See the list of known StackStorm [ADOPTERS.md](/ADOPTERS.md) and [Thought Leader
 
 #### StackStorm architecture
 
-![StackStorm architecture diagram](https://cloud.githubusercontent.com/assets/20028/5688946/fabef9ec-9822-11e4-859e-29bbb67df85b.jpg)
+![StackStorm architecture diagram](https://user-images.githubusercontent.com/597113/92291633-6b5aae00-eece-11ea-912e-3bf977aa3cea.png)
 
 StackStorm plugs into the environment via an extensible set of adapters: sensors and actions.
 
