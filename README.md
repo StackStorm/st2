@@ -76,7 +76,7 @@ Additional documentation, including installation proceduces, action/rule/workflo
 
 ## Hacking / Contributing
 
-To set up development environment and run StackStorm from sources, follow [these instructions](https://docs.stackstorm.com/development/sources.html).
+To set up a development environment and run StackStorm from sources, follow [these instructions](https://docs.stackstorm.com/development/sources.html).
 
 For information on how to contribute, our style guide, coding conventions and more,
 please visit the [Development section](https://docs.stackstorm.com/development/index.html)
