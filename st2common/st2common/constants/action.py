@@ -140,7 +140,6 @@ LIVEACTION_CANCEL_STATES = [
 
 WORKFLOW_RUNNER_TYPES = [
     'action-chain',
-    'mistral-v2',
     'orquesta'
 ]
 

@@ -29,6 +29,13 @@ if [[ " ${TASK}" = *' ci-py3-'* ]]; then
       cd $RUNNER
       python setup.py develop --no-deps
     done
+    # Install mock runners
+    for RUNNER in `ls -d $CURRENT_DIR/st2common/tests/runners/*`
+    do
+      echo "Installing mock runner: $RUNNER..."
+      cd $RUNNER
+      python setup.py develop --no-deps
+    done
 
     # NOTE: We create the environment and install the dependencies first. This
     # means that the subsequent tox build / test command has a stable run time
@@ -37,10 +44,6 @@ if [[ " ${TASK}" = *' ci-py3-'* ]]; then
     # targets that need a tox env. The spaces ensure we match entire make targets.
     if [[ " ${TASK} " = *' ci-py3-unit '* ]]; then
         tox -e py36-unit --notest
-    fi
-
-    if [[ " ${TASK} " = *' ci-py3-unit-nightly '* ]]; then
-        tox -e py36-unit-nightly --notest
     fi
 
     if [[ " ${TASK} " = *' ci-py3-packs-tests '* ]]; then
