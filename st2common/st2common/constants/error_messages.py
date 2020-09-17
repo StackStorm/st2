@@ -40,4 +40,3 @@ PYTHON2_DEPRECATION = 'DEPRECATION WARNING. Support for python 2 will be removed
                       'python 2 to python 3 in future platform releases. It is recommended ' \
                       'to plan the manual migration to a python 3 native platform, e.g. ' \
                       'Ubuntu 18.04 LTS or CentOS/RHEL 8.'
-
