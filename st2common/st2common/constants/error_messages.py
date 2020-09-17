@@ -35,6 +35,9 @@ virtual environment with python2 binary:
 '''
 
 PYTHON2_DEPRECATION = 'DEPRECATION WARNING. Support for python 2 will be removed in future ' \
-                      'StackStorm release(s). Please ensure that all packs used are python ' \
-                      '3 compatible. Python 3 will already be used if you upgrade to a newer ' \
-                      ' OS release.'
+                      'StackStorm releases. Please ensure that all packs used are python ' \
+                      '3 compatible. Your StackStorm installation may be upgraded from ' \
+                      'python 2 to python 3 in future platform releases. It is recommended ' \
+                      'to plan the manual migration to a python 3 native platform, e.g. ' \
+                      'Ubuntu 18.04 LTS or CentOS/RHEL 8.'
+
