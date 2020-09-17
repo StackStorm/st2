@@ -191,7 +191,6 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         LOG.warning(PYTHON2_DEPRECATION)
 
 
-
 def teardown():
     """
     Common teardown function.
