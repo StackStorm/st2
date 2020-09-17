@@ -15,7 +15,8 @@
 
 __all__ = [
     'PACK_VIRTUALENV_DOESNT_EXIST',
-    'PACK_VIRTUALENV_USES_PYTHON3'
+    'PACK_VIRTUALENV_USES_PYTHON3',
+    'PYTHON2_DEPREATION'
 ]
 
 PACK_VIRTUALENV_DOESNT_EXIST = '''
@@ -32,3 +33,7 @@ actions and not sensors. If you want to run this sensor, please re-recreate the
 virtual environment with python2 binary:
 "st2 run packs.setup_virtualenv packs=%(pack)s python3=false"
 '''
+
+PYTHON2_DEPRECATION = 'DEPRECATION WARNING. Support for python 2 will be removed in future StackStorm ' \
+'release(s). Please ensure that all packs used are python 3 compatible. Python 3 will already be used ' \
+'if you upgrade to a newer OS release.'
