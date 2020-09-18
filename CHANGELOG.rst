@@ -19,6 +19,15 @@ Added
   default pass to screen when the script completes. (improvement) #5013
 
   Contributed by @punkrokk
+* Added deprecation warning if attempt to install or download a pack that only supports
+  Python 2. (new feature) #5037
+
+  Contributed by @amanda11
+* Added deprecation warning to each StackStorm service log, if service is running with
+  Python 2. (new feature) #5043
+
+  Contributed by @amanda11
+
 
 Changed
 ~~~~~~~
