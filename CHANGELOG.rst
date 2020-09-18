@@ -23,6 +23,11 @@ Added
   Python 2. (new feature) #5037
 
   Contributed by @amanda11
+* Added deprecation warning to each StackStorm service log, if service is running with
+  Python 2. (new feature) #5043
+
+  Contributed by @amanda11
+
 
 Changed
 ~~~~~~~
