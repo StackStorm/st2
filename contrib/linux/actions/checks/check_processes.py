@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/opt/stackstorm/st2/bin/python
 
 # Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
