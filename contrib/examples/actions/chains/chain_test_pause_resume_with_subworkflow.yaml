@@ -1,7 +1,7 @@
 chain:
     -
         name: task1
-        ref: examples.mistral-test-pause-resume
+        ref: examples.orquesta-test-pause-resume
         params:
             tempfile: "{{tempfile}}"
             message: "{{message}}"
