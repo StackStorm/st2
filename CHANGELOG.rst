@@ -77,7 +77,7 @@ Fixed
   Contributed by @blag
 * Fix actions from the contrib/linux pack that fail on CentOS-8 but work on other operating systems and distributions.
 
-  Reported by @blag and contributed by winem (bug fix) #4999
+  Reported by @blag and @dove-young contributed by winem (bug fix) #4999 #5004
 
 Removed
 ~~~~~~~
