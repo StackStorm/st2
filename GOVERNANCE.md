@@ -118,5 +118,5 @@ The decision is made based on TSC members votes in a PR.
 
 The process of voting on other Issues, Proposals and Changes is performed by creating an open Github Discussion. For decisions making history reasons and to stimulate brainstorming, it's recommended to write a detailed research/description that covers possible outcomes and pros/cons behind the change to give comprehensive context.
 
-Additions and removals of maintainers require a *2/3 majority*, while other decisions and changes
+Additions, removals, promotions of maintainers as well as changes to the GOVERNANCE (this document) require a *2/3 majority*, while other decisions and changes
 require only a simple majority. The voting period is one week.
