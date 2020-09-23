@@ -135,10 +135,10 @@ class ActionExecutionOutputStreamController(ResourceController):
 
         def make_response():
             app_iter = itertools.chain(existing_output_iter(), new_output_iter())
-            res = Response(headerlist=[("X-Accel-Buffering","no"),
+            res = Response(headerlist=[("X-Accel-Buffering", "no"),
                 ('Cache-Control', 'no-cache'),
-                ("Content-Type","text/event-stream; charset=UTF-8")],
-                    app_iter=app_iter)
+                ("Content-Type", "text/event-stream; charset=UTF-8")],
+                app_iter=app_iter)
             return res
 
         res = make_response()

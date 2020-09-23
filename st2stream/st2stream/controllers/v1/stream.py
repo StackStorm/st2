@@ -54,16 +54,25 @@ def format(gen):
 
 
 class StreamController(object):
-    def get_all(self, events=None, action_refs=None, execution_ids=None, requester_user=None):
+    def get_all(self, end_execution_id=None, end_event=None,
+            events=None, action_refs=None, execution_ids=None, requester_user=None):
         events = events if events else DEFAULT_EVENTS_WHITELIST
         action_refs = action_refs if action_refs else None
         execution_ids = execution_ids if execution_ids else None
+        end_statuses = ["failed", "succeeded"]
 
         def make_response():
             listener = get_listener(name='stream')
-            app_iter = format(listener.generator(events=events, action_refs=action_refs,
+            app_iter = format(listener.generator(events=events,
+                                                 action_refs=action_refs,
+                                                 end_event=end_event,
+                                                 end_statuses=end_statuses,
+                                                 end_execution_id=end_execution_id,
                                                  execution_ids=execution_ids))
-            res = Response(content_type='text/event-stream', app_iter=app_iter)
+            res = Response(headerlist=[("X-Accel-Buffering", "no"),
+                ('Cache-Control', 'no-cache'),
+                ("Content-Type", "text/event-stream; charset=UTF-8")],
+                app_iter=app_iter)
             return res
 
         stream = make_response()
