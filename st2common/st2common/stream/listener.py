@@ -98,8 +98,8 @@ class BaseListener(ConsumerMixin):
                     if event_name == end_event:
                         if body is not None and \
                             body.status in end_statuses and \
-                            end_execution_id is not None and \
-                            body.id == end_execution_id:
+                                end_execution_id is not None and \
+                                body.id == end_execution_id:
                             stop = True
                     # TODO: We now do late filtering, but this could also be performed on the
                     # message bus level if we modified our exchange layout and utilize routing keys
