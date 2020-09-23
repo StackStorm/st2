@@ -90,7 +90,6 @@ class BaseListener(ConsumerMixin):
                     # TODO: Move to common option
                     message = queue.get(timeout=cfg.CONF.stream.heartbeat)
                     if not message:
-                        LOG.debug("not_message_generator")
                         yield message
                         continue
                     event_name, body = message
