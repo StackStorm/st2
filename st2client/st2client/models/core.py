@@ -653,7 +653,7 @@ class StreamManager(object):
         query_string = '?' + urllib.parse.urlencode(query_params)
         url = url + query_string
 
-        response = requests.get(url, timeout=30, stream=True, **request_params)
+        response = requests.get(url, stream=True, **request_params)
         client = SSEClient(response)
 
         for message in client.events():
