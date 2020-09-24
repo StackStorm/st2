@@ -83,15 +83,18 @@ function validate_in_components() {
   fi
 }
 
+function check_python_version() {
+  PYTHON_VERSION=$(/opt/stackstorm/st2/bin/python --version 2>&1 | awk -F"[. ]" '{print $2}')
+  if [ "${PYTHON_VERSION}" = "2" ]; then
+    echo -e "\e[33mDeprecation warning: Support for python 2 will be removed in future StackStorm releases. Please ensure that all packs used are python 3 compatible. Your StackStorm installation may be upgraded from python 2 to python 3 in future platform releases. It is recommended to plan the manual migration to a python 3 native platform, e.g. Ubuntu 18.04 LTS or CentOS/RHEL 8. \e[0m\n"
+  fi
+}
+
 function st2start() {
   for COM in ${COMPONENTS}; do
     service_manager ${COM} start
   done
-  PYTHON_VERSION=$(/opt/stackstorm/st2/bin/python --version 2>&1 | awk '{print $2'} | awk -F"." '{print $1}')
-  if [ "${PYTHON_VERSION}" = "2" ]; then
-    echo -e "\e[33mDeprecation warning: Support for python 2 will be removed in future StackStorm releases. Please ensure that all packs used are python 3 compatible. Your StackStorm installation may be upgraded from python 2 to python 3 in future platform releases. It is recommended to plan the manual migration to a python 3 native platform, e.g. Ubuntu 18.04 LTS or CentOS/RHEL 8. \e[0m\n"
-  fi
-
+  check_python_version
 }
 
 function st2stop() {
@@ -218,6 +221,7 @@ case ${1} in
     must_be_root
     validate_in_components ${2}
     service_manager ${2} restart
+    check_python_version
     ;;
   reopen-log-files)
     must_be_root
@@ -229,6 +233,7 @@ case ${1} in
     ;;
   reload)
     register_content ${@:2}
+    check_python_version
     exit_code=$?
     getpids
     # Note: We want to preserve st2-register-content "fail on failure" behavior
