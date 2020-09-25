@@ -42,6 +42,9 @@ Changed
   Contributed by Justin Sostre (@saucetray)
 * The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
   to fix the typo (bug fix) #4992
+* Renamed reference to the RBAC backend/plugin from ``enterprise`` to ``default``. Updated st2api
+  validation to use the new value when checking RBAC configuration. Removed other references to
+  enterprise for RBAC related contents. (improvement)
 
 Fixed
 ~~~~~
