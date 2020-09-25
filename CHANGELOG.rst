@@ -27,7 +27,7 @@ Added
   Python 2. (new feature) #5043
 
   Contributed by @amanda11
-* Added deprecation warning to st2ctl start,  if st2 python version is Python 2. (new feature) #5044
+* Added deprecation warning to st2ctl, if st2 python version is Python 2. (new feature) #5044
 
   Contributed by @amanda11
 
