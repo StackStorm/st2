@@ -15,7 +15,7 @@ else
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
-PYTHON_VERSION ?= python3.6
+PYTHON_VERSION ?= $(shell if [ -z "`which python3.6`" ]; then which python2.7; else which python3.6; fi)
 
 BINARIES := bin
 
@@ -107,6 +107,8 @@ all: requirements configgen check tests
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
+	@echo PYTHON_VERSION=$(PYTHON_VERSION)
+	@echo
 	@echo COVERAGE_GLOBS=$(COVERAGE_GLOBS_QUOTED)
 	@echo
 	@echo COMPONENTS=$(COMPONENTS)
