@@ -229,7 +229,7 @@ check-python-packages:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR)
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -245,7 +245,7 @@ check-python-packages-nightly:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR)
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -377,7 +377,7 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== st2client install check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_ST2CLIENT_DIR)
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -587,7 +587,7 @@ virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -f $(VIRTUALENV_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_DIR)
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_DIR) --no-download
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
