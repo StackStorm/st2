@@ -19,6 +19,15 @@ Added
   default pass to screen when the script completes. (improvement) #5013
 
   Contributed by @punkrokk
+* Added deprecation warning if attempt to install or download a pack that only supports
+  Python 2. (new feature) #5037
+
+  Contributed by @amanda11
+* Added deprecation warning to each StackStorm service log, if service is running with
+  Python 2. (new feature) #5043
+
+  Contributed by @amanda11
+
 
 Changed
 ~~~~~~~
@@ -33,6 +42,9 @@ Changed
   Contributed by Justin Sostre (@saucetray)
 * The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
   to fix the typo (bug fix) #4992
+* Renamed reference to the RBAC backend/plugin from ``enterprise`` to ``default``. Updated st2api
+  validation to use the new value when checking RBAC configuration. Removed other references to
+  enterprise for RBAC related contents. (improvement)
 
 Fixed
 ~~~~~
