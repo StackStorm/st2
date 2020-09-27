@@ -230,7 +230,7 @@ check-python-packages:
 	@echo ""
 	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv  $(VIRTUALENV_COMPONENTS_DIR) || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
 	@if [[ $(PYTHON_VERSION) == *"python3.6"* ]]; then \
-	  $(PYTHON_VERSION) -m pip install --user --upgrade pip; \
+	  $(PYTHON_VERSION) -m pip install --upgrade pip; \
 	fi
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
@@ -381,7 +381,7 @@ flake8: requirements .flake8
 	@echo
 	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_ST2CLIENT_DIR) || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download
 	@if [[ $(PYTHON_VERSION) == *"python3.6"* ]]; then \
-	  $(PYTHON_VERSION) -m pip install --user --upgrade pip; \
+	  $(PYTHON_VERSION) -m pip install --upgrade pip; \
 	fi
 
 	# Setup PYTHONPATH in bash activate script...
