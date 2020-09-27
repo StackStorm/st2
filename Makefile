@@ -378,6 +378,9 @@ flake8: requirements .flake8
 	@echo
 	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_ST2CLIENT_DIR) || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download
 
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
+	ls -l $(VIRTUALENV_ST2CLIENT_DIR)
+
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
 	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
