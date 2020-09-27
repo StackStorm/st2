@@ -16,7 +16,7 @@
 import six
 import uuid
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
-urljoin = urlparse.urljoin
+from six.moves import http_client
 
 from st2common import log as logging
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
@@ -31,8 +31,6 @@ from st2common.services.trigger_dispatcher import TriggerDispatcherService
 from st2common.router import abort
 from st2common.router import Response
 from st2common.util.jsonify import get_json_type_for_python_value
-
-http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
@@ -191,7 +189,7 @@ class WebhooksController(object):
         # Note: Permission checking for creating and deleting a webhook is done during rule
         # creation
         url = self._get_normalized_url(trigger)
-        LOG.info('Listening to endpoint: %s', urljoin(self._base_url, url))
+        LOG.info('Listening to endpoint: %s', urlparse.urljoin(self._base_url, url))
         self._hooks.add_hook(url, trigger)
 
     def update_trigger(self, trigger):
@@ -204,7 +202,7 @@ class WebhooksController(object):
 
         removed = self._hooks.remove_hook(url, trigger)
         if removed:
-            LOG.info('Stop listening to endpoint: %s', urljoin(self._base_url, url))
+            LOG.info('Stop listening to endpoint: %s', urlparse.urljoin(self._base_url, url))
 
     def _get_normalized_url(self, trigger):
         """
