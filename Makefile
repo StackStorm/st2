@@ -228,7 +228,7 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download --system-site-packages
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download --system-site-packages
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
