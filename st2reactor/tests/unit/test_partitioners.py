@@ -49,6 +49,8 @@ class PartitionerTest(DbTestCase):
         provider = get_sensors_partitioner()
         sensors = provider.get_sensors()
 
+        print(sensors)
+
         self.assertEqual(len(sensors), len(FIXTURES_1['sensors']),
                          'Failed to provider all sensors')
 

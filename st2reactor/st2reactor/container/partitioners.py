@@ -60,7 +60,7 @@ class DefaultPartitioner(object):
         sensor_refs = self.get_required_sensor_refs()
 
         # None has special meaning and is different from empty array.
-        if sensor_refs is None:
+        if sensor_refs is None or not sensor_refs:
             return all_enabled_sensors
 
         partition_members = []

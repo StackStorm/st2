@@ -265,7 +265,7 @@ checklogs:
 	@echo
 	@echo "================== LOG WATCHER ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; ./tools/log_watcher.py 10
+	. $(VIRTUALENV_DIR)/bin/activate; python ./tools/log_watcher.py 10
 
 .PHONY: pylint
 pylint: requirements .pylint
@@ -628,7 +628,7 @@ endif
 tests: pytests
 
 .PHONY: pytests
-pytests: compile requirements .flake8 .pylint .pytests-coverage
+pytests: compilepy3 requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
 .pytests: compile .configgen .generate-api-spec .unit-tests clean
