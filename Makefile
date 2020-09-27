@@ -228,7 +228,7 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv  $(VIRTUALENV_COMPONENTS_DIR) || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download --system-site-packages
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -395,16 +395,6 @@ flake8: requirements .flake8
 	# which is required by the importlib-metadata package
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
-
-	#if [[ $(PYTHON_VERSION) == *"python2.7"* ]]; then \
-	#  echo 'Upgrading pip==$(PIP_VERSION) in python2.7 virtualenv'; \
-	#  $(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"; \
-	#  $(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==44.1.0"; \
-	#else \
-	#  echo 'Upgrading pip==$(PIP_VERSION) in python3.x virtualenv'; \
-	#  $(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install --upgrade "pip==$(PIP_VERSION)"; \
-	#  $(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install --upgrade "setuptools==44.1.0"; \
-	#fi
 
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
