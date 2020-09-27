@@ -390,18 +390,18 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	if [[ $(PYTHON_VERSION) == *"python2.7"* ]]; then \
-	  echo 'Upgrading pip==$(PIP_VERSION) in python2.7 virtualenv' \
-	  $(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"; \
-	else \
-	  echo 'Upgrading pip==$(PIP_VERSION) in python3.x virtualenv' \
-	  $(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install --user --upgrade "pip==$(PIP_VERSION)"; \
-	fi
-
 	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
 	# Setuptools 42 added support for python_requires, which is used by the configparser package,
 	# which is required by the importlib-metadata package
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
+	if [[ $(PYTHON_VERSION) == *"python2.7"* ]]; then \
+	  echo 'Upgrading pip==$(PIP_VERSION) in python2.7 virtualenv'; \
+	  $(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"; \
+	  $(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==44.1.0"; \
+	else \
+	  echo 'Upgrading pip==$(PIP_VERSION) in python3.x virtualenv'; \
+	  $(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install --upgrade "pip==$(PIP_VERSION)"; \
+	  $(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install --upgrade "setuptools==44.1.0"; \
+	fi
 
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
