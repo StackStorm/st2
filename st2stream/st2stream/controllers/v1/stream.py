@@ -16,6 +16,7 @@
 import six
 
 from st2common import log as logging
+from st2common.constants import action as action_constants
 from st2common.router import Response
 from st2common.util.jsonify import json_encode
 from st2common.stream.listener import get_listener
@@ -59,14 +60,13 @@ class StreamController(object):
         events = events if events else DEFAULT_EVENTS_WHITELIST
         action_refs = action_refs if action_refs else None
         execution_ids = execution_ids if execution_ids else None
-        end_statuses = ["failed", "succeeded"]
 
         def make_response():
             listener = get_listener(name='stream')
             app_iter = format(listener.generator(events=events,
                                                  action_refs=action_refs,
                                                  end_event=end_event,
-                                                 end_statuses=end_statuses,
+                                                 end_statuses=action_constants.LIVE_ACTION_COMPLETED_STATES,
                                                  end_execution_id=end_execution_id,
                                                  execution_ids=execution_ids))
             res = Response(headerlist=[("X-Accel-Buffering", "no"),
