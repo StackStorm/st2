@@ -66,7 +66,7 @@ class StreamController(object):
             app_iter = format(listener.generator(events=events,
                                                  action_refs=action_refs,
                                                  end_event=end_event,
-                                                 end_statuses=action_constants.LIVE_ACTION_COMPLETED_STATES,
+                                                 end_statuses=action_constants.LIVEACTION_COMPLETED_STATES,
                                                  end_execution_id=end_execution_id,
                                                  execution_ids=execution_ids))
             res = Response(headerlist=[("X-Accel-Buffering", "no"),
