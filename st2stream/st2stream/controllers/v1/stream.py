@@ -64,11 +64,11 @@ class StreamController(object):
         def make_response():
             listener = get_listener(name='stream')
             app_iter = format(listener.generator(events=events,
-                                                 action_refs=action_refs,
-                                                 end_event=end_event,
-                                                 end_statuses=action_constants.LIVEACTION_COMPLETED_STATES,
-                                                 end_execution_id=end_execution_id,
-                                                 execution_ids=execution_ids))
+                action_refs=action_refs,
+                end_event=end_event,
+                end_statuses=action_constants.LIVEACTION_COMPLETED_STATES,
+                end_execution_id=end_execution_id,
+                execution_ids=execution_ids))
             res = Response(headerlist=[("X-Accel-Buffering", "no"),
                 ('Cache-Control', 'no-cache'),
                 ("Content-Type", "text/event-stream; charset=UTF-8")],
