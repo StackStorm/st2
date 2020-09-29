@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +20,10 @@ user problems and issues to StackStorm.
 By default the following information is included:
 
 - Logs from /var/log/st2
-- StackStorm and mistral config file (/etc/st2/st2.conf, /etc/mistral/mistral.conf)
+- StackStorm config file (/etc/st2/st2.conf)
 - All the content (integration packs).
 - Information about your system and StackStorm installation (Operating system,
-  Python version, StackStorm version, Mistral version)
+  Python version, StackStorm version)
 
 Note: This script currently assumes it's running on Linux.
 """
@@ -64,7 +65,6 @@ from st2debug.utils.system_info import get_memory_info
 from st2debug.utils.system_info import get_package_list
 from st2debug.utils.git_utils import get_repo_latest_revision_hash
 from st2debug.processors import process_st2_config
-from st2debug.processors import process_mistral_config
 from st2debug.processors import process_content_pack_dir
 
 LOG = logging.getLogger(__name__)
@@ -74,11 +74,9 @@ GPG_INSTALLED = find_executable('gpg') is not None
 
 LOG_FILE_PATHS = [
     '/var/log/st2/*.log',
-    '/var/log/mistral*.log'
 ]
 
 ST2_CONFIG_FILE_PATH = '/etc/st2/st2.conf'
-MISTRAL_CONFIG_FILE_PATH = '/etc/mistral/mistral.conf'
 
 SHELL_COMMANDS = []
 
@@ -165,8 +163,6 @@ class DebugInfoCollector(object):
 
         config_file = config_file or {}
         self.st2_config_file_path = config_file.get('st2_config_file_path', ST2_CONFIG_FILE_PATH)
-        self.mistral_config_file_path = config_file.get('mistral_config_file_path',
-                                                        MISTRAL_CONFIG_FILE_PATH)
         self.log_file_paths = config_file.get('log_file_paths', LOG_FILE_PATHS[:])
         self.gpg_key = config_file.get('gpg_key', GPG_KEY)
         self.gpg_key_fingerprint = config_file.get('gpg_key_fingerprint', GPG_KEY_FINGERPRINT)
@@ -175,10 +171,8 @@ class DebugInfoCollector(object):
         self.shell_commands = config_file.get('shell_commands', SHELL_COMMANDS)
 
         self.st2_config_file_name = os.path.basename(self.st2_config_file_path)
-        self.mistral_config_file_name = os.path.basename(self.mistral_config_file_path)
         self.config_file_paths = [
-            self.st2_config_file_path,
-            self.mistral_config_file_path
+            self.st2_config_file_path
         ]
 
     def run(self, encrypt=False, upload=False, existing_file=None):
@@ -354,9 +348,6 @@ class DebugInfoCollector(object):
         st2_config_path = os.path.join(output_path, self.st2_config_file_name)
         process_st2_config(config_path=st2_config_path)
 
-        mistral_config_path = os.path.join(output_path, self.mistral_config_file_name)
-        process_mistral_config(config_path=mistral_config_path)
-
     @staticmethod
     def collect_pack_content(output_path):
         """
@@ -510,8 +501,7 @@ class DebugInfoCollector(object):
                 'memory': {}
             },
             'python': {},
-            'stackstorm': {},
-            'mistral': {}
+            'stackstorm': {}
         }
 
         # Operating system information
@@ -575,12 +565,6 @@ class DebugInfoCollector(object):
 
             system_information['stackstorm']['installation_method'] = 'package'
             system_information['stackstorm']['packages'] = package_list
-
-        # Mistral information
-        repo_path = '/opt/openstack/mistral'
-        revision_hash = get_repo_latest_revision_hash(repo_path=repo_path)
-        system_information['mistral']['installation_method'] = 'source'
-        system_information['mistral']['revision_hash'] = revision_hash
 
         return system_information
 

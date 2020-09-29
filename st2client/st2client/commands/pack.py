@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -282,6 +283,10 @@ class PackInstallCommand(PackAsyncCommand):
             self.print_output(pack_instances, table.MultiColumnTable,
                               attributes=args.attr, widths=args.width,
                               json=args.json, yaml=args.yaml)
+
+        warnings = instance.result['output']['warning_list']
+        for warning in warnings:
+            print(warning)
 
 
 class PackRemoveCommand(PackAsyncCommand):

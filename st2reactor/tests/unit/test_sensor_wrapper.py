@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -154,7 +155,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
                           trigger_types=trigger_types, parent_args=parent_args)
         except NameError as e:
             self.assertIn('Traceback (most recent call last)', six.text_type(e))
-            self.assertIn('line 19, in <module>', six.text_type(e))
+            self.assertIn('line 20, in <module>', six.text_type(e))
         else:
             self.fail('NameError not thrown')
 
