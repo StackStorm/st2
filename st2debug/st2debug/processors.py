@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +19,6 @@ from six.moves.configparser import ConfigParser
 
 __all__ = [
     'process_st2_config',
-    'process_mistral_config',
     'process_content_pack_dir'
 ]
 
@@ -28,11 +28,6 @@ ST2_CONF_OPTIONS_TO_REMOVE = {
     'messaging': ['url']
 }
 
-
-# Options which should be removed from the st2 config
-MISTRAL_CONF_OPTIONS_TO_REMOVE = {
-    'database': ['connection']
-}
 
 REMOVED_VALUE_NAME = '**removed**'
 
@@ -53,30 +48,6 @@ def process_st2_config(config_path):
     config.read(config_path)
 
     for section, options in ST2_CONF_OPTIONS_TO_REMOVE.items():
-        for option in options:
-            if config.has_option(section, option):
-                config.set(section, option, REMOVED_VALUE_NAME)
-
-    with open(config_path, 'w') as fp:
-        config.write(fp)
-
-
-def process_mistral_config(config_path):
-    """
-    Remove sensitive data (credentials) from the Mistral config.
-
-    :param config_path: Full absolute path to the mistral config inside /tmp.
-    :type config_path: ``str``
-    """
-    assert config_path.startswith('/tmp')
-
-    if not os.path.isfile(config_path):
-        return
-
-    config = ConfigParser()
-    config.read(config_path)
-
-    for section, options in MISTRAL_CONF_OPTIONS_TO_REMOVE.items():
         for option in options:
             if config.has_option(section, option):
                 config.set(section, option, REMOVED_VALUE_NAME)

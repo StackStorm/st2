@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,30 +104,29 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             task = {'id': task_ex_db.task_id, 'route': task_ex_db.task_route}
 
         # Log the error.
-        LOG.error(
-            '[%s] Unknown error while processing %s execution. %s: %s',
-            wf_ex_db.action_execution,
-            msg_type,
-            exception.__class__.__name__,
-            str(exception)
+        msg = 'Unknown error while processing %s execution. %s: %s'
+        wf_svc.update_progress(
+            wf_ex_db,
+            msg % (msg_type, exception.__class__.__name__, str(exception)),
+            severity='error'
         )
 
         # Fail the task execution so it's marked correctly in the
         # conductor state to allow for task rerun if needed.
         if isinstance(message, ex_db_models.ActionExecutionDB):
-            msg = '[%s] Unknown error while processing %s execution. Failing task execution "%s".'
-            LOG.error(msg, wf_ex_db.action_execution, msg_type, task_ex_id)
+            msg = 'Unknown error while processing %s execution. Failing task execution "%s".'
+            wf_svc.update_progress(wf_ex_db, msg % (msg_type, task_ex_id), severity='error')
             wf_svc.update_task_execution(task_ex_id, ac_const.LIVEACTION_STATUS_FAILED)
             wf_svc.update_task_state(task_ex_id, ac_const.LIVEACTION_STATUS_FAILED)
 
         # Fail the workflow execution.
-        msg = '[%s] Unknown error while processing %s execution. Failing workflow execution "%s".'
-        LOG.error(msg, wf_ex_db.action_execution, msg_type, wf_ex_id)
+        msg = 'Unknown error while processing %s execution. Failing workflow execution "%s".'
+        wf_svc.update_progress(wf_ex_db, msg % (msg_type, wf_ex_id), severity='error')
         wf_svc.fail_workflow_execution(wf_ex_id, exception, task=task)
 
     def handle_workflow_execution(self, wf_ex_db):
         # Request the next set of tasks to execute.
-        LOG.info('[%s] Processing request for workflow execution.', wf_ex_db.action_execution)
+        wf_svc.update_progress(wf_ex_db, 'Processing request for workflow execution.')
         wf_svc.request_next_tasks(wf_ex_db)
 
     def handle_action_execution(self, ac_ex_db):
@@ -142,16 +142,22 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
 
-        wf_ac_ex_id = wf_ex_db.action_execution
-        msg = '[%s] Action execution "%s" for task "%s" is updated and in "%s" state.'
-        LOG.info(msg, wf_ac_ex_id, str(ac_ex_db.id), task_ex_db.task_id, ac_ex_db.status)
+        msg = (
+            'Action execution "%s" for task "%s" is updated and in "%s" state.' %
+            (str(ac_ex_db.id), task_ex_db.task_id, ac_ex_db.status)
+        )
+        wf_svc.update_progress(wf_ex_db, msg)
 
         # Skip if task execution is already in completed state.
         if task_ex_db.status in statuses.COMPLETED_STATUSES:
-            msg = ('[%s] Action execution "%s" for task "%s", route "%s", is not processed '
-                   'because task execution "%s" is already in completed state "%s".')
-            LOG.info(msg, wf_ac_ex_id, str(ac_ex_db.id), task_ex_db.task_id,
-                     str(task_ex_db.task_route), str(task_ex_db.id), task_ex_db.status)
+            msg = (
+                'Action execution "%s" for task "%s", route "%s", is not processed '
+                'because task execution "%s" is already in completed state "%s".' % (
+                    str(ac_ex_db.id), task_ex_db.task_id, str(task_ex_db.task_route),
+                    str(task_ex_db.id), task_ex_db.status
+                )
+            )
+            wf_svc.update_progress(wf_ex_db, msg)
             return
 
         # Process pending request on the action execution.

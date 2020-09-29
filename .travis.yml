@@ -36,7 +36,7 @@ jobs:
     # If you rename or reorder make targets in TASK, you may need to adjust:
     # scripts/travis/install-requirements.sh
     # scripts/travis/run-nightly-make-task-if-exists.sh
-    - name: "Unit Tests (Python 2.7 MongoDB 3.4)"
+    - name: "Unit Tests (Python 2.7 MongoDB 4.0)"
       python: 2.7
       env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
 
@@ -59,11 +59,11 @@ jobs:
 addons:
   apt:
     sources:
-      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse'
-        key_url: 'https://www.mongodb.org/static/pgp/server-3.4.asc'
+      - sourceline: 'deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.0 multiverse'
+        key_url: 'https://www.mongodb.org/static/pgp/server-4.0.asc'
     packages:
-      - mongodb-org-server=3.4.*
-      - mongodb-org-shell=3.4.*
+      - mongodb-org-server=4.0.*
+      - mongodb-org-shell=4.0.*
       - rabbitmq-server
       - libffi-dev
 
@@ -79,12 +79,6 @@ cache:
     # are updated so it's disabled
     #- .tox/
 
-before_install:
-  # If you update these versions, make sure you update the versions in the .st2client-install-check
-  # and the requirements targets in the Makefile to match
-  - pip install --upgrade "pip==20.0.2"
-  - sudo pip install --upgrade "virtualenv==16.6.0"
-
 install:
   - ./scripts/travis/install-requirements.sh
   # prep a travis-specific dev conf file that uses travis instead of stanley
@@ -98,7 +92,7 @@ install:
 before_script:
   # Use a custom mongod.conf which uses various speed optimizations
   - sudo cp scripts/travis/mongod.conf /etc/mongod.conf
-  # Clean up any old MongoDB 3.4 data files laying around and make sure mongodb user can write to it
+  # Clean up any old MongoDB 4.0 data files laying around and make sure mongodb user can write to it
   - sudo rm -rf /var/lib/mongodb ; sudo mkdir /var/lib/mongodb ; sudo chown -R mongodb:mongodb /var/lib/mongodb
   - sudo service mongod restart ; sleep 5
   - sudo service mongod status

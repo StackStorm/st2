@@ -6,7 +6,107 @@ in development
 
 Added
 ~~~~~
+* Add make command to autogen JSON schema from the models of action, rule, etc. Add check
+  to ensure update to the models require schema to be regenerated. (new feature)
+* Improved st2sensor service logging message when a sensor will not be loaded when assigned to a
+  different partition (@punkrokk) #4991
+* Add support for a configurable connect timeout for SSH connections as requested in #4715
+  by adding the new configuration parameter ``ssh_connect_timeout`` to the ``ssh_runner``
+  group in st2.conf. (new feature) #4914
 
+  This option was requested by Harry Lee (@tclh123) and contributed by Marcel Weinberg (@winem).
+* Added a FAQ for the default user/pass for the `tools/launch_dev.sh` script and print out the
+  default pass to screen when the script completes. (improvement) #5013
+
+  Contributed by @punkrokk
+* Added deprecation warning if attempt to install or download a pack that only supports
+  Python 2. (new feature) #5037
+
+  Contributed by @amanda11
+* Added deprecation warning to each StackStorm service log, if service is running with
+  Python 2. (new feature) #5043
+
+  Contributed by @amanda11
+* Added deprecation warning to st2ctl, if st2 python version is Python 2. (new feature) #5044 
+
+  Contributed by @amanda11
+
+
+Changed
+~~~~~~~
+* Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2
+  ``v3.3.0`` (improvement) #4972
+
+  Contributed by @punkrokk
+
+* Added an enhancement where ST2api.log no longer reports the entire traceback when trying to get a datastore value
+  that does not exist. It now reports a simplified log for cleaner reading. Addresses and Fixes #4979. (improvement) #4981
+
+  Contributed by Justin Sostre (@saucetray)
+* The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
+  to fix the typo (bug fix) #4992
+* Renamed reference to the RBAC backend/plugin from ``enterprise`` to ``default``. Updated st2api
+  validation to use the new value when checking RBAC configuration. Removed other references to
+  enterprise for RBAC related contents. (improvement)
+
+Fixed
+~~~~~
+* Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
+
+  Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)
+
+* Fixed a bug where persisting Orquesta to the MongoDB database returned an error
+  ``message: key 'myvar.with.period' must not contain '.'``. This happened anytime an
+  ``input``, ``output``, ``publish`` or context ``var`` contained a key with a ``.`` within
+  the name (such as with hostnames and IP addresses). This was a regression introduced by
+  trying to improve performance. Fixing this bug means we are sacrificing performance of
+  serialization/deserialization in favor of correctness for persisting workflows and
+  their state to the MongoDB database. (bug fix) #4932
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fix a bug where passing an empty list to a with items task in a subworkflow causes
+  the parent workflow to be stuck in running status. (bug fix) #4954
+* Fixed a bug in the example nginx HA template declared headers twice (bug fix) #4966
+  Contributed by @punkrokk
+
+* Fixed a bug in the ``paramiko_ssh`` runner where SSH sockets were not getting cleaned
+  up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fixed a bytes/string encoding bug in the ``linux.dig`` action so it should work on Python 3
+  (bug fix) #4993
+
+* Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
+  
+  Contributed by @punkrokk
+* Fixed bug where action information in RuleDB object was not being parsed properly
+  because mongoengine EmbeddedDocument objects were added to JSON_UNFRIENDLY_TYPES and skipped.
+  Removed this and added if to use to_json method so that mongoengine EmbeddedDocument
+  are parsed properly.
+
+  Contributed by Bradley Bishop (@bishopbm1 Encore Technologies)
+* Fix a regression when updated ``dnspython`` pip dependency resulted in
+  st2 services unable to connect to mongodb remote host (bug fix) #4997
+* Fixed a regression in the ``linux.dig`` action on Python 3. (bug fix) #4993
+
+  Contributed by @blag
+
+Removed
+~~~~~~~
+
+* Removed ``Mistral`` workflow engine (deprecation) #5011
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+* Removed ``CentOS 6``/``RHEL 6`` support #4984
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+* Removed our fork of ``codecov-python`` for CI and have switched back to the upstream version (improvement) #5002
+  
+3.2.0 - April 27, 2020
+----------------------
+
+Added
+~~~~~
 * Add support for blacklisting / whitelisting hosts to the HTTP runner by adding new
   ``url_hosts_blacklist`` and ``url_hosts_whitelist`` runner attribute. (new feature)
   #4757
@@ -66,14 +166,19 @@ Changed
   contains various new features and bug fixes. Please review the release notes for the full list of
   changes at https://github.com/StackStorm/orquesta/releases/tag/v1.1.0 and the st2 upgrade notes
   for potential impact. (improvement)
+* Update st2 nginx config to remove deprecated ``ssl on`` option. #4917 (improvement)
 
 Fixed
 ~~~~~
+* Fix a typo that caused an internal server error when filtering actions by tags. Fixes #4918
+
+  Reported by @mweinberg-cm and contributed by Marcel Weinberg (@winem)
+
 * Fix the action query when filtering tags. The old implementation returned actions which have the
   provided name as action name and not as tag name. (bug fix) #4828
 
-  Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem) 
-* Fix the passing of arrays to shell scripts where the arrays where not detected as such by the 
+  Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem)
+* Fix the passing of arrays to shell scripts where the arrays where not detected as such by the
   st2 action_db utility. This caused arrays to be passed as Python lists serialized into a string.
 
   Reported by @kingsleyadam #4804 and contributed by Marcel Weinberg (@winem) #4861
@@ -138,6 +243,8 @@ Fixed
   functions as a result of the change. (bug fix) PR StackStorm/orquesta#191.
 
   Contributed by Hiroyasu Ohyama (@userlocalhost)
+* Fix retry in orquesta when a task that has a transition on failure will also be traversed on
+  retry. (bug fix) PR StackStorm/orquesta#200
 
 Removed
 ~~~~~~~

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +42,7 @@ from st2common.logging.filters import LogLevelFilter
 from st2common.util import system_info
 from st2common.services import coordination
 from st2common.logging.misc import add_global_filters_for_all_loggers
+from st2common.constants.error_messages import PYTHON2_DEPRECATION
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
@@ -184,6 +186,9 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         # NOTE: It's important that we pass start_heart=True to start the hearbeat process
         register_service_in_service_registry(service=service, capabilities=capabilities,
                                              start_heart=True)
+
+    if sys.version_info[0] == 2:
+        LOG.warning(PYTHON2_DEPRECATION)
 
 
 def teardown():

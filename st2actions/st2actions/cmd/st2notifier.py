@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,21 +14,22 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
+
 import os
 import sys
 
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
-from st2common.util.monkey_patch import monkey_patch
 from st2actions.notifier import config
 from st2actions.notifier import notifier
 
 __all__ = [
     'main'
 ]
-
-monkey_patch()
 
 LOG = logging.getLogger(__name__)
 

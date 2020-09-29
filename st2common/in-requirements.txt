@@ -1,5 +1,6 @@
 # Remeber to list implicit packages here, otherwise version won't be fixated!
 apscheduler
+dnspython
 python-dateutil
 eventlet
 # used by eventlet
@@ -9,7 +10,7 @@ jsonschema
 kombu
 mongoengine
 networkx
-git+https://github.com/StackStorm/orquesta.git@v1.1.0#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@v1.1.1#egg=orquesta
 oslo.config
 paramiko
 pyyaml

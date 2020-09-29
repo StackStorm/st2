@@ -1,0 +1,12 @@
+---
+name: with-items-empty
+description: A workflow to test passing of empty array to with items task.
+pack: orquesta_tests
+runner_type: orquesta
+entry_point: workflows/with-items-empty.yaml
+enabled: true
+parameters:
+  members:
+    required: true
+    type: array
+    default: []

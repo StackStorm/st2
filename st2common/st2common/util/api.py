@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +23,6 @@ from st2common.util.url import get_url_without_trailing_slash
 __all__ = [
     'get_base_public_api_url',
     'get_full_public_api_url',
-    'get_mistral_api_url'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -53,20 +53,4 @@ def get_full_public_api_url(api_version=DEFAULT_API_VERSION):
     """
     api_url = get_base_public_api_url()
     api_url = '%s/%s' % (api_url, api_version)
-    return api_url
-
-
-def get_mistral_api_url(api_version=DEFAULT_API_VERSION):
-    """
-    Return a URL which Mistral uses to talk back to the StackStorm API.
-
-    Note: If not provided it defaults to the public API url.
-    """
-    if cfg.CONF.mistral.api_url:
-        api_url = get_url_without_trailing_slash(cfg.CONF.mistral.api_url)
-        api_url = '%s/%s' % (api_url, api_version)
-    else:
-        LOG.warn('"mistral.api_url" not set, using auth.api_url')
-        api_url = get_full_public_api_url(api_version=api_version)
-
     return api_url

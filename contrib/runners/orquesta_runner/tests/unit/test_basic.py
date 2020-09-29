@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -138,7 +139,9 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
                 'action_execution_id': str(ac_ex_db.id),
                 'api_url': 'http://127.0.0.1/v1',
                 'user': username,
-                'pack': 'orquesta_tests'
+                'pack': 'orquesta_tests',
+                'action': 'orquesta_tests.sequential',
+                'runner': 'orquesta'
             },
             'parent': {
                 'pack': 'orquesta_tests'
