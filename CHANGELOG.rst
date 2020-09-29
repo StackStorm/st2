@@ -49,7 +49,7 @@ Changed
   validation to use the new value when checking RBAC configuration. Removed other references to
   enterprise for RBAC related contents. (improvement)
 * Remove authentication headers ``St2-Api-Key``, ``X-Auth-Token`` and ``Cookie`` from webhook payloads to
-  prevent them from being stored in the database. (security bug fix) 4983
+  prevent them from being stored in the database. (security bug fix) #4983
 
   Contributed by @potato and @knagy
 
