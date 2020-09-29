@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +14,9 @@
 # limitations under the License.
 
 from st2auth.controllers.v1 import auth
+from st2auth.controllers.v1 import sso as sso_auth
 
 
 class RootController(object):
     tokens = auth.TokenController()
+    sso = sso_auth.SingleSignOnController()

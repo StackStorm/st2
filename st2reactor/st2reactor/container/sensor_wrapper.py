@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +14,18 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+# Note: We need to perform monkey patching in the worker. If we do it in
+# the master process (gunicorn_config.py), it breaks tons of things
+# including shutdown
+# NOTE: It's important that we perform monkey patch as early as possible before any other modules
+# are imported, otherwise SSL support for sensor clients won't work.
+# See https://github.com/StackStorm/st2/issues/4832, https://github.com/StackStorm/st2/issues/4975
+# and https://github.com/gevent/gevent/issues/1016
+# for details.
+
+from st2common.util.monkey_patch import monkey_patch
+monkey_patch()
 
 import os
 import json
@@ -36,7 +49,6 @@ from st2reactor.sensor.base import Sensor
 from st2reactor.sensor.base import PollingSensor
 from st2reactor.sensor import config
 from st2common.services.datastore import SensorDatastoreService
-from st2common.util.monkey_patch import monkey_patch
 from st2common.util.monkey_patch import use_select_poll_workaround
 
 __all__ = [
@@ -44,7 +56,6 @@ __all__ = [
     'SensorService'
 ]
 
-monkey_patch()
 use_select_poll_workaround(nose_only=False)
 
 

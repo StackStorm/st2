@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -425,9 +426,9 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
                                                  requester_user=requester_user,
                                                  permission_type=PermissionType.EXECUTION_VIEW)
 
-        if spec_api.tasks and existing_execution.runner['name'] != 'mistral-v2' and \
+        if spec_api.tasks and \
                 existing_execution.runner['name'] != 'orquesta':
-            raise ValueError('Task option is only supported for Orquesta and Mistral workflows.')
+            raise ValueError('Task option is only supported for Orquesta workflows.')
 
         # Merge in any parameters provided by the user
         new_parameters = {}
