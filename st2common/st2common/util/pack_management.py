@@ -339,8 +339,8 @@ def apply_pack_owner_group(pack_path):
 
         if exit_code != 0:
             # Non fatal, but we still log it
-            LOG.debug('Failed to change owner group on directory "{}" to "{}":'.format(pack_path, pack_group))
-            LOG.debug(stderr)
+            LOG.debug('Failed to change owner group on directory "{}" to "{}": {}'
+                      .format(pack_path, pack_group, stderr))
 
     return True
 
