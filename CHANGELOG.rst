@@ -90,6 +90,10 @@ Fixed
 * Fixed a regression in the ``linux.dig`` action on Python 3. (bug fix) #4993
 
   Contributed by @blag
+* Fixed a compatibility issue with the latest version of the ``logging`` library API
+  where the ``find_caller()`` function introduced some new variables. (bug fix)
+
+  Contributed by @Dahfizz9897
 
 Removed
 ~~~~~~~
