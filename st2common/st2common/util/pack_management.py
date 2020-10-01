@@ -394,12 +394,11 @@ def get_repo_url(pack, proxy_config=None):
 
 def eval_repo_url(repo_url):
     """
-    Allow passing short GitHub style URLs.
+    Allow passing short GitHub or GitLab SSH style URLs.
     """
     if not repo_url:
         raise Exception('No valid repo_url provided or could be inferred.')
-
-    if repo_url.startswith("file://"):
+    if repo_url.startswith("gitlab@") or repo_url.startswith("file://"):
         return repo_url
     else:
         if len(repo_url.split('/')) == 2 and 'git@' not in repo_url:
