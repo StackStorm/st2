@@ -27,6 +27,9 @@ Added
   Python 2. (new feature) #5043
 
   Contributed by @amanda11
+* Added deprecation warning to st2ctl, if st2 python version is Python 2. (new feature) #5044 
+
+  Contributed by @amanda11
 
 
 Changed
@@ -42,6 +45,13 @@ Changed
   Contributed by Justin Sostre (@saucetray)
 * The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
   to fix the typo (bug fix) #4992
+* Renamed reference to the RBAC backend/plugin from ``enterprise`` to ``default``. Updated st2api
+  validation to use the new value when checking RBAC configuration. Removed other references to
+  enterprise for RBAC related contents. (improvement)
+* Remove authentication headers ``St2-Api-Key``, ``X-Auth-Token`` and ``Cookie`` from webhook payloads to
+  prevent them from being stored in the database. (security bug fix) #4983
+
+  Contributed by @potato and @knagy
 
 Fixed
 ~~~~~
