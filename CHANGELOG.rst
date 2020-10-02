@@ -99,7 +99,7 @@ Fixed
 
   Contributed by @misterpah
 * Fixed a compatibility issue with the latest version of the ``logging`` library API
-  where the ``find_caller()`` function introduced some new variables. (bug fix)
+  where the ``find_caller()`` function introduced some new variables. (bug fix) #4923
 
   Contributed by @Dahfizz9897
 
