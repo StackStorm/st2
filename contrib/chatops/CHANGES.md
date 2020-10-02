@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.3] - 2020-10-02
+## [1.1.0] - 2020-10-02
 ### Added
 - added `notify-errbot` rule to better support err-stackstorm users.
 

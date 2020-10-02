@@ -1,4 +1,4 @@
-# chatops integration pack v1.0.3
+# chatops integration pack v1.1.0
 
 > ChatOps integration pack
 StackStorm, Inc. <info@stackstorm.com>
