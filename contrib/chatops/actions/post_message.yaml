@@ -10,6 +10,8 @@ parameters:
     default: true
   route:
     default: "chatops"
+    type: "string"
+    description: "Text to represent a routing key.  Use to identify annoncement events in the Stream API."
   user:
     type: "string"
     description: "Explicitly notify a user"

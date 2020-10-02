@@ -1,0 +1,68 @@
+# {{ pack["pack.yaml"].name }} integration pack v{{ pack["pack.yaml"].version }}
+
+> {{ pack["pack.yaml"].description }}
+{{ pack["pack.yaml"].author }} <{{ pack["pack.yaml"].email }}>
+
+### Contributors
+{% for contributor in pack["pack.yaml"].contributors -%}
+  - {{ contributor }}
+{% endfor %}
+
+{% if "pack.schema.yaml" in pack -%}
+## Configuration
+
+The following options are required to be configured for the pack to work correctly.
+
+| Option | Type | Required | Secret | Description |
+|---|---|---|---|---|
+{% for key, value in pack["config.schema.yaml"].items() -%}
+| `{{ key }}` | {{ value.type }} | {{ value.required }} | {{ value.secret }} | {{ value.description }} |
+{% endfor -%}
+{% endif -%}
+
+## Actions
+
+{% if actions | length > 0 %}
+The pack provides the following actions:
+
+{% for key, value in actions.items() -%}
+### {{ value.name }}
+_{{ value.description }}_
+
+| Parameter | Type | Required | Secret | Description |
+|---|---|---|---|---|
+{% for p_key, p_value in value.parameters.items() -%}
+| `{{ p_key }}` | {{ p_value.type | default("n/a") }} | {{ p_value.required | default("default") }} | {{ p_value.secret | default("default") }} | _{{ p_value.description | default("Unavailable") }}_ |
+{% endfor -%}
+
+
+{% endfor %}
+{% else %}
+There are no actions available for this pack.
+{% endif %}
+
+## Sensors
+{% if sensors | length > 0 %}
+The following sensors and triggers are provided:
+{% for key, value in sensors.items() %}
+### Class {{ value.class_name }}
+_{{ value.description }}_
+
+{% for trigger in value.trigger_types -%}
+| Trigger Name | Description |
+|---|---|
+| `{{ trigger.name }}` | _{{ trigger.description | default("Unavailable") }}_ |
+{% endfor %}
+
+
+{% endfor %}
+{% else %}
+There are no sensors available for this pack.
+{% endif %}
+
+
+## Legal
+
+Obligatory kudos to https://icons8.com/ for the icon.
+
+<sub>Documentation generated using [pack2md](https://github.com/nzlosh/pack2md)</sub>

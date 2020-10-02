@@ -1,5 +1,5 @@
 ---
-name: "notify"
+name: "notify-errbot"
 pack: "chatops"
 enabled: true
 description: "Notification rule to send results of action executions to stream for chatops"
@@ -7,7 +7,7 @@ trigger:
   type: "core.st2.generic.notifytrigger"
 criteria:
   trigger.route:
-    pattern: "hubot"
+    pattern: "errbot"
     type: "equals"
 action:
   ref: chatops.post_result
@@ -16,3 +16,4 @@ action:
     user: "{{trigger.data.user}}"
     execution_id: "{{trigger.execution_id}}"
     context: "{{trigger.data.source_context}}"
+    route: "{{trigger.route}}"
