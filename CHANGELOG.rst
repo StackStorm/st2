@@ -96,6 +96,10 @@ Fixed
 * Fixed a regression in the ``linux.dig`` action on Python 3. (bug fix) #4993
 
   Contributed by @blag
+* Fixed a bug in pack installation logging code where unicode strings were not being
+  interpolated properly. (bug fix)
+
+  Contributed by @misterpah
 
 Removed
 ~~~~~~~

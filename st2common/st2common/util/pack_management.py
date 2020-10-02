@@ -327,7 +327,7 @@ def apply_pack_owner_group(pack_path):
     pack_group = utils.get_pack_group()
 
     if pack_group:
-        LOG.debug('Changing owner group of "%s" directory to %s' % (pack_path, pack_group))
+        LOG.debug('Changing owner group of "{}" directory to {}'.format(pack_path, pack_group))
 
         if SUDO_BINARY:
             args = ['sudo', 'chgrp', '-R', pack_group, pack_path]
@@ -339,8 +339,8 @@ def apply_pack_owner_group(pack_path):
 
         if exit_code != 0:
             # Non fatal, but we still log it
-            LOG.debug('Failed to change owner group on directory "%s" to "%s": %s' %
-                      (pack_path, pack_group, stderr))
+            LOG.debug('Failed to change owner group on directory "{}" to "{}": {}'
+                      .format(pack_path, pack_group, stderr))
 
     return True
 
