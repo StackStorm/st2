@@ -69,7 +69,7 @@ LOGGER_KEYS = [
 _srcfile = get_normalized_file_path(__file__)
 
 
-def find_caller(stack_info=None):
+def find_caller(*args, **kwargs):
     """
     Find the stack frame of the caller so that we can note the source file name, line number and
     function name.
