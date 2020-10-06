@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+3.3.0 - October 06, 2020
+------------------------
+
 Added
 ~~~~~
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
