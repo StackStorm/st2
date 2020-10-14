@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import io
 import os
 import sys
 import logging
@@ -89,13 +90,14 @@ def find_caller(stack_info=False, stacklevel=1):
     """
     if six.PY2:
         rv = '(unknown file)', 0, '(unknown function)'
-    else: # python 3, has extra tuple element at the end for stack information
+    else:
+        # python 3, has extra tuple element at the end for stack information
         rv = '(unknown file)', 0, '(unknown function)', None
 
     try:
         f = logging.currentframe()
-        #On some versions of IronPython, currentframe() returns None if
-        #IronPython isn't run with -X:Frames.
+        # On some versions of IronPython, currentframe() returns None if
+        # IronPython isn't run with -X:Frames.
         if f is not None:
             f = f.f_back
         orig_f = f
@@ -114,7 +116,8 @@ def find_caller(stack_info=False, stacklevel=1):
 
             if six.PY2:
                 rv = (filename, f.f_lineno, co.co_name)
-            else: # python 3, new stack_info processing and extra tuple return value
+            else:
+                # python 3, new stack_info processing and extra tuple return value
                 sinfo = None
                 if stack_info:
                     sio = io.StringIO()
