@@ -76,7 +76,7 @@ def find_caller(stack_info=None):
     Note: This is based on logging/__init__.py:findCaller and modified so it takes into account
     this file - https://hg.python.org/cpython/file/2.7/Lib/logging/__init__.py#l1233
     """
-    rv = '(unknown file)', 0, '(unknown function)'
+    rv = '(unknown file)', 0, '(unknown function)', None
 
     try:
         f = logging.currentframe().f_back
@@ -86,7 +86,7 @@ def find_caller(stack_info=None):
             if filename in (_srcfile, logging._srcfile):  # This line is modified.
                 f = f.f_back
                 continue
-            rv = (filename, f.f_lineno, co.co_name)
+            rv = (filename, f.f_lineno, co.co_name, None)
             break
     except Exception:
         pass
