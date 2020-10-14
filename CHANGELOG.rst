@@ -56,6 +56,7 @@ Changed
   prevent them from being stored in the database. (security bug fix) #4983
 
   Contributed by @potato and @knagy
+* Updated orquesta to version v1.2.0.
 
 Fixed
 ~~~~~
