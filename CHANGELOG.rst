@@ -106,6 +106,13 @@ Fixed
   where the ``find_caller()`` function introduced some new variables. (bug fix) #4923
 
   Contributed by @Dahfizz9897
+* Fixed another logging compatibility issue with the ``logging`` API in Python 3.
+  The return from the ``logging.findCaller()`` implementation now expects a 4-element
+  tuple. Also, in Python 3 there are new arguments that are passed in and needs to be
+  acted upon, specificall ``stack_info`` that determines the new 4th element in the returned
+  tuple. (bug fix) #5057
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
 
 Removed
 ~~~~~~~
