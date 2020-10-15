@@ -83,7 +83,7 @@ def find_caller(stack_info=False, stacklevel=1):
     and expects a 4-element tuple to be returned, rather than a 3-element tuple in
     the python 2 implementation.
     We derived our implementation from the Python 3.9 source code here:
-    https://github.com/python/cpython/blob/3.9/Lib/logging/__init__.py#L1376-L1404
+    https://github.com/python/cpython/blob/3.9/Lib/logging/__init__.py#L1502-L1536
 
     We've made the appropriate changes so that we're python 2 and python 3 compatible depending
     on what runtine we're working in.
