@@ -15,7 +15,7 @@ else
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
-PYTHON_VERSION ?= python2.7
+PYTHON_VERSION ?= $(shell if [ -z "`which python3.6`" ]; then which python2.7; else which python3.6; fi)
 
 BINARIES := bin
 
@@ -107,6 +107,8 @@ all: requirements configgen check tests
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
+	@echo PYTHON_VERSION=$(PYTHON_VERSION)
+	@echo
 	@echo COVERAGE_GLOBS=$(COVERAGE_GLOBS_QUOTED)
 	@echo
 	@echo COMPONENTS=$(COMPONENTS)
@@ -226,8 +228,7 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
-
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download --system-site-packages
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -263,7 +264,7 @@ checklogs:
 	@echo
 	@echo "================== LOG WATCHER ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; ./tools/log_watcher.py 10
+	. $(VIRTUALENV_DIR)/bin/activate; python ./tools/log_watcher.py 10
 
 .PHONY: pylint
 pylint: requirements .pylint
@@ -329,7 +330,7 @@ lint-api-spec: requirements .lint-api-spec
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf
 
 .PHONY: generate-api-spec
 generate-api-spec: requirements .generate-api-spec
@@ -343,14 +344,14 @@ generate-api-spec: requirements .generate-api-spec
 	echo "# Edit st2common/st2common/openapi.yaml.j2 and then run" >> st2common/st2common/openapi.yaml
 	echo "# make .generate-api-spec" >> st2common/st2common/openapi.yaml
 	echo "# to generate the final spec file" >> st2common/st2common/openapi.yaml
-	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf >> st2common/st2common/openapi.yaml
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf >> st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
 circle-lint-api-spec:
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf || echo "Open API spec lint failed."
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf || echo "Open API spec lint failed."
 
 .PHONY: flake8
 flake8: requirements .flake8
@@ -375,7 +376,7 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== st2client install check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download --system-site-packages
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -389,11 +390,12 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
 	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
 	# Setuptools 42 added support for python_requires, which is used by the configparser package,
 	# which is required by the importlib-metadata package
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
+
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"
@@ -626,7 +628,7 @@ endif
 tests: pytests
 
 .PHONY: pytests
-pytests: compile requirements .flake8 .pylint .pytests-coverage
+pytests: compilepy3 requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
 .pytests: compile .configgen .generate-api-spec .unit-tests clean
@@ -963,7 +965,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: compilepy3 .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: ci-py3-unit
 ci-py3-unit:

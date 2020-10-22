@@ -26,7 +26,7 @@ __all__ = [
 if six.PY3:
     long_int = int
 else:
-    long_int = long  # NOQA
+    long_int = long     # noqa  # pylint: disable=E0602
 
 
 def to_human_time_from_seconds(seconds):
