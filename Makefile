@@ -15,7 +15,7 @@ else
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
-PYTHON_VERSION ?= $(shell if [ -z "`which python3.6`" ]; then which python2.7; else which python3.6; fi)
+PYTHON_VERSION ?= $(shell if [ -z "`which python3.6`" ]; then echo "python2.7"; else echo "python3.6"; fi)
 
 BINARIES := bin
 
@@ -50,7 +50,12 @@ COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TES
 COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.*
 COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 
-REQUIREMENTS := test-requirements.txt requirements.txt
+ifeq ($(PYTHON_VERSION),python2.7)
+	REQUIREMENTS := test-requirements-py27.txt requirements.txt
+else
+	REQUIREMENTS := test-requirements.txt requirements.txt
+endif
+
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
 PIP_VERSION ?= 20.0.2
@@ -543,10 +548,9 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	fi
 
 	# Install requirements
-	#
 	for req in $(REQUIREMENTS); do \
-			echo "Installing $$req..." ; \
-			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
+		echo "Installing $$req..." ; \
+		$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
 	done
 
 	# Install st2common package to load drivers defined in st2common setup.py
