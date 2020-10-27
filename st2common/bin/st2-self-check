@@ -61,6 +61,13 @@ if [[ `id -u` != 0 ]]; then
   exit 1
 fi
 
+if [[ -z "$ST2_AUTH_TOKEN" && -z "$ST2_API_KEY" ]]; then
+  echo >&2 "st2-self-check must be run with an auth token or API key in an environment variable"
+  echo >&2 "Please export a valid auth token in ST2_AUTH_TOKEN or a valid API key in ST2_API_KEY"
+  echo >&2 "and re-run st2-self-check"
+  exit 1
+fi
+
 ERRORS=0
 PACKS="tests examples"
 
