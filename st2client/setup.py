@@ -29,15 +29,20 @@ check_pip_version()
 ST2_COMPONENT = 'st2client'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
+README_FILE = os.path.join(BASE_DIR, 'README.rst')
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 apply_vagrant_workaround()
+
+with open(README_FILE) as f:
+    readme = f.read()
 
 setup(
     name=ST2_COMPONENT,
     version=__version__,
     description=('Python client library and CLI for the StackStorm (st2) event-driven '
                  'automation platform.'),
+    long_description=readme,
     author='StackStorm',
     author_email='info@stackstorm.com',
     url='https://stackstorm.com/',
