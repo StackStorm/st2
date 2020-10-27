@@ -67,5 +67,16 @@ setup(
         'console_scripts': [
             'st2 = st2client.shell:main'
         ]
+    },
+    project_urls={
+        'Pack Exchange': 'https://exchange.stackstorm.org',
+        'Repository': 'https://github.com/StackStorm/st2',
+        'Documentation': 'https://docs.stackstorm.com',
+        'Community': 'https://stackstorm.com/community-signup',
+        'Questions': 'https://forum.stackstorm.com/',
+        'Donate': 'https://funding.communitybridge.org/projects/stackstorm',
+        'News/Blog': 'https://stackstorm.com/blog',
+        'Security': 'https://docs.stackstorm.com/latest/security.html',
+        'Bug Reports': 'https://github.com/StackStorm/st2/issues',
     }
 )
