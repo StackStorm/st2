@@ -27,7 +27,7 @@ TYPE_TABLE = {
 }
 
 if sys.version_info[0] < 3:
-    TYPE_TABLE[unicode] = 'string'
+    TYPE_TABLE[unicode] = 'string'  # noqa  # pylint: disable=E0602
 
 
 def _dict_to_schema(item):
