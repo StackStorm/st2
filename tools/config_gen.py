@@ -145,7 +145,7 @@ def _read_groups(opt_groups):
 
 
 def _print_options(opt_group, options):
-    for opt in options:
+    for opt in sorted(options, key=lambda x: x['opt'].name):
         opt = opt['opt']
 
         # Special case for options which could change during this script run

@@ -4,6 +4,14 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~~~
+* Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
+  ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
+
+3.3.0 - October 06, 2020
+------------------------
+
 Added
 ~~~~~
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
@@ -19,6 +27,18 @@ Added
   default pass to screen when the script completes. (improvement) #5013
 
   Contributed by @punkrokk
+* Added deprecation warning if attempt to install or download a pack that only supports
+  Python 2. (new feature) #5037
+
+  Contributed by @amanda11
+* Added deprecation warning to each StackStorm service log, if service is running with
+  Python 2. (new feature) #5043
+
+  Contributed by @amanda11
+* Added deprecation warning to st2ctl, if st2 python version is Python 2. (new feature) #5044 
+
+  Contributed by @amanda11
+
 
 Changed
 ~~~~~~~
@@ -33,6 +53,14 @@ Changed
   Contributed by Justin Sostre (@saucetray)
 * The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
   to fix the typo (bug fix) #4992
+* Renamed reference to the RBAC backend/plugin from ``enterprise`` to ``default``. Updated st2api
+  validation to use the new value when checking RBAC configuration. Removed other references to
+  enterprise for RBAC related contents. (improvement)
+* Remove authentication headers ``St2-Api-Key``, ``X-Auth-Token`` and ``Cookie`` from webhook payloads to
+  prevent them from being stored in the database. (security bug fix) #4983
+
+  Contributed by @potato and @knagy
+* Updated orquesta to version v1.2.0.
 
 Fixed
 ~~~~~
@@ -75,6 +103,21 @@ Fixed
 * Fixed a regression in the ``linux.dig`` action on Python 3. (bug fix) #4993
 
   Contributed by @blag
+* Fixed a bug in pack installation logging code where unicode strings were not being
+  interpolated properly. (bug fix)
+
+  Contributed by @misterpah
+* Fixed a compatibility issue with the latest version of the ``logging`` library API
+  where the ``find_caller()`` function introduced some new variables. (bug fix) #4923
+
+  Contributed by @Dahfizz9897
+* Fixed another logging compatibility issue with the ``logging`` API in Python 3.
+  The return from the ``logging.findCaller()`` implementation now expects a 4-element
+  tuple. Also, in Python 3 there are new arguments that are passed in and needs to be
+  acted upon, specificall ``stack_info`` that determines the new 4th element in the returned
+  tuple. (bug fix) #5057
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
 
 Removed
 ~~~~~~~
