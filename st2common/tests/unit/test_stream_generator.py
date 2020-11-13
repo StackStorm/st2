@@ -15,7 +15,13 @@
 
 import mock
 import unittest2
+
 from st2common.stream import listener
+
+INCLUDE = "test"
+END_EVENT = "test_end_event"
+END_ID = "test_end_id"
+EVENTS = [(INCLUDE, MockBody("notend")), (END_EVENT, MockBody(END_ID))]
 
 
 class MockBody(object):
@@ -23,12 +29,6 @@ class MockBody(object):
     def __init__(self, id):
         self.id = id
         self.status = "succeeded"
-
-
-INCLUDE = "test"
-END_EVENT = "test_end_event"
-END_ID = "test_end_id"
-EVENTS = [(INCLUDE, MockBody("notend")), (END_EVENT, MockBody(END_ID))]
 
 
 class MockQueue():
@@ -71,7 +71,3 @@ class TestStream(unittest2.TestCase):
         events = EVENTS.append('')
         for index, val in enumerate(app_iter):
             self.assertEquals(val, events[index])
-
-
-if __name__ == "__main__":
-    unittest2.main()
