@@ -18,17 +18,18 @@ import unittest2
 
 from st2common.stream import listener
 
-INCLUDE = "test"
-END_EVENT = "test_end_event"
-END_ID = "test_end_id"
-EVENTS = [(INCLUDE, MockBody("notend")), (END_EVENT, MockBody(END_ID))]
-
 
 class MockBody(object):
 
     def __init__(self, id):
         self.id = id
         self.status = "succeeded"
+
+
+INCLUDE = "test"
+END_EVENT = "test_end_event"
+END_ID = "test_end_id"
+EVENTS = [(INCLUDE, MockBody("notend")), (END_EVENT, MockBody(END_ID))]
 
 
 class MockQueue():
