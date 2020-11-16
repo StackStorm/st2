@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+* Added notification support for err-stackstorm. (new feature) #5051
+
 Changed
 ~~~~~~~~~
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
@@ -38,8 +42,6 @@ Added
 * Added deprecation warning to st2ctl, if st2 python version is Python 2. (new feature) #5044 
 
   Contributed by @amanda11
-
-* Added notify-errbot rule to ChatOps pack to simplify integrating err-stackstorm.
 
 Changed
 ~~~~~~~
