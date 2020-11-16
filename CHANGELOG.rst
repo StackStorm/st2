@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+* Added support for GitLab SSH URLs on pack install and download actions. (improvement) #5050
+  Contributed by @asthLucas
+
 Changed
 ~~~~~~~~~
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
