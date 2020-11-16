@@ -39,6 +39,7 @@ Added
 
   Contributed by @amanda11
 
+* Added notify-errbot rule to ChatOps pack to simplify integrating err-stackstorm.
 
 Changed
 ~~~~~~~
