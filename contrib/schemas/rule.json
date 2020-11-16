@@ -1,105 +1,105 @@
 {
-    "additionalProperties": false, 
-    "type": "object", 
+    "type": "object",
     "properties": {
+        "id": {
+            "type": "string",
+            "default": null
+        },
+        "ref": {
+            "description": "System computed user friendly reference for the rule. Provided value will be overridden by computed value.",
+            "type": "string"
+        },
         "uid": {
             "type": "string"
-        }, 
-        "tags": {
-            "items": {
-                "type": "object"
-            }, 
-            "type": "array", 
-            "description": "User associated metadata assigned to this object."
-        }, 
-        "metadata_file": {
-            "default": "", 
-            "type": "string", 
-            "description": "Path to the metadata file relative to the pack directory."
-        }, 
-        "id": {
-            "default": null, 
-            "type": "string"
-        }, 
+        },
+        "name": {
+            "type": "string",
+            "required": true
+        },
+        "pack": {
+            "type": "string",
+            "default": "default"
+        },
         "description": {
             "type": "string"
-        }, 
-        "name": {
-            "required": true, 
-            "type": "string"
-        }, 
-        "ref": {
-            "type": "string", 
-            "description": "System computed user friendly reference for the rule. Provided value will be overridden by computed value."
-        }, 
-        "enabled": {
-            "default": false, 
-            "type": "boolean"
-        }, 
-        "trigger": {
-            "additionalProperties": true, 
-            "required": true, 
-            "type": "object", 
+        },
+        "type": {
+            "type": "object",
             "properties": {
                 "ref": {
-                    "required": false, 
-                    "type": "string"
-                }, 
-                "type": {
-                    "required": true, 
-                    "type": "string"
-                }, 
-                "description": {
-                    "require": false, 
-                    "type": "string"
-                }, 
+                    "type": "string",
+                    "required": true
+                },
                 "parameters": {
-                    "default": {}, 
                     "type": "object"
                 }
-            }
-        }, 
+            },
+            "additionalProperties": false
+        },
+        "trigger": {
+            "type": "object",
+            "required": true,
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "required": true
+                },
+                "description": {
+                    "type": "string",
+                    "require": false
+                },
+                "parameters": {
+                    "type": "object",
+                    "default": {}
+                },
+                "ref": {
+                    "type": "string",
+                    "required": false
+                }
+            },
+            "additionalProperties": true
+        },
+        "criteria": {
+            "type": "object",
+            "default": {}
+        },
+        "action": {
+            "type": "object",
+            "required": true,
+            "properties": {
+                "ref": {
+                    "type": "string",
+                    "required": true
+                },
+                "description": {
+                    "type": "string",
+                    "require": false
+                },
+                "parameters": {
+                    "type": "object"
+                }
+            },
+            "additionalProperties": false
+        },
+        "enabled": {
+            "type": "boolean",
+            "default": false
+        },
         "context": {
             "type": "object"
-        }, 
-        "criteria": {
-            "default": {}, 
-            "type": "object"
-        }, 
-        "action": {
-            "additionalProperties": false, 
-            "required": true, 
-            "type": "object", 
-            "properties": {
-                "ref": {
-                    "required": true, 
-                    "type": "string"
-                }, 
-                "description": {
-                    "require": false, 
-                    "type": "string"
-                }, 
-                "parameters": {
-                    "type": "object"
-                }
+        },
+        "tags": {
+            "description": "User associated metadata assigned to this object.",
+            "type": "array",
+            "items": {
+                "type": "object"
             }
-        }, 
-        "type": {
-            "additionalProperties": false, 
-            "type": "object", 
-            "properties": {
-                "ref": {
-                    "required": true, 
-                    "type": "string"
-                }, 
-                "parameters": {
-                    "type": "object"
-                }
-            }
-        }, 
-        "pack": {
-            "default": "default", 
-            "type": "string"
+        },
+        "metadata_file": {
+            "description": "Path to the metadata file relative to the pack directory.",
+            "type": "string",
+            "default": ""
         }
-    }
+    },
+    "additionalProperties": false
 }

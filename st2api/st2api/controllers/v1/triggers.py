@@ -171,7 +171,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
             extra = {'trigger_db': trigger_db}
             LOG.audit('Trigger created for parameter-less TriggerType. Trigger.id=%s' %
                       (trigger_db.id), extra=extra)
-        except (ValidationError, ValueError) as e:
+        except (ValidationError, ValueError):
             LOG.exception('Validation failed for trigger data=%s.', trigger)
             # Not aborting as this is convenience.
             return
