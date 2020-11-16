@@ -44,9 +44,6 @@ Added
 
   Contributed by @amanda11
 
-* Added support for GitLab SSH URLs on pack install and download actions. (improvement) #5050
-  Contributed by @asthLucas
-
 Changed
 ~~~~~~~
 * Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2
