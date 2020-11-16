@@ -22,9 +22,8 @@ parameters:
     description: "Channel to post to"
     required: true
   route:
-    default: "chatops"
     type: "string"
-    description: "Text to represent a routing key.  Use to identify annoncement events in the Stream API."
+    default: "chatops"
   context:
     type: "object"
     description: "Context for channel (includes type of channel, user, etc.)"
