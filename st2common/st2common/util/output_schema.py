@@ -63,7 +63,7 @@ def validate_output(runner_schema, action_schema, result, status, output_key):
             if action_schema:
                 _validate_action(action_schema, result, output_key)
 
-    except jsonschema.ValidationError as _:
+    except jsonschema.ValidationError:
         LOG.exception('Failed to validate output.')
         _, ex, _ = sys.exc_info()
         # mark execution as failed.

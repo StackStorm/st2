@@ -276,4 +276,4 @@ experimental:
 
 notify:
   webhooks:
-    - url: https://ci-webhooks.stackstorm.net/webhooks/build/events
+    - url: https://ci-webhooks.stackstorm.com/webhooks/build/events
