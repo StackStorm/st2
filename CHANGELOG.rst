@@ -12,7 +12,9 @@ Changed
 Fixed
 ~~~~~~~~~
 * Fix nginx buffering long polling stream to client.  Instead of waiting for closed connection
-  wait for final event to be sent to client. fixes issue #4842
+  wait for final event to be sent to client. Fixes  #4842
+  
+  Contributed by @guzzijones
   
 3.3.0 - October 06, 2020
 ------------------------
