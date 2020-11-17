@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+3.4.0 
+-----
+* Added st2-rbac-backend and st2-auth-ldap pip requirements for LDAP and RBAC support to st2 core. (new feature) #5079
+
+  Contributed by @hnanchahal
+  
 Changed
 ~~~~~~~~~
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
@@ -35,9 +41,6 @@ Added
   Python 2. (new feature) #5043
 
   Contributed by @amanda11
-* Added st2-rbac-backend and st2-auth-ldap pip requirements for LDAP and RBAC support to st2 core. (new feature) #5079
-
-  Contributed by @hnanchahal
 * Added deprecation warning to st2ctl, if st2 python version is Python 2. (new feature) #5044 
 
   Contributed by @amanda11
