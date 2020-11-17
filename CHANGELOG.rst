@@ -27,7 +27,7 @@ Added
   Python 2. (new feature) #5043
 
   Contributed by @amanda11
-* Added st2-rbac-backend and st2-auth-ldap pip requirements for LDAP and RBAC support to st2 core. (new feature)
+* Added st2-rbac-backend and st2-auth-ldap pip requirements for LDAP and RBAC support to st2 core. (new feature) #5079
 
   Contributed by @hnanchahal
 
