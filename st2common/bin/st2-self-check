@@ -57,7 +57,14 @@ shift $(($OPTIND-1))
 
 ## Script to install samples, tests, and run all workflows in tests pack.
 if [[ `id -u` != 0 ]]; then
-  echo "st2-self-check must be run as root"
+  echo >&2 "st2-self-check must be run as root"
+  exit 1
+fi
+
+if [[ -z "$ST2_AUTH_TOKEN" && -z "$ST2_API_KEY" ]]; then
+  echo >&2 "st2-self-check must be run with an auth token or API key in an environment variable"
+  echo >&2 "Please export a valid auth token in ST2_AUTH_TOKEN or a valid API key in ST2_API_KEY"
+  echo >&2 "and re-run st2-self-check"
   exit 1
 fi
 
@@ -89,7 +96,7 @@ git clone --depth 1 --branch ${ST2_TESTS_BRANCH} https://github.com/StackStorm/s
 EXIT_CODE=$?
 
 if [ ${EXIT_CODE} -ne 0 ]; then
-    echo "Failed to clone st2tests repo"
+    echo >&2 "Failed to clone st2tests repo"
     exit 1
 fi
 
