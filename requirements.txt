@@ -67,3 +67,5 @@ webob==1.8.5
 webtest
 zake==0.2.2
 zipp<=1.0.0,>=0.5
+git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backend
+git+https://github.com/StackStorm/st2-auth-ldap.git@master#egg=st2-auth-ldap
