@@ -4,7 +4,9 @@ Changelog
 in development
 --------------
 
-* Added st2-auth-ldap pip requirements for Ldap integartion. (new feature) #
+Added
+~~~~~
+* Added st2-auth-ldap pip requirements for Ldap integartion. (new feature) #5081
 
   Contributed by @hnanchahal
 
