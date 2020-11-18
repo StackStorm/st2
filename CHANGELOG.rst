@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+* Added st2-auth-ldap pip requirements for Ldap integartion. (new feature) #5082
+  Contributed by @hanancha
+  
 Changed
 ~~~~~~~~~
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
@@ -11,11 +16,6 @@ Changed
 
 3.3.0 - October 06, 2020
 ------------------------
-
-Added
-~~~~~
-* Added st2-auth-ldap pip requirements for Ldap integartion. (new feature) #5082
-  Contributed by @hanancha
 
 Added
 ~~~~~
