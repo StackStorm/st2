@@ -38,15 +38,15 @@ jobs:
     # scripts/travis/run-nightly-make-task-if-exists.sh
     - name: "Unit Tests (Python 2.7 MongoDB 4.0)"
       python: 2.7
-      env: TASK=ci-unit CACHE_NAME=py2 COMMAND_THRESHOLD=700
+      env: TASK=ci-unit CACHE_NAME=py2 PYTHON_VERSION=python2.7 COMMAND_THRESHOLD=700
 
     - name: "Integration Tests (Python 2.7)"
       python: 2.7
-      env: TASK=ci-integration CACHE_NAME=py2 COMMAND_THRESHOLD=700
+      env: TASK=ci-integration CACHE_NAME=py2 PYTHON_VERSION=python2.7 COMMAND_THRESHOLD=700
 
-    - name: "Lint Checks, Packs Tests (Python 2.7)"
-      python: 2.7
-      env: TASK="ci-checks ci-packs-tests" CACHE_NAME=py2 COMMAND_THRESHOLD=430
+    - name: "Lint Checks, Packs Tests (Python 3.6)"
+      python: 3.6
+      env: TASK="ci-checks ci-packs-tests" CACHE_NAME=py3 PYTHON_VERSION=python3.6 COMMAND_THRESHOLD=430
 
     - name: "Unit Tests, Pack Tests (Python 3.6)"
       python: 3.6
