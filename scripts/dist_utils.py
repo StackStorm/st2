@@ -47,7 +47,7 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     text_type = str
 else:
-    text_type = unicode  # NOQA
+    text_type = unicode     # noqa  # pylint: disable=E0602
 
 GET_PIP = 'curl https://bootstrap.pypa.io/get-pip.py | python'
 
