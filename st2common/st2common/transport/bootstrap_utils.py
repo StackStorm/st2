@@ -194,7 +194,7 @@ def register_kombu_serializers():
             return pickle_loads(str_to_bytes(s))
     else:
         def str_to_bytes(s):                # noqa
-            if isinstance(s, unicode):
+            if isinstance(s, unicode):      # noqa  # pylint: disable=E0602
                 return s.encode('utf-8')
             return s
         unpickle = pickle_loads  # noqa
