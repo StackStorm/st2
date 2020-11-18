@@ -6,6 +6,11 @@ in development
 
 Added
 ~~~~~
+* Added st2-auth-ldap pip requirements for Ldap integartion. (new feature) #
+  Contributed by @hanancha
+
+Added
+~~~~~
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
   to ensure update to the models require schema to be regenerated. (new feature)
 * Improved st2sensor service logging message when a sensor will not be loaded when assigned to a
