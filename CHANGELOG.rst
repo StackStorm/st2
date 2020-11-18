@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+* Added st2-auth-ldap pip requirements for Ldap integartion. (new feature) #
+
+  Contributed by @hnanchahal
+
 Added
 ~~~~~
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
