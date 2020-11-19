@@ -6,8 +6,8 @@ in development
 
 Added
 ~~~~~
-* Added st2-auth-ldap pip requirements for Ldap integartion. (new feature) #5082
-  Contributed by @hanancha
+* Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
+  Contributed by @hnanchahal
   
 Changed
 ~~~~~~~~~
