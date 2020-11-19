@@ -20,7 +20,6 @@ function usage() {
   echo ""
   echo "Options:"
   echo "  -o  Skip Orquesta tests"
-  echo "  -m  Skip Mistral tests"
   echo "  -w  Run Windows tests"
   echo "  -b Which branch of st2tests to use (defaults to master)"
   echo ""
@@ -28,11 +27,10 @@ function usage() {
 }
 
 RUN_ORQUESTA_TESTS=true
-RUN_MISTRAL_TESTS=true
 RUN_WINDOWS_TESTS=false
 ST2_TESTS_BRANCH="master"
 
-while getopts "b:wom" o
+while getopts "b:wo" o
 do
     case "${o}" in
         b)
@@ -40,9 +38,6 @@ do
             ;;
         o)
             RUN_ORQUESTA_TESTS=false
-            ;;
-        m)
-            RUN_MISTRAL_TESTS=false
             ;;
         w)
             RUN_WINDOWS_TESTS=true
@@ -62,15 +57,15 @@ shift $(($OPTIND-1))
 
 ## Script to install samples, tests, and run all workflows in tests pack.
 if [[ `id -u` != 0 ]]; then
-  echo "st2-self-check must be run as root"
+  echo >&2 "st2-self-check must be run as root"
   exit 1
 fi
 
-# Installations which use Python 3 (e.g. Ubuntu Bionic) ship without Mistral
-PYTHON_VERSION=$(/opt/stackstorm/st2/bin/python --version 2>&1 | awk '{print $2'} | awk -F"." '{print $1}')
-
-if [ "${PYTHON_VERSION}" = "3" ]; then
-    RUN_MISTRAL_TESTS=false
+if [[ -z "$ST2_AUTH_TOKEN" && -z "$ST2_API_KEY" ]]; then
+  echo >&2 "st2-self-check must be run with an auth token or API key in an environment variable"
+  echo >&2 "Please export a valid auth token in ST2_AUTH_TOKEN or a valid API key in ST2_API_KEY"
+  echo >&2 "and re-run st2-self-check"
+  exit 1
 fi
 
 ERRORS=0
@@ -101,7 +96,7 @@ git clone --depth 1 --branch ${ST2_TESTS_BRANCH} https://github.com/StackStorm/s
 EXIT_CODE=$?
 
 if [ ${EXIT_CODE} -ne 0 ]; then
-    echo "Failed to clone st2tests repo"
+    echo >&2 "Failed to clone st2tests repo"
     exit 1
 fi
 
@@ -141,12 +136,6 @@ do
         continue
     fi
 
-    # Skip Mistral Inquiry test if we're not running Mistral tests
-    if [ ${RUN_MISTRAL_TESTS} = "false" ] && [ ${TEST} = "tests.test_inquiry_mistral" ]; then
-        echo "Skipping ${TEST}..."
-        continue
-    fi
-
     echo -n "Attempting Test ${TEST}..."
 
     START_TS=$(date +%s)
@@ -164,27 +153,6 @@ do
         echo "OK! (${DURATION}s)"
     fi
 done
-
-if [ ${RUN_MISTRAL_TESTS} = "true" ]; then
-    echo -n "Attempting Example examples.mistral_examples..."
-
-    START_TS=$(date +%s)
-    OUTPUT=$(st2 run examples.mistral_examples)
-    echo ${OUTPUT} | grep "status" | grep -q "succeeded"
-    EXIT_CODE=$?
-    END_TS=$(date +%s)
-    DURATION=$(expr ${END_TS} - ${START_TS})
-
-    if [ ${EXIT_CODE} -ne 0 ]; then
-        echo -e "ERROR! (${DURATION}s)"
-        echo "Test output: ${OUTPUT}"
-        ((ERRORS++))
-    else
-        echo "OK! (${DURATION}s)"
-    fi
-else
-    echo "Skipping examples.mistral_examples..."
-fi
 
 if [ ${RUN_ORQUESTA_TESTS} = "true" ]; then
     echo -n "Attempting Example examples.orquesta-examples..."

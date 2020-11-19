@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +18,7 @@ import unittest2
 
 from st2common.models.db.pack import PackDB
 from st2common.util.pack import get_pack_common_libs_path_for_pack_db
+from st2common.util.pack import get_pack_warnings
 
 
 class PackUtilsTestCase(unittest2.TestCase):
@@ -45,3 +47,34 @@ class PackUtilsTestCase(unittest2.TestCase):
         pack_db = PackDB(**pack_model_args)
         lib_path = get_pack_common_libs_path_for_pack_db(pack_db)
         self.assertEqual(None, lib_path)
+
+    def test_get_pack_warnings_python2_only(self):
+        pack_metadata = {
+            'python_versions': ['2'],
+            'name': 'Pack2'
+        }
+        warning = get_pack_warnings(pack_metadata)
+        self.assertTrue("DEPRECATION WARNING" in warning)
+
+    def test_get_pack_warnings_python3_only(self):
+        pack_metadata = {
+            'python_versions': ['3'],
+            'name': 'Pack3'
+        }
+        warning = get_pack_warnings(pack_metadata)
+        self.assertEqual(None, warning)
+
+    def test_get_pack_warnings_python2_and_3(self):
+        pack_metadata = {
+            'python_versions': ['2', '3'],
+            'name': 'Pack23'
+        }
+        warning = get_pack_warnings(pack_metadata)
+        self.assertEqual(None, warning)
+
+    def test_get_pack_warnings_no_python(self):
+        pack_metadata = {
+            'name': 'PackNone'
+        }
+        warning = get_pack_warnings(pack_metadata)
+        self.assertEqual(None, warning)

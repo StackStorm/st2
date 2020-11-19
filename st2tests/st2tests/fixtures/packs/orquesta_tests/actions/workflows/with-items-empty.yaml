@@ -1,0 +1,11 @@
+version: 1.0
+
+description: A workflow to test passing of empty array to with items task.
+
+input:
+  - members
+
+tasks:
+  task1:
+    with: <% ctx(members) %>
+    action: core.echo message="<% item() %>, resistance is futile!"

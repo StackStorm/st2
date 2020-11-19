@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -218,7 +219,7 @@ class Querier(object):
         status should be one of LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_RUNNING,
         LIVEACTION_STATUS_FAILED defined in st2common.constants.action.
         """
-        pass
+        raise NotImplementedError()
 
     def print_stats(self):
         LOG.info('\t --- Name: %s, pending queuries: %d', self.__class__.__name__,

@@ -1,0 +1,12 @@
+version: 1.0
+
+tasks:
+  task1:
+    action: examples.orquesta-test-with-items
+    input:
+      tempfiles: []
+    next:
+      - when: <% succeeded() %>
+        do: task2
+  task2:
+    action: core.noop

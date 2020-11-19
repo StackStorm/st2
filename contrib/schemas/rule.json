@@ -1,0 +1,105 @@
+{
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "default": null
+        },
+        "ref": {
+            "description": "System computed user friendly reference for the rule. Provided value will be overridden by computed value.",
+            "type": "string"
+        },
+        "uid": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string",
+            "required": true
+        },
+        "pack": {
+            "type": "string",
+            "default": "default"
+        },
+        "description": {
+            "type": "string"
+        },
+        "type": {
+            "type": "object",
+            "properties": {
+                "ref": {
+                    "type": "string",
+                    "required": true
+                },
+                "parameters": {
+                    "type": "object"
+                }
+            },
+            "additionalProperties": false
+        },
+        "trigger": {
+            "type": "object",
+            "required": true,
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "required": true
+                },
+                "description": {
+                    "type": "string",
+                    "require": false
+                },
+                "parameters": {
+                    "type": "object",
+                    "default": {}
+                },
+                "ref": {
+                    "type": "string",
+                    "required": false
+                }
+            },
+            "additionalProperties": true
+        },
+        "criteria": {
+            "type": "object",
+            "default": {}
+        },
+        "action": {
+            "type": "object",
+            "required": true,
+            "properties": {
+                "ref": {
+                    "type": "string",
+                    "required": true
+                },
+                "description": {
+                    "type": "string",
+                    "require": false
+                },
+                "parameters": {
+                    "type": "object"
+                }
+            },
+            "additionalProperties": false
+        },
+        "enabled": {
+            "type": "boolean",
+            "default": false
+        },
+        "context": {
+            "type": "object"
+        },
+        "tags": {
+            "description": "User associated metadata assigned to this object.",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "metadata_file": {
+            "description": "Path to the metadata file relative to the pack directory.",
+            "type": "string",
+            "default": ""
+        }
+    },
+    "additionalProperties": false
+}

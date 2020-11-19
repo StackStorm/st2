@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,9 +52,6 @@ def get_filters():
     from st2common.expressions.functions import version
     from st2common.expressions.functions import path
 
-    # IMPORTANT NOTE - these filters were recently duplicated in st2mistral so that
-    # they are also available in Mistral workflows. Please ensure any additions you
-    # make here are also made there so that feature parity is maintained.
     return {
         'decrypt_kv': datastore.decrypt_kv,
 

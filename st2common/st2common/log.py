@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import io
 import os
 import sys
 import logging
@@ -68,25 +70,64 @@ LOGGER_KEYS = [
 _srcfile = get_normalized_file_path(__file__)
 
 
-def find_caller(stack_info=None):
+def find_caller(stack_info=False, stacklevel=1):
     """
     Find the stack frame of the caller so that we can note the source file name, line number and
     function name.
 
     Note: This is based on logging/__init__.py:findCaller and modified so it takes into account
-    this file - https://hg.python.org/cpython/file/2.7/Lib/logging/__init__.py#l1233
+    this file:
+    https://github.com/python/cpython/blob/2.7/Lib/logging/__init__.py#L1240-L1259
+
+    The Python 3.x implementation adds in a new argument `stack_info` and `stacklevel`
+    and expects a 4-element tuple to be returned, rather than a 3-element tuple in
+    the python 2 implementation.
+    We derived our implementation from the Python 3.9 source code here:
+    https://github.com/python/cpython/blob/3.9/Lib/logging/__init__.py#L1502-L1536
+
+    We've made the appropriate changes so that we're python 2 and python 3 compatible depending
+    on what runtine we're working in.
     """
-    rv = '(unknown file)', 0, '(unknown function)'
+    if six.PY2:
+        rv = '(unknown file)', 0, '(unknown function)'
+    else:
+        # python 3, has extra tuple element at the end for stack information
+        rv = '(unknown file)', 0, '(unknown function)', None
 
     try:
-        f = logging.currentframe().f_back
+        f = logging.currentframe()
+        # On some versions of IronPython, currentframe() returns None if
+        # IronPython isn't run with -X:Frames.
+        if f is not None:
+            f = f.f_back
+        orig_f = f
+        while f and stacklevel > 1:
+            f = f.f_back
+            stacklevel -= 1
+        if not f:
+            f = orig_f
+
         while hasattr(f, 'f_code'):
             co = f.f_code
             filename = os.path.normcase(co.co_filename)
             if filename in (_srcfile, logging._srcfile):  # This line is modified.
                 f = f.f_back
                 continue
-            rv = (filename, f.f_lineno, co.co_name)
+
+            if six.PY2:
+                rv = (filename, f.f_lineno, co.co_name)
+            else:
+                # python 3, new stack_info processing and extra tuple return value
+                sinfo = None
+                if stack_info:
+                    sio = io.StringIO()
+                    sio.write('Stack (most recent call last):\n')
+                    traceback.print_stack(f, file=sio)
+                    sinfo = sio.getvalue()
+                    if sinfo[-1] == '\n':
+                        sinfo = sinfo[:-1]
+                    sio.close()
+                rv = (filename, f.f_lineno, co.co_name, sinfo)
             break
     except Exception:
         pass

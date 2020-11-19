@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -167,6 +168,8 @@ ACTION_9 = {
 }
 
 # Same name as ACTION_1. Different pack though.
+# Ensure that this remains the only action with pack == wolfpack1,
+# otherwise take care of the test test_get_one_using_pack_parameter
 ACTION_10 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
@@ -600,6 +603,39 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         self.assertEqual(get_resp.json['notify'], {})
         self.__do_delete(action_id)
 
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_one_using_name_parameter(self):
+        action_id, action_name = self.__get_action_id_and_additional_attribute(
+            self.__do_post(ACTION_1), 'name')
+        get_resp = self.__do_get_actions_by_url_parameter('name', action_name)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json[0]['id'], action_id)
+        self.assertEqual(get_resp.json[0]['name'], action_name)
+        self.__do_delete(action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_one_using_pack_parameter(self):
+        action_id, action_pack = self.__get_action_id_and_additional_attribute(
+            self.__do_post(ACTION_10), 'pack')
+        get_resp = self.__do_get_actions_by_url_parameter('pack', action_pack)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json[0]['id'], action_id)
+        self.assertEqual(get_resp.json[0]['pack'], action_pack)
+        self.__do_delete(action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_one_using_tag_parameter(self):
+        action_id, action_tags = self.__get_action_id_and_additional_attribute(
+            self.__do_post(ACTION_1), 'tags')
+        get_resp = self.__do_get_actions_by_url_parameter('tags', action_tags[0]['name'])
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json[0]['id'], action_id)
+        self.assertEqual(get_resp.json[0]['tags'], action_tags)
+        self.__do_delete(action_id)
+
     # TODO: Re-enable those tests after we ensure DB is flushed in setUp
     # and each test starts in a clean state
 
@@ -634,8 +670,19 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
     def __get_action_name(resp):
         return resp.json['name']
 
+    @staticmethod
+    def __get_action_tags(resp):
+        return resp.json['tags']
+
+    @staticmethod
+    def __get_action_id_and_additional_attribute(resp, attribute):
+        return resp.json['id'], resp.json[attribute]
+
     def __do_get_one(self, action_id, expect_errors=False):
         return self.app.get('/v1/actions/%s' % action_id, expect_errors=expect_errors)
+
+    def __do_get_actions_by_url_parameter(self, filter, value, expect_errors=False):
+        return self.app.get('/v1/actions?%s=%s' % (filter, value), expect_errors=expect_errors)
 
     def __do_post(self, action, expect_errors=False):
         return self.app.post_json('/v1/actions', action, expect_errors=expect_errors)

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,9 +37,9 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
                                 get_runner, 'invalid-name-not-found')
 
     def test_get_query_module_success(self):
-        query_module = get_query_module('mistral-v2')
+        query_module = get_query_module('mock_query_callback')
 
-        self.assertEqual(query_module.__name__, 'mistral_v2.query')
+        self.assertEqual(query_module.__name__, 'mock_query_callback.query')
         self.assertTrue(query_module.get_instance())
 
     def test_get_query_module_failure_not_found(self):
@@ -47,9 +48,9 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
                                 get_query_module, 'invalid-name-not-found')
 
     def test_get_callback_module_success(self):
-        callback_module = get_callback_module('mistral-v2')
+        callback_module = get_callback_module('mock_query_callback')
 
-        self.assertEqual(callback_module.__name__, 'mistral_v2.callback')
+        self.assertEqual(callback_module.__name__, 'mock_query_callback.callback')
         self.assertTrue(callback_module.get_instance())
 
     def test_get_callback_module_failure_not_found(self):

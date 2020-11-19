@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +60,7 @@ class DefaultPartitioner(object):
         sensor_refs = self.get_required_sensor_refs()
 
         # None has special meaning and is different from empty array.
-        if sensor_refs is None:
+        if sensor_refs is None or not sensor_refs:
             return all_enabled_sensors
 
         partition_members = []
@@ -73,7 +74,7 @@ class DefaultPartitioner(object):
         return partition_members
 
     def get_required_sensor_refs(self):
-        return None
+        return []
 
 
 class KVStorePartitioner(DefaultPartitioner):
@@ -92,7 +93,7 @@ class KVStorePartitioner(DefaultPartitioner):
         sensor_refs_str = kvp.value if kvp.value else ''
         self._supported_sensor_refs = set([
             sensor_ref.strip() for sensor_ref in sensor_refs_str.split(',')])
-        return self._supported_sensor_refs
+        return list(self._supported_sensor_refs)
 
     def _get_partition_lookup_key(self, sensor_node_name):
         return '{}.sensor_partition'.format(sensor_node_name)
@@ -117,7 +118,7 @@ class FileBasedPartitioner(DefaultPartitioner):
                                                          % (self.sensor_node_name,
                                                             self.partition_file))
             self._supported_sensor_refs = set(sensor_refs)
-            return self._supported_sensor_refs
+            return list(self._supported_sensor_refs)
 
 
 class SingleSensorPartitioner(object):

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,8 +44,8 @@ def st2kv_(context, key, **kwargs):
     try:
         user_db = auth_db_access.User.get(username)
     except Exception as e:
-        raise Exception('Failed to retrieve User object for user "%s" % (username)' %
-                        (six.text_type(e)))
+        raise Exception('Failed to retrieve User object for user "%s", "%s"' %
+                        (username, six.text_type(e)))
 
     has_default = 'default' in kwargs
     default_value = kwargs.get('default')

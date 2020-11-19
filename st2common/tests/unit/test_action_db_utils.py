@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -327,7 +328,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             'runnerint': 555
         }
         pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
-        self.assertListEqual(pos_args, ['20', '', 'foo', '', '', '', ''],
+        self.assertListEqual(pos_args, ['20', '', 'foo', '', '', '', '', ''],
                             'Positional args not parsed correctly.')
         self.assertNotIn('actionint', named_args)
         self.assertNotIn('actionstr', named_args)
@@ -340,6 +341,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             'actionfloat': 1.5,
             'actionstr': 'string value',
             'actionbool': True,
+            'actionarray': ['foo', 'bar', 'baz', 'qux'],
             'actionlist': ['foo', 'bar', 'baz'],
             'actionobject': {'a': 1, 'b': '2'},
         }
@@ -348,6 +350,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             '1.5',
             'string value',
             '1',
+            'foo,bar,baz,qux',
             'foo,bar,baz',
             '{"a": 1, "b": "2"}',
             ''
@@ -361,6 +364,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             'actionfloat': 1.5,
             'actionstr': 'string value',
             'actionbool': False,
+            'actionarray': [],
             'actionlist': [],
             'actionobject': {'a': 1, 'b': '2'},
         }
@@ -369,6 +373,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             '1.5',
             'string value',
             '0',
+            '',
             '',
             '{"a": 1, "b": "2"}',
             ''
@@ -383,10 +388,12 @@ class ActionDBUtilsTestCase(DbTestCase):
             'actionfloat': None,
             'actionstr': None,
             'actionbool': None,
+            'actionarray': None,
             'actionlist': None,
             'actionobject': None,
         }
         expected_pos_args = [
+            '',
             '',
             '',
             '',
@@ -412,10 +419,31 @@ class ActionDBUtilsTestCase(DbTestCase):
             '',
             '',
             '',
+            '',
             ''
         ]
         pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
         self.assertListEqual(pos_args, expected_pos_args, 'Positional args not parsed correctly.')
+
+        # Test arrays and lists with values of different types
+        params = {
+            'actionarray': [None, False, 1, 4.2e1, '1e3', 'foo'],
+            'actionlist': [None, False, 1, 73e-2, '1e2', 'bar']
+        }
+        expected_pos_args = [
+            '',
+            '',
+            '',
+            '',
+            'None,False,1,42.0,1e3,foo',
+            'None,False,1,0.73,1e2,bar',
+            '',
+            ''
+        ]
+        pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
+        self.assertListEqual(pos_args, expected_pos_args,
+                             'Positional args not parsed / serialized correctly.')
+
         self.assertNotIn('actionint', named_args)
         self.assertNotIn('actionstr', named_args)
         self.assertEqual(named_args.get('runnerint'), 555)
@@ -463,9 +491,10 @@ class ActionDBUtilsTestCase(DbTestCase):
             'actionfloat': {'type': 'float', 'required': False, 'position': 1},
             'actionstr': {'type': 'string', 'required': True, 'position': 2},
             'actionbool': {'type': 'boolean', 'required': False, 'position': 3},
-            'actionlist': {'type': 'list', 'required': False, 'position': 4},
-            'actionobject': {'type': 'object', 'required': False, 'position': 5},
-            'actionnull': {'type': 'null', 'required': False, 'position': 6},
+            'actionarray': {'type': 'array', 'required': False, 'position': 4},
+            'actionlist': {'type': 'list', 'required': False, 'position': 5},
+            'actionobject': {'type': 'object', 'required': False, 'position': 6},
+            'actionnull': {'type': 'null', 'required': False, 'position': 7},
 
             'runnerdummy': {'type': 'string', 'default': 'actiondummy'}
         }

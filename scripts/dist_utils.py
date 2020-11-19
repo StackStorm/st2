@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +22,14 @@ import sys
 
 from distutils.version import StrictVersion
 
+# // NOTE: After you update this script, please run:
+# //
+# //       make .sdist-requirements
+# //
+# //       to copy your changes to all of our sub-package directories.
+# //
+# // Lines beginning with '# //', like these, will be removed from the copies.
+# //
 # NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
 #
 # TODO: Why can't this script rely on 3rd party dependencies? Is it because it has to import
@@ -29,6 +38,8 @@ from distutils.version import StrictVersion
 # TODO: Dear future developer, if you are back here fixing a bug with how we parse
 #       requirements files, please look into using the packaging package on PyPI:
 #       https://packaging.pypa.io/en/latest/requirements/
+#       and specifying that in the `setup_requires` argument to `setuptools.setup()`
+#       for subpackages.
 #       At the very least we can vendorize some of their code instead of reimplementing
 #       each piece of their code every time our parsing breaks.
 PY3 = sys.version_info[0] == 3
@@ -36,7 +47,7 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     text_type = str
 else:
-    text_type = unicode  # NOQA
+    text_type = unicode     # noqa  # pylint: disable=E0602
 
 GET_PIP = 'curl https://bootstrap.pypa.io/get-pip.py | python'
 

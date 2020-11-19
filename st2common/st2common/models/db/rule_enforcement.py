@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,7 +92,7 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     # with a consistent get_uid interface.
     def get_uid(self):
         # TODO Construct uid from non id field:
-        uid = [self.RESOURCE_TYPE, str(self.id)]
+        uid = [self.RESOURCE_TYPE, str(self.id)]    # pylint: disable=E1101
         return ':'.join(uid)
 
 

@@ -1,8 +1,0 @@
----
-description: >
-    Workflow for demonstrating "ask" functionality
-enabled: true
-entry_point: workflows/mistral-ask-parent.yaml
-name: mistral-ask-parent
-pack: examples
-runner_type: mistral-v2
