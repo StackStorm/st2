@@ -9,6 +9,11 @@ Changed
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
+* Added timeout parameter for packs.install action to help with long running installs that exceed the 
+default timeout of 600 sec which is defined by the python_script action runner (improvement) #
+
+Contributed by @hnanchahal
+
 3.3.0 - October 06, 2020
 ------------------------
 
