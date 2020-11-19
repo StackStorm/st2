@@ -5,10 +5,14 @@ in development
 --------------
 
 Added
-~~~~
+~~~~~~~~~
+
 * Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
   Contributed by @hnanchahal
 
+* Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
+  Contributed by @hnanchahal
+  
 Changed
 ~~~~~~~~~
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
