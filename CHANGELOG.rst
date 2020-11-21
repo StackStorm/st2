@@ -14,6 +14,13 @@ Changed
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
+Fixed
+~~~~~~~~~
+* Fix nginx buffering long polling stream to client.  Instead of waiting for closed connection
+  wait for final event to be sent to client. (bug fix) #4842  #5042
+  
+  Contributed by @guzzijones
+  
 3.3.0 - October 06, 2020
 ------------------------
 
