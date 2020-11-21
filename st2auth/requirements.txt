@@ -8,6 +8,7 @@
 bcrypt==3.1.7
 eventlet==0.25.1
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
+git+https://github.com/StackStorm/st2-auth-ldap.git@master#egg=st2-auth-ldap
 gunicorn==19.9.0
 oslo.config<1.13,>=1.12.1
 passlib==1.7.1

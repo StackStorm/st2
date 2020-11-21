@@ -118,7 +118,8 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         with term.TaskIndicator() as indicator:
             events = ['st2.execution__create', 'st2.execution__update']
-            for event in stream_mgr.listen(events, **kwargs):
+            for event in stream_mgr.listen(events, end_execution_id=parent_id,
+                    end_event="st2.execution__update", **kwargs):
                 execution = Execution(**event)
 
                 if execution.id == parent_id \
