@@ -16,7 +16,7 @@ Changed
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
 * Added timeout parameter for packs.install action to help with long running installs that exceed the 
-default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
+  default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
 
 Contributed by @hnanchahal
 
