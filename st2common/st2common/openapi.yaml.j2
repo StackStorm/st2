@@ -4481,6 +4481,16 @@ paths:
       description: |
         Event stream endpoint.
       parameters:
+        - name: end_execution_id
+          in: query
+          description: execution id used to find last event in stream
+          type: string
+          required: false
+        - name: end_event
+          in: query
+          description: event to end sse stream
+          type: string
+          required: false
         - name: events
           in: query
           description: List of events to listen for. If not provided, it listens to all events.
