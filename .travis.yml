@@ -7,6 +7,12 @@ branches:
     - master
     - /^v[0-9]+\.[0-9]+$/
 
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
+
 env:
   global:
     - IS_NIGHTLY_BUILD=$([ "${TRAVIS_EVENT_TYPE}" = "cron" ] && echo "yes" || echo "no")
@@ -22,8 +28,7 @@ env:
     - NOSE_TIME=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
     # Travis-specific st2.conf (with travis user instead of stanley)
     - ST2_CONF=conf/st2.travis.conf
-jobs:
-  include:
+  jobs:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
     # builds and having 6 tasks / builds means 1 tasks will need to wait for one
     # of the other 5 tasks to finish before it can start
@@ -36,25 +41,22 @@ jobs:
     # If you rename or reorder make targets in TASK, you may need to adjust:
     # scripts/travis/install-requirements.sh
     # scripts/travis/run-nightly-make-task-if-exists.sh
-    - name: "Unit Tests (Python 2.7 MongoDB 4.0)"
-      python: 2.7
-      env: TASK=ci-unit CACHE_NAME=py2 PYTHON_VERSION=python2.7 COMMAND_THRESHOLD=700
+    - TASK=ci-checks COMMAND_THRESHOLD=300
 
-    - name: "Integration Tests (Python 2.7)"
-      python: 2.7
-      env: TASK=ci-integration CACHE_NAME=py2 PYTHON_VERSION=python2.7 COMMAND_THRESHOLD=700
+    - TASK=compilepy3 COMMAND_THRESHOLD=300
 
-    - name: "Lint Checks, Packs Tests (Python 3.6)"
-      python: 3.6
-      env: TASK="ci-checks ci-packs-tests" CACHE_NAME=py3 PYTHON_VERSION=python3.6 COMMAND_THRESHOLD=430
+    - TASK=ci-packs-tests COMMAND_THRESHOLD=300
 
-    - name: "Unit Tests, Pack Tests (Python 3.6)"
-      python: 3.6
-      env: TASK="compilepy3 ci-py3-unit ci-py3-packs-tests" CACHE_NAME=py3 PYTHON_VERSION=python3.6 COMMAND_THRESHOLD=750
+    - TASK=ci-unit COMMAND_THRESHOLD=300
 
-    - name: "Integration Tests (Python 3.6)"
-      python: 3.6
-      env: TASK="ci-py3-integration" CACHE_NAME=py3 PYTHON_VERSION=python3.6 COMMAND_THRESHOLD=770
+    - TASK=ci-integration COMMAND_THRESHOLD=300
+
+jobs:
+  fast_finish: true
+  allow_failures:
+    - python: "3.7"
+    - python: "3.8"
+    - python: "3.9"
 
 addons:
   apt:
