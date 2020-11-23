@@ -9,9 +9,9 @@ branches:
 
 python:
   - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.9"
+  # - "3.7"
+  # - "3.8"
+  # - "3.9"
 
 env:
   global:
@@ -51,12 +51,12 @@ env:
 
     - TASK=ci-integration COMMAND_THRESHOLD=300
 
-jobs:
-  fast_finish: true
-  allow_failures:
-    - python: "3.7"
-    - python: "3.8"
-    - python: "3.9"
+# jobs:
+#   fast_finish: true
+#   allow_failures:
+#     - python: "3.7"
+#     - python: "3.8"
+#     - python: "3.9"
 
 addons:
   apt:
