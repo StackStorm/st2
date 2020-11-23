@@ -18,7 +18,7 @@ Changed
 * Added timeout parameter for packs.install action to help with long running installs that exceed the 
   default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
 
-Contributed by @hnanchahal
+  Contributed by @hnanchahal
 
 Fixed
 ~~~~~~~~~
