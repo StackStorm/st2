@@ -418,12 +418,6 @@ lint: requirements .lint
 .PHONY: clean
 clean: .cleanpycs
 
-.PHONY: compile
-compile:
-	@echo "======================= compile ========================"
-	@echo "------- Compile all .py files (syntax check test - Python 2) ------"
-	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
-
 .PHONY: compilepy3
 compilepy3:
 	@echo "======================= compile ========================"
@@ -629,7 +623,7 @@ tests: pytests
 pytests: compilepy3 requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile .configgen .generate-api-spec .unit-tests clean
+.pytests: compilepy3 .configgen .generate-api-spec .unit-tests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html clean
