@@ -9,6 +9,7 @@ input:
   - force
   - python3
   - skip_dependencies
+  - timeout
 
 vars:
   - packs_list: null
@@ -98,6 +99,7 @@ tasks:
       packs: <% ctx().packs_list %>
       env: <% ctx().env %>
       python3: <% ctx().python3 %>
+      timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>
         do: get_pack_warnings
