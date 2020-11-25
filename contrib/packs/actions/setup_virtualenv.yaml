@@ -29,3 +29,8 @@
       description: "Optional environment variables"
       required: false
       default: null
+    timeout:
+      default: 600
+      required: false
+      description: Action timeout in seconds. Action will get killed if it doesn't finish in timeout 
+      type: integer
