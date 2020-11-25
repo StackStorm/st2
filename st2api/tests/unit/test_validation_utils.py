@@ -55,5 +55,5 @@ class ValidationUtilsTestCase(unittest2.TestCase):
         cfg.CONF.set_override(group='rbac', name='enable', override=True)
         cfg.CONF.set_override(group='rbac', name='backend', override='default')
         cfg.CONF.set_override(group='auth', name='enable', override=True)
-        result = validate_rbac_is_correctly_configured()d
+        result = validate_rbac_is_correctly_configured()
         self.assertTrue(result) 
