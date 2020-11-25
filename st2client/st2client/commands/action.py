@@ -1502,7 +1502,10 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         workflow_execution_ids.update(children_execution_ids)
 
         events = ['st2.execution__update', 'st2.execution.output__create']
-        for event in stream_manager.listen(events, **kwargs):
+        for event in stream_manager.listen(events,
+                end_execution_id=execution_id,
+                end_event="st2.execution__update",
+                **kwargs):
             status = event.get('status', None)
             is_execution_event = status is not None
 
