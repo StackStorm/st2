@@ -55,7 +55,5 @@ class ValidationUtilsTestCase(unittest2.TestCase):
         cfg.CONF.set_override(group='rbac', name='enable', override=True)
         cfg.CONF.set_override(group='rbac', name='backend', override='default')
         cfg.CONF.set_override(group='auth', name='enable', override=True)
-
-        expected_msg = ('"default" RBAC backend is not available. ')
-        self.assertRaisesRegexp(ValueError, expected_msg,
-                                validate_rbac_is_correctly_configured)
+        result = validate_rbac_is_correctly_configured()d
+        self.assertTrue(result) 

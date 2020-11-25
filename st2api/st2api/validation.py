@@ -41,7 +41,9 @@ def validate_rbac_is_correctly_configured():
         msg = ('You have enabled RBAC, but RBAC backend is not set to "default".') 
         raise ValueError(msg)
 
-    # 333. Verify default RBAC backend is available
+    # 3. Verify default RBAC backend is available
     if 'default' not in available_rbac_backends:
         msg = ('"default" RBAC backend is not available.')
         raise ValueError(msg)
+
+    return True
