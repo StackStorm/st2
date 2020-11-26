@@ -25,10 +25,12 @@ Changed
 
 * Added timeout parameter for packs.install action to help with long running installs that exceed the 
   default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
-
   Contributed by @hnanchahal
 
 * Upgraded cryptography version to 3.2 to avoid CVE-2020-25659 (security) #5095
+
+* Upgrade virtualenv version to latest - 20.2.2 (improvement) #5094
+  Contributed by @kroustou
 
 Fixed
 ~~~~~~~~~
@@ -41,7 +43,6 @@ Fixed
 * Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
 * Fix nginx buffering long polling stream to client.  Instead of waiting for closed connection
   wait for final event to be sent to client. (bug fix) #4842  #5042
-
   Contributed by @guzzijones
 
 * StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
