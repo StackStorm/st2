@@ -22,7 +22,7 @@ Changed
 
 Fixed
 ~~~~~~~~~
-* Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. #5078 #5091
+* Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
 * Fix nginx buffering long polling stream to client.  Instead of waiting for closed connection
   wait for final event to be sent to client. (bug fix) #4842  #5042
 
