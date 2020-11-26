@@ -27,6 +27,7 @@ Fixed
   wait for final event to be sent to client. (bug fix) #4842  #5042
 
   Contributed by @guzzijones
+* Pinned pip version to latest
 
 3.3.0 - October 06, 2020
 ------------------------
