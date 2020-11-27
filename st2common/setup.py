@@ -57,7 +57,6 @@ setup(
         'bin/st2-self-check',
         'bin/st2-track-result',
         'bin/st2-validate-pack-config',
-        'bin/st2-check-license',
         'bin/st2-pack-install',
         'bin/st2-pack-download',
         'bin/st2-pack-setup-virtualenv'

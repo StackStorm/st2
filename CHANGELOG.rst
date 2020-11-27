@@ -33,6 +33,11 @@ Fixed
 
   Contributed by @guzzijones
 
+Removed
+~~~~~~~~
+* Removed check-licence script (cleanup) #5092
+  Contributed by @kroustou
+
 3.3.0 - October 06, 2020
 ------------------------
 
