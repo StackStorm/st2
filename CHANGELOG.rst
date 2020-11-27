@@ -5,7 +5,7 @@ in development
 --------------
 
 Added
-~~~~~~~~~
+~~~~~
 
 * Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
   Contributed by @hnanchahal
