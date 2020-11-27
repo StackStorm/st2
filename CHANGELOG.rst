@@ -20,6 +20,10 @@ Changed
 
   Contributed by @hnanchahal
 
+* Updated Travis CI and CircleCI builds to only use Python 3
+
+  Contributed by @blag
+
 Fixed
 ~~~~~~~~~
 * Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
