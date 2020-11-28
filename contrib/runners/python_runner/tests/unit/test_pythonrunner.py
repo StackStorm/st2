@@ -315,8 +315,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
-        self.assertEqual(output['stdout'], 'pre result line 1\npost result line 1')
-        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertMultiLineEqual(output['stdout'], 'pre result line 1\npost result line 1')
+        self.assertMultiLineEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
@@ -339,8 +339,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
-        self.assertEqual(output['stdout'], 'pre result line 1\npost result line 1')
-        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertMultiLineEqual(output['stdout'], 'pre result line 1\npost result line 1')
+        self.assertMultiLineEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
@@ -387,9 +387,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
-        self.assertEqual(output['stdout'],
+        self.assertMultiLineEqual(output['stdout'],
                          'pre result line 1\npre result line 2\npost result line 1')
-        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertMultiLineEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
@@ -427,8 +427,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             runner.pre_run()
             (_, output, _) = runner.run({'stdout_count': 2, 'stderr_count': 2})
 
-            self.assertEqual(output['stdout'], 'stdout line 0\nstdout line 1\n')
-            self.assertEqual(output['stderr'], 'stderr line 0\nstderr line 1\n')
+            # assertMultiLineEqual displays a diff if the two don't match
+            self.assertMultiLineEqual(output['stdout'], 'stdout line 0\nstdout line 1\n')
+            self.assertMultiLineEqual(output['stderr'], 'stderr line 0\nstderr line 1\n')
             self.assertEqual(output['exit_code'], 0)
 
             output_dbs = ActionExecutionOutput.get_all()
