@@ -50,7 +50,7 @@ ECHOER_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
 TEST_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                 'pythonactions/actions/test.py')
 PATHS_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
-                                'pythonactions/actions/python_paths.py')
+                                 'pythonactions/actions/python_paths.py')
 ACTION_1_PATH = os.path.join(tests_base.get_fixtures_path(),
                              'packs/dummy_pack_9/actions/list_repos_doesnt_exist.py')
 ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
@@ -65,7 +65,7 @@ PRINT_VERSION_LOCAL_MODULE_ACTION = os.path.join(tests_base.get_fixtures_path(),
 PRINT_CONFIG_ITEM_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                         'pythonactions/actions/print_config_item_doesnt_exist.py')
 PRINT_TO_STDOUT_STDERR_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
-                                      'pythonactions/actions/print_to_stdout_and_stderr.py')
+                                             'pythonactions/actions/print_to_stdout_and_stderr.py')
 
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
