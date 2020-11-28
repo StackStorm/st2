@@ -702,7 +702,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             lines.append(line)
 
         msg = ('Expected %s lines, got %s - "%s"' % (expected_count, len(lines), str(lines)))
-        self.assertEqual(len(lines), expected_count, msg)
+        # Dependencies can inject their own warnings, which increases the
+        # number of lines to more than we expect with simple equality checks
+        self.assertGreaterEqual(len(lines), expected_count, msg)
 
         # Only log messages with level info and above should be displayed
         runner = self._get_mock_runner_obj()
