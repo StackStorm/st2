@@ -420,7 +420,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                   group='actionrunner')
 
             output_dbs = ActionExecutionOutput.get_all()
-            self.assertEqual(len(output_dbs), (index - 1) * 4)
+            # Unexpected third party warnings will also inflate this number
+            self.assertGreaterEqual(len(output_dbs), (index - 1) * 4)
 
             runner = self._get_mock_runner_obj()
             runner.entry_point = PRINT_TO_STDOUT_STDERR_ACTION
