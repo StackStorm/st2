@@ -429,7 +429,11 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
             # assertMultiLineEqual displays a diff if the two don't match
             self.assertMultiLineEqual(output['stdout'], 'stdout line 0\nstdout line 1\n')
-            self.assertMultiLineEqual(output['stderr'], 'stderr line 0\nstderr line 1\n')
+            # Third party packages can unexpectedly emit warnings and add more
+            # output to the streamed stderr, so we check that the expected
+            # lines occurred, but we allow additional lines to exist
+            self.assertIn('stderr line 0\n', output['stderr'])
+            self.assertIn('stderr line 1\n', output['stderr'])
             self.assertEqual(output['exit_code'], 0)
 
             output_dbs = ActionExecutionOutput.get_all()
