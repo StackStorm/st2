@@ -14,7 +14,6 @@ cryptography==3.2
 dnspython<2.0.0,>=1.16.0
 eventlet==0.25.1
 flex==6.14.0
-git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/orquesta.git@v1.2.0#egg=orquesta
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 git+https://github.com/StackStorm/st2-auth-ldap.git@master#egg=st2-auth-ldap
@@ -42,7 +41,6 @@ passlib==1.7.1
 prettytable
 prompt-toolkit==1.0.15
 psutil==5.6.6
-pyinotify==0.9.6 ; platform_system == "Linux"
 pymongo==3.10.0
 pyrabbit
 python-dateutil==2.8.0
@@ -65,6 +63,7 @@ stevedore==1.30.1
 tooz==1.66.1
 ujson==1.35
 unittest2
+watchdog
 webob==1.8.5
 webtest
 zake==0.2.2
