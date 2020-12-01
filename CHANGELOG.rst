@@ -6,7 +6,12 @@ in development
 
 Added
 ~~~~~
+
+* Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
+  Contributed by @hnanchahal
+  
 * Added notification support for err-stackstorm. (new feature) #5051
+
 * Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
   Contributed by @hnanchahal
 
@@ -31,6 +36,11 @@ Fixed
   wait for final event to be sent to client. (bug fix) #4842  #5042
 
   Contributed by @guzzijones
+
+Removed
+~~~~~~~~
+* Removed check-licence script (cleanup) #5092
+  Contributed by @kroustou
 
 3.3.0 - October 06, 2020
 ------------------------

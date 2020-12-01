@@ -39,12 +39,13 @@ def validate_rbac_is_correctly_configured():
     # 2. Verify default backend is set
     if cfg.CONF.rbac.backend != 'default':
         msg = ('You have enabled RBAC, but RBAC backend is not set to "default". '
-               'For RBAC to work, you need to install "st2-rbac-backend" package, set '
+               'For RBAC to work, you need to set '
                '"rbac.backend" config option to "default" and restart st2api service.')
         raise ValueError(msg)
 
-    # 2. Verify default RBAC backend is available
+    # 3. Verify default RBAC backend is available
     if 'default' not in available_rbac_backends:
-        msg = ('"default" RBAC backend is not available. Make sure '
-               '"st2-rbac-backend" system packages are installed.')
+        msg = ('"default" RBAC backend is not available.')
         raise ValueError(msg)
+
+    return True
