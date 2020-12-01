@@ -15,6 +15,7 @@ else
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
+PYTHON_VERSION ?= $(shell if [ -z "`which python3.6`" ]; then echo "python2.7"; else echo "python3.6"; fi)
 BINARIES := bin
 
 # All components are prefixed by st2 and not .egg-info.
@@ -126,9 +127,7 @@ play:
 	@echo
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
 	@echo
-	@echo TRAVIS_PULL_REQUEST=$(TRAVIS_PULL_REQUEST)
-	@echo
-	@echo TRAVIS_EVENT_TYPE=$(TRAVIS_EVENT_TYPE)
+	@echo GITHUB_EVENT_NAME=$(GITHUB_EVENT_NAME)
 	@echo
 	@echo NOSE_OPTS=$(NOSE_OPTS)
 	@echo

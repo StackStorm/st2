@@ -1,0 +1,114 @@
+name: ci-checks
+
+on:
+  push:
+    branches: ['*']
+    tags:
+      - v*
+  pull_request:
+    type: [opened, reopened, edited]
+  schedule:
+    # run every night at midnight
+    - cron:  '0 0 * * *'
+
+jobs:
+  ci-checks:
+    name: '${{ matrix.task }} - python (${{ matrix.python-version }})'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: '3.6'
+            mongodb-version: '4.0'
+            rabbitmq-version: '3.8-management'
+            task: 'ci-checks'
+    env:
+      TASK: '${{ matrix.task }}'
+      
+      # We need to explicitly specify terminal width otherwise some CLI tests fail on container
+      # environments where small terminal size is used.
+      COLUMNS: '120'
+      PYLINT_CONCURRENCY: '2'
+      
+      # Travis-specific st2.conf (with travis user instead of stanley)
+      ST2_CONF: 'conf/st2.travis.conf'
+    steps:
+      - name: Custom Environment Setup
+        # built-in GitHub Actions environment variables
+        # https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables
+        #
+        # setting environment variables, so we can use shell logic
+        # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
+        run: |
+          IS_NIGHTLY_BUILD=$([ "${GITHUB_EVENT_NAME}" = "schedule" ] && echo "yes" || echo "no")
+          echo "IS_NIGHTLY_BUILD=${IS_NIGHTLY_BUILD}" >> $GITHUB_ENV
+          
+          # NOTE: We only enable coverage for master builds and not pull requests
+          # since it has huge performance overhead (tests are 50% or so slower)
+          ENABLE_COVERAGE=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
+          echo "ENABLE_COVERAGE=${ENABLE_COVERAGE}" >> $GITHUB_ENV
+          
+          # We only run tests with "--with-timer" flag on master and not for PRs since it adds 1-2
+          # minutes of overhead to each build.
+          NOSE_TIME=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
+          echo "NOSE_TIME=${NOSE_TIME}" >> $GITHUB_ENV
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: 'Set up MongoDB (${{ matrix.mongodb-version }})'
+        uses: supercharge/mongodb-github-action@1.3.0
+        with:
+          mongodb-version: '${{ matrix.mongodb-version }}'
+      - name: 'Set up RabbitMQ (${{ matrix.rabbitmq-version }})'
+        uses: nijel/rabbitmq-action@v1.0.0
+        with:
+          rabbitmq version: '${{ matrix.rabbitmq-version }}'
+      - uses: actions/cache@v2
+        with:
+          path: |
+            .cache/pip
+            virtualenv
+          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.python }}-
+      - name: install
+        run: |
+          # install dev dependencies for Python LDAP module
+          # https://github.com/StackStorm/st2-auth-ldap
+          sudo apt-get -y update
+          sudo apt-get -y install libldap2-dev libsasl2-dev libssl-dev ldap-utils
+          ./scripts/travis/install-requirements.sh
+          # prep a travis-specific dev conf file that uses travis instead of stanley
+          cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
+          sudo scripts/travis/add-itest-user-key.sh
+          sudo .circle/add-itest-user.sh
+          if [[ "${TASK}" = *'-packs-tests'* ]] || [[ "${TASK}" = *'-integration'* ]]; then sudo scripts/travis/permissions-workaround.sh; fi
+      - name: before_script
+        run: |
+          # Print various binary versions
+          git --version
+          pip --version
+          pip list
+          # Print out various environment variables info
+          make play
+      - name: make
+        run: |
+          # Clean up egg-info directories which get created when installing runners
+          # NOTE: We enable code coverage and per test timing information on master so build can take twice
+          # as long as PR builds
+          make "${TASK}"
+      - name: nightly
+        run: |
+          # Run any additional nightly checks only as part of a nightly (cron) build
+          if [[ "${IS_NIGHTLY_BUILD}" = "yes" ]]; then ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"; fi
+      - name: codecov
+        run: |
+          # NOTE: We only generate and submit coverage report for master and version branches
+          # NOTE: We put this here and not after_success so build is marked as failed if this step fails
+          # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build
+          # https://github.com/travis-ci/travis-ci/issues/758#issuecomment-266756853
+          if [[ ${TASK} = 'ci-unit' ]] || [[ ${TASK} = 'ci-integration' ]] && [[ "${ENABLE_COVERAGE}" = 'yes' ]]; then ./scripts/travis/submit-codecov-coverage.sh; fi
