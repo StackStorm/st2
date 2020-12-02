@@ -26,8 +26,8 @@ jobs:
           - 'ci-packs-tests'
           - 'ci-unit'
     services:
-      mongodb:
-        image: mongodb:4.0
+      mongo:
+        image: mongo:4.0
         ports:
           - 27017:27017
       rabbitmq:
