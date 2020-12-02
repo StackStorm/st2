@@ -15,6 +15,9 @@ else
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
+# Assign PYTHON_VERSION if it doesn't already exist
+PYTHON_VERSION ?= python3
+
 BINARIES := bin
 
 # All components are prefixed by st2 and not .egg-info.
@@ -106,7 +109,7 @@ all: requirements configgen check tests
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
-	@echo PYTHON_VERSION=$$(python --version)
+	@echo PYTHON_VERSION=$(PYTHON_VERSION) \($$($(PYTHON_VERSION) --version)\)
 	@echo
 	@echo COVERAGE_GLOBS=$(COVERAGE_GLOBS_QUOTED)
 	@echo
