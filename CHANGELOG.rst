@@ -29,6 +29,8 @@ Changed
 
   Contributed by @blag
 
+* Upgraded cryptography version to 3.2 to avoid CVE-2020-25659
+
 Fixed
 ~~~~~~~~~
 * Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
