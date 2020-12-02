@@ -82,19 +82,31 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.python }}-
-      - name: install
+      - name: Install apt depedencies
         run: |
           # install dev dependencies for Python LDAP module
           # https://github.com/StackStorm/st2-auth-ldap
           sudo apt-get -y update
           sudo apt-get -y install libldap2-dev libsasl2-dev libssl-dev ldap-utils
+      - name: Install virtualenv
+        run: |
+          # Note: We use latest version of virtualenv which uses pip 19
+          pip install virtualenv==16.0.0
+      - name: Install requirements
+        run: |
           ./scripts/travis/install-requirements.sh
+      - name: Setup integration tests
+        run: |
           # prep a travis-specific dev conf file that uses travis instead of stanley
           cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
           sudo scripts/travis/add-itest-user-key.sh
           sudo .circle/add-itest-user.sh
-          if [[ "${TASK}" = *'-packs-tests'* ]] || [[ "${TASK}" = *'-integration'* ]]; then sudo scripts/travis/permissions-workaround.sh; fi
-      - name: before_script
+      - name: Permissions Workaround
+        if: "${{ env.TASK == 'ci-packs-tests' || env.TASK == 'ci-integration' }}"
+        run: |
+          echo "$GITHUB_WORKSPACE"
+          sudo GITHUB_WORKSPACE="${GITHUB_WORKSPACE}" scripts/travis/permissions-workaround.sh
+      - name: Print versions
         run: |
           # Print various binary versions
           git --version
@@ -104,18 +116,14 @@ jobs:
           make play
       - name: make
         run: |
-          # Clean up egg-info directories which get created when installing runners
-          # NOTE: We enable code coverage and per test timing information on master so build can take twice
-          # as long as PR builds
-          make "${TASK}"
-      - name: nightly
+          make ${TASK}
+      - name: Nightly
+        # Run any additional nightly checks only as part of a nightly (cron) build
+        if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
         run: |
-          # Run any additional nightly checks only as part of a nightly (cron) build
-          if [[ "${IS_NIGHTLY_BUILD}" = "yes" ]]; then ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"; fi
-      - name: codecov
+          ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"
+      - name: Codecov
+        # NOTE: We only generate and submit coverage report for master and version branches
+        if: "${{ ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
         run: |
-          # NOTE: We only generate and submit coverage report for master and version branches
-          # NOTE: We put this here and not after_success so build is marked as failed if this step fails
-          # See https://docs.travis-ci.com/user/customizing-the-build/#breaking-the-build
-          # https://github.com/travis-ci/travis-ci/issues/758#issuecomment-266756853
-          if [[ ${TASK} = 'ci-unit' ]] || [[ ${TASK} = 'ci-integration' ]] && [[ "${ENABLE_COVERAGE}" = 'yes' ]]; then ./scripts/travis/submit-codecov-coverage.sh; fi
+          ./scripts/travis/submit-codecov-coverage.sh

@@ -89,6 +89,7 @@ def get_terminal_size_columns(default=DEFAULT_TERMINAL_SIZE_COLUMNS):
         pass
 
     # 5. return default fallback value
+
     return default
 
 
