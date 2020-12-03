@@ -43,9 +43,15 @@ __all__ = [
 ]
 
 # Common format for python 2.7 warning
-PACK_PYTHON2_WARNING = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
+if six.PY2:
+    PACK_PYTHON2_WARNING = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
                        "Python 2 support will be dropped in future releases. " \
                        "Please consider updating your packs to work with Python 3.x"
+else:
+    PACK_PYTHON2_WARNING = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
+                       "Python 2 support has been removed. " \
+                       "Please update your packs to work with Python 3.x"
+
 
 
 def get_pack_ref_from_metadata(metadata, pack_directory_name=None):
