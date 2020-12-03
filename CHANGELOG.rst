@@ -25,7 +25,7 @@ Changed
 
   Contributed by @hnanchahal
 
-* Upgraded cryptography version to 3.2 to avoid CVE-2020-25659
+* Upgraded cryptography version to 3.2 to avoid CVE-2020-25659 (security) #5095
 
 Fixed
 ~~~~~~~~~
