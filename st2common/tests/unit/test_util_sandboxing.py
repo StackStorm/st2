@@ -26,6 +26,9 @@ from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_path_for_python_action
 from st2common.util.sandboxing import get_sandbox_python_binary_path
+from st2common.util.sandboxing import clear_virtualenv_prefix
+from st2common.util.sandboxing import get_virtualenv_prefix
+from st2common.util.sandboxing import set_virtualenv_prefix
 from st2common.util.sandboxing import is_pack_virtualenv_using_python3
 
 import st2tests.config as tests_config
@@ -42,7 +45,7 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         # Restore PATH and other variables before each test case
         os.environ['PATH'] = self.old_path
         os.environ['PYTHONPATH'] = self.old_python_path
-        sys.real_prefix = self.old_real_prefix
+        set_virtualenv_prefix(self.old_virtualenv_prefix)
 
     @classmethod
     def setUpClass(cls):
@@ -51,13 +54,13 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         # Store original values so we can restore them in setUp
         cls.old_path = os.environ.get('PATH', '')
         cls.old_python_path = os.environ.get('PYTHONPATH', '')
-        cls.old_real_prefix = sys.real_prefix
+        cls.old_virtualenv_prefix = get_virtualenv_prefix()
 
     @classmethod
     def tearDownClass(cls):
         os.environ['PATH'] = cls.old_path
         os.environ['PYTHONPATH'] = cls.old_python_path
-        sys.real_prefix = cls.old_real_prefix
+        set_virtualenv_prefix(cls.old_virtualenv_prefix)
 
     def test_get_sandbox_python_binary_path(self):
         # Non-system content pack, should use pack specific virtualenv binary
@@ -93,7 +96,7 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         self.assertEqual(python_path, ':/data/test1:/data/test2')
 
         # Inherit from current process and from virtualenv (not running inside virtualenv)
-        del sys.real_prefix
+        clear_virtualenv_prefix()
 
         python_path = get_sandbox_python_path(inherit_from_parent=True,
                                               inherit_parent_virtualenv=False)
@@ -130,7 +133,7 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         self.assertEqual(python_path, ':/data/test1:/data/test2')
 
         # Inherit from current process and from virtualenv (not running inside virtualenv)
-        del sys.real_prefix
+        clear_virtualenv_prefix()
 
         python_path = get_sandbox_python_path(inherit_from_parent=True,
                                               inherit_parent_virtualenv=False)
@@ -190,7 +193,7 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         self.assertEqual(python_path, expected)
 
         # Inherit from current process and from virtualenv (not running inside virtualenv)
-        del sys.real_prefix
+        clear_virtualenv_prefix()
 
         python_path = get_sandbox_python_path(inherit_from_parent=True,
                                               inherit_parent_virtualenv=False)
