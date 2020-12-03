@@ -25,6 +25,7 @@ jobs:
           - 'compilepy3'
           - 'ci-packs-tests'
           - 'ci-unit'
+          - 'ci-integration'
     services:
       mongo:
         image: mongo:4.0
@@ -114,16 +115,30 @@ jobs:
           pip list
           # Print out various environment variables info
           make play
+      - name: Debug virtualenv
+        run: |
+          sed -i 's/from virtualenv import main/import virtualenv; import sys; import os; sys.stderr.write(os.path.abspath(virtualenv.__file__) + os.linesep)\n&/' /opt/hostedtoolcache/Python/3.6.12/x64/bin/virtualenv
+          
+          cat /opt/hostedtoolcache/Python/3.6.12/x64/bin/virtualenv
+      - name: Debug virtualenv version
+        run: |
+          python -c 'import virtualenv; print(virtualenv.__version__)'
+      - name: Debug virtualenv path
+        run: |
+          python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))'
+      - name: Debug virtualenv.py
+        run: |
+          cat $(python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))')
       - name: make
         run: |
           make ${TASK}
-      - name: Nightly
-        # Run any additional nightly checks only as part of a nightly (cron) build
-        if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
-        run: |
-          ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"
-      - name: Codecov
-        # NOTE: We only generate and submit coverage report for master and version branches
-        if: "${{ ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
-        run: |
-          ./scripts/travis/submit-codecov-coverage.sh
+      # - name: Nightly
+      #   # Run any additional nightly checks only as part of a nightly (cron) build
+      #   if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
+      #   run: |
+      #     ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"
+      # - name: Codecov
+      #   # NOTE: We only generate and submit coverage report for master and version branches
+      #   if: "${{ ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
+      #   run: |
+      #     ./scripts/travis/submit-codecov-coverage.sh
