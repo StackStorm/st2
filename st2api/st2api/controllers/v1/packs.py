@@ -98,7 +98,6 @@ class PackInstallController(ActionExecutionsControllerMixin):
     def post(self, pack_install_request, requester_user=None):
         parameters = {
             'packs': pack_install_request.packs,
-            'python3': pack_install_request.python3
         }
 
         if pack_install_request.force:
