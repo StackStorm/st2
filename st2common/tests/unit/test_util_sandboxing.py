@@ -105,3 +105,39 @@ class SandboxingUtilsTestCase(unittest.TestCase):
                                               inherit_parent_virtualenv=True)
         self.assertEqual(python_path, ':/data/test1:/data/test2:%s/virtualenvtest' %
                          (sys.prefix))
+
+    @mock.patch('os.path.isdir', mock.Mock(return_value=True))
+    @mock.patch('os.listdir', mock.Mock(return_value=['python2.7']))
+    @mock.patch('st2common.util.sandboxing.get_python_lib')
+    def test_get_sandbox_python_path_for_python_action_python2_used_for_venv(self,
+            mock_get_python_lib):
+
+        # No inheritance
+        python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
+                                                                inherit_from_parent=False,
+                                                                inherit_parent_virtualenv=False)
+
+        self.assertEqual(python_path, ':')
+
+        # Inherit python path from current process
+        # Mock the current process python path
+        os.environ['PYTHONPATH'] = ':/data/test1:/data/test2'
+
+        python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                              inherit_parent_virtualenv=False)
+        self.assertEqual(python_path, ':/data/test1:/data/test2')
+
+        # Inherit from current process and from virtualenv (not running inside virtualenv)
+        del sys.real_prefix
+
+        python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                              inherit_parent_virtualenv=False)
+        self.assertEqual(python_path, ':/data/test1:/data/test2')
+
+        # Inherit from current process and from virtualenv (running inside virtualenv)
+        sys.real_prefix = '/usr'
+        mock_get_python_lib.return_value = sys.prefix + '/virtualenvtest'
+        python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                              inherit_parent_virtualenv=True)
+        self.assertEqual(python_path, ':/data/test1:/data/test2:%s/virtualenvtest' %
+                         (sys.prefix))
