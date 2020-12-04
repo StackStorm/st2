@@ -132,7 +132,7 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
     Return sandbox PYTHONPATH for a particular Python runner action.
 
     Same as get_sandbox_python_path() function, but it's intended to be used for Python runner
-    actions and also takes into account if a pack virtual environment uses Python 3.
+    actions.
     """
     sandbox_python_path = get_sandbox_python_path(
         inherit_from_parent=inherit_from_parent,
