@@ -319,14 +319,14 @@ class ActionExecutionSchedulingQueueHandler(object):
             action_execution_id, liveaction_id, liveaction_db.status, extra=extra
         )
 
-        if liveaction_db.status == action_constants.LIVEACTION_STATUS_DELAYED:
+        if liveaction_db.status == action_constants.LIVEACTION_STATUS_POLICY_CANCELED:
             LOG.info(
                 '[%s] Liveaction "%s" is delayed and scheduling queue is updated.',
                 action_execution_id, liveaction_id, extra=extra
             )
 
             liveaction_db = action_service.update_status(
-                liveaction_db, action_constants.LIVEACTION_STATUS_DELAYED, publish=False
+                liveaction_db, action_constants.LIVEACTION_STATUS_POLICY_CANCELED, publish=False
             )
 
             execution_queue_item_db.handling = False

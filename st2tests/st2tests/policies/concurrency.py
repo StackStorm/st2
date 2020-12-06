@@ -33,7 +33,7 @@ class FakeConcurrencyApplicator(BaseConcurrencyApplicator):
         if self.get_threshold() <= 0:
             # Cancel the action execution.
             target = action_utils.update_liveaction_status(
-                status=action_constants.LIVEACTION_STATUS_CANCELED,
+                status=action_constants.LIVEACTION_STATUS_POLICY_CANCELED,
                 liveaction_id=target.id,
                 publish=False)
 

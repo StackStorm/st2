@@ -228,6 +228,7 @@ def update_status(liveaction, new_status, result=None, publish=True):
 def is_action_canceled_or_canceling(liveaction_id):
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
     return liveaction_db.status in [action_constants.LIVEACTION_STATUS_CANCELED,
+                                    action_constants.LIVEACTION_STATUS_POLICY_CANCELED,
                                     action_constants.LIVEACTION_STATUS_CANCELING]
 
 
