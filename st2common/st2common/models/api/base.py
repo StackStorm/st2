@@ -35,6 +35,7 @@ LOG = logging.getLogger(__name__)
 @six.add_metaclass(abc.ABCMeta)
 class BaseAPI(object):
     schema = abc.abstractproperty
+    name = None
 
     def __init__(self, **kw):
         for key, value in kw.items():
