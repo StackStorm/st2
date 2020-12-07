@@ -638,6 +638,12 @@ class StreamManager(object):
         if 'api_key' in kwargs:
             query_params['st2-api-key'] = kwargs.get('api_key')
 
+        if 'end_event' in kwargs:
+            query_params['end_event'] = kwargs.get('end_event')
+
+        if 'end_execution_id' in kwargs:
+            query_params['end_execution_id'] = kwargs.get('end_execution_id')
+
         if events:
             query_params['events'] = ','.join(events)
 
@@ -655,7 +661,6 @@ class StreamManager(object):
             # can be empty. In this case, rerun the query.
             if not message.data:
                 continue
-
             yield json.loads(message.data)
 
 

@@ -1,72 +1,72 @@
 {
-    "additionalProperties": false, 
-    "type": "object", 
+    "title": "Policy",
+    "type": "object",
     "properties": {
+        "id": {
+            "type": "string",
+            "default": null
+        },
         "uid": {
             "type": "string"
-        }, 
-        "resource_ref": {
-            "required": true, 
+        },
+        "name": {
+            "type": "string",
+            "required": true
+        },
+        "pack": {
             "type": "string"
-        }, 
-        "metadata_file": {
-            "default": "", 
-            "type": "string", 
-            "description": "Path to the metadata file relative to the pack directory."
-        }, 
-        "id": {
-            "default": null, 
+        },
+        "ref": {
             "type": "string"
-        }, 
+        },
         "description": {
             "type": "string"
-        }, 
-        "name": {
-            "required": true, 
-            "type": "string"
-        }, 
+        },
+        "enabled": {
+            "type": "boolean",
+            "default": true
+        },
+        "resource_ref": {
+            "type": "string",
+            "required": true
+        },
+        "policy_type": {
+            "type": "string",
+            "required": true
+        },
         "parameters": {
-            "additionalProperties": false, 
+            "type": "object",
             "patternProperties": {
                 "^\\w+$": {
                     "anyOf": [
                         {
                             "type": "array"
-                        }, 
+                        },
                         {
                             "type": "boolean"
-                        }, 
+                        },
                         {
                             "type": "integer"
-                        }, 
+                        },
                         {
                             "type": "number"
-                        }, 
+                        },
                         {
                             "type": "object"
-                        }, 
+                        },
                         {
                             "type": "string"
                         }
                     ]
                 }
-            }, 
-            "type": "object"
-        }, 
-        "enabled": {
-            "default": true, 
-            "type": "boolean"
-        }, 
-        "policy_type": {
-            "required": true, 
-            "type": "string"
-        }, 
-        "ref": {
-            "type": "string"
-        }, 
-        "pack": {
-            "type": "string"
+            },
+            "additionalProperties": false
+        },
+        "metadata_file": {
+            "description": "Path to the metadata file relative to the pack directory.",
+            "type": "string",
+            "default": ""
         }
-    }, 
-    "title": "Policy"
+    },
+    "additionalProperties": false
 }

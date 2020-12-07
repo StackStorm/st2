@@ -6,6 +6,43 @@ in development
 
 Added
 ~~~~~
+
+* Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
+  Contributed by @hnanchahal
+  
+* Added notification support for err-stackstorm. (new feature) #5051
+
+* Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
+  Contributed by @hnanchahal
+
+Changed
+~~~~~~~~~
+* Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
+  ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
+
+* Added timeout parameter for packs.install action to help with long running installs that exceed the 
+  default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
+
+  Contributed by @hnanchahal
+
+Fixed
+~~~~~~~~~
+* Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
+* Fix nginx buffering long polling stream to client.  Instead of waiting for closed connection
+  wait for final event to be sent to client. (bug fix) #4842  #5042
+
+  Contributed by @guzzijones
+
+Removed
+~~~~~~~~
+* Removed check-licence script (cleanup) #5092
+  Contributed by @kroustou
+
+3.3.0 - October 06, 2020
+------------------------
+
+Added
+~~~~~
 * Add make command to autogen JSON schema from the models of action, rule, etc. Add check
   to ensure update to the models require schema to be regenerated. (new feature)
 * Improved st2sensor service logging message when a sensor will not be loaded when assigned to a
@@ -27,7 +64,9 @@ Added
   Python 2. (new feature) #5043
 
   Contributed by @amanda11
+* Added deprecation warning to st2ctl, if st2 python version is Python 2. (new feature) #5044
 
+  Contributed by @amanda11
 
 Changed
 ~~~~~~~
@@ -45,6 +84,11 @@ Changed
 * Renamed reference to the RBAC backend/plugin from ``enterprise`` to ``default``. Updated st2api
   validation to use the new value when checking RBAC configuration. Removed other references to
   enterprise for RBAC related contents. (improvement)
+* Remove authentication headers ``St2-Api-Key``, ``X-Auth-Token`` and ``Cookie`` from webhook payloads to
+  prevent them from being stored in the database. (security bug fix) #4983
+
+  Contributed by @potato and @knagy
+* Updated orquesta to version v1.2.0.
 
 Fixed
 ~~~~~
@@ -74,7 +118,7 @@ Fixed
   (bug fix) #4993
 
 * Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
-  
+
   Contributed by @punkrokk
 * Fixed bug where action information in RuleDB object was not being parsed properly
   because mongoengine EmbeddedDocument objects were added to JSON_UNFRIENDLY_TYPES and skipped.
@@ -87,6 +131,21 @@ Fixed
 * Fixed a regression in the ``linux.dig`` action on Python 3. (bug fix) #4993
 
   Contributed by @blag
+* Fixed a bug in pack installation logging code where unicode strings were not being
+  interpolated properly. (bug fix)
+
+  Contributed by @misterpah
+* Fixed a compatibility issue with the latest version of the ``logging`` library API
+  where the ``find_caller()`` function introduced some new variables. (bug fix) #4923
+
+  Contributed by @Dahfizz9897
+* Fixed another logging compatibility issue with the ``logging`` API in Python 3.
+  The return from the ``logging.findCaller()`` implementation now expects a 4-element
+  tuple. Also, in Python 3 there are new arguments that are passed in and needs to be
+  acted upon, specificall ``stack_info`` that determines the new 4th element in the returned
+  tuple. (bug fix) #5057
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
 
 Removed
 ~~~~~~~
@@ -98,7 +157,7 @@ Removed
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 * Removed our fork of ``codecov-python`` for CI and have switched back to the upstream version (improvement) #5002
-  
+
 3.2.0 - April 27, 2020
 ----------------------
 
