@@ -1011,6 +1011,9 @@ ci-unit: .unit-tests-coverage-html
 
 .PHONY: .ci-prepare-integration
 .ci-prepare-integration:
+	@echo
+	@echo "==================== prepare integration ===================="
+	@echo
 	sudo -E ./scripts/travis/prepare-integration.sh
 
 .PHONY: ci-integration
