@@ -25,10 +25,6 @@ Changed
 
   Contributed by @hnanchahal
 
-* Updated Travis CI and CircleCI builds to only use Python 3
-
-  Contributed by @blag
-
 Fixed
 ~~~~~~~~~
 * Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
@@ -41,6 +37,9 @@ Removed
 ~~~~~~~~
 * Removed check-licence script (cleanup) #5092
   Contributed by @kroustou
+* Updated Travis CI and CircleCI builds to only use Python 3 (cleanup) #5090
+
+  Contributed by @blag
 
 3.3.0 - October 06, 2020
 ------------------------
