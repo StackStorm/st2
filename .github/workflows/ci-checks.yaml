@@ -115,23 +115,29 @@ jobs:
           pip list
           # Print out various environment variables info
           make play
-      - name: Debug virtualenv
+      - name: Debug python virtualenv
         run: |
           sed -i 's/from virtualenv import main/import virtualenv; import sys; import os; sys.stderr.write(os.path.abspath(virtualenv.__file__) + os.linesep)\n&/' /opt/hostedtoolcache/Python/3.6.12/x64/bin/virtualenv
           
           cat /opt/hostedtoolcache/Python/3.6.12/x64/bin/virtualenv
-      - name: Debug virtualenv version
+      - name: Debug python virtualenv version
         run: |
           python -c 'import virtualenv; print(virtualenv.__version__)'
-      - name: Debug virtualenv path
+      - name: Debug python virtualenv path
         run: |
           python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))'
-      - name: Debug virtualenv.py
+      - name: Debug python virtualenv.py
         run: |
           cat $(python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))')
-      - name: Debug virtualenv help
+      - name: Debug python virtualenv help
         run: |
           virtualenv --help
+      - name: Debug st2 virtualenv pip list
+        run: |
+          virtualenv/bin/pip list
+      - name: Debug environment
+        run: |
+          env | sort
       - name: make
         run: |
           make ${TASK}

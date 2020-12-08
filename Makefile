@@ -519,6 +519,12 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
+	# Show pip installed packages before we start
+	$(VIRTUALENV_DIR)/bin/pip list
+
+	# Installed fixed virtualenv (it was skipped above in .requirements for some reason)
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
+
 	# setuptools >= 41.0.1 is required for packs.install in dev envs
 	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
@@ -571,6 +577,9 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	$(VIRTUALENV_DIR)/bin/pip-compile req.txt; \
 	if [[ -e req.txt ]]; then rm req.txt; fi
 
+	# Show currently install requirements
+	$(VIRTUALENV_DIR)/bin/pip list
+
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure
 	# PYTHONPATH is up to date and to avoid caching issues on Travis
@@ -614,6 +623,9 @@ endif
 	#echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	#echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	#touch $(VIRTUALENV_DIR)/bin/activate.fish
+
+	# debug pip installed packages
+	$(VIRTUALENV_DIR)/bin/pip list
 
 .PHONY: tests
 tests: pytests
