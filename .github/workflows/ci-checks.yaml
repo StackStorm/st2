@@ -92,7 +92,7 @@ jobs:
       - name: Install virtualenv
         run: |
           # Note: We use latest version of virtualenv which uses pip 19
-          pip install virtualenv==16.0.0
+          pip install --upgrade --force-reinstall virtualenv==16.0.0
       - name: Install requirements
         run: |
           ./scripts/travis/install-requirements.sh
@@ -129,6 +129,9 @@ jobs:
       - name: Debug virtualenv.py
         run: |
           cat $(python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))')
+      - name: Debug virtualenv help
+        run: |
+          virtualenv --help
       - name: make
         run: |
           make ${TASK}
