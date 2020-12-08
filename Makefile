@@ -67,7 +67,7 @@ ifndef NOSE_TIME
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
+	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture
 	NOSE_WITH_TIMER := 1
 endif
 
@@ -730,13 +730,13 @@ itests: requirements .itests
 	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    nosetests $(NOSE_OPTS) -s -v \
 		    $$component/tests/integration || exit 1; \
 		echo "-----------------------------------------------------------"; \
-		echo "Done running tests in" $$component; \
+		echo "Done running integration tests in" $$component; \
 		echo "==========================================================="; \
 	done
 
@@ -752,7 +752,7 @@ endif
 	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
@@ -760,7 +760,7 @@ endif
 		    $(NOSE_COVERAGE_PACKAGES) \
 		    $$component/tests/integration || exit 1; \
 		echo "-----------------------------------------------------------"; \
-		echo "Done running tests in" $$component; \
+		echo "Done integration running tests in" $$component; \
 		echo "==========================================================="; \
 	done
 	@echo
@@ -769,7 +769,7 @@ endif
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
@@ -919,7 +919,7 @@ runners-itests: requirements .runners-itests
 	@echo "----- Dropping st2-test db -----"
 	@for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/integration || exit 1; \
 	done
@@ -932,7 +932,7 @@ runners-itests: requirements .runners-itests
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html $$component/tests/integration || exit 1; \

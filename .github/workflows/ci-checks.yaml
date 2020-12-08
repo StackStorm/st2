@@ -83,64 +83,69 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.python }}-
-      - name: Install apt depedencies
+      - name: Print github actions user
         run: |
-          # install dev dependencies for Python LDAP module
-          # https://github.com/StackStorm/st2-auth-ldap
-          sudo apt-get -y update
-          sudo apt-get -y install libldap2-dev libsasl2-dev libssl-dev ldap-utils
-      - name: Install virtualenv
-        run: |
-          # Note: We use latest version of virtualenv which uses pip 19
-          pip install --upgrade --force-reinstall virtualenv==16.0.0
-      - name: Install requirements
-        run: |
-          ./scripts/travis/install-requirements.sh
-      - name: Setup integration tests
-        run: |
-          # prep a travis-specific dev conf file that uses travis instead of stanley
-          cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
-          sudo scripts/travis/add-itest-user-key.sh
-          sudo .circle/add-itest-user.sh
-      - name: Permissions Workaround
-        if: "${{ env.TASK == 'ci-packs-tests' || env.TASK == 'ci-integration' }}"
-        run: |
-          echo "$GITHUB_WORKSPACE"
-          sudo GITHUB_WORKSPACE="${GITHUB_WORKSPACE}" scripts/travis/permissions-workaround.sh
-      - name: Print versions
-        run: |
-          # Print various binary versions
-          git --version
-          pip --version
-          pip list
-          # Print out various environment variables info
-          make play
-      - name: Debug python virtualenv
-        run: |
-          sed -i 's/from virtualenv import main/import virtualenv; import sys; import os; sys.stderr.write(os.path.abspath(virtualenv.__file__) + os.linesep)\n&/' /opt/hostedtoolcache/Python/3.6.12/x64/bin/virtualenv
+          whoami
+          pwd
+      # - name: Install apt depedencies
+      #   run: |
+      #     # install dev dependencies for Python LDAP module
+      #     # https://github.com/StackStorm/st2-auth-ldap
+      #     sudo apt-get -y update
+      #     sudo apt-get -y install libldap2-dev libsasl2-dev libssl-dev ldap-utils
+      # - name: Install virtualenv
+      #   run: |
+      #     # Note: We use latest version of virtualenv which uses pip 19
+      #     pip install --upgrade --force-reinstall virtualenv==16.0.0
+      # - name: Install requirements
+      #   run: |
+      #     ./scripts/travis/install-requirements.sh
+      # - name: Setup integration tests
+      #   run: |
+      #     # prep a travis-specific dev conf file that uses travis instead of stanley
+      #     cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
+      #     sudo scripts/travis/add-itest-user-key.sh
+      #     sudo .circle/add-itest-user.sh
+      # - name: Permissions Workaround
+      #   if: "${{ env.TASK == 'ci-packs-tests' || env.TASK == 'ci-integration' }}"
+      #   run: |
+      #     echo "$GITHUB_WORKSPACE"
+      #     sudo GITHUB_WORKSPACE="${GITHUB_WORKSPACE}" scripts/travis/permissions-workaround.sh
+      # - name: Print versions
+      #   run: |
+      #     # Print various binary versions
+      #     git --version
+      #     pip --version
+      #     pip list
+      #     # Print out various environment variables info
+      #     make play
+      # - name: Debug python virtualenv
+      #   run: |
+      #     sed -i 's/from virtualenv import main/import virtualenv; import sys; import os; sys.stderr.write(os.path.abspath(virtualenv.__file__) + os.linesep)\n&/' /opt/hostedtoolcache/Python/3.6.12/x64/bin/virtualenv
           
-          cat /opt/hostedtoolcache/Python/3.6.12/x64/bin/virtualenv
-      - name: Debug python virtualenv version
-        run: |
-          python -c 'import virtualenv; print(virtualenv.__version__)'
-      - name: Debug python virtualenv path
-        run: |
-          python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))'
-      - name: Debug python virtualenv.py
-        run: |
-          cat $(python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))')
-      - name: Debug python virtualenv help
-        run: |
-          virtualenv --help
-      - name: Debug st2 virtualenv pip list
-        run: |
-          virtualenv/bin/pip list
-      - name: Debug environment
-        run: |
-          env | sort
-      - name: make
-        run: |
-          make ${TASK}
+      #     cat /opt/hostedtoolcache/Python/3.6.12/x64/bin/virtualenv
+      # - name: Debug python virtualenv version
+      #   run: |
+      #     python -c 'import virtualenv; print(virtualenv.__version__)'
+      # - name: Debug python virtualenv path
+      #   run: |
+      #     python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))'
+      # - name: Debug python virtualenv.py
+      #   run: |
+      #     cat $(python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))')
+      # - name: Debug python virtualenv help
+      #   run: |
+      #     virtualenv --help
+      # - name: Debug st2 virtualenv pip list
+      #   run: |
+      #     virtualenv/bin/pip list
+      # - name: Debug environment
+      #   run: |
+      #     env | sort
+      # - name: make
+      #   run: |
+      #     make ${TASK}
+          
       # - name: Nightly
       #   # Run any additional nightly checks only as part of a nightly (cron) build
       #   if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
