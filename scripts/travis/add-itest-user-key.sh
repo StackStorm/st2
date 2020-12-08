@@ -7,12 +7,13 @@ if [ "$(whoami)" != 'root' ]; then
     exit 2
 fi
 
-mkdir -p /home/travis/.ssh
+mkdir -p /home/runner/.ssh
 
 # Generate ssh keys on StackStorm box and copy over public key into remote box.
-ssh-keygen -f /home/travis/.ssh/travis_rsa -P ""
+ssh-keygen -f /home/runner/.ssh/github_actions_rsa -P ""
 
 # Authorize key-base acces
-sh -c 'cat /home/travis/.ssh/travis_rsa.pub >> /home/travis/.ssh/authorized_keys'
-chmod 0600 /home/travis/.ssh/authorized_keys
-chmod 0700 /home/travis/.ssh
+sh -c 'cat /home/runner/.ssh/github_actions_rsa.pub >> /home/runner/.ssh/authorized_keys'
+chmod 0600 /home/runner/.ssh/authorized_keys
+chmod 0700 /home/runner/.ssh
+chown -R runner:runner /home/runner/.ssh

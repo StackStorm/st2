@@ -303,7 +303,10 @@ class ResourceManager(object):
     @add_auth_token_to_kwargs_from_env
     def create(self, instance, **kwargs):
         url = '/%s' % self.resource.get_url_path_name()
-        response = self.client.post(url, instance.serialize(), **kwargs)
+        inst = instance.serialize()
+        print("Execute workflow instance: {}".format(inst))
+        print("Execute workflow kwargs: {}".format(kwargs))
+        response = self.client.post(url, inst, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
