@@ -25,11 +25,12 @@ Changed
 
   Contributed by @hnanchahal
 
+* Upgraded cryptography version to 3.2 to avoid CVE-2020-25659 (security) #5095
+
+
 * Updated Travis CI and CircleCI builds to only use Python 3
 
   Contributed by @blag
-
-* Upgraded cryptography version to 3.2 to avoid CVE-2020-25659
 
 Fixed
 ~~~~~~~~~
