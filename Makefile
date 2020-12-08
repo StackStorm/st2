@@ -226,7 +226,7 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR)
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -374,7 +374,7 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== st2client install check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_ST2CLIENT_DIR) --system-site-packages
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_ST2CLIENT_DIR)
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
