@@ -47,8 +47,8 @@ jobs:
       COLUMNS: '120'
       PYLINT_CONCURRENCY: '2'
       
-      # Travis-specific st2.conf (with travis user instead of stanley)
-      ST2_CONF: 'conf/st2.travis.conf'
+      # github-actions-specific st2.conf (with 'runner' user instead of stanley)
+      ST2_CONF: 'conf/st2.githubactions.conf'
     steps:
       - name: Custom Environment Setup
         # built-in GitHub Actions environment variables
@@ -98,8 +98,10 @@ jobs:
           ./scripts/travis/install-requirements.sh
       - name: Setup integration tests
         run: |
-          # prep a travis-specific dev conf file that uses travis instead of stanley
-          cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
+          # prep a travis-specific dev conf file that uses runner instead of stanley
+          # this user is the username of the user in GitHub actions, used for SSH, etc during
+          # integration tests (important)
+          cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/runner/" "${ST2_CONF}"
           sudo scripts/travis/add-itest-user-key.sh
           sudo .circle/add-itest-user.sh
       - name: Permissions Workaround
@@ -137,17 +139,17 @@ jobs:
           virtualenv/bin/pip list
       - name: make
         run: |
-          make ${TASK} || exit 0
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-          
+          make ${TASK}
+      # - name: Setup tmate session for debugging failed jobs
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: "${{ failed() }}"
       # - name: Nightly
       #   # Run any additional nightly checks only as part of a nightly (cron) build
       #   if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
       #   run: |
       #     ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"
       # - name: Codecov
-      #   # NOTE: We only generate and submit coverage report for master and version branches
-      #   if: "${{ ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
+      #   # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
+      #   if: "${{ success() && ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
       #   run: |
       #     ./scripts/travis/submit-codecov-coverage.sh

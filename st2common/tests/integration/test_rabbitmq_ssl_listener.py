@@ -32,15 +32,16 @@ __all__ = [
 ]
 
 CERTS_FIXTURES_PATH = os.path.join(get_fixtures_base_path(), 'ssl_certs/')
-ON_TRAVIS = (os.environ.get('TRAVIS', 'false').lower() == 'true')
+# ON_GITHUB_ACTIONS = (os.environ.get('GITHUB_ACTIONS', 'false').lower() == 'true')
+ON_GITHUB_ACTIONS = False
 
 NON_SSL_LISTENER_PORT = 5672
 SSL_LISTENER_PORT = 5671
 
 
-# NOTE: We only run those tests on Travis because at the moment, local vagrant dev VM doesn't
+# NOTE: We only run those tests on GitHub Actions because at the moment, local vagrant dev VM doesn't
 # expose RabbitMQ SSL listener by default
-@unittest2.skipIf(not ON_TRAVIS, 'Skipping tests because not running on Travis')
+@unittest2.skipIf(not ON_GITHUB_ACTIONS, 'Skipping tests because not running on GitHub Actions')
 class RabbitMQTLSListenerTestCase(unittest2.TestCase):
 
     def setUp(self):
