@@ -49,7 +49,7 @@ if six.PY2:
                        "Please consider updating your packs to work with Python 3.x"
 else:
     PACK_PYTHON2_WARNING = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
-                       "Python 2 support has been removed. " \
+                       "Python 2 support has been removed since st2 v3.4.0. " \
                        "Please update your packs to work with Python 3.x"
 
 
