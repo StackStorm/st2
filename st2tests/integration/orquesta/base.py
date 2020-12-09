@@ -60,8 +60,7 @@ class TestWorkflowExecution(unittest2.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.st2client = st2.Client(base_url='http://127.0.0.1',
-                                   debug=True)
+        cls.st2client = st2.Client(base_url='http://127.0.0.1')
 
     def _execute_workflow(self, action, parameters=None, execute_async=True,
                           expected_status=None, expected_result=None):

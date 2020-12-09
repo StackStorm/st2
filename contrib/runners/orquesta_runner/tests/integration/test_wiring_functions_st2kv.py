@@ -52,10 +52,6 @@ class DatastoreFunctionTest(base.TestWorkflowExecution):
         execution = self._execute_workflow(wf_name, wf_input)
 
         output = self._wait_for_completion(execution)
-        print("output = {}".format(output))
-        print("output.result = {}".format(output.result))
-        print("output.context = {}".format(output.context))
-        print("output.parameters = {}".format(output.parameters))
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertIn('output', output.result)
@@ -73,10 +69,6 @@ class DatastoreFunctionTest(base.TestWorkflowExecution):
         execution = self._execute_workflow(wf_name, wf_input)
 
         output = self._wait_for_completion(execution)
-        print("output = {}".format(output))
-        print("output.result = {}".format(output.result))
-        print("output.context = {}".format(output.context))
-        print("output.parameters = {}".format(output.parameters))
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertIn('output', output.result)
@@ -98,10 +90,6 @@ class DatastoreFunctionTest(base.TestWorkflowExecution):
         execution = self._execute_workflow(wf_name, wf_input)
 
         output = self._wait_for_completion(execution)
-        print("output = {}".format(output))
-        print("output.result = {}".format(output.result))
-        print("output.context = {}".format(output.context))
-        print("output.parameters = {}".format(output.parameters))
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertIn('output', output.result)
