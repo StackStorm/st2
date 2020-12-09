@@ -149,6 +149,6 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         exit_code, stdout, stderr = run_command(command_string, shell=True)
 
         expected_msg = ('ValueError: Failed to parse parameters from stdin. Expected a JSON '
-                        'object with "parameters" attribute:')
+                        'object with "parameters" attribute')
         self.assertEqual(exit_code, 1)
         self.assertIn(expected_msg, stderr)
