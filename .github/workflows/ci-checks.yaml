@@ -21,26 +21,20 @@ jobs:
         python-version:
           - '3.6'
         task:
-          # - 'ci-checks'
-          # - 'compilepy3'
-          # - 'ci-packs-tests'
-          # - 'ci-unit'
-          - 'ci-integration'
+          - 'ci-checks'
+          - 'compilepy3'
+          - 'ci-packs-tests'
+          - 'ci-unit'
+          # Integration tests are not working yet
+          # - 'ci-integration'
     services:
       mongo:
         image: mongo:4.0
         ports:
           - 27017:27017
-      rabbitmq:
-        # use the -management version so it has the management tools installed
-        image: rabbitmq:3.8-management
-        ports:
-          # SSL port
-          - 5671:5671
-          # standard port
-          - 5672:5672
-          # management port
-          - 15672:15672
+      # Can't specify RabbitMQ here because we rely on custom config and SSL certs that are in
+      # the repo. In GHA, these services are started first before the code is checked out,
+      # so this is a non-starter, we need to do it manually below (TODO)
     env:
       TASK: '${{ matrix.task }}'
       
@@ -98,7 +92,7 @@ jobs:
           # install dev dependencies for Python LDAP module
           # https://github.com/StackStorm/st2-auth-ldap
           sudo apt-get -y update
-          sudo apt-get -y install libldap2-dev libsasl2-dev libssl-dev ldap-utils
+          sudo apt-get -f -y install libldap2-dev libsasl2-dev libssl-dev ldap-utils
       - name: Install virtualenv
         run: |
           # Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
@@ -120,6 +114,21 @@ jobs:
         run: |
           echo "$GITHUB_WORKSPACE"
           sudo GITHUB_WORKSPACE="${GITHUB_WORKSPACE}" scripts/travis/permissions-workaround.sh
+      - name: Setup RabbitMQ (NOT WORKING YET)
+        if: "${{ env.TASK == 'ci-integration' }}"
+        run: |
+          # Use custom RabbitMQ config which enables SSL / TLS listener on port 5671 with test certs
+          sudo cp scripts/travis/rabbitmq.config /etc/rabbitmq/rabbitmq.config
+          # Install rabbitmq_management RabbitMQ plugin
+          sudo service rabbitmq-server restart
+          sleep 5
+          sudo rabbitmq-plugins enable rabbitmq_management
+          sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
+          sudo chmod +x /usr/local/bin/rabbitmqadmin
+          sudo service rabbitmq-server restart
+          # chmod to make glob work (*.log to avoid log dir)
+          sudo chmod a+rx /var/log/rabbitmq
+          sudo tail -n 30 /var/log/rabbitmq/*.log
       - name: Print versions
         run: |
           # Print various binary versions
@@ -129,21 +138,30 @@ jobs:
           # Print out various environment variables info
           make play
       - name: make
-        # use a login shell to help fix some python_runner tests
-        shell: "bash --login {0}"
+        # use: script -e -c to print colors
         run: |
-          make ${TASK}
-      - name: Setup tmate session for debugging failed jobs
-        uses: mxschmitt/action-tmate@v3
-        if: "${{ failure() }}"
+          script -e -c "make ${TASK}"
+      - name: Nightly
+        # Run any additional nightly checks only as part of a nightly (cron) build
+        if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
+        run: |
+          ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"
+      - name: Codecov
+        # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
+        if: "${{ success() && ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
+        run: |
+          ./scripts/travis/submit-codecov-coverage.sh
 
-      # - name: Nightly
-      #   # Run any additional nightly checks only as part of a nightly (cron) build
-      #   if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
-      #   run: |
-      #     ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"
-      # - name: Codecov
-      #   # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-      #   if: "${{ success() && ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
-      #   run: |
-      #     ./scripts/travis/submit-codecov-coverage.sh
+      # HELPER FOR FUTURE DEVELOPERS:
+      #  If your GitHub Actions job is failing and you need to debug it, by default there is
+      #  no way to SSH into the container.
+      #  The step below can be uncommeted and will stop here and allow you to SSH in.
+      #  When this step is reached, simply refresh the GitHub Actions output for this build
+      #  and this SSH command will be printed every 5 seconds to the output.
+      #  Once you are done debugging in your SSH session, simply: touch /continue
+      #  and this will continue the build.
+      #
+      # - name: Setup tmate session for debugging failed jobs (allows SSH into the container)
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: "${{ failure() }}"
+
