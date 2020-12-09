@@ -35,6 +35,8 @@ jobs:
         # use the -management version so it has the management tools installed
         image: rabbitmq:3.8-management
         ports:
+          # SSL port
+          - 5671:5671
           # standard port
           - 5672:5672
           # management port
@@ -49,6 +51,14 @@ jobs:
       
       # github-actions-specific st2.conf (with 'runner' user instead of stanley)
       ST2_CONF: 'conf/st2.githubactions.conf'
+
+      # Tell StackStorm that we are indeed in CI mode, previously we hard coded a Travis specific
+      # environment variable in our test code, making it a PITA when we switch CI providers.
+      # Now, we simply set this environment varible here in the CI portion of our testing and
+      # it avoids any CI provider type lock-in.
+      #
+      # Nick Debugging: turning off RabbitMQ tests for now
+      ST2_CI: 'true'
     steps:
       - name: Custom Environment Setup
         # built-in GitHub Actions environment variables
@@ -91,8 +101,9 @@ jobs:
           sudo apt-get -y install libldap2-dev libsasl2-dev libssl-dev ldap-utils
       - name: Install virtualenv
         run: |
-          # Note: We use latest version of virtualenv which uses pip 19
-          pip install --upgrade --force-reinstall virtualenv==16.0.0
+          # Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
+          #       only have to update it one place when we change the version
+          pip install --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
       - name: Install requirements
         run: |
           ./scripts/travis/install-requirements.sh
@@ -117,29 +128,11 @@ jobs:
           pip list
           # Print out various environment variables info
           make play
-      - name: Debug python virtualenv
-        run: |
-          sed -i 's/from virtualenv import main/import virtualenv; import sys; import os; sys.stderr.write(os.path.abspath(virtualenv.__file__) + os.linesep)\n&/' /opt/hostedtoolcache/Python/3.6.12/x64/bin/virtualenv
-          
-          cat /opt/hostedtoolcache/Python/3.6.12/x64/bin/virtualenv
-      - name: Debug python virtualenv version
-        run: |
-          python -c 'import virtualenv; print(virtualenv.__version__)'
-      - name: Debug python virtualenv path
-        run: |
-          python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))'
-      - name: Debug python virtualenv.py
-        run: |
-          cat $(python -c 'import virtualenv; import os; print(os.path.abspath(virtualenv.__file__))')
-      - name: Debug python virtualenv help
-        run: |
-          virtualenv --help
-      - name: Debug st2 virtualenv pip list
-        run: |
-          virtualenv/bin/pip list
       - name: make
+        # use a login shell to help fix some python_runner tests
+        shell: "bash --login {0}"
         run: |
-          script -e -c "make ${TASK}"
+          make ${TASK}
       - name: Setup tmate session for debugging failed jobs
         uses: mxschmitt/action-tmate@v3
         if: "${{ failure() }}"

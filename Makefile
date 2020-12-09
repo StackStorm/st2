@@ -522,7 +522,8 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	# Show pip installed packages before we start
 	$(VIRTUALENV_DIR)/bin/pip list
 
-	# Installed fixed virtualenv (it was skipped above in .requirements for some reason)
+	# Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
+	#       only have to update it one place when we change the version
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
 
 	# setuptools >= 41.0.1 is required for packs.install in dev envs

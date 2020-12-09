@@ -32,16 +32,15 @@ __all__ = [
 ]
 
 CERTS_FIXTURES_PATH = os.path.join(get_fixtures_base_path(), 'ssl_certs/')
-# ON_GITHUB_ACTIONS = (os.environ.get('GITHUB_ACTIONS', 'false').lower() == 'true')
-ON_GITHUB_ACTIONS = False
+ST2_CI = (os.environ.get('ST2_CI', 'false').lower() == 'true')
 
 NON_SSL_LISTENER_PORT = 5672
 SSL_LISTENER_PORT = 5671
 
 
-# NOTE: We only run those tests on GitHub Actions because at the moment, local vagrant dev VM doesn't
+# NOTE: We only run those tests on the CI provider because at the moment, local vagrant dev VM doesn't
 # expose RabbitMQ SSL listener by default
-@unittest2.skipIf(not ON_GITHUB_ACTIONS, 'Skipping tests because not running on GitHub Actions')
+@unittest2.skipIf(not ST2_CI, 'Skipping tests because ST2_CI environment variable is not set to "true"')
 class RabbitMQTLSListenerTestCase(unittest2.TestCase):
 
     def setUp(self):
