@@ -13,36 +13,54 @@ on:
 
 jobs:
   ci-checks:
-    name: '${{ matrix.task }} - python (${{ matrix.python-version }})'
+    name: '${{ matrix.name }} - python (${{ matrix.python-version }})'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version:
-          - '3.6'
-        task:
-          - 'ci-checks'
-          - 'compilepy3'
-          - 'ci-packs-tests'
-          - 'ci-unit'
-          # Integration tests are not working yet
-          # - 'ci-integration'
+        include:
+          - name: 'Lint Checks'
+            task: 'ci-checks'
+            python-version: '3.6'
+          - name: 'Compile'
+            task: 'compilepy3'
+            python-version: '3.6'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            python-version: '3.6'
+          - name: 'Unit Tests'
+            task: 'ci-unit'
+            python-version: '3.6'
+          # Integration tests are not working yet, still done in Travis
+          # - name: 'Integration Tests'
+          #   task: 'ci-integration'
     services:
       mongo:
         image: mongo:4.0
         ports:
           - 27017:27017
-      # Can't specify RabbitMQ here because we rely on custom config and SSL certs that are in
-      # the repo. In GHA, these services are started first before the code is checked out,
-      # so this is a non-starter, we need to do it manually below (TODO)
+      # Can't use RabbitMQ here for Integrations because we rely on custom config
+      # and SSL certs that are in the repo. In GHA, these services are started first
+      # before the code is checked out, so this is a non-starter, we need to do it
+      # manually below (TODO)
+      rabbitmq:
+        # use the -management version so it has the management tools installed
+        image: rabbitmq:3.8-management
+        ports:
+          # SSL port
+          - 5671:5671
+          # standard port
+          - 5672:5672
+          # management port
+          - 15672:15672
     env:
       TASK: '${{ matrix.task }}'
-      
+
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
       COLUMNS: '120'
       PYLINT_CONCURRENCY: '2'
-      
+
       # github-actions-specific st2.conf (with 'runner' user instead of stanley)
       ST2_CONF: 'conf/st2.githubactions.conf'
 
@@ -66,12 +84,12 @@ jobs:
         run: |
           IS_NIGHTLY_BUILD=$([ "${GITHUB_EVENT_NAME}" = "schedule" ] && echo "yes" || echo "no")
           echo "IS_NIGHTLY_BUILD=${IS_NIGHTLY_BUILD}" >> $GITHUB_ENV
-          
+
           # NOTE: We only enable coverage for master builds and not pull requests
           # since it has huge performance overhead (tests are 50% or so slower)
           ENABLE_COVERAGE=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
           echo "ENABLE_COVERAGE=${ENABLE_COVERAGE}" >> $GITHUB_ENV
-          
+
           # We only run tests with "--with-timer" flag on master and not for PRs since it adds 1-2
           # minutes of overhead to each build.
           NOSE_TIME=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
@@ -170,4 +188,3 @@ jobs:
       # - name: Setup tmate session for debugging failed jobs (allows SSH into the container)
       #   uses: mxschmitt/action-tmate@v3
       #   if: "${{ failure() }}"
-

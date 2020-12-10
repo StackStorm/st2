@@ -41,13 +41,12 @@ env:
     # If you rename or reorder make targets in TASK, you may need to adjust:
     # scripts/travis/install-requirements.sh
     # scripts/travis/run-nightly-make-task-if-exists.sh
-    - TASK=ci-checks COMMAND_THRESHOLD=300
-
-    - TASK=compilepy3 COMMAND_THRESHOLD=300
-
-    - TASK=ci-packs-tests COMMAND_THRESHOLD=300
-
-    - TASK=ci-unit COMMAND_THRESHOLD=300
+    #
+    # The follow builds are now done in GitHub Actions
+    # - TASK=ci-checks COMMAND_THRESHOLD=300
+    # - TASK=compilepy3 COMMAND_THRESHOLD=300
+    # - TASK=ci-packs-tests COMMAND_THRESHOLD=300
+    # - TASK=ci-unit COMMAND_THRESHOLD=300
 
     - TASK=ci-integration COMMAND_THRESHOLD=300
 
