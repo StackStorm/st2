@@ -1,4 +1,4 @@
-name: ci-checks
+name: ci
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
     - cron:  '0 0 * * *'
 
 jobs:
-  ci-checks:
+  ci:
     name: '${{ matrix.name }} - python (${{ matrix.python-version }})'
     runs-on: ubuntu-latest
     strategy:
@@ -61,15 +61,13 @@ jobs:
       COLUMNS: '120'
       PYLINT_CONCURRENCY: '2'
 
-      # github-actions-specific st2.conf (with 'runner' user instead of stanley)
-      ST2_CONF: 'conf/st2.githubactions.conf'
+      # CI st2.conf (with ST2_CI_USER user instead of stanley)
+      ST2_CONF: 'conf/st2.ci.conf'
 
       # Tell StackStorm that we are indeed in CI mode, previously we hard coded a Travis specific
       # environment variable in our test code, making it a PITA when we switch CI providers.
       # Now, we simply set this environment varible here in the CI portion of our testing and
       # it avoids any CI provider type lock-in.
-      #
-      # Nick Debugging: turning off RabbitMQ tests for now
       ST2_CI: 'true'
 
       # Name of the user who is running the CI (on GitHub Actions this is 'runner')

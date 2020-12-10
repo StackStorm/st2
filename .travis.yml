@@ -28,6 +28,8 @@ env:
     - NOSE_TIME=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
     # Travis-specific st2.conf (with travis user instead of stanley)
     - ST2_CONF=conf/st2.travis.conf
+    # Tell StackStorm that we are indeed in CI mode
+    - ST2_CI='true'
   jobs:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
     # builds and having 6 tasks / builds means 1 tasks will need to wait for one

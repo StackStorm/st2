@@ -38,9 +38,10 @@ NON_SSL_LISTENER_PORT = 5672
 SSL_LISTENER_PORT = 5671
 
 
-# NOTE: We only run those tests on the CI provider because at the moment, local vagrant dev VM doesn't
-# expose RabbitMQ SSL listener by default
-@unittest2.skipIf(not ST2_CI, 'Skipping tests because ST2_CI environment variable is not set to "true"')
+# NOTE: We only run those tests on the CI provider because at the moment, local
+#       vagrant dev VM doesn't expose RabbitMQ SSL listener by default
+@unittest2.skipIf(not ST2_CI,
+                  'Skipping tests because ST2_CI environment variable is not set to "true"')
 class RabbitMQTLSListenerTestCase(unittest2.TestCase):
 
     def setUp(self):
