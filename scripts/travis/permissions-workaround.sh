@@ -11,10 +11,10 @@ fi
 # this can't be the 'runner' user (GitHub actions user) because 'stanley' is the
 # hardcoded user in the tests
 # o=other; X=only set execute bit if user execute bit is set (eg on dirs)
-chmod -R o+rX ${GITHUB_WORKSPACE}/st2tests/st2tests/fixtures ${GITHUB_WORKSPACE}/contrib
+chmod -R o+rX "${ST2_CI_REPO_PATH}/st2tests/st2tests/fixtures" "${ST2_CI_REPO_PATH}/contrib"
 
 # make sure parent directories are traversable
-d=${GITHUB_WORKSPACE}/st2tests/st2tests
+d="${ST2_CI_REPO_PATH}/st2tests/st2tests"
 while [[ "${d}" != "/" ]]; do
     chmod o+rx "${d}"
     d=$(dirname "${d}")

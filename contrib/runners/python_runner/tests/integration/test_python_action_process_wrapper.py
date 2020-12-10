@@ -35,8 +35,6 @@ profimp "from python_runner.python_runner import python_action_wrapper" --html >
 from __future__ import absolute_import
 import os
 import json
-import sys
-import select
 
 import unittest2
 from distutils.spawn import find_executable
@@ -66,14 +64,6 @@ WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR,
 WRAPPER_SCRIPT_PATH = os.path.abspath(WRAPPER_SCRIPT_PATH)
 TIME_BINARY_PATH = find_executable('time')
 TIME_BINARY_AVAILABLE = TIME_BINARY_PATH is not None
-
-
-def flush_stdin():
-    # timeout of 0 means never block
-    i, _, _ = select.select([sys.stdin], [], [], 0)
-    if i:
-        # return any input if there was any
-        return sys.stdin.readlines()
 
 
 @unittest2.skipIf(not TIME_BINARY_PATH, 'time binary not available')
@@ -138,13 +128,9 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         config = {}
         file_path = os.path.join(BASE_DIR, '../../../../examples/actions/noop.py')
 
-        # flush the stdin of this process (parent) so that it doesn't leak down
-        # into sub process and cause issues and/or test failures
-        flush_stdin()
-
         # try running in a sub-shell to ensure that the stdin is empty
-        command_string = ('bash --login -c "python %s --pack=dummy --file-path=%s --config=\'%s\' '
-                          '--stdin-parameters"' %
+        command_string = ('python %s --pack=dummy --file-path=%s --config=\'%s\' '
+                          '--stdin-parameters' %
                          (WRAPPER_SCRIPT_PATH, file_path, config))
         exit_code, stdout, stderr = run_command(command_string, shell=True)
 
@@ -156,11 +142,6 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
     def test_stdin_params_invalid_format_friendly_error(self):
         config = {}
         file_path = os.path.join(BASE_DIR, '../../../contrib/examples/actions/noop.py')
-
-        # flush the stdin of this process (parent) so that it doesn't leak down
-        # into sub process and cause issues and/or test failures
-        flush_stdin()
-
         # Not a valid JSON string
         command_string = ('echo "invalid" | python %s --pack=dummy --file-path=%s --config=\'%s\' '
                           '--stdin-parameters' %

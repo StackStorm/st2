@@ -53,6 +53,9 @@ jobs:
       #
       # Nick Debugging: turning off RabbitMQ tests for now
       ST2_CI: 'true'
+
+      # Name of the user who is running the CI (on GitHub Actions this is 'runner')
+      ST2_CI_USER: 'runner'
     steps:
       - name: Custom Environment Setup
         # built-in GitHub Actions environment variables
@@ -73,6 +76,9 @@ jobs:
           # minutes of overhead to each build.
           NOSE_TIME=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
           echo "NOSE_TIME=${NOSE_TIME}" >> $GITHUB_ENV
+
+          # Setup the path to the st2 repo in the CI build system
+          echo "ST2_CI_REPO_PATH=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: 'Set up Python (${{ matrix.python-version }})'
@@ -103,17 +109,17 @@ jobs:
           ./scripts/travis/install-requirements.sh
       - name: Setup integration tests
         run: |
-          # prep a travis-specific dev conf file that uses runner instead of stanley
+          # prep a ci-specific dev conf file that uses runner instead of stanley
           # this user is the username of the user in GitHub actions, used for SSH, etc during
           # integration tests (important)
-          cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/runner/" "${ST2_CONF}"
-          sudo scripts/travis/add-itest-user-key.sh
+          cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
+          scripts/travis/add-itest-user-key.sh
           sudo .circle/add-itest-user.sh
       - name: Permissions Workaround
         if: "${{ env.TASK == 'ci-packs-tests' || env.TASK == 'ci-integration' }}"
         run: |
-          echo "$GITHUB_WORKSPACE"
-          sudo GITHUB_WORKSPACE="${GITHUB_WORKSPACE}" scripts/travis/permissions-workaround.sh
+          echo "$ST2_CI_REPO_PATH"
+          sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/travis/permissions-workaround.sh
       - name: Setup RabbitMQ (NOT WORKING YET)
         if: "${{ env.TASK == 'ci-integration' }}"
         run: |
