@@ -27,10 +27,9 @@ Changed
 
 * Upgraded cryptography version to 3.2 to avoid CVE-2020-25659 (security) #5095
 
+* Converted most CI jobs from Travis to GitHub Actions (all except Integration tests).
 
-* Updated Travis CI and CircleCI builds to only use Python 3
-
-  Contributed by @blag
+  Contributed by @nmaludy
 
 Fixed
 ~~~~~~~~~
@@ -44,6 +43,9 @@ Removed
 ~~~~~~~~
 * Removed check-licence script (cleanup) #5092
   Contributed by @kroustou
+* Updated Travis CI and CircleCI builds to only use Python 3 (cleanup) #5090
+
+  Contributed by @blag
 
 3.3.0 - October 06, 2020
 ------------------------

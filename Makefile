@@ -15,7 +15,9 @@ else
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
-PYTHON_VERSION ?= $(shell if [ -z "`which python3.6`" ]; then echo "python2.7"; else echo "python3.6"; fi)
+# Assign PYTHON_VERSION if it doesn't already exist
+PYTHON_VERSION ?= python3
+
 BINARIES := bin
 
 # All components are prefixed by st2 and not .egg-info.
@@ -107,7 +109,7 @@ all: requirements configgen check tests
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
-	@echo PYTHON_VERSION=$$(python --version)
+	@echo PYTHON_VERSION=$(PYTHON_VERSION) \($$($(PYTHON_VERSION) --version)\)
 	@echo
 	@echo COVERAGE_GLOBS=$(COVERAGE_GLOBS_QUOTED)
 	@echo
@@ -242,7 +244,7 @@ check-python-packages-nightly:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR)
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -374,7 +376,7 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== st2client install check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_ST2CLIENT_DIR)
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -437,7 +439,7 @@ compilepy3:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py | -name inquiry\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py ! -name inquiry\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
@@ -581,7 +583,7 @@ virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -f $(VIRTUALENV_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_DIR)
+	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_DIR) --no-download
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
