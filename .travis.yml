@@ -30,6 +30,7 @@ env:
     - ST2_CONF=conf/st2.travis.conf
     # Tell StackStorm that we are indeed in CI mode
     - ST2_CI='true'
+    - ST2_CI_REPO_PATH="${TRAVIS_BUILD_DIR}"
   jobs:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
     # builds and having 6 tasks / builds means 1 tasks will need to wait for one
@@ -86,7 +87,7 @@ install:
   - ./scripts/travis/install-requirements.sh
   # prep a travis-specific dev conf file that uses travis instead of stanley
   - cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
-  - sudo scripts/travis/add-itest-user-key.sh
+  - scripts/travis/add-itest-user-key.sh
   - sudo .circle/add-itest-user.sh
   - if [[ "${TASK}" = *'-packs-tests'* ]] || [[ "${TASK}" = *'-integration'* ]]; then sudo scripts/travis/permissions-workaround.sh; fi
 

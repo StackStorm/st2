@@ -568,13 +568,18 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --init --recursive --remote
 
+	# Show currently install requirements
+	$(VIRTUALENV_DIR)/bin/pip list
+
+.PHONY: check-dependency-conflicts
+check-dependency-conflicts:
+	@echo
+	@echo "==================== check-dependency-conflicts ===================="
+	@echo
 	# Verify there are no conflicting dependencies
 	cat st2*/requirements.txt contrib/runners/*/requirements.txt | sort -u > req.txt && \
 	$(VIRTUALENV_DIR)/bin/pip-compile req.txt; \
 	if [[ -e req.txt ]]; then rm req.txt; fi
-
-	# Show currently install requirements
-	$(VIRTUALENV_DIR)/bin/pip list
 
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure
@@ -1023,3 +1028,6 @@ ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html
 
 .PHONY: ci-packs-tests
 ci-packs-tests: .packs-tests
+
+.PHONY: ci-compile
+ci-compile: check-dependency-conflicts compilepy3

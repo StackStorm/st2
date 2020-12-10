@@ -23,7 +23,7 @@ jobs:
             task: 'ci-checks'
             python-version: '3.6'
           - name: 'Compile'
-            task: 'compilepy3'
+            task: 'ci-compile'
             python-version: '3.6'
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
