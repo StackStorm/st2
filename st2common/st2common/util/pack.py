@@ -53,7 +53,6 @@ else:
                        "Please update your packs to work with Python 3.x"
 
 
-
 def get_pack_ref_from_metadata(metadata, pack_directory_name=None):
     """
     Utility function which retrieves pack "ref" attribute from the pack metadata file.
