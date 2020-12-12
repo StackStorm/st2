@@ -221,7 +221,7 @@ class FileWatchSensor(Sensor):
 
         self.trigger = trigger.get('ref', None)
 
-        if not self._trigger:
+        if not self.trigger:
             raise Exception('Trigger %s did not contain a ref.' % trigger)
 
         self.tail_manager.tail_file(file_path, self._handle_line)
@@ -250,7 +250,7 @@ class FileWatchSensor(Sensor):
         }
         self.logger.debug('Sending payload %s for trigger %s to sensor_service.',
                           payload, self.trigger)
-        self.sensor_service.dispatch(trigger=trigger, payload=payload)
+        self.sensor_service.dispatch(trigger=self.trigger, payload=payload)
 
 
 if __name__ == '__main__':
