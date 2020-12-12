@@ -4,7 +4,7 @@ amqp==2.5.2
 apscheduler==3.6.3
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython>=1.16.0,<2.0.0
-cryptography==2.8
+cryptography==3.2
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
 eventlet==0.25.1

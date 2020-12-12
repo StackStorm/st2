@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 argcomplete
-cryptography==2.8
+cryptography==3.2
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 more-itertools==5.0.0
