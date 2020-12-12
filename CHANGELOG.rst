@@ -37,7 +37,7 @@ Removed
 ~~~~~~~~
 * Removed check-licence script (cleanup) #5092
   Contributed by @kroustou
-* Updated Travis CI and CircleCI builds to only use Python 3 (cleanup) #5090
+* Updated Makefile and CI to use Python 3 only, removing Python 2 (cleanup) #5090
 
   Contributed by @blag
 
