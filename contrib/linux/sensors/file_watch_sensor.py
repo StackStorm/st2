@@ -18,6 +18,7 @@ import signal
 import time
 import sys
 
+import eventlet
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
