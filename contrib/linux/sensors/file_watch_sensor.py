@@ -216,7 +216,7 @@ class FileWatchSensor(Sensor):
         file_path = trigger['parameters'].get('file_path', None)
 
         if not file_path:
-            self._logger.error('Received trigger type without "file_path" field.')
+            self.logger.error('Received trigger type without "file_path" field.')
             return
 
         self.trigger = trigger.get('ref', None)
@@ -248,8 +248,8 @@ class FileWatchSensor(Sensor):
             'file_name': os.path.basename(file_path),
             'line': line
         }
-        self._logger.debug('Sending payload %s for trigger %s to sensor_service.',
-                           payload, self.trigger)
+        self.logger.debug('Sending payload %s for trigger %s to sensor_service.',
+                          payload, self.trigger)
         self.sensor_service.dispatch(trigger=trigger, payload=payload)
 
 
