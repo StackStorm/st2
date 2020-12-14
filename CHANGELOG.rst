@@ -17,9 +17,6 @@ Added
 
 Changed
 ~~~~~~~~~
-* Pin chardet requirement #5101
-  Contributed by @amanda11
-
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
@@ -32,6 +29,9 @@ Changed
 
 Fixed
 ~~~~~~~~~
+* Pin chardet version as newest version was incompatible with pinned requests version #5101
+  Contributed by @amanda11
+
 * Fixed issue were st2tests was not getting installed using pip because no version was specified.
   Contributed by @anirudhbagri
   
