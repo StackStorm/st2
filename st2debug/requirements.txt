@@ -5,6 +5,7 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
+chardet<3.1.0
 eventlet==0.25.1
 python-gnupg==0.4.5
 pyyaml==5.1.2

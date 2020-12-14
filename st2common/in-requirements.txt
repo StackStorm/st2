@@ -1,4 +1,4 @@
-# Remeber to list implicit packages here, otherwise version won't be fixated!
+# Remember to list implicit packages here, otherwise version won't be fixated!
 apscheduler
 dnspython
 python-dateutil
@@ -38,3 +38,5 @@ amqp
 # Used by st2-pack-* commands
 gitpython
 lockfile
+# needed by requests
+chardet
