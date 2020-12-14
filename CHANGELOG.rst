@@ -40,6 +40,9 @@ Fixed
 
 Removed
 ~~~~~~~~
+* Removed --python3 pack install option  #5100
+  Contributed by @amanda11
+
 * Removed check-licence script (cleanup) #5092
   Contributed by @kroustou
 
