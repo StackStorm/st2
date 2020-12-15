@@ -32,6 +32,9 @@ Changed
 
 Fixed
 ~~~~~~~~~
+* Pin chardet version as newest version was incompatible with pinned requests version #5101
+  Contributed by @amanda11
+
 * Fixed issue were st2tests was not getting installed using pip because no version was specified.
   Contributed by @anirudhbagri
   
