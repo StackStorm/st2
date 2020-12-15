@@ -1,4 +1,4 @@
-# Remeber to list implicit packages here, otherwise version won't be fixated!
+# Remember to list implicit packages here, otherwise version won't be fixated!
 apscheduler
 python-dateutil
 eventlet
@@ -18,3 +18,5 @@ pyinotify
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 # required by pack_mgmt/setup_virtualenv.py#L135
 virtualenv
+# needed by requests
+chardet
