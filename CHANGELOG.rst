@@ -41,6 +41,8 @@ Fixed
 
   Contributed by @guzzijones
 
+* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106
+
 Removed
 ~~~~~~~~
 * Removed check-licence script (cleanup) #5092
