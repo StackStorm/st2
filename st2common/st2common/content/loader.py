@@ -243,7 +243,7 @@ class MetaLoader(object):
         return result
 
     def _load(self, parser_func, file_path):
-        with open(file_path, 'r') as fd:
+        with open(file_path, 'r', encoding='utf-8') as fd:
             try:
                 return parser_func(fd)
             except ValueError:
