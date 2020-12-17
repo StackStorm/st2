@@ -17,6 +17,9 @@ Added
 
 Changed
 ~~~~~~~~~
+* Updated deprecation warning for python 2 pack installs, following python 2 support removal. #5099
+  Contributed by @amanda11
+
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
