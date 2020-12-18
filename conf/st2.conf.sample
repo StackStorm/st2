@@ -228,18 +228,6 @@ logging = /etc/st2/logging.notifier.conf
 # Enable/Disable support for pack common libs. Setting this config to ``True`` would allow you to place common library code for sensors and actions in lib/ folder in packs and use them in python sensors and actions. See https://docs.stackstorm.com/reference/sharing_code_sensors_actions.html for details.
 enable_common_libs = False
 
-[resultstracker]
-# Sleep delay in between queries when query queue is empty.
-empty_q_sleep_time = 1
-# Location of the logging configuration file.
-logging = /etc/st2/logging.resultstracker.conf
-# Sleep delay for query when there is no more worker in pool.
-no_workers_sleep_time = 1
-# Time interval between queries to external workflow system.
-query_interval = 5
-# Number of threads to use to query external workflow systems.
-thread_pool_size = 10
-
 [rulesengine]
 # Location of the logging configuration file.
 logging = /etc/st2/logging.rulesengine.conf
