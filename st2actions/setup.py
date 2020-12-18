@@ -47,7 +47,6 @@ setup(
     scripts=[
         'bin/st2actionrunner',
         'bin/st2notifier',
-        'bin/st2resultstracker',
         'bin/st2workflowengine',
         'bin/st2scheduler',
     ]
