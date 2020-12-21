@@ -48,6 +48,9 @@ Fixed
 
 Removed
 ~~~~~~~~
+* Removed submit-debug-info tool and the st2debug component #5103
+  Contributed by @amanda11
+
 * Removed check-licence script (cleanup) #5092
   Contributed by @kroustou
 * Updated Makefile and CI to use Python 3 only, removing Python 2 (cleanup) #5090
