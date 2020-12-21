@@ -15,7 +15,8 @@ else
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
-PYTHON_VERSION ?= $(shell if [ -z "`which python3.6`" ]; then echo "python2.7"; else echo "python3.6"; fi)
+# Assign PYTHON_VERSION if it doesn't already exist
+PYTHON_VERSION ?= python3
 
 BINARIES := bin
 
@@ -50,11 +51,7 @@ COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TES
 COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.*
 COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 
-ifeq ($(PYTHON_VERSION),python2.7)
-	REQUIREMENTS := test-requirements-py27.txt requirements.txt
-else
-	REQUIREMENTS := test-requirements.txt requirements.txt
-endif
+REQUIREMENTS := test-requirements.txt requirements.txt
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
@@ -112,7 +109,7 @@ all: requirements configgen check tests
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
-	@echo PYTHON_VERSION=$(PYTHON_VERSION)
+	@echo PYTHON_VERSION=$(PYTHON_VERSION) \($$($(PYTHON_VERSION) --version)\)
 	@echo
 	@echo COVERAGE_GLOBS=$(COVERAGE_GLOBS_QUOTED)
 	@echo
@@ -233,7 +230,7 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download --system-site-packages
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -424,17 +421,11 @@ lint: requirements .lint
 .PHONY: clean
 clean: .cleanpycs
 
-.PHONY: compile
-compile:
-	@echo "======================= compile ========================"
-	@echo "------- Compile all .py files (syntax check test - Python 2) ------"
-	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
-
 .PHONY: compilepy3
 compilepy3:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 3) ------"
-	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	python3 -m compileall -f -q -x 'virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test' .
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -450,7 +441,7 @@ compilepy3:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py | -name inquiry\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py ! -name inquiry\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name router\.py -name \*.py \) -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
@@ -634,7 +625,7 @@ tests: pytests
 pytests: compilepy3 requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile .configgen .generate-api-spec .unit-tests clean
+.pytests: compilepy3 .configgen .generate-api-spec .unit-tests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html clean
@@ -968,31 +959,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compilepy3 .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
-
-.PHONY: ci-py3-unit
-ci-py3-unit:
-	@echo
-	@echo "==================== ci-py3-unit ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
-
-.PHONY: ci-py3-packs-tests
-ci-py3-packs-tests:
-	@echo
-	@echo "==================== ci-py3-packs-tests ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
-
-.PHONY: ci-py3-integration
-ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
-
-.PHONY: .ci-py3-integration
-.ci-py3-integration:
-	@echo
-	@echo "==================== ci-py3-integration ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration -vv
+ci-checks: .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: .rst-check
 .rst-check:

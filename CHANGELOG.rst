@@ -17,6 +17,9 @@ Added
 
 Changed
 ~~~~~~~~~
+* Updated deprecation warning for python 2 pack installs, following python 2 support removal. #5099
+  Contributed by @amanda11
+
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
@@ -41,6 +44,8 @@ Fixed
 
   Contributed by @guzzijones
 
+* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
+
 Removed
 ~~~~~~~~
 * Removed submit-debug-info tool and the st2debug component #5103
@@ -48,6 +53,9 @@ Removed
 
 * Removed check-licence script (cleanup) #5092
   Contributed by @kroustou
+* Updated Makefile and CI to use Python 3 only, removing Python 2 (cleanup) #5090
+
+  Contributed by @blag
 
 3.3.0 - October 06, 2020
 ------------------------
