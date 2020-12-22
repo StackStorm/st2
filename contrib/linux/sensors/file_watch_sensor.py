@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 import os
+import pathlib
 import signal
 import time
 import sys
@@ -28,12 +30,12 @@ except ImportError:
     Sensor = object
 
 
-class FileEventHandler(FileSystemEventHandler):
+class EventHandler(FileSystemEventHandler):
     def __init__(self, *args, callbacks=None, **kwargs):
         self.callbacks = callbacks or {}
 
     def dispatch(self, event):
-        if not event.is_synthetic and not event.is_directory:
+        if not event.is_directory:
             super().dispatch(event)
 
     def on_created(self, event):
@@ -44,7 +46,7 @@ class FileEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         cb = self.callbacks.get('modified')
         if cb:
-            cb(event=event)
+            result = cb(event=event)
 
     def on_moved(self, event):
         cb = self.callbacks.get('moved')
@@ -58,46 +60,92 @@ class FileEventHandler(FileSystemEventHandler):
 
 
 class SingleFileTail(object):
-    def __init__(self, path, handler, read_all=False, observer=None):
-        self.path = path
+    def __init__(self, path, handler, follow=False, read_all=False, observer=None, fd=None):
+        self._path = None
+        self.fd = fd
         self.handler = handler
+        self.follow = follow
         self.read_all = read_all
         self.buffer = ''
         self.observer = observer or Observer()
+        self.watch = None
+        self.parent_watch = None
 
-        self.open()
+        if path:
+            self.set_path(path)
+            self.open()
+
+    def get_path(self):
+        return self._path
+
+    # Set all of these when the path updates
+    def set_path(self, new_path):
+        self._path = pathlib.Path(new_path)
+        self.parent_dir = self.get_parent_path(self._path)
+        self.abs_path = (self.parent_dir / self._path).resolve()
+
+    path = property(get_path, set_path)
+
+    def get_parent_path(self, path):
+        if path.is_absolute():
+            return pathlib.Path(path).parent
+        else:
+            return (pathlib.Path.cwd() / path).parent
+
+    def get_event_src_path(self, event):
+        return (pathlib.Path.cwd() / pathlib.Path(event.src_path)).resolve()
+
+    def read_chunk(self, fd, chunk_size=1024):
+        # Buffer 1024 bytes at a time
+        try:
+            buffer = os.read(fd, chunk_size)
+        except (OSError, FileNotFoundError):
+            buffer = b""
+
+        # If the 1024 bytes cuts the line off in the middle of a multi-byte
+        # utf-8 character then decoding will raise an UnicodeDecodeError.
+        try:
+            buffer = buffer.decode(encoding='utf8')
+        except UnicodeDecodeError as e:
+            # Grab the first few bytes of the partial character
+            # e.start is the first byte of the decoding issue
+            first_byte_of_partial_character = buffer[e.start]
+            number_of_bytes_read_so_far = e.end - e.start
+
+            # Try to read the remainder of the character
+            # You could replace these conditionals with bit math, but that's a
+            # lot more difficult to read
+            if first_byte_of_partial_character & 0xF0 == 0xC0:
+                char_length = 2
+            elif first_byte_of_partial_character & 0xF0 == 0xE0:
+                char_length = 3
+            elif first_byte_of_partial_character & 0xF0 == 0xF0:
+                char_length = 4
+            else:
+                # We could have run into an issue besides reading a partial
+                # character, so raise that exception
+                raise e
+
+            number_of_bytes_to_read = char_length - number_of_bytes_read_so_far
+
+            buff = os.read(fd, number_of_bytes_to_read)
+            if len(buff) == number_of_bytes_to_read:
+                buffer += buff
+                return buffer.decode(encoding='utf8')
+
+            # If we did not successfully read a complete character, there's
+            # nothing else we can really do but reraise the exception
+            raise e
+        else:
+            return buffer
 
     def read(self, event=None):
         while True:
-            # Buffer 1024 bytes at a time
-            buff = os.read(self.fd, 1024)
+            # Read a chunk of bytes
+            buff = self.read_chunk(self.fd)
+
             if not buff:
                 return
-
-            # Possible bug? What if the 1024 cuts off in the middle of a utf8
-            # code point?
-            # We use errors='replace' to have Python replace the unreadable
-            # character with an "official U+FFFD REPLACEMENT CHARACTER"
-            # This isn't great, but it's better than the previous behavior,
-            # which blew up on any issues.
-            buff = buff.decode(encoding='utf8', errors='replace')
-
-            # An alternative is to try to read additional bytes one at a time
-            # until we can decode the string properly
-            # while True:
-            #     try:
-            #         buff = buff.decode(encoding='utf8')
-            #     except UnicodeDecodeError:
-            #         # Try to read another byte (this may not read anything)
-            #         b = os.read(self.fd, 1)
-            #         # If we read something
-            #         if b:
-            #             buff += b
-            #         else:
-            #             buff = buff.decode(encoding='utf8', errors='ignore')
-            #     else:
-            #         # If we could decode to UTF-8, then continue
-            #         break
 
             # Append to previous buffer
             if self.buffer:
@@ -106,68 +154,109 @@ class SingleFileTail(object):
 
             lines = buff.splitlines(True)
             # If the last character of the last line is not a newline
-            if lines[-1][-1] != '\n':  # Incomplete line in the buffer
+            if lines and lines[-1] and lines[-1][-1] != '\n':  # Incomplete line in the buffer
                 self.buffer = lines[-1]  # Save the last line fragment
                 lines = lines[:-1]
 
             for line in lines:
                 self.handler(self.path, line[:-1])
 
-    def reopen(self, event=None, skip_to_end=False):
-        # stat the file on disk
-        file_stat = os.stat(self.path)
+    def reopen_and_read(self, event=None, skip_to_end=False):
+        # Directory watches will fire events for unrelated files
+        # Ignore all events except those for our path
+        if event and self.get_event_src_path(event) != self.abs_path:
+            return
 
-        # stat the file from the existing file descriptor
-        fd_stat = os.fstat(self.fd)
-        # Seek right back where we thought we were
+        # Save our current position into the file (this is a little wonky)
         pos = os.lseek(self.fd, 0, os.SEEK_CUR)
 
-        # If the file now on disk is larger than where we were currently reading
-        if fd_stat.st_size > pos:
-            # More data to read - read as normal
-            self.read()
-        # If the file now on disk is smaller (eg: if the file is a freshly
-        # rotated log), or if its inode has changed
-        if self.stat.st_size > file_stat.st_size or \
-           self.stat.st_ino != file_stat:
-            self.close()
-            # Since we already read the entirety of the previous file, we don't
-            # want to skip any of the new file's contents, so don't seek to the
-            # end, and try to read from it immediately
-            self.open(seek_to_end=False)
-            self.read()
+        # The file was moved and not recreated
+        # If we're following the file, don't emit the remainder of the last
+        # line
+        emit = not self.follow
+        self.close(event=event, emit_remaining=emit)
 
-    def open(self, seek_to_end=False):
-        self.stat = os.stat(self.path)
-        self.fd = os.open(self.path, os.O_RDONLY | os.O_NONBLOCK)
+        # If we aren't following then don't reopen the file
+        # When the file is created again that will be handled by open_and_read
+        if not self.follow:
+            return
 
-        if not self.read_all or seek_to_end:
-            os.lseek(self.fd, 0, os.SEEK_END)
+        # Use the file's new location
+        self.path = event.dest_path
+        # Seek to where we left off
+        self.open(event=event, seek_to=pos)
+        self.read(event=event)
 
-        file_event_handler = FileEventHandler(callbacks={
-            'created': None,
-            'modified': self.read,
-            'moved': self.reopen,
-            'deleted': self.reopen,
-        })
-        self.watch = self.observer.schedule(file_event_handler, self.path)
+    def open_and_read(self, event=None, seek_to=None):
+        # Directory watches will fire events for unrelated files
+        # Ignore all events except those for our path
+        if event and self.get_event_src_path(event) != self.abs_path:
+            return
 
-    def close(self):
-        os.close(self.fd)
-        self.observer.unschedule(self.watch)
-        if self.buffer:
+        self.read_all = True
+
+        self.open(event=event, seek_to=seek_to)
+        self.read(event=event)
+
+    def open(self, event=None, seek_to=None):
+        # Use self.watch as a guard
+        if not self.watch:
+            try:
+                self.stat = os.stat(self.path)
+            except FileNotFoundError:
+                # If the file doesn't exist when we are asked to monitor it, set
+                # this flag so we read it all if/when it does appear
+                self.read_all = True
+            else:
+                self.fd = os.open(self.path, os.O_RDONLY | os.O_NONBLOCK)
+
+                if self.read_all or seek_to == 'start':
+                    os.lseek(self.fd, 0, os.SEEK_SET)
+
+                if not self.read_all or seek_to == 'end':
+                    os.lseek(self.fd, 0, os.SEEK_END)
+
+                file_event_handler = EventHandler(callbacks={
+                    'created': self.open,
+                    'deleted': self.close,
+                    'modified': self.read,
+                    'moved': self.reopen_and_read,
+                })
+
+                self.watch = self.observer.schedule(file_event_handler, self.path)
+
+        # Avoid watching this twice
+        if not self.parent_watch:
+            dir_event_handler = EventHandler(callbacks={
+                'created': self.open_and_read,
+                'moved': self.reopen_and_read,
+            })
+
+            self.parent_watch = self.observer.schedule(dir_event_handler, self.parent_dir)
+
+    def close(self, event=None, emit_remaining=True):
+        # Reset the guard
+        if self.buffer and emit_remaining:
             self.handler(self.path, self.buffer)
+            self.buffer = ''
+        if self.fd:
+            os.close(self.fd)
+            self.fd = None
+        if self.watch:
+            self.observer.unschedule(self.watch)
+            self.watch = None
 
 
 class TailManager(object):
     def __init__(self, *args, **kwargs):
-        self.observer = Observer()
         self.tails = {}
+        self.observer = Observer()
 
-    def tail_file(self, path, handler, read_all=False):
+    def tail_file(self, path, handler, follow=False, read_all=False):
         if handler not in self.tails.setdefault(path, {}):
             sft = SingleFileTail(path, handler,
-                                 read_all=read_all, observer=self.observer)
+                                 follow=follow, read_all=read_all,
+                                 observer=self.observer)
             self.tails[path][handler] = sft
 
     def stop_tailing_file(self, path, handler):
@@ -179,8 +268,11 @@ class TailManager(object):
 
     def run(self):
         self.start()
-        while True:
-            time.sleep(1)
+        try:
+            while True:
+                time.sleep(1)
+        finally:
+            self.stop()
 
     def start(self):
         self.observer.start()
@@ -245,7 +337,7 @@ class FileWatchSensor(Sensor):
     def _handle_line(self, file_path, line):
         payload = {
             'file_path': file_path,
-            'file_name': os.path.basename(file_path),
+            'file_name': pathlib.Path(file_path).name,
             'line': line
         }
         self.logger.debug('Sending payload %s for trigger %s to sensor_service.',
@@ -255,7 +347,7 @@ class FileWatchSensor(Sensor):
 
 if __name__ == '__main__':
     tm = TailManager()
-    tm.tail_file('test.py', handler=print)
+    tm.tail_file(__file__, handler=print)
     tm.run()
 
     def halt(sig, frame):
