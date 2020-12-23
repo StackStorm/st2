@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
 import os
 import pathlib
 import signal
@@ -46,7 +45,7 @@ class EventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         cb = self.callbacks.get('modified')
         if cb:
-            result = cb(event=event)
+            cb(event=event)
 
     def on_moved(self, event):
         cb = self.callbacks.get('moved')

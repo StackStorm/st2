@@ -1,12 +1,23 @@
+#!/usr/bin/env python
+
+# Copyright 2020 The StackStorm Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import functools
 import os
 import pathlib
-import shutil
-import tempfile
 import time
-import unittest
-
-import mock
 
 from file_watch_sensor import SingleFileTail, TailManager
 
@@ -54,7 +65,7 @@ def _run_n_byte_character_tests(chunk_size, n, length, char):
 
 
 def test_single_file_tail_read_chunk_with_bad_utf8_character():
-    filename = f'bad_utf8_character.txt'
+    filename = 'bad_utf8_character.txt'
 
     utf8_str = '\U00088080'
     utf8_bytes = utf8_str.encode('utf-8')
@@ -73,7 +84,7 @@ def test_single_file_tail_read_chunk_with_bad_utf8_character():
 
     err = None
     try:
-        result = sft.read_chunk(fd)
+        sft.read_chunk(fd)
     except Exception as e:
         err = e
     finally:
@@ -173,7 +184,6 @@ def test_single_file_tail_not_watched_file():
 
 def test_single_file_tail_watch_nonexistent_file():
     tailed_filename = 'tailed_file.txt'
-    other_tailed_filename = f'other_{tailed_filename}'
 
     if os.path.exists(tailed_filename):
         os.unlink(tailed_filename)
