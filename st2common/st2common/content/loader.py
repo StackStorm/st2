@@ -25,6 +25,9 @@ from st2common.constants.meta import ALLOWED_EXTS
 from st2common.constants.meta import PARSER_FUNCS
 from st2common.constants.pack import MANIFEST_FILE_NAME
 
+if six.PY2:
+    from io import open
+
 __all__ = [
     'ContentPackLoader',
     'MetaLoader'

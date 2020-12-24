@@ -6,7 +6,6 @@ in development
 
 Added
 ~~~~~
-
 * Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
   Contributed by @hnanchahal
   
@@ -44,10 +43,13 @@ Fixed
 
   Contributed by @guzzijones
 
-* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106
+* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
 
 Removed
 ~~~~~~~~
+* Removed submit-debug-info tool and the st2debug component #5103
+  Contributed by @amanda11
+
 * Removed check-licence script (cleanup) #5092
 
   Contributed by @kroustou
