@@ -17,6 +17,9 @@ Added
 
 Changed
 ~~~~~~~~~
+* Updated deprecation warning for python 2 pack installs, following python 2 support removal. #5099
+  Contributed by @amanda11
+
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
@@ -25,18 +28,34 @@ Changed
 
   Contributed by @hnanchahal
 
+* Upgraded cryptography version to 3.2 to avoid CVE-2020-25659 (security) #5095
+
 Fixed
 ~~~~~~~~~
+* Pin chardet version as newest version was incompatible with pinned requests version #5101
+  Contributed by @amanda11
+
+* Fixed issue were st2tests was not getting installed using pip because no version was specified.
+  Contributed by @anirudhbagri
+  
 * Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
 * Fix nginx buffering long polling stream to client.  Instead of waiting for closed connection
   wait for final event to be sent to client. (bug fix) #4842  #5042
 
   Contributed by @guzzijones
 
+* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
+
 Removed
 ~~~~~~~~
+* Removed submit-debug-info tool and the st2debug component #5103
+  Contributed by @amanda11
+
 * Removed check-licence script (cleanup) #5092
   Contributed by @kroustou
+* Updated Makefile and CI to use Python 3 only, removing Python 2 (cleanup) #5090
+
+  Contributed by @blag
 
 3.3.0 - October 06, 2020
 ------------------------
