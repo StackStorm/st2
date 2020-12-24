@@ -472,25 +472,6 @@ def register_opts(ignore_errors=False):
 
     do_register_opts(coord_opts, 'coordination', ignore_errors)
 
-    # Results Tracker query module options
-    # Note that these are currently not used
-    query_opts = [
-        cfg.IntOpt(
-            'thread_pool_size', default=10,
-            help='Number of threads to use to query external workflow systems.'),
-        cfg.FloatOpt(
-            'query_interval', default=5,
-            help='Time interval between queries to external workflow system.'),
-        cfg.FloatOpt(
-            'empty_q_sleep_time', default=1,
-            help='Sleep delay in between queries when query queue is empty.'),
-        cfg.FloatOpt(
-            'no_workers_sleep_time', default=1,
-            help='Sleep delay for query when there is no more worker in pool.')
-    ]
-
-    do_register_opts(query_opts, group='resultstracker', ignore_errors=ignore_errors)
-
     # XXX: This is required for us to support deprecated config group results_tracker
     query_opts = [
         cfg.IntOpt(
