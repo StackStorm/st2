@@ -304,7 +304,6 @@ function st2start(){
         "${RUNNER_SCREENS[@]}"
         "st2-sensorcontainer"
         "st2-rulesengine"
-        "st2-resultstracker"
         "st2-notifier"
         "st2-auth"
         "st2-timersengine"
