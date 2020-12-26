@@ -3,8 +3,6 @@ name: ci
 on:
   push:
     branches: ['*']
-    tags:
-      - v*
   pull_request:
     type: [opened, reopened, edited]
   schedule:
