@@ -211,8 +211,8 @@ class PackInstallCommand(PackAsyncCommand):
             self._get_content_counts_for_pack(args, **kwargs)
 
         if args.python3:
-            print('\nDEPRECATION WARNING: --python3 flag is ignored and will be removed '
-                  'in v3.5.0 as StackStorm now runs with python3 only\n')
+            warnings.warn('\nDEPRECATION WARNING: --python3 flag is ignored and will be removed '
+                          'in v3.5.0 as StackStorm now runs with python3 only\n')
 
         return self.manager.install(args.packs, force=args.force,
                                     skip_dependencies=args.skip_dependencies, **kwargs)
