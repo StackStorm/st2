@@ -27,7 +27,6 @@ import stat
 import re
 
 import six
-from oslo_config import cfg
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject
 from lockfile import LockFile

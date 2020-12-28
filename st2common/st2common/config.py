@@ -19,7 +19,6 @@ import socket
 import sys
 
 from oslo_config import cfg
-from distutils.spawn import find_executable
 
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH

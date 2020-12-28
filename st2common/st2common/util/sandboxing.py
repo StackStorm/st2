@@ -22,13 +22,11 @@ from __future__ import absolute_import
 
 import os
 import sys
-import fnmatch
 from distutils.sysconfig import get_python_lib
 
 from oslo_config import cfg
 
 from st2common.constants.pack import SYSTEM_PACK_NAMES
-from st2common.content.utils import get_pack_base_path
 
 __all__ = [
     'get_sandbox_python_binary_path',
@@ -134,14 +132,9 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
     Same as get_sandbox_python_path() function, but it's intended to be used for Python runner
     actions.
     """
-    sandbox_python_path = get_sandbox_python_path(
+    return get_sandbox_python_path(
         inherit_from_parent=inherit_from_parent,
         inherit_parent_virtualenv=inherit_parent_virtualenv)
-
-    pack_base_path = get_pack_base_path(pack_name=pack)
-    virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
-
-    return sandbox_python_path
 
 
 def get_sandbox_virtualenv_path(pack):
