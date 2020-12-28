@@ -189,6 +189,10 @@ class PackInstallCommand(PackAsyncCommand):
                                  metavar='pack',
                                  help='Name of the %s in Exchange, or a git repo URL.' %
                                  resource.get_plural_display_name().lower())
+        self.parser.add_argument('--python3',
+                                 action='store_true',
+                                 default=False,
+                                 help='Use Python 3 binary for pack virtual environment.')
         self.parser.add_argument('--force',
                                  action='store_true',
                                  default=False,
@@ -205,6 +209,9 @@ class PackInstallCommand(PackAsyncCommand):
         # This information is already exposed via st2 pack show ${pack_name} -j
         if not is_structured_output:
             self._get_content_counts_for_pack(args, **kwargs)
+
+        if args.python3:
+            print('\nDEPRECATION WARNING: --python3 flag will be ignored, as ST2 now runs with python3 as the default on all OS\n')
 
         return self.manager.install(args.packs, force=args.force,
                                     skip_dependencies=args.skip_dependencies, **kwargs)
