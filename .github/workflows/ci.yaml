@@ -71,15 +71,6 @@ jobs:
       # Name of the user who is running the CI (on GitHub Actions this is 'runner')
       ST2_CI_USER: 'runner'
     steps:
-      - name: CI Run Start Slack Notification
-        id: stackstorm_community_slack
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: ghci-integration
-          status: STARTING
-          color: warning
       - name: Custom Environment Setup
         # built-in GitHub Actions environment variables
         # https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables
@@ -181,17 +172,7 @@ jobs:
         run: |
           ./scripts/travis/submit-codecov-coverage.sh
       - name: CI Run Success Slack Notification
-        if: success()
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: ghci-integration
-          message_id: ${{ steps.stackstorm_community_slack.outputs.message_id }}
-          status: SUCCESS
-          color: good
-      - name: CI Run Success Slack Notification
-        if: failure()
+        if: ${{ failure() && github.ref == 'refs/head/master'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
