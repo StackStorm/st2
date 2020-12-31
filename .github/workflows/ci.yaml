@@ -71,7 +71,7 @@ jobs:
       # Name of the user who is running the CI (on GitHub Actions this is 'runner')
       ST2_CI_USER: 'runner'
     outputs:
-      job_status: "{{ job.status }}"
+      job_status: "${{ job.status }}"
     steps:
       - name: Custom Environment Setup
         # built-in GitHub Actions environment variables
@@ -180,7 +180,7 @@ jobs:
     steps:
       - name: CI Run Failure Slack Notification
         #if: ${{ success() && github.ref == 'refs/pull/1/merge' }}
-        if: "needs.ci.outputs.job_status=='success'"
+        if: ${{ always() && needs.ci.outputs.job_status=='success'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         uses: 8398a7/action-slack@v3
