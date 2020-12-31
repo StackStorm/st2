@@ -172,15 +172,14 @@ jobs:
         run: |
           ./scripts/travis/submit-codecov-coverage.sh
       - name: CI Run Failure Slack Notification
-        if: ${{ failure() && github.ref == 'refs/heads/master' }}
+        if: ${{ success() && github.ref == 'refs/pull/1/merge' }}
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: 8398a7/action-slack@v3
         with:
           channel: ghci-integration
-          message_id: ${{ steps.stackstorm_community_slack.outputs.message_id }}
-          status: FAILED
-          color: danger
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          status: ${{ job.status }}
 
       # HELPER FOR FUTURE DEVELOPERS:
       #  If your GitHub Actions job is failing and you need to debug it, by default there is
