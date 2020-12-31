@@ -70,6 +70,8 @@ jobs:
 
       # Name of the user who is running the CI (on GitHub Actions this is 'runner')
       ST2_CI_USER: 'runner'
+    outputs:
+      job_status: "{{ job.status }}"
     steps:
       - name: Custom Environment Setup
         # built-in GitHub Actions environment variables
@@ -171,9 +173,14 @@ jobs:
         if: "${{ success() && ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
         run: |
           ./scripts/travis/submit-codecov-coverage.sh
+  slack-notification:
+    name: Slack notification for failed master builds
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
       - name: CI Run Failure Slack Notification
-        needs: [ 'ci-checks', 'ci-compile', 'ci-packs-tests', 'ci-unit' ]
-        if: ${{ success() && github.ref == 'refs/pull/1/merge' }}
+        #if: ${{ success() && github.ref == 'refs/pull/1/merge' }}
+        if: "needs.ci.outputs.job_status=='success'"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         uses: 8398a7/action-slack@v3
