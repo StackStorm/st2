@@ -172,6 +172,7 @@ jobs:
         run: |
           ./scripts/travis/submit-codecov-coverage.sh
       - name: CI Run Failure Slack Notification
+        needs: [ 'ci-checks', 'ci-compile', 'ci-packs-tests', 'ci-unit' ]
         if: ${{ success() && github.ref == 'refs/pull/1/merge' }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
