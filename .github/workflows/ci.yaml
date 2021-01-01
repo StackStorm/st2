@@ -179,6 +179,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Workflow conclusion
+        if: always()
         # this creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
         uses: technote-space/workflow-conclusion-action@v2
       - name: CI Run Failure Slack Notification
