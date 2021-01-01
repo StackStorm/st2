@@ -178,6 +178,9 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     steps:
+      - name: Print ci job status
+        run:
+          echo ${{ jobs.ci.outputs.job_status }}
       - name: CI Run Failure Slack Notification
         #if: ${{ success() && github.ref == 'refs/pull/1/merge' }}
         if: ${{ needs.ci.outputs.job_status=='failure' }}
