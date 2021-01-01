@@ -26,9 +26,9 @@ jobs:
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
             python-version: '3.6'
-          #- name: 'Unit Tests'
-          #  task: 'ci-unit'
-          #  python-version: '3.6'
+          - name: 'Unit Tests'
+            task: 'ci-unit'
+            python-version: '3.6'
           # Integration tests are not working yet, still done in Travis
           # - name: 'Integration Tests'
           #   task: 'ci-integration'
@@ -70,8 +70,6 @@ jobs:
 
       # Name of the user who is running the CI (on GitHub Actions this is 'runner')
       ST2_CI_USER: 'runner'
-    outputs:
-      job_status: "${{ job.status }}"
     steps:
       - name: Custom Environment Setup
         # built-in GitHub Actions environment variables
@@ -180,11 +178,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Workflow conclusion
-        # this creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
+        # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
         uses: technote-space/workflow-conclusion-action@v2
       - name: CI Run Failure Slack Notification
-        #if: ${{ success() && github.ref == 'refs/pull/1/merge' }}
-        if: env.WORKFLOW_CONCLUSION == 'failure'
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.ref == 'refs/pull/1/merge' }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         uses: 8398a7/action-slack@v3
