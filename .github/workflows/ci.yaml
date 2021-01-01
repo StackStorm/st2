@@ -178,19 +178,19 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     steps:
-      - name: Print ci job status
-        run:
-          echo ${{ jobs.ci.outputs.job_status }}
+      - name: Workflow conclusion
+        # this creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
+        uses: technote-space/workflow-conclusion-action@v2
       - name: CI Run Failure Slack Notification
         #if: ${{ success() && github.ref == 'refs/pull/1/merge' }}
-        if: ${{ needs.ci.outputs.job_status=='failure' }}
+        if: env.WORKFLOW_CONCLUSION == 'failure'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         uses: 8398a7/action-slack@v3
         with:
           channel: ghci-integration
           fields: repo,message,commit,author,action,workflow
-          status: ${{ needs.ci.outputs.job_status }}
+          status: failure
 
       # HELPER FOR FUTURE DEVELOPERS:
       #  If your GitHub Actions job is failing and you need to debug it, by default there is
