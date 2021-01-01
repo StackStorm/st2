@@ -42,7 +42,7 @@ class ActionDBUtilsTestCase(DbTestCase):
     liveaction_db = None
 
     @classmethod
-    def setUpClass(cls) :
+    def setUpClass(cls):
         super(ActionDBUtilsTestCase, cls).setUpClass()
         ActionDBUtilsTestCase._setup_test_models()
 
