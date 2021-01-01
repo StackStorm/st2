@@ -175,11 +175,11 @@ jobs:
           ./scripts/travis/submit-codecov-coverage.sh
   slack-notification:
     name: Slack notification for failed master builds
+    if: always()
     needs: ci
     runs-on: ubuntu-latest
     steps:
       - name: Workflow conclusion
-        if: always()
         # this creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
         uses: technote-space/workflow-conclusion-action@v2
       - name: CI Run Failure Slack Notification
