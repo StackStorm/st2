@@ -3,8 +3,6 @@ name: ci
 on:
   push:
     branches: ['*']
-    tags:
-      - v*
   pull_request:
     type: [opened, reopened, edited]
   schedule:
@@ -183,12 +181,12 @@ jobs:
         # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
         uses: technote-space/workflow-conclusion-action@v2
       - name: CI Run Failure Slack Notification
-        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.ref == 'refs/heads/master' }}
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.ref == 'refs/pull/1/merge' }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         uses: 8398a7/action-slack@v3
         with:
-          channel: development
+          channel: ghci-integration
           fields: repo,message,commit,author,action,workflow
           status: failure
 
