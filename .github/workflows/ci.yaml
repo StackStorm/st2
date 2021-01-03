@@ -183,12 +183,12 @@ jobs:
       - name: CI Run Failure Slack Notification
         if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.ref == 'refs/pull/1/merge' }}
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        uses: 8398a7/action-slack@v3
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel: ghci-integration
-          fields: repo,message,commit,author,action,workflow
-          status: failure
+          status: FAILED
+          color: danger
 
       # HELPER FOR FUTURE DEVELOPERS:
       #  If your GitHub Actions job is failing and you need to debug it, by default there is
