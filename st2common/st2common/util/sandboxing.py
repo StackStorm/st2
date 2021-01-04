@@ -114,7 +114,7 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
     if inherit_from_parent:
         sandbox_python_path.extend(parent_python_path)
 
-    if inherit_parent_virtualenv and hasattr(sys, 'real_prefix'):
+    if inherit_parent_virtualenv and is_in_virtualenv():
         # We are running inside virtualenv
         site_packages_dir = get_python_lib()
 
@@ -241,3 +241,47 @@ def get_sandbox_virtualenv_path(pack):
         virtualenv_path = os.path.join(system_base_path, 'virtualenvs', pack)
 
     return virtualenv_path
+
+
+def is_in_virtualenv():
+    """
+    :return: True if we are currently in a virtualenv, else False
+    :rtype: ``Boolean``
+    """
+    # sys.real_prefix is for virtualenv
+    # sys.base_prefix != sys.prefix is for venv
+    return (hasattr(sys, 'real_prefix') or
+            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))
+
+
+def get_virtualenv_prefix():
+    """
+    :return: Returns a tuple where the first element is the name of the attribute
+             where we retrieved the virtualenv prefix from. The second element is
+             the virtualenv prefix.
+    """
+    if hasattr(sys, 'real_prefix'):
+        return ('sys.real_prefix', sys.real_prefix)
+    elif hasattr(sys, 'base_prefix'):
+        return ('sys.base_prefix', sys.base_prefix)
+    return (None, None)
+
+
+def set_virtualenv_prefix(prefix_tuple):
+    """
+    :return: Sets the virtualenv prefix given a tuple returned from get_virtualenv_prefix()
+    """
+    if prefix_tuple[0] == 'sys.real_prefix' and hasattr(sys, 'real_prefix'):
+        sys.real_prefix = prefix_tuple[1]
+    elif prefix_tuple[0] == 'sys.base_prefix' and hasattr(sys, 'base_prefix'):
+        sys.base_prefix = prefix_tuple[1]
+
+
+def clear_virtualenv_prefix():
+    """
+    :return: Unsets / removes / resets the virtualenv prefix
+    """
+    if hasattr(sys, 'real_prefix'):
+        del sys.real_prefix
+    if hasattr(sys, 'base_prefix'):
+        sys.base_prefix = sys.prefix

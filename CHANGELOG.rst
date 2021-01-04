@@ -4,10 +4,56 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
+  Contributed by @hnanchahal
+  
+* Added notification support for err-stackstorm. (new feature) #5051
+
+* Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
+  Contributed by @hnanchahal
+
 Changed
 ~~~~~~~~~
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
+
+* Added timeout parameter for packs.install action to help with long running installs that exceed the 
+  default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
+
+  Contributed by @hnanchahal
+
+* Upgraded cryptography version to 3.2 to avoid CVE-2020-25659 (security) #5095
+
+* Converted most CI jobs from Travis to GitHub Actions (all except Integration tests).
+
+  Contributed by @nmaludy
+
+Fixed
+~~~~~~~~~
+* Pin chardet version as newest version was incompatible with pinned requests version #5101
+  Contributed by @amanda11
+
+* Fixed issue were st2tests was not getting installed using pip because no version was specified.
+  Contributed by @anirudhbagri
+  
+* Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
+* Fix nginx buffering long polling stream to client.  Instead of waiting for closed connection
+  wait for final event to be sent to client. (bug fix) #4842  #5042
+
+  Contributed by @guzzijones
+
+* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106
+
+Removed
+~~~~~~~~
+* Removed check-licence script (cleanup) #5092
+  Contributed by @kroustou
+* Updated Makefile and CI to use Python 3 only, removing Python 2 (cleanup) #5090
+
+  Contributed by @blag
 
 3.3.0 - October 06, 2020
 ------------------------
@@ -35,10 +81,9 @@ Added
   Python 2. (new feature) #5043
 
   Contributed by @amanda11
-* Added deprecation warning to st2ctl, if st2 python version is Python 2. (new feature) #5044 
+* Added deprecation warning to st2ctl, if st2 python version is Python 2. (new feature) #5044
 
   Contributed by @amanda11
-
 
 Changed
 ~~~~~~~
@@ -90,7 +135,7 @@ Fixed
   (bug fix) #4993
 
 * Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
-  
+
   Contributed by @punkrokk
 * Fixed bug where action information in RuleDB object was not being parsed properly
   because mongoengine EmbeddedDocument objects were added to JSON_UNFRIENDLY_TYPES and skipped.
@@ -129,7 +174,7 @@ Removed
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 * Removed our fork of ``codecov-python`` for CI and have switched back to the upstream version (improvement) #5002
-  
+
 3.2.0 - April 27, 2020
 ----------------------
 

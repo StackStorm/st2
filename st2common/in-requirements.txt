@@ -1,4 +1,4 @@
-# Remeber to list implicit packages here, otherwise version won't be fixated!
+# Remember to list implicit packages here, otherwise version won't be fixated!
 apscheduler
 dnspython
 python-dateutil
@@ -11,6 +11,7 @@ kombu
 mongoengine
 networkx
 git+https://github.com/StackStorm/orquesta.git@v1.2.0#egg=orquesta
+git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backend
 oslo.config
 paramiko
 pyyaml
@@ -37,3 +38,5 @@ amqp
 # Used by st2-pack-* commands
 gitpython
 lockfile
+# needed by requests
+chardet

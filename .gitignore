@@ -30,8 +30,8 @@ virtualenv-components
 virtualenv-components-osx
 .venv-st2devbox
 
-# generated travis conf
-conf/st2.travis.conf
+# generated GitHub Actions conf
+conf/st2.githubactions.conf
 
 # Installer logs
 pip-log.txt

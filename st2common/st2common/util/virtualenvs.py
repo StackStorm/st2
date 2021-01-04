@@ -160,6 +160,7 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
     python3_binary = cfg.CONF.actionrunner.python3_binary
     virtualenv_binary = cfg.CONF.actionrunner.virtualenv_binary
     virtualenv_opts = cfg.CONF.actionrunner.virtualenv_opts or []
+    virtualenv_opts += ['--verbose']
 
     if not os.path.isfile(python_binary):
         raise Exception('Python binary "%s" doesn\'t exist' % (python_binary))
@@ -200,14 +201,14 @@ def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_se
     logger.debug('Running command "%s" to create virtualenv.', ' '.join(cmd))
 
     try:
-        exit_code, _, stderr = run_command(cmd=cmd)
+        exit_code, stdout, stderr = run_command(cmd=cmd)
     except OSError as e:
         raise Exception('Error executing command %s. %s.' % (' '.join(cmd),
                                                              six.text_type(e)))
 
     if exit_code != 0:
-        raise Exception('Failed to create virtualenv in "%s": %s' %
-                        (virtualenv_path, stderr))
+        raise Exception('Failed to create virtualenv in "%s":\n stdout=%s\n stderr=%s' %
+                        (virtualenv_path, stdout, stderr))
 
     return True
 
