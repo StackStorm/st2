@@ -48,8 +48,10 @@ Fixed
 
 Removed
 ~~~~~~~~
-* Removed submit-debug-info tool and the st2debug component #5103
+* Removed --python3 pack install option  #5100
   Contributed by @amanda11
+
+* Removed submit-debug-info tool and the st2debug component #5103
 
 * Removed check-licence script (cleanup) #5092
   Contributed by @kroustou
