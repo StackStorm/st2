@@ -188,7 +188,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: ghci-integration
+          channel: development
           status: FAILED
           color: danger
 
