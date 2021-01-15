@@ -173,6 +173,24 @@ jobs:
         if: "${{ success() && ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
         run: |
           ./scripts/travis/submit-codecov-coverage.sh
+  slack-notification:
+    name: Slack notification for failed master builds
+    if: always()
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow conclusion
+        # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
+        uses: technote-space/workflow-conclusion-action@v2
+      - name: CI Run Failure Slack Notification
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.ref == 'refs/heads/master' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: development
+          status: FAILED
+          color: danger
 
       # HELPER FOR FUTURE DEVELOPERS:
       #  If your GitHub Actions job is failing and you need to debug it, by default there is
