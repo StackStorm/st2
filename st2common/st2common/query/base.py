@@ -51,9 +51,6 @@ class Querier(object):
             LOG.warning('You are using deprecated config group "results_tracker" for "%s". '
                         'Please use "resultstracker" group instead.', config_option)
 
-        if not config_value and config_option in cfg.CONF.resultstracker:
-            config_value = getattr(cfg.CONF.resultstracker, config_option)
-
         return config_value
 
     def __init__(self):
