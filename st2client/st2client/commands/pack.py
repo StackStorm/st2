@@ -19,6 +19,7 @@ import sys
 
 import six
 import editor
+import warnings
 import yaml
 
 from st2client.models import Config
@@ -210,7 +211,11 @@ class PackInstallCommand(PackAsyncCommand):
         if not is_structured_output:
             self._get_content_counts_for_pack(args, **kwargs)
 
-        return self.manager.install(args.packs, python3=args.python3, force=args.force,
+        if args.python3:
+            warnings.warn('DEPRECATION WARNING: --python3 flag is ignored and will be removed '
+                          'in v3.5.0 as StackStorm now runs with python3 only')
+
+        return self.manager.install(args.packs, force=args.force,
                                     skip_dependencies=args.skip_dependencies, **kwargs)
 
     def _get_content_counts_for_pack(self, args, **kwargs):
