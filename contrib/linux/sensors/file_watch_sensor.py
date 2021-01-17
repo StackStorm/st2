@@ -30,6 +30,12 @@ except ImportError:
 
 
 class EventHandler(FileSystemEventHandler):
+    """
+    A class to track and route different events to event handlers/callbacks for
+    files. This allows this EventHandler class to be used for watches on
+    individual files, since the directory events will include events for
+    individual files.
+    """
     def __init__(self, *args, callbacks=None, **kwargs):
         self.callbacks = callbacks or {}
 
@@ -59,6 +65,36 @@ class EventHandler(FileSystemEventHandler):
 
 
 class SingleFileTail(object):
+    """
+    A class to tail a single file, also handling emitting events when the
+    watched file is created, truncated, or moved.
+
+    If follow is False (the default), then the watch will be removed when the
+    file is moved, and recreated if/when the file is recreated (with read_all
+    set to True so each line in the recreated file is handled). This mode
+    should be useful for logs that are rotated regularly.
+
+    If follow is True, then the cursor position for the old file location will
+    be saved, the watch for the old file location will be removed, a new watch
+    for the new file location will be created, and only new lines added after
+    the previous cursor position will be handled. This mode should be useful
+    for user files that may be moved or renamed as they are being edited.
+
+    If read_all is False (the default), then the file cursor will be set to the
+    end of the file and only new lines added after the watch is created will be
+    handled. This should be useful when you are only interested in lines that
+    are added to an already existing file while it is watched and you are not
+    interested in the contents of the file before it is watched.
+
+    If read_all is True, then each line in the file, starting from the
+    beginning of the file, is handled. This should be useful when you wish to
+    fully process a file once it is created.
+
+    Note that while the watch events are serialized in a queue, this code does
+    not attempt to serialize its own file access with locks, so a situation
+    where one file is quickly created and/or updated may trigger race
+    conditions and therefore unpredictable behavior.
+    """
     def __init__(self, path, handler, follow=False, read_all=False, observer=None, fd=None):
         self._path = None
         self.fd = fd
