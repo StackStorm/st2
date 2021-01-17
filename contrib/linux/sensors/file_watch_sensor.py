@@ -20,7 +20,6 @@ import signal
 import time
 import sys
 
-import eventlet
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -375,7 +374,7 @@ class FileWatchSensor(Sensor):
         self.tail_manager.run()
         while not self._stop:
             self.logger.debug("Sleeping for 60")
-            eventlet.sleep(60)
+            time.sleep(60)
 
     def cleanup(self):
         self.logger.debug("Cleaning up FileWatchSensor")
