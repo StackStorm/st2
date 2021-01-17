@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 import pathlib
 import signal
@@ -95,7 +96,11 @@ class SingleFileTail(object):
     where one file is quickly created and/or updated may trigger race
     conditions and therefore unpredictable behavior.
     """
-    def __init__(self, path, handler, follow=False, read_all=False, observer=None, fd=None):
+    def __init__(self, path, handler, follow=False, read_all=False,
+                 observer=None, logger=None, fd=None):
+        if logger is None:
+            raise Exception("SingleFileTail was initialized without a logger")
+
         self._path = None
         self.fd = fd
         self.handler = handler
@@ -103,6 +108,7 @@ class SingleFileTail(object):
         self.read_all = read_all
         self.buffer = ''
         self.observer = observer or Observer()
+        self.logger = logger
         self.watch = None
         self.parent_watch = None
 
@@ -115,6 +121,7 @@ class SingleFileTail(object):
 
     # Set all of these when the path updates
     def set_path(self, new_path):
+        self.logger.debug(f"Setting path to {new_path}")
         self._path = pathlib.Path(new_path)
         self.parent_dir = self.get_parent_path(self._path)
         self.abs_path = (self.parent_dir / self._path).resolve()
@@ -131,11 +138,14 @@ class SingleFileTail(object):
         return (pathlib.Path.cwd() / pathlib.Path(event.src_path)).resolve()
 
     def read_chunk(self, fd, chunk_size=1024):
+        self.logger.debug("Reading chunk")
         # Buffer 1024 bytes at a time
         try:
             buffer = os.read(fd, chunk_size)
         except (OSError, FileNotFoundError):
             buffer = b""
+        else:
+            self.logger.debug("Read chunk")
 
         # If the 1024 bytes cuts the line off in the middle of a multi-byte
         # utf-8 character then decoding will raise an UnicodeDecodeError.
@@ -146,6 +156,7 @@ class SingleFileTail(object):
             # e.start is the first byte of the decoding issue
             first_byte_of_partial_character = buffer[e.start]
             number_of_bytes_read_so_far = e.end - e.start
+            self.logger.debug(f"Read {number_of_bytes_read_so_far}")
 
             # Try to read the remainder of the character
             # You could replace these conditionals with bit math, but that's a
@@ -163,6 +174,7 @@ class SingleFileTail(object):
 
             number_of_bytes_to_read = char_length - number_of_bytes_read_so_far
 
+            self.logger.debug(f"Reading {number_of_bytes_to_read} more bytes")
             buff = os.read(fd, number_of_bytes_to_read)
             if len(buff) == number_of_bytes_to_read:
                 buffer += buff
@@ -175,6 +187,7 @@ class SingleFileTail(object):
             return buffer
 
     def read(self, event=None):
+        self.logger.debug("Reading file")
         while True:
             # Read a chunk of bytes
             buff = self.read_chunk(self.fd)
@@ -184,26 +197,31 @@ class SingleFileTail(object):
 
             # Append to previous buffer
             if self.buffer:
+                self.logger.debug(f"Appending to existing buffer: '{self.buffer}'")
                 buff = self.buffer + buff
                 self.buffer = ''
 
             lines = buff.splitlines(True)
             # If the last character of the last line is not a newline
             if lines and lines[-1] and lines[-1][-1] != '\n':  # Incomplete line in the buffer
+                self.logger.debug(f"Saving partial line in the buffer: '{lines[-1]}'")
                 self.buffer = lines[-1]  # Save the last line fragment
                 lines = lines[:-1]
 
             for line in lines:
+                self.logger.debug(f"Passing line to callback: '{line[:-1]}'")
                 self.handler(self.path, line[:-1])
 
     def reopen_and_read(self, event=None, skip_to_end=False):
         # Directory watches will fire events for unrelated files
         # Ignore all events except those for our path
         if event and self.get_event_src_path(event) != self.abs_path:
+            self.logger.debug(f"Ignoring event for non-tracked file: '{event.src_path}'")
             return
 
         # Save our current position into the file (this is a little wonky)
         pos = os.lseek(self.fd, 0, os.SEEK_CUR)
+        self.logger.debug(f"Saving position ({pos}) into file {self.abs_path}")
 
         # The file was moved and not recreated
         # If we're following the file, don't emit the remainder of the last
@@ -226,6 +244,7 @@ class SingleFileTail(object):
         # Directory watches will fire events for unrelated files
         # Ignore all events except those for our path
         if event and self.get_event_src_path(event) != self.abs_path:
+            self.logger.debug(f"Ignoring event for non-tailed file: '{event.src_path}'")
             return
 
         self.read_all = True
@@ -236,19 +255,23 @@ class SingleFileTail(object):
     def open(self, event=None, seek_to=None):
         # Use self.watch as a guard
         if not self.watch:
+            self.logger.debug(f"Opening file '{self.path}'")
             try:
                 self.stat = os.stat(self.path)
             except FileNotFoundError:
                 # If the file doesn't exist when we are asked to monitor it, set
                 # this flag so we read it all if/when it does appear
+                self.logger.debug("File does not yet exist, setting read_all=True")
                 self.read_all = True
             else:
                 self.fd = os.open(self.path, os.O_RDONLY | os.O_NONBLOCK)
 
                 if self.read_all or seek_to == 'start':
+                    self.logger.debug("Seeking to start")
                     os.lseek(self.fd, 0, os.SEEK_SET)
 
                 if not self.read_all or seek_to == 'end':
+                    self.logger.debug("Seeking to end")
                     os.lseek(self.fd, 0, os.SEEK_END)
 
                 file_event_handler = EventHandler(callbacks={
@@ -258,43 +281,58 @@ class SingleFileTail(object):
                     'moved': self.reopen_and_read,
                 })
 
+                self.logger.debug(f"Scheduling watch on file: '{self.path}'")
                 self.watch = self.observer.schedule(file_event_handler, self.path)
+                self.logger.debug(f"Scheduled watch on file: '{self.path}'")
 
         # Avoid watching this twice
+        self.logger.debug(f"Parent watch: {self.parent_watch}")
         if not self.parent_watch:
             dir_event_handler = EventHandler(callbacks={
                 'created': self.open_and_read,
                 'moved': self.reopen_and_read,
             })
 
+            self.logger.debug(f"Scheduling watch on parent directory: '{self.parent_dir}'")
             self.parent_watch = self.observer.schedule(dir_event_handler, self.parent_dir)
+            self.logger.debug(f"Scheduled watch on parent directory: '{self.parent_dir}'")
 
     def close(self, event=None, emit_remaining=True):
+        self.logger.debug(f"Closing single file tail on '{self.path}'")
         # Reset the guard
         if self.buffer and emit_remaining:
+            self.logger.debug(f"Emitting remaining partial line: '{self.buffer}'")
             self.handler(self.path, self.buffer)
             self.buffer = ''
         if self.fd:
             os.close(self.fd)
             self.fd = None
         if self.watch:
+            self.logger.debug(f"Unscheduling file watch: {self._path}")
             self.observer.unschedule(self.watch)
             self.watch = None
 
 
 class TailManager(object):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, logger=None, **kwargs):
+        if logger is None:
+            raise Exception("TailManager was initialized without a logger")
+
+        self.logger = logger
         self.tails = {}
         self.observer = Observer()
 
     def tail_file(self, path, handler, follow=False, read_all=False):
         if handler not in self.tails.setdefault(path, {}):
+            self.logger.debug(f"Tailing single file: {path}")
             sft = SingleFileTail(path, handler,
                                  follow=follow, read_all=read_all,
-                                 observer=self.observer)
+                                 observer=self.observer,
+                                 logger=self.logger)
             self.tails[path][handler] = sft
 
     def stop_tailing_file(self, path, handler):
+        self.logger.debug(f"Stopping tail on {path}")
         tailed_file = self.tails.get(path, {}).pop(handler)
         tailed_file.close()
         # Amortize some cleanup while we're at it
@@ -302,6 +340,7 @@ class TailManager(object):
             self.tails.pop(path)
 
     def run(self):
+        self.logger.debug("Running TailManager")
         self.start()
         try:
             while True:
@@ -310,9 +349,11 @@ class TailManager(object):
             self.stop()
 
     def start(self):
+        self.logger.debug("Starting TailManager")
         self.observer.start()
 
     def stop(self):
+        self.logger.debug("Stopping TailManager")
         for handlers in self.tails.values():
             for tailed_file in handlers.values():
                 tailed_file.close()
@@ -321,21 +362,23 @@ class TailManager(object):
 
 
 class FileWatchSensor(Sensor):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, logger=None, **kwargs):
         super().__init__(*args, **kwargs)
         self._stop = False
         self.trigger = None
-        self.logger = self.sensor_service.get_logger(__name__)
+        self.logger = logger or self.sensor_service.get_logger(__name__)
 
     def setup(self):
-        self.tail_manager = TailManager()
+        self.tail_manager = TailManager(logger=self.logger)
 
     def run(self):
         self.tail_manager.run()
         while not self._stop:
+            self.logger.debug("Sleeping for 60")
             eventlet.sleep(60)
 
     def cleanup(self):
+        self.logger.debug("Cleaning up FileWatchSensor")
         self._stop = True
         self.tail_manager.stop()
 
@@ -381,7 +424,8 @@ class FileWatchSensor(Sensor):
 
 
 if __name__ == '__main__':
-    tm = TailManager()
+    logger = logging.getLogger(__name__)
+    tm = TailManager(logger=logger)
     tm.tail_file(__file__, handler=print)
     tm.run()
 

@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import functools
+import logging
 import os
 import pathlib
 import time
@@ -22,6 +23,8 @@ import time
 from file_watch_sensor import SingleFileTail, TailManager
 
 WAIT_TIME = 0.1
+
+logger = logging.getLogger(__name__)
 
 
 def test_single_file_tail_read_chunk_over_multibyte_character_boundary():
@@ -51,7 +54,7 @@ def _run_n_byte_character_tests(chunk_size, n, length, char):
 
     fd = os.open(filename, os.O_RDONLY)
 
-    sft = SingleFileTail(None, None, fd=fd)
+    sft = SingleFileTail(None, None, fd=fd, logger=logger)
 
     result = sft.read_chunk(fd, chunk_size=chunk_size)
 
@@ -80,7 +83,7 @@ def test_single_file_tail_read_chunk_with_bad_utf8_character():
 
     fd = os.open(filename, os.O_RDONLY)
 
-    sft = SingleFileTail(None, None, fd=fd)
+    sft = SingleFileTail(None, None, fd=fd, logger=logger)
 
     err = None
     try:
@@ -93,6 +96,18 @@ def test_single_file_tail_read_chunk_with_bad_utf8_character():
 
         os.close(fd)
         os.unlink(filename)
+
+
+def test_single_file_tail_initialize_without_logger():
+    try:
+        SingleFileTail(None, None, fd=None)
+    except Exception as e:
+        expected_message = "SingleFileTail was initialized without a logger"
+        if hasattr(e, 'message') and e.message != expected_message:
+            raise e
+    else:
+        raise AssertionError("SingleFileTail initialized fine without a "
+                             "logger parameter")
 
 
 def test_single_file_tail_append_to_watched_file_with_absolute_path():
@@ -108,7 +123,7 @@ def test_single_file_tail_append_to_watched_file_with_absolute_path():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
@@ -142,7 +157,7 @@ def test_single_file_tail_not_watched_file():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
@@ -195,7 +210,7 @@ def test_single_file_tail_watch_nonexistent_file():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
     time.sleep(WAIT_TIME)
@@ -238,7 +253,7 @@ def test_single_file_tail_follow_watched_file_moved():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial, follow=True)
     tm.start()
 
@@ -312,7 +327,7 @@ def test_single_file_tail_not_followed_watched_file_moved():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial, follow=False)
     tm.start()
 
@@ -395,7 +410,7 @@ def test_single_file_tail_non_watched_file_moved():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
@@ -435,13 +450,25 @@ def test_single_file_tail_watched_file_deleted():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
     os.unlink(tailed_filename)
 
     tm.stop()
+
+
+def test_tail_manager_initialized_without_logger():
+    try:
+        TailManager()
+    except Exception as e:
+        expected_message = "TailManager was initialized without a logger"
+        if hasattr(e, 'message') and e.message != expected_message:
+            raise e
+    else:
+        raise AssertionError("TailManager initialized fine without a "
+                             "logger parameter")
 
 
 def test_tail_manager_append_to_watched_file():
@@ -457,7 +484,7 @@ def test_tail_manager_append_to_watched_file():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
@@ -541,7 +568,7 @@ def test_tail_manager_tail_file_twice():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
@@ -626,7 +653,7 @@ def test_tail_manager_stop():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
@@ -666,7 +693,7 @@ def test_tail_manager_stop_twice():
 
     append_to_list_partial = functools.partial(append_to_list, appended_lines)
 
-    tm = TailManager()
+    tm = TailManager(logger=logger)
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
