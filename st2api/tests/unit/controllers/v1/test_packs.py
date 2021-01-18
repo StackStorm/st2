@@ -548,6 +548,7 @@ class PacksControllerTestCase(FunctionalTest,
                                   {'packs': ['dummy_pack_1'], 'types': ['actions']})
 
         self.assertEqual(resp.status_int, 200)
+        # 13 real plus 1 mock runner
         self.assertEqual(resp.json, {'actions': 1, 'runners': 14})
 
         # Register single resource from a single pack specified multiple times - verify that
@@ -558,6 +559,7 @@ class PacksControllerTestCase(FunctionalTest,
                                    'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
+        # 13 real plus 1 mock runner
         self.assertEqual(resp.json, {'actions': 1, 'runners': 14})
 
         # Register resources from a single (non-existent pack)
