@@ -9,7 +9,6 @@ Added
 
 * Added support for GitLab SSH URLs on pack install and download actions. (improvement) #5050
   Contributed by @asthLucas
-=======
 
 * Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
   Contributed by @hnanchahal
