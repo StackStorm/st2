@@ -47,7 +47,7 @@ env:
 
     - TASK=ci-packs-tests COMMAND_THRESHOLD=300
 
-    - TASK=ci-unit COMMAND_THRESHOLD=300
+    - TASK=ci-unit COMMAND_THRESHOLD=900
 
     - TASK=ci-integration COMMAND_THRESHOLD=300
 
