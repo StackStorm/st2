@@ -507,12 +507,11 @@ class AsyncRequest(Resource):
 
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def install(self, packs, force=False, python3=False, skip_dependencies=False, **kwargs):
+    def install(self, packs, force=False, skip_dependencies=False, **kwargs):
         url = '/%s/install' % (self.resource.get_url_path_name())
         payload = {
             'packs': packs,
             'force': force,
-            'python3': python3,
             'skip_dependencies': skip_dependencies
         }
         response = self.client.post(url, payload, **kwargs)
@@ -638,6 +637,12 @@ class StreamManager(object):
         if 'api_key' in kwargs:
             query_params['st2-api-key'] = kwargs.get('api_key')
 
+        if 'end_event' in kwargs:
+            query_params['end_event'] = kwargs.get('end_event')
+
+        if 'end_execution_id' in kwargs:
+            query_params['end_execution_id'] = kwargs.get('end_execution_id')
+
         if events:
             query_params['events'] = ','.join(events)
 
@@ -655,7 +660,6 @@ class StreamManager(object):
             # can be empty. In this case, rerun the query.
             if not message.data:
                 continue
-
             yield json.loads(message.data)
 
 
