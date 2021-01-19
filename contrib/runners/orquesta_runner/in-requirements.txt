@@ -1,1 +1,2 @@
-git+https://github.com/StackStorm/orquesta.git@v1.2.0#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@update-v130#egg=orquesta
+hacking
