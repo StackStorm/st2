@@ -378,22 +378,17 @@ class TailManager(object):
 class FileWatchSensor(Sensor):
     def __init__(self, *args, logger=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self._stop = False
         self.trigger = None
         self.logger = logger or self.sensor_service.get_logger(__name__)
 
     def setup(self):
         self.tail_manager = TailManager(logger=self.logger)
+        self.tail_manager.start()
 
     def run(self):
         self.tail_manager.run()
-        while not self._stop:
-            self.logger.debug("Sleeping for 60")
-            time.sleep(60)
 
     def cleanup(self):
-        self.logger.debug("Cleaning up FileWatchSensor")
-        self._stop = True
         self.tail_manager.stop()
 
     def add_trigger(self, trigger):
@@ -410,6 +405,8 @@ class FileWatchSensor(Sensor):
 
         self.tail_manager.tail_file(file_path, self._handle_line)
         self.logger.info('Added file "%s"' % (file_path))
+
+        self.tail_manager.start()
 
     def update_trigger(self, trigger):
         pass
@@ -441,7 +438,7 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     tm = TailManager(logger=logger)
     tm.tail_file(__file__, handler=print)
-    tm.run()
+    tm.start()
 
     def halt(sig, frame):
         tm.stop()
