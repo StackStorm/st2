@@ -188,6 +188,9 @@ class ActionRunner(object):
             self.liveaction.context
         )
 
+    def post_run(self, status, result):
+        pass
+
     @deprecated
     def get_pack_name(self):
         return self.get_pack_ref()
