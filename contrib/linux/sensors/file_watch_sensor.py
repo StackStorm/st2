@@ -26,7 +26,10 @@ from watchdog.events import FileSystemEventHandler
 try:
     from st2reactor.sensor.base import Sensor
 except ImportError:
-    Sensor = object
+    class Sensor:
+        def __init__(self, *args, sensor_service=None, config=None, **kwargs):
+            self.sensor_service = sensor_service
+            self.config = config
 
 
 class EventHandler(FileSystemEventHandler):
@@ -340,12 +343,8 @@ class TailManager(object):
 
     def run(self):
         self.logger.debug("Running TailManager")
-        self.start()
-        try:
-            while True:
-                time.sleep(1)
-        finally:
-            self.stop()
+        while True:
+            time.sleep(1)
 
     def start(self):
         self.logger.debug("Starting TailManager")
