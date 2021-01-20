@@ -293,20 +293,31 @@ class SingleFileTail(object):
             self.parent_watch = self.observer.schedule(dir_event_handler, self.parent_dir)
             self.logger.debug(f"Scheduled watch on parent directory: '{self.parent_dir}'")
 
-    def close(self, event=None, emit_remaining=True):
+    def close(self, event=None, emit_remaining=True, end_parent_watch=True):
         self.logger.debug(f"Closing single file tail on '{self.path}'")
         # Reset the guard
         if self.buffer and emit_remaining:
             self.logger.debug(f"Emitting remaining partial line: '{self.buffer}'")
             self.handler(self.path, self.buffer)
             self.buffer = ''
-        if self.fd:
-            os.close(self.fd)
-            self.fd = None
+        if self.parent_watch and end_parent_watch:
+            self.logger.debug(f"Unscheduling parent directory watch: {self.parent_dir}")
+            self.observer.unschedule(self.parent_watch)
+            self.parent_watch = None
+            self.logger.debug(f"Unscheduled parent directory watch: {self.parent_dir}")
         if self.watch:
             self.logger.debug(f"Unscheduling file watch: {self._path}")
             self.observer.unschedule(self.watch)
             self.watch = None
+            self.logger.debug(f"Unscheduled file watch: {self._path}")
+        # Unscheduling a watch on a file descriptor requires a non-None fd, so
+        # we close the fd and set self.fd to None after unscheduling the file
+        # watch
+        if self.fd:
+            self.logger.debug(f"Closing file handle {self.fd}")
+            os.close(self.fd)
+            self.fd = None
+            self.logger.debug(f"Closed file handle")
 
 
 class TailManager(object):
