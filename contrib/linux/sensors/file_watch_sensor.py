@@ -331,6 +331,7 @@ class TailManager(object):
             raise Exception("TailManager was initialized without a logger")
 
         self.logger = logger
+        self.started = False
         self.tails = {}
         self.observer = Observer()
 
@@ -357,16 +358,21 @@ class TailManager(object):
             time.sleep(1)
 
     def start(self):
-        self.logger.debug("Starting TailManager")
-        self.observer.start()
+        if self.tails and not self.started:
+            self.logger.debug("Starting TailManager")
+            self.observer.start()
+            self.logger.debug(f"Started Observer, emitters: {self.observer.emitters}")
+            self.started = True
 
     def stop(self):
-        self.logger.debug("Stopping TailManager")
-        for handlers in self.tails.values():
-            for tailed_file in handlers.values():
-                tailed_file.close()
-        self.observer.stop()
-        self.observer.join()
+        if self.started:
+            self.logger.debug("Stopping TailManager")
+            for handlers in self.tails.values():
+                for tailed_file in handlers.values():
+                    tailed_file.close()
+            self.observer.stop()
+            self.observer.join()
+            self.started = False
 
 
 class FileWatchSensor(Sensor):
