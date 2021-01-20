@@ -125,19 +125,13 @@ class SingleFileTail(object):
     def set_path(self, new_path):
         self.logger.debug(f"Setting path to {new_path}")
         self._path = pathlib.Path(new_path)
-        self.parent_dir = self.get_parent_path(self._path)
-        self.abs_path = (self.parent_dir / self._path).resolve()
+        self.abs_path = self._path.absolute().resolve()
+        self.parent_dir = self.abs_path.parent
 
     path = property(get_path, set_path)
 
-    def get_parent_path(self, path):
-        if path.is_absolute():
-            return pathlib.Path(path).parent
-        else:
-            return (pathlib.Path.cwd() / path).parent
-
     def get_event_src_path(self, event):
-        return (pathlib.Path.cwd() / pathlib.Path(event.src_path)).resolve()
+        return pathlib.Path(event.src_path).absolute().resolve()
 
     def read_chunk(self, fd, chunk_size=1024):
         self.logger.debug("Reading chunk")
