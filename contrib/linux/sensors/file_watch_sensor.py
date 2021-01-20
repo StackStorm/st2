@@ -215,20 +215,25 @@ class SingleFileTail(object):
             self.logger.debug(f"Ignoring event for non-tracked file: '{event.src_path}'")
             return
 
-        # Save our current position into the file (this is a little wonky)
-        pos = os.lseek(self.fd, 0, os.SEEK_CUR)
-        self.logger.debug(f"Saving position ({pos}) into file {self.abs_path}")
+        # Guard against this being called twice - happens sometimes with inotify
+        if self.fd:
+            # Save our current position into the file (this is a little wonky)
+            pos = os.lseek(self.fd, 0, os.SEEK_CUR)
+            self.logger.debug(f"Saving position ({pos}) into file {self.abs_path}")
 
         # The file was moved and not recreated
-        # If we're following the file, don't emit the remainder of the last
-        # line
-        emit = not self.follow
-        self.close(event=event, emit_remaining=emit)
-
-        # If we aren't following then don't reopen the file
-        # When the file is created again that will be handled by open_and_read
         if not self.follow:
+            # If we aren't following then don't reopen the file
+            # When the file is created again that will be handled by
+            # open_and_read
+            # But we do make sure to keep the parent file watch around to
+            # listen to created events
+            self.close(event=event, emit_remaining=True, end_parent_watch=False)
             return
+        else:
+            # If we are following the file, don't emit the remainder of the
+            # last line
+            self.close(event=event, emit_remaining=False)
 
         # Use the file's new location
         self.path = event.dest_path
