@@ -18,708 +18,191 @@ import functools
 import logging
 import os
 import pathlib
+import sys
+import threading
 import time
 
-from file_watch_sensor import SingleFileTail, TailManager
+import eventlet
+import mock
+from file_watch_sensor import FileWatchSensor
 
-WAIT_TIME = 0.1
+WAIT_TIME = 1
 
 logger = logging.getLogger(__name__)
 
 
-def test_single_file_tail_read_chunk_over_multibyte_character_boundary():
-    wide_characters = [None, None, '\u0130', '\u2050', '\U00088080']
-    for n in range(2, 5):
-        yield from _gen_n_byte_character_tests(1024, n, wide_characters[n])
+def test_file_watch_sensor():
+    mock_sensor_service = mock.MagicMock()
+    mock_logger = mock.MagicMock()
 
-    for n in range(2, 5):
-        yield from _gen_n_byte_character_tests(2048, n, wide_characters[n])
+    filename = 'test.txt'
+    filepath = pathlib.Path(filename).absolute().resolve()
+    filepath.touch()
 
-    for n in range(2, 5):
-        yield from _gen_n_byte_character_tests(4096, n, wide_characters[n])
+    fws = FileWatchSensor(sensor_service=mock_sensor_service, config={},
+                          logger=mock_logger)
+
+    time.sleep(WAIT_TIME)
+
+    fws.setup()
+
+    time.sleep(WAIT_TIME)
+
+    # th = threading.Thread(target=fws.run)
+    th = eventlet.spawn(fws.run)
+    # th.start()
+
+    time.sleep(WAIT_TIME)
+
+    fws.add_trigger({
+        'id': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+        'pack': 'linux',
+        'name': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+        'ref': 'linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+        'uid': 'trigger:linux:asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+        'type': 'linux.file_watch.line',
+        'parameters': {
+            'file_path': filepath,
+            'follow': True,
+        },
+    })
+
+    time.sleep(WAIT_TIME)
+
+    with open(filepath, 'a') as f:
+        f.write("Added line 1\n")
+
+    time.sleep(WAIT_TIME)
+
+    with open(filepath, 'a') as f:
+        f.write("Added line 2\n")
+
+    time.sleep(WAIT_TIME)
+
+    expected_calls = [
+        mock.call(
+            trigger='linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+            payload={
+                'file_path': pathlib.PosixPath('/vagrant/contrib/linux/test.txt'),
+                'file_name': 'test.txt',
+                'line': 'Added line 1',
+            },
+        ),
+        mock.call(
+            trigger='linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+            payload={
+                'file_path': pathlib.PosixPath('/vagrant/contrib/linux/test.txt'),
+                'file_name': 'test.txt',
+                'line': 'Added line 2',
+            },
+        )
+    ]
+    mock_sensor_service.dispatch.assert_has_calls(expected_calls, any_order=False)
+    print(mock_logger.method_calls)
+    # th.join()
+
+    fws.cleanup()
+
+    os.unlink(filepath)
 
 
-def _gen_n_byte_character_tests(chunk_size, n, char):
-    for length in range(chunk_size, chunk_size + n + 1):
-        yield _run_n_byte_character_tests, chunk_size, n, length, char
+def test_file_watch_sensor_without_trigger_filepath():
+    mock_sensor_service = mock.MagicMock()
+    mock_logger = mock.MagicMock()
+
+    filename = 'test.txt'
+    filepath = pathlib.Path(filename).absolute().resolve()
+    filepath.touch()
+
+    fws = FileWatchSensor(sensor_service=mock_sensor_service, config={},
+                          logger=mock_logger)
+
+    time.sleep(WAIT_TIME)
+
+    fws.setup()
+
+    time.sleep(WAIT_TIME)
+
+    # th = threading.Thread(target=fws.run)
+    th = eventlet.spawn(fws.run)
+    # th.start()
+
+    time.sleep(WAIT_TIME)
+
+    result = fws.add_trigger({
+        'id': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+        'pack': 'linux',
+        'name': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+        'ref': 'linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+        'uid': 'trigger:linux:asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+        'type': 'linux.file_watch.line',
+        'parameters': {
+            # 'file_path': filepath,
+            'follow': True,
+        },
+    })
+
+    assert result is None
 
 
-def _run_n_byte_character_tests(chunk_size, n, length, char):
-    filename = f'chunk_boundary_{n}u_{length}.txt'
+def test_file_watch_sensor_without_trigger_ref():
+    mock_sensor_service = mock.MagicMock()
+    mock_logger = mock.MagicMock()
 
-    with open(filename, 'wb+') as f:
-        # Write out a file that is of the given length
-        # aaaaaa...aaa\x82
-        f.write(('a' * (length - n) + char).encode('utf-8'))
+    filename = 'test.txt'
+    filepath = pathlib.Path(filename).absolute().resolve()
+    filepath.touch()
 
-    fd = os.open(filename, os.O_RDONLY)
+    fws = FileWatchSensor(sensor_service=mock_sensor_service, config={},
+                          logger=mock_logger)
 
-    sft = SingleFileTail(None, None, fd=fd, logger=logger)
+    time.sleep(WAIT_TIME)
 
-    result = sft.read_chunk(fd, chunk_size=chunk_size)
+    fws.setup()
 
-    os.close(fd)
-    os.unlink(filename)
+    time.sleep(WAIT_TIME)
 
-    if length < chunk_size + n:
-        assert result == ('a' * (length - n) + char)
-    else:
-        assert result == ('a' * chunk_size)
+    # th = threading.Thread(target=fws.run)
+    th = eventlet.spawn(fws.run)
+    # th.start()
 
+    time.sleep(WAIT_TIME)
 
-def test_single_file_tail_read_chunk_with_bad_utf8_character():
-    filename = 'bad_utf8_character.txt'
-
-    utf8_str = '\U00088080'
-    utf8_bytes = utf8_str.encode('utf-8')
-    chopped_utf8_bytes = utf8_bytes[:-1]
-
-    with open(filename, 'wb+') as f:
-        # Write out a file that is of the given length
-        # aaaaaa...aaa\x82
-        f.write(b'a')
-        f.write(chopped_utf8_bytes)
-        f.write(b'a')
-
-    fd = os.open(filename, os.O_RDONLY)
-
-    sft = SingleFileTail(None, None, fd=fd, logger=logger)
-
-    err = None
     try:
-        sft.read_chunk(fd)
+        fws.add_trigger({
+            'id': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+            'pack': 'linux',
+            'name': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+            # 'ref': 'linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+            'uid': 'trigger:linux:asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+            'type': 'linux.file_watch.line',
+            'parameters': {
+                'file_path': filepath,
+                'follow': True,
+            },
+        })
     except Exception as e:
-        err = e
+        # Make sure we ignore the right exception
+        if 'did not contain a ref' not in str(e):
+            raise e
+    else:
+        raise AssertionError("FileWatchSensor.add_trigger() did not raise an "
+                             "exception when passed a trigger without a ref")
     finally:
-        assert err is not None
-        assert isinstance(err, UnicodeDecodeError)
-
-        os.close(fd)
-        os.unlink(filename)
-
-
-def test_single_file_tail_initialize_without_logger():
-    try:
-        SingleFileTail(None, None, fd=None)
-    except Exception as e:
-        expected_message = "SingleFileTail was initialized without a logger"
-        if hasattr(e, 'message') and e.message != expected_message:
-            raise e
-    else:
-        raise AssertionError("SingleFileTail initialized fine without a "
-                             "logger parameter")
-
-
-def test_single_file_tail_append_to_watched_file_with_absolute_path():
-    tailed_filename = (pathlib.Path.cwd() / pathlib.Path('tailed_file.txt')).resolve()
-    with open(tailed_filename, 'w+') as f:
-        f.write("Preexisting text line 1\n")
-        f.write("Preexisting text line 2\n")
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial)
-    tm.start()
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 1\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    tm.stop_tailing_file(tailed_filename, handler=append_to_list_partial)
-
-    tm.stop()
-
-    os.unlink(tailed_filename)
-
-
-def test_single_file_tail_not_watched_file():
-    tailed_filename = 'tailed_file.txt'
-    not_tailed_filename = 'not_tailed_file.txt'
-    new_not_tailed_filename = not_tailed_filename.replace('.txt', '_moved.txt')
-    with open(tailed_filename, 'w+') as f:
-        f.write("Preexisting text line 1\n")
-        f.write("Preexisting text line 2\n")
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial)
-    tm.start()
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 1\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    with open(not_tailed_filename, 'a+') as f:
-        f.write("Added line 1 - not tailed\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    os.replace(not_tailed_filename, new_not_tailed_filename)
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    tm.stop_tailing_file(tailed_filename, handler=append_to_list_partial)
-
-    tm.stop()
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    os.unlink(tailed_filename)
-    os.unlink(new_not_tailed_filename)
-
-
-def test_single_file_tail_watch_nonexistent_file():
-    tailed_filename = 'tailed_file.txt'
-
-    if os.path.exists(tailed_filename):
-        os.unlink(tailed_filename)
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial)
-    tm.start()
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == []
-
-    with open(tailed_filename, 'w+') as f:
-        f.write("Added line 1\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    tm.stop_tailing_file(tailed_filename, handler=append_to_list_partial)
-
-    tm.stop()
-    time.sleep(WAIT_TIME)
-
-    os.unlink(tailed_filename)
-
-
-def test_single_file_tail_follow_watched_file_moved():
-    tailed_filename = 'tailed_file_to_move.txt'
-    new_filename = tailed_filename.replace('_to_move.txt', '_moved.txt')
-
-    if os.path.exists(new_filename):
-        os.unlink(new_filename)
-    if os.path.exists(tailed_filename):
-        os.unlink(tailed_filename)
-
-    with open(tailed_filename, 'w+') as f:
-        f.write("Preexisting text line 1\n")
-        f.write("Preexisting text line 2\n")
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial, follow=True)
-    tm.start()
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 1\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 2")  # No newline
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    os.replace(tailed_filename, new_filename)
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    with open(new_filename, 'a+') as f:
-        f.write(" - end of line 2\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2 - end of line 2",
-    ]
-
-    with open(tailed_filename, 'w+') as f:
-        f.write("New file - text line 1\n")
-        f.write("New file - text line 2\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2 - end of line 2",
-    ]
-
-    tm.stop_tailing_file(tailed_filename, handler=append_to_list_partial)
-
-    tm.stop()
-
-    os.unlink(new_filename)
-    os.unlink(tailed_filename)
-
-
-def test_single_file_tail_not_followed_watched_file_moved():
-    tailed_filename = 'tailed_file_to_move.txt'
-    new_filename = tailed_filename.replace('_to_move.txt', '_moved.txt')
-
-    if os.path.exists(new_filename):
-        os.unlink(new_filename)
-    if os.path.exists(tailed_filename):
-        os.unlink(tailed_filename)
-
-    with open(tailed_filename, 'w+') as f:
-        f.write("Preexisting text line 1\n")
-        f.write("Preexisting text line 2\n")
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial, follow=False)
-    tm.start()
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 1\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 2")  # No newline
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    os.replace(tailed_filename, new_filename)
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-    ]
-
-    with open(new_filename, 'a+') as f:
-        f.write(" - end of line 2\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-    ]
-
-    with open(tailed_filename, 'w+') as f:
-        f.write("Recreated file - text line 1\n")
-        f.write("Recreated file - text line 2\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-        "Recreated file - text line 1",
-        "Recreated file - text line 2",
-    ]
-
-    tm.stop_tailing_file(tailed_filename, handler=append_to_list_partial)
-
-    tm.stop()
-
-    os.unlink(new_filename)
-    os.unlink(tailed_filename)
-
-
-def test_single_file_tail_non_watched_file_moved():
-    tailed_filename = 'tailed_file_to_move.txt'
-    not_tailed_filename = f'not_{tailed_filename}'
-    new_not_tailed_filename = not_tailed_filename.replace('_to_move.txt', '_moved.txt')
-
-    if os.path.exists(not_tailed_filename):
-        os.unlink(not_tailed_filename)
-    if os.path.exists(new_not_tailed_filename):
-        os.unlink(new_not_tailed_filename)
-    if os.path.exists(tailed_filename):
-        os.unlink(tailed_filename)
-
-    with open(not_tailed_filename, 'w+') as f:
-        f.write("Text here will not be monitored\n")
-
-    with open(tailed_filename, 'w+') as f:
-        f.write("Preexisting text line 1\n")
-        f.write("Preexisting text line 2\n")
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial)
-    tm.start()
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 1\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    os.replace(not_tailed_filename, new_not_tailed_filename)
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    tm.stop_tailing_file(tailed_filename, handler=append_to_list_partial)
-
-    tm.stop()
-
-    os.unlink(new_not_tailed_filename)
-    os.unlink(tailed_filename)
-
-
-def test_single_file_tail_watched_file_deleted():
-    tailed_filename = 'tailed_file_deleted.txt'
-    with open(tailed_filename, 'w+') as f:
-        f.write("Preexisting text line 1\n")
-        f.write("Preexisting text line 2\n")
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial)
-    tm.start()
-
-    os.unlink(tailed_filename)
-
-    tm.stop()
-
-
-def test_tail_manager_initialized_without_logger():
-    try:
-        TailManager()
-    except Exception as e:
-        expected_message = "TailManager was initialized without a logger"
-        if hasattr(e, 'message') and e.message != expected_message:
-            raise e
-    else:
-        raise AssertionError("TailManager initialized fine without a "
-                             "logger parameter")
-
-
-def test_tail_manager_append_to_watched_file():
-    tailed_filename = 'tailed_file.txt'
-    with open(tailed_filename, 'w+') as f:
-        f.write("Preexisting text line 1\n")
-        f.write("Preexisting text line 2\n")
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial)
-    tm.start()
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 1\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 2\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Start of added partial line 1")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write(" - finished partial line 1\nStart of added partial line 2")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-        "Start of added partial line 1 - finished partial line 1",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write(" - finished partial line 2\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-        "Start of added partial line 1 - finished partial line 1",
-        "Start of added partial line 2 - finished partial line 2",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Final line without a newline")
-    time.sleep(WAIT_TIME)
-
-    tm.stop_tailing_file(tailed_filename, handler=append_to_list_partial)
-
-    tm.stop()
-
-    time.sleep(WAIT_TIME)
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-        "Start of added partial line 1 - finished partial line 1",
-        "Start of added partial line 2 - finished partial line 2",
-        "Final line without a newline",
-    ]
-
-    os.unlink(tailed_filename)
-
-
-def test_tail_manager_tail_file_twice():
-    tailed_filename = 'tailed_file.txt'
-    with open(tailed_filename, 'w+') as f:
-        f.write("Preexisting text line 1\n")
-        f.write("Preexisting text line 2\n")
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial)
-    tm.start()
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 1\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 2\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Start of added partial line 1")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write(" - finished partial line 1\nStart of added partial line 2")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-        "Start of added partial line 1 - finished partial line 1",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write(" - finished partial line 2\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-        "Start of added partial line 1 - finished partial line 1",
-        "Start of added partial line 2 - finished partial line 2",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Final line without a newline")
-    time.sleep(WAIT_TIME)
-
-    tm.stop_tailing_file(tailed_filename, handler=append_to_list_partial)
-
-    tm.stop()
-
-    time.sleep(WAIT_TIME)
-    assert appended_lines == [
-        "Added line 1",
-        "Added line 2",
-        "Start of added partial line 1 - finished partial line 1",
-        "Start of added partial line 2 - finished partial line 2",
-        "Final line without a newline",
-    ]
-
-    os.unlink(tailed_filename)
-
-
-def test_tail_manager_stop():
-    tailed_filename = 'tailed_file_stop.txt'
-    with open(tailed_filename, 'w+') as f:
-        f.write("Preexisting text line 1\n")
-        f.write("Preexisting text line 2\n")
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial)
-    tm.start()
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 1\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Final line without a newline")
-    time.sleep(WAIT_TIME)
-
-    tm.stop()
-
-    time.sleep(WAIT_TIME)
-    assert appended_lines == [
-        "Added line 1",
-        "Final line without a newline",
-    ]
-
-    os.unlink(tailed_filename)
-
-
-def test_tail_manager_stop_twice():
-    tailed_filename = 'tailed_file_stop.txt'
-    with open(tailed_filename, 'w+') as f:
-        f.write("Preexisting text line 1\n")
-        f.write("Preexisting text line 2\n")
-
-    appended_lines = []
-
-    def append_to_list(list_to_append, path, element):
-        list_to_append.append(element)
-
-    append_to_list_partial = functools.partial(append_to_list, appended_lines)
-
-    tm = TailManager(logger=logger)
-    tm.tail_file(tailed_filename, handler=append_to_list_partial)
-    tm.start()
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Added line 1\n")
-    time.sleep(WAIT_TIME)
-
-    assert appended_lines == [
-        "Added line 1",
-    ]
-
-    with open(tailed_filename, 'a+') as f:
-        f.write("Final line without a newline")
-    time.sleep(WAIT_TIME)
-
-    tm.stop()
-    tm.stop()
-
-    time.sleep(WAIT_TIME)
-    assert appended_lines == [
-        "Added line 1",
-        "Final line without a newline",
-    ]
-
-    os.unlink(tailed_filename)
+        os.unlink(filepath)
 
 
 if __name__ == '__main__':
-    test_single_file_tail_not_followed_watched_file_moved()
+    # logger.setLevel(logging.DEBUG)
+
+    # handler = logging.StreamHandler(sys.stderr)
+    # handler.setLevel(logging.DEBUG)
+    # formatter = logging.Formatter('%(name)s: %(levelname)s: %(message)s')
+
+    # logger.addHandler(handler)
+
+    # test_single_file_tail_watched_file_deleted()
+
+    test_file_watch_sensor()
+    test_file_watch_sensor_without_trigger_filepath()
+    test_file_watch_sensor_without_trigger_ref()
