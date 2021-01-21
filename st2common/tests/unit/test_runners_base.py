@@ -15,8 +15,6 @@
 
 from __future__ import absolute_import
 
-from stevedore.exception import NoMatches
-
 from st2common.runners.base import get_runner
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 
