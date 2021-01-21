@@ -26,8 +26,6 @@ from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.runner import RunnerTypeDB
 from st2common.persistence.liveaction import LiveAction
-from st2common.persistence.executionstate import ActionExecutionState
-from st2common.runners.base import PollingAsyncActionRunner
 from st2common.services import executions
 from st2common.util import date as date_utils
 from st2common.transport.publishers import PoolPublisher
@@ -71,7 +69,6 @@ NON_UTF8_RESULT = {
 }
 
 from st2tests.mocks.runners import runner
-from st2tests.mocks.runners import polling_async_runner
 
 
 @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
