@@ -31,11 +31,11 @@ echo " === END: Catting screen process log files. ==="
 # Setup the virtualenv for the examples pack which is required for orquesta integration tests.
 st2 run packs.setup_virtualenv packs=examples
 
-# This script runs as root on Travis which means other processes which don't run
+# This script runs as root on Travis/GitHub Actions which means other processes which don't run
 # as root can't write to logs/ directory and tests fail
 chmod 777 logs/
 chmod 777 logs/*
 
 # root needs to access write some lock files when creating virtualenvs
 # o=other; X=only set execute bit if user execute bit is set (eg on dirs)
-chmod -R o+rwX ${HOME}/.local/share/virtualenv
+chmod -R o+rwX ./virtualenv/

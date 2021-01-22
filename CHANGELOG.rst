@@ -6,6 +6,10 @@ in development
 
 Added
 ~~~~~
+
+* Added support for GitLab SSH URLs on pack install and download actions. (improvement) #5050
+  Contributed by @asthLucas
+
 * Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
   Contributed by @hnanchahal
   
@@ -28,6 +32,10 @@ Changed
   Contributed by @hnanchahal
 
 * Upgraded cryptography version to 3.2 to avoid CVE-2020-25659 (security) #5095
+
+* Converted most CI jobs from Travis to GitHub Actions (all except Integration tests).
+
+  Contributed by @nmaludy, @winem, and @blag
 
 Fixed
 ~~~~~~~~~
