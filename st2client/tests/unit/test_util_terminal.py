@@ -42,6 +42,9 @@ class TerminalUtilsTestCase(unittest2.TestCase):
 
         self.assertEqual(columns, 222)
 
+    # make sure that os.environ['COLUMNS'] isn't set so it can't override/screw-up this test
+    @mock.patch.dict(os.environ, {})
+    @mock.patch('fcntl.ioctl', mock.Mock(return_value='dummy'))
     @mock.patch('struct.unpack', mock.Mock(return_value=(333, 444)))
     def test_get_terminal_size_columns_stdout_is_used(self):
         columns = get_terminal_size_columns()

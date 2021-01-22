@@ -30,6 +30,10 @@ Changed
 
 * Upgraded cryptography version to 3.2 to avoid CVE-2020-25659 (security) #5095
 
+* Converted most CI jobs from Travis to GitHub Actions (all except Integration tests).
+
+  Contributed by @nmaludy, @winem, and @blag
+
 Fixed
 ~~~~~~~~~
 * Pin chardet version as newest version was incompatible with pinned requests version #5101
