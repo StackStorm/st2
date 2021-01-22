@@ -26,6 +26,8 @@ from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.runner import RunnerTypeDB
 from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.executionstate import ActionExecutionState
+from st2common.runners.base import PollingAsyncActionRunner
 from st2common.services import executions
 from st2common.util import date as date_utils
 from st2common.transport.publishers import PoolPublisher
@@ -69,6 +71,7 @@ NON_UTF8_RESULT = {
 }
 
 from st2tests.mocks.runners import runner
+from st2tests.mocks.runners import polling_async_runner
 
 
 @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
@@ -326,6 +329,87 @@ class RunnerContainerTest(DbTestCase):
         result = liveaction_db.result
         self.assertTrue(result.get('action_params').get('actionint') == 20)
         self.assertTrue(result.get('action_params').get('actionstr') == 'foo')
+
+    def test_state_db_created_for_polling_async_actions(self):
+        runner_container = get_runner_container()
+
+        params = {
+            'actionstr': 'foo',
+            'actionint': 20,
+            'async_test': True
+        }
+
+        liveaction_db = self._get_liveaction_model(
+            RunnerContainerTest.polling_async_action_db,
+            params
+        )
+
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
+
+        # Assert that execution ran without exceptions.
+        with mock.patch('st2actions.container.base.get_runner',
+                mock.Mock(return_value=polling_async_runner.get_runner())):
+            runner_container.dispatch(liveaction_db)
+        states = ActionExecutionState.get_all()
+        found = [state for state in states if state.execution_id == liveaction_db.id]
+
+        self.assertTrue(len(found) > 0, 'There should be a state db object.')
+        self.assertTrue(len(found) == 1, 'There should only be one state db object.')
+        self.assertIsNotNone(found[0].query_context)
+        self.assertIsNotNone(found[0].query_module)
+
+    @mock.patch.object(
+        PollingAsyncActionRunner,
+        'is_polling_enabled',
+        mock.MagicMock(return_value=False))
+    def test_state_db_not_created_for_disabled_polling_async_actions(self):
+        runner_container = get_runner_container()
+
+        params = {
+            'actionstr': 'foo',
+            'actionint': 20,
+            'async_test': True
+        }
+
+        liveaction_db = self._get_liveaction_model(
+            RunnerContainerTest.polling_async_action_db,
+            params
+        )
+
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
+
+        # Assert that execution ran without exceptions.
+        runner_container.dispatch(liveaction_db)
+        states = ActionExecutionState.get_all()
+        found = [state for state in states if state.execution_id == liveaction_db.id]
+
+        self.assertTrue(len(found) == 0, 'There should not be a state db object.')
+
+    def test_state_db_not_created_for_async_actions(self):
+        runner_container = get_runner_container()
+
+        params = {
+            'actionstr': 'foo',
+            'actionint': 20,
+            'async_test': True
+        }
+
+        liveaction_db = self._get_liveaction_model(
+            RunnerContainerTest.async_action_db,
+            params
+        )
+
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
+
+        # Assert that execution ran without exceptions.
+        runner_container.dispatch(liveaction_db)
+        states = ActionExecutionState.get_all()
+        found = [state for state in states if state.execution_id == liveaction_db.id]
+
+        self.assertTrue(len(found) == 0, 'There should not be a state db object.')
 
     def _get_liveaction_model(self, action_db, params):
         status = action_constants.LIVEACTION_STATUS_REQUESTED
