@@ -28,6 +28,10 @@ env:
     - NOSE_TIME=$([ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
     # Travis-specific st2.conf (with travis user instead of stanley)
     - ST2_CONF=conf/st2.travis.conf
+    # Tell StackStorm that we are indeed in CI mode
+    - ST2_CI='true'
+    - ST2_CI_USER='travis'
+    - ST2_CI_REPO_PATH="${TRAVIS_BUILD_DIR}"
   jobs:
     # NOTE: We combine builds because Travis offers a maximum of 5 concurrent
     # builds and having 6 tasks / builds means 1 tasks will need to wait for one
@@ -41,13 +45,12 @@ env:
     # If you rename or reorder make targets in TASK, you may need to adjust:
     # scripts/travis/install-requirements.sh
     # scripts/travis/run-nightly-make-task-if-exists.sh
-    - TASK=ci-checks COMMAND_THRESHOLD=300
-
-    - TASK=compilepy3 COMMAND_THRESHOLD=300
-
-    - TASK=ci-packs-tests COMMAND_THRESHOLD=300
-
-    - TASK=ci-unit COMMAND_THRESHOLD=900
+    #
+    # The follow builds are now done in GitHub Actions
+    # - TASK=ci-checks COMMAND_THRESHOLD=300
+    # - TASK=compilepy3 COMMAND_THRESHOLD=300
+    # - TASK=ci-packs-tests COMMAND_THRESHOLD=300
+    # - TASK=ci-unit COMMAND_THRESHOLD=300
 
     - TASK=ci-integration COMMAND_THRESHOLD=300
 
@@ -84,7 +87,7 @@ cache:
 install:
   - ./scripts/travis/install-requirements.sh
   # prep a travis-specific dev conf file that uses travis instead of stanley
-  - cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/travis/" "${ST2_CONF}"
+  - cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
   - sudo scripts/travis/add-itest-user-key.sh
   - sudo .circle/add-itest-user.sh
   - if [[ "${TASK}" = *'-packs-tests'* ]] || [[ "${TASK}" = *'-integration'* ]]; then sudo scripts/travis/permissions-workaround.sh; fi
@@ -101,6 +104,20 @@ before_script:
   - sudo tail -n 30 /var/log/mongodb/mongod.log
   # Use custom RabbitMQ config which enables SSL / TLS listener on port 5671 with test certs
   - sudo cp scripts/travis/rabbitmq.config /etc/rabbitmq/rabbitmq.config
+  - cat /etc/rabbitmq/rabbitmq.config
+  - ls -l /etc/rabbitmq
+  - ls -l /home/travis
+  - ls -l /home/travis/build
+  - ls -l /home/travis/build/StackStorm
+  - ls -l /home/travis/build/StackStorm/st2
+  - ls -l /home/travis/build/StackStorm/st2/st2tests
+  - ls -l /home/travis/build/StackStorm/st2/st2tests/st2tests
+  - ls -l /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures
+  - ls -l /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures/ssl_certs
+  - ls -l /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures/ssl_certs/ca
+  - ls -l /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures/ssl_certs/server
+  - cat /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures/ssl_certs/ca/ca_certificate_bundle.pem
+  - cat /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures/ssl_certs/server/server_certificate.pem
   # Install rabbitmq_management RabbitMQ plugin
   - sudo service rabbitmq-server restart ; sleep 5
   - sudo rabbitmq-plugins enable rabbitmq_management
