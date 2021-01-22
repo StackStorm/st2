@@ -140,6 +140,13 @@ jobs:
         if: "${{ env.TASK == 'ci-integration' }}"
         run: |
           # Use custom RabbitMQ config which enables SSL / TLS listener on port 5671 with test certs
+          # Travis runs as the 'travis' user, GitHub actions run as the 'runner' user,
+          # And the cert filepaths are slightly different between the two.
+          # Example:
+          #   Travis-CI:      /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures/ssl_certs/ca/ca_certificate_bundle.pem
+          #   GitHub Actions: /home/runner/work/st2/st2/st2tests/st2tests/fixtures/ssl_certs/ca/ca_certificate_bundle.pem
+          sed -i 's|/home/travis/build/StackStorm|/home/runner/work/st2|g' scripts/travis/rabbitmq.config
+          # Now that we've manged the config file, install it
           sudo cp scripts/travis/rabbitmq.config /etc/rabbitmq/rabbitmq.config
           # Install rabbitmq_management RabbitMQ plugin
           sudo service rabbitmq-server restart

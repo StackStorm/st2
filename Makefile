@@ -539,6 +539,13 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
 
+	# Fix for Travis CI caching issue
+	if [[ "$(TRAVIS_EVENT_TYPE)" != "" ]]; then\
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"; \
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"; \
+		$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"; \
+	fi
+
 	# Install requirements
 	for req in $(REQUIREMENTS); do \
 		echo "Installing $$req..." ; \
