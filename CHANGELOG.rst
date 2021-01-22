@@ -32,7 +32,7 @@ Changed
 
 * Converted most CI jobs from Travis to GitHub Actions (all except Integration tests).
 
-  Contributed by @nmaludy
+  Contributed by @nmaludy, @winem, and @blag
 
 Fixed
 ~~~~~~~~~

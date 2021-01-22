@@ -10,7 +10,7 @@ if [[ " ${TASK}" = *' ci-py3-'* ]]; then
     # NOTE: The makefile only checks to see if the activate script is present.
     # It does not check if the virtualenv was built with the correct python version.
     # Since the makefile defaults to python2.7, a 2.7 virtualenv might get cached.
-    # Specifying PYTHON_VERSION in .github/workflows/*.yml should alleviate that,
+    # Specifying PYTHON_VERSION in .travis.yml or .github/workflows/*.yml should alleviate that,
     # but we'll check the version here just to be sure a cached virtualenv doesn't
     # silently invalidate the tests.
 
