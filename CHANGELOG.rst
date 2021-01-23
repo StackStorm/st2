@@ -255,6 +255,7 @@ Changed
   changes at https://github.com/StackStorm/orquesta/releases/tag/v1.1.0 and the st2 upgrade notes
   for potential impact. (improvement)
 * Update st2 nginx config to remove deprecated ``ssl on`` option. #4917 (improvement)
+* Updated and tested tooz to v2.8.0 to apply fix for consul coordination heartbeat (@punkrokk @winem) #5121
 
 Fixed
 ~~~~~
