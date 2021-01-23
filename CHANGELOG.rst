@@ -7,6 +7,9 @@ in development
 Added
 ~~~~~
 
+* Added support for GitLab SSH URLs on pack install and download actions. (improvement) #5050
+  Contributed by @asthLucas
+
 * Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
   Contributed by @hnanchahal
   
@@ -32,6 +35,9 @@ Changed
 * Upgrade virtualenv version to latest - 20.2.2 (improvement) #5094
   Contributed by @kroustou
 
+* Converted most CI jobs from Travis to GitHub Actions (all except Integration tests).
+  Contributed by @nmaludy, @winem, and @blag
+
 Fixed
 ~~~~~~~~~
 * Pin chardet version as newest version was incompatible with pinned requests version #5101
@@ -49,11 +55,20 @@ Fixed
 
 Removed
 ~~~~~~~~
+* Removed --python3 pack install option  #5100
+  Contributed by @amanda11
+
+* Removed submit-debug-info tool and the st2debug component #5103
+
 * Removed check-licence script (cleanup) #5092
+
   Contributed by @kroustou
 * Updated Makefile and CI to use Python 3 only, removing Python 2 (cleanup) #5090
 
   Contributed by @blag
+* Remove st2resultstracker from st2ctl, the development environment and the st2actions setup.py (cleanup) #5108
+
+  Contributed by @winem
 
 3.3.0 - October 06, 2020
 ------------------------
@@ -240,6 +255,7 @@ Changed
   changes at https://github.com/StackStorm/orquesta/releases/tag/v1.1.0 and the st2 upgrade notes
   for potential impact. (improvement)
 * Update st2 nginx config to remove deprecated ``ssl on`` option. #4917 (improvement)
+* Updated and tested tooz to v2.8.0 to apply fix for consul coordination heartbeat (@punkrokk @winem) #5121
 
 Fixed
 ~~~~~

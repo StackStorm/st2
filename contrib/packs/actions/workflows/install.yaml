@@ -7,7 +7,6 @@ input:
   - register
   - env
   - force
-  - python3
   - skip_dependencies
   - timeout
 
@@ -30,7 +29,6 @@ tasks:
     input:
       packs: <% ctx().packs %>
       force: <% ctx().force %>
-      python3: <% ctx().python3 %>
       dependency_list: <% ctx().dependency_list %>
     next:
       - when: <% succeeded() %>
@@ -98,7 +96,6 @@ tasks:
     input:
       packs: <% ctx().packs_list %>
       env: <% ctx().env %>
-      python3: <% ctx().python3 %>
       timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>

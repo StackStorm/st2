@@ -1,7 +1,0 @@
-- aliases: []
-  description: A mock runner for query and callback
-  enabled: true
-  name: mock_query_callback
-  query_module: mock_query_callback
-  runner_module: mock_query_callback
-
