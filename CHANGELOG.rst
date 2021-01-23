@@ -61,10 +61,14 @@ Removed
 * Removed submit-debug-info tool and the st2debug component #5103
 
 * Removed check-licence script (cleanup) #5092
+
   Contributed by @kroustou
 * Updated Makefile and CI to use Python 3 only, removing Python 2 (cleanup) #5090
 
   Contributed by @blag
+* Remove st2resultstracker from st2ctl, the development environment and the st2actions setup.py (cleanup) #5108
+
+  Contributed by @winem
 
 3.3.0 - October 06, 2020
 ------------------------
