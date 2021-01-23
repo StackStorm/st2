@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +33,7 @@ from webob.compat import url_unquote
 
 from st2common.exceptions import rbac as rbac_exc
 from st2common.exceptions import auth as auth_exc
+from st2common.exceptions.keyvalue import DataStoreKeyNotFoundError
 from st2common import log as logging
 from st2common.persistence.auth import User
 from st2common.rbac.backends import get_rbac_backend
@@ -378,15 +380,14 @@ class Router(object):
 
                 # NOTE: HACK: Workaround for eventlet wsgi server which sets Content-Type to
                 # text/plain if Content-Type is not provided in the request.
-                # All ouf our API endpoints except /v1/workflows/inspection and
-                # /exp/validation/mistral expect application/json so we explicitly set it to that
+                # All ouf our API endpoints except /v1/workflows/inspection
+                # expect application/json so we explicitly set it to that
                 # if not provided (set to text/plain by the base http server) and if it's not
-                # /v1/workflows/inspection and /exp/validation/mistral API endpoints.
+                # /v1/workflows/inspection API endpoints.
                 if not self.is_gunicorn and content_type == 'text/plain':
                     operation_id = endpoint['operationId']
 
-                    if ('workflow_inspection_controller' not in operation_id and
-                            'mistral_validation_controller' not in operation_id):
+                    if ('workflow_inspection_controller' not in operation_id):
                         content_type = 'application/json'
 
                 # Note: We also want to perform validation if no body is explicitly provided - in a
@@ -513,6 +514,10 @@ class Router(object):
 
         try:
             resp = func(**kw)
+        except DataStoreKeyNotFoundError as e:
+            LOG.warning('Failed to call controller function "%s" for operation "%s": %s' %
+                       (func.__name__, endpoint['operationId'], six.text_type(e)))
+            raise e
         except Exception as e:
             LOG.exception('Failed to call controller function "%s" for operation "%s": %s' %
                           (func.__name__, endpoint['operationId'], six.text_type(e)))

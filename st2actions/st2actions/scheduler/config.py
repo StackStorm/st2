@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,6 +51,9 @@ def _register_service_opts():
             default='/etc/st2/logging.scheduler.conf',
             help='Location of the logging configuration file.'
         ),
+        cfg.FloatOpt(
+            'execution_scheduling_timeout_threshold_min', default=1,
+            help='How long GC to search back in minutes for orphaned scheduled actions'),
         cfg.IntOpt(
             'pool_size', default=10,
             help='The size of the pool used by the scheduler for scheduling executions.'),

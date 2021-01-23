@@ -1,4 +1,4 @@
-# Remeber to list implicit packages here, otherwise version won't be fixated!
+# Remember to list implicit packages here, otherwise version won't be fixated!
 eventlet
 jsonschema
 kombu
@@ -8,5 +8,5 @@ oslo.config
 oslo.utils
 pymongo
 six
-git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 gunicorn
+simplejson

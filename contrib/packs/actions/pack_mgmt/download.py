@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +63,7 @@ class DownloadGitRepoAction(Action):
         if self.proxy_ca_bundle_path and not os.environ.get('proxy_ca_bundle_path', None):
             os.environ['no_proxy'] = self.no_proxy
 
-    def run(self, packs, abs_repo_base, verifyssl=True, force=False, python3=False,
+    def run(self, packs, abs_repo_base, verifyssl=True, force=False,
             dependency_list=None):
         result = {}
         pack_url = None
@@ -72,7 +73,7 @@ class DownloadGitRepoAction(Action):
                 pack_result = download_pack(pack=pack_dependency, abs_repo_base=abs_repo_base,
                                             verify_ssl=verifyssl, force=force,
                                             proxy_config=self.proxy_config, force_permissions=True,
-                                            use_python3=python3, logger=self.logger)
+                                            logger=self.logger)
                 pack_url, pack_ref, pack_result = pack_result
                 result[pack_ref] = pack_result
         else:
@@ -81,7 +82,6 @@ class DownloadGitRepoAction(Action):
                                             verify_ssl=verifyssl, force=force,
                                             proxy_config=self.proxy_config,
                                             force_permissions=True,
-                                            use_python3=python3,
                                             logger=self.logger)
                 pack_url, pack_ref, pack_result = pack_result
                 result[pack_ref] = pack_result

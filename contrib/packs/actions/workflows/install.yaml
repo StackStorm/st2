@@ -7,13 +7,14 @@ input:
   - register
   - env
   - force
-  - python3
   - skip_dependencies
+  - timeout
 
 vars:
   - packs_list: null
   - dependency_list: null
   - conflict_list: null
+  - warning_list: null
   - nested: 10
   - message: ""
 
@@ -28,7 +29,6 @@ tasks:
     input:
       packs: <% ctx().packs %>
       force: <% ctx().force %>
-      python3: <% ctx().python3 %>
       dependency_list: <% ctx().dependency_list %>
     next:
       - when: <% succeeded() %>
@@ -96,9 +96,19 @@ tasks:
     input:
       packs: <% ctx().packs_list %>
       env: <% ctx().env %>
-      python3: <% ctx().python3 %>
+      timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>
+        do: get_pack_warnings
+
+  get_pack_warnings:
+    action: packs.get_pack_warnings
+    input:
+      packs_status: <% task(download_pack).result.result %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - warning_list: <% result().result.warning_list %>
         do: register_pack
 
   register_pack:
@@ -114,3 +124,4 @@ output:
   - packs_list: <% ctx().packs_list %>
   - message: <% ctx().message %>
   - conflict_list: <% ctx().conflict_list %>
+  - warning_list: <% ctx().warning_list %>

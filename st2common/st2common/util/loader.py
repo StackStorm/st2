@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,8 +44,6 @@ PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_l
 
 # Cache for dynamically loaded runner modules
 RUNNER_MODULES_CACHE = defaultdict(dict)
-QUERIER_MODULES_CACHE = {}
-CALLBACK_MODULES_CACHE = {}
 
 
 def _register_plugin_path(plugin_dir_abs_path):

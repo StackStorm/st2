@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,11 +37,11 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
     RESOURCE_TYPE = types.ResourceType.EXECUTION
 
     action_execution = me.StringField(required=True)
-    spec = me.DictField()
+    spec = stormbase.EscapedDictField()
     graph = me.DictField()
     input = stormbase.EscapedDictField()
     notify = me.DictField()
-    context = me.DictField()
+    context = stormbase.EscapedDictField()
     state = stormbase.EscapedDictField()
     status = me.StringField(required=True)
     output = stormbase.EscapedDictField()
@@ -62,7 +63,7 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     task_name = me.StringField(required=True)
     task_id = me.StringField(required=True)
     task_route = me.IntField(required=True, min_value=0)
-    task_spec = me.DictField()
+    task_spec = stormbase.EscapedDictField()
     delay = me.IntField(min_value=0)
     itemized = me.BooleanField(default=False)
     items_count = me.IntField(min_value=0)

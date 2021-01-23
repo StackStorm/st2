@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -95,7 +96,6 @@ ENV_VARS_BLACKLIST = [
 
 WORKFLOW_RUNNER_TYPES = [
     'action-chain',
-    'mistral-v2',
     'orquesta'
 ]
 
@@ -866,15 +866,13 @@ class ActionRunCommandMixin(object):
 
     def _format_for_common_representation(self, task):
         '''
-        Formats a task for common representation between mistral and action-chain.
+        Formats a task for common representation for action-chain.
         '''
         # This really needs to be better handled on the back-end but that would be a bigger
         # change so handling in cli.
         context = getattr(task, 'context', None)
         if context and 'chain' in context:
             task_name_key = 'context.chain.name'
-        elif context and 'mistral' in context:
-            task_name_key = 'context.mistral.task_name'
         elif context and 'orquesta' in context:
             task_name_key = 'context.orquesta.task_name'
         # Use Execution as the object so that the formatter lookup does not change.
@@ -1269,7 +1267,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
                                  help='Name of the workflow tasks to re-run.')
         self.parser.add_argument('--no-reset', dest='no_reset', nargs='*',
                                  help='Name of the with-items tasks to not reset. This only '
-                                      'applies to Mistral workflows. By default, all iterations '
+                                      'applies to Orquesta workflows. By default, all iterations '
                                       'for with-items tasks is rerun. If no reset, only failed '
                                       ' iterations are rerun.')
         self.parser.add_argument('-a', '--async',
@@ -1504,7 +1502,10 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         workflow_execution_ids.update(children_execution_ids)
 
         events = ['st2.execution__update', 'st2.execution.output__create']
-        for event in stream_manager.listen(events, **kwargs):
+        for event in stream_manager.listen(events,
+                end_execution_id=execution_id,
+                end_event="st2.execution__update",
+                **kwargs):
             status = event.get('status', None)
             is_execution_event = status is not None
 
@@ -1591,12 +1592,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
             'task_name': None
         }
 
-        if 'mistral' in context:
-            # Mistral workflow
-            result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
-            result['execution_id'] = event['id']
-            result['task_name'] = context.get('mistral', {}).get('task_name', 'unknown')
-        elif 'orquesta' in context:
+        if 'orquesta' in context:
             result['parent_execution_id'] = context.get('parent', {}).get('execution_id', None)
             result['execution_id'] = event['id']
             result['task_name'] = context.get('orquesta', {}).get('task_name', 'unknown')

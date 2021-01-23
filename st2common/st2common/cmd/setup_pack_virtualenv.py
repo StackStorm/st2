@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,8 +39,6 @@ def _register_cli_opts():
                          'you don\'t check this option, the virtual environment will be destroyed '
                          'then re-created. If you check this and the virtual environment doesn\'t '
                          'exist, it will create it..')),
-        cfg.BoolOpt('python3', default=False,
-                    help='Use Python 3 binary when creating a virtualenv for this pack.'),
     ]
     do_register_cli_opts(cli_opts)
 
@@ -53,7 +52,6 @@ def main(argv):
 
     packs = cfg.CONF.pack
     update = cfg.CONF.update
-    use_python3 = cfg.CONF.python3
 
     proxy_config = get_and_set_proxy_config()
 
@@ -61,7 +59,7 @@ def main(argv):
         # Setup pack virtual environment
         LOG.info('Setting up virtualenv for pack "%s"' % (pack))
         setup_pack_virtualenv(pack_name=pack, update=update, logger=LOG,
-                              proxy_config=proxy_config, use_python3=use_python3,
+                              proxy_config=proxy_config,
                               no_download=True)
         LOG.info('Successfully set up virtualenv for pack "%s"' % (pack))
 

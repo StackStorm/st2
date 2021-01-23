@@ -1,9 +1,0 @@
----
-description: >
-    A sample workflow that uses the YAQL function
-    st2kv to get a user scope kvp from st2.
-enabled: true
-entry_point: workflows/mistral-yaql-st2kv-user-scope.yaml
-name: mistral-yaql-st2kv-user-scope
-pack: examples
-runner_type: mistral-v2

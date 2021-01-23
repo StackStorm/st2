@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +73,9 @@ class OrquestaRunner(runners.AsyncActionRunner):
                 'action_execution_id': str(self.execution.id),
                 'api_url': api_util.get_full_public_api_url(),
                 'user': self.execution.context.get('user', cfg.CONF.system_user.user),
-                'pack': self.execution.context.get('pack', None)
+                'pack': self.execution.context.get('pack', None),
+                'action': self.execution.action.get('ref', None),
+                'runner': self.execution.action.get('runner_type', None)
             }
         }
 
@@ -96,8 +99,9 @@ class OrquestaRunner(runners.AsyncActionRunner):
                 result['errors'] = wf_ex_db.errors
 
             for wf_ex_error in wf_ex_db.errors:
-                msg = '[%s] Workflow execution completed with errors.'
-                LOG.error(msg, str(self.execution.id), extra=wf_ex_error)
+                msg = 'Workflow execution completed with errors.'
+                wf_svc.update_progress(wf_ex_db, '%s %s' % (msg, str(wf_ex_error)), log=False)
+                LOG.error('[%s] %s', str(self.execution.id), msg, extra=wf_ex_error)
 
             return (status, result, self.context)
 
@@ -230,10 +234,11 @@ class OrquestaRunner(runners.AsyncActionRunner):
 
     def cancel(self):
         result = None
+        wf_ex_db = None
 
         # Try to cancel the target workflow execution.
         try:
-            wf_svc.request_cancellation(self.execution)
+            wf_ex_db = wf_svc.request_cancellation(self.execution)
         # If workflow execution is not found because the action execution is cancelled
         # before the workflow execution is created or if the workflow execution is
         # already completed, then ignore the exception and proceed with cancellation.
@@ -248,10 +253,11 @@ class OrquestaRunner(runners.AsyncActionRunner):
         # execution will be in an unknown state.
         except Exception:
             _, ex, tb = sys.exc_info()
+            msg = 'Error encountered when canceling workflow execution.'
+            LOG.exception('[%s] %s', str(self.execution.id), msg)
             msg = 'Error encountered when canceling workflow execution. %s'
+            wf_svc.update_progress(wf_ex_db, msg % str(ex), log=False)
             result = {'error': msg % str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
-            msg = '[%s] Error encountered when canceling workflow execution.'
-            LOG.exception(msg, str(self.execution.id))
 
         # Request cancellation of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:

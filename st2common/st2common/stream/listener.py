@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,22 +78,28 @@ class BaseListener(ConsumerMixin):
         for queue in self.queues:
             queue.put(pack)
 
-    def generator(self, events=None, action_refs=None, execution_ids=None):
+    def generator(self, events=None, action_refs=None, execution_ids=None,
+                  end_event=None, end_statuses=None, end_execution_id=None):
         queue = eventlet.Queue()
         queue.put('')
         self.queues.append(queue)
-
         try:
-            while not self._stopped:
+            stop = False
+            while not self._stopped and not stop:
                 try:
                     # TODO: Move to common option
                     message = queue.get(timeout=cfg.CONF.stream.heartbeat)
-
                     if not message:
                         yield message
                         continue
-
                     event_name, body = message
+                    # check to see if this is the last message to send.
+                    if event_name == end_event:
+                        if body is not None and \
+                            body.status in end_statuses and \
+                                end_execution_id is not None and \
+                                body.id == end_execution_id:
+                            stop = True
                     # TODO: We now do late filtering, but this could also be performed on the
                     # message bus level if we modified our exchange layout and utilize routing keys
                     # Filter on event name
@@ -108,7 +115,6 @@ class BaseListener(ConsumerMixin):
                         LOG.debug('Skipping event "%s" with action_ref "%s"' % (event_name,
                                                                                 action_ref))
                         continue
-
                     # Filter on execution id
                     execution_id = self._get_execution_id_for_body(body=body)
                     if execution_ids and execution_id not in execution_ids:

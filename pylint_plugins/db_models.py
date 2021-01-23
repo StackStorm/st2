@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +17,10 @@
 Plugin which tells Pylint how to handle mongoengine document classes.
 """
 
+import astroid
+
 from astroid import MANAGER
 from astroid import nodes
-from astroid import scoped_nodes
 
 # A list of class names for which we want to skip the checks
 CLASS_NAME_BLACKLIST = [
@@ -41,8 +43,8 @@ def transform(cls):
     if cls.name.endswith('DB'):
         # mongoengine explicitly declared "id" field on each class so we teach pylint about that
         property_name = 'id'
-        node = scoped_nodes.Class(property_name, None)
+        node = astroid.ClassDef(property_name, None)
         cls.locals[property_name] = [node]
 
 
-MANAGER.register_transform(scoped_nodes.Class, transform)
+MANAGER.register_transform(astroid.ClassDef, transform)

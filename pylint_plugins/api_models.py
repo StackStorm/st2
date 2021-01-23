@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +21,7 @@ Those classes dyamically assign attributes defined in the schema on the class in
 constructor.
 """
 
+import astroid
 import six
 
 from astroid import MANAGER
@@ -80,9 +82,9 @@ def transform(cls):
                 node = scoped_nodes.builtin_lookup('None')[1][0]
             else:
                 # Unknown type
-                node = scoped_nodes.Class(property_name, None)
+                node = astroid.ClassDef(property_name, None)
 
             cls.locals[property_name] = [node]
 
 
-MANAGER.register_transform(scoped_nodes.Class, transform)
+MANAGER.register_transform(astroid.ClassDef, transform)

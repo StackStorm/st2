@@ -1,7 +1,0 @@
----
-description: A basic Mistral workflow illustrating the use of Inquiries
-enabled: true
-entry_point: workflows/mistral-ask-basic.yaml
-name: mistral-ask-basic
-pack: examples
-runner_type: mistral-v2

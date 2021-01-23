@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,14 +45,6 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-# If an ActionExecutionSchedulingQueueItemDB object hasn't been updated fore more than this amount
-# of milliseconds, it will be marked as "handled=False".
-# As soon as an item is picked by scheduler to be processed, it should be processed very fast
-# (< 5 seconds). If an item is still being marked as processing it likely indicates that the
-# scheduler process which was processing that item crashed or similar so we need to mark it as
-# "handling=False" so some other scheduler process can pick it up.
-EXECUTION_SCHEDUELING_TIMEOUT_THRESHOLD_MS = (60 * 1000)
-
 # When a policy delayed execution is detected it will be try to be rescheduled by the scheduler
 # again in this amount of milliseconds.
 POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS = 2500
@@ -62,6 +55,14 @@ class ActionExecutionSchedulingQueueHandler(object):
         self.message_type = LiveActionDB
         self._shutdown = False
         self._pool = eventlet.GreenPool(size=cfg.CONF.scheduler.pool_size)
+        # If an ActionExecutionSchedulingQueueItemDB object hasn't been updated fore more than
+        # this amount of milliseconds, it will be marked as "handled=False".
+        # As soon as an item is picked by scheduler to be processed, it should be processed very
+        # fast (< 5 seconds). If an item is still being marked as processing it likely indicates
+        # that the scheduler process which was processing that item crashed or similar so we need
+        # to mark it as "handling=False" so some other scheduler process can pick it up.
+        self._execution_scheduling_timeout_threshold_ms = \
+            cfg.CONF.scheduler.execution_scheduling_timeout_threshold_min * 60 * 1000
         self._coordinator = coordination_service.get_coordinator(start_heart=True)
         self._main_thread = None
         self._cleanup_thread = None
@@ -100,7 +101,7 @@ class ActionExecutionSchedulingQueueHandler(object):
         query = {
             'scheduled_start_timestamp__lte': date.append_milliseconds_to_time(
                 date.get_datetime_utc_now(),
-                -EXECUTION_SCHEDUELING_TIMEOUT_THRESHOLD_MS
+                -self._execution_scheduling_timeout_threshold_ms
             ),
             'handling': True
         }

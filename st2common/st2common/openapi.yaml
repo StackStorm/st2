@@ -4296,32 +4296,6 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
-  /api/exp/validation/mistral:
-    post:
-      operationId: st2api.controllers.exp.validation:mistral_validation_controller.post
-      description: |
-        Validate Mistral YAML definition.
-      parameters:
-        - name: def_yaml
-          in: body
-          description: Mistral definition
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of validation errors
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/ValidationError'
-          examples:
-            application/json:
-              ref: 'core.local'
-              # and stuff
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
   /api/v1/service_registry/groups:
     get:
       operationId: st2api.controllers.v1.service_registry:groups_controller.get_all
@@ -4447,6 +4421,62 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  /auth/v1/sso:
+    get:
+      operationId: st2auth.controllers.v1.sso:sso_controller.get
+      description: Returns a flag indicating if SSO is enabled or not.
+      responses:
+        '200':
+          description: Returns a flag indicating if SSO is enabled
+          schema:
+            $ref: '#/definitions/SSOEnabledResult'
+          examples:
+            application/json:
+              enabled: false
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      security: []
+  /auth/v1/sso/request:
+    get:
+      operationId: st2auth.controllers.v1.sso:sso_request_controller.get
+      description: Redirects to the SSO Idp login page.
+      parameters:
+        - name: referer
+          in: header
+          description: set externally to indicate real source of the request
+          type: string
+      responses:
+        '307':
+          description: Temporary redirect
+      security: []
+  /auth/v1/sso/callback:
+    post:
+      operationId: st2auth.controllers.v1.sso:idp_callback_controller.post
+      description: Handle callback from the SSO Idp.
+      parameters:
+        - name: response
+          in: body
+          description: SSO response
+          schema:
+            type: object
+      responses:
+        '200':
+          description: SSO response valid
+        '401':
+          description: Invalid or missing credentials has been provided
+          schema:
+            $ref: '#/definitions/Error'
+          examples:
+            application/json:
+              faultstring: Invalid or missing credentials
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      security: []
+
   /stream/v1/stream:
     get:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
@@ -4455,6 +4485,16 @@ paths:
       description: |
         Event stream endpoint.
       parameters:
+        - name: end_execution_id
+          in: query
+          description: execution id used to find last event in stream
+          type: string
+          required: false
+        - name: end_event
+          in: query
+          description: event to end sse stream
+          type: string
+          required: false
         - name: events
           in: query
           description: List of events to listen for. If not provided, it listens to all events.
@@ -5028,10 +5068,6 @@ definitions:
         type: array
         items:
           type: string
-      python3:
-        description: Use Python 3 binary for pack virtual environment.
-        type: boolean
-        default: false
       force:
         description: Force pack installation.
         type: boolean
@@ -5331,6 +5367,11 @@ definitions:
     type: object
     properties:
       valid:
+        type: boolean
+  SSOEnabledResult:
+    type: object
+    properties:
+      enabled:
         type: boolean
   ApiKey:
     x-api-model: st2common.models.api.auth:ApiKeyAPI

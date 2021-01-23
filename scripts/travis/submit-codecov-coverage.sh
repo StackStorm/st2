@@ -14,12 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ ${TRAVIS_TEST_RESULT} -eq 0 ]; then
+# If we're on GitHub Actions (eg: the user is 'runner'), then the workflow
+# has already checked that the build has succeeded.
+# If we're on Travis, then we need to manually check that the build succeeded.
+if [[ "${USER}" == "runner" || ${TRAVIS_TEST_RESULT} -eq 0 ]]; then
     # 1. Install codecov dependencies
     # NOTE: We need eventlet installed so coverage can be correctly combined. This is needed because we are covering code which utilizes eventlet.
     # Without eventlet being available to the coverage command it will fail with "Couldn't trace with concurrency=eventlet, the module isn't installed."
     pip install eventlet
-    pip install -e "git+https://github.com/StackStorm/codecov-python.git@better_error_output#egg=codecov"
+    # NOTE: codecov only supports coverage==4.5.2
+    pip install 'coverage<5.0'
+    pip install codecov
 
     # 2. Combine coverage report and submit coverage report to codecovs.io
     codecov --required

@@ -7,6 +7,194 @@ in development
 Added
 ~~~~~
 
+* Added support for GitLab SSH URLs on pack install and download actions. (improvement) #5050
+  Contributed by @asthLucas
+
+* Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
+  Contributed by @hnanchahal
+  
+* Added notification support for err-stackstorm. (new feature) #5051
+
+* Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
+  Contributed by @hnanchahal
+
+Changed
+~~~~~~~~~
+* Updated deprecation warning for python 2 pack installs, following python 2 support removal. #5099
+  Contributed by @amanda11
+
+* Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
+  ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
+
+* Added timeout parameter for packs.install action to help with long running installs that exceed the 
+  default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
+
+  Contributed by @hnanchahal
+
+* Upgraded cryptography version to 3.2 to avoid CVE-2020-25659 (security) #5095
+
+* Converted most CI jobs from Travis to GitHub Actions (all except Integration tests).
+
+  Contributed by @nmaludy, @winem, and @blag
+
+Fixed
+~~~~~~~~~
+* Pin chardet version as newest version was incompatible with pinned requests version #5101
+  Contributed by @amanda11
+
+* Fixed issue were st2tests was not getting installed using pip because no version was specified.
+  Contributed by @anirudhbagri
+  
+* Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
+* Fix nginx buffering long polling stream to client.  Instead of waiting for closed connection
+  wait for final event to be sent to client. (bug fix) #4842  #5042
+
+  Contributed by @guzzijones
+
+* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
+
+Removed
+~~~~~~~~
+* Removed --python3 pack install option  #5100
+  Contributed by @amanda11
+
+* Removed submit-debug-info tool and the st2debug component #5103
+
+* Removed check-licence script (cleanup) #5092
+
+  Contributed by @kroustou
+* Updated Makefile and CI to use Python 3 only, removing Python 2 (cleanup) #5090
+
+  Contributed by @blag
+* Remove st2resultstracker from st2ctl, the development environment and the st2actions setup.py (cleanup) #5108
+
+  Contributed by @winem
+
+3.3.0 - October 06, 2020
+------------------------
+
+Added
+~~~~~
+* Add make command to autogen JSON schema from the models of action, rule, etc. Add check
+  to ensure update to the models require schema to be regenerated. (new feature)
+* Improved st2sensor service logging message when a sensor will not be loaded when assigned to a
+  different partition (@punkrokk) #4991
+* Add support for a configurable connect timeout for SSH connections as requested in #4715
+  by adding the new configuration parameter ``ssh_connect_timeout`` to the ``ssh_runner``
+  group in st2.conf. (new feature) #4914
+
+  This option was requested by Harry Lee (@tclh123) and contributed by Marcel Weinberg (@winem).
+* Added a FAQ for the default user/pass for the `tools/launch_dev.sh` script and print out the
+  default pass to screen when the script completes. (improvement) #5013
+
+  Contributed by @punkrokk
+* Added deprecation warning if attempt to install or download a pack that only supports
+  Python 2. (new feature) #5037
+
+  Contributed by @amanda11
+* Added deprecation warning to each StackStorm service log, if service is running with
+  Python 2. (new feature) #5043
+
+  Contributed by @amanda11
+* Added deprecation warning to st2ctl, if st2 python version is Python 2. (new feature) #5044
+
+  Contributed by @amanda11
+
+Changed
+~~~~~~~
+* Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2
+  ``v3.3.0`` (improvement) #4972
+
+  Contributed by @punkrokk
+
+* Added an enhancement where ST2api.log no longer reports the entire traceback when trying to get a datastore value
+  that does not exist. It now reports a simplified log for cleaner reading. Addresses and Fixes #4979. (improvement) #4981
+
+  Contributed by Justin Sostre (@saucetray)
+* The built-in ``st2.action.file_writen`` trigger has been renamed to ``st2.action.file_written``
+  to fix the typo (bug fix) #4992
+* Renamed reference to the RBAC backend/plugin from ``enterprise`` to ``default``. Updated st2api
+  validation to use the new value when checking RBAC configuration. Removed other references to
+  enterprise for RBAC related contents. (improvement)
+* Remove authentication headers ``St2-Api-Key``, ``X-Auth-Token`` and ``Cookie`` from webhook payloads to
+  prevent them from being stored in the database. (security bug fix) #4983
+
+  Contributed by @potato and @knagy
+* Updated orquesta to version v1.2.0.
+
+Fixed
+~~~~~
+* Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
+
+  Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)
+
+* Fixed a bug where persisting Orquesta to the MongoDB database returned an error
+  ``message: key 'myvar.with.period' must not contain '.'``. This happened anytime an
+  ``input``, ``output``, ``publish`` or context ``var`` contained a key with a ``.`` within
+  the name (such as with hostnames and IP addresses). This was a regression introduced by
+  trying to improve performance. Fixing this bug means we are sacrificing performance of
+  serialization/deserialization in favor of correctness for persisting workflows and
+  their state to the MongoDB database. (bug fix) #4932
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fix a bug where passing an empty list to a with items task in a subworkflow causes
+  the parent workflow to be stuck in running status. (bug fix) #4954
+* Fixed a bug in the example nginx HA template declared headers twice (bug fix) #4966
+  Contributed by @punkrokk
+
+* Fixed a bug in the ``paramiko_ssh`` runner where SSH sockets were not getting cleaned
+  up correctly, specifically when specifying a bastion host / jump box. (bug fix) #4973
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+* Fixed a bytes/string encoding bug in the ``linux.dig`` action so it should work on Python 3
+  (bug fix) #4993
+
+* Fixed a bug where a python3 sensor using ssl needs to be monkey patched earlier. See also #4832, #4975 and gevent/gevent#1016 (bug fix) #4976
+
+  Contributed by @punkrokk
+* Fixed bug where action information in RuleDB object was not being parsed properly
+  because mongoengine EmbeddedDocument objects were added to JSON_UNFRIENDLY_TYPES and skipped.
+  Removed this and added if to use to_json method so that mongoengine EmbeddedDocument
+  are parsed properly.
+
+  Contributed by Bradley Bishop (@bishopbm1 Encore Technologies)
+* Fix a regression when updated ``dnspython`` pip dependency resulted in
+  st2 services unable to connect to mongodb remote host (bug fix) #4997
+* Fixed a regression in the ``linux.dig`` action on Python 3. (bug fix) #4993
+
+  Contributed by @blag
+* Fixed a bug in pack installation logging code where unicode strings were not being
+  interpolated properly. (bug fix)
+
+  Contributed by @misterpah
+* Fixed a compatibility issue with the latest version of the ``logging`` library API
+  where the ``find_caller()`` function introduced some new variables. (bug fix) #4923
+
+  Contributed by @Dahfizz9897
+* Fixed another logging compatibility issue with the ``logging`` API in Python 3.
+  The return from the ``logging.findCaller()`` implementation now expects a 4-element
+  tuple. Also, in Python 3 there are new arguments that are passed in and needs to be
+  acted upon, specificall ``stack_info`` that determines the new 4th element in the returned
+  tuple. (bug fix) #5057
+
+  Contributed by Nick Maludy (@nmaludy Encore Technologies)
+
+Removed
+~~~~~~~
+
+* Removed ``Mistral`` workflow engine (deprecation) #5011
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+* Removed ``CentOS 6``/``RHEL 6`` support #4984
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+* Removed our fork of ``codecov-python`` for CI and have switched back to the upstream version (improvement) #5002
+
+3.2.0 - April 27, 2020
+----------------------
+
+Added
+~~~~~
 * Add support for blacklisting / whitelisting hosts to the HTTP runner by adding new
   ``url_hosts_blacklist`` and ``url_hosts_whitelist`` runner attribute. (new feature)
   #4757
@@ -17,6 +205,7 @@ Added
 * Add ``get_entrypoint()`` method to ``ActionResourceManager`` attribute of st2client.
   #4791
 * Add support for orquesta task retry. (new feature)
+* Add config option ``scheduler.execution_scheduling_timeout_threshold_min`` to better control the cleanup of scheduled actions that were orphaned. #4886
 
 Changed
 ~~~~~~~
@@ -52,6 +241,7 @@ Changed
   connection related errors, our code would first wait for this timeout to be reached (30 seconds)
   before returning error to the end user. #4834
 * Upgrade ``pymongo`` to the latest stable version (``3.10.0.``). #4835 (improvement)
+* Updated Paramiko to v2.7.1 to support new PEM ECDSA key formats #4901 (improvement)
 * Remove ``.scrutinizer.yml`` config file. No longer used.
 * Convert escaped dict and dynamic fields in workflow db models to normal dict and dynamic fields.
   (performnce improvement)
@@ -60,11 +250,27 @@ Changed
 * Use ``pip-compile`` from ``pip-tools`` instead of ``pip-conflict-checker`` (improvement) #4896
 * Refactor how inbound criteria for join task in orquesta workflow is evaluated to count by
   task completion instead of task transition. (improvement)
+* The workflow engine orquesta is updated to v1.1.0 for the st2 v3.2 release. The version upgrade
+  contains various new features and bug fixes. Please review the release notes for the full list of
+  changes at https://github.com/StackStorm/orquesta/releases/tag/v1.1.0 and the st2 upgrade notes
+  for potential impact. (improvement)
+* Update st2 nginx config to remove deprecated ``ssl on`` option. #4917 (improvement)
 * Updated and tested tooz to v2.8.0 to apply fix for consul coordination heartbeat (@punkrokk @winem) #5121
 
 Fixed
 ~~~~~
+* Fix a typo that caused an internal server error when filtering actions by tags. Fixes #4918
 
+  Reported by @mweinberg-cm and contributed by Marcel Weinberg (@winem)
+
+* Fix the action query when filtering tags. The old implementation returned actions which have the
+  provided name as action name and not as tag name. (bug fix) #4828
+
+  Reported by @AngryDeveloper and contributed by Marcel Weinberg (@winem)
+* Fix the passing of arrays to shell scripts where the arrays where not detected as such by the
+  st2 action_db utility. This caused arrays to be passed as Python lists serialized into a string.
+
+  Reported by @kingsleyadam #4804 and contributed by Marcel Weinberg (@winem) #4861
 * Fix ssh zombies when using ProxyCommand from ssh config #4881 [Eric Edgar]
 * Fix rbac with execution view where the rbac is unable to verify the pack or uid of the execution
   because it was not returned from the action execution db. This would result in an internal server
@@ -118,8 +324,16 @@ Fixed
   Contributed by Tatsuma Matsuki (@mtatsuma)
 
 * Fix dependency conflicts by updating ``requests`` (2.23.0) and ``gitpython`` (2.1.15). #4869
-* Fix orquesta syntax error for with items task where action is misindented or missing.
-  StackStorm/orquesta#195 (bug fix)
+* Fix orquesta syntax error for with items task where action is misindented or missing. (bug fix)
+  PR StackStorm/orquesta#195.
+* Fix orquesta yaql/jinja vars extraction to ignore methods of base ctx() dict. (bug fix)
+  PR StackStorm/orquesta#196. Fixes #4866.
+* Fix parsing of array of dicts in YAQL functions. Fix regression in YAQL/Jinja conversion
+  functions as a result of the change. (bug fix) PR StackStorm/orquesta#191.
+
+  Contributed by Hiroyasu Ohyama (@userlocalhost)
+* Fix retry in orquesta when a task that has a transition on failure will also be traversed on
+  retry. (bug fix) PR StackStorm/orquesta#200
 
 Removed
 ~~~~~~~

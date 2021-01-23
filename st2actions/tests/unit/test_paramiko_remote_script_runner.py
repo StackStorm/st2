@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,19 +130,14 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
                 'position': 3,
                 'default': 'master',
             },
-            'update_mistral': {
+            'update_changelog': {
                 'type': 'boolean',
                 'position': 4,
                 'default': False
             },
-            'update_changelog': {
-                'type': 'boolean',
-                'position': 5,
-                'default': False
-            },
             'local_repo': {
                 'type': 'string',
-                'position': 6,
+                'position': 5,
             }
         }
         context = {}
@@ -170,7 +166,6 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
             'version': '3.0.0',
             'fork': 'StackStorm',
             'branch': 'master',  # default value used
-            'update_mistral': False,  # default value used
             'update_changelog': False,  # default value used
             'local_repo': '/tmp/repo'
         })
@@ -189,7 +184,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         )
 
         command_string = remote_action.get_full_command_string()
-        expected = 'cd /test/cwd/ && /tmp/script.sh st2flow 3.0.0 StackStorm master 0 0 /tmp/repo'
+        expected = 'cd /test/cwd/ && /tmp/script.sh st2flow 3.0.0 StackStorm master 0 /tmp/repo'
         self.assertEqual(command_string, expected)
 
         # 2. Some default values used
@@ -211,7 +206,6 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
             'version': '3.1.0',
             'fork': 'StackStorm1',
             'branch': 'master',  # default value used
-            'update_mistral': False,  # default value used
             'update_changelog': True,  # default value used
             'local_repo': '/tmp/repob'
         })
@@ -230,7 +224,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         )
 
         command_string = remote_action.get_full_command_string()
-        expected = 'cd /test/cwd/ && /tmp/script.sh st2web 3.1.0 StackStorm1 master 0 1 /tmp/repob'
+        expected = 'cd /test/cwd/ && /tmp/script.sh st2web 3.1.0 StackStorm1 master 1 /tmp/repob'
         self.assertEqual(command_string, expected)
 
         # 3. None is specified for a boolean parameter, should use a default
@@ -252,7 +246,6 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
             'version': '3.2.0',
             'fork': 'StackStorm2',
             'branch': 'master',  # default value used
-            'update_mistral': False,  # default value used
             'update_changelog': False,  # default value used
             'local_repo': '/tmp/repoc'
         })
@@ -271,5 +264,5 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         )
 
         command_string = remote_action.get_full_command_string()
-        expected = 'cd /test/cwd/ && /tmp/script.sh st2rbac 3.2.0 StackStorm2 master 0 0 /tmp/repoc'
+        expected = 'cd /test/cwd/ && /tmp/script.sh st2rbac 3.2.0 StackStorm2 master 0 /tmp/repoc'
         self.assertEqual(command_string, expected)

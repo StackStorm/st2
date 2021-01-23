@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +27,6 @@ from oslo_config import cfg
 CONFIGS = ['st2actions.config',
            'st2actions.scheduler.config',
            'st2actions.notifier.config',
-           'st2actions.resultstracker.config',
            'st2actions.workflows.config',
            'st2api.config',
            'st2stream.config',
@@ -49,6 +49,9 @@ AUTH_OPTIONS = {
         'api_url',
         'token_ttl',
         'service_token_ttl',
+        'sso',
+        'sso_backend',
+        'sso_backend_kwargs',
         'debug'
     ],
     'standalone': [
@@ -68,7 +71,6 @@ STATIC_OPTION_VALUES = {
     'actionrunner': {
         'virtualenv_binary': '/usr/bin/virtualenv',
         'python_binary': '/usr/bin/python',
-        'python3_binary': '/usr/bin/python3'
     },
     'webui': {
         'webui_base_url': 'https://localhost'
@@ -141,7 +143,7 @@ def _read_groups(opt_groups):
 
 
 def _print_options(opt_group, options):
-    for opt in options:
+    for opt in sorted(options, key=lambda x: x['opt'].name):
         opt = opt['opt']
 
         # Special case for options which could change during this script run

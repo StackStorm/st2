@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,14 +15,20 @@
 
 from __future__ import absolute_import
 from st2common.exceptions import StackStormBaseException
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
     'CryptoKeyNotSetupException',
+    'DataStoreKeyNotFoundError',
     'InvalidScopeException'
 ]
 
 
 class CryptoKeyNotSetupException(StackStormBaseException):
+    pass
+
+
+class DataStoreKeyNotFoundError(StackStormDBObjectNotFoundError):
     pass
 
 

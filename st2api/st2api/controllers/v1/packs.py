@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -97,7 +98,6 @@ class PackInstallController(ActionExecutionsControllerMixin):
     def post(self, pack_install_request, requester_user=None):
         parameters = {
             'packs': pack_install_request.packs,
-            'python3': pack_install_request.python3
         }
 
         if pack_install_request.force:

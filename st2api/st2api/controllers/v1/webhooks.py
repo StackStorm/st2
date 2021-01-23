@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +16,10 @@
 import six
 import uuid
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
-urljoin = urlparse.urljoin
+from six.moves import http_client
 
 from st2common import log as logging
+from st2common.constants.auth import HEADER_API_KEY_ATTRIBUTE_NAME, HEADER_ATTRIBUTE_NAME
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.api.trace import TraceContext
 from st2common.models.api.trigger import TriggerAPI
@@ -30,8 +32,6 @@ from st2common.services.trigger_dispatcher import TriggerDispatcherService
 from st2common.router import abort
 from st2common.router import Response
 from st2common.util.jsonify import get_json_type_for_python_value
-
-http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
@@ -125,6 +125,7 @@ class WebhooksController(object):
                                                           permission_type=permission_type)
 
         headers = self._get_headers_as_dict(headers)
+        headers = self._filter_authentication_headers(headers)
 
         # If webhook contains a trace-tag use that else create create a unique trace-tag.
         trace_context = self._create_trace_context(trace_tag=headers.pop(TRACE_TAG_HEADER, None),
@@ -190,7 +191,7 @@ class WebhooksController(object):
         # Note: Permission checking for creating and deleting a webhook is done during rule
         # creation
         url = self._get_normalized_url(trigger)
-        LOG.info('Listening to endpoint: %s', urljoin(self._base_url, url))
+        LOG.info('Listening to endpoint: %s', urlparse.urljoin(self._base_url, url))
         self._hooks.add_hook(url, trigger)
 
     def update_trigger(self, trigger):
@@ -203,7 +204,7 @@ class WebhooksController(object):
 
         removed = self._hooks.remove_hook(url, trigger)
         if removed:
-            LOG.info('Stop listening to endpoint: %s', urljoin(self._base_url, url))
+            LOG.info('Stop listening to endpoint: %s', urlparse.urljoin(self._base_url, url))
 
     def _get_normalized_url(self, trigger):
         """
@@ -217,6 +218,10 @@ class WebhooksController(object):
         for key, value in headers.items():
             headers_dict[key] = value
         return headers_dict
+
+    def _filter_authentication_headers(self, headers):
+        auth_headers = [HEADER_API_KEY_ATTRIBUTE_NAME, HEADER_ATTRIBUTE_NAME, 'Cookie']
+        return {key: value for key, value in headers.items() if key not in auth_headers}
 
     def _log_request(self, msg, headers, body, log_method=LOG.debug):
         headers = self._get_headers_as_dict(headers)

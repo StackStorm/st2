@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -318,6 +319,26 @@ class TestWebhooksController(FunctionalTest):
         self.assertTrue(controller._is_valid_hook('with_trailing_slash'))
         self.assertTrue(controller._is_valid_hook('with_leading_trailing_slash'))
         self.assertTrue(controller._is_valid_hook('with/mixed/slash'))
+
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER_DICT]))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_authentication_headers_should_be_removed(self, dispatch_mock):
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'St2-Api-Key': 'foobar',
+            'X-Auth-Token': 'deadbeaf',
+            'Cookie': 'foo=bar'
+        }
+
+        self.app.post('/v1/webhooks/git', WEBHOOK_1, headers=headers)
+        self.assertNotIn('St2-Api-Key', dispatch_mock.call_args[1]['payload']['headers'])
+        self.assertNotIn('X-Auth-Token', dispatch_mock.call_args[1]['payload']['headers'])
+        self.assertNotIn('Cookie', dispatch_mock.call_args[1]['payload']['headers'])
 
     def __do_post(self, hook, webhook, expect_errors=False, headers=None):
         return self.app.post_json('/v1/webhooks/' + hook,

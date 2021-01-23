@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,6 +128,7 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         config = {}
         file_path = os.path.join(BASE_DIR, '../../../../examples/actions/noop.py')
 
+        # try running in a sub-shell to ensure that the stdin is empty
         command_string = ('python %s --pack=dummy --file-path=%s --config=\'%s\' '
                           '--stdin-parameters' %
                          (WRAPPER_SCRIPT_PATH, file_path, config))
@@ -139,7 +141,6 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
 
     def test_stdin_params_invalid_format_friendly_error(self):
         config = {}
-
         file_path = os.path.join(BASE_DIR, '../../../contrib/examples/actions/noop.py')
         # Not a valid JSON string
         command_string = ('echo "invalid" | python %s --pack=dummy --file-path=%s --config=\'%s\' '
@@ -148,6 +149,6 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
         exit_code, stdout, stderr = run_command(command_string, shell=True)
 
         expected_msg = ('ValueError: Failed to parse parameters from stdin. Expected a JSON '
-                        'object with "parameters" attribute:')
+                        'object with "parameters" attribute')
         self.assertEqual(exit_code, 1)
         self.assertIn(expected_msg, stderr)

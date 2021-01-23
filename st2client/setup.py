@@ -1,4 +1,5 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,18 +29,22 @@ check_pip_version()
 ST2_COMPONENT = 'st2client'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
+README_FILE = os.path.join(BASE_DIR, 'README.rst')
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 apply_vagrant_workaround()
+
+with open(README_FILE) as f:
+    readme = f.read()
 
 setup(
     name=ST2_COMPONENT,
     version=__version__,
     description=('Python client library and CLI for the StackStorm (st2) event-driven '
                  'automation platform.'),
+    long_description=readme,
     author='StackStorm',
     author_email='info@stackstorm.com',
-    license='Apache License (2.0)',
     url='https://stackstorm.com/',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -62,5 +67,16 @@ setup(
         'console_scripts': [
             'st2 = st2client.shell:main'
         ]
+    },
+    project_urls={
+        'Pack Exchange': 'https://exchange.stackstorm.org',
+        'Repository': 'https://github.com/StackStorm/st2',
+        'Documentation': 'https://docs.stackstorm.com',
+        'Community': 'https://stackstorm.com/community-signup',
+        'Questions': 'https://forum.stackstorm.com/',
+        'Donate': 'https://funding.communitybridge.org/projects/stackstorm',
+        'News/Blog': 'https://stackstorm.com/blog',
+        'Security': 'https://docs.stackstorm.com/latest/security.html',
+        'Bug Reports': 'https://github.com/StackStorm/st2/issues',
     }
 )

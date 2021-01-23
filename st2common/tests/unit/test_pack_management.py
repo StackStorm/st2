@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,6 +44,9 @@ class InstallPackTestCase(unittest2.TestCase):
 
         result = eval_repo_url('git@github.com:StackStorm/st2contrib.git')
         self.assertEqual(result, 'git@github.com:StackStorm/st2contrib.git')
+
+        result = eval_repo_url('gitlab@gitlab.com:StackStorm/st2contrib.git')
+        self.assertEqual(result, 'gitlab@gitlab.com:StackStorm/st2contrib.git')
 
         repo_url = 'https://github.com/StackStorm/st2contrib.git'
         result = eval_repo_url(repo_url)
