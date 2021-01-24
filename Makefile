@@ -527,7 +527,6 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 
 	# setuptools >= 41.0.1 is required for packs.install in dev envs
 	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
-#	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Fix for Travis CI race
