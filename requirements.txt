@@ -12,7 +12,7 @@ argcomplete
 bcrypt==3.1.7
 chardet<3.1.0
 cryptography==3.2
-dnspython<2.0.0,>=1.16.0
+dnspython>=1.16.0,<2.0.0
 eventlet==0.25.1
 flex==6.14.0
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
@@ -36,14 +36,14 @@ networkx==1.11
 nose
 nose-parallel==0.3.1
 nose-timer==0.7.5
-oslo.config<1.13,>=1.12.1
+oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 paramiko==2.7.1
 passlib==1.7.1
 prettytable
 prompt-toolkit==1.0.15
 psutil==5.6.6
-pyinotify==0.9.6 ; platform_system == "Linux"
+pyinotify==0.9.6; platform_system=="Linux"
 pymongo==3.10.0
 pyrabbit
 python-dateutil==2.8.0
@@ -68,4 +68,4 @@ unittest2
 webob==1.8.5
 webtest
 zake==0.2.2
-zipp<=1.0.0,>=0.5
+zipp>=0.5,<=1.0.0

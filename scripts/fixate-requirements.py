@@ -33,6 +33,7 @@ import argparse
 import os
 import os.path
 import sys
+from pip._internal.req.constructors import parse_req_from_line
 
 from distutils.version import StrictVersion
 
@@ -118,15 +119,16 @@ def merge_source_requirements(sources):
     for infile_path in (locate_file(p, must_exist=True) for p in sources):
         for req in load_requirements(infile_path):
             # Requirements starting with project name "project ..."
-            if req.req:
+            parsedreq = parse_req_from_line(req.requirement, req.line_source)
+            if parsedreq.requirement:
                 # Skip already added project name
-                if req.name in projects:
+                if parsedreq.requirement.name in projects:
                     continue
-                projects.add(req.name)
+                projects.add(parsedreq.requirement.name)
                 merged_requirements.append(req)
 
-            # Requirements lines like "vcs+proto://url"
-            elif req.link:
+                # Requirements lines like "vcs+proto://url"
+            elif parsedreq.link:
                 merged_requirements.append(req)
             else:
                 raise RuntimeError('Unexpected requirement {0}'.format(req))
@@ -147,9 +149,10 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
     # Make sure there are no duplicate / conflicting definitions
     fixedreq_hash = {}
     for req in fixed:
-        project_name = req.name
+        parsedreq = parse_req_from_line(req.requirement, req.line_source)
+        project_name = parsedreq.requirement.name
 
-        if not req.req:
+        if not req.requirement:
             continue
 
         if project_name in fixedreq_hash:
@@ -160,25 +163,25 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
     lines_to_write = []
     links = set()
     for req in requirements:
-        if req.name in skip:
+        parsedreq = parse_req_from_line(req.requirement, req.line_source)
+        if parsedreq.requirement.name in skip:
             continue
 
         # we don't have any idea how to process links, so just add them
-        if req.link and req.link not in links:
-            links.add(req.link)
-            rline = str(req.link)
+        if parsedreq.link and parsedreq.link not in links:
+            links.add(parsedreq.link)
+            rline = str(parsedreq.link)
 
-            if req.editable:
+            if req.is_editable:
                 rline = '-e %s' % (rline)
-        elif req.req:
-            project = req.name
+        elif req.requirement:
+            project = parsedreq.requirement.name
             req_obj = fixedreq_hash.get(project, req)
 
-            rline = str(req_obj.req)
+            rline = str(req_obj.requirement)
 
-            # Also write out environment markers
-            if req_obj.markers:
-                rline += " ; {}".format(str(req_obj.markers))
+            # Markers are included in req_obj.requirement, so no
+            # special processing required
 
         lines_to_write.append(rline)
 
