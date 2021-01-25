@@ -48,10 +48,12 @@ They're not part of the TSC voting process, but appreciated for their contributi
 [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and have permissions to help triage the Issues and review PRs.
 * AJ Jonen ([@guzzijones](https://github.com/guzzijones)) - ST2 Web UI, Orquesta, Core.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
+* Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
 * Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
 * Marcel Weinberg ([@winem](https://github.com/winem)) - Community, Docker, Core.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
+* Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
 
 # Friends

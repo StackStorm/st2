@@ -45,6 +45,9 @@ class InstallPackTestCase(unittest2.TestCase):
         result = eval_repo_url('git@github.com:StackStorm/st2contrib.git')
         self.assertEqual(result, 'git@github.com:StackStorm/st2contrib.git')
 
+        result = eval_repo_url('gitlab@gitlab.com:StackStorm/st2contrib.git')
+        self.assertEqual(result, 'gitlab@gitlab.com:StackStorm/st2contrib.git')
+
         repo_url = 'https://github.com/StackStorm/st2contrib.git'
         result = eval_repo_url(repo_url)
         self.assertEqual(result, repo_url)
