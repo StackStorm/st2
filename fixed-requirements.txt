@@ -37,6 +37,7 @@ python-keyczar==0.716
 pytz==2019.1
 pywinrm==0.3.0
 pyyaml==5.1.2
+RandomWords>0.1.10
 rednose>0.2.2
 requests[security]==2.23.0
 retrying==1.3.3
