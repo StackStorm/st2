@@ -11,7 +11,7 @@ cryptography==3.2
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 more-itertools==5.0.0
-prettytable
+prettytable>=2.0.0
 prompt-toolkit==1.0.15
 python-dateutil==2.8.0
 python-editor==1.0.4
