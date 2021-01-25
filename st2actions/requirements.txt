@@ -21,6 +21,8 @@ python-json-logger>=2.0.1
 pyyaml==5.1.2
 requests[security]==2.23.0
 six==1.13.0
+smmap2>=3.0.1
+smmap>=3.0.4
 tzlocal>=2.1
 urllib3>=1.25.11
 wrapt>=1.12.1

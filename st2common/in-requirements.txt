@@ -33,6 +33,8 @@ vine
 flex
 # required by flex
 validate-email
+rfc3987
+#
 webob
 jsonpath-rw
 python-statsd
@@ -48,3 +50,6 @@ chardet
 urllib3
 # needed by apscheduler
 tzlocal
+# needed by gitpython
+smmap2
+smmap

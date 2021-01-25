@@ -25,3 +25,6 @@ urllib3
 wrapt
 # needed by apscheduler
 tzlocal
+# needed by gitpython
+smmap2
+smmap

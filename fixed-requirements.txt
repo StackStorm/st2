@@ -66,11 +66,15 @@ more-itertools==5.0.0
 nose>=1.3.7
 nose-timer==0.7.5
 nose-parallel==0.3.1
+ntlm-auth>=1.5.0
 prettytable>=2.0.0
 psutil==5.6.6
 python-dateutil==2.8.0
 python-statsd==2.1.0
 prometheus_client==0.1.1
+rfc3987>=1.3.8
+smmap>=3.0.4
+smmap2>=3.0.1
 tenacity>=6.3.1
 termstyle>=0.1.11
 typing-extensions>=3.7.4.3
