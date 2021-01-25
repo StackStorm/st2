@@ -21,3 +21,4 @@ python-json-logger>=2.0.1
 pyyaml==5.1.2
 requests[security]==2.23.0
 six==1.13.0
+wrapt>=1.12.1

@@ -10,3 +10,5 @@ pymongo
 six
 gunicorn
 simplejson
+# needed by oslo.utils
+wrapt

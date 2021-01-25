@@ -9,3 +9,5 @@ oslo.utils
 pymongo
 six
 gunicorn
+# needed by oslo.utils
+wrapt

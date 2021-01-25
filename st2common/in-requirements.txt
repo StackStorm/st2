@@ -26,6 +26,7 @@ tooz
 # to be installed manually
 zake
 routes
+voluptuous
 flex
 webob
 jsonpath-rw
