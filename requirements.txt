@@ -8,7 +8,7 @@
 RandomWords>=0.3.0
 amqp==2.5.2
 apscheduler==3.6.3
-argcomplete
+argcomplete>=1.12.2
 bcrypt==3.1.7
 chardet<3.1.0
 cryptography==3.2
