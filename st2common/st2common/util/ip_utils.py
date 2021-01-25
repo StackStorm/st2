@@ -16,7 +16,7 @@
 from __future__ import absolute_import
 import re
 
-import ipaddr
+import ipaddress
 from st2common.log import logging
 
 LOG = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ def is_ipv6(ip_str):
     :rtype: ``bool``
     """
     try:
-        addr = ipaddr.IPAddress(ip_str)
+        addr = ipaddress.ip_address(ip_str)
         return addr.version == 6
     except:
         return False
@@ -60,7 +60,7 @@ def is_ipv4(ip_str):
     :rtype: ``bool``
     """
     try:
-        addr = ipaddr.IPAddress(ip_str)
+        addr = ipaddress.ip_address(ip_str)
         return addr.version == 4
     except:
         return False

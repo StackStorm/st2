@@ -37,6 +37,9 @@ Changed
 
   Contributed by @nmaludy, @winem, and @blag
 
+* Updated fixate-requirements to work with PIP 20.3.3 #512
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
 Fixed
 ~~~~~~~~~
 * Pin chardet version as newest version was incompatible with pinned requests version #5101
