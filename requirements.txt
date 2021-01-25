@@ -48,7 +48,7 @@ pymongo==3.10.0
 pyrabbit
 python-dateutil==2.8.0
 python-editor==1.0.4
-python-json-logger
+python-json-logger>0.0.2
 python-statsd==2.1.0
 pytz==2019.1
 pywinrm==0.3.0
