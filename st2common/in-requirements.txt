@@ -34,6 +34,7 @@ flex
 # required by flex
 validate-email
 rfc3987
+strict-rfc3339
 #
 webob
 jsonpath-rw
@@ -53,3 +54,5 @@ tzlocal
 # needed by gitpython
 smmap2
 smmap
+#needed by routes
+repoze.lru
