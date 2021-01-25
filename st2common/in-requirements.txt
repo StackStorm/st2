@@ -27,7 +27,11 @@ tooz
 zake
 routes
 voluptuous
+# required by amqp
+vine
 flex
+# required by flex
+validate-email
 webob
 jsonpath-rw
 python-statsd
@@ -40,3 +44,4 @@ gitpython
 lockfile
 # needed by requests
 chardet
+urllib3

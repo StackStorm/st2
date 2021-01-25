@@ -20,5 +20,6 @@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipp
 virtualenv
 # needed by requests
 chardet
+urllib3
 # needed by oslo.utils
 wrapt
