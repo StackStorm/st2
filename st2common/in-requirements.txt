@@ -27,6 +27,7 @@ tooz
 zake
 routes
 voluptuous
+tenacity
 # required by amqp
 vine
 flex
@@ -45,3 +46,5 @@ lockfile
 # needed by requests
 chardet
 urllib3
+# needed by apscheduler
+tzlocal

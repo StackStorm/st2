@@ -9,3 +9,5 @@ nose-parallel
 rednose
 RandomWords
 pyrabbit
+# needed by rednose
+termstyle

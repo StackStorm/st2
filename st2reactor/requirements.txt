@@ -13,3 +13,4 @@ kombu==4.6.6
 oslo.config>=1.12.1,<1.13
 python-dateutil==2.8.0
 six==1.13.0
+tzlocal>=2.1

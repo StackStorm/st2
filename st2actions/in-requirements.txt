@@ -23,3 +23,5 @@ chardet
 urllib3
 # needed by oslo.utils
 wrapt
+# needed by apscheduler
+tzlocal
