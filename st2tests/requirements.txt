@@ -12,6 +12,6 @@ nose-parallel==0.3.1
 nose-timer==0.7.5
 psutil==5.6.6
 pyrabbit
-rednose
+rednose>0.2.2
 unittest2
 webtest
