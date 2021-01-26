@@ -53,6 +53,10 @@ Fixed
 
 * StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
 
+* Kept functionality for implicit relative imports in Python actions (regression, bug fix) #5127
+
+  Identified by @amanda11
+
 Removed
 ~~~~~~~~
 * Removed --python3 pack install option  #5100
