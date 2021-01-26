@@ -165,7 +165,7 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
 
         for system_prefix_dir in system_prefix_dirs:
             python3_system_lib_directory = os.path.join(system_prefix_dir,
-                                                        virtualenv_directories[0])
+                                                        virtualenv_lib_directory)
 
             if os.path.exists(python3_system_lib_directory):
                 break
