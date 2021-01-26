@@ -184,7 +184,7 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
             full_sandbox_python_path = []
 
             # NOTE: Order here is very important for imports to function correctly
-            if python3_system_lib_directory:
+            if system_lib_directory:
                 full_sandbox_python_path.append(system_lib_directory)
 
             full_sandbox_python_path.append(virtualenv_lib_directory)
