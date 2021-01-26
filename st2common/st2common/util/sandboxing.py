@@ -20,7 +20,7 @@ virtual environments.
 
 from __future__ import absolute_import
 
-import glob
+import fnmatch
 import os
 import sys
 from distutils.sysconfig import get_python_lib
@@ -140,47 +140,58 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
 
     virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
 
-    # Get the pack's virtualenv site-packages directory
-    # There should only be one, but we don't know what version of Python it
-    # will be using, so we use a glob and ensure it exists
-    virtualenv_lib_path = os.path.join(virtualenv_path, 'lib', 'python*', 'site-packages')
-    virtualenv_lib_directories = glob.glob(virtualenv_lib_path)
+    if virtualenv_path and os.path.isdir(virtualenv_path):
+        # Get the pack's virtualenv site-packages directory
+        # There should only be one, but we don't know what version of Python it
+        # will be using, so we use a glob and ensure it exists
+        virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+        virtualenv_lib_directories = [
+            dir_name for dir_name in os.listdir(virtualenv_lib_path)
+            if fnmatch.fnmatch(dir_name, 'python*')
+        ]
 
-    if virtualenv_path and virtualenv_lib_directories:
-        pack_base_path = get_pack_base_path(pack_name=pack)
+        if virtualenv_lib_directories:
+            pack_base_path = get_pack_base_path(pack_name=pack)
+            # This will be just the virtualenv's Python version - eg: python3.6
+            virtualenv_lib_directory = virtualenv_lib_directories[0]
 
-        # Get the pack's actions/lib directory
-        pack_actions_lib_paths = os.path.join(pack_base_path, 'actions', 'lib')
-        # Get the pack's virtualenv's site-packages directory
-        virtualenv_lib_directory = virtualenv_lib_directories[0]
+            # Get the pack's actions/lib directory
+            pack_actions_lib_paths = os.path.join(pack_base_path, 'actions', 'lib')
+            # Get the pack's virtualenv's site-packages directory
+            virtualenv_lib_directory = os.path.join(virtualenv_lib_path, virtualenv_lib_directory)
 
-        # Work around to make sure we also add system lib dir to PYTHONPATH and not just virtualenv
-        # one (e.g. /usr/lib/python3.6)
-        # NOTE: We can't simply use sys.prefix dir since it will be set to /opt/stackstorm/st2
+            # Work around to make sure we also add system lib dir to PYTHONPATH and not just virtualenv
+            # one (e.g. /usr/lib/python3.6)
+            # This code will pick the same sytem Python version as exists in
+            # the virtualenv, since virtualenv_lib_directory identifies that
+            # directory within the virtualenv and it should have the same name
+            # as the system Python executable.
 
-        # By default, Python libs are installed either in /usr/lib/python3.x or
-        # /usr/local/lib/python3.x
-        for system_prefix_dir in ['/usr/lib', '/usr/local/lib']:
-            python3_system_lib_directory = os.path.join(system_prefix_dir,
-                                                        virtualenv_lib_directory)
+            # NOTE: We can't simply use sys.prefix dir since it will be set to /opt/stackstorm/st2
 
-            if os.path.exists(python3_system_lib_directory):
-                break
-        else:
-            # If no Python 3 system library is found
-            python3_system_lib_directory = None
+            # By default, Python libs are installed either in /usr/lib/python3.x or
+            # /usr/local/lib/python3.x
+            for system_prefix_dir in ['/usr/lib', '/usr/local/lib']:
+                system_lib_directory = os.path.join(system_prefix_dir,
+                                                    virtualenv_lib_directory)
 
-        full_sandbox_python_path = []
+                if os.path.exists(system_lib_directory):
+                    break
+            else:
+                # If no system library is found
+                system_lib_directory = None
 
-        # NOTE: Order here is very important for imports to function correctly
-        if python3_system_lib_directory:
-            full_sandbox_python_path.append(python3_system_lib_directory)
+            full_sandbox_python_path = []
 
-        full_sandbox_python_path.append(virtualenv_lib_directory)
-        full_sandbox_python_path.append(pack_actions_lib_paths)
-        full_sandbox_python_path.append(sandbox_python_path)
+            # NOTE: Order here is very important for imports to function correctly
+            if python3_system_lib_directory:
+                full_sandbox_python_path.append(system_lib_directory)
 
-        sandbox_python_path = ':'.join(full_sandbox_python_path)
+            full_sandbox_python_path.append(virtualenv_lib_directory)
+            full_sandbox_python_path.append(pack_actions_lib_paths)
+            full_sandbox_python_path.append(sandbox_python_path)
+
+            sandbox_python_path = ':'.join(full_sandbox_python_path)
 
     return sandbox_python_path
 
