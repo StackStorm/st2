@@ -140,15 +140,19 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
 
     virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
 
-    if virtualenv_path:
+    # Get the pack's virtualenv site-packages directory
+    # There should only be one, but we don't know what version of Python it
+    # will be using, so we use a glob and ensure it exists
+    virtualenv_lib_path = os.path.join(virtualenv_path, 'lib', 'python*', 'site-packages')
+    virtualenv_lib_directories = glob.glob(virtualenv_lib_path)
+
+    if virtualenv_path and virtualenv_lib_directories:
         pack_base_path = get_pack_base_path(pack_name=pack)
 
         # Get the pack's actions/lib directory
         pack_actions_lib_paths = os.path.join(pack_base_path, 'actions', 'lib')
-
-        # Get the pack's virtualenv site-packages directory
-        virtualenv_lib_path = os.path.join(virtualenv_path, 'lib', 'python*', 'site-packages')
-        virtualenv_lib_directory = glob.glob(virtualenv_lib_path)[0]
+        # Get the pack's virtualenv's site-packages directory
+        virtualenv_lib_directory = virtualenv_lib_directories[0]
 
         # Work around to make sure we also add system lib dir to PYTHONPATH and not just virtualenv
         # one (e.g. /usr/lib/python3.6)
