@@ -158,16 +158,9 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
         # one (e.g. /usr/lib/python3.6)
         # NOTE: We can't simply use sys.prefix dir since it will be set to /opt/stackstorm/st2
 
-        system_prefix_dirs = []
-        # Take custom prefix into account (if specified)
-        if cfg.CONF.actionrunner.python3_prefix:
-            system_prefix_dirs.append(cfg.CONF.actionrunner.python3_prefix)
-
         # By default, Python libs are installed either in /usr/lib/python3.x or
         # /usr/local/lib/python3.x
-        system_prefix_dirs.extend(['/usr/lib', '/usr/local/lib'])
-
-        for system_prefix_dir in system_prefix_dirs:
+        for system_prefix_dir in ['/usr/lib', '/usr/local/lib']:
             python3_system_lib_directory = os.path.join(system_prefix_dir,
                                                         virtualenv_lib_directory)
 
