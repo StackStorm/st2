@@ -160,8 +160,8 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
             # Get the pack's virtualenv's site-packages directory
             virtualenv_lib_directory = os.path.join(virtualenv_lib_path, virtualenv_lib_directory)
 
-            # Work around to make sure we also add system lib dir to PYTHONPATH and not just virtualenv
-            # one (e.g. /usr/lib/python3.6)
+            # Work around to make sure we also add system lib dir to PYTHONPATH
+            # and not just virtualenv one (e.g. /usr/lib/python3.6)
             # This code will pick the same sytem Python version as exists in
             # the virtualenv, since virtualenv_lib_directory identifies that
             # directory within the virtualenv and it should have the same name
