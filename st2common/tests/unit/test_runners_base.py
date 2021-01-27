@@ -15,11 +15,7 @@
 
 from __future__ import absolute_import
 
-from stevedore.exception import NoMatches
-
 from st2common.runners.base import get_runner
-from st2common.runners.base import get_query_module
-from st2common.runners.base import get_callback_module
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 
 from st2tests.base import DbTestCase
@@ -35,25 +31,3 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
         expected_msg = 'Failed to find runner invalid-name-not-found.*'
         self.assertRaisesRegexp(ActionRunnerCreateError, expected_msg,
                                 get_runner, 'invalid-name-not-found')
-
-    def test_get_query_module_success(self):
-        query_module = get_query_module('mock_query_callback')
-
-        self.assertEqual(query_module.__name__, 'mock_query_callback.query')
-        self.assertTrue(query_module.get_instance())
-
-    def test_get_query_module_failure_not_found(self):
-        expected_msg = 'No .*? driver found.*'
-        self.assertRaisesRegexp(NoMatches, expected_msg,
-                                get_query_module, 'invalid-name-not-found')
-
-    def test_get_callback_module_success(self):
-        callback_module = get_callback_module('mock_query_callback')
-
-        self.assertEqual(callback_module.__name__, 'mock_query_callback.callback')
-        self.assertTrue(callback_module.get_instance())
-
-    def test_get_callback_module_failure_not_found(self):
-        expected_msg = 'No .*? driver found.*'
-        self.assertRaisesRegexp(NoMatches, expected_msg,
-                                get_callback_module, 'invalid-name-not-found')
