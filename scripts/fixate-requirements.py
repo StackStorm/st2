@@ -33,7 +33,6 @@ import argparse
 import os
 import os.path
 import sys
-from pip._internal.req.constructors import parse_req_from_line
 
 from distutils.version import StrictVersion
 
@@ -71,6 +70,12 @@ except ImportError:
         print('Using pip: %s' % (str(pip_version)))
         sys.exit(1)
 
+try:
+    from pip._internal.req.constructors import parse_req_from_line
+except ImportError as e:
+    print('Failed to import parse_req_from_line from pip: %s' % (text_type(e)))
+    print('Using pip: %s' % (str(pip_version)))
+    sys.exit(1)
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Tool for requirements.txt generation.')
