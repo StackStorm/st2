@@ -23,6 +23,7 @@ chardet
 urllib3
 # needed by oslo.utils
 wrapt
+pyparsing
 # needed by apscheduler
 tzlocal
 # needed by gitpython

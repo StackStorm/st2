@@ -11,3 +11,4 @@ six
 gunicorn
 # needed by oslo.utils
 wrapt
+pyparsing
