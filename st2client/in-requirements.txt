@@ -16,6 +16,3 @@ more-itertools==5.0.0
 zipp>=0.5,<=1.0.0
 # needed by requests
 chardet
-urllib3
-# needed by argcomplete
-typing-extensions

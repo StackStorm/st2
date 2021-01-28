@@ -26,13 +26,7 @@ tooz
 # to be installed manually
 zake
 routes
-voluptuous
-tenacity
-# required by flex
-validate-email
-rfc3987
-strict-rfc3339
-#
+flex
 webob
 jsonpath-rw
 python-statsd
