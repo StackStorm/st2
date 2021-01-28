@@ -20,6 +20,7 @@ virtual environments.
 
 from __future__ import absolute_import
 
+import fnmatch
 import os
 import sys
 from distutils.sysconfig import get_python_lib
@@ -27,6 +28,7 @@ from distutils.sysconfig import get_python_lib
 from oslo_config import cfg
 
 from st2common.constants.pack import SYSTEM_PACK_NAMES
+from st2common.content.utils import get_pack_base_path
 
 __all__ = [
     'get_sandbox_python_binary_path',
@@ -132,9 +134,73 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
     Same as get_sandbox_python_path() function, but it's intended to be used for Python runner
     actions.
     """
-    return get_sandbox_python_path(
+    sandbox_python_path = get_sandbox_python_path(
         inherit_from_parent=inherit_from_parent,
         inherit_parent_virtualenv=inherit_parent_virtualenv)
+
+    pack_base_path = get_pack_base_path(pack_name=pack)
+    virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
+
+    if not virtualenv_path:
+        return sandbox_python_path
+
+    pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+
+    virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
+    virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
+                              fnmatch.fnmatch(dir_name, 'python*')]
+
+    # Add Python 3 lib directory (lib/python3.x) in front of the PYTHONPATH. This way we avoid
+    # issues with scripts trying to use packages / modules from Python 2.7 site-packages
+    # directory instead of the versions from Python 3 stdlib.
+    pack_actions_lib_paths = os.path.join(pack_base_path, 'actions/lib/')
+    pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+    python3_lib_directory = os.path.join(pack_virtualenv_lib_path, virtualenv_directories[0])
+
+    # Add Python 3 site-packages directory (lib/python3.x/site-packages) in front of the Python
+    # 2.7 system site-packages This is important because we want Python 3 compatible libraries
+    # to be used from the pack virtual environment and not system ones.
+    python3_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
+                                                   virtualenv_directories[0],
+                                                   'site-packages')
+
+    # Work around to make sure we also add system lib dir to PYTHONPATH and not just virtualenv
+    # one (e.g. /usr/lib/python3.6)
+    # NOTE: We can't simply use sys.prefix dir since it will be set to /opt/stackstorm/st2
+
+    system_prefix_dirs = []
+    # Take custom prefix into account (if specified)
+    if cfg.CONF.actionrunner.python3_prefix:
+        system_prefix_dirs.append(cfg.CONF.actionrunner.python3_prefix)
+
+    # By default, Python libs are installed either in /usr/lib/python3.x or
+    # /usr/local/lib/python3.x
+    system_prefix_dirs.extend(['/usr/lib', '/usr/local/lib'])
+
+    for system_prefix_dir in system_prefix_dirs:
+        python3_system_lib_directory = os.path.join(system_prefix_dir,
+                                                    virtualenv_directories[0])
+
+        if os.path.exists(python3_system_lib_directory):
+            break
+
+    if not python3_system_lib_directory or not os.path.exists(python3_system_lib_directory):
+        python3_system_lib_directory = None
+
+    full_sandbox_python_path = []
+
+    # NOTE: Order here is very important for imports to function correctly
+    if python3_system_lib_directory:
+        full_sandbox_python_path.append(python3_system_lib_directory)
+
+    full_sandbox_python_path.append(python3_lib_directory)
+    full_sandbox_python_path.append(python3_site_packages_directory)
+    full_sandbox_python_path.append(pack_actions_lib_paths)
+    full_sandbox_python_path.append(sandbox_python_path)
+
+    sandbox_python_path = ':'.join(full_sandbox_python_path)
+
+    return sandbox_python_path
 
 
 def get_sandbox_virtualenv_path(pack):
