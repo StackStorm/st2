@@ -68,7 +68,6 @@ tooz==2.8.0
 tzlocal
 ujson==1.35
 unittest2
-urllib3
 webob==1.8.5
 webtest
 zake==0.2.2
