@@ -510,7 +510,8 @@ def request_rerun(ac_ex_db, st2_ctx, options=None):
 
                 for _, task_state_entry in task_state_entries:
                     route = task_state_entry['route']
-                    req = orquesta_reqs.TaskRerunRequest(task_name, route, reset_items=reset_items)
+                    req = orquesta_reqs.TaskRerunRequest.new(
+                        task_name, route, reset_items=reset_items)
                     task_requests.append(req)
 
             if problems:
