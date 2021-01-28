@@ -39,11 +39,3 @@ gitpython
 lockfile
 # needed by requests
 chardet
-urllib3
-# needed by apscheduler
-tzlocal
-# needed by gitpython
-smmap2
-smmap
-#needed by routes
-repoze.lru
