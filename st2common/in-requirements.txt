@@ -28,9 +28,6 @@ zake
 routes
 voluptuous
 tenacity
-# required by amqp
-vine
-flex
 # required by flex
 validate-email
 rfc3987
