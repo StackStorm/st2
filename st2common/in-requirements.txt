@@ -16,6 +16,7 @@ paramiko
 pyyaml
 pymongo
 cryptography
+pyOpenSSL
 requests
 retrying
 semver

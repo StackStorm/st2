@@ -12,5 +12,6 @@ sseclient-py
 python-editor
 prompt-toolkit
 cryptography
+pyOpenSSL
 more-itertools==5.0.0
 zipp>=0.5,<=1.0.0
