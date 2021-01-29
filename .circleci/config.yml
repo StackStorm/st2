@@ -142,7 +142,7 @@ jobs:
             set -x
             git clone ${ST2_PACKAGES_REPO} ~/st2-packages
             cd ~/st2-packages
-            git checkout ${CIRCLE_BRANCH} || true
+            git checkout ${CIRCLE_BRANCH} || git checkout v3.3 || true
       - run:
           name: Initialize packages Build Environment
           command: |
