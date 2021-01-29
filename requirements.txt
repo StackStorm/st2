@@ -37,7 +37,7 @@ oslo.config<1.13,>=1.12.1
 oslo.utils<=3.37.0,>=3.36.2
 paramiko==2.7.1
 passlib==1.7.1
-prettytable
+prettytable<2.0
 prompt-toolkit==1.0.15
 psutil==5.6.6
 pyOpenSSL<20

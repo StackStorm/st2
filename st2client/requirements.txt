@@ -10,7 +10,7 @@ cryptography==2.8
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 more-itertools==5.0.0
-prettytable
+prettytable<2.0
 prompt-toolkit==1.0.15
 pyOpenSSL<20
 python-dateutil==2.8.0
