@@ -56,7 +56,7 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
 PIP_VERSION ?= 20.3.3
-SETUPTOOLS_VERSION ?= 51.0.0
+SETUPTOOLS_VERSION ?= 51.3.3
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
