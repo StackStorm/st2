@@ -11,11 +11,19 @@ This group is responsible for all technical oversight of StackStorm as Open Sour
 
 ### Maintainer Roles
 The current list of maintainers is published and updated in [OWNERS.md](OWNERS.md).
-StackStorm uses a three-tiered system of Maintainer roles:
-* [Leaders](OWNERS.md#leaders-)
-  * Head of Technical Steering Committee (TSC).
-  * Responsible for Project Strategy, External Relations, Organizational aspects, coordinating Events, Partnerships.
+StackStorm uses tiered system for the project Maintainer roles:
+* [TSC Chairperson](OWNERS.md#tsc-chairperson-)
+  * Project spokesperson, represents the StackStorm org.
+  * Responsible for the Meeting Scheduling, Agenda, Minutes. TSC Moderator for the Votes and Discussions.
+  * Ensures TSC functions properly, appropriate policies and procedures are in place and followed.
+  * Regularly reviewing the Committee's performance via LF Analytics (https://insights.lfx.linuxfoundation.org/projects/stackstorm), recognizing and proposing new members based on the meritocracy and TSC Maintainers feedback.
+  * The char is designated from TSC members every _6 months_ (see [TSC Chair Election](GOVERNANCE.md#TSC-Chair-Election)).
   * Receive **three votes** in the [conflict resolution and voting process](#conflict-resolution-and-voting) described below.
+* [Project Mentor](OWNERS.md#project-mentor-)
+  * Provides coaching, advisory and guidance to ensure that project members are successful in fulfilling their responsibilities.
+  * Overseeing the neutral project direction and best practices, involved in the partnerships and external relations.
+  * Supervising and coordinating the TSC Chairperson election process.
+  * Receive **two votes** in the voting process.
 * [Senior Maintainers](OWNERS.md#senior-maintainers-)
   * Have the most in-depth experience with the StackStorm project and are expected to have the knowledge and insight to lead the project's future, growth, standards and improvement.
   * Oversee the process for adding new maintainers and provide guidance, help and sharing their experience with the standard maintainers.
@@ -32,8 +40,6 @@ StackStorm uses a three-tiered system of Maintainer roles:
   * setting agenda, chairing TSC meetings and keeping their records
   * capturing and tracking agreed actions
   * tracking project plans, ensure their currency and facilitating execution
-
-  Election procedure: any TSC member can be nominated or self-nominate to the Chair role.  The term is 6 months,  with no limit on the number of terms. TSC members vote publically via [PR, email?]. Voters rate candidates on a ballot in the order of preferences; same preference can be given to multiple candidates. A winner is selected using [Shulze variant of Condorset method](https://en.wikipedia.org/wiki/Schulze_method). Tie is broken with [Governance voting](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#conflict-resolution-and-voting).  
 
 ### Maintainer responsibilities
 * In general dedicate at least 1+ full day per week (summarized) on StackStorm development.
@@ -118,3 +124,20 @@ The process of voting on other Issues, Proposals and Changes is performed by cre
 
 Additions and removals of maintainers require a *2/3 majority*, while other decisions and changes
 require only a simple majority. The voting period is one week.
+
+## TSC Chair Election
+Every _6 months_ TSC is _required_ to elect the TSC Chair from its active project maintainers to provide overall leadership and direction for the StackStorm Technical Steering Committee.
+The process is supervised and coordinated by the neutral Project Mentor.
+
+Election procedure:
+  * Consist of 3 stages, each taking 1 week: _Election Announcement_, _Self-Nomination_ and _Voting_.
+  * 2 weeks prior to Vote StackStorm notifies its community about the TSC Chair election describing the procedure, schedule and deadlines.
+  * Any TSC member can self-nominate to the Chair role by opening an [StackStorm/discussions](https://github.com/StackStorm/discussions/issues) Issue with the "Short Biography" and "Statement of Intent" on why they would be a good person to hold this position.
+  * After self-nomination period, TSC members have 1 week to Vote. [TODO: HOW EXACTLY? WHAT'S THE MECHANISM?]
+  * The term for TSC Chair is 6 months, with no limit on the number of terms.
+
+Election Dates:
+  * 2021:
+    * TSC Chair Election Announcement: `22 Feb 2021` (1 week prior to Self-nomination)
+    * Self-Nomination: `01 Mar 2021` - `08 Mar 2021` (1 week prior to Voting) - Closes Midnight UTC
+    * Voting: `08 Mar 2020` - `15 Mar 2020` (1 week) - Closes Midnight UTC
