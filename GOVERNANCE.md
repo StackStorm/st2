@@ -33,13 +33,6 @@ StackStorm uses tiered system for the project Maintainer roles:
   * Have good experience with the StackStorm codebase, expected to provide significant value to the project, helping it grow, improve and succeed.
   * Have full member write access to [StackStorm](https://github.com/stackstorm/) and [StackStorm-Exchange](https://github.com/stackstorm-exchange) Github organizations, CI/CD, Moderator at [forum](https://forum.stackstorm.com/), [Slack](https://stackstorm.com/community-signup) and other Community platforms.
   * Receive **one vote** in the voting process.
-* [Chair](OWNERS.md#chair-)
-
-  The char is designated from TSC members every 6 months. The Chair responsibilities are: 
-  * maintaining project policies and procedures
-  * setting agenda, chairing TSC meetings and keeping their records
-  * capturing and tracking agreed actions
-  * tracking project plans, ensure their currency and facilitating execution
 
 ### Maintainer responsibilities
 * In general dedicate at least 1+ full day per week (summarized) on StackStorm development.
