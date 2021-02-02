@@ -17,7 +17,7 @@ StackStorm uses tiered system for the project Maintainer roles:
   * Responsible for the Meeting Scheduling, Agenda, Minutes. TSC Moderator for the Votes and Discussions.
   * Ensures TSC functions properly, appropriate policies and procedures are in place and followed.
   * Regularly reviewing the Committee's performance via LF Analytics (https://insights.lfx.linuxfoundation.org/projects/stackstorm), recognizing and proposing new members based on the meritocracy and TSC Maintainers feedback.
-  * The char is designated from TSC members every _6 months_ (see [TSC Chair Election](GOVERNANCE.md#TSC-Chair-Election)).
+  * The chair is designated from TSC members every _6 months_ (see [TSC Chair Election](GOVERNANCE.md#TSC-Chair-Election)).
   * Receive **three votes** in the [conflict resolution and voting process](#conflict-resolution-and-voting) described below.
 * [Project Mentor](OWNERS.md#project-mentor-)
   * Provides coaching, advisory and guidance to ensure that project members are successful in fulfilling their responsibilities.
