@@ -550,7 +550,7 @@ class ActionRunCommandMixin(object):
             with open(file_path, 'rb') as fp:
                 content = fp.read()
 
-            return content
+            return content.decode("utf-8")
 
         def transform_object(value):
             # Also support simple key1=val1,key2=val2 syntax
