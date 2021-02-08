@@ -56,6 +56,13 @@ Fixed
 
 * StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
 
+* Fix incorrect array parameter value casting when executing action via chatops or using
+  ``POST /aliasexecution/match_and_execute`` API endpoint. The code would incorrectly assume the
+  value is always a string, but that may not be the cast - they value could already be a list and
+  in this case we don't want any casting to be performed. (bug fix) #5141
+
+  Contributed by @Kami.
+
 Removed
 ~~~~~~~
 
