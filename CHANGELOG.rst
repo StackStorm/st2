@@ -53,6 +53,11 @@ Fixed
 
 * StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
 
+* Fix ``@parameter_name=/path/to/file/foo.json`` notation in the ``st2 run`` command which didn't
+  work correctly because it didn't convert read bytes to string / unicode type. (bug fix) #5140
+
+  Contributed by @kami.
+
 Removed
 ~~~~~~~~
 * Removed --python3 pack install option  #5100
