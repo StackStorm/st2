@@ -1,0 +1,9 @@
+---
+  name: "alias_with_immutable_list_param_str_cast"
+  pack: "aliases"
+  description: "DON'T CARE"
+  action_ref: "wolfpack.action4"
+  formats:
+    - "test alias list param str cast"
+  immutable_parameters:
+    array_param: "one,two,three,four,give"
