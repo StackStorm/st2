@@ -13,16 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from __future__ import absolute_import
+
 import json
 import mock
-import logging
 
 from tests import base
 
 from st2client import shell
-from st2client import models
 from st2client.utils import httpclient
 
 MOCK_MATCH_AND_EXECUTE_RESULT = {
@@ -46,7 +44,8 @@ class ActionAliasCommandTestCase(base.BaseCLITestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_MATCH_AND_EXECUTE_RESULT), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_MATCH_AND_EXECUTE_RESULT),
+                                                      200, 'OK')))
     def test_match_and_execute(self):
         ret = self.shell.run(['action-alias', 'execute', "run whoami on localhost"])
         self.assertEqual(ret, 0)
@@ -56,7 +55,8 @@ class ActionAliasCommandTestCase(base.BaseCLITestCase):
             'user': '',
             'source_channel': 'cli'
         }
-        httpclient.HTTPClient.post.assert_called_with('/aliasexecution/match_and_execute', expected_args)
+        httpclient.HTTPClient.post.assert_called_with('/aliasexecution/match_and_execute',
+                                                      expected_args)
 
         mock_stdout = self.stdout.getvalue()
 
