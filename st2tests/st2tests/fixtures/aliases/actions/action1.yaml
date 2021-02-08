@@ -1,7 +1,7 @@
 ---
     name: "action1"
     description: ""
-    runner_type: "test-runner"
+    runner_type: "noop"
     pack: "wolfpack"
     entry_point: "/tmp/test/action1.sh"
     enabled: true
@@ -15,3 +15,7 @@
         param4:
             type: "string"
             secret: true
+        hosts:
+          type: "string"
+        cmd:
+          type: "string"
