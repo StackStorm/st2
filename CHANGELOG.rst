@@ -53,6 +53,11 @@ Fixed
 
 * StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
 
+* Fix broken ``st2 action-alias execute`` command and make sure it works
+  correctly. (bug fix) #5138
+
+  Contributed by @Kami.
+
 Removed
 ~~~~~~~~
 * Removed --python3 pack install option  #5100
