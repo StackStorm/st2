@@ -184,8 +184,8 @@ class ActionRunCommandTest(unittest2.TestCase):
         ]
 
         self.assertRaisesRegex(ValueError, "doesn't exist",
-                                 command._get_action_parameters_from_args, action=action,
-                                 runner=runner, args=mockarg)
+                               command._get_action_parameters_from_args, action=action,
+                               runner=runner, args=mockarg)
 
         # 2. Valid file path (we simply read this file)
         mockarg = mock.Mock()
