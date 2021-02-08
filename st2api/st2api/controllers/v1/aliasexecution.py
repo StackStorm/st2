@@ -55,6 +55,7 @@ def cast_array(value):
 
     return [v.strip() for v in value.split(',')]
 
+
 CAST_OVERRIDES = {
     'array': cast_array,
 }

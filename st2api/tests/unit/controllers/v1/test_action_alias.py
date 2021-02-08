@@ -76,7 +76,6 @@ class ActionAliasControllerTestCase(FunctionalTest,
 
         loaded_models = FixturesLoader().load_models(fixtures_pack=GENERIC_FIXTURES_PACK,
                                                      fixtures_dict=TEST_LOAD_MODELS_GENERIC)
-        print(loaded_models)
         cls.alias3_generic = loaded_models['aliases']['alias3.yaml']
 
     def test_get_all(self):
@@ -203,15 +202,19 @@ class ActionAliasControllerTestCase(FunctionalTest,
         # I assume that was done to make specifying complex params in chat easier.
         # NOTE: This function only handles casting list, but not casting nested list items (e.g.
         # list of objects)
-
-        # immutable_param is already a list - verify no casting is performed
         self.assertEqual(resp.status_int, 201)
-        self.assertTrue(isinstance(resp.json["results"][0]["execution"]["liveaction"]["parameters"]["array_param"], list))
-        self.assertEqual(resp.json["results"][0]["execution"]["liveaction"]["parameters"]["array_param"][0], "one")
-        self.assertEqual(resp.json["results"][0]["execution"]["liveaction"]["parameters"]["array_param"][1], "two")
-        self.assertEqual(resp.json["results"][0]["execution"]["liveaction"]["parameters"]["array_param"][2], "three")
-        self.assertEqual(resp.json["results"][0]["execution"]["liveaction"]["parameters"]["array_param"][3], "four")
-        self.assertTrue(isinstance(resp.json["results"][0]["actionalias"]["immutable_parameters"]["array_param"], str))
+
+        result = resp.json["results"][0]
+        live_action = result["execution"]["liveaction"]
+        action_alias = result["actionalias"]
+
+        self.assertEqual(resp.status_int, 201)
+        self.assertTrue(isinstance(live_action["parameters"]["array_param"], list))
+        self.assertEqual(live_action["parameters"]["array_param"][0], "one")
+        self.assertEqual(live_action["parameters"]["array_param"][1], "two")
+        self.assertEqual(live_action["parameters"]["array_param"][2], "three")
+        self.assertEqual(live_action["parameters"]["array_param"][3], "four")
+        self.assertTrue(isinstance(action_alias["immutable_parameters"]["array_param"], str))
 
     def test_match_and_execute_list_action_param_already_a_list(self):
         data = {
@@ -223,12 +226,18 @@ class ActionAliasControllerTestCase(FunctionalTest,
 
         # immutable_param is already a list - verify no casting is performed
         self.assertEqual(resp.status_int, 201)
-        self.assertTrue(isinstance(resp.json["results"][0]["execution"]["liveaction"]["parameters"]["array_param"], list))
-        self.assertEqual(resp.json["results"][0]["execution"]["liveaction"]["parameters"]["array_param"][0]["key1"], "one")
-        self.assertEqual(resp.json["results"][0]["execution"]["liveaction"]["parameters"]["array_param"][0]["key2"], "two")
-        self.assertEqual(resp.json["results"][0]["execution"]["liveaction"]["parameters"]["array_param"][1]["key3"], "three")
-        self.assertEqual(resp.json["results"][0]["execution"]["liveaction"]["parameters"]["array_param"][1]["key4"], "four")
-        self.assertTrue(isinstance(resp.json["results"][0]["actionalias"]["immutable_parameters"]["array_param"], list))
+
+        result = resp.json["results"][0]
+        live_action = result["execution"]["liveaction"]
+        action_alias = result["actionalias"]
+
+        self.assertEqual(resp.status_int, 201)
+        self.assertTrue(isinstance(live_action["parameters"]["array_param"], list))
+        self.assertEqual(live_action["parameters"]["array_param"][0]["key1"], "one")
+        self.assertEqual(live_action["parameters"]["array_param"][0]["key2"], "two")
+        self.assertEqual(live_action["parameters"]["array_param"][1]["key3"], "three")
+        self.assertEqual(live_action["parameters"]["array_param"][1]["key4"], "four")
+        self.assertTrue(isinstance(action_alias["immutable_parameters"]["array_param"], list))
 
     def test_help(self):
         resp = self.app.get("/v1/actionalias/help")
