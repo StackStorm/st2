@@ -541,6 +541,12 @@ class ActionRunCommandMixin(object):
         action_ref_or_id = action.ref
 
         def read_file(file_path):
+            """
+            Read file content and return content as string / unicode.
+
+            NOTE: It's only mean to be used to read non-binary files since API right now doesn't
+            support passing binary data.
+            """
             if not os.path.exists(file_path):
                 raise ValueError('File "%s" doesn\'t exist' % (file_path))
 
