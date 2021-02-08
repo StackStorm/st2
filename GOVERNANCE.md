@@ -108,7 +108,7 @@ abstain proposals or delegate decisions that may be seen to be self-interested a
 secondary interest outside of the TSC. We expect that everyone who participates in the project does so with the goal of making life better
 for the TSC and Community via fair unbiased decisions. In case of conflict of interest situations, - always discuss with the StackStorm TSC group.
 Perceived conflicts of interest are important to address; act to ensure that decisions or proposals are credible and will maintain the
-reputation of the StackStorm toward its Open Source Community and Linux Foundation's vision of the cohesive, healthy project, especially
+reputation of StackStorm toward its Open Source Community and Linux Foundation's vision of the cohesive, healthy project, especially
 when actions are difficult or favorable to the interests of one group over another.
 
 ## How decisions are made?
