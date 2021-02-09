@@ -110,9 +110,9 @@ class SandboxingUtilsTestCase(unittest.TestCase):
                          (sys.prefix))
 
     @mock.patch('os.path.isdir', mock.Mock(return_value=True))
-    @mock.patch('os.listdir', mock.Mock(return_value=['python2.7']))
+    @mock.patch('os.listdir', mock.Mock(return_value=['python3.6']))
     @mock.patch('st2common.util.sandboxing.get_python_lib')
-    def test_get_sandbox_python_path_for_python_action_python2_used_for_venv(self,
+    def test_get_sandbox_python_path_for_python_action_for_venv(self,
             mock_get_python_lib):
 
         # No inheritance
