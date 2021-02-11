@@ -115,7 +115,7 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
     def run(self, args, **kwargs):
         payload = core.Resource()
         payload.command = args.command_text
-        payload.user = args.user
+        payload.user = args.user or ""
         payload.source_channel = 'cli'
 
         alias_execution_mgr = self.app.client.managers['ActionAliasExecution']
