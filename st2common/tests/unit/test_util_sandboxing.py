@@ -132,15 +132,15 @@ class SandboxingUtilsTestCase(unittest.TestCase):
                                                                 inherit_from_parent=False,
                                                                 inherit_parent_virtualenv=False)
 
-        actual = python_path.strip(':').split(':')
-        self.assertEqual(len(actual), 3)
+        actual_path = python_path.strip(':').split(':')
+        self.assertEqual(len(actual_path), 3)
 
         # First entry should be lib/python3 dir from venv
-        self.assertEndsWith(actual[0], 'virtualenvs/dummy_pack/lib/python3.6')
+        self.assertEndsWith(actual_path[0], 'virtualenvs/dummy_pack/lib/python3.6')
         # Second entry should be python3 site-packages dir from venv
-        self.assertEndsWith(actual[1], 'virtualenvs/dummy_pack/lib/python3.6/site-packages')
+        self.assertEndsWith(actual_path[1], 'virtualenvs/dummy_pack/lib/python3.6/site-packages')
         # Third entry should be actions/lib dir from pack root directory
-        self.assertEndsWith(actual[2], 'packs/dummy_pack/actions/lib')
+        self.assertEndsWith(actual_path[2], 'packs/dummy_pack/actions/lib')
 
         # Inherit python path from current process
         # Mock the current process python path
@@ -154,19 +154,19 @@ class SandboxingUtilsTestCase(unittest.TestCase):
                                                                 inherit_from_parent=True,
                                                                 inherit_parent_virtualenv=False)
 
-        actual = python_path.strip(':').split(':')
-        self.assertEqual(len(actual), 6)
+        actual_path = python_path.strip(':').split(':')
+        self.assertEqual(len(actual_path), 6)
 
         # First entry should be lib/python3 dir from venv
-        self.assertEndsWith(actual[0], 'virtualenvs/dummy_pack/lib/python3.6')
+        self.assertEndsWith(actual_path[0], 'virtualenvs/dummy_pack/lib/python3.6')
         # Second entry should be python3 site-packages dir from venv
-        self.assertEndsWith(actual[1], 'virtualenvs/dummy_pack/lib/python3.6/site-packages')
+        self.assertEndsWith(actual_path[1], 'virtualenvs/dummy_pack/lib/python3.6/site-packages')
         # Third entry should be actions/lib dir from pack root directory
-        self.assertEndsWith(actual[2], 'packs/dummy_pack/actions/lib')
+        self.assertEndsWith(actual_path[2], 'packs/dummy_pack/actions/lib')
         # And the rest of the paths from get_sandbox_python_path
-        self.assertEqual(actual[3], '')
-        self.assertEqual(actual[4], '/data/test1')
-        self.assertEqual(actual[5], '/data/test2')
+        self.assertEqual(actual_path[3], '')
+        self.assertEqual(actual_path[4], '/data/test1')
+        self.assertEqual(actual_path[5], '/data/test2')
 
         # Inherit from current process and from virtualenv (not running inside virtualenv)
         clear_virtualenv_prefix()
@@ -175,27 +175,43 @@ class SandboxingUtilsTestCase(unittest.TestCase):
                                               inherit_parent_virtualenv=False)
         self.assertEqual(python_path, ':/data/test1:/data/test2')
 
-        actual_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
-                                                                inherit_from_parent=True,
-                                                                inherit_parent_virtualenv=True)
-
-        self.assertEndsWith(actual_path, ':/data/test1:/data/test2')
-
-        # Inherit from current process and from virtualenv (running inside virtualenv)
-        sys.real_prefix = '/usr'
-        mock_get_python_lib.return_value = f'{sys.prefix}virtualenvtest'
         python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
                                                                 inherit_from_parent=True,
                                                                 inherit_parent_virtualenv=True)
 
         actual_path = python_path.strip(':').split(':')
+        self.assertEqual(len(actual_path), 6)
 
-        self.assertEqual(actual_path, [
-            '/tmp/virtualenvs/dummy_pack/lib/python3.6',
-            '/tmp/virtualenvs/dummy_pack/lib/python3.6/site-packages',
-            '/tmp/packs/dummy_pack/actions/lib',
-            '',
-            '/data/test1',
-            '/data/test2',
-            f'{sys.prefix}/virtualenvtest',
-        ])
+        # First entry should be lib/python3 dir from venv
+        self.assertEndsWith(actual_path[0], 'virtualenvs/dummy_pack/lib/python3.6')
+        # Second entry should be python3 site-packages dir from venv
+        self.assertEndsWith(actual_path[1], 'virtualenvs/dummy_pack/lib/python3.6/site-packages')
+        # Third entry should be actions/lib dir from pack root directory
+        self.assertEndsWith(actual_path[2], 'packs/dummy_pack/actions/lib')
+        # And the rest of the paths from get_sandbox_python_path
+        self.assertEqual(actual_path[3], '')
+        self.assertEqual(actual_path[4], '/data/test1')
+        self.assertEqual(actual_path[5], '/data/test2')
+
+        # Inherit from current process and from virtualenv (running inside virtualenv)
+        sys.real_prefix = '/usr'
+        mock_get_python_lib.return_value = f'{sys.prefix}/virtualenvtest'
+        python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
+                                                                inherit_from_parent=True,
+                                                                inherit_parent_virtualenv=True)
+
+        actual_path = python_path.strip(':').split(':')
+        self.assertEqual(len(actual_path), 7)
+
+        # First entry should be lib/python3 dir from venv
+        self.assertEndsWith(actual_path[0], 'virtualenvs/dummy_pack/lib/python3.6')
+        # Second entry should be python3 site-packages dir from venv
+        self.assertEndsWith(actual_path[1], 'virtualenvs/dummy_pack/lib/python3.6/site-packages')
+        # Third entry should be actions/lib dir from pack root directory
+        self.assertEndsWith(actual_path[2], 'packs/dummy_pack/actions/lib')
+        # The paths from get_sandbox_python_path
+        self.assertEqual(actual_path[3], '')
+        self.assertEqual(actual_path[4], '/data/test1')
+        self.assertEqual(actual_path[5], '/data/test2')
+        # And the parent virtualenv
+        self.assertEqual(actual_path[6], f'{sys.prefix}/virtualenvtest')
