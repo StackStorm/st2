@@ -184,9 +184,11 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         # Inherit from current process and from virtualenv (running inside virtualenv)
         sys.real_prefix = '/usr'
         mock_get_python_lib.return_value = f'{sys.prefix}virtualenvtest'
-        actual_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
+        python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
                                                                 inherit_from_parent=True,
                                                                 inherit_parent_virtualenv=True)
+
+        actual_path = python_path.strip(':').split(':')
 
         self.assertEqual(actual_path, [
             '/tmp/virtualenvs/dummy_pack/lib/python3.6',
