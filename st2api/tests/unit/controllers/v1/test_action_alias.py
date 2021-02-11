@@ -239,6 +239,18 @@ class ActionAliasControllerTestCase(FunctionalTest,
         self.assertEqual(live_action["parameters"]["array_param"][1]["key4"], "four")
         self.assertTrue(isinstance(action_alias["immutable_parameters"]["array_param"], list))
 
+    def test_match_and_execute_success(self):
+        data = {
+            'command': 'run whoami on localhost1',
+            'source_channel': 'hubot',
+            'user': "user",
+        }
+        resp = self.app.post_json("/v1/aliasexecution/match_and_execute", data)
+        self.assertEqual(resp.status_int, 201)
+        self.assertEqual(len(resp.json["results"]), 1)
+        self.assertTrue(resp.json["results"][0]["actionalias"]["ref"],
+                        "aliases.alias_with_undefined_jinja_in_ack_format")
+
     def test_help(self):
         resp = self.app.get("/v1/actionalias/help")
         self.assertEqual(resp.status_int, 200)

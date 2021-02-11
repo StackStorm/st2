@@ -62,6 +62,11 @@ Fixed
   in this case we don't want any casting to be performed. (bug fix) #5141
 
   Contributed by @Kami.
+  
+* Fix broken ``st2 action-alias execute`` command and make sure it works
+  correctly. (bug fix) #5138
+
+  Contributed by @Kami.
 
 Removed
 ~~~~~~~
