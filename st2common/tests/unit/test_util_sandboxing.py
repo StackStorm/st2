@@ -38,6 +38,8 @@ __all__ = [
 
 
 class SandboxingUtilsTestCase(unittest.TestCase):
+    maxDiff = None
+
     def setUp(self):
         super(SandboxingUtilsTestCase, self).setUp()
 
