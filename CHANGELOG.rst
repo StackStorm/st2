@@ -63,6 +63,11 @@ Fixed
 
   Contributed by @Kami.
   
+* Fix ``@parameter_name=/path/to/file/foo.json`` notation in the ``st2 run`` command which didn't
+  work correctly because it didn't convert read bytes to string / unicode type. (bug fix) #5140
+
+  Contributed by @Kami.
+
 * Fix broken ``st2 action-alias execute`` command and make sure it works
   correctly. (bug fix) #5138
 
