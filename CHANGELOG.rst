@@ -54,7 +54,8 @@ Fixed
 
   Contributed by @guzzijones
 
-* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
+* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix)
+  #5106, #5107
 
 * Fix incorrect array parameter value casting when executing action via chatops or using
   ``POST /aliasexecution/match_and_execute`` API endpoint. The code would incorrectly assume the
