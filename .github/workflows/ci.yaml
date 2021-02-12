@@ -3,10 +3,10 @@ name: ci
 on:
   push:
     branches:
-      - master  # <-- only on merges to master branch
-      - v*      #     and version branches, which only include minor versions (eg: v3.4)
+      - master          # <-- only on merges to master branch
+      - v[0-9]+.[0-9]+  #     and version branches, which only include minor versions (eg: v3.4)
     tags:
-      - v*      # <-- also version tags, which include bugfix releases (eg: v3.4.0)
+      - v[0-9]+.[0-9]+.[0-9]+  # <-- also version tags, which include bugfix releases (eg: v3.4.0)
   pull_request:
     type: [opened, reopened, edited]
   schedule:
