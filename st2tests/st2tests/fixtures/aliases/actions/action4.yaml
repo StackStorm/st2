@@ -1,0 +1,12 @@
+---
+  name: "action4"
+  description: ""
+  runner_type: "noop"
+  pack: "wolfpack"
+  entry_point: "/tmp/test/action2.sh"
+  enabled: true
+  parameters:
+    array_param:
+      type: "array"
+      items:
+        type: "string"

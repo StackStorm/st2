@@ -25,11 +25,11 @@ FIXTURES_PACK = 'aliases'
 
 TEST_MODELS = {
     'aliases': ['alias1.yaml', 'alias2.yaml', 'alias_with_undefined_jinja_in_ack_format.yaml'],
-    'actions': ['action1.yaml'],
+    'actions': ['action3.yaml', 'action4.yaml']
 }
 
 TEST_LOAD_MODELS = {
-    'aliases': ['alias3.yaml']
+    'aliases': ['alias3.yaml'],
 }
 
 GENERIC_FIXTURES_PACK = 'generic'
@@ -181,18 +181,6 @@ class ActionAliasControllerTestCase(FunctionalTest,
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['actionalias']['name'],
                          'alias_with_undefined_jinja_in_ack_format')
-
-    def test_match_and_execute_success(self):
-        data = {
-            'command': 'run whoami on localhost1',
-            'source_channel': 'hubot',
-            'user': "user",
-        }
-        resp = self.app.post_json("/v1/aliasexecution/match_and_execute", data)
-        self.assertEqual(resp.status_int, 201)
-        self.assertEqual(len(resp.json["results"]), 1)
-        self.assertTrue(resp.json["results"][0]["actionalias"]["ref"],
-                        "aliases.alias_with_undefined_jinja_in_ack_format")
 
     def test_help(self):
         resp = self.app.get("/v1/actionalias/help")
