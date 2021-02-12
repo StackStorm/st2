@@ -21,8 +21,6 @@ Have deep platform knowledge & experience and demonstrate technical leadership a
   - ChatOps, StackStorm Exchange, Community, Documentation, CI/CD.
 * Eugen Cusmaunsa ([@armab](https://github.com/armab)) <<armab@stackstorm.com>>
   - Systems, Deployments, Docker, K8s, HA, Ansible, Chef, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering, Community.
-* Matthew Stone ([@bigmstone](https://github.com/bigmstone)) <<matt@stackstorm.com>>
-  - Core, External Relations, Robot Arm [:)](https://twitter.com/Stack_Storm/status/1217056819736203270)
 * Tomaz Muraus ([@kami](https://github.com/kami)) <<tomaz@stackstorm.com>>
   - Core, Performance, API, Scalability, CI/CD, Systems, Deployments, Packaging, OpenSource.
 * Winson Chan ([@m4dcoder](https://github.com/m4dcoder)) <<wcchan@stackstorm.com>>
@@ -68,6 +66,7 @@ Thank you, Friends!
 * Evan Powell ([@epowell101](https://github.com/epowell101)) - StackStorm co-founder, first CEO, Stormer forever.
 * Kirill Enykeev ([@enykeev](https://github.com/enykeev)) - ex Stormer. WebUI, Workflow Designer, StackStorm Exchange, CI.
 * Michael Ward ([@mward29](https://github.com/mward29)) - StackStorm Exchange, Community, Docker & K8s. [Case Study](https://stackstorm.com/case-study-pearson/).
+* Matthew Stone ([@bigmstone](https://github.com/bigmstone)) - ex Stormer. Project Leadership and StackStorm's [Robot Arm :)](https://twitter.com/Stack_Storm/status/1217056819736203270).
 * Matt Oswalt ([@Mierdin](https://github.com/Mierdin)) - ex Stormer. Invented, architected and implemented [st2 Inquiries](https://docs.stackstorm.com/inquiries.html).
 * Patrick Hoolboom ([@DoriftoShoes](https://github.com/DoriftoShoes)) - early Stormer. DevOps thought Leadership, ST2 Architecture, first Infrastructure, StackStorm Workflows to release StackStorm, e2e tests.
 * James Fryman ([@jfryman](https://github.com/jfryman)) - early Stormer. [StackStorm ChatOps](https://www.youtube.com/watch?v=IhzxnY7FIvg) father and Thought Leader.
