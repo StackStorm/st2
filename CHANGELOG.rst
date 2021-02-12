@@ -62,7 +62,7 @@ Fixed
   in this case we don't want any casting to be performed. (bug fix) #5141
 
   Contributed by @Kami.
-  
+
 * Fix ``@parameter_name=/path/to/file/foo.json`` notation in the ``st2 run`` command which didn't
   work correctly because it didn't convert read bytes to string / unicode type. (bug fix) #5140
 

@@ -24,9 +24,7 @@ from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 FIXTURES_PACK = 'aliases'
 
 TEST_MODELS = {
-    'aliases': ['alias1.yaml', 'alias2.yaml', 'alias_with_undefined_jinja_in_ack_format.yaml',
-                'alias_with_immutable_list_param.yaml',
-                'alias_with_immutable_list_param_str_cast.yaml'],
+    'aliases': ['alias1.yaml', 'alias2.yaml', 'alias_with_undefined_jinja_in_ack_format.yaml'],
     'actions': ['action3.yaml', 'action4.yaml']
 }
 
@@ -53,8 +51,6 @@ class ActionAliasControllerTestCase(FunctionalTest,
     alias1 = None
     alias2 = None
     alias3 = None
-    alias4 = None
-    alias5 = None
     alias3_generic = None
 
     @classmethod
@@ -64,8 +60,6 @@ class ActionAliasControllerTestCase(FunctionalTest,
                                                           fixtures_dict=TEST_MODELS)
         cls.alias1 = cls.models['aliases']['alias1.yaml']
         cls.alias2 = cls.models['aliases']['alias2.yaml']
-        cls.alias4 = cls.models['aliases']['alias_with_immutable_list_param.yaml']
-        cls.alias5 = cls.models['aliases']['alias_with_immutable_list_param_str_cast.yaml']
 
         loaded_models = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
                                                      fixtures_dict=TEST_LOAD_MODELS)
@@ -81,13 +75,11 @@ class ActionAliasControllerTestCase(FunctionalTest,
     def test_get_all(self):
         resp = self.app.get('/v1/actionalias')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 6, '/v1/actionalias did not return all aliases.')
+        self.assertEqual(len(resp.json), 4, '/v1/actionalias did not return all aliases.')
 
         retrieved_names = [alias['name'] for alias in resp.json]
 
         self.assertEqual(retrieved_names, [self.alias1.name, self.alias2.name,
-                                           self.alias4.name,
-                                           self.alias5.name,
                                            'alias_with_undefined_jinja_in_ack_format',
                                            'alias7'],
                          'Incorrect aliases retrieved.')
@@ -99,7 +91,7 @@ class ActionAliasControllerTestCase(FunctionalTest,
 
         resp = self.app.get('/v1/actionalias?pack=aliases')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 5)
+        self.assertEqual(len(resp.json), 3)
 
         for alias_api in resp.json:
             self.assertEqual(alias_api['pack'], 'aliases')
@@ -190,83 +182,20 @@ class ActionAliasControllerTestCase(FunctionalTest,
         self.assertEqual(resp.json['actionalias']['name'],
                          'alias_with_undefined_jinja_in_ack_format')
 
-    def test_match_and_execute_list_action_param_str_cast_to_list(self):
-        data = {
-            'command': 'test alias list param str cast',
-            'source_channel': 'hubot',
-            'user': 'foo',
-        }
-        resp = self.app.post_json("/v1/aliasexecution/match_and_execute", data, expect_errors=True)
-
-        # Param is a comma delimited string - our custom cast function should cast it to a list.
-        # I assume that was done to make specifying complex params in chat easier.
-        # NOTE: This function only handles casting list, but not casting nested list items (e.g.
-        # list of objects)
-        self.assertEqual(resp.status_int, 201)
-
-        result = resp.json["results"][0]
-        live_action = result["execution"]["liveaction"]
-        action_alias = result["actionalias"]
-
-        self.assertEqual(resp.status_int, 201)
-        self.assertTrue(isinstance(live_action["parameters"]["array_param"], list))
-        self.assertEqual(live_action["parameters"]["array_param"][0], "one")
-        self.assertEqual(live_action["parameters"]["array_param"][1], "two")
-        self.assertEqual(live_action["parameters"]["array_param"][2], "three")
-        self.assertEqual(live_action["parameters"]["array_param"][3], "four")
-        self.assertTrue(isinstance(action_alias["immutable_parameters"]["array_param"], str))
-
-    def test_match_and_execute_list_action_param_already_a_list(self):
-        data = {
-            'command': 'test alias foo',
-            'source_channel': 'hubot',
-            'user': 'foo',
-        }
-        resp = self.app.post_json("/v1/aliasexecution/match_and_execute", data, expect_errors=True)
-
-        # immutable_param is already a list - verify no casting is performed
-        self.assertEqual(resp.status_int, 201)
-
-        result = resp.json["results"][0]
-        live_action = result["execution"]["liveaction"]
-        action_alias = result["actionalias"]
-
-        self.assertEqual(resp.status_int, 201)
-        self.assertTrue(isinstance(live_action["parameters"]["array_param"], list))
-        self.assertEqual(live_action["parameters"]["array_param"][0]["key1"], "one")
-        self.assertEqual(live_action["parameters"]["array_param"][0]["key2"], "two")
-        self.assertEqual(live_action["parameters"]["array_param"][1]["key3"], "three")
-        self.assertEqual(live_action["parameters"]["array_param"][1]["key4"], "four")
-        self.assertTrue(isinstance(action_alias["immutable_parameters"]["array_param"], list))
-
-    def test_match_and_execute_success(self):
-        data = {
-            'command': 'run whoami on localhost1',
-            'source_channel': 'hubot',
-            'user': "user",
-        }
-        resp = self.app.post_json("/v1/aliasexecution/match_and_execute", data)
-        self.assertEqual(resp.status_int, 201)
-        self.assertEqual(len(resp.json["results"]), 1)
-        self.assertTrue(resp.json["results"][0]["actionalias"]["ref"],
-                        "aliases.alias_with_undefined_jinja_in_ack_format")
-
     def test_help(self):
         resp = self.app.get("/v1/actionalias/help")
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json.get('available'), 7)
+        self.assertEqual(resp.json.get('available'), 5)
 
     def test_help_args(self):
         resp = self.app.get("/v1/actionalias/help?filter=.*&pack=aliases&limit=1&offset=0")
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json.get('available'), 5)
+        self.assertEqual(resp.json.get('available'), 3)
         self.assertEqual(len(resp.json.get('helpstrings')), 1)
 
     def _insert_mock_models(self):
         alias_ids = [self.alias1['id'], self.alias2['id'], self.alias3['id'],
-                     self.alias3_generic['id'],
-                     self.alias4['id'],
-                     self.alias5['id']]
+                     self.alias3_generic['id']]
         return alias_ids
 
     def _delete_mock_models(self, object_ids):
