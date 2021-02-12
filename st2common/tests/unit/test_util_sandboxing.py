@@ -89,7 +89,8 @@ class SandboxingUtilsTestCase(unittest.TestCase):
 
         virtualenv_path = '/home/venv/test'
         result = get_sandbox_path(virtualenv_path=virtualenv_path)
-        self.assertEqual(result, '/home/venv/test/bin/:/home/path1:/home/path2:/home/path3')
+
+        self.assertEqual(result, f'{virtualenv_path}/bin/:/home/path1:/home/path2:/home/path3')
 
     @mock.patch('st2common.util.sandboxing.get_python_lib')
     def test_get_sandbox_python_path(self, mock_get_python_lib):
@@ -115,11 +116,10 @@ class SandboxingUtilsTestCase(unittest.TestCase):
 
         # Inherit from current process and from virtualenv (running inside virtualenv)
         sys.real_prefix = '/usr'
-        mock_get_python_lib.return_value = sys.prefix + '/virtualenvtest'
+        mock_get_python_lib.return_value = f'{sys.prefix}/virtualenvtest'
         python_path = get_sandbox_python_path(inherit_from_parent=True,
                                               inherit_parent_virtualenv=True)
-        self.assertEqual(python_path, ':/data/test1:/data/test2:%s/virtualenvtest' %
-                         (sys.prefix))
+        self.assertEqual(python_path, f':/data/test1:/data/test2:{sys.prefix}/virtualenvtest')
 
     @mock.patch('os.path.isdir', mock.Mock(return_value=True))
     @mock.patch('os.listdir', mock.Mock(return_value=['python3.6']))
