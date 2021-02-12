@@ -2,11 +2,20 @@ name: ci
 
 on:
   push:
-    branches: ['*']
+    branches:
+      # only on merges to master branch
+      - master
+      # and version branches, which only include minor versions (eg: v3.4)
+      - v[0-9]+.[0-9]+
     tags:
-      - v*
+      # also version tags, which include bugfix releases (eg: v3.4.0)
+      - v[0-9]+.[0-9]+.[0-9]+
   pull_request:
     type: [opened, reopened, edited]
+    branches:
+      # Only for PRs targeting those branches
+      - master
+      - v[0-9]+.[0-9]+
   schedule:
     # run every night at midnight
     - cron:  '0 0 * * *'
