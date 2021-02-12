@@ -153,9 +153,10 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
         pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
         pack_venv_lib_directory = os.path.join(pack_virtualenv_lib_path, virtualenv_directories[0])
 
-        # Add the pack's site-packages directory (lib/python3.x/site-packages) in front of the Python
-        # system site-packages This is important because we want Python 3 compatible libraries
-        # to be used from the pack virtual environment and not system ones.
+        # Add the pack's site-packages directory (lib/python3.x/site-packages)
+        # in front of the Python system site-packages This is important because
+        # we want Python 3 compatible libraries to be used from the pack virtual
+        # environment and not system ones.
         pack_venv_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
                                                          virtualenv_directories[0],
                                                          'site-packages')
