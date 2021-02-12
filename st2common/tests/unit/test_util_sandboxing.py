@@ -124,7 +124,7 @@ class SandboxingUtilsTestCase(unittest.TestCase):
     @mock.patch('os.path.isdir', mock.Mock(return_value=True))
     @mock.patch('os.listdir', mock.Mock(return_value=['python3.6']))
     @mock.patch('st2common.util.sandboxing.get_python_lib')
-    def test_get_sandbox_python_path_for_python_action_for_venv(self,
+    def test_get_sandbox_python_path_for_python_action_no_inheritance(self,
             mock_get_python_lib):
 
         # No inheritance
@@ -141,6 +141,12 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         self.assertEndsWith(actual_path[1], 'virtualenvs/dummy_pack/lib/python3.6/site-packages')
         # Third entry should be actions/lib dir from pack root directory
         self.assertEndsWith(actual_path[2], 'packs/dummy_pack/actions/lib')
+
+    @mock.patch('os.path.isdir', mock.Mock(return_value=True))
+    @mock.patch('os.listdir', mock.Mock(return_value=['python3.6']))
+    @mock.patch('st2common.util.sandboxing.get_python_lib')
+    def test_get_sandbox_python_path_for_python_action_inherit_from_parent_process_only(self,
+            mock_get_python_lib):
 
         # Inherit python path from current process
         # Mock the current process python path
@@ -167,6 +173,16 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         self.assertEqual(actual_path[3], '')
         self.assertEqual(actual_path[4], '/data/test1')
         self.assertEqual(actual_path[5], '/data/test2')
+
+    @mock.patch('os.path.isdir', mock.Mock(return_value=True))
+    @mock.patch('os.listdir', mock.Mock(return_value=['python3.6']))
+    @mock.patch('st2common.util.sandboxing.get_python_lib')
+    def test_get_sandbox_python_path_for_python_action_inherit_from_parent_process_and_venv(self,
+            mock_get_python_lib):
+
+        # Inherit python path from current process
+        # Mock the current process python path
+        os.environ['PYTHONPATH'] = ':/data/test1:/data/test2'
 
         # Inherit from current process and from virtualenv (not running inside virtualenv)
         clear_virtualenv_prefix()
