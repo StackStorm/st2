@@ -43,9 +43,7 @@ class SandboxingUtilsTestCase(unittest.TestCase):
     def setUp(self):
         super(SandboxingUtilsTestCase, self).setUp()
 
-        # Restore PATH and other variables before each test case
-        os.environ['PATH'] = self.old_path
-        os.environ['PYTHONPATH'] = self.old_python_path
+        # Restore the virtualenv before each test case
         set_virtualenv_prefix(self.old_virtualenv_prefix)
 
     @classmethod
@@ -53,14 +51,10 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         tests_config.parse_args()
 
         # Store original values so we can restore them in setUp
-        cls.old_path = os.environ.get('PATH', '')
-        cls.old_python_path = os.environ.get('PYTHONPATH', '')
         cls.old_virtualenv_prefix = get_virtualenv_prefix()
 
     @classmethod
     def tearDownClass(cls):
-        os.environ['PATH'] = cls.old_path
-        os.environ['PYTHONPATH'] = cls.old_python_path
         set_virtualenv_prefix(cls.old_virtualenv_prefix)
 
     def assertEndsWith(self, string, ending_substr, msg=None):
@@ -84,11 +78,11 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         self.assertEqual(result, sys.executable)
 
     def test_get_sandbox_path(self):
-        # Mock the current PATH value
-        os.environ['PATH'] = '/home/path1:/home/path2:/home/path3:'
-
         virtualenv_path = '/home/venv/test'
-        result = get_sandbox_path(virtualenv_path=virtualenv_path)
+
+        # Mock the current PATH value
+        with mock.patch.dict(os.environ, {'PATH': '/home/path1:/home/path2:/home/path3:'}):
+            result = get_sandbox_path(virtualenv_path=virtualenv_path)
 
         self.assertEqual(result, f'{virtualenv_path}/bin/:/home/path1:/home/path2:/home/path3')
 
@@ -101,24 +95,29 @@ class SandboxingUtilsTestCase(unittest.TestCase):
 
         # Inherit python path from current process
         # Mock the current process python path
-        os.environ['PYTHONPATH'] = ':/data/test1:/data/test2'
+        with mock.patch.dict(os.environ, {'PYTHONPATH': ':/data/test1:/data/test2'}):
+            python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                  inherit_parent_virtualenv=False)
 
-        python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                              inherit_parent_virtualenv=False)
         self.assertEqual(python_path, ':/data/test1:/data/test2')
 
         # Inherit from current process and from virtualenv (not running inside virtualenv)
         clear_virtualenv_prefix()
 
-        python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                              inherit_parent_virtualenv=False)
+        with mock.patch.dict(os.environ, {'PYTHONPATH': ':/data/test1:/data/test2'}):
+            python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                  inherit_parent_virtualenv=False)
+
         self.assertEqual(python_path, ':/data/test1:/data/test2')
 
         # Inherit from current process and from virtualenv (running inside virtualenv)
         sys.real_prefix = '/usr'
         mock_get_python_lib.return_value = f'{sys.prefix}/virtualenvtest'
-        python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                              inherit_parent_virtualenv=True)
+
+        with mock.patch.dict(os.environ, {'PYTHONPATH': ':/data/test1:/data/test2'}):
+            python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                  inherit_parent_virtualenv=True)
+
         self.assertEqual(python_path, f':/data/test1:/data/test2:{sys.prefix}/virtualenvtest')
 
     @mock.patch('os.path.isdir', mock.Mock(return_value=True))
@@ -150,15 +149,15 @@ class SandboxingUtilsTestCase(unittest.TestCase):
 
         # Inherit python path from current process
         # Mock the current process python path
-        os.environ['PYTHONPATH'] = ':/data/test1:/data/test2'
+        with mock.patch.dict(os.environ, {'PYTHONPATH': ':/data/test1:/data/test2'}):
+            python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                  inherit_parent_virtualenv=False)
 
-        python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                              inherit_parent_virtualenv=False)
-        self.assertEqual(python_path, ':/data/test1:/data/test2')
+            self.assertEqual(python_path, ':/data/test1:/data/test2')
 
-        python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
-                                                                inherit_from_parent=True,
-                                                                inherit_parent_virtualenv=False)
+            python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
+                                                                    inherit_from_parent=True,
+                                                                    inherit_parent_virtualenv=False)
 
         actual_path = python_path.strip(':').split(':')
         self.assertEqual(len(actual_path), 6)
@@ -180,20 +179,20 @@ class SandboxingUtilsTestCase(unittest.TestCase):
     def test_get_sandbox_python_path_for_python_action_inherit_from_parent_process_and_venv(self,
             mock_get_python_lib):
 
-        # Inherit python path from current process
-        # Mock the current process python path
-        os.environ['PYTHONPATH'] = ':/data/test1:/data/test2'
-
         # Inherit from current process and from virtualenv (not running inside virtualenv)
         clear_virtualenv_prefix()
 
-        python_path = get_sandbox_python_path(inherit_from_parent=True,
-                                              inherit_parent_virtualenv=False)
-        self.assertEqual(python_path, ':/data/test1:/data/test2')
+        # Inherit python path from current process
+        # Mock the current process python path
+        with mock.patch.dict(os.environ, {'PYTHONPATH': ':/data/test1:/data/test2'}):
+            python_path = get_sandbox_python_path(inherit_from_parent=True,
+                                                  inherit_parent_virtualenv=False)
 
-        python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
-                                                                inherit_from_parent=True,
-                                                                inherit_parent_virtualenv=True)
+            self.assertEqual(python_path, ':/data/test1:/data/test2')
+
+            python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
+                                                                    inherit_from_parent=True,
+                                                                    inherit_parent_virtualenv=True)
 
         actual_path = python_path.strip(':').split(':')
         self.assertEqual(len(actual_path), 6)
@@ -212,9 +211,13 @@ class SandboxingUtilsTestCase(unittest.TestCase):
         # Inherit from current process and from virtualenv (running inside virtualenv)
         sys.real_prefix = '/usr'
         mock_get_python_lib.return_value = f'{sys.prefix}/virtualenvtest'
-        python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
-                                                                inherit_from_parent=True,
-                                                                inherit_parent_virtualenv=True)
+
+        # Inherit python path from current process
+        # Mock the current process python path
+        with mock.patch.dict(os.environ, {'PYTHONPATH': ':/data/test1:/data/test2'}):
+            python_path = get_sandbox_python_path_for_python_action(pack='dummy_pack',
+                                                                    inherit_from_parent=True,
+                                                                    inherit_parent_virtualenv=True)
 
         actual_path = python_path.strip(':').split(':')
         self.assertEqual(len(actual_path), 7)
