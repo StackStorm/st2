@@ -12,14 +12,15 @@ Added
 
 * Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
   Contributed by @hnanchahal
-  
+
 * Added notification support for err-stackstorm. (new feature) #5051
 
 * Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
   Contributed by @hnanchahal
 
 Changed
-~~~~~~~~~
+~~~~~~~
+
 * Updated deprecation warning for python 2 pack installs, following python 2 support removal. #5099
   Contributed by @amanda11
 
@@ -38,20 +39,35 @@ Changed
   Contributed by @nmaludy, @winem, and @blag
 
 Fixed
-~~~~~~~~~
+~~~~~
+
 * Pin chardet version as newest version was incompatible with pinned requests version #5101
   Contributed by @amanda11
 
 * Fixed issue were st2tests was not getting installed using pip because no version was specified.
   Contributed by @anirudhbagri
-  
+
 * Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
+
 * Fix nginx buffering long polling stream to client.  Instead of waiting for closed connection
   wait for final event to be sent to client. (bug fix) #4842  #5042
 
   Contributed by @guzzijones
 
-* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix) #5106, #5107
+* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix)
+  #5106, #5107
+
+* Fix incorrect array parameter value casting when executing action via chatops or using
+  ``POST /aliasexecution/match_and_execute`` API endpoint. The code would incorrectly assume the
+  value is always a string, but that may not be the cast - they value could already be a list and
+  in this case we don't want any casting to be performed. (bug fix) #5141
+
+  Contributed by @Kami.
+
+* Fix ``@parameter_name=/path/to/file/foo.json`` notation in the ``st2 run`` command which didn't
+  work correctly because it didn't convert read bytes to string / unicode type. (bug fix) #5140
+
+  Contributed by @Kami.
 
 * Fix broken ``st2 action-alias execute`` command and make sure it works
   correctly. (bug fix) #5138
@@ -59,7 +75,8 @@ Fixed
   Contributed by @Kami.
 
 Removed
-~~~~~~~~
+~~~~~~~
+
 * Removed --python3 pack install option  #5100
   Contributed by @amanda11
 
@@ -68,9 +85,11 @@ Removed
 * Removed check-licence script (cleanup) #5092
 
   Contributed by @kroustou
+
 * Updated Makefile and CI to use Python 3 only, removing Python 2 (cleanup) #5090
 
   Contributed by @blag
+
 * Remove st2resultstracker from st2ctl, the development environment and the st2actions setup.py (cleanup) #5108
 
   Contributed by @winem
