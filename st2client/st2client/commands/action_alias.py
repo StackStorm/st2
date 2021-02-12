@@ -47,7 +47,7 @@ class ActionAliasBranch(resource.ResourceBranch):
         self.commands['execute'] = ActionAliasExecuteCommand(
             self.resource, self.app, self.subparsers,
             add_help=True)
-        self.commands['execute-and-format'] = ActionAliasExecuteAndFormatCommand(
+        self.commands['test'] = ActionAliasTestCommand(
             self.resource, self.app, self.subparsers,
             add_help=True)
 
@@ -134,12 +134,12 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
               (execution.execution['id']))
 
 
-class ActionAliasExecuteAndFormatCommand(ActionRunCommandMixin, resource.ResourceCommand):
+class ActionAliasTestCommand(ActionRunCommandMixin, resource.ResourceCommand):
     display_attributes = ['name']
 
     def __init__(self, resource, *args, **kwargs):
-        super(ActionAliasExecuteAndFormatCommand, self).__init__(
-            resource, 'execute-and-format',
+        super(ActionAliasTestCommand, self).__init__(
+            resource, 'test',
             ('Execute the command text by finding a matching %s and format the result.' %
              resource.get_display_name().lower()), *args, **kwargs)
 
