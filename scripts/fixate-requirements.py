@@ -72,7 +72,7 @@ except ImportError:
 
 try:
     from pip._internal.req.constructors import parse_req_from_line
-except ImportError as e:
+except ImportError:
     # Do not error, as will only use on pip >= 20
     pass
 
@@ -204,7 +204,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
             rline = str(linkreq.link)
 
             if (hasattr(req, "is_editable") and req.is_editable) or \
-                (hasattr(req, "editable") and req.editable):
+               (hasattr(req, "editable") and req.editable):
                 rline = '-e %s' % (rline)
         elif hasattr(req, "requirement") and req.requirement:
             project = parsedreq.requirement.name
