@@ -141,36 +141,34 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
     pack_base_path = get_pack_base_path(pack_name=pack)
     virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
 
-    if not virtualenv_path:
-        return sandbox_python_path
+    if virtualenv_path and os.path.isdir(virtualenv_path):
+        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
 
-    pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+        virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
+        virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
+                                  fnmatch.fnmatch(dir_name, 'python*')]
 
-    virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
-    virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
-                              fnmatch.fnmatch(dir_name, 'python*')]
+        # Add the pack's lib directory (lib/python3.x) in front of the PYTHONPATH.
+        pack_actions_lib_paths = os.path.join(pack_base_path, 'actions', 'lib')
+        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+        pack_venv_lib_directory = os.path.join(pack_virtualenv_lib_path, virtualenv_directories[0])
 
-    # Add the pack's lib directory (lib/python3.x) in front of the PYTHONPATH.
-    pack_actions_lib_paths = os.path.join(pack_base_path, 'actions', 'lib')
-    pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
-    pack_venv_lib_directory = os.path.join(pack_virtualenv_lib_path, virtualenv_directories[0])
+        # Add the pack's site-packages directory (lib/python3.x/site-packages) in front of the Python
+        # system site-packages This is important because we want Python 3 compatible libraries
+        # to be used from the pack virtual environment and not system ones.
+        pack_venv_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
+                                                         virtualenv_directories[0],
+                                                         'site-packages')
 
-    # Add the pack's site-packages directory (lib/python3.x/site-packages) in front of the Python
-    # system site-packages This is important because we want Python 3 compatible libraries
-    # to be used from the pack virtual environment and not system ones.
-    pack_venv_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
-                                                     virtualenv_directories[0],
-                                                     'site-packages')
+        full_sandbox_python_path = [
+            # NOTE: Order here is very important for imports to function correctly
+            pack_venv_lib_directory,
+            pack_venv_site_packages_directory,
+            pack_actions_lib_paths,
+            sandbox_python_path,
+        ]
 
-    full_sandbox_python_path = [
-        # NOTE: Order here is very important for imports to function correctly
-        pack_venv_lib_directory,
-        pack_venv_site_packages_directory,
-        pack_actions_lib_paths,
-        sandbox_python_path,
-    ]
-
-    sandbox_python_path = ':'.join(full_sandbox_python_path)
+        sandbox_python_path = ':'.join(full_sandbox_python_path)
 
     return sandbox_python_path
 
