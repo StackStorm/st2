@@ -58,7 +58,8 @@ CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
     'api_version': ['general', 'api_version'],
     'api_key': ['credentials', 'api_key'],
     'cacert': ['general', 'cacert'],
-    'debug': ['cli', 'debug']
+    'debug': ['cli', 'debug'],
+    'basic_auth': ['credentials', 'basic_auth'],
 }
 
 
@@ -82,7 +83,8 @@ class BaseCLIApp(object):
 
         # Note: Options provided as the CLI argument have the highest precedence
         # Precedence order: cli arguments > environment variables > rc file variables
-        cli_options = ['base_url', 'auth_url', 'api_url', 'stream_url', 'api_version', 'cacert']
+        cli_options = ['base_url', 'auth_url', 'api_url', 'stream_url', 'api_version', 'cacert',
+                       'basic_auth']
         cli_options = {opt: getattr(args, opt, None) for opt in cli_options}
         if cli_options.get("cacert", None) is not None:
             if cli_options["cacert"].lower() in ['true', '1', 't', 'y', 'yes']:

@@ -34,6 +34,20 @@ def add_ssl_verify_to_kwargs(func):
     return decorate
 
 
+def add_basic_auth_creds_to_kwargs(func):
+    """
+    Add "auth" tuple parameter to the kwargs object which is passed to requests method in case it's
+    present on the HTTPClient object instance.
+    """
+    def decorate(*args, **kwargs):
+        if isinstance(args[0], HTTPClient) and getattr(args[0], 'basic_auth', None):
+            kwargs['auth'] = args[0].basic_auth
+
+        print(kwargs)
+        return func(*args, **kwargs)
+    return decorate
+
+
 def add_auth_token_to_headers(func):
     def decorate(*args, **kwargs):
         headers = kwargs.get('headers', dict())
@@ -77,13 +91,15 @@ def get_url_without_trailing_slash(value):
 
 class HTTPClient(object):
 
-    def __init__(self, root, cacert=None, debug=False):
+    def __init__(self, root, cacert=None, debug=False, basic_auth=None):
         self.root = get_url_without_trailing_slash(root)
         self.cacert = cacert
         self.debug = debug
+        self.basic_auth = basic_auth
 
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
+    @add_basic_auth_creds_to_kwargs
     def get(self, url, **kwargs):
         response = requests.get(self.root + url, **kwargs)
         response = self._response_hook(response=response)
@@ -92,6 +108,7 @@ class HTTPClient(object):
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     @add_json_content_type_to_headers
+    @add_basic_auth_creds_to_kwargs
     def post(self, url, data, **kwargs):
         response = requests.post(self.root + url, json.dumps(data), **kwargs)
         response = self._response_hook(response=response)
@@ -99,6 +116,7 @@ class HTTPClient(object):
 
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
+    @add_basic_auth_creds_to_kwargs
     def post_raw(self, url, data, **kwargs):
         response = requests.post(self.root + url, data, **kwargs)
         response = self._response_hook(response=response)
@@ -107,6 +125,7 @@ class HTTPClient(object):
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     @add_json_content_type_to_headers
+    @add_basic_auth_creds_to_kwargs
     def put(self, url, data, **kwargs):
         response = requests.put(self.root + url, json.dumps(data), **kwargs)
         response = self._response_hook(response=response)
@@ -115,6 +134,7 @@ class HTTPClient(object):
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     @add_json_content_type_to_headers
+    @add_basic_auth_creds_to_kwargs
     def patch(self, url, data, **kwargs):
         response = requests.patch(self.root + url, data, **kwargs)
         response = self._response_hook(response=response)
@@ -122,6 +142,7 @@ class HTTPClient(object):
 
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
+    @add_basic_auth_creds_to_kwargs
     def delete(self, url, **kwargs):
         response = requests.delete(self.root + url, **kwargs)
         response = self._response_hook(response=response)

@@ -93,6 +93,11 @@ CONFIG_FILE_OPTIONS = {
         'api_key': {
             'type': 'string',
             'default': None
+        },
+        'basic_auth': {
+            # Basic auth credentials in username:password notation
+            'type': 'string',
+            'default': None,
         }
     },
     'api': {
