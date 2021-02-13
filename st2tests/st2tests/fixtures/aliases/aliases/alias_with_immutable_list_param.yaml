@@ -1,0 +1,15 @@
+---
+  name: "alias_with_immutable_list_param"
+  pack: "aliases"
+  description: "DON'T CARE"
+  action_ref: "wolfpack.action3"
+  formats:
+    - "test alias foo"
+  immutable_parameters:
+    array_param:
+      -
+        key1: "one"
+        key2: "two"
+      -
+        key3: "three"
+        key4: "four"

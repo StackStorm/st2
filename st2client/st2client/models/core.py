@@ -373,7 +373,7 @@ class ActionAliasExecutionManager(ResourceManager):
 
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(response.json()["results"][0])
         return instance
 
 
