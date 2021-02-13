@@ -38,6 +38,8 @@ Changed
 
   Contributed by @nmaludy, @winem, and @blag
 
+* Updated cryptography dependency to version 3.3.2 to avoid CVE-2020-36242 (security) #5151
+
 Fixed
 ~~~~~
 
