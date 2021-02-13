@@ -447,7 +447,14 @@ class ActionRunCommandMixin(object):
                               yaml=args.yaml,
                               attribute_transform_functions=self.attribute_transform_functions)
 
-    def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
+    def _get_execution_result(self, execution, action_exec_mgr, args,
+                              force_retry_on_finish=False, **kwargs):
+        """
+        :param force_retry_on_finish: True to retry execution details on finish even if the
+                                      execution which is passed to this method has already finished.
+                                      This ensures we have latest state available for that
+                                      execution.
+        """
         pending_statuses = [
             LIVEACTION_STATUS_REQUESTED,
             LIVEACTION_STATUS_SCHEDULED,
@@ -469,8 +476,11 @@ class ActionRunCommandMixin(object):
             print('')
             return execution
 
+        poll_counter = 0
+
         if not args.action_async:
             while execution.status in pending_statuses:
+                poll_counter += 1
                 time.sleep(self.poll_interval)
                 if not args.json and not args.yaml:
                     sys.stdout.write('.')
@@ -478,6 +488,12 @@ class ActionRunCommandMixin(object):
                 execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
 
             sys.stdout.write('\n')
+
+            if poll_counter == 0 and force_retry_on_finish:
+                # In some situations we want to retry execution details from API
+                # even if it has already finished before performing even a single poll. This ensures
+                # we have the latest data for a particular execution.
+                execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
 
             if execution.status == LIVEACTION_STATUS_CANCELED:
                 return execution

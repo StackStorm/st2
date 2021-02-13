@@ -207,7 +207,9 @@ class ActionAliasTestCommand(ActionRunCommandMixin, resource.ResourceCommand):
         # 4. Wait for chatops.format_execution_result to finish and print the result
         format_execution = self._get_execution_result(execution=format_execution,
                                                action_exec_mgr=action_exec_mgr,
-                                               args=args, **kwargs)
+                                               args=args,
+                                               force_retry_on_finish=True,
+                                               **kwargs)
 
         print("")
         print("Formatted ChatOps result message")
