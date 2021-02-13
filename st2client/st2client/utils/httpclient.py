@@ -40,10 +40,19 @@ def add_basic_auth_creds_to_kwargs(func):
     present on the HTTPClient object instance.
     """
     def decorate(*args, **kwargs):
-        if isinstance(args[0], HTTPClient) and getattr(args[0], 'basic_auth', None):
+        # NOTE: When logging in using /v1/auth/tokens API endpoint, "auth" argument will already be
+        # present since basic authentication is used to authenticate against auth service to obtain
+        # a token.
+        #
+        # In such scenarios, we don't pass additional basic auth headers to the server.
+        #
+        # This is not ideal, because it means if additional proxy based http auth is enabled, user
+        # may be able to authenticate against StackStorm auth service and obtain a valid auth token
+        # without using additional basic auth credentials, but all the request of the API operations
+        # on StackStorm API won't work without additional basic auth credentials.
+        if "auth" not in kwargs and isinstance(args[0], HTTPClient) and \
+                getattr(args[0], 'basic_auth', None):
             kwargs['auth'] = args[0].basic_auth
-
-        print(kwargs)
         return func(*args, **kwargs)
     return decorate
 
