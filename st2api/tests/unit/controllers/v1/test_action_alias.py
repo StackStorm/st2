@@ -24,17 +24,19 @@ from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 FIXTURES_PACK = 'aliases'
 
 TEST_MODELS = {
-    'aliases': ['alias1.yaml', 'alias2.yaml', 'alias_with_undefined_jinja_in_ack_format.yaml']
+    'aliases': ['alias1.yaml', 'alias2.yaml', 'alias_with_undefined_jinja_in_ack_format.yaml'],
+    'actions': ['action3.yaml', 'action4.yaml']
 }
 
 TEST_LOAD_MODELS = {
-    'aliases': ['alias3.yaml']
+    'aliases': ['alias3.yaml'],
 }
 
 GENERIC_FIXTURES_PACK = 'generic'
 
 TEST_LOAD_MODELS_GENERIC = {
-    'aliases': ['alias3.yaml']
+    'aliases': ['alias3.yaml'],
+    'runners': ['testrunner1.yaml']
 }
 
 

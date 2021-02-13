@@ -109,6 +109,20 @@ class BaseCLITestCase(unittest2.TestCase):
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
 
+        # On failure, we also print values of accumulated stdout and stderr
+        # to make troubleshooting easier
+        # TODO: nosetests specific make sure to update when / if switching to pytest
+        errors = getattr(self.__dict__.get("_outcome", None), "errors", [])
+
+        if len(errors) >= 1:
+            stdout = self.stdout.getvalue()
+            stderr = self.stderr.getvalue()
+
+            print("")
+            print("Captured stdout: %s" % (stdout))
+            print("Captured stdoerr: %s" % (stderr))
+            print("")
+
     def _reset_output_streams(self):
         """
         Reset / clear stdout and stderr stream.

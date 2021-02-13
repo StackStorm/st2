@@ -97,8 +97,8 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     }
 
     def get_uid(self):
-        # TODO Construct od from non id field:
-        uid = [self.RESOURCE_TYPE, str(self.id)]
+        # TODO Construct id from non id field:
+        uid = [self.RESOURCE_TYPE, str(self.id)]  # pylint: disable=no-member
         return ':'.join(uid)
 
     def mask_secrets(self, value):
