@@ -100,9 +100,15 @@ class ErrorHandlingMiddleware(object):
             body['faultstring'] = message
 
             response_body = json_encode(body)
+
             headers = {
                 'Content-Type': 'application/json',
-                'Content-Length': str(len(response_body))
+                # NOTE: We need to use the length of the byte string here otherwise it won't
+                # work correctly when returning an unicode response- here we would measure number
+                # of characters instead of actual byte length.
+                # Another option would also be to not set it here and let webob set it when sending
+                # the response.
+                'Content-Length': str(len(response_body.encode("utf-8")))
             }
 
             resp = Response(response_body, status=status_code, headers=headers)
