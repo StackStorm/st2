@@ -22,11 +22,14 @@ except ImportError:
     import json
     from json import JSONEncoder
 
+import orjson
+
 import six
 
 
 __all__ = [
     'json_encode',
+    'json_decode,'
     'json_loads',
     'try_loads',
 
@@ -42,8 +45,29 @@ class GenericJSON(JSONEncoder):
             return JSONEncoder.default(self, obj)
 
 
-def json_encode(obj, indent=4):
-    return json.dumps(obj, cls=GenericJSON, indent=indent)
+def default(obj):
+    if hasattr(obj, '__json__') and six.callable(obj.__json__):
+        return obj.__json__()
+    elif isinstance(obj, bytes):
+        # TODO: We should update the code which passes bytes to pass unicode to avoid this
+        # conversion here
+        return  obj.decode("utf-8")
+    raise TypeError
+
+
+def json_encode(obj, indent=None):
+#def json_encode(obj, indent=4):
+    if indent:
+        # NOTE: We don't use indent by default since it's quite a bit slower
+        option = orjson.OPT_INDENT_2
+    else:
+        option = None
+    return orjson.dumps(obj, default=default, option=option)
+    #return json.dumps(obj, cls=GenericJSON, indent=indent)
+
+
+def json_decode(data):
+    return orjson.loads(data)
 
 
 def load_file(path):

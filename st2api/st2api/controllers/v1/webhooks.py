@@ -170,6 +170,9 @@ class WebhooksController(object):
                    trace_context=trace_context,
                    throw_on_validation_error=True)
 
+        # NOTE: For url encoded request bodies, values will be bytes instead of unicode and this
+        # doesn't work with orjson so we first need to "cast" all the values from bytes to unicode
+
         return Response(json=body, status=http_client.ACCEPTED)
 
     def _is_valid_hook(self, hook):
