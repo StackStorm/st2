@@ -14,7 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import json
+
 import unittest2
+from oslo_config import cfg
+
+import st2tests.config as tests_config
+tests_config.parse_args()
 
 import st2common.util.jsonify as jsonify
 
@@ -50,3 +57,43 @@ class JsonifyTests(unittest2.TestCase):
         d = '{"a": 1, "b": true}'
         expected = {'a': 1, 'b': True}
         self.assertDictEqual(jsonify.try_loads(d), expected)
+
+    def test_json_encode_decode_roundtrip_compatibility_between_different_libs(self):
+        class ObjectWithJsonMethod(object):
+            def __json__(self):
+                return {"mah": "json", "1": 2}
+
+        input_data = [
+            "1",
+            1,
+            None,
+            True,
+            False,
+            [1, "a", True, None, [1, 2], {"a": "b", "c": 3}],
+            {"a": "b", "d": [1, 2, 3], "e": 5},
+            ObjectWithJsonMethod(),
+            b"bytes",
+        ]
+        expected_data = [
+            "1",
+            1,
+            None,
+            True,
+            False,
+            [1, "a", True, None, [1, 2], {"a": "b", "c": 3}],
+            {"a": "b", "d": [1, 2, 3], "e": 5},
+            {"mah": "json", "1": 2},
+            "bytes",
+        ]
+
+        json_libraries = ["json", "orjson"]
+
+        for json_library in json_libraries:
+            cfg.CONF.set_override(name='json_library', override=json_library, group='system')
+
+            result_encoded = jsonify.json_encode(input_data)
+            result_decoded = jsonify.json_decode(result_encoded)
+            result_decoded_native = json.loads(result_encoded)
+
+            self.assertEqual(result_decoded, expected_data)
+            self.assertEqual(result_decoded, result_decoded_native)

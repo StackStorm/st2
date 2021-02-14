@@ -22,9 +22,9 @@ except ImportError:
     import json
     from json import JSONEncoder
 
-import orjson
-
 import six
+import orjson
+from oslo_config import cfg
 
 
 __all__ = [
@@ -56,18 +56,55 @@ def default(obj):
     raise TypeError
 
 
-def json_encode(obj, indent=None):
-#def json_encode(obj, indent=4):
+def json_encode_native_json(obj, indent=4):
+    return json.dumps(obj, cls=GenericJSON, indent=indent)
+
+
+def json_encode_orjson(obj, indent=None):
     if indent:
         return orjson.dumps(obj, default=default, option=orjson.OPT_INDENT_2)
 
     # NOTE: We don't use indent by default since it's quite a bit slower
     return orjson.dumps(obj, default=default)
-    #return json.dumps(obj, cls=GenericJSON, indent=indent)
 
+
+def json_decode_native_json(data):
+    return json.loads(data)
+
+
+def json_decode_orjson(data):
+    return orjson.loads(data)
+
+
+def json_encode(obj, indent=None):
+    """
+    Wrapper function for encoding the provided object.
+
+    This function automatically select appropriate JSON library based on the configuration value.
+
+    This function should be used everywhere in the code base where json.dumps() behavior is desired.
+    """
+    if cfg.CONF.system.json_library == "json":
+        return json_encode_native_json(obj=obj, indent=indent)
+    elif cfg.CONF.system.json_library == "orjson":
+        return json_encode_orjson(obj=obj, indent=indent)
+    else:
+        raise ValueError("Unsupported json_library: %s" % (cfg.CONF.system.json_library))
 
 def json_decode(data):
-    return orjson.loads(data)
+    """
+    Wrapper function for decoding the provided JSON string.
+
+    This function automatically select appropriate JSON library based on the configuration value.
+
+    This function should be used everywhere in the code base where json.loads() behavior is desired.
+    """
+    if cfg.CONF.system.json_library == "json":
+        return json_decode_native_json(data=data)
+    elif cfg.CONF.system.json_library == "orjson":
+        return json_decode_orjson(data=data)
+    else:
+        raise ValueError("Unsupported json_library: %s" % (cfg.CONF.system.json_library))
 
 
 def load_file(path):

@@ -116,7 +116,11 @@ def register_opts(ignore_errors=False):
                  'inside the sensor. By default, only payload for system triggers is validated.'),
         cfg.BoolOpt(
             'validate_output_schema', default=False,
-            help='True to validate action and runner output against schema.')
+            help='True to validate action and runner output against schema.'),
+        cfg.StrOpt(
+            'json_library', default='orjson', choices='orjson, json',
+            help='Which JSON library to use for serializing / de-serializing data (orjson, json).'),
+
     ]
 
     do_register_opts(system_opts, 'system', ignore_errors)
