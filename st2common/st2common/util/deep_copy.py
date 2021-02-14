@@ -24,6 +24,13 @@ __all__ = [
 ]
 
 
+def default(obj):
+    # NOTE: For some reason isinstance check doesn't work here so we use class name check
+    if obj.__class__.__name__ == "ObjectId":
+        return str(obj)
+    raise TypeError
+
+
 def fast_deepcopy(value, fall_back_to_deepcopy=True):
     """
     Perform a fast deepcopy of the provided value.
@@ -38,8 +45,8 @@ def fast_deepcopy(value, fall_back_to_deepcopy=True):
         # NOTE: ujson serialized datetime to seconds since epoch (int) whereas orjson serializes it
         # to a  RFC 3339 string by default
         # TODO: Should we also handle ObjectID here transparently?
-        value = orjson.loads(orjson.dumps(value))
-    except (OverflowError, ValueError, TypeError) as e:
+        value = orjson.loads(orjson.dumps(value, default=default))
+    except (OverflowError, ValueError) as e:
         # NOTE: ujson doesn't support 5 or 6 bytes utf-8 sequences which we use
         # in our tests so we fall back to deep copy
         if not fall_back_to_deepcopy:
