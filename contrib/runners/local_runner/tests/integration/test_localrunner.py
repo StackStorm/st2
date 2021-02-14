@@ -487,7 +487,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             'param_float': 2.55,
             'param_boolean': True,
             'param_list': ['a', 'b', 'c'],
-            'param_object': {'foo':'bar'}
+            'param_object': {'foo': 'bar'}
         }
 
         runner = self._get_runner(action_db=action_db, entry_point=entry_point)
