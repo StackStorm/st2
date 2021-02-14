@@ -35,7 +35,6 @@ instead of SHA1, etc.).
 from __future__ import absolute_import
 
 import os
-import json
 import binascii
 import base64
 
@@ -49,6 +48,9 @@ from cryptography.hazmat.primitives.ciphers import modes
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import hmac
 from cryptography.hazmat.backends import default_backend
+
+from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import json_decode
 
 __all__ = [
     'KEYCZAR_HEADER_SIZE',
@@ -148,7 +150,7 @@ class AESKey(object):
             'mode': self.mode.upper(),
             'size': int(self.size)
         }
-        return json.dumps(data)
+        return json_encode(data)
 
     def __repr__(self):
         return ('<AESKey hmac_key_size=%s,mode=%s,size=%s>' % (self.hmac_key_size, self.mode,
@@ -167,7 +169,7 @@ def read_crypto_key(key_path):
     with open(key_path, 'r') as fp:
         content = fp.read()
 
-    content = json.loads(content)
+    content = json_decode(content)
 
     try:
         aes_key = AESKey(aes_key_string=content['aesKeyString'],

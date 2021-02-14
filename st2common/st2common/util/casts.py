@@ -15,13 +15,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import ast
-import json
 
 import six
 
 from st2common.expressions.functions import data
 from st2common.util.compat import to_unicode
+from st2common.util.jsonify import json_decode
 
 
 def _cast_object(x):
@@ -34,7 +35,7 @@ def _cast_object(x):
 
     if isinstance(x, six.string_types):
         try:
-            return json.loads(x)
+            return json_decode(x)
         except:
             return ast.literal_eval(x)
     else:

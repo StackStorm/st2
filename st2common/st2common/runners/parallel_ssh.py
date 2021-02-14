@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import json
 import re
 import os
 import traceback
@@ -27,9 +26,11 @@ from st2common.runners.paramiko_ssh import ParamikoSSHClient
 from st2common.runners.paramiko_ssh import SSHCommandTimeoutError
 from st2common import log as logging
 from st2common.exceptions.ssh import NoHostsConnectedToException
-import st2common.util.jsonify as jsonify
 from st2common.util import ip_utils
 from st2common.util import concurrency as concurrency_lib
+from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import json_loads
+
 
 LOG = logging.getLogger(__name__)
 
@@ -102,7 +103,7 @@ class ParallelSSHClient(object):
             LOG.error('Unable to connect to any of the hosts.',
                       extra={'connect_results': results})
             msg = ('Unable to connect to any one of the hosts: %s.\n\n connect_errors=%s' %
-                   (self._hosts, json.dumps(results, indent=2)))
+                   (self._hosts, json_encode(results, indent=2)))
             raise NoHostsConnectedToException(msg)
 
         return results
@@ -362,7 +363,7 @@ class ParallelSSHClient(object):
         result_dict = {'stdout': stdout, 'stderr': stderr, 'return_code': exit_code,
                        'succeeded': is_succeeded, 'failed': not is_succeeded}
 
-        result = jsonify.json_loads(result_dict, ParallelSSHClient.KEYS_TO_TRANSFORM)
+        result = json_loads(result_dict, ParallelSSHClient.KEYS_TO_TRANSFORM)
         return result
 
     @staticmethod

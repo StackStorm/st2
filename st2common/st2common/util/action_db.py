@@ -14,10 +14,6 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-try:
-    import simplejson as json
-except ImportError:
-    import json
 
 from collections import OrderedDict
 
@@ -37,6 +33,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.metrics.base import get_driver
 from st2common.util import output_schema
+from st2common.util.jsonify import json_encode
 
 LOG = logging.getLogger(__name__)
 
@@ -289,7 +286,7 @@ def serialize_positional_argument(argument_type, argument_value):
         argument_value = ','.join(map(str, argument_value)) if argument_value else ''
     elif argument_type == 'object':
         # Objects are serialized as JSON
-        argument_value = json.dumps(argument_value) if argument_value else ''
+        argument_value = json_encode(argument_value) if argument_value else ''
     elif argument_type == 'null':
         # None / null is serialized as en empty string
         argument_value = ''
