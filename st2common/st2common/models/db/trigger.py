@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import json
 import hashlib
 
 import mongoengine as me
@@ -22,7 +23,6 @@ import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
-from st2common.util.jsonify import json_encode
 
 __all__ = [
     'TriggerTypeDB',
@@ -108,7 +108,9 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         # Note: We sort the resulting JSON object so that the same dictionary always results
         # in the same hash
         parameters = getattr(self, 'parameters', {})
-        parameters = json_encode(parameters, sort_keys=True)
+        # NOTE: We intentionally use json.dumps instead of json_encode here for backward
+        # compatibility reasons.
+        parameters = json.dumps(parameters, sort_keys=True)
         parameters = hashlib.md5(parameters.encode()).hexdigest()
 
         uid = uid + self.UID_SEPARATOR + parameters
