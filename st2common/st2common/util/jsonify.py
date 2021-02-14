@@ -29,7 +29,8 @@ import six
 
 __all__ = [
     'json_encode',
-    'json_decode,'
+    'json_decode',
+
     'json_loads',
     'try_loads',
 
@@ -58,11 +59,10 @@ def default(obj):
 def json_encode(obj, indent=None):
 #def json_encode(obj, indent=4):
     if indent:
-        # NOTE: We don't use indent by default since it's quite a bit slower
-        option = orjson.OPT_INDENT_2
-    else:
-        option = None
-    return orjson.dumps(obj, default=default, option=option)
+        return orjson.dumps(obj, default=default, option=orjson.OPT_INDENT_2)
+
+    # NOTE: We don't use indent by default since it's quite a bit slower
+    return orjson.dumps(obj, default=default)
     #return json.dumps(obj, cls=GenericJSON, indent=indent)
 
 
@@ -96,7 +96,7 @@ def json_loads(obj, keys=None):
 
     for key in keys:
         try:
-            obj[key] = json.loads(obj[key])
+            obj[key] = json_decode(obj[key])
         except:
             pass
     return obj
@@ -104,7 +104,7 @@ def json_loads(obj, keys=None):
 
 def try_loads(s):
     try:
-        return json.loads(s) if s and isinstance(s, six.string_types) else s
+        return json_decode(s) if s and isinstance(s, six.string_types) else s
     except:
         return s
 
