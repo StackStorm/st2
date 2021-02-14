@@ -24,6 +24,8 @@ underlying implementations (copy.deepcopy, urjson, orjson).
 import os
 import copy
 import random
+import json
+import simplejson
 
 import pytest
 import ujson
@@ -113,11 +115,15 @@ def test_fast_deepcopy_with_dict_values(benchmark, dict_keys_count_and_depth, im
     "implementation",
     [
         "copy_deepcopy",
+        "json",
+        "simplejson",
         "ujson",
         "orjson"
     ],
     ids=[
         "copy_deepcopy",
+        "json",
+        "simplejson",
         "ujson",
         "orjson",
     ],
@@ -141,6 +147,10 @@ def test_fast_deepcopy_with_json_fixture_file(benchmark, fixture_file, implement
     def run_benchmark():
         if implementation == "copy_deepcopy":
             return copy.deepcopy(data)
+        elif implementation == "json":
+            return json.loads(json.dumps(data))
+        elif implementation == "simplejson":
+            return simplejson.loads(simplejson.dumps(data))
         elif implementation == "ujson":
             return ujson.loads(ujson.dumps(data))
         elif implementation == "orjson":
