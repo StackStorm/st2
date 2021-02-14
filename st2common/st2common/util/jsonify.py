@@ -23,6 +23,7 @@ except ImportError:
     from json import JSONEncoder
 
 import six
+import bson
 import orjson
 from oslo_config import cfg
 
@@ -42,6 +43,8 @@ class GenericJSON(JSONEncoder):
     def default(self, obj):  # pylint: disable=method-hidden
         if hasattr(obj, '__json__') and six.callable(obj.__json__):
             return obj.__json__()
+        elif isinstance(obj, bson.ObjectId):
+            return str(obj)
         else:
             return JSONEncoder.default(self, obj)
 
@@ -53,6 +56,8 @@ def default(obj):
         # TODO: We should update the code which passes bytes to pass unicode to avoid this
         # conversion here
         return obj.decode("utf-8")
+    elif isinstance(obj, bson.ObjectId):
+        return str(obj)
     raise TypeError
 
 

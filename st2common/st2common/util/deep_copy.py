@@ -37,8 +37,9 @@ def fast_deepcopy(value, fall_back_to_deepcopy=True):
     try:
         # NOTE: ujson serialized datetime to seconds since epoch (int) whereas orjson serializes it
         # to a  RFC 3339 string by default
+        # TODO: Should we also handle ObjectID here transparently?
         value = orjson.loads(orjson.dumps(value))
-    except (OverflowError, ValueError) as e:
+    except (OverflowError, ValueError, TypeError) as e:
         # NOTE: ujson doesn't support 5 or 6 bytes utf-8 sequences which we use
         # in our tests so we fall back to deep copy
         if not fall_back_to_deepcopy:

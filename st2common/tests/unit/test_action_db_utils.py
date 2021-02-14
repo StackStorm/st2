@@ -352,7 +352,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             '1',
             'foo,bar,baz,qux',
             'foo,bar,baz',
-            '{"a": 1, "b": "2"}',
+            '{"a":1,"b":"2"}',
             ''
         ]
         pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
@@ -375,7 +375,7 @@ class ActionDBUtilsTestCase(DbTestCase):
             '0',
             '',
             '',
-            '{"a": 1, "b": "2"}',
+            '{"a":1,"b":"2"}',
             ''
         ]
         pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)

@@ -19,6 +19,7 @@ import json
 
 import unittest2
 from oslo_config import cfg
+from bson import ObjectId
 
 import st2tests.config as tests_config
 tests_config.parse_args()
@@ -73,6 +74,7 @@ class JsonifyTests(unittest2.TestCase):
             {"a": "b", "d": [1, 2, 3], "e": 5},
             ObjectWithJsonMethod(),
             b"bytes",
+            ObjectId('5609e91832ed356d04a93cc0')
         ]
         expected_data = [
             "1",
@@ -84,6 +86,7 @@ class JsonifyTests(unittest2.TestCase):
             {"a": "b", "d": [1, 2, 3], "e": 5},
             {"mah": "json", "1": 2},
             "bytes",
+            '5609e91832ed356d04a93cc0'
         ]
 
         json_libraries = ["json", "orjson"]
