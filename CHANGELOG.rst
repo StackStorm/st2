@@ -27,7 +27,7 @@ Changed
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
-* Added timeout parameter for packs.install action to help with long running installs that exceed the 
+* Added timeout parameter for packs.install action to help with long running installs that exceed the
   default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
 
   Contributed by @hnanchahal
@@ -39,6 +39,18 @@ Changed
   Contributed by @nmaludy, @winem, and @blag
 
 * Updated cryptography dependency to version 3.3.2 to avoid CVE-2020-36242 (security) #5151
+
+* Update most of the code in the StackStorm API and services layer to utilize ``orjson`` library
+  for serializing and de-serializing json.
+
+  That should result in better json serialization and deserialization performance.
+
+  The change should be fully backward compatible, only difference is that API JSON responses now
+  won't be indented using 4 spaces by default (indenting adds unnecessary overhead and if needed,
+  the response can be pretty formatted on the client side using ``jq`` or similar). (improvement)
+  #5153
+
+  Contributed by @Kami
 
 Fixed
 ~~~~~
