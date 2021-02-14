@@ -21,12 +21,18 @@ underlying implementations (copy.deepcopy, urjson, orjson).
 # TODO: Also se actual orquesta context and execution fixture files which contain real life data
 # with large text strings, different value types, etc.
 
+import os
 import copy
 import random
 
 import pytest
 import ujson
 import orjson
+
+import json
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
 
 
 def generate_random_dict(keys_count=10, depth=1):
@@ -100,4 +106,47 @@ def test_fast_deepcopy_with_dict_values(benchmark, dict_keys_count_and_depth, im
             raise ValueError("Invalid implementation: %s" % (implementation))
 
     result = benchmark.pedantic(run_benchmark, iterations=50, rounds=50)
+    assert result == data, "Output is not the same as the input"
+
+
+@pytest.mark.parametrize(
+    "implementation",
+    [
+        "copy_deepcopy",
+        "ujson",
+        "orjson"
+    ],
+    ids=[
+        "copy_deepcopy",
+        "ujson",
+        "orjson",
+    ],
+)
+@pytest.mark.parametrize(
+    "fixture_file",
+    [
+        "rows.json",
+    ],
+    ids=[
+        "rows.json",
+    ],
+)
+@pytest.mark.benchmark(group="fast_deepcopy")
+def test_fast_deepcopy_with_json_fixture_file(benchmark, fixture_file, implementation):
+    with open(os.path.join(FIXTURES_DIR, fixture_file), "r") as fp:
+        content = fp.read()
+
+    data = json.loads(content)
+
+    def run_benchmark():
+        if implementation == "copy_deepcopy":
+            return copy.deepcopy(data)
+        elif implementation == "ujson":
+            return ujson.loads(ujson.dumps(data))
+        elif implementation == "orjson":
+            return orjson.loads(orjson.dumps(data))
+        else:
+            raise ValueError("Invalid implementation: %s" % (implementation))
+
+    result = benchmark.pedantic(run_benchmark, iterations=5, rounds=5)
     assert result == data, "Output is not the same as the input"
