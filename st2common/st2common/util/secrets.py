@@ -21,7 +21,7 @@ from __future__ import absolute_import
 
 import six
 
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 

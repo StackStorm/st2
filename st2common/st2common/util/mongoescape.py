@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import six
 from six.moves import zip
 
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 
 # Note: Because of old rule escaping code, two different characters can be translated back to dot
 RULE_CRITERIA_UNESCAPED = ['.']
