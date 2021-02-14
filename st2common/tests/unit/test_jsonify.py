@@ -97,3 +97,31 @@ class JsonifyTests(unittest2.TestCase):
 
             self.assertEqual(result_decoded, expected_data)
             self.assertEqual(result_decoded, result_decoded_native)
+
+    def test_json_encode_decode_sort_keys_indent_compatibility_between_different_libs(self):
+        input_data = {
+            "d": 4,
+            "a": 1,
+            "b": 2,
+            "c": 3,
+        }
+
+        # 1. indent=None
+        result_orjson = jsonify.json_encode_orjson(input_data, indent=None)
+        result_native = jsonify.json_encode_native_json(input_data, indent=None)
+        self.assertEqual(result_orjson, result_native)
+
+        # 2. indent=2 (only mode orjson supports)
+        result_orjson = jsonify.json_encode_orjson(input_data, indent=2)
+        result_native = jsonify.json_encode_native_json(input_data, indent=2)
+        self.assertEqual(result_orjson, result_native)
+
+        # 3. indent=None, sort_keys=True
+        result_orjson = jsonify.json_encode_orjson(input_data, indent=None, sort_keys=True)
+        result_native = jsonify.json_encode_native_json(input_data, indent=None, sort_keys=True)
+        self.assertEqual(result_orjson, result_native)
+
+        # 4. indent=2 + sort_keys=True
+        result_orjson = jsonify.json_encode_orjson(input_data, indent=2, sort_keys=True)
+        result_native = jsonify.json_encode_native_json(input_data, indent=2, sort_keys=True)
+        self.assertEqual(result_orjson, result_native)

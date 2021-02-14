@@ -56,16 +56,29 @@ def default(obj):
     raise TypeError
 
 
-def json_encode_native_json(obj, indent=4):
-    return json.dumps(obj, cls=GenericJSON, indent=indent)
+def json_encode_native_json(obj, indent=4, sort_keys=False):
+    if not indent:
+        separators = separators=(',', ':')
+    else:
+        separators = None
+    return json.dumps(obj, cls=GenericJSON, indent=indent, separators=separators,
+                      sort_keys=sort_keys)
 
 
-def json_encode_orjson(obj, indent=None):
+def json_encode_orjson(obj, indent=None, sort_keys=False):
+    option = None
+
     if indent:
-        return orjson.dumps(obj, default=default, option=orjson.OPT_INDENT_2)
+        # NOTE: We don't use indent by default since it's quite a bit slower
+        option = orjson.OPT_INDENT_2
 
-    # NOTE: We don't use indent by default since it's quite a bit slower
-    return orjson.dumps(obj, default=default)
+    if sort_keys:
+        option = option | orjson.OPT_SORT_KEYS if option else orjson.OPT_SORT_KEYS
+
+    if option:
+        return orjson.dumps(obj, default=default, option=option).decode("utf-8")
+
+    return orjson.dumps(obj, default=default).decode("utf-8")
 
 
 def json_decode_native_json(data):
@@ -76,7 +89,7 @@ def json_decode_orjson(data):
     return orjson.loads(data)
 
 
-def json_encode(obj, indent=None):
+def json_encode(obj, indent=None, sort_keys=False):
     """
     Wrapper function for encoding the provided object.
 
@@ -85,9 +98,9 @@ def json_encode(obj, indent=None):
     This function should be used everywhere in the code base where json.dumps() behavior is desired.
     """
     if cfg.CONF.system.json_library == "json":
-        return json_encode_native_json(obj=obj, indent=indent)
+        return json_encode_native_json(obj=obj, indent=indent, sort_keys=sort_keys)
     elif cfg.CONF.system.json_library == "orjson":
-        return json_encode_orjson(obj=obj, indent=indent)
+        return json_encode_orjson(obj=obj, indent=indent, sort_keys=sort_keys)
     else:
         raise ValueError("Unsupported json_library: %s" % (cfg.CONF.system.json_library))
 
