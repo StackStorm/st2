@@ -63,7 +63,8 @@ class CLIConfigParserTestCase(unittest2.TestCase):
             'credentials': {
                 'username': 'test1',
                 'password': 'test1',
-                'api_key': None
+                'api_key': "api_key",
+                'basic_auth': "user1:pass1",
             },
             'api': {
                 'url': 'http://127.0.0.1:9101/v1'
