@@ -39,7 +39,6 @@ from st2common.persistence.auth import User
 from st2common.rbac.backends import get_rbac_backend
 from st2common.util import date as date_utils
 from st2common.util.jsonify import json_encode
-from st2common.util.jsonify import json_encode_native_json
 from st2common.util.jsonify import json_decode
 from st2common.util.jsonify import get_json_type_for_python_value
 from st2common.util.http import parse_content_type_header
@@ -161,7 +160,8 @@ class Request(webob.Request):
 
 class Response(webob.Response):
     """
-    Custom Response implementation which uses our custom and faster json serializer and deserializer.
+    Custom Response implementation which uses our custom and faster json serializer and
+    deserializer.
     """
 
     def __init__(self, body=None, status=None, headerlist=None, app_iter=None, content_type=None,

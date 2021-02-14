@@ -52,13 +52,13 @@ def default(obj):
     elif isinstance(obj, bytes):
         # TODO: We should update the code which passes bytes to pass unicode to avoid this
         # conversion here
-        return  obj.decode("utf-8")
+        return obj.decode("utf-8")
     raise TypeError
 
 
 def json_encode_native_json(obj, indent=4, sort_keys=False):
     if not indent:
-        separators = separators=(',', ':')
+        separators = (',', ':')
     else:
         separators = None
     return json.dumps(obj, cls=GenericJSON, indent=indent, separators=separators,
@@ -103,6 +103,7 @@ def json_encode(obj, indent=None, sort_keys=False):
         return json_encode_orjson(obj=obj, indent=indent, sort_keys=sort_keys)
     else:
         raise ValueError("Unsupported json_library: %s" % (cfg.CONF.system.json_library))
+
 
 def json_decode(data):
     """
