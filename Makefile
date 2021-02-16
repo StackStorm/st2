@@ -638,6 +638,17 @@ endif
 	# debug pip installed packages
 	$(VIRTUALENV_DIR)/bin/pip list
 
+.PHONY: reset-submodules
+reset-submodules:
+	git submodule foreach --recursive git reset --hard
+
+.PHONY: reinit-submodules
+reinit-submodules:
+	# Unbind all submodules
+	git submodule deinit -f .
+	# Checkout again
+	git submodule update --init --recursive
+
 .PHONY: tests
 tests: pytests
 
