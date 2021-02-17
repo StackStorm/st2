@@ -326,6 +326,63 @@ schemasgen: requirements .schemasgen
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
+# Black task which checks if the code comforts to black code style
+.PHONY: black-check
+black: requirements .black-check
+
+.PHONY: .black-check
+.black:
+	@echo
+	@echo "================== black-check ===================="
+	@echo
+	# st2 components
+	@for component in $(COMPONENTS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
+	done
+	# runner modules and packages
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
+	done
+	# Python pack management actions
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml contrib/*  || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml tools/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml pylint_plugins/*.py || exit 1;
+
+# Black task which reformats the code using black
+.PHONY: black-format
+black: requirements .black-format
+
+.PHONY: .black-format
+.black-format:
+	@echo
+	@echo "================== black ===================="
+	@echo
+	# st2 components
+	@for component in $(COMPONENTS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --config pyproject.toml $$component/ || exit 1; \
+	done
+	# runner modules and packages
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --config pyproject.toml  $$component/ || exit 1; \
+	done
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml contrib/ || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml tools/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml pylint_plugins/*.py || exit 1;
+
 .PHONY: lint-api-spec
 lint-api-spec: requirements .lint-api-spec
 
@@ -979,7 +1036,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: .generated-files-check .black-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: .rst-check
 .rst-check:
