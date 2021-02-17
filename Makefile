@@ -331,7 +331,7 @@ schemasgen: requirements .schemasgen
 black: requirements .black-check
 
 .PHONY: .black-check
-.black:
+.black-check:
 	@echo
 	@echo "================== black-check ===================="
 	@echo
@@ -349,8 +349,7 @@ black: requirements .black-check
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
 	done
-	# Python pack management actions
-	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml contrib/*  || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml contrib/ || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml scripts/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml tools/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml pylint_plugins/*.py || exit 1;
