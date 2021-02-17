@@ -9,6 +9,6 @@ attribute1: value1
 attribute2: value2
 attribute3: value3
 attribute: 4
-some: 
+some:
   - "feature"
   - value
