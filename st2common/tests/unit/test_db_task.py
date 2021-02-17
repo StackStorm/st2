@@ -27,19 +27,18 @@ from st2common.transport import publishers
 from st2common.util import date as date_utils
 
 
-@mock.patch.object(publishers.PoolPublisher, 'publish', mock.MagicMock())
+@mock.patch.object(publishers.PoolPublisher, "publish", mock.MagicMock())
 class TaskExecutionModelTest(st2tests.DbTestCase):
-
     def test_task_execution_crud(self):
         initial = wf_db_models.TaskExecutionDB()
         initial.workflow_execution = uuid.uuid4().hex
-        initial.task_name = 't1'
-        initial.task_id = 't1'
+        initial.task_name = "t1"
+        initial.task_id = "t1"
         initial.task_route = 0
-        initial.task_spec = {'tasks': {'t1': 'some task'}}
+        initial.task_spec = {"tasks": {"t1": "some task"}}
         initial.delay = 180
-        initial.status = 'requested'
-        initial.context = {'var1': 'foobar'}
+        initial.status = "requested"
+        initial.context = {"var1": "foobar"}
 
         # Test create
         created = wf_db_access.TaskExecution.add_or_update(initial)
@@ -61,7 +60,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertDictEqual(created.context, retrieved.context)
 
         # Test update
-        status = 'running'
+        status = "running"
         retrieved = wf_db_access.TaskExecution.update(retrieved, status=status)
         updated = wf_db_access.TaskExecution.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
@@ -79,8 +78,8 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertDictEqual(updated.context, retrieved.context)
 
         # Test add or update
-        retrieved.result = {'output': 'fubar'}
-        retrieved.status = 'succeeded'
+        retrieved.result = {"output": "fubar"}
+        retrieved.status = "succeeded"
         retrieved.end_timestamp = date_utils.get_datetime_utc_now()
         retrieved = wf_db_access.TaskExecution.add_or_update(retrieved)
         updated = wf_db_access.TaskExecution.get_by_id(doc_id)
@@ -105,20 +104,20 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertRaises(
             db_exc.StackStormDBObjectNotFoundError,
             wf_db_access.TaskExecution.get_by_id,
-            doc_id
+            doc_id,
         )
 
     def test_task_execution_crud_set_itemized_true(self):
         initial = wf_db_models.TaskExecutionDB()
         initial.workflow_execution = uuid.uuid4().hex
-        initial.task_name = 't1'
-        initial.task_id = 't1'
+        initial.task_name = "t1"
+        initial.task_id = "t1"
         initial.task_route = 0
-        initial.task_spec = {'tasks': {'t1': 'some task'}}
+        initial.task_spec = {"tasks": {"t1": "some task"}}
         initial.delay = 180
         initial.itemized = True
-        initial.status = 'requested'
-        initial.context = {'var1': 'foobar'}
+        initial.status = "requested"
+        initial.context = {"var1": "foobar"}
 
         # Test create
         created = wf_db_access.TaskExecution.add_or_update(initial)
@@ -140,7 +139,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertDictEqual(created.context, retrieved.context)
 
         # Test update
-        status = 'running'
+        status = "running"
         retrieved = wf_db_access.TaskExecution.update(retrieved, status=status)
         updated = wf_db_access.TaskExecution.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
@@ -158,8 +157,8 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertDictEqual(updated.context, retrieved.context)
 
         # Test add or update
-        retrieved.result = {'output': 'fubar'}
-        retrieved.status = 'succeeded'
+        retrieved.result = {"output": "fubar"}
+        retrieved.status = "succeeded"
         retrieved.end_timestamp = date_utils.get_datetime_utc_now()
         retrieved = wf_db_access.TaskExecution.add_or_update(retrieved)
         updated = wf_db_access.TaskExecution.get_by_id(doc_id)
@@ -184,19 +183,19 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertRaises(
             db_exc.StackStormDBObjectNotFoundError,
             wf_db_access.TaskExecution.get_by_id,
-            doc_id
+            doc_id,
         )
 
     def test_task_execution_write_conflict(self):
         initial = wf_db_models.TaskExecutionDB()
         initial.workflow_execution = uuid.uuid4().hex
-        initial.task_name = 't1'
-        initial.task_id = 't1'
+        initial.task_name = "t1"
+        initial.task_id = "t1"
         initial.task_route = 0
-        initial.task_spec = {'tasks': {'t1': 'some task'}}
+        initial.task_spec = {"tasks": {"t1": "some task"}}
         initial.delay = 180
-        initial.status = 'requested'
-        initial.context = {'var1': 'foobar'}
+        initial.status = "requested"
+        initial.context = {"var1": "foobar"}
 
         # Prep record
         created = wf_db_access.TaskExecution.add_or_update(initial)
@@ -208,7 +207,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         retrieved2 = wf_db_access.TaskExecution.get_by_id(doc_id)
 
         # Test update on instance 1, expect success
-        status = 'running'
+        status = "running"
         retrieved1 = wf_db_access.TaskExecution.update(retrieved1, status=status)
         updated = wf_db_access.TaskExecution.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
@@ -230,7 +229,7 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
             db_exc.StackStormDBObjectWriteConflictError,
             wf_db_access.TaskExecution.update,
             retrieved2,
-            status='pausing'
+            status="pausing",
         )
 
         # Test delete
@@ -239,5 +238,5 @@ class TaskExecutionModelTest(st2tests.DbTestCase):
         self.assertRaises(
             db_exc.StackStormDBObjectNotFoundError,
             wf_db_access.TaskExecution.get_by_id,
-            doc_id
+            doc_id,
         )

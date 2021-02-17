@@ -18,19 +18,19 @@ from st2common.exceptions import StackStormBaseException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
-    'TokenNotProvidedError',
-    'TokenNotFoundError',
-    'TokenExpiredError',
-    'TTLTooLargeException',
-    'ApiKeyNotProvidedError',
-    'ApiKeyNotFoundError',
-    'MultipleAuthSourcesError',
-    'NoAuthSourceProvidedError',
-    'NoNicknameOriginProvidedError',
-    'UserNotFoundError',
-    'AmbiguousUserError',
-    'NotServiceUserError',
-    'SSOVerificationError'
+    "TokenNotProvidedError",
+    "TokenNotFoundError",
+    "TokenExpiredError",
+    "TTLTooLargeException",
+    "ApiKeyNotProvidedError",
+    "ApiKeyNotFoundError",
+    "MultipleAuthSourcesError",
+    "NoAuthSourceProvidedError",
+    "NoNicknameOriginProvidedError",
+    "UserNotFoundError",
+    "AmbiguousUserError",
+    "NotServiceUserError",
+    "SSOVerificationError",
 ]
 
 

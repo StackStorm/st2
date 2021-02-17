@@ -26,9 +26,7 @@ from st2common.rbac.types import PermissionType
 
 from st2api.controllers.resource import ResourceController
 
-__all__ = [
-    'RuleEnforcementViewController'
-]
+__all__ = ["RuleEnforcementViewController"]
 
 
 class RuleEnforcementViewController(ResourceController):
@@ -50,8 +48,16 @@ class RuleEnforcementViewController(ResourceController):
     supported_filters = SUPPORTED_FILTERS
     filter_transform_functions = FILTER_TRANSFORM_FUNCTIONS
 
-    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
-                limit=None, requester_user=None, **raw_filters):
+    def get_all(
+        self,
+        exclude_attributes=None,
+        include_attributes=None,
+        sort=None,
+        offset=0,
+        limit=None,
+        requester_user=None,
+        **raw_filters,
+    ):
         rule_enforcement_apis = super(RuleEnforcementViewController, self)._get_all(
             exclude_fields=exclude_attributes,
             include_fields=include_attributes,
@@ -59,16 +65,25 @@ class RuleEnforcementViewController(ResourceController):
             offset=offset,
             limit=limit,
             raw_filters=raw_filters,
-            requester_user=requester_user)
+            requester_user=requester_user,
+        )
 
-        rule_enforcement_apis.json = self._append_view_properties(rule_enforcement_apis.json)
+        rule_enforcement_apis.json = self._append_view_properties(
+            rule_enforcement_apis.json
+        )
         return rule_enforcement_apis
 
     def get_one(self, id, requester_user):
-        rule_enforcement_api = super(RuleEnforcementViewController,
-                     self)._get_one_by_id(id, requester_user=requester_user,
-                                          permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
-        rule_enforcement_api = self._append_view_properties([rule_enforcement_api.__json__()])[0]
+        rule_enforcement_api = super(
+            RuleEnforcementViewController, self
+        )._get_one_by_id(
+            id,
+            requester_user=requester_user,
+            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW,
+        )
+        rule_enforcement_api = self._append_view_properties(
+            [rule_enforcement_api.__json__()]
+        )[0]
         return rule_enforcement_api
 
     def _append_view_properties(self, rule_enforcement_apis):
@@ -80,29 +95,29 @@ class RuleEnforcementViewController(ResourceController):
         execution_ids = []
 
         for rule_enforcement_api in rule_enforcement_apis:
-            if rule_enforcement_api.get('trigger_instance_id', None):
-                trigger_instance_ids.add(str(rule_enforcement_api['trigger_instance_id']))
+            if rule_enforcement_api.get("trigger_instance_id", None):
+                trigger_instance_ids.add(
+                    str(rule_enforcement_api["trigger_instance_id"])
+                )
 
-            if rule_enforcement_api.get('execution_id', None):
-                execution_ids.append(rule_enforcement_api['execution_id'])
+            if rule_enforcement_api.get("execution_id", None):
+                execution_ids.append(rule_enforcement_api["execution_id"])
 
         # 1. Retrieve corresponding execution objects
         # NOTE: Executions contain a lot of field and could contain a lot of data so we only
         # retrieve fields we need
         only_fields = [
-            'id',
-
-            'action.ref',
-            'action.parameters',
-
-            'runner.name',
-            'runner.runner_parameters',
-
-            'parameters',
-            'status'
+            "id",
+            "action.ref",
+            "action.parameters",
+            "runner.name",
+            "runner.runner_parameters",
+            "parameters",
+            "status",
         ]
-        execution_dbs = ActionExecution.query(id__in=execution_ids,
-                                              only_fields=only_fields)
+        execution_dbs = ActionExecution.query(
+            id__in=execution_ids, only_fields=only_fields
+        )
 
         execution_dbs_by_id = {}
         for execution_db in execution_dbs:
@@ -114,26 +129,32 @@ class RuleEnforcementViewController(ResourceController):
         trigger_instance_dbs_by_id = {}
 
         for trigger_instance_db in trigger_instance_dbs:
-            trigger_instance_dbs_by_id[str(trigger_instance_db.id)] = trigger_instance_db
+            trigger_instance_dbs_by_id[
+                str(trigger_instance_db.id)
+            ] = trigger_instance_db
 
         # Ammend rule enforcement objects with additional data
         for rule_enforcement_api in rule_enforcement_apis:
-            rule_enforcement_api['trigger_instance'] = {}
-            rule_enforcement_api['execution'] = {}
+            rule_enforcement_api["trigger_instance"] = {}
+            rule_enforcement_api["execution"] = {}
 
-            trigger_instance_id = rule_enforcement_api.get('trigger_instance_id', None)
-            execution_id = rule_enforcement_api.get('execution_id', None)
+            trigger_instance_id = rule_enforcement_api.get("trigger_instance_id", None)
+            execution_id = rule_enforcement_api.get("execution_id", None)
 
-            trigger_instance_db = trigger_instance_dbs_by_id.get(trigger_instance_id, None)
+            trigger_instance_db = trigger_instance_dbs_by_id.get(
+                trigger_instance_id, None
+            )
             execution_db = execution_dbs_by_id.get(execution_id, None)
 
             if trigger_instance_db:
-                trigger_instance_api = TriggerInstanceAPI.from_model(trigger_instance_db)
-                rule_enforcement_api['trigger_instance'] = trigger_instance_api
+                trigger_instance_api = TriggerInstanceAPI.from_model(
+                    trigger_instance_db
+                )
+                rule_enforcement_api["trigger_instance"] = trigger_instance_api
 
             if execution_db:
                 execution_api = ActionExecutionAPI.from_model(execution_db)
-                rule_enforcement_api['execution'] = execution_api
+                rule_enforcement_api["execution"] = execution_api
 
         return rule_enforcement_apis
 

@@ -17,6 +17,7 @@ from __future__ import absolute_import
 import mock
 
 from st2tests import config as test_config
+
 test_config.parse_args()
 
 import st2common
@@ -32,28 +33,21 @@ from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
 
-__all__ = [
-    'SchedulerPoliciesTestCase',
-    'NotifierPoliciesTestCase'
-]
+__all__ = ["SchedulerPoliciesTestCase", "NotifierPoliciesTestCase"]
 
 
-PACK = 'generic'
+PACK = "generic"
 TEST_FIXTURES_1 = {
-    'actions': [
-        'action1.yaml'
+    "actions": ["action1.yaml"],
+    "policies": [
+        "policy_4.yaml",
     ],
-    'policies': [
-        'policy_4.yaml',
-    ]
 }
 TEST_FIXTURES_2 = {
-    'actions': [
-        'action1.yaml'
+    "actions": ["action1.yaml"],
+    "policies": [
+        "policy_1.yaml",
     ],
-    'policies': [
-        'policy_1.yaml',
-    ]
 }
 
 
@@ -73,15 +67,14 @@ class SchedulerPoliciesTestCase(CleanDbTestCase):
         register_policy_types(st2common)
 
         loader = FixturesLoader()
-        models = loader.save_fixtures_to_db(fixtures_pack=PACK,
-                                            fixtures_dict=TEST_FIXTURES_2)
+        models = loader.save_fixtures_to_db(
+            fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES_2
+        )
 
         # Policy with "post_run" application
-        self.policy_db = models['policies']['policy_1.yaml']
+        self.policy_db = models["policies"]["policy_1.yaml"]
 
-    @mock.patch.object(
-        policies, 'get_driver',
-        mock.MagicMock(return_value=None))
+    @mock.patch.object(policies, "get_driver", mock.MagicMock(return_value=None))
     def test_disabled_policy_not_applied_on_pre_run(self):
         ##########
         # First test a scenario where policy is enabled
@@ -91,7 +84,9 @@ class SchedulerPoliciesTestCase(CleanDbTestCase):
         # Post run hasn't been called yet, call count should be 0
         self.assertEqual(policies.get_driver.call_count, 0)
 
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "foo"}
+        )
         live_action_db, execution_db = action_service.request(liveaction)
         policy_service.apply_pre_run_policies(live_action_db)
 
@@ -108,7 +103,9 @@ class SchedulerPoliciesTestCase(CleanDbTestCase):
 
         self.assertEqual(policies.get_driver.call_count, 0)
 
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "foo"}
+        )
         live_action_db, execution_db = action_service.request(liveaction)
         policy_service.apply_pre_run_policies(live_action_db)
 
@@ -133,15 +130,14 @@ class NotifierPoliciesTestCase(CleanDbTestCase):
         register_policy_types(st2common)
 
         loader = FixturesLoader()
-        models = loader.save_fixtures_to_db(fixtures_pack=PACK,
-                                            fixtures_dict=TEST_FIXTURES_1)
+        models = loader.save_fixtures_to_db(
+            fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES_1
+        )
 
         # Policy with "post_run" application
-        self.policy_db = models['policies']['policy_4.yaml']
+        self.policy_db = models["policies"]["policy_4.yaml"]
 
-    @mock.patch.object(
-        policies, 'get_driver',
-        mock.MagicMock(return_value=None))
+    @mock.patch.object(policies, "get_driver", mock.MagicMock(return_value=None))
     def test_disabled_policy_not_applied_on_post_run(self):
         ##########
         # First test a scenario where policy is enabled
@@ -151,7 +147,9 @@ class NotifierPoliciesTestCase(CleanDbTestCase):
         # Post run hasn't been called yet, call count should be 0
         self.assertEqual(policies.get_driver.call_count, 0)
 
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "foo"}
+        )
         live_action_db, execution_db = action_service.request(liveaction)
         policy_service.apply_post_run_policies(live_action_db)
 
@@ -168,7 +166,9 @@ class NotifierPoliciesTestCase(CleanDbTestCase):
 
         self.assertEqual(policies.get_driver.call_count, 0)
 
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "foo"}
+        )
         live_action_db, execution_db = action_service.request(liveaction)
         policy_service.apply_post_run_policies(live_action_db)
 

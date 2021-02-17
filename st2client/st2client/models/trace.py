@@ -19,8 +19,8 @@ from st2client.models import core
 
 
 class Trace(core.Resource):
-    _alias = 'Trace'
-    _display_name = 'Trace'
-    _plural = 'Traces'
-    _plural_display_name = 'Traces'
-    _repr_attributes = ['id', 'trace_tag']
+    _alias = "Trace"
+    _display_name = "Trace"
+    _plural = "Traces"
+    _plural_display_name = "Traces"
+    _repr_attributes = ["id", "trace_tag"]

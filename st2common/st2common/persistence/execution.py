@@ -21,8 +21,8 @@ from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.base import Access
 
 __all__ = [
-    'ActionExecution',
-    'ActionExecutionOutput',
+    "ActionExecution",
+    "ActionExecutionOutput",
 ]
 
 

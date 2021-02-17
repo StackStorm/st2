@@ -36,7 +36,7 @@ def get_queue_name(queue_name_base, queue_name_suffix, add_random_uuid_to_suffix
     :rtype: ``str``
     """
     if not queue_name_base:
-        raise ValueError('Queue name base cannot be empty.')
+        raise ValueError("Queue name base cannot be empty.")
 
     if not queue_name_suffix:
         return queue_name_base
@@ -46,8 +46,8 @@ def get_queue_name(queue_name_base, queue_name_suffix, add_random_uuid_to_suffix
         # Pick last 10 digits of uuid. Arbitrary but unique enough. Long queue names
         # might cause issues in RabbitMQ.
         u_hex = uuid.uuid4().hex
-        uuid_suffix = uuid.uuid4().hex[len(u_hex) - 10:]
-        queue_suffix = '%s-%s' % (queue_name_suffix, uuid_suffix)
+        uuid_suffix = uuid.uuid4().hex[len(u_hex) - 10 :]
+        queue_suffix = "%s-%s" % (queue_name_suffix, uuid_suffix)
 
-    queue_name = '%s.%s' % (queue_name_base, queue_suffix)
+    queue_name = "%s.%s" % (queue_name_base, queue_suffix)
     return queue_name

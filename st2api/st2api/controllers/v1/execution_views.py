@@ -29,51 +29,51 @@ LOG = logging.getLogger(__name__)
 # response. Failure to do so will eventually result in Chrome hanging out while opening History
 # tab of st2web.
 SUPPORTED_FILTERS = {
-    'action': 'action.ref',
-    'status': 'status',
-    'liveaction': 'liveaction.id',
-    'parent': 'parent',
-    'rule': 'rule.name',
-    'runner': 'runner.name',
-    'timestamp': 'start_timestamp',
-    'trigger': 'trigger.name',
-    'trigger_type': 'trigger_type.name',
-    'trigger_instance': 'trigger_instance.id',
-    'user': 'context.user'
+    "action": "action.ref",
+    "status": "status",
+    "liveaction": "liveaction.id",
+    "parent": "parent",
+    "rule": "rule.name",
+    "runner": "runner.name",
+    "timestamp": "start_timestamp",
+    "trigger": "trigger.name",
+    "trigger_type": "trigger_type.name",
+    "trigger_instance": "trigger_instance.id",
+    "user": "context.user",
 }
 
 # A list of fields for which null (None) is a valid value which we include in the list of valid
 # filters.
 FILTERS_WITH_VALID_NULL_VALUES = [
-    'parent',
-    'rule',
-    'trigger',
-    'trigger_type',
-    'trigger_instance'
+    "parent",
+    "rule",
+    "trigger",
+    "trigger_type",
+    "trigger_instance",
 ]
 
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1
 # relation between filter and particular history record.
-IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction', 'trigger_instance']
+IGNORE_FILTERS = ["parent", "timestamp", "liveaction", "trigger_instance"]
 
 
 class FiltersController(object):
     def get_all(self, types=None):
         """
-            List all distinct filters.
+        List all distinct filters.
 
-            Handles requests:
-                GET /executions/views/filters[?types=action,rule]
+        Handles requests:
+            GET /executions/views/filters[?types=action,rule]
 
-            :param types: Comma delimited string of filter types to output.
-            :type types: ``str``
+        :param types: Comma delimited string of filter types to output.
+        :type types: ``str``
         """
         filters = {}
 
         for name, field in six.iteritems(SUPPORTED_FILTERS):
             if name not in IGNORE_FILTERS and (not types or name in types):
                 if name not in FILTERS_WITH_VALID_NULL_VALUES:
-                    query = {field.replace('.', '__'): {'$ne': None}}
+                    query = {field.replace(".", "__"): {"$ne": None}}
                 else:
                     query = {}
 

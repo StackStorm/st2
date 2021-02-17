@@ -23,13 +23,10 @@ from st2actions.workflows import workflows
 from st2common.models.db import workflow as wf_ex_db
 
 
-__all__ = [
-    'MockWorkflowExecutionPublisher'
-]
+__all__ = ["MockWorkflowExecutionPublisher"]
 
 
 class MockWorkflowExecutionPublisher(object):
-
     @classmethod
     def publish_create(cls, payload):
         try:

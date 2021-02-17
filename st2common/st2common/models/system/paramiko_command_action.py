@@ -23,7 +23,7 @@ from st2common.models.system.action import SUDO_COMMON_OPTIONS
 from st2common.util.shell import quote_unix
 
 __all__ = [
-    'ParamikoRemoteCommandAction',
+    "ParamikoRemoteCommandAction",
 ]
 
 LOG = logging.getLogger(__name__)
@@ -32,7 +32,6 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 
 class ParamikoRemoteCommandAction(RemoteAction):
-
     def get_full_command_string(self):
         # Note: We pass -E to sudo because we want to preserve user provided environment variables
         env_str = self._get_env_vars_export_string()
@@ -40,24 +39,25 @@ class ParamikoRemoteCommandAction(RemoteAction):
 
         if self.sudo:
             if env_str:
-                command = quote_unix('%s && cd %s && %s' % (env_str, cwd, self.command))
+                command = quote_unix("%s && cd %s && %s" % (env_str, cwd, self.command))
             else:
-                command = quote_unix('cd %s && %s' % (cwd, self.command))
+                command = quote_unix("cd %s && %s" % (cwd, self.command))
 
-            sudo_arguments = ' '.join(self._get_common_sudo_arguments())
-            command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
+            sudo_arguments = " ".join(self._get_common_sudo_arguments())
+            command = "sudo %s -- bash -c %s" % (sudo_arguments, command)
 
             if self.sudo_password:
-                command = ('set +o history ; echo -e %s | %s' %
-                          (quote_unix('%s\n' % (self.sudo_password)), command))
+                command = "set +o history ; echo -e %s | %s" % (
+                    quote_unix("%s\n" % (self.sudo_password)),
+                    command,
+                )
         else:
             if env_str:
-                command = '%s && cd %s && %s' % (env_str, cwd,
-                                                 self.command)
+                command = "%s && cd %s && %s" % (env_str, cwd, self.command)
             else:
-                command = 'cd %s && %s' % (cwd, self.command)
+                command = "cd %s && %s" % (cwd, self.command)
 
-        LOG.debug('Command to run on remote host will be: %s', command)
+        LOG.debug("Command to run on remote host will be: %s", command)
         return command
 
     def _get_common_sudo_arguments(self):
@@ -69,7 +69,7 @@ class ParamikoRemoteCommandAction(RemoteAction):
         flags = []
 
         if self.sudo_password:
-            flags.append('-S')
+            flags.append("-S")
 
         flags = flags + SUDO_COMMON_OPTIONS
 
