@@ -382,6 +382,17 @@ black: requirements .black-format
 	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml tools/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml pylint_plugins/*.py || exit 1;
 
+.PHONY: pre-commit-checks
+black: requirements .pre-commit-checks
+
+# Ensure all files contain no trailing whitespace + that all YAML files are valid.
+.PHONY: .pre-commit-checks
+.pre-commit-checks:
+	@echo
+	@echo "================== pre-commit-checks ===================="
+	@echo
+	pre-commit run trailing-whitespace --all --show-diff-on-failure
+	pre-commit run check-yaml --all --show-diff-on-failure
 .PHONY: lint-api-spec
 lint-api-spec: requirements .lint-api-spec
 
@@ -474,7 +485,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .generate-api-spec .flake8 .pylint .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
+.lint: .generate-api-spec .black-check .pre-commit-checks .flake8 .pylint .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -1035,7 +1046,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: .generated-files-check .black-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: .generated-files-check .black-check .pre-commit-checks .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: .rst-check
 .rst-check:
