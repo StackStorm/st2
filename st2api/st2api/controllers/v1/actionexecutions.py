@@ -378,13 +378,16 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
                                  're-running task(s) for a workflow.')
 
             if self.parameters:
-                assert isinstance(self.parameters, dict)
+                if not isinstance(self.parameters, dict):
+                    raise ValueError("Parameters needs to be a dictionary")
 
             if self.tasks:
-                assert isinstance(self.tasks, list)
+                if not isinstance(self.tasks, list):
+                    raise ValueError("Tasks needs to be a list")
 
             if self.reset:
-                assert isinstance(self.reset, list)
+                if not isinstance(self.reset, list):
+                    raise ValueError("Reset needs to be a list")
 
             if list(set(self.reset) - set(self.tasks)):
                 raise ValueError('List of tasks to reset does not match the tasks to rerun.')
@@ -405,13 +408,16 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
                              're-running task(s) for a workflow.')
 
         if spec_api.parameters:
-            assert isinstance(spec_api.parameters, dict)
+            if not isinstance(spec_api.parameters, dict):
+                raise ValueError("Parameters needs to be a list")
 
         if spec_api.tasks:
-            assert isinstance(spec_api.tasks, list)
+            if not isinstance(spec_api.tasks, list):
+                raise ValueError("Tasks needs to be a list")
 
         if spec_api.reset:
-            assert isinstance(spec_api.reset, list)
+            if not isinstance(spec_api.reset, list):
+                raise ValueError("reset needs to be a list")
 
         if list(set(spec_api.reset) - set(spec_api.tasks)):
             raise ValueError('List of tasks to reset does not match the tasks to rerun.')

@@ -54,7 +54,8 @@ def _get_valid_trace_context(trace_context):
     """
     Check if tarce_context is a valid type and returns a TraceContext object.
     """
-    assert isinstance(trace_context, (TraceContext, dict))
+    if not isinstance(trace_context, (TraceContext, dict)):
+        raise TypeError("Not a valid trace_context type")
 
     # Pretty much abuse the dynamic nature of python to make it possible to support
     # both dict and TraceContext types.

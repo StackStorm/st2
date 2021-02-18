@@ -177,7 +177,8 @@ class ShellCommandAction(object):
 
         :rtype: ``str``
         """
-        assert isinstance(args, (list, tuple))
+        if not isinstance(args, (list, tuple)):
+            raise ValueError("Args needs to be a list and tuple")
 
         args = [quote_unix(arg) for arg in args]
         args = ' '.join(args)

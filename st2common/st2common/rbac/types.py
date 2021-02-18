@@ -184,7 +184,8 @@ class PermissionType(Enum):
             return ResourceType.EXECUTION
 
         split = permission_type.split('_')
-        assert len(split) >= 2
+        if not len(split) >= 2:
+            raise ValueError("Length should be greater than or equal to 2")
 
         return '_'.join(split[:-1])
 
@@ -196,7 +197,8 @@ class PermissionType(Enum):
         :rtype: ``str``
         """
         split = permission_type.split('_')
-        assert len(split) >= 2
+        if not len(split) >= 2:
+            raise ValueError("Length should be greater than or equal to 2")
 
         # Special case for PACK_VIEWS_INDEX_HEALTH
         if permission_type == PermissionType.PACK_VIEWS_INDEX_HEALTH:

@@ -322,7 +322,8 @@ class PythonRunner(GitWorktreeActionRunner):
 
         if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
             split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
-            assert len(split) == 3
+            if not len(split) == 3:
+                raise ValueError("Length should be 3")
             action_result = split[1].strip()
             stdout = split[0] + split[2]
         else:

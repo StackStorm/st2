@@ -185,7 +185,8 @@ class RulesRegistrar(ResourceRegistrar):
 def register_rules(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
                    fail_on_failure=False):
     if packs_base_paths:
-        assert isinstance(packs_base_paths, list)
+        if not isinstance(packs_base_paths, list):
+            raise ValueError("Pack base paths needs to be a list")
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()

@@ -824,8 +824,10 @@ class ActionChainRunner(ActionRunner):
 
         :rtype: ``dict``
         """
-        assert isinstance(created_at, datetime.datetime)
-        assert isinstance(updated_at, datetime.datetime)
+        if not isinstance(created_at, datetime.datetime):
+            raise TypeError("created_at is not a datetime object")
+        if not isinstance(updated_at, datetime.datetime):
+            raise TypeError("updated_at is not a datetime object")
 
         result = {}
 

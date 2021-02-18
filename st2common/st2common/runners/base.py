@@ -288,7 +288,8 @@ class GitWorktreeActionRunner(ActionRunner):
                                                   entry_point=self.entry_point,
                                                   worktree_path=self.git_worktree_path)
 
-            assert(entry_point.startswith(self.git_worktree_path))
+            if not (entry_point.startswith(self.git_worktree_path)):
+                raise ValueError("Value not matching")
 
             self.entry_point = entry_point
 
@@ -375,8 +376,10 @@ class GitWorktreeActionRunner(ActionRunner):
         :rtype: ``bool``
         """
         # Safety check to make sure we don't remove something outside /tmp
-        assert(worktree_path.startswith('/tmp'))
-        assert(worktree_path.startswith('/tmp/%s' % (self.WORKTREE_DIRECTORY_PREFIX)))
+        if not (worktree_path.startswith('/tmp')):
+            raise ValueError("Value not matching")
+        if not (worktree_path.startswith('/tmp/%s' % (self.WORKTREE_DIRECTORY_PREFIX))):
+            raise ValueError("Value not matching")
 
         if self._debug:
             LOG.debug('Not removing git worktree "%s" because debug mode is enabled' %

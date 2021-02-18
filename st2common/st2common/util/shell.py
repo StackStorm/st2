@@ -74,7 +74,8 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
 
     :rtype: ``tuple`` (exit_code, stdout, stderr)
     """
-    assert isinstance(cmd, (list, tuple) + six.string_types)
+    if not isinstance(cmd, (list, tuple) + six.string_types):
+        raise TypeError("cmd must be a type of (list, tuple) string ")
 
     if not env:
         env = os.environ.copy()

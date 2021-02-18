@@ -253,7 +253,8 @@ def create_or_update_trigger_db(trigger, log_not_unique_error_as_debug=False):
     :param trigger: Trigger info.
     :type trigger: ``dict``
     """
-    assert isinstance(trigger, dict)
+    if not isinstance(trigger, dict):
+        raise ValueError("Trigger needs to be a dict object")
 
     existing_trigger_db = _get_trigger_db(trigger)
 
@@ -406,7 +407,8 @@ def create_or_update_trigger_type_db(trigger_type, log_not_unique_error_as_debug
 
     :rtype: ``object``
     """
-    assert isinstance(trigger_type, dict)
+    if not isinstance(trigger_type, dict):
+        raise ValueError("trigger needs to be a dict object")
 
     trigger_type_api = TriggerTypeAPI(**trigger_type)
     trigger_type_api.validate()

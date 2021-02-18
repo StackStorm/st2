@@ -91,7 +91,8 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     """
     LOG.debug('Entering st2common.util.green.run_command.')
 
-    assert isinstance(cmd, (list, tuple) + six.string_types)
+    if not isinstance(cmd, (list, tuple) + six.string_types):
+        raise TypeError("cmd must be a type of (list, tuple) string ")
 
     if (read_stdout_func and not read_stderr_func) or (read_stderr_func and not read_stdout_func):
         raise ValueError('Both read_stdout_func and read_stderr_func arguments need '

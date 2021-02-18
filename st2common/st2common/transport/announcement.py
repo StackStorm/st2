@@ -65,8 +65,10 @@ class AnnouncementDispatcher(object):
         :param trace_context: Trace context to associate with Announcement.
         :type trace_context: ``TraceContext``
         """
-        assert isinstance(payload, (type(None), dict))
-        assert isinstance(trace_context, (type(None), dict, TraceContext))
+        if not isinstance(payload, (type(None), dict)):
+            raise TypeError("Object is not a dict type")
+        if not isinstance(trace_context, (type(None), dict, TraceContext)):
+            raise TypeError("Object is not a TraceContext type")
 
         payload = {
             'payload': payload,
