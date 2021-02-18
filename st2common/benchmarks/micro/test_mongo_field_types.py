@@ -72,6 +72,7 @@ class LiveActionDB_JSONField(LiveActionDB):
         "json_647kb.json",
         "json_4mb.json",
         "json_8mb.json",
+        "json_4mb_single_large_field.json",
     ],
     ids=[
         "tiny_1.json",
@@ -79,6 +80,7 @@ class LiveActionDB_JSONField(LiveActionDB):
         "json_647kb.json",
         "json_4mb.json",
         "json_8mb.json",
+        "json_4mb_single_large_field.json",
     ],
 )
 @pytest.mark.parametrize(
@@ -117,7 +119,7 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
         inserted_live_action_db = LiveAction.add_or_update(live_action_db)
         return inserted_live_action_db
 
-    inserted_live_action_db = benchmark.pedantic(run_benchmark, iterations=1, rounds=1)
+    inserted_live_action_db = benchmark.pedantic(run_benchmark, iterations=3, rounds=3)
     retrieved_live_action_db = LiveAction.get_by_id(inserted_live_action_db.id)
     # Assert that result is correctly converted back to dict on retrieval
     assert inserted_live_action_db.result == data
@@ -132,6 +134,7 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
         "json_647kb.json",
         "json_4mb.json",
         "json_8mb.json",
+        "json_4mb_single_large_field.json",
     ],
     ids=[
         "tiny_1.json",
@@ -139,6 +142,7 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
         "json_647kb.json",
         "json_4mb.json",
         "json_8mb.json",
+        "json_4mb_single_large_field.json",
     ],
 )
 @pytest.mark.parametrize(

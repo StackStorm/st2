@@ -1,0 +1,9 @@
+{
+	"dog": {
+		"color": "brown",
+		"owner": {
+			"name": "Alice",
+			"age": 35
+		}
+	}
+}
