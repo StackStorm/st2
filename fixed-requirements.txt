@@ -62,4 +62,5 @@ python-dateutil==2.8.0
 python-statsd==2.1.0
 prometheus_client==0.1.1
 ujson==1.35
+orjson==3.4.8
 zipp>=0.5,<=1.0.0

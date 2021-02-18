@@ -139,14 +139,21 @@ class JSONDictField(BinaryField):
     objects and ujson on smaller ones.
     """
     def __init__(self, *args, **kwargs):
-        json_backend = kwargs.pop('json_backend', 'ujson')
+        # TODO: Based on the benchmark results we should support just a single backend
+        json_backend = kwargs.pop('json_backend', 'orjson')
+        compression_algorithm = kwargs.pop('compression_algorithm', 'none')
 
-        if json_backend not in ['ujson', 'cjson']:
+        if json_backend not in ['orjson', 'ujson', 'cjson']:
             raise ValueError('Unsupported backend: %s' % (json_backend))
 
         super(JSONDictField, self).__init__(*args, **kwargs)
 
-        if json_backend == 'ujson':
+        if json_backend == "orjson":
+            import orjson
+
+            self.json_loads = orjson.loads
+            self.json_dumps = orjson.dumps
+        elif json_backend == 'ujson':
             import ujson
 
             self.json_loads = ujson.loads
@@ -157,9 +164,13 @@ class JSONDictField(BinaryField):
             self.json_dumps = cjson.encode
 
     def to_mongo(self, value):
+        # TODO: Use this format: <json lib>:<compression string>:<data> for better forward
+        # compatibility if case we ever want to change the JSON lib or compression algorithm
         if not isinstance(value, dict):
             raise ValueError('value argument must be a dictionary')
-        return self.json_dumps(value)
+
+        data = self.json_dumps(value)
+        return data
 
     def to_python(self, value):
         if isinstance(value, (six.text_type, six.binary_type)):

@@ -449,6 +449,18 @@ compilepy3:
 	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name router\.py -name \*.py \) -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2exporter; test $$? -eq 1
 
+.PHONY: micro-benchmarks
+micro-benchmarks: requirements .micro-benchmarks
+
+.PHONY: .micro-benchmarks
+.micro-benchmarks:
+	@echo
+	@echo "==================== micro-benchmarks ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_execution"
+
+
 .PHONY: .cleanmongodb
 .cleanmongodb:
 	@echo "==================== cleanmongodb ===================="
