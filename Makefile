@@ -391,8 +391,8 @@ black: requirements .pre-commit-checks
 	@echo
 	@echo "================== pre-commit-checks ===================="
 	@echo
-	pre-commit run trailing-whitespace --all --show-diff-on-failure
-	pre-commit run check-yaml --all --show-diff-on-failure
+	. $(VIRTUALENV_DIR)/bin/activate; pre-commit run trailing-whitespace --all --show-diff-on-failure
+	. $(VIRTUALENV_DIR)/bin/activate; pre-commit run check-yaml --all --show-diff-on-failure
 .PHONY: lint-api-spec
 lint-api-spec: requirements .lint-api-spec
 
