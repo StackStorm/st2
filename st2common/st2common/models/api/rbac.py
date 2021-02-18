@@ -228,10 +228,9 @@ class BaseRoleAssigmentAPI(BaseAPI):
         if validate_role_exists:
             # Validate that the referenced roles exist in the db
             rbac_service = get_rbac_backend().get_service_class()
-            rbac_service.validate_roles_exists(
-                role_names=self.roles
-            )  # pylint: disable=no-member
-
+            # pylint: disable=no-member
+            rbac_service.validate_roles_exists(role_names=self.roles)
+            # pylint: enable=no-member
         return cleaned
 
 
