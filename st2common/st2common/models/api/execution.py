@@ -153,6 +153,10 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
+
+        import json
+        doc['result'] = json.loads(doc['result'])
+
         start_timestamp = model.start_timestamp
         start_timestamp_iso = isotime.format(start_timestamp, offset=False)
         doc['start_timestamp'] = start_timestamp_iso
