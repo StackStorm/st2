@@ -8,6 +8,7 @@ exclude = '''
     | \.git
     | \.virtualenv
     | __pycache__
+    | test_content_version
   )/
 )
 '''
