@@ -87,8 +87,6 @@ class LiveActionDB(stormbase.StormFoundationDB):
             {'fields': ['workflow_execution']},
             {'fields': ['task_execution']}
         ],
-        # Only used for micro benchmarks
-        'allow_inheritance': True
     }
 
     def mask_secrets(self, value):

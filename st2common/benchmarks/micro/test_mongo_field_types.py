@@ -52,6 +52,9 @@ from st2common.fields import JSONDictField
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
 
+# Needeed so we can subclass it
+LiveActionDB._meta["allow_inheritance"] = True
+
 # 1. Current approach aka using EscapedDynamicField
 class LiveActionDB_EscapedDynamicField(LiveActionDB):
     result = stormbase.EscapedDynamicField(default={})
