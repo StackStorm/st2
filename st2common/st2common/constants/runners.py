@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,5 +87,3 @@ COMMON_ACTION_ENV_VARIABLES = [
 
 # Namespaces for dynamically loaded runner modules
 RUNNERS_NAMESPACE = "st2common.runners.runner"
-RUNNERS_QUERY_MODULES_NAMESPACE = 'st2common.runners.query'
-RUNNERS_CALLBACK_MODULES_NAMESPACE = 'st2common.runners.callback'

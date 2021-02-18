@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -170,10 +171,10 @@ class TestWebhooksController(FunctionalTest):
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = 'Trigger payload validation failed'
-        self.assertTrue(expected_msg in post_resp.json['faultstring'])
+        self.assertIn(expected_msg, post_resp.json['faultstring'])
 
         expected_msg = "'invalid' is not of type 'object'"
-        self.assertTrue(expected_msg in post_resp.json['faultstring'])
+        self.assertIn(expected_msg, post_resp.json['faultstring'])
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
@@ -189,7 +190,7 @@ class TestWebhooksController(FunctionalTest):
         return_value=True))
     def test_st2_webhook_body_missing_trigger(self):
         post_resp = self.__do_post('st2', {'payload': {}}, expect_errors=True)
-        self.assertTrue('Trigger not specified.' in post_resp)
+        self.assertIn('Trigger not specified.', post_resp)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
@@ -227,7 +228,7 @@ class TestWebhooksController(FunctionalTest):
         post_resp = self.app.post('/v1/webhooks/git', data, headers=headers,
                       expect_errors=True)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
-        self.assertTrue('Failed to parse request body' in post_resp)
+        self.assertIn('Failed to parse request body', post_resp)
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
@@ -261,8 +262,8 @@ class TestWebhooksController(FunctionalTest):
         post_resp = self.app.post('/v1/webhooks/git', json.dumps(data), headers=headers,
                                   expect_errors=True)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
-        self.assertTrue('Failed to parse request body' in post_resp)
-        self.assertTrue('Unsupported Content-Type' in post_resp)
+        self.assertIn('Failed to parse request body', post_resp)
+        self.assertIn('Unsupported Content-Type', post_resp)
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
@@ -318,6 +319,26 @@ class TestWebhooksController(FunctionalTest):
         self.assertTrue(controller._is_valid_hook('with_trailing_slash'))
         self.assertTrue(controller._is_valid_hook('with_leading_trailing_slash'))
         self.assertTrue(controller._is_valid_hook('with/mixed/slash'))
+
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER_DICT]))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_authentication_headers_should_be_removed(self, dispatch_mock):
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'St2-Api-Key': 'foobar',
+            'X-Auth-Token': 'deadbeaf',
+            'Cookie': 'foo=bar'
+        }
+
+        self.app.post('/v1/webhooks/git', WEBHOOK_1, headers=headers)
+        self.assertNotIn('St2-Api-Key', dispatch_mock.call_args[1]['payload']['headers'])
+        self.assertNotIn('X-Auth-Token', dispatch_mock.call_args[1]['payload']['headers'])
+        self.assertNotIn('Cookie', dispatch_mock.call_args[1]['payload']['headers'])
 
     def __do_post(self, hook, webhook, expect_errors=False, headers=None):
         return self.app.post_json('/v1/webhooks/' + hook,

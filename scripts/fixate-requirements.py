@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +43,7 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     text_type = str
 else:
-    text_type = unicode
+    text_type = unicode     # noqa  # pylint: disable=E0602
 
 OSCWD = os.path.abspath(os.curdir)
 GET_PIP = '    curl https://bootstrap.pypa.io/get-pip.py | python'
@@ -171,10 +172,13 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
                 rline = '-e %s' % (rline)
         elif req.req:
             project = req.name
-            if project in fixedreq_hash:
-                rline = str(fixedreq_hash[project].req)
-            else:
-                rline = str(req.req)
+            req_obj = fixedreq_hash.get(project, req)
+
+            rline = str(req_obj.req)
+
+            # Also write out environment markers
+            if req_obj.markers:
+                rline += " ; {}".format(str(req_obj.markers))
 
         lines_to_write.append(rline)
 

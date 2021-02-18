@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -153,7 +154,7 @@ class RuleMatcherTestCase(CleanDbTestCase):
         trigger = get_trigger_db_by_ref(trigger_instance.trigger)
         rules_matcher = RulesMatcher(trigger_instance, trigger, rules)
         matching_rules = rules_matcher.get_matching_rules()
-        self.assertTrue(matching_rules is not None)
+        self.assertIsNotNone(matching_rules)
         self.assertEqual(len(matching_rules), 1)
 
     def test_trigger_instance_payload_with_special_values(self):
@@ -174,7 +175,7 @@ class RuleMatcherTestCase(CleanDbTestCase):
         trigger = get_trigger_db_by_ref(trigger_instance.trigger)
         rules_matcher = RulesMatcher(trigger_instance, trigger, rules)
         matching_rules = rules_matcher.get_matching_rules()
-        self.assertTrue(matching_rules is not None)
+        self.assertIsNotNone(matching_rules)
         self.assertEqual(len(matching_rules), 1)
 
     @mock.patch('st2reactor.rules.matcher.RuleFilter._render_criteria_pattern',

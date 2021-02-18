@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,9 +42,9 @@ class TraceCommandTestCase(base.BaseCLITestCase):
         setattr(args, 'hide_noop_triggers', False)
 
         trace = trace_commands.TraceGetCommand._filter_trace_components(trace, args)
-        self.assertEquals(len(trace.action_executions), 1)
-        self.assertEquals(len(trace.rules), 1)
-        self.assertEquals(len(trace.trigger_instances), 1)
+        self.assertEqual(len(trace.action_executions), 1)
+        self.assertEqual(len(trace.rules), 1)
+        self.assertEqual(len(trace.trigger_instances), 1)
 
     def test_trace_get_filter_trace_components_rules(self):
         trace = trace_models.Trace()
@@ -65,9 +66,9 @@ class TraceCommandTestCase(base.BaseCLITestCase):
         setattr(args, 'hide_noop_triggers', False)
 
         trace = trace_commands.TraceGetCommand._filter_trace_components(trace, args)
-        self.assertEquals(len(trace.action_executions), 0)
-        self.assertEquals(len(trace.rules), 1)
-        self.assertEquals(len(trace.trigger_instances), 1)
+        self.assertEqual(len(trace.action_executions), 0)
+        self.assertEqual(len(trace.rules), 1)
+        self.assertEqual(len(trace.trigger_instances), 1)
 
     def test_trace_get_filter_trace_components_trigger_instances(self):
         trace = trace_models.Trace()
@@ -89,9 +90,9 @@ class TraceCommandTestCase(base.BaseCLITestCase):
         setattr(args, 'hide_noop_triggers', False)
 
         trace = trace_commands.TraceGetCommand._filter_trace_components(trace, args)
-        self.assertEquals(len(trace.action_executions), 0)
-        self.assertEquals(len(trace.rules), 0)
-        self.assertEquals(len(trace.trigger_instances), 1)
+        self.assertEqual(len(trace.action_executions), 0)
+        self.assertEqual(len(trace.rules), 0)
+        self.assertEqual(len(trace.trigger_instances), 1)
 
     def test_trace_get_apply_display_filters_show_executions(self):
         trace = trace_models.Trace()
@@ -174,9 +175,9 @@ class TraceCommandTestCase(base.BaseCLITestCase):
         setattr(args, 'hide_noop_triggers', False)
 
         trace = trace_commands.TraceGetCommand._apply_display_filters(trace, args)
-        self.assertEquals(len(trace.action_executions), 1)
-        self.assertEquals(len(trace.rules), 1)
-        self.assertEquals(len(trace.trigger_instances), 1)
+        self.assertEqual(len(trace.action_executions), 1)
+        self.assertEqual(len(trace.rules), 1)
+        self.assertEqual(len(trace.trigger_instances), 1)
 
     def test_trace_get_apply_display_filters_hide_noop(self):
         trace = trace_models.Trace()
@@ -195,6 +196,6 @@ class TraceCommandTestCase(base.BaseCLITestCase):
         setattr(args, 'hide_noop_triggers', True)
 
         trace = trace_commands.TraceGetCommand._apply_display_filters(trace, args)
-        self.assertEquals(len(trace.action_executions), 1)
-        self.assertEquals(len(trace.rules), 1)
-        self.assertEquals(len(trace.trigger_instances), 1)
+        self.assertEqual(len(trace.action_executions), 1)
+        self.assertEqual(len(trace.rules), 1)
+        self.assertEqual(len(trace.trigger_instances), 1)

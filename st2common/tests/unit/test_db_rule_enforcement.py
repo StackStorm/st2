@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +41,7 @@ class RuleEnforcementModelTest(DbTestCase):
         retrieved = RuleEnforcement.get_by_id(saved.id)
         self.assertEqual(saved.rule.ref, retrieved.rule.ref,
                          'Same rule enforcement was not returned.')
-        self.assertTrue(retrieved.enforced_at is not None)
+        self.assertIsNotNone(retrieved.enforced_at)
         # test update
         RULE_ID = str(bson.ObjectId())
         self.assertEqual(retrieved.rule.id, None)

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,24 +38,24 @@ class ActionChainSchemaTest(unittest2.TestCase):
 
     def test_actionchain_schema_valid(self):
         chain = actionchain.ActionChain(**CHAIN_1)
-        self.assertEquals(len(chain.chain), len(CHAIN_1['chain']))
-        self.assertEquals(chain.default, CHAIN_1['default'])
+        self.assertEqual(len(chain.chain), len(CHAIN_1['chain']))
+        self.assertEqual(chain.default, CHAIN_1['default'])
 
     def test_actionchain_no_default(self):
         chain = actionchain.ActionChain(**NO_DEFAULT_CHAIN)
-        self.assertEquals(len(chain.chain), len(NO_DEFAULT_CHAIN['chain']))
-        self.assertEquals(chain.default, None)
+        self.assertEqual(len(chain.chain), len(NO_DEFAULT_CHAIN['chain']))
+        self.assertEqual(chain.default, None)
 
     def test_actionchain_with_vars(self):
         chain = actionchain.ActionChain(**CHAIN_WITH_VARS)
-        self.assertEquals(len(chain.chain), len(CHAIN_WITH_VARS['chain']))
-        self.assertEquals(len(chain.vars), len(CHAIN_WITH_VARS['vars']))
+        self.assertEqual(len(chain.chain), len(CHAIN_WITH_VARS['chain']))
+        self.assertEqual(len(chain.vars), len(CHAIN_WITH_VARS['vars']))
 
     def test_actionchain_with_publish(self):
         chain = actionchain.ActionChain(**CHAIN_WITH_PUBLISH)
-        self.assertEquals(len(chain.chain), len(CHAIN_WITH_PUBLISH['chain']))
-        self.assertEquals(len(chain.chain[0].publish),
-                          len(CHAIN_WITH_PUBLISH['chain'][0]['publish']))
+        self.assertEqual(len(chain.chain), len(CHAIN_WITH_PUBLISH['chain']))
+        self.assertEqual(len(chain.chain[0].publish),
+                         len(CHAIN_WITH_PUBLISH['chain'][0]['publish']))
 
     def test_actionchain_schema_invalid(self):
         with self.assertRaises(ValidationError):

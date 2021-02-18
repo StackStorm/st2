@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +61,7 @@ class PacksViewsControllerTestCase(FunctionalTest):
         self.assertEqual(len(resp.json), non_binary_files_count)
 
         for file_path in binary_files:
-            self.assertTrue(file_path in pack_db.files)
+            self.assertIn(file_path, pack_db.files)
 
         # But not in files controller response
         for file_path in binary_files:
@@ -70,7 +71,7 @@ class PacksViewsControllerTestCase(FunctionalTest):
     def test_get_pack_file_success(self):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertTrue(b'name : dummy_pack_1' in resp.body)
+        self.assertIn(b'name : dummy_pack_1', resp.body)
 
     def test_get_pack_file_pack_doesnt_exist(self):
         resp = self.app.get('/v1/packs/views/files/doesntexist/pack.yaml', expect_errors=True)
@@ -80,19 +81,19 @@ class PacksViewsControllerTestCase(FunctionalTest):
     def test_pack_file_file_larger_then_maximum_size(self):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml', expect_errors=True)
         self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
-        self.assertTrue('File pack.yaml exceeds maximum allowed file size' in resp)
+        self.assertIn('File pack.yaml exceeds maximum allowed file size', resp)
 
     def test_headers_get_pack_file(self):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertTrue(b'name : dummy_pack_1' in resp.body)
+        self.assertIn(b'name : dummy_pack_1', resp.body)
         self.assertIsNotNone(resp.headers['ETag'])
         self.assertIsNotNone(resp.headers['Last-Modified'])
 
     def test_no_change_get_pack_file(self):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertTrue(b'name : dummy_pack_1' in resp.body)
+        self.assertIn(b'name : dummy_pack_1', resp.body)
 
         # Confirm NOT_MODIFIED
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml',
@@ -107,12 +108,12 @@ class PacksViewsControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml',
                             headers={'If-None-Match': 'ETAG'})
         self.assertEqual(resp.status_code, http_client.OK)
-        self.assertTrue(b'name : dummy_pack_1' in resp.body)
+        self.assertIn(b'name : dummy_pack_1', resp.body)
 
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml',
                             headers={'If-Modified-Since': 'Last-Modified'})
         self.assertEqual(resp.status_code, http_client.OK)
-        self.assertTrue(b'name : dummy_pack_1' in resp.body)
+        self.assertIn(b'name : dummy_pack_1', resp.body)
 
     def test_get_pack_files_and_pack_file_ref_doesnt_equal_pack_name(self):
         # Ref is not equal to the name, controller should still work
@@ -123,4 +124,4 @@ class PacksViewsControllerTestCase(FunctionalTest):
 
         resp = self.app.get('/v1/packs/views/file/dummy_pack_16/pack.yaml')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertTrue(b'ref: dummy_pack_16' in resp.body)
+        self.assertIn(b'ref: dummy_pack_16', resp.body)

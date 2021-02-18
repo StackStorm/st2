@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -111,8 +112,8 @@ class TriggerInstanceTestCase(FunctionalTest,
         self.assertEqual(resp.status_int, http_client.OK)
         resent_message = resp.json['message']
         resent_payload = resp.json['payload']
-        self.assertTrue(instance_id in resent_message)
-        self.assertTrue('__context' in resent_payload)
+        self.assertIn(instance_id, resent_message)
+        self.assertIn('__context', resent_payload)
         self.assertEqual(resent_payload['__context']['original_id'], instance_id)
 
     def test_get_one(self):

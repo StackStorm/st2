@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +31,7 @@ from st2common.logging.formatters import ConsoleLogFormatter
 from st2common.logging.formatters import GelfLogFormatter
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.models.db.action import ActionDB
+from st2common.models.db.rule import RuleDB
 from st2common.models.db.execution import ActionExecutionDB
 import st2tests.config as tests_config
 
@@ -252,8 +254,97 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
                              r"u?'parameter2': u?'\*\*\*\*\*\*\*\*'}")
 
         message = formatter.format(record=record)
-        self.assertTrue('test message 1' in message)
+        self.assertIn('test message 1', message)
         self.assertRegexpMatches(message, expected_msg_part)
+
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
+                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
+    def test_format_rule(self):
+        expected_result = {
+            'description': 'Test description',
+            'tags': [],
+            'type': {
+                'ref': 'standard',
+                'parameters': {}},
+            'enabled': True,
+            'trigger': 'test tigger',
+            'metadata_file': None,
+            'context': {},
+            'criteria': {},
+            'action': {
+                'ref': '1234',
+                'parameters': {'b': 2}},
+            'uid': 'rule:testpack:test.action',
+            'pack': 'testpack',
+            'ref': 'testpack.test.action',
+            'id': None,
+            'name': 'test.action'
+        }
+        mock_rule_db = RuleDB(pack='testpack',
+                              name='test.action',
+                              description='Test description',
+                              trigger='test tigger',
+                              action={'ref': '1234', 'parameters': {'b': 2}})
+
+        result = mock_rule_db.to_serializable_dict()
+        self.assertEqual(expected_result, result)
+
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
+                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
+    @mock.patch('st2common.models.db.rule.RuleDB._get_referenced_action_model')
+    def test_format_secret_rule_parameters_are_masked(self, mock__get_referenced_action_model):
+        expected_result = {
+            'description': 'Test description',
+            'tags': [],
+            'type': {
+                'ref': 'standard',
+                'parameters': {}},
+            'enabled': True,
+            'trigger': 'test tigger',
+            'metadata_file': None,
+            'context': {},
+            'criteria': {},
+            'action': {
+                'ref': '1234',
+                'parameters': {
+                    'parameter1': 'value1',
+                    'parameter2': '********'
+                }},
+            'uid': 'rule:testpack:test.action',
+            'pack': 'testpack',
+            'ref': 'testpack.test.action',
+            'id': None,
+            'name': 'test.action'
+        }
+
+        parameters = {
+            'parameter1': {
+                'type': 'string',
+                'required': False
+            },
+            'parameter2': {
+                'type': 'string',
+                'required': False,
+                'secret': True
+            }
+        }
+        mock_action_db = ActionDB(pack='testpack', name='test.action', parameters=parameters)
+        mock__get_referenced_action_model.return_value = mock_action_db
+        cfg.CONF.set_override(group='log', name='mask_secrets',
+                              override=True)
+        mock_rule_db = RuleDB(pack='testpack',
+                              name='test.action',
+                              description='Test description',
+                              trigger='test tigger',
+                              action={'ref': '1234',
+                                      'parameters': {
+                                          'parameter1': 'value1',
+                                          'parameter2': 'value2'
+                                      }})
+
+        result = mock_rule_db.to_serializable_dict(True)
+
+        self.assertEqual(expected_result, result)
 
 
 class GelfLogFormatterTestCase(unittest.TestCase):
@@ -277,7 +368,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         parsed = json.loads(message)
 
         for key in expected_keys:
-            self.assertTrue(key in parsed)
+            self.assertIn(key, parsed)
 
         self.assertEqual(parsed['short_message'], mock_message)
         self.assertEqual(parsed['full_message'], mock_message)
@@ -298,7 +389,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         parsed = json.loads(message)
 
         for key in expected_keys:
-            self.assertTrue(key in parsed)
+            self.assertIn(key, parsed)
 
         self.assertEqual(parsed['short_message'], mock_message)
         self.assertEqual(parsed['full_message'], mock_message)
@@ -306,7 +397,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         self.assertEqual(parsed['_value'], 'bar')
         self.assertEqual(parsed['timestamp'], 1234)
         self.assertEqual(parsed['timestamp_f'], 1234.5678)
-        self.assertTrue('ignored' not in parsed)
+        self.assertNotIn('ignored', parsed)
 
         # Record with an exception
         mock_exception = Exception('mock exception bar')
@@ -327,13 +418,13 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         parsed = json.loads(message)
 
         for key in expected_keys:
-            self.assertTrue(key in parsed)
+            self.assertIn(key, parsed)
 
         self.assertEqual(parsed['short_message'], mock_message)
-        self.assertTrue(mock_message in parsed['full_message'])
-        self.assertTrue('Traceback' in parsed['full_message'])
-        self.assertTrue('_exception' in parsed)
-        self.assertTrue('_traceback' in parsed)
+        self.assertIn(mock_message, parsed['full_message'])
+        self.assertIn('Traceback', parsed['full_message'])
+        self.assertIn('_exception', parsed)
+        self.assertIn('_traceback', parsed)
 
     def test_extra_object_serialization(self):
         class MyClass1(object):

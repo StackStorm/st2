@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,19 +86,19 @@ class TestKeyValueUtil(unittest2.TestCase):
             self.assertRaises(*assert_params)
 
     def test_get_datastore_full_scope(self):
-        self.assertEquals(
+        self.assertEqual(
             kv_utl.get_datastore_full_scope(USER_SCOPE),
             DATASTORE_SCOPE_SEPARATOR.join([DATASTORE_PARENT_SCOPE, USER_SCOPE])
         )
 
     def test_get_datastore_full_scope_all_scope(self):
-        self.assertEquals(
+        self.assertEqual(
             kv_utl.get_datastore_full_scope(ALL_SCOPE),
             ALL_SCOPE
         )
 
     def test_get_datastore_full_scope_datastore_parent_scope(self):
-        self.assertEquals(
+        self.assertEqual(
             kv_utl.get_datastore_full_scope(DATASTORE_PARENT_SCOPE),
             DATASTORE_PARENT_SCOPE
         )
@@ -107,7 +108,7 @@ class TestKeyValueUtil(unittest2.TestCase):
         scope = USER_SCOPE
         result = kv_utl._derive_scope_and_key(key, scope)
 
-        self.assertEquals(
+        self.assertEqual(
             (FULL_USER_SCOPE, 'user:%s' % key),
             result
         )
@@ -117,7 +118,7 @@ class TestKeyValueUtil(unittest2.TestCase):
         scope = None
         result = kv_utl._derive_scope_and_key(key, scope)
 
-        self.assertEquals(
+        self.assertEqual(
             (FULL_USER_SCOPE, 'None:%s' % key),
             result
         )
@@ -127,7 +128,7 @@ class TestKeyValueUtil(unittest2.TestCase):
         scope = None
         result = kv_utl._derive_scope_and_key(key, scope)
 
-        self.assertEquals(
+        self.assertEqual(
             (FULL_SYSTEM_SCOPE, key.split('.')[1]),
             result
         )

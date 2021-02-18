@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +20,9 @@ virtual environments.
 
 from __future__ import absolute_import
 
+import fnmatch
 import os
 import sys
-import fnmatch
 from distutils.sysconfig import get_python_lib
 
 from oslo_config import cfg
@@ -35,8 +36,6 @@ __all__ = [
     'get_sandbox_python_path_for_python_action',
     'get_sandbox_path',
     'get_sandbox_virtualenv_path',
-
-    'is_pack_virtualenv_using_python3'
 ]
 
 
@@ -113,7 +112,7 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
     if inherit_from_parent:
         sandbox_python_path.extend(parent_python_path)
 
-    if inherit_parent_virtualenv and hasattr(sys, 'real_prefix'):
+    if inherit_parent_virtualenv and is_in_virtualenv():
         # We are running inside virtualenv
         site_packages_dir = get_python_lib()
 
@@ -133,7 +132,7 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
     Return sandbox PYTHONPATH for a particular Python runner action.
 
     Same as get_sandbox_python_path() function, but it's intended to be used for Python runner
-    actions and also takes into account if a pack virtual environment uses Python 3.
+    actions.
     """
     sandbox_python_path = get_sandbox_python_path(
         inherit_from_parent=inherit_from_parent,
@@ -142,90 +141,37 @@ def get_sandbox_python_path_for_python_action(pack, inherit_from_parent=True,
     pack_base_path = get_pack_base_path(pack_name=pack)
     virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
 
-    if not virtualenv_path:
-        return sandbox_python_path
-
-    uses_python3, virtualenv_directories = is_pack_virtualenv_using_python3(pack=pack)
-    if uses_python3:
-        # Add Python 3 lib directory (lib/python3.x) in front of the PYTHONPATH. This way we avoid
-        # issues with scripts trying to use packages / modules from Python 2.7 site-packages
-        # directory instead of the versions from Python 3 stdlib.
-        pack_actions_lib_paths = os.path.join(pack_base_path, 'actions/lib/')
+    if virtualenv_path and os.path.isdir(virtualenv_path):
         pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
-        python3_lib_directory = os.path.join(pack_virtualenv_lib_path, virtualenv_directories[0])
 
-        # Add Python 3 site-packages directory (lib/python3.x/site-packages) in front of the Python
-        # 2.7 system site-packages This is important because we want Python 3 compatible libraries
-        # to be used from the pack virtual environment and not system ones.
-        python3_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
-                                                       virtualenv_directories[0],
-                                                       'site-packages')
+        virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
+        virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
+                                  fnmatch.fnmatch(dir_name, 'python*')]
 
-        # Work around to make sure we also add system lib dir to PYTHONPATH and not just virtualenv
-        # one (e.g. /usr/lib/python3.6)
-        # NOTE: We can't simply use sys.prefix dir since it will be set to /opt/stackstorm/st2
+        # Add the pack's lib directory (lib/python3.x) in front of the PYTHONPATH.
+        pack_actions_lib_paths = os.path.join(pack_base_path, 'actions', 'lib')
+        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
+        pack_venv_lib_directory = os.path.join(pack_virtualenv_lib_path, virtualenv_directories[0])
 
-        system_prefix_dirs = []
-        # Take custom prefix into account (if specified)
-        if cfg.CONF.actionrunner.python3_prefix:
-            system_prefix_dirs.append(cfg.CONF.actionrunner.python3_prefix)
+        # Add the pack's site-packages directory (lib/python3.x/site-packages)
+        # in front of the Python system site-packages This is important because
+        # we want Python 3 compatible libraries to be used from the pack virtual
+        # environment and not system ones.
+        pack_venv_site_packages_directory = os.path.join(pack_virtualenv_lib_path,
+                                                         virtualenv_directories[0],
+                                                         'site-packages')
 
-        # By default, Python libs are installed either in /usr/lib/python3.x or
-        # /usr/local/lib/python3.x
-        system_prefix_dirs.extend(['/usr/lib', '/usr/local/lib'])
-
-        for system_prefix_dir in system_prefix_dirs:
-            python3_system_lib_directory = os.path.join(system_prefix_dir,
-                                                        virtualenv_directories[0])
-
-            if os.path.exists(python3_system_lib_directory):
-                break
-
-        if not python3_system_lib_directory or not os.path.exists(python3_system_lib_directory):
-            python3_system_lib_directory = None
-
-        full_sandbox_python_path = []
-
-        # NOTE: Order here is very important for imports to function correctly
-        if python3_system_lib_directory:
-            full_sandbox_python_path.append(python3_system_lib_directory)
-
-        full_sandbox_python_path.append(python3_lib_directory)
-        full_sandbox_python_path.append(python3_site_packages_directory)
-        full_sandbox_python_path.append(pack_actions_lib_paths)
-        full_sandbox_python_path.append(sandbox_python_path)
+        full_sandbox_python_path = [
+            # NOTE: Order here is very important for imports to function correctly
+            pack_venv_lib_directory,
+            pack_venv_site_packages_directory,
+            pack_actions_lib_paths,
+            sandbox_python_path,
+        ]
 
         sandbox_python_path = ':'.join(full_sandbox_python_path)
 
     return sandbox_python_path
-
-
-def is_pack_virtualenv_using_python3(pack):
-    """
-    Return True if a particular pack virtual environment is using Python 3.
-
-    :return: (uses_python3_bool, virtualenv_lib_directories)
-    :rtype: ``tuple``
-    """
-    # If python3.? directory exists in pack virtualenv lib/ path it means Python 3 is used by
-    # that virtual environment and we take that in to account when constructing PYTHONPATH
-    virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
-
-    if virtualenv_path and os.path.isdir(virtualenv_path):
-        pack_virtualenv_lib_path = os.path.join(virtualenv_path, 'lib')
-
-        if not os.path.exists(pack_virtualenv_lib_path):
-            return False, None
-
-        virtualenv_directories = os.listdir(pack_virtualenv_lib_path)
-        virtualenv_directories = [dir_name for dir_name in virtualenv_directories if
-                                  fnmatch.fnmatch(dir_name, 'python3*')]
-        uses_python3 = bool(virtualenv_directories)
-    else:
-        uses_python3 = False
-        virtualenv_directories = None
-
-    return uses_python3, virtualenv_directories
 
 
 def get_sandbox_virtualenv_path(pack):
@@ -240,3 +186,47 @@ def get_sandbox_virtualenv_path(pack):
         virtualenv_path = os.path.join(system_base_path, 'virtualenvs', pack)
 
     return virtualenv_path
+
+
+def is_in_virtualenv():
+    """
+    :return: True if we are currently in a virtualenv, else False
+    :rtype: ``Boolean``
+    """
+    # sys.real_prefix is for virtualenv
+    # sys.base_prefix != sys.prefix is for venv
+    return (hasattr(sys, 'real_prefix') or
+            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))
+
+
+def get_virtualenv_prefix():
+    """
+    :return: Returns a tuple where the first element is the name of the attribute
+             where we retrieved the virtualenv prefix from. The second element is
+             the virtualenv prefix.
+    """
+    if hasattr(sys, 'real_prefix'):
+        return ('sys.real_prefix', sys.real_prefix)
+    elif hasattr(sys, 'base_prefix'):
+        return ('sys.base_prefix', sys.base_prefix)
+    return (None, None)
+
+
+def set_virtualenv_prefix(prefix_tuple):
+    """
+    :return: Sets the virtualenv prefix given a tuple returned from get_virtualenv_prefix()
+    """
+    if prefix_tuple[0] == 'sys.real_prefix' and hasattr(sys, 'real_prefix'):
+        sys.real_prefix = prefix_tuple[1]
+    elif prefix_tuple[0] == 'sys.base_prefix' and hasattr(sys, 'base_prefix'):
+        sys.base_prefix = prefix_tuple[1]
+
+
+def clear_virtualenv_prefix():
+    """
+    :return: Unsets / removes / resets the virtualenv prefix
+    """
+    if hasattr(sys, 'real_prefix'):
+        del sys.real_prefix
+    if hasattr(sys, 'base_prefix'):
+        sys.base_prefix = sys.prefix

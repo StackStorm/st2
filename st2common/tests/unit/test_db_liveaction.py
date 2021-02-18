@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +42,7 @@ class LiveActionModelTest(DbTestCase):
         self.assertEqual(retrieved.notify, None)
 
         # Test update
-        self.assertTrue(retrieved.end_timestamp is None)
+        self.assertIsNone(retrieved.end_timestamp)
         retrieved.end_timestamp = date_utils.get_datetime_utc_now()
         updated = LiveAction.add_or_update(retrieved)
         self.assertTrue(updated.end_timestamp == retrieved.end_timestamp)

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +50,7 @@ ECHOER_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
 TEST_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                 'pythonactions/actions/test.py')
 PATHS_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
-                                'pythonactions/actions/python_paths.py')
+                                 'pythonactions/actions/python_paths.py')
 ACTION_1_PATH = os.path.join(tests_base.get_fixtures_path(),
                              'packs/dummy_pack_9/actions/list_repos_doesnt_exist.py')
 ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
@@ -64,7 +65,7 @@ PRINT_VERSION_LOCAL_MODULE_ACTION = os.path.join(tests_base.get_fixtures_path(),
 PRINT_CONFIG_ITEM_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                         'pythonactions/actions/print_config_item_doesnt_exist.py')
 PRINT_TO_STDOUT_STDERR_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
-                                      'pythonactions/actions/print_to_stdout_and_stderr.py')
+                                             'pythonactions/actions/print_to_stdout_and_stderr.py')
 
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
@@ -89,7 +90,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     def test_runner_creation(self):
         runner = python_runner.get_runner()
-        self.assertTrue(runner is not None, 'Creation failed. No instance.')
+        self.assertIsNotNone(runner, 'Creation failed. No instance.')
         self.assertEqual(type(runner), python_runner.PythonRunner, 'Creation failed. No instance.')
 
     def test_action_returns_non_serializable_result(self):
@@ -101,7 +102,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         (status, output, _) = runner.run({})
 
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
 
         if six.PY2:
             expected_result_re = (r"\[{'a': '1'}, {'h': 3, 'c': 2}, {'e': "
@@ -119,7 +120,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 5})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 5, 10, 10, 5, 1])
 
     def test_simple_action_with_result_as_None_no_status(self):
@@ -128,7 +129,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'b'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['exit_code'], 0)
         self.assertEqual(output['result'], None)
 
@@ -140,7 +141,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 4})
         self.assertEqual(status, LIVEACTION_STATUS_TIMED_OUT)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['error'], 'Action failed to complete in 0 seconds')
         self.assertEqual(output['exit_code'], -9)
@@ -151,7 +152,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 4})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 4, 6, 4, 1])
 
     def test_simple_action_with_status_failed(self):
@@ -160,7 +161,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'a'})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], "This is suppose to fail don't worry!!")
 
     def test_simple_action_with_status_complex_type_returned_for_result(self):
@@ -172,8 +173,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         (status, output, _) = runner.run({'row_index': 'complex_type'})
 
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(output is not None)
-        self.assertTrue('<pascal_row.PascalRowAction object at' in output['result'])
+        self.assertIsNotNone(output)
+        self.assertIn('<pascal_row.PascalRowAction object at', output['result'])
 
     def test_simple_action_with_status_failed_result_none(self):
         runner = self._get_mock_runner_obj()
@@ -181,7 +182,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'c'})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], None)
 
     def test_exception_in_simple_action_with_invalid_status(self):
@@ -197,7 +198,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 2])
 
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
@@ -235,7 +236,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.pre_run()
         (status, result, _) = runner.run({'row_index': '4'})
-        self.assertTrue(result is not None)
+        self.assertIsNotNone(result)
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
     def test_simple_action_no_file(self):
@@ -243,7 +244,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.entry_point = 'foo.py'
         runner.pre_run()
         (status, result, _) = runner.run({})
-        self.assertTrue(result is not None)
+        self.assertIsNotNone(result)
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
     def test_simple_action_no_entry_point(self):
@@ -314,8 +315,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
-        self.assertEqual(output['stdout'], 'pre result line 1\npost result line 1')
-        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertMultiLineEqual(output['stdout'], 'pre result line 1\npost result line 1')
+        self.assertMultiLineEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
@@ -338,8 +339,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
-        self.assertEqual(output['stdout'], 'pre result line 1\npost result line 1')
-        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertMultiLineEqual(output['stdout'], 'pre result line 1\npost result line 1')
+        self.assertMultiLineEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
@@ -386,9 +387,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
-        self.assertEqual(output['stdout'],
+        self.assertMultiLineEqual(output['stdout'],
                          'pre result line 1\npre result line 2\npost result line 1')
-        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertMultiLineEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
@@ -419,19 +420,26 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                   group='actionrunner')
 
             output_dbs = ActionExecutionOutput.get_all()
-            self.assertEqual(len(output_dbs), (index - 1) * 4)
+            # Unexpected third party warnings will also inflate this number
+            self.assertGreaterEqual(len(output_dbs), (index - 1) * 4)
 
             runner = self._get_mock_runner_obj()
             runner.entry_point = PRINT_TO_STDOUT_STDERR_ACTION
             runner.pre_run()
             (_, output, _) = runner.run({'stdout_count': 2, 'stderr_count': 2})
 
-            self.assertEqual(output['stdout'], 'stdout line 0\nstdout line 1\n')
-            self.assertEqual(output['stderr'], 'stderr line 0\nstderr line 1\n')
+            # assertMultiLineEqual displays a diff if the two don't match
+            self.assertMultiLineEqual(output['stdout'], 'stdout line 0\nstdout line 1\n')
+            # Third party packages can unexpectedly emit warnings and add more
+            # output to the streamed stderr, so we check that the expected
+            # lines occurred, but we allow additional lines to exist
+            self.assertIn('stderr line 0\n', output['stderr'])
+            self.assertIn('stderr line 1\n', output['stderr'])
             self.assertEqual(output['exit_code'], 0)
 
             output_dbs = ActionExecutionOutput.get_all()
-            self.assertEqual(len(output_dbs), (index) * 4)
+            # Unexpected third party warnings will also inflate this number
+            self.assertGreaterEqual(len(output_dbs), (index) * 4)
 
     @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
@@ -539,8 +547,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
         pack_common_lib_path = 'fixtures/packs/core/lib'
-        self.assertTrue('PYTHONPATH' in actual_env)
-        self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
+        self.assertIn('PYTHONPATH', actual_env)
+        self.assertIn(pack_common_lib_path, actual_env['PYTHONPATH'])
 
     @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_pythonpath_env_var_not_contains_common_libs_config_disabled(self, mock_popen):
@@ -559,8 +567,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
         pack_common_lib_path = '/mnt/src/storm/st2/st2tests/st2tests/fixtures/packs/core/lib'
-        self.assertTrue('PYTHONPATH' in actual_env)
-        self.assertTrue(pack_common_lib_path not in actual_env['PYTHONPATH'])
+        self.assertIn('PYTHONPATH', actual_env)
+        self.assertNotIn(pack_common_lib_path, actual_env['PYTHONPATH'])
 
     def test_action_class_instantiation_action_service_argument(self):
         class Action1(Action):
@@ -611,7 +619,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], 'test action')
 
     def test_python_action_wrapper_script_doesnt_get_added_to_sys_path(self):
@@ -623,7 +631,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         (status, output, _) = runner.run({})
 
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
 
         lines = output['stdout'].split('\n')
         process_sys_path = lines[0]
@@ -635,8 +643,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         wrapper_script_path = 'st2common/runners'
 
         assertion_msg = 'Found python wrapper script path in subprocess path'
-        self.assertTrue(wrapper_script_path not in process_sys_path, assertion_msg)
-        self.assertTrue(wrapper_script_path not in process_pythonpath, assertion_msg)
+        self.assertNotIn(wrapper_script_path, process_sys_path, assertion_msg)
+        self.assertNotIn(wrapper_script_path, process_pythonpath, assertion_msg)
 
     def test_python_action_wrapper_action_script_file_doesnt_exist_friendly_error(self):
         # File in a directory which is not a Python package
@@ -676,14 +684,14 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertTrue(expected_msg_1 in output['stderr'])
-        self.assertTrue(expected_msg_2 in output['stderr'])
-        self.assertTrue(expected_msg_3 in output['stderr'])
-        self.assertTrue(expected_msg_4 in output['stderr'])
-        self.assertTrue(expected_msg_5 in output['stderr'])
+        self.assertIn(expected_msg_1, output['stderr'])
+        self.assertIn(expected_msg_2, output['stderr'])
+        self.assertIn(expected_msg_3, output['stderr'])
+        self.assertIn(expected_msg_4, output['stderr'])
+        self.assertIn(expected_msg_5, output['stderr'])
 
         stderr = output['stderr'].strip().split('\n')
         expected_count = 5
@@ -700,7 +708,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             lines.append(line)
 
         msg = ('Expected %s lines, got %s - "%s"' % (expected_count, len(lines), str(lines)))
-        self.assertEqual(len(lines), expected_count, msg)
+        # Dependencies can inject their own warnings, which increases the
+        # number of lines to more than we expect with simple equality checks
+        self.assertGreaterEqual(len(lines), expected_count, msg)
 
         # Only log messages with level info and above should be displayed
         runner = self._get_mock_runner_obj()
@@ -711,12 +721,12 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertTrue(expected_msg_3 in output['stderr'])
-        self.assertTrue(expected_msg_4 not in output['stderr'])
-        self.assertTrue(expected_msg_5 in output['stderr'])
+        self.assertIn(expected_msg_3, output['stderr'])
+        self.assertNotIn(expected_msg_4, output['stderr'])
+        self.assertIn(expected_msg_5, output['stderr'])
 
         # Only log messages with level error and above should be displayed
         runner = self._get_mock_runner_obj()
@@ -727,12 +737,12 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertTrue(expected_msg_3 not in output['stderr'])
-        self.assertTrue(expected_msg_4 not in output['stderr'])
-        self.assertTrue(expected_msg_5 in output['stderr'])
+        self.assertNotIn(expected_msg_3, output['stderr'])
+        self.assertNotIn(expected_msg_4, output['stderr'])
+        self.assertIn(expected_msg_5, output['stderr'])
 
         # Default log level is changed in st2.config
         cfg.CONF.set_override(name='python_runner_log_level', override='INFO',
@@ -744,12 +754,12 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'e'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 2])
 
-        self.assertTrue(expected_msg_3 in output['stderr'])
-        self.assertTrue(expected_msg_4 not in output['stderr'])
-        self.assertTrue(expected_msg_5 in output['stderr'])
+        self.assertIn(expected_msg_3, output['stderr'])
+        self.assertNotIn(expected_msg_4, output['stderr'])
+        self.assertIn(expected_msg_5, output['stderr'])
 
     def test_traceback_messages_are_not_duplicated_in_stderr(self):
         # Verify tracebacks are not duplicated
@@ -758,13 +768,13 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (status, output, _) = runner.run({'row_index': 'f'})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
 
         expected_msg_1 = 'Traceback (most recent'
         expected_msg_2 = 'ValueError: Duplicate traceback test'
 
-        self.assertTrue(expected_msg_1 in output['stderr'])
-        self.assertTrue(expected_msg_2 in output['stderr'])
+        self.assertIn(expected_msg_1, output['stderr'])
+        self.assertIn(expected_msg_2, output['stderr'])
 
         self.assertEqual(output['stderr'].count(expected_msg_1), 1)
         self.assertEqual(output['stderr'].count(expected_msg_2), 1)
@@ -776,7 +786,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         large_value = ''.join(['1' for _ in range(MAX_PARAM_LENGTH)])
         (status, output, _) = runner.run({'action_input': large_value})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result']['action_input'], large_value)
 
     def test_execution_with_close_to_very_large_parameter(self):
@@ -790,7 +800,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         large_value = ''.join(['1' for _ in range(MAX_PARAM_LENGTH - 21)])
         (status, output, _) = runner.run({'action_input': large_value})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result']['action_input'], large_value)
 
     @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
@@ -855,8 +865,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
         pack_common_lib_path = os.path.join(runner.git_worktree_path, 'lib')
-        self.assertTrue('PYTHONPATH' in actual_env)
-        self.assertTrue(pack_common_lib_path in actual_env['PYTHONPATH'])
+        self.assertIn('PYTHONPATH', actual_env)
+        self.assertIn(pack_common_lib_path, actual_env['PYTHONPATH'])
 
     @mock.patch('python_runner.python_runner.get_sandbox_virtualenv_path')
     def test_content_version_success_local_modules_work_fine(self,
@@ -942,11 +952,11 @@ fatal: invalid reference: vinvalid
         (status, output, _) = runner.run({})
 
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertTrue(output is not None)
-        self.assertTrue('{}' in output['stdout'])
-        self.assertTrue('default_value' in output['stdout'])
-        self.assertTrue('Config for pack "core" is missing key "key"' in output['stderr'])
-        self.assertTrue('make sure you run "st2ctl reload --register-configs"' in output['stderr'])
+        self.assertIsNotNone(output)
+        self.assertIn('{}', output['stdout'])
+        self.assertIn('default_value', output['stdout'])
+        self.assertIn('Config for pack "core" is missing key "key"', output['stderr'])
+        self.assertIn('make sure you run "st2ctl reload --register-configs"', output['stderr'])
 
     def _get_mock_runner_obj(self, pack=None, sandbox=None):
         runner = python_runner.get_runner()

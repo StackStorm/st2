@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,12 +85,6 @@ USER_PACK_NAME_BLACKLIST = [
 # sandbox (virtualenv)
 BASE_PACK_REQUIREMENTS = [
     'six>=1.9.0,<2.0'
-]
-
-# Python requirements which are common to all the packs and need to be installed
-# for Python 3 pack virtual environments to work
-BASE_PACK_PYTHON3_REQUIREMENTS = [
-    'pyyaml>=5.1,<5.2'
 ]
 
 # Name of the pack manifest file

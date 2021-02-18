@@ -1,0 +1,10 @@
+version: 1.0
+
+description: A workflow to test passing of empty array to subworkflow that has a with items task.
+
+input:
+  - members
+
+tasks:
+  task1:
+    action: orquesta_tests.with-items-empty members=<% ctx().members %>

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +46,7 @@ class TestTokenBasedAuth(FunctionalTest):
     def test_token_validation_token_in_headers(self):
         response = self.app.get('/v1/actions', headers={'X-Auth-Token': TOKEN},
                                 expect_errors=False)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 200)
 
     @mock.patch.object(
@@ -54,7 +55,7 @@ class TestTokenBasedAuth(FunctionalTest):
     @mock.patch.object(User, 'get_by_name', mock.Mock(return_value=USER_DB))
     def test_token_validation_token_in_query_params(self):
         response = self.app.get('/v1/actions?x-auth-token=%s' % (TOKEN), expect_errors=False)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 200)
 
     @mock.patch.object(
@@ -64,12 +65,12 @@ class TestTokenBasedAuth(FunctionalTest):
     def test_token_validation_token_in_cookies(self):
         response = self.app.get('/v1/actions', headers={'X-Auth-Token': TOKEN},
                                 expect_errors=False)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 200)
 
         with mock.patch.object(self.app.cookiejar, 'clear', return_value=None):
             response = self.app.get('/v1/actions', expect_errors=False)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 200)
 
     @mock.patch.object(
@@ -78,7 +79,7 @@ class TestTokenBasedAuth(FunctionalTest):
     def test_token_expired(self):
         response = self.app.get('/v1/actions', headers={'X-Auth-Token': TOKEN},
                                 expect_errors=True)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 401)
 
     @mock.patch.object(
@@ -86,12 +87,12 @@ class TestTokenBasedAuth(FunctionalTest):
     def test_token_not_found(self):
         response = self.app.get('/v1/actions', headers={'X-Auth-Token': TOKEN},
                                 expect_errors=True)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 401)
 
     def test_token_not_provided(self):
         response = self.app.get('/v1/actions', expect_errors=True)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 401)
 
 
@@ -125,20 +126,20 @@ class TestApiKeyBasedAuth(FunctionalTest):
     def test_apikey_validation_apikey_in_headers(self):
         response = self.app.get('/v1/actions', headers={'St2-Api-key': KEY1_KEY},
                                 expect_errors=False)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 200)
 
     @mock.patch.object(User, 'get_by_name', mock.Mock(return_value=UserDB(name='bill')))
     def test_apikey_validation_apikey_in_query_params(self):
         response = self.app.get('/v1/actions?st2-api-key=%s' % (KEY1_KEY), expect_errors=False)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 200)
 
     @mock.patch.object(User, 'get_by_name', mock.Mock(return_value=UserDB(name='bill')))
     def test_apikey_validation_apikey_in_cookies(self):
         response = self.app.get('/v1/actions', headers={'St2-Api-key': KEY1_KEY},
                                 expect_errors=False)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 200)
 
         with mock.patch.object(self.app.cookiejar, 'clear', return_value=None):
@@ -150,14 +151,14 @@ class TestApiKeyBasedAuth(FunctionalTest):
     def test_apikey_disabled(self):
         response = self.app.get('/v1/actions', headers={'St2-Api-key': DISABLED_KEY},
                                 expect_errors=True)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 401)
         self.assertEqual(response.json_body['faultstring'], 'Unauthorized - API key is disabled.')
 
     def test_apikey_not_found(self):
         response = self.app.get('/v1/actions', headers={'St2-Api-key': 'UNKNOWN'},
                                 expect_errors=True)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 401)
         self.assertRegexpMatches(response.json_body['faultstring'],
                                  '^Unauthorized - ApiKey with key_hash=([a-zA-Z0-9]+) not found.$')
@@ -173,5 +174,5 @@ class TestApiKeyBasedAuth(FunctionalTest):
         response = self.app.get('/v1/actions',
                                 headers={'X-Auth-Token': TOKEN, 'St2-Api-key': KEY1_KEY},
                                 expect_errors=True)
-        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertIn('application/json', response.headers['content-type'])
         self.assertEqual(response.status_int, 200)

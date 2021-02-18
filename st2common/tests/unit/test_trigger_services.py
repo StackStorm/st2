@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,14 +40,14 @@ class TriggerServiceTests(CleanDbTestCase):
 
         trigger_db_ret_1 = trigger_service.create_trigger_db_from_rule(
             RuleAPI(**rules['cron_timer_rule_1.yaml']))
-        self.assertTrue(trigger_db_ret_1 is not None)
+        self.assertIsNotNone(trigger_db_ret_1)
         trigger_db = Trigger.get_by_id(trigger_db_ret_1.id)
         self.assertDictEqual(trigger_db.parameters,
                              rules['cron_timer_rule_1.yaml']['trigger']['parameters'])
 
         trigger_db_ret_2 = trigger_service.create_trigger_db_from_rule(
             RuleAPI(**rules['cron_timer_rule_3.yaml']))
-        self.assertTrue(trigger_db_ret_2 is not None)
+        self.assertIsNotNone(trigger_db_ret_2)
         self.assertTrue(trigger_db_ret_2.id != trigger_db_ret_1.id)
 
     def test_create_trigger_db_from_rule_duplicate(self):
@@ -59,10 +60,10 @@ class TriggerServiceTests(CleanDbTestCase):
 
         trigger_db_ret_1 = trigger_service.create_trigger_db_from_rule(
             RuleAPI(**rules['cron_timer_rule_1.yaml']))
-        self.assertTrue(trigger_db_ret_1 is not None)
+        self.assertIsNotNone(trigger_db_ret_1)
         trigger_db_ret_2 = trigger_service.create_trigger_db_from_rule(
             RuleAPI(**rules['cron_timer_rule_2.yaml']))
-        self.assertTrue(trigger_db_ret_2 is not None)
+        self.assertIsNotNone(trigger_db_ret_2)
         self.assertEqual(trigger_db_ret_1, trigger_db_ret_2, 'Should reuse same trigger.')
         trigger_db = Trigger.get_by_id(trigger_db_ret_1.id)
         self.assertDictEqual(trigger_db.parameters,
@@ -200,7 +201,7 @@ class TriggerServiceTests(CleanDbTestCase):
         trigtype_db = TriggerType.get_by_id(trigger_type.id)
         self.assertEqual(trigtype_db.pack, 'dummy_pack_1')
         self.assertEqual(trigtype_db.name, trig_type.get('name'))
-        self.assertTrue(trigger is not None)
+        self.assertIsNotNone(trigger)
         self.assertEqual(trigger.name, trigtype_db.name)
 
         # Add duplicate

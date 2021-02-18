@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -181,7 +182,7 @@ class TestInquirySubcommands(TestInquiryBase):
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
         self.assertEqual(self.stdout.getvalue().count('1440'), 50)
-        self.assertTrue('Note: Only first 50 inquiries are displayed.' in self.stderr.getvalue())
+        self.assertIn('Note: Only first 50 inquiries are displayed.', self.stderr.getvalue())
 
     @mock.patch.object(
         requests, 'get',

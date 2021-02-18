@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +32,7 @@ from st2common.util import jinja as jinja_utils
 __all__ = [
     'get_pack_ref_from_metadata',
     'get_pack_metadata',
+    'get_pack_warnings',
 
     'get_pack_common_libs_path_for_pack_ref',
     'get_pack_common_libs_path_for_pack_db',
@@ -39,6 +41,16 @@ __all__ = [
 
     'normalize_pack_version'
 ]
+
+# Common format for python 2.7 warning
+if six.PY2:
+    PACK_PYTHON2_WARNING = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
+                           "Python 2 support will be dropped in future releases. " \
+                           "Please consider updating your packs to work with Python 3.x"
+else:
+    PACK_PYTHON2_WARNING = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
+                           "Python 2 support has been removed since st2 v3.4.0. " \
+                           "Please update your packs to work with Python 3.x"
 
 
 def get_pack_ref_from_metadata(metadata, pack_directory_name=None):
@@ -91,6 +103,20 @@ def get_pack_metadata(pack_dir):
         raise ValueError('Pack "%s" metadata file is empty' % (pack_dir))
 
     return content
+
+
+def get_pack_warnings(pack_metadata):
+    """
+    Return warning string if pack metadata indicates only python 2 is supported
+
+    :rtype: ``str``
+    """
+    warning = None
+    versions = pack_metadata.get('python_versions', None)
+    pack_name = pack_metadata.get('name', None)
+    if versions and set(versions) == set(['2']):
+        warning = PACK_PYTHON2_WARNING % pack_name
+    return warning
 
 
 def validate_config_against_schema(config_schema, config_object, config_path,

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -481,7 +482,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         for stored_kvp in stored_kvps:
             self.assertFalse(stored_kvp['encrypted'])
             exp_kvp = kvps.get(stored_kvp['name'])
-            self.assertTrue(exp_kvp is not None)
+            self.assertIsNotNone(exp_kvp)
             self.assertEqual(exp_kvp['value'], stored_kvp['value'])
         self.__do_delete(kvp_id_1)
         self.__do_delete(kvp_id_2)
@@ -550,7 +551,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
 
         expected_error = ('Failed to verify the integrity of the provided value for key '
                           '"secret_key1".')
-        self.assertTrue(expected_error in put_resp.json['faultstring'])
+        self.assertIn(expected_error, put_resp.json['faultstring'])
 
         data = copy.deepcopy(ENCRYPTED_KVP)
         data['value'] = str(data['value'][:-2])
@@ -559,7 +560,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
 
         expected_error = ('Failed to verify the integrity of the provided value for key '
                           '"secret_key1".')
-        self.assertTrue(expected_error in put_resp.json['faultstring'])
+        self.assertIn(expected_error, put_resp.json['faultstring'])
 
     def test_put_delete(self):
         put_resp = self.__do_put('key1', KVP)

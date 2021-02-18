@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -216,10 +217,10 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 9)
-        self.assertTrue('st2.execution__create' in received_messages[0])
-        self.assertTrue('st2.liveaction__delete' in received_messages[5])
-        self.assertTrue('st2.announcement__chatops' in received_messages[7])
-        self.assertTrue('st2.announcement__errbot' in received_messages[8])
+        self.assertIn('st2.execution__create', received_messages[0])
+        self.assertIn('st2.liveaction__delete', received_messages[5])
+        self.assertIn('st2.announcement__chatops', received_messages[7])
+        self.assertIn('st2.announcement__errbot', received_messages[8])
 
         # 1. ?events= filter
         # No filter provided - all messages should be received
@@ -228,11 +229,11 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 11)
-        self.assertTrue('st2.execution__create' in received_messages[0])
-        self.assertTrue('st2.announcement__chatops' in received_messages[7])
-        self.assertTrue('st2.execution.output__create' in received_messages[8])
-        self.assertTrue('st2.execution.output__create' in received_messages[9])
-        self.assertTrue('st2.announcement__errbot' in received_messages[10])
+        self.assertIn('st2.execution__create', received_messages[0])
+        self.assertIn('st2.announcement__chatops', received_messages[7])
+        self.assertIn('st2.execution.output__create', received_messages[8])
+        self.assertIn('st2.execution.output__create', received_messages[9])
+        self.assertIn('st2.announcement__errbot', received_messages[10])
 
         # Filter provided, only three messages should be received
         events = ['st2.execution__create', 'st2.liveaction__delete']
@@ -240,9 +241,9 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 3)
-        self.assertTrue('st2.execution__create' in received_messages[0])
-        self.assertTrue('st2.liveaction__delete' in received_messages[1])
-        self.assertTrue('st2.liveaction__delete' in received_messages[2])
+        self.assertIn('st2.execution__create', received_messages[0])
+        self.assertIn('st2.liveaction__delete', received_messages[1])
+        self.assertIn('st2.liveaction__delete', received_messages[2])
 
         # Filter provided, only three messages should be received
         events = ['st2.liveaction__create', 'st2.liveaction__delete']
@@ -250,10 +251,10 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 4)
-        self.assertTrue('st2.liveaction__create' in received_messages[0])
-        self.assertTrue('st2.liveaction__create' in received_messages[1])
-        self.assertTrue('st2.liveaction__delete' in received_messages[2])
-        self.assertTrue('st2.liveaction__delete' in received_messages[3])
+        self.assertIn('st2.liveaction__create', received_messages[0])
+        self.assertIn('st2.liveaction__create', received_messages[1])
+        self.assertIn('st2.liveaction__delete', received_messages[2])
+        self.assertIn('st2.liveaction__delete', received_messages[3])
 
         # Glob filter
         events = ['st2.announcement__*']
@@ -261,8 +262,8 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 2)
-        self.assertTrue('st2.announcement__chatops' in received_messages[0])
-        self.assertTrue('st2.announcement__errbot' in received_messages[1])
+        self.assertIn('st2.announcement__chatops', received_messages[0])
+        self.assertIn('st2.announcement__errbot', received_messages[1])
 
         # Filter provided
         events = ['st2.execution.output__create']
@@ -270,8 +271,8 @@ class TestStreamController(FunctionalTest):
 
         received_messages = dispatch_and_handle_mock_data(resp)
         self.assertEqual(len(received_messages), 2)
-        self.assertTrue('st2.execution.output__create' in received_messages[0])
-        self.assertTrue('st2.execution.output__create' in received_messages[1])
+        self.assertIn('st2.execution.output__create', received_messages[0])
+        self.assertIn('st2.execution.output__create', received_messages[1])
 
         # Filter provided, invalid , no message should be received
         events = ['invalid1', 'invalid2']

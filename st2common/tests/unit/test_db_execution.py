@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -132,7 +133,7 @@ class ActionExecutionModelTest(DbTestCase):
     def test_update_execution(self):
         """Test ActionExecutionDb update
         """
-        self.assertTrue(self.executions['execution_1'].end_timestamp is None)
+        self.assertIsNone(self.executions['execution_1'].end_timestamp)
         self.executions['execution_1'].end_timestamp = date_utils.get_datetime_utc_now()
         updated = ActionExecution.add_or_update(self.executions['execution_1'])
         self.assertTrue(updated.end_timestamp == self.executions['execution_1'].end_timestamp)

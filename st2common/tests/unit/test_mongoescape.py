@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,3 +90,24 @@ class TestMongoEscape(unittest.TestCase):
 
         unescaped = mongoescape.unescape_chars(escaped)
         self.assertDictEqual(field, unescaped)
+
+    def test_complex_list(self):
+        field = [
+            {'k1.k2': [{'l1.l2': '123'}, {'l3.l4': '456'}]},
+            {'k3': [{'l5.l6': '789'}]},
+            {'k4.k5': [1, 2, 3]},
+            {'k6': ['a', 'b']}
+        ]
+
+        expected = [
+            {u'k1\uff0ek2': [{u'l1\uff0el2': '123'}, {u'l3\uff0el4': '456'}]},
+            {'k3': [{u'l5\uff0el6': '789'}]},
+            {u'k4\uff0ek5': [1, 2, 3]},
+            {'k6': ['a', 'b']}
+        ]
+
+        escaped = mongoescape.escape_chars(field)
+        self.assertListEqual(expected, escaped)
+
+        unescaped = mongoescape.unescape_chars(escaped)
+        self.assertListEqual(field, unescaped)

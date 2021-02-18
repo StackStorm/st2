@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -152,8 +153,10 @@ class ConnectionRetryWrapper(object):
                 # ends up talking to separate nodes in a cluster.
 
                 def log_error_on_conn_failure(exc, interval):
-                    self._logger.debug('Failed to re-establish connection to RabbitMQ server, '
-                                       'retrying in %s seconds: %s' % (interval, six.text_type(e)))
+                    self._logger.debug(
+                        'Failed to re-establish connection to RabbitMQ server, '
+                        'retrying in %s seconds: %s' % (interval, six.text_type(exc))
+                    )
 
                 try:
                     # NOTE: This function blocks and tries to restablish a connection for

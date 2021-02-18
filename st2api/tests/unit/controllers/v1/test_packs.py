@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -449,16 +450,16 @@ class PacksControllerTestCase(FunctionalTest,
         resp = self.app.post_json('/v1/packs/register', {'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertTrue('runners' in resp.json)
-        self.assertTrue('actions' in resp.json)
-        self.assertTrue('triggers' in resp.json)
-        self.assertTrue('sensors' in resp.json)
-        self.assertTrue('rules' in resp.json)
-        self.assertTrue('rule_types' in resp.json)
-        self.assertTrue('aliases' in resp.json)
-        self.assertTrue('policy_types' in resp.json)
-        self.assertTrue('policies' in resp.json)
-        self.assertTrue('configs' in resp.json)
+        self.assertIn('runners', resp.json)
+        self.assertIn('actions', resp.json)
+        self.assertIn('triggers', resp.json)
+        self.assertIn('sensors', resp.json)
+        self.assertIn('rules', resp.json)
+        self.assertIn('rule_types', resp.json)
+        self.assertIn('aliases', resp.json)
+        self.assertIn('policy_types', resp.json)
+        self.assertIn('policies', resp.json)
+        self.assertIn('configs', resp.json)
 
         self.assertTrue(resp.json['actions'] >= 3)
         self.assertTrue(resp.json['configs'] >= 1)
@@ -482,16 +483,16 @@ class PacksControllerTestCase(FunctionalTest,
                                                          'types': ['all']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertTrue('runners' in resp.json)
-        self.assertTrue('actions' in resp.json)
-        self.assertTrue('triggers' in resp.json)
-        self.assertTrue('sensors' in resp.json)
-        self.assertTrue('rules' in resp.json)
-        self.assertTrue('rule_types' in resp.json)
-        self.assertTrue('aliases' in resp.json)
-        self.assertTrue('policy_types' in resp.json)
-        self.assertTrue('policies' in resp.json)
-        self.assertTrue('configs' in resp.json)
+        self.assertIn('runners', resp.json)
+        self.assertIn('actions', resp.json)
+        self.assertIn('triggers', resp.json)
+        self.assertIn('sensors', resp.json)
+        self.assertIn('rules', resp.json)
+        self.assertIn('rule_types', resp.json)
+        self.assertIn('aliases', resp.json)
+        self.assertIn('policy_types', resp.json)
+        self.assertIn('policies', resp.json)
+        self.assertIn('configs', resp.json)
 
         # Registering single resource type should also cause dependent resources
         # to be registered
@@ -539,14 +540,16 @@ class PacksControllerTestCase(FunctionalTest,
                                   {'packs': ['dummy_pack_1'], 'types': ['action']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
+        # 13 real plus 1 mock runner
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 14})
 
         # Verify that plural name form also works
         resp = self.app.post_json('/v1/packs/register',
                                   {'packs': ['dummy_pack_1'], 'types': ['actions']})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
+        # 13 real plus 1 mock runner
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 14})
 
         # Register single resource from a single pack specified multiple times - verify that
         # resources from the same pack are only registered once
@@ -556,21 +559,22 @@ class PacksControllerTestCase(FunctionalTest,
                                    'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {'actions': 1, 'runners': 15})
+        # 13 real plus 1 mock runner
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 14})
 
         # Register resources from a single (non-existent pack)
         resp = self.app.post_json('/v1/packs/register', {'packs': ['doesntexist']},
                                   expect_errors=True)
 
         self.assertEqual(resp.status_int, 400)
-        self.assertTrue('Pack "doesntexist" not found on disk:' in resp.json['faultstring'])
+        self.assertIn('Pack "doesntexist" not found on disk:', resp.json['faultstring'])
 
         # Fail on failure is enabled by default
         resp = self.app.post_json('/v1/packs/register', expect_errors=True)
 
         expected_msg = 'Failed to register pack "dummy_pack_10":'
         self.assertEqual(resp.status_int, 400)
-        self.assertTrue(expected_msg in resp.json['faultstring'])
+        self.assertIn(expected_msg, resp.json['faultstring'])
 
         # Fail on failure (broken pack metadata)
         resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1']},
@@ -578,7 +582,7 @@ class PacksControllerTestCase(FunctionalTest,
 
         expected_msg = 'Referenced policy_type "action.mock_policy_error" doesnt exist'
         self.assertEqual(resp.status_int, 400)
-        self.assertTrue(expected_msg in resp.json['faultstring'])
+        self.assertIn(expected_msg, resp.json['faultstring'])
 
         # Fail on failure (broken action metadata)
         resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_15']},
@@ -586,11 +590,11 @@ class PacksControllerTestCase(FunctionalTest,
 
         expected_msg = 'Failed to register action'
         self.assertEqual(resp.status_int, 400)
-        self.assertTrue(expected_msg in resp.json['faultstring'])
+        self.assertIn(expected_msg, resp.json['faultstring'])
 
         expected_msg = '\'stringa\' is not valid under any of the given schemas'
         self.assertEqual(resp.status_int, 400)
-        self.assertTrue(expected_msg in resp.json['faultstring'])
+        self.assertIn(expected_msg, resp.json['faultstring'])
 
     def test_get_all_invalid_exclude_and_include_parameter(self):
         pass

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,9 +28,11 @@ FIXTURES_PACK = 'aliases'
 
 TEST_MODELS = {
     'aliases': ['alias1.yaml', 'alias2.yaml', 'alias_with_undefined_jinja_in_ack_format.yaml',
+                'alias_with_immutable_list_param.yaml',
+                'alias_with_immutable_list_param_str_cast.yaml',
                 'alias4.yaml', 'alias5.yaml', 'alias_fixes1.yaml', 'alias_fixes2.yaml',
                 'alias_match_multiple.yaml'],
-    'actions': ['action1.yaml', 'action2.yaml'],
+    'actions': ['action1.yaml', 'action2.yaml', 'action3.yaml', 'action4.yaml'],
     'runners': ['runner1.yaml']
 }
 
@@ -75,7 +78,7 @@ class AliasExecutionTestCase(FunctionalTest):
         post_resp = self._do_post(alias_execution=self.alias1, command=command)
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param2': 'value2 value3'}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -84,7 +87,7 @@ class AliasExecutionTestCase(FunctionalTest):
         post_resp = self._do_post(alias_execution=self.alias5, command=command)
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param2': 'value2'}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -96,7 +99,7 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(post_resp.status_int, 400)
         expected_msg = ('Format string "some invalid not supported string" is '
                         'not available on the alias "alias1"')
-        self.assertTrue(expected_msg in post_resp.json['faultstring'])
+        self.assertIn(expected_msg, post_resp.json['faultstring'])
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -104,7 +107,7 @@ class AliasExecutionTestCase(FunctionalTest):
         command = 'Lorem ipsum value1 dolor sit value2 amet.'
         self._do_post(alias_execution=self.alias2, command=command)
         expected_parameters = {'param1': 'value1', 'param3': ['value2']}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -113,7 +116,7 @@ class AliasExecutionTestCase(FunctionalTest):
         post_resp = self._do_post(alias_execution=self.alias2, command=command)
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param3': ['value2', 'value3']}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -127,7 +130,7 @@ class AliasExecutionTestCase(FunctionalTest):
         )
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'cmd': 'date', 'hosts': 'localhost'}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
         self.assertEqual(
             post_resp.json['message'],
             'Cannot render "format" in field "ack" for alias. \'cmd\' is undefined'
@@ -151,7 +154,7 @@ class AliasExecutionTestCase(FunctionalTest):
         post_resp = self._do_post(alias_execution=self.alias4, command=command)
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param4': SUPER_SECRET_PARAMETER}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
         post_resp = self._do_post(alias_execution=self.alias4, command=command, show_secrets=True,
                                   expect_errors=True)
         self.assertEqual(post_resp.status_int, 201)
@@ -212,16 +215,16 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(resp.json['results'][0]['execution']['status'], EXECUTION['status'])
 
         expected_parameters = {'cmd': 'date', 'hosts': 'localhost'}
-        self.assertEquals(mock_request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(mock_request.call_args[0][0].parameters, expected_parameters)
 
         # Also check for source_channel - see
         # https://github.com/StackStorm/st2/issues/4650
         actual_context = mock_request.call_args[0][0].context
 
-        self.assertTrue('source_channel' in mock_request.call_args[0][0].context.keys())
-        self.assertEquals(actual_context['source_channel'], 'chat-channel')
-        self.assertEquals(actual_context['api_user'], 'chat-user')
-        self.assertEquals(actual_context['user'], 'stanley')
+        self.assertIn('source_channel', mock_request.call_args[0][0].context.keys())
+        self.assertEqual(actual_context['source_channel'], 'chat-channel')
+        self.assertEqual(actual_context['api_user'], 'chat-user')
+        self.assertEqual(actual_context['user'], 'stanley')
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -253,7 +256,7 @@ class AliasExecutionTestCase(FunctionalTest):
         # We've also already checked the results array
         #
         expected_parameters = {'issue_key': 'DRSEUSS-12'}
-        self.assertEquals(mock_request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(mock_request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -272,6 +275,67 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(str(resp.json['faultstring']),
                          "Command '{command}' "
                          "matched more than 1 (multi) pattern".format(command=data['command']))
+
+    def test_match_and_execute_list_action_param_str_cast_to_list(self):
+        data = {
+            'command': 'test alias list param str cast',
+            'source_channel': 'hubot',
+            'user': 'foo',
+        }
+        resp = self.app.post_json("/v1/aliasexecution/match_and_execute", data, expect_errors=True)
+
+        # Param is a comma delimited string - our custom cast function should cast it to a list.
+        # I assume that was done to make specifying complex params in chat easier.
+        # NOTE: This function only handles casting list, but not casting nested list items (e.g.
+        # list of objects)
+        self.assertEqual(resp.status_int, 201)
+
+        result = resp.json["results"][0]
+        live_action = result["execution"]["liveaction"]
+        action_alias = result["actionalias"]
+
+        self.assertEqual(resp.status_int, 201)
+        self.assertTrue(isinstance(live_action["parameters"]["array_param"], list))
+        self.assertEqual(live_action["parameters"]["array_param"][0], "one")
+        self.assertEqual(live_action["parameters"]["array_param"][1], "two")
+        self.assertEqual(live_action["parameters"]["array_param"][2], "three")
+        self.assertEqual(live_action["parameters"]["array_param"][3], "four")
+        self.assertTrue(isinstance(action_alias["immutable_parameters"]["array_param"], str))
+
+    def test_match_and_execute_list_action_param_already_a_list(self):
+        data = {
+            'command': 'test alias foo',
+            'source_channel': 'hubot',
+            'user': 'foo',
+        }
+        resp = self.app.post_json("/v1/aliasexecution/match_and_execute", data, expect_errors=True)
+
+        # immutable_param is already a list - verify no casting is performed
+        self.assertEqual(resp.status_int, 201)
+
+        result = resp.json["results"][0]
+        live_action = result["execution"]["liveaction"]
+        action_alias = result["actionalias"]
+
+        self.assertEqual(resp.status_int, 201)
+        self.assertTrue(isinstance(live_action["parameters"]["array_param"], list))
+        self.assertEqual(live_action["parameters"]["array_param"][0]["key1"], "one")
+        self.assertEqual(live_action["parameters"]["array_param"][0]["key2"], "two")
+        self.assertEqual(live_action["parameters"]["array_param"][1]["key3"], "three")
+        self.assertEqual(live_action["parameters"]["array_param"][1]["key4"], "four")
+        self.assertTrue(isinstance(action_alias["immutable_parameters"]["array_param"], list))
+
+    def test_match_and_execute_success(self):
+        data = {
+            'command': 'run whoami on localhost1',
+            'source_channel': 'hubot',
+            'user': "user",
+        }
+        resp = self.app.post_json("/v1/aliasexecution/match_and_execute", data)
+        self.assertEqual(resp.status_int, 201)
+        self.assertEqual(len(resp.json["results"]), 1)
+        self.assertTrue(resp.json["results"][0]["actionalias"]["ref"],
+                        "aliases.alias_with_undefined_jinja_in_ack_format")
 
     def _do_post(self, alias_execution, command, format_str=None, expect_errors=False,
                  show_secrets=False):

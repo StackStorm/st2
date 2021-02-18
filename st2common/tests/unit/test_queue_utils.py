@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,12 +30,12 @@ class TestQueueUtils(TestCase):
         self.assertRaises(ValueError,
                           queue_utils.get_queue_name,
                           queue_name_base='', queue_name_suffix=None)
-        self.assertEquals(queue_utils.get_queue_name(queue_name_base='st2.test.watch',
-                          queue_name_suffix=None),
-                          'st2.test.watch')
-        self.assertEquals(queue_utils.get_queue_name(queue_name_base='st2.test.watch',
-                          queue_name_suffix=''),
-                          'st2.test.watch')
+        self.assertEqual(queue_utils.get_queue_name(queue_name_base='st2.test.watch',
+                         queue_name_suffix=None),
+                         'st2.test.watch')
+        self.assertEqual(queue_utils.get_queue_name(queue_name_base='st2.test.watch',
+                         queue_name_suffix=''),
+                         'st2.test.watch')
         queue_name = queue_utils.get_queue_name(
             queue_name_base='st2.test.watch',
             queue_name_suffix='foo',

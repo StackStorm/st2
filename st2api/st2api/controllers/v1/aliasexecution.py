@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,8 +47,17 @@ http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
+
+def cast_array(value):
+    if isinstance(value, list):
+        # Already a list, no casting needed nor wanted.
+        return value
+
+    return [v.strip() for v in value.split(',')]
+
+
 CAST_OVERRIDES = {
-    'array': (lambda cs_x: [v.strip() for v in cs_x.split(',')])
+    'array': cast_array,
 }
 
 

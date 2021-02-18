@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +58,7 @@ class LoaderTest(unittest2.TestCase):
         # matches the specs of DummyPlugin class.
         self.assertEqual(1, len(plugin_classes))
         # Validate sys.path now contains the plugin directory.
-        self.assertTrue(os.path.abspath(os.path.join(SRC_ROOT, 'plugin')) in sys.path)
+        self.assertIn(os.path.abspath(os.path.join(SRC_ROOT, 'plugin')), sys.path)
         # Validate the individual plugins
         for plugin_class in plugin_classes:
             try:

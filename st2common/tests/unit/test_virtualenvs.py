@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -122,7 +123,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
             setup_pack_virtualenv(pack_name=pack_name, update=False,
                                   include_setuptools=False, include_wheel=False)
         except Exception as e:
-            self.assertTrue('Failed to install requirements from' in six.text_type(e))
+            self.assertIn('Failed to install requirements from', six.text_type(e))
             self.assertTrue('No matching distribution found for someinvalidname' in
                             six.text_type(e))
         else:
@@ -291,49 +292,6 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
             'env': {}
         }
         virtualenvs.run_command.assert_called_once_with(**expected_args)
-
-    @mock.patch.object(virtualenvs, 'run_command')
-    def test_setup_pack_virtualenv_use_python3_binary(self, mock_run_command):
-        mock_run_command.return_value = 0, '', ''
-
-        cfg.CONF.set_override(name='python_binary', group='actionrunner',
-                              override='/usr/bin/python2.7')
-        cfg.CONF.set_override(name='python3_binary', group='actionrunner',
-                              override='/usr/bin/python3')
-
-        pack_name = 'dummy_pack_2'
-
-        # Python 2
-        setup_pack_virtualenv(pack_name=pack_name, update=False,
-                              include_setuptools=False, include_wheel=False,
-                              use_python3=False)
-
-        actual_cmd = mock_run_command.call_args_list[0][1]['cmd']
-        actual_cmd = ' '.join(actual_cmd)
-
-        self.assertEqual(mock_run_command.call_count, 2)
-        self.assertTrue('-p /usr/bin/python2.7' in actual_cmd)
-
-        mock_run_command.reset_mock()
-
-        # Python 3
-        setup_pack_virtualenv(pack_name=pack_name, update=False,
-                              include_setuptools=False, include_wheel=False,
-                              use_python3=True)
-
-        self.assertEqual(mock_run_command.call_count, 3)
-
-        actual_cmd = mock_run_command.call_args_list[0][1]['cmd']
-        actual_cmd = ' '.join(actual_cmd)
-        self.assertTrue('-p /usr/bin/python3' in actual_cmd)
-
-        actual_cmd = mock_run_command.call_args_list[1][1]['cmd']
-        actual_cmd = ' '.join(actual_cmd)
-        self.assertTrue('pip install pyyaml' in actual_cmd)
-
-        actual_cmd = mock_run_command.call_args_list[2][1]['cmd']
-        actual_cmd = ' '.join(actual_cmd)
-        self.assertTrue('pip install' in actual_cmd)
 
     def assertVirtualenvExists(self, virtualenv_dir):
         self.assertTrue(os.path.exists(virtualenv_dir))

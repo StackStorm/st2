@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +73,9 @@ class OrquestaRunner(runners.AsyncActionRunner):
                 'action_execution_id': str(self.execution.id),
                 'api_url': api_util.get_full_public_api_url(),
                 'user': self.execution.context.get('user', cfg.CONF.system_user.user),
-                'pack': self.execution.context.get('pack', None)
+                'pack': self.execution.context.get('pack', None),
+                'action': self.execution.action.get('ref', None),
+                'runner': self.execution.action.get('runner_type', None)
             }
         }
 
@@ -87,24 +90,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
 
         return st2_ctx
 
-    def run(self, action_parameters):
-        # Read workflow definition from file.
-        wf_def = self.get_workflow_definition(self.entry_point)
-
-        try:
-            # Request workflow execution.
-            st2_ctx = self._construct_st2_context()
-            notify_cfg = self._get_notify_config()
-            wf_ex_db = wf_svc.request(wf_def, self.execution, st2_ctx, notify_cfg)
-        except wf_exc.WorkflowInspectionError as e:
-            status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': e.args[1], 'output': None}
-            return (status, result, self.context)
-        except Exception as e:
-            status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {'errors': [{'message': six.text_type(e)}], 'output': None}
-            return (status, result, self.context)
-
+    def _handle_workflow_return_value(self, wf_ex_db):
         if wf_ex_db.status in wf_statuses.COMPLETED_STATUSES:
             status = wf_ex_db.status
             result = {'output': wf_ex_db.output or None}
@@ -113,8 +99,9 @@ class OrquestaRunner(runners.AsyncActionRunner):
                 result['errors'] = wf_ex_db.errors
 
             for wf_ex_error in wf_ex_db.errors:
-                msg = '[%s] Workflow execution completed with errors.'
-                LOG.error(msg, str(self.execution.id), extra=wf_ex_error)
+                msg = 'Workflow execution completed with errors.'
+                wf_svc.update_progress(wf_ex_db, '%s %s' % (msg, str(wf_ex_error)), log=False)
+                LOG.error('[%s] %s', str(self.execution.id), msg, extra=wf_ex_error)
 
             return (status, result, self.context)
 
@@ -124,6 +111,51 @@ class OrquestaRunner(runners.AsyncActionRunner):
         ctx = self._construct_context(wf_ex_db)
 
         return (status, partial_results, ctx)
+
+    def run(self, action_parameters):
+        # If there is an action execution reference for rerun and there is task specified,
+        # then rerun the existing workflow execution.
+        rerun_options = self.context.get('re-run', {})
+        rerun_task_options = rerun_options.get('tasks', [])
+
+        if self.rerun_ex_ref and rerun_task_options:
+            return self.rerun_workflow(self.rerun_ex_ref, options=rerun_options)
+
+        return self.start_workflow(action_parameters)
+
+    def start_workflow(self, action_parameters):
+        # Read workflow definition from file.
+        wf_def = self.get_workflow_definition(self.entry_point)
+
+        try:
+            # Request workflow execution.
+            st2_ctx = self._construct_st2_context()
+            notify_cfg = self._get_notify_config()
+            wf_ex_db = wf_svc.request(wf_def, self.execution, st2_ctx, notify_cfg=notify_cfg)
+        except wf_exc.WorkflowInspectionError as e:
+            status = ac_const.LIVEACTION_STATUS_FAILED
+            result = {'errors': e.args[1], 'output': None}
+            return (status, result, self.context)
+        except Exception as e:
+            status = ac_const.LIVEACTION_STATUS_FAILED
+            result = {'errors': [{'message': six.text_type(e)}], 'output': None}
+            return (status, result, self.context)
+
+        return self._handle_workflow_return_value(wf_ex_db)
+
+    def rerun_workflow(self, ac_ex_ref, options=None):
+        try:
+            # Request rerun of workflow execution.
+            wf_ex_id = ac_ex_ref.context.get('workflow_execution')
+            st2_ctx = self._construct_st2_context()
+            st2_ctx['workflow_execution_id'] = wf_ex_id
+            wf_ex_db = wf_svc.request_rerun(self.execution, st2_ctx, options=options)
+        except Exception as e:
+            status = ac_const.LIVEACTION_STATUS_FAILED
+            result = {'errors': [{'message': six.text_type(e)}], 'output': None}
+            return (status, result, self.context)
+
+        return self._handle_workflow_return_value(wf_ex_db)
 
     @staticmethod
     def task_pauseable(ac_ex):
@@ -202,10 +234,11 @@ class OrquestaRunner(runners.AsyncActionRunner):
 
     def cancel(self):
         result = None
+        wf_ex_db = None
 
         # Try to cancel the target workflow execution.
         try:
-            wf_svc.request_cancellation(self.execution)
+            wf_ex_db = wf_svc.request_cancellation(self.execution)
         # If workflow execution is not found because the action execution is cancelled
         # before the workflow execution is created or if the workflow execution is
         # already completed, then ignore the exception and proceed with cancellation.
@@ -220,10 +253,11 @@ class OrquestaRunner(runners.AsyncActionRunner):
         # execution will be in an unknown state.
         except Exception:
             _, ex, tb = sys.exc_info()
+            msg = 'Error encountered when canceling workflow execution.'
+            LOG.exception('[%s] %s', str(self.execution.id), msg)
             msg = 'Error encountered when canceling workflow execution. %s'
+            wf_svc.update_progress(wf_ex_db, msg % str(ex), log=False)
             result = {'error': msg % str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
-            msg = '[%s] Error encountered when canceling workflow execution.'
-            LOG.exception(msg, str(self.execution.id))
 
         # Request cancellation of tasks that are workflows and still running.
         for child_ex_id in self.execution.children:

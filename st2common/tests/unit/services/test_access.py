@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,8 +40,8 @@ class AccessServiceTest(DbTestCase):
 
     def test_create_token(self):
         token = access.create_token(USERNAME)
-        self.assertTrue(token is not None)
-        self.assertTrue(token.token is not None)
+        self.assertIsNotNone(token)
+        self.assertIsNotNone(token.token)
         self.assertEqual(token.user, USERNAME)
 
     def test_create_token_fail(self):
@@ -67,8 +68,8 @@ class AccessServiceTest(DbTestCase):
     def test_create_token_ttl_ok(self):
         ttl = 10
         token = access.create_token(USERNAME, 10)
-        self.assertTrue(token is not None)
-        self.assertTrue(token.token is not None)
+        self.assertIsNotNone(token)
+        self.assertIsNotNone(token.token)
         self.assertEqual(token.user, USERNAME)
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
         expected_expiry = date_utils.add_utc_tz(expected_expiry)
@@ -79,8 +80,8 @@ class AccessServiceTest(DbTestCase):
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
         expected_expiry = date_utils.add_utc_tz(expected_expiry)
         token = access.create_token(USERNAME, 10)
-        self.assertTrue(token is not None)
-        self.assertTrue(token.token is not None)
+        self.assertIsNotNone(token)
+        self.assertIsNotNone(token.token)
         self.assertEqual(token.user, USERNAME)
         self.assertLess(isotime.parse(token.expiry), expected_expiry)
 
@@ -92,7 +93,7 @@ class AccessServiceTest(DbTestCase):
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
         expected_expiry = date_utils.add_utc_tz(expected_expiry)
 
-        self.assertTrue(token is not None)
+        self.assertIsNotNone(token)
         self.assertEqual(token.user, USERNAME)
         self.assertLess(isotime.parse(token.expiry), expected_expiry)
 

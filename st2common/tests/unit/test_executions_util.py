@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,9 +84,9 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEquals(execution.liveaction['id'], str(liveaction.id))
-        self.assertEquals(len(execution.log), 1)
-        self.assertEquals(execution.log[0]['status'], liveaction.status)
+        self.assertEqual(execution.liveaction['id'], str(liveaction.id))
+        self.assertEqual(len(execution.log), 1)
+        self.assertEqual(execution.log[0]['status'], liveaction.status)
         self.assertGreater(execution.log[0]['timestamp'], pre_creation_timestamp)
         self.assertLess(execution.log[0]['timestamp'], post_creation_timestamp)
 
@@ -118,16 +119,16 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEquals(execution.liveaction['id'], str(liveaction.id))
+        self.assertEqual(execution.liveaction['id'], str(liveaction.id))
 
     def test_execution_creation_with_web_url(self):
         liveaction = self.MODELS['liveactions']['liveaction1.yaml']
         executions_util.create_execution_object(liveaction)
         execution = self._get_action_execution(liveaction__id=str(liveaction.id),
                                                raise_exception=True)
-        self.assertTrue(execution.web_url is not None)
+        self.assertIsNotNone(execution.web_url)
         execution_id = str(execution.id)
-        self.assertTrue(('history/%s/general' % execution_id) in execution.web_url)
+        self.assertIn(('history/%s/general' % execution_id), execution.web_url)
 
     def test_execution_creation_chains(self):
         childliveaction = self.MODELS['liveactions']['childliveaction.yaml']
@@ -135,7 +136,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         parent_execution_id = childliveaction.context['parent']['execution_id']
         parent_execution = ActionExecution.get_by_id(parent_execution_id)
         child_execs = parent_execution.children
-        self.assertTrue(str(child_exec.id) in child_execs)
+        self.assertIn(str(child_exec.id), child_execs)
 
     def test_execution_update(self):
         liveaction = self.MODELS['liveactions']['liveaction1.yaml']
@@ -146,8 +147,8 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         post_update_timestamp = date_utils.get_datetime_utc_now()
         execution = self._get_action_execution(liveaction__id=str(liveaction.id),
                                                raise_exception=True)
-        self.assertEquals(len(execution.log), 2)
-        self.assertEquals(execution.log[1]['status'], liveaction.status)
+        self.assertEqual(len(execution.log), 2)
+        self.assertEqual(execution.log[1]['status'], liveaction.status)
         self.assertGreater(execution.log[1]['timestamp'], pre_update_timestamp)
         self.assertLess(execution.log[1]['timestamp'], post_update_timestamp)
 
@@ -159,7 +160,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         execution_db = executions_util.abandon_execution_if_incomplete(
             liveaction_id=str(liveaction_db.id))
 
-        self.assertEquals(execution_db.status, 'abandoned')
+        self.assertEqual(execution_db.status, 'abandoned')
 
         runners_utils.invoke_post_run.assert_called_once()
 

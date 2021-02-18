@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,7 +97,7 @@ class TestInteractive(unittest2.TestCase):
         with mock.patch.object(interactive.InteractiveForm, 'readers', [Reader]):
             interactive.InteractiveForm(schema).initiate_dialog()
 
-        self.assertEquals(stdout_mock.getvalue(), 'Dialog interrupted.\n')
+        self.assertEqual(stdout_mock.getvalue(), 'Dialog interrupted.\n')
 
     def test_interactive_form_interrupted_reraised(self):
         reader = mock.MagicMock()

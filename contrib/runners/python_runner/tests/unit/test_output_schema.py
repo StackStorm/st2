@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,7 +71,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             output
         )
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(output is not None)
+        self.assertIsNotNone(output)
         self.assertEqual(output['result'], [1, 5, 10, 10, 5, 1])
 
     def test_fail_incorrect_output_schema(self):

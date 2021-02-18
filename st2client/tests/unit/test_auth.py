@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -141,12 +142,12 @@ class TestLoginPasswordAndConfig(TestLoginBase):
         with open(self.CONFIG_FILE, 'r') as config_file:
             for line in config_file.readlines():
                 # Make sure certain values are not present
-                self.assertFalse('password' in line)
-                self.assertFalse('olduser' in line)
+                self.assertNotIn('password', line)
+                self.assertNotIn('olduser', line)
 
                 # Make sure configured username is what we expect
                 if 'username' in line:
-                    self.assertEquals(line.split(' ')[2][:-1], expected_username)
+                    self.assertEqual(line.split(' ')[2][:-1], expected_username)
 
             # validate token was created
             self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
@@ -194,12 +195,12 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
         with open(self.CONFIG_FILE, 'r') as config_file:
             for line in config_file.readlines():
                 # Make sure certain values are not present
-                self.assertFalse('password' in line)
-                self.assertFalse('olduser' in line)
+                self.assertNotIn('password', line)
+                self.assertNotIn('olduser', line)
 
                 # Make sure configured username is what we expect
                 if 'username' in line:
-                    self.assertEquals(line.split(' ')[2][:-1], expected_username)
+                    self.assertEqual(line.split(' ')[2][:-1], expected_username)
 
             # validate token was created
             self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
@@ -250,11 +251,11 @@ class TestLoginWritePwdOkay(TestLoginBase):
             for line in config_file.readlines():
 
                 # Make sure certain values are not present
-                self.assertFalse('olduser' in line)
+                self.assertNotIn('olduser', line)
 
                 # Make sure configured username is what we expect
                 if 'username' in line:
-                    self.assertEquals(line.split(' ')[2][:-1], expected_username)
+                    self.assertEqual(line.split(' ')[2][:-1], expected_username)
 
             # validate token was created
             self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
@@ -288,8 +289,8 @@ class TestLoginUncaughtException(TestLoginBase):
         self.shell.run(args)
         retcode = self.shell.run(args)
 
-        self.assertTrue('Failed to log in as %s' % expected_username in self.stdout.getvalue())
-        self.assertTrue('Logged in as' not in self.stdout.getvalue())
+        self.assertIn('Failed to log in as %s' % expected_username, self.stdout.getvalue())
+        self.assertNotIn('Logged in as', self.stdout.getvalue())
         self.assertEqual(retcode, 1)
 
 

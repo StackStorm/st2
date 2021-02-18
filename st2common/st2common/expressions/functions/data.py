@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,6 +43,8 @@ def from_yaml_string(value):
 
 
 def to_json_string(value, indent=None, sort_keys=False, separators=(',', ': ')):
+    value = db_util.mongodb_to_python_types(value)
+
     options = {}
 
     if indent is not None:

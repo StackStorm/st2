@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,7 +85,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(obj.rule, self.fake_history_workflow['rule'])
         self.assertDictEqual(obj.action, self.fake_history_workflow['action'])
         self.assertDictEqual(obj.runner, self.fake_history_workflow['runner'])
-        self.assertEquals(obj.liveaction, self.fake_history_workflow['liveaction'])
+        self.assertEqual(obj.liveaction, self.fake_history_workflow['liveaction'])
         self.assertIsNone(getattr(obj, 'parent', None))
         self.assertListEqual(obj.children, self.fake_history_workflow['children'])
 

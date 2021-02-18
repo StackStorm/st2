@@ -1,0 +1,14 @@
+version: 1.0
+
+description: A sample workflow used to test the rerun feature.
+
+input:
+  - tempfile
+
+tasks:
+  task1:
+     with: <% range(0,4) %>
+     action: core.local
+     input:
+       cmd: 'x=`cat <% ctx().tempfile %>`; y=`echo "$x * <% item() %> % 2" | bc`; exit `echo $y`'
+

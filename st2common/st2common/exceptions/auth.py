@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +29,8 @@ __all__ = [
     'NoNicknameOriginProvidedError',
     'UserNotFoundError',
     'AmbiguousUserError',
-    'NotServiceUserError'
+    'NotServiceUserError',
+    'SSOVerificationError'
 ]
 
 
@@ -81,4 +83,8 @@ class AmbiguousUserError(StackStormBaseException):
 
 
 class NotServiceUserError(StackStormBaseException):
+    pass
+
+
+class SSOVerificationError(StackStormBaseException):
     pass

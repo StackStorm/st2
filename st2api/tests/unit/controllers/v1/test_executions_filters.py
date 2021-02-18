@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,14 +110,14 @@ class TestActionExecutionFilters(FunctionalTest):
         response = self.app.get('/v1/executions?action=executions.local&limit=1')
 
         self.assertEqual(response.status_int, 200)
-        self.assertTrue('result' in response.json[0])
+        self.assertIn('result', response.json[0])
 
         # Exclude "result" attribute
         path = '/v1/executions?action=executions.local&limit=1&exclude_attributes=result'
         response = self.app.get(path)
 
         self.assertEqual(response.status_int, 200)
-        self.assertFalse('result' in response.json[0])
+        self.assertNotIn('result', response.json[0])
 
     def test_get_one(self):
         obj_id = random.choice(list(self.refs.keys()))
@@ -389,7 +390,7 @@ class TestActionExecutionFilters(FunctionalTest):
 
             # Verify empty (None / null) filters are excluded
             if key not in FILTERS_WITH_VALID_NULL_VALUES:
-                self.assertTrue(None not in filter_values)
+                self.assertNotIn(None, filter_values)
 
             if None in value or None in filter_values:
                 filter_values = [item for item in filter_values if item is not None]

@@ -1,8 +1,0 @@
-version: '2.0'
-examples.mistral-test-jinja-bad-with-items:
-    description: A sample workflow for testing bad input to with-items statement.
-    type: direct
-    tasks:
-        task1:
-            with-items: "i in {{ _.foobar }}"
-            action: std.noop

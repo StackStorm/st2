@@ -1,0 +1,26 @@
+version: 1.0
+
+description: A workflow used to test escaping of things like vars, task names, results, outputs, etc.
+
+vars:
+  - vars.key.with.periods: "vars.value.with.periods"
+  - vars.nested.with.periods:
+      nested.periods: "vars.nested.value.with.periods"
+
+tasks:
+  run:
+    action: examples.python-mock-core-remote
+    input:
+      hosts_dict:
+        hostname.domain.tld: "{{ ctx()['vars.key.with.periods'] }}"
+        hostname2.domain.tld:
+          stdout: "{{ ctx()['vars.nested.with.periods']['nested.periods'] }}"
+    next:
+      - when: "{{ succeeded() }}"
+        publish:
+          - published.hosts: "{{ result().result }}"
+          - published.field: "{{ result().result['hostname2.domain.tld']['stdout'] }}"
+
+output:
+  - wf.hostname.with.periods: "{{ ctx()['published.hosts'] }}"
+  - wf.output.with.periods: "{{ ctx()['published.field'] }}"

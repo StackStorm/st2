@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -155,7 +156,7 @@ class RuleRegistrationTestCase(DbTestCase):
 
         self.assertEqual(rule_dbs[0].name, 'sample.with_the_same_timer')
         self.assertEqual(rule_dbs[1].name, 'sample.with_timer')
-        self.assertTrue(trigger_dbs[0].name is not None)
+        self.assertIsNotNone(trigger_dbs[0].name)
 
         # Verify second register call updates existing models
         registrar.register_from_packs(base_dirs=[PACKS_DIR])

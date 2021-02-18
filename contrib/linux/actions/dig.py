@@ -1,5 +1,6 @@
 #! /usr/bin/python
 
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +16,10 @@
 # limitations under the License.
 
 import errno
+import locale
 import subprocess
 import random
-import re
+import sys
 
 from st2common.runners.base_action import Action
 
@@ -33,26 +35,33 @@ class DigAction(Action):
             nameserver = '@' + nameserver
             cmd_args.append(nameserver)
 
-        if re.search(',', queryopts):
+        if isinstance(queryopts, str) and ',' in queryopts:
             opt_list = queryopts.split(',')
         else:
             opt_list.append(queryopts)
-        for k, v in enumerate(opt_list):
-            cmd_args.append('+' + v)
+
+        cmd_args.extend(['+' + option for option in opt_list])
 
         cmd_args.append(hostname)
 
         try:
-            result_list = filter(None, subprocess.Popen(cmd_args,
-                                                        stderr=subprocess.PIPE,
-                                                        stdout=subprocess.PIPE)
-                                 .communicate()[0]
-                                 .split('\n'))
+            raw_result = subprocess.Popen(cmd_args,
+                                          stderr=subprocess.PIPE,
+                                          stdout=subprocess.PIPE).communicate()[0]
+
+            if sys.version_info >= (3,):
+                # This function might call getpreferred encoding unless we pass
+                # do_setlocale=False.
+                encoding = locale.getpreferredencoding(do_setlocale=False)
+                result_list_str = raw_result.decode(encoding)
+            else:
+                result_list_str = str(raw_result)
+
+            result_list = list(filter(None, result_list_str.split('\n')))
 
         # NOTE: Python3 supports the FileNotFoundError, the errono.ENOENT is for py2 compat
         # for Python3:
         # except FileNotFoundError as e:
-
         except OSError as e:
             if e.errno == errno.ENOENT:
                 return False, "Can't find dig installed in the path (usually /usr/bin/dig). If " \

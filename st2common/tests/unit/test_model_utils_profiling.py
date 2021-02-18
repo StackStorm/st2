@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,9 +50,9 @@ class MongoDBProfilingTestCase(DbTestCase):
         expected_result = ("db.user_d_b.find({'name': {'$in': ['test1', 'test2']}})"
                            ".sort({aa: 1, bb: -1}).limit(1);")
         self.assertEqual(queryset, result)
-        self.assertTrue(expected_result in call_args[0])
-        self.assertTrue('mongo_query' in call_kwargs['extra'])
-        self.assertTrue('mongo_shell_query' in call_kwargs['extra'])
+        self.assertIn(expected_result, call_args[0])
+        self.assertIn('mongo_query', call_kwargs['extra'])
+        self.assertIn('mongo_shell_query', call_kwargs['extra'])
 
     def test_logging_profiling_is_enabled_non_queryset_object(self):
         enable_profiling()

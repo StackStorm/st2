@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +31,6 @@ from dist_utils import check_pip_version
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
 from dist_utils import get_version_string
-from dist_utils_old import fetch_requirements as old_fetch_requirements
 
 __all__ = [
     'DistUtilsTestCase'
@@ -45,7 +45,7 @@ class DistUtilsTestCase(unittest2.TestCase):
     def setUp(self):
         super(DistUtilsTestCase, self).setUp()
 
-        if 'pip'in sys.modules:
+        if 'pip' in sys.modules:
             del sys.modules['pip']
 
     def tearDown(self):
@@ -110,7 +110,6 @@ class DistUtilsTestCase(unittest2.TestCase):
             'flex==6.14.0',
             'logshipper',
             'orquesta',
-            'python-mistralclient',
             'st2-auth-backend-flat-file',
             'logshipper-editable',
             'python_runner',
@@ -126,7 +125,6 @@ class DistUtilsTestCase(unittest2.TestCase):
         expected_links = [
             'git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper',
             'git+https://github.com/StackStorm/orquesta.git@224c1a589a6007eb0598a62ee99d674e7836d369#egg=orquesta', # NOQA
-            'git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient',
             'git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file', # NOQA
             'git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper-editable',
             'git+https://github.com/StackStorm/st2.git#egg=python_runner&subdirectory=contrib/runners/python_runner', # NOQA
@@ -138,18 +136,7 @@ class DistUtilsTestCase(unittest2.TestCase):
         self.assertEqual(reqs, expected_reqs)
         self.assertEqual(links, expected_links)
 
-        # Verify output of old and new function is the same
-        reqs_old, links_old = old_fetch_requirements(REQUIREMENTS_PATH_1)
-
-        self.assertEqual(reqs_old, expected_reqs)
-        self.assertEqual(links_old, expected_links)
-
-        self.assertEqual(reqs_old, reqs)
-        self.assertEqual(links_old, links)
-
         # Also test it on requirements.txt in repo root
         reqs, links = fetch_requirements(REQUIREMENTS_PATH_2)
-        reqs_old, links_old = old_fetch_requirements(REQUIREMENTS_PATH_2)
-
-        self.assertEqual(reqs_old, reqs)
-        self.assertEqual(links_old, links)
+        self.assertGreater(len(reqs), 0)
+        self.assertGreater(len(links), 0)

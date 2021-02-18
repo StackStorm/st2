@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,8 +78,8 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(len(pack_db.contributors), 2)
         self.assertEqual(pack_db.contributors[0], 'John Doe1 <john.doe1@gmail.com>')
         self.assertEqual(pack_db.contributors[1], 'John Doe2 <john.doe2@gmail.com>')
-        self.assertTrue('api_key' in config_schema_db.attributes)
-        self.assertTrue('api_secret' in config_schema_db.attributes)
+        self.assertIn('api_key', config_schema_db.attributes)
+        self.assertIn('api_secret', config_schema_db.attributes)
 
         # Verify pack_db.files is correct and doesn't contain excluded files (*.pyc, .git/*, etc.)
         # Note: We can't test that .git/* files are excluded since git doesn't allow you to add
@@ -90,7 +91,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         ]
 
         for excluded_file in excluded_files:
-            self.assertTrue(excluded_file not in pack_db.files)
+            self.assertNotIn(excluded_file, pack_db.files)
 
     def test_register_pack_arbitrary_properties_are_allowed(self):
         # Test registering a pack which has "arbitrary" properties in pack.yaml
@@ -156,7 +157,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         try:
             registrar._register_pack_db(pack_name=None, pack_dir=PACK_PATH_13)
         except ValidationError as e:
-            self.assertTrue("'invalid-has-dash' does not match '^[a-z0-9_]+$'" in six.text_type(e))
+            self.assertIn("'invalid-has-dash' does not match '^[a-z0-9_]+$'", six.text_type(e))
         else:
             self.fail('Exception not thrown')
 

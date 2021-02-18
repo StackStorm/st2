@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,9 +70,9 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         # First 3 log lines are debug messages about the environment which are always logged
         stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
-        self.assertTrue('INFO [-]' in stdout)
-        self.assertTrue('DEBUG [-]' not in stdout)
-        self.assertTrue('AUDIT [-]' not in stdout)
+        self.assertIn('INFO [-]', stdout)
+        self.assertNotIn('DEBUG [-]', stdout)
+        self.assertNotIn('AUDIT [-]', stdout)
 
         # 2. DEBUG log level - audit messages should be included
         process = self._start_process(config_path=ST2_CONFIG_DEBUG_LL_PATH)
@@ -84,9 +85,9 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         # First 3 log lines are debug messages about the environment which are always logged
         stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
-        self.assertTrue('INFO [-]' in stdout)
-        self.assertTrue('DEBUG [-]' in stdout)
-        self.assertTrue('AUDIT [-]' in stdout)
+        self.assertIn('INFO [-]', stdout)
+        self.assertIn('DEBUG [-]', stdout)
+        self.assertIn('AUDIT [-]', stdout)
 
         # 3. AUDIT log level - audit messages should be included
         process = self._start_process(config_path=ST2_CONFIG_AUDIT_LL_PATH)
@@ -99,9 +100,9 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         # First 3 log lines are debug messages about the environment which are always logged
         stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
-        self.assertTrue('INFO [-]' not in stdout)
-        self.assertTrue('DEBUG [-]' not in stdout)
-        self.assertTrue('AUDIT [-]' in stdout)
+        self.assertNotIn('INFO [-]', stdout)
+        self.assertNotIn('DEBUG [-]', stdout)
+        self.assertIn('AUDIT [-]', stdout)
 
         # 2. INFO log level but system.debug set to True
         process = self._start_process(config_path=ST2_CONFIG_SYSTEM_DEBUG_PATH)
@@ -114,9 +115,9 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         # First 3 log lines are debug messages about the environment which are always logged
         stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
 
-        self.assertTrue('INFO [-]' in stdout)
-        self.assertTrue('DEBUG [-]' in stdout)
-        self.assertTrue('AUDIT [-]' in stdout)
+        self.assertIn('INFO [-]', stdout)
+        self.assertIn('DEBUG [-]', stdout)
+        self.assertIn('AUDIT [-]', stdout)
 
     def test_kombu_heartbeat_tick_log_messages_are_excluded(self):
         # 1. system.debug = True config option is set, verify heartbeat_tick message is not logged
@@ -128,7 +129,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         process.send_signal(signal.SIGKILL)
 
         stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n'))
-        self.assertTrue('heartbeat_tick' not in stdout)
+        self.assertNotIn('heartbeat_tick', stdout)
 
         # 2. system.debug = False, log level is set to debug
         process = self._start_process(config_path=ST2_CONFIG_DEBUG_LL_PATH)
@@ -139,7 +140,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         process.send_signal(signal.SIGKILL)
 
         stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n'))
-        self.assertTrue('heartbeat_tick' not in stdout)
+        self.assertNotIn('heartbeat_tick', stdout)
 
     def _start_process(self, config_path):
         cmd = CMD + [config_path]

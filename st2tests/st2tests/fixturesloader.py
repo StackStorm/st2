@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -369,7 +370,8 @@ class FixturesLoader(object):
         fixture_types = list(fixtures_dict.keys())
         for fixture_type in fixture_types:
             if fixture_type not in allowed:
-                raise Exception('Disallowed fixture type: %s' % fixture_type)
+                raise Exception('Disallowed fixture type: %s. Valid fixture types are: %s' % (
+                    fixture_type, ", ".join(allowed)))
 
     def _is_fixture_pack_exists(self, fixtures_pack_path):
         return os.path.exists(fixtures_pack_path)

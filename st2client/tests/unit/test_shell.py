@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,10 +77,10 @@ class ShellTestCase(base.BaseCLITestCase):
 
         self.stderr.seek(0)
         stderr = self.stderr.read()
-        self.assertTrue('Usage: ' in stderr)
-        self.assertTrue('For example:' in stderr)
-        self.assertTrue('CLI for StackStorm' in stderr)
-        self.assertTrue('positional arguments:' in stderr)
+        self.assertIn('Usage: ', stderr)
+        self.assertIn('For example:', stderr)
+        self.assertIn('CLI for StackStorm', stderr)
+        self.assertIn('positional arguments:', stderr)
 
         self.stdout.truncate()
         self.stderr.truncate()
@@ -92,10 +93,10 @@ class ShellTestCase(base.BaseCLITestCase):
 
         self.stdout.seek(0)
         stdout = self.stdout.read()
-        self.assertTrue('Usage: ' in stdout)
-        self.assertTrue('For example:' in stdout)
-        self.assertTrue('CLI for StackStorm' in stdout)
-        self.assertTrue('positional arguments:' in stdout)
+        self.assertIn('Usage: ', stdout)
+        self.assertIn('For example:', stdout)
+        self.assertIn('CLI for StackStorm', stdout)
+        self.assertIn('positional arguments:', stdout)
 
         self.stdout.truncate()
         self.stderr.truncate()
@@ -109,11 +110,11 @@ class ShellTestCase(base.BaseCLITestCase):
         self.stderr.seek(0)
         stderr = self.stderr.read()
 
-        self.assertTrue('usage' in stderr)
+        self.assertIn('usage', stderr)
 
         if six.PY2:
-            self.assertTrue('{list,get,create,update' in stderr)
-            self.assertTrue('error: too few arguments' in stderr)
+            self.assertIn('{list,get,create,update', stderr)
+            self.assertIn('error: too few arguments', stderr)
 
     def test_endpoints_default(self):
         base_url = 'http://127.0.0.1'
@@ -312,8 +313,8 @@ class ShellTestCase(base.BaseCLITestCase):
         self.stdout.seek(0)
         stdout = self.stdout.read()
 
-        self.assertTrue('username = None' in stdout)
-        self.assertTrue('cache_token = True' in stdout)
+        self.assertIn('username = None', stdout)
+        self.assertIn('cache_token = True', stdout)
 
     def test_print_config_custom_config_as_env_variable(self):
         os.environ['ST2_CONFIG_FILE'] = CONFIG_FILE_PATH_FULL
@@ -323,8 +324,8 @@ class ShellTestCase(base.BaseCLITestCase):
         self.stdout.seek(0)
         stdout = self.stdout.read()
 
-        self.assertTrue('username = test1' in stdout)
-        self.assertTrue('cache_token = False' in stdout)
+        self.assertIn('username = test1', stdout)
+        self.assertIn('cache_token = False', stdout)
 
     def test_print_config_custom_config_as_command_line_argument(self):
         argv = ['--print-config', '--config-file=%s' % (CONFIG_FILE_PATH_FULL)]
@@ -333,8 +334,8 @@ class ShellTestCase(base.BaseCLITestCase):
         self.stdout.seek(0)
         stdout = self.stdout.read()
 
-        self.assertTrue('username = test1' in stdout)
-        self.assertTrue('cache_token = False' in stdout)
+        self.assertIn('username = test1', stdout)
+        self.assertIn('cache_token = False', stdout)
 
     def test_run(self):
         args_list = [
@@ -391,7 +392,7 @@ class ShellTestCase(base.BaseCLITestCase):
 
         self.version_output.seek(0)
         stderr = self.version_output.read()
-        self.assertTrue('v2.8.0, on Python' in stderr)
+        self.assertIn('v2.8.0, on Python', stderr)
 
     @mock.patch('sys.exit', mock.Mock())
     @mock.patch('st2client.shell.__version__', 'v2.8.0')
@@ -405,7 +406,7 @@ class ShellTestCase(base.BaseCLITestCase):
 
         self.version_output.seek(0)
         stderr = self.version_output.read()
-        self.assertTrue('v2.8.0, on Python' in stderr)
+        self.assertIn('v2.8.0, on Python', stderr)
 
     @mock.patch('sys.exit', mock.Mock())
     @mock.patch('st2client.shell.__version__', 'v2.9dev')
@@ -418,7 +419,7 @@ class ShellTestCase(base.BaseCLITestCase):
 
         self.version_output.seek(0)
         stderr = self.version_output.read()
-        self.assertTrue('v2.9dev, on Python' in stderr)
+        self.assertIn('v2.9dev, on Python', stderr)
 
     @mock.patch('sys.exit', mock.Mock())
     @mock.patch('st2client.shell.__version__', 'v2.9dev')
@@ -433,7 +434,7 @@ class ShellTestCase(base.BaseCLITestCase):
 
         self.version_output.seek(0)
         stderr = self.version_output.read()
-        self.assertTrue('v2.9dev (abcdefg), on Python' in stderr)
+        self.assertIn('v2.9dev (abcdefg), on Python', stderr)
 
     @mock.patch('locale.getdefaultlocale', mock.Mock(return_value=['en_US']))
     @mock.patch('locale.getpreferredencoding', mock.Mock(return_value='iso'))
@@ -446,7 +447,7 @@ class ShellTestCase(base.BaseCLITestCase):
         shell.run(argv=['trigger', 'list'])
 
         call_args = mock_logger.warn.call_args[0][0]
-        self.assertTrue('Locale en_US with encoding iso which is not UTF-8 is used.' in call_args)
+        self.assertIn('Locale en_US with encoding iso which is not UTF-8 is used.', call_args)
 
     @mock.patch('locale.getdefaultlocale', mock.Mock(side_effect=ValueError('bar')))
     @mock.patch('locale.getpreferredencoding', mock.Mock(side_effect=ValueError('bar')))

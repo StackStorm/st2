@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,8 +39,8 @@ class FormatResultActionTestCase(BaseActionTestCase):
         )
         result = action.run(execution_id='57967f9355fc8c19a96d9e4f')
         self.assertTrue(result)
-        self.assertTrue('web_url' in result['message'], result['message'])
-        self.assertTrue('Took 2s to complete' in result['message'], result['message'])
+        self.assertIn('web_url', result['message'])
+        self.assertIn('Took 2s to complete', result['message'])
 
     def test_rendering_local_shell_cmd(self):
         local_shell_cmd_execution_model = json.loads(

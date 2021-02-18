@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -167,6 +168,8 @@ ACTION_9 = {
 }
 
 # Same name as ACTION_1. Different pack though.
+# Ensure that this remains the only action with pack == wolfpack1,
+# otherwise take care of the test test_get_one_using_pack_parameter
 ACTION_10 = {
     'name': 'st2.dummy.action1',
     'description': 'test description',
@@ -445,13 +448,13 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         # 2. Action already exists
         post_resp = self.__do_post(action, expect_errors=True)
         self.assertEqual(post_resp.status_int, 409)
-        self.assertTrue('Tried to save duplicate unique keys' in post_resp.json['faultstring'])
+        self.assertIn('Tried to save duplicate unique keys', post_resp.json['faultstring'])
 
         # 3. Action already exists (this time with unicode type)
         action['name'] = u'žactionćšžži💩'
         post_resp = self.__do_post(action, expect_errors=True)
         self.assertEqual(post_resp.status_int, 409)
-        self.assertTrue('Tried to save duplicate unique keys' in post_resp.json['faultstring'])
+        self.assertIn('Tried to save duplicate unique keys', post_resp.json['faultstring'])
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
@@ -465,7 +468,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
             expected_error = \
                 b'[u\'string\', u\'object\'] is not valid under any of the given schemas'
 
-        self.assertTrue(expected_error in post_resp.body)
+        self.assertIn(expected_error, post_resp.body)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
@@ -486,7 +489,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         post_resp = self.__do_post(ACTION_1)
         self.assertEqual(post_resp.status_int, 201)
         action_in_db = Action.get_by_name(ACTION_1.get('name'))
-        self.assertTrue(action_in_db is not None, 'Action must be in db.')
+        self.assertIsNotNone(action_in_db, 'Action must be in db.')
         action_ids.append(self.__get_action_id(post_resp))
 
         post_resp = self.__do_post(ACTION_1, expect_errors=True)
@@ -507,7 +510,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
     def test_post_include_files(self):
         # Verify initial state
         pack_db = Pack.get_by_ref(ACTION_12['pack'])
-        self.assertTrue('actions/filea.txt' not in pack_db.files)
+        self.assertNotIn('actions/filea.txt', pack_db.files)
 
         action = copy.deepcopy(ACTION_12)
         action['data_files'] = [
@@ -524,7 +527,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
 
         # Verify PackDB.files has been updated
         pack_db = Pack.get_by_ref(ACTION_12['pack'])
-        self.assertTrue('actions/filea.txt' in pack_db.files)
+        self.assertIn('actions/filea.txt', pack_db.files)
         self.__do_delete(self.__get_action_id(post_resp))
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -590,7 +593,7 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         get_resp = self.__do_get_one(action_id)
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self.__get_action_id(get_resp), action_id)
-        self.assertTrue(get_resp.json['notify']['on-complete'] is not None)
+        self.assertIsNotNone(get_resp.json['notify']['on-complete'])
         # Now post the same action with no notify
         ACTION_WITHOUT_NOTIFY = copy.copy(ACTION_WITH_NOTIFY)
         del ACTION_WITHOUT_NOTIFY['notify']
@@ -598,6 +601,39 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
         # Validate that notify section has vanished
         get_resp = self.__do_get_one(action_id)
         self.assertEqual(get_resp.json['notify'], {})
+        self.__do_delete(action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_one_using_name_parameter(self):
+        action_id, action_name = self.__get_action_id_and_additional_attribute(
+            self.__do_post(ACTION_1), 'name')
+        get_resp = self.__do_get_actions_by_url_parameter('name', action_name)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json[0]['id'], action_id)
+        self.assertEqual(get_resp.json[0]['name'], action_name)
+        self.__do_delete(action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_one_using_pack_parameter(self):
+        action_id, action_pack = self.__get_action_id_and_additional_attribute(
+            self.__do_post(ACTION_10), 'pack')
+        get_resp = self.__do_get_actions_by_url_parameter('pack', action_pack)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json[0]['id'], action_id)
+        self.assertEqual(get_resp.json[0]['pack'], action_pack)
+        self.__do_delete(action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_one_using_tag_parameter(self):
+        action_id, action_tags = self.__get_action_id_and_additional_attribute(
+            self.__do_post(ACTION_1), 'tags')
+        get_resp = self.__do_get_actions_by_url_parameter('tags', action_tags[0]['name'])
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json[0]['id'], action_id)
+        self.assertEqual(get_resp.json[0]['tags'], action_tags)
         self.__do_delete(action_id)
 
     # TODO: Re-enable those tests after we ensure DB is flushed in setUp
@@ -634,8 +670,19 @@ class ActionsControllerTestCase(FunctionalTest, APIControllerWithIncludeAndExclu
     def __get_action_name(resp):
         return resp.json['name']
 
+    @staticmethod
+    def __get_action_tags(resp):
+        return resp.json['tags']
+
+    @staticmethod
+    def __get_action_id_and_additional_attribute(resp, attribute):
+        return resp.json['id'], resp.json[attribute]
+
     def __do_get_one(self, action_id, expect_errors=False):
         return self.app.get('/v1/actions/%s' % action_id, expect_errors=expect_errors)
+
+    def __do_get_actions_by_url_parameter(self, filter, value, expect_errors=False):
+        return self.app.get('/v1/actions?%s=%s' % (filter, value), expect_errors=expect_errors)
 
     def __do_post(self, action, expect_errors=False):
         return self.app.post_json('/v1/actions', action, expect_errors=expect_errors)

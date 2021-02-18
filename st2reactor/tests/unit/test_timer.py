@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +44,7 @@ class St2TimerTestCase(CleanDbTestCase):
 
         for trigger_type in trigger_type_dbs:
             ref = ResourceReference(pack=trigger_type.pack, name=trigger_type.name).ref
-            self.assertTrue(ref in timer_trigger_type_refs)
+            self.assertIn(ref, timer_trigger_type_refs)
 
     def test_existing_rules_are_loaded_on_start(self):
         # Assert that we dispatch message for every existing Trigger object

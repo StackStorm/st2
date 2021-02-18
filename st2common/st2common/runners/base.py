@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,8 +29,6 @@ from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants import pack as pack_constants
 from st2common.constants.runners import RUNNERS_NAMESPACE
-from st2common.constants.runners import RUNNERS_QUERY_MODULES_NAMESPACE
-from st2common.constants.runners import RUNNERS_CALLBACK_MODULES_NAMESPACE
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions import actionrunner as exc
@@ -54,9 +53,6 @@ __all__ = [
 
     'get_runner',
     'get_metadata',
-
-    'get_query_module',
-    'get_callback_module'
 ]
 
 
@@ -116,38 +112,6 @@ def get_runner_module(name):
     return module
 
 
-def get_query_module(name):
-    """
-    Retrieve runner query module for the provided runner.
-    """
-    # NOTE: For backward compatibility we also support "_" in place of "-"
-    from stevedore.exception import NoMatches
-
-    try:
-        module = get_plugin_instance(RUNNERS_QUERY_MODULES_NAMESPACE, name, invoke_on_load=False)
-    except NoMatches:
-        name = name.replace('_', '-')
-        module = get_plugin_instance(RUNNERS_QUERY_MODULES_NAMESPACE, name, invoke_on_load=False)
-
-    return module
-
-
-def get_callback_module(name):
-    """
-    Retrieve runner callback module for the provided runner.
-    """
-    # NOTE: For backward compatibility we also support "_" in place of "-"
-    from stevedore.exception import NoMatches
-
-    try:
-        module = get_plugin_instance(RUNNERS_CALLBACK_MODULES_NAMESPACE, name, invoke_on_load=False)
-    except NoMatches:
-        name = name.replace('_', '-')
-        module = get_plugin_instance(RUNNERS_CALLBACK_MODULES_NAMESPACE, name, invoke_on_load=False)
-
-    return module
-
-
 def get_metadata(package_name):
     """
     Return runner related metadata for the provided runner package name.
@@ -189,7 +153,6 @@ class ActionRunner(object):
         self.entry_point = None
         self.libs_dir_path = None
         self.context = None
-        self.callback = None
         self.auth_token = None
         self.rerun_ex_ref = None
 
@@ -227,10 +190,7 @@ class ActionRunner(object):
         )
 
     def post_run(self, status, result):
-        if self.callback and isinstance(self.callback, dict) and 'source' in self.callback:
-            callback_module = get_callback_module(self.callback['source'])
-            callback_handler = callback_module.get_instance()
-            callback_handler.callback(self.liveaction)
+        pass
 
     @deprecated
     def get_pack_name(self):

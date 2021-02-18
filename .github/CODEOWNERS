@@ -1,0 +1,6 @@
+# This is a comment.
+# Each line is a file pattern followed by one or more owners.
+
+# Set TSC Voting Members as PR Reviewers for Changes to GOVERNANCE.md and OWNERS documents
+GOVERNANCE.md @StackStorm/Maintainers @StackStorm/Leaders
+OWNERS.md @StackStorm/Maintainers @StackStorm/Leaders

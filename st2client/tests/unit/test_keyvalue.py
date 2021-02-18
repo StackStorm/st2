@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -139,7 +140,7 @@ class TestKeyValueSet(TestKeyValueBase):
         stderr = self.stderr.read()
 
         expected_msg = ('error: argument --encrypted: not allowed with argument -e/--encrypt')
-        self.assertTrue(expected_msg in stderr)
+        self.assertIn(expected_msg, stderr)
 
 
 class TestKeyValueLoad(TestKeyValueBase):

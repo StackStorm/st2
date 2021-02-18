@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,17 +130,16 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
     def test_ruleenforcement_occurs(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule1.yaml'])
         execution_db = enforcer.enforce()
-        self.assertTrue(execution_db is not None)
+        self.assertIsNotNone(execution_db)
 
     @mock.patch.object(action_service, 'request', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
     def test_ruleenforcement_casts(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule2.yaml'])
         execution_db = enforcer.enforce()
-        self.assertTrue(execution_db is not None)
+        self.assertIsNotNone(execution_db)
         self.assertTrue(action_service.request.called)
-        self.assertTrue(isinstance(action_service.request.call_args[0][0].parameters['objtype'],
-                                   dict))
+        self.assertIsInstance(action_service.request.call_args[0][0].parameters['objtype'], dict)
 
     @mock.patch.object(action_service, 'request', mock.MagicMock(
         return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
@@ -147,7 +147,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
     def test_ruleenforcement_create_on_success(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule2.yaml'])
         execution_db = enforcer.enforce()
-        self.assertTrue(execution_db is not None)
+        self.assertIsNotNone(execution_db)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
                          self.models['rules']['rule2.yaml'].ref)
@@ -176,7 +176,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         call_args = action_service.request.call_args[0]
         live_action_db = call_args[0]
         self.assertEqual(live_action_db.parameters['actionstr'], 'somevalue')
-        self.assertTrue(execution_db is not None)
+        self.assertIsNotNone(execution_db)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
                          self.models['rules']['rule_use_none_filter.yaml'].ref)
@@ -200,7 +200,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         call_args = action_service.request.call_args[0]
         live_action_db = call_args[0]
         self.assertEqual(live_action_db.parameters['actionstr'], None)
-        self.assertTrue(execution_db is not None)
+        self.assertIsNotNone(execution_db)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
                          self.models['rules']['rule_use_none_filter.yaml'].ref)
@@ -222,7 +222,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         call_args = action_service.request.call_args[0]
         live_action_db = call_args[0]
         self.assertEqual(live_action_db.parameters['actionstr'], 'None-value2')
-        self.assertTrue(execution_db is not None)
+        self.assertIsNotNone(execution_db)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
                          self.models['rules']['rule_none_no_use_none_filter.yaml'].ref)
@@ -237,7 +237,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
     def test_ruleenforcement_create_on_fail(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule1.yaml'])
         execution_db = enforcer.enforce()
-        self.assertTrue(execution_db is None)
+        self.assertIsNone(execution_db)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].failure_reason,
                          FAILURE_REASON)
@@ -256,7 +256,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, rule)
         execution_db = enforcer.enforce()
 
-        self.assertTrue(execution_db is not None)
+        self.assertIsNotNone(execution_db)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref, rule.ref)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,
@@ -278,7 +278,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, rule)
         execution_db = enforcer.enforce()
 
-        self.assertTrue(execution_db is not None)
+        self.assertIsNotNone(execution_db)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref, rule.ref)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,
@@ -304,7 +304,7 @@ class RuleEnforcerTestCase(BaseRuleEnforcerTestCase):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, rule)
         execution_db = enforcer.enforce()
 
-        self.assertTrue(execution_db is None)
+        self.assertIsNone(execution_db)
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref, rule.ref)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].status,

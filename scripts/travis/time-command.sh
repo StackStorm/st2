@@ -49,7 +49,7 @@ if [ "${COMMAND_THRESHOLD}" ] && [ ${COMMAND_THRESHOLD} -lt ${DURATION} ]; then
     >&2  echo "${RED}Command ${BOLD}${BASH_COMMAND_STRING}${RESET}${RED} took longer than ${BOLD}${COMMAND_THRESHOLD}${RESET}${RED} seconds, failing the build."
     >&2  echo "This likely means that a regression has been introduced in the code / tests which significantly slows things down."
     >&2  echo "If you think it's an intermediate error, re-run the tests."
-    >&2  echo "If you think it's a legitimate duration increase, bump the threshold in .travis.yml.${RESET}"
+    >&2  echo "If you think it's a legitimate duration increase, bump the threshold in .travis.yml and/or .github/workflows/*.yaml.${RESET}"
 
     #exit 10
 fi

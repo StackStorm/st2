@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -286,7 +287,7 @@ class TestActionExecutionService(DbTestCase):
         self.assertEqual(ex.context['user'], req.context['user'])
         self.assertDictEqual(ex.parameters, req.parameters)
         self.assertEqual(ex.status, action_constants.LIVEACTION_STATUS_REQUESTED)
-        self.assertTrue(ex.notify is not None)
+        self.assertIsNotNone(ex.notify)
         # mongoengine DateTimeField stores datetime only up to milliseconds
         self.assertEqual(isotime.format(ex.start_timestamp, usec=False),
                          isotime.format(req.start_timestamp, usec=False))

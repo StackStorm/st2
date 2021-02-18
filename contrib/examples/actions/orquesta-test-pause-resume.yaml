@@ -1,0 +1,14 @@
+---
+name: orquesta-test-pause-resume
+description: A sample workflow used to test the pause and resume feature.
+pack: examples
+runner_type: orquesta
+entry_point: workflows/tests/orquesta-test-pause-resume.yaml
+enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true
+    message:
+        type: string
+        required: true

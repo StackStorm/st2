@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,17 +52,17 @@ class RuleTypeAPI(BaseAPI):
         'type': 'object',
         'properties': {
             'id': {
-                'description': 'The unique identifier for the action runner.',
+                'description': 'The unique identifier for the rule type.',
                 'type': 'string',
                 'default': None
             },
             'name': {
-                'description': 'The name of the action runner.',
+                'description': 'The name for the rule type.',
                 'type': 'string',
                 'required': True
             },
             'description': {
-                'description': 'The description of the action runner.',
+                'description': 'The description of the rule type.',
                 'type': 'string'
             },
             'enabled': {
@@ -121,8 +122,10 @@ class RuleAPI(BaseAPI, APIUIDMixin):
                 'default': None
             },
             "ref": {
-                "description": "System computed user friendly reference for the action. \
-                                Provided value will be overridden by computed value.",
+                "description": (
+                    "System computed user friendly reference for the rule. "
+                    "Provided value will be overridden by computed value."
+                ),
                 "type": "string"
             },
             'uid': {

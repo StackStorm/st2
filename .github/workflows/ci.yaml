@@ -1,0 +1,222 @@
+name: ci
+
+on:
+  push:
+    branches:
+      # only on merges to master branch
+      - master
+      # and version branches, which only include minor versions (eg: v3.4)
+      - v[0-9]+.[0-9]+
+    tags:
+      # also version tags, which include bugfix releases (eg: v3.4.0)
+      - v[0-9]+.[0-9]+.[0-9]+
+  pull_request:
+    type: [opened, reopened, edited]
+    branches:
+      # Only for PRs targeting those branches
+      - master
+      - v[0-9]+.[0-9]+
+  schedule:
+    # run every night at midnight
+    - cron:  '0 0 * * *'
+
+jobs:
+  ci:
+    name: '${{ matrix.name }} - python (${{ matrix.python-version }})'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'Lint Checks'
+            task: 'ci-checks'
+            python-version: '3.6'
+          - name: 'Compile'
+            task: 'ci-compile'
+            python-version: '3.6'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            python-version: '3.6'
+          - name: 'Unit Tests'
+            task: 'ci-unit'
+            python-version: '3.6'
+          # Integration tests are not working yet, still done in Travis
+          # - name: 'Integration Tests'
+          #   task: 'ci-integration'
+    services:
+      mongo:
+        image: mongo:4.0
+        ports:
+          - 27017:27017
+      # Can't use RabbitMQ here for Integrations because we rely on custom config
+      # and SSL certs that are in the repo. In GHA, these services are started first
+      # before the code is checked out, so this is a non-starter, we need to do it
+      # manually below (TODO)
+      rabbitmq:
+        # use the -management version so it has the management tools installed
+        image: rabbitmq:3.8-management
+        ports:
+          # SSL port
+          - 5671:5671
+          # standard port
+          - 5672:5672
+          # management port
+          - 15672:15672
+    env:
+      TASK: '${{ matrix.task }}'
+
+      # We need to explicitly specify terminal width otherwise some CLI tests fail on container
+      # environments where small terminal size is used.
+      COLUMNS: '120'
+      PYLINT_CONCURRENCY: '2'
+
+      # CI st2.conf (with ST2_CI_USER user instead of stanley)
+      ST2_CONF: 'conf/st2.ci.conf'
+
+      # Tell StackStorm that we are indeed in CI mode, previously we hard coded a Travis specific
+      # environment variable in our test code, making it a PITA when we switch CI providers.
+      # Now, we simply set this environment varible here in the CI portion of our testing and
+      # it avoids any CI provider type lock-in.
+      ST2_CI: 'true'
+
+      # Name of the user who is running the CI (on GitHub Actions this is 'runner')
+      ST2_CI_USER: 'runner'
+    steps:
+      - name: Custom Environment Setup
+        # built-in GitHub Actions environment variables
+        # https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables
+        #
+        # setting environment variables, so we can use shell logic
+        # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
+        run: |
+          IS_NIGHTLY_BUILD=$([ "${GITHUB_EVENT_NAME}" = "schedule" ] && echo "yes" || echo "no")
+          echo "IS_NIGHTLY_BUILD=${IS_NIGHTLY_BUILD}" >> $GITHUB_ENV
+
+          # NOTE: We only enable coverage for master builds and not pull requests
+          # since it has huge performance overhead (tests are 50% or so slower)
+          ENABLE_COVERAGE=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
+          echo "ENABLE_COVERAGE=${ENABLE_COVERAGE}" >> $GITHUB_ENV
+
+          # We only run tests with "--with-timer" flag on master and not for PRs since it adds 1-2
+          # minutes of overhead to each build.
+          NOSE_TIME=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
+          echo "NOSE_TIME=${NOSE_TIME}" >> $GITHUB_ENV
+
+          # Setup the path to the st2 repo in the CI build system
+          echo "ST2_CI_REPO_PATH=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - uses: actions/cache@v2
+        with:
+          path: |
+            .cache/pip
+            virtualenv
+          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.python }}-
+      - name: Install apt depedencies
+        run: |
+          # install dev dependencies for Python LDAP module
+          # https://github.com/StackStorm/st2-auth-ldap
+          sudo apt-get -y update
+          sudo apt-get -f -y install libldap2-dev libsasl2-dev libssl-dev ldap-utils
+      - name: Install virtualenv
+        run: |
+          # Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
+          #       only have to update it one place when we change the version
+          pip install --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
+      - name: Install requirements
+        run: |
+          ./scripts/travis/install-requirements.sh
+      - name: Setup integration tests
+        run: |
+          # prep a ci-specific dev conf file that uses runner instead of stanley
+          # this user is the username of the user in GitHub actions, used for SSH, etc during
+          # integration tests (important)
+          cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
+          scripts/travis/add-itest-user-key.sh
+          sudo .circle/add-itest-user.sh
+      - name: Permissions Workaround
+        if: "${{ env.TASK == 'ci-packs-tests' || env.TASK == 'ci-integration' }}"
+        run: |
+          echo "$ST2_CI_REPO_PATH"
+          sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/travis/permissions-workaround.sh
+      - name: Setup RabbitMQ (NOT WORKING YET)
+        if: "${{ env.TASK == 'ci-integration' }}"
+        run: |
+          # Use custom RabbitMQ config which enables SSL / TLS listener on port 5671 with test certs
+          # Travis runs as the 'travis' user, GitHub actions run as the 'runner' user,
+          # And the cert filepaths are slightly different between the two.
+          # Example:
+          #   Travis-CI:      /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures/ssl_certs/ca/ca_certificate_bundle.pem
+          #   GitHub Actions: /home/runner/work/st2/st2/st2tests/st2tests/fixtures/ssl_certs/ca/ca_certificate_bundle.pem
+          sed -i 's|/home/travis/build/StackStorm|/home/runner/work/st2|g' scripts/travis/rabbitmq.config
+          # Now that we've manged the config file, install it
+          sudo cp scripts/travis/rabbitmq.config /etc/rabbitmq/rabbitmq.config
+          # Install rabbitmq_management RabbitMQ plugin
+          sudo service rabbitmq-server restart
+          sleep 5
+          sudo rabbitmq-plugins enable rabbitmq_management
+          sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
+          sudo chmod +x /usr/local/bin/rabbitmqadmin
+          sudo service rabbitmq-server restart
+          # chmod to make glob work (*.log to avoid log dir)
+          sudo chmod a+rx /var/log/rabbitmq
+          sudo tail -n 30 /var/log/rabbitmq/*.log
+      - name: Print versions
+        run: |
+          # Print various binary versions
+          git --version
+          pip --version
+          pip list
+          # Print out various environment variables info
+          make play
+      - name: make
+        # use: script -e -c to print colors
+        run: |
+          script -e -c "make ${TASK}"
+      - name: Nightly
+        # Run any additional nightly checks only as part of a nightly (cron) build
+        if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
+        run: |
+          ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"
+      - name: Codecov
+        # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
+        if: "${{ success() && ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
+        run: |
+          ./scripts/travis/submit-codecov-coverage.sh
+  slack-notification:
+    name: Slack notification for failed master builds
+    if: always()
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow conclusion
+        # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
+        uses: technote-space/workflow-conclusion-action@v2
+      - name: CI Run Failure Slack Notification
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.ref == 'refs/heads/master' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: development
+          status: FAILED
+          color: danger
+
+      # HELPER FOR FUTURE DEVELOPERS:
+      #  If your GitHub Actions job is failing and you need to debug it, by default there is
+      #  no way to SSH into the container.
+      #  The step below can be uncommeted and will stop here and allow you to SSH in.
+      #  When this step is reached, simply refresh the GitHub Actions output for this build
+      #  and this SSH command will be printed every 5 seconds to the output.
+      #  Once you are done debugging in your SSH session, simply: touch /continue
+      #  and this will continue the build.
+      #
+      # - name: Setup tmate session for debugging failed jobs (allows SSH into the container)
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: "${{ failure() }}"

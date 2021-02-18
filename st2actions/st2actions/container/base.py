@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -249,7 +250,7 @@ class RunnerContainer(object):
         it doesn't throw.
         """
         # Deletion of the runner generated auth token is delayed until the token expires.
-        # Async actions such as Mistral workflows uses the auth token to launch other
+        # Async actions use the auth token to launch other
         # actions in the workflow. If the auth token is deleted here, then the actions
         # in the workflow will fail with unauthorized exception.
         is_async_runner = isinstance(runner, AsyncActionRunner)

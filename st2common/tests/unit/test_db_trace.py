@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +32,7 @@ class TraceDBTest(CleanDbTestCase):
             rules=[str(bson.ObjectId()) for _ in range(4)],
             trigger_instances=[str(bson.ObjectId()) for _ in range(5)])
         retrieved = Trace.get(id=saved.id)
-        self.assertEquals(retrieved.id, saved.id, 'Incorrect trace retrieved.')
+        self.assertEqual(retrieved.id, saved.id, 'Incorrect trace retrieved.')
 
     def test_query(self):
         saved = TraceDBTest._create_save_trace(
@@ -40,8 +41,8 @@ class TraceDBTest(CleanDbTestCase):
             rules=[str(bson.ObjectId()) for _ in range(4)],
             trigger_instances=[str(bson.ObjectId()) for _ in range(5)])
         retrieved = Trace.query(trace_tag=saved.trace_tag)
-        self.assertEquals(len(retrieved), 1, 'Should have 1 trace.')
-        self.assertEquals(retrieved[0].id, saved.id, 'Incorrect trace retrieved.')
+        self.assertEqual(len(retrieved), 1, 'Should have 1 trace.')
+        self.assertEqual(retrieved[0].id, saved.id, 'Incorrect trace retrieved.')
 
         # Add another trace with same trace_tag and confirm that we support.
         # This is most likley an anti-pattern for the trace_tag but it is an unknown.
@@ -51,7 +52,7 @@ class TraceDBTest(CleanDbTestCase):
             rules=[str(bson.ObjectId()) for _ in range(4)],
             trigger_instances=[str(bson.ObjectId()) for _ in range(3)])
         retrieved = Trace.query(trace_tag=saved.trace_tag)
-        self.assertEquals(len(retrieved), 2, 'Should have 2 traces.')
+        self.assertEqual(len(retrieved), 2, 'Should have 2 traces.')
 
     def test_update(self):
         saved = TraceDBTest._create_save_trace(
@@ -60,8 +61,8 @@ class TraceDBTest(CleanDbTestCase):
             rules=[],
             trigger_instances=[])
         retrieved = Trace.query(trace_tag=saved.trace_tag)
-        self.assertEquals(len(retrieved), 1, 'Should have 1 trace.')
-        self.assertEquals(retrieved[0].id, saved.id, 'Incorrect trace retrieved.')
+        self.assertEqual(len(retrieved), 1, 'Should have 1 trace.')
+        self.assertEqual(retrieved[0].id, saved.id, 'Incorrect trace retrieved.')
 
         no_action_executions = 4
         no_rules = 4
@@ -74,14 +75,14 @@ class TraceDBTest(CleanDbTestCase):
             trigger_instances=[str(bson.ObjectId()) for _ in range(no_trigger_instances)])
         retrieved = Trace.query(trace_tag=saved.trace_tag)
 
-        self.assertEquals(len(retrieved), 1, 'Should have 1 trace.')
-        self.assertEquals(retrieved[0].id, saved.id, 'Incorrect trace retrieved.')
+        self.assertEqual(len(retrieved), 1, 'Should have 1 trace.')
+        self.assertEqual(retrieved[0].id, saved.id, 'Incorrect trace retrieved.')
         # validate update
-        self.assertEquals(len(retrieved[0].action_executions), no_action_executions,
-                          'Failed to update action_executions.')
-        self.assertEquals(len(retrieved[0].rules), no_rules, 'Failed to update rules.')
-        self.assertEquals(len(retrieved[0].trigger_instances), no_trigger_instances,
-                          'Failed to update trigger_instances.')
+        self.assertEqual(len(retrieved[0].action_executions), no_action_executions,
+                         'Failed to update action_executions.')
+        self.assertEqual(len(retrieved[0].rules), no_rules, 'Failed to update rules.')
+        self.assertEqual(len(retrieved[0].trigger_instances), no_trigger_instances,
+                         'Failed to update trigger_instances.')
 
     def test_update_via_list_push(self):
         no_action_executions = 4
@@ -101,10 +102,10 @@ class TraceDBTest(CleanDbTestCase):
             saved, trigger_instance=TraceComponentDB(object_id=str(bson.ObjectId())))
 
         retrieved = Trace.get(id=saved.id)
-        self.assertEquals(retrieved.id, saved.id, 'Incorrect trace retrieved.')
-        self.assertEquals(len(retrieved.action_executions), no_action_executions + 1)
-        self.assertEquals(len(retrieved.rules), no_rules + 1)
-        self.assertEquals(len(retrieved.trigger_instances), no_trigger_instances + 1)
+        self.assertEqual(retrieved.id, saved.id, 'Incorrect trace retrieved.')
+        self.assertEqual(len(retrieved.action_executions), no_action_executions + 1)
+        self.assertEqual(len(retrieved.rules), no_rules + 1)
+        self.assertEqual(len(retrieved.trigger_instances), no_trigger_instances + 1)
 
     def test_update_via_list_push_components(self):
         no_action_executions = 4
@@ -125,10 +126,10 @@ class TraceDBTest(CleanDbTestCase):
             trigger_instances=[TraceComponentDB(object_id=str(bson.ObjectId()))
                                for _ in range(no_trigger_instances)])
 
-        self.assertEquals(retrieved.id, saved.id, 'Incorrect trace retrieved.')
-        self.assertEquals(len(retrieved.action_executions), no_action_executions * 2)
-        self.assertEquals(len(retrieved.rules), no_rules * 2)
-        self.assertEquals(len(retrieved.trigger_instances), no_trigger_instances * 2)
+        self.assertEqual(retrieved.id, saved.id, 'Incorrect trace retrieved.')
+        self.assertEqual(len(retrieved.action_executions), no_action_executions * 2)
+        self.assertEqual(len(retrieved.rules), no_rules * 2)
+        self.assertEqual(len(retrieved.trigger_instances), no_trigger_instances * 2)
 
     @staticmethod
     def _create_save_trace(trace_tag, id_=None, action_executions=None, rules=None,

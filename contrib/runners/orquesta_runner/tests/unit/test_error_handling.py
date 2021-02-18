@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +35,7 @@ from st2common.models.db import liveaction as lv_db_models
 from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
 from st2common.persistence import workflow as wf_db_access
+from st2common.runners import utils as runners_utils
 from st2common.services import action as ac_svc
 from st2common.services import workflows as wf_svc
 from st2common.transport import liveaction as lv_ac_xport
@@ -826,3 +828,69 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         ]
 
         self.assertListEqual(self.sort_workflow_errors(wf_ex_db.errors), expected_errors)
+
+    @mock.patch.object(
+        runners_utils,
+        'invoke_post_run',
+        mock.MagicMock(return_value=None))
+    def test_include_result_to_error_log(self):
+        username = 'stanley'
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        wf_input = {'who': 'Thanos'}
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
+
+        # Assert action execution is running.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
+        wf_ex_db = wf_ex_dbs[0]
+
+        # Assert task1 is already completed.
+        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.context.get('user'), username)
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
+        # Manually override and fail the action execution and write some result.
+        # Action execution result can contain dotted notation so ensure this is tested.
+        result = {"127.0.0.1": {"hostname": "foobar"}}
+
+        ac_svc.update_status(
+            tk1_lv_ac_db,
+            ac_const.LIVEACTION_STATUS_FAILED,
+            result=result,
+            publish=False
+        )
+
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(tk1_lv_ac_db.result, result)
+
+        # Manually handle action execution completion.
+        wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
+
+        # Assert task and workflow failed.
+        tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
+        self.assertEqual(tk1_ex_db.status, wf_statuses.FAILED)
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.FAILED)
+
+        # Assert result is included in the error log.
+        expected_errors = [
+            {
+                'message': 'Execution failed. See result for details.',
+                'type': 'error',
+                'task_id': 'task1',
+                'result': {
+                    '127.0.0.1': {
+                        'hostname': 'foobar'
+                    }
+                }
+            }
+        ]
+
+        self.assertListEqual(wf_ex_db.errors, expected_errors)
