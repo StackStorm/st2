@@ -28,6 +28,7 @@ from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
 from st2common.models.db import stormbase
 from st2common.fields import JSONDictField
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 
 from st2tests import DbTestCase
 
@@ -81,7 +82,17 @@ class JSONDictFieldTestCase(unittest2.TestCase):
         self.assertEqual(result_to_python, MOCK_DATA_DICT)
 
 
-class JSONDictEscapedFieldCompatibilityField(DbTestCase):
+class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
+    def test_to_mongo(self):
+        field = JSONDictEscapedFieldCompatibilityField()
+
+        result_to_mongo_1 = field.to_mongo(MOCK_DATA_DICT)
+        self.assertEqual(result_to_mongo_1, orjson.dumps(MOCK_DATA_DICT))
+
+        # Already serialized
+        result_to_mongo_2 = field.to_mongo(MOCK_DATA_DICT)
+        self.assertEqual(result_to_mongo_2, result_to_mongo_1)
+
     def test_existing_db_value_is_using_escaped_dict_field_compatibility(self):
         # Verify that backward and forward compatibility is handeld correctly and transparently
 
