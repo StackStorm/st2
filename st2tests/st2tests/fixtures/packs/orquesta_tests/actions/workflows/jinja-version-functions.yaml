@@ -14,7 +14,7 @@ output:
   - more_than: '{{ version_more_than("0.9.0", "0.10.0") }}'
   - less_than: '{{ version_less_than("0.10.0", "0.9.0") }}'
   - match: '{{ version_match("0.10.1", ">0.10.0") }}'
-  - bump_major: '{{ version_bump_major("0.10.0") }}'
+  - bump_major: '{{ version_bump_major("0.10.0") }}' 
   - bump_minor: '{{ version_bump_minor("0.10.0") }}'
   - bump_patch: '{{ version_bump_patch("0.10.0") }}'
   - strip_patch: '{{ version_strip_patch("0.10.0") }}'
