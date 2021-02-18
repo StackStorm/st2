@@ -14,14 +14,128 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import copy
 import datetime
 import calendar
 
 import mock
 import unittest2
+import orjson
+import mongoengine as me
 
 from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
+from st2common.models.db import stormbase
+from st2common.fields import JSONDictField
+
+from st2tests import DbTestCase
+
+
+MOCK_DATA_DICT = {
+    "key1": "one",
+    "key2": 2,
+    "key3": ["a", 1, ["a", "c"], {"d": "e"}, True, None],
+    "key4": None,
+    "key5": False,
+    "key6": {"key1": "val1", "key2": [2, 3, True], "4": False, "5": None, "6": True, "7": 199}
+}
+
+
+# NOTE: Collections of the following two models must be the same for testing purposes
+class ModelWithEscapedDynamicFieldDB(stormbase.StormFoundationDB):
+    result = stormbase.EscapedDynamicField(default={})
+    counter = me.IntField(default=0)
+
+    meta = {'collection': 'model_result_test'}
+
+class ModelWithJSONDictFieldDB(stormbase.StormFoundationDB):
+    result = JSONDictField(default={})
+    counter = me.IntField(default=0)
+
+    meta = {'collection': 'model_result_test'}
+
+
+class JSONDictFieldTestCase(unittest2.TestCase):
+    def test_to_mongo(self):
+        field = JSONDictField()
+        result = field.to_mongo(MOCK_DATA_DICT)
+
+        self.assertTrue(isinstance(result, bytes))
+        self.assertEqual(result, orjson.dumps(MOCK_DATA_DICT))
+
+    def test_to_python(self):
+        field = JSONDictField()
+
+        data = orjson.dumps(MOCK_DATA_DICT)
+        result = field.to_python(data)
+
+        self.assertTrue(isinstance(result, dict))
+        self.assertEqual(result, MOCK_DATA_DICT)
+
+    def test_roundtrip(self):
+        field = JSONDictField()
+        result_to_mongo = field.to_mongo(MOCK_DATA_DICT)
+        result_to_python = field.to_python(result_to_mongo)
+
+        self.assertEqual(result_to_python, MOCK_DATA_DICT)
+
+
+class JSONDictEscapedFieldCompatibilityField(DbTestCase):
+    def test_existing_db_value_is_using_escaped_dict_field_compatibility(self):
+        # Verify that backward and forward compatibility is handeld correctly and transparently
+
+        # 1. Insert same model with EscapedDynamicField
+        model_db = ModelWithEscapedDynamicFieldDB()
+        model_db.result = MOCK_DATA_DICT
+        model_db.counter = 0
+
+        inserted_model_db = model_db.save()
+        self.assertTrue(inserted_model_db.id)
+        self.assertEqual(inserted_model_db.result, MOCK_DATA_DICT)
+        self.assertEqual(inserted_model_db.counter, 0)
+
+        # Verify it's stored as EscapedDictField
+        pymongo_result = ModelWithEscapedDynamicFieldDB.objects.all().as_pymongo()
+        self.assertEqual(len(pymongo_result), 1)
+        self.assertEqual(pymongo_result[0]["_id"], inserted_model_db.id)
+        self.assertEqual(pymongo_result[0]["result"], MOCK_DATA_DICT)
+        self.assertEqual(pymongo_result[0]["counter"], 0)
+
+        # 2. Now read it with JSONDictField and verify it works and gets converted transparently on
+        # read
+        retrieved_model_db = ModelWithJSONDictFieldDB.objects.get(id=inserted_model_db.id)
+        self.assertEqual(retrieved_model_db.id, inserted_model_db.id)
+        self.assertEqual(retrieved_model_db.result, MOCK_DATA_DICT)
+
+        # Verify existing document has been updated
+        pymongo_result = ModelWithJSONDictFieldDB.objects.all().as_pymongo()
+        self.assertEqual(len(pymongo_result), 1)
+        self.assertEqual(pymongo_result[0]["_id"], inserted_model_db.id)
+        self.assertEqual(pymongo_result[0]["result"], MOCK_DATA_DICT)
+        self.assertEqual(pymongo_result[0]["counter"], 0)
+
+        # 3. Now save it back to the database (should be stored as JSON serialized value)
+        updated_data = copy.deepcopy(MOCK_DATA_DICT)
+        updated_data["new_key"] = "new value"
+
+        retrieved_model_db.result = updated_data
+        retrieved_model_db.counter = 1
+
+        expected_data = copy.deepcopy(MOCK_DATA_DICT)
+        expected_data["new_key"] = "new value"
+
+        new_inserted_model_db = retrieved_model_db.save()
+        self.assertTrue(new_inserted_model_db.id)
+        self.assertEqual(new_inserted_model_db.result, expected_data)
+        self.assertEqual(new_inserted_model_db.counter, 1)
+
+        pymongo_result = ModelWithJSONDictFieldDB.objects.all().as_pymongo()
+        self.assertEqual(len(pymongo_result), 1)
+        self.assertEqual(pymongo_result[0]["_id"], inserted_model_db.id)
+        self.assertTrue(isinstance(pymongo_result[0]["result"], bytes))
+        self.assertEqual(orjson.loads(pymongo_result[0]["result"]), expected_data)
+        self.assertEqual(pymongo_result[0]["counter"], 1)
 
 
 class ComplexDateTimeFieldTestCase(unittest2.TestCase):

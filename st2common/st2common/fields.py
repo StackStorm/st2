@@ -175,11 +175,11 @@ class JSONDictField(BinaryField):
     def to_python(self, value):
         if isinstance(value, (six.text_type, six.binary_type)):
             return self.json_loads(value)
+
         return value
 
     def validate(self, value):
         value = self.to_mongo(value)
-
         return super(JSONDictField, self).validate(value)
 
 
@@ -199,11 +199,12 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
         return self.json_dumps(value)
 
     def to_python(self, value):
-        if isinstance(value, dict) and True:
+        if isinstance(value, dict):
             # Old format which used a native dict with escaped special characters
             value = mongoescape.unescape_chars(value)
             return value
 
         if isinstance(value, (six.text_type, six.binary_type)):
             return self.json_loads(value)
+
         return value

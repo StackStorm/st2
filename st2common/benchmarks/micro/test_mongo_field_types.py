@@ -49,7 +49,6 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.fields import JSONDictField
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
 
