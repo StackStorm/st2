@@ -170,8 +170,8 @@ def _print_options(opt_group, options):
         else:
             value = opt.default
 
-        print("# %s" % opt.help)
-        print("%s = %s" % (opt.name, value))
+        print(("# %s" % opt.help).strip())
+        print(("%s = %s" % (opt.name, value)).strip())
 
 
 def main(args):
