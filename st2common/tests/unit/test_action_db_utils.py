@@ -116,7 +116,7 @@ class ActionDBUtilsTestCase(DbTestCase):
 
         now = get_datetime_utc_now()
         status = 'succeeded'
-        result = 'Work is done.'
+        result = {'result': 'Work is done.'}
         context = {'third_party_id': uuid.uuid4().hex}
         newliveaction_db = action_db_utils.update_liveaction_status(
             status=status, result=result, context=context, end_timestamp=now,
@@ -160,7 +160,7 @@ class ActionDBUtilsTestCase(DbTestCase):
         # Update status, result, context, and end timestamp.
         now = get_datetime_utc_now()
         status = 'succeeded'
-        result = 'Work is done.'
+        result = {'result': 'Work is done.'}
         context = {'third_party_id': uuid.uuid4().hex}
         newliveaction_db = action_db_utils.update_liveaction_status(
             status=status, result=result, context=context, end_timestamp=now,
