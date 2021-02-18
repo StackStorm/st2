@@ -9,7 +9,7 @@
       "category" : "Education",
       "createdAt" : 1317851618,
       "description" : "New York City Results on the New York State Mathematics Tests, Grades 3 - 8\r\nNotes:\r\nAs of 2006, the New York State Education Department expanded the ELA and mathematics testing programs to Grades 3-8. Previously, state tests were administered in Grades 4 and 8 and citywide tests were administered in Grades 3, 5, 6, and 7.\r\nIn 2006, NYSED treated District 75 students as a distinct geographic district. For 2007-2011, District 75 students are represented in their home districts and boroughs. Spreadsheets for District and Borough do not include District 75 students in 2006.\r\nStarting in 2010, NYSED changed the scale score required to meet each of the proficiency levels, increasing the number of questions students needed to answer correctly to meet proficiency.",
-      "displayType" : "table",
+      "displayType.bar" : "table",
       "downloadCount" : 3439,
       "hideFromCatalog" : false,
       "hideFromDataJson" : false,

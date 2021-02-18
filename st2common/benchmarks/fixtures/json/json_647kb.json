@@ -14,7 +14,7 @@
       "hideFromCatalog" : false,
       "hideFromDataJson" : false,
       "indexUpdatedAt" : 1536596455,
-      "newBackend" : true,
+      "newBackend.foo" : true,
       "numberOfComments" : 0,
       "oid" : 345877,
       "provenance" : "official",

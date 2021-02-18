@@ -63,7 +63,6 @@ class LiveActionDB_JSONField(LiveActionDB):
     result = JSONDictField(default={})
 
 
-
 @pytest.mark.parametrize(
     "fixture_file",
     [
