@@ -38,5 +38,5 @@ repos:
     rev: v2.5.0
     hooks:
     - id: trailing-whitespace
-      exclude: (^st2common/st2common/openapi.yaml|^st2client/tests/fixtures|^st2tests/st2tests/fixtures)
+      exclude: (^conf/|^st2common/st2common/openapi.yaml|^st2client/tests/fixtures|^st2tests/st2tests/fixtures)
     - id: check-yaml
