@@ -11,7 +11,7 @@ tasks:
       - when: <% failed() %>
         publish:
           - task_name: <% task().task_name %>
-          - task_exit_code: <% task().result.stdout %> 
+          - task_exit_code: <% task().result.stdout %>
         do:
           - log
           - fail
