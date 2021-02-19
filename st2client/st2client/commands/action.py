@@ -1172,7 +1172,7 @@ class ActionExecutionListCommand(ResourceViewCommand):
 
 class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
-                          'start_timestamp', 'end_timestamp', 'finalized_timestamp' ,'result']
+                          'start_timestamp', 'end_timestamp', 'result']
     include_attributes = ['action.ref', 'action.runner_type', 'start_timestamp',
                           'end_timestamp', 'finalized_timestamp']
 
