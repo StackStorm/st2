@@ -36,6 +36,11 @@ LOG = logging.getLogger(__name__)
 class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
     RESOURCE_TYPE = types.ResourceType.EXECUTION
 
+    # TODO: Explore for which fields we could use new JSONDictField which is up to 10 or more times
+    # more efficient when storing and reading data, especially for fields with large dicts. Those
+    # fields need to be treated as opaque binary blob to database and we shouldn't directly perform
+    # queries on those field values.
+
     action_execution = me.StringField(required=True)
     spec = stormbase.EscapedDictField()
     graph = me.DictField()
@@ -58,6 +63,11 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
 
 class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
     RESOURCE_TYPE = types.ResourceType.EXECUTION
+
+    # TODO: Explore for which fields we could use new JSONDictField which is up to 10 or more times
+    # more efficient when storing and reading data, especially for fields with large dicts. Those
+    # fields need to be treated as opaque binary blob to database and we shouldn't directly perform
+    # queries on those field values.
 
     workflow_execution = me.StringField(required=True)
     task_name = me.StringField(required=True)
