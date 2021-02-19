@@ -124,7 +124,6 @@ class ComplexDateTimeField(LongField):
         return self._convert_from_datetime(value)
 
 
-
 class JSONDictField(BinaryField):
     """
     Custom field types which stores dictionary as JSON serialized strings.

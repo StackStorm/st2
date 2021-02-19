@@ -52,7 +52,7 @@ FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
 )
 @pytest.mark.benchmark(group="escape_chars")
 def test_escape_chars(benchmark, fixture_file: str) -> None:
-    with open(os.path.join(FIXTURES_DIR, fixture_file),"r") as fp:
+    with open(os.path.join(FIXTURES_DIR, fixture_file), "r") as fp:
         content = fp.read()
 
     data = json.loads(content)
@@ -88,7 +88,7 @@ def test_escape_chars(benchmark, fixture_file: str) -> None:
 )
 @pytest.mark.benchmark(group="unescape_chars")
 def test_unescape_chars(benchmark, fixture_file: str) -> None:
-    with open(os.path.join(FIXTURES_DIR, fixture_file),"r") as fp:
+    with open(os.path.join(FIXTURES_DIR, fixture_file), "r") as fp:
         content = fp.read()
 
     data = json.loads(content)

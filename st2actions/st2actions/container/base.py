@@ -29,6 +29,7 @@ from st2common.exceptions import actionrunner
 from st2common.exceptions.param import ParamException
 from st2common.models.system.action import ResolvedActionParameters
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.liveaction import LiveAction
 from st2common.services import access, executions, queries
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
@@ -36,9 +37,6 @@ from st2common.util import param as param_utils
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.metrics.base import CounterWithTimer
 from st2common.util import jsonify
-
-from st2common.persistence.liveaction import LiveAction
-from st2common.persistence.execution import ActionExecution
 
 from st2common.runners.base import get_runner
 from st2common.runners.base import AsyncActionRunner, PollingAsyncActionRunner

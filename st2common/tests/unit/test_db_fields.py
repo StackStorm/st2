@@ -50,6 +50,7 @@ class ModelWithEscapedDynamicFieldDB(stormbase.StormFoundationDB):
 
     meta = {'collection': 'model_result_test'}
 
+
 class ModelWithJSONDictFieldDB(stormbase.StormFoundationDB):
     result = JSONDictField(default={})
     counter = me.IntField(default=0)

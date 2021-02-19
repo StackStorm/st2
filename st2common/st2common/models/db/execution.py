@@ -76,7 +76,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     # For now this attribute will be internal.
     finalized_timestamp = ComplexDateTimeField(
         help_text='The timestamp when the execution has been fully finalized (corresponding '
-                   'execution object with the result has been persisted in the database.')
+                  'execution object with the result has been persisted in the database).')
     parameters = stormbase.EscapedDynamicField(
         default={},
         help_text='The key-value pairs passed as to the action runner & action.')

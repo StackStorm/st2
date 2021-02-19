@@ -40,8 +40,6 @@ import os
 import json
 
 import pytest
-import ujson
-import orjson
 
 from st2common.service_setup import db_setup
 from st2common.models.db import stormbase
@@ -52,8 +50,10 @@ from st2common.fields import JSONDictField
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
 
+
 # Needeed so we can subclass it
 LiveActionDB._meta["allow_inheritance"] = True
+
 
 # 1. Current approach aka using EscapedDynamicField
 class LiveActionDB_EscapedDynamicField(LiveActionDB):
@@ -64,9 +64,9 @@ class LiveActionDB_EscapedDynamicField(LiveActionDB):
 class LiveActionDB_JSONField(LiveActionDB):
     result = JSONDictField(default={})
 
+
 class LiveActionDB_JSONFieldWithZstandard(LiveActionDB):
     result = JSONDictField(default={}, compression_algorithm="zstandard")
-
 
 
 @pytest.mark.parametrize(
@@ -103,7 +103,7 @@ class LiveActionDB_JSONFieldWithZstandard(LiveActionDB):
 )
 @pytest.mark.benchmark(group="live_action_save")
 def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> None:
-    with open(os.path.join(FIXTURES_DIR, fixture_file),"r") as fp:
+    with open(os.path.join(FIXTURES_DIR, fixture_file), "r") as fp:
         content = fp.read()
 
     data = json.loads(content)
@@ -169,7 +169,7 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
 )
 @pytest.mark.benchmark(group="live_action_read")
 def test_read_large_execution(benchmark, fixture_file: str, approach: str) -> None:
-    with open(os.path.join(FIXTURES_DIR, fixture_file),"r") as fp:
+    with open(os.path.join(FIXTURES_DIR, fixture_file), "r") as fp:
         content = fp.read()
 
     data = json.loads(content)
