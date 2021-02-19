@@ -18,6 +18,31 @@ Added
 * Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
   Contributed by @hnanchahal
 
+* Underlying database field type and storage format for the ``Execution`` and ``LiveAction``
+  database models has changed.
+
+  This new format is much faster and efficient than the previous one. Users with larger executions
+  (executions with larger results) should see the biggest improvements, but the change also scales
+  down so there should also be improvements when reading and writing executions with small and
+  medium sized results.
+
+  Our micro and end to benchmarks have shown improvements up to 10x for write path (storing model
+  in the database) and up to 6x for the read path.
+
+  To put things into perspective - with previous version, running a Python runner action which
+  returns 8 MB result would take around ~18 seconds total, but with this new storage format, it
+  takes around 2 seconds (in this context, duration means the from the time the execution was
+  scheduled to the time the execution model and result was written and available in the database)
+
+  The actual change should be fully opaque and transparent to the end users - it's purely a
+  field storage implementation detail and the code takes care of automatically handling both
+  formats when working with those object.
+
+  This should address a long standing issue where StackStorm was reported to be slow and CPU
+  inefficient with handling large executions. (improvement) #4846
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 
@@ -128,6 +153,7 @@ Added
 
 Changed
 ~~~~~~~
+
 * Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2
   ``v3.3.0`` (improvement) #4972
 
@@ -150,6 +176,7 @@ Changed
 
 Fixed
 ~~~~~
+
 * Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
 
   Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)
