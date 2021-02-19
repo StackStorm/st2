@@ -129,19 +129,23 @@ class JSONDictField(BinaryField):
     """
     Custom field types which stores dictionary as JSON serialized strings.
 
-    This is done because storing large objects as JSON serialized strings is much more efficent
+    This is done because storing large objects as JSON serialized strings is much more fficient
     on the serialize and unserialize paths compared to used EscapedDictField which needs to escape
     all the special values ($, .).
 
     Only downside is that to MongoDB those values are plain raw strings which means you can't query
     on actual dictionary field values. That's not an issue for us, because in places where we use
-    it, we already treat those values more or less as opaque strings.
+    it, those values are already treated as plain binary blobs to the database layer and we never
+    directly query on those field values.
 
-    # NOTE(Tomaz): I've done bencharmking of ujson and cjson and cjson is more performant on large
-    objects and ujson on smaller ones.
+    In micro benchmarks we have seen speed ups for up to 10x on write path and up to 6x on read
+    path. Change also scaled down which means it didn't add any additional overhead for very small
+    results - in fact, it was also faster for small results dictionaries
+
+    More context and numbers are available at https://github.com/StackStorm/st2/pull/4846.
     """
+
     def __init__(self, *args, **kwargs):
-        # TODO: Based on the benchmark results we should support just a single backend
         self.compression_algorithm = kwargs.pop('compression_algorithm', 'none')
 
         super(JSONDictField, self).__init__(*args, **kwargs)
