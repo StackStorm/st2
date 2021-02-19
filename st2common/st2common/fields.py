@@ -19,6 +19,8 @@ import datetime
 import calendar
 
 import six
+import orjson
+import zstandard
 
 from mongoengine import LongField
 from mongoengine import BinaryField
@@ -140,41 +142,33 @@ class JSONDictField(BinaryField):
     """
     def __init__(self, *args, **kwargs):
         # TODO: Based on the benchmark results we should support just a single backend
-        json_backend = kwargs.pop('json_backend', 'orjson')
-        compression_algorithm = kwargs.pop('compression_algorithm', 'none')
-
-        if json_backend not in ['orjson', 'ujson', 'cjson']:
-            raise ValueError('Unsupported backend: %s' % (json_backend))
+        self.compression_algorithm = kwargs.pop('compression_algorithm', 'none')
 
         super(JSONDictField, self).__init__(*args, **kwargs)
 
-        if json_backend == "orjson":
-            import orjson
-
-            self.json_loads = orjson.loads
-            self.json_dumps = orjson.dumps
-        elif json_backend == 'ujson':
-            import ujson
-
-            self.json_loads = ujson.loads
-            self.json_dumps = ujson.dumps
-        elif json_backend == 'cjson':
-            import cjson
-            self.json_loads = cjson.decode
-            self.json_dumps = cjson.encode
+        self.json_loads = orjson.loads
+        self.json_dumps = orjson.dumps
 
     def to_mongo(self, value):
-        # TODO: Use this format: <json lib>:<compression string>:<data> for better forward
-        # compatibility if case we ever want to change the JSON lib or compression algorithm
         if not isinstance(value, dict):
             raise ValueError('value argument must be a dictionary')
 
         data = self.json_dumps(value)
+
+        if self.compression_algorithm == "zstandard":
+            cctx = zstandard.ZstdCompressor()
+            data = cctx.compress(data)
+
         return data
 
     def to_python(self, value):
         if isinstance(value, (six.text_type, six.binary_type)):
-            return self.json_loads(value)
+            if self.compression_algorithm == "zstandard":
+                data = zstandard.ZstdDecompressor().decompress(value)
+            else:
+                data = value
+
+            return self.json_loads(data)
 
         return value
 
@@ -198,7 +192,7 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
             return value
 
         if not isinstance(value, dict):
-            raise ValueError('value argument must be a dictionary')
+            raise ValueError('value argument must be a dictionary (got: %s)' % type(value))
 
         return self.json_dumps(value)
 
