@@ -17,6 +17,7 @@ from __future__ import absolute_import
 
 import datetime
 import calendar
+import enum
 
 import six
 import orjson
@@ -33,6 +34,35 @@ __all__ = [
 ]
 
 SECOND_TO_MICROSECONDS = 1000000
+
+# Delimiter field used for actual JSON dict field binary value
+JSON_DICT_FIELD_DELIMITER = b":"
+
+
+class JSONDictFieldCompressionAlgorithmEnum(enum.Enum):
+    """
+    Enum which represents compression algorithm (if any) used for a specific JSONDictField value.
+    """
+    NONE = b"n"
+    ZSTANDARD = b"z"
+
+
+class JSONDictFieldSerializationFormatEnum(enum.Enum):
+    """
+    Enum which represents serialization format used for a specific JSONDictField value.
+    """
+    ORJSON = b"o"
+
+
+VALID_JSON_DICT_COMPRESSION_ALGORITHMS = [
+    JSONDictFieldCompressionAlgorithmEnum.NONE.value,
+    JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value,
+]
+
+
+VALID_JSON_DICT_SERIALIZATION_FORMATS = [
+    JSONDictFieldSerializationFormatEnum.ORJSON.value,
+]
 
 
 class ComplexDateTimeField(LongField):
@@ -144,8 +174,66 @@ class JSONDictField(BinaryField):
     More context and numbers are available at https://github.com/StackStorm/st2/pull/4846.
     """
 
+    def _parse_field_value(self, value: bytes) -> dict:
+        """
+        Parse provided binary field value and return a tuple with (compression_flag,
+        serialization_format_name, binary_data).
+
+        For example:
+
+            - (n, o, ...) - no compression, data is serialized using orjson
+            - (z, o, ...) - zstandard compression, data is serialized using orjson
+        """
+        if not self.use_header:
+            return orjson.loads(value)
+
+        split = value.split(JSON_DICT_FIELD_DELIMITER, 2)
+
+        if len(split) != 3:
+            raise ValueError("Expected 3 values when splitting field value, got %s" % (len(split)))
+
+        compression_algorithm = split[0]
+        serialization_format = split[1]
+        data = split[2]
+
+        if compression_algorithm not in VALID_JSON_DICT_COMPRESSION_ALGORITHMS:
+            raise ValueError("Invalid or unsupported value for compression algorithm header "
+                             "value: %s" % (compression_algorithm))
+
+        if serialization_format not in VALID_JSON_DICT_SERIALIZATION_FORMATS:
+            raise ValueError("Invalid or unsupported value for serialization format header "
+                             "value: %s" % (serialization_format))
+
+        if compression_algorithm == JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value:
+            data = zstandard.ZstdDecompressor().decompress(data)
+
+        data = orjson.loads(data)
+        return data
+
+    def _serialize_field_value(self, value: dict) -> bytes:
+        """
+        Serialize and encode the provided field value.
+        """
+        if not self.use_header:
+            return orjson.dumps(value)
+
+        data = orjson.dumps(value)
+
+        if self.compression_algorithm == "zstandard":
+            compression_header = JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD
+            data = zstandard.ZstdCompressor().compress(data)
+        else:
+            compression_header = JSONDictFieldCompressionAlgorithmEnum.NONE
+
+        return compression_header.value + b":" + b"o:" + data
+
     def __init__(self, *args, **kwargs):
-        self.compression_algorithm = kwargs.pop('compression_algorithm', 'none')
+        # True if we should use field header which is more future proof approach and also allows
+        # us to support optional per-field compression, etc.
+        # This option is only exposed so we can benchmark different approaches and how much overhead
+        # using a header adds.
+        self.use_header = kwargs.pop('use_header', False)
+        self.compression_algorithm = kwargs.pop('compression_algorithm', "none")
 
         super(JSONDictField, self).__init__(*args, **kwargs)
 
@@ -156,24 +244,16 @@ class JSONDictField(BinaryField):
         if not isinstance(value, dict):
             raise ValueError('value argument must be a dictionary')
 
-        data = self.json_dumps(value)
-
-        if self.compression_algorithm == "zstandard":
-            cctx = zstandard.ZstdCompressor()
-            data = cctx.compress(data)
-
+        data = self._serialize_field_value(value)
         return data
 
     def to_python(self, value):
-        if isinstance(value, (six.text_type, six.binary_type)):
-            if self.compression_algorithm == "zstandard":
-                data = zstandard.ZstdDecompressor().decompress(value)
-            else:
-                data = value
+        if isinstance(value, dict):
+            # Already parsed
+            return value
 
-            return self.json_loads(data)
-
-        return value
+        data = self._parse_field_value(value)
+        return data
 
     def validate(self, value):
         value = self.to_mongo(value)
@@ -190,14 +270,10 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
     """
 
     def to_mongo(self, value):
-        if isinstance(value, six.binary_type):
-            # Already serialized
-            return value
-
         if not isinstance(value, dict):
             raise ValueError('value argument must be a dictionary (got: %s)' % type(value))
 
-        return self.json_dumps(value)
+        return self._serialize_field_value(value)
 
     def to_python(self, value):
         if isinstance(value, dict):
@@ -206,6 +282,6 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
             return value
 
         if isinstance(value, (six.text_type, six.binary_type)):
-            return self.json_loads(value)
+            return self._parse_field_value(value)
 
         return value

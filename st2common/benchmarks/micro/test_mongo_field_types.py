@@ -36,6 +36,8 @@ The goal of that benchmark is to determine a more efficient approach which is al
 implement in a backward compatible manner.
 """
 
+from typing import Type
+
 import os
 import json
 
@@ -57,16 +59,35 @@ LiveActionDB._meta["allow_inheritance"] = True
 
 # 1. Current approach aka using EscapedDynamicField
 class LiveActionDB_EscapedDynamicField(LiveActionDB):
-    result = stormbase.EscapedDynamicField(default={})
+    result = stormbase.EscapedDynamicField(default={}, use_header=False)
 
 
 # 2. Approach which uses new JSONDictField where value is stored as serialized JSON string / blob
 class LiveActionDB_JSONField(LiveActionDB):
-    result = JSONDictField(default={})
+    result = JSONDictField(default={}, use_header=False)
 
 
-class LiveActionDB_JSONFieldWithZstandard(LiveActionDB):
-    result = JSONDictField(default={}, compression_algorithm="zstandard")
+class LiveActionDB_JSONFieldWithHeader(LiveActionDB):
+    result = JSONDictField(default={}, use_header=True, compression_algorithm="none")
+
+
+class LiveActionDB_JSONFieldWithHeaderAndZstandard(LiveActionDB):
+    result = JSONDictField(default={}, use_header=True, compression_algorithm="zstandard")
+
+
+def get_model_class_for_approach(approach: str) -> Type[LiveActionDB]:
+    if approach == "escaped_dynamic_field":
+        model_cls = LiveActionDB_EscapedDynamicField
+    elif approach == "json_dict_field":
+        model_cls = LiveActionDB_JSONField
+    elif approach == "json_dict_field_with_header":
+        model_cls = LiveActionDB_JSONFieldWithHeader
+    elif approach == "json_dict_field_with_header_and_zstd":
+        model_cls = LiveActionDB_JSONFieldWithHeaderAndZstandard
+    else:
+        raise ValueError("Invalid approach: %s" % (approach))
+
+    return model_cls
 
 
 @pytest.mark.parametrize(
@@ -80,12 +101,12 @@ class LiveActionDB_JSONFieldWithZstandard(LiveActionDB):
         "json_4mb_single_large_field.json",
     ],
     ids=[
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_8mb.json",
-        "json_4mb_single_large_field.json",
+        "tiny_1",
+        "json_61kb",
+        "json_647kb",
+        "json_4mb",
+        "json_8mb",
+        "json_4mb_single_large_field",
     ],
 )
 @pytest.mark.parametrize(
@@ -93,12 +114,14 @@ class LiveActionDB_JSONFieldWithZstandard(LiveActionDB):
     [
         "escaped_dynamic_field",
         "json_dict_field",
-        "json_dict_field_with_zsd",
+        "json_dict_field_with_header",
+        "json_dict_field_with_header_and_zstd",
     ],
     ids=[
         "escaped_dynamic",
         "json_dict_field",
-        "json_dict_field_with_zsd",
+        "json_dict_field_w_header",
+        "json_dict_field_w_header_and_zstd",
     ],
 )
 @pytest.mark.benchmark(group="live_action_save")
@@ -110,16 +133,9 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
 
     db_setup()
 
-    def run_benchmark():
-        if approach == "escaped_dynamic_field":
-            model_cls = LiveActionDB_EscapedDynamicField
-        elif approach == "json_dict_field":
-            model_cls = LiveActionDB_JSONField
-        elif approach == "json_dict_field_with_zsd":
-            model_cls = LiveActionDB_JSONFieldWithZstandard
-        else:
-            raise ValueError("Invalid approach: %s" % (approach))
+    model_cls = get_model_class_for_approach(approach=approach)
 
+    def run_benchmark():
         live_action_db = model_cls()
         live_action_db.status = "succeeded"
         live_action_db.action = "core.local"
@@ -146,12 +162,12 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
         "json_4mb_single_large_field.json",
     ],
     ids=[
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_8mb.json",
-        "json_4mb_single_large_field.json",
+        "tiny_1",
+        "json_61kb",
+        "json_647kb",
+        "json_4mb",
+        "json_8mb",
+        "json_4mb_single_large_field",
     ],
 )
 @pytest.mark.parametrize(
@@ -159,12 +175,14 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
     [
         "escaped_dynamic_field",
         "json_dict_field",
-        "json_dict_field_with_zsd",
+        "json_dict_field_with_header",
+        "json_dict_field_with_header_and_zstd",
     ],
     ids=[
         "escaped_dynamic_field",
         "json_dict_field",
-        "json_dict_field_with_zsd",
+        "json_dict_field_w_header",
+        "json_dict_field_w_header_and_zstd",
     ],
 )
 @pytest.mark.benchmark(group="live_action_read")
@@ -177,14 +195,7 @@ def test_read_large_execution(benchmark, fixture_file: str, approach: str) -> No
     db_setup()
 
     # 1. Insert the large execution
-    if approach == "escaped_dynamic_field":
-        model_cls = LiveActionDB_EscapedDynamicField
-    elif approach == "json_dict_field":
-        model_cls = LiveActionDB_JSONField
-    elif approach == "json_dict_field_with_zsd":
-        model_cls = LiveActionDB_JSONFieldWithZstandard
-    else:
-        raise ValueError("Invalid approach: %s" % (approach))
+    model_cls = get_model_class_for_approach(approach=approach)
 
     live_action_db = model_cls()
     live_action_db.status = "succeeded"
