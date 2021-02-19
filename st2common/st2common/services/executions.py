@@ -90,12 +90,12 @@ def _decompose_liveaction(liveaction_db):
     return decomposed
 
 
-def _create_execution_log_entry(status):
+def _create_execution_log_entry(status, timestamp=None):
     """
     Create execution log entry object for the provided execution status.
     """
     return {
-        'timestamp': date_utils.get_datetime_utc_now(),
+        'timestamp': timestamp or date_utils.get_datetime_utc_now(),
         'status': status
     }
 

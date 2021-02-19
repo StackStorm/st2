@@ -246,6 +246,7 @@ class ActionRunCommandMixin(object):
     attribute_transform_functions = {
         'start_timestamp': format_isodate_for_user_timezone,
         'end_timestamp': format_isodate_for_user_timezone,
+        'finalized_timestamp': format_isodate_for_user_timezone,
         'parameters': format_parameters,
         'status': format_status
     }
@@ -1171,9 +1172,9 @@ class ActionExecutionListCommand(ResourceViewCommand):
 
 class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
-                          'start_timestamp', 'end_timestamp', 'result']
+                          'start_timestamp', 'end_timestamp', 'finalized_timestamp' ,'result']
     include_attributes = ['action.ref', 'action.runner_type', 'start_timestamp',
-                          'end_timestamp']
+                          'end_timestamp', 'finalized_timestamp']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionGetCommand, self).__init__(

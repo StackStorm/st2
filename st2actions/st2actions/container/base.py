@@ -37,6 +37,9 @@ from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.metrics.base import CounterWithTimer
 from st2common.util import jsonify
 
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.execution import ActionExecution
+
 from st2common.runners.base import get_runner
 from st2common.runners.base import AsyncActionRunner, PollingAsyncActionRunner
 
@@ -294,6 +297,26 @@ class RunnerContainer(object):
 
     def _update_status(self, liveaction_id, status, result, context):
         try:
+            # NOTE: The next two operations take a very long time in master with large executions
+            # (long standing issue), but because start_timestamp and end_timestamp measure how long
+            # it took for the runner to run the action, it doesn't include the time it took to
+            # actually write results / persist execution into the database - that's a problem
+            # because we have no good direct visibility into that.
+            #
+            # The UX user would experience is - they would run an action which produces large
+            # result, CLI / API would show execution as running for a long time (until it's
+            # persisted in the database), but when it will finally be written to the database,
+            # duration will be shown as a short time, because it's measured based on start and
+            # end timestamp.
+            #
+            # This mean we can have, for example, Python runner action which returns a lot of data
+            # and takes only 0.5 second to finish, but next two database operations can easily take
+            # 10 seconds each.
+            #
+            # To work around that and provide some additional visibility into that to the operators
+            # and users, we write additional "finalized_timestamp" on each object. This objects
+            # represents the timestamp when the executed has been fully processed by the action
+            # runner and result fully persisted in the database.
             LOG.debug('Setting status: %s for liveaction: %s', status, liveaction_id)
             liveaction_db, state_changed = self._update_live_action_db(
                 liveaction_id, status, result, context)
@@ -305,8 +328,10 @@ class RunnerContainer(object):
             )
             raise e
 
+        live_action_written_to_db_dt = date_utils.get_datetime_utc_now()
+
         try:
-            executions.update_execution(liveaction_db, publish=state_changed)
+            execution_db = executions.update_execution(liveaction_db, publish=state_changed)
             extra = {'liveaction_db': liveaction_db}
             LOG.debug('Updated liveaction after run', extra=extra)
         except Exception as e:
@@ -316,6 +341,20 @@ class RunnerContainer(object):
                     liveaction_id, status, result)
             )
             raise e
+
+        execution_written_to_db = date_utils.get_datetime_utc_now()
+
+        # Those two operations are fast since they operate on a single field in atomic fashion
+        # with very small data
+        operations = {
+            "set__finalized_timestamp": live_action_written_to_db_dt
+        }
+        LiveAction.update(liveaction_db, publish=False, **operations)
+
+        operations = {
+            "set__finalized_timestamp": execution_written_to_db
+        }
+        ActionExecution.update(execution_db, publish=False, **operations)
 
         return liveaction_db
 
