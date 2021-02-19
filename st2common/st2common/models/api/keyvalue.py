@@ -189,7 +189,7 @@ class KeyValuePairAPI(BaseAPI):
 
             # Additional safety check to ensure that the value hasn't been decrypted
             if not value == original_value:
-                raise ValueError("Value doesn't match with original value")
+                raise ValueError("The value doesn't match with original value.")
         elif secret:
             cls._verif_key_is_set_up(name=name)
 

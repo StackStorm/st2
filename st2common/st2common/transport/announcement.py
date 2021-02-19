@@ -66,9 +66,9 @@ class AnnouncementDispatcher(object):
         :type trace_context: ``TraceContext``
         """
         if not isinstance(payload, (type(None), dict)):
-            raise TypeError("Object is not a dict type")
+            raise TypeError('The payload has a value that is not a dictionary.')
         if not isinstance(trace_context, (type(None), dict, TraceContext)):
-            raise TypeError("Object is not a TraceContext type")
+            raise TypeError('The trace context has a value that is not a dictionary.')
 
         payload = {
             'payload': payload,

@@ -325,7 +325,7 @@ class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.R
         def validate(self):
             if self.payload:
                 if not isinstance(self.payload, dict):
-                    raise TypeError("The object is not a dict type")
+                    raise TypeError('The payload has a value that is not a dictionary.')
 
             return True
 

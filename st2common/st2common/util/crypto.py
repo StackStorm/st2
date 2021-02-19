@@ -81,7 +81,7 @@ MINIMUM_AES_KEY_SIZE = 128
 DEFAULT_AES_KEY_SIZE = 256
 
 if not DEFAULT_AES_KEY_SIZE >= MINIMUM_AES_KEY_SIZE:
-    raise ValueError('Verify the key size :%s' % (DEFAULT_AES_KEY_SIZE))
+    raise ValueError('Verify the key size :"%s".' % (DEFAULT_AES_KEY_SIZE))
 
 
 class AESKey(object):
@@ -208,17 +208,17 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
 
     """
     if not isinstance(encrypt_key, AESKey):
-        raise ValueError("Encrypt key needs to be an AESkey class instance")
+        raise ValueError('Encrypted key needs to be an AESkey class instance.')
     if not isinstance(plaintext, (six.text_type, six.string_types, six.binary_type)):
-        raise TypeError("Plaintext needs to either be a string/unicode or bytes")
+        raise TypeError('Plaintext needs to either be a string/unicode or bytes.')
 
     aes_key_bytes = encrypt_key.aes_key_bytes
     hmac_key_bytes = encrypt_key.hmac_key_bytes
 
     if not isinstance(aes_key_bytes, six.binary_type):
-        raise TypeError("AESKey bytes matching with binary type")
+        raise TypeError('AESKey bytes does not match with binary type.')
     if not isinstance(hmac_key_bytes, six.binary_type):
-        raise TypeError("HMACKey bytes matching with binary type")
+        raise TypeError('HMACKey bytes does not match with binary type.')
 
     if isinstance(plaintext, (six.text_type, six.string_types)):
         # Convert data to bytes
@@ -268,17 +268,17 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
     NOTE 2: This function is loosely based on keyczar AESKey.Decrypt() (Apache 2.0 license).
     """
     if not isinstance(decrypt_key, AESKey):
-        raise ValueError("Decrypt key needs to be an AESKey class instance")
+        raise ValueError('Decrypted key needs to be an AESKey class instance.')
     if not isinstance(ciphertext, (six.text_type, six.string_types, six.binary_type)):
-        raise TypeError("Ciphertext needs to either be a string/unicode or bytes")
+        raise TypeError('Ciphertext needs to either be a string/unicode or bytes.')
 
     aes_key_bytes = decrypt_key.aes_key_bytes
     hmac_key_bytes = decrypt_key.hmac_key_bytes
 
     if not isinstance(aes_key_bytes, six.binary_type):
-        raise TypeError("Key Bytes type not matching")
+        raise TypeError('The aes key bytes does not match with binary type.')
     if not isinstance(hmac_key_bytes, six.binary_type):
-        raise TypeError("Value Type not matching")
+        raise TypeError('The hmac key bytes does not match with binary type.')
 
     # Convert from hex notation ASCII string to bytes
     ciphertext = binascii.unhexlify(ciphertext)

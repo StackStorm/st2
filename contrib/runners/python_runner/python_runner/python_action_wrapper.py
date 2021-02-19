@@ -323,7 +323,7 @@ if __name__ == '__main__':
     LOG.debug('Received parameters: %s', parameters)
 
     if not isinstance(parent_args, list):
-        raise ValueError("Parent_args needs a list of values")
+        raise ValueError('The parent_args needs to be a list.')
     obj = PythonActionWrapper(pack=args.pack,
                               file_path=args.file_path,
                               config=config,

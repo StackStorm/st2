@@ -192,7 +192,7 @@ def register_aliases(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
 
     if packs_base_paths:
         if not isinstance(packs_base_paths, list):
-            raise TypeError("The object is not a List type")
+            raise TypeError('The pack base paths has a value that is not a list.')
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()

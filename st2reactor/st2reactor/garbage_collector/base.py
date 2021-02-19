@@ -197,7 +197,7 @@ class GarbageCollectorService(object):
         LOG.info('Deleting action executions older than: %s' % (timestamp_str))
 
         if not timestamp < utc_now:
-            raise ValueError("utc_now violates the minimum time stamp")
+            raise ValueError('Calculated timestamp violates the utc now.')
 
         try:
             purge_executions(logger=LOG, timestamp=timestamp)
@@ -218,7 +218,7 @@ class GarbageCollectorService(object):
         LOG.info('Deleting action executions output objects older than: %s' % (timestamp_str))
 
         if timestamp < utc_now:
-            raise ValueError("utc_now violates the minimum time stamp")
+            raise ValueError('Calculated timestamp violates the utc now.')
 
         try:
             purge_execution_output_objects(logger=LOG, timestamp=timestamp)
@@ -242,7 +242,7 @@ class GarbageCollectorService(object):
         LOG.info('Deleting trigger instances older than: %s' % (timestamp_str))
 
         if timestamp < utc_now:
-            raise ValueError("utc_now violates the minimum time stamp")
+            raise ValueError('Calculated timestamp violates the utc now.')
 
         try:
             purge_trigger_instances(logger=LOG, timestamp=timestamp)

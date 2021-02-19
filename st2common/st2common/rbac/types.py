@@ -185,7 +185,7 @@ class PermissionType(Enum):
 
         split = permission_type.split('_')
         if not len(split) >= 2:
-            raise ValueError("Length should be greater than or equal to 2")
+            raise ValueError('The length should be greater than or equal to 2.')
 
         return '_'.join(split[:-1])
 
@@ -198,7 +198,7 @@ class PermissionType(Enum):
         """
         split = permission_type.split('_')
         if not len(split) >= 2:
-            raise ValueError("Length should be greater than or equal to 2")
+            raise ValueError('The length should be greater than or equal to 2.')
 
         # Special case for PACK_VIEWS_INDEX_HEALTH
         if permission_type == PermissionType.PACK_VIEWS_INDEX_HEALTH:

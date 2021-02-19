@@ -289,7 +289,7 @@ class GitWorktreeActionRunner(ActionRunner):
                                                   worktree_path=self.git_worktree_path)
 
             if not (entry_point.startswith(self.git_worktree_path)):
-                raise ValueError("Value not matching")
+                raise ValueError("The entry point value does not match with git worktree path.")
 
             self.entry_point = entry_point
 
@@ -377,9 +377,10 @@ class GitWorktreeActionRunner(ActionRunner):
         """
         # Safety check to make sure we don't remove something outside /tmp
         if not (worktree_path.startswith('/tmp')):
-            raise ValueError("Value not matching")
+            raise ValueError('The worktree path does not match with /tmp.')
         if not (worktree_path.startswith('/tmp/%s' % (self.WORKTREE_DIRECTORY_PREFIX))):
-            raise ValueError("Value not matching")
+            raise ValueError('The worktree path does not match with /tmp/"%s".' %
+                            (self.WORKTREE_DIRECTORY_PREFIX))
 
         if self._debug:
             LOG.debug('Not removing git worktree "%s" because debug mode is enabled' %
