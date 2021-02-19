@@ -14,8 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 
+import six
+import orjson
 import mongoengine as me
 
 from st2common import log as logging
@@ -138,8 +141,11 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
 
         # TODO(mierdin): This logic should be moved to the dedicated Inquiry
         # data model once it exists.
-        if self.runner.get('name') == "inquirer":
+        if isinstance(result['result'], (six.text_type, six.binary_type)):
+            # Special case to make sure we unserialize JSONDictFieldValue
+            result['result'] = orjson.loads(result['result'])
 
+        if self.runner.get('name') == "inquirer":
             schema = result['result'].get('schema', {})
             response = result['result'].get('response', {})
 
@@ -147,6 +153,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             # not empty
             if response and schema:
                 result['result']['response'] = mask_inquiry_response(response, schema)
+
         return result
 
     def get_masked_parameters(self):

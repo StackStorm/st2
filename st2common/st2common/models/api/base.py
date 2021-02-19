@@ -83,7 +83,26 @@ class BaseAPI(object):
         if '_id' in doc:
             doc['id'] = str(doc.pop('_id'))
 
+        # Special case for models which utilize JSONDictField - there is no need to escape "result"
+        # fields since it contains a JSON string and not a dictionary which doesn't need to be
+        # mongo escaped. Skipping this step here substantially speeds things up for that field.
+        # Technically we could probably also handle it in more generic manner in unescape_chars,
+        # but that approach would be less robust since it's not aware of the actual model schema.
+        result = None
+
+        if isinstance(doc.get("result", None), bytes):
+            result = doc.pop("result")
+
+        # TODO (Tomaz): In general we really shouldn't need to call unescape chars on the whole doc,
+        # but just on the EscapedDict and EscapedDynamicField fields - doing it on the whole doc
+        # level is slow and not necessary!
         doc = util_mongodb.unescape_chars(doc)
+
+        # Now add parse it and add the JSON string field value which shouldn't be escaped back
+        # We don't JSON parse the field value here because that happens inside the model specific
+        # "from_model()" method where we also parse and convert all the other field values.
+        if result is not None:
+            doc["result"] = result
 
         if mask_secrets and cfg.CONF.log.mask_secrets:
             doc = model.mask_secrets(value=doc)

@@ -42,7 +42,7 @@ TEST_LOAD_MODELS = {
 
 EXECUTION = ActionExecutionDB(id='54e657d60640fd16887d6855',
                               status=LIVEACTION_STATUS_SUCCEEDED,
-                              result='')
+                              result={})
 
 __all__ = [
     'AliasExecutionTestCase'
@@ -146,7 +146,7 @@ class AliasExecutionTestCase(FunctionalTest):
                                       parameters={
                                           'param4': SUPER_SECRET_PARAMETER
                                       },
-                                      result='')
+                                      result={})
 
         request.return_value = (None, execution)
 

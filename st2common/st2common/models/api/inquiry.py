@@ -14,8 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
+
 import six
+import orjson
 
 from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.models.api.base import BaseAPI
@@ -116,6 +119,10 @@ class InquiryAPI(BaseAPI):
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
+
+        if isinstance(doc['result'], six.binary_type):
+            # Special case to make sure we unserialize JSONDictFieldValue
+            doc['result'] = orjson.loads(doc['result'])
 
         newdoc = {
             'id': doc['id'],

@@ -14,9 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 
 import six
+import orjson
 
 from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.util import isotime
@@ -154,8 +156,10 @@ class ActionExecutionAPI(BaseAPI):
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
 
-        import json
-        doc['result'] = json.loads(doc['result'])
+        if isinstance(doc['result'], six.binary_type):
+            # Special case to make sure we unserialize JSONDictFieldValue
+            # TODO: Use helper method
+            doc['result'] = orjson.loads(doc['result'])
 
         start_timestamp = model.start_timestamp
         start_timestamp_iso = isotime.format(start_timestamp, offset=False)
