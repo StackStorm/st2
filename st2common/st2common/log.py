@@ -129,8 +129,8 @@ def find_caller(stack_info=False, stacklevel=1):
                     sio.close()
                 rv = (filename, f.f_lineno, co.co_name, sinfo)
             break
-    except Exception:
-        pass
+    except Exception as e:
+        print('Unable to find caller.', e)
 
     return rv
 

@@ -73,8 +73,8 @@ def json_loads(obj, keys=None):
     for key in keys:
         try:
             obj[key] = json.loads(obj[key])
-        except:
-            pass
+        except Exception as error:
+            print('Criteria pattern not valid JSON: "%s".', error)
     return obj
 
 

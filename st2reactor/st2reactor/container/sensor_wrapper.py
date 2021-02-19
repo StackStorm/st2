@@ -181,8 +181,9 @@ class SensorWrapper(object):
         # 1. Parse the config with inherited parent args
         try:
             config.parse_args(args=self._parent_args)
-        except Exception:
-            pass
+        except Exception as e:
+            print('Failed to parse config using parent args (parent_args=%s): "%s".' %
+                  (str(self._parent_args), six.text_type(e)))
 
         # 2. Establish DB connection
         username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None

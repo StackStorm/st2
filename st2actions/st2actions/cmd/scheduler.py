@@ -109,7 +109,7 @@ def _run_scheduler():
             handler.shutdown()
             entrypoint.shutdown()
         except:
-            pass
+            LOG.exception('Unable to shutdown scheduler.')
 
         return 1
 

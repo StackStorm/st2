@@ -391,8 +391,9 @@ class GitWorktreeActionRunner(ActionRunner):
 
             try:
                 shutil.rmtree(worktree_path, ignore_errors=True)
-            except:
-                pass
+            except Exception:
+                msg = ('Unable to remove / cleanup the provided git worktree directory.')
+                LOG.exception(msg)
 
         return True
 

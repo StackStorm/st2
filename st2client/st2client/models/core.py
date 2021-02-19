@@ -344,8 +344,11 @@ class ResourceManager(object):
             resp_json = response.json()
             if resp_json:
                 return resp_json
-        except:
-            pass
+        except Exception as e:
+            response.reason += (
+                '\nUnable to retrieve detailed message '
+                'from the HTTP response. %s\n' % six.text_type(e)
+            )
         return True
 
 
