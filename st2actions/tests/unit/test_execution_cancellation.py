@@ -92,7 +92,7 @@ class ExecutionCancellationTestCase(ExecutionDbTestCase):
     @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def test_basic_cancel(self):
-        runner_run_result = (action_constants.LIVEACTION_STATUS_RUNNING, 'foobar', None)
+        runner_run_result = (action_constants.LIVEACTION_STATUS_RUNNING, {'data': 'foobar'}, None)
         mock_runner_run = mock.Mock(return_value=runner_run_result)
 
         with mock.patch.object(runner.MockActionRunner, 'run', mock_runner_run):
@@ -127,7 +127,7 @@ class ExecutionCancellationTestCase(ExecutionDbTestCase):
     @mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     @mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
     def test_failed_cancel(self):
-        runner_run_result = (action_constants.LIVEACTION_STATUS_RUNNING, 'foobar', None)
+        runner_run_result = (action_constants.LIVEACTION_STATUS_RUNNING, {'data': 'foobar'}, None)
         mock_runner_run = mock.Mock(return_value=runner_run_result)
         with mock.patch.object(runner.MockActionRunner, 'run', mock_runner_run):
             liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
