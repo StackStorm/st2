@@ -32,7 +32,11 @@ Added
   To put things into perspective - with previous version, running a Python runner action which
   returns 8 MB result would take around ~18 seconds total, but with this new storage format, it
   takes around 2 seconds (in this context, duration means the from the time the execution was
-  scheduled to the time the execution model and result was written and available in the database)
+  scheduled to the time the execution model and result was written and available in the database).
+
+  Overall performance improvement doesn't just mean large decrease in those operation timings, but
+  also large overall reduction of CPU usage - previously serializing large results was a CPU
+  intensive time since it included tons of conversions and transformations back and forth.
 
   The actual change should be fully opaque and transparent to the end users - it's purely a
   field storage implementation detail and the code takes care of automatically handling both
