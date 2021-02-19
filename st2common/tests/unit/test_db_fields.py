@@ -48,14 +48,14 @@ MOCK_DATA_DICT = {
 
 # NOTE: Collections of the following two models must be the same for testing purposes
 class ModelWithEscapedDynamicFieldDB(stormbase.StormFoundationDB):
-    result = stormbase.EscapedDynamicField(default={})
+    result = stormbase.EscapedDynamicField(default={}, use_header=False)
     counter = me.IntField(default=0)
 
     meta = {'collection': 'model_result_test'}
 
 
 class ModelWithJSONDictFieldDB(stormbase.StormFoundationDB):
-    result = JSONDictField(default={})
+    result = JSONDictField(default={}, use_header=False)
     counter = me.IntField(default=0)
 
     meta = {'collection': 'model_result_test'}
@@ -63,14 +63,14 @@ class ModelWithJSONDictFieldDB(stormbase.StormFoundationDB):
 
 class JSONDictFieldTestCase(unittest2.TestCase):
     def test_to_mongo(self):
-        field = JSONDictField()
+        field = JSONDictField(use_header=False)
         result = field.to_mongo(MOCK_DATA_DICT)
 
         self.assertTrue(isinstance(result, bytes))
         self.assertEqual(result, orjson.dumps(MOCK_DATA_DICT))
 
     def test_to_python(self):
-        field = JSONDictField()
+        field = JSONDictField(use_header=False)
 
         data = orjson.dumps(MOCK_DATA_DICT)
         result = field.to_python(data)
@@ -79,7 +79,7 @@ class JSONDictFieldTestCase(unittest2.TestCase):
         self.assertEqual(result, MOCK_DATA_DICT)
 
     def test_roundtrip(self):
-        field = JSONDictField()
+        field = JSONDictField(use_header=False)
         result_to_mongo = field.to_mongo(MOCK_DATA_DICT)
         result_to_python = field.to_python(result_to_mongo)
 
@@ -145,7 +145,7 @@ class JSONDictFieldTestCaseWithHeader(unittest2.TestCase):
 
 class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
     def test_to_mongo(self):
-        field = JSONDictEscapedFieldCompatibilityField()
+        field = JSONDictEscapedFieldCompatibilityField(use_header=False)
 
         result_to_mongo_1 = field.to_mongo(MOCK_DATA_DICT)
         self.assertEqual(result_to_mongo_1, orjson.dumps(MOCK_DATA_DICT))

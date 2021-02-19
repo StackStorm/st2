@@ -270,6 +270,15 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
     """
 
     def to_mongo(self, value):
+        if isinstance(value, bytes):
+            # Already serialized
+            if value[0] == b"{" and self.use_header:
+                # Serialized, but doesn't contain header prefix, add it (assume migration from
+                # format without a header)
+                return "n:o:" + value
+
+            return value
+
         if not isinstance(value, dict):
             raise ValueError('value argument must be a dictionary (got: %s)' % type(value))
 
