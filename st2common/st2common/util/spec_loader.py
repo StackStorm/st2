@@ -77,7 +77,7 @@ def load_spec(module_name, spec_file, allow_duplicate_keys=False):
 
     # 1. Check for duplicate keys
     if not allow_duplicate_keys:
-        yaml.load(spec_string, UniqueKeyLoader)
+        yaml.safe_load(spec_string)
 
     # 2. Generate actual spec
     spec = yaml.safe_load(spec_string)
