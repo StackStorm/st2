@@ -27,6 +27,12 @@ import traceback
 
 import distutils.sysconfig
 
+# NOTE: We intentionally use orjson directly here instead of json_encode - orjson.dumps relies
+# on config option which we don't parse for the action wrapper since it speeds things down - action
+# wrapper should rely on as little imports as possible to make Python runner executions fast -
+# that's very important.
+import orjson
+
 # Note: This work-around is required to fix the issue with other Python modules which live
 # inside this directory polluting and masking sys.path for Python runner actions.
 # Since this module is ran as a Python script inside a subprocess, directory where the script
@@ -45,7 +51,6 @@ if __name__ == '__main__':
     sys.path.insert(0, distutils.sysconfig.get_python_lib())
 
 import sys
-import json
 import argparse
 
 import six
@@ -218,12 +223,12 @@ class PythonActionWrapper(object):
             # Special case if result object is not JSON serializable - aka user wanted to return a
             # non-simple type (e.g. class instance or other non-JSON serializable type)
             try:
-                json.dumps(action_output['result'])
-            except TypeError:
+                orjson.dumps(action_output['result']).decode("utf-8")
+            except (TypeError, orjson.JSONDecodeError):
                 action_output['result'] = str(action_output['result'])
 
         try:
-            print_output = json.dumps(action_output)
+            print_output = orjson.dumps(action_output).decode("utf-8")
         except Exception:
             print_output = str(action_output)
 
@@ -283,9 +288,9 @@ if __name__ == '__main__':
                         help='Log level for actions')
     args = parser.parse_args()
 
-    config = json.loads(args.config) if args.config else {}
+    config = orjson.loads(args.config) if args.config else {}
     user = args.user
-    parent_args = json.loads(args.parent_args) if args.parent_args else []
+    parent_args = orjson.loads(args.parent_args) if args.parent_args else []
     log_level = args.log_level
 
     if not isinstance(config, dict):
@@ -296,7 +301,7 @@ if __name__ == '__main__':
     if args.parameters:
         LOG.debug('Getting parameters from argument')
         args_parameters = args.parameters
-        args_parameters = json.loads(args_parameters) if args_parameters else {}
+        args_parameters = orjson.loads(args_parameters) if args_parameters else {}
         parameters.update(args_parameters)
 
     if args.stdin_parameters:
@@ -311,7 +316,7 @@ if __name__ == '__main__':
         stdin_data = sys.stdin.readline().strip()
 
         try:
-            stdin_parameters = json.loads(stdin_data)
+            stdin_parameters = orjson.loads(stdin_data)
             stdin_parameters = stdin_parameters.get('parameters', {})
         except Exception as e:
             msg = ('Failed to parse parameters from stdin. Expected a JSON object with '

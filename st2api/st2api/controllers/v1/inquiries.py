@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import copy
-import json
 
 import six
 from oslo_config import cfg
@@ -32,6 +31,7 @@ from st2common.rbac import types as rbac_types
 from st2common.rbac.backends import get_rbac_backend
 from st2common import router as api_router
 from st2common.services import inquiry as inquiry_service
+from st2common.util.jsonify import json_decode
 
 
 __all__ = [
@@ -85,7 +85,7 @@ class InquiriesController(ResourceController):
         # a list of dicts, and then individually convert these to InquiryResponseAPI instances
         inquiries = [
             inqy_api_models.InquiryResponseAPI.from_model(raw_inquiry, skip_db=True)
-            for raw_inquiry in json.loads(raw_inquiries.body)
+            for raw_inquiry in json_decode(raw_inquiries.body)
         ]
 
         # Repackage into Response with correct headers
