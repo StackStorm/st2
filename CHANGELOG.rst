@@ -18,8 +18,13 @@ Added
 * Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
   Contributed by @hnanchahal
 
+* Add new ``-x`` argument to the ``st2 execution get`` command which allows
+  ``result`` field to be excluded from the output. (improvement) #4846
+
 * Underlying database field type and storage format for the ``Execution`` and ``LiveAction``
   database models has changed.
+
+  Contributed by @Kami.
 
   This new format is much faster and efficient than the previous one. Users with larger executions
   (executions with larger results) should see the biggest improvements, but the change also scales

@@ -1185,6 +1185,11 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
         self.parser.add_argument('id',
                                  help=('ID of the %s.' %
                                        resource.get_display_name().lower()))
+        self.parser.add_argument('-x',
+                                 dest='exclude_result',
+                                 action='store_true',
+                                 default=False,
+                                 help=('Don\'t retrieve and display the result field'))
 
         self._add_common_options()
 
@@ -1196,6 +1201,9 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
         if include_attributes:
             include_attributes = ','.join(include_attributes)
             kwargs['params'] = {'include_attributes': include_attributes}
+
+        if args.exclude_result:
+            kwargs["params"] = {"exclude_attributes": "result"}
 
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
