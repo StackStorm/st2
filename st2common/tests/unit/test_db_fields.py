@@ -28,6 +28,7 @@ import mongoengine as me
 from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
 from st2common.models.db import stormbase
+from st2common.models.db import MongoDBAccess
 from st2common.fields import JSONDictField
 from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.fields import JSONDictFieldCompressionAlgorithmEnum
@@ -55,11 +56,17 @@ class ModelWithEscapedDynamicFieldDB(stormbase.StormFoundationDB):
 
 
 class ModelWithJSONDictFieldDB(stormbase.StormFoundationDB):
+    #result = me.DictField()
     result = JSONDictField(default={}, use_header=False)
     counter = me.IntField(default=0)
 
+    json_dict_fields = [
+        "result"
+    ]
+
     meta = {'collection': 'model_result_test'}
 
+model_json_dict_field_access = MongoDBAccess(ModelWithJSONDictFieldDB)
 
 class JSONDictFieldTestCase(unittest2.TestCase):
     def test_to_mongo(self):
@@ -208,6 +215,51 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         self.assertTrue(isinstance(pymongo_result[0]["result"], bytes))
         self.assertEqual(orjson.loads(pymongo_result[0]["result"]), expected_data)
         self.assertEqual(pymongo_result[0]["counter"], 1)
+
+
+    def test_field_state_changes_are_correctly_detected(self):
+        model_db = ModelWithJSONDictFieldDB()
+        model_db.result = {"a": 1, "b": 2}
+        print(type(model_db.result))
+
+        model_db = model_json_dict_field_access.add_or_update(model_db)
+
+        retrieved_model_db = model_json_dict_field_access.get_by_id(model_db.id)
+        self.assertEqual(retrieved_model_db.result, model_db.result)
+
+        # 1. Try regular update on the whole attribute level
+        model_db.result = {"c": 3, "d": 5}
+        model_db = model_json_dict_field_access.add_or_update(model_db)
+
+        retrieved_model_db = ModelWithJSONDictFieldDB.objects.all()[0]
+        self.assertEqual(retrieved_model_db.result, model_db.result)
+
+        model_db.result = {"f": 6, "g": 7}
+        model_db = model_json_dict_field_access.add_or_update(model_db)
+
+        retrieved_model_db = ModelWithJSONDictFieldDB.objects.all()[0]
+        self.assertEqual(retrieved_model_db.result, model_db.result)
+
+        # 2. Try updating a single field in the dict - this would not be detected by the default
+        # field change detection logic of mongoengine for our special field type
+        # Assign new dict, partial update dict on non BaseDict value
+        # use model_db_1 and model_db_2
+        print("xxxxxxxxx")
+        print(type(model_db.result))
+        print(model_db.__dict__)
+        model_db = retrieved_model_db
+        model_db.result["f"] = 1000
+        model_db.result["c"] = 100
+        model_db = model_json_dict_field_access.add_or_update(model_db)
+        print(model_db)
+
+        retrieved_model_db = ModelWithJSONDictFieldDB.objects.all()[0]
+        print(type(retrieved_model_db.result))
+        print(retrieved_model_db.result)
+        self.assertEqual(retrieved_model_db.result, model_db.result)
+
+
+        pass
 
 
 class ComplexDateTimeFieldTestCase(unittest2.TestCase):

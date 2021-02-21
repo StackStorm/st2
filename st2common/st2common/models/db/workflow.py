@@ -37,18 +37,13 @@ LOG = logging.getLogger(__name__)
 class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
     RESOURCE_TYPE = types.ResourceType.EXECUTION
 
-    # TODO: Explore for which fields we could use new JSONDictField which is up to 10 or more times
-    # more efficient when storing and reading data, especially for fields with large dicts. Those
-    # fields need to be treated as opaque binary blob to database and we shouldn't directly perform
-    # queries on those field values.
-
     action_execution = me.StringField(required=True)
-    spec = JSONDictEscapedFieldCompatibilityField()
-    graph = JSONDictEscapedFieldCompatibilityField()
-    input = JSONDictEscapedFieldCompatibilityField()
+    spec = stormbase.EscapedDictField()
+    graph = me.DictField()
+    input = stormbase.EscapedDictField()
     notify = me.DictField()
-    context = JSONDictEscapedFieldCompatibilityField()
-    state = JSONDictEscapedFieldCompatibilityField()
+    context = stormbase.EscapedDictField()
+    state = stormbase.EscapedDictField()
     status = me.StringField(required=True)
     output = JSONDictEscapedFieldCompatibilityField()
     errors = stormbase.EscapedDynamicField()
@@ -61,25 +56,24 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
         ]
     }
 
+    json_dict_fields = [
+        "output"
+    ]
+
 
 class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
     RESOURCE_TYPE = types.ResourceType.EXECUTION
-
-    # TODO: Explore for which fields we could use new JSONDictField which is up to 10 or more times
-    # more efficient when storing and reading data, especially for fields with large dicts. Those
-    # fields need to be treated as opaque binary blob to database and we shouldn't directly perform
-    # queries on those field values.
 
     workflow_execution = me.StringField(required=True)
     task_name = me.StringField(required=True)
     task_id = me.StringField(required=True)
     task_route = me.IntField(required=True, min_value=0)
-    task_spec = JSONDictEscapedFieldCompatibilityField()
+    task_spec = stormbase.EscapedDictField()
     delay = me.IntField(min_value=0)
     itemized = me.BooleanField(default=False)
     items_count = me.IntField(min_value=0)
     items_concurrency = me.IntField(min_value=1)
-    context = JSONDictEscapedFieldCompatibilityField()
+    context = stormbase.EscapedDictField()
     status = me.StringField(required=True)
     result = JSONDictEscapedFieldCompatibilityField()
     start_timestamp = db_field_types.ComplexDateTimeField(default=date_utils.get_datetime_utc_now)
@@ -94,6 +88,10 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
             {'fields': ['workflow_execution', 'task_id', 'task_route']}
         ]
     }
+
+    json_dict_fields = [
+        "result"
+    ]
 
 
 MODELS = [

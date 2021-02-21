@@ -93,6 +93,10 @@ class LiveActionDB(stormbase.StormFoundationDB):
         ],
     }
 
+    json_dict_fields = [
+        "result"
+    ]
+
     def mask_secrets(self, value):
         from st2common.util import action_db
 
