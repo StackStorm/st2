@@ -51,6 +51,10 @@ Added
   which should result in the same performance improvements for Orquesta workflows which pass larger
   data sets / execution results around.
 
+  Trigger instance payload field has also been updated to use this new field type which should
+  result in lower CPU utilization and better throughput of rules engine service when working with
+  triggers with larger payloads.
+
   This should address a long standing issue where StackStorm was reported to be slow and CPU
   inefficient with handling large executions. (improvement) #4846
 
