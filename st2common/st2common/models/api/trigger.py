@@ -197,6 +197,9 @@ class TriggerInstanceAPI(BaseAPI):
     def from_model(cls, model, mask_secrets=False):
         instance = cls._from_model(model, mask_secrets=mask_secrets)
 
+        if "payload" in instance:
+            instance['payload'] = TriggerInstanceDB.payload.parse_field_value(instance['payload'])
+
         if instance.get('occurrence_time', None):
             instance['occurrence_time'] = isotime.format(instance['occurrence_time'], offset=False)
 

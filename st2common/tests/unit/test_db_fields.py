@@ -126,7 +126,7 @@ class JSONDictFieldTestCaseWithHeader(unittest2.TestCase):
         self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
         self.assertEqual(orjson.loads(split[2]), MOCK_DATA_DICT)
 
-        parsed_value = field._parse_field_value(result)
+        parsed_value = field.parse_field_value(result)
         self.assertEqual(parsed_value, MOCK_DATA_DICT)
 
     def test_to_mongo_zstandard_compression(self):
@@ -141,7 +141,7 @@ class JSONDictFieldTestCaseWithHeader(unittest2.TestCase):
         self.assertEqual(orjson.loads(zstandard.ZstdDecompressor().decompress(split[2])),
                          MOCK_DATA_DICT)
 
-        parsed_value = field._parse_field_value(result)
+        parsed_value = field.parse_field_value(result)
         self.assertEqual(parsed_value, MOCK_DATA_DICT)
 
     def test_to_python_no_compression(self):
