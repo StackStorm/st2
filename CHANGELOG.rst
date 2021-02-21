@@ -47,6 +47,10 @@ Added
   field storage implementation detail and the code takes care of automatically handling both
   formats when working with those object.
 
+  Same field data storage optimizations have also been applied to workflow related database models
+  which should result in the same performance improvements for Orquesta workflows which pass larger
+  data sets / execution results around.
+
   This should address a long standing issue where StackStorm was reported to be slow and CPU
   inefficient with handling large executions. (improvement) #4846
 
