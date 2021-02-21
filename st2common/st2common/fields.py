@@ -15,6 +15,9 @@
 
 from __future__ import absolute_import
 
+from typing import Optional
+from typing import Union
+
 import datetime
 import calendar
 import enum
@@ -253,9 +256,6 @@ class JSONDictField(BinaryField):
 
         super(JSONDictField, self).__init__(*args, **kwargs)
 
-        self.json_loads = orjson.loads
-        self.json_dumps = orjson.dumps
-
     def to_mongo(self, value):
         if not isinstance(value, dict):
             raise ValueError('value argument must be a dictionary')
@@ -268,14 +268,14 @@ class JSONDictField(BinaryField):
             # Already parsed
             return value
 
-        data = self._parse_field_value(value)
+        data = self.parse_field_value(value)
         return data
 
     def validate(self, value):
         value = self.to_mongo(value)
         return super(JSONDictField, self).validate(value)
 
-    def _parse_field_value(self, value: bytes) -> dict:
+    def parse_field_value(self, value: Optional[Union[bytes, dict]]) -> dict:
         """
         Parse provided binary field value and return a tuple with (compression_flag,
         serialization_format_name, binary_data).
@@ -285,6 +285,13 @@ class JSONDictField(BinaryField):
             - (n, o, ...) - no compression, data is serialized using orjson
             - (z, o, ...) - zstandard compression, data is serialized using orjson
         """
+        if not value:
+            return self.default
+
+        if isinstance(value, dict):
+            # Already deserializaed
+            return value
+
         if not self.use_header:
             return orjson.loads(value)
 
@@ -342,7 +349,9 @@ class JSONDictField(BinaryField):
         # NOTE: It's important this attribute is set, since only this way mongoengine can determine
         # if the field has chaned or not when determing if the value should be written to the db or
         # not
-        instance._data[self.name] = value
+        if instance:
+            instance._data[self.name] = value
+
         return value
 
 
@@ -377,6 +386,6 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
             return value
 
         if isinstance(value, (six.text_type, six.binary_type)):
-            return self._parse_field_value(value)
+            return self.parse_field_value(value)
 
         return value
