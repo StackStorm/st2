@@ -89,6 +89,30 @@ class JSONDictFieldTestCase(unittest2.TestCase):
 
         self.assertEqual(result_to_python, MOCK_DATA_DICT)
 
+    def test_parse_field_value(self):
+        # 1. Value not provided, should use default one
+        field = JSONDictField(use_header=False, default={})
+        result = field.parse_field_value(b"")
+        self.assertEqual(result, {})
+
+        result = field.parse_field_value(None)
+        self.assertEqual(result, {})
+
+        field = JSONDictField(use_header=False, default={"foo": "bar"})
+        result = field.parse_field_value(b"")
+        self.assertEqual(result, {"foo": "bar"})
+
+        result = field.parse_field_value(None)
+        self.assertEqual(result, {"foo": "bar"})
+
+        # Value should be deserialized
+        result = field.parse_field_value(b'{"a": "b"}')
+        self.assertEqual(result, {"a": "b"})
+
+        # Already a dict
+        result = field.parse_field_value({"c": "d"})
+        self.assertEqual(result, {"c": "d"})
+
 
 class JSONDictFieldTestCaseWithHeader(unittest2.TestCase):
     def test_to_mongo_no_compression(self):

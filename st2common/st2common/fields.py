@@ -23,7 +23,6 @@ import calendar
 import enum
 import weakref
 
-import six
 import orjson
 import zstandard
 
@@ -244,6 +243,18 @@ class JSONDictField(BinaryField):
 
     Good examples of those are "result" field on ExecutionDB, LiveActionDB and TaskExecutionDB,
     "output" on WorkflowExecutionDB, etc.
+
+    IMPLEMENTATION DETAILS:
+
+    If header is used, values are stored in the following format:
+        <compression type>:<serialization type>:<serialized binary data>.
+
+    For example:
+
+        n:o:... - No compression, (or)json serialization
+        z:o:... - Zstandard compression, (or)json serialization
+
+    If header is not used, value is stored as a serialized JSON string of the input dictionary.
     """
 
     def __init__(self, *args, **kwargs):
@@ -277,8 +288,7 @@ class JSONDictField(BinaryField):
 
     def parse_field_value(self, value: Optional[Union[bytes, dict]]) -> dict:
         """
-        Parse provided binary field value and return a tuple with (compression_flag,
-        serialization_format_name, binary_data).
+        Parse provided binary field value and return parsed value (dictionary).
 
         For example:
 
@@ -385,7 +395,7 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
             value = mongoescape.unescape_chars(value)
             return value
 
-        if isinstance(value, (six.text_type, six.binary_type)):
+        if isinstance(value, bytes):
             return self.parse_field_value(value)
 
         return value
