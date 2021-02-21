@@ -1,10 +1,10 @@
 version: 1.0
 
-description: A basic workflow to demonstrate data flow options.
+description: A basic workflow which passes large data around.
 
 input:
-  - a1
-  - b1: <% ctx().a1 %>
+  - file_path
+  - b1: <% ctx().file_path %>
 
 vars:
   - a2: <% ctx().b1 %>
@@ -28,10 +28,10 @@ tasks:
   task2:
     action: examples.load_and_print_fixture
     input:
-      file_path: /home/vagrant/st2/st2common/benchmarks/fixtures/json/json_4mb.json
+      file_path: <% ctx().file_path %>
     next:
       - when: <% succeeded() %>
-        publish: a4=<% result().stdout %> b4=<% ctx().a4 %>
+        publish: a4=<% result().result %> b4=<% ctx().a4 %>
         do: task3
   task3:
     action: core.noop
