@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import datetime
 import calendar
 import enum
+import weakref
 
 import six
 import orjson
@@ -25,6 +26,9 @@ import zstandard
 
 from mongoengine import LongField
 from mongoengine import BinaryField
+from mongoengine.base.datastructures import mark_as_changed_wrapper
+from mongoengine.base.datastructures import mark_key_as_changed_wrapper
+from mongoengine.common import _import_class
 
 from st2common.util import date as date_utils
 from st2common.util import mongoescape
@@ -154,6 +158,63 @@ class ComplexDateTimeField(LongField):
         return self._convert_from_datetime(value)
 
 
+class BaseDict(dict):
+    """
+    Custom dictionary class based on mongoengine.base.datastructures.BaseDict which acts as a
+    wrapper for dict value for JSONDictField which allows us to track changes to the dict.
+
+    Tracking changes to the dict is important since it allows us to implement more efficient
+    partial document updates - e.g. if field A on model to be updated hasn't changed, actual
+    database save operation will only write out field which values have changed.
+
+    This works exactly in the same manner mongoengine DictField and DynamicField.
+    """
+
+    _instance = None
+    _name = None
+
+    def __init__(self, dict_items, instance, name):
+        BaseDocument = _import_class("BaseDocument")
+
+        if isinstance(instance, BaseDocument):
+            self._instance = weakref.proxy(instance)
+
+        self._name = name
+
+        super().__init__(dict_items)
+
+    def get(self, key, default=None):
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            return default
+
+    def __getitem__(self, key):
+        value = super().__getitem__(key)
+        return value
+
+    def __getstate__(self):
+        self.instance = None
+        return self
+
+    def __setstate__(self, state):
+        self = state
+        return self
+
+    __setitem__ = mark_key_as_changed_wrapper(dict.__setitem__)
+    __delattr__ = mark_key_as_changed_wrapper(dict.__delattr__)
+    __delitem__ = mark_key_as_changed_wrapper(dict.__delitem__)
+    pop = mark_as_changed_wrapper(dict.pop)
+    clear = mark_as_changed_wrapper(dict.clear)
+    update = mark_as_changed_wrapper(dict.update)
+    popitem = mark_as_changed_wrapper(dict.popitem)
+    setdefault = mark_as_changed_wrapper(dict.setdefault)
+
+    def _mark_as_changed(self, key=None):
+        if hasattr(self._instance, "_mark_as_changed"):
+            self._instance._mark_as_changed(self._name)
+
+
 class JSONDictField(BinaryField):
     """
     Custom field types which stores dictionary as JSON serialized strings.
@@ -172,7 +233,47 @@ class JSONDictField(BinaryField):
     results - in fact, it was also faster for small results dictionaries
 
     More context and numbers are available at https://github.com/StackStorm/st2/pull/4846.
+
+    NOTES, LIMITATIONS:
+
+    This field type can only be used on dictionary values on which we don't perform direct database
+    queries (aka filter on a specific dictionary item value or similar).
+
+    Good examples of those are "result" field on ExecutionDB, LiveActionDB and TaskExecutionDB,
+    "output" on WorkflowExecutionDB, etc.
     """
+
+    def __init__(self, *args, **kwargs):
+        # True if we should use field header which is more future proof approach and also allows
+        # us to support optional per-field compression, etc.
+        # This option is only exposed so we can benchmark different approaches and how much overhead
+        # using a header adds.
+        self.use_header = kwargs.pop('use_header', False)
+        self.compression_algorithm = kwargs.pop('compression_algorithm', "none")
+
+        super(JSONDictField, self).__init__(*args, **kwargs)
+
+        self.json_loads = orjson.loads
+        self.json_dumps = orjson.dumps
+
+    def to_mongo(self, value):
+        if not isinstance(value, dict):
+            raise ValueError('value argument must be a dictionary')
+
+        data = self._serialize_field_value(value)
+        return data
+
+    def to_python(self, value):
+        if isinstance(value, dict):
+            # Already parsed
+            return value
+
+        data = self._parse_field_value(value)
+        return data
+
+    def validate(self, value):
+        value = self.to_mongo(value)
+        return super(JSONDictField, self).validate(value)
 
     def _parse_field_value(self, value: bytes) -> dict:
         """
@@ -227,37 +328,22 @@ class JSONDictField(BinaryField):
 
         return compression_header.value + b":" + b"o:" + data
 
-    def __init__(self, *args, **kwargs):
-        # True if we should use field header which is more future proof approach and also allows
-        # us to support optional per-field compression, etc.
-        # This option is only exposed so we can benchmark different approaches and how much overhead
-        # using a header adds.
-        self.use_header = kwargs.pop('use_header', False)
-        self.compression_algorithm = kwargs.pop('compression_algorithm', "none")
+    def __get__(self, instance, owner):
+        """
+        We return a custom wrapper over dict which tracks changes to the dictionary and allows us
+        to only write the field to the database on update if the field value has changed - very
+        important since it means much more efficient partial updates.
+        """
+        value = super().__get__(instance, owner)
 
-        super(JSONDictField, self).__init__(*args, **kwargs)
+        if isinstance(value, dict) and not isinstance(value, BaseDict):
+            value = BaseDict(value, instance, self.name)
 
-        self.json_loads = orjson.loads
-        self.json_dumps = orjson.dumps
-
-    def to_mongo(self, value):
-        if not isinstance(value, dict):
-            raise ValueError('value argument must be a dictionary')
-
-        data = self._serialize_field_value(value)
-        return data
-
-    def to_python(self, value):
-        if isinstance(value, dict):
-            # Already parsed
-            return value
-
-        data = self._parse_field_value(value)
-        return data
-
-    def validate(self, value):
-        value = self.to_mongo(value)
-        return super(JSONDictField, self).validate(value)
+        # NOTE: It's important this attribute is set, since only this way mongoengine can determine
+        # if the field has chaned or not when determing if the value should be written to the db or
+        # not
+        instance._data[self.name] = value
+        return value
 
 
 class JSONDictEscapedFieldCompatibilityField(JSONDictField):

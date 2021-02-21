@@ -115,10 +115,6 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         ]
     }
 
-    json_dict_fields = [
-        "result"
-    ]
-
     def get_uid(self):
         # TODO Construct id from non id field:
         uid = [self.RESOURCE_TYPE, str(self.id)]  # pylint: disable=no-member

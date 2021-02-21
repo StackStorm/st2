@@ -43,7 +43,8 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
     input = stormbase.EscapedDictField()
     notify = me.DictField()
     context = stormbase.EscapedDictField()
-    state = stormbase.EscapedDictField()
+    #state = stormbase.EscapedDictField()
+    state = JSONDictEscapedFieldCompatibilityField()
     status = me.StringField(required=True)
     output = JSONDictEscapedFieldCompatibilityField()
     errors = stormbase.EscapedDynamicField()
@@ -55,10 +56,6 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
             {'fields': ['action_execution']}
         ]
     }
-
-    json_dict_fields = [
-        "output"
-    ]
 
 
 class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
@@ -88,10 +85,6 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
             {'fields': ['workflow_execution', 'task_id', 'task_route']}
         ]
     }
-
-    json_dict_fields = [
-        "result"
-    ]
 
 
 MODELS = [

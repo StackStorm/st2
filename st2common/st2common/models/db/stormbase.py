@@ -59,11 +59,6 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
     # We explicitly assign the manager so pylint know what type objects is
     objects = me.queryset.QuerySetManager()
 
-    # Dictionary which holds a list of field names which utilize JSONDictField field type.
-    # This field type is special and we need to declare it on the model, to ensure it's correctly
-    # updated in the database even when performing a partial module update.
-    json_dict_fields = []
-
     # Note: In mongoengine >= 0.10 "id" field is automatically declared on all
     # the documents and declaring it ourselves causes a lot of issues so we
     # don't do that
@@ -80,38 +75,6 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
             v = '"%s"' % str(v) if type(v) in [str, six.text_type, datetime.datetime] else str(v)
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
-
-    def save(self, *args, **kwargs):
-        self._mark_json_dict_fields_as_changed()
-        return super(StormFoundationDB, self).save(*args, **kwargs)
-
-    def _mark_json_dict_fields_as_changed(self):
-        """
-        Special method which marks all the JSONDict field which have a value set as changed.
-
-        We do this do to ensure that the value is correctly stored in the database in case it has
-        been updated on an existing model.
-
-        By default, mongoengine uses wrapper classes for dicts to track changes, but that logic is
-        highly complex, slow and error prone and not something we can easily use with our custom
-        dict fields which are all about performance.
-
-        In 99% of the acses, we already treat fields where JSONDictField is used as atomic /
-        immutable and we don't perform any particulat update on them so we should be fine.
-        """
-        initialised = getattr(self, '_initialised', [])
-
-        if not initialised:
-            # New document, all fields will already be saved
-            return
-
-        json_dict_fields = getattr(self, "json_dict_fields", [])
-
-        for field_name in json_dict_fields:
-            field_value = getattr(self, field_name, DICT_FIELD_NOT_SET_MARKER)
-
-            if field_value != DICT_FIELD_NOT_SET_MARKER:
-                self._mark_as_changed(field_name)
 
     def get_resource_type(self):
         return self.RESOURCE_TYPE
