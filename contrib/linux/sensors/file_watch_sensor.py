@@ -44,8 +44,8 @@ class FileWatchSensor(Sensor):
 
             try:
                 self._tail.notifier.stop()
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"Error: tail notifier is still running. {e}")
 
     def add_trigger(self, trigger):
         file_path = trigger['parameters'].get('file_path', None)

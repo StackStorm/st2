@@ -52,7 +52,8 @@ class CheckProcs(object):
                 cmdfh = open(self.procDir + "/" + p + "/cmdline")
                 cmd = cmdfh.readline()
                 pInfo[1] = cmd
-            except:
+            except IOError:
+                print("Error: can't find file or read data.")
                 continue
             finally:
                 cmdfh.close()
