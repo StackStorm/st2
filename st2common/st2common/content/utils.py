@@ -282,7 +282,8 @@ def get_pack_file_abs_path(pack_ref, file_path, resource_type=None, use_pack_cac
     result = os.path.join(*path_components)     # pylint: disable=E1120
 
     if normalized_file_path not in result:
-        raise ValueError('This is not a normalized path to prevent directory traversal.')
+        raise ValueError('This is not a normalized path "%s" to prevent directory traversal "%s".' %
+                         (normalized_file_path, result))
 
     # Final safety check for common prefix to avoid traversal attack
     common_prefix = os.path.commonprefix([pack_base_path, result])

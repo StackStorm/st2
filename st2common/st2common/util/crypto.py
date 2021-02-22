@@ -81,7 +81,8 @@ MINIMUM_AES_KEY_SIZE = 128
 DEFAULT_AES_KEY_SIZE = 256
 
 if not DEFAULT_AES_KEY_SIZE >= MINIMUM_AES_KEY_SIZE:
-    raise ValueError('Verify the key size :"%s".' % (DEFAULT_AES_KEY_SIZE))
+    raise ValueError('AES key size "%s" is smaller than minimun key size "%s".' %
+                     (DEFAULT_AES_KEY_SIZE, MINIMUM_AES_KEY_SIZE))
 
 
 class AESKey(object):
@@ -216,9 +217,9 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     hmac_key_bytes = encrypt_key.hmac_key_bytes
 
     if not isinstance(aes_key_bytes, six.binary_type):
-        raise TypeError('AESKey bytes does not match with binary type.')
+        raise TypeError(f'AESKey is not bytes (it is {type(aes_key_bytes)}).')
     if not isinstance(hmac_key_bytes, six.binary_type):
-        raise TypeError('HMACKey bytes does not match with binary type.')
+        raise TypeError(f'HMACKey is not bytes (it is {type(hmac_key_bytes)}).')
 
     if isinstance(plaintext, (six.text_type, six.string_types)):
         # Convert data to bytes
@@ -276,9 +277,9 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
     hmac_key_bytes = decrypt_key.hmac_key_bytes
 
     if not isinstance(aes_key_bytes, six.binary_type):
-        raise TypeError('The aes key bytes does not match with binary type.')
+        raise TypeError(f'AESKey is not bytes (it is {type(aes_key_bytes)}).')
     if not isinstance(hmac_key_bytes, six.binary_type):
-        raise TypeError('The hmac key bytes does not match with binary type.')
+        raise TypeError(f'HMACKey is not bytes (it is {type(hmac_key_bytes)}).')
 
     # Convert from hex notation ASCII string to bytes
     ciphertext = binascii.unhexlify(ciphertext)
