@@ -459,6 +459,7 @@ micro-benchmarks: requirements .micro-benchmarks
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_execution"
 	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_multiple_fields"
 
 
 .PHONY: .cleanmongodb
