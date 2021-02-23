@@ -239,8 +239,8 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
 
     def test_field_state_changes_are_correctly_detected_add_or_update_method(self):
         model_db = ModelWithJSONDictFieldDB()
-        model_db.result = {"a": 1, "b": 2}
-        expected_result = {"a": 1, "b": 2}
+        model_db.result = {"a": 1, "b": 2, "c": [1, 2, 3]}
+        expected_result = {"a": 1, "b": 2, "c": [1, 2, 3]}
 
         model_db = ModelJsonDictFieldAccess.add_or_update(model_db)
         self.assertEqual(model_db.result, expected_result)
@@ -260,8 +260,8 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         self.assertEqual(retrieved_model_db.result, model_db.result)
         self.assertEqual(retrieved_model_db.result, expected_result)
 
-        model_db.result = {"f": 6, "g": 7}
-        expected_result = {"f": 6, "g": 7}
+        model_db.result = {"f": 6, "g": 7, "c": [9, 8, 7]}
+        expected_result = {"f": 6, "g": 7, "c": [9, 8, 7]}
         model_db = ModelJsonDictFieldAccess.add_or_update(model_db)
         self.assertEqual(model_db.result, expected_result)
 
@@ -273,8 +273,8 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         # field change detection logic of mongoengine for our special field type
         model_db = retrieved_model_db
         model_db.result["f"] = 1000
-        model_db.result["c"] = 100
-        expected_result = {"f": 1000, "g": 7, "c": 100}
+        model_db.result["h"] = 100
+        expected_result = {"f": 1000, "g": 7, "h": 100, "c": [9, 8, 7]}
 
         model_db = ModelJsonDictFieldAccess.add_or_update(model_db)
         self.assertEqual(model_db.result, expected_result)
@@ -285,7 +285,50 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
 
         # Try again
         model_db.result["u"] = 102
-        expected_result = {"f": 1000, "g": 7, "c": 100, "u": 102}
+        expected_result = {"f": 1000, "g": 7, "h": 100, "u": 102, "c": [9, 8, 7]}
+
+        model_db = ModelJsonDictFieldAccess.add_or_update(model_db)
+        self.assertEqual(model_db.result, expected_result)
+
+        retrieved_model_db = ModelJsonDictFieldAccess.get_by_id(model_db.id)
+        self.assertEqual(retrieved_model_db.result, model_db.result)
+        self.assertEqual(retrieved_model_db.result, expected_result)
+
+        # Verify nested list items state changes are also tracked correctly
+        model_db.result["c"].append(6)
+        expected_result = {"f": 1000, "g": 7, "h": 100, "u": 102, "c": [9, 8, 7, 6]}
+
+        model_db = ModelJsonDictFieldAccess.add_or_update(model_db)
+        self.assertEqual(model_db.result, expected_result)
+
+        retrieved_model_db = ModelJsonDictFieldAccess.get_by_id(model_db.id)
+        self.assertEqual(retrieved_model_db.result, model_db.result)
+        self.assertEqual(retrieved_model_db.result, expected_result)
+
+        model_db.result["c"][0] = 100
+        expected_result = {"f": 1000, "g": 7, "h": 100, "u": 102, "c": [100, 8, 7, 6]}
+
+        model_db = ModelJsonDictFieldAccess.add_or_update(model_db)
+        self.assertEqual(model_db.result, expected_result)
+
+        retrieved_model_db = ModelJsonDictFieldAccess.get_by_id(model_db.id)
+        self.assertEqual(retrieved_model_db.result, model_db.result)
+        self.assertEqual(retrieved_model_db.result, expected_result)
+
+        # Verify nested dict item dict changes
+        model_db = ModelWithJSONDictFieldDB()
+        model_db.result = {"a": 1, "b": 2, "c": {"a1": {"b1": "c"}}}
+        expected_result = {"a": 1, "b": 2, "c": {"a1": {"b1": "c"}}}
+
+        model_db = ModelJsonDictFieldAccess.add_or_update(model_db)
+        self.assertEqual(model_db.result, expected_result)
+
+        retrieved_model_db = ModelJsonDictFieldAccess.get_by_id(model_db.id)
+        self.assertEqual(retrieved_model_db.result, model_db.result)
+        self.assertEqual(retrieved_model_db.result, expected_result)
+
+        model_db.result["c"]["a1"]["b1"] = "updated"
+        expected_result = {"a": 1, "b": 2, "c": {"a1": {"b1": "updated"}}}
 
         model_db = ModelJsonDictFieldAccess.add_or_update(model_db)
         self.assertEqual(model_db.result, expected_result)
@@ -297,8 +340,8 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         # And again with different approach (we set field on the original model, not one returned
         # by add_or_update())
         model_0_db = ModelWithJSONDictFieldDB()
-        model_0_db.result = {"f": "f", "g": "g"}
-        expected_result = {"f": "f", "g": "g"}
+        model_0_db.result = {"f": "f", "g": "g", "c": [9, 8, 7]}
+        expected_result = {"f": "f", "g": "g", "c": [9, 8, 7]}
 
         inserted_model_db = ModelJsonDictFieldAccess.add_or_update(model_0_db)
         self.assertEqual(inserted_model_db.result, model_0_db.result)
@@ -309,7 +352,7 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         self.assertEqual(retrieved_model_db.result, expected_result)
 
         model_0_db["result"]["f"] = "updated!"
-        expected_result = {"f": "updated!", "g": "g"}
+        expected_result = {"f": "updated!", "g": "g", "c": [9, 8, 7]}
 
         inserted_model_db = ModelJsonDictFieldAccess.add_or_update(model_0_db)
         self.assertEqual(inserted_model_db.result, model_0_db.result)
@@ -319,10 +362,33 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         self.assertEqual(retrieved_model_db.result, model_0_db.result)
         self.assertEqual(retrieved_model_db.result, expected_result)
 
+        # Verify nested list items state changes are also tracked correctly
+        model_0_db.result["c"].append(6)
+        expected_result = {"f": "updated!", "g": "g", "c": [9, 8, 7, 6]}
+
+        inserted_model_db = ModelJsonDictFieldAccess.add_or_update(model_0_db)
+        self.assertEqual(inserted_model_db.result, model_0_db.result)
+        self.assertEqual(inserted_model_db.result, expected_result)
+
+        retrieved_model_db = ModelJsonDictFieldAccess.get_by_id(model_0_db.id)
+        self.assertEqual(retrieved_model_db.result, model_0_db.result)
+        self.assertEqual(retrieved_model_db.result, expected_result)
+
+        model_0_db.result["c"][1] = 100
+        expected_result = {"f": "updated!", "g": "g", "c": [9, 100, 7, 6]}
+
+        inserted_model_db = ModelJsonDictFieldAccess.add_or_update(model_0_db)
+        self.assertEqual(inserted_model_db.result, model_0_db.result)
+        self.assertEqual(inserted_model_db.result, expected_result)
+
+        retrieved_model_db = ModelJsonDictFieldAccess.get_by_id(model_0_db.id)
+        self.assertEqual(inserted_model_db.result, model_0_db.result)
+        self.assertEqual(retrieved_model_db.result, expected_result)
+
     def test_field_state_changes_are_correctly_detected_save_method(self):
         model_db = ModelWithJSONDictFieldDB()
-        model_db.result = {"a": 1, "b": 2}
-        expected_result = {"a": 1, "b": 2}
+        model_db.result = {"a": 1, "b": 2, "c": ["a", "b", 100]}
+        expected_result = {"a": 1, "b": 2, "c": ["a", "b", 100]}
 
         model_db = model_db.save()
         self.assertEqual(model_db.result, expected_result)
@@ -332,16 +398,16 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         self.assertEqual(retrieved_model_db.result, expected_result)
 
         # 1. Try regular update on the whole attribute level
-        model_db.result = {"c": 3, "d": 5}
-        expected_result = {"c": 3, "d": 5}
+        model_db.result = {"h": 3, "d": 5, "c": ["a", "b", 101]}
+        expected_result = {"h": 3, "d": 5, "c": ["a", "b", 101]}
         model_db = model_db.save()
 
         retrieved_model_db = ModelJsonDictFieldAccess.get_by_id(model_db.id)
         self.assertEqual(retrieved_model_db.result, model_db.result)
         self.assertEqual(retrieved_model_db.result, expected_result)
 
-        model_db.result = {"f": 6, "g": 7}
-        expected_result = {"f": 6, "g": 7}
+        model_db.result = {"f": 6, "g": 7, "c": ["a", "b", 102]}
+        expected_result = {"f": 6, "g": 7, "c": ["a", "b", 102]}
         model_db = model_db.save()
         self.assertEqual(model_db.result, expected_result)
 
@@ -353,8 +419,8 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         # field change detection logic of mongoengine for our special field type
         model_db = retrieved_model_db
         model_db.result["f"] = 1000
-        model_db.result["c"] = 100
-        expected_result = {"f": 1000, "g": 7, "c": 100}
+        model_db.result["d"] = 100
+        expected_result = {"f": 1000, "g": 7, "d": 100, "c": ["a", "b", 102]}
         model_db = model_db.save()
         self.assertEqual(model_db.result, expected_result)
 
@@ -364,7 +430,17 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
 
         # Try again
         model_db.result["u"] = 102
-        expected_result = {"f": 1000, "g": 7, "c": 100, "u": 102}
+        expected_result = {"f": 1000, "g": 7, "d": 100, "u": 102, "c": ["a", "b", 102]}
+        model_db = model_db.save()
+        self.assertEqual(model_db.result, expected_result)
+
+        retrieved_model_db = ModelJsonDictFieldAccess.get_by_id(model_db.id)
+        self.assertEqual(retrieved_model_db.result, model_db.result)
+        self.assertEqual(retrieved_model_db.result, expected_result)
+
+        # Verify nested list items state changes are also tracked correctly
+        model_db.result["c"][2] += 10
+        expected_result = {"f": 1000, "g": 7, "d": 100, "u": 102, "c": ["a", "b", 112]}
         model_db = model_db.save()
         self.assertEqual(model_db.result, expected_result)
 

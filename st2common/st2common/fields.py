@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+NOTE: BaseList and BaseDict classes below are based on mongoengine code from
+https://github.com/MongoEngine/mongoengine/blob/master/mongoengine/base/datastructures.py
+
+Mongoengine is licensed under MIT.
+"""
+
 from __future__ import absolute_import
 
 from typing import Optional
@@ -160,6 +167,96 @@ class ComplexDateTimeField(LongField):
         return self._convert_from_datetime(value)
 
 
+class BaseList(list):
+    """
+    Custom list class based on mongoengine.base.datastructures.BaseDict which acts as a
+    wrapper for list value for JSONDictField which allows us to track changes to the list items.
+
+    Tracking changes to the list is important since it allows us to implement more efficient
+    partial document updates - e.g. if field A on model to be updated hasn't changed, actual
+    database save operation will only write out field which values have changed.
+
+    This works exactly in the same manner mongoengine DictField and DynamicField.
+    """
+
+    _instance = None
+    _name = None
+
+    def __init__(self, list_items, instance, name):
+        BaseDocument = _import_class("BaseDocument")
+
+        if isinstance(instance, BaseDocument):
+            self._instance = weakref.proxy(instance)
+
+        self._name = name
+        super().__init__(list_items)
+
+    def __getitem__(self, key):
+        # change index to positive value because MongoDB does not support negative one
+        if isinstance(key, int) and key < 0:
+            key = len(self) + key
+        value = super().__getitem__(key)
+
+        if isinstance(key, slice):
+            # When receiving a slice operator, we don't convert the structure and bind
+            # to parent's instance. This is buggy for now but would require more work to be handled
+            # properly
+            return value
+
+        if isinstance(value, dict) and not isinstance(value, BaseDict):
+            # Replace dict by BaseDict
+            value = BaseDict(value, None, f"{self._name}.{key}")
+            super().__setitem__(key, value)
+            value._instance = self._instance
+        elif isinstance(value, list) and not isinstance(value, BaseList):
+            # Replace list by BaseList
+            value = BaseList(value, None, f"{self._name}.{key}")
+            super().__setitem__(key, value)
+            value._instance = self._instance
+        return value
+
+    def __iter__(self):
+        yield from super().__iter__()
+
+    def __getstate__(self):
+        self.instance = None
+        return self
+
+    def __setstate__(self, state):
+        self = state
+        return self
+
+    def __setitem__(self, key, value):
+        changed_key = key
+        if isinstance(key, slice):
+            # In case of slice, we don't bother to identify the exact elements being updated
+            # instead, we simply marks the whole list as changed
+            changed_key = None
+
+        result = super().__setitem__(key, value)
+        self._mark_as_changed(changed_key)
+        return result
+
+    append = mark_as_changed_wrapper(list.append)
+    extend = mark_as_changed_wrapper(list.extend)
+    insert = mark_as_changed_wrapper(list.insert)
+    pop = mark_as_changed_wrapper(list.pop)
+    remove = mark_as_changed_wrapper(list.remove)
+    reverse = mark_as_changed_wrapper(list.reverse)
+    sort = mark_as_changed_wrapper(list.sort)
+    __delitem__ = mark_as_changed_wrapper(list.__delitem__)
+    __iadd__ = mark_as_changed_wrapper(list.__iadd__)
+    __imul__ = mark_as_changed_wrapper(list.__imul__)
+
+    def _mark_as_changed(self, key=None):
+        if hasattr(self._instance, "_mark_as_changed"):
+            # Since our type is a special binary type, we always mark top level dict as changes
+            # since whole dict needs to be saved at once, we can't update just a singel dict
+            # item.
+            parent_key_name = self._name.split(".")[0]
+            self._instance._mark_as_changed(parent_key_name)
+
+
 class BaseDict(dict):
     """
     Custom dictionary class based on mongoengine.base.datastructures.BaseDict which acts as a
@@ -182,7 +279,6 @@ class BaseDict(dict):
             self._instance = weakref.proxy(instance)
 
         self._name = name
-
         super().__init__(dict_items)
 
     def get(self, key, default=None):
@@ -193,6 +289,18 @@ class BaseDict(dict):
 
     def __getitem__(self, key):
         value = super().__getitem__(key)
+
+        if isinstance(value, dict) and not isinstance(value, BaseDict):
+            value = BaseDict(value, None, f"{self._name}.{key}")
+            super().__setitem__(key, value)
+            value._instance = self._instance
+        # We also need to return a wrapper class in case of a list to ensure updates o the
+        # list items are correctly racked
+        elif isinstance(value, list) and not isinstance(value, BaseList):
+            value = BaseList(value, None, f"{self._name}.{key}")
+            super().__setitem__(key, value)
+            value._instance = self._instance
+
         return value
 
     def __getstate__(self):
@@ -214,7 +322,11 @@ class BaseDict(dict):
 
     def _mark_as_changed(self, key=None):
         if hasattr(self._instance, "_mark_as_changed"):
-            self._instance._mark_as_changed(self._name)
+            # Since our type is a special binary type, we always mark top level dict as changes
+            # since whole dict needs to be saved at once, we can't update just a singel dict
+            # item.
+            parent_key_name = self._name.split(".")[0]
+            self._instance._mark_as_changed(parent_key_name)
 
 
 class JSONDictField(BinaryField):
