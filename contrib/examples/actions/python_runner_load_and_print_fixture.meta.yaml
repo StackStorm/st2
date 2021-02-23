@@ -1,5 +1,5 @@
 ---
-name: load_and_print_fixture
+name: python_runner_load_and_print_fixture
 description: Action which loads provided JSON fixture file, parses it and returns it as an action result. Useful when testing and benchmarking execution save timing.
 runner_type: "python-script"
 enabled: true
