@@ -51,6 +51,8 @@ from st2reactor.sensor import config
 from st2common.services.datastore import SensorDatastoreService
 from st2common.util.monkey_patch import use_select_poll_workaround
 
+LOG = logging.getLogger(__name__)
+
 __all__ = [
     'SensorWrapper',
     'SensorService'
@@ -182,7 +184,8 @@ class SensorWrapper(object):
         try:
             config.parse_args(args=self._parent_args)
         except Exception as e:
-            print('Failed to parse config using parent args (parent_args=%s): "%s".' %
+            LOG.exception('Failed to parse config using parent args '
+            '(parent_args=%s): "%s".' %
                   (str(self._parent_args), six.text_type(e)))
 
         # 2. Establish DB connection
