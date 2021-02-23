@@ -196,7 +196,7 @@ class GarbageCollectorService(object):
         timestamp_str = isotime.format(dt=timestamp)
         LOG.info('Deleting action executions older than: %s' % (timestamp_str))
 
-        if timestamp > utc_now:
+        if timestamp >= utc_now:
             raise ValueError(f'Calculated timestamp ({timestamp}) is' %
                             'later than now in UTC ({utc_now}).')
 
@@ -218,7 +218,7 @@ class GarbageCollectorService(object):
         timestamp_str = isotime.format(dt=timestamp)
         LOG.info('Deleting action executions output objects older than: %s' % (timestamp_str))
 
-        if timestamp > utc_now:
+        if timestamp >= utc_now:
             raise ValueError(f'Calculated timestamp ({timestamp}) is' %
                              'later than now in UTC ({utc_now}).')
 
@@ -243,7 +243,7 @@ class GarbageCollectorService(object):
         timestamp_str = isotime.format(dt=timestamp)
         LOG.info('Deleting trigger instances older than: %s' % (timestamp_str))
 
-        if timestamp > utc_now:
+        if timestamp >= utc_now:
             raise ValueError(f'Calculated timestamp ({timestamp}) is' %
                             'later than now in UTC ({utc_now}).')
 
