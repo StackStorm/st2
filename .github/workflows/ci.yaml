@@ -40,6 +40,10 @@ jobs:
           - name: 'Unit Tests'
             task: 'ci-unit'
             python-version: '3.6'
+          # TODO: If it's too slow for every pr, just run on master merge
+          - name: 'Micro Benchmarks'
+            task: 'micro-benchmarks'
+            python-version: '3.6'
           # Integration tests are not working yet, still done in Travis
           # - name: 'Integration Tests'
           #   task: 'ci-integration'
