@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -550,8 +551,10 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
                 "type": "string"
             },
             "ref": {
-                "description": "System computed user friendly reference for the alias. \
-                                Provided value will be overridden by computed value.",
+                "description": (
+                    "System computed user friendly reference for the alias. "
+                    "Provided value will be overridden by computed value."
+                ),
                 "type": "string"
             },
             "uid": {

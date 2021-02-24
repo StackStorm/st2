@@ -2,7 +2,11 @@
 # Note: amqp is used by kombu
 amqp==2.5.2
 apscheduler==3.6.3
-cryptography==2.8
+# requests 2.23 requires chardet < 3.1.0
+chardet<3.1.0
+# NOTE: 2.0 version breaks pymongo work with hosts
+dnspython>=1.16.0,<2.0.0
+cryptography==3.3.2
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
 eventlet==0.25.1
@@ -20,7 +24,7 @@ networkx==1.11
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
-oslo.utils>=3.36.2,<=3.37.0
+oslo.utils<5.0,>=4.0.0
 paramiko==2.7.1
 passlib==1.7.1
 prance==0.9.0
@@ -41,7 +45,7 @@ six==1.13.0
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
 sseclient-py==1.7
 stevedore==1.30.1
-tooz==1.66.1
+tooz==2.8.0
 # Note: We use latest version of virtualenv which uses pip 19
 virtualenv==16.6.0
 webob==1.8.5

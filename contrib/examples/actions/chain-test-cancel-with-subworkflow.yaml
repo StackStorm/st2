@@ -1,6 +1,6 @@
 ---
 name: chain-test-cancel-with-subworkflow
-description: Simple action chain with a Mistral subworkflow to test cancellation.
+description: Simple action chain with a Orquesta subworkflow to test cancellation.
 runner_type: action-chain
 entry_point: chains/chain_test_cancel_with_subworkflow.yaml
 enabled: true

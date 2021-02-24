@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,3 +29,5 @@ __all__ = [
     'DbModelTestCase',
     'WorkflowTestCase'
 ]
+
+__version__ = '3.4dev'

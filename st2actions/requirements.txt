@@ -6,15 +6,15 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 apscheduler==3.6.3
+chardet<3.1.0
 eventlet==0.25.1
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
-git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 gitpython==2.1.15
 jinja2==2.10.3
 kombu==4.6.6
 lockfile==0.12.2
 oslo.config<1.13,>=1.12.1
-oslo.utils<=3.37.0,>=3.36.2
+oslo.utils<5.0,>=4.0.0
 pyinotify==0.9.6 ; platform_system == "Linux"
 python-dateutil==2.8.0
 python-json-logger

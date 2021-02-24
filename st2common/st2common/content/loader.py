@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,9 @@ from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.constants.meta import PARSER_FUNCS
 from st2common.constants.pack import MANIFEST_FILE_NAME
+
+if six.PY2:
+    from io import open
 
 __all__ = [
     'ContentPackLoader',
@@ -242,7 +246,7 @@ class MetaLoader(object):
         return result
 
     def _load(self, parser_func, file_path):
-        with open(file_path, 'r') as fd:
+        with open(file_path, 'r', encoding='utf-8') as fd:
             try:
                 return parser_func(fd)
             except ValueError:

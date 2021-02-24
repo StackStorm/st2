@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +19,6 @@ import socket
 import sys
 
 from oslo_config import cfg
-from distutils.spawn import find_executable
 
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
@@ -344,7 +344,6 @@ def register_opts(ignore_errors=False):
 
     # Runner options
     default_python_bin_path = sys.executable
-    default_python3_bin_path = find_executable('python3')
     base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
     default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
 
@@ -358,14 +357,6 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             'python_binary', default=default_python_bin_path,
             help='Python binary which will be used by Python actions.'),
-        cfg.StrOpt(
-            'python3_binary', default=default_python3_bin_path,
-            help='Python 3 binary which will be used by Python actions for packs which '
-                 'use Python 3 virtual environment.'),
-        cfg.StrOpt(
-            'python3_prefix', default=None,
-            help='Prefix for Python 3 installation (e.g. /opt/python3.6). If not specified, it '
-                 'tries to find Python 3 libraries in /usr/lib and /usr/local/lib.'),
         cfg.StrOpt(
             'virtualenv_binary', default=default_virtualenv_bin_path,
             help='Virtualenv binary which should be used to create pack virtualenvs.'),
@@ -421,7 +412,10 @@ def register_opts(ignore_errors=False):
             help='Use the .ssh/config file. Useful to override ports etc.'),
         cfg.StrOpt(
             'ssh_config_file_path', default='~/.ssh/config',
-            help='Path to the ssh config file.')
+            help='Path to the ssh config file.'),
+        cfg.IntOpt(
+            'ssh_connect_timeout', default=60,
+            help='Max time in seconds to establish the SSH connection.')
     ]
 
     do_register_opts(ssh_runner_opts, group='ssh_runner')
@@ -467,74 +461,6 @@ def register_opts(ignore_errors=False):
     ]
 
     do_register_opts(coord_opts, 'coordination', ignore_errors)
-
-    # Mistral options
-    mistral_opts = [
-        cfg.StrOpt(
-            'v2_base_url', default='http://127.0.0.1:8989/v2',
-            help='v2 API root endpoint.'),
-        cfg.IntOpt(
-            'retry_exp_msec', default=1000,
-            help='Multiplier for the exponential backoff.'),
-        cfg.IntOpt(
-            'retry_exp_max_msec', default=300000,
-            help='Max time for each set of backoff.'),
-        cfg.IntOpt(
-            'retry_stop_max_msec', default=600000,
-            help='Max time to stop retrying.'),
-        cfg.StrOpt(
-            'keystone_username', default=None,
-            help='Username for authentication.'),
-        cfg.StrOpt(
-            'keystone_password', default=None,
-            help='Password for authentication.'),
-        cfg.StrOpt(
-            'keystone_project_name', default=None,
-            help='OpenStack project scope.'),
-        cfg.StrOpt(
-            'keystone_auth_url', default=None,
-            help='Auth endpoint for Keystone.'),
-        cfg.StrOpt(
-            'cacert', default=None,
-            help='Optional certificate to validate endpoint.'),
-        cfg.BoolOpt(
-            'insecure', default=False,
-            help='Allow insecure communication with Mistral.'),
-        cfg.BoolOpt(
-            'enable_polling', default=False,
-            help='Enable results tracking and disable callbacks.'),
-        cfg.FloatOpt(
-            'jitter_interval', default=0.1,
-            help='Jitter interval to smooth out HTTP requests '
-                 'to mistral tasks and executions API.'),
-        cfg.StrOpt(
-            'api_url', default=None,
-            help='URL Mistral uses to talk back to the API.'
-                 'If not provided it defaults to public API URL. '
-                 'Note: This needs to be a base URL without API '
-                 'version (e.g. http://127.0.0.1:9101)')
-    ]
-
-    do_register_opts(mistral_opts, group='mistral', ignore_errors=ignore_errors)
-
-    # Results Tracker query module options
-    # Note that these are currently used only by mistral query module.
-    query_opts = [
-        cfg.IntOpt(
-            'thread_pool_size', default=10,
-            help='Number of threads to use to query external workflow systems.'),
-        cfg.FloatOpt(
-            'query_interval', default=5,
-            help='Time interval between queries to external workflow system.'),
-        cfg.FloatOpt(
-            'empty_q_sleep_time', default=1,
-            help='Sleep delay in between queries when query queue is empty.'),
-        cfg.FloatOpt(
-            'no_workers_sleep_time', default=1,
-            help='Sleep delay for query when there is no more worker in pool.')
-    ]
-
-    do_register_opts(query_opts, group='resultstracker', ignore_errors=ignore_errors)
 
     # XXX: This is required for us to support deprecated config group results_tracker
     query_opts = [

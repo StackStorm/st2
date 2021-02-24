@@ -52,6 +52,9 @@ def add_result_tracker(exec_id):
     # Check runner type.
     runner_type = exec_db.action.get('runner_type')
 
+    # Although mistral runner is removed, we want to leave in the result
+    # tracker so it can be enabled for other runners easily. Adjust this
+    # if when runners that support result tracker are added.
     if runner_type != 'mistral-v2':
         LOG.error('Result tracker is only supported for Mistral workflows.')
         return

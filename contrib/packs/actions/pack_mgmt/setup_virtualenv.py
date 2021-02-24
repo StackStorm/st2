@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,7 +74,7 @@ class SetupVirtualEnvironmentAction(Action):
         if self.proxy_ca_bundle_path and not os.environ.get('proxy_ca_bundle_path', None):
             os.environ['no_proxy'] = self.no_proxy
 
-    def run(self, packs, update=False, python3=False, no_download=True):
+    def run(self, packs, update=False, no_download=True):
         """
         :param packs: A list of packs to create the environment for.
         :type: packs: ``list``
@@ -84,7 +85,7 @@ class SetupVirtualEnvironmentAction(Action):
 
         for pack_name in packs:
             setup_pack_virtualenv(pack_name=pack_name, update=update, logger=self.logger,
-                                  proxy_config=self.proxy_config, use_python3=python3,
+                                  proxy_config=self.proxy_config,
                                   no_download=no_download)
 
         message = ('Successfully set up virtualenv for the following packs: %s' %

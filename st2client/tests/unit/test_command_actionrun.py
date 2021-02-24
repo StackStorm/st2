@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +17,7 @@ from __future__ import absolute_import
 import copy
 
 import unittest2
+import six
 import mock
 
 from st2client.commands.action import ActionRunCommand
@@ -159,6 +161,44 @@ class ActionRunCommandTest(unittest2.TestCase):
 
         # set auto_dict back to default
         mockarg.auto_dict = False
+
+    def test_get_params_from_args_read_content_from_file(self):
+        runner = RunnerType()
+        runner.runner_parameters = {}
+
+        action = Action()
+        action.ref = 'test.action'
+        action.parameters = {
+            'param_object': {'type': 'object'},
+        }
+
+        subparser = mock.Mock()
+        command = ActionRunCommand(action, self, subparser, name='test')
+
+        # 1. File doesn't exist
+        mockarg = mock.Mock()
+        mockarg.inherit_env = False
+        mockarg.auto_dict = True
+        mockarg.parameters = [
+            '@param_object=doesnt-exist.json'
+        ]
+
+        self.assertRaisesRegex(ValueError, "doesn't exist",
+                               command._get_action_parameters_from_args, action=action,
+                               runner=runner, args=mockarg)
+
+        # 2. Valid file path (we simply read this file)
+        mockarg = mock.Mock()
+        mockarg.inherit_env = False
+        mockarg.auto_dict = True
+        mockarg.parameters = [
+            '@param_string=%s' % (__file__)
+        ]
+
+        params = command._get_action_parameters_from_args(action=action,
+                                 runner=runner, args=mockarg)
+        self.assertTrue(isinstance(params["param_string"], six.text_type))
+        self.assertTrue(params["param_string"].startswith("# Copyright"))
 
     def test_get_params_from_args_with_multiple_declarations(self):
         """test_get_params_from_args_with_multiple_declarations

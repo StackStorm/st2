@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,7 +143,9 @@ class WorkflowExecutionServiceTest(st2tests.WorkflowTestCase):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
 
         # Manually create the action execution object with the bad action.
-        ac_ex_db = ex_db_models.ActionExecutionDB(action={'ref': 'mock.foobar'})
+        ac_ex_db = ex_db_models.ActionExecutionDB(
+            action={'ref': 'mock.foobar'}, runner={'name': 'foobar'}
+        )
 
         # Request the workflow execution.
         self.assertRaises(

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,7 +143,7 @@ class RuleController(BaseRestControllerMixin, BaseResourceIsolationControllerMix
             LOG.exception('Validation failed for rule data=%s.', rule)
             abort(http_client.BAD_REQUEST, six.text_type(e))
             return
-        except TriggerDoesNotExistException as e:
+        except TriggerDoesNotExistException:
             msg = ('Trigger "%s" defined in the rule does not exist in system or it\'s missing '
                    'required "parameters" attribute' % (rule.trigger['type']))
             LOG.exception(msg)

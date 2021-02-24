@@ -25,8 +25,6 @@ server {
 server {
   listen       *:443 ssl;
 
-  ssl on;
-
   ssl_certificate           /etc/ssl/st2/st2.crt;
   ssl_certificate_key       /etc/ssl/st2/st2.key;
   ssl_session_cache         shared:SSL:10m;
@@ -91,26 +89,6 @@ server {
     rewrite ^/auth/(.*)  /$1 break;
 
     proxy_pass            http://127.0.0.1:9100/;
-    proxy_read_timeout    90;
-    proxy_connect_timeout 90;
-    proxy_redirect        off;
-
-    proxy_set_header      Host $host;
-    proxy_set_header      X-Real-IP $remote_addr;
-    proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_pass_header     Authorization;
-
-    proxy_set_header Connection '';
-    chunked_transfer_encoding off;
-    proxy_buffering off;
-    proxy_cache off;
-    proxy_set_header Host $host;
-  }
-
-  location /mistral/ {
-    rewrite ^/mistral/(.*)  /$1 break;
-
-    proxy_pass            http://127.0.0.1:8989/;
     proxy_read_timeout    90;
     proxy_connect_timeout 90;
     proxy_redirect        off;

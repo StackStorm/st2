@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +26,7 @@ from st2common.router import Router
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
+from st2common.util.monkey_patch import use_select_poll_workaround
 from st2auth import config as st2auth_config
 from st2auth.validation import validate_auth_backend_is_correctly_configured
 
@@ -59,6 +61,10 @@ def setup_app(config=None):
                      service_registry=True,
                      capabilities=capabilities,
                      config_args=config.get('config_args', None))
+
+        # pysaml2 uses subprocess communicate which calls communicate_with_poll
+        if cfg.CONF.auth.sso and cfg.CONF.auth.sso_backend == 'saml2':
+            use_select_poll_workaround(nose_only=False)
 
     # Additional pre-run time checks
     validate_auth_backend_is_correctly_configured()

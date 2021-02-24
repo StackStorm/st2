@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +50,7 @@ ECHOER_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
 TEST_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                 'pythonactions/actions/test.py')
 PATHS_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
-                                'pythonactions/actions/python_paths.py')
+                                 'pythonactions/actions/python_paths.py')
 ACTION_1_PATH = os.path.join(tests_base.get_fixtures_path(),
                              'packs/dummy_pack_9/actions/list_repos_doesnt_exist.py')
 ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
@@ -64,7 +65,7 @@ PRINT_VERSION_LOCAL_MODULE_ACTION = os.path.join(tests_base.get_fixtures_path(),
 PRINT_CONFIG_ITEM_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
                                         'pythonactions/actions/print_config_item_doesnt_exist.py')
 PRINT_TO_STDOUT_STDERR_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
-                                      'pythonactions/actions/print_to_stdout_and_stderr.py')
+                                             'pythonactions/actions/print_to_stdout_and_stderr.py')
 
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
@@ -314,8 +315,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
-        self.assertEqual(output['stdout'], 'pre result line 1\npost result line 1')
-        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertMultiLineEqual(output['stdout'], 'pre result line 1\npost result line 1')
+        self.assertMultiLineEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
@@ -338,8 +339,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
-        self.assertEqual(output['stdout'], 'pre result line 1\npost result line 1')
-        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertMultiLineEqual(output['stdout'], 'pre result line 1\npost result line 1')
+        self.assertMultiLineEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
@@ -386,9 +387,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
 
-        self.assertEqual(output['stdout'],
+        self.assertMultiLineEqual(output['stdout'],
                          'pre result line 1\npre result line 2\npost result line 1')
-        self.assertEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
+        self.assertMultiLineEqual(output['stderr'], 'stderr line 1\nstderr line 2\nstderr line 3\n')
         self.assertEqual(output['result'], 'True')
         self.assertEqual(output['exit_code'], 0)
 
@@ -419,19 +420,26 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                   group='actionrunner')
 
             output_dbs = ActionExecutionOutput.get_all()
-            self.assertEqual(len(output_dbs), (index - 1) * 4)
+            # Unexpected third party warnings will also inflate this number
+            self.assertGreaterEqual(len(output_dbs), (index - 1) * 4)
 
             runner = self._get_mock_runner_obj()
             runner.entry_point = PRINT_TO_STDOUT_STDERR_ACTION
             runner.pre_run()
             (_, output, _) = runner.run({'stdout_count': 2, 'stderr_count': 2})
 
-            self.assertEqual(output['stdout'], 'stdout line 0\nstdout line 1\n')
-            self.assertEqual(output['stderr'], 'stderr line 0\nstderr line 1\n')
+            # assertMultiLineEqual displays a diff if the two don't match
+            self.assertMultiLineEqual(output['stdout'], 'stdout line 0\nstdout line 1\n')
+            # Third party packages can unexpectedly emit warnings and add more
+            # output to the streamed stderr, so we check that the expected
+            # lines occurred, but we allow additional lines to exist
+            self.assertIn('stderr line 0\n', output['stderr'])
+            self.assertIn('stderr line 1\n', output['stderr'])
             self.assertEqual(output['exit_code'], 0)
 
             output_dbs = ActionExecutionOutput.get_all()
-            self.assertEqual(len(output_dbs), (index) * 4)
+            # Unexpected third party warnings will also inflate this number
+            self.assertGreaterEqual(len(output_dbs), (index) * 4)
 
     @mock.patch('st2common.util.concurrency.subprocess_popen')
     def test_stdout_interception_and_parsing(self, mock_popen):
@@ -700,7 +708,9 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             lines.append(line)
 
         msg = ('Expected %s lines, got %s - "%s"' % (expected_count, len(lines), str(lines)))
-        self.assertEqual(len(lines), expected_count, msg)
+        # Dependencies can inject their own warnings, which increases the
+        # number of lines to more than we expect with simple equality checks
+        self.assertGreaterEqual(len(lines), expected_count, msg)
 
         # Only log messages with level info and above should be displayed
         runner = self._get_mock_runner_obj()

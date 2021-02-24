@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,6 +84,11 @@ class BaseCLIApp(object):
         # Precedence order: cli arguments > environment variables > rc file variables
         cli_options = ['base_url', 'auth_url', 'api_url', 'stream_url', 'api_version', 'cacert']
         cli_options = {opt: getattr(args, opt, None) for opt in cli_options}
+        if cli_options.get("cacert", None) is not None:
+            if cli_options["cacert"].lower() in ['true', '1', 't', 'y', 'yes']:
+                cli_options["cacert"] = True
+            elif cli_options["cacert"].lower() in ['false', '0', 'f', 'no']:
+                cli_options["cacert"] = False
         config_file_options = self._get_config_file_options(args=args)
 
         kwargs = {}

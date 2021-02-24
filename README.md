@@ -2,7 +2,15 @@
 
 **StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product).
 
-[![Tests Build Status](https://travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2) [![Packages Build Status](https://circleci.com/gh/StackStorm/st2/tree/master.svg?style=shield)](https://circleci.com/gh/StackStorm/st2) [![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master) ![Python 2.7 | 3.6](https://img.shields.io/badge/python-2.7%20%7C%203.6-blue)  [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1833/badge)](https://bestpractices.coreinfrastructure.org/projects/1833) [![Join our community Slack](https://stackstorm-community.herokuapp.com/badge.svg)](https://stackstorm.com/community-signup) [![Forum](https://img.shields.io/discourse/https/forum.stackstorm.com/posts.svg)](https://forum.stackstorm.com/)
+[![Build Status](https://github.com/StackStorm/st2/workflows/ci-checks/badge.svg?branch=master)](https://github.com/StackStorm/st2/actions?query=branch%3Amaster)
+[![Travis Integration Tests Status](https://travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2)
+[![Packages Build Status](https://circleci.com/gh/StackStorm/st2/tree/master.svg?style=shield)](https://circleci.com/gh/StackStorm/st2) 
+[![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master) 
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1833/badge)](https://bestpractices.coreinfrastructure.org/projects/1833) 
+![Python 3.6](https://img.shields.io/badge/python-3.6-blue) 
+[![Apache Licensed](https://img.shields.io/github/license/StackStorm/st2)](LICENSE) 
+[![Join our community Slack](https://img.shields.io/badge/slack-stackstorm-success.svg?logo=slack)](https://stackstorm.com/community-signup) 
+[![Forum](https://img.shields.io/discourse/https/forum.stackstorm.com/posts.svg)](https://forum.stackstorm.com/)
 
 ---
 
@@ -27,11 +35,11 @@ StackStorm is a platform for integration and automation across services and tool
 
 StackStorm helps automate common operational patterns. Some examples are:
 
-* **Facilitated Troubleshooting** - triggering on system failures captured by Nagios, Sensu, New Relic and other monitoring, running a series of diagnostic checks on physical nodes, OpenStack or Amazon instances, and application components, and posting results to a shared communication context, like HipChat or JIRA.
+* **Facilitated Troubleshooting** - triggering on system failures captured by Nagios, Sensu, New Relic and other monitoring, running a series of diagnostic checks on physical nodes, OpenStack or Amazon instances, and application components, and posting results to a shared communication context, like Slack or JIRA.
 * **Automated remediation** - identifying and verifying hardware failure on OpenStack compute node, properly evacuating instances and emailing VM about potential downtime, but if anything goes wrong - freezing the workflow and calling PagerDuty to wake up a human.
 * **Continuous deployment** - build and test with Jenkins, provision a new AWS cluster, turn on some traffic with the load balancer, and roll-forth or roll-back based on NewRelic app performance data.
 
-StackStorm helps you compose these and other operational patterns as rules and workflows or actions; and these rules and workflows - the content within the StackStorm platform - are stored *as code* which means they support the same approach to collaboration that you use today for code development and can be shared with the broader open source community via StackStorm.com/community for example.
+StackStorm helps you compose these and other operational patterns as rules and workflows or actions; and these rules and workflows - the content within the StackStorm platform - are stored *as code* which means they support the same approach to collaboration that you use today for code development and can be shared with the broader open source community via [StackStorm Exchange](https://exchange.stackstorm.com).
 
 ### Who is using StackStorm?
 
@@ -39,39 +47,39 @@ See the list of known StackStorm [ADOPTERS.md](/ADOPTERS.md) and [Thought Leader
 
 ### How it works
 
-![stackstorm component diagram](https://cloud.githubusercontent.com/assets/20028/5688946/fabef9ec-9822-11e4-859e-29bbb67df85b.jpg)
+#### StackStorm architecture
 
-    StackStorm architecture diagram
+![StackStorm architecture diagram](https://user-images.githubusercontent.com/597113/92291633-6b5aae00-eece-11ea-912e-3bf977aa3cea.png)
 
-StackStorm plugs into the environment via the extensible set of adapters: sensors and actions.
+StackStorm plugs into the environment via an extensible set of adapters: sensors and actions.
 
-* **Sensors** are python plugins for inbound integration that watch for events from external systems and fire a StackStorm trigger when an event happens.
+* **Sensors** are Python plugins for inbound integration that watch for events from external systems and fire a StackStorm trigger when an event happens.
 
-* **Triggers** are StackStorm representations of external events. There are generic triggers (e.g. timers, webhooks) and integration triggers (e.g. Sensu alert, JIRA issue updated). A new trigger type can be defined by writing a sensor plugin.
+* **Triggers** are StackStorm representations of external events. There are generic triggers (e.g., timers, webhooks) and integration triggers (e.g., Sensu alert, JIRA issue updated). A new trigger type can be defined by writing a sensor plugin.
 
-* **Actions** are StackStorm outbound integrations. There are generic actions (ssh, REST call), integrations (OpenStack, Docker, Puppet), or custom actions. Actions are either python plugins, or any scripts, consumed into StackStorm by adding a few lines of metadata. Actions can be invoked directly by user via CLI or API, or used and called as part of  automations - rules and workflows.
+* **Actions** are StackStorm outbound integrations. There are generic actions (SSH, HTTP request), integrations (OpenStack, Docker, Puppet), or custom actions. Actions are either Python plugins, or any scripts, consumed into StackStorm by adding a few lines of metadata. Actions can be invoked directly by user via CLI, API, or the web UI, or used and called as part of automations - rules and workflows.
 
-* **Rules** map triggers to actions (or to workflows), applying matching criterias and mapping trigger payload to action inputs.
+* **Rules** map triggers to actions (or to workflows), applying matching criterias and map trigger payload data to action inputs.
 
-* **Workflows** stitch actions together into “uber-actions”, defining the order, transition conditions, and passing the data. Most automations are more than one-step and thus need more than one action. Workflows, just like “atomic” actions, are available in action library, can be invoked manually or triggered by rules.
+* **Workflows** stitch actions together into "uber-actions", defining the order, transition conditions, and passing context data from one action to the next. Most automations are multi-step (eg: more than one action). Workflows, just like "atomic" actions, are available in the action library, and can be invoked manually or triggered by rules.
 
-* **Packs** are the units of content deployment. They simplify the management and sharing of StackStorm pluggable content by grouping integrations (triggers and actions) and automations (rules and workflows). A growing number of packs is available on StackStorm community. User can create their own packs,  share them on Github, or submit to StackStorm community repo.
+* **Packs** are the units of content deployment. They simplify the management and sharing of StackStorm pluggable content by grouping integrations (triggers and actions) and automations (rules and workflows). A growing number of packs is available on the StackStorm Exchange. Users can create their own packs,  share them on GitHub, or submit them to the StackStorm Exchange organization.
 
-* **Audit trail** of action executions, manual or automated, is recorded and stored with full details of triggering context and execution results. It is is also captured in audit logs for integrating with external logging and analytical tools: LogStash, Splunk, statsd, syslog.
+* **Audit trail** is the historical list of action executions, manual or automated, and is recorded and stored with full details of triggering context and execution results. It is is also captured in audit logs for integrating with external logging and analytical tools: LogStash, Splunk, statsd, or syslog.
 
-StackStorm is a service with modular architecture. It comprises loosely coupled  service components that communicate over the message bus, and scales horizontally to deliver automation at scale. StackStorm has a full REST API, CLI client for admins and users to operate it locally or remotely, and Python client bindings for developer’s convenience. Web UI is coming soon.
+StackStorm is a service with modular architecture. It is comprised of loosely coupled microservice components that communicate over a message bus, and scales horizontally to deliver automation at scale. StackStorm has a full REST API, CLI client, and web UI for admins and users to operate it locally or remotely, as well as Python client bindings for developer convenience.
 
-StackStorm is new and under active development. We are opening it early to engage community, get feedback, and refine directions, and welcome contributions.
+StackStorm is an established project and remains actively developed by a broad community.
 
 ## Documentation
 
-Additional documentation describing installation proceduces, action/rule/workflow authoring, and how to setup and use triggers/sensors can be found at [StackStorm Docs](https://docs.stackstorm.com).
+Additional documentation, including installation proceduces, action/rule/workflow authoring, and how to setup and use triggers/sensors can be found at [https://docs.stackstorm.com](https://docs.stackstorm.com).
 
 ## Hacking / Contributing
 
-To set up dev environment and run StackStorm from sources, follow [these instructions](https://docs.stackstorm.com/development/sources.html).
+To set up a development environment and run StackStorm from sources, follow [these instructions](https://docs.stackstorm.com/development/sources.html).
 
-For information on how to contribute, style guide, coding conventions and more,
+For information on how to contribute, our style guide, coding conventions and more,
 please visit the [Development section](https://docs.stackstorm.com/development/index.html)
 in our documentation.
 
@@ -85,8 +93,10 @@ in 48 hours or less. If further action is necessary, you may receive additional 
 
 For more information, please refer to https://docs.stackstorm.com/latest/security.html
 
-## Copyright, License, and Contributors Agreement
+## Copyright, License, and Contributor Agreement
 
+Copyright 2020 The StackStorm Authors.
+Copyright 2019 Extreme Networks, Inc.
 Copyright 2014-2018 StackStorm, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License. You may obtain a copy of the License in the [LICENSE](LICENSE) file, or at:

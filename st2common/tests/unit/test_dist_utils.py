@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +45,7 @@ class DistUtilsTestCase(unittest2.TestCase):
     def setUp(self):
         super(DistUtilsTestCase, self).setUp()
 
-        if 'pip'in sys.modules:
+        if 'pip' in sys.modules:
             del sys.modules['pip']
 
     def tearDown(self):
@@ -109,7 +110,6 @@ class DistUtilsTestCase(unittest2.TestCase):
             'flex==6.14.0',
             'logshipper',
             'orquesta',
-            'python-mistralclient',
             'st2-auth-backend-flat-file',
             'logshipper-editable',
             'python_runner',
@@ -125,7 +125,6 @@ class DistUtilsTestCase(unittest2.TestCase):
         expected_links = [
             'git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper',
             'git+https://github.com/StackStorm/orquesta.git@224c1a589a6007eb0598a62ee99d674e7836d369#egg=orquesta', # NOQA
-            'git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient',
             'git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file', # NOQA
             'git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper-editable',
             'git+https://github.com/StackStorm/st2.git#egg=python_runner&subdirectory=contrib/runners/python_runner', # NOQA
