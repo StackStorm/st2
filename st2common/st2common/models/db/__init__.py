@@ -476,7 +476,6 @@ class MongoDBAccess(object):
         """
         Delete objects by query and return number of deleted objects.
         """
-        super(self)
         qs = self.model.objects.filter(*args, **query)
         count = qs.delete()
         log_query_and_profile_data_for_queryset(queryset=qs)
