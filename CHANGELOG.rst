@@ -82,6 +82,32 @@ Changed
 
 * Updated cryptography dependency to version 3.3.2 to avoid CVE-2020-36242 (security) #5151
 
+* Update ``st2 execution get <id>`` command to also display execution ``log`` attribute which
+  includes execution state transition information.
+
+  By default ``end_timestamp`` attribute and ``duration`` attribute displayed in the command
+  output only include the time it took action runner to finish running actual action, but it
+  doesn't include the time it it takes action runner container to fully finish running the
+  execution - this includes persisting execution result in the database.
+
+  For actions which return large results, there could be a substantial discrepancy - e.g.
+  action itself could finish in 0.5 seconds, but writing data to the database could take
+  additional 5 seconds after the action code itself was executed.
+
+  For all purposes until the execution result is  persisted to the database, execution is
+  not considered as finished.
+
+  While writing result to the database action runner is also consuming CPU cycles since
+  serialization of large results is a CPU intensive task.
+
+  This means that "elapsed" attribute and start_timestamp + end_timestamp will make it look
+  like actual action completed in 0.5 seconds, but in reality it took 5.5 seconds (0.5 + 5 seconds).
+
+  Log attribute can be used to determine actual duration of the execution (from
+  start to finish). (improvement) #4846
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 

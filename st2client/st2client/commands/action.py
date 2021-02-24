@@ -113,6 +113,18 @@ def format_parameters(value):
     return value
 
 
+def format_log_items(value):
+    if not value:
+        return value
+
+    result = []
+    for item in value:
+        item["timestamp"] = format_isodate_for_user_timezone(item["timestamp"])
+        result.append(item)
+
+    return result
+
+
 # String for indenting etc.
 WF_PREFIX = '+ '
 NON_WF_PREFIX = '  '
@@ -174,8 +186,8 @@ def format_execution_status(instance):
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         end_timestamp = parse_isotime(end_timestamp)
         end_timestamp = calendar.timegm(end_timestamp.timetuple())
-
         elapsed_seconds = (end_timestamp - start_timestamp)
+
         instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
 
     return instance
@@ -246,9 +258,9 @@ class ActionRunCommandMixin(object):
     attribute_transform_functions = {
         'start_timestamp': format_isodate_for_user_timezone,
         'end_timestamp': format_isodate_for_user_timezone,
-        'finalized_timestamp': format_isodate_for_user_timezone,
         'parameters': format_parameters,
-        'status': format_status
+        'status': format_status,
+        'log': format_log_items,
     }
 
     poll_interval = 2  # how often to poll for execution completion when using sync mode
@@ -1172,9 +1184,9 @@ class ActionExecutionListCommand(ResourceViewCommand):
 
 class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
-                          'start_timestamp', 'end_timestamp', 'result']
+                          'start_timestamp', 'end_timestamp', 'log', 'result']
     include_attributes = ['action.ref', 'action.runner_type', 'start_timestamp',
-                          'end_timestamp', 'finalized_timestamp']
+                          'end_timestamp', 'log']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionGetCommand, self).__init__(
