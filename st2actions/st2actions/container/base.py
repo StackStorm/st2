@@ -312,9 +312,9 @@ class RunnerContainer(object):
             # 10 seconds each.
             #
             # To work around that and provide some additional visibility into that to the operators
-            # and users, we write additional "finalized_timestamp" on each object. This objects
-            # represents the timestamp when the executed has been fully processed by the action
-            # runner and result fully persisted in the database.
+            # and users, we update "end_timestamp" on each object again after both of them have
+            # already been written. That atomic single field update is very fast and adds no
+            # additional overhead.
             LOG.debug('Setting status: %s for liveaction: %s', status, liveaction_id)
             liveaction_db, state_changed = self._update_live_action_db(
                 liveaction_id, status, result, context)
@@ -345,12 +345,12 @@ class RunnerContainer(object):
         # Those two operations are fast since they operate on a single field in atomic fashion
         # with very small data
         operations = {
-            "set__finalized_timestamp": live_action_written_to_db_dt
+            "set__end_timestamp": live_action_written_to_db_dt
         }
         LiveAction.update(liveaction_db, publish=False, **operations)
 
         operations = {
-            "set__finalized_timestamp": execution_written_to_db
+            "set__end_timestamp": execution_written_to_db
         }
         ActionExecution.update(execution_db, publish=False, **operations)
 

@@ -61,20 +61,6 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         help_text='The timestamp when the liveaction was created.')
     end_timestamp = ComplexDateTimeField(
         help_text='The timestamp when the liveaction has finished.')
-    # This timestamp is needed so we can differentiate between how long the runner took to finish
-    # running the execution (end_timestamp - start_timestamp) and how long it took for the action
-    # runner to fully finish processing that execution and writting execution object and the result
-    # to the database.
-    #
-    # Due to know issue and bad performance with writting large execution results to the database,
-    # it could happen quite often that actual runner (e.g. Python one) only takes less than a second
-    # to finish processing the execution (end - start timestamp would indicate 0.5 seconds), but the
-    # actual time to also write results to the database and fully finishing processing the execution
-    # could take up to 20 seconds.
-    # For now this attribute will be internal.
-    finalized_timestamp = ComplexDateTimeField(
-        help_text='The timestamp when the execution has been fully finalized (corresponding '
-                  'execution object with the result has been persisted in the database).')
     parameters = stormbase.EscapedDynamicField(
         default={},
         help_text='The key-value pairs passed as to the action runner & action.')
@@ -98,7 +84,6 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             {'fields': ['liveaction.id']},
             {'fields': ['start_timestamp']},
             {'fields': ['end_timestamp']},
-            {'fields': ['finalized_timestamp']},
             {'fields': ['status']},
             {'fields': ['parent']},
             {'fields': ['rule.name']},

@@ -49,9 +49,6 @@ class LiveActionDB(stormbase.StormFoundationDB):
         help_text='The timestamp when the liveaction was created.')
     end_timestamp = ComplexDateTimeField(
         help_text='The timestamp when the liveaction has finished.')
-    finalized_timestamp = ComplexDateTimeField(
-        help_text='The timestamp when the live action has been fully finalized (corresponding '
-                  'live action object with the result has been persisted in the database).')
     action = me.StringField(
         required=True,
         help_text='Reference to the action that has to be executed.')
@@ -84,7 +81,6 @@ class LiveActionDB(stormbase.StormFoundationDB):
             {'fields': ['-start_timestamp', 'action']},
             {'fields': ['start_timestamp']},
             {'fields': ['end_timestamp']},
-            {'fields': ['finalized_timestamp']},
             {'fields': ['action']},
             {'fields': ['status']},
             {'fields': ['context.trigger_instance.id']},

@@ -49,7 +49,7 @@ for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
 
 class ActionExecutionAPI(BaseAPI):
     model = ActionExecutionDB
-    SKIP = ['start_timestamp', 'end_timestamp', 'finalized_timestamp']
+    SKIP = ['start_timestamp', 'end_timestamp']
     schema = {
         "title": "ActionExecution",
         "description": "Record of the execution of an action.",
@@ -78,11 +78,6 @@ class ActionExecutionAPI(BaseAPI):
             },
             "end_timestamp": {
                 "description": "The timestamp when the action has finished.",
-                "type": "string",
-                "pattern": isotime.ISO8601_UTC_REGEX
-            },
-            "finalized_timestamp": {
-                "description": "The timestamp when the action has been finalized.",
                 "type": "string",
                 "pattern": isotime.ISO8601_UTC_REGEX
             },
@@ -171,12 +166,6 @@ class ActionExecutionAPI(BaseAPI):
             end_timestamp_iso = isotime.format(end_timestamp, offset=False)
             doc['end_timestamp'] = end_timestamp_iso
             doc['elapsed_seconds'] = (end_timestamp - start_timestamp).total_seconds()
-
-        finalized_timestamp = model.finalized_timestamp
-        if finalized_timestamp:
-            finalized_timestamp_iso = isotime.format(finalized_timestamp, offset=False)
-            doc['finalized_timestamp'] = finalized_timestamp_iso
-            doc['full_elapsed_seconds'] = (finalized_timestamp - start_timestamp).total_seconds()
 
         for entry in doc.get('log', []):
             entry['timestamp'] = isotime.format(entry['timestamp'], offset=False)
