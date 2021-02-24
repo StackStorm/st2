@@ -76,8 +76,8 @@ def json_loads(obj, keys=None):
     for key in keys:
         try:
             obj[key] = json.loads(obj[key])
-        except Exception as e:
-            LOG.exception('Criteria pattern not valid JSON : "%s"', e)
+        except Exception:
+            LOG.exception('Criteria pattern not valid JSON.')
     return obj
 
 

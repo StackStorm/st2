@@ -97,7 +97,7 @@ def _run_scheduler():
             handler.shutdown()
             entrypoint.shutdown()
         except:
-            LOG.exception('Unable to shutdown scheduler.')
+            LOG.debug('Unable to shutdown scheduler.', exc_info=True)
             errors = True
 
         if errors:

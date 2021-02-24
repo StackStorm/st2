@@ -56,8 +56,8 @@ class CheckProcs(object):
                 cmdfh = open(self.procDir + "/" + p + "/cmdline")
                 cmd = cmdfh.readline()
                 pInfo[1] = cmd
-            except Exception as e:
-                LOG.exception("Error: can't find file or read data. %s", e)
+            except Exception:
+                LOG.exception("Error: can't find file or read data.")
                 continue
             finally:
                 cmdfh.close()
