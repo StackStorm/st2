@@ -40,6 +40,7 @@ from st2common.garbage_collection.executions import purge_executions
 from st2common.garbage_collection.executions import purge_execution_output_objects
 from st2common.garbage_collection.executions import purge_orphaned_workflow_executions
 from st2common.garbage_collection.inquiries import purge_inquiries
+from st2common.garbage_collection.workflows import  purge_workflow_execution, purge_task_execution
 from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 
 __all__ = [
@@ -68,6 +69,8 @@ class GarbageCollectorService(object):
         self._trigger_instances_ttl = cfg.CONF.garbagecollector.trigger_instances_ttl
         self._purge_inquiries = cfg.CONF.garbagecollector.purge_inquiries
         self._workflow_execution_max_idle = cfg.CONF.workflow_engine.gc_max_idle_sec
+        self._workflow_execution_ttl = cfg.CONF.garbagecollector.workflow_execution_ttl
+        self._task_execution_ttl = cfg.CONF.garbagecollector.task_execution_ttl
 
         self._validate_ttl_values()
 
@@ -181,6 +184,22 @@ class GarbageCollectorService(object):
         else:
             LOG.debug(skip_message, obj_type)
 
+        obj_type = 'task executions'
+        if self._task_execution_ttl and self._task_execution_ttl >= MINIMUM_TTL_DAYS:
+            LOG.info(proc_message, obj_type)
+            self._purge_task_executions()
+            concurrency.sleep(self._sleep_delay)
+        else:
+            LOG.debug(skip_message, obj_type)
+
+        obj_type = 'workflow executions'
+        if self._workflow_execution_ttl and self._workflow_execution_ttl >= MINIMUM_TTL_DAYS:
+            LOG.info(proc_message, obj_type)
+            self._purge_workflow_executions()
+            concurrency.sleep(self._sleep_delay)
+        else:
+            LOG.debug(skip_message, obj_type)
+
     def _purge_action_executions(self):
         """
         Purge action executions and corresponding live action, stdout and stderr object which match
@@ -202,6 +221,54 @@ class GarbageCollectorService(object):
             purge_executions(logger=LOG, timestamp=timestamp)
         except Exception as e:
             LOG.exception('Failed to delete executions: %s' % (six.text_type(e)))
+
+        return True
+
+    def _purge_workflow_executions(self):
+        """
+        Purge workflow executions and corresponding live action, stdout and stderr object which match
+        the criteria defined in the config.
+        """
+        utc_now = get_datetime_utc_now()
+        timestamp = (utc_now - datetime.timedelta(days=self._action_executions_ttl))
+
+        # Another sanity check to make sure we don't delete new executions
+        if timestamp > (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
+            raise ValueError('Calculated timestamp would violate the minimum TTL constraint')
+
+        timestamp_str = isotime.format(dt=timestamp)
+        LOG.info('Deleting workflow executions older than: %s' % (timestamp_str))
+
+        assert timestamp < utc_now
+
+        try:
+            purge_workflow_execution(logger=LOG, timestamp=timestamp)
+        except Exception as e:
+            LOG.exception('Failed to delete workflow executions: %s' % (six.text_type(e)))
+
+        return True
+
+    def _purge_task_executions(self):
+        """
+        Purge task executions and corresponding live action, stdout and stderr object which match
+        the criteria defined in the config.
+        """
+        utc_now = get_datetime_utc_now()
+        timestamp = (utc_now - datetime.timedelta(days=self._action_executions_ttl))
+
+        # Another sanity check to make sure we don't delete new executions
+        if timestamp > (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
+            raise ValueError('Calculated timestamp would violate the minimum TTL constraint')
+
+        timestamp_str = isotime.format(dt=timestamp)
+        LOG.info('Deleting task executions older than: %s' % (timestamp_str))
+
+        assert timestamp < utc_now
+
+        try:
+            purge_task_execution(logger=LOG, timestamp=timestamp)
+        except Exception as e:
+            LOG.exception('Failed to delete task executions: %s' % (six.text_type(e)))
 
         return True
 
