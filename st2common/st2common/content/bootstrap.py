@@ -408,7 +408,7 @@ def register_content():
         setup_virtualenvs()
 
     if cfg.CONF.register.setup_virtualenvs_force_recreation:
-        setup_virtualenvs(update=False)
+        setup_virtualenvs(recreate_virtualenvs=False)
 
 
 def setup(argv):
