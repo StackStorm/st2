@@ -381,7 +381,7 @@ class JSONDictField(BinaryField):
 
     def to_mongo(self, value):
         if not isinstance(value, dict):
-            raise ValueError('value argument must be a dictionary')
+            raise ValueError('value argument must be a dictionary (got: %s)' % type(value))
 
         data = self._serialize_field_value(value)
         return data
