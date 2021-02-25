@@ -407,8 +407,8 @@ def register_content():
     if cfg.CONF.register.setup_virtualenvs:
         setup_virtualenvs()
 
-    if cfg.CONF.register.setup_virtualenvs_force_recreation:
-        setup_virtualenvs(recreate_virtualenvs=False)
+    if cfg.CONF.register.setup_recreate_virtualenvs:
+        setup_virtualenvs(recreate_virtualenvs=True)
 
 
 def setup(argv):
