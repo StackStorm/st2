@@ -387,7 +387,7 @@ class ActionRunCommandMixin(object):
 
         instance = execution
         options = {'attributes': ['id', 'action.ref', 'parameters', 'status', 'start_timestamp',
-                                  'end_timestamp']}
+                                  'end_timestamp', 'log']}
         options['json'] = args.json
         options['attribute_transform_functions'] = self.attribute_transform_functions
         formatter = execution_formatter.ExecutionResult
