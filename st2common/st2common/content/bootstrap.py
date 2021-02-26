@@ -63,6 +63,8 @@ def register_opts():
         cfg.StrOpt('runner-dir', default=None, help='Directory to load runners from.'),
         cfg.BoolOpt('setup-virtualenvs', default=False, help=('Setup Python virtual environments '
                                                               'all the Python runner actions.')),
+        cfg.BoolOpt('recreate-virtualenvs', default=False, help=('Recreate Python virtual environments '
+                                                                 'all the Python runner actions.')),
 
         # General options
         # Note: This value should default to False since we want fail on failure behavior by
@@ -407,7 +409,7 @@ def register_content():
     if cfg.CONF.register.setup_virtualenvs:
         setup_virtualenvs()
 
-    if cfg.CONF.register.setup_recreate_virtualenvs:
+    if cfg.CONF.register.recreate_virtualenvs:
         setup_virtualenvs(recreate_virtualenvs=True)
 
 
