@@ -326,7 +326,7 @@ class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.R
             if self.payload:
                 if not isinstance(self.payload, dict):
                     raise TypeError(f'The payload has a value that is not a dictionary'
-                                    f'(was {type(self.payload)}).')
+                                    f' (was {type(self.payload)}).')
 
             return True
 

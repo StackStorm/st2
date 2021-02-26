@@ -111,8 +111,7 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
 
         sys_prefix = os.path.abspath(sys.prefix)
         if sys_prefix not in site_packages_dir:
-            raise ValueError('The file with prefix sys "%s" is not found in the directory "%s".' %
-                             (sys_prefix, site_packages_dir))
+            raise ValueError(f'The file with "{sys_prefix}" is not found in "{site_packages_dir}".')
 
         sandbox_python_path.append(site_packages_dir)
 

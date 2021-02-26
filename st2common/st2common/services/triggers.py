@@ -254,7 +254,8 @@ def create_or_update_trigger_db(trigger, log_not_unique_error_as_debug=False):
     :type trigger: ``dict``
     """
     if not isinstance(trigger, dict):
-        raise ValueError('The trigger has a value that is not a dictionary.')
+        raise ValueError(f'The trigger has a value that is not a dictionary'
+                         f' (was {type(trigger)}).')
 
     existing_trigger_db = _get_trigger_db(trigger)
 
@@ -408,7 +409,8 @@ def create_or_update_trigger_type_db(trigger_type, log_not_unique_error_as_debug
     :rtype: ``object``
     """
     if not isinstance(trigger_type, dict):
-        raise ValueError('The trigger has a value that is not a dictionary.')
+        raise ValueError(f'The trigger has a value that is not a dictionary'
+                         f' (was {type(trigger_type)}).')
 
     trigger_type_api = TriggerTypeAPI(**trigger_type)
     trigger_type_api.validate()
