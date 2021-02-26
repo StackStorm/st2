@@ -63,8 +63,9 @@ def register_opts():
         cfg.StrOpt('runner-dir', default=None, help='Directory to load runners from.'),
         cfg.BoolOpt('setup-virtualenvs', default=False, help=('Setup Python virtual environments '
                                                               'all the Python runner actions.')),
-        cfg.BoolOpt('recreate-virtualenvs', default=False, help=('Recreate Python virtual environments '
-                                                                 'all the Python runner actions.')),
+        cfg.BoolOpt('recreate-virtualenvs', default=False, help=('Recreate Python virtual '
+                                                                 'environments for all the Python '
+                                                                 'Python runner actions.')),
 
         # General options
         # Note: This value should default to False since we want fail on failure behavior by
@@ -116,7 +117,8 @@ def setup_virtualenvs(recreate_virtualenvs=False):
         """
         update = False:
         this is more than an update of an existing virtualenv
-        the virtualenv itself will be removed & recreated to apply i.e. updates to a newer Python release
+        the virtualenv itself will be removed & recreated
+        this is i.e. useful for updates to a newer Python release
         """
         update = False
     else:
