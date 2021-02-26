@@ -261,7 +261,7 @@ check-python-packages-nightly:
 	done
 
 .PHONY: ci-checks-nightly
-ci-checks-nightly: check-python-packages-nightly
+ci-checks-nightly: check-python-packages-nightly micro-benchmarks
 
 .PHONY: checklogs
 checklogs:
