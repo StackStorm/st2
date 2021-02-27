@@ -239,10 +239,7 @@ class TestWebhooksController(FunctionalTest):
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_form_encoded_request_body(self, dispatch_mock):
         # Send request body as form urlencoded data
-        if six.PY3:
-            data = {b'form': [b'test']}
-        else:
-            data = {'form': ['test']}
+        data = {'form': ['test']}
 
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
