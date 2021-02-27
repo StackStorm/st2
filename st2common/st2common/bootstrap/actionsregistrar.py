@@ -171,7 +171,11 @@ class ActionsRegistrar(ResourceRegistrar):
         model = ActionAPI.to_model(action_api)
 
         action_ref = ResourceReference.to_string_reference(pack=pack, name=str(content['name']))
-        existing = action_utils.get_action_by_ref(action_ref)
+        # NOTE: Here we only retrieve existing object to perform an upsert if it already exists in
+        # the database. To do that, we only need access to the "id" attribute (and ref and pack
+        # for our ActionDB abstraction). Retrieving only those fields is fast and much efficient
+        # especially for actions like aws pack ones which contain a lot of parameters.
+        existing = action_utils.get_action_by_ref(action_ref, only_fields=["id", "ref", "pack"])
         if not existing:
             LOG.debug('Action %s not found. Creating new one with: %s', action_ref, content)
         else:
@@ -208,7 +212,7 @@ class ActionsRegistrar(ResourceRegistrar):
 
 
 def register_actions(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
-                     fail_on_failure=False):
+                     use_runners_cache=False, fail_on_failure=False):
     if packs_base_paths:
         assert isinstance(packs_base_paths, list)
 
@@ -216,6 +220,7 @@ def register_actions(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
         packs_base_paths = content_utils.get_packs_base_paths()
 
     registrar = ActionsRegistrar(use_pack_cache=use_pack_cache,
+                                 use_runners_cache=use_runners_cache,
                                  fail_on_failure=fail_on_failure)
 
     if pack_dir:

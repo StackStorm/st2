@@ -219,7 +219,8 @@ def register_actions():
         with Timer(key='st2.register.actions'):
             registered_count = actions_registrar.register_actions(
                 pack_dir=pack_dir,
-                fail_on_failure=fail_on_failure
+                fail_on_failure=fail_on_failure,
+                use_runners_cache=True,
             )
     except Exception as e:
         exc_info = not fail_on_failure

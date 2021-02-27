@@ -108,6 +108,13 @@ Changed
 
   Contributed by @Kami.
 
+* Various internal improvements (reducing number of DB queries, speeding up YAML
+  parsing, using DB object cache, etc.) which should speed up pack action
+  registration between 15-30%. This is especially pronounced with packs which
+  have a lot of actions (e.g. aws one). (improvement) #4846
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 

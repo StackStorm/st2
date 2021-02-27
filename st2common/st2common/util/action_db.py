@@ -14,6 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+from typing import Optional
+from typing import List
+
 try:
     import simplejson as json
 except ImportError:
@@ -141,17 +145,20 @@ def get_action_by_id(action_id):
     return action
 
 
-def get_action_by_ref(ref):
+def get_action_by_ref(ref, only_fields: Optional[List[str]] = None):
     """
     Returns the action object from db given a string ref.
 
     :param ref: Reference to the trigger type db object.
     :type ref: ``str``
 
+    :param: only_field: Optional lists if fields to retrieve. If not specified, it defaults to all
+                        fields.
+
     :rtype action: ``object``
     """
     try:
-        return Action.get_by_ref(ref)
+        return Action.get_by_ref(ref, only_fields=only_fields)
     except ValueError as e:
         LOG.debug('Database lookup for ref="%s" resulted ' +
                   'in exception : %s.', ref, e, exc_info=True)
