@@ -18,6 +18,9 @@ Added
 * Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
   Contributed by @hnanchahal
 
+* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from scratch. (part of upgrade instructions) [#5167]
+  Contributed by @winem and @blag
+
 * Add new ``-x`` argument to the ``st2 execution get`` command which allows
   ``result`` field to be excluded from the output. (improvement) #4846
 
