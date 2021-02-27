@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 from mongoengine import ValidationError
 import six
 
@@ -31,6 +29,7 @@ from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import isotime
 from st2common.validators.api.misc import validate_not_part_of_system_pack
+from st2common.util.ujson import fast_deepcopy
 
 http_client = six.moves.http_client
 
@@ -342,7 +341,7 @@ class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.R
                                                         permission_type=None,
                                                         requester_user=None)
 
-        new_payload = copy.deepcopy(existing_trigger_instance.payload)
+        new_payload = fast_deepcopy(existing_trigger_instance.payload)
         new_payload['__context'] = {
             'original_id': trigger_instance_id
         }

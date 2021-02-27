@@ -15,11 +15,11 @@
 
 from __future__ import absolute_import
 
-import copy
 import functools
 import re
 import six
 import sys
+import copy
 import traceback
 
 from flex.core import validate
@@ -41,6 +41,7 @@ from st2common.util import date as date_utils
 from st2common.util.jsonify import json_encode
 from st2common.util.jsonify import get_json_type_for_python_value
 from st2common.util.http import parse_content_type_header
+from st2common.util.ujson import fast_deepcopy
 
 __all__ = [
     'Router',
@@ -188,7 +189,7 @@ class Router(object):
         self.spec = spec
         self.spec_resolver = jsonschema.RefResolver('', self.spec)
 
-        validate(copy.deepcopy(self.spec))
+        validate(fast_deepcopy(self.spec))
 
         for filter in transforms:
             for (path, methods) in six.iteritems(spec['paths']):
