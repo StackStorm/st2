@@ -33,6 +33,8 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, StackStorm Exchange, Documentation.
 * JP Bourget ([@punkrokk](https://github.com/punkrokk)) <<jp.bourget@gmail.com>>
   - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCI.
+* Marcel Weinberg ([@winem](https://github.com/winem)), _CoreMedia_ <<mweinberg-os@email.de>>
+  - Systems, Core, CI/CD, Docker, Community.
 * Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)) <<mick@bitovi.com>>
   - Systems, ST2 Exchange. [Case Study](https://stackstorm.com/case-study-bitovi/).
 * Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
