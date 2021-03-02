@@ -194,6 +194,10 @@ class PackInstallCommand(PackAsyncCommand):
                                  action='store_true',
                                  default=False,
                                  help='Use Python 3 binary for pack virtual environment.')
+        self.parser.add_argument('--timeout',
+                                 type=int,
+                                 default=600,
+                                 help='Action timeout in seconds. Action will get killed if it doesn\'t finish in timeout.')
         self.parser.add_argument('--force',
                                  action='store_true',
                                  default=False,
