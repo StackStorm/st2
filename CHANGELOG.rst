@@ -21,6 +21,11 @@ Added
 * Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from scratch. (part of upgrade instructions) [#5167]
   Contributed by @winem and @blag
 
+* Added timeout parameter for pack install st2 client run to help with long running installs. This was already expose in
+  packs.install action but st2client was not updated to reflect the change (improvement) #5174
+
+  Contributed by @hnanchahal
+
 Changed
 ~~~~~~~
 
