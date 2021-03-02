@@ -220,7 +220,8 @@ class PackInstallCommand(PackAsyncCommand):
                           'in v3.5.0 as StackStorm now runs with python3 only')
 
         return self.manager.install(args.packs, force=args.force,
-                                    skip_dependencies=args.skip_dependencies, **kwargs)
+                                    skip_dependencies=args.skip_dependencies,
+                                    timeout=args.timeout, **kwargs)
 
     def _get_content_counts_for_pack(self, args, **kwargs):
         # Global content list, excluding "tests"
