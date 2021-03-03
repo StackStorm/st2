@@ -7,9 +7,9 @@ chardet<3.1.0
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython>=1.16.0,<2.0.0
 cryptography==3.3.2
-# Note: 0.20.0 removed select.poll() on which some of our code and libraries we
-# depend on rely
-eventlet==0.25.1
+# Bump eventlet 0.27.0 to support >=Python3.7 threading when monkeypatching.
+# see https://github.com/eventlet/eventlet/pull/611 for details.
+eventlet==0.27.0
 flex==6.14.0
 gitpython==2.1.15
 # Note: greenlet is used by eventlet

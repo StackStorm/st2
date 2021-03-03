@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 bcrypt==3.1.7
-eventlet==0.25.1
+eventlet==0.27.0
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 git+https://github.com/StackStorm/st2-auth-ldap.git@master#egg=st2-auth-ldap
 gunicorn==19.9.0
