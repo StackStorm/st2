@@ -385,7 +385,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
             if self.tasks:
                 if not isinstance(self.tasks, list):
                     raise ValueError(f'The tasks needs to be a list'
-                                     f' (was {type(self.task)}).')
+                                     f' (was {type(self.tasks)}).')
 
             if self.reset:
                 if not isinstance(self.reset, list):
