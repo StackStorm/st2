@@ -19,7 +19,6 @@ import socket
 import sys
 
 from oslo_config import cfg
-from distutils.spawn import find_executable
 
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
@@ -345,7 +344,6 @@ def register_opts(ignore_errors=False):
 
     # Runner options
     default_python_bin_path = sys.executable
-    default_python3_bin_path = find_executable('python3')
     base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
     default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
 
@@ -359,14 +357,6 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             'python_binary', default=default_python_bin_path,
             help='Python binary which will be used by Python actions.'),
-        cfg.StrOpt(
-            'python3_binary', default=default_python3_bin_path,
-            help='Python 3 binary which will be used by Python actions for packs which '
-                 'use Python 3 virtual environment.'),
-        cfg.StrOpt(
-            'python3_prefix', default=None,
-            help='Prefix for Python 3 installation (e.g. /opt/python3.6). If not specified, it '
-                 'tries to find Python 3 libraries in /usr/lib and /usr/local/lib.'),
         cfg.StrOpt(
             'virtualenv_binary', default=default_virtualenv_bin_path,
             help='Virtualenv binary which should be used to create pack virtualenvs.'),
@@ -471,25 +461,6 @@ def register_opts(ignore_errors=False):
     ]
 
     do_register_opts(coord_opts, 'coordination', ignore_errors)
-
-    # Results Tracker query module options
-    # Note that these are currently not used
-    query_opts = [
-        cfg.IntOpt(
-            'thread_pool_size', default=10,
-            help='Number of threads to use to query external workflow systems.'),
-        cfg.FloatOpt(
-            'query_interval', default=5,
-            help='Time interval between queries to external workflow system.'),
-        cfg.FloatOpt(
-            'empty_q_sleep_time', default=1,
-            help='Sleep delay in between queries when query queue is empty.'),
-        cfg.FloatOpt(
-            'no_workers_sleep_time', default=1,
-            help='Sleep delay for query when there is no more worker in pool.')
-    ]
-
-    do_register_opts(query_opts, group='resultstracker', ignore_errors=ignore_errors)
 
     # XXX: This is required for us to support deprecated config group results_tracker
     query_opts = [

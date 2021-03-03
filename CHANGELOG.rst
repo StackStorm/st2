@@ -4,19 +4,33 @@ Changelog
 in development
 --------------
 
+
+3.4.0 - March 02, 2021
+----------------------
+
 Added
 ~~~~~
 
+* Added support for GitLab SSH URLs on pack install and download actions. (improvement) #5050
+  Contributed by @asthLucas
+
 * Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
   Contributed by @hnanchahal
-  
+
 * Added notification support for err-stackstorm. (new feature) #5051
 
 * Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
   Contributed by @hnanchahal
 
+* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from scratch. (part of upgrade instructions) [#5167]
+  Contributed by @winem and @blag
+
 Changed
-~~~~~~~~~
+~~~~~~~
+
+* Updated deprecation warning for python 2 pack installs, following python 2 support removal. #5099
+  Contributed by @amanda11
+
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
@@ -27,21 +41,67 @@ Changed
 
 * Upgraded cryptography version to 3.2 to avoid CVE-2020-25659 (security) #5095
 
+* Converted most CI jobs from Travis to GitHub Actions (all except Integration tests).
+
+  Contributed by @nmaludy, @winem, and @blag
+
+* Updated cryptography dependency to version 3.3.2 to avoid CVE-2020-36242 (security) #5151
+
 Fixed
-~~~~~~~~~
+~~~~~
+
+* Pin chardet version as newest version was incompatible with pinned requests version #5101
+  Contributed by @amanda11
+
 * Fixed issue were st2tests was not getting installed using pip because no version was specified.
   Contributed by @anirudhbagri
-  
+
 * Added monkey patch fix to st2stream to enable it to work with mongodb via SSL. (bug fix) #5078 #5091
+
 * Fix nginx buffering long polling stream to client.  Instead of waiting for closed connection
   wait for final event to be sent to client. (bug fix) #4842  #5042
 
   Contributed by @guzzijones
 
+* StackStorm now explicitly decodes pack files as utf-8 instead of implicitly as ascii (bug fix)
+  #5106, #5107
+
+* Fix incorrect array parameter value casting when executing action via chatops or using
+  ``POST /aliasexecution/match_and_execute`` API endpoint. The code would incorrectly assume the
+  value is always a string, but that may not be the cast - they value could already be a list and
+  in this case we don't want any casting to be performed. (bug fix) #5141
+
+  Contributed by @Kami.
+
+* Fix ``@parameter_name=/path/to/file/foo.json`` notation in the ``st2 run`` command which didn't
+  work correctly because it didn't convert read bytes to string / unicode type. (bug fix) #5140
+
+  Contributed by @Kami.
+
+* Fix broken ``st2 action-alias execute`` command and make sure it works
+  correctly. (bug fix) #5138
+
+  Contributed by @Kami.
+
 Removed
-~~~~~~~~
+~~~~~~~
+
+* Removed --python3 pack install option  #5100
+  Contributed by @amanda11
+
+* Removed submit-debug-info tool and the st2debug component #5103
+
 * Removed check-licence script (cleanup) #5092
+
   Contributed by @kroustou
+
+* Updated Makefile and CI to use Python 3 only, removing Python 2 (cleanup) #5090
+
+  Contributed by @blag
+
+* Remove st2resultstracker from st2ctl, the development environment and the st2actions setup.py (cleanup) #5108
+
+  Contributed by @winem
 
 3.3.0 - October 06, 2020
 ------------------------
@@ -228,6 +288,7 @@ Changed
   changes at https://github.com/StackStorm/orquesta/releases/tag/v1.1.0 and the st2 upgrade notes
   for potential impact. (improvement)
 * Update st2 nginx config to remove deprecated ``ssl on`` option. #4917 (improvement)
+* Updated and tested tooz to v2.8.0 to apply fix for consul coordination heartbeat (@punkrokk @winem) #5121
 
 Fixed
 ~~~~~

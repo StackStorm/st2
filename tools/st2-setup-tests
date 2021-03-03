@@ -8,7 +8,6 @@ if [ -z $1 ]; then
 fi
 
 PACK=$1
-PY27=`which python2.7`
 
 TESTSBRANCH=$2
 if [ -z "$TESTSBRANCH" ]; then
@@ -57,7 +56,7 @@ echo -e "Bootstrapping virtualenv for ${PACK} pack..."
 if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
     mkdir -p ${VENVSPATH}
-    virtualenv -p ${PY27} --system-site-packages ${VENVSPATH}/${PACK}
+    virtualenv ${VENVSPATH}/${PACK}
     echo "Installing requirements.txt for ${PACK}..."
     source ${VENVSPATH}/${PACK}/bin/activate
     pip install -r ${TESTSPATH}/${PACK}/requirements.txt

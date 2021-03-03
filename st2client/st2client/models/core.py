@@ -377,7 +377,7 @@ class ActionAliasExecutionManager(ResourceManager):
 
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(response.json()["results"][0])
         return instance
 
 
@@ -511,12 +511,11 @@ class AsyncRequest(Resource):
 
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def install(self, packs, force=False, python3=False, skip_dependencies=False, **kwargs):
+    def install(self, packs, force=False, skip_dependencies=False, **kwargs):
         url = '/%s/install' % (self.resource.get_url_path_name())
         payload = {
             'packs': packs,
             'force': force,
-            'python3': python3,
             'skip_dependencies': skip_dependencies
         }
         response = self.client.post(url, payload, **kwargs)

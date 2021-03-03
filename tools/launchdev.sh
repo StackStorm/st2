@@ -266,12 +266,6 @@ function st2start(){
         ./st2reactor/bin/st2timersengine \
         --config-file $ST2_CONF
 
-    # Run the results tracker
-    echo 'Starting screen session st2-resultstracker...'
-    screen -L -c tools/screen-configs/st2resultstracker.conf -d -m -S st2-resultstracker ${VIRTUALENV}/bin/python \
-        ./st2actions/bin/st2resultstracker \
-        --config-file $ST2_CONF
-
     # Run the actions notifier
     echo 'Starting screen session st2-notifier...'
     screen -L -c tools/screen-configs/st2notifier.conf -d -m -S st2-notifier ${VIRTUALENV}/bin/python \
@@ -310,7 +304,6 @@ function st2start(){
         "${RUNNER_SCREENS[@]}"
         "st2-sensorcontainer"
         "st2-rulesengine"
-        "st2-resultstracker"
         "st2-notifier"
         "st2-auth"
         "st2-timersengine"
