@@ -15,7 +15,8 @@ else
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
-PYTHON_VERSION ?= $(shell if [ -z "`which python3.6`" ]; then echo "python2.7"; else echo "python3.6"; fi)
+# Assign PYTHON_VERSION if it doesn't already exist
+PYTHON_VERSION ?= python3
 
 BINARIES := bin
 
@@ -50,11 +51,7 @@ COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TES
 COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.*
 COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 
-ifeq ($(PYTHON_VERSION),python2.7)
-	REQUIREMENTS := test-requirements-py27.txt requirements.txt
-else
-	REQUIREMENTS := test-requirements.txt requirements.txt
-endif
+REQUIREMENTS := test-requirements.txt requirements.txt
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
@@ -65,14 +62,14 @@ ifndef PYLINT_CONCURRENCY
 	PYLINT_CONCURRENCY := 1
 endif
 
-NOSE_OPTS := --rednose --immediate --with-parallel
+NOSE_OPTS := --rednose --immediate --with-parallel --nocapture
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
+	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture
 	NOSE_WITH_TIMER := 1
 endif
 
@@ -112,7 +109,7 @@ all: requirements configgen check tests
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
-	@echo PYTHON_VERSION=$(PYTHON_VERSION)
+	@echo PYTHON_VERSION=$(PYTHON_VERSION) \($$($(PYTHON_VERSION) --version)\)
 	@echo
 	@echo COVERAGE_GLOBS=$(COVERAGE_GLOBS_QUOTED)
 	@echo
@@ -135,6 +132,8 @@ play:
 	@echo TRAVIS_PULL_REQUEST=$(TRAVIS_PULL_REQUEST)
 	@echo
 	@echo TRAVIS_EVENT_TYPE=$(TRAVIS_EVENT_TYPE)
+	@echo
+	@echo GITHUB_EVENT_NAME=$(GITHUB_EVENT_NAME)
 	@echo
 	@echo NOSE_OPTS=$(NOSE_OPTS)
 	@echo
@@ -233,7 +232,7 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download --system-site-packages
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -381,7 +380,7 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== st2client install check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download --system-site-packages
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -424,17 +423,11 @@ lint: requirements .lint
 .PHONY: clean
 clean: .cleanpycs
 
-.PHONY: compile
-compile:
-	@echo "======================= compile ========================"
-	@echo "------- Compile all .py files (syntax check test - Python 2) ------"
-	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
-
 .PHONY: compilepy3
 compilepy3:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 3) ------"
-	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	python3 -m compileall -f -q -x 'virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test' .
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -450,10 +443,9 @@ compilepy3:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py | -name inquiry\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py ! -name inquiry\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name router\.py -name \*.py \) -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2exporter; test $$? -eq 1
 
@@ -532,6 +524,13 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
+	# Show pip installed packages before we start
+	$(VIRTUALENV_DIR)/bin/pip list
+
+	# Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
+	#       only have to update it one place when we change the version
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
+
 	# setuptools >= 41.0.1 is required for packs.install in dev envs
 	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
@@ -577,8 +576,16 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
-	git submodule update --recursive --remote
+	git submodule update --init --recursive --remote
 
+	# Show currently install requirements
+	$(VIRTUALENV_DIR)/bin/pip list
+
+.PHONY: check-dependency-conflicts
+check-dependency-conflicts:
+	@echo
+	@echo "==================== check-dependency-conflicts ===================="
+	@echo
 	# Verify there are no conflicting dependencies
 	cat st2*/requirements.txt contrib/runners/*/requirements.txt | sort -u > req.txt && \
 	$(VIRTUALENV_DIR)/bin/pip-compile req.txt; \
@@ -628,6 +635,9 @@ endif
 	#echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	#touch $(VIRTUALENV_DIR)/bin/activate.fish
 
+	# debug pip installed packages
+	$(VIRTUALENV_DIR)/bin/pip list
+
 .PHONY: tests
 tests: pytests
 
@@ -635,7 +645,7 @@ tests: pytests
 pytests: compilepy3 requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile .configgen .generate-api-spec .unit-tests clean
+.pytests: compilepy3 .configgen .generate-api-spec .unit-tests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html clean
@@ -731,13 +741,13 @@ itests: requirements .itests
 	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    nosetests $(NOSE_OPTS) -s -v \
 		    $$component/tests/integration || exit 1; \
 		echo "-----------------------------------------------------------"; \
-		echo "Done running tests in" $$component; \
+		echo "Done running integration tests in" $$component; \
 		echo "==========================================================="; \
 	done
 
@@ -753,7 +763,7 @@ endif
 	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
@@ -761,7 +771,7 @@ endif
 		    $(NOSE_COVERAGE_PACKAGES) \
 		    $$component/tests/integration || exit 1; \
 		echo "-----------------------------------------------------------"; \
-		echo "Done running tests in" $$component; \
+		echo "Done integration running tests in" $$component; \
 		echo "==========================================================="; \
 	done
 	@echo
@@ -770,7 +780,7 @@ endif
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
@@ -920,7 +930,7 @@ runners-itests: requirements .runners-itests
 	@echo "----- Dropping st2-test db -----"
 	@for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/integration || exit 1; \
 	done
@@ -933,7 +943,7 @@ runners-itests: requirements .runners-itests
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html $$component/tests/integration || exit 1; \
@@ -969,31 +979,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compilepy3 .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
-
-.PHONY: ci-py3-unit
-ci-py3-unit:
-	@echo
-	@echo "==================== ci-py3-unit ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
-
-.PHONY: ci-py3-packs-tests
-ci-py3-packs-tests:
-	@echo
-	@echo "==================== ci-py3-packs-tests ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
-
-.PHONY: ci-py3-integration
-ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
-
-.PHONY: .ci-py3-integration
-.ci-py3-integration:
-	@echo
-	@echo "==================== ci-py3-integration ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration -vv
+ci-checks: .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: ci-py37-unit
 ci-py37-unit:
@@ -1061,6 +1047,9 @@ ci-unit: .unit-tests-coverage-html
 
 .PHONY: .ci-prepare-integration
 .ci-prepare-integration:
+	@echo
+	@echo "==================== prepare integration ===================="
+	@echo
 	sudo -E ./scripts/travis/prepare-integration.sh
 
 .PHONY: ci-integration
@@ -1074,3 +1063,6 @@ ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html
 
 .PHONY: ci-packs-tests
 ci-packs-tests: .packs-tests
+
+.PHONY: ci-compile
+ci-compile: check-dependency-conflicts compilepy3

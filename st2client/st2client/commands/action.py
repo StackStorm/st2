@@ -541,6 +541,12 @@ class ActionRunCommandMixin(object):
         action_ref_or_id = action.ref
 
         def read_file(file_path):
+            """
+            Read file content and return content as string / unicode.
+
+            NOTE: It's only mean to be used to read non-binary files since API right now doesn't
+            support passing binary data.
+            """
             if not os.path.exists(file_path):
                 raise ValueError('File "%s" doesn\'t exist' % (file_path))
 
@@ -550,7 +556,7 @@ class ActionRunCommandMixin(object):
             with open(file_path, 'rb') as fp:
                 content = fp.read()
 
-            return content
+            return content.decode("utf-8")
 
         def transform_object(value):
             # Also support simple key1=val1,key2=val2 syntax
@@ -1502,7 +1508,10 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         workflow_execution_ids.update(children_execution_ids)
 
         events = ['st2.execution__update', 'st2.execution.output__create']
-        for event in stream_manager.listen(events, **kwargs):
+        for event in stream_manager.listen(events,
+                end_execution_id=execution_id,
+                end_event="st2.execution__update",
+                **kwargs):
             status = event.get('status', None)
             is_execution_event = status is not None
 

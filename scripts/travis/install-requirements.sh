@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This file gets run for all travis jobs.
+# This file gets run for all ci jobs.
 
 # virtualenv prepartion is different for python3, so we want all py3 targets here.
 # We use a glob instead of listing TASKs so TASK reorganization doesn't require so many changes.
@@ -10,7 +10,7 @@ if [[ " ${TASK}" = *' ci-py3-'* || " ${TASK}" = *' ci-py37-'* ]]; then
     # NOTE: The makefile only checks to see if the activate script is present.
     # It does not check if the virtualenv was built with the correct python version.
     # Since the makefile defaults to python2.7, a 2.7 virtualenv might get cached.
-    # Specifying PYTHON_VERSION in .travis.yml should alleviate that,
+    # Specifying PYTHON_VERSION in .travis.yml or .github/workflows/*.yml should alleviate that,
     # but we'll check the version here just to be sure a cached virtualenv doesn't
     # silently invalidate the tests.
 
@@ -40,7 +40,7 @@ if [[ " ${TASK}" = *' ci-py3-'* || " ${TASK}" = *' ci-py37-'* ]]; then
     # NOTE: We create the environment and install the dependencies first. This
     # means that the subsequent tox build / test command has a stable run time
     # since it doesn't depend on dependencies being installed.
-    # NOTE: Travis jobs can have more than one TASK, so we search for all make
+    # NOTE: CI jobs can have more than one TASK, so we search for all make
     # targets that need a tox env. The spaces ensure we match entire make targets.
     if [[ " ${TASK} " = *' ci-py3-unit '* ]]; then
         tox -e py36-unit --notest
