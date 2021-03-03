@@ -27,19 +27,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        python-version: [3.6, 3.8]
         include:
           - name: 'Lint Checks'
             task: 'ci-checks'
-            python-version: [3.6, 3.8]
           - name: 'Compile'
             task: 'ci-compile'
-            python-version: [3.6, 3.8]
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
-            python-version: [3.6, 3.8]
           - name: 'Unit Tests'
             task: 'ci-unit'
-            python-version: [3.6, 3.8]
           # Integration tests are not working yet, still done in Travis
           # - name: 'Integration Tests'
           #   task: 'ci-integration'
