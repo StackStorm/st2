@@ -20,6 +20,7 @@ import jinja2
 import yaml
 
 from yaml.constructor import ConstructorError
+from yaml.constructor import SafeConstructor
 from yaml.nodes import MappingNode
 
 try:
@@ -72,16 +73,15 @@ class UniqueKeyLoader(Loader):
         return mapping
 
 
-def load_spec(module_name, spec_file, allow_duplicate_keys=False):
+# Add the check duplicate method above to the SafeConstructor so it is invoked by safe_load.
+SafeConstructor.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, UniqueKeyLoader.construct_mapping
+)
+
+
+def load_spec(module_name, spec_file):
     spec_string = generate_spec(module_name, spec_file)
-
-    # 1. Check for duplicate keys
-    if not allow_duplicate_keys:
-        yaml.safe_load(spec_string)
-
-    # 2. Generate actual spec
-    spec = yaml.safe_load(spec_string)
-    return spec
+    return yaml.safe_load(spec_string)
 
 
 def generate_spec(module_name, spec_file):

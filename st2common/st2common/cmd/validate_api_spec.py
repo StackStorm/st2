@@ -111,8 +111,9 @@ def main():
     setup()
 
     try:
-        # 1. Validate there are no duplicates keys in the YAML file
-        spec_loader.load_spec('st2common', 'openapi.yaml.j2', allow_duplicate_keys=False)
+        # Validate there are no duplicates keys in the YAML file.
+        # The spec loader do not allow duplicate keys.
+        spec_loader.load_spec('st2common', 'openapi.yaml.j2')
 
         # 2. Validate schema (currently broken)
         # validate_spec()
