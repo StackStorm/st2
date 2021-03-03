@@ -362,7 +362,8 @@ if __name__ == '__main__':
     trigger_types = trigger_types.split(',') if trigger_types else []
     parent_args = json.loads(args.parent_args) if args.parent_args else []
     if not isinstance(parent_args, list):
-        raise TypeError('Command line arguments passed to the parent process must be a list.')
+        raise TypeError(f'Command line arguments passed to the parent process must be a list'
+                        f' (was {type(parent_args)}).')
 
     obj = SensorWrapper(pack=args.pack,
                         file_path=args.file_path,

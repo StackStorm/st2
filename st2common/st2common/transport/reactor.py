@@ -94,9 +94,11 @@ class TriggerDispatcher(object):
         :type trace_context: ``TraceContext``
         """
         if payload and not isinstance(payload, dict):
-            raise TypeError('The payload has a value that is not a dictionary.')
+            raise TypeError(f'The payload has a value that is not a dictionary'
+                            f' (was {type(payload)}).')
         if trace_context and not isinstance(trace_context, TraceContext):
-            raise TypeError('The trace context has a value that is not of type TraceContext.')
+            raise TypeError(f'The trace context has a value that is not of type TraceContext'
+                            f' (was {type(trace_context)}).')
 
         payload = {
             'trigger': trigger,

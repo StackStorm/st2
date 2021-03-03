@@ -379,15 +379,18 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             if self.parameters:
                 if not isinstance(self.parameters, dict):
-                    raise ValueError('The parameters needs to be a dictionary.')
+                    raise ValueError(f'The parameters needs to be a dictionary'
+                                     f' (was {type(self.parameters)}).')
 
             if self.tasks:
                 if not isinstance(self.tasks, list):
-                    raise ValueError('The tasks needs to be a list.')
+                    raise ValueError(f'The tasks needs to be a list'
+                                     f' (was {type(self.task)}).')
 
             if self.reset:
                 if not isinstance(self.reset, list):
-                    raise ValueError('The reset needs to be a list.')
+                    raise ValueError(f'The reset needs to be a list'
+                                     f' (was {type(self.reset)}).')
 
             if list(set(self.reset) - set(self.tasks)):
                 raise ValueError('List of tasks to reset does not match the tasks to rerun.')
@@ -409,15 +412,18 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
         if spec_api.parameters:
             if not isinstance(spec_api.parameters, dict):
-                raise ValueError('The parameters needs to be a dictionary.')
+                raise ValueError(f'The parameters needs to be a dictionary'
+                                 f' (was {type(spec_api.parameters)}).')
 
         if spec_api.tasks:
             if not isinstance(spec_api.tasks, list):
-                raise ValueError('The tasks needs to be a list.')
+                raise ValueError(f'The tasks needs to be a list'
+                                 f' (was {type(spec_api.tasks)}).')
 
         if spec_api.reset:
             if not isinstance(spec_api.reset, list):
-                raise ValueError('The reset needs to be a list.')
+                raise ValueError(f'The reset needs to be a list'
+                                 f' (was {type(spec_api.reset)}).')
 
         if list(set(spec_api.reset) - set(spec_api.tasks)):
             raise ValueError('List of tasks to reset does not match the tasks to rerun.')

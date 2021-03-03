@@ -41,7 +41,8 @@ def render_template(value, context=None):
     :type context: ``dict``
     """
     if not isinstance(value, six.string_types):
-        raise TypeError('The template value needs to be of type string.')
+        raise TypeError(f'The template value needs to be of type string'
+                        f' (was {type(value)}).')
     context = context or {}
 
     env = get_jinja_environment(allow_undefined=False)  # nosec

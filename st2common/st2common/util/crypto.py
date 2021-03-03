@@ -80,7 +80,7 @@ MINIMUM_AES_KEY_SIZE = 128
 
 DEFAULT_AES_KEY_SIZE = 256
 
-if not DEFAULT_AES_KEY_SIZE >= MINIMUM_AES_KEY_SIZE:
+if DEFAULT_AES_KEY_SIZE < MINIMUM_AES_KEY_SIZE:
     raise ValueError('AES key size "%s" is smaller than minimun key size "%s".' %
                      (DEFAULT_AES_KEY_SIZE, MINIMUM_AES_KEY_SIZE))
 
@@ -209,9 +209,11 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
 
     """
     if not isinstance(encrypt_key, AESKey):
-        raise ValueError('Encrypted key needs to be an AESkey class instance.')
+        raise ValueError(f'Encrypted key needs to be an AESkey class instance'
+                         f' (was {type(encrypt_key)}).')
     if not isinstance(plaintext, (six.text_type, six.string_types, six.binary_type)):
-        raise TypeError('Plaintext needs to either be a string/unicode or bytes.')
+        raise TypeError(f'Plaintext needs to either be a string/unicode or bytes'
+                        f' (was {type(plaintext)}).')
 
     aes_key_bytes = encrypt_key.aes_key_bytes
     hmac_key_bytes = encrypt_key.hmac_key_bytes
@@ -269,9 +271,11 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
     NOTE 2: This function is loosely based on keyczar AESKey.Decrypt() (Apache 2.0 license).
     """
     if not isinstance(decrypt_key, AESKey):
-        raise ValueError('Decrypted key needs to be an AESKey class instance.')
+        raise ValueError(f'Decrypted key needs to be an AESKey class instance'
+                         f' (was {type(decrypt_key)}).')
     if not isinstance(ciphertext, (six.text_type, six.string_types, six.binary_type)):
-        raise TypeError('Ciphertext needs to either be a string/unicode or bytes.')
+        raise TypeError(f'Ciphertext needs to either be a string/unicode or bytes'
+                        f' (was {type(ciphertext)}).')
 
     aes_key_bytes = decrypt_key.aes_key_bytes
     hmac_key_bytes = decrypt_key.hmac_key_bytes

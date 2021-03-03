@@ -197,8 +197,8 @@ class GarbageCollectorService(object):
         LOG.info('Deleting action executions older than: %s' % (timestamp_str))
 
         if timestamp >= utc_now:
-            raise ValueError(f'Calculated timestamp ({timestamp}) is' %
-                            'later than now in UTC ({utc_now}).')
+            raise ValueError(f'Calculated timestamp ({timestamp}) is'
+                             f'later than now in UTC ({utc_now}).')
 
         try:
             purge_executions(logger=LOG, timestamp=timestamp)
@@ -219,8 +219,8 @@ class GarbageCollectorService(object):
         LOG.info('Deleting action executions output objects older than: %s' % (timestamp_str))
 
         if timestamp >= utc_now:
-            raise ValueError(f'Calculated timestamp ({timestamp}) is' %
-                             'later than now in UTC ({utc_now}).')
+            raise ValueError(f'Calculated timestamp ({timestamp}) is'
+                             f'later than now in UTC ({utc_now}).')
 
         try:
             purge_execution_output_objects(logger=LOG, timestamp=timestamp)
@@ -244,8 +244,8 @@ class GarbageCollectorService(object):
         LOG.info('Deleting trigger instances older than: %s' % (timestamp_str))
 
         if timestamp >= utc_now:
-            raise ValueError(f'Calculated timestamp ({timestamp}) is' %
-                            'later than now in UTC ({utc_now}).')
+            raise ValueError(f'Calculated timestamp ({timestamp}) is'
+                             f'later than now in UTC ({utc_now}).')
 
         try:
             purge_trigger_instances(logger=LOG, timestamp=timestamp)
