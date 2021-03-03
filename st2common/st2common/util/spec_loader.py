@@ -20,7 +20,6 @@ import jinja2
 import yaml
 
 from yaml.constructor import ConstructorError
-from yaml.constructor import SafeConstructor
 from yaml.nodes import MappingNode
 
 try:
@@ -73,9 +72,11 @@ class UniqueKeyLoader(Loader):
         return mapping
 
 
-# Add the check duplicate method above to the SafeConstructor so it is invoked by safe_load.
-SafeConstructor.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, UniqueKeyLoader.construct_mapping
+# Add UniqueKeyLoader to the yaml SafeLoader so it is invoked by safe_load.
+yaml.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    UniqueKeyLoader.construct_mapping,
+    Loader=yaml.SafeLoader
 )
 
 
