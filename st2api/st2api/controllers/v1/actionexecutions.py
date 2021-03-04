@@ -170,7 +170,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         if context_string:
             context = try_loads(context_string)
             if not isinstance(context, dict):
-                raise ValueError('Unable to convert st2-context from the headers into JSON.')
+                raise ValueError(f'Unable to convert st2-context from the headers into JSON'
+                                 f' (was {type(context)}).')
             liveaction.context.update(context)
 
         # Include RBAC context (if RBAC is available and enabled)
@@ -379,18 +380,18 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             if self.parameters:
                 if not isinstance(self.parameters, dict):
-                    raise ValueError(f'The parameters needs to be a dictionary'
-                                     f' (was {type(self.parameters)}).')
+                    raise TypeError(f'The parameters needs to be a dictionary'
+                                    f' (was {type(self.parameters)}).')
 
             if self.tasks:
                 if not isinstance(self.tasks, list):
-                    raise ValueError(f'The tasks needs to be a list'
-                                     f' (was {type(self.tasks)}).')
+                    raise TypeError(f'The tasks needs to be a list'
+                                    f' (was {type(self.tasks)}).')
 
             if self.reset:
                 if not isinstance(self.reset, list):
-                    raise ValueError(f'The reset needs to be a list'
-                                     f' (was {type(self.reset)}).')
+                    raise TypeError(f'The reset needs to be a list'
+                                    f' (was {type(self.reset)}).')
 
             if list(set(self.reset) - set(self.tasks)):
                 raise ValueError('List of tasks to reset does not match the tasks to rerun.')
@@ -412,18 +413,18 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
         if spec_api.parameters:
             if not isinstance(spec_api.parameters, dict):
-                raise ValueError(f'The parameters needs to be a dictionary'
-                                 f' (was {type(spec_api.parameters)}).')
+                raise TypeError(f'The parameters needs to be a dictionary'
+                                f' (was {type(spec_api.parameters)}).')
 
         if spec_api.tasks:
             if not isinstance(spec_api.tasks, list):
-                raise ValueError(f'The tasks needs to be a list'
-                                 f' (was {type(spec_api.tasks)}).')
+                raise TypeError(f'The tasks needs to be a list'
+                                f' (was {type(spec_api.tasks)}).')
 
         if spec_api.reset:
             if not isinstance(spec_api.reset, list):
-                raise ValueError(f'The reset needs to be a list'
-                                 f' (was {type(spec_api.reset)}).')
+                raise TypeError(f'The reset needs to be a list'
+                                f' (was {type(spec_api.reset)}).')
 
         if list(set(spec_api.reset) - set(spec_api.tasks)):
             raise ValueError('List of tasks to reset does not match the tasks to rerun.')

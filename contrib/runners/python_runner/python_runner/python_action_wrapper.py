@@ -289,7 +289,8 @@ if __name__ == '__main__':
     log_level = args.log_level
 
     if not isinstance(config, dict):
-        raise ValueError('Pack config needs to be a dictionary')
+        raise TypeError(f'Pack config needs to be a dictionary'
+                        f' (was {type(config)}).')
 
     parameters = {}
 
@@ -323,8 +324,8 @@ if __name__ == '__main__':
     LOG.debug('Received parameters: %s', parameters)
 
     if not isinstance(parent_args, list):
-        raise ValueError(f'The parent_args is not a list'
-                         f' (was {type(parent_args)}).')
+        raise TypeError(f'The parent_args is not a list'
+                        f' (was {type(parent_args)}).')
     obj = PythonActionWrapper(pack=args.pack,
                               file_path=args.file_path,
                               config=config,
