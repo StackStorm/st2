@@ -26,6 +26,8 @@ import time
 import six
 import sys
 
+from dateutil.relativedelta import relativedelta
+
 from os.path import join as pjoin
 
 from six.moves import range
@@ -167,18 +169,37 @@ def format_execution_status(instance):
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         now = int(time.time())
-        elapsed_seconds = (now - start_timestamp)
-        instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
+        elapsed_time_string = format_elapsed_time(now - start_timestamp)
+        instance.status = '%s (%s elapsed)' % (instance.status, elapsed_time_string)
     elif status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         end_timestamp = parse_isotime(end_timestamp)
         end_timestamp = calendar.timegm(end_timestamp.timetuple())
 
-        elapsed_seconds = (end_timestamp - start_timestamp)
-        instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
+        elapsed_time_string = format_elapsed_time(end_timestamp - start_timestamp)
+        instance.status = '%s (%s elapsed)' % (instance.status, elapsed_time_string)
 
     return instance
+
+
+def format_elapsed_time(delta_in_seconds):
+    delta = relativedelta(seconds=delta_in_seconds)
+    days = delta.days
+    hours = delta.hours
+    minutes = delta.minutes
+    seconds = delta.seconds
+
+    if days > 0:
+        elapsed_time_string = '%sd%sh%sm%ss' % (days, hours, minutes, seconds)
+    elif hours > 0:
+        elapsed_time_string = '%sh%sm%ss' % (hours, minutes, seconds)
+    elif minutes > 0:
+        elapsed_time_string = '%sm%ss' % (minutes, seconds)
+    else:
+        elapsed_time_string = '%ss' % (seconds)
+
+    return elapsed_time_string
 
 
 class ActionBranch(resource.ResourceBranch):

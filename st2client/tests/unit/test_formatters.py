@@ -43,6 +43,7 @@ FIXTURES_MANIFEST = {
                    'execution_result_has_carriage_return.json',
                    'execution_unicode.json',
                    'execution_double_backslash.json',
+                   'execution_with_hours_in_elapsed_time.json',
                    'execution_with_stack_trace.json',
                    'execution_with_schema.json'],
     'results': ['execution_get_default.txt',
@@ -51,6 +52,7 @@ FIXTURES_MANIFEST = {
                 'execution_result_has_carriage_return.txt',
                 'execution_result_has_carriage_return_py3.txt',
                 'execution_get_attributes.txt',
+                'execution_get_attribute_with_hours_in_elapsed_time.txt',
                 'execution_list_attr_start_timestamp.txt',
                 'execution_list_empty_response_start_timestamp_attr.txt',
                 'execution_unescape_newline.txt',
@@ -67,6 +69,7 @@ DOUBLE_BACKSLASH = FIXTURES['executions']['execution_double_backslash.json']
 OUTPUT_SCHEMA = FIXTURES['executions']['execution_with_schema.json']
 NEWLINE = FIXTURES['executions']['execution_with_stack_trace.json']
 HAS_CARRIAGE_RETURN = FIXTURES['executions']['execution_result_has_carriage_return.json']
+DURATION_HOURS = FIXTURES['executions']['execution_with_hours_in_elapsed_time.json']
 
 
 class TestExecutionResultFormatter(unittest2.TestCase):
@@ -112,6 +115,12 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         argv = ['execution', 'get', EXECUTION['id'], '--attr', 'status', 'end_timestamp']
         content = self._get_execution(argv)
         self.assertEqual(content, FIXTURES['results']['execution_get_attributes.txt'])
+
+    def test_execution_get_attribute_with_hours_in_elapsed_time(self):
+        argv = ['execution', 'get', DURATION_HOURS['id'], '--attr', 'status']
+        content = self._get_execution(argv)
+        self.assertEqual(
+            content, FIXTURES['results']['execution_get_attribute_with_hours_in_elapsed_time.txt'])
 
     def test_execution_get_default_in_json(self):
         argv = ['execution', 'get', EXECUTION['id'], '-j']

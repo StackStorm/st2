@@ -155,6 +155,14 @@ Changed
   Contributed by @potato and @knagy
 * Updated orquesta to version v1.2.0.
 
+Changed
+~~~~~~~
+* Changed the output of elapsed time on `st2 execution get` to a more user-friendly format.
+  The new format is ``<days>d <hours>h<minutes>m<seconds>s``. Units without a value are omitted. 
+  Old: ``status: succeeded (92342s elapsed)``, ``status: succeeded (113s elapsed)``
+  New: ``stauts: succeeded (1d1h39m2s elapsed)``, ``status: succeeded (1m53s elapsed)``
+  This was requested by Sheshagiri (@Sheshagiri) and contributed by Marcel Weinber (@winem). #4944
+
 Fixed
 ~~~~~
 * Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
