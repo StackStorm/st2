@@ -203,6 +203,7 @@ def remove_virtualenv(virtualenv_path, logger=None):
     logger.debug('Removing virtualenv in "%s"' % virtualenv_path)
     try:
         shutil.rmtree(virtualenv_path)
+        logger.debug('Virtualenv successfull removed.')
     except Exception as e:
         logger.error('Error while removing virtualenv at "%s": "%s"' % (virtualenv_path, e))
         raise e
