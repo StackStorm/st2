@@ -42,7 +42,7 @@ jobs:
           #   task: 'ci-integration'
     services:
       mongo:
-        image: mongo:4.0
+        image: mongo:4.4
         ports:
           - 27017:27017
       # Can't use RabbitMQ here for Integrations because we rely on custom config
