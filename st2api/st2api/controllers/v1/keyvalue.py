@@ -78,7 +78,7 @@ class KeyValuePairController(ResourceController):
             scope = FULL_USER_SCOPE
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         scope = get_datastore_full_scope(scope)
         self._validate_scope(scope=scope)
@@ -144,7 +144,7 @@ class KeyValuePairController(ResourceController):
             scope = FULL_USER_SCOPE
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         scope = get_datastore_full_scope(scope)
 
@@ -264,7 +264,7 @@ class KeyValuePairController(ResourceController):
             scope = FULL_SYSTEM_SCOPE
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         scope = getattr(kvp, 'scope', scope)
         scope = get_datastore_full_scope(scope)
@@ -342,7 +342,7 @@ class KeyValuePairController(ResourceController):
             scope = FULL_SYSTEM_SCOPE
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         scope = get_datastore_full_scope(scope)
         self._validate_scope(scope=scope)
