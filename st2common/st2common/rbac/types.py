@@ -185,7 +185,7 @@ class PermissionType(Enum):
 
         split = permission_type.split('_')
         if len(split) < 2:
-            raise ValueError('The permission_type doesnot have an underscore.', permission_type)
+            raise ValueError(f"The permission_type {permission_type} doesn't have an underscore.")
 
         return '_'.join(split[:-1])
 
@@ -198,7 +198,7 @@ class PermissionType(Enum):
         """
         split = permission_type.split('_')
         if len(split) < 2:
-            raise ValueError('The permission_type doesnot have an underscore.', permission_type)
+            raise ValueError(f"The permission_type {permission_type} doesn't have an underscore.")
 
         # Special case for PACK_VIEWS_INDEX_HEALTH
         if permission_type == PermissionType.PACK_VIEWS_INDEX_HEALTH:
