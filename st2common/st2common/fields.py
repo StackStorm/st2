@@ -31,7 +31,6 @@ import enum
 import weakref
 
 import orjson
-import zstandard
 
 from mongoengine import LongField
 from mongoengine import BinaryField
@@ -447,6 +446,9 @@ class JSONDictField(BinaryField):
             compression_algorithm
             == JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
         ):
+            # NOTE: At this point zstandard is only test dependency
+            import zstandard
+
             data = zstandard.ZstdDecompressor().decompress(data)
 
         data = orjson.loads(data)
@@ -462,6 +464,9 @@ class JSONDictField(BinaryField):
         data = orjson.dumps(value)
 
         if self.compression_algorithm == "zstandard":
+            # NOTE: At this point zstandard is only test dependency
+            import zstandard
+
             compression_header = JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD
             data = zstandard.ZstdCompressor().compress(data)
         else:
