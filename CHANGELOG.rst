@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+3.4.0 - March 02, 2021
+----------------------
+
 Added
 ~~~~~
 
@@ -17,6 +21,9 @@ Added
 
 * Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
   Contributed by @hnanchahal
+
+* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from scratch. (part of upgrade instructions) [#5167]
+  Contributed by @winem and @blag
 
 Changed
 ~~~~~~~

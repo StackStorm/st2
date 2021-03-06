@@ -169,3 +169,19 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         self.assertIn('Setting up virtualenv for pack "dummy_pack_1"', stderr)
         self.assertIn("Setup virtualenv for 1 pack(s)", stderr)
         self.assertEqual(exit_code, 0)
+
+    def test_register_recreate_virtualenvs(self):
+        # Single pack
+        pack_dir = os.path.join(get_fixtures_packs_base_path(), "dummy_pack_1")
+
+        cmd = BASE_CMD_ARGS + [
+            "--register-pack=%s" % (pack_dir),
+            "--register-recreate-virtualenvs",
+            "--register-no-fail-on-failure",
+        ]
+        exit_code, stdout, stderr = run_command(cmd=cmd)
+
+        self.assertIn('Setting up virtualenv for pack "dummy_pack_1"', stderr)
+        self.assertIn("Setup virtualenv for 1 pack(s)", stderr)
+        self.assertIn("Virtualenv successfull removed.", stderr)
+        self.assertEqual(exit_code, 0)

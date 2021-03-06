@@ -67,6 +67,15 @@ def register_opts():
                 "Setup Python virtual environments " "all the Python runner actions."
             ),
         ),
+        cfg.BoolOpt(
+            "recreate-virtualenvs",
+            default=False,
+            help=(
+                "Recreate Python virtual "
+                "environments for all the Python "
+                "Python runner actions."
+            ),
+        ),
         # General options
         # Note: This value should default to False since we want fail on failure behavior by
         # default.
@@ -92,7 +101,7 @@ def register_opts():
 register_opts()
 
 
-def setup_virtualenvs():
+def setup_virtualenvs(recreate_virtualenvs=False):
     """
     Setup Python virtual environments for all the registered or the provided pack.
     """
@@ -119,10 +128,25 @@ def setup_virtualenvs():
         # 2. Retrieve available packs (aka packs which have been registered)
         pack_names = registrar.get_registered_packs()
 
+    if recreate_virtualenvs:
+        """
+        update = False:
+        this is more than an update of an existing virtualenv
+        the virtualenv itself will be removed & recreated
+        this is i.e. useful for updates to a newer Python release
+        """
+        update = False
+    else:
+        """
+        update = True:
+        only dependencies inside the virtualenv will be updated
+        """
+        update = True
+
     setup_count = 0
     for pack_name in pack_names:
         try:
-            setup_pack_virtualenv(pack_name=pack_name, update=True, logger=LOG)
+            setup_pack_virtualenv(pack_name=pack_name, update=update, logger=LOG)
         except Exception as e:
             exc_info = not fail_on_failure
             LOG.warning(
@@ -400,6 +424,9 @@ def register_content():
 
     if cfg.CONF.register.setup_virtualenvs:
         setup_virtualenvs()
+
+    if cfg.CONF.register.recreate_virtualenvs:
+        setup_virtualenvs(recreate_virtualenvs=True)
 
 
 def setup(argv):
