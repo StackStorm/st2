@@ -292,7 +292,7 @@ class Router(object):
                             elif 'api-key' in definition['name'].lower():
                                 auth_method = 'API key'
 
-                            context['user'] = User.get_by_name(name=auth_resp.user)
+                            context['user'] = User.get_by_name(auth_resp.user)
                             context['auth_info'] = {
                                 'method': auth_method,
                                 'location': definition['in']
