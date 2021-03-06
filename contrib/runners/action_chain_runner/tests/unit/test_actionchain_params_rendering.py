@@ -25,96 +25,96 @@ from st2common.models.system.actionchain import Node
 
 
 class ActionChainRunnerResolveParamsTests(unittest2.TestCase):
-
     def test_render_params_action_context(self):
         runner = acr.get_runner()
         chain_context = {
-            'parent': {
-                'execution_id': 'some_awesome_exec_id',
-                'user': 'dad'
-            },
-            'user': 'son',
-            'k1': 'v1'
+            "parent": {"execution_id": "some_awesome_exec_id", "user": "dad"},
+            "user": "son",
+            "k1": "v1",
         }
         task_params = {
-            'exec_id': {'default': '{{action_context.parent.execution_id}}'},
-            'k2': {},
-            'foo': {'default': 1}
+            "exec_id": {"default": "{{action_context.parent.execution_id}}"},
+            "k2": {},
+            "foo": {"default": 1},
         }
-        action_node = Node(name='test_action_context_params', ref='core.local', params=task_params)
+        action_node = Node(
+            name="test_action_context_params", ref="core.local", params=task_params
+        )
         rendered_params = runner._resolve_params(action_node, {}, {}, {}, chain_context)
-        self.assertEqual(rendered_params['exec_id']['default'], 'some_awesome_exec_id')
+        self.assertEqual(rendered_params["exec_id"]["default"], "some_awesome_exec_id")
 
     def test_render_params_action_context_non_existent_member(self):
         runner = acr.get_runner()
         chain_context = {
-            'parent': {
-                'execution_id': 'some_awesome_exec_id',
-                'user': 'dad'
-            },
-            'user': 'son',
-            'k1': 'v1'
+            "parent": {"execution_id": "some_awesome_exec_id", "user": "dad"},
+            "user": "son",
+            "k1": "v1",
         }
         task_params = {
-            'exec_id': {'default': '{{action_context.parent.yo_gimme_tha_key}}'},
-            'k2': {},
-            'foo': {'default': 1}
+            "exec_id": {"default": "{{action_context.parent.yo_gimme_tha_key}}"},
+            "k2": {},
+            "foo": {"default": 1},
         }
-        action_node = Node(name='test_action_context_params', ref='core.local', params=task_params)
+        action_node = Node(
+            name="test_action_context_params", ref="core.local", params=task_params
+        )
         try:
             runner._resolve_params(action_node, {}, {}, {}, chain_context)
-            self.fail('Should have thrown an instance of %s' % ParameterRenderingFailedException)
+            self.fail(
+                "Should have thrown an instance of %s"
+                % ParameterRenderingFailedException
+            )
         except ParameterRenderingFailedException:
             pass
 
     def test_render_params_with_config(self):
-        with mock.patch('st2common.util.config_loader.ContentPackConfigLoader') as config_loader:
+        with mock.patch(
+            "st2common.util.config_loader.ContentPackConfigLoader"
+        ) as config_loader:
             config_loader().get_config.return_value = {
-                'amazing_config_value_fo_lyfe': 'no'
+                "amazing_config_value_fo_lyfe": "no"
             }
 
             runner = acr.get_runner()
             chain_context = {
-                'parent': {
-                    'execution_id': 'some_awesome_exec_id',
-                    'user': 'dad',
-                    'pack': 'mom'
+                "parent": {
+                    "execution_id": "some_awesome_exec_id",
+                    "user": "dad",
+                    "pack": "mom",
                 },
-                'user': 'son',
+                "user": "son",
             }
             task_params = {
-                'config_val': '{{config_context.amazing_config_value_fo_lyfe}}'
+                "config_val": "{{config_context.amazing_config_value_fo_lyfe}}"
             }
             action_node = Node(
-                name='test_action_context_params',
-                ref='core.local',
-                params=task_params
+                name="test_action_context_params", ref="core.local", params=task_params
             )
-            rendered_params = runner._resolve_params(action_node, {}, {}, {}, chain_context)
-            self.assertEqual(rendered_params['config_val'], 'no')
+            rendered_params = runner._resolve_params(
+                action_node, {}, {}, {}, chain_context
+            )
+            self.assertEqual(rendered_params["config_val"], "no")
 
     def test_init_params_vars_with_unicode_value(self):
         chain_spec = {
-            'vars': {
-                'unicode_var': u'٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ ćšž',
-                'unicode_var_param': u'{{ param }}'
+            "vars": {
+                "unicode_var": "٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ ćšž",
+                "unicode_var_param": "{{ param }}",
             },
-            'chain': [
+            "chain": [
                 {
-                    'name': 'c1',
-                    'ref': 'core.local',
-                    'parameters': {
-                        'cmd': 'echo {{ unicode_var }}'
-                    }
+                    "name": "c1",
+                    "ref": "core.local",
+                    "parameters": {"cmd": "echo {{ unicode_var }}"},
                 }
-            ]
+            ],
         }
 
-        chain_holder = acr.ChainHolder(chainspec=chain_spec, chainname='foo')
-        chain_holder.init_vars(action_parameters={'param': u'٩(̾●̮̮̃̾•̃̾)۶'})
+        chain_holder = acr.ChainHolder(chainspec=chain_spec, chainname="foo")
+        chain_holder.init_vars(action_parameters={"param": "٩(̾●̮̮̃̾•̃̾)۶"})
 
         expected = {
-            'unicode_var': u'٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ ćšž',
-            'unicode_var_param': u'٩(̾●̮̮̃̾•̃̾)۶'
+            "unicode_var": "٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ ćšž",
+            "unicode_var_param": "٩(̾●̮̮̃̾•̃̾)۶",
         }
         self.assertEqual(chain_holder.vars, expected)

@@ -34,120 +34,109 @@ from st2common.transport import reactor
 from st2common.transport import workflow
 
 __all__ = [
-    'ACTIONSCHEDULER_REQUEST_QUEUE',
-
-    'ACTIONRUNNER_WORK_QUEUE',
-    'ACTIONRUNNER_CANCEL_QUEUE',
-    'ACTIONRUNNER_PAUSE_QUEUE',
-    'ACTIONRUNNER_RESUME_QUEUE',
-
-    'EXPORTER_WORK_QUEUE',
-
-    'NOTIFIER_ACTIONUPDATE_WORK_QUEUE',
-
-    'RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE',
-
-    'RULESENGINE_WORK_QUEUE',
-
-    'STREAM_ANNOUNCEMENT_WORK_QUEUE',
-    'STREAM_EXECUTION_ALL_WORK_QUEUE',
-    'STREAM_EXECUTION_UPDATE_WORK_QUEUE',
-    'STREAM_LIVEACTION_WORK_QUEUE',
-
-    'WORKFLOW_EXECUTION_WORK_QUEUE',
-    'WORKFLOW_EXECUTION_RESUME_QUEUE'
+    "ACTIONSCHEDULER_REQUEST_QUEUE",
+    "ACTIONRUNNER_WORK_QUEUE",
+    "ACTIONRUNNER_CANCEL_QUEUE",
+    "ACTIONRUNNER_PAUSE_QUEUE",
+    "ACTIONRUNNER_RESUME_QUEUE",
+    "EXPORTER_WORK_QUEUE",
+    "NOTIFIER_ACTIONUPDATE_WORK_QUEUE",
+    "RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE",
+    "RULESENGINE_WORK_QUEUE",
+    "STREAM_ANNOUNCEMENT_WORK_QUEUE",
+    "STREAM_EXECUTION_ALL_WORK_QUEUE",
+    "STREAM_EXECUTION_UPDATE_WORK_QUEUE",
+    "STREAM_LIVEACTION_WORK_QUEUE",
+    "WORKFLOW_EXECUTION_WORK_QUEUE",
+    "WORKFLOW_EXECUTION_RESUME_QUEUE",
 ]
 
 
 # Used by the action scheduler service
 ACTIONSCHEDULER_REQUEST_QUEUE = liveaction.get_status_management_queue(
-    'st2.actionrunner.req',
-    routing_key=action_constants.LIVEACTION_STATUS_REQUESTED)
+    "st2.actionrunner.req", routing_key=action_constants.LIVEACTION_STATUS_REQUESTED
+)
 
 
 # Used by the action runner service
 ACTIONRUNNER_WORK_QUEUE = liveaction.get_status_management_queue(
-    'st2.actionrunner.work',
-    routing_key=action_constants.LIVEACTION_STATUS_SCHEDULED)
+    "st2.actionrunner.work", routing_key=action_constants.LIVEACTION_STATUS_SCHEDULED
+)
 
 ACTIONRUNNER_CANCEL_QUEUE = liveaction.get_status_management_queue(
-    'st2.actionrunner.cancel',
-    routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
+    "st2.actionrunner.cancel", routing_key=action_constants.LIVEACTION_STATUS_CANCELING
+)
 
 ACTIONRUNNER_PAUSE_QUEUE = liveaction.get_status_management_queue(
-    'st2.actionrunner.pause',
-    routing_key=action_constants.LIVEACTION_STATUS_PAUSING)
+    "st2.actionrunner.pause", routing_key=action_constants.LIVEACTION_STATUS_PAUSING
+)
 
 ACTIONRUNNER_RESUME_QUEUE = liveaction.get_status_management_queue(
-    'st2.actionrunner.resume',
-    routing_key=action_constants.LIVEACTION_STATUS_RESUMING)
+    "st2.actionrunner.resume", routing_key=action_constants.LIVEACTION_STATUS_RESUMING
+)
 
 
 # Used by the exporter service
 EXPORTER_WORK_QUEUE = execution.get_queue(
-    'st2.exporter.work',
-    routing_key=publishers.UPDATE_RK)
+    "st2.exporter.work", routing_key=publishers.UPDATE_RK
+)
 
 
 # Used by the notifier service
 NOTIFIER_ACTIONUPDATE_WORK_QUEUE = execution.get_queue(
-    'st2.notifiers.execution.work',
-    routing_key=publishers.UPDATE_RK)
+    "st2.notifiers.execution.work", routing_key=publishers.UPDATE_RK
+)
 
 
 # Used by the results tracker service
 RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE = actionexecutionstate.get_queue(
-    'st2.resultstracker.work',
-    routing_key=publishers.CREATE_RK)
+    "st2.resultstracker.work", routing_key=publishers.CREATE_RK
+)
 
 
 # Used by the rules engine service
 RULESENGINE_WORK_QUEUE = reactor.get_trigger_instances_queue(
-    name='st2.trigger_instances_dispatch.rules_engine',
-    routing_key='#')
+    name="st2.trigger_instances_dispatch.rules_engine", routing_key="#"
+)
 
 
 # Used by the stream service
 STREAM_ANNOUNCEMENT_WORK_QUEUE = announcement.get_queue(
-    routing_key=publishers.ANY_RK,
-    exclusive=True,
-    auto_delete=True)
+    routing_key=publishers.ANY_RK, exclusive=True, auto_delete=True
+)
 
 STREAM_EXECUTION_ALL_WORK_QUEUE = execution.get_queue(
-    routing_key=publishers.ANY_RK,
-    exclusive=True,
-    auto_delete=True)
+    routing_key=publishers.ANY_RK, exclusive=True, auto_delete=True
+)
 
 STREAM_EXECUTION_UPDATE_WORK_QUEUE = execution.get_queue(
-    routing_key=publishers.UPDATE_RK,
-    exclusive=True,
-    auto_delete=True)
+    routing_key=publishers.UPDATE_RK, exclusive=True, auto_delete=True
+)
 
 STREAM_LIVEACTION_WORK_QUEUE = Queue(
     None,
     liveaction.LIVEACTION_XCHG,
     routing_key=publishers.ANY_RK,
     exclusive=True,
-    auto_delete=True)
+    auto_delete=True,
+)
 
 # TODO: Perhaps we should use pack.action name as routing key
 # so we can do more efficient filtering later, if needed
 STREAM_EXECUTION_OUTPUT_QUEUE = execution.get_output_queue(
-    name=None,
-    routing_key=publishers.CREATE_RK,
-    exclusive=True,
-    auto_delete=True)
+    name=None, routing_key=publishers.CREATE_RK, exclusive=True, auto_delete=True
+)
 
 
 # Used by the workflow engine service
 WORKFLOW_EXECUTION_WORK_QUEUE = workflow.get_status_management_queue(
-    name='st2.workflow.work',
-    routing_key=action_constants.LIVEACTION_STATUS_REQUESTED)
+    name="st2.workflow.work", routing_key=action_constants.LIVEACTION_STATUS_REQUESTED
+)
 
 WORKFLOW_EXECUTION_RESUME_QUEUE = workflow.get_status_management_queue(
-    name='st2.workflow.resume',
-    routing_key=action_constants.LIVEACTION_STATUS_RESUMING)
+    name="st2.workflow.resume", routing_key=action_constants.LIVEACTION_STATUS_RESUMING
+)
 
 WORKFLOW_ACTION_EXECUTION_UPDATE_QUEUE = execution.get_queue(
-    'st2.workflow.action.update',
-    routing_key=publishers.UPDATE_RK)
+    "st2.workflow.action.update", routing_key=publishers.UPDATE_RK
+)

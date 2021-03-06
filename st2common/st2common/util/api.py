@@ -21,8 +21,8 @@ from st2common.constants.api import DEFAULT_API_VERSION
 from st2common.util.url import get_url_without_trailing_slash
 
 __all__ = [
-    'get_base_public_api_url',
-    'get_full_public_api_url',
+    "get_base_public_api_url",
+    "get_full_public_api_url",
 ]
 
 LOG = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ def get_base_public_api_url():
         api_url = get_url_without_trailing_slash(cfg.CONF.auth.api_url)
     else:
         LOG.warn('"auth.api_url" configuration option is not configured')
-        api_url = 'http://%s:%s' % (cfg.CONF.api.host, cfg.CONF.api.port)
+        api_url = "http://%s:%s" % (cfg.CONF.api.host, cfg.CONF.api.port)
 
     return api_url
 
@@ -52,5 +52,5 @@ def get_full_public_api_url(api_version=DEFAULT_API_VERSION):
     :rtype: ``str``
     """
     api_url = get_base_public_api_url()
-    api_url = '%s/%s' % (api_url, api_version)
+    api_url = "%s/%s" % (api_url, api_version)
     return api_url

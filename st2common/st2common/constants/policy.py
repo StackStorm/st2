@@ -13,13 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'POLICY_TYPES_REQUIRING_LOCK'
-]
+__all__ = ["POLICY_TYPES_REQUIRING_LOCK"]
 
 # Concurrency policies require scheduler to acquire a distributed lock to prevent race
 # in scheduling when there are multiple scheduler instances.
-POLICY_TYPES_REQUIRING_LOCK = [
-    'action.concurrency',
-    'action.concurrency.attr'
-]
+POLICY_TYPES_REQUIRING_LOCK = ["action.concurrency", "action.concurrency.attr"]

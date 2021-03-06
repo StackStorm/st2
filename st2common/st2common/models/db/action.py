@@ -29,22 +29,26 @@ from st2common.constants.action import WORKFLOW_RUNNER_TYPES
 from st2common.constants.types import ResourceType
 
 __all__ = [
-    'RunnerTypeDB',
-    'ActionDB',
-    'LiveActionDB',
-    'ActionExecutionDB',
-    'ActionExecutionStateDB',
-    'ActionAliasDB'
+    "RunnerTypeDB",
+    "ActionDB",
+    "LiveActionDB",
+    "ActionExecutionDB",
+    "ActionExecutionStateDB",
+    "ActionAliasDB",
 ]
 
 
 LOG = logging.getLogger(__name__)
 
-PACK_SEPARATOR = '.'
+PACK_SEPARATOR = "."
 
 
-class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
-               stormbase.ContentPackResourceMixin, stormbase.UIDFieldMixin):
+class ActionDB(
+    stormbase.StormFoundationDB,
+    stormbase.TagsMixin,
+    stormbase.ContentPackResourceMixin,
+    stormbase.UIDFieldMixin,
+):
     """
     The system entity that represents a Stack Action/Automation in the system.
 
@@ -56,38 +60,46 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     """
 
     RESOURCE_TYPE = ResourceType.ACTION
-    UID_FIELDS = ['pack', 'name']
+    UID_FIELDS = ["pack", "name"]
 
     name = me.StringField(required=True)
     ref = me.StringField(required=True)
     description = me.StringField()
     enabled = me.BooleanField(
-        required=True, default=True,
-        help_text='A flag indicating whether the action is enabled.')
-    entry_point = me.StringField(
         required=True,
-        help_text='The entry point to the action.')
+        default=True,
+        help_text="A flag indicating whether the action is enabled.",
+    )
+    entry_point = me.StringField(
+        required=True, help_text="The entry point to the action."
+    )
     pack = me.StringField(
-        required=False,
-        help_text='Name of the content pack.',
-        unique_with='name')
+        required=False, help_text="Name of the content pack.", unique_with="name"
+    )
     runner_type = me.DictField(
-        required=True, default={},
-        help_text='The action runner to use for executing the action.')
+        required=True,
+        default={},
+        help_text="The action runner to use for executing the action.",
+    )
     parameters = stormbase.EscapedDynamicField(
-        help_text='The specification for parameters for the action.')
+        help_text="The specification for parameters for the action."
+    )
     output_schema = stormbase.EscapedDynamicField(
-        help_text='The schema for output of the action.')
+        help_text="The schema for output of the action."
+    )
     notify = me.EmbeddedDocumentField(NotificationSchema)
 
     meta = {
-        'indexes': [
-            {'fields': ['name']},
-            {'fields': ['pack']},
-            {'fields': ['ref']},
-        ] + (stormbase.ContentPackResourceMixin.get_indexes() +
-            stormbase.TagsMixin.get_indexes() +
-            stormbase.UIDFieldMixin.get_indexes())
+        "indexes": [
+            {"fields": ["name"]},
+            {"fields": ["pack"]},
+            {"fields": ["ref"]},
+        ]
+        + (
+            stormbase.ContentPackResourceMixin.get_indexes()
+            + stormbase.TagsMixin.get_indexes()
+            + stormbase.UIDFieldMixin.get_indexes()
+        )
     }
 
     def __init__(self, *args, **values):
@@ -102,11 +114,17 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         :rtype: ``bool``
         """
         # pylint: disable=unsubscriptable-object
-        return self.runner_type['name'] in WORKFLOW_RUNNER_TYPES
+        return self.runner_type["name"] in WORKFLOW_RUNNER_TYPES
 
 
 # specialized access objects
 action_access = MongoDBAccess(ActionDB)
 
-MODELS = [ActionDB, ActionExecutionDB, ActionExecutionStateDB, ActionAliasDB,
-          LiveActionDB, RunnerTypeDB]
+MODELS = [
+    ActionDB,
+    ActionExecutionDB,
+    ActionExecutionStateDB,
+    ActionAliasDB,
+    LiveActionDB,
+    RunnerTypeDB,
+]

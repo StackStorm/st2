@@ -14,9 +14,7 @@
 # limitations under the License.
 
 
-__all__ = [
-    'transform_to_bool'
-]
+__all__ = ["transform_to_bool"]
 
 
 def transform_to_bool(value):
@@ -27,8 +25,8 @@ def transform_to_bool(value):
 
     Any other representation will be rejected.
     """
-    if value in ['1', 'true', 'True', True]:
+    if value in ["1", "true", "True", True]:
         return True
-    elif value in ['0', 'false', 'False', False]:
+    elif value in ["0", "false", "False", False]:
         return False
     raise ValueError('Invalid bool representation "%s" provided.' % value)

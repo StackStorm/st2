@@ -24,27 +24,33 @@ LOG = logging.getLogger(__name__)
 
 
 class RunnerType(core.Resource):
-    _alias = 'Runner'
-    _display_name = 'Runner'
-    _plural = 'RunnerTypes'
-    _plural_display_name = 'Runners'
-    _repr_attributes = ['name', 'enabled', 'description']
+    _alias = "Runner"
+    _display_name = "Runner"
+    _plural = "RunnerTypes"
+    _plural_display_name = "Runners"
+    _repr_attributes = ["name", "enabled", "description"]
 
 
 class Action(core.Resource):
-    _plural = 'Actions'
-    _repr_attributes = ['name', 'pack', 'enabled', 'runner_type']
-    _url_path = 'actions'
+    _plural = "Actions"
+    _repr_attributes = ["name", "pack", "enabled", "runner_type"]
+    _url_path = "actions"
 
 
 class Execution(core.Resource):
-    _alias = 'Execution'
-    _display_name = 'Action Execution'
-    _url_path = 'executions'
-    _plural = 'ActionExecutions'
-    _plural_display_name = 'Action executions'
-    _repr_attributes = ['status', 'action', 'start_timestamp', 'end_timestamp', 'parameters',
-                        'delay']
+    _alias = "Execution"
+    _display_name = "Action Execution"
+    _url_path = "executions"
+    _plural = "ActionExecutions"
+    _plural_display_name = "Action executions"
+    _repr_attributes = [
+        "status",
+        "action",
+        "start_timestamp",
+        "end_timestamp",
+        "parameters",
+        "delay",
+    ]
 
 
 # NOTE: LiveAction has been deprecated in favor of Execution. It will be left here for

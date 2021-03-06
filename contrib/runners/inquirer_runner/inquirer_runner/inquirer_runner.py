@@ -29,20 +29,16 @@ from st2common.transport import reactor as reactor_transport
 from st2common.util import action_db as action_utils
 
 
-__all__ = [
-    'Inquirer',
-    'get_runner',
-    'get_metadata'
-]
+__all__ = ["Inquirer", "get_runner", "get_metadata"]
 
 LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters.
-RUNNER_SCHEMA = 'schema'
-RUNNER_ROLES = 'roles'
-RUNNER_USERS = 'users'
-RUNNER_ROUTE = 'route'
-RUNNER_TTL = 'ttl'
+RUNNER_SCHEMA = "schema"
+RUNNER_ROLES = "roles"
+RUNNER_USERS = "users"
+RUNNER_ROUTE = "route"
+RUNNER_TTL = "ttl"
 
 DEFAULT_SCHEMA = {
     "title": "response_data",
@@ -51,15 +47,14 @@ DEFAULT_SCHEMA = {
         "continue": {
             "type": "boolean",
             "description": "Would you like to continue the workflow?",
-            "required": True
+            "required": True,
         }
-    }
+    },
 }
 
 
 class Inquirer(runners.ActionRunner):
-    """This runner implements the ability to ask for more input during a workflow
-    """
+    """This runner implements the ability to ask for more input during a workflow"""
 
     def __init__(self, runner_id):
         super(Inquirer, self).__init__(runner_id=runner_id)
@@ -83,14 +78,11 @@ class Inquirer(runners.ActionRunner):
 
         # Assemble and dispatch trigger
         trigger_ref = sys_db_models.ResourceReference.to_string_reference(
-            pack=trigger_constants.INQUIRY_TRIGGER['pack'],
-            name=trigger_constants.INQUIRY_TRIGGER['name']
+            pack=trigger_constants.INQUIRY_TRIGGER["pack"],
+            name=trigger_constants.INQUIRY_TRIGGER["name"],
         )
 
-        trigger_payload = {
-            "id": str(exc.id),
-            "route": self.route
-        }
+        trigger_payload = {"id": str(exc.id), "route": self.route}
 
         self.trigger_dispatcher.dispatch(trigger_ref, trigger_payload)
 
@@ -99,7 +91,7 @@ class Inquirer(runners.ActionRunner):
             "roles": self.roles_param,
             "users": self.users_param,
             "route": self.route,
-            "ttl": self.ttl
+            "ttl": self.ttl,
         }
 
         return (action_constants.LIVEACTION_STATUS_PENDING, result, None)
@@ -110,9 +102,10 @@ class Inquirer(runners.ActionRunner):
         # is made in the run method, but because the liveaction hasn't update to pending status
         # yet, there is a race condition where the pause request is mishandled.
         if status == action_constants.LIVEACTION_STATUS_PENDING:
-            pause_parent = (
-                self.liveaction.context.get("parent") and
-                not workflow_service.is_action_execution_under_workflow_context(self.liveaction)
+            pause_parent = self.liveaction.context.get(
+                "parent"
+            ) and not workflow_service.is_action_execution_under_workflow_context(
+                self.liveaction
             )
 
             # For action execution under Action Chain workflows, request the entire
@@ -122,7 +115,9 @@ class Inquirer(runners.ActionRunner):
             # to pause the workflow.
             if pause_parent:
                 root_liveaction = action_service.get_root_liveaction(self.liveaction)
-                action_service.request_pause(root_liveaction, self.context.get('user', None))
+                action_service.request_pause(
+                    root_liveaction, self.context.get("user", None)
+                )
 
         # Invoke post run of parent for common post run related work.
         super(Inquirer, self).post_run(status, result)
@@ -133,4 +128,4 @@ def get_runner():
 
 
 def get_metadata():
-    return runners.get_metadata('inquirer_runner')[0]
+    return runners.get_metadata("inquirer_runner")[0]

@@ -28,53 +28,69 @@ class TaggedModel(stormbase.StormFoundationDB, stormbase.TagsMixin):
 
 
 class TestTags(DbTestCase):
-
     def test_simple_count(self):
         instance = TaggedModel()
-        instance.tags = [stormbase.TagField(name='tag1', value='v1'),
-                         stormbase.TagField(name='tag2', value='v2')]
+        instance.tags = [
+            stormbase.TagField(name="tag1", value="v1"),
+            stormbase.TagField(name="tag2", value="v2"),
+        ]
         saved = instance.save()
         retrieved = TaggedModel.objects(id=instance.id).first()
-        self.assertEqual(len(saved.tags), len(retrieved.tags), 'Failed to retrieve tags.')
+        self.assertEqual(
+            len(saved.tags), len(retrieved.tags), "Failed to retrieve tags."
+        )
 
     def test_simple_value(self):
         instance = TaggedModel()
-        instance.tags = [stormbase.TagField(name='tag1', value='v1')]
+        instance.tags = [stormbase.TagField(name="tag1", value="v1")]
         saved = instance.save()
         retrieved = TaggedModel.objects(id=instance.id).first()
-        self.assertEqual(len(saved.tags), len(retrieved.tags), 'Failed to retrieve tags.')
+        self.assertEqual(
+            len(saved.tags), len(retrieved.tags), "Failed to retrieve tags."
+        )
         saved_tag = saved.tags[0]
         retrieved_tag = retrieved.tags[0]
-        self.assertEqual(saved_tag.name, retrieved_tag.name, 'Failed to retrieve tag.')
-        self.assertEqual(saved_tag.value, retrieved_tag.value, 'Failed to retrieve tag.')
+        self.assertEqual(saved_tag.name, retrieved_tag.name, "Failed to retrieve tag.")
+        self.assertEqual(
+            saved_tag.value, retrieved_tag.value, "Failed to retrieve tag."
+        )
 
     def test_tag_max_size_restriction(self):
         instance = TaggedModel()
-        instance.tags = [stormbase.TagField(name=self._gen_random_string(),
-                                            value=self._gen_random_string())]
+        instance.tags = [
+            stormbase.TagField(
+                name=self._gen_random_string(), value=self._gen_random_string()
+            )
+        ]
         saved = instance.save()
         retrieved = TaggedModel.objects(id=instance.id).first()
-        self.assertEqual(len(saved.tags), len(retrieved.tags), 'Failed to retrieve tags.')
+        self.assertEqual(
+            len(saved.tags), len(retrieved.tags), "Failed to retrieve tags."
+        )
 
     def test_name_exceeds_max_size(self):
         instance = TaggedModel()
-        instance.tags = [stormbase.TagField(name=self._gen_random_string(1025),
-                                            value='v1')]
+        instance.tags = [
+            stormbase.TagField(name=self._gen_random_string(1025), value="v1")
+        ]
         try:
             instance.save()
-            self.assertTrue(False, 'Expected save to fail')
+            self.assertTrue(False, "Expected save to fail")
         except ValidationError:
             pass
 
     def test_value_exceeds_max_size(self):
         instance = TaggedModel()
-        instance.tags = [stormbase.TagField(name='n1',
-                                            value=self._gen_random_string(1025))]
+        instance.tags = [
+            stormbase.TagField(name="n1", value=self._gen_random_string(1025))
+        ]
         try:
             instance.save()
-            self.assertTrue(False, 'Expected save to fail')
+            self.assertTrue(False, "Expected save to fail")
         except ValidationError:
             pass
 
-    def _gen_random_string(self, size=1024, chars=string.ascii_lowercase + string.digits):
-        return ''.join([random.choice(chars) for _ in range(size)])
+    def _gen_random_string(
+        self, size=1024, chars=string.ascii_lowercase + string.digits
+    ):
+        return "".join([random.choice(chars) for _ in range(size)])

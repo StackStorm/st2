@@ -22,10 +22,12 @@ from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.persistence.trigger import TriggerInstance
 from st2common.services.triggers import get_trigger_db_by_ref_or_dict
 
-LOG = logging.getLogger('st2reactor.sensor.container_utils')
+LOG = logging.getLogger("st2reactor.sensor.container_utils")
 
 
-def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigger=False):
+def create_trigger_instance(
+    trigger, payload, occurrence_time, raise_on_no_trigger=False
+):
     """
     This creates a trigger instance object given trigger and payload.
     Trigger can be just a string reference (pack.name) or a ``dict`` containing 'id' or
@@ -40,9 +42,9 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
     trigger_db = get_trigger_db_by_ref_or_dict(trigger=trigger)
 
     if not trigger_db:
-        LOG.debug('No trigger in db for %s', trigger)
+        LOG.debug("No trigger in db for %s", trigger)
         if raise_on_no_trigger:
-            raise StackStormDBObjectNotFoundError('Trigger not found for %s' % trigger)
+            raise StackStormDBObjectNotFoundError("Trigger not found for %s" % trigger)
         return None
 
     trigger_ref = trigger_db.get_reference().ref

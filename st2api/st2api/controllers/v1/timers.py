@@ -30,17 +30,13 @@ from st2common.services import triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.router import abort
 
-__all__ = [
-    'TimersController',
-    'TimersHolder'
-]
+__all__ = ["TimersController", "TimersHolder"]
 
 
 LOG = logging.getLogger(__name__)
 
 
 class TimersHolder(object):
-
     def __init__(self):
         self._timers = {}
 
@@ -54,7 +50,7 @@ class TimersHolder(object):
         timer_triggers = []
 
         for _, timer in iteritems(self._timers):
-            if not timer_type or timer['type'] == timer_type:
+            if not timer_type or timer["type"] == timer_type:
                 timer_triggers.append(timer)
 
         return timer_triggers
@@ -65,35 +61,37 @@ class TimersController(resource.ContentPackResourceController):
     access = Trigger
 
     supported_filters = {
-        'type': 'type',
+        "type": "type",
     }
 
-    query_options = {
-        'sort': ['type']
-    }
+    query_options = {"sort": ["type"]}
 
     def __init__(self):
         self._timers = TimersHolder()
         self._trigger_types = TIMER_TRIGGER_TYPES.keys()
         queue_suffix = self.__class__.__name__
-        self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
-                                               update_handler=self._handle_update_trigger,
-                                               delete_handler=self._handle_delete_trigger,
-                                               trigger_types=self._trigger_types,
-                                               queue_suffix=queue_suffix,
-                                               exclusive=True)
+        self._trigger_watcher = TriggerWatcher(
+            create_handler=self._handle_create_trigger,
+            update_handler=self._handle_update_trigger,
+            delete_handler=self._handle_delete_trigger,
+            trigger_types=self._trigger_types,
+            queue_suffix=queue_suffix,
+            exclusive=True,
+        )
         self._trigger_watcher.start()
         self._register_timer_trigger_types()
         self._allowed_timer_types = TIMER_TRIGGER_TYPES.keys()
 
     def get_all(self, timer_type=None):
         if timer_type and timer_type not in self._allowed_timer_types:
-            msg = 'Timer type %s not in supported types - %s.' % (timer_type,
-                                                                  self._allowed_timer_types)
+            msg = "Timer type %s not in supported types - %s." % (
+                timer_type,
+                self._allowed_timer_types,
+            )
             abort(http_client.BAD_REQUEST, msg)
 
         t_all = self._timers.get_all(timer_type=timer_type)
-        LOG.debug('Got timers: %s', t_all)
+        LOG.debug("Got timers: %s", t_all)
         return t_all
 
     def get_one(self, ref_or_id, requester_user):
@@ -108,9 +106,11 @@ class TimersController(resource.ContentPackResourceController):
         resource_db = TimerDB(pack=trigger_db.pack, name=trigger_db.name)
 
         rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                          resource_db=resource_db,
-                                                          permission_type=permission_type)
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=resource_db,
+            permission_type=permission_type,
+        )
 
         result = self.model.from_model(trigger_db)
         return result
@@ -119,7 +119,7 @@ class TimersController(resource.ContentPackResourceController):
         # Note: Permission checking for creating and deleting a timer is done during rule
         # creation
         ref = self._get_timer_ref(trigger)
-        LOG.info('Started timer %s with parameters %s', ref, trigger['parameters'])
+        LOG.info("Started timer %s with parameters %s", ref, trigger["parameters"])
         self._timers.add_trigger(ref, trigger)
 
     def update_trigger(self, trigger):
@@ -130,14 +130,16 @@ class TimersController(resource.ContentPackResourceController):
         # creation
         ref = self._get_timer_ref(trigger)
         self._timers.remove_trigger(ref, trigger)
-        LOG.info('Stopped timer %s with parameters %s.', ref, trigger['parameters'])
+        LOG.info("Stopped timer %s with parameters %s.", ref, trigger["parameters"])
 
     def _register_timer_trigger_types(self):
         for trigger_type in TIMER_TRIGGER_TYPES.values():
             trigger_service.create_trigger_type_db(trigger_type)
 
     def _get_timer_ref(self, trigger):
-        return ResourceReference.to_string_reference(pack=trigger['pack'], name=trigger['name'])
+        return ResourceReference.to_string_reference(
+            pack=trigger["pack"], name=trigger["name"]
+        )
 
     ##############################################
     # Event handler methods for the trigger events

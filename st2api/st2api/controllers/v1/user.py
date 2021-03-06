@@ -17,9 +17,7 @@ from oslo_config import cfg
 
 from st2common.rbac.backends import get_rbac_backend
 
-__all__ = [
-    'UserController'
-]
+__all__ = ["UserController"]
 
 
 class UserController(object):
@@ -43,21 +41,21 @@ class UserController(object):
             roles = []
 
         data = {
-            'username': requester_user.name,
-            'authentication': {
-                'method': auth_info['method'],
-                'location': auth_info['location']
+            "username": requester_user.name,
+            "authentication": {
+                "method": auth_info["method"],
+                "location": auth_info["location"],
             },
-            'rbac': {
-                'enabled': cfg.CONF.rbac.enable,
-                'roles': roles,
-                'is_admin': rbac_utils.user_is_admin(user_db=requester_user)
-            }
+            "rbac": {
+                "enabled": cfg.CONF.rbac.enable,
+                "roles": roles,
+                "is_admin": rbac_utils.user_is_admin(user_db=requester_user),
+            },
         }
 
-        if auth_info.get('token_expire', None):
-            token_expire = auth_info['token_expire'].strftime('%Y-%m-%dT%H:%M:%SZ')
-            data['authentication']['token_expire'] = token_expire
+        if auth_info.get("token_expire", None):
+            token_expire = auth_info["token_expire"].strftime("%Y-%m-%dT%H:%M:%SZ")
+            data["authentication"]["token_expire"] = token_expire
 
         return data
 

@@ -24,13 +24,11 @@ from st2common.persistence.base import Access
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
-    'BaseDBModelCRUDTestCase',
-
-    'FakeModel',
-    'FakeModelDB',
-
-    'ChangeRevFakeModel',
-    'ChangeRevFakeModelDB'
+    "BaseDBModelCRUDTestCase",
+    "FakeModel",
+    "FakeModelDB",
+    "ChangeRevFakeModel",
+    "ChangeRevFakeModelDB",
 ]
 
 
@@ -57,19 +55,26 @@ class BaseDBModelCRUDTestCase(object):
             self.assertEqual(getattr(retrieved_db, attribute_name), attribute_value)
 
         # 2. Test update
-        updated_attribute_value = 'updated-%s' % (str(time.time()))
+        updated_attribute_value = "updated-%s" % (str(time.time()))
         setattr(model_db, self.update_attribute_name, updated_attribute_value)
         saved_db = self.persistance_class.add_or_update(model_db)
-        self.assertEqual(getattr(saved_db, self.update_attribute_name), updated_attribute_value)
+        self.assertEqual(
+            getattr(saved_db, self.update_attribute_name), updated_attribute_value
+        )
 
         retrieved_db = self.persistance_class.get_by_id(saved_db.id)
         self.assertEqual(saved_db.id, retrieved_db.id)
-        self.assertEqual(getattr(retrieved_db, self.update_attribute_name), updated_attribute_value)
+        self.assertEqual(
+            getattr(retrieved_db, self.update_attribute_name), updated_attribute_value
+        )
 
         # 3. Test delete
         self.persistance_class.delete(model_db)
-        self.assertRaises(StackStormDBObjectNotFoundError, self.persistance_class.get_by_id,
-                          model_db.id)
+        self.assertRaises(
+            StackStormDBObjectNotFoundError,
+            self.persistance_class.get_by_id,
+            model_db.id,
+        )
 
 
 class FakeModelDB(stormbase.StormBaseDB):
@@ -79,11 +84,11 @@ class FakeModelDB(stormbase.StormBaseDB):
     timestamp = mongoengine.DateTimeField()
 
     meta = {
-        'indexes': [
-            {'fields': ['index']},
-            {'fields': ['category']},
-            {'fields': ['timestamp']},
-            {'fields': ['context.user']},
+        "indexes": [
+            {"fields": ["index"]},
+            {"fields": ["category"]},
+            {"fields": ["timestamp"]},
+            {"fields": ["context.user"]},
         ]
     }
 

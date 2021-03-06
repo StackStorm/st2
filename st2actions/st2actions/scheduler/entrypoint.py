@@ -29,10 +29,7 @@ from st2common.services import action as action_service
 from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 
-__all__ = [
-    'SchedulerEntrypoint',
-    'get_scheduler_entrypoint'
-]
+__all__ = ["SchedulerEntrypoint", "get_scheduler_entrypoint"]
 
 
 LOG = logging.getLogger(__name__)
@@ -43,6 +40,7 @@ class SchedulerEntrypoint(consumers.MessageHandler):
     SchedulerEntrypoint subscribes to the Action scheduler request queue and places new Live
     Actions into the scheduling queue collection for scheduling on action runners.
     """
+
     message_type = LiveActionDB
 
     def process(self, request):
@@ -53,18 +51,25 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         :type request: ``st2common.models.db.liveaction.LiveActionDB``
         """
         if request.status != action_constants.LIVEACTION_STATUS_REQUESTED:
-            LOG.info('%s is ignoring %s (id=%s) with "%s" status.',
-                     self.__class__.__name__, type(request), request.id, request.status)
+            LOG.info(
+                '%s is ignoring %s (id=%s) with "%s" status.',
+                self.__class__.__name__,
+                type(request),
+                request.id,
+                request.status,
+            )
             return
 
         try:
             liveaction_db = action_utils.get_liveaction_by_id(str(request.id))
         except StackStormDBObjectNotFoundError:
-            LOG.exception('Failed to find liveaction %s in the database.', str(request.id))
+            LOG.exception(
+                "Failed to find liveaction %s in the database.", str(request.id)
+            )
             raise
 
         query = {
-            'liveaction_id': str(liveaction_db.id),
+            "liveaction_id": str(liveaction_db.id),
         }
 
         queued_requests = ActionExecutionSchedulingQueue.query(**query)
@@ -75,17 +80,16 @@ class SchedulerEntrypoint(consumers.MessageHandler):
 
         if liveaction_db.delay and liveaction_db.delay > 0:
             liveaction_db = action_service.update_status(
-                liveaction_db,
-                action_constants.LIVEACTION_STATUS_DELAYED,
-                publish=False
+                liveaction_db, action_constants.LIVEACTION_STATUS_DELAYED, publish=False
             )
 
         execution_queue_item_db = self._create_execution_queue_item_db_from_liveaction(
-            liveaction_db,
-            delay=liveaction_db.delay
+            liveaction_db, delay=liveaction_db.delay
         )
 
-        ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
+        ActionExecutionSchedulingQueue.add_or_update(
+            execution_queue_item_db, publish=False
+        )
 
         return execution_queue_item_db
 
@@ -99,9 +103,8 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         execution_queue_item_db.action_execution_id = str(execution.id)
         execution_queue_item_db.liveaction_id = str(liveaction.id)
         execution_queue_item_db.original_start_timestamp = liveaction.start_timestamp
-        execution_queue_item_db.scheduled_start_timestamp = date.append_milliseconds_to_time(
-            liveaction.start_timestamp,
-            delay or 0
+        execution_queue_item_db.scheduled_start_timestamp = (
+            date.append_milliseconds_to_time(liveaction.start_timestamp, delay or 0)
         )
         execution_queue_item_db.delay = delay
 

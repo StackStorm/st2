@@ -14,9 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from st2common.exceptions.auth import (TokenNotFoundError, ApiKeyNotFoundError,
-                                       UserNotFoundError, AmbiguousUserError,
-                                       NoNicknameOriginProvidedError)
+from st2common.exceptions.auth import (
+    TokenNotFoundError,
+    ApiKeyNotFoundError,
+    UserNotFoundError,
+    AmbiguousUserError,
+    NoNicknameOriginProvidedError,
+)
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common.persistence.base import Access
@@ -35,7 +39,7 @@ class User(Access):
         if not origin:
             raise NoNicknameOriginProvidedError()
 
-        result = cls.query(**{('nicknames__%s' % origin): nickname})
+        result = cls.query(**{("nicknames__%s" % origin): nickname})
 
         if not result.first():
             raise UserNotFoundError()
@@ -51,7 +55,7 @@ class User(Access):
     @classmethod
     def _get_by_object(cls, object):
         # For User name is unique.
-        name = getattr(object, 'name', '')
+        name = getattr(object, "name", "")
         return cls.get_by_name(name)
 
 
@@ -64,13 +68,15 @@ class Token(Access):
 
     @classmethod
     def add_or_update(cls, model_object, publish=True, validate=True):
-        if not getattr(model_object, 'user', None):
-            raise ValueError('User is not provided in the token.')
-        if not getattr(model_object, 'token', None):
-            raise ValueError('Token value is not set.')
-        if not getattr(model_object, 'expiry', None):
-            raise ValueError('Token expiry is not provided in the token.')
-        return super(Token, cls).add_or_update(model_object, publish=publish, validate=validate)
+        if not getattr(model_object, "user", None):
+            raise ValueError("User is not provided in the token.")
+        if not getattr(model_object, "token", None):
+            raise ValueError("Token value is not set.")
+        if not getattr(model_object, "expiry", None):
+            raise ValueError("Token expiry is not provided in the token.")
+        return super(Token, cls).add_or_update(
+            model_object, publish=publish, validate=validate
+        )
 
     @classmethod
     def get(cls, value):
@@ -96,7 +102,7 @@ class ApiKey(Access):
         result = cls.query(key_hash=value_hash).first()
 
         if not result:
-            raise ApiKeyNotFoundError('ApiKey with key_hash=%s not found.' % value_hash)
+            raise ApiKeyNotFoundError("ApiKey with key_hash=%s not found." % value_hash)
 
         return result
 
@@ -109,4 +115,4 @@ class ApiKey(Access):
         try:
             return cls.get_by_id(value)
         except:
-            raise ApiKeyNotFoundError('ApiKey with key or id=%s not found.' % value)
+            raise ApiKeyNotFoundError("ApiKey with key or id=%s not found." % value)

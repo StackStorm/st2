@@ -14,81 +14,74 @@
 # limitations under the License.
 
 __all__ = [
-    'PACKS_PACK_NAME',
-    'PACK_REF_WHITELIST_REGEX',
-    'PACK_RESERVED_CHARACTERS',
-    'PACK_VERSION_SEPARATOR',
-    'PACK_VERSION_REGEX',
-    'ST2_VERSION_REGEX',
-    'SYSTEM_PACK_NAME',
-    'PACKS_PACK_NAME',
-    'LINUX_PACK_NAME',
-    'SYSTEM_PACK_NAMES',
-    'CHATOPS_PACK_NAME',
-    'USER_PACK_NAME_BLACKLIST',
-    'BASE_PACK_REQUIREMENTS',
-    'MANIFEST_FILE_NAME',
-    'CONFIG_SCHEMA_FILE_NAME'
+    "PACKS_PACK_NAME",
+    "PACK_REF_WHITELIST_REGEX",
+    "PACK_RESERVED_CHARACTERS",
+    "PACK_VERSION_SEPARATOR",
+    "PACK_VERSION_REGEX",
+    "ST2_VERSION_REGEX",
+    "SYSTEM_PACK_NAME",
+    "PACKS_PACK_NAME",
+    "LINUX_PACK_NAME",
+    "SYSTEM_PACK_NAMES",
+    "CHATOPS_PACK_NAME",
+    "USER_PACK_NAME_BLACKLIST",
+    "BASE_PACK_REQUIREMENTS",
+    "MANIFEST_FILE_NAME",
+    "CONFIG_SCHEMA_FILE_NAME",
 ]
 
 # Prefix for render context w/ config
-PACK_CONFIG_CONTEXT_KV_PREFIX = 'config_context'
+PACK_CONFIG_CONTEXT_KV_PREFIX = "config_context"
 
 # A list of allowed characters for the pack name
-PACK_REF_WHITELIST_REGEX = r'^[a-z0-9_]+$'
+PACK_REF_WHITELIST_REGEX = r"^[a-z0-9_]+$"
 
 # Check for a valid semver string
-PACK_VERSION_REGEX = r'^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'  # noqa
+PACK_VERSION_REGEX = r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$"  # noqa
 
 # Special characters which can't be used in pack names
-PACK_RESERVED_CHARACTERS = [
-    '.'
-]
+PACK_RESERVED_CHARACTERS = ["."]
 
 # Version sperator when version is supplied in pack name
 # Example: libcloud@1.0.1
-PACK_VERSION_SEPARATOR = '='
+PACK_VERSION_SEPARATOR = "="
 
 # Check for st2 version in engines
-ST2_VERSION_REGEX = r'^((>?>|>=|=|<=|<?<)\s*[0-9]+\.[0-9]+\.[0-9]+?(\s*,)?\s*)+$'
+ST2_VERSION_REGEX = r"^((>?>|>=|=|<=|<?<)\s*[0-9]+\.[0-9]+\.[0-9]+?(\s*,)?\s*)+$"
 
 # Name used for system pack
-SYSTEM_PACK_NAME = 'core'
+SYSTEM_PACK_NAME = "core"
 
 # Name used for pack management pack
-PACKS_PACK_NAME = 'packs'
+PACKS_PACK_NAME = "packs"
 
 # Name used for linux pack
-LINUX_PACK_NAME = 'linux'
+LINUX_PACK_NAME = "linux"
 
 # Name of the default pack
-DEFAULT_PACK_NAME = 'default'
+DEFAULT_PACK_NAME = "default"
 
 # Name of the chatops pack
-CHATOPS_PACK_NAME = 'chatops'
+CHATOPS_PACK_NAME = "chatops"
 
 # A list of system pack names
 SYSTEM_PACK_NAMES = [
     CHATOPS_PACK_NAME,
     SYSTEM_PACK_NAME,
     PACKS_PACK_NAME,
-    LINUX_PACK_NAME
+    LINUX_PACK_NAME,
 ]
 
 # A list of pack names which can't be used by user-supplied packs
-USER_PACK_NAME_BLACKLIST = [
-    SYSTEM_PACK_NAME,
-    PACKS_PACK_NAME
-]
+USER_PACK_NAME_BLACKLIST = [SYSTEM_PACK_NAME, PACKS_PACK_NAME]
 
 # Python requirements which are common to all the packs and are installed into the Python pack
 # sandbox (virtualenv)
-BASE_PACK_REQUIREMENTS = [
-    'six>=1.9.0,<2.0'
-]
+BASE_PACK_REQUIREMENTS = ["six>=1.9.0,<2.0"]
 
 # Name of the pack manifest file
-MANIFEST_FILE_NAME = 'pack.yaml'
+MANIFEST_FILE_NAME = "pack.yaml"
 
 # File name for the config schema file
-CONFIG_SCHEMA_FILE_NAME = 'config.schema.yaml'
+CONFIG_SCHEMA_FILE_NAME = "config.schema.yaml"

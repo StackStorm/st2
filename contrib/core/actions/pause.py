@@ -19,9 +19,7 @@ from random import randint
 
 from st2common.runners.base_action import Action
 
-__all__ = [
-    'PauseAction'
-]
+__all__ = ["PauseAction"]
 
 
 class PauseAction(Action):

@@ -1,0 +1,14 @@
+[tool.black]
+max-line-length = 100
+target_version = ['py36']
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+    | \.git
+    | \.virtualenv
+    | __pycache__
+    | test_content_version
+  )/
+)
+'''
