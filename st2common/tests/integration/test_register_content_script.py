@@ -183,5 +183,5 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
 
         self.assertIn('Setting up virtualenv for pack "dummy_pack_1"', stderr)
         self.assertIn("Setup virtualenv for 1 pack(s)", stderr)
-        self.assertIn("Virtualenv successfull removed.", stderr)
+        self.assertIn("Virtualenv successfully removed.", stderr)
         self.assertEqual(exit_code, 0)
