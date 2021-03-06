@@ -28,6 +28,14 @@ import st2common.util.jsonify as jsonify
 
 
 class JsonifyTests(unittest2.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        jsonify.DEFAULT_JSON_LIBRARY = "orjson"
+
+    @classmethod
+    def tearDownClass(cls):
+        jsonify.DEFAULT_JSON_LIBRARY = "orjson"
+
     def test_none_object(self):
         obj = None
         self.assertIsNone(jsonify.json_loads(obj))
