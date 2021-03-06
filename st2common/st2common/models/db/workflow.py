@@ -25,16 +25,15 @@ from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.util import date as date_utils
 
 
-__all__ = [
-    'WorkflowExecutionDB',
-    'TaskExecutionDB'
-]
+__all__ = ["WorkflowExecutionDB", "TaskExecutionDB"]
 
 
 LOG = logging.getLogger(__name__)
 
 
-class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
+class WorkflowExecutionDB(
+    stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin
+):
     RESOURCE_TYPE = types.ResourceType.EXECUTION
 
     action_execution = me.StringField(required=True)
@@ -47,14 +46,12 @@ class WorkflowExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionF
     status = me.StringField(required=True)
     output = JSONDictEscapedFieldCompatibilityField()
     errors = stormbase.EscapedDynamicField()
-    start_timestamp = db_field_types.ComplexDateTimeField(default=date_utils.get_datetime_utc_now)
+    start_timestamp = db_field_types.ComplexDateTimeField(
+        default=date_utils.get_datetime_utc_now
+    )
     end_timestamp = db_field_types.ComplexDateTimeField()
 
-    meta = {
-        'indexes': [
-            {'fields': ['action_execution']}
-        ]
-    }
+    meta = {"indexes": [{"fields": ["action_execution"]}]}
 
 
 class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
@@ -72,21 +69,20 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     context = JSONDictEscapedFieldCompatibilityField()
     status = me.StringField(required=True)
     result = JSONDictEscapedFieldCompatibilityField()
-    start_timestamp = db_field_types.ComplexDateTimeField(default=date_utils.get_datetime_utc_now)
+    start_timestamp = db_field_types.ComplexDateTimeField(
+        default=date_utils.get_datetime_utc_now
+    )
     end_timestamp = db_field_types.ComplexDateTimeField()
 
     meta = {
-        'indexes': [
-            {'fields': ['workflow_execution']},
-            {'fields': ['task_id']},
-            {'fields': ['task_id', 'task_route']},
-            {'fields': ['workflow_execution', 'task_id']},
-            {'fields': ['workflow_execution', 'task_id', 'task_route']}
+        "indexes": [
+            {"fields": ["workflow_execution"]},
+            {"fields": ["task_id"]},
+            {"fields": ["task_id", "task_route"]},
+            {"fields": ["workflow_execution", "task_id"]},
+            {"fields": ["workflow_execution", "task_id", "task_route"]},
         ]
     }
 
 
-MODELS = [
-    WorkflowExecutionDB,
-    TaskExecutionDB
-]
+MODELS = [WorkflowExecutionDB, TaskExecutionDB]

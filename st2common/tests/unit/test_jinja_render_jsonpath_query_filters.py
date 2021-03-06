@@ -21,49 +21,58 @@ from st2common.util import jinja as jinja_utils
 
 
 class JinjaUtilsJsonpathQueryTestCase(unittest2.TestCase):
-
     def test_jsonpath_query_static(self):
         env = jinja_utils.get_jinja_environment()
-        obj = {'people': [{'first': 'James', 'last': 'd'},
-                          {'first': 'Jacob', 'last': 'e'},
-                          {'first': 'Jayden', 'last': 'f'},
-                          {'missing': 'different'}],
-               'foo': {'bar': 'baz'}}
+        obj = {
+            "people": [
+                {"first": "James", "last": "d"},
+                {"first": "Jacob", "last": "e"},
+                {"first": "Jayden", "last": "f"},
+                {"missing": "different"},
+            ],
+            "foo": {"bar": "baz"},
+        }
 
         template = '{{ obj | jsonpath_query("people[*].first") }}'
-        actual_str = env.from_string(template).render({'obj': obj})
+        actual_str = env.from_string(template).render({"obj": obj})
         actual = eval(actual_str)
-        expected = ['James', 'Jacob', 'Jayden']
+        expected = ["James", "Jacob", "Jayden"]
         self.assertEqual(actual, expected)
 
     def test_jsonpath_query_dynamic(self):
         env = jinja_utils.get_jinja_environment()
-        obj = {'people': [{'first': 'James', 'last': 'd'},
-                          {'first': 'Jacob', 'last': 'e'},
-                          {'first': 'Jayden', 'last': 'f'},
-                          {'missing': 'different'}],
-               'foo': {'bar': 'baz'}}
+        obj = {
+            "people": [
+                {"first": "James", "last": "d"},
+                {"first": "Jacob", "last": "e"},
+                {"first": "Jayden", "last": "f"},
+                {"missing": "different"},
+            ],
+            "foo": {"bar": "baz"},
+        }
         query = "people[*].last"
 
-        template = '{{ obj | jsonpath_query(query) }}'
-        actual_str = env.from_string(template).render({'obj': obj,
-                                                       'query': query})
+        template = "{{ obj | jsonpath_query(query) }}"
+        actual_str = env.from_string(template).render({"obj": obj, "query": query})
         actual = eval(actual_str)
-        expected = ['d', 'e', 'f']
+        expected = ["d", "e", "f"]
         self.assertEqual(actual, expected)
 
     def test_jsonpath_query_no_results(self):
         env = jinja_utils.get_jinja_environment()
-        obj = {'people': [{'first': 'James', 'last': 'd'},
-                          {'first': 'Jacob', 'last': 'e'},
-                          {'first': 'Jayden', 'last': 'f'},
-                          {'missing': 'different'}],
-               'foo': {'bar': 'baz'}}
+        obj = {
+            "people": [
+                {"first": "James", "last": "d"},
+                {"first": "Jacob", "last": "e"},
+                {"first": "Jayden", "last": "f"},
+                {"missing": "different"},
+            ],
+            "foo": {"bar": "baz"},
+        }
         query = "query_returns_no_results"
 
-        template = '{{ obj | jsonpath_query(query) }}'
-        actual_str = env.from_string(template).render({'obj': obj,
-                                                       'query': query})
+        template = "{{ obj | jsonpath_query(query) }}"
+        actual_str = env.from_string(template).render({"obj": obj, "query": query})
         actual = eval(actual_str)
         expected = None
         self.assertEqual(actual, expected)

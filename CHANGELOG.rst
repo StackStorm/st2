@@ -4,24 +4,13 @@ Changelog
 in development
 --------------
 
-Added
-~~~~~
+Changed
+~~~~~~~
 
-* Added support for GitLab SSH URLs on pack install and download actions. (improvement) #5050
-  Contributed by @asthLucas
+* All the code has been refactored using black and black style is automatically enforced and
+  required for all the new code. (#5156)
 
-* Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
-  Contributed by @hnanchahal
-
-* Added notification support for err-stackstorm. (new feature) #5051
-
-* Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
-  Contributed by @hnanchahal
-
-* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from
-  scratch. (part of upgrade instructions) #5167
-
-  Contributed by @winem and @blag
+  Contributed by @Kami.
 
 * Add new ``-x`` argument to the ``st2 execution get`` command which allows
   ``result`` field to be excluded from the output. (improvement) #4846
@@ -65,6 +54,28 @@ Added
 
   Contributed by @Kami.
 
+3.4.0 - March 02, 2021
+----------------------
+
+Added
+~~~~~
+
+* Added support for GitLab SSH URLs on pack install and download actions. (improvement) #5050
+  Contributed by @asthLucas
+
+* Added st2-rbac-backend pip requirements for RBAC integration. (new feature) #5086
+  Contributed by @hnanchahal
+
+* Added notification support for err-stackstorm. (new feature) #5051
+
+* Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
+  Contributed by @hnanchahal
+
+* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from
+  scratch. (part of upgrade instructions) #5167
+
+  Contributed by @winem and @blag
+
 Changed
 ~~~~~~~
 
@@ -74,7 +85,7 @@ Changed
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
-* Added timeout parameter for packs.install action to help with long running installs that exceed the 
+* Added timeout parameter for packs.install action to help with long running installs that exceed the
   default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
 
   Contributed by @hnanchahal

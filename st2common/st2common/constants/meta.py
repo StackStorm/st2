@@ -22,10 +22,7 @@ try:
 except ImportError:
     from yaml import SafeLoader as YamlSafeLoader
 
-__all__ = [
-    'ALLOWED_EXTS',
-    'PARSER_FUNCS'
-]
+__all__ = ["ALLOWED_EXTS", "PARSER_FUNCS"]
 
 
 # NOTE: We utilize CSafeLoader if available since it uses C extensions and is faster.
@@ -33,5 +30,5 @@ def yaml_safe_load(stream):
     return yaml.load(stream, Loader=YamlSafeLoader)
 
 
-ALLOWED_EXTS = ['.yaml', '.yml']
-PARSER_FUNCS = {'.yml': yaml_safe_load, '.yaml': yaml_safe_load}
+ALLOWED_EXTS = [".yaml", ".yml"]
+PARSER_FUNCS = {".yml": yaml_safe_load, ".yaml": yaml_safe_load}

@@ -32,8 +32,11 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def parse_args(args=None):
-    cfg.CONF(args=args, version=VERSION_STRING,
-             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
+    cfg.CONF(
+        args=args,
+        version=VERSION_STRING,
+        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+    )
 
 
 def register_opts():
@@ -54,17 +57,15 @@ def _register_app_opts():
     # config since they are also used outside st2stream
     api_opts = [
         cfg.StrOpt(
-            'host', default='127.0.0.1',
-            help='StackStorm stream API server host'),
-        cfg.IntOpt(
-            'port', default=9102,
-            help='StackStorm API stream, server port'),
-        cfg.BoolOpt(
-            'debug', default=False,
-            help='Specify to enable debug mode.'),
+            "host", default="127.0.0.1", help="StackStorm stream API server host"
+        ),
+        cfg.IntOpt("port", default=9102, help="StackStorm API stream, server port"),
+        cfg.BoolOpt("debug", default=False, help="Specify to enable debug mode."),
         cfg.StrOpt(
-            'logging', default='/etc/st2/logging.stream.conf',
-            help='location of the logging.conf file')
+            "logging",
+            default="/etc/st2/logging.stream.conf",
+            help="location of the logging.conf file",
+        ),
     ]
 
-    CONF.register_opts(api_opts, group='stream')
+    CONF.register_opts(api_opts, group="stream")

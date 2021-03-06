@@ -29,34 +29,31 @@ from st2common.constants.runners import REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
 from st2common.services.action import store_execution_output_data
 
-__all__ = [
-    'BaseParallelSSHRunner'
-]
+__all__ = ["BaseParallelSSHRunner"]
 
 LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters.
-RUNNER_HOSTS = 'hosts'
-RUNNER_USERNAME = 'username'
-RUNNER_PASSWORD = 'password'
-RUNNER_PRIVATE_KEY = 'private_key'
-RUNNER_PARALLEL = 'parallel'
-RUNNER_SUDO = 'sudo'
-RUNNER_SUDO_PASSWORD = 'sudo_password'
-RUNNER_ON_BEHALF_USER = 'user'
-RUNNER_REMOTE_DIR = 'dir'
-RUNNER_COMMAND = 'cmd'
-RUNNER_CWD = 'cwd'
-RUNNER_ENV = 'env'
-RUNNER_KWARG_OP = 'kwarg_op'
-RUNNER_TIMEOUT = 'timeout'
-RUNNER_SSH_PORT = 'port'
-RUNNER_BASTION_HOST = 'bastion_host'
-RUNNER_PASSPHRASE = 'passphrase'
+RUNNER_HOSTS = "hosts"
+RUNNER_USERNAME = "username"
+RUNNER_PASSWORD = "password"
+RUNNER_PRIVATE_KEY = "private_key"
+RUNNER_PARALLEL = "parallel"
+RUNNER_SUDO = "sudo"
+RUNNER_SUDO_PASSWORD = "sudo_password"
+RUNNER_ON_BEHALF_USER = "user"
+RUNNER_REMOTE_DIR = "dir"
+RUNNER_COMMAND = "cmd"
+RUNNER_CWD = "cwd"
+RUNNER_ENV = "env"
+RUNNER_KWARG_OP = "kwarg_op"
+RUNNER_TIMEOUT = "timeout"
+RUNNER_SSH_PORT = "port"
+RUNNER_BASTION_HOST = "bastion_host"
+RUNNER_PASSPHRASE = "passphrase"
 
 
 class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
-
     def __init__(self, runner_id):
         super(BaseParallelSSHRunner, self).__init__(runner_id=runner_id)
         self._hosts = None
@@ -68,7 +65,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._password = None
         self._private_key = None
         self._passphrase = None
-        self._kwarg_op = '--'
+        self._kwarg_op = "--"
         self._cwd = None
         self._env = None
         self._ssh_port = None
@@ -83,13 +80,16 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
     def pre_run(self):
         super(BaseParallelSSHRunner, self).pre_run()
 
-        LOG.debug('Entering BaseParallelSSHRunner.pre_run() for liveaction_id="%s"',
-                  self.liveaction_id)
-        hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')
+        LOG.debug(
+            'Entering BaseParallelSSHRunner.pre_run() for liveaction_id="%s"',
+            self.liveaction_id,
+        )
+        hosts = self.runner_parameters.get(RUNNER_HOSTS, "").split(",")
         self._hosts = [h.strip() for h in hosts if len(h) > 0]
         if len(self._hosts) < 1:
-            raise ActionRunnerPreRunError('No hosts specified to run action for action %s.'
-                                          % self.liveaction_id)
+            raise ActionRunnerPreRunError(
+                "No hosts specified to run action for action %s." % self.liveaction_id
+            )
         self._username = self.runner_parameters.get(RUNNER_USERNAME, None)
         self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
         self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, None)
@@ -103,85 +103,105 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._sudo_password = self.runner_parameters.get(RUNNER_SUDO_PASSWORD, None)
 
         if self.context:
-            self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, self._on_behalf_user)
+            self._on_behalf_user = self.context.get(
+                RUNNER_ON_BEHALF_USER, self._on_behalf_user
+            )
 
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
-        self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
-        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT,
-                                                   REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT)
+        self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, "--")
+        self._timeout = self.runner_parameters.get(
+            RUNNER_TIMEOUT, REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
+        )
         self._bastion_host = self.runner_parameters.get(RUNNER_BASTION_HOST, None)
 
-        LOG.info('[BaseParallelSSHRunner="%s", liveaction_id="%s"] Finished pre_run.',
-                 self.runner_id, self.liveaction_id)
+        LOG.info(
+            '[BaseParallelSSHRunner="%s", liveaction_id="%s"] Finished pre_run.',
+            self.runner_id,
+            self.liveaction_id,
+        )
 
         concurrency = int(len(self._hosts) / 3) + 1 if self._parallel else 1
         if concurrency > self._max_concurrency:
-            LOG.debug('Limiting parallel SSH concurrency to %d.', concurrency)
+            LOG.debug("Limiting parallel SSH concurrency to %d.", concurrency)
             concurrency = self._max_concurrency
 
         client_kwargs = {
-            'hosts': self._hosts,
-            'user': self._username,
-            'port': self._ssh_port,
-            'concurrency': concurrency,
-            'bastion_host': self._bastion_host,
-            'raise_on_any_error': False,
-            'connect': True
+            "hosts": self._hosts,
+            "user": self._username,
+            "port": self._ssh_port,
+            "concurrency": concurrency,
+            "bastion_host": self._bastion_host,
+            "raise_on_any_error": False,
+            "connect": True,
         }
 
         def make_store_stdout_line_func(execution_db, action_db):
             def store_stdout_line(line):
                 if cfg.CONF.actionrunner.stream_output:
-                    store_execution_output_data(execution_db=execution_db, action_db=action_db,
-                                                data=line, output_type='stdout')
+                    store_execution_output_data(
+                        execution_db=execution_db,
+                        action_db=action_db,
+                        data=line,
+                        output_type="stdout",
+                    )
 
             return store_stdout_line
 
         def make_store_stderr_line_func(execution_db, action_db):
             def store_stderr_line(line):
                 if cfg.CONF.actionrunner.stream_output:
-                    store_execution_output_data(execution_db=execution_db, action_db=action_db,
-                                                data=line, output_type='stderr')
+                    store_execution_output_data(
+                        execution_db=execution_db,
+                        action_db=action_db,
+                        data=line,
+                        output_type="stderr",
+                    )
 
             return store_stderr_line
 
-        handle_stdout_line_func = make_store_stdout_line_func(execution_db=self.execution,
-                                                              action_db=self.action)
-        handle_stderr_line_func = make_store_stderr_line_func(execution_db=self.execution,
-                                                              action_db=self.action)
+        handle_stdout_line_func = make_store_stdout_line_func(
+            execution_db=self.execution, action_db=self.action
+        )
+        handle_stderr_line_func = make_store_stderr_line_func(
+            execution_db=self.execution, action_db=self.action
+        )
 
         if len(self._hosts) == 1:
             # We only support streaming output when running action on one host. That is because
             # the action output is tied to a particulat execution. User can still achieve output
             # streaming for multiple hosts by running one execution per host.
-            client_kwargs['handle_stdout_line_func'] = handle_stdout_line_func
-            client_kwargs['handle_stderr_line_func'] = handle_stderr_line_func
+            client_kwargs["handle_stdout_line_func"] = handle_stdout_line_func
+            client_kwargs["handle_stderr_line_func"] = handle_stderr_line_func
         else:
-            LOG.debug('Real-time action output streaming is disabled, because action is running '
-                      'on more than one host')
+            LOG.debug(
+                "Real-time action output streaming is disabled, because action is running "
+                "on more than one host"
+            )
 
         if self._password:
-            client_kwargs['password'] = self._password
+            client_kwargs["password"] = self._password
         elif self._private_key:
             # Determine if the private_key is a path to the key file or the raw key material
-            is_key_material = self._is_private_key_material(private_key=self._private_key)
+            is_key_material = self._is_private_key_material(
+                private_key=self._private_key
+            )
 
             if is_key_material:
                 # Raw key material
-                client_kwargs['pkey_material'] = self._private_key
+                client_kwargs["pkey_material"] = self._private_key
             else:
                 # Assume it's a path to the key file, verify the file exists
-                client_kwargs['pkey_file'] = self._private_key
+                client_kwargs["pkey_file"] = self._private_key
 
             if self._passphrase:
-                client_kwargs['passphrase'] = self._passphrase
+                client_kwargs["passphrase"] = self._passphrase
         else:
             # Default to stanley key file specified in the config
-            client_kwargs['pkey_file'] = self._ssh_key_file
+            client_kwargs["pkey_file"] = self._ssh_key_file
 
         if self._sudo_password:
-            client_kwargs['sudo_password'] = True
+            client_kwargs["sudo_password"] = True
 
         self._parallel_ssh_client = ParallelSSHClient(**client_kwargs)
 
@@ -213,21 +233,22 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
     @staticmethod
     def _get_result_status(result, allow_partial_failure):
 
-        if 'error' in result and 'traceback' in result:
+        if "error" in result and "traceback" in result:
             # Assume this is a global failure where the result dictionary doesn't contain entry
             # per host
             timeout = False
-            success = result.get('succeeded', False)
-            status = BaseParallelSSHRunner._get_status_for_success_and_timeout(success=success,
-                                                                               timeout=timeout)
+            success = result.get("succeeded", False)
+            status = BaseParallelSSHRunner._get_status_for_success_and_timeout(
+                success=success, timeout=timeout
+            )
             return status
 
         success = not allow_partial_failure
         timeout = True
 
         for r in six.itervalues(result):
-            r_succeess = r.get('succeeded', False) if r else False
-            r_timeout = r.get('timeout', False) if r else False
+            r_succeess = r.get("succeeded", False) if r else False
+            r_timeout = r.get("timeout", False) if r else False
 
             timeout &= r_timeout
 
@@ -240,8 +261,9 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
                 if not success:
                     break
 
-        status = BaseParallelSSHRunner._get_status_for_success_and_timeout(success=success,
-                                                                           timeout=timeout)
+        status = BaseParallelSSHRunner._get_status_for_success_and_timeout(
+            success=success, timeout=timeout
+        )
 
         return status
 

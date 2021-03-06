@@ -4,12 +4,12 @@
 
 [![Build Status](https://github.com/StackStorm/st2/workflows/ci-checks/badge.svg?branch=master)](https://github.com/StackStorm/st2/actions?query=branch%3Amaster)
 [![Travis Integration Tests Status](https://travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2)
-[![Packages Build Status](https://circleci.com/gh/StackStorm/st2/tree/master.svg?style=shield)](https://circleci.com/gh/StackStorm/st2) 
-[![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master) 
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1833/badge)](https://bestpractices.coreinfrastructure.org/projects/1833) 
-![Python 3.6](https://img.shields.io/badge/python-3.6-blue) 
-[![Apache Licensed](https://img.shields.io/github/license/StackStorm/st2)](LICENSE) 
-[![Join our community Slack](https://img.shields.io/badge/slack-stackstorm-success.svg?logo=slack)](https://stackstorm.com/community-signup) 
+[![Packages Build Status](https://circleci.com/gh/StackStorm/st2/tree/master.svg?style=shield)](https://circleci.com/gh/StackStorm/st2)
+[![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1833/badge)](https://bestpractices.coreinfrastructure.org/projects/1833)
+![Python 3.6](https://img.shields.io/badge/python-3.6-blue)
+[![Apache Licensed](https://img.shields.io/github/license/StackStorm/st2)](LICENSE)
+[![Join our community Slack](https://img.shields.io/badge/slack-stackstorm-success.svg?logo=slack)](https://stackstorm.com/community-signup)
 [![Forum](https://img.shields.io/discourse/https/forum.stackstorm.com/posts.svg)](https://forum.stackstorm.com/)
 
 ---

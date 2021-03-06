@@ -93,11 +93,19 @@ class LiveActionDB_JSONFieldWithHeader(LiveActionDB):
 
 
 class LiveActionDB_JSONFieldWithHeaderAndZstandard(LiveActionDB):
-    result = JSONDictField(default={}, use_header=True, compression_algorithm="zstandard")
+    result = JSONDictField(
+        default={}, use_header=True, compression_algorithm="zstandard"
+    )
 
-    field1 = JSONDictField(default={}, use_header=True, compression_algorithm="zstandard")
-    field2 = JSONDictField(default={}, use_header=True, compression_algorithm="zstandard")
-    field3 = JSONDictField(default={}, use_header=True, compression_algorithm="zstandard")
+    field1 = JSONDictField(
+        default={}, use_header=True, compression_algorithm="zstandard"
+    )
+    field2 = JSONDictField(
+        default={}, use_header=True, compression_algorithm="zstandard"
+    )
+    field3 = JSONDictField(
+        default={}, use_header=True, compression_algorithm="zstandard"
+    )
 
 
 def get_model_class_for_approach(approach: str) -> Type[LiveActionDB]:

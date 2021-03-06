@@ -42,9 +42,7 @@ from mongoengine.common import _import_class
 from st2common.util import date as date_utils
 from st2common.util import mongoescape
 
-__all__ = [
-    'ComplexDateTimeField'
-]
+__all__ = ["ComplexDateTimeField"]
 
 SECOND_TO_MICROSECONDS = 1000000
 
@@ -56,6 +54,7 @@ class JSONDictFieldCompressionAlgorithmEnum(enum.Enum):
     """
     Enum which represents compression algorithm (if any) used for a specific JSONDictField value.
     """
+
     NONE = b"n"
     ZSTANDARD = b"z"
 
@@ -64,6 +63,7 @@ class JSONDictFieldSerializationFormatEnum(enum.Enum):
     """
     Enum which represents serialization format used for a specific JSONDictField value.
     """
+
     ORJSON = b"o"
 
 
@@ -110,7 +110,7 @@ class ComplexDateTimeField(LongField):
         :type data: ``int``
         """
         result = datetime.datetime.utcfromtimestamp(data // SECOND_TO_MICROSECONDS)
-        microseconds_reminder = (data % SECOND_TO_MICROSECONDS)
+        microseconds_reminder = data % SECOND_TO_MICROSECONDS
         result = result.replace(microsecond=microseconds_reminder)
         result = date_utils.add_utc_tz(result)
         return result
@@ -127,11 +127,13 @@ class ComplexDateTimeField(LongField):
         # Verify that the value which is passed in contains UTC timezone
         # information.
         if not value.tzinfo or (value.tzinfo.utcoffset(value) != datetime.timedelta(0)):
-            raise ValueError('Value passed to this function needs to be in UTC timezone')
+            raise ValueError(
+                "Value passed to this function needs to be in UTC timezone"
+            )
 
         seconds = calendar.timegm(value.timetuple())
         microseconds_reminder = value.time().microsecond
-        result = (int(seconds * SECOND_TO_MICROSECONDS) + microseconds_reminder)
+        result = int(seconds * SECOND_TO_MICROSECONDS) + microseconds_reminder
         return result
 
     def __get__(self, instance, owner):
@@ -149,8 +151,7 @@ class ComplexDateTimeField(LongField):
     def validate(self, value):
         value = self.to_python(value)
         if not isinstance(value, datetime.datetime):
-            self.error('Only datetime objects may used in a '
-                       'ComplexDateTimeField')
+            self.error("Only datetime objects may used in a " "ComplexDateTimeField")
 
     def to_python(self, value):
         original_value = value
@@ -374,14 +375,16 @@ class JSONDictField(BinaryField):
         # us to support optional per-field compression, etc.
         # This option is only exposed so we can benchmark different approaches and how much overhead
         # using a header adds.
-        self.use_header = kwargs.pop('use_header', False)
-        self.compression_algorithm = kwargs.pop('compression_algorithm', "none")
+        self.use_header = kwargs.pop("use_header", False)
+        self.compression_algorithm = kwargs.pop("compression_algorithm", "none")
 
         super(JSONDictField, self).__init__(*args, **kwargs)
 
     def to_mongo(self, value):
         if not isinstance(value, dict):
-            raise ValueError('value argument must be a dictionary (got: %s)' % type(value))
+            raise ValueError(
+                "value argument must be a dictionary (got: %s)" % type(value)
+            )
 
         data = self._serialize_field_value(value)
         return data
@@ -420,21 +423,30 @@ class JSONDictField(BinaryField):
         split = value.split(JSON_DICT_FIELD_DELIMITER, 2)
 
         if len(split) != 3:
-            raise ValueError("Expected 3 values when splitting field value, got %s" % (len(split)))
+            raise ValueError(
+                "Expected 3 values when splitting field value, got %s" % (len(split))
+            )
 
         compression_algorithm = split[0]
         serialization_format = split[1]
         data = split[2]
 
         if compression_algorithm not in VALID_JSON_DICT_COMPRESSION_ALGORITHMS:
-            raise ValueError("Invalid or unsupported value for compression algorithm header "
-                             "value: %s" % (compression_algorithm))
+            raise ValueError(
+                "Invalid or unsupported value for compression algorithm header "
+                "value: %s" % (compression_algorithm)
+            )
 
         if serialization_format not in VALID_JSON_DICT_SERIALIZATION_FORMATS:
-            raise ValueError("Invalid or unsupported value for serialization format header "
-                             "value: %s" % (serialization_format))
+            raise ValueError(
+                "Invalid or unsupported value for serialization format header "
+                "value: %s" % (serialization_format)
+            )
 
-        if compression_algorithm == JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value:
+        if (
+            compression_algorithm
+            == JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
+        ):
             data = zstandard.ZstdDecompressor().decompress(data)
 
         data = orjson.loads(data)
@@ -497,7 +509,9 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
             return value
 
         if not isinstance(value, dict):
-            raise ValueError('value argument must be a dictionary (got: %s)' % type(value))
+            raise ValueError(
+                "value argument must be a dictionary (got: %s)" % type(value)
+            )
 
         return self._serialize_field_value(value)
 

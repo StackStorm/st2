@@ -19,8 +19,8 @@ from st2client.models import core
 
 
 class Pack(core.Resource):
-    _display_name = 'Pack'
-    _plural = 'Packs'
-    _plural_display_name = 'Packs'
-    _url_path = 'packs'
-    _repr_attributes = ['name', 'description', 'version', 'author']
+    _display_name = "Pack"
+    _plural = "Packs"
+    _plural_display_name = "Packs"
+    _url_path = "packs"
+    _repr_attributes = ["name", "description", "version", "author"]

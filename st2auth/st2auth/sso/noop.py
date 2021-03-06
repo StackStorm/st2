@@ -17,13 +17,11 @@ from __future__ import absolute_import
 from st2auth.sso.base import BaseSingleSignOnBackend
 
 
-__all__ = [
-    'NoOpSingleSignOnBackend'
-]
+__all__ = ["NoOpSingleSignOnBackend"]
 
 NOT_IMPLEMENTED_MESSAGE = (
     'The default "noop" SSO backend is not a proper implementation. '
-    'Please refer to the enterprise version for configuring SSO.'
+    "Please refer to the enterprise version for configuring SSO."
 )
 
 

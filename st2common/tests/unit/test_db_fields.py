@@ -43,7 +43,14 @@ MOCK_DATA_DICT = {
     "key3": ["a", 1, ["a", "c"], {"d": "e"}, True, None],
     "key4": None,
     "key5": False,
-    "key6": {"key1": "val1", "key2": [2, 3, True], "4": False, "5": None, "6": True, "7": 199}
+    "key6": {
+        "key1": "val1",
+        "key2": [2, 3, True],
+        "4": False,
+        "5": None,
+        "6": True,
+        "7": 199,
+    },
 }
 
 
@@ -52,14 +59,14 @@ class ModelWithEscapedDynamicFieldDB(stormbase.StormFoundationDB):
     result = stormbase.EscapedDynamicField(default={}, use_header=False)
     counter = me.IntField(default=0)
 
-    meta = {'collection': 'model_result_test'}
+    meta = {"collection": "model_result_test"}
 
 
 class ModelWithJSONDictFieldDB(stormbase.StormFoundationDB):
     result = JSONDictField(default={}, use_header=False)
     counter = me.IntField(default=0)
 
-    meta = {'collection': 'model_result_test'}
+    meta = {"collection": "model_result_test"}
 
 
 ModelJsonDictFieldAccess = MongoDBAccess(ModelWithJSONDictFieldDB)
@@ -136,10 +143,14 @@ class JSONDictFieldTestCaseWithHeader(unittest2.TestCase):
         self.assertTrue(isinstance(result, bytes))
 
         split = result.split(b":", 2)
-        self.assertEqual(split[0], JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value)
+        self.assertEqual(
+            split[0], JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
+        )
         self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
-        self.assertEqual(orjson.loads(zstandard.ZstdDecompressor().decompress(split[2])),
-                         MOCK_DATA_DICT)
+        self.assertEqual(
+            orjson.loads(zstandard.ZstdDecompressor().decompress(split[2])),
+            MOCK_DATA_DICT,
+        )
 
         parsed_value = field.parse_field_value(result)
         self.assertEqual(parsed_value, MOCK_DATA_DICT)
@@ -164,7 +175,9 @@ class JSONDictFieldTestCaseWithHeader(unittest2.TestCase):
         self.assertTrue(isinstance(serialized_data, bytes))
 
         split = serialized_data.split(b":", 2)
-        self.assertEqual(split[0], JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value)
+        self.assertEqual(
+            split[0], JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
+        )
         self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
 
         desserialized_data = field.to_python(serialized_data)
@@ -204,7 +217,9 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
 
         # 2. Now read it with JSONDictField and verify it works and gets converted transparently on
         # read
-        retrieved_model_db = ModelWithJSONDictFieldDB.objects.get(id=inserted_model_db.id)
+        retrieved_model_db = ModelWithJSONDictFieldDB.objects.get(
+            id=inserted_model_db.id
+        )
         self.assertEqual(retrieved_model_db.id, inserted_model_db.id)
         self.assertEqual(retrieved_model_db.result, MOCK_DATA_DICT)
 
@@ -487,12 +502,12 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
         datetime_values = [
             datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=500),
             datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=0),
-            datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=999999)
+            datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=999999),
         ]
         datetime_values = [
             date_utils.add_utc_tz(datetime_values[0]),
             date_utils.add_utc_tz(datetime_values[1]),
-            date_utils.add_utc_tz(datetime_values[2])
+            date_utils.add_utc_tz(datetime_values[2]),
         ]
         microsecond_values = []
 
@@ -519,7 +534,7 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
             expected_value = datetime_values[index]
             self.assertEqual(actual_value, expected_value)
 
-    @mock.patch('st2common.fields.LongField.__get__')
+    @mock.patch("st2common.fields.LongField.__get__")
     def test_get_(self, mock_get):
         field = ComplexDateTimeField()
 
@@ -529,7 +544,9 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
 
         # Already a datetime
         mock_get.return_value = date_utils.get_datetime_utc_now()
-        self.assertEqual(field.__get__(instance=None, owner=None), mock_get.return_value)
+        self.assertEqual(
+            field.__get__(instance=None, owner=None), mock_get.return_value
+        )
 
         # Microseconds
         dt = datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=500)
