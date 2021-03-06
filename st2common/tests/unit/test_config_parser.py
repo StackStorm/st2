@@ -27,27 +27,27 @@ class ContentPackConfigParserTestCase(TestCase):
         tests_config.parse_args()
 
     def test_get_config_inexistent_pack(self):
-        parser = ContentPackConfigParser(pack_name='inexistent')
+        parser = ContentPackConfigParser(pack_name="inexistent")
         config = parser.get_config()
         self.assertEqual(config, None)
 
     def test_get_config_no_config(self):
-        pack_name = 'dummy_pack_1'
+        pack_name = "dummy_pack_1"
         parser = ContentPackConfigParser(pack_name=pack_name)
 
         config = parser.get_config()
         self.assertEqual(config, None)
 
     def test_get_config_existing_config(self):
-        pack_name = 'dummy_pack_2'
+        pack_name = "dummy_pack_2"
         parser = ContentPackConfigParser(pack_name=pack_name)
 
         config = parser.get_config()
-        self.assertEqual(config.config['section1']['key1'], 'value1')
-        self.assertEqual(config.config['section2']['key10'], 'value10')
+        self.assertEqual(config.config["section1"]["key1"], "value1")
+        self.assertEqual(config.config["section2"]["key10"], "value10")
 
     def test_get_config_for_unicode_char(self):
-        pack_name = 'dummy_pack_18'
+        pack_name = "dummy_pack_18"
         parser = ContentPackConfigParser(pack_name=pack_name)
         config = parser.get_config()
-        self.assertEqual(config.config['section1']['key1'], u'测试')
+        self.assertEqual(config.config["section1"]["key1"], "测试")

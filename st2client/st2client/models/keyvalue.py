@@ -24,11 +24,11 @@ LOG = logging.getLogger(__name__)
 
 
 class KeyValuePair(core.Resource):
-    _alias = 'Key'
-    _display_name = 'Key Value Pair'
-    _plural = 'Keys'
-    _plural_display_name = 'Key Value Pairs'
-    _repr_attributes = ['name', 'value']
+    _alias = "Key"
+    _display_name = "Key Value Pair"
+    _plural = "Keys"
+    _plural_display_name = "Key Value Pairs"
+    _repr_attributes = ["name", "value"]
 
     # Note: This is a temporary hack until we refactor client and make it support non id PKs
     def get_id(self):

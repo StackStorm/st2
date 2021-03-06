@@ -60,11 +60,7 @@ def generate_random_dict(keys_count=10, depth=1):
 
 @pytest.mark.parametrize(
     "implementation",
-    [
-        "copy_deepcopy",
-        "ujson",
-        "orjson"
-    ],
+    ["copy_deepcopy", "ujson", "orjson"],
     ids=[
         "copy_deepcopy",
         "ujson",
@@ -91,7 +87,9 @@ def generate_random_dict(keys_count=10, depth=1):
     ],
 )
 @pytest.mark.benchmark(group="fast_deepcopy")
-def test_fast_deepcopy_with_dict_values(benchmark, dict_keys_count_and_depth, implementation):
+def test_fast_deepcopy_with_dict_values(
+    benchmark, dict_keys_count_and_depth, implementation
+):
     dict_keys, dict_depth = dict_keys_count_and_depth
     data = generate_random_dict(keys_count=dict_keys, depth=dict_depth)
 
@@ -111,13 +109,7 @@ def test_fast_deepcopy_with_dict_values(benchmark, dict_keys_count_and_depth, im
 
 @pytest.mark.parametrize(
     "implementation",
-    [
-        "copy_deepcopy",
-        "json",
-        "simplejson",
-        "ujson",
-        "orjson"
-    ],
+    ["copy_deepcopy", "json", "simplejson", "ujson", "orjson"],
     ids=[
         "copy_deepcopy",
         "json",

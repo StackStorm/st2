@@ -23,16 +23,16 @@ from six.moves import zip
 class URLUtilsTestCase(unittest2.TestCase):
     def test_get_url_without_trailing_slash(self):
         values = [
-            'http://localhost:1818/foo/bar/',
-            'http://localhost:1818/foo/bar',
-            'http://localhost:1818/',
-            'http://localhost:1818',
+            "http://localhost:1818/foo/bar/",
+            "http://localhost:1818/foo/bar",
+            "http://localhost:1818/",
+            "http://localhost:1818",
         ]
         expected = [
-            'http://localhost:1818/foo/bar',
-            'http://localhost:1818/foo/bar',
-            'http://localhost:1818',
-            'http://localhost:1818',
+            "http://localhost:1818/foo/bar",
+            "http://localhost:1818/foo/bar",
+            "http://localhost:1818",
+            "http://localhost:1818",
         ]
 
         for value, expected_result in zip(values, expected):

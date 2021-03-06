@@ -24,13 +24,13 @@ LOG = logging.getLogger(__name__)
 
 
 class PolicyType(core.Resource):
-    _alias = 'Policy-Type'
-    _display_name = 'Policy type'
-    _plural = 'PolicyTypes'
-    _plural_display_name = 'Policy types'
-    _repr_attributes = ['ref', 'enabled', 'description']
+    _alias = "Policy-Type"
+    _display_name = "Policy type"
+    _plural = "PolicyTypes"
+    _plural_display_name = "Policy types"
+    _repr_attributes = ["ref", "enabled", "description"]
 
 
 class Policy(core.Resource):
-    _plural = 'Policies'
-    _repr_attributes = ['name', 'pack', 'enabled', 'policy_type', 'resource_ref']
+    _plural = "Policies"
+    _repr_attributes = ["name", "pack", "enabled", "policy_type", "resource_ref"]

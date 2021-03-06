@@ -16,11 +16,9 @@
 from __future__ import absolute_import
 import os
 
-__all__ = [
-    'DEFAULT_LOGGING_CONF_PATH'
-]
+__all__ = ["DEFAULT_LOGGING_CONF_PATH"]
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 
-DEFAULT_LOGGING_CONF_PATH = os.path.join(BASE_PATH, '../conf/base.logging.conf')
+DEFAULT_LOGGING_CONF_PATH = os.path.join(BASE_PATH, "../conf/base.logging.conf")
 DEFAULT_LOGGING_CONF_PATH = os.path.abspath(DEFAULT_LOGGING_CONF_PATH)

@@ -17,13 +17,13 @@ from __future__ import absolute_import
 import semver
 
 __all__ = [
-    'version_compare',
-    'version_more_than',
-    'version_less_than',
-    'version_equal',
-    'version_match',
-    'version_bump_major',
-    'version_bump_minor'
+    "version_compare",
+    "version_more_than",
+    "version_less_than",
+    "version_equal",
+    "version_match",
+    "version_bump_major",
+    "version_bump_minor",
 ]
 
 

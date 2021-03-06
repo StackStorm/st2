@@ -20,11 +20,12 @@ from st2actions.policies.concurrency import BaseConcurrencyApplicator
 
 
 class FakeConcurrencyApplicator(BaseConcurrencyApplicator):
-
     def __init__(self, policy_ref, policy_type, *args, **kwargs):
-        super(FakeConcurrencyApplicator, self).__init__(policy_ref=policy_ref,
-                                                        policy_type=policy_type,
-                                                        threshold=kwargs.get('threshold', 0))
+        super(FakeConcurrencyApplicator, self).__init__(
+            policy_ref=policy_ref,
+            policy_type=policy_type,
+            threshold=kwargs.get("threshold", 0),
+        )
 
     def get_threshold(self):
         return self.threshold
@@ -35,7 +36,8 @@ class FakeConcurrencyApplicator(BaseConcurrencyApplicator):
             target = action_utils.update_liveaction_status(
                 status=action_constants.LIVEACTION_STATUS_CANCELED,
                 liveaction_id=target.id,
-                publish=False)
+                publish=False,
+            )
 
         return target
 

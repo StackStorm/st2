@@ -22,41 +22,41 @@ from oslo_config import cfg
 from bson import ObjectId
 
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 import st2common.util.jsonify as jsonify
 
 
 class JsonifyTests(unittest2.TestCase):
-
     def test_none_object(self):
         obj = None
         self.assertIsNone(jsonify.json_loads(obj))
 
     def test_no_keys(self):
-        obj = {'foo': '{"bar": "baz"}'}
+        obj = {"foo": '{"bar": "baz"}'}
         transformed_obj = jsonify.json_loads(obj)
-        self.assertTrue(transformed_obj['foo']['bar'] == 'baz')
+        self.assertTrue(transformed_obj["foo"]["bar"] == "baz")
 
     def test_no_json_value(self):
-        obj = {'foo': 'bar'}
+        obj = {"foo": "bar"}
         transformed_obj = jsonify.json_loads(obj)
-        self.assertTrue(transformed_obj['foo'] == 'bar')
+        self.assertTrue(transformed_obj["foo"] == "bar")
 
     def test_happy_case(self):
-        obj = {'foo': '{"bar": "baz"}', 'yo': 'bibimbao'}
-        transformed_obj = jsonify.json_loads(obj, ['yo'])
-        self.assertTrue(transformed_obj['yo'] == 'bibimbao')
+        obj = {"foo": '{"bar": "baz"}', "yo": "bibimbao"}
+        transformed_obj = jsonify.json_loads(obj, ["yo"])
+        self.assertTrue(transformed_obj["yo"] == "bibimbao")
 
     def test_try_loads(self):
         # The function json.loads will fail and the function should return the original value.
-        values = ['abc', 123, True, object()]
+        values = ["abc", 123, True, object()]
         for value in values:
             self.assertEqual(jsonify.try_loads(value), value)
 
         # The function json.loads succeed.
         d = '{"a": 1, "b": true}'
-        expected = {'a': 1, 'b': True}
+        expected = {"a": 1, "b": True}
         self.assertDictEqual(jsonify.try_loads(d), expected)
 
     def test_json_encode_decode_roundtrip_compatibility_between_different_libs(self):
@@ -74,7 +74,7 @@ class JsonifyTests(unittest2.TestCase):
             {"a": "b", "d": [1, 2, 3], "e": 5},
             ObjectWithJsonMethod(),
             b"bytes",
-            ObjectId('5609e91832ed356d04a93cc0')
+            ObjectId("5609e91832ed356d04a93cc0"),
         ]
         expected_data = [
             "1",
@@ -86,13 +86,15 @@ class JsonifyTests(unittest2.TestCase):
             {"a": "b", "d": [1, 2, 3], "e": 5},
             {"mah": "json", "1": 2},
             "bytes",
-            '5609e91832ed356d04a93cc0'
+            "5609e91832ed356d04a93cc0",
         ]
 
         json_libraries = ["json", "orjson"]
 
         for json_library in json_libraries:
-            cfg.CONF.set_override(name='json_library', override=json_library, group='system')
+            cfg.CONF.set_override(
+                name="json_library", override=json_library, group="system"
+            )
 
             result_encoded = jsonify.json_encode(input_data)
             result_decoded = jsonify.json_decode(result_encoded)
@@ -101,7 +103,9 @@ class JsonifyTests(unittest2.TestCase):
             self.assertEqual(result_decoded, expected_data)
             self.assertEqual(result_decoded, result_decoded_native)
 
-    def test_json_encode_decode_sort_keys_indent_compatibility_between_different_libs(self):
+    def test_json_encode_decode_sort_keys_indent_compatibility_between_different_libs(
+        self,
+    ):
         input_data = {
             "d": 4,
             "a": 1,
@@ -120,11 +124,17 @@ class JsonifyTests(unittest2.TestCase):
         self.assertEqual(result_orjson, result_native)
 
         # 3. indent=None, sort_keys=True
-        result_orjson = jsonify.json_encode_orjson(input_data, indent=None, sort_keys=True)
-        result_native = jsonify.json_encode_native_json(input_data, indent=None, sort_keys=True)
+        result_orjson = jsonify.json_encode_orjson(
+            input_data, indent=None, sort_keys=True
+        )
+        result_native = jsonify.json_encode_native_json(
+            input_data, indent=None, sort_keys=True
+        )
         self.assertEqual(result_orjson, result_native)
 
         # 4. indent=2 + sort_keys=True
         result_orjson = jsonify.json_encode_orjson(input_data, indent=2, sort_keys=True)
-        result_native = jsonify.json_encode_native_json(input_data, indent=2, sort_keys=True)
+        result_native = jsonify.json_encode_native_json(
+            input_data, indent=2, sort_keys=True
+        )
         self.assertEqual(result_orjson, result_native)

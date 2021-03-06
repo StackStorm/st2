@@ -36,5 +36,5 @@ class RuleType(Access):
     @classmethod
     def _get_by_object(cls, object):
         # For RuleType name is unique.
-        name = getattr(object, 'name', '')
+        name = getattr(object, "name", "")
         return cls.get_by_name(name)

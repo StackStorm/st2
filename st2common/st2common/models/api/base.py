@@ -23,10 +23,7 @@ from oslo_config import cfg
 from st2common.util import mongoescape as util_mongodb
 from st2common import log as logging
 
-__all__ = [
-    'BaseAPI',
-    'APIUIDMixin'
-]
+__all__ = ["BaseAPI", "APIUIDMixin"]
 
 
 LOG = logging.getLogger(__name__)
@@ -43,13 +40,13 @@ class BaseAPI(object):
 
     def __repr__(self):
         name = type(self).__name__
-        attrs = ', '.join("'%s': %r" % item for item in six.iteritems(vars(self)))
+        attrs = ", ".join("'%s': %r" % item for item in six.iteritems(vars(self)))
         # The format here is so that eval can be applied.
         return "%s(**{%s})" % (name, attrs)
 
     def __str__(self):
         name = type(self).__name__
-        attrs = ', '.join("%s=%r" % item for item in six.iteritems(vars(self)))
+        attrs = ", ".join("%s=%r" % item for item in six.iteritems(vars(self)))
 
         return "%s[%s]" % (name, attrs)
 
@@ -66,12 +63,16 @@ class BaseAPI(object):
         """
         from st2common.util import schema as util_schema
 
-        schema = getattr(self, 'schema', {})
+        schema = getattr(self, "schema", {})
         attributes = vars(self)
 
-        cleaned = util_schema.validate(instance=attributes, schema=schema,
-                                       cls=util_schema.CustomValidator, use_default=True,
-                                       allow_default_none=True)
+        cleaned = util_schema.validate(
+            instance=attributes,
+            schema=schema,
+            cls=util_schema.CustomValidator,
+            use_default=True,
+            allow_default_none=True,
+        )
 
         # Note: We use type() instead of self.__class__ since self.__class__ confuses pylint
         return type(self)(**cleaned)
@@ -80,8 +81,8 @@ class BaseAPI(object):
     def _from_model(cls, model, mask_secrets=False):
         doc = model.to_mongo()
 
-        if '_id' in doc:
-            doc['id'] = str(doc.pop('_id'))
+        if "_id" in doc:
+            doc["id"] = str(doc.pop("_id"))
 
         doc = util_mongodb.unescape_chars(doc)
 
@@ -117,7 +118,7 @@ class BaseAPI(object):
 
 
 class APIUIDMixin(object):
-    """"
+    """ "
     Mixin class for retrieving UID for API objects.
     """
 
@@ -142,9 +143,11 @@ class APIUIDMixin(object):
 
 def cast_argument_value(value_type, value):
     if value_type == bool:
+
         def cast_func(value):
             value = str(value)
-            return value.lower() in ['1', 'true']
+            return value.lower() in ["1", "true"]
+
     else:
         cast_func = value_type
 

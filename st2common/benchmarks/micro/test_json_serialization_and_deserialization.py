@@ -29,12 +29,7 @@ FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
 
 @pytest.mark.parametrize(
     "implementation",
-    [
-        "json",
-        "simplejson",
-        "ujson",
-        "orjson"
-    ],
+    ["json", "simplejson", "ujson", "orjson"],
     ids=[
         "json",
         "simplejson",
@@ -44,12 +39,7 @@ FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
 )
 @pytest.mark.parametrize(
     "indent_sort_keys_tuple",
-    [
-        (0, False),
-        (0, True),
-        (2, False),
-        (2, True)
-    ],
+    [(0, False), (0, True), (2, False), (2, True)],
     ids=[
         "indent_none_sort_keys_false",
         "indent_none_sort_keys_true",
@@ -71,7 +61,7 @@ def test_json_dumps(benchmark, fixture_file, indent_sort_keys_tuple, implementat
     indent, sort_keys = indent_sort_keys_tuple
 
     if not indent:
-        separators = (',', ':')
+        separators = (",", ":")
     else:
         separators = None
 
@@ -82,9 +72,13 @@ def test_json_dumps(benchmark, fixture_file, indent_sort_keys_tuple, implementat
 
     def run_benchmark():
         if implementation == "json":
-            return json.dumps(data, indent=indent, separators=separators, sort_keys=sort_keys)
+            return json.dumps(
+                data, indent=indent, separators=separators, sort_keys=sort_keys
+            )
         elif implementation == "simplejson":
-            return simplejson.dumps(data, indent=indent, separators=separators, sort_keys=sort_keys)
+            return simplejson.dumps(
+                data, indent=indent, separators=separators, sort_keys=sort_keys
+            )
         elif implementation == "ujson":
             return ujson.dumps(data, indent=indent, sort_keys=sort_keys)
         elif implementation == "orjson":
@@ -98,12 +92,7 @@ def test_json_dumps(benchmark, fixture_file, indent_sort_keys_tuple, implementat
 
 @pytest.mark.parametrize(
     "implementation",
-    [
-        "json",
-        "simplejson",
-        "ujson",
-        "orjson"
-    ],
+    ["json", "simplejson", "ujson", "orjson"],
     ids=[
         "json",
         "simplejson",

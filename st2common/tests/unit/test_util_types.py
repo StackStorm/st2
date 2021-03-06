@@ -17,9 +17,7 @@ import unittest2
 
 from st2common.util.types import OrderedSet
 
-__all__ = [
-    'OrderedTestTypeTestCase'
-]
+__all__ = ["OrderedTestTypeTestCase"]
 
 
 class OrderedTestTypeTestCase(unittest2.TestCase):

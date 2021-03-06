@@ -37,12 +37,12 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
         datetime_values = [
             datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=500),
             datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=0),
-            datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=999999)
+            datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=999999),
         ]
         datetime_values = [
             date_utils.add_utc_tz(datetime_values[0]),
             date_utils.add_utc_tz(datetime_values[1]),
-            date_utils.add_utc_tz(datetime_values[2])
+            date_utils.add_utc_tz(datetime_values[2]),
         ]
         microsecond_values = []
 
@@ -69,7 +69,7 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
             expected_value = datetime_values[index]
             self.assertEqual(actual_value, expected_value)
 
-    @mock.patch('st2common.fields.LongField.__get__')
+    @mock.patch("st2common.fields.LongField.__get__")
     def test_get_(self, mock_get):
         field = ComplexDateTimeField()
 
@@ -79,7 +79,9 @@ class ComplexDateTimeFieldTestCase(unittest2.TestCase):
 
         # Already a datetime
         mock_get.return_value = date_utils.get_datetime_utc_now()
-        self.assertEqual(field.__get__(instance=None, owner=None), mock_get.return_value)
+        self.assertEqual(
+            field.__get__(instance=None, owner=None), mock_get.return_value
+        )
 
         # Microseconds
         dt = datetime.datetime(2015, 1, 1, 15, 0, 0).replace(microsecond=500)

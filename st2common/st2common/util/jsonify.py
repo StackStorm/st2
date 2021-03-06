@@ -29,19 +29,17 @@ from oslo_config import cfg
 
 
 __all__ = [
-    'json_encode',
-    'json_decode',
-
-    'json_loads',
-    'try_loads',
-
-    'get_json_type_for_python_value'
+    "json_encode",
+    "json_decode",
+    "json_loads",
+    "try_loads",
+    "get_json_type_for_python_value",
 ]
 
 
 class GenericJSON(JSONEncoder):
     def default(self, obj):  # pylint: disable=method-hidden
-        if hasattr(obj, '__json__') and six.callable(obj.__json__):
+        if hasattr(obj, "__json__") and six.callable(obj.__json__):
             return obj.__json__()
         elif isinstance(obj, bson.ObjectId):
             return str(obj)
@@ -50,7 +48,7 @@ class GenericJSON(JSONEncoder):
 
 
 def default(obj):
-    if hasattr(obj, '__json__') and six.callable(obj.__json__):
+    if hasattr(obj, "__json__") and six.callable(obj.__json__):
         return obj.__json__()
     elif isinstance(obj, bytes):
         # TODO: We should update the code which passes bytes to pass unicode to avoid this
@@ -63,11 +61,12 @@ def default(obj):
 
 def json_encode_native_json(obj, indent=4, sort_keys=False):
     if not indent:
-        separators = (',', ':')
+        separators = (",", ":")
     else:
         separators = None
-    return json.dumps(obj, cls=GenericJSON, indent=indent, separators=separators,
-                      sort_keys=sort_keys)
+    return json.dumps(
+        obj, cls=GenericJSON, indent=indent, separators=separators, sort_keys=sort_keys
+    )
 
 
 def json_encode_orjson(obj, indent=None, sort_keys=False):
@@ -107,7 +106,9 @@ def json_encode(obj, indent=None, sort_keys=False):
     elif cfg.CONF.system.json_library == "orjson":
         return json_encode_orjson(obj=obj, indent=indent, sort_keys=sort_keys)
     else:
-        raise ValueError("Unsupported json_library: %s" % (cfg.CONF.system.json_library))
+        raise ValueError(
+            "Unsupported json_library: %s" % (cfg.CONF.system.json_library)
+        )
 
 
 def json_decode(data):
@@ -123,11 +124,13 @@ def json_decode(data):
     elif cfg.CONF.system.json_library == "orjson":
         return json_decode_orjson(data=data)
     else:
-        raise ValueError("Unsupported json_library: %s" % (cfg.CONF.system.json_library))
+        raise ValueError(
+            "Unsupported json_library: %s" % (cfg.CONF.system.json_library)
+        )
 
 
 def load_file(path):
-    with open(path, 'r') as fd:
+    with open(path, "r") as fd:
         return json.load(fd)
 
 
@@ -172,16 +175,16 @@ def get_json_type_for_python_value(value):
     :rtype: ``str``
     """
     if isinstance(value, six.text_type):
-        return 'string'
+        return "string"
     elif isinstance(value, (int, float)):
-        return 'number'
+        return "number"
     elif isinstance(value, dict):
-        return 'object'
+        return "object"
     elif isinstance(value, (list, tuple)):
-        return 'array'
+        return "array"
     elif isinstance(value, bool):
-        return 'boolean'
+        return "boolean"
     elif value is None:
-        return 'null'
+        return "null"
     else:
-        return 'unknown'
+        return "unknown"

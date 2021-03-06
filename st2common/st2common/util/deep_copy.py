@@ -19,9 +19,7 @@ import copy
 
 import orjson
 
-__all__ = [
-    'fast_deepcopy'
-]
+__all__ = ["fast_deepcopy"]
 
 
 def default(obj):

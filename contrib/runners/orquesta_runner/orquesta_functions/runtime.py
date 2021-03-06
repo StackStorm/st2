@@ -33,15 +33,15 @@ def format_task_result(instances):
     instance = instances[-1]
 
     return {
-        'task_execution_id': str(instance.id),
-        'workflow_execution_id': instance.workflow_execution,
-        'task_name': instance.task_id,
-        'task_id': instance.task_id,
-        'route': instance.task_route,
-        'result': instance.result,
-        'status': instance.status,
-        'start_timestamp': str(instance.start_timestamp),
-        'end_timestamp': str(instance.end_timestamp)
+        "task_execution_id": str(instance.id),
+        "workflow_execution_id": instance.workflow_execution,
+        "task_name": instance.task_id,
+        "task_id": instance.task_id,
+        "route": instance.task_route,
+        "result": instance.result,
+        "status": instance.status,
+        "start_timestamp": str(instance.start_timestamp),
+        "end_timestamp": str(instance.end_timestamp),
     }
 
 
@@ -54,17 +54,17 @@ def task(context, task_id=None, route=None):
         current_task = {}
 
     if task_id is None:
-        task_id = current_task['id']
+        task_id = current_task["id"]
 
     if route is None:
-        route = current_task.get('route', 0)
+        route = current_task.get("route", 0)
 
     try:
-        workflow_state = context['__state'] or {}
+        workflow_state = context["__state"] or {}
     except KeyError:
         workflow_state = {}
 
-    task_state_pointers = workflow_state.get('tasks') or {}
+    task_state_pointers = workflow_state.get("tasks") or {}
     task_state_entry_uid = constants.TASK_STATE_ROUTE_FORMAT % (task_id, str(route))
     task_state_entry_idx = task_state_pointers.get(task_state_entry_uid)
 
@@ -72,9 +72,11 @@ def task(context, task_id=None, route=None):
     # use an earlier route before the split to find the specific task.
     if task_state_entry_idx is None:
         if route > 0:
-            current_route_details = workflow_state['routes'][route]
+            current_route_details = workflow_state["routes"][route]
             # Reverse the list because we want to start with the next longest route.
-            for idx, prev_route_details in enumerate(reversed(workflow_state['routes'][:route])):
+            for idx, prev_route_details in enumerate(
+                reversed(workflow_state["routes"][:route])
+            ):
                 if len(set(prev_route_details) - set(current_route_details)) == 0:
                     # The index is from a reversed list so need to calculate
                     # the index of the item in the list before the reverse.
@@ -83,17 +85,15 @@ def task(context, task_id=None, route=None):
     else:
         # Otherwise, get the task flow entry and use the
         # task id and route to query the database.
-        task_state_seqs = workflow_state.get('sequence') or []
+        task_state_seqs = workflow_state.get("sequence") or []
         task_state_entry = task_state_seqs[task_state_entry_idx]
-        route = task_state_entry['route']
-        st2_ctx = context['__vars']['st2']
-        workflow_execution_id = st2_ctx['workflow_execution_id']
+        route = task_state_entry["route"]
+        st2_ctx = context["__vars"]["st2"]
+        workflow_execution_id = st2_ctx["workflow_execution_id"]
 
         # Query the database by the workflow execution ID, task ID, and task route.
         instances = wf_db_access.TaskExecution.query(
-            workflow_execution=workflow_execution_id,
-            task_id=task_id,
-            task_route=route
+            workflow_execution=workflow_execution_id, task_id=task_id, task_route=route
         )
 
     if not instances:
