@@ -21,11 +21,9 @@ from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.matcher import RulesMatcher
 from st2common.metrics.base import get_driver
 
-LOG = logging.getLogger('st2reactor.rules.RulesEngine')
+LOG = logging.getLogger("st2reactor.rules.RulesEngine")
 
-__all__ = [
-    'RulesEngine'
-]
+__all__ = ["RulesEngine"]
 
 
 class RulesEngine(object):
@@ -40,7 +38,10 @@ class RulesEngine(object):
             # Enforce the rules.
             self.enforce_rules(enforcers)
         else:
-            LOG.info('No matching rules found for trigger instance %s.', trigger_instance['id'])
+            LOG.info(
+                "No matching rules found for trigger instance %s.",
+                trigger_instance["id"],
+            )
 
     def get_matching_rules_for_trigger(self, trigger_instance):
         trigger = trigger_instance.trigger
@@ -48,23 +49,34 @@ class RulesEngine(object):
         trigger_db = get_trigger_db_by_ref(trigger_instance.trigger)
 
         if not trigger_db:
-            LOG.error('No matching trigger found in db for trigger instance %s.', trigger_instance)
+            LOG.error(
+                "No matching trigger found in db for trigger instance %s.",
+                trigger_instance,
+            )
             return None
 
         rules = get_rules_given_trigger(trigger=trigger)
 
-        LOG.info('Found %d rules defined for trigger %s', len(rules),
-                 trigger_db.get_reference().ref)
+        LOG.info(
+            "Found %d rules defined for trigger %s",
+            len(rules),
+            trigger_db.get_reference().ref,
+        )
 
         if len(rules) < 1:
             return rules
 
-        matcher = RulesMatcher(trigger_instance=trigger_instance,
-                               trigger=trigger_db, rules=rules)
+        matcher = RulesMatcher(
+            trigger_instance=trigger_instance, trigger=trigger_db, rules=rules
+        )
 
         matching_rules = matcher.get_matching_rules()
-        LOG.info('Matched %s rule(s) for trigger_instance %s (trigger=%s)', len(matching_rules),
-                 trigger_instance['id'], trigger_db.ref)
+        LOG.info(
+            "Matched %s rule(s) for trigger_instance %s (trigger=%s)",
+            len(matching_rules),
+            trigger_instance["id"],
+            trigger_db.ref,
+        )
         return matching_rules
 
     def create_rule_enforcers(self, trigger_instance, matching_rules):
@@ -78,8 +90,8 @@ class RulesEngine(object):
 
         enforcers = []
         for matching_rule in matching_rules:
-            metrics_driver.inc_counter('rule.matched')
-            metrics_driver.inc_counter('rule.%s.matched' % (matching_rule.ref))
+            metrics_driver.inc_counter("rule.matched")
+            metrics_driver.inc_counter("rule.%s.matched" % (matching_rule.ref))
 
             enforcers.append(RuleEnforcer(trigger_instance, matching_rule))
         return enforcers
@@ -89,4 +101,4 @@ class RulesEngine(object):
             try:
                 enforcer.enforce()  # Should this happen in an eventlet pool?
             except:
-                LOG.exception('Exception enforcing rule %s.', enforcer.rule)
+                LOG.exception("Exception enforcing rule %s.", enforcer.rule)

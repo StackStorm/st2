@@ -18,9 +18,9 @@ from st2common.exceptions import StackStormBaseException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
-    'CryptoKeyNotSetupException',
-    'DataStoreKeyNotFoundError',
-    'InvalidScopeException'
+    "CryptoKeyNotSetupException",
+    "DataStoreKeyNotFoundError",
+    "InvalidScopeException",
 ]
 
 

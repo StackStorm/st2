@@ -29,9 +29,7 @@ MOCK_MATCH_AND_EXECUTE_RESULT = {
             "execution": {
                 "id": "mock-id",
             },
-            "actionalias": {
-                "ref": "mock-ref"
-            }
+            "actionalias": {"ref": "mock-ref"},
         }
     ]
 }
@@ -43,20 +41,26 @@ class ActionAliasCommandTestCase(base.BaseCLITestCase):
         self.shell = shell.Shell()
 
     @mock.patch.object(
-        httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_MATCH_AND_EXECUTE_RESULT),
-                                                      200, 'OK')))
+        httpclient.HTTPClient,
+        "post",
+        mock.MagicMock(
+            return_value=base.FakeResponse(
+                json.dumps(MOCK_MATCH_AND_EXECUTE_RESULT), 200, "OK"
+            )
+        ),
+    )
     def test_match_and_execute(self):
-        ret = self.shell.run(['action-alias', 'execute', "run whoami on localhost"])
+        ret = self.shell.run(["action-alias", "execute", "run whoami on localhost"])
         self.assertEqual(ret, 0)
 
         expected_args = {
-            'command': 'run whoami on localhost',
-            'user': '',
-            'source_channel': 'cli'
+            "command": "run whoami on localhost",
+            "user": "",
+            "source_channel": "cli",
         }
-        httpclient.HTTPClient.post.assert_called_with('/aliasexecution/match_and_execute',
-                                                      expected_args)
+        httpclient.HTTPClient.post.assert_called_with(
+            "/aliasexecution/match_and_execute", expected_args
+        )
 
         mock_stdout = self.stdout.getvalue()
 

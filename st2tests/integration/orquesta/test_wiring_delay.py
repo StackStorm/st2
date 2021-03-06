@@ -23,13 +23,12 @@ from st2common.constants import action as ac_const
 
 
 class TaskDelayWiringTest(base.TestWorkflowExecution):
-
     def test_task_delay(self):
-        wf_name = 'examples.orquesta-delay'
-        wf_input = {'name': 'Thanos', 'delay': 1}
+        wf_name = "examples.orquesta-delay"
+        wf_input = {"name": "Thanos", "delay": 1}
 
-        expected_output = {'greeting': 'Thanos, All your base are belong to us!'}
-        expected_result = {'output': expected_output}
+        expected_output = {"greeting": "Thanos, All your base are belong to us!"}
+        expected_result = {"output": expected_output}
 
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_completion(ex)
@@ -38,12 +37,12 @@ class TaskDelayWiringTest(base.TestWorkflowExecution):
         self.assertDictEqual(ex.result, expected_result)
 
     def test_task_delay_workflow_cancellation(self):
-        wf_name = 'examples.orquesta-delay'
-        wf_input = {'name': 'Thanos', 'delay': 300}
+        wf_name = "examples.orquesta-delay"
+        wf_input = {"name": "Thanos", "delay": 300}
 
         # Launch workflow and task1 should be delayed.
         ex = self._execute_workflow(wf_name, wf_input)
-        self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_DELAYED)
+        self._wait_for_task(ex, "task1", ac_const.LIVEACTION_STATUS_DELAYED)
 
         # Cancel the workflow before the temp file is created. The workflow will be paused
         # but task1 will still be running to allow for graceful exit.
@@ -53,24 +52,24 @@ class TaskDelayWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELED)
 
         # Task execution should be canceled.
-        self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_CANCELED)
+        self._wait_for_task(ex, "task1", ac_const.LIVEACTION_STATUS_CANCELED)
 
         # Get the updated execution with task result.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELED)
 
     def test_task_delay_task_cancellation(self):
-        wf_name = 'examples.orquesta-delay'
-        wf_input = {'name': 'Thanos', 'delay': 300}
+        wf_name = "examples.orquesta-delay"
+        wf_input = {"name": "Thanos", "delay": 300}
 
         # Launch workflow and task1 should be delayed.
         ex = self._execute_workflow(wf_name, wf_input)
-        task_exs = self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_DELAYED)
+        task_exs = self._wait_for_task(ex, "task1", ac_const.LIVEACTION_STATUS_DELAYED)
 
         # Cancel the task execution.
         self.st2client.executions.delete(task_exs[0])
 
         # Wait for the task and parent workflow to be canceled.
-        self._wait_for_task(ex, 'task1', ac_const.LIVEACTION_STATUS_CANCELED)
+        self._wait_for_task(ex, "task1", ac_const.LIVEACTION_STATUS_CANCELED)
 
         # Get the updated execution with task result.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELED)

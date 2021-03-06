@@ -22,8 +22,8 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.rbac.backends import get_rbac_backend
 
 __all__ = [
-    'ServiceRegistryGroupsController',
-    'ServiceRegistryGroupMembersController',
+    "ServiceRegistryGroupsController",
+    "ServiceRegistryGroupMembersController",
 ]
 
 
@@ -35,11 +35,9 @@ class ServiceRegistryGroupsController(object):
         coordinator = coordination.get_coordinator()
 
         group_ids = list(coordinator.get_groups().get())
-        group_ids = [item.decode('utf-8') for item in group_ids]
+        group_ids = [item.decode("utf-8") for item in group_ids]
 
-        result = {
-            'groups': group_ids
-        }
+        result = {"groups": group_ids}
         return result
 
 
@@ -51,26 +49,26 @@ class ServiceRegistryGroupMembersController(object):
         coordinator = coordination.get_coordinator()
 
         if not isinstance(group_id, six.binary_type):
-            group_id = group_id.encode('utf-8')
+            group_id = group_id.encode("utf-8")
 
         try:
             member_ids = list(coordinator.get_members(group_id).get())
         except GroupNotCreated:
-            msg = ('Group with ID "%s" not found.' % (group_id.decode('utf-8')))
+            msg = 'Group with ID "%s" not found.' % (group_id.decode("utf-8"))
             raise StackStormDBObjectNotFoundError(msg)
 
-        result = {
-            'members': []
-        }
+        result = {"members": []}
 
         for member_id in member_ids:
-            capabilities = coordinator.get_member_capabilities(group_id, member_id).get()
+            capabilities = coordinator.get_member_capabilities(
+                group_id, member_id
+            ).get()
             item = {
-                'group_id': group_id.decode('utf-8'),
-                'member_id': member_id.decode('utf-8'),
-                'capabilities': capabilities
+                "group_id": group_id.decode("utf-8"),
+                "member_id": member_id.decode("utf-8"),
+                "capabilities": capabilities,
             }
-            result['members'].append(item)
+            result["members"].append(item)
 
         return result
 

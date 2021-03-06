@@ -24,14 +24,14 @@ LOG = logging.getLogger(__name__)
 
 
 class Token(core.Resource):
-    _display_name = 'Access Token'
-    _plural = 'Tokens'
-    _plural_display_name = 'Access Tokens'
-    _repr_attributes = ['user', 'expiry', 'metadata']
+    _display_name = "Access Token"
+    _plural = "Tokens"
+    _plural_display_name = "Access Tokens"
+    _repr_attributes = ["user", "expiry", "metadata"]
 
 
 class ApiKey(core.Resource):
-    _display_name = 'API Key'
-    _plural = 'ApiKeys'
-    _plural_display_name = 'API Keys'
-    _repr_attributes = ['id', 'user', 'metadata']
+    _display_name = "API Key"
+    _plural = "ApiKeys"
+    _plural_display_name = "API Keys"
+    _repr_attributes = ["id", "user", "metadata"]

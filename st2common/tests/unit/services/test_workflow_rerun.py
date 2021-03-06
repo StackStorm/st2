@@ -24,6 +24,7 @@ from orquesta import statuses as wf_statuses
 import st2tests
 
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 from local_runner import local_shell_command_runner
@@ -42,32 +43,38 @@ from st2common.transport import publishers
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 
 
-TEST_PACK = 'orquesta_tests'
-TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
+TEST_PACK = "orquesta_tests"
+TEST_PACK_PATH = (
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
+)
 
 PACKS = [
     TEST_PACK_PATH,
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
 
 RUNNER_RESULT_FAILED = (action_constants.LIVEACTION_STATUS_FAILED, {}, {})
-RUNNER_RESULT_SUCCEEDED = (action_constants.LIVEACTION_STATUS_SUCCEEDED, {'stdout': 'foobar'}, {})
+RUNNER_RESULT_SUCCEEDED = (
+    action_constants.LIVEACTION_STATUS_SUCCEEDED,
+    {"stdout": "foobar"},
+    {},
+)
 
 
 @mock.patch.object(
-    publishers.CUDPublisher,
-    'publish_update',
-    mock.MagicMock(return_value=None))
+    publishers.CUDPublisher, "publish_update", mock.MagicMock(return_value=None)
+)
 @mock.patch.object(
     publishers.CUDPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create),
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state),
+)
 class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(WorkflowExecutionRerunTest, cls).setUpClass()
@@ -77,18 +84,17 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
 
         # Register test pack(s).
         actions_registrar = actionsregistrar.ActionsRegistrar(
-            use_pack_cache=False,
-            fail_on_failure=True
+            use_pack_cache=False, fail_on_failure=True
         )
 
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
     def prep_wf_ex_for_rerun(self):
-        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
 
         # Manually create the liveaction and action execution objects without publishing.
-        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db1, ac_ex_db1 = action_service.create_request(lv_ac_db1)
 
         # Request the workflow execution.
@@ -99,9 +105,12 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
 
         # Fail workflow execution.
         self.run_workflow_step(
-            wf_ex_db, 'task1', 0,
+            wf_ex_db,
+            "task1",
+            0,
             expected_ac_ex_db_status=action_constants.LIVEACTION_STATUS_FAILED,
-            expected_tk_ex_db_status=wf_statuses.FAILED)
+            expected_tk_ex_db_status=wf_statuses.FAILED,
+        )
 
         # Check workflow status.
         conductor, wf_ex_db = workflow_service.refresh_conductor(str(wf_ex_db.id))
@@ -115,20 +124,22 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         return wf_meta, lv_ac_db1, ac_ex_db1, wf_ex_db
 
     @mock.patch.object(
-        local_shell_command_runner.LocalShellCommandRunner, 'run',
-        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED, RUNNER_RESULT_SUCCEEDED]))
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED, RUNNER_RESULT_SUCCEEDED]),
+    )
     def test_request_rerun(self):
         # Create and return a failed workflow execution.
         wf_meta, lv_ac_db1, ac_ex_db1, wf_ex_db = self.prep_wf_ex_for_rerun()
 
         # Manually create the liveaction and action execution objects for the rerun.
-        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db2, ac_ex_db2 = action_service.create_request(lv_ac_db2)
 
         # Request workflow execution rerun.
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
-        st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
-        rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
+        st2_ctx["workflow_execution_id"] = str(wf_ex_db.id)
+        rerun_options = {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}
         wf_ex_db = workflow_service.request_rerun(ac_ex_db2, st2_ctx, rerun_options)
         wf_ex_db = self.prep_wf_ex(wf_ex_db)
 
@@ -138,7 +149,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Complete task1.
-        self.run_workflow_step(wf_ex_db, 'task1', 0)
+        self.run_workflow_step(wf_ex_db, "task1", 0)
 
         # Check workflow status and make sure it is still running.
         conductor, wf_ex_db = workflow_service.refresh_conductor(str(wf_ex_db.id))
@@ -150,10 +161,10 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         self.assertEqual(ac_ex_db2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
     def test_request_rerun_while_original_is_still_running(self):
-        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
 
         # Manually create the liveaction and action execution objects without publishing.
-        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db1 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db1, ac_ex_db1 = action_service.create_request(lv_ac_db1)
 
         # Request the workflow execution.
@@ -168,16 +179,16 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Manually create the liveaction and action execution objects for the rerun.
-        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db2, ac_ex_db2 = action_service.create_request(lv_ac_db2)
 
         # Request workflow execution rerun.
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
-        st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
-        rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
+        st2_ctx["workflow_execution_id"] = str(wf_ex_db.id)
+        rerun_options = {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}
         expected_error = (
-            '^Unable to rerun workflow execution \".*\" '
-            'because it is not in a completed state.$'
+            '^Unable to rerun workflow execution ".*" '
+            "because it is not in a completed state.$"
         )
 
         self.assertRaisesRegexp(
@@ -186,24 +197,26 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             workflow_service.request_rerun,
             ac_ex_db2,
             st2_ctx,
-            rerun_options
+            rerun_options,
         )
 
     @mock.patch.object(
-        local_shell_command_runner.LocalShellCommandRunner, 'run',
-        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED, RUNNER_RESULT_SUCCEEDED]))
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED, RUNNER_RESULT_SUCCEEDED]),
+    )
     def test_request_rerun_again_while_prev_rerun_is_still_running(self):
         # Create and return a failed workflow execution.
         wf_meta, lv_ac_db1, ac_ex_db1, wf_ex_db = self.prep_wf_ex_for_rerun()
 
         # Manually create the liveaction and action execution objects for the rerun.
-        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db2, ac_ex_db2 = action_service.create_request(lv_ac_db2)
 
         # Request workflow execution rerun.
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
-        st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
-        rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
+        st2_ctx["workflow_execution_id"] = str(wf_ex_db.id)
+        rerun_options = {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}
         wf_ex_db = workflow_service.request_rerun(ac_ex_db2, st2_ctx, rerun_options)
         wf_ex_db = self.prep_wf_ex(wf_ex_db)
 
@@ -213,7 +226,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Complete task1.
-        self.run_workflow_step(wf_ex_db, 'task1', 0)
+        self.run_workflow_step(wf_ex_db, "task1", 0)
 
         # Check workflow status and make sure it is still running.
         conductor, wf_ex_db = workflow_service.refresh_conductor(str(wf_ex_db.id))
@@ -225,16 +238,16 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         self.assertEqual(ac_ex_db2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Manually create the liveaction and action execution objects for the rerun.
-        lv_ac_db3 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db3 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db3, ac_ex_db3 = action_service.create_request(lv_ac_db3)
 
         # Request workflow execution rerun again.
         st2_ctx = self.mock_st2_context(ac_ex_db3, ac_ex_db1.context)
-        st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
-        rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
+        st2_ctx["workflow_execution_id"] = str(wf_ex_db.id)
+        rerun_options = {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}
         expected_error = (
-            '^Unable to rerun workflow execution \".*\" '
-            'because it is not in a completed state.$'
+            '^Unable to rerun workflow execution ".*" '
+            "because it is not in a completed state.$"
         )
 
         self.assertRaisesRegexp(
@@ -243,26 +256,28 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             workflow_service.request_rerun,
             ac_ex_db3,
             st2_ctx,
-            rerun_options
+            rerun_options,
         )
 
     @mock.patch.object(
-        local_shell_command_runner.LocalShellCommandRunner, 'run',
-        mock.MagicMock(return_value=RUNNER_RESULT_FAILED))
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(return_value=RUNNER_RESULT_FAILED),
+    )
     def test_request_rerun_with_missing_workflow_execution_id(self):
         # Create and return a failed workflow execution.
         wf_meta, lv_ac_db1, ac_ex_db1, wf_ex_db = self.prep_wf_ex_for_rerun()
 
         # Manually create the liveaction and action execution objects for the rerun.
-        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db2, ac_ex_db2 = action_service.create_request(lv_ac_db2)
 
         # Request workflow execution rerun without workflow_execution_id.
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
-        rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
+        rerun_options = {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}
         expected_error = (
-            'Unable to rerun workflow execution because '
-            'workflow_execution_id is not provided.'
+            "Unable to rerun workflow execution because "
+            "workflow_execution_id is not provided."
         )
 
         self.assertRaisesRegexp(
@@ -271,27 +286,28 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             workflow_service.request_rerun,
             ac_ex_db2,
             st2_ctx,
-            rerun_options
+            rerun_options,
         )
 
     @mock.patch.object(
-        local_shell_command_runner.LocalShellCommandRunner, 'run',
-        mock.MagicMock(return_value=RUNNER_RESULT_FAILED))
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(return_value=RUNNER_RESULT_FAILED),
+    )
     def test_request_rerun_with_nonexistent_workflow_execution(self):
         # Create and return a failed workflow execution.
         wf_meta, lv_ac_db1, ac_ex_db1, wf_ex_db = self.prep_wf_ex_for_rerun()
 
         # Manually create the liveaction and action execution objects for the rerun.
-        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db2, ac_ex_db2 = action_service.create_request(lv_ac_db2)
 
         # Request workflow execution rerun with bogus workflow_execution_id.
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
-        st2_ctx['workflow_execution_id'] = uuid.uuid4().hex[0:24]
-        rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
+        st2_ctx["workflow_execution_id"] = uuid.uuid4().hex[0:24]
+        rerun_options = {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}
         expected_error = (
-            '^Unable to rerun workflow execution \".*\" '
-            'because it does not exist.$'
+            '^Unable to rerun workflow execution ".*" ' "because it does not exist.$"
         )
 
         self.assertRaisesRegexp(
@@ -300,12 +316,14 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             workflow_service.request_rerun,
             ac_ex_db2,
             st2_ctx,
-            rerun_options
+            rerun_options,
         )
 
     @mock.patch.object(
-        local_shell_command_runner.LocalShellCommandRunner, 'run',
-        mock.MagicMock(return_value=RUNNER_RESULT_FAILED))
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(return_value=RUNNER_RESULT_FAILED),
+    )
     def test_request_rerun_with_workflow_execution_not_abended(self):
         # Create and return a failed workflow execution.
         wf_meta, lv_ac_db1, ac_ex_db1, wf_ex_db = self.prep_wf_ex_for_rerun()
@@ -315,16 +333,16 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
         wf_ex_db = wf_db_access.WorkflowExecution.add_or_update(wf_ex_db)
 
         # Manually create the liveaction and action execution objects for the rerun.
-        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db2, ac_ex_db2 = action_service.create_request(lv_ac_db2)
 
         # Request workflow execution rerun with bogus workflow_execution_id.
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
-        st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
-        rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
+        st2_ctx["workflow_execution_id"] = str(wf_ex_db.id)
+        rerun_options = {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}
         expected_error = (
-            '^Unable to rerun workflow execution \".*\" '
-            'because it is not in a completed state.$'
+            '^Unable to rerun workflow execution ".*" '
+            "because it is not in a completed state.$"
         )
 
         self.assertRaisesRegexp(
@@ -333,29 +351,33 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             workflow_service.request_rerun,
             ac_ex_db2,
             st2_ctx,
-            rerun_options
+            rerun_options,
         )
 
     @mock.patch.object(
-        local_shell_command_runner.LocalShellCommandRunner, 'run',
-        mock.MagicMock(return_value=RUNNER_RESULT_FAILED))
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(return_value=RUNNER_RESULT_FAILED),
+    )
     def test_request_rerun_with_conductor_status_not_abended(self):
         # Create and return a failed workflow execution.
         wf_meta, lv_ac_db1, ac_ex_db1, wf_ex_db = self.prep_wf_ex_for_rerun()
 
         # Manually set workflow conductor state to paused.
-        wf_ex_db.state['status'] = wf_statuses.PAUSED
+        wf_ex_db.state["status"] = wf_statuses.PAUSED
         wf_ex_db = wf_db_access.WorkflowExecution.add_or_update(wf_ex_db)
 
         # Manually create the liveaction and action execution objects for the rerun.
-        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db2, ac_ex_db2 = action_service.create_request(lv_ac_db2)
 
         # Request workflow execution rerun with bogus workflow_execution_id.
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
-        st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
-        rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
-        expected_error = 'Unable to rerun workflow because it is not in a completed state.'
+        st2_ctx["workflow_execution_id"] = str(wf_ex_db.id)
+        rerun_options = {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}
+        expected_error = (
+            "Unable to rerun workflow because it is not in a completed state."
+        )
 
         self.assertRaisesRegexp(
             wf_exc.WorkflowExecutionRerunException,
@@ -363,25 +385,29 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             workflow_service.request_rerun,
             ac_ex_db2,
             st2_ctx,
-            rerun_options
+            rerun_options,
         )
 
     @mock.patch.object(
-        local_shell_command_runner.LocalShellCommandRunner, 'run',
-        mock.MagicMock(return_value=RUNNER_RESULT_FAILED))
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(return_value=RUNNER_RESULT_FAILED),
+    )
     def test_request_rerun_with_bad_task_name(self):
         # Create and return a failed workflow execution.
         wf_meta, lv_ac_db1, ac_ex_db1, wf_ex_db = self.prep_wf_ex_for_rerun()
 
         # Manually create the liveaction and action execution objects for the rerun.
-        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db2, ac_ex_db2 = action_service.create_request(lv_ac_db2)
 
         # Request workflow execution.
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
-        st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
-        rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task5354']}
-        expected_error = '^Unable to rerun workflow because one or more tasks is not found: .*$'
+        st2_ctx["workflow_execution_id"] = str(wf_ex_db.id)
+        rerun_options = {"ref": str(ac_ex_db1.id), "tasks": ["task5354"]}
+        expected_error = (
+            "^Unable to rerun workflow because one or more tasks is not found: .*$"
+        )
 
         self.assertRaisesRegexp(
             wf_exc.WorkflowExecutionRerunException,
@@ -389,36 +415,40 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             workflow_service.request_rerun,
             ac_ex_db2,
             st2_ctx,
-            rerun_options
+            rerun_options,
         )
 
     @mock.patch.object(
-        local_shell_command_runner.LocalShellCommandRunner, 'run',
-        mock.MagicMock(return_value=RUNNER_RESULT_FAILED))
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(return_value=RUNNER_RESULT_FAILED),
+    )
     def test_request_rerun_with_conductor_status_not_resuming(self):
         # Create and return a failed workflow execution.
         wf_meta, lv_ac_db1, ac_ex_db1, wf_ex_db = self.prep_wf_ex_for_rerun()
 
         # Manually create the liveaction and action execution objects for the rerun.
-        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        lv_ac_db2 = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db2, ac_ex_db2 = action_service.create_request(lv_ac_db2)
 
         # Request workflow execution rerun with bogus workflow_execution_id.
         st2_ctx = self.mock_st2_context(ac_ex_db2, ac_ex_db1.context)
-        st2_ctx['workflow_execution_id'] = str(wf_ex_db.id)
-        rerun_options = {'ref': str(ac_ex_db1.id), 'tasks': ['task1']}
+        st2_ctx["workflow_execution_id"] = str(wf_ex_db.id)
+        rerun_options = {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}
         expected_error = (
-            '^Unable to rerun workflow execution \".*\" '
-            'due to an unknown cause.'
+            '^Unable to rerun workflow execution ".*" ' "due to an unknown cause."
         )
 
-        with mock.patch.object(conducting.WorkflowConductor, 'get_workflow_status',
-                               mock.MagicMock(return_value=wf_statuses.FAILED)):
+        with mock.patch.object(
+            conducting.WorkflowConductor,
+            "get_workflow_status",
+            mock.MagicMock(return_value=wf_statuses.FAILED),
+        ):
             self.assertRaisesRegexp(
                 wf_exc.WorkflowExecutionRerunException,
                 expected_error,
                 workflow_service.request_rerun,
                 ac_ex_db2,
                 st2_ctx,
-                rerun_options
+                rerun_options,
             )

@@ -19,21 +19,19 @@ from st2client.client import Client
 from st2client.models.keyvalue import KeyValuePair  # pylint: disable=no-name-in-module
 from st2common.runners.base_action import Action
 
-__all__ = [
-    'St2RegisterAction'
-]
+__all__ = ["St2RegisterAction"]
 
 COMPATIBILITY_TRANSFORMATIONS = {
-    'runners': 'runner',
-    'triggers': 'trigger',
-    'sensors': 'sensor',
-    'actions': 'action',
-    'rules': 'rule',
-    'rule_types': 'rule_type',
-    'aliases': 'alias',
-    'policiy_types': 'policy_type',
-    'policies': 'policy',
-    'configs': 'config',
+    "runners": "runner",
+    "triggers": "trigger",
+    "sensors": "sensor",
+    "actions": "action",
+    "rules": "rule",
+    "rule_types": "rule_type",
+    "aliases": "alias",
+    "policiy_types": "policy_type",
+    "policies": "policy",
+    "configs": "config",
 }
 
 
@@ -63,23 +61,23 @@ class St2RegisterAction(Action):
     def run(self, register, packs=None):
         types = []
 
-        for type in register.split(','):
+        for type in register.split(","):
             if type in COMPATIBILITY_TRANSFORMATIONS:
                 types.append(COMPATIBILITY_TRANSFORMATIONS[type])
             else:
                 types.append(type)
 
-        method_kwargs = {
-            'types': types
-        }
+        method_kwargs = {"types": types}
 
         packs.reverse()
         if packs:
-            method_kwargs['packs'] = packs
+            method_kwargs["packs"] = packs
 
-        result = self._run_client_method(method=self.client.packs.register,
-                                         method_kwargs=method_kwargs,
-                                         format_func=format_result)
+        result = self._run_client_method(
+            method=self.client.packs.register,
+            method_kwargs=method_kwargs,
+            format_func=format_result,
+        )
         # TODO: make sure to return proper model
         return result
 
@@ -90,42 +88,48 @@ class St2RegisterAction(Action):
 
         client_kwargs = {}
         if cacert:
-            client_kwargs['cacert'] = cacert
+            client_kwargs["cacert"] = cacert
 
-        return self._client(base_url=base_url, api_url=api_url,
-                            auth_url=auth_url, token=token,
-                            **client_kwargs)
+        return self._client(
+            base_url=base_url,
+            api_url=api_url,
+            auth_url=auth_url,
+            token=token,
+            **client_kwargs,
+        )
 
     def _get_st2_urls(self):
         # First try to use base_url from config.
-        base_url = self.config.get('base_url', None)
-        api_url = self.config.get('api_url', None)
-        auth_url = self.config.get('auth_url', None)
+        base_url = self.config.get("base_url", None)
+        api_url = self.config.get("api_url", None)
+        auth_url = self.config.get("auth_url", None)
 
         # not found look up from env vars. Assuming the pack is
         # configuered to work with current StackStorm instance.
         if not base_url:
-            api_url = os.environ.get('ST2_ACTION_API_URL', None)
-            auth_url = os.environ.get('ST2_ACTION_AUTH_URL', None)
+            api_url = os.environ.get("ST2_ACTION_API_URL", None)
+            auth_url = os.environ.get("ST2_ACTION_AUTH_URL", None)
 
         return base_url, api_url, auth_url
 
     def _get_auth_token(self):
         # First try to use auth_token from config.
-        token = self.config.get('auth_token', None)
+        token = self.config.get("auth_token", None)
 
         # not found look up from env vars. Assuming the pack is
         # configuered to work with current StackStorm instance.
         if not token:
-            token = os.environ.get('ST2_ACTION_AUTH_TOKEN', None)
+            token = os.environ.get("ST2_ACTION_AUTH_TOKEN", None)
 
         return token
 
     def _get_cacert(self):
-        cacert = self.config.get('cacert', None)
+        cacert = self.config.get("cacert", None)
         return cacert
 
-    def _run_client_method(self, method, method_kwargs, format_func, format_kwargs=None):
+    def _run_client_method(
+        self, method, method_kwargs, format_func, format_kwargs=None
+    ):
         """
         Run the provided client method and format the result.
 
@@ -144,8 +148,9 @@ class St2RegisterAction(Action):
         # This is a work around since the default values can only be strings
         method_kwargs = filter_none_values(method_kwargs)
         method_name = method.__name__
-        self.logger.debug('Calling client method "%s" with kwargs "%s"' % (method_name,
-                                                                           method_kwargs))
+        self.logger.debug(
+            'Calling client method "%s" with kwargs "%s"' % (method_name, method_kwargs)
+        )
 
         result = method(**method_kwargs)
         result = format_func(result, **format_kwargs or {})

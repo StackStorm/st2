@@ -19,12 +19,10 @@ import six
 
 import hashlib
 
-__all__ = [
-    'hash'
-]
+__all__ = ["hash"]
 
 
-FIXED_SALT = 'saltnpepper'
+FIXED_SALT = "saltnpepper"
 
 
 def hash(value, salt=FIXED_SALT):

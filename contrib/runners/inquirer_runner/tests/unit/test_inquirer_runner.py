@@ -28,7 +28,7 @@ from st2tests import base as st2tests
 
 
 mock_exc_get = mock.Mock()
-mock_exc_get.id = 'abcdef'
+mock_exc_get.id = "abcdef"
 
 mock_inquiry_liveaction_db = mock.Mock()
 mock_inquiry_liveaction_db.result = {"response": {}}
@@ -37,7 +37,7 @@ mock_action_utils = mock.Mock()
 mock_action_utils.return_value = mock_inquiry_liveaction_db
 
 test_parent = mock.Mock()
-test_parent.id = '1234567890'
+test_parent.id = "1234567890"
 
 mock_get_root = mock.Mock()
 mock_get_root.return_value = test_parent
@@ -45,38 +45,19 @@ mock_get_root.return_value = test_parent
 mock_trigger_dispatcher = mock.Mock()
 mock_request_pause = mock.Mock()
 
-test_user = 'st2admin'
+test_user = "st2admin"
 
-runner_params = {
-    "users": [],
-    "roles": [],
-    "route": "developers",
-    "schema": {}
-}
+runner_params = {"users": [], "roles": [], "route": "developers", "schema": {}}
 
 
+@mock.patch.object(reactor_transport, "TriggerDispatcher", mock_trigger_dispatcher)
+@mock.patch.object(action_utils, "get_liveaction_by_id", mock_action_utils)
+@mock.patch.object(action_service, "request_pause", mock_request_pause)
+@mock.patch.object(action_service, "get_root_liveaction", mock_get_root)
 @mock.patch.object(
-    reactor_transport,
-    'TriggerDispatcher',
-    mock_trigger_dispatcher)
-@mock.patch.object(
-    action_utils,
-    'get_liveaction_by_id',
-    mock_action_utils)
-@mock.patch.object(
-    action_service,
-    'request_pause',
-    mock_request_pause)
-@mock.patch.object(
-    action_service,
-    'get_root_liveaction',
-    mock_get_root)
-@mock.patch.object(
-    ex_db_access.ActionExecution,
-    'get',
-    mock.MagicMock(return_value=mock_exc_get))
+    ex_db_access.ActionExecution, "get", mock.MagicMock(return_value=mock_exc_get)
+)
 class InquiryTestCase(st2tests.RunnerTestCase):
-
     def tearDown(self):
         mock_trigger_dispatcher.reset_mock()
         mock_action_utils.reset_mock()
@@ -85,17 +66,19 @@ class InquiryTestCase(st2tests.RunnerTestCase):
 
     def test_runner_creation(self):
         runner = inquirer_runner.get_runner()
-        self.assertIsNotNone(runner, 'Creation failed. No instance.')
-        self.assertEqual(type(runner), inquirer_runner.Inquirer, 'Creation failed. No instance.')
+        self.assertIsNotNone(runner, "Creation failed. No instance.")
+        self.assertEqual(
+            type(runner), inquirer_runner.Inquirer, "Creation failed. No instance."
+        )
 
     def test_simple_inquiry(self):
         runner = inquirer_runner.get_runner()
-        runner.context = {'user': test_user}
+        runner.context = {"user": test_user}
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = runner_params
         runner.pre_run()
 
-        mock_inquiry_liveaction_db.context = {'parent': test_parent.id}
+        mock_inquiry_liveaction_db.context = {"parent": test_parent.id}
         runner.liveaction = mock_inquiry_liveaction_db
 
         (status, output, _) = runner.run({})
@@ -104,20 +87,16 @@ class InquiryTestCase(st2tests.RunnerTestCase):
         self.assertEqual(
             output,
             {
-                'users': [],
-                'roles': [],
-                'route': "developers",
-                'schema': {},
-                'ttl': 1440
-            }
+                "users": [],
+                "roles": [],
+                "route": "developers",
+                "schema": {},
+                "ttl": 1440,
+            },
         )
 
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
-            'core.st2.generic.inquiry',
-            {
-                'id': mock_exc_get.id,
-                'route': "developers"
-            }
+            "core.st2.generic.inquiry", {"id": mock_exc_get.id, "route": "developers"}
         )
 
         runner.post_run(action_constants.LIVEACTION_STATUS_PENDING, {})
@@ -125,37 +104,28 @@ class InquiryTestCase(st2tests.RunnerTestCase):
         mock_request_pause.assert_called_once_with(test_parent, test_user)
 
     def test_inquiry_no_parent(self):
-        """Should behave like a regular execution, but without requesting a pause
-        """
+        """Should behave like a regular execution, but without requesting a pause"""
 
         runner = inquirer_runner.get_runner()
-        runner.context = {
-            'user': 'st2admin'
-        }
+        runner.context = {"user": "st2admin"}
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = runner_params
         runner.pre_run()
-        mock_inquiry_liveaction_db.context = {
-            "parent": None
-        }
+        mock_inquiry_liveaction_db.context = {"parent": None}
         (status, output, _) = runner.run({})
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_PENDING)
         self.assertEqual(
             output,
             {
-                'users': [],
-                'roles': [],
-                'route': "developers",
-                'schema': {},
-                'ttl': 1440
-            }
+                "users": [],
+                "roles": [],
+                "route": "developers",
+                "schema": {},
+                "ttl": 1440,
+            },
         )
         mock_trigger_dispatcher.return_value.dispatch.assert_called_once_with(
-            'core.st2.generic.inquiry',
-            {
-                'id': mock_exc_get.id,
-                'route': "developers"
-            }
+            "core.st2.generic.inquiry", {"id": mock_exc_get.id, "route": "developers"}
         )
         mock_request_pause.assert_not_called()
 
