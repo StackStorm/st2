@@ -39,6 +39,7 @@ CONFIGS = ['st2actions.config',
            'st2reactor.garbage_collector.config']
 
 SKIP_GROUPS = ['api_pecan', 'rbac', 'results_tracker']
+SKIP_OPTIONS = ['json_library']
 
 # We group auth options together to make it a bit more clear what applies where
 AUTH_OPTIONS = {
@@ -144,6 +145,9 @@ def _read_groups(opt_groups):
 
 def _print_options(opt_group, options):
     for opt in sorted(options, key=lambda x: x['opt'].name):
+        if opt['opt'].name in SKIP_OPTIONS:
+            continue
+
         opt = opt['opt']
 
         # Special case for options which could change during this script run
