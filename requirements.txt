@@ -36,7 +36,7 @@ networkx==1.11
 nose
 nose-parallel==0.3.1
 nose-timer==0.7.5
-orjson==3.4.8
+orjson==3.5.0
 oslo.config<1.13,>=1.12.1
 oslo.utils<5.0,>=4.0.0
 paramiko==2.7.1
