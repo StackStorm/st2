@@ -119,8 +119,10 @@ def register_opts(ignore_errors=False):
             help='True to validate action and runner output against schema.'),
         cfg.StrOpt(
             'json_library', default='orjson', choices='orjson, json',
-            help='Which JSON library to use for serializing / de-serializing data (orjson, json).'),
-
+            help='Which JSON library to use for serializing / de-serializing data (orjson, json). '
+                 'This feature flag is here primarily for testing and benchmarking reasons and '
+                 'should not be changed by the end user since orjson offers large performance '
+                 'improvements.'),
     ]
 
     do_register_opts(system_opts, 'system', ignore_errors)
