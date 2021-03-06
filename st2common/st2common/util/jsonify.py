@@ -93,6 +93,21 @@ def json_decode_orjson(data):
     return orjson.loads(data)
 
 
+def get_json_library_config_option() -> str:
+    """
+    Return value of system.json_library config option.
+
+    This method also takes care of returning a correct default value in case config is not parsed
+    yet (this can happen in some test cases, etc.).
+    """
+    try:
+        value = cfg.CONF.system.json_library
+    except Exception:
+        value = "orjson"
+
+    return value
+
+
 def json_encode(obj, indent=None, sort_keys=False):
     """
     Wrapper function for encoding the provided object.
@@ -101,14 +116,14 @@ def json_encode(obj, indent=None, sort_keys=False):
 
     This function should be used everywhere in the code base where json.dumps() behavior is desired.
     """
-    if cfg.CONF.system.json_library == "json":
+    json_library = get_json_library_config_option()
+
+    if json_library == "json":
         return json_encode_native_json(obj=obj, indent=indent, sort_keys=sort_keys)
-    elif cfg.CONF.system.json_library == "orjson":
+    elif json_library == "orjson":
         return json_encode_orjson(obj=obj, indent=indent, sort_keys=sort_keys)
     else:
-        raise ValueError(
-            "Unsupported json_library: %s" % (cfg.CONF.system.json_library)
-        )
+        raise ValueError("Unsupported json_library: %s" % (json_library))
 
 
 def json_decode(data):
@@ -119,14 +134,14 @@ def json_decode(data):
 
     This function should be used everywhere in the code base where json.loads() behavior is desired.
     """
-    if cfg.CONF.system.json_library == "json":
+    json_library = get_json_library_config_option()
+
+    if json_library == "json":
         return json_decode_native_json(data=data)
-    elif cfg.CONF.system.json_library == "orjson":
+    elif json_library == "orjson":
         return json_decode_orjson(data=data)
     else:
-        raise ValueError(
-            "Unsupported json_library: %s" % (cfg.CONF.system.json_library)
-        )
+        raise ValueError("Unsupported json_library: %s" % (json_library))
 
 
 def load_file(path):
