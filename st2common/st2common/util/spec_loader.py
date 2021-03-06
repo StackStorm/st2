@@ -18,9 +18,8 @@ import pkg_resources
 
 import jinja2
 import yaml
-
-from yaml.constructor import ConstructorError
-from yaml.nodes import MappingNode
+from yaml import constructor
+from yaml import nodes
 
 try:
     from yaml import CLoader as Loader
