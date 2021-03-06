@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Refactor spec_loader util to use yaml.safe_load instead of yaml.load. (security)
+  Contributed by @ashwini-orchestral
 
 3.4.0 - March 02, 2021
 ----------------------
