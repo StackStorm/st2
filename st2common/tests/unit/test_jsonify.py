@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import json
 
 import unittest2
-from oslo_config import cfg
 from bson import ObjectId
 
 import st2tests.config as tests_config
@@ -92,9 +91,7 @@ class JsonifyTests(unittest2.TestCase):
         json_libraries = ["json", "orjson"]
 
         for json_library in json_libraries:
-            cfg.CONF.set_override(
-                name="json_library", override=json_library, group="system"
-            )
+            jsonify.DEFAULT_JSON_LIBRARY = json_library
 
             result_encoded = jsonify.json_encode(input_data)
             result_decoded = jsonify.json_decode(result_encoded)

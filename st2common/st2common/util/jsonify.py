@@ -25,7 +25,6 @@ except ImportError:
 import six
 import bson
 import orjson
-from oslo_config import cfg
 
 
 __all__ = [
@@ -35,6 +34,11 @@ __all__ = [
     "try_loads",
     "get_json_type_for_python_value",
 ]
+
+# Which json library to use for data serialization and deserialization.
+# We only expose this option so we can exercise code paths with different libraries inside the
+# tests for compatibility reasons
+DEFAULT_JSON_LIBRARY = "orjson"
 
 
 class GenericJSON(JSONEncoder):
@@ -93,21 +97,6 @@ def json_decode_orjson(data):
     return orjson.loads(data)
 
 
-def get_json_library_config_option() -> str:
-    """
-    Return value of system.json_library config option.
-
-    This method also takes care of returning a correct default value in case config is not parsed
-    yet (this can happen in some test cases, etc.).
-    """
-    try:
-        value = cfg.CONF.system.json_library
-    except Exception:
-        value = "orjson"
-
-    return value
-
-
 def json_encode(obj, indent=None, sort_keys=False):
     """
     Wrapper function for encoding the provided object.
@@ -116,7 +105,7 @@ def json_encode(obj, indent=None, sort_keys=False):
 
     This function should be used everywhere in the code base where json.dumps() behavior is desired.
     """
-    json_library = get_json_library_config_option()
+    json_library = DEFAULT_JSON_LIBRARY
 
     if json_library == "json":
         return json_encode_native_json(obj=obj, indent=indent, sort_keys=sort_keys)
@@ -134,7 +123,7 @@ def json_decode(data):
 
     This function should be used everywhere in the code base where json.loads() behavior is desired.
     """
-    json_library = get_json_library_config_option()
+    json_library = DEFAULT_JSON_LIBRARY
 
     if json_library == "json":
         return json_decode_native_json(data=data)
