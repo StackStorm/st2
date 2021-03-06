@@ -46,27 +46,29 @@ ARGUMENTS = {
 }
 
 
+# Custom YAML loader that throw an exception on duplicate key.
+# Credit: https://gist.github.com/pypt/94d747fe5180851196eb
 class UniqueKeyLoader(Loader):
-    """
-    YAML loader which throws on a duplicate key.
-    """
     def construct_mapping(self, node, deep=False):
-        if not isinstance(node, MappingNode):
-            raise ConstructorError(None, None,
-                    "expected a mapping node, but found %s" % node.id,
-                    node.start_mark)
+        if not isinstance(node, nodes.MappingNode):
+            raise constructor.ConstructorError(
+                None, None, "expected a mapping node, but found %s" % node.id, node.start_mark
+            )
         mapping = {}
         for key_node, value_node in node.value:
             key = self.construct_object(key_node, deep=deep)
             try:
                 hash(key)
             except TypeError as exc:
-                raise ConstructorError("while constructing a mapping", node.start_mark,
-                       "found unacceptable key (%s)" % exc, key_node.start_mark)
+                raise constructor.ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    "found unacceptable key (%s)" % exc,
+                    key_node.start_mark,
+                )
             # check for duplicate keys
             if key in mapping:
-                raise ConstructorError("while constructing a mapping", node.start_mark,
-                       "found duplicate key", key_node.start_mark)
+                raise constructor.ConstructorError('found duplicate key "%s"' % key_node.value)
             value = self.construct_object(value_node, deep=deep)
             mapping[key] = value
         return mapping
