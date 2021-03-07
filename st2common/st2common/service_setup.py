@@ -61,6 +61,19 @@ __all__ = [
     "register_service_in_service_registry",
 ]
 
+# Message which is logged if non utf-8 locale is detected on startup.
+NON_UTF8_LOCALE_WARNING_MSG = """
+Detected a non utf-8 locale / encoding (fs encoding: %s, default encoding: %s, locale: %s).
+Using non utf-8 locale while working with unicode data will result in exceptions and undefined
+behavior.
+You are strongly encouraged to configure all the StackStorm services to use utf-8 encoding (e.g.
+LANG=en_US.UTF-8).
+""".strip().replace(
+    "\n", " "
+)
+
+VALID_UTF8_ENCODINGS = ["utf8", "utf-8"]
+
 LOG = logging.getLogger(__name__)
 
 
@@ -129,6 +142,7 @@ def setup(
         else:
             used_locale = "unable to retrieve locale"
     except Exception as e:
+        language_code, encoding = "unknown", "unknown"
         used_locale = "unable to retrieve locale: %s " % (str(e))
 
     LOG.info("Using Python: %s (%s)" % (version, sys.executable))
@@ -146,6 +160,17 @@ def setup(
     logging_config_path = os.path.abspath(logging_config_path)
 
     LOG.info("Using logging config: %s", logging_config_path)
+
+    # Warn on non utf-8 locale which could cause issues when running under Python 3 and working
+    # with unicode data
+    if (
+        fs_encoding.lower() not in VALID_UTF8_ENCODINGS
+        or encoding.lower() not in VALID_UTF8_ENCODINGS
+    ):
+        LOG.warning(
+            NON_UTF8_LOCALE_WARNING_MSG
+            % (fs_encoding, default_encoding, used_locale.strip())
+        )
 
     is_debug_enabled = cfg.CONF.debug or cfg.CONF.system.debug
 
