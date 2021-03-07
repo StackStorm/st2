@@ -238,19 +238,25 @@ class PythonActionWrapper(object):
             # Special case if result object is not JSON serializable - aka user wanted to return a
             # non-simple type (e.g. class instance or other non-JSON serializable type)
             try:
-                orjson.dumps(action_output["result"]).decode("utf-8")
+                orjson.dumps(action_output["result"])
             except (TypeError, orjson.JSONDecodeError):
                 action_output["result"] = str(action_output["result"])
 
         try:
-            print_output = orjson.dumps(action_output).decode("utf-8")
+            print_output = orjson.dumps(action_output)
         except Exception:
-            print_output = str(action_output)
+            print_output = str(action_output).encode("utf-8")
+
+        # Data is bytes so we use sys.stdout.buffer which works with bytes and not sys.stdout
+        # which works with strings / unicodes.
+        # This way it also works correctly with unicode sequences.
+        # Technically we could also write to sys.stdout, but this would require additional
+        # conversion back and forth
 
         # Print output to stdout so the parent can capture it
-        sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
-        sys.stdout.write(print_output + "\n")
-        sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
+        sys.stdout.buffer.write(ACTION_OUTPUT_RESULT_DELIMITER.encode("utf-8"))
+        sys.stdout.buffer.write(print_output + b"\n")
+        sys.stdout.buffer.write(ACTION_OUTPUT_RESULT_DELIMITER.encode("utf-8"))
         sys.stdout.flush()
 
     def _get_action_instance(self):
