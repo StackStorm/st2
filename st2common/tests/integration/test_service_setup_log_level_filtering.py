@@ -74,7 +74,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         process.send_signal(signal.SIGKILL)
 
         # Verify first 4 environment related log messages
-        stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[:4])
+        stdout = process.stdout.read().decode("utf-8")
         self.assertIn("INFO [-] Using Python:", stdout)
         self.assertIn("INFO [-] Using fs encoding:", stdout)
         self.assertIn("INFO [-] Using config files:", stdout)
@@ -138,7 +138,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         # First 4 log lines are debug messages about the environment which are always logged
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[4:])
 
-        self.assertNotIn("INFO [-]", stdout)
+        self.assertIn("INFO [-]", stdout)
         self.assertNotIn("DEBUG [-]", stdout)
         self.assertIn("AUDIT [-]", stdout)
 
