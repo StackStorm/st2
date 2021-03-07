@@ -132,7 +132,8 @@ def setup(
 
     fs_encoding = sys.getfilesystemencoding()
     default_encoding = sys.getdefaultencoding()
-    lang_env = os.environ.get("LANG", "unknown")
+    lang_env = os.environ.get("LANG", "notset")
+    pythonipencoding_env = os.environ.get("PYTHONIOENCODING", "notset")
 
     try:
         language_code, encoding = locale.getdefaultlocale()
@@ -147,8 +148,9 @@ def setup(
 
     LOG.info("Using Python: %s (%s)" % (version, sys.executable))
     LOG.info(
-        "Using fs encoding: %s, default encoding: %s, LANG env variable: %s, locale: %s"
-        % (fs_encoding, default_encoding, lang_env, used_locale)
+        "Using fs encoding: %s, default encoding: %s, locale: %s, LANG env variable: %s, "
+        "PYTHONIOENCODING env variable: %s"
+        % (fs_encoding, default_encoding, lang_env, used_locale, pythonipencoding_env)
     )
 
     config_file_paths = cfg.CONF.config_file
@@ -204,8 +206,15 @@ def setup(
             and handler.level < stdlib_logging.AUDIT
         )
         if not is_debug_enabled and ignore_audit_log_messages:
+            try:
+                handler_repr = str(handler)
+            except TypeError:
+                # In case handler doesn't have name assigned, repr would throw
+                handler_repr = "unknown"
+
             LOG.debug(
-                'Excluding log messages with level "AUDIT" for handler "%s"' % (handler)
+                'Excluding log messages with level "AUDIT" for handler "%s"'
+                % (handler_repr)
             )
             handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
 
