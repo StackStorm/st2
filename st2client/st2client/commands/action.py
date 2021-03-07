@@ -111,8 +111,17 @@ def format_log_items(value):
     if not value:
         return value
 
+    if not isinstance(value, dict):
+        # Already formatted or similar
+        return value
+
     result = []
     for item in value:
+        if not isinstance(item, dict):
+            # We could end up here if user runs newer versions of the client against old st2
+            # instance. We simply ignore those errors.
+            continue
+
         item["timestamp"] = format_isodate_for_user_timezone(item["timestamp"])
         result.append(item)
 
