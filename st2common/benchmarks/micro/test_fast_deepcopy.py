@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-Micro benchmark which compares the performance of or fast_deepcopy implementation using different
+Micro benchmark which compares the performance of our fast_deepcopy implementation using different
 underlying implementations (copy.deepcopy, urjson, orjson).
 """
 
