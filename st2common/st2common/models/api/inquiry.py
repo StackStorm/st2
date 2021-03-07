@@ -98,6 +98,10 @@ class InquiryAPI(BaseAPI):
         "additionalProperties": False,
     }
 
+    skip_unescape_field_names = [
+        "result",
+    ]
+
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)

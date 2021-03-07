@@ -154,6 +154,9 @@ class TriggerInstanceAPI(BaseAPI):
         },
         "additionalProperties": False,
     }
+    skip_unescape_field_names = [
+        "payload",
+    ]
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):

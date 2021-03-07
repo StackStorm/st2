@@ -417,17 +417,6 @@ class JSONDictField(BinaryField):
             return value
 
         if not self.use_header:
-            # Work around for weird issue I've seen couple of times on CI/CD server with value
-            # containing \x7f suffix for some reason. We basically just strip invalid trailing
-            # character.
-            # I verified the database contents and they are correct which means this trailing
-            # character must get added somewhere else in the pipeline.
-            # The issue happens very rarely which makes me thing it's perhaps some race with
-            # eventlet, but that would be quite unlikely - perhaps where doing double
-            # bytes to string conversation somewhere.
-            if isinstance(value, str) and value[-1] != "}":
-                value = value[:-1]
-
             return orjson.loads(value)
 
         split = value.split(JSON_DICT_FIELD_DELIMITER, 2)
