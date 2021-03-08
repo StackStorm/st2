@@ -25,11 +25,11 @@ from st2common.rbac.backends.base import BaseRBACRemoteGroupToRoleSyncer
 from st2common.exceptions.rbac import AccessDeniedError
 
 __all__ = [
-    'NoOpRBACBackend',
-    'NoOpRBACPermissionResolver',
-    'NoOpRBACService',
-    'NoOpRBACUtils',
-    'NoOpRBACRemoteGroupToRoleSyncer'
+    "NoOpRBACBackend",
+    "NoOpRBACPermissionResolver",
+    "NoOpRBACService",
+    "NoOpRBACUtils",
+    "NoOpRBACRemoteGroupToRoleSyncer",
 ]
 
 
@@ -37,6 +37,7 @@ class NoOpRBACBackend(BaseRBACBackend):
     """
     NoOp RBAC backend.
     """
+
     def get_resolver_for_resource_type(self, resource_type):
         return NoOpRBACPermissionResolver()
 
@@ -79,7 +80,6 @@ class NoOpRBACService(BaseRBACService):
 
 
 class NoOpRBACUtils(BaseRBACUtils):
-
     @staticmethod
     def assert_user_is_admin(user_db):
         """
@@ -141,7 +141,9 @@ class NoOpRBACUtils(BaseRBACUtils):
         return True
 
     @staticmethod
-    def assert_user_is_admin_if_user_query_param_is_provided(user_db, user, require_rbac=False):
+    def assert_user_is_admin_if_user_query_param_is_provided(
+        user_db, user, require_rbac=False
+    ):
         """
         Function which asserts that the request user is administator if "user" query parameter is
         provided and doesn't match the current user.

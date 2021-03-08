@@ -27,15 +27,18 @@ class DigActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
 
         # Use the defaults from dig.yaml
-        result = action.run(rand=False, count=0, nameserver=None, hostname='', queryopts='short')
+        result = action.run(
+            rand=False, count=0, nameserver=None, hostname="", queryopts="short"
+        )
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 0)
 
     def test_run_with_empty_queryopts(self):
         action = self.get_action_instance()
 
-        results = action.run(rand=False, count=0, nameserver=None, hostname='google.com',
-                             queryopts='')
+        results = action.run(
+            rand=False, count=0, nameserver=None, hostname="google.com", queryopts=""
+        )
         self.assertIsInstance(results, list)
 
         for result in results:
@@ -45,8 +48,13 @@ class DigActionTestCase(BaseActionTestCase):
     def test_run(self):
         action = self.get_action_instance()
 
-        results = action.run(rand=False, count=0, nameserver=None, hostname='google.com',
-                             queryopts='short')
+        results = action.run(
+            rand=False,
+            count=0,
+            nameserver=None,
+            hostname="google.com",
+            queryopts="short",
+        )
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
 

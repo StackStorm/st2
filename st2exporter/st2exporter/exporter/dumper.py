@@ -26,40 +26,43 @@ from st2common.persistence.marker import DumperMarker
 from st2common.util import date as date_utils
 from st2common.util import isotime
 
-__all__ = [
-    'Dumper'
-]
+__all__ = ["Dumper"]
 
-ALLOWED_EXTENSIONS = ['json']
+ALLOWED_EXTENSIONS = ["json"]
 
-CONVERTERS = {
-    'json': JsonConverter
-}
+CONVERTERS = {"json": JsonConverter}
 
 LOG = logging.getLogger(__name__)
 
 
 class Dumper(object):
-
-    def __init__(self, queue, export_dir, file_format='json',
-                 file_prefix='st2-executions-',
-                 batch_size=1000, sleep_interval=60,
-                 max_files_per_sleep=5,
-                 file_writer=None):
+    def __init__(
+        self,
+        queue,
+        export_dir,
+        file_format="json",
+        file_prefix="st2-executions-",
+        batch_size=1000,
+        sleep_interval=60,
+        max_files_per_sleep=5,
+        file_writer=None,
+    ):
         if not queue:
-            raise Exception('Need a queue to consume data from.')
+            raise Exception("Need a queue to consume data from.")
 
         if not export_dir:
-            raise Exception('Export dir needed to dump files to.')
+            raise Exception("Export dir needed to dump files to.")
 
         self._export_dir = export_dir
         if not os.path.exists(self._export_dir):
-            raise Exception('Dir path %s does not exist. Create one before using exporter.' %
-                            self._export_dir)
+            raise Exception(
+                "Dir path %s does not exist. Create one before using exporter."
+                % self._export_dir
+            )
 
         self._file_format = file_format.lower()
         if self._file_format not in ALLOWED_EXTENSIONS:
-            raise ValueError('Disallowed extension %s.' % file_format)
+            raise ValueError("Disallowed extension %s." % file_format)
 
         self._file_prefix = file_prefix
         self._batch_size = batch_size
@@ -99,8 +102,8 @@ class Dumper(object):
             else:
                 executions_to_write.append(item)
 
-        LOG.debug('Returning %d items in batch.', len(executions_to_write))
-        LOG.debug('Remaining items in queue: %d', self._queue.qsize())
+        LOG.debug("Returning %d items in batch.", len(executions_to_write))
+        LOG.debug("Remaining items in queue: %d", self._queue.qsize())
         return executions_to_write
 
     def _flush(self):
@@ -111,7 +114,7 @@ class Dumper(object):
             try:
                 self._write_to_disk()
             except:
-                LOG.error('Failed writing data to disk.')
+                LOG.error("Failed writing data to disk.")
 
     def _write_to_disk(self):
         count = 0
@@ -128,7 +131,7 @@ class Dumper(object):
                 self._update_marker(batch)
                 count += 1
             except:
-                LOG.exception('Writing batch to disk failed.')
+                LOG.exception("Writing batch to disk failed.")
         return count
 
     def _create_date_folder(self):
@@ -139,7 +142,7 @@ class Dumper(object):
             try:
                 os.makedirs(folder_path)
             except:
-                LOG.exception('Unable to create sub-folder %s for export.', folder_name)
+                LOG.exception("Unable to create sub-folder %s for export.", folder_name)
                 raise
 
     def _write_batch_to_disk(self, batch):
@@ -147,42 +150,44 @@ class Dumper(object):
         self._file_writer.write_text(doc_to_write, self._get_file_name())
 
     def _get_file_name(self):
-        timestring = date_utils.get_datetime_utc_now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        file_name = self._file_prefix + timestring + '.' + self._file_format
+        timestring = date_utils.get_datetime_utc_now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        file_name = self._file_prefix + timestring + "." + self._file_format
         file_name = os.path.join(self._export_dir, self._get_date_folder(), file_name)
         return file_name
 
     def _get_date_folder(self):
-        return date_utils.get_datetime_utc_now().strftime('%Y-%m-%d')
+        return date_utils.get_datetime_utc_now().strftime("%Y-%m-%d")
 
     def _update_marker(self, batch):
         timestamps = [isotime.parse(item.end_timestamp) for item in batch]
         new_marker = max(timestamps)
 
         if self._persisted_marker and self._persisted_marker > new_marker:
-            LOG.warn('Older executions are being exported. Perhaps out of order messages.')
+            LOG.warn(
+                "Older executions are being exported. Perhaps out of order messages."
+            )
 
         try:
             self._write_marker_to_db(new_marker)
         except:
-            LOG.exception('Failed persisting dumper marker to db.')
+            LOG.exception("Failed persisting dumper marker to db.")
         else:
             self._persisted_marker = new_marker
 
         return self._persisted_marker
 
     def _write_marker_to_db(self, new_marker):
-        LOG.info('Updating marker in db to: %s', new_marker)
+        LOG.info("Updating marker in db to: %s", new_marker)
         markers = DumperMarker.get_all()
 
         if len(markers) > 1:
-            LOG.exception('More than one dumper marker found. Using first found one.')
+            LOG.exception("More than one dumper marker found. Using first found one.")
 
         marker = isotime.format(new_marker, offset=False)
         updated_at = date_utils.get_datetime_utc_now()
 
         if markers:
-            marker_id = markers[0]['id']
+            marker_id = markers[0]["id"]
         else:
             marker_id = None
 

@@ -18,9 +18,9 @@ from __future__ import absolute_import
 import logging
 
 __all__ = [
-    'LogLevelFilter',
-    'set_log_level_for_all_handlers',
-    'set_log_level_for_all_loggers'
+    "LogLevelFilter",
+    "set_log_level_for_all_handlers",
+    "set_log_level_for_all_loggers",
 ]
 
 

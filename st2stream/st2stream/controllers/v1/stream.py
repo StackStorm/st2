@@ -21,58 +21,70 @@ from st2common.router import Response
 from st2common.util.jsonify import json_encode
 from st2common.stream.listener import get_listener
 
-__all__ = [
-    'StreamController'
-]
+__all__ = ["StreamController"]
 
 LOG = logging.getLogger(__name__)
 
 DEFAULT_EVENTS_WHITELIST = [
-    'st2.announcement__*',
-
-    'st2.execution__create',
-    'st2.execution__update',
-    'st2.execution__delete',
-
-    'st2.liveaction__create',
-    'st2.liveaction__update',
-    'st2.liveaction__delete',
+    "st2.announcement__*",
+    "st2.execution__create",
+    "st2.execution__update",
+    "st2.execution__delete",
+    "st2.liveaction__create",
+    "st2.liveaction__update",
+    "st2.liveaction__delete",
 ]
 
 
 def format(gen):
-    message = '''event: %s\ndata: %s\n\n'''
+    message = """event: %s\ndata: %s\n\n"""
 
     for pack in gen:
         if not pack:
             # Note: gunicorn wsgi handler expect bytes, not unicode
-            yield six.binary_type(b'\n')
+            yield six.binary_type(b"\n")
         else:
             (event, body) = pack
             # Note: gunicorn wsgi handler expect bytes, not unicode
-            yield six.binary_type((message % (event, json_encode(body,
-                                                                 indent=None))).encode('utf-8'))
+            yield six.binary_type(
+                (message % (event, json_encode(body, indent=None))).encode("utf-8")
+            )
 
 
 class StreamController(object):
-    def get_all(self, end_execution_id=None, end_event=None,
-            events=None, action_refs=None, execution_ids=None, requester_user=None):
+    def get_all(
+        self,
+        end_execution_id=None,
+        end_event=None,
+        events=None,
+        action_refs=None,
+        execution_ids=None,
+        requester_user=None,
+    ):
         events = events if events else DEFAULT_EVENTS_WHITELIST
         action_refs = action_refs if action_refs else None
         execution_ids = execution_ids if execution_ids else None
 
         def make_response():
-            listener = get_listener(name='stream')
-            app_iter = format(listener.generator(events=events,
-                action_refs=action_refs,
-                end_event=end_event,
-                end_statuses=action_constants.LIVEACTION_COMPLETED_STATES,
-                end_execution_id=end_execution_id,
-                execution_ids=execution_ids))
-            res = Response(headerlist=[("X-Accel-Buffering", "no"),
-                ('Cache-Control', 'no-cache'),
-                ("Content-Type", "text/event-stream; charset=UTF-8")],
-                app_iter=app_iter)
+            listener = get_listener(name="stream")
+            app_iter = format(
+                listener.generator(
+                    events=events,
+                    action_refs=action_refs,
+                    end_event=end_event,
+                    end_statuses=action_constants.LIVEACTION_COMPLETED_STATES,
+                    end_execution_id=end_execution_id,
+                    execution_ids=execution_ids,
+                )
+            )
+            res = Response(
+                headerlist=[
+                    ("X-Accel-Buffering", "no"),
+                    ("Cache-Control", "no-cache"),
+                    ("Content-Type", "text/event-stream; charset=UTF-8"),
+                ],
+                app_iter=app_iter,
+            )
             return res
 
         stream = make_response()

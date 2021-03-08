@@ -16,40 +16,36 @@
 from __future__ import absolute_import
 import os
 
-__all__ = [
-    'DisplayColors',
-
-    'format_status'
-]
+__all__ = ["DisplayColors", "format_status"]
 
 
 TERMINAL_SUPPORTS_ANSI_CODES = [
-    'xterm',
-    'xterm-color',
-    'screen',
-    'vt100',
-    'vt100-color',
-    'xterm-256color'
+    "xterm",
+    "xterm-color",
+    "screen",
+    "vt100",
+    "vt100-color",
+    "xterm-256color",
 ]
 
-DISABLED = os.environ.get('ST2_COLORIZE', '')
+DISABLED = os.environ.get("ST2_COLORIZE", "")
 
 
 class DisplayColors(object):
-    RED = '\033[91m'
-    PURPLE = '\033[35m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    BROWN = '\033[33m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    RED = "\033[91m"
+    PURPLE = "\033[35m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    BROWN = "\033[33m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
     @staticmethod
-    def colorize(value, color=''):
+    def colorize(value, color=""):
         # TODO: use list of supported terminals
-        term = os.environ.get('TERM', None)
+        term = os.environ.get("TERM", None)
 
         if term is None or term.lower() not in TERMINAL_SUPPORTS_ANSI_CODES:
             # Terminal doesn't support colors
@@ -58,33 +54,33 @@ class DisplayColors(object):
         if DISABLED or not color:
             return value
 
-        return '%s%s%s' % (color, value, DisplayColors.ENDC)
+        return "%s%s%s" % (color, value, DisplayColors.ENDC)
 
 
 # Lookup table
 STATUS_LOOKUP = {
-    'succeeded': DisplayColors.GREEN,
-    'delayed': DisplayColors.BLUE,
-    'failed': DisplayColors.RED,
-    'timeout': DisplayColors.BROWN,
-    'running': DisplayColors.YELLOW
+    "succeeded": DisplayColors.GREEN,
+    "delayed": DisplayColors.BLUE,
+    "failed": DisplayColors.RED,
+    "timeout": DisplayColors.BROWN,
+    "running": DisplayColors.YELLOW,
 }
 
 
 def format_status(value):
     # Support status values with elapsed info
-    split = value.split('(', 1)
+    split = value.split("(", 1)
 
     if len(split) == 2:
         status = split[0].strip()
-        remainder = '(' + split[1]
+        remainder = "(" + split[1]
     else:
         status = value
-        remainder = ''
+        remainder = ""
 
     color = STATUS_LOOKUP.get(status, DisplayColors.YELLOW)
     result = DisplayColors.colorize(status, color)
 
     if remainder:
-        result = result + ' ' + remainder
+        result = result + " " + remainder
     return result

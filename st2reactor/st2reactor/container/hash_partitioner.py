@@ -17,25 +17,25 @@ from __future__ import absolute_import
 import ctypes
 import hashlib
 
-from st2reactor.container.partitioners import DefaultPartitioner, get_all_enabled_sensors
+from st2reactor.container.partitioners import (
+    DefaultPartitioner,
+    get_all_enabled_sensors,
+)
 
-__all__ = [
-    'HashPartitioner',
-    'Range'
-]
+__all__ = ["HashPartitioner", "Range"]
 
 # The range expression serialized is of the form `RANGE_START..RANGE_END|RANGE_START..RANGE_END ...`
-SUB_RANGE_SEPARATOR = '|'
-RANGE_BOUNDARY_SEPARATOR = '..'
+SUB_RANGE_SEPARATOR = "|"
+RANGE_BOUNDARY_SEPARATOR = ".."
 
 
 class Range(object):
 
-    RANGE_MIN_ENUM = 'min'
+    RANGE_MIN_ENUM = "min"
     RANGE_MIN_VALUE = 0
 
-    RANGE_MAX_ENUM = 'max'
-    RANGE_MAX_VALUE = 2**32
+    RANGE_MAX_ENUM = "max"
+    RANGE_MAX_VALUE = 2 ** 32
 
     def __init__(self, range_repr):
         self.range_start, self.range_end = self._get_range_boundaries(range_repr)
@@ -44,15 +44,17 @@ class Range(object):
         return item >= self.range_start and item < self.range_end
 
     def _get_range_boundaries(self, range_repr):
-        range_repr = [value.strip() for value in range_repr.split(RANGE_BOUNDARY_SEPARATOR)]
+        range_repr = [
+            value.strip() for value in range_repr.split(RANGE_BOUNDARY_SEPARATOR)
+        ]
         if len(range_repr) != 2:
-            raise ValueError('Unsupported sub-range format %s.' % range_repr)
+            raise ValueError("Unsupported sub-range format %s." % range_repr)
 
         range_start = self._get_valid_range_boundary(range_repr[0])
         range_end = self._get_valid_range_boundary(range_repr[1])
 
         if range_start > range_end:
-            raise ValueError('Misconfigured range [%d..%d]' % (range_start, range_end))
+            raise ValueError("Misconfigured range [%d..%d]" % (range_start, range_end))
         return (range_start, range_end)
 
     def _get_valid_range_boundary(self, boundary_value):
@@ -73,7 +75,6 @@ class Range(object):
 
 
 class HashPartitioner(DefaultPartitioner):
-
     def __init__(self, sensor_node_name, hash_ranges):
         super(HashPartitioner, self).__init__(sensor_node_name=sensor_node_name)
         self._hash_ranges = self._create_hash_ranges(hash_ranges)
@@ -112,7 +113,7 @@ class HashPartitioner(DefaultPartitioner):
         h = ctypes.c_uint(0)
         for d in reversed(str(md5_hash_int_repr)):
             d = ctypes.c_uint(int(d))
-            higherorder = ctypes.c_uint(h.value & 0xf8000000)
+            higherorder = ctypes.c_uint(h.value & 0xF8000000)
             h = ctypes.c_uint(h.value << 5)
             h = ctypes.c_uint(h.value ^ (higherorder.value >> 27))
             h = ctypes.c_uint(h.value ^ d.value)

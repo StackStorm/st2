@@ -28,7 +28,6 @@ LOG = logging.getLogger(__name__)
 
 
 class TestPurgeTriggerInstances(CleanDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         CleanDbTestCase.setUpClass()
@@ -40,32 +39,42 @@ class TestPurgeTriggerInstances(CleanDbTestCase):
     def test_no_timestamp_doesnt_delete(self):
         now = date_utils.get_datetime_utc_now()
 
-        instance_db = TriggerInstanceDB(trigger='purge_tool.dummy.trigger',
-                                        payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                        occurrence_time=now - timedelta(days=20),
-                                        status=TRIGGER_INSTANCE_PROCESSED)
+        instance_db = TriggerInstanceDB(
+            trigger="purge_tool.dummy.trigger",
+            payload={"hola": "hi", "kuraci": "chicken"},
+            occurrence_time=now - timedelta(days=20),
+            status=TRIGGER_INSTANCE_PROCESSED,
+        )
         TriggerInstance.add_or_update(instance_db)
 
         self.assertEqual(len(TriggerInstance.get_all()), 1)
-        expected_msg = 'Specify a valid timestamp'
-        self.assertRaisesRegexp(ValueError, expected_msg,
-                                purge_trigger_instances,
-                                logger=LOG, timestamp=None)
+        expected_msg = "Specify a valid timestamp"
+        self.assertRaisesRegexp(
+            ValueError,
+            expected_msg,
+            purge_trigger_instances,
+            logger=LOG,
+            timestamp=None,
+        )
         self.assertEqual(len(TriggerInstance.get_all()), 1)
 
     def test_purge(self):
         now = date_utils.get_datetime_utc_now()
 
-        instance_db = TriggerInstanceDB(trigger='purge_tool.dummy.trigger',
-                                        payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                        occurrence_time=now - timedelta(days=20),
-                                        status=TRIGGER_INSTANCE_PROCESSED)
+        instance_db = TriggerInstanceDB(
+            trigger="purge_tool.dummy.trigger",
+            payload={"hola": "hi", "kuraci": "chicken"},
+            occurrence_time=now - timedelta(days=20),
+            status=TRIGGER_INSTANCE_PROCESSED,
+        )
         TriggerInstance.add_or_update(instance_db)
 
-        instance_db = TriggerInstanceDB(trigger='purge_tool.dummy.trigger',
-                                        payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                        occurrence_time=now - timedelta(days=5),
-                                        status=TRIGGER_INSTANCE_PROCESSED)
+        instance_db = TriggerInstanceDB(
+            trigger="purge_tool.dummy.trigger",
+            payload={"hola": "hi", "kuraci": "chicken"},
+            occurrence_time=now - timedelta(days=5),
+            status=TRIGGER_INSTANCE_PROCESSED,
+        )
         TriggerInstance.add_or_update(instance_db)
 
         self.assertEqual(len(TriggerInstance.get_all()), 2)

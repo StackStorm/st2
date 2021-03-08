@@ -32,7 +32,6 @@ SSO_BACKEND = st2auth_sso.get_sso_backend()
 
 
 class IdentityProviderCallbackController(object):
-
     def __init__(self):
         self.st2_auth_handler = handlers.ProxyAuthHandler()
 
@@ -40,16 +39,21 @@ class IdentityProviderCallbackController(object):
         try:
             verified_user = SSO_BACKEND.verify_response(response)
 
-            st2_auth_token_create_request = {'user': verified_user['username'], 'ttl': None}
+            st2_auth_token_create_request = {
+                "user": verified_user["username"],
+                "ttl": None,
+            }
 
             st2_auth_token = self.st2_auth_handler.handle_auth(
                 request=st2_auth_token_create_request,
-                remote_addr=verified_user['referer'],
-                remote_user=verified_user['username'],
-                headers={}
+                remote_addr=verified_user["referer"],
+                remote_user=verified_user["username"],
+                headers={},
             )
 
-            return process_successful_authn_response(verified_user['referer'], st2_auth_token)
+            return process_successful_authn_response(
+                verified_user["referer"], st2_auth_token
+            )
         except NotImplementedError as e:
             return process_failure_response(http_client.INTERNAL_SERVER_ERROR, e)
         except auth_exc.SSOVerificationError as e:
@@ -59,7 +63,6 @@ class IdentityProviderCallbackController(object):
 
 
 class SingleSignOnRequestController(object):
-
     def get(self, referer):
         try:
             response = router.Response(status=http_client.TEMPORARY_REDIRECT)
@@ -76,15 +79,15 @@ class SingleSignOnController(object):
     callback = IdentityProviderCallbackController()
 
     def _get_sso_enabled_config(self):
-        return {'enabled': cfg.CONF.auth.sso}
+        return {"enabled": cfg.CONF.auth.sso}
 
     def get(self):
         try:
             result = self._get_sso_enabled_config()
             return process_successful_response(http_client.OK, result)
         except Exception:
-            LOG.exception('Error encountered while getting SSO configuration.')
-            result = {'enabled': False}
+            LOG.exception("Error encountered while getting SSO configuration.")
+            result = {"enabled": False}
             return process_successful_response(http_client.OK, result)
 
 
@@ -107,23 +110,23 @@ CALLBACK_SUCCESS_RESPONSE_BODY = """
 
 def process_successful_authn_response(referer, token):
     token_json = {
-        'id': str(token.id),
-        'user': token.user,
-        'token': token.token,
-        'expiry': str(token.expiry),
-        'service': False,
-        'metadata': {}
+        "id": str(token.id),
+        "user": token.user,
+        "token": token.token,
+        "expiry": str(token.expiry),
+        "service": False,
+        "metadata": {},
     }
 
     body = CALLBACK_SUCCESS_RESPONSE_BODY % referer
     resp = router.Response(body=body)
-    resp.headers['Content-Type'] = 'text/html'
+    resp.headers["Content-Type"] = "text/html"
 
     resp.set_cookie(
-        'st2-auth-token',
+        "st2-auth-token",
         value=urllib.parse.quote(json.dumps(token_json)),
         expires=datetime.timedelta(seconds=60),
-        overwrite=True
+        overwrite=True,
     )
 
     return resp
@@ -135,7 +138,7 @@ def process_successful_response(status_code, json_body):
 
 def process_failure_response(status_code, exception):
     LOG.error(str(exception))
-    json_body = {'faultstring': str(exception)}
+    json_body = {"faultstring": str(exception)}
     return router.Response(status_code=status_code, json_body=json_body)
 
 

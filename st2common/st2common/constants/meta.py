@@ -16,10 +16,7 @@
 from __future__ import absolute_import
 import yaml
 
-__all__ = [
-    'ALLOWED_EXTS',
-    'PARSER_FUNCS'
-]
+__all__ = ["ALLOWED_EXTS", "PARSER_FUNCS"]
 
-ALLOWED_EXTS = ['.yaml', '.yml']
-PARSER_FUNCS = {'.yml': yaml.safe_load, '.yaml': yaml.safe_load}
+ALLOWED_EXTS = [".yaml", ".yml"]
+PARSER_FUNCS = {".yml": yaml.safe_load, ".yaml": yaml.safe_load}
