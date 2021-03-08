@@ -15,7 +15,7 @@ parameters:
     required: true
     type: string
   ip:
-    default: "10.1.23.99" 
+    default: "10.1.23.99"
     required: true
     type: string
   meta:

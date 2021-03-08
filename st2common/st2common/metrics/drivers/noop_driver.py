@@ -15,9 +15,7 @@
 
 from st2common.metrics.base import BaseMetricsDriver
 
-__all__ = [
-    'NoopDriver'
-]
+__all__ = ["NoopDriver"]
 
 
 class NoopDriver(BaseMetricsDriver):

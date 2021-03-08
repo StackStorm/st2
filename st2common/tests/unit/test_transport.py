@@ -19,9 +19,7 @@ import unittest2
 
 from st2common.transport.utils import _get_ssl_kwargs
 
-__all__ = [
-    'TransportUtilsTestCase'
-]
+__all__ = ["TransportUtilsTestCase"]
 
 
 class TransportUtilsTestCase(unittest2.TestCase):
@@ -32,49 +30,39 @@ class TransportUtilsTestCase(unittest2.TestCase):
 
         # 2. ssl kwarg provided
         ssl_kwargs = _get_ssl_kwargs(ssl=True)
-        self.assertEqual(ssl_kwargs, {
-            'ssl': True
-        })
+        self.assertEqual(ssl_kwargs, {"ssl": True})
 
         # 3. ssl_keyfile provided
-        ssl_kwargs = _get_ssl_kwargs(ssl_keyfile='/tmp/keyfile')
-        self.assertEqual(ssl_kwargs, {
-            'ssl': True,
-            'keyfile': '/tmp/keyfile'
-        })
+        ssl_kwargs = _get_ssl_kwargs(ssl_keyfile="/tmp/keyfile")
+        self.assertEqual(ssl_kwargs, {"ssl": True, "keyfile": "/tmp/keyfile"})
 
         # 4. ssl_certfile provided
-        ssl_kwargs = _get_ssl_kwargs(ssl_certfile='/tmp/certfile')
-        self.assertEqual(ssl_kwargs, {
-            'ssl': True,
-            'certfile': '/tmp/certfile'
-        })
+        ssl_kwargs = _get_ssl_kwargs(ssl_certfile="/tmp/certfile")
+        self.assertEqual(ssl_kwargs, {"ssl": True, "certfile": "/tmp/certfile"})
 
         # 5. ssl_ca_certs provided
-        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs')
-        self.assertEqual(ssl_kwargs, {
-            'ssl': True,
-            'ca_certs': '/tmp/ca_certs'
-        })
+        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs="/tmp/ca_certs")
+        self.assertEqual(ssl_kwargs, {"ssl": True, "ca_certs": "/tmp/ca_certs"})
 
         # 6. ssl_ca_certs and ssl_cert_reqs combinations
-        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs', ssl_cert_reqs='none')
-        self.assertEqual(ssl_kwargs, {
-            'ssl': True,
-            'ca_certs': '/tmp/ca_certs',
-            'cert_reqs': ssl.CERT_NONE
-        })
+        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="none")
+        self.assertEqual(
+            ssl_kwargs,
+            {"ssl": True, "ca_certs": "/tmp/ca_certs", "cert_reqs": ssl.CERT_NONE},
+        )
 
-        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs', ssl_cert_reqs='optional')
-        self.assertEqual(ssl_kwargs, {
-            'ssl': True,
-            'ca_certs': '/tmp/ca_certs',
-            'cert_reqs': ssl.CERT_OPTIONAL
-        })
+        ssl_kwargs = _get_ssl_kwargs(
+            ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="optional"
+        )
+        self.assertEqual(
+            ssl_kwargs,
+            {"ssl": True, "ca_certs": "/tmp/ca_certs", "cert_reqs": ssl.CERT_OPTIONAL},
+        )
 
-        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs='/tmp/ca_certs', ssl_cert_reqs='required')
-        self.assertEqual(ssl_kwargs, {
-            'ssl': True,
-            'ca_certs': '/tmp/ca_certs',
-            'cert_reqs': ssl.CERT_REQUIRED
-        })
+        ssl_kwargs = _get_ssl_kwargs(
+            ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="required"
+        )
+        self.assertEqual(
+            ssl_kwargs,
+            {"ssl": True, "ca_certs": "/tmp/ca_certs", "cert_reqs": ssl.CERT_REQUIRED},
+        )

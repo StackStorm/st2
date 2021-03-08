@@ -21,90 +21,76 @@ from st2common.constants import action as ac_const
 
 class DatastoreFunctionTest(base.TestWorkflowExecution):
     @classmethod
-    def set_kvp(cls, name, value, scope='system', secret=False):
+    def set_kvp(cls, name, value, scope="system", secret=False):
         kvp = models.KeyValuePair(
-            id=name,
-            name=name,
-            value=value,
-            scope=scope,
-            secret=secret
+            id=name, name=name, value=value, scope=scope, secret=secret
         )
 
         cls.st2client.keys.update(kvp)
 
     @classmethod
-    def del_kvp(cls, name, scope='system'):
-        kvp = models.KeyValuePair(
-            id=name,
-            name=name,
-            scope=scope
-        )
+    def del_kvp(cls, name, scope="system"):
+        kvp = models.KeyValuePair(id=name, name=name, scope=scope)
 
         cls.st2client.keys.delete(kvp)
 
     def test_st2kv_system_scope(self):
-        key = 'lakshmi'
-        value = 'kanahansnasnasdlsajks'
+        key = "lakshmi"
+        value = "kanahansnasnasdlsajks"
 
         self.set_kvp(key, value)
-        wf_name = 'examples.orquesta-st2kv'
-        wf_input = {'key_name': 'system.%s' % key}
+        wf_name = "examples.orquesta-st2kv"
+        wf_input = {"key_name": "system.%s" % key}
         execution = self._execute_workflow(wf_name, wf_input)
 
         output = self._wait_for_completion(execution)
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertIn('output', output.result)
-        self.assertIn('value', output.result['output'])
-        self.assertEqual(value, output.result['output']['value'])
+        self.assertIn("output", output.result)
+        self.assertIn("value", output.result["output"])
+        self.assertEqual(value, output.result["output"]["value"])
         self.del_kvp(key)
 
     def test_st2kv_user_scope(self):
-        key = 'winson'
-        value = 'SoDiamondEng'
+        key = "winson"
+        value = "SoDiamondEng"
 
-        self.set_kvp(key, value, 'user')
-        wf_name = 'examples.orquesta-st2kv'
-        wf_input = {'key_name': key}
+        self.set_kvp(key, value, "user")
+        wf_name = "examples.orquesta-st2kv"
+        wf_input = {"key_name": key}
         execution = self._execute_workflow(wf_name, wf_input)
 
         output = self._wait_for_completion(execution)
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertIn('output', output.result)
-        self.assertIn('value', output.result['output'])
-        self.assertEqual(value, output.result['output']['value'])
+        self.assertIn("output", output.result)
+        self.assertIn("value", output.result["output"])
+        self.assertEqual(value, output.result["output"]["value"])
         # self.del_kvp(key)
 
     def test_st2kv_decrypt(self):
-        key = 'kami'
-        value = 'eggplant'
+        key = "kami"
+        value = "eggplant"
 
         self.set_kvp(key, value, secret=True)
-        wf_name = 'examples.orquesta-st2kv'
-        wf_input = {
-            'key_name': 'system.%s' % key,
-            'decrypt': True
-        }
+        wf_name = "examples.orquesta-st2kv"
+        wf_input = {"key_name": "system.%s" % key, "decrypt": True}
 
         execution = self._execute_workflow(wf_name, wf_input)
 
         output = self._wait_for_completion(execution)
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertIn('output', output.result)
-        self.assertIn('value', output.result['output'])
-        self.assertEqual(value, output.result['output']['value'])
+        self.assertIn("output", output.result)
+        self.assertIn("value", output.result["output"])
+        self.assertEqual(value, output.result["output"]["value"])
         self.del_kvp(key)
 
     def test_st2kv_nonexistent(self):
-        key = 'matt'
+        key = "matt"
 
-        wf_name = 'examples.orquesta-st2kv'
-        wf_input = {
-            'key_name': 'system.%s' % key,
-            'decrypt': True
-        }
+        wf_name = "examples.orquesta-st2kv"
+        wf_input = {"key_name": "system.%s" % key, "decrypt": True}
 
         execution = self._execute_workflow(wf_name, wf_input)
 
@@ -112,69 +98,71 @@ class DatastoreFunctionTest(base.TestWorkflowExecution):
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_FAILED)
 
-        expected_error = 'The key "%s" does not exist in the StackStorm datastore.' % key
+        expected_error = (
+            'The key "%s" does not exist in the StackStorm datastore.' % key
+        )
 
-        self.assertIn(expected_error, output.result['errors'][0]['message'])
+        self.assertIn(expected_error, output.result["errors"][0]["message"])
 
     def test_st2kv_default_value(self):
-        key = 'matt'
+        key = "matt"
 
-        wf_name = 'examples.orquesta-st2kv-default'
-        wf_input = {
-            'key_name': 'system.%s' % key,
-            'decrypt': True,
-            'default': 'stone'
-        }
+        wf_name = "examples.orquesta-st2kv-default"
+        wf_input = {"key_name": "system.%s" % key, "decrypt": True, "default": "stone"}
 
         execution = self._execute_workflow(wf_name, wf_input)
 
         output = self._wait_for_completion(execution)
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertIn('output', output.result)
-        self.assertIn('value_from_yaql', output.result['output'])
-        self.assertEqual(wf_input['default'], output.result['output']['value_from_yaql'])
-        self.assertIn('value_from_jinja', output.result['output'])
-        self.assertEqual(wf_input['default'], output.result['output']['value_from_jinja'])
+        self.assertIn("output", output.result)
+        self.assertIn("value_from_yaql", output.result["output"])
+        self.assertEqual(
+            wf_input["default"], output.result["output"]["value_from_yaql"]
+        )
+        self.assertIn("value_from_jinja", output.result["output"])
+        self.assertEqual(
+            wf_input["default"], output.result["output"]["value_from_jinja"]
+        )
 
     def test_st2kv_default_value_with_empty_string(self):
-        key = 'matt'
+        key = "matt"
 
-        wf_name = 'examples.orquesta-st2kv-default'
-        wf_input = {
-            'key_name': 'system.%s' % key,
-            'decrypt': True,
-            'default': ''
-        }
+        wf_name = "examples.orquesta-st2kv-default"
+        wf_input = {"key_name": "system.%s" % key, "decrypt": True, "default": ""}
 
         execution = self._execute_workflow(wf_name, wf_input)
 
         output = self._wait_for_completion(execution)
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertIn('output', output.result)
-        self.assertIn('value_from_yaql', output.result['output'])
-        self.assertEqual(wf_input['default'], output.result['output']['value_from_yaql'])
-        self.assertIn('value_from_jinja', output.result['output'])
-        self.assertEqual(wf_input['default'], output.result['output']['value_from_jinja'])
+        self.assertIn("output", output.result)
+        self.assertIn("value_from_yaql", output.result["output"])
+        self.assertEqual(
+            wf_input["default"], output.result["output"]["value_from_yaql"]
+        )
+        self.assertIn("value_from_jinja", output.result["output"])
+        self.assertEqual(
+            wf_input["default"], output.result["output"]["value_from_jinja"]
+        )
 
     def test_st2kv_default_value_with_null(self):
-        key = 'matt'
+        key = "matt"
 
-        wf_name = 'examples.orquesta-st2kv-default'
-        wf_input = {
-            'key_name': 'system.%s' % key,
-            'decrypt': True,
-            'default': None
-        }
+        wf_name = "examples.orquesta-st2kv-default"
+        wf_input = {"key_name": "system.%s" % key, "decrypt": True, "default": None}
 
         execution = self._execute_workflow(wf_name, wf_input)
 
         output = self._wait_for_completion(execution)
 
         self.assertEqual(output.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertIn('output', output.result)
-        self.assertIn('value_from_yaql', output.result['output'])
-        self.assertEqual(wf_input['default'], output.result['output']['value_from_yaql'])
-        self.assertIn('value_from_jinja', output.result['output'])
-        self.assertEqual(wf_input['default'], output.result['output']['value_from_jinja'])
+        self.assertIn("output", output.result)
+        self.assertIn("value_from_yaql", output.result["output"])
+        self.assertEqual(
+            wf_input["default"], output.result["output"]["value_from_yaql"]
+        )
+        self.assertIn("value_from_jinja", output.result["output"])
+        self.assertEqual(
+            wf_input["default"], output.result["output"]["value_from_jinja"]
+        )

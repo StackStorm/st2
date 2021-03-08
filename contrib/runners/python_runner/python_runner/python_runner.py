@@ -58,34 +58,39 @@ from st2common.runners.utils import make_read_and_store_stream_func
 from python_runner import python_action_wrapper
 
 __all__ = [
-    'PythonRunner',
-
-    'get_runner',
-    'get_metadata',
+    "PythonRunner",
+    "get_runner",
+    "get_metadata",
 ]
 
 LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters.
-RUNNER_ENV = 'env'
-RUNNER_TIMEOUT = 'timeout'
-RUNNER_LOG_LEVEL = 'log_level'
+RUNNER_ENV = "env"
+RUNNER_TIMEOUT = "timeout"
+RUNNER_LOG_LEVEL = "log_level"
 
 # Environment variables which can't be specified by the user
 BLACKLISTED_ENV_VARS = [
     # We don't allow user to override PYTHONPATH since this would break things
-    'pythonpath'
+    "pythonpath"
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(python_action_wrapper.__file__))
-WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
+WRAPPER_SCRIPT_NAME = "python_action_wrapper.py"
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 
 
 class PythonRunner(GitWorktreeActionRunner):
-
-    def __init__(self, runner_id, config=None, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT,
-                 log_level=None, sandbox=True, use_parent_args=True):
+    def __init__(
+        self,
+        runner_id,
+        config=None,
+        timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT,
+        log_level=None,
+        sandbox=True,
+        use_parent_args=True,
+    ):
 
         """
         :param timeout: Action execution timeout in seconds.
@@ -123,36 +128,42 @@ class PythonRunner(GitWorktreeActionRunner):
             self._log_level = cfg.CONF.actionrunner.python_runner_log_level
 
     def run(self, action_parameters):
-        LOG.debug('Running pythonrunner.')
-        LOG.debug('Getting pack name.')
+        LOG.debug("Running pythonrunner.")
+        LOG.debug("Getting pack name.")
         pack = self.get_pack_ref()
-        LOG.debug('Getting user.')
+        LOG.debug("Getting user.")
         user = self.get_user()
-        LOG.debug('Serializing parameters.')
-        serialized_parameters = json.dumps(action_parameters if action_parameters else {})
-        LOG.debug('Getting virtualenv_path.')
+        LOG.debug("Serializing parameters.")
+        serialized_parameters = json.dumps(
+            action_parameters if action_parameters else {}
+        )
+        LOG.debug("Getting virtualenv_path.")
         virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
-        LOG.debug('Getting python path.')
+        LOG.debug("Getting python path.")
         if self._sandbox:
             python_path = get_sandbox_python_binary_path(pack=pack)
         else:
             python_path = sys.executable
 
-        LOG.debug('Checking virtualenv path.')
+        LOG.debug("Checking virtualenv path.")
         if virtualenv_path and not os.path.isdir(virtualenv_path):
-            format_values = {'pack': pack, 'virtualenv_path': virtualenv_path}
+            format_values = {"pack": pack, "virtualenv_path": virtualenv_path}
             msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
-            LOG.error('virtualenv_path set but not a directory: %s', msg)
+            LOG.error("virtualenv_path set but not a directory: %s", msg)
             raise Exception(msg)
 
-        LOG.debug('Checking entry_point.')
+        LOG.debug("Checking entry_point.")
         if not self.entry_point:
-            LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
-            raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
+            LOG.error(
+                'Action "%s" is missing entry_point attribute' % (self.action.name)
+            )
+            raise Exception(
+                'Action "%s" is missing entry_point attribute' % (self.action.name)
+            )
 
         # Note: We pass config as command line args so the actual wrapper process is standalone
         # and doesn't need access to db
-        LOG.debug('Setting args.')
+        LOG.debug("Setting args.")
 
         if self._use_parent_args:
             parent_args = json.dumps(sys.argv[1:])
@@ -161,12 +172,12 @@ class PythonRunner(GitWorktreeActionRunner):
 
         args = [
             python_path,
-            '-u',  # unbuffered mode so streaming mode works as expected
+            "-u",  # unbuffered mode so streaming mode works as expected
             WRAPPER_SCRIPT_PATH,
-            '--pack=%s' % (pack),
-            '--file-path=%s' % (self.entry_point),
-            '--user=%s' % (user),
-            '--parent-args=%s' % (parent_args),
+            "--pack=%s" % (pack),
+            "--file-path=%s" % (self.entry_point),
+            "--user=%s" % (user),
+            "--parent-args=%s" % (parent_args),
         ]
 
         subprocess = concurrency.get_subprocess_module()
@@ -178,35 +189,36 @@ class PythonRunner(GitWorktreeActionRunner):
         stdin_params = None
         if len(serialized_parameters) >= MAX_PARAM_LENGTH:
             stdin = subprocess.PIPE
-            LOG.debug('Parameters are too big...changing to stdin')
+            LOG.debug("Parameters are too big...changing to stdin")
             stdin_params = '{"parameters": %s}\n' % (serialized_parameters)
-            args.append('--stdin-parameters')
+            args.append("--stdin-parameters")
         else:
-            LOG.debug('Parameters are just right...adding them to arguments')
-            args.append('--parameters=%s' % (serialized_parameters))
+            LOG.debug("Parameters are just right...adding them to arguments")
+            args.append("--parameters=%s" % (serialized_parameters))
 
         if self._config:
-            args.append('--config=%s' % (json.dumps(self._config)))
+            args.append("--config=%s" % (json.dumps(self._config)))
 
         if self._log_level != PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
             # We only pass --log-level parameter if non default log level value is specified
-            args.append('--log-level=%s' % (self._log_level))
+            args.append("--log-level=%s" % (self._log_level))
 
         # We need to ensure all the st2 dependencies are also available to the subprocess
-        LOG.debug('Setting env.')
+        LOG.debug("Setting env.")
         env = os.environ.copy()
-        env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
+        env["PATH"] = get_sandbox_path(virtualenv_path=virtualenv_path)
 
         sandbox_python_path = get_sandbox_python_path_for_python_action(
-            pack=pack,
-            inherit_from_parent=True,
-            inherit_parent_virtualenv=True)
+            pack=pack, inherit_from_parent=True, inherit_parent_virtualenv=True
+        )
 
         if self._enable_common_pack_libs:
             try:
                 pack_common_libs_path = self._get_pack_common_libs_path(pack_ref=pack)
             except Exception as e:
-                LOG.debug('Failed to retrieve pack common lib path: %s' % (six.text_type(e)))
+                LOG.debug(
+                    "Failed to retrieve pack common lib path: %s" % (six.text_type(e))
+                )
                 # There is no MongoDB connection available in Lambda and pack common lib
                 # functionality is not also mandatory for Lambda so we simply ignore those errors.
                 # Note: We should eventually refactor this code to make runner standalone and not
@@ -217,13 +229,13 @@ class PythonRunner(GitWorktreeActionRunner):
             pack_common_libs_path = None
 
         # Remove leading : (if any)
-        if sandbox_python_path.startswith(':'):
+        if sandbox_python_path.startswith(":"):
             sandbox_python_path = sandbox_python_path[1:]
 
         if self._enable_common_pack_libs and pack_common_libs_path:
-            sandbox_python_path = pack_common_libs_path + ':' + sandbox_python_path
+            sandbox_python_path = pack_common_libs_path + ":" + sandbox_python_path
 
-        env['PYTHONPATH'] = sandbox_python_path
+        env["PYTHONPATH"] = sandbox_python_path
 
         # Include user provided environment variables (if any)
         user_env_vars = self._get_env_vars()
@@ -238,40 +250,53 @@ class PythonRunner(GitWorktreeActionRunner):
         stdout = StringIO()
         stderr = StringIO()
 
-        store_execution_stdout_line = functools.partial(store_execution_output_data,
-                                                        output_type='stdout')
-        store_execution_stderr_line = functools.partial(store_execution_output_data,
-                                                        output_type='stderr')
+        store_execution_stdout_line = functools.partial(
+            store_execution_output_data, output_type="stdout"
+        )
+        store_execution_stderr_line = functools.partial(
+            store_execution_output_data, output_type="stderr"
+        )
 
-        read_and_store_stdout = make_read_and_store_stream_func(execution_db=self.execution,
-            action_db=self.action, store_data_func=store_execution_stdout_line)
-        read_and_store_stderr = make_read_and_store_stream_func(execution_db=self.execution,
-            action_db=self.action, store_data_func=store_execution_stderr_line)
+        read_and_store_stdout = make_read_and_store_stream_func(
+            execution_db=self.execution,
+            action_db=self.action,
+            store_data_func=store_execution_stdout_line,
+        )
+        read_and_store_stderr = make_read_and_store_stream_func(
+            execution_db=self.execution,
+            action_db=self.action,
+            store_data_func=store_execution_stderr_line,
+        )
 
         command_string = list2cmdline(args)
         if stdin_params:
-            command_string = 'echo %s | %s' % (quote_unix(stdin_params), command_string)
+            command_string = "echo %s | %s" % (quote_unix(stdin_params), command_string)
 
         bufsize = cfg.CONF.actionrunner.stream_output_buffer_size
 
-        LOG.debug('Running command (bufsize=%s): PATH=%s PYTHONPATH=%s %s' % (bufsize, env['PATH'],
-                                                                              env['PYTHONPATH'],
-                                                                              command_string))
-        exit_code, stdout, stderr, timed_out = run_command(cmd=args,
-                                                           stdin=stdin,
-                                                           stdout=subprocess.PIPE,
-                                                           stderr=subprocess.PIPE,
-                                                           shell=False,
-                                                           env=env,
-                                                           timeout=self._timeout,
-                                                           read_stdout_func=read_and_store_stdout,
-                                                           read_stderr_func=read_and_store_stderr,
-                                                           read_stdout_buffer=stdout,
-                                                           read_stderr_buffer=stderr,
-                                                           stdin_value=stdin_params,
-                                                           bufsize=bufsize)
-        LOG.debug('Returning values: %s, %s, %s, %s', exit_code, stdout, stderr, timed_out)
-        LOG.debug('Returning.')
+        LOG.debug(
+            "Running command (bufsize=%s): PATH=%s PYTHONPATH=%s %s"
+            % (bufsize, env["PATH"], env["PYTHONPATH"], command_string)
+        )
+        exit_code, stdout, stderr, timed_out = run_command(
+            cmd=args,
+            stdin=stdin,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=False,
+            env=env,
+            timeout=self._timeout,
+            read_stdout_func=read_and_store_stdout,
+            read_stderr_func=read_and_store_stderr,
+            read_stdout_buffer=stdout,
+            read_stderr_buffer=stderr,
+            stdin_value=stdin_params,
+            bufsize=bufsize,
+        )
+        LOG.debug(
+            "Returning values: %s, %s, %s, %s", exit_code, stdout, stderr, timed_out
+        )
+        LOG.debug("Returning.")
         return self._get_output_values(exit_code, stdout, stderr, timed_out)
 
     def _get_pack_common_libs_path(self, pack_ref):
@@ -280,7 +305,9 @@ class PythonRunner(GitWorktreeActionRunner):
         (if used).
         """
         worktree_path = self.git_worktree_path
-        pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(pack_ref=pack_ref)
+        pack_common_libs_path = get_pack_common_libs_path_for_pack_ref(
+            pack_ref=pack_ref
+        )
 
         if not worktree_path:
             return pack_common_libs_path
@@ -288,18 +315,20 @@ class PythonRunner(GitWorktreeActionRunner):
         # Modify the path so it uses git worktree directory
         pack_base_path = get_pack_base_path(pack_name=pack_ref)
 
-        new_pack_common_libs_path = pack_common_libs_path.replace(pack_base_path, '')
+        new_pack_common_libs_path = pack_common_libs_path.replace(pack_base_path, "")
 
         # Remove leading slash (if any)
-        if new_pack_common_libs_path.startswith('/'):
+        if new_pack_common_libs_path.startswith("/"):
             new_pack_common_libs_path = new_pack_common_libs_path[1:]
 
-        new_pack_common_libs_path = os.path.join(worktree_path, new_pack_common_libs_path)
+        new_pack_common_libs_path = os.path.join(
+            worktree_path, new_pack_common_libs_path
+        )
 
         # Check to prevent directory traversal
         common_prefix = os.path.commonprefix([worktree_path, new_pack_common_libs_path])
         if common_prefix != worktree_path:
-            raise ValueError('pack libs path is not located inside the pack directory')
+            raise ValueError("pack libs path is not located inside the pack directory")
 
         return new_pack_common_libs_path
 
@@ -312,7 +341,7 @@ class PythonRunner(GitWorktreeActionRunner):
         :rtype: ``tuple``
         """
         if timed_out:
-            error = 'Action failed to complete in %s seconds' % (self._timeout)
+            error = "Action failed to complete in %s seconds" % (self._timeout)
         else:
             error = None
 
@@ -335,16 +364,18 @@ class PythonRunner(GitWorktreeActionRunner):
                 action_result = json.loads(action_result)
             except Exception as e:
                 # Failed to de-serialize the result, probably it contains non-simple type or similar
-                LOG.warning('Failed to de-serialize result "%s": %s' % (str(action_result),
-                                                                        six.text_type(e)))
+                LOG.warning(
+                    'Failed to de-serialize result "%s": %s'
+                    % (str(action_result), six.text_type(e))
+                )
 
         if action_result:
             if isinstance(action_result, dict):
-                result = action_result.get('result', None)
-                status = action_result.get('status', None)
+                result = action_result.get("result", None)
+                status = action_result.get("status", None)
             else:
                 # Failed to de-serialize action result aka result is a string
-                match = re.search("'result': (.*?)$", action_result or '')
+                match = re.search("'result': (.*?)$", action_result or "")
 
                 if match:
                     action_result = match.groups()[0]
@@ -352,21 +383,22 @@ class PythonRunner(GitWorktreeActionRunner):
                 result = action_result
                 status = None
         else:
-            result = 'None'
+            result = "None"
             status = None
 
         output = {
-            'stdout': stdout,
-            'stderr': stderr,
-            'exit_code': exit_code,
-            'result': result
+            "stdout": stdout,
+            "stderr": stderr,
+            "exit_code": exit_code,
+            "result": result,
         }
 
         if error:
-            output['error'] = error
+            output["error"] = error
 
-        status = self._get_final_status(action_status=status, timed_out=timed_out,
-                                        exit_code=exit_code)
+        status = self._get_final_status(
+            action_status=status, timed_out=timed_out, exit_code=exit_code
+        )
         return (status, output, None)
 
     def _get_final_status(self, action_status, timed_out, exit_code):
@@ -415,8 +447,10 @@ class PythonRunner(GitWorktreeActionRunner):
                 to_delete.append(key)
 
         for key in to_delete:
-            LOG.debug('User specified environment variable "%s" which is being ignored...' %
-                      (key))
+            LOG.debug(
+                'User specified environment variable "%s" which is being ignored...'
+                % (key)
+            )
             del env_vars[key]
 
         return env_vars
@@ -441,4 +475,4 @@ def get_runner(config=None):
 
 
 def get_metadata():
-    return get_runner_metadata('python_runner')[0]
+    return get_runner_metadata("python_runner")[0]

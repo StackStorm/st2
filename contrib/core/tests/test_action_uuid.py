@@ -28,13 +28,13 @@ class GenerateUUIDActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
 
         # accepts uuid1 as a type
-        result = action.run(uuid_type='uuid1')
+        result = action.run(uuid_type="uuid1")
         self.assertTrue(result)
 
         # accepts uuid4 as a type
-        result = action.run(uuid_type='uuid4')
+        result = action.run(uuid_type="uuid4")
         self.assertTrue(result)
 
         # fails on incorrect type
         with self.assertRaises(ValueError):
-            result = action.run(uuid_type='foobar')
+            result = action.run(uuid_type="foobar")

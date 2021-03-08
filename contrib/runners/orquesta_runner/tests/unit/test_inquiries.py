@@ -23,6 +23,7 @@ import st2tests
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 from tests.unit import base
@@ -45,37 +46,45 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_PACK = 'orquesta_tests'
-TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
+TEST_PACK = "orquesta_tests"
+TEST_PACK_PATH = (
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
+)
 
 PACKS = [
     TEST_PACK_PATH,
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
 
 
 @mock.patch.object(
-    publishers.CUDPublisher,
-    'publish_update',
-    mock.MagicMock(return_value=None))
+    publishers.CUDPublisher, "publish_update", mock.MagicMock(return_value=None)
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create),
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create
+    ),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state
+    ),
+)
 class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(OrquestaRunnerTest, cls).setUpClass()
@@ -85,30 +94,35 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Register test pack(s).
         actions_registrar = actionsregistrar.ActionsRegistrar(
-            use_pack_cache=False,
-            fail_on_failure=True
+            use_pack_cache=False, fail_on_failure=True
         )
 
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
     def test_inquiry(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'ask-approval.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "ask-approval.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Assert start task is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'start'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "start"}
         t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
-        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction['id'])
-        self.assertEqual(t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
+        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction["id"])
+        self.assertEqual(
+            t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t1_ac_ex_db)
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
         self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
@@ -118,10 +132,15 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert get approval task is already pending.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'get_approval'}
+        query_filters = {
+            "workflow_execution": str(wf_ex_db.id),
+            "task_id": "get_approval",
+        }
         t2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_ex_db.id))[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
+        t2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t2_ex_db.id)
+        )[0]
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
@@ -133,12 +152,16 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t2_ac_ex_db)
-        inquiry_response = {'approved': True}
+        inquiry_response = {"approved": True}
         inquiry_service.respond(inquiry_api, inquiry_response)
         t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(str(t2_lv_ac_db.id))
-        self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         t2_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(t2_ac_ex_db.id))
-        self.assertEqual(t2_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t2_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(str(t2_ex_db.id))
         self.assertEqual(t2_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -148,11 +171,15 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert the final task is completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'finish'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "finish"}
         t3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t3_ex_db.id))[0]
-        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction['id'])
-        self.assertEqual(t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t3_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t3_ex_db.id)
+        )[0]
+        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction["id"])
+        self.assertEqual(
+            t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t3_ac_ex_db)
         t3_ex_db = wf_db_access.TaskExecution.get_by_id(t3_ex_db.id)
         self.assertEqual(t3_ex_db.status, wf_statuses.SUCCEEDED)
@@ -162,22 +189,30 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
 
     def test_consecutive_inquiries(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'ask-consecutive-approvals.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(
+            TEST_PACK_PATH, "ask-consecutive-approvals.yaml"
+        )
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Assert start task is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'start'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "start"}
         t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
-        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction['id'])
-        self.assertEqual(t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
+        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction["id"])
+        self.assertEqual(
+            t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t1_ac_ex_db)
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
         self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
@@ -187,10 +222,15 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert get approval task is already pending.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'get_approval'}
+        query_filters = {
+            "workflow_execution": str(wf_ex_db.id),
+            "task_id": "get_approval",
+        }
         t2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_ex_db.id))[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
+        t2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t2_ex_db.id)
+        )[0]
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
@@ -202,12 +242,16 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t2_ac_ex_db)
-        inquiry_response = {'approved': True}
+        inquiry_response = {"approved": True}
         inquiry_service.respond(inquiry_api, inquiry_response)
         t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(str(t2_lv_ac_db.id))
-        self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         t2_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(t2_ac_ex_db.id))
-        self.assertEqual(t2_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t2_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(str(t2_ex_db.id))
         self.assertEqual(t2_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -217,10 +261,15 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert the final task is completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'get_confirmation'}
+        query_filters = {
+            "workflow_execution": str(wf_ex_db.id),
+            "task_id": "get_confirmation",
+        }
         t3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t3_ex_db.id))[0]
-        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction['id'])
+        t3_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t3_ex_db.id)
+        )[0]
+        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction["id"])
         self.assertEqual(t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t3_ac_ex_db)
         t3_ex_db = wf_db_access.TaskExecution.get_by_id(t3_ex_db.id)
@@ -232,12 +281,16 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t3_ac_ex_db)
-        inquiry_response = {'approved': True}
+        inquiry_response = {"approved": True}
         inquiry_service.respond(inquiry_api, inquiry_response)
         t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(str(t3_lv_ac_db.id))
-        self.assertEqual(t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         t3_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(t3_ac_ex_db.id))
-        self.assertEqual(t3_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t3_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t3_ac_ex_db)
         t3_ex_db = wf_db_access.TaskExecution.get_by_id(str(t3_ex_db.id))
         self.assertEqual(t3_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -247,11 +300,15 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert the final task is completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'finish'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "finish"}
         t4_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t4_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t4_ex_db.id))[0]
-        t4_lv_ac_db = lv_db_access.LiveAction.get_by_id(t4_ac_ex_db.liveaction['id'])
-        self.assertEqual(t4_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t4_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t4_ex_db.id)
+        )[0]
+        t4_lv_ac_db = lv_db_access.LiveAction.get_by_id(t4_ac_ex_db.liveaction["id"])
+        self.assertEqual(
+            t4_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t4_ac_ex_db)
         t4_ex_db = wf_db_access.TaskExecution.get_by_id(t4_ex_db.id)
         self.assertEqual(t4_ex_db.status, wf_statuses.SUCCEEDED)
@@ -261,22 +318,30 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
 
     def test_parallel_inquiries(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'ask-parallel-approvals.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(
+            TEST_PACK_PATH, "ask-parallel-approvals.yaml"
+        )
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Assert start task is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'start'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "start"}
         t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
-        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction['id'])
-        self.assertEqual(t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
+        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction["id"])
+        self.assertEqual(
+            t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t1_ac_ex_db)
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
         self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
@@ -286,10 +351,12 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert get approval task is already pending.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'ask_jack'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "ask_jack"}
         t2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_ex_db.id))[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
+        t2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t2_ex_db.id)
+        )[0]
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
@@ -300,10 +367,12 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.PAUSING)
 
         # Assert get approval task is already pending.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'ask_jill'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "ask_jill"}
         t3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t3_ex_db.id))[0]
-        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction['id'])
+        t3_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t3_ex_db.id)
+        )[0]
+        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction["id"])
         self.assertEqual(t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
         workflows.get_engine().process(t3_ac_ex_db)
         t3_ex_db = wf_db_access.TaskExecution.get_by_id(t3_ex_db.id)
@@ -315,12 +384,16 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t2_ac_ex_db)
-        inquiry_response = {'approved': True}
+        inquiry_response = {"approved": True}
         inquiry_service.respond(inquiry_api, inquiry_response)
         t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(str(t2_lv_ac_db.id))
-        self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         t2_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(t2_ac_ex_db.id))
-        self.assertEqual(t2_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t2_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(str(t2_ex_db.id))
         self.assertEqual(t2_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -332,12 +405,16 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t3_ac_ex_db)
-        inquiry_response = {'approved': True}
+        inquiry_response = {"approved": True}
         inquiry_service.respond(inquiry_api, inquiry_response)
         t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(str(t3_lv_ac_db.id))
-        self.assertEqual(t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         t3_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(t3_ac_ex_db.id))
-        self.assertEqual(t3_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t3_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t3_ac_ex_db)
         t3_ex_db = wf_db_access.TaskExecution.get_by_id(str(t3_ex_db.id))
         self.assertEqual(t3_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
@@ -347,11 +424,15 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert the final task is completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'finish'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "finish"}
         t4_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t4_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t4_ex_db.id))[0]
-        t4_lv_ac_db = lv_db_access.LiveAction.get_by_id(t4_ac_ex_db.liveaction['id'])
-        self.assertEqual(t4_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t4_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t4_ex_db.id)
+        )[0]
+        t4_lv_ac_db = lv_db_access.LiveAction.get_by_id(t4_ac_ex_db.liveaction["id"])
+        self.assertEqual(
+            t4_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t4_ac_ex_db)
         t4_ex_db = wf_db_access.TaskExecution.get_by_id(t4_ex_db.id)
         self.assertEqual(t4_ex_db.status, wf_statuses.SUCCEEDED)
@@ -361,22 +442,30 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
 
     def test_nested_inquiry(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'ask-nested-approval.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(
+            TEST_PACK_PATH, "ask-nested-approval.yaml"
+        )
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Assert start task is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'start'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "start"}
         t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
-        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction['id'])
-        self.assertEqual(t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
+        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction["id"])
+        self.assertEqual(
+            t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t1_ac_ex_db)
         t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
         self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
@@ -386,23 +475,36 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert the subworkflow is already started.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'get_approval'}
+        query_filters = {
+            "workflow_execution": str(wf_ex_db.id),
+            "task_id": "get_approval",
+        }
         t2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_ex_db.id))[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
+        t2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t2_ex_db.id)
+        )[0]
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
         self.assertEqual(t2_ex_db.status, wf_statuses.RUNNING)
-        t2_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t2_ac_ex_db.id))[0]
+        t2_wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(t2_ac_ex_db.id)
+        )[0]
         self.assertEqual(t2_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Process task1 of subworkflow.
-        query_filters = {'workflow_execution': str(t2_wf_ex_db.id), 'task_id': 'start'}
+        query_filters = {"workflow_execution": str(t2_wf_ex_db.id), "task_id": "start"}
         t2_t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t2_t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_t1_ex_db.id))[0]
-        t2_t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_t1_ac_ex_db.liveaction['id'])
-        self.assertEqual(t2_t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t2_t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t2_t1_ex_db.id)
+        )[0]
+        t2_t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(
+            t2_t1_ac_ex_db.liveaction["id"]
+        )
+        self.assertEqual(
+            t2_t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t2_t1_ac_ex_db)
         t2_t1_ex_db = wf_db_access.TaskExecution.get_by_id(t2_t1_ex_db.id)
         self.assertEqual(t2_t1_ex_db.status, wf_statuses.SUCCEEDED)
@@ -410,11 +512,20 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t2_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Process inquiry task of subworkflow and assert the subworkflow is paused.
-        query_filters = {'workflow_execution': str(t2_wf_ex_db.id), 'task_id': 'get_approval'}
+        query_filters = {
+            "workflow_execution": str(t2_wf_ex_db.id),
+            "task_id": "get_approval",
+        }
         t2_t2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t2_t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_t2_ex_db.id))[0]
-        t2_t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_t2_ac_ex_db.liveaction['id'])
-        self.assertEqual(t2_t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING)
+        t2_t2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t2_t2_ex_db.id)
+        )[0]
+        t2_t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(
+            t2_t2_ac_ex_db.liveaction["id"]
+        )
+        self.assertEqual(
+            t2_t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING
+        )
         workflows.get_engine().process(t2_t2_ac_ex_db)
         t2_t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_t2_ex_db.id)
         self.assertEqual(t2_t2_ex_db.status, wf_statuses.PENDING)
@@ -422,8 +533,10 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t2_wf_ex_db.status, wf_statuses.PAUSED)
 
         # Process the corresponding task in parent workflow and assert the task is paused.
-        t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_ex_db.id))[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
+        t2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t2_ex_db.id)
+        )[0]
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
@@ -435,34 +548,50 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Respond to the inquiry and check status.
         inquiry_api = inqy_api_models.InquiryAPI.from_model(t2_t2_ac_ex_db)
-        inquiry_response = {'approved': True}
+        inquiry_response = {"approved": True}
         inquiry_service.respond(inquiry_api, inquiry_response)
         t2_t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(str(t2_t2_lv_ac_db.id))
-        self.assertEqual(t2_t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t2_t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         t2_t2_ac_ex_db = ex_db_access.ActionExecution.get_by_id(str(t2_t2_ac_ex_db.id))
-        self.assertEqual(t2_t2_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t2_t2_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t2_t2_ac_ex_db)
         t2_t2_ex_db = wf_db_access.TaskExecution.get_by_id(str(t2_t2_ex_db.id))
-        self.assertEqual(t2_t2_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(
+            t2_t2_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
 
         # Assert the main workflow is running again.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Complete the rest of the subworkflow
-        query_filters = {'workflow_execution': str(t2_wf_ex_db.id), 'task_id': 'finish'}
+        query_filters = {"workflow_execution": str(t2_wf_ex_db.id), "task_id": "finish"}
         t2_t3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t2_t3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_t3_ex_db.id))[0]
-        t2_t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_t3_ac_ex_db.liveaction['id'])
-        self.assertEqual(t2_t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t2_t3_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t2_t3_ex_db.id)
+        )[0]
+        t2_t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(
+            t2_t3_ac_ex_db.liveaction["id"]
+        )
+        self.assertEqual(
+            t2_t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t2_t3_ac_ex_db)
         t2_t3_ex_db = wf_db_access.TaskExecution.get_by_id(t2_t3_ex_db.id)
         self.assertEqual(t2_t3_ex_db.status, wf_statuses.SUCCEEDED)
         t2_wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(t2_wf_ex_db.id))
         self.assertEqual(t2_wf_ex_db.status, wf_statuses.SUCCEEDED)
-        t2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t2_ex_db.id))[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction['id'])
-        self.assertEqual(t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t2_ex_db.id)
+        )[0]
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
+        self.assertEqual(
+            t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t2_ac_ex_db)
         t2_ex_db = wf_db_access.TaskExecution.get_by_id(t2_ex_db.id)
         self.assertEqual(t2_ex_db.status, wf_statuses.SUCCEEDED)
@@ -470,11 +599,15 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Complete the rest of the main workflow
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'finish'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "finish"}
         t3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t3_ex_db.id))[0]
-        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction['id'])
-        self.assertEqual(t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        t3_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t3_ex_db.id)
+        )[0]
+        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction["id"])
+        self.assertEqual(
+            t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         workflows.get_engine().process(t3_ac_ex_db)
         t3_ex_db = wf_db_access.TaskExecution.get_by_id(t3_ex_db.id)
         self.assertEqual(t3_ex_db.status, wf_statuses.SUCCEEDED)

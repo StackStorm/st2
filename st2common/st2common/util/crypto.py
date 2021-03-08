@@ -51,23 +51,18 @@ from cryptography.hazmat.primitives import hmac
 from cryptography.hazmat.backends import default_backend
 
 __all__ = [
-    'KEYCZAR_HEADER_SIZE',
-    'KEYCZAR_AES_BLOCK_SIZE',
-    'KEYCZAR_HLEN',
-
-    'read_crypto_key',
-
-    'symmetric_encrypt',
-    'symmetric_decrypt',
-
-    'cryptography_symmetric_encrypt',
-    'cryptography_symmetric_decrypt',
-
+    "KEYCZAR_HEADER_SIZE",
+    "KEYCZAR_AES_BLOCK_SIZE",
+    "KEYCZAR_HLEN",
+    "read_crypto_key",
+    "symmetric_encrypt",
+    "symmetric_decrypt",
+    "cryptography_symmetric_encrypt",
+    "cryptography_symmetric_decrypt",
     # NOTE: Keyczar functions are here for testing reasons - they are only used by tests
-    'keyczar_symmetric_encrypt',
-    'keyczar_symmetric_decrypt',
-
-    'AESKey'
+    "keyczar_symmetric_encrypt",
+    "keyczar_symmetric_decrypt",
+    "AESKey",
 ]
 
 # Keyczar related constants
@@ -94,13 +89,19 @@ class AESKey(object):
     mode = None
     size = None
 
-    def __init__(self, aes_key_string, hmac_key_string, hmac_key_size, mode='CBC',
-                 size=DEFAULT_AES_KEY_SIZE):
-        if mode not in ['CBC']:
-            raise ValueError('Unsupported mode: %s' % (mode))
+    def __init__(
+        self,
+        aes_key_string,
+        hmac_key_string,
+        hmac_key_size,
+        mode="CBC",
+        size=DEFAULT_AES_KEY_SIZE,
+    ):
+        if mode not in ["CBC"]:
+            raise ValueError("Unsupported mode: %s" % (mode))
 
         if size < MINIMUM_AES_KEY_SIZE:
-            raise ValueError('Unsafe key size: %s' % (size))
+            raise ValueError("Unsafe key size: %s" % (size))
 
         self.aes_key_string = aes_key_string
         self.hmac_key_string = hmac_key_string
@@ -121,7 +122,7 @@ class AESKey(object):
         :rtype: :class:`AESKey`
         """
         if key_size < MINIMUM_AES_KEY_SIZE:
-            raise ValueError('Unsafe key size: %s' % (key_size))
+            raise ValueError("Unsafe key size: %s" % (key_size))
 
         aes_key_bytes = os.urandom(int(key_size / 8))
         aes_key_string = Base64WSEncode(aes_key_bytes)
@@ -129,8 +130,13 @@ class AESKey(object):
         hmac_key_bytes = os.urandom(int(key_size / 8))
         hmac_key_string = Base64WSEncode(hmac_key_bytes)
 
-        return AESKey(aes_key_string=aes_key_string, hmac_key_string=hmac_key_string,
-                      hmac_key_size=key_size, mode='CBC', size=key_size)
+        return AESKey(
+            aes_key_string=aes_key_string,
+            hmac_key_string=hmac_key_string,
+            hmac_key_size=key_size,
+            mode="CBC",
+            size=key_size,
+        )
 
     def to_json(self):
         """
@@ -140,19 +146,22 @@ class AESKey(object):
         :rtype: ``str``
         """
         data = {
-            'hmacKey': {
-                'hmacKeyString': self.hmac_key_string,
-                'size': self.hmac_key_size
+            "hmacKey": {
+                "hmacKeyString": self.hmac_key_string,
+                "size": self.hmac_key_size,
             },
-            'aesKeyString': self.aes_key_string,
-            'mode': self.mode.upper(),
-            'size': int(self.size)
+            "aesKeyString": self.aes_key_string,
+            "mode": self.mode.upper(),
+            "size": int(self.size),
         }
         return json.dumps(data)
 
     def __repr__(self):
-        return ('<AESKey hmac_key_size=%s,mode=%s,size=%s>' % (self.hmac_key_size, self.mode,
-                                                               self.size))
+        return "<AESKey hmac_key_size=%s,mode=%s,size=%s>" % (
+            self.hmac_key_size,
+            self.mode,
+            self.size,
+        )
 
 
 def read_crypto_key(key_path):
@@ -164,17 +173,19 @@ def read_crypto_key(key_path):
 
     :rtype: :class:`AESKey`
     """
-    with open(key_path, 'r') as fp:
+    with open(key_path, "r") as fp:
         content = fp.read()
 
     content = json.loads(content)
 
     try:
-        aes_key = AESKey(aes_key_string=content['aesKeyString'],
-                         hmac_key_string=content['hmacKey']['hmacKeyString'],
-                         hmac_key_size=content['hmacKey']['size'],
-                         mode=content['mode'].upper(),
-                         size=content['size'])
+        aes_key = AESKey(
+            aes_key_string=content["aesKeyString"],
+            hmac_key_string=content["hmacKey"]["hmacKeyString"],
+            hmac_key_size=content["hmacKey"]["size"],
+            mode=content["mode"].upper(),
+            size=content["size"],
+        )
     except KeyError as e:
         msg = 'Invalid or malformed key file "%s": %s' % (key_path, six.text_type(e))
         raise KeyError(msg)
@@ -187,7 +198,9 @@ def symmetric_encrypt(encrypt_key, plaintext):
 
 
 def symmetric_decrypt(decrypt_key, ciphertext):
-    return cryptography_symmetric_decrypt(decrypt_key=decrypt_key, ciphertext=ciphertext)
+    return cryptography_symmetric_decrypt(
+        decrypt_key=decrypt_key, ciphertext=ciphertext
+    )
 
 
 def cryptography_symmetric_encrypt(encrypt_key, plaintext):
@@ -206,9 +219,12 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     NOTE: Header itself is unused, but it's added so the format is compatible with keyczar format.
 
     """
-    assert isinstance(encrypt_key, AESKey), 'encrypt_key needs to be AESKey class instance'
-    assert isinstance(plaintext, (six.text_type, six.string_types, six.binary_type)), \
-        'plaintext needs to either be a string/unicode or bytes'
+    assert isinstance(
+        encrypt_key, AESKey
+    ), "encrypt_key needs to be AESKey class instance"
+    assert isinstance(
+        plaintext, (six.text_type, six.string_types, six.binary_type)
+    ), "plaintext needs to either be a string/unicode or bytes"
 
     aes_key_bytes = encrypt_key.aes_key_bytes
     hmac_key_bytes = encrypt_key.hmac_key_bytes
@@ -218,7 +234,7 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
 
     if isinstance(plaintext, (six.text_type, six.string_types)):
         # Convert data to bytes
-        data = plaintext.encode('utf-8')
+        data = plaintext.encode("utf-8")
     else:
         data = plaintext
 
@@ -234,7 +250,7 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
 
     # NOTE: We don't care about actual Keyczar header value, we only care about the length (5
     # bytes) so we simply add 5 0's
-    header_bytes = b'00000'
+    header_bytes = b"00000"
 
     ciphertext_bytes = encryptor.update(data) + encryptor.finalize()
     msg_bytes = header_bytes + iv_bytes + ciphertext_bytes
@@ -263,9 +279,12 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
 
     NOTE 2: This function is loosely based on keyczar AESKey.Decrypt() (Apache 2.0 license).
     """
-    assert isinstance(decrypt_key, AESKey), 'decrypt_key needs to be AESKey class instance'
-    assert isinstance(ciphertext, (six.text_type, six.string_types, six.binary_type)), \
-        'ciphertext needs to either be a string/unicode or bytes'
+    assert isinstance(
+        decrypt_key, AESKey
+    ), "decrypt_key needs to be AESKey class instance"
+    assert isinstance(
+        ciphertext, (six.text_type, six.string_types, six.binary_type)
+    ), "ciphertext needs to either be a string/unicode or bytes"
 
     aes_key_bytes = decrypt_key.aes_key_bytes
     hmac_key_bytes = decrypt_key.hmac_key_bytes
@@ -280,10 +299,12 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
 
     # Verify ciphertext contains IV + HMAC signature
     if len(data_bytes) < (KEYCZAR_AES_BLOCK_SIZE + KEYCZAR_HLEN):
-        raise ValueError('Invalid or malformed ciphertext (too short)')
+        raise ValueError("Invalid or malformed ciphertext (too short)")
 
     iv_bytes = data_bytes[:KEYCZAR_AES_BLOCK_SIZE]  # first block is IV
-    ciphertext_bytes = data_bytes[KEYCZAR_AES_BLOCK_SIZE:-KEYCZAR_HLEN]  # strip IV and signature
+    ciphertext_bytes = data_bytes[
+        KEYCZAR_AES_BLOCK_SIZE:-KEYCZAR_HLEN
+    ]  # strip IV and signature
     signature_bytes = data_bytes[-KEYCZAR_HLEN:]  # last 20 bytes are signature
 
     # Verify HMAC signature
@@ -301,6 +322,7 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
     # Unpad
     decrypted = pkcs5_unpad(decrypted)
     return decrypted
+
 
 ###
 # NOTE: Those methods below are deprecated and only used for testing purposes
@@ -329,11 +351,12 @@ def keyczar_symmetric_encrypt(encrypt_key, plaintext):
     from keyczar.keys import HmacKey as KeyczarHmacKey  # pylint: disable=import-error
     from keyczar.keyinfo import GetMode  # pylint: disable=import-error
 
-    encrypt_key = KeyczarAesKey(encrypt_key.aes_key_string,
-                                KeyczarHmacKey(encrypt_key.hmac_key_string,
-                                               encrypt_key.hmac_key_size),
-                                encrypt_key.size,
-                                GetMode(encrypt_key.mode))
+    encrypt_key = KeyczarAesKey(
+        encrypt_key.aes_key_string,
+        KeyczarHmacKey(encrypt_key.hmac_key_string, encrypt_key.hmac_key_size),
+        encrypt_key.size,
+        GetMode(encrypt_key.mode),
+    )
 
     return binascii.hexlify(encrypt_key.Encrypt(plaintext)).upper()
 
@@ -356,11 +379,12 @@ def keyczar_symmetric_decrypt(decrypt_key, ciphertext):
     from keyczar.keys import HmacKey as KeyczarHmacKey  # pylint: disable=import-error
     from keyczar.keyinfo import GetMode  # pylint: disable=import-error
 
-    decrypt_key = KeyczarAesKey(decrypt_key.aes_key_string,
-                                KeyczarHmacKey(decrypt_key.hmac_key_string,
-                                               decrypt_key.hmac_key_size),
-                                decrypt_key.size,
-                                GetMode(decrypt_key.mode))
+    decrypt_key = KeyczarAesKey(
+        decrypt_key.aes_key_string,
+        KeyczarHmacKey(decrypt_key.hmac_key_string, decrypt_key.hmac_key_size),
+        decrypt_key.size,
+        GetMode(decrypt_key.mode),
+    )
 
     return decrypt_key.Decrypt(binascii.unhexlify(ciphertext))
 
@@ -370,7 +394,7 @@ def pkcs5_pad(data):
     Pad data using PKCS5
     """
     pad = KEYCZAR_AES_BLOCK_SIZE - len(data) % KEYCZAR_AES_BLOCK_SIZE
-    data = data + pad * chr(pad).encode('utf-8')
+    data = data + pad * chr(pad).encode("utf-8")
     return data
 
 
@@ -380,7 +404,7 @@ def pkcs5_unpad(data):
     """
     if isinstance(data, six.binary_type):
         # Make sure we are operating with a string type
-        data = data.decode('utf-8')
+        data = data.decode("utf-8")
 
     pad = ord(data[-1])
     data = data[:-pad]
@@ -404,9 +428,9 @@ def Base64WSEncode(s):
     """
     if isinstance(s, six.text_type):
         # Make sure input string is always converted to bytes (if not already)
-        s = s.encode('utf-8')
+        s = s.encode("utf-8")
 
-    return base64.urlsafe_b64encode(s).decode('utf-8').replace("=", "")
+    return base64.urlsafe_b64encode(s).decode("utf-8").replace("=", "")
 
 
 def Base64WSDecode(s):
@@ -427,12 +451,12 @@ def Base64WSDecode(s):
 
     NOTE: Taken from keyczar (Apache 2.0 license)
     """
-    s = ''.join(s.splitlines())
+    s = "".join(s.splitlines())
     s = str(s.replace(" ", ""))  # kill whitespace, make string (not unicode)
     d = len(s) % 4
 
     if d == 1:
-        raise ValueError('Base64 decoding errors')
+        raise ValueError("Base64 decoding errors")
     elif d == 2:
         s += "=="
     elif d == 3:
@@ -442,4 +466,4 @@ def Base64WSDecode(s):
         return base64.urlsafe_b64decode(s)
     except TypeError as e:
         # Decoding raises TypeError if s contains invalid characters.
-        raise ValueError('Base64 decoding error: %s' % (six.text_type(e)))
+        raise ValueError("Base64 decoding error: %s" % (six.text_type(e)))

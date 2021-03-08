@@ -28,23 +28,22 @@ from st2common.util.date import get_datetime_utc_now
 from st2common.exceptions.plugins import PluginLoadError
 
 __all__ = [
-    'BaseMetricsDriver',
-
-    'Timer',
-    'Counter',
-    'CounterWithTimer',
-
-    'metrics_initialize',
-    'get_driver'
+    "BaseMetricsDriver",
+    "Timer",
+    "Counter",
+    "CounterWithTimer",
+    "metrics_initialize",
+    "get_driver",
 ]
 
-if not hasattr(cfg.CONF, 'metrics'):
+if not hasattr(cfg.CONF, "metrics"):
     from st2common.config import register_opts
+
     register_opts()
 
 LOG = logging.getLogger(__name__)
 
-PLUGIN_NAMESPACE = 'st2common.metrics.driver'
+PLUGIN_NAMESPACE = "st2common.metrics.driver"
 
 # Stores reference to the metrics driver class instance.
 # NOTE: This value is populated lazily on the first get_driver() function call
@@ -97,6 +96,7 @@ class Timer(object):
     """
     Timer context manager for easily sending timer statistics.
     """
+
     def __init__(self, key, include_parameter=False):
         check_key(key)
 
@@ -136,8 +136,9 @@ class Timer(object):
         def wrapper(*args, **kw):
             with self as metrics_timer:
                 if self._include_parameter:
-                    kw['metrics_timer'] = metrics_timer
+                    kw["metrics_timer"] = metrics_timer
                 return func(*args, **kw)
+
         return wrapper
 
 
@@ -145,6 +146,7 @@ class Counter(object):
     """
     Counter context manager for easily sending counter statistics.
     """
+
     def __init__(self, key):
         check_key(key)
         self.key = key
@@ -162,6 +164,7 @@ class Counter(object):
         def wrapper(*args, **kw):
             with self:
                 return func(*args, **kw)
+
         return wrapper
 
 
@@ -209,8 +212,9 @@ class CounterWithTimer(object):
         def wrapper(*args, **kw):
             with self as counter_with_timer:
                 if self._include_parameter:
-                    kw['metrics_counter_with_timer'] = counter_with_timer
+                    kw["metrics_counter_with_timer"] = counter_with_timer
                 return func(*args, **kw)
+
         return wrapper
 
 
@@ -223,7 +227,9 @@ def metrics_initialize():
     try:
         METRICS = get_plugin_instance(PLUGIN_NAMESPACE, cfg.CONF.metrics.driver)
     except (NoMatches, MultipleMatches, NoSuchOptError) as error:
-        raise PluginLoadError('Error loading metrics driver. Check configuration: %s' % error)
+        raise PluginLoadError(
+            "Error loading metrics driver. Check configuration: %s" % error
+        )
 
     return METRICS
 

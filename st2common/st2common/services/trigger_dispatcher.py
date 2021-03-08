@@ -23,9 +23,7 @@ from st2common.models.api.trace import TraceContext
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.validators.api.reactor import validate_trigger_payload
 
-__all__ = [
-    'TriggerDispatcherService'
-]
+__all__ = ["TriggerDispatcherService"]
 
 
 class TriggerDispatcherService(object):
@@ -37,7 +35,9 @@ class TriggerDispatcherService(object):
         self._logger = logger
         self._dispatcher = TriggerDispatcher(self._logger)
 
-    def dispatch(self, trigger, payload=None, trace_tag=None, throw_on_validation_error=False):
+    def dispatch(
+        self, trigger, payload=None, trace_tag=None, throw_on_validation_error=False
+    ):
         """
         Method which dispatches the trigger.
 
@@ -56,12 +56,19 @@ class TriggerDispatcherService(object):
         """
         # empty strings
         trace_context = TraceContext(trace_tag=trace_tag) if trace_tag else None
-        self._logger.debug('Added trace_context %s to trigger %s.', trace_context, trigger)
-        return self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context,
-                                          throw_on_validation_error=throw_on_validation_error)
+        self._logger.debug(
+            "Added trace_context %s to trigger %s.", trace_context, trigger
+        )
+        return self.dispatch_with_context(
+            trigger,
+            payload=payload,
+            trace_context=trace_context,
+            throw_on_validation_error=throw_on_validation_error,
+        )
 
-    def dispatch_with_context(self, trigger, payload=None, trace_context=None,
-                              throw_on_validation_error=False):
+    def dispatch_with_context(
+        self, trigger, payload=None, trace_context=None, throw_on_validation_error=False
+    ):
         """
         Method which dispatches the trigger.
 
@@ -81,18 +88,25 @@ class TriggerDispatcherService(object):
         # Note: We perform validation even if it's disabled in the config so we can at least warn
         # the user if validation fals (but not throw if it's disabled)
         try:
-            validate_trigger_payload(trigger_type_ref=trigger, payload=payload,
-                                     throw_on_inexistent_trigger=True)
+            validate_trigger_payload(
+                trigger_type_ref=trigger,
+                payload=payload,
+                throw_on_inexistent_trigger=True,
+            )
         except (ValidationError, ValueError, Exception) as e:
-            self._logger.warn('Failed to validate payload (%s) for trigger "%s": %s' %
-                              (str(payload), trigger, six.text_type(e)))
+            self._logger.warn(
+                'Failed to validate payload (%s) for trigger "%s": %s'
+                % (str(payload), trigger, six.text_type(e))
+            )
 
             # If validation is disabled, still dispatch a trigger even if it failed validation
             # This condition prevents unexpected restriction.
             if cfg.CONF.system.validate_trigger_payload:
-                msg = ('Trigger payload validation failed and validation is enabled, not '
-                       'dispatching a trigger "%s" (%s): %s' % (trigger, str(payload),
-                                                                six.text_type(e)))
+                msg = (
+                    "Trigger payload validation failed and validation is enabled, not "
+                    'dispatching a trigger "%s" (%s): %s'
+                    % (trigger, str(payload), six.text_type(e))
+                )
 
                 if throw_on_validation_error:
                     raise ValueError(msg)
@@ -100,5 +114,7 @@ class TriggerDispatcherService(object):
                 self._logger.warn(msg)
                 return None
 
-        self._logger.debug('Dispatching trigger %s with payload %s.', trigger, payload)
-        return self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
+        self._logger.debug("Dispatching trigger %s with payload %s.", trigger, payload)
+        return self._dispatcher.dispatch(
+            trigger, payload=payload, trace_context=trace_context
+        )

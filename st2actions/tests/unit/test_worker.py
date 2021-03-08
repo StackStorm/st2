@@ -36,16 +36,20 @@ from st2tests.base import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 import st2tests.config as tests_config
 from six.moves import range
+
 tests_config.parse_args()
 
-TEST_FIXTURES = {
-    'actions': ['local.yaml']
+TEST_FIXTURES = {"actions": ["local.yaml"]}
+
+FIXTURES_PACK = "generic"
+
+NON_UTF8_RESULT = {
+    "stderr": "",
+    "stdout": "\x82\n",
+    "succeeded": True,
+    "failed": False,
+    "return_code": 0,
 }
-
-FIXTURES_PACK = 'generic'
-
-NON_UTF8_RESULT = {'stderr': '', 'stdout': '\x82\n', 'succeeded': True, 'failed': False,
-                   'return_code': 0}
 
 
 class WorkerTestCase(DbTestCase):
@@ -58,28 +62,42 @@ class WorkerTestCase(DbTestCase):
         runners_registrar.register_runners()
 
         models = WorkerTestCase.fixtures_loader.save_fixtures_to_db(
-            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
-        WorkerTestCase.local_action_db = models['actions']['local.yaml']
+            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES
+        )
+        WorkerTestCase.local_action_db = models["actions"]["local.yaml"]
 
     def _get_liveaction_model(self, action_db, params):
         status = action_constants.LIVEACTION_STATUS_REQUESTED
         start_timestamp = date_utils.get_datetime_utc_now()
         action_ref = ResourceReference(name=action_db.name, pack=action_db.pack).ref
         parameters = params
-        context = {'user': cfg.CONF.system_user.user}
-        liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
-                                     action=action_ref, parameters=parameters,
-                                     context=context)
+        context = {"user": cfg.CONF.system_user.user}
+        liveaction_db = LiveActionDB(
+            status=status,
+            start_timestamp=start_timestamp,
+            action=action_ref,
+            parameters=parameters,
+            context=context,
+        )
         return liveaction_db
 
-    @mock.patch.object(LocalShellCommandRunner, 'run', mock.MagicMock(
-        return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_UTF8_RESULT, None)))
+    @mock.patch.object(
+        LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(
+            return_value=(
+                action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                NON_UTF8_RESULT,
+                None,
+            )
+        ),
+    )
     def test_non_utf8_action_result_string(self):
         action_worker = actions_worker.get_worker()
-        params = {
-            'cmd': "python -c 'print \"\\x82\"'"
-        }
-        liveaction_db = self._get_liveaction_model(WorkerTestCase.local_action_db, params)
+        params = {"cmd": "python -c 'print \"\\x82\"'"}
+        liveaction_db = self._get_liveaction_model(
+            WorkerTestCase.local_action_db, params
+        )
         liveaction_db = LiveAction.add_or_update(liveaction_db)
         execution_db = executions.create_execution_object(liveaction_db)
 
@@ -87,11 +105,15 @@ class WorkerTestCase(DbTestCase):
             action_worker._run_action(liveaction_db)
         except InvalidStringData:
             liveaction_db = LiveAction.get_by_id(liveaction_db.id)
-            self.assertEqual(liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED)
-            self.assertIn('error', liveaction_db.result)
-            self.assertIn('traceback', liveaction_db.result)
+            self.assertEqual(
+                liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED
+            )
+            self.assertIn("error", liveaction_db.result)
+            self.assertIn("traceback", liveaction_db.result)
             execution_db = ActionExecution.get_by_id(execution_db.id)
-            self.assertEqual(liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED)
+            self.assertEqual(
+                liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED
+            )
 
     def test_worker_shutdown(self):
         action_worker = actions_worker.get_worker()
@@ -107,8 +129,10 @@ class WorkerTestCase(DbTestCase):
             self.assertTrue(os.path.isfile(temp_file))
 
             # Launch the action execution in a separate thread.
-            params = {'cmd': 'while [ -e \'%s\' ]; do sleep 0.1; done' % temp_file}
-            liveaction_db = self._get_liveaction_model(WorkerTestCase.local_action_db, params)
+            params = {"cmd": "while [ -e '%s' ]; do sleep 0.1; done" % temp_file}
+            liveaction_db = self._get_liveaction_model(
+                WorkerTestCase.local_action_db, params
+            )
             liveaction_db = LiveAction.add_or_update(liveaction_db)
             executions.create_execution_object(liveaction_db)
             runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
@@ -127,8 +151,11 @@ class WorkerTestCase(DbTestCase):
 
             # Verify that _running_liveactions is empty and the liveaction is abandoned.
             self.assertEqual(len(action_worker._running_liveactions), 0)
-            self.assertEqual(liveaction_db.status, action_constants.LIVEACTION_STATUS_ABANDONED,
-                             str(liveaction_db))
+            self.assertEqual(
+                liveaction_db.status,
+                action_constants.LIVEACTION_STATUS_ABANDONED,
+                str(liveaction_db),
+            )
 
         # Make sure the temporary file has been deleted.
         self.assertFalse(os.path.isfile(temp_file))

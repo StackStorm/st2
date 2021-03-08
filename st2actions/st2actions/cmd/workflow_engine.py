@@ -19,6 +19,7 @@
 from __future__ import absolute_import
 
 from st2common.util.monkey_patch import monkey_patch
+
 monkey_patch()
 
 import os
@@ -32,15 +33,12 @@ from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 
-__all__ = [
-    'main'
-]
+__all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
 
 
 def setup_sigterm_handler():
-
     def sigterm_handler(signum=None, frame=None):
         # This will cause SystemExit to be throw and allow for component cleanup.
         sys.exit(0)
@@ -51,35 +49,32 @@ def setup_sigterm_handler():
 
 
 def setup():
-    capabilities = {
-        'name': 'workflowengine',
-        'type': 'passive'
-    }
+    capabilities = {"name": "workflowengine", "type": "passive"}
     common_setup(
-        service='workflow_engine',
+        service="workflow_engine",
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
         register_signal_handlers=True,
         service_registry=True,
-        capabilities=capabilities
+        capabilities=capabilities,
     )
 
     setup_sigterm_handler()
 
 
 def run_server():
-    LOG.info('(PID=%s) Workflow engine started.', os.getpid())
+    LOG.info("(PID=%s) Workflow engine started.", os.getpid())
 
     engine = workflows.get_engine()
 
     try:
         engine.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
-        LOG.info('(PID=%s) Workflow engine stopped.', os.getpid())
+        LOG.info("(PID=%s) Workflow engine stopped.", os.getpid())
         engine.shutdown()
     except:
-        LOG.exception('(PID=%s) Workflow engine unexpectedly stopped.', os.getpid())
+        LOG.exception("(PID=%s) Workflow engine unexpectedly stopped.", os.getpid())
         return 1
 
     return 0
@@ -97,7 +92,7 @@ def main():
         sys.exit(exit_code)
     except Exception:
         traceback.print_exc()
-        LOG.exception('(PID=%s) Workflow engine quit due to exception.', os.getpid())
+        LOG.exception("(PID=%s) Workflow engine quit due to exception.", os.getpid())
         return 1
     finally:
         teardown()
