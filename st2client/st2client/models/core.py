@@ -175,13 +175,13 @@ class ResourceManager(object):
     @add_auth_token_to_kwargs_from_env
     def get_all(self, **kwargs):
         # TODO: This is ugly, stop abusing kwargs
-        url = '/%s' % self.resource.get_url_path_name()
-        limit = kwargs.pop('limit', 100)
-        pack = kwargs.pop('pack', None)
-        prefix = kwargs.pop('prefix', None)
-        user = kwargs.pop('user', None)
-        offset = kwargs.pop('offset', 0)
-        
+        url = "/%s" % self.resource.get_url_path_name()
+        limit = kwargs.pop("limit", 100)
+        pack = kwargs.pop("pack", None)
+        prefix = kwargs.pop("prefix", None)
+        user = kwargs.pop("user", None)
+        offset = kwargs.pop("offset", 0)
+
         params = kwargs.pop("params", {})
 
         if limit:
@@ -197,7 +197,7 @@ class ResourceManager(object):
             params["user"] = user
 
         if offset:
-            params['offset'] = user
+            params["offset"] = user
 
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != http_client.OK:
