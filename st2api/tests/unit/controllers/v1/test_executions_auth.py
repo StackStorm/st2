@@ -126,7 +126,7 @@ class ActionExecutionControllerTestCaseAuthEnabled(FunctionalTest):
 
     @classmethod
     @mock.patch.object(Token, "get", mock.MagicMock(side_effect=mock_get_token))
-    @mock.patch.object(User, "get_by_name", mock.MagicMock(side_effect=UserDB))
+    @mock.patch.object(User, "get_by_name", mock.MagicMock(return_value=TEST_USER))
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
