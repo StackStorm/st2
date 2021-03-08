@@ -31,7 +31,6 @@ TEST_FILE_PATH = os.path.join(BASE_DIR, "log_unicode_data.py")
 
 class LogFormattingAndEncodingTestCase(IntegrationTestCase):
     def test_formatting_with_unicode_data_works_no_stdout_patching(self):
-        return
         # Ensure that process doesn't end up in an infinite loop if non-utf8 locale / encoding is
         # used and a unicode sequence is logged.
 
@@ -93,6 +92,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
         self.assertIn("'ascii' codec can't encode", stdout)
 
         self.assertTrue(len(stdout_lines) >= 50)
+        self.assertTrue(len(stdout_lines) < 100)
 
         self.assertIn("INFO [-] Test info message 1", stdout)
         self.assertIn("Test debug message 1", stdout)
@@ -131,6 +131,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
         self.assertIn("'ascii' codec can't encode", stdout)
 
         self.assertTrue(len(stdout_lines) >= 50)
+        self.assertTrue(len(stdout_lines) < 100)
 
         self.assertIn("INFO [-] Test info message 1", stdout)
         self.assertIn("Test debug message 1", stdout)
