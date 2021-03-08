@@ -52,7 +52,6 @@ KEYCZAR_HLEN = sha1().digest_size
 
 
 class EncryptedValueMigration(object):
-
     def _get_keyvalue_with_parameters(self):
         """
         All KeyValueDB that has a secret parameter.
@@ -70,16 +69,17 @@ class EncryptedValueMigration(object):
         aes_key_bytes = Base64WSDecode(crypto_key.aes_key_string)
         for keyvalue_db in keyvalue_dbs:
             if keyvalue_db.secret:
-                plaintext = cryptography_symmetric_decrypt(hmac_key_bytes,
-                                                           aes_key_bytes, keyvalue_db.value)
+                plaintext = cryptography_symmetric_decrypt(
+                    hmac_key_bytes, aes_key_bytes, keyvalue_db.value
+                )
                 crypto_key = AESKey.generate()
                 new_encrypted_value = symmetric_encrypt(crypto_key, plaintext)
                 new_encrypted_value = str(new_encrypted_value)
                 keyvalue_db.new_encrypted_value = new_encrypted_value[2:-1]
                 KeyValuePair.add_or_update(keyvalue_db)
-                print('Updated new encrypted value %s.' % (new_encrypted_value))
+                print("Updated new encrypted value %s." % (new_encrypted_value))
             else:
-                print('Cannot update the values as datastore contains cleartext')
+                print("Cannot update the values as datastore contains cleartext")
 
 
 def setup():
@@ -116,10 +116,12 @@ def cryptography_symmetric_decrypt(hmac_key_bytes, aes_key_bytes, ciphertext):
 
     # Verify ciphertext contains IV + HMAC signature
     if len(data_bytes) < (KEYCZAR_AES_BLOCK_SIZE + KEYCZAR_HLEN):
-        raise ValueError('Invalid or malformed ciphertext (too short)')
+        raise ValueError("Invalid or malformed ciphertext (too short)")
 
     iv_bytes = data_bytes[:KEYCZAR_AES_BLOCK_SIZE]  # first block is IV
-    ciphertext_bytes = data_bytes[KEYCZAR_AES_BLOCK_SIZE:-KEYCZAR_HLEN]  # strip IV and signature
+    ciphertext_bytes = data_bytes[
+        KEYCZAR_AES_BLOCK_SIZE:-KEYCZAR_HLEN
+    ]  # strip IV and signature
     signature_bytes = data_bytes[-KEYCZAR_HLEN:]  # last 20 bytes are signature
 
     # Verify HMAC signature
@@ -148,14 +150,14 @@ def main():
 
     try:
         EncryptedValueMigration().migrate_encrypted_value()
-        print('SUCCESS: Encrypyted value migrated successfully.')
+        print("SUCCESS: Encrypyted value migrated successfully.")
     except Exception as e:
-        print('ABORTED: Encrypyted value migration aborted on first failure.', {e})
+        print("ABORTED: Encrypyted value migration aborted on first failure.", {e})
     finally:
 
         # Disconnect from db.
         teardown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
