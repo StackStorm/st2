@@ -133,7 +133,7 @@ def setup(
     fs_encoding = sys.getfilesystemencoding()
     default_encoding = sys.getdefaultencoding()
     lang_env = os.environ.get("LANG", "notset")
-    pythonipencoding_env = os.environ.get("PYTHONIOENCODING", "notset")
+    pythonioencoding_env = os.environ.get("PYTHONIOENCODING", "notset")
 
     try:
         language_code, encoding = locale.getdefaultlocale()
@@ -150,7 +150,7 @@ def setup(
     LOG.info(
         "Using fs encoding: %s, default encoding: %s, locale: %s, LANG env variable: %s, "
         "PYTHONIOENCODING env variable: %s"
-        % (fs_encoding, default_encoding, lang_env, used_locale, pythonipencoding_env)
+        % (fs_encoding, default_encoding, lang_env, used_locale, pythonioencoding_env)
     )
 
     config_file_paths = cfg.CONF.config_file
