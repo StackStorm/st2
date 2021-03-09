@@ -28,18 +28,12 @@ except ImportError:
 import six
 
 
-__all__ = [
-    'json_encode',
-    'json_loads',
-    'try_loads',
-
-    'get_json_type_for_python_value'
-]
+__all__ = ["json_encode", "json_loads", "try_loads", "get_json_type_for_python_value"]
 
 
 class GenericJSON(JSONEncoder):
     def default(self, obj):  # pylint: disable=method-hidden
-        if hasattr(obj, '__json__') and six.callable(obj.__json__):
+        if hasattr(obj, "__json__") and six.callable(obj.__json__):
             return obj.__json__()
         else:
             return JSONEncoder.default(self, obj)
@@ -50,7 +44,7 @@ def json_encode(obj, indent=4):
 
 
 def load_file(path):
-    with open(path, 'r') as fd:
+    with open(path, "r") as fd:
         return json.load(fd)
 
 
@@ -95,16 +89,16 @@ def get_json_type_for_python_value(value):
     :rtype: ``str``
     """
     if isinstance(value, six.text_type):
-        return 'string'
+        return "string"
     elif isinstance(value, (int, float)):
-        return 'number'
+        return "number"
     elif isinstance(value, dict):
-        return 'object'
+        return "object"
     elif isinstance(value, (list, tuple)):
-        return 'array'
+        return "array"
     elif isinstance(value, bool):
-        return 'boolean'
+        return "boolean"
     elif value is None:
-        return 'null'
+        return "null"
     else:
-        return 'unknown'
+        return "unknown"

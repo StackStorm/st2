@@ -24,15 +24,15 @@ from st2common.persistence.actionalias import ActionAlias
 from st2common.models.utils.action_alias_utils import extract_parameters
 
 __all__ = [
-    'list_format_strings_from_aliases',
-    'normalise_alias_format_string',
-    'match_command_to_alias',
-    'get_matching_alias',
+    "list_format_strings_from_aliases",
+    "normalise_alias_format_string",
+    "match_command_to_alias",
+    "get_matching_alias",
 ]
 
 
 def list_format_strings_from_aliases(aliases, match_multiple=False):
-    '''
+    """
     List patterns from a collection of alias objects
 
     :param aliases: The list of aliases
@@ -40,34 +40,40 @@ def list_format_strings_from_aliases(aliases, match_multiple=False):
 
     :return: A description of potential execution patterns in a list of aliases.
     :rtype: ``list`` of ``list``
-    '''
+    """
     patterns = []
     for alias in aliases:
         for format_ in alias.formats:
-            display, representations, _match_multiple = normalise_alias_format_string(format_)
+            display, representations, _match_multiple = normalise_alias_format_string(
+                format_
+            )
             if display and len(representations) == 0:
-                patterns.append({
-                    'alias': alias,
-                    'format': format_,
-                    'display': display,
-                    'representation': '',
-                })
-            else:
-                patterns.extend([
+                patterns.append(
                     {
-                        'alias': alias,
-                        'format': format_,
-                        'display': display,
-                        'representation': representation,
-                        'match_multiple': _match_multiple,
+                        "alias": alias,
+                        "format": format_,
+                        "display": display,
+                        "representation": "",
                     }
-                    for representation in representations
-                ])
+                )
+            else:
+                patterns.extend(
+                    [
+                        {
+                            "alias": alias,
+                            "format": format_,
+                            "display": display,
+                            "representation": representation,
+                            "match_multiple": _match_multiple,
+                        }
+                        for representation in representations
+                    ]
+                )
     return patterns
 
 
 def normalise_alias_format_string(alias_format):
-    '''
+    """
     StackStorm action aliases come in two forms;
         1. A string holding the format, which is also used as the help string.
         2. A dictionary containing "display" and/or "representation" keys.
@@ -80,7 +86,7 @@ def normalise_alias_format_string(alias_format):
 
     :return: The representation of the alias
     :rtype: ``tuple`` of (``str``, ``str``)
-    '''
+    """
     display = None
     representation = []
     match_multiple = False
@@ -89,14 +95,16 @@ def normalise_alias_format_string(alias_format):
         display = alias_format
         representation.append(alias_format)
     elif isinstance(alias_format, dict):
-        display = alias_format.get('display')
-        representation = alias_format.get('representation') or []
+        display = alias_format.get("display")
+        representation = alias_format.get("representation") or []
         if isinstance(representation, six.string_types):
             representation = [representation]
-        match_multiple = alias_format.get('match_multiple', match_multiple)
+        match_multiple = alias_format.get("match_multiple", match_multiple)
     else:
-        raise TypeError("alias_format '%s' is neither a dictionary or string type."
-                        % repr(alias_format))
+        raise TypeError(
+            "alias_format '%s' is neither a dictionary or string type."
+            % repr(alias_format)
+        )
     return (display, representation, match_multiple)
 
 
@@ -110,8 +118,9 @@ def match_command_to_alias(command, aliases, match_multiple=False):
         formats = list_format_strings_from_aliases([alias], match_multiple)
         for format_ in formats:
             try:
-                extract_parameters(format_str=format_['representation'],
-                                   param_stream=command)
+                extract_parameters(
+                    format_str=format_["representation"], param_stream=command
+                )
             except ParseException:
                 continue
 
@@ -125,35 +134,41 @@ def get_matching_alias(command):
     """
     # 1. Get aliases
     action_alias_dbs = ActionAlias.query(
-        Q(formats__match_multiple=None) | Q(formats__match_multiple=False),
-        enabled=True)
+        Q(formats__match_multiple=None) | Q(formats__match_multiple=False), enabled=True
+    )
 
     # 2. Match alias(es) to command
     matches = match_command_to_alias(command=command, aliases=action_alias_dbs)
 
     if len(matches) > 1:
-        raise ActionAliasAmbiguityException("Command '%s' matched more than 1 pattern" %
-                                            command,
-                                            matches=matches,
-                                            command=command)
+        raise ActionAliasAmbiguityException(
+            "Command '%s' matched more than 1 pattern" % command,
+            matches=matches,
+            command=command,
+        )
     elif len(matches) == 0:
         match_multiple_action_alias_dbs = ActionAlias.query(
-            formats__match_multiple=True,
-            enabled=True)
+            formats__match_multiple=True, enabled=True
+        )
 
-        matches = match_command_to_alias(command=command, aliases=match_multiple_action_alias_dbs,
-                                         match_multiple=True)
+        matches = match_command_to_alias(
+            command=command,
+            aliases=match_multiple_action_alias_dbs,
+            match_multiple=True,
+        )
 
         if len(matches) > 1:
-            raise ActionAliasAmbiguityException("Command '%s' matched more than 1 (multi) pattern" %
-                                                command,
-                                                matches=matches,
-                                                command=command)
+            raise ActionAliasAmbiguityException(
+                "Command '%s' matched more than 1 (multi) pattern" % command,
+                matches=matches,
+                command=command,
+            )
 
         if len(matches) == 0:
-            raise ActionAliasAmbiguityException("Command '%s' matched no patterns" %
-                                                command,
-                                                matches=[],
-                                                command=command)
+            raise ActionAliasAmbiguityException(
+                "Command '%s' matched no patterns" % command,
+                matches=[],
+                command=command,
+            )
 
     return matches[0]

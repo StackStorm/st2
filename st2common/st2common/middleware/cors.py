@@ -42,18 +42,18 @@ class CorsMiddleware(object):
         def custom_start_response(status, headers, exc_info=None):
             headers = ResponseHeaders(headers)
 
-            origin = request.headers.get('Origin')
+            origin = request.headers.get("Origin")
             origins = OrderedSet(cfg.CONF.api.allow_origin)
 
             # Build a list of the default allowed origins
             public_api_url = cfg.CONF.auth.api_url
 
             # Default gulp development server WebUI URL
-            origins.add('http://127.0.0.1:3000')
+            origins.add("http://127.0.0.1:3000")
 
             # By default WebUI simple http server listens on 8080
-            origins.add('http://localhost:8080')
-            origins.add('http://127.0.0.1:8080')
+            origins.add("http://localhost:8080")
+            origins.add("http://127.0.0.1:8080")
 
             if public_api_url:
                 # Public API URL
@@ -62,7 +62,7 @@ class CorsMiddleware(object):
             origins = list(origins)
 
             if origin:
-                if '*' in origins:
+                if "*" in origins:
                     origin_allowed = origin
                 else:
                     # See http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
@@ -70,21 +70,32 @@ class CorsMiddleware(object):
             else:
                 origin_allowed = list(origins)[0]
 
-            methods_allowed = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-            request_headers_allowed = ['Content-Type', 'Authorization', HEADER_ATTRIBUTE_NAME,
-                                       HEADER_API_KEY_ATTRIBUTE_NAME, REQUEST_ID_HEADER]
-            response_headers_allowed = ['Content-Type', 'X-Limit', 'X-Total-Count',
-                                        REQUEST_ID_HEADER]
+            methods_allowed = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+            request_headers_allowed = [
+                "Content-Type",
+                "Authorization",
+                HEADER_ATTRIBUTE_NAME,
+                HEADER_API_KEY_ATTRIBUTE_NAME,
+                REQUEST_ID_HEADER,
+            ]
+            response_headers_allowed = [
+                "Content-Type",
+                "X-Limit",
+                "X-Total-Count",
+                REQUEST_ID_HEADER,
+            ]
 
-            headers['Access-Control-Allow-Origin'] = origin_allowed
-            headers['Access-Control-Allow-Methods'] = ','.join(methods_allowed)
-            headers['Access-Control-Allow-Headers'] = ','.join(request_headers_allowed)
-            headers['Access-Control-Allow-Credentials'] = 'true'
-            headers['Access-Control-Expose-Headers'] = ','.join(response_headers_allowed)
+            headers["Access-Control-Allow-Origin"] = origin_allowed
+            headers["Access-Control-Allow-Methods"] = ",".join(methods_allowed)
+            headers["Access-Control-Allow-Headers"] = ",".join(request_headers_allowed)
+            headers["Access-Control-Allow-Credentials"] = "true"
+            headers["Access-Control-Expose-Headers"] = ",".join(
+                response_headers_allowed
+            )
 
             return start_response(status, headers._items, exc_info)
 
-        if request.method == 'OPTIONS':
+        if request.method == "OPTIONS":
             return Response()(environ, custom_start_response)
         else:
             return self.app(environ, custom_start_response)

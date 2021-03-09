@@ -23,8 +23,7 @@ from st2common.util import system_info
 
 
 class TestLogger(unittest.TestCase):
-
     def test_process_info(self):
         process_info = system_info.get_process_info()
-        self.assertEqual(process_info['hostname'], socket.gethostname())
-        self.assertEqual(process_info['pid'], os.getpid())
+        self.assertEqual(process_info["hostname"], socket.gethostname())
+        self.assertEqual(process_info["pid"], os.getpid())

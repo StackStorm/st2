@@ -17,9 +17,7 @@
 Common model related classes.
 """
 
-__all__ = [
-    'DictSerializableClassMixin'
-]
+__all__ = ["DictSerializableClassMixin"]
 
 
 class DictSerializableClassMixin(object):

@@ -23,12 +23,12 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 
 __all__ = [
-    'Action',
-    'ActionAlias',
-    'ActionExecution',
-    'ActionExecutionState',
-    'LiveAction',
-    'RunnerType'
+    "Action",
+    "ActionAlias",
+    "ActionExecution",
+    "ActionExecutionState",
+    "LiveAction",
+    "RunnerType",
 ]
 
 

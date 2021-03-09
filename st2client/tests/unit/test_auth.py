@@ -29,24 +29,27 @@ from tests import base
 from st2client import shell
 from st2client.models.core import add_auth_token_to_kwargs_from_env
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
-from st2client.utils.httpclient import add_auth_token_to_headers, add_json_content_type_to_headers
+from st2client.utils.httpclient import (
+    add_auth_token_to_headers,
+    add_json_content_type_to_headers,
+)
 
 
 LOG = logging.getLogger(__name__)
 
 if six.PY3:
     RULE = {
-        'name': 'drule',
-        'description': 'i am THE rule.',
-        'pack': 'cli',
-        'id': uuid.uuid4().hex
+        "name": "drule",
+        "description": "i am THE rule.",
+        "pack": "cli",
+        "id": uuid.uuid4().hex,
     }
 else:
     RULE = {
-        'id': uuid.uuid4().hex,
-        'description': 'i am THE rule.',
-        'name': 'drule',
-        'pack': 'cli',
+        "id": uuid.uuid4().hex,
+        "description": "i am THE rule.",
+        "name": "drule",
+        "pack": "cli",
     }
 
 
@@ -59,9 +62,9 @@ class TestLoginBase(base.BaseCLITestCase):
     on duplicate code in each test class
     """
 
-    DOTST2_PATH = os.path.expanduser('~/.st2/')
-    CONFIG_FILE_NAME = 'st2.conf'
-    PARENT_DIR = 'testconfig'
+    DOTST2_PATH = os.path.expanduser("~/.st2/")
+    CONFIG_FILE_NAME = "st2.conf"
+    PARENT_DIR = "testconfig"
     TMP_DIR = tempfile.mkdtemp()
     CONFIG_CONTENTS = """
     [credentials]
@@ -73,11 +76,11 @@ class TestLoginBase(base.BaseCLITestCase):
         super(TestLoginBase, self).__init__(*args, **kwargs)
 
         # We're overriding the default behavior for CLI test cases here
-        self.DEFAULT_SKIP_CONFIG = '0'
+        self.DEFAULT_SKIP_CONFIG = "0"
 
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
+        self.parser.add_argument("-t", "--token", dest="token")
+        self.parser.add_argument("--api-key", dest="api_key")
         self.shell = shell.Shell()
 
         self.CONFIG_DIR = os.path.join(self.TMP_DIR, self.PARENT_DIR)
@@ -94,9 +97,9 @@ class TestLoginBase(base.BaseCLITestCase):
         if os.path.isfile(self.CONFIG_FILE):
             os.remove(self.CONFIG_FILE)
 
-        with open(self.CONFIG_FILE, 'w') as cfg:
-            for line in self.CONFIG_CONTENTS.split('\n'):
-                cfg.write('%s\n' % line.strip())
+        with open(self.CONFIG_FILE, "w") as cfg:
+            for line in self.CONFIG_CONTENTS.split("\n"):
+                cfg.write("%s\n" % line.strip())
 
         os.chmod(self.CONFIG_FILE, 0o660)
 
@@ -107,7 +110,7 @@ class TestLoginBase(base.BaseCLITestCase):
         os.remove(self.CONFIG_FILE)
 
         # Clean up tokens
-        for file in [f for f in os.listdir(self.DOTST2_PATH) if 'token-' in f]:
+        for file in [f for f in os.listdir(self.DOTST2_PATH) if "token-" in f]:
             os.remove(self.DOTST2_PATH + file)
 
         # Clean up config directory
@@ -116,181 +119,208 @@ class TestLoginBase(base.BaseCLITestCase):
 
 class TestLoginPasswordAndConfig(TestLoginBase):
 
-    CONFIG_FILE_NAME = 'logintest.cfg'
+    CONFIG_FILE_NAME = "logintest.cfg"
 
     TOKEN = {
-        'user': 'st2admin',
-        'token': '44583f15945b4095afbf57058535ca64',
-        'expiry': '2017-02-12T00:53:09.632783Z',
-        'id': '589e607532ed3535707f10eb',
-        'metadata': {}
+        "user": "st2admin",
+        "token": "44583f15945b4095afbf57058535ca64",
+        "expiry": "2017-02-12T00:53:09.632783Z",
+        "id": "589e607532ed3535707f10eb",
+        "metadata": {},
     }
 
     @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
+        requests,
+        "post",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, "OK")),
+    )
     def runTest(self):
-        '''Test 'st2 login' functionality by specifying a password and a configuration file
-        '''
+        """Test 'st2 login' functionality by specifying a password and a configuration file"""
 
-        expected_username = self.TOKEN['user']
-        args = ['--config', self.CONFIG_FILE, 'login', expected_username, '--password',
-                'Password1!']
+        expected_username = self.TOKEN["user"]
+        args = [
+            "--config",
+            self.CONFIG_FILE,
+            "login",
+            expected_username,
+            "--password",
+            "Password1!",
+        ]
 
         self.shell.run(args)
 
-        with open(self.CONFIG_FILE, 'r') as config_file:
+        with open(self.CONFIG_FILE, "r") as config_file:
             for line in config_file.readlines():
                 # Make sure certain values are not present
-                self.assertNotIn('password', line)
-                self.assertNotIn('olduser', line)
+                self.assertNotIn("password", line)
+                self.assertNotIn("olduser", line)
 
                 # Make sure configured username is what we expect
-                if 'username' in line:
-                    self.assertEqual(line.split(' ')[2][:-1], expected_username)
+                if "username" in line:
+                    self.assertEqual(line.split(" ")[2][:-1], expected_username)
 
             # validate token was created
-            self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
+            self.assertTrue(
+                os.path.isfile("%stoken-%s" % (self.DOTST2_PATH, expected_username))
+            )
 
 
 class TestLoginIntPwdAndConfig(TestLoginBase):
 
-    CONFIG_FILE_NAME = 'logintest.cfg'
+    CONFIG_FILE_NAME = "logintest.cfg"
 
     TOKEN = {
-        'user': 'st2admin',
-        'token': '44583f15945b4095afbf57058535ca64',
-        'expiry': '2017-02-12T00:53:09.632783Z',
-        'id': '589e607532ed3535707f10eb',
-        'metadata': {}
+        "user": "st2admin",
+        "token": "44583f15945b4095afbf57058535ca64",
+        "expiry": "2017-02-12T00:53:09.632783Z",
+        "id": "589e607532ed3535707f10eb",
+        "metadata": {},
     }
 
     @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
+        requests,
+        "post",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, "OK")),
+    )
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    @mock.patch('st2client.commands.auth.getpass')
+        requests,
+        "get",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, "OK")),
+    )
+    @mock.patch("st2client.commands.auth.getpass")
     def runTest(self, mock_gp):
-        '''Test 'st2 login' functionality with interactive password entry
-        '''
+        """Test 'st2 login' functionality with interactive password entry"""
 
-        expected_username = self.TOKEN['user']
-        args = ['--config', self.CONFIG_FILE, 'login', expected_username]
+        expected_username = self.TOKEN["user"]
+        args = ["--config", self.CONFIG_FILE, "login", expected_username]
 
-        mock_gp.getpass.return_value = 'Password1!'
+        mock_gp.getpass.return_value = "Password1!"
 
         self.shell.run(args)
 
         expected_kwargs = {
-            'headers': {'content-type': 'application/json'},
-            'auth': ('st2admin', 'Password1!')
+            "headers": {"content-type": "application/json"},
+            "auth": ("st2admin", "Password1!"),
         }
-        requests.post.assert_called_with('http://127.0.0.1:9100/tokens', '{}', **expected_kwargs)
+        requests.post.assert_called_with(
+            "http://127.0.0.1:9100/tokens", "{}", **expected_kwargs
+        )
 
         # Check file permissions
         self.assertEqual(os.stat(self.CONFIG_FILE).st_mode & 0o777, 0o660)
 
-        with open(self.CONFIG_FILE, 'r') as config_file:
+        with open(self.CONFIG_FILE, "r") as config_file:
             for line in config_file.readlines():
                 # Make sure certain values are not present
-                self.assertNotIn('password', line)
-                self.assertNotIn('olduser', line)
+                self.assertNotIn("password", line)
+                self.assertNotIn("olduser", line)
 
                 # Make sure configured username is what we expect
-                if 'username' in line:
-                    self.assertEqual(line.split(' ')[2][:-1], expected_username)
+                if "username" in line:
+                    self.assertEqual(line.split(" ")[2][:-1], expected_username)
 
             # validate token was created
-            self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
+            self.assertTrue(
+                os.path.isfile("%stoken-%s" % (self.DOTST2_PATH, expected_username))
+            )
 
         # Validate token is sent on subsequent requests to st2 API
-        args = ['--config', self.CONFIG_FILE, 'pack', 'list']
+        args = ["--config", self.CONFIG_FILE, "pack", "list"]
         self.shell.run(args)
 
         expected_kwargs = {
-            'headers': {
-                'X-Auth-Token': self.TOKEN['token']
-            },
-            'params': {
-                'include_attributes': 'ref,name,description,version,author'
-            }
+            "headers": {"X-Auth-Token": self.TOKEN["token"]},
+            "params": {"include_attributes": "ref,name,description,version,author"},
         }
-        requests.get.assert_called_with('http://127.0.0.1:9101/v1/packs', **expected_kwargs)
+        requests.get.assert_called_with(
+            "http://127.0.0.1:9101/v1/packs", **expected_kwargs
+        )
 
 
 class TestLoginWritePwdOkay(TestLoginBase):
 
-    CONFIG_FILE_NAME = 'logintest.cfg'
+    CONFIG_FILE_NAME = "logintest.cfg"
 
     TOKEN = {
-        'user': 'st2admin',
-        'token': '44583f15945b4095afbf57058535ca64',
-        'expiry': '2017-02-12T00:53:09.632783Z',
-        'id': '589e607532ed3535707f10eb',
-        'metadata': {}
+        "user": "st2admin",
+        "token": "44583f15945b4095afbf57058535ca64",
+        "expiry": "2017-02-12T00:53:09.632783Z",
+        "id": "589e607532ed3535707f10eb",
+        "metadata": {},
     }
 
     @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
-    @mock.patch('st2client.commands.auth.getpass')
+        requests,
+        "post",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, "OK")),
+    )
+    @mock.patch("st2client.commands.auth.getpass")
     def runTest(self, mock_gp):
-        '''Test 'st2 login' functionality with --write-password flag set
-        '''
+        """Test 'st2 login' functionality with --write-password flag set"""
 
-        expected_username = self.TOKEN['user']
-        args = ['--config', self.CONFIG_FILE, 'login', expected_username, '--password',
-                'Password1!', '--write-password']
+        expected_username = self.TOKEN["user"]
+        args = [
+            "--config",
+            self.CONFIG_FILE,
+            "login",
+            expected_username,
+            "--password",
+            "Password1!",
+            "--write-password",
+        ]
 
         self.shell.run(args)
 
-        with open(self.CONFIG_FILE, 'r') as config_file:
+        with open(self.CONFIG_FILE, "r") as config_file:
 
             for line in config_file.readlines():
 
                 # Make sure certain values are not present
-                self.assertNotIn('olduser', line)
+                self.assertNotIn("olduser", line)
 
                 # Make sure configured username is what we expect
-                if 'username' in line:
-                    self.assertEqual(line.split(' ')[2][:-1], expected_username)
+                if "username" in line:
+                    self.assertEqual(line.split(" ")[2][:-1], expected_username)
 
             # validate token was created
-            self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
+            self.assertTrue(
+                os.path.isfile("%stoken-%s" % (self.DOTST2_PATH, expected_username))
+            )
 
 
 class TestLoginUncaughtException(TestLoginBase):
 
-    CONFIG_FILE_NAME = 'logintest.cfg'
+    CONFIG_FILE_NAME = "logintest.cfg"
 
     TOKEN = {
-        'user': 'st2admin',
-        'token': '44583f15945b4095afbf57058535ca64',
-        'expiry': '2017-02-12T00:53:09.632783Z',
-        'id': '589e607532ed3535707f10eb',
-        'metadata': {}
+        "user": "st2admin",
+        "token": "44583f15945b4095afbf57058535ca64",
+        "expiry": "2017-02-12T00:53:09.632783Z",
+        "id": "589e607532ed3535707f10eb",
+        "metadata": {},
     }
 
     @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
-    @mock.patch('st2client.commands.auth.getpass')
+        requests,
+        "post",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, "OK")),
+    )
+    @mock.patch("st2client.commands.auth.getpass")
     def runTest(self, mock_gp):
-        '''Test 'st2 login' ability to detect unhandled exceptions
-        '''
+        """Test 'st2 login' ability to detect unhandled exceptions"""
 
-        expected_username = self.TOKEN['user']
-        args = ['--config', self.CONFIG_FILE, 'login', expected_username]
+        expected_username = self.TOKEN["user"]
+        args = ["--config", self.CONFIG_FILE, "login", expected_username]
 
         mock_gp.getpass = mock.MagicMock(side_effect=Exception)
 
         self.shell.run(args)
         retcode = self.shell.run(args)
 
-        self.assertIn('Failed to log in as %s' % expected_username, self.stdout.getvalue())
-        self.assertNotIn('Logged in as', self.stdout.getvalue())
+        self.assertIn(
+            "Failed to log in as %s" % expected_username, self.stdout.getvalue()
+        )
+        self.assertNotIn("Logged in as", self.stdout.getvalue())
         self.assertEqual(retcode, 1)
 
 
@@ -301,26 +331,26 @@ class TestAuthToken(base.BaseCLITestCase):
     def __init__(self, *args, **kwargs):
         super(TestAuthToken, self).__init__(*args, **kwargs)
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
+        self.parser.add_argument("-t", "--token", dest="token")
+        self.parser.add_argument("--api-key", dest="api_key")
         self.shell = shell.Shell()
 
     def setUp(self):
         super(TestAuthToken, self).setUp()
 
         # Setup environment.
-        os.environ['ST2_BASE_URL'] = 'http://127.0.0.1'
+        os.environ["ST2_BASE_URL"] = "http://127.0.0.1"
 
     def tearDown(self):
         super(TestAuthToken, self).tearDown()
 
         # Clean up environment.
-        if 'ST2_AUTH_TOKEN' in os.environ:
-            del os.environ['ST2_AUTH_TOKEN']
-        if 'ST2_API_KEY' in os.environ:
-            del os.environ['ST2_API_KEY']
-        if 'ST2_BASE_URL' in os.environ:
-            del os.environ['ST2_BASE_URL']
+        if "ST2_AUTH_TOKEN" in os.environ:
+            del os.environ["ST2_AUTH_TOKEN"]
+        if "ST2_API_KEY" in os.environ:
+            del os.environ["ST2_API_KEY"]
+        if "ST2_BASE_URL" in os.environ:
+            del os.environ["ST2_BASE_URL"]
 
     @add_auth_token_to_kwargs_from_cli
     @add_auth_token_to_kwargs_from_env
@@ -329,27 +359,27 @@ class TestAuthToken(base.BaseCLITestCase):
 
     def test_decorate_auth_token_by_cli(self):
         token = uuid.uuid4().hex
-        args = self.parser.parse_args(args=['-t', token])
-        self.assertDictEqual(self._mock_run(args), {'token': token})
-        args = self.parser.parse_args(args=['--token', token])
-        self.assertDictEqual(self._mock_run(args), {'token': token})
+        args = self.parser.parse_args(args=["-t", token])
+        self.assertDictEqual(self._mock_run(args), {"token": token})
+        args = self.parser.parse_args(args=["--token", token])
+        self.assertDictEqual(self._mock_run(args), {"token": token})
 
     def test_decorate_api_key_by_cli(self):
         token = uuid.uuid4().hex
-        args = self.parser.parse_args(args=['--api-key', token])
-        self.assertDictEqual(self._mock_run(args), {'api_key': token})
+        args = self.parser.parse_args(args=["--api-key", token])
+        self.assertDictEqual(self._mock_run(args), {"api_key": token})
 
     def test_decorate_auth_token_by_env(self):
         token = uuid.uuid4().hex
-        os.environ['ST2_AUTH_TOKEN'] = token
+        os.environ["ST2_AUTH_TOKEN"] = token
         args = self.parser.parse_args(args=[])
-        self.assertDictEqual(self._mock_run(args), {'token': token})
+        self.assertDictEqual(self._mock_run(args), {"token": token})
 
     def test_decorate_api_key_by_env(self):
         token = uuid.uuid4().hex
-        os.environ['ST2_API_KEY'] = token
+        os.environ["ST2_API_KEY"] = token
         args = self.parser.parse_args(args=[])
-        self.assertDictEqual(self._mock_run(args), {'api_key': token})
+        self.assertDictEqual(self._mock_run(args), {"api_key": token})
 
     def test_decorate_without_auth_token(self):
         args = self.parser.parse_args(args=[])
@@ -362,187 +392,215 @@ class TestAuthToken(base.BaseCLITestCase):
 
     def test_decorate_auth_token_to_http_headers(self):
         token = uuid.uuid4().hex
-        kwargs = self._mock_http('/', token=token)
-        expected = {'content-type': 'application/json', 'X-Auth-Token': token}
-        self.assertIn('headers', kwargs)
-        self.assertDictEqual(kwargs['headers'], expected)
+        kwargs = self._mock_http("/", token=token)
+        expected = {"content-type": "application/json", "X-Auth-Token": token}
+        self.assertIn("headers", kwargs)
+        self.assertDictEqual(kwargs["headers"], expected)
 
     def test_decorate_api_key_to_http_headers(self):
         token = uuid.uuid4().hex
-        kwargs = self._mock_http('/', api_key=token)
-        expected = {'content-type': 'application/json', 'St2-Api-Key': token}
-        self.assertIn('headers', kwargs)
-        self.assertDictEqual(kwargs['headers'], expected)
+        kwargs = self._mock_http("/", api_key=token)
+        expected = {"content-type": "application/json", "St2-Api-Key": token}
+        self.assertIn("headers", kwargs)
+        self.assertDictEqual(kwargs["headers"], expected)
 
     def test_decorate_without_auth_token_to_http_headers(self):
-        kwargs = self._mock_http('/', auth=('stanley', 'stanley'))
-        expected = {'content-type': 'application/json'}
-        self.assertIn('auth', kwargs)
-        self.assertEqual(kwargs['auth'], ('stanley', 'stanley'))
-        self.assertIn('headers', kwargs)
-        self.assertDictEqual(kwargs['headers'], expected)
+        kwargs = self._mock_http("/", auth=("stanley", "stanley"))
+        expected = {"content-type": "application/json"}
+        self.assertIn("auth", kwargs)
+        self.assertEqual(kwargs["auth"], ("stanley", "stanley"))
+        self.assertIn("headers", kwargs)
+        self.assertDictEqual(kwargs["headers"], expected)
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+        requests,
+        "get",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, "OK")),
+    )
     def test_decorate_resource_list(self):
-        url = ('http://127.0.0.1:9101/v1/rules/'
-              '?include_attributes=ref,pack,description,enabled&limit=50')
-        url = url.replace(',', '%2C')
+        url = (
+            "http://127.0.0.1:9101/v1/rules/"
+            "?include_attributes=ref,pack,description,enabled&limit=50"
+        )
+        url = url.replace(",", "%2C")
 
         # Test without token.
-        self.shell.run(['rule', 'list'])
+        self.shell.run(["rule", "list"])
         kwargs = {}
         requests.get.assert_called_with(url, **kwargs)
 
         # Test with token from  cli.
         token = uuid.uuid4().hex
-        self.shell.run(['rule', 'list', '-t', token])
-        kwargs = {'headers': {'X-Auth-Token': token}}
+        self.shell.run(["rule", "list", "-t", token])
+        kwargs = {"headers": {"X-Auth-Token": token}}
         requests.get.assert_called_with(url, **kwargs)
 
         # Test with token from env.
         token = uuid.uuid4().hex
-        os.environ['ST2_AUTH_TOKEN'] = token
-        self.shell.run(['rule', 'list'])
-        kwargs = {'headers': {'X-Auth-Token': token}}
+        os.environ["ST2_AUTH_TOKEN"] = token
+        self.shell.run(["rule", "list"])
+        kwargs = {"headers": {"X-Auth-Token": token}}
         requests.get.assert_called_with(url, **kwargs)
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
+        requests,
+        "get",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, "OK")),
+    )
     def test_decorate_resource_get(self):
-        rule_ref = '%s.%s' % (RULE['pack'], RULE['name'])
-        url = 'http://127.0.0.1:9101/v1/rules/%s' % rule_ref
+        rule_ref = "%s.%s" % (RULE["pack"], RULE["name"])
+        url = "http://127.0.0.1:9101/v1/rules/%s" % rule_ref
 
         # Test without token.
-        self.shell.run(['rule', 'get', rule_ref])
+        self.shell.run(["rule", "get", rule_ref])
         kwargs = {}
         requests.get.assert_called_with(url, **kwargs)
 
         # Test with token from cli.
         token = uuid.uuid4().hex
-        self.shell.run(['rule', 'get', rule_ref, '-t', token])
-        kwargs = {'headers': {'X-Auth-Token': token}}
+        self.shell.run(["rule", "get", rule_ref, "-t", token])
+        kwargs = {"headers": {"X-Auth-Token": token}}
         requests.get.assert_called_with(url, **kwargs)
 
         # Test with token from env.
         token = uuid.uuid4().hex
-        os.environ['ST2_AUTH_TOKEN'] = token
-        self.shell.run(['rule', 'get', rule_ref])
-        kwargs = {'headers': {'X-Auth-Token': token}}
+        os.environ["ST2_AUTH_TOKEN"] = token
+        self.shell.run(["rule", "get", rule_ref])
+        kwargs = {"headers": {"X-Auth-Token": token}}
         requests.get.assert_called_with(url, **kwargs)
 
     @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
+        requests,
+        "post",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, "OK")),
+    )
     def test_decorate_resource_post(self):
-        url = 'http://127.0.0.1:9101/v1/rules'
-        data = {'name': RULE['name'], 'description': RULE['description']}
+        url = "http://127.0.0.1:9101/v1/rules"
+        data = {"name": RULE["name"], "description": RULE["description"]}
 
-        fd, path = tempfile.mkstemp(suffix='.json')
+        fd, path = tempfile.mkstemp(suffix=".json")
         try:
-            with open(path, 'a') as f:
+            with open(path, "a") as f:
                 f.write(json.dumps(data, indent=4))
 
             # Test without token.
-            self.shell.run(['rule', 'create', path])
-            kwargs = {'headers': {'content-type': 'application/json'}}
+            self.shell.run(["rule", "create", path])
+            kwargs = {"headers": {"content-type": "application/json"}}
             requests.post.assert_called_with(url, json.dumps(data), **kwargs)
 
             # Test with token from cli.
             token = uuid.uuid4().hex
-            self.shell.run(['rule', 'create', path, '-t', token])
-            kwargs = {'headers': {'content-type': 'application/json', 'X-Auth-Token': token}}
+            self.shell.run(["rule", "create", path, "-t", token])
+            kwargs = {
+                "headers": {"content-type": "application/json", "X-Auth-Token": token}
+            }
             requests.post.assert_called_with(url, json.dumps(data), **kwargs)
 
             # Test with token from env.
             token = uuid.uuid4().hex
-            os.environ['ST2_AUTH_TOKEN'] = token
-            self.shell.run(['rule', 'create', path])
-            kwargs = {'headers': {'content-type': 'application/json', 'X-Auth-Token': token}}
+            os.environ["ST2_AUTH_TOKEN"] = token
+            self.shell.run(["rule", "create", path])
+            kwargs = {
+                "headers": {"content-type": "application/json", "X-Auth-Token": token}
+            }
             requests.post.assert_called_with(url, json.dumps(data), **kwargs)
         finally:
             os.close(fd)
             os.unlink(path)
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
+        requests,
+        "get",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, "OK")),
+    )
     @mock.patch.object(
-        requests, 'put',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
+        requests,
+        "put",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, "OK")),
+    )
     def test_decorate_resource_put(self):
-        rule_ref = '%s.%s' % (RULE['pack'], RULE['name'])
+        rule_ref = "%s.%s" % (RULE["pack"], RULE["name"])
 
-        get_url = 'http://127.0.0.1:9101/v1/rules/%s' % rule_ref
-        put_url = 'http://127.0.0.1:9101/v1/rules/%s' % RULE['id']
-        data = {'name': RULE['name'], 'description': RULE['description'], 'pack': RULE['pack']}
+        get_url = "http://127.0.0.1:9101/v1/rules/%s" % rule_ref
+        put_url = "http://127.0.0.1:9101/v1/rules/%s" % RULE["id"]
+        data = {
+            "name": RULE["name"],
+            "description": RULE["description"],
+            "pack": RULE["pack"],
+        }
 
-        fd, path = tempfile.mkstemp(suffix='.json')
+        fd, path = tempfile.mkstemp(suffix=".json")
         try:
-            with open(path, 'a') as f:
+            with open(path, "a") as f:
                 f.write(json.dumps(data, indent=4))
 
             # Test without token.
-            self.shell.run(['rule', 'update', rule_ref, path])
+            self.shell.run(["rule", "update", rule_ref, path])
             kwargs = {}
             requests.get.assert_called_with(get_url, **kwargs)
-            kwargs = {'headers': {'content-type': 'application/json'}}
+            kwargs = {"headers": {"content-type": "application/json"}}
             requests.put.assert_called_with(put_url, json.dumps(RULE), **kwargs)
 
             # Test with token from cli.
             token = uuid.uuid4().hex
-            self.shell.run(['rule', 'update', rule_ref, path, '-t', token])
-            kwargs = {'headers': {'X-Auth-Token': token}}
+            self.shell.run(["rule", "update", rule_ref, path, "-t", token])
+            kwargs = {"headers": {"X-Auth-Token": token}}
             requests.get.assert_called_with(get_url, **kwargs)
-            kwargs = {'headers': {'content-type': 'application/json', 'X-Auth-Token': token}}
+            kwargs = {
+                "headers": {"content-type": "application/json", "X-Auth-Token": token}
+            }
 
             requests.put.assert_called_with(put_url, json.dumps(RULE), **kwargs)
 
             # Test with token from env.
             token = uuid.uuid4().hex
-            os.environ['ST2_AUTH_TOKEN'] = token
-            self.shell.run(['rule', 'update', rule_ref, path])
-            kwargs = {'headers': {'X-Auth-Token': token}}
+            os.environ["ST2_AUTH_TOKEN"] = token
+            self.shell.run(["rule", "update", rule_ref, path])
+            kwargs = {"headers": {"X-Auth-Token": token}}
             requests.get.assert_called_with(get_url, **kwargs)
 
             # Note: We parse the payload because data might not be in the same
             # order as the fixture
-            kwargs = {'headers': {'content-type': 'application/json', 'X-Auth-Token': token}}
+            kwargs = {
+                "headers": {"content-type": "application/json", "X-Auth-Token": token}
+            }
             requests.put.assert_called_with(put_url, json.dumps(RULE), **kwargs)
         finally:
             os.close(fd)
             os.unlink(path)
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
+        requests,
+        "get",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, "OK")),
+    )
     @mock.patch.object(
-        requests, 'delete',
-        mock.MagicMock(return_value=base.FakeResponse('', 204, 'OK')))
+        requests,
+        "delete",
+        mock.MagicMock(return_value=base.FakeResponse("", 204, "OK")),
+    )
     def test_decorate_resource_delete(self):
-        rule_ref = '%s.%s' % (RULE['pack'], RULE['name'])
-        get_url = 'http://127.0.0.1:9101/v1/rules/%s' % rule_ref
-        del_url = 'http://127.0.0.1:9101/v1/rules/%s' % RULE['id']
+        rule_ref = "%s.%s" % (RULE["pack"], RULE["name"])
+        get_url = "http://127.0.0.1:9101/v1/rules/%s" % rule_ref
+        del_url = "http://127.0.0.1:9101/v1/rules/%s" % RULE["id"]
 
         # Test without token.
-        self.shell.run(['rule', 'delete', rule_ref])
+        self.shell.run(["rule", "delete", rule_ref])
         kwargs = {}
         requests.get.assert_called_with(get_url, **kwargs)
         requests.delete.assert_called_with(del_url, **kwargs)
 
         # Test with token from cli.
         token = uuid.uuid4().hex
-        self.shell.run(['rule', 'delete', rule_ref, '-t', token])
-        kwargs = {'headers': {'X-Auth-Token': token}}
+        self.shell.run(["rule", "delete", rule_ref, "-t", token])
+        kwargs = {"headers": {"X-Auth-Token": token}}
         requests.get.assert_called_with(get_url, **kwargs)
         requests.delete.assert_called_with(del_url, **kwargs)
 
         # Test with token from env.
         token = uuid.uuid4().hex
-        os.environ['ST2_AUTH_TOKEN'] = token
-        self.shell.run(['rule', 'delete', rule_ref])
-        kwargs = {'headers': {'X-Auth-Token': token}}
+        os.environ["ST2_AUTH_TOKEN"] = token
+        self.shell.run(["rule", "delete", rule_ref])
+        kwargs = {"headers": {"X-Auth-Token": token}}
         requests.get.assert_called_with(get_url, **kwargs)
         requests.delete.assert_called_with(del_url, **kwargs)

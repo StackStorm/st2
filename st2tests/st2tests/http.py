@@ -18,7 +18,6 @@ import json
 
 
 class FakeResponse(object):
-
     def __init__(self, text, status_code, reason):
         self.text = text
         self.status_code = status_code

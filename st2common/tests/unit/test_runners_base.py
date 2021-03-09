@@ -23,11 +23,12 @@ from st2tests.base import DbTestCase
 
 class RunnersLoaderUtilsTestCase(DbTestCase):
     def test_get_runner_success(self):
-        runner = get_runner('local-shell-cmd')
+        runner = get_runner("local-shell-cmd")
         self.assertTrue(runner)
-        self.assertEqual(runner.__class__.__name__, 'LocalShellCommandRunner')
+        self.assertEqual(runner.__class__.__name__, "LocalShellCommandRunner")
 
     def test_get_runner_failure_not_found(self):
-        expected_msg = 'Failed to find runner invalid-name-not-found.*'
-        self.assertRaisesRegexp(ActionRunnerCreateError, expected_msg,
-                                get_runner, 'invalid-name-not-found')
+        expected_msg = "Failed to find runner invalid-name-not-found.*"
+        self.assertRaisesRegexp(
+            ActionRunnerCreateError, expected_msg, get_runner, "invalid-name-not-found"
+        )

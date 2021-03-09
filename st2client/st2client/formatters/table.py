@@ -40,40 +40,38 @@ MIN_ID_COL_WIDTH = 26
 MIN_COL_WIDTH = 5
 
 # Default attribute display order to use if one is not provided
-DEFAULT_ATTRIBUTE_DISPLAY_ORDER = ['id', 'name', 'pack', 'description']
+DEFAULT_ATTRIBUTE_DISPLAY_ORDER = ["id", "name", "pack", "description"]
 
 # Attributes which contain bash escape sequences - we can't split those across multiple lines
 # since things would break
 COLORIZED_ATTRIBUTES = {
-    'status': {
-        'col_width': 24  # Note: len('succeed' + ' (XXXX elapsed)') <= 24
-    }
+    "status": {"col_width": 24}  # Note: len('succeed' + ' (XXXX elapsed)') <= 24
 }
 
 
 class MultiColumnTable(formatters.Formatter):
-
     def __init__(self):
         self._table_width = 0
 
     @classmethod
     def format(cls, entries, *args, **kwargs):
-        attributes = kwargs.get('attributes', [])
-        attribute_transform_functions = kwargs.get('attribute_transform_functions', {})
-        widths = kwargs.get('widths', [])
+        attributes = kwargs.get("attributes", [])
+        attribute_transform_functions = kwargs.get("attribute_transform_functions", {})
+        widths = kwargs.get("widths", [])
         widths = widths or []
 
         if not widths and attributes:
             # Dynamically calculate column size based on the terminal size
             cols = get_terminal_size_columns()
 
-            if attributes[0] == 'id':
+            if attributes[0] == "id":
                 # consume iterator and save as entries so collection is accessible later.
                 entries = [e for e in entries]
                 # first column contains id, make sure it's not broken up
-                first_col_width = cls._get_required_column_width(values=[e.id for e in entries],
-                                                                 minimum_width=MIN_ID_COL_WIDTH)
-                cols = (cols - first_col_width)
+                first_col_width = cls._get_required_column_width(
+                    values=[e.id for e in entries], minimum_width=MIN_ID_COL_WIDTH
+                )
+                cols = cols - first_col_width
                 col_width = int(math.floor((cols / len(attributes))))
             else:
                 col_width = int(math.floor((cols / len(attributes))))
@@ -88,14 +86,16 @@ class MultiColumnTable(formatters.Formatter):
                     continue
 
                 if attribute_name in COLORIZED_ATTRIBUTES:
-                    current_col_width = COLORIZED_ATTRIBUTES[attribute_name]['col_width']
-                    subtract += (current_col_width - col_width)
+                    current_col_width = COLORIZED_ATTRIBUTES[attribute_name][
+                        "col_width"
+                    ]
+                    subtract += current_col_width - col_width
                 else:
                     # Make sure we subtract the added width from the last column so we account
                     # for the fixed width columns and make sure table is not wider than the
                     # terminal width.
                     if index == (len(attributes) - 1) and subtract:
-                        current_col_width = (col_width - subtract)
+                        current_col_width = col_width - subtract
 
                         if current_col_width <= MIN_COL_WIDTH:
                             # Make sure column width is always grater than MIN_COL_WIDTH
@@ -105,12 +105,14 @@ class MultiColumnTable(formatters.Formatter):
 
                 widths.append(current_col_width)
 
-        if not attributes or 'all' in attributes:
+        if not attributes or "all" in attributes:
             entries = list(entries) if entries else []
 
             if len(entries) >= 1:
                 attributes = list(entries[0].__dict__.keys())
-                attributes = sorted([attr for attr in attributes if not attr.startswith('_')])
+                attributes = sorted(
+                    [attr for attr in attributes if not attr.startswith("_")]
+                )
             else:
                 # There are no entries so we can't infer available attributes
                 attributes = []
@@ -123,8 +125,7 @@ class MultiColumnTable(formatters.Formatter):
             # If only 1 width value is provided then
             # apply it to all columns else fix at 28.
             width = widths[0] if len(widths) == 1 else 28
-            columns = zip(attributes,
-                          [width for i in range(0, len(attributes))])
+            columns = zip(attributes, [width for i in range(0, len(attributes))])
 
         # Format result to table.
         table = PrettyTable()
@@ -132,14 +133,14 @@ class MultiColumnTable(formatters.Formatter):
             table.field_names.append(column[0])
             table.max_width[column[0]] = column[1]
         table.padding_width = 1
-        table.align = 'l'
-        table.valign = 't'
+        table.align = "l"
+        table.valign = "t"
         for entry in entries:
             # TODO: Improve getting values of nested dict.
             values = []
             for field_name in table.field_names:
-                if '.' in field_name:
-                    field_names = field_name.split('.')
+                if "." in field_name:
+                    field_names = field_name.split(".")
                     value = getattr(entry, field_names.pop(0), {})
                     for name in field_names:
                         value = cls._get_field_value(value, name)
@@ -149,8 +150,9 @@ class MultiColumnTable(formatters.Formatter):
                     values.append(value)
                 else:
                     value = cls._get_simple_field_value(entry, field_name)
-                    transform_function = attribute_transform_functions.get(field_name,
-                                                                           lambda value: value)
+                    transform_function = attribute_transform_functions.get(
+                        field_name, lambda value: value
+                    )
                     value = transform_function(value=value)
                     value = strutil.strip_carriage_returns(strutil.unescape(value))
                     values.append(value)
@@ -177,14 +179,14 @@ class MultiColumnTable(formatters.Formatter):
         """
         Format a value for a simple field.
         """
-        value = getattr(entry, field_name, '')
+        value = getattr(entry, field_name, "")
         if isinstance(value, (list, tuple)):
             if len(value) == 0:
-                value = ''
+                value = ""
             elif isinstance(value[0], (str, six.text_type)):
                 # List contains simple string values, format it as comma
                 # separated string
-                value = ', '.join(value)
+                value = ", ".join(value)
 
         return value
 
@@ -192,10 +194,10 @@ class MultiColumnTable(formatters.Formatter):
     def _get_field_value(value, field_name):
         r_val = value.get(field_name, None)
         if r_val is None:
-            return ''
+            return ""
 
         if isinstance(r_val, list) or isinstance(r_val, dict):
-            return r_val if len(r_val) > 0 else ''
+            return r_val if len(r_val) > 0 else ""
         return r_val
 
     @staticmethod
@@ -203,7 +205,7 @@ class MultiColumnTable(formatters.Formatter):
         if not name:
             return None
 
-        friendly_name = name.replace('_', ' ').replace('.', ' ').capitalize()
+        friendly_name = name.replace("_", " ").replace(".", " ").capitalize()
         return friendly_name
 
     @staticmethod
@@ -213,33 +215,34 @@ class MultiColumnTable(formatters.Formatter):
 
 
 class PropertyValueTable(formatters.Formatter):
-
     @classmethod
     def format(cls, subject, *args, **kwargs):
-        attributes = kwargs.get('attributes', None)
-        attribute_display_order = kwargs.get('attribute_display_order',
-                                             DEFAULT_ATTRIBUTE_DISPLAY_ORDER)
-        attribute_transform_functions = kwargs.get('attribute_transform_functions', {})
+        attributes = kwargs.get("attributes", None)
+        attribute_display_order = kwargs.get(
+            "attribute_display_order", DEFAULT_ATTRIBUTE_DISPLAY_ORDER
+        )
+        attribute_transform_functions = kwargs.get("attribute_transform_functions", {})
 
-        if not attributes or 'all' in attributes:
-            attributes = sorted([attr for attr in subject.__dict__
-                                 if not attr.startswith('_')])
+        if not attributes or "all" in attributes:
+            attributes = sorted(
+                [attr for attr in subject.__dict__ if not attr.startswith("_")]
+            )
 
         for attr in attribute_display_order[::-1]:
             if attr in attributes:
                 attributes.remove(attr)
                 attributes = [attr] + attributes
         table = PrettyTable()
-        table.field_names = ['Property', 'Value']
-        table.max_width['Property'] = 20
-        table.max_width['Value'] = 60
+        table.field_names = ["Property", "Value"]
+        table.max_width["Property"] = 20
+        table.max_width["Value"] = 60
         table.padding_width = 1
-        table.align = 'l'
-        table.valign = 't'
+        table.align = "l"
+        table.valign = "t"
 
         for attribute in attributes:
-            if '.' in attribute:
-                field_names = attribute.split('.')
+            if "." in attribute:
+                field_names = attribute.split(".")
                 value = cls._get_attribute_value(subject, field_names.pop(0))
                 for name in field_names:
                     value = cls._get_attribute_value(value, name)
@@ -248,8 +251,9 @@ class PropertyValueTable(formatters.Formatter):
             else:
                 value = cls._get_attribute_value(subject, attribute)
 
-            transform_function = attribute_transform_functions.get(attribute,
-                                                                   lambda value: value)
+            transform_function = attribute_transform_functions.get(
+                attribute, lambda value: value
+            )
             value = transform_function(value=value)
 
             if type(value) is dict or type(value) is list:
@@ -266,9 +270,9 @@ class PropertyValueTable(formatters.Formatter):
         else:
             r_val = getattr(subject, attribute, None)
         if r_val is None:
-            return ''
+            return ""
         if isinstance(r_val, list) or isinstance(r_val, dict):
-            return r_val if len(r_val) > 0 else ''
+            return r_val if len(r_val) > 0 else ""
         return r_val
 
 
@@ -284,19 +288,25 @@ class SingleRowTable(object):
             else:
                 entity = entity[:-1]
 
-            message = "Note: Only one %s is displayed. Use -n/--last flag for more results." \
+            message = (
+                "Note: Only one %s is displayed. Use -n/--last flag for more results."
                 % entity
+            )
         else:
-            message = "Note: Only first %s %s are displayed. Use -n/--last flag for more results."\
+            message = (
+                "Note: Only first %s %s are displayed. Use -n/--last flag for more results."
                 % (limit, entity)
+            )
         # adding default padding
         message_length = len(message) + 3
         m = MultiColumnTable()
         if m.table_width > message_length:
-            note = PrettyTable([""], right_padding_width=(m.table_width - message_length))
+            note = PrettyTable(
+                [""], right_padding_width=(m.table_width - message_length)
+            )
         else:
             note = PrettyTable([""])
         note.header = False
         note.add_row([message])
-        sys.stderr.write((str(note) + '\n'))
+        sys.stderr.write((str(note) + "\n"))
         return

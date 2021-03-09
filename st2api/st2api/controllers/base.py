@@ -20,9 +20,7 @@ from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2common.rbac.backends import get_rbac_backend
 
-__all__ = [
-    'BaseRestControllerMixin'
-]
+__all__ = ["BaseRestControllerMixin"]
 
 
 class BaseRestControllerMixin(object):
@@ -41,7 +39,9 @@ class BaseRestControllerMixin(object):
 
         return query_params
 
-    def _get_query_param_value(self, request, param_name, param_type, default_value=None):
+    def _get_query_param_value(
+        self, request, param_name, param_type, default_value=None
+    ):
         """
         Return a value for the provided query param and optionally cast it for boolean types.
 
@@ -61,7 +61,7 @@ class BaseRestControllerMixin(object):
         query_params = self._parse_query_params(request=request)
         value = query_params.get(param_name, default_value)
 
-        if param_type == 'bool' and isinstance(value, six.string_types):
+        if param_type == "bool" and isinstance(value, six.string_types):
             value = transform_to_bool(value)
 
         return value

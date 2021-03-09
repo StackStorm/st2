@@ -18,15 +18,11 @@ import os
 import abc
 import six
 
-__all__ = [
-    'FileWriter',
-    'TextFileWriter'
-]
+__all__ = ["FileWriter", "TextFileWriter"]
 
 
 @six.add_metaclass(abc.ABCMeta)
 class FileWriter(object):
-
     @abc.abstractmethod
     def write(self, data, file_path, replace=False):
         """
@@ -40,13 +36,13 @@ class TextFileWriter(FileWriter):
 
     def write_text(self, text_data, file_path, replace=False, compressed=False):
         if compressed:
-            return Exception('Compression not supported.')
+            return Exception("Compression not supported.")
 
         self.write(text_data, file_path, replace=replace)
 
     def write(self, data, file_path, replace=False):
         if os.path.exists(file_path) and not replace:
-            raise Exception('File %s already exists.' % file_path)
+            raise Exception("File %s already exists." % file_path)
 
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write(data)

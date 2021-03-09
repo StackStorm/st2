@@ -17,20 +17,29 @@ import mock
 
 import st2common.services.triggers as trigger_service
 
-with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock()):
+with mock.patch.object(trigger_service, "create_trigger_type_db", mock.MagicMock()):
     from st2api.controllers.v1.timers import TimersHolder
 
 from st2common.models.system.common import ResourceReference
 from st2tests.base import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
-from st2common.constants.triggers import INTERVAL_TIMER_TRIGGER_REF, DATE_TIMER_TRIGGER_REF
+from st2common.constants.triggers import (
+    INTERVAL_TIMER_TRIGGER_REF,
+    DATE_TIMER_TRIGGER_REF,
+)
 from st2common.constants.triggers import CRON_TIMER_TRIGGER_REF
 
 from st2tests.api import FunctionalTest
 
-PACK = 'timers'
+PACK = "timers"
 FIXTURES = {
-    'triggers': ['cron1.yaml', 'date1.yaml', 'interval1.yaml', 'interval2.yaml', 'interval3.yaml']
+    "triggers": [
+        "cron1.yaml",
+        "date1.yaml",
+        "interval1.yaml",
+        "interval2.yaml",
+        "interval3.yaml",
+    ]
 }
 
 
@@ -43,23 +52,28 @@ class TestTimersHolder(DbTestCase):
 
         loader = FixturesLoader()
         TestTimersHolder.MODELS = loader.load_fixtures(
-            fixtures_pack=PACK, fixtures_dict=FIXTURES)['triggers']
+            fixtures_pack=PACK, fixtures_dict=FIXTURES
+        )["triggers"]
         loader.save_fixtures_to_db(fixtures_pack=PACK, fixtures_dict=FIXTURES)
 
     def test_add_trigger(self):
         holder = TimersHolder()
         for _, model in TestTimersHolder.MODELS.items():
             holder.add_trigger(
-                ref=ResourceReference.to_string_reference(pack=model['pack'], name=model['name']),
-                trigger=model
+                ref=ResourceReference.to_string_reference(
+                    pack=model["pack"], name=model["name"]
+                ),
+                trigger=model,
             )
         self.assertEqual(len(holder._timers), 5)
 
     def test_remove_trigger(self):
         holder = TimersHolder()
-        model = TestTimersHolder.MODELS.get('cron1.yaml', None)
+        model = TestTimersHolder.MODELS.get("cron1.yaml", None)
         self.assertIsNotNone(model)
-        ref = ResourceReference.to_string_reference(pack=model['pack'], name=model['name'])
+        ref = ResourceReference.to_string_reference(
+            pack=model["pack"], name=model["name"]
+        )
         holder.add_trigger(ref, model)
         self.assertEqual(len(holder._timers), 1)
         holder.remove_trigger(ref, model)
@@ -69,8 +83,10 @@ class TestTimersHolder(DbTestCase):
         holder = TimersHolder()
         for _, model in TestTimersHolder.MODELS.items():
             holder.add_trigger(
-                ref=ResourceReference.to_string_reference(pack=model['pack'], name=model['name']),
-                trigger=model
+                ref=ResourceReference.to_string_reference(
+                    pack=model["pack"], name=model["name"]
+                ),
+                trigger=model,
             )
         self.assertEqual(len(holder.get_all()), 5)
 
@@ -78,8 +94,10 @@ class TestTimersHolder(DbTestCase):
         holder = TimersHolder()
         for _, model in TestTimersHolder.MODELS.items():
             holder.add_trigger(
-                ref=ResourceReference.to_string_reference(pack=model['pack'], name=model['name']),
-                trigger=model
+                ref=ResourceReference.to_string_reference(
+                    pack=model["pack"], name=model["name"]
+                ),
+                trigger=model,
             )
         self.assertEqual(len(holder.get_all(timer_type=INTERVAL_TIMER_TRIGGER_REF)), 3)
         self.assertEqual(len(holder.get_all(timer_type=DATE_TIMER_TRIGGER_REF)), 1)
@@ -95,20 +113,23 @@ class TestTimersController(FunctionalTest, DbTestCase):
 
         loader = FixturesLoader()
         TestTimersController.MODELS = loader.save_fixtures_to_db(
-            fixtures_pack=PACK, fixtures_dict=FIXTURES)['triggers']
+            fixtures_pack=PACK, fixtures_dict=FIXTURES
+        )["triggers"]
 
     def test_timerscontroller_get_one_with_id(self):
-        model = TestTimersController.MODELS['interval1.yaml']
+        model = TestTimersController.MODELS["interval1.yaml"]
         get_resp = self._do_get_one(model.id)
         self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(get_resp.json['parameters'], model['parameters'])
+        self.assertEqual(get_resp.json["parameters"], model["parameters"])
 
     def test_timerscontroller_get_one_with_ref(self):
-        model = TestTimersController.MODELS['interval1.yaml']
-        ref = ResourceReference.to_string_reference(pack=model['pack'], name=model['name'])
+        model = TestTimersController.MODELS["interval1.yaml"]
+        ref = ResourceReference.to_string_reference(
+            pack=model["pack"], name=model["name"]
+        )
         get_resp = self._do_get_one(ref)
         self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(get_resp.json['parameters'], model['parameters'])
+        self.assertEqual(get_resp.json["parameters"], model["parameters"])
 
     def _do_get_one(self, timer_id, expect_errors=False):
-        return self.app.get('/v1/timers/%s' % timer_id, expect_errors=expect_errors)
+        return self.app.get("/v1/timers/%s" % timer_id, expect_errors=expect_errors)

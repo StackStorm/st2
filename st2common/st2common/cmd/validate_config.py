@@ -31,9 +31,7 @@ from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2common.util.pack import validate_config_against_schema
 
-__all__ = [
-    'main'
-]
+__all__ = ["main"]
 
 
 def _do_register_cli_opts(opts, ignore_errors=False):
@@ -47,10 +45,18 @@ def _do_register_cli_opts(opts, ignore_errors=False):
 
 def _register_cli_opts():
     cli_opts = [
-        cfg.StrOpt('schema-path', default=None, required=True,
-                   help='Path to the config schema to use for validation.'),
-        cfg.StrOpt('config-path', default=None, required=True,
-                   help='Path to the config file to validate.'),
+        cfg.StrOpt(
+            "schema-path",
+            default=None,
+            required=True,
+            help="Path to the config schema to use for validation.",
+        ),
+        cfg.StrOpt(
+            "config-path",
+            default=None,
+            required=True,
+            help="Path to the config file to validate.",
+        ),
     ]
 
     do_register_cli_opts(cli_opts)
@@ -65,18 +71,24 @@ def main():
 
     print('Validating config "%s" against schema in "%s"' % (config_path, schema_path))
 
-    with open(schema_path, 'r') as fp:
+    with open(schema_path, "r") as fp:
         config_schema = yaml.safe_load(fp.read())
 
-    with open(config_path, 'r') as fp:
+    with open(config_path, "r") as fp:
         config_object = yaml.safe_load(fp.read())
 
     try:
-        validate_config_against_schema(config_schema=config_schema, config_object=config_object,
-                                       config_path=config_path)
+        validate_config_against_schema(
+            config_schema=config_schema,
+            config_object=config_object,
+            config_path=config_path,
+        )
     except Exception as e:
-        print('Failed to validate pack config.\n%s' % six.text_type(e))
+        print("Failed to validate pack config.\n%s" % six.text_type(e))
         return FAILURE_EXIT_CODE
 
-    print('Config "%s" successfully validated against schema in %s.' % (config_path, schema_path))
+    print(
+        'Config "%s" successfully validated against schema in %s.'
+        % (config_path, schema_path)
+    )
     return SUCCESS_EXIT_CODE
