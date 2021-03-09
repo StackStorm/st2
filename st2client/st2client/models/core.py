@@ -176,11 +176,11 @@ class ResourceManager(object):
     def get_all(self, **kwargs):
         # TODO: This is ugly, stop abusing kwargs
         url = "/%s" % self.resource.get_url_path_name()
-        limit = kwargs.pop("limit", 100)
+        limit = kwargs.pop("limit", None)
         pack = kwargs.pop("pack", None)
         prefix = kwargs.pop("prefix", None)
         user = kwargs.pop("user", None)
-        offset = kwargs.pop("offset", 0)
+        offset = kwargs.pop("offset", None)
 
         params = kwargs.pop("params", {})
 
@@ -197,7 +197,7 @@ class ResourceManager(object):
             params["user"] = user
 
         if offset:
-            params["offset"] = user
+            params["offset"] = offset
 
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != http_client.OK:
