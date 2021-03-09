@@ -68,7 +68,7 @@ class BaseDatastoreService(object):
     # Methods for datastore management
     ##################################
 
-    def list_values(self, local=True, prefix=None, limit=100, offset=0):
+    def list_values(self, local=True, prefix=None, limit=None, offset=0):
         """
         Retrieve all the datastores items.
 
@@ -78,7 +78,7 @@ class BaseDatastoreService(object):
         :param prefix: Optional key name prefix / startswith filter.
         :type prefix: ``str``
 
-        :param limit: Number of keys to get. Defaults to 100.
+        :param limit: Number of keys to get. Defaults to the configuration set at 'api.max_page_size'.
         :type limit: ``integer``
 
         :param offset: Number of keys to offset. Defaults to 0.
@@ -89,6 +89,7 @@ class BaseDatastoreService(object):
         client = self.get_api_client()
         self._logger.debug("Retrieving all the values from the datastore")
 
+        limit = limit or cfg.CONF.api.max_page_size
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
         kvps = client.keys.get_all(prefix=key_prefix, limit=limit, offset=offset)
         return kvps
