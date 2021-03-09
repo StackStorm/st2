@@ -299,7 +299,6 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
             f"Ciphertext needs to either be a string/unicode or bytes"
             f" (was {type(ciphertext)})."
         )
-
     aes_key_bytes = decrypt_key.aes_key_bytes
     hmac_key_bytes = decrypt_key.hmac_key_bytes
 

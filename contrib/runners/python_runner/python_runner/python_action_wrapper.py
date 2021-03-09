@@ -366,6 +366,7 @@ if __name__ == "__main__":
 
     if not isinstance(parent_args, list):
         raise TypeError(f"The parent_args is not a list" f" (was {type(parent_args)}).")
+
     obj = PythonActionWrapper(
         pack=args.pack,
         file_path=args.file_path,

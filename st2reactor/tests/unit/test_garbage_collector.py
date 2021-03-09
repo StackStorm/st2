@@ -21,43 +21,48 @@ import unittest
 from oslo_config import cfg
 
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 from st2reactor.garbage_collector import base as garbage_collector
 
 
 class GarbageCollectorServiceTest(unittest.TestCase):
-
     def tearDown(self):
         # Reset gc_max_idle_sec with a value of 1 to reenable for other tests.
-        cfg.CONF.set_override('gc_max_idle_sec', 1, group='workflow_engine')
+        cfg.CONF.set_override("gc_max_idle_sec", 1, group="workflow_engine")
         super(GarbageCollectorServiceTest, self).tearDown()
 
     @mock.patch.object(
         garbage_collector.GarbageCollectorService,
-        '_purge_action_executions',
-        mock.MagicMock(return_value=None))
+        "_purge_action_executions",
+        mock.MagicMock(return_value=None),
+    )
     @mock.patch.object(
         garbage_collector.GarbageCollectorService,
-        '_purge_action_executions_output',
-        mock.MagicMock(return_value=None))
+        "_purge_action_executions_output",
+        mock.MagicMock(return_value=None),
+    )
     @mock.patch.object(
         garbage_collector.GarbageCollectorService,
-        '_purge_trigger_instances',
-        mock.MagicMock(return_value=None))
+        "_purge_trigger_instances",
+        mock.MagicMock(return_value=None),
+    )
     @mock.patch.object(
         garbage_collector.GarbageCollectorService,
-        '_timeout_inquiries',
-        mock.MagicMock(return_value=None))
+        "_timeout_inquiries",
+        mock.MagicMock(return_value=None),
+    )
     @mock.patch.object(
         garbage_collector.GarbageCollectorService,
-        '_purge_orphaned_workflow_executions',
-        mock.MagicMock(return_value=None))
+        "_purge_orphaned_workflow_executions",
+        mock.MagicMock(return_value=None),
+    )
     def test_orphaned_workflow_executions_gc_enabled(self):
         # Mock the default value of gc_max_idle_sec with a value >= 1 to enable. The config
         # gc_max_idle_sec is assigned to _workflow_execution_max_idle which gc checks to see
         # whether to run the routine.
-        cfg.CONF.set_override('gc_max_idle_sec', 1, group='workflow_engine')
+        cfg.CONF.set_override("gc_max_idle_sec", 1, group="workflow_engine")
 
         # Run the garbage collection.
         gc = garbage_collector.GarbageCollectorService(sleep_delay=0)
@@ -70,29 +75,34 @@ class GarbageCollectorServiceTest(unittest.TestCase):
 
     @mock.patch.object(
         garbage_collector.GarbageCollectorService,
-        '_purge_action_executions',
-        mock.MagicMock(return_value=None))
+        "_purge_action_executions",
+        mock.MagicMock(return_value=None),
+    )
     @mock.patch.object(
         garbage_collector.GarbageCollectorService,
-        '_purge_action_executions_output',
-        mock.MagicMock(return_value=None))
+        "_purge_action_executions_output",
+        mock.MagicMock(return_value=None),
+    )
     @mock.patch.object(
         garbage_collector.GarbageCollectorService,
-        '_purge_trigger_instances',
-        mock.MagicMock(return_value=None))
+        "_purge_trigger_instances",
+        mock.MagicMock(return_value=None),
+    )
     @mock.patch.object(
         garbage_collector.GarbageCollectorService,
-        '_timeout_inquiries',
-        mock.MagicMock(return_value=None))
+        "_timeout_inquiries",
+        mock.MagicMock(return_value=None),
+    )
     @mock.patch.object(
         garbage_collector.GarbageCollectorService,
-        '_purge_orphaned_workflow_executions',
-        mock.MagicMock(return_value=None))
+        "_purge_orphaned_workflow_executions",
+        mock.MagicMock(return_value=None),
+    )
     def test_orphaned_workflow_executions_gc_disabled(self):
         # Mock the default value of gc_max_idle_sec with a value of 0 to disable. The config
         # gc_max_idle_sec is assigned to _workflow_execution_max_idle which gc checks to see
         # whether to run the routine.
-        cfg.CONF.set_override('gc_max_idle_sec', 0, group='workflow_engine')
+        cfg.CONF.set_override("gc_max_idle_sec", 0, group="workflow_engine")
 
         # Run the garbage collection.
         gc = garbage_collector.GarbageCollectorService(sleep_delay=0)

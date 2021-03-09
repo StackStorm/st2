@@ -115,10 +115,11 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
         try:
             triggertype_db = TriggerTypeAPI.to_model(triggertype)
+
             if (triggertype.id is not None and
                     len(triggertype.id) > 0 and
                     triggertype.id != triggertype_id):
-                LOG.warning(
+                 LOG.warning(
                     "Discarding mismatched id=%s found in payload and using uri_id=%s.",
                     triggertype.id,
                     triggertype_id,

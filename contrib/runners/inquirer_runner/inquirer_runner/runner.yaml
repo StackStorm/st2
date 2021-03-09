@@ -23,7 +23,7 @@
     roles:
       default: []
       required: false
-      description: A list of roles that are permitted to respond to the action (if nothing provided, all are permitted) - REQUIRES RBAC FEATURES 
+      description: A list of roles that are permitted to respond to the action (if nothing provided, all are permitted) - REQUIRES RBAC FEATURES
       type: array
     users:
       default: []

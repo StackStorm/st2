@@ -35,16 +35,20 @@ def migrate_datastore():
 
     try:
         for kvp in key_value_items:
-            kvp_id = getattr(kvp, 'id', None)
-            secret = getattr(kvp, 'secret', False)
-            scope = getattr(kvp, 'scope', SYSTEM_SCOPE)
-            new_kvp_db = KeyValuePairDB(id=kvp_id, name=kvp.name,
-                                        expire_timestamp=kvp.expire_timestamp,
-                                        value=kvp.value, secret=secret,
-                                        scope=scope)
+            kvp_id = getattr(kvp, "id", None)
+            secret = getattr(kvp, "secret", False)
+            scope = getattr(kvp, "scope", SYSTEM_SCOPE)
+            new_kvp_db = KeyValuePairDB(
+                id=kvp_id,
+                name=kvp.name,
+                expire_timestamp=kvp.expire_timestamp,
+                value=kvp.value,
+                secret=secret,
+                scope=scope,
+            )
             KeyValuePair.add_or_update(new_kvp_db)
     except:
-        print('ERROR: Failed migrating datastore item with name: %s' % kvp.name)
+        print("ERROR: Failed migrating datastore item with name: %s" % kvp.name)
         tb.print_exc()
         raise
 
@@ -58,10 +62,10 @@ def main():
     # Migrate rules.
     try:
         migrate_datastore()
-        print('SUCCESS: Datastore items migrated successfully.')
+        print("SUCCESS: Datastore items migrated successfully.")
         exit_code = 0
     except:
-        print('ABORTED: Datastore migration aborted on first failure.')
+        print("ABORTED: Datastore migration aborted on first failure.")
         exit_code = 1
 
     # Disconnect from db.
@@ -69,5 +73,5 @@ def main():
     sys.exit(exit_code)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

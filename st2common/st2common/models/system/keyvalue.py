@@ -17,13 +17,13 @@ from __future__ import absolute_import
 from st2common.constants.keyvalue import USER_SEPARATOR
 
 __all__ = [
-    'InvalidUserKeyReferenceError',
+    "InvalidUserKeyReferenceError",
 ]
 
 
 class InvalidUserKeyReferenceError(ValueError):
     def __init__(self, ref):
-        message = 'Invalid resource reference: %s' % (ref)
+        message = "Invalid resource reference: %s" % (ref)
         self.ref = ref
         self.message = message
         super(InvalidUserKeyReferenceError, self).__init__(message)
@@ -38,7 +38,7 @@ class UserKeyReference(object):
     def __init__(self, user, name):
         self._user = user
         self._name = name
-        self.ref = ('%s%s%s' % (self._user, USER_SEPARATOR, self._name))
+        self.ref = "%s%s%s" % (self._user, USER_SEPARATOR, self._name)
 
     def __str__(self):
         return self.ref

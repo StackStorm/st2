@@ -248,6 +248,7 @@ class KeyValuePairController(ResourceController):
 
             if "scope" not in raw_filters:
                 raise KeyError("The key scope is not found in raw_filters.")
+
             kvp_apis = super(KeyValuePairController, self)._get_all(
                 from_model_kwargs=from_model_kwargs,
                 sort=sort,
@@ -261,6 +262,7 @@ class KeyValuePairController(ResourceController):
 
             if "scope" not in raw_filters:
                 raise KeyError("The key scope is not found in raw_filters.")
+
             kvp_apis = super(KeyValuePairController, self)._get_all(
                 from_model_kwargs=from_model_kwargs,
                 sort=sort,

@@ -17,25 +17,22 @@ from __future__ import absolute_import
 
 from st2client.models import core
 
-__all__ = [
-    'ActionAlias',
-    'ActionAliasMatch'
-]
+__all__ = ["ActionAlias", "ActionAliasMatch"]
 
 
 class ActionAlias(core.Resource):
-    _alias = 'Action-Alias'
-    _display_name = 'Action Alias'
-    _plural = 'ActionAliases'
-    _plural_display_name = 'Action Aliases'
-    _url_path = 'actionalias'
-    _repr_attributes = ['name', 'pack', 'action_ref']
+    _alias = "Action-Alias"
+    _display_name = "Action Alias"
+    _plural = "ActionAliases"
+    _plural_display_name = "Action Aliases"
+    _url_path = "actionalias"
+    _repr_attributes = ["name", "pack", "action_ref"]
 
 
 class ActionAliasMatch(core.Resource):
-    _alias = 'Action-Alias-Match'
-    _display_name = 'ActionAlias Match'
-    _plural = 'ActionAliasMatches'
-    _plural_display_name = 'Action Alias Matches'
-    _url_path = 'actionalias'
-    _repr_attributes = ['command']
+    _alias = "Action-Alias-Match"
+    _display_name = "ActionAlias Match"
+    _plural = "ActionAliasMatches"
+    _plural_display_name = "Action Alias Matches"
+    _url_path = "actionalias"
+    _repr_attributes = ["command"]

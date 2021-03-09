@@ -157,6 +157,7 @@ class GarbageCollectorService(object):
         # Note: We sleep for a bit between garbage collection of each object type to prevent busy
         # waiting
         obj_type = "action executions"
+
         if (self._action_executions_ttl and
                 self._action_executions_ttl >= MINIMUM_TTL_DAYS):
             LOG.info(proc_message, obj_type)
@@ -166,6 +167,7 @@ class GarbageCollectorService(object):
             LOG.debug(skip_message, obj_type)
 
         obj_type = "action executions output"
+
         if (self._action_executions_output_ttl and
                 self._action_executions_output_ttl >= MINIMUM_TTL_DAYS_EXECUTION_OUTPUT):
             LOG.info(proc_message, obj_type)
@@ -175,6 +177,7 @@ class GarbageCollectorService(object):
             LOG.debug(skip_message, obj_type)
 
         obj_type = "trigger instances"
+
         if (self._trigger_instances_ttl and
                 self._trigger_instances_ttl >= MINIMUM_TTL_DAYS):
             LOG.info(proc_message, obj_type)

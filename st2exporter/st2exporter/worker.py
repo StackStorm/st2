@@ -18,8 +18,11 @@ from six.moves import queue
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED,
-                                        LIVEACTION_STATUS_CANCELED)
+from st2common.constants.action import (
+    LIVEACTION_STATUS_SUCCEEDED,
+    LIVEACTION_STATUS_FAILED,
+    LIVEACTION_STATUS_CANCELED,
+)
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.execution import ActionExecution
@@ -30,13 +33,13 @@ from st2common.util import isotime
 from st2exporter.exporter.dumper import Dumper
 from st2common.transport.queues import EXPORTER_WORK_QUEUE
 
-__all__ = [
-    'ExecutionsExporter',
-    'get_worker'
-]
+__all__ = ["ExecutionsExporter", "get_worker"]
 
-COMPLETION_STATUSES = [LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED,
-                       LIVEACTION_STATUS_CANCELED]
+COMPLETION_STATUSES = [
+    LIVEACTION_STATUS_SUCCEEDED,
+    LIVEACTION_STATUS_FAILED,
+    LIVEACTION_STATUS_CANCELED,
+]
 LOG = logging.getLogger(__name__)
 
 
@@ -46,18 +49,21 @@ class ExecutionsExporter(consumers.MessageHandler):
     def __init__(self, connection, queues):
         super(ExecutionsExporter, self).__init__(connection, queues)
         self.pending_executions = queue.Queue()
-        self._dumper = Dumper(queue=self.pending_executions,
-                              export_dir=cfg.CONF.exporter.dump_dir)
+        self._dumper = Dumper(
+            queue=self.pending_executions, export_dir=cfg.CONF.exporter.dump_dir
+        )
         self._consumer_thread = None
 
     def start(self, wait=False):
-        LOG.info('Bootstrapping executions from db...')
+        LOG.info("Bootstrapping executions from db...")
         try:
             self._bootstrap()
         except:
-            LOG.exception('Unable to bootstrap executions from db. Aborting.')
+            LOG.exception("Unable to bootstrap executions from db. Aborting.")
             raise
-        self._consumer_thread = eventlet.spawn(super(ExecutionsExporter, self).start, wait=True)
+        self._consumer_thread = eventlet.spawn(
+            super(ExecutionsExporter, self).start, wait=True
+        )
         self._dumper.start()
         if wait:
             self.wait()
@@ -71,7 +77,7 @@ class ExecutionsExporter(consumers.MessageHandler):
         super(ExecutionsExporter, self).shutdown()
 
     def process(self, execution):
-        LOG.debug('Got execution from queue: %s', execution)
+        LOG.debug("Got execution from queue: %s", execution)
         if execution.status not in COMPLETION_STATUSES:
             return
         execution_api = ActionExecutionAPI.from_model(execution, mask_secrets=True)
@@ -80,21 +86,23 @@ class ExecutionsExporter(consumers.MessageHandler):
 
     def _bootstrap(self):
         marker = self._get_export_marker_from_db()
-        LOG.info('Using marker %s...' % marker)
+        LOG.info("Using marker %s..." % marker)
         missed_executions = self._get_missed_executions_from_db(export_marker=marker)
-        LOG.info('Found %d executions not exported yet...', len(missed_executions))
+        LOG.info("Found %d executions not exported yet...", len(missed_executions))
 
         for missed_execution in missed_executions:
             if missed_execution.status not in COMPLETION_STATUSES:
                 continue
-            execution_api = ActionExecutionAPI.from_model(missed_execution, mask_secrets=True)
+            execution_api = ActionExecutionAPI.from_model(
+                missed_execution, mask_secrets=True
+            )
             try:
-                LOG.debug('Missed execution %s', execution_api)
+                LOG.debug("Missed execution %s", execution_api)
                 self.pending_executions.put_nowait(execution_api)
             except:
-                LOG.exception('Failed adding execution to in-memory queue.')
+                LOG.exception("Failed adding execution to in-memory queue.")
                 continue
-        LOG.info('Bootstrapped executions...')
+        LOG.info("Bootstrapped executions...")
 
     def _get_export_marker_from_db(self):
         try:
@@ -114,8 +122,8 @@ class ExecutionsExporter(consumers.MessageHandler):
 
         # XXX: Should adapt this query to get only executions with status
         # in COMPLETION_STATUSES.
-        filters = {'end_timestamp__gt': export_marker}
-        LOG.info('Querying for executions with filters: %s', filters)
+        filters = {"end_timestamp__gt": export_marker}
+        LOG.info("Querying for executions with filters: %s", filters)
         return ActionExecution.query(**filters)
 
     def _get_all_executions_from_db(self):

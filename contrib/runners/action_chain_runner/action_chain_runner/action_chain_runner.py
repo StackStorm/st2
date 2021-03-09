@@ -327,6 +327,7 @@ class ActionChainRunner(ActionRunner):
         # Identify the list of action executions that are workflows and cascade pause.
         for child_exec_id in self.execution.children:
             child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
+
             if (child_exec.runner["name"] in action_constants.WORKFLOW_RUNNER_TYPES and
                     child_exec.status in action_constants.LIVEACTION_CANCELABLE_STATES):
                 action_service.request_cancellation(
@@ -344,6 +345,7 @@ class ActionChainRunner(ActionRunner):
         # Identify the list of action executions that are workflows and cascade pause.
         for child_exec_id in self.execution.children:
             child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
+
             if (child_exec.runner["name"] in action_constants.WORKFLOW_RUNNER_TYPES and
                     child_exec.status == action_constants.LIVEACTION_STATUS_RUNNING):
                 action_service.request_pause(
@@ -424,6 +426,7 @@ class ActionChainRunner(ActionRunner):
             if (self.liveaction and
                     hasattr(self.liveaction, "result") and
                     self.liveaction.result):
+
                 result = self.liveaction.result
 
             # Initialize or rebuild existing context_result from liveaction
@@ -612,6 +615,7 @@ class ActionChainRunner(ActionRunner):
                         action_node = self.chain_holder.get_next_node(
                             action_node.name, condition="on-failure"
                         )
+
                     elif (liveaction.status ==
                             action_constants.LIVEACTION_STATUS_TIMED_OUT):
                         chain_status = action_constants.LIVEACTION_STATUS_TIMED_OUT
@@ -653,6 +657,7 @@ class ActionChainRunner(ActionRunner):
                         action_node = self.chain_holder.get_next_node(
                             action_node.name, condition="on-failure"
                         )
+
                     elif (liveaction.status ==
                             action_constants.LIVEACTION_STATUS_SUCCEEDED):
                         chain_status = action_constants.LIVEACTION_STATUS_SUCCEEDED

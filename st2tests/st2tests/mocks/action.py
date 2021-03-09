@@ -25,10 +25,7 @@ from mock import Mock
 from python_runner.python_action_wrapper import ActionService
 from st2tests.mocks.datastore import MockDatastoreService
 
-__all__ = [
-    'MockActionWrapper',
-    'MockActionService'
-]
+__all__ = ["MockActionWrapper", "MockActionService"]
 
 
 class MockActionWrapper(object):
@@ -49,9 +46,11 @@ class MockActionService(ActionService):
         # We use a Mock class so use can assert logger was called with particular arguments
         self._logger = Mock(spec=RootLogger)
 
-        self._datastore_service = MockDatastoreService(logger=self._logger,
-                                                       pack_name=self._action_wrapper._pack,
-                                                       class_name=self._action_wrapper._class_name)
+        self._datastore_service = MockDatastoreService(
+            logger=self._logger,
+            pack_name=self._action_wrapper._pack,
+            class_name=self._action_wrapper._class_name,
+        )
 
     @property
     def datastore_service(self):

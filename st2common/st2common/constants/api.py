@@ -13,11 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'DEFAULT_API_VERSION'
-]
+__all__ = ["DEFAULT_API_VERSION"]
 
 
-DEFAULT_API_VERSION = 'v1'
+DEFAULT_API_VERSION = "v1"
 
-REQUEST_ID_HEADER = 'X-Request-ID'
+REQUEST_ID_HEADER = "X-Request-ID"

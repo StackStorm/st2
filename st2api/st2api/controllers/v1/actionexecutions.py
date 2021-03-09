@@ -751,8 +751,10 @@ class ActionExecutionsController(
             return (liveaction_db, actionexecution_db)
 
         try:
-            if (liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING and
-                    liveaction_api.status == action_constants.LIVEACTION_STATUS_CANCELED):
+            if (
+                liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING
+                and liveaction_api.status == action_constants.LIVEACTION_STATUS_CANCELED
+            ):
                 if action_service.is_children_active(liveaction_id):
                     liveaction_api.status = action_constants.LIVEACTION_STATUS_CANCELING
                 liveaction_db, actionexecution_db = update_status(
@@ -765,6 +767,7 @@ class ActionExecutionsController(
                 )
             elif (liveaction_db.status == action_constants.LIVEACTION_STATUS_PAUSING and
                     liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSED):
+
                 if action_service.is_children_active(liveaction_id):
                     liveaction_api.status = action_constants.LIVEACTION_STATUS_PAUSING
                 liveaction_db, actionexecution_db = update_status(

@@ -16,9 +16,7 @@
 from st2stream import app
 from st2tests.api import BaseFunctionalTest
 
-__all__ = [
-    'FunctionalTest'
-]
+__all__ = ["FunctionalTest"]
 
 
 class FunctionalTest(BaseFunctionalTest):

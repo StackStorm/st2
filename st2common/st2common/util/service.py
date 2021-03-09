@@ -24,13 +24,13 @@ LOG = logging.getLogger(__name__)
 
 
 def retry_on_exceptions(exc):
-    LOG.warning('Evaluating retry on exception %s. %s', type(exc), str(exc))
+    LOG.warning("Evaluating retry on exception %s. %s", type(exc), str(exc))
 
     is_mongo_connection_error = isinstance(exc, pymongo.errors.ConnectionFailure)
 
     retrying = is_mongo_connection_error
 
     if retrying:
-        LOG.warning('Retrying on exception %s.', type(exc))
+        LOG.warning("Retrying on exception %s.", type(exc))
 
     return retrying

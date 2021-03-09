@@ -39,12 +39,14 @@ def main():
     try:
         handler = scheduler_handler.get_handler()
         handler._cleanup_policy_delayed()
-        LOG.info('SUCCESS: Completed clean up of executions with deprecated policy-delayed status.')
+        LOG.info(
+            "SUCCESS: Completed clean up of executions with deprecated policy-delayed status."
+        )
         exit_code = 0
     except Exception as e:
         LOG.error(
-            'ABORTED: Clean up of executions with deprecated policy-delayed status aborted on '
-            'first failure. %s' % e.message
+            "ABORTED: Clean up of executions with deprecated policy-delayed status aborted on "
+            "first failure. %s" % e.message
         )
         exit_code = 1
 
@@ -53,5 +55,5 @@ def main():
     sys.exit(exit_code)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -34,15 +34,13 @@ from st2common.util import schema as util_schema
 
 
 __all__ = [
-    'request',
-    'create_request',
-    'publish_request',
-    'is_action_canceled_or_canceling',
-
-    'request_pause',
-    'request_resume',
-
-    'store_execution_output_data',
+    "request",
+    "create_request",
+    "publish_request",
+    "is_action_canceled_or_canceling",
+    "request_pause",
+    "request_resume",
+    "store_execution_output_data",
 ]
 
 LOG = logging.getLogger(__name__)
@@ -51,7 +49,7 @@ LOG = logging.getLogger(__name__)
 def _get_immutable_params(parameters):
     if not parameters:
         return []
-    return [k for k, v in six.iteritems(parameters) if v.get('immutable', False)]
+    return [k for k, v in six.iteritems(parameters) if v.get("immutable", False)]
 
 
 def create_request(liveaction, action_db=None, runnertype_db=None):
@@ -77,10 +75,10 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
     parent_context = executions.get_parent_context(liveaction) or {}
-    parent_user = parent_context.get('user', None)
+    parent_user = parent_context.get("user", None)
 
     if parent_user:
-        liveaction.context['user'] = parent_user
+        liveaction.context["user"] = parent_user
 
     # Validate action
     if not action_db:
@@ -89,31 +87,44 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
     if not action_db:
         raise ValueError('Action "%s" cannot be found.' % liveaction.action)
     if not action_db.enabled:
-        raise ValueError('Unable to execute. Action "%s" is disabled.' % liveaction.action)
+        raise ValueError(
+            'Unable to execute. Action "%s" is disabled.' % liveaction.action
+        )
 
     if not runnertype_db:
-        runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
+        runnertype_db = action_utils.get_runnertype_by_name(
+            action_db.runner_type["name"]
+        )
 
-    if not hasattr(liveaction, 'parameters'):
+    if not hasattr(liveaction, "parameters"):
         liveaction.parameters = dict()
 
     # For consistency add pack to the context here in addition to RunnerContainer.dispatch() method
-    liveaction.context['pack'] = action_db.pack
+    liveaction.context["pack"] = action_db.pack
 
     # Validate action parameters.
     schema = util_schema.get_schema_for_action_parameters(action_db, runnertype_db)
     validator = util_schema.get_validator()
-    util_schema.validate(liveaction.parameters, schema, validator, use_default=True,
-                         allow_default_none=True)
+    util_schema.validate(
+        liveaction.parameters,
+        schema,
+        validator,
+        use_default=True,
+        allow_default_none=True,
+    )
 
     # validate that no immutable params are being overriden. Although possible to
     # ignore the override it is safer to inform the user to avoid surprises.
     immutables = _get_immutable_params(action_db.parameters)
     immutables.extend(_get_immutable_params(runnertype_db.runner_parameters))
-    overridden_immutables = [p for p in six.iterkeys(liveaction.parameters) if p in immutables]
+    overridden_immutables = [
+        p for p in six.iterkeys(liveaction.parameters) if p in immutables
+    ]
     if len(overridden_immutables) > 0:
-        raise ValueError('Override of immutable parameter(s) %s is unsupported.'
-                         % str(overridden_immutables))
+        raise ValueError(
+            "Override of immutable parameter(s) %s is unsupported."
+            % str(overridden_immutables)
+        )
 
     # Set notification settings for action.
     # XXX: There are cases when we don't want notifications to be sent for a particular
@@ -140,17 +151,24 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
         _cleanup_liveaction(liveaction)
         raise trace_exc.TraceNotFoundException(six.text_type(e))
 
-    execution = executions.create_execution_object(liveaction=liveaction, action_db=action_db,
-                                                   runnertype_db=runnertype_db, publish=False)
+    execution = executions.create_execution_object(
+        liveaction=liveaction,
+        action_db=action_db,
+        runnertype_db=runnertype_db,
+        publish=False,
+    )
 
     if trace_db:
         trace_service.add_or_update_given_trace_db(
             trace_db=trace_db,
             action_executions=[
-                trace_service.get_trace_component_for_action_execution(execution, liveaction)
-            ])
+                trace_service.get_trace_component_for_action_execution(
+                    execution, liveaction
+                )
+            ],
+        )
 
-    get_driver().inc_counter('action.executions.%s' % (liveaction.status))
+    get_driver().inc_counter("action.executions.%s" % (liveaction.status))
 
     return liveaction, execution
 
@@ -170,8 +188,11 @@ def publish_request(liveaction, execution):
     # TODO: This results in two queries, optimize it
     #  extra = {'liveaction_db': liveaction, 'execution_db': execution}
     extra = {}
-    LOG.audit('Action execution requested. LiveAction.id=%s, ActionExecution.id=%s' %
-              (liveaction.id, execution.id), extra=extra)
+    LOG.audit(
+        "Action execution requested. LiveAction.id=%s, ActionExecution.id=%s"
+        % (liveaction.id, execution.id),
+        extra=extra,
+    )
 
     return liveaction, execution
 
@@ -190,33 +211,34 @@ def update_status(liveaction, new_status, result=None, publish=True):
     old_status = liveaction.status
 
     updates = {
-        'liveaction_id': liveaction.id,
-        'status': new_status,
-        'result': result,
-        'publish': False
+        "liveaction_id": liveaction.id,
+        "status": new_status,
+        "result": result,
+        "publish": False,
     }
 
     if new_status in action_constants.LIVEACTION_COMPLETED_STATES:
-        updates['end_timestamp'] = date_utils.get_datetime_utc_now()
+        updates["end_timestamp"] = date_utils.get_datetime_utc_now()
 
     liveaction = action_utils.update_liveaction_status(**updates)
     action_execution = executions.update_execution(liveaction)
 
-    msg = ('The status of action execution is changed from %s to %s. '
-           '<LiveAction.id=%s, ActionExecution.id=%s>' % (old_status,
-           new_status, liveaction.id, action_execution.id))
+    msg = (
+        "The status of action execution is changed from %s to %s. "
+        "<LiveAction.id=%s, ActionExecution.id=%s>"
+        % (old_status, new_status, liveaction.id, action_execution.id)
+    )
 
-    extra = {
-        'action_execution_db': action_execution,
-        'liveaction_db': liveaction
-    }
+    extra = {"action_execution_db": action_execution, "liveaction_db": liveaction}
 
     LOG.audit(msg, extra=extra)
     LOG.info(msg)
 
     # Invoke post run if liveaction status is completed or paused.
-    if (new_status in action_constants.LIVEACTION_COMPLETED_STATES or
-            new_status == action_constants.LIVEACTION_STATUS_PAUSED):
+    if (
+        new_status in action_constants.LIVEACTION_COMPLETED_STATES
+        or new_status == action_constants.LIVEACTION_STATUS_PAUSED
+    ):
         runners_utils.invoke_post_run(liveaction)
 
     if publish:
@@ -227,14 +249,18 @@ def update_status(liveaction, new_status, result=None, publish=True):
 
 def is_action_canceled_or_canceling(liveaction_id):
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
-    return liveaction_db.status in [action_constants.LIVEACTION_STATUS_CANCELED,
-                                    action_constants.LIVEACTION_STATUS_CANCELING]
+    return liveaction_db.status in [
+        action_constants.LIVEACTION_STATUS_CANCELED,
+        action_constants.LIVEACTION_STATUS_CANCELING,
+    ]
 
 
 def is_action_paused_or_pausing(liveaction_id):
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
-    return liveaction_db.status in [action_constants.LIVEACTION_STATUS_PAUSED,
-                                    action_constants.LIVEACTION_STATUS_PAUSING]
+    return liveaction_db.status in [
+        action_constants.LIVEACTION_STATUS_PAUSED,
+        action_constants.LIVEACTION_STATUS_PAUSING,
+    ]
 
 
 def request_cancellation(liveaction, requester):
@@ -250,18 +276,17 @@ def request_cancellation(liveaction, requester):
     if liveaction.status not in action_constants.LIVEACTION_CANCELABLE_STATES:
         raise Exception(
             'Unable to cancel liveaction "%s" because it is already in a '
-            'completed state.' % liveaction.id
+            "completed state." % liveaction.id
         )
 
-    result = {
-        'message': 'Action canceled by user.',
-        'user': requester
-    }
+    result = {"message": "Action canceled by user.", "user": requester}
 
     # Run cancelation sequence for liveaction that is in running state or
     # if the liveaction is operating under a workflow.
-    if ('parent' in liveaction.context or
-            liveaction.status in action_constants.LIVEACTION_STATUS_RUNNING):
+    if (
+        "parent" in liveaction.context
+        or liveaction.status in action_constants.LIVEACTION_STATUS_RUNNING
+    ):
         status = action_constants.LIVEACTION_STATUS_CANCELING
     else:
         status = action_constants.LIVEACTION_STATUS_CANCELED
@@ -286,17 +311,19 @@ def request_pause(liveaction, requester):
     if not action_db:
         raise ValueError(
             'Unable to pause liveaction "%s" because the action "%s" '
-            'is not found.' % (liveaction.id, liveaction.action)
+            "is not found." % (liveaction.id, liveaction.action)
         )
 
-    if action_db.runner_type['name'] not in action_constants.WORKFLOW_RUNNER_TYPES:
+    if action_db.runner_type["name"] not in action_constants.WORKFLOW_RUNNER_TYPES:
         raise runner_exc.InvalidActionRunnerOperationError(
             'Unable to pause liveaction "%s" because it is not supported by the '
-            '"%s" runner.' % (liveaction.id, action_db.runner_type['name'])
+            '"%s" runner.' % (liveaction.id, action_db.runner_type["name"])
         )
 
-    if (liveaction.status == action_constants.LIVEACTION_STATUS_PAUSING or
-            liveaction.status == action_constants.LIVEACTION_STATUS_PAUSED):
+    if (
+        liveaction.status == action_constants.LIVEACTION_STATUS_PAUSING
+        or liveaction.status == action_constants.LIVEACTION_STATUS_PAUSED
+    ):
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
         return (liveaction, execution)
 
@@ -326,18 +353,18 @@ def request_resume(liveaction, requester):
     if not action_db:
         raise ValueError(
             'Unable to resume liveaction "%s" because the action "%s" '
-            'is not found.' % (liveaction.id, liveaction.action)
+            "is not found." % (liveaction.id, liveaction.action)
         )
 
-    if action_db.runner_type['name'] not in action_constants.WORKFLOW_RUNNER_TYPES:
+    if action_db.runner_type["name"] not in action_constants.WORKFLOW_RUNNER_TYPES:
         raise runner_exc.InvalidActionRunnerOperationError(
             'Unable to resume liveaction "%s" because it is not supported by the '
-            '"%s" runner.' % (liveaction.id, action_db.runner_type['name'])
+            '"%s" runner.' % (liveaction.id, action_db.runner_type["name"])
         )
 
     running_states = [
         action_constants.LIVEACTION_STATUS_RUNNING,
-        action_constants.LIVEACTION_STATUS_RESUMING
+        action_constants.LIVEACTION_STATUS_RESUMING,
     ]
 
     if liveaction.status in running_states:
@@ -367,13 +394,13 @@ def get_parent_liveaction(liveaction_db):
     :rtype: LiveActionDB
     """
 
-    parent = liveaction_db.context.get('parent')
+    parent = liveaction_db.context.get("parent")
 
     if not parent:
         return None
 
-    parent_execution_db = ActionExecution.get(id=parent['execution_id'])
-    parent_liveaction_db = LiveAction.get(id=parent_execution_db.liveaction['id'])
+    parent_execution_db = ActionExecution.get(id=parent["execution_id"])
+    parent_liveaction_db = LiveAction.get(id=parent_execution_db.liveaction["id"])
 
     return parent_liveaction_db
 
@@ -409,7 +436,11 @@ def get_root_liveaction(liveaction_db):
 
     parent_liveaction_db = get_parent_liveaction(liveaction_db)
 
-    return get_root_liveaction(parent_liveaction_db) if parent_liveaction_db else liveaction_db
+    return (
+        get_root_liveaction(parent_liveaction_db)
+        if parent_liveaction_db
+        else liveaction_db
+    )
 
 
 def get_root_execution(execution_db):
@@ -425,36 +456,48 @@ def get_root_execution(execution_db):
 
     parent_execution_db = get_parent_execution(execution_db)
 
-    return get_root_execution(parent_execution_db) if parent_execution_db else execution_db
+    return (
+        get_root_execution(parent_execution_db) if parent_execution_db else execution_db
+    )
 
 
-def store_execution_output_data(execution_db, action_db, data, output_type='output',
-                                timestamp=None):
+def store_execution_output_data(
+    execution_db, action_db, data, output_type="output", timestamp=None
+):
     """
     Store output from an execution as a new document in the collection.
     """
     execution_id = str(execution_db.id)
 
     if action_db is None:
-        action_ref = execution_db.action.get('ref', 'unknown')
-        runner_ref = execution_db.action.get('runner_type', 'unknown')
+        action_ref = execution_db.action.get("ref", "unknown")
+        runner_ref = execution_db.action.get("runner_type", "unknown")
     else:
         action_ref = action_db.ref
-        runner_ref = getattr(action_db, 'runner_type', {}).get('name', 'unknown')
+        runner_ref = getattr(action_db, "runner_type", {}).get("name", "unknown")
 
     return store_execution_output_data_ex(
-        execution_id, action_ref, runner_ref, data,
-        output_type=output_type, timestamp=timestamp
+        execution_id,
+        action_ref,
+        runner_ref,
+        data,
+        output_type=output_type,
+        timestamp=timestamp,
     )
 
 
-def store_execution_output_data_ex(execution_id, action_ref, runner_ref, data, output_type='output',
-                                   timestamp=None):
+def store_execution_output_data_ex(
+    execution_id, action_ref, runner_ref, data, output_type="output", timestamp=None
+):
     timestamp = timestamp or date_utils.get_datetime_utc_now()
 
     output_db = ActionExecutionOutputDB(
-        execution_id=execution_id, action_ref=action_ref, runner_ref=runner_ref,
-        timestamp=timestamp, output_type=output_type, data=data
+        execution_id=execution_id,
+        action_ref=action_ref,
+        runner_ref=runner_ref,
+        timestamp=timestamp,
+        output_type=output_type,
+        data=data,
     )
 
     output_db = ActionExecutionOutput.add_or_update(
@@ -467,29 +510,29 @@ def store_execution_output_data_ex(execution_id, action_ref, runner_ref, data, o
 def is_children_active(liveaction_id):
     execution_db = ActionExecution.get(liveaction__id=str(liveaction_id))
 
-    if execution_db.runner['name'] not in action_constants.WORKFLOW_RUNNER_TYPES:
+    if execution_db.runner["name"] not in action_constants.WORKFLOW_RUNNER_TYPES:
         return False
 
     children_execution_dbs = ActionExecution.query(parent=str(execution_db.id))
 
-    inactive_statuses = (
-        action_constants.LIVEACTION_COMPLETED_STATES +
-        [action_constants.LIVEACTION_STATUS_PAUSED, action_constants.LIVEACTION_STATUS_PENDING]
-    )
+    inactive_statuses = action_constants.LIVEACTION_COMPLETED_STATES + [
+        action_constants.LIVEACTION_STATUS_PAUSED,
+        action_constants.LIVEACTION_STATUS_PENDING,
+    ]
 
     completed = [
         child_exec_db.status in inactive_statuses
         for child_exec_db in children_execution_dbs
     ]
 
-    return (not all(completed))
+    return not all(completed)
 
 
 def _cleanup_liveaction(liveaction):
     try:
         LiveAction.delete(liveaction)
     except:
-        LOG.exception('Failed cleaning up LiveAction: %s.', liveaction)
+        LOG.exception("Failed cleaning up LiveAction: %s.", liveaction)
         pass
 
 

@@ -26,8 +26,10 @@ import argparse
 try:
     from graphviz import Digraph
 except ImportError:
-    msg = ('Missing "graphviz" dependency. You can install it using pip: \n'
-           'pip install graphviz')
+    msg = (
+        'Missing "graphviz" dependency. You can install it using pip: \n'
+        "pip install graphviz"
+    )
     raise ImportError(msg)
 
 from st2common.content.loader import MetaLoader
@@ -41,25 +43,29 @@ def main(metadata_path, output_path, print_source=False):
     meta_loader = MetaLoader()
     data = meta_loader.load(metadata_path)
 
-    action_name = data['name']
-    entry_point = data['entry_point']
+    action_name = data["name"]
+    entry_point = data["entry_point"]
 
     workflow_metadata_path = os.path.join(metadata_dir, entry_point)
     chainspec = meta_loader.load(workflow_metadata_path)
 
-    chain_holder = ChainHolder(chainspec, 'workflow')
+    chain_holder = ChainHolder(chainspec, "workflow")
 
-    graph_label = '%s action-chain workflow visualization' % (action_name)
+    graph_label = "%s action-chain workflow visualization" % (action_name)
 
     graph_attr = {
-        'rankdir': 'TD',
-        'labelloc': 't',
-        'fontsize': '15',
-        'label': graph_label
+        "rankdir": "TD",
+        "labelloc": "t",
+        "fontsize": "15",
+        "label": graph_label,
     }
     node_attr = {}
-    dot = Digraph(comment='Action chain work-flow visualization',
-                  node_attr=node_attr, graph_attr=graph_attr, format='png')
+    dot = Digraph(
+        comment="Action chain work-flow visualization",
+        node_attr=node_attr,
+        graph_attr=graph_attr,
+        format="png",
+    )
     #  dot.body.extend(['rankdir=TD', 'size="10,5"'])
 
     # Add all nodes
@@ -74,23 +80,35 @@ def main(metadata_path, output_path, print_source=False):
     nodes = [node]
     while nodes:
         previous_node = nodes.pop()
-        success_node = chain_holder.get_next_node(curr_node_name=previous_node.name,
-                                                  condition='on-success')
-        failure_node = chain_holder.get_next_node(curr_node_name=previous_node.name,
-                                                  condition='on-failure')
+        success_node = chain_holder.get_next_node(
+            curr_node_name=previous_node.name, condition="on-success"
+        )
+        failure_node = chain_holder.get_next_node(
+            curr_node_name=previous_node.name, condition="on-failure"
+        )
 
         # Add success node (if any)
         if success_node:
-            dot.edge(previous_node.name, success_node.name, constraint='true',
-                     color='green', label='on success')
+            dot.edge(
+                previous_node.name,
+                success_node.name,
+                constraint="true",
+                color="green",
+                label="on success",
+            )
             if success_node.name not in processed_nodes:
                 nodes.append(success_node)
                 processed_nodes.add(success_node.name)
 
         # Add failure node (if any)
         if failure_node:
-            dot.edge(previous_node.name, failure_node.name, constraint='true',
-                     color='red', label='on failure')
+            dot.edge(
+                previous_node.name,
+                failure_node.name,
+                constraint="true",
+                color="red",
+                label="on failure",
+            )
             if failure_node.name not in processed_nodes:
                 nodes.append(failure_node)
                 processed_nodes.add(failure_node.name)
@@ -103,21 +121,36 @@ def main(metadata_path, output_path, print_source=False):
     else:
         output_path = output_path or os.path.join(os.getcwd(), action_name)
 
-    dot.format = 'png'
+    dot.format = "png"
     dot.render(output_path)
 
-    print('Graph saved at %s' % (output_path + '.png'))
+    print("Graph saved at %s" % (output_path + ".png"))
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Action chain visualization')
-    parser.add_argument('--metadata-path', action='store', required=True,
-                        help='Path to the workflow action metadata file')
-    parser.add_argument('--output-path', action='store', required=False,
-                        help='Output directory for the generated image')
-    parser.add_argument('--print-source', action='store_true', default=False,
-                        help='Print graphviz source code to the stdout')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Action chain visualization")
+    parser.add_argument(
+        "--metadata-path",
+        action="store",
+        required=True,
+        help="Path to the workflow action metadata file",
+    )
+    parser.add_argument(
+        "--output-path",
+        action="store",
+        required=False,
+        help="Output directory for the generated image",
+    )
+    parser.add_argument(
+        "--print-source",
+        action="store_true",
+        default=False,
+        help="Print graphviz source code to the stdout",
+    )
     args = parser.parse_args()
 
-    main(metadata_path=args.metadata_path, output_path=args.output_path,
-         print_source=args.print_source)
+    main(
+        metadata_path=args.metadata_path,
+        output_path=args.output_path,
+        print_source=args.print_source,
+    )
