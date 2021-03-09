@@ -24,9 +24,9 @@ from st2common.services.keyvalues import KeyValueLookup
 from st2common.services.keyvalues import UserKeyValueLookup
 
 __all__ = [
-    'render_template',
-    'render_template_with_system_context',
-    'render_template_with_system_and_user_context'
+    "render_template",
+    "render_template_with_system_context",
+    "render_template_with_system_and_user_context",
 ]
 
 
@@ -41,8 +41,9 @@ def render_template(value, context=None):
     :type context: ``dict``
     """
     if not isinstance(value, six.string_types):
-        raise TypeError(f'The template value needs to be of type string'
-                        f' (was {type(value)}).')
+        raise TypeError(
+            f"The template value needs to be of type string" f" (was {type(value)})."
+        )
     context = context or {}
 
     env = get_jinja_environment(allow_undefined=False)  # nosec
@@ -76,7 +77,9 @@ def render_template_with_system_context(value, context=None, prefix=None):
     return rendered
 
 
-def render_template_with_system_and_user_context(value, user, context=None, prefix=None):
+def render_template_with_system_and_user_context(
+    value, user, context=None, prefix=None
+):
     """
     Render provided template with a default system context and user context for the provided user.
 
@@ -97,7 +100,7 @@ def render_template_with_system_and_user_context(value, user, context=None, pref
     context = context or {}
     context[DATASTORE_PARENT_SCOPE] = {
         SYSTEM_SCOPE: KeyValueLookup(prefix=prefix, scope=FULL_SYSTEM_SCOPE),
-        USER_SCOPE: UserKeyValueLookup(prefix=prefix, user=user, scope=FULL_USER_SCOPE)
+        USER_SCOPE: UserKeyValueLookup(prefix=prefix, user=user, scope=FULL_USER_SCOPE),
     }
 
     rendered = render_template(value=value, context=context)
