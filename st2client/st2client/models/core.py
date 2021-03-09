@@ -180,7 +180,7 @@ class ResourceManager(object):
         pack = kwargs.pop("pack", None)
         prefix = kwargs.pop("prefix", None)
         user = kwargs.pop("user", None)
-        offset = kwargs.pop("offset", None)
+        offset = kwargs.pop("offset", 0)
 
         params = kwargs.pop("params", {})
 
