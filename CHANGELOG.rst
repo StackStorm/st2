@@ -4,6 +4,13 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~~~
+
+* Added support for limit and offset in list_values method (#5097 and #5171.)
+
+  Contributed by @anirudhbagri.
+
 Changed
 ~~~~~~~
 
