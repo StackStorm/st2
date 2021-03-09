@@ -95,9 +95,7 @@ class DatastoreServiceTestCase(DbTestCase):
 
         # Test limit
         _ = self._datastore_service.list_values(local=True, limit=1)
-        mock_api_client.keys.get_all.assert_called_with(
-            prefix=None, limit=1, offset=0
-        )
+        mock_api_client.keys.get_all.assert_called_with(prefix=None, limit=1, offset=0)
 
         # Test offset
         _ = self._datastore_service.list_values(local=True, offset=1)
