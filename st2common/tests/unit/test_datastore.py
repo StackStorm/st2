@@ -51,14 +51,22 @@ class DatastoreServiceTestCase(DbTestCase):
         self._set_mock_api_client(mock_api_client)
 
         self._datastore_service.list_values(local=True, prefix=None)
-        mock_api_client.keys.get_all.assert_called_with(prefix="core.TestSensor:", limit=100, offset=0)
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="core.TestSensor:", limit=100, offset=0
+        )
         self._datastore_service.list_values(local=True, prefix="ponies")
-        mock_api_client.keys.get_all.assert_called_with(prefix="core.TestSensor:ponies", limit=100, offset=0)
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="core.TestSensor:ponies", limit=100, offset=0
+        )
 
         self._datastore_service.list_values(local=False, prefix=None)
-        mock_api_client.keys.get_all.assert_called_with(prefix=None, limit=100, offset=0)
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix=None, limit=100, offset=0
+        )
         self._datastore_service.list_values(local=False, prefix="ponies")
-        mock_api_client.keys.get_all.assert_called_with(prefix="ponies", limit=100, offset=0)
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="ponies", limit=100, offset=0
+        )
 
         # No values in the datastore
         mock_api_client = mock.Mock()
