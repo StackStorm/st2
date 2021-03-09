@@ -28,10 +28,10 @@ from tests.unit.base import BaseDBModelCRUDTestCase
 
 
 __all__ = [
-    'RoleDBModelCRUDTestCase',
-    'UserRoleAssignmentDBModelCRUDTestCase',
-    'PermissionGrantDBModelCRUDTestCase',
-    'GroupToRoleMappingDBModelCRUDTestCase'
+    "RoleDBModelCRUDTestCase",
+    "UserRoleAssignmentDBModelCRUDTestCase",
+    "PermissionGrantDBModelCRUDTestCase",
+    "GroupToRoleMappingDBModelCRUDTestCase",
 ]
 
 
@@ -39,44 +39,44 @@ class RoleDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = RoleDB
     persistance_class = Role
     model_class_kwargs = {
-        'name': 'role_one',
-        'description': None,
-        'system': False,
-        'permission_grants': []
+        "name": "role_one",
+        "description": None,
+        "system": False,
+        "permission_grants": [],
     }
-    update_attribute_name = 'name'
+    update_attribute_name = "name"
 
 
 class UserRoleAssignmentDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = UserRoleAssignmentDB
     persistance_class = UserRoleAssignment
     model_class_kwargs = {
-        'user': 'user_one',
-        'role': 'role_one',
-        'source': 'source_one',
-        'is_remote': True
+        "user": "user_one",
+        "role": "role_one",
+        "source": "source_one",
+        "is_remote": True,
     }
-    update_attribute_name = 'role'
+    update_attribute_name = "role"
 
 
 class PermissionGrantDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = PermissionGrantDB
     persistance_class = PermissionGrant
     model_class_kwargs = {
-        'resource_uid': 'pack:core',
-        'resource_type': 'pack',
-        'permission_types': []
+        "resource_uid": "pack:core",
+        "resource_type": "pack",
+        "permission_types": [],
     }
-    update_attribute_name = 'resource_uid'
+    update_attribute_name = "resource_uid"
 
 
 class GroupToRoleMappingDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = GroupToRoleMappingDB
     persistance_class = GroupToRoleMapping
     model_class_kwargs = {
-        'group': 'some group',
-        'roles': ['role_one', 'role_two'],
-        'description': 'desc',
-        'enabled': True
+        "group": "some group",
+        "roles": ["role_one", "role_two"],
+        "description": "desc",
+        "enabled": True,
     }
-    update_attribute_name = 'group'
+    update_attribute_name = "group"

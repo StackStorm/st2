@@ -23,6 +23,7 @@ import st2tests
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 from tests.unit import base
@@ -43,37 +44,45 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_PACK = 'orquesta_tests'
-TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
+TEST_PACK = "orquesta_tests"
+TEST_PACK_PATH = (
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
+)
 
 PACKS = [
     TEST_PACK_PATH,
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
 
 
 @mock.patch.object(
-    publishers.CUDPublisher,
-    'publish_update',
-    mock.MagicMock(return_value=None))
+    publishers.CUDPublisher, "publish_update", mock.MagicMock(return_value=None)
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create),
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create
+    ),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state
+    ),
+)
 class OrquestaRunnerDelayTest(st2tests.ExecutionDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(OrquestaRunnerDelayTest, cls).setUpClass()
@@ -83,8 +92,7 @@ class OrquestaRunnerDelayTest(st2tests.ExecutionDbTestCase):
 
         # Register test pack(s).
         actions_registrar = actionsregistrar.ActionsRegistrar(
-            use_pack_cache=False,
-            fail_on_failure=True
+            use_pack_cache=False, fail_on_failure=True
         )
 
         for pack in PACKS:
@@ -94,17 +102,25 @@ class OrquestaRunnerDelayTest(st2tests.ExecutionDbTestCase):
         expected_delay_sec = 1
         expected_delay_msec = expected_delay_sec * 1000
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'delay.yaml')
-        wf_input = {'delay': expected_delay_sec}
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "delay.yaml")
+        wf_input = {"delay": expected_delay_sec}
+        lv_ac_db = lv_db_models.LiveActionDB(
+            action=wf_meta["name"], parameters=wf_input
+        )
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
-        lv_ac_db = self._wait_on_status(lv_ac_db, action_constants.LIVEACTION_STATUS_RUNNING)
+        lv_ac_db = self._wait_on_status(
+            lv_ac_db, action_constants.LIVEACTION_STATUS_RUNNING
+        )
 
         # Identify records for the main workflow.
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
         t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
         t1_lv_ac_db = lv_db_access.LiveAction.query(task_execution=str(t1_ex_db.id))[0]
 
         # Assert delay value is rendered and assigned.
@@ -116,20 +132,28 @@ class OrquestaRunnerDelayTest(st2tests.ExecutionDbTestCase):
         expected_delay_sec = 1
         expected_delay_msec = expected_delay_sec * 1000
 
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'with-items-delay.yaml')
-        wf_input = {'delay': expected_delay_sec}
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "with-items-delay.yaml")
+        wf_input = {"delay": expected_delay_sec}
+        lv_ac_db = lv_db_models.LiveActionDB(
+            action=wf_meta["name"], parameters=wf_input
+        )
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
-        lv_ac_db = self._wait_on_status(lv_ac_db, action_constants.LIVEACTION_STATUS_RUNNING)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        lv_ac_db = self._wait_on_status(
+            lv_ac_db, action_constants.LIVEACTION_STATUS_RUNNING
+        )
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Process the with items task.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
         t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))
+        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )
         t1_lv_ac_dbs = lv_db_access.LiveAction.query(task_execution=str(t1_ex_db.id))
 
         # Assert delay value is rendered and assigned.
@@ -166,20 +190,30 @@ class OrquestaRunnerDelayTest(st2tests.ExecutionDbTestCase):
         expected_delay_sec = 1
         expected_delay_msec = expected_delay_sec * 1000
 
-        wf_input = {'concurrency': concurrency, 'delay': expected_delay_sec}
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'with-items-concurrency-delay.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        wf_input = {"concurrency": concurrency, "delay": expected_delay_sec}
+        wf_meta = base.get_wf_fixture_meta_data(
+            TEST_PACK_PATH, "with-items-concurrency-delay.yaml"
+        )
+        lv_ac_db = lv_db_models.LiveActionDB(
+            action=wf_meta["name"], parameters=wf_input
+        )
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
-        lv_ac_db = self._wait_on_status(lv_ac_db, action_constants.LIVEACTION_STATUS_RUNNING)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        lv_ac_db = self._wait_on_status(
+            lv_ac_db, action_constants.LIVEACTION_STATUS_RUNNING
+        )
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Process the first set of action executions from with items concurrency.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
         t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))
+        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )
         t1_lv_ac_dbs = lv_db_access.LiveAction.query(task_execution=str(t1_ex_db.id))
 
         # Assert the number of concurrent items is correct.
@@ -211,7 +245,9 @@ class OrquestaRunnerDelayTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Process the second set of action executions from with items concurrency.
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))
+        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )
         t1_lv_ac_dbs = lv_db_access.LiveAction.query(task_execution=str(t1_ex_db.id))
 
         # Assert delay value is rendered and assigned only to the first set of action executions.

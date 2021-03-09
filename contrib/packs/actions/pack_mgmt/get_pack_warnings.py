@@ -34,7 +34,7 @@ class GetPackWarnings(Action):
             return result
 
         for pack, status in six.iteritems(packs_status):
-            if 'success' not in status.lower():
+            if "success" not in status.lower():
                 continue
 
             warning = get_warnings(pack)
@@ -42,7 +42,7 @@ class GetPackWarnings(Action):
             if warning:
                 warning_list.append(warning)
 
-        result['warning_list'] = warning_list
+        result["warning_list"] = warning_list
 
         return result
 
@@ -54,6 +54,6 @@ def get_warnings(pack=None):
         pack_metadata = get_pack_metadata(pack_dir=pack_path)
         result = get_pack_warnings(pack_metadata)
     except Exception:
-        print('Could not open pack.yaml at location %s' % pack_path)
+        print("Could not open pack.yaml at location %s" % pack_path)
     finally:
         return result

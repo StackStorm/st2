@@ -37,37 +37,34 @@ from st2tests.policies.mock_exception import RaiseExceptionApplicator
 
 
 TEST_FIXTURES = {
-    'actions': [
-        'action1.yaml'
-    ],
-    'policytypes': [
-        'fake_policy_type_1.yaml',
-        'fake_policy_type_2.yaml'
-    ],
-    'policies': [
-        'policy_1.yaml',
-        'policy_2.yaml'
-    ]
+    "actions": ["action1.yaml"],
+    "policytypes": ["fake_policy_type_1.yaml", "fake_policy_type_2.yaml"],
+    "policies": ["policy_1.yaml", "policy_2.yaml"],
 }
 
-PACK = 'generic'
+PACK = "generic"
 LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
 
 @mock.patch.object(
-    CUDPublisher, 'publish_update',
-    mock.MagicMock(side_effect=MockExecutionPublisher.publish_update))
+    CUDPublisher,
+    "publish_update",
+    mock.MagicMock(side_effect=MockExecutionPublisher.publish_update),
+)
+@mock.patch.object(CUDPublisher, "publish_create", mock.MagicMock(return_value=None))
 @mock.patch.object(
-    CUDPublisher, 'publish_create',
-    mock.MagicMock(return_value=None))
-@mock.patch.object(
-    LiveActionPublisher, 'publish_state',
-    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
-@mock.patch('st2common.runners.base.get_runner', mock.Mock(return_value=runner.get_runner()))
-@mock.patch('st2actions.container.base.get_runner', mock.Mock(return_value=runner.get_runner()))
+    LiveActionPublisher,
+    "publish_state",
+    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state),
+)
+@mock.patch(
+    "st2common.runners.base.get_runner", mock.Mock(return_value=runner.get_runner())
+)
+@mock.patch(
+    "st2actions.container.base.get_runner", mock.Mock(return_value=runner.get_runner())
+)
 class SchedulingPolicyTest(ExecutionDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(SchedulingPolicyTest, cls).setUpClass()
@@ -75,15 +72,15 @@ class SchedulingPolicyTest(ExecutionDbTestCase):
         # Register runners
         runners_registrar.register_runners()
 
-        for _, fixture in six.iteritems(FIXTURES['actions']):
+        for _, fixture in six.iteritems(FIXTURES["actions"]):
             instance = ActionAPI(**fixture)
             Action.add_or_update(ActionAPI.to_model(instance))
 
-        for _, fixture in six.iteritems(FIXTURES['policytypes']):
+        for _, fixture in six.iteritems(FIXTURES["policytypes"]):
             instance = PolicyTypeAPI(**fixture)
             PolicyType.add_or_update(PolicyTypeAPI.to_model(instance))
 
-        for _, fixture in six.iteritems(FIXTURES['policies']):
+        for _, fixture in six.iteritems(FIXTURES["policies"]):
             instance = PolicyAPI(**fixture)
             Policy.add_or_update(PolicyAPI.to_model(instance))
 
@@ -91,35 +88,54 @@ class SchedulingPolicyTest(ExecutionDbTestCase):
         # Ensure all liveactions are canceled at end of each test.
         for liveaction in LiveAction.get_all():
             action_service.update_status(
-                liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
+                liveaction, action_constants.LIVEACTION_STATUS_CANCELED
+            )
 
     @mock.patch.object(
-        FakeConcurrencyApplicator, 'apply_before',
+        FakeConcurrencyApplicator,
+        "apply_before",
         mock.MagicMock(
-            side_effect=FakeConcurrencyApplicator(None, None, threshold=3).apply_before))
+            side_effect=FakeConcurrencyApplicator(None, None, threshold=3).apply_before
+        ),
+    )
     @mock.patch.object(
-        RaiseExceptionApplicator, 'apply_before',
-        mock.MagicMock(
-            side_effect=RaiseExceptionApplicator(None, None).apply_before))
+        RaiseExceptionApplicator,
+        "apply_before",
+        mock.MagicMock(side_effect=RaiseExceptionApplicator(None, None).apply_before),
+    )
     @mock.patch.object(
-        FakeConcurrencyApplicator, 'apply_after',
+        FakeConcurrencyApplicator,
+        "apply_after",
         mock.MagicMock(
-            side_effect=FakeConcurrencyApplicator(None, None, threshold=3).apply_after))
+            side_effect=FakeConcurrencyApplicator(None, None, threshold=3).apply_after
+        ),
+    )
     @mock.patch.object(
-        RaiseExceptionApplicator, 'apply_after',
-        mock.MagicMock(
-            side_effect=RaiseExceptionApplicator(None, None).apply_after))
+        RaiseExceptionApplicator,
+        "apply_after",
+        mock.MagicMock(side_effect=RaiseExceptionApplicator(None, None).apply_after),
+    )
     def test_apply(self):
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "foo"}
+        )
         liveaction, _ = action_service.request(liveaction)
-        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        liveaction = self._wait_on_status(
+            liveaction, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         FakeConcurrencyApplicator.apply_before.assert_called_once_with(liveaction)
         RaiseExceptionApplicator.apply_before.assert_called_once_with(liveaction)
         FakeConcurrencyApplicator.apply_after.assert_called_once_with(liveaction)
         RaiseExceptionApplicator.apply_after.assert_called_once_with(liveaction)
 
-    @mock.patch.object(FakeConcurrencyApplicator, 'get_threshold', mock.MagicMock(return_value=0))
+    @mock.patch.object(
+        FakeConcurrencyApplicator, "get_threshold", mock.MagicMock(return_value=0)
+    )
     def test_enforce(self):
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "foo"}
+        )
         liveaction, _ = action_service.request(liveaction)
-        liveaction = self._wait_on_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
+        liveaction = self._wait_on_status(
+            liveaction, action_constants.LIVEACTION_STATUS_CANCELED
+        )

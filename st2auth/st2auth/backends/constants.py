@@ -19,17 +19,15 @@ Auth backend related constants.
 
 from st2common.util.enum import Enum
 
-__all__ = [
-    'AuthBackendCapability'
-]
+__all__ = ["AuthBackendCapability"]
 
 
 class AuthBackendCapability(Enum):
     # This auth backend can authenticate a user.
-    CAN_AUTHENTICATE_USER = 'can_authenticate_user'
+    CAN_AUTHENTICATE_USER = "can_authenticate_user"
 
     # Auth backend can provide additional information about a particular user.
-    HAS_USER_INFORMATION = 'has_user_info'
+    HAS_USER_INFORMATION = "has_user_info"
 
     # Auth backend can provide a group membership information for a particular user.
-    HAS_GROUP_INFORMATION = 'has_groups_info'
+    HAS_GROUP_INFORMATION = "has_groups_info"

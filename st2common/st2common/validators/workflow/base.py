@@ -20,7 +20,6 @@ import six
 
 @six.add_metaclass(abc.ABCMeta)
 class WorkflowValidator(object):
-
     @abc.abstractmethod
     def validate(self, definition):
         raise NotImplementedError

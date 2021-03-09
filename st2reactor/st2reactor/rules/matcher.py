@@ -18,7 +18,7 @@ from st2common import log as logging
 from st2common.constants.rules import RULE_TYPE_BACKSTOP
 from st2reactor.rules.filter import RuleFilter, SecondPassRuleFilter
 
-LOG = logging.getLogger('st2reactor.rules.RulesMatcher')
+LOG = logging.getLogger("st2reactor.rules.RulesMatcher")
 
 
 class RulesMatcher(object):
@@ -31,25 +31,44 @@ class RulesMatcher(object):
     def get_matching_rules(self):
         first_pass, second_pass = self._split_rules_into_passes()
         # first pass
-        rule_filters = [RuleFilter(trigger_instance=self.trigger_instance,
-                                   trigger=self.trigger,
-                                   rule=rule,
-                                   extra_info=self.extra_info)
-                        for rule in first_pass]
-        matched_rules = [rule_filter.rule for rule_filter in rule_filters if rule_filter.filter()]
-        LOG.debug('[1st_pass] %d rule(s) found to enforce for %s.', len(matched_rules),
-                  self.trigger['name'])
+        rule_filters = [
+            RuleFilter(
+                trigger_instance=self.trigger_instance,
+                trigger=self.trigger,
+                rule=rule,
+                extra_info=self.extra_info,
+            )
+            for rule in first_pass
+        ]
+        matched_rules = [
+            rule_filter.rule for rule_filter in rule_filters if rule_filter.filter()
+        ]
+        LOG.debug(
+            "[1st_pass] %d rule(s) found to enforce for %s.",
+            len(matched_rules),
+            self.trigger["name"],
+        )
         # second pass
-        rule_filters = [SecondPassRuleFilter(self.trigger_instance, self.trigger, rule,
-                                             matched_rules)
-                        for rule in second_pass]
-        matched_in_second_pass = [rule_filter.rule for rule_filter in rule_filters
-                                  if rule_filter.filter()]
-        LOG.debug('[2nd_pass] %d rule(s) found to enforce for %s.', len(matched_in_second_pass),
-                  self.trigger['name'])
+        rule_filters = [
+            SecondPassRuleFilter(
+                self.trigger_instance, self.trigger, rule, matched_rules
+            )
+            for rule in second_pass
+        ]
+        matched_in_second_pass = [
+            rule_filter.rule for rule_filter in rule_filters if rule_filter.filter()
+        ]
+        LOG.debug(
+            "[2nd_pass] %d rule(s) found to enforce for %s.",
+            len(matched_in_second_pass),
+            self.trigger["name"],
+        )
         matched_rules.extend(matched_in_second_pass)
-        LOG.info('%d rule(s) found to enforce for %s.', len(matched_rules),
-                 self.trigger['name'])
+        LOG.info(
+            "%d rule(s) found to enforce for %s.",
+            len(matched_rules),
+            self.trigger["name"],
+        )
         return matched_rules
 
     def _split_rules_into_passes(self):
@@ -68,4 +87,4 @@ class RulesMatcher(object):
         return first_pass, second_pass
 
     def _is_first_pass_rule(self, rule):
-        return rule.type['ref'] != RULE_TYPE_BACKSTOP
+        return rule.type["ref"] != RULE_TYPE_BACKSTOP

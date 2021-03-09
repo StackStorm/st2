@@ -34,13 +34,13 @@ class ActionExecutionStateTests(DbTestCase):
             retrieved = ActionExecutionState.get_by_id(saved.id)
         except StackStormDBObjectNotFoundError:
             retrieved = None
-        self.assertIsNone(retrieved, 'managed to retrieve after failure.')
+        self.assertIsNone(retrieved, "managed to retrieve after failure.")
 
     @staticmethod
     def _create_save_actionstate():
         created = ActionExecutionStateDB()
-        created.query_context = {'id': 'some_external_service_id'}
-        created.query_module = 'dummy.modules.query1'
+        created.query_context = {"id": "some_external_service_id"}
+        created.query_module = "dummy.modules.query1"
         created.execution_id = bson.ObjectId()
         return ActionExecutionState.add_or_update(created)
 

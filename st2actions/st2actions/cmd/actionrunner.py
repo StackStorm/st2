@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 
 from st2common.util.monkey_patch import monkey_patch
+
 monkey_patch()
 
 import os
@@ -30,15 +31,12 @@ from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 
-__all__ = [
-    'main'
-]
+__all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
 
 
 def _setup_sigterm_handler():
-
     def sigterm_handler(signum=None, frame=None):
         # This will cause SystemExit to be throw and allow for component cleanup.
         sys.exit(0)
@@ -49,18 +47,22 @@ def _setup_sigterm_handler():
 
 
 def _setup():
-    capabilities = {
-        'name': 'actionrunner',
-        'type': 'passive'
-    }
-    common_setup(service='actionrunner', config=config, setup_db=True, register_mq_exchanges=True,
-                 register_signal_handlers=True, service_registry=True, capabilities=capabilities)
+    capabilities = {"name": "actionrunner", "type": "passive"}
+    common_setup(
+        service="actionrunner",
+        config=config,
+        setup_db=True,
+        register_mq_exchanges=True,
+        register_signal_handlers=True,
+        service_registry=True,
+        capabilities=capabilities,
+    )
 
     _setup_sigterm_handler()
 
 
 def _run_worker():
-    LOG.info('(PID=%s) Worker started.', os.getpid())
+    LOG.info("(PID=%s) Worker started.", os.getpid())
 
     action_worker = worker.get_worker()
 
@@ -68,20 +70,20 @@ def _run_worker():
         action_worker.start()
         action_worker.wait()
     except (KeyboardInterrupt, SystemExit):
-        LOG.info('(PID=%s) Worker stopped.', os.getpid())
+        LOG.info("(PID=%s) Worker stopped.", os.getpid())
 
         errors = False
 
         try:
             action_worker.shutdown()
         except:
-            LOG.exception('Unable to shutdown worker.')
+            LOG.exception("Unable to shutdown worker.")
             errors = True
 
         if errors:
             return 1
     except:
-        LOG.exception('(PID=%s) Worker unexpectedly stopped.', os.getpid())
+        LOG.exception("(PID=%s) Worker unexpectedly stopped.", os.getpid())
         return 1
 
     return 0
@@ -98,7 +100,7 @@ def main():
     except SystemExit as exit_code:
         sys.exit(exit_code)
     except:
-        LOG.exception('(PID=%s) Worker quit due to exception.', os.getpid())
+        LOG.exception("(PID=%s) Worker quit due to exception.", os.getpid())
         return 1
     finally:
         _teardown()

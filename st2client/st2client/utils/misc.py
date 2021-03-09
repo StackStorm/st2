@@ -18,9 +18,7 @@ import copy
 
 import six
 
-__all__ = [
-    'merge_dicts'
-]
+__all__ = ["merge_dicts"]
 
 
 def merge_dicts(d1, d2):

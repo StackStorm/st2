@@ -26,14 +26,13 @@ from st2common.transport import publishers
 from st2common.exceptions import db as db_exc
 
 
-@mock.patch.object(publishers.PoolPublisher, 'publish', mock.MagicMock())
+@mock.patch.object(publishers.PoolPublisher, "publish", mock.MagicMock())
 class WorkflowExecutionModelTest(st2tests.DbTestCase):
-
     def test_workflow_execution_crud(self):
         initial = wf_db_models.WorkflowExecutionDB()
         initial.action_execution = uuid.uuid4().hex
-        initial.graph = {'var1': 'foobar'}
-        initial.status = 'requested'
+        initial.graph = {"var1": "foobar"}
+        initial.status = "requested"
 
         # Test create
         created = wf_db_access.WorkflowExecution.add_or_update(initial)
@@ -47,9 +46,11 @@ class WorkflowExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(created.status, retrieved.status)
 
         # Test update
-        graph = {'var1': 'fubar'}
-        status = 'running'
-        retrieved = wf_db_access.WorkflowExecution.update(retrieved, graph=graph, status=status)
+        graph = {"var1": "fubar"}
+        status = "running"
+        retrieved = wf_db_access.WorkflowExecution.update(
+            retrieved, graph=graph, status=status
+        )
         updated = wf_db_access.WorkflowExecution.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
         self.assertEqual(retrieved.rev, updated.rev)
@@ -58,7 +59,7 @@ class WorkflowExecutionModelTest(st2tests.DbTestCase):
         self.assertEqual(retrieved.status, updated.status)
 
         # Test add or update
-        retrieved.graph = {'var2': 'fubar'}
+        retrieved.graph = {"var2": "fubar"}
         retrieved = wf_db_access.WorkflowExecution.add_or_update(retrieved)
         updated = wf_db_access.WorkflowExecution.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
@@ -73,14 +74,14 @@ class WorkflowExecutionModelTest(st2tests.DbTestCase):
         self.assertRaises(
             db_exc.StackStormDBObjectNotFoundError,
             wf_db_access.WorkflowExecution.get_by_id,
-            doc_id
+            doc_id,
         )
 
     def test_workflow_execution_write_conflict(self):
         initial = wf_db_models.WorkflowExecutionDB()
         initial.action_execution = uuid.uuid4().hex
-        initial.graph = {'var1': 'foobar'}
-        initial.status = 'requested'
+        initial.graph = {"var1": "foobar"}
+        initial.status = "requested"
 
         # Prep record
         created = wf_db_access.WorkflowExecution.add_or_update(initial)
@@ -92,9 +93,11 @@ class WorkflowExecutionModelTest(st2tests.DbTestCase):
         retrieved2 = wf_db_access.WorkflowExecution.get_by_id(doc_id)
 
         # Test update on instance 1, expect success
-        graph = {'var1': 'fubar'}
-        status = 'running'
-        retrieved1 = wf_db_access.WorkflowExecution.update(retrieved1, graph=graph, status=status)
+        graph = {"var1": "fubar"}
+        status = "running"
+        retrieved1 = wf_db_access.WorkflowExecution.update(
+            retrieved1, graph=graph, status=status
+        )
         updated = wf_db_access.WorkflowExecution.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
         self.assertEqual(retrieved1.rev, updated.rev)
@@ -107,7 +110,7 @@ class WorkflowExecutionModelTest(st2tests.DbTestCase):
             db_exc.StackStormDBObjectWriteConflictError,
             wf_db_access.WorkflowExecution.update,
             retrieved2,
-            graph={'var2': 'fubar'}
+            graph={"var2": "fubar"},
         )
 
         # Test delete
@@ -116,5 +119,5 @@ class WorkflowExecutionModelTest(st2tests.DbTestCase):
         self.assertRaises(
             db_exc.StackStormDBObjectNotFoundError,
             wf_db_access.WorkflowExecution.get_by_id,
-            doc_id
+            doc_id,
         )

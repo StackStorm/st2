@@ -22,13 +22,13 @@ from __future__ import absolute_import
 import sys
 
 __all__ = [
-    'monkey_patch',
-    'use_select_poll_workaround',
-    'is_use_debugger_flag_provided'
+    "monkey_patch",
+    "use_select_poll_workaround",
+    "is_use_debugger_flag_provided",
 ]
 
-USE_DEBUGGER_FLAG = '--use-debugger'
-PARENT_ARGS_FLAG = '--parent-args='
+USE_DEBUGGER_FLAG = "--use-debugger"
+PARENT_ARGS_FLAG = "--parent-args="
 
 
 def monkey_patch(patch_thread=None):
@@ -48,7 +48,9 @@ def monkey_patch(patch_thread=None):
     if patch_thread is None:
         patch_thread = not is_use_debugger_flag_provided()
 
-    eventlet.monkey_patch(os=True, select=True, socket=True, thread=patch_thread, time=True)
+    eventlet.monkey_patch(
+        os=True, select=True, socket=True, thread=patch_thread, time=True
+    )
 
 
 def use_select_poll_workaround(nose_only=True):
@@ -80,20 +82,20 @@ def use_select_poll_workaround(nose_only=True):
     import eventlet
 
     # Work around to get tests to pass with eventlet >= 0.20.0
-    if not nose_only or (nose_only and 'nose' in sys.modules.keys()):
+    if not nose_only or (nose_only and "nose" in sys.modules.keys()):
         # Add back blocking poll() to eventlet monkeypatched select
-        original_poll = eventlet.patcher.original('select').poll
+        original_poll = eventlet.patcher.original("select").poll
         select.poll = original_poll
 
-        sys.modules['select'] = select
+        sys.modules["select"] = select
         subprocess.select = select
 
         if sys.version_info >= (3, 6, 5):
             # If we also don't patch selectors.select, it will fail with Python >= 3.6.5
             import selectors  # pylint: disable=import-error
 
-            sys.modules['selectors'] = selectors
-            selectors.select = sys.modules['select']
+            sys.modules["selectors"] = selectors
+            selectors.select = sys.modules["select"]
 
 
 def is_use_debugger_flag_provided():

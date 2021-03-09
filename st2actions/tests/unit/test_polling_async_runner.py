@@ -14,15 +14,16 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 try:
     import simplejson as json
 except:
     import json
 
 from st2common.runners.base import PollingAsyncActionRunner
-from st2common.constants.action import (LIVEACTION_STATUS_RUNNING)
+from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 
-RAISE_PROPERTY = 'raise'
+RAISE_PROPERTY = "raise"
 
 
 def get_runner():
@@ -31,7 +32,7 @@ def get_runner():
 
 class PollingAsyncTestRunner(PollingAsyncActionRunner):
     def __init__(self):
-        super(PollingAsyncTestRunner, self).__init__(runner_id='1')
+        super(PollingAsyncTestRunner, self).__init__(runner_id="1")
         self.pre_run_called = False
         self.run_called = False
         self.post_run_called = False
@@ -43,14 +44,11 @@ class PollingAsyncTestRunner(PollingAsyncActionRunner):
         self.run_called = True
         result = {}
         if self.runner_parameters.get(RAISE_PROPERTY, False):
-            raise Exception('Raise required.')
+            raise Exception("Raise required.")
         else:
-            result = {
-                'ran': True,
-                'action_params': action_params
-            }
+            result = {"ran": True, "action_params": action_params}
 
-        return (LIVEACTION_STATUS_RUNNING, json.dumps(result), {'id': 'foo'})
+        return (LIVEACTION_STATUS_RUNNING, json.dumps(result), {"id": "foo"})
 
     def post_run(self, status, result):
         self.post_run_called = True

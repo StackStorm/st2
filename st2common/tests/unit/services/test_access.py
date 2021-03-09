@@ -28,11 +28,10 @@ from st2common.exceptions.auth import TTLTooLargeException
 import st2tests.config as tests_config
 
 
-USERNAME = 'manas'
+USERNAME = "manas"
 
 
 class AccessServiceTest(DbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(AccessServiceTest, cls).setUpClass()
@@ -47,7 +46,7 @@ class AccessServiceTest(DbTestCase):
     def test_create_token_fail(self):
         try:
             access.create_token(None)
-            self.assertTrue(False, 'Create succeeded was expected to fail.')
+            self.assertTrue(False, "Create succeeded was expected to fail.")
         except ValueError:
             self.assertTrue(True)
 
@@ -56,7 +55,7 @@ class AccessServiceTest(DbTestCase):
         access.delete_token(token.token)
         try:
             token = Token.get(token.token)
-            self.assertTrue(False, 'Delete failed was expected to pass.')
+            self.assertTrue(False, "Delete failed was expected to pass.")
         except TokenNotFoundError:
             self.assertTrue(True)
 
@@ -71,13 +70,17 @@ class AccessServiceTest(DbTestCase):
         self.assertIsNotNone(token)
         self.assertIsNotNone(token.token)
         self.assertEqual(token.user, USERNAME)
-        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
+        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(
+            seconds=ttl
+        )
         expected_expiry = date_utils.add_utc_tz(expected_expiry)
         self.assertLess(isotime.parse(token.expiry), expected_expiry)
 
     def test_create_token_ttl_capped(self):
         ttl = cfg.CONF.auth.token_ttl + 10
-        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
+        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(
+            seconds=ttl
+        )
         expected_expiry = date_utils.add_utc_tz(expected_expiry)
         token = access.create_token(USERNAME, 10)
         self.assertIsNotNone(token)
@@ -86,11 +89,13 @@ class AccessServiceTest(DbTestCase):
         self.assertLess(isotime.parse(token.expiry), expected_expiry)
 
     def test_create_token_service_token_can_use_arbitrary_ttl(self):
-        ttl = (10000 * 24 * 24)
+        ttl = 10000 * 24 * 24
 
         # Service token should support arbitrary TTL
         token = access.create_token(USERNAME, ttl=ttl, service=True)
-        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
+        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(
+            seconds=ttl
+        )
         expected_expiry = date_utils.add_utc_tz(expected_expiry)
 
         self.assertIsNotNone(token)
@@ -98,5 +103,6 @@ class AccessServiceTest(DbTestCase):
         self.assertLess(isotime.parse(token.expiry), expected_expiry)
 
         # Non service token should throw on TTL which is too large
-        self.assertRaises(TTLTooLargeException, access.create_token, USERNAME, ttl=ttl,
-                          service=False)
+        self.assertRaises(
+            TTLTooLargeException, access.create_token, USERNAME, ttl=ttl, service=False
+        )

@@ -22,6 +22,7 @@ import st2tests
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 from tests.unit import base
@@ -45,12 +46,14 @@ from st2tests.base import RunnerTestCase
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-TEST_PACK = 'orquesta_tests'
-TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
+TEST_PACK = "orquesta_tests"
+TEST_PACK_PATH = (
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
+)
 
 PACKS = [
     TEST_PACK_PATH,
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
 
 FAIL_SCHEMA = {
@@ -61,25 +64,32 @@ FAIL_SCHEMA = {
 
 
 @mock.patch.object(
-    publishers.CUDPublisher,
-    'publish_update',
-    mock.MagicMock(return_value=None))
+    publishers.CUDPublisher, "publish_update", mock.MagicMock(return_value=None)
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create),
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create
+    ),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state
+    ),
+)
 class OrquestaRunnerTest(RunnerTestCase, st2tests.ExecutionDbTestCase):
     @classmethod
     def setUpClass(cls):
@@ -90,8 +100,7 @@ class OrquestaRunnerTest(RunnerTestCase, st2tests.ExecutionDbTestCase):
 
         # Register test pack(s).
         actions_registrar = actionsregistrar.ActionsRegistrar(
-            use_pack_cache=False,
-            fail_on_failure=True
+            use_pack_cache=False, fail_on_failure=True
         )
 
         for pack in PACKS:
@@ -102,28 +111,40 @@ class OrquestaRunnerTest(RunnerTestCase, st2tests.ExecutionDbTestCase):
         return runners.get_runner(runner_name, runner_name).__class__
 
     def test_adherence_to_output_schema(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential_with_schema.yaml')
-        wf_input = {'who': 'Thanos'}
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        wf_meta = base.get_wf_fixture_meta_data(
+            TEST_PACK_PATH, "sequential_with_schema.yaml"
+        )
+        wf_input = {"who": "Thanos"}
+        lv_ac_db = lv_db_models.LiveActionDB(
+            action=wf_meta["name"], parameters=wf_input
+        )
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
+        wf_ex_dbs = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )
         wf_ex_db = wf_ex_dbs[0]
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
         tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk1_ex_db.id)
+        )[0]
         wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task2"}
         tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk2_ex_db.id)
+        )[0]
         wf_svc.handle_action_execution_completion(tk2_ac_ex_db)
         tk2_ex_db = wf_db_access.TaskExecution.get_by_id(tk2_ex_db.id)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task3'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task3"}
         tk3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk3_ex_db.id))[0]
+        tk3_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk3_ex_db.id)
+        )[0]
         wf_svc.handle_action_execution_completion(tk3_ac_ex_db)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -134,30 +155,39 @@ class OrquestaRunnerTest(RunnerTestCase, st2tests.ExecutionDbTestCase):
 
     def test_fail_incorrect_output_schema(self):
         wf_meta = base.get_wf_fixture_meta_data(
-            TEST_PACK_PATH,
-            'sequential_with_broken_schema.yaml'
+            TEST_PACK_PATH, "sequential_with_broken_schema.yaml"
         )
-        wf_input = {'who': 'Thanos'}
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        wf_input = {"who": "Thanos"}
+        lv_ac_db = lv_db_models.LiveActionDB(
+            action=wf_meta["name"], parameters=wf_input
+        )
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
+        wf_ex_dbs = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )
         wf_ex_db = wf_ex_dbs[0]
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
         tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk1_ex_db.id)
+        )[0]
         wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task2"}
         tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk2_ex_db.id)
+        )[0]
         wf_svc.handle_action_execution_completion(tk2_ac_ex_db)
         tk2_ex_db = wf_db_access.TaskExecution.get_by_id(tk2_ex_db.id)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task3'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task3"}
         tk3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk3_ex_db.id))[0]
+        tk3_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk3_ex_db.id)
+        )[0]
         wf_svc.handle_action_execution_completion(tk3_ac_ex_db)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -167,9 +197,9 @@ class OrquestaRunnerTest(RunnerTestCase, st2tests.ExecutionDbTestCase):
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
 
         expected_result = {
-            'error': "Additional properties are not allowed",
-            'message': 'Error validating output. See error output for more details.'
+            "error": "Additional properties are not allowed",
+            "message": "Error validating output. See error output for more details.",
         }
 
-        self.assertIn(expected_result['error'], ac_ex_db.result['error'])
-        self.assertEqual(expected_result['message'], ac_ex_db.result['message'])
+        self.assertIn(expected_result["error"], ac_ex_db.result["error"])
+        self.assertEqual(expected_result["message"], ac_ex_db.result["message"])
