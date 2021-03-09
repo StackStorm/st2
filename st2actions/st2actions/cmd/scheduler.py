@@ -62,7 +62,7 @@ def _setup():
 def _run_scheduler():
     LOG.info("(PID=%s) Scheduler started.", os.getpid())
 
-    # Lazy load these so that decorator metrics are in place
+    # Lazy load these so that decorator metrics are in place.
     from st2actions.scheduler import (
         handler as scheduler_handler,
         entrypoint as scheduler_entrypoint,
