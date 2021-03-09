@@ -55,10 +55,7 @@ from st2common.util.monkey_patch import use_select_poll_workaround
 
 LOG = logging.getLogger(__name__)
 
-__all__ = [
-    'SensorWrapper',
-    'SensorService'
-]
+__all__ = ["SensorWrapper", "SensorService"]
 
 use_select_poll_workaround(nose_only=False)
 
@@ -205,8 +202,10 @@ class SensorWrapper(object):
         try:
             config.parse_args(args=self._parent_args)
         except Exception:
-            LOG.exception('Failed to parse config using parent args '
-            '(parent_args=%s): "%s".' % (str(self._parent_args)))
+            LOG.exception(
+                "Failed to parse config using parent args "
+                '(parent_args=%s): "%s".' % (str(self._parent_args))
+            )
 
         # 2. Establish DB connection
         username = (
