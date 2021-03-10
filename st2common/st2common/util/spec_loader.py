@@ -18,13 +18,14 @@ import pkg_resources
 
 import jinja2
 import yaml
-from yaml import constructor
-from yaml import nodes
 
 try:
-    from yaml import CLoader as Loader
+    from yaml import CSafeLoader as SafeLoader
 except ImportError:
-    from yaml import Loader
+    from yaml import SafeLoader
+
+from yaml import constructor
+from yaml import nodes
 
 import st2common.constants.pack
 import st2common.constants.action
@@ -44,11 +45,14 @@ ARGUMENTS = {
 
 # Custom YAML loader that throw an exception on duplicate key.
 # Credit: https://gist.github.com/pypt/94d747fe5180851196eb
-class UniqueKeyLoader(Loader):
+class UniqueKeyLoader(SafeLoader):
     def construct_mapping(self, node, deep=False):
         if not isinstance(node, nodes.MappingNode):
             raise constructor.ConstructorError(
-                None, None, "expected a mapping node, but found %s" % node.id, node.start_mark
+                None,
+                None,
+                "expected a mapping node, but found %s" % node.id,
+                node.start_mark,
             )
         mapping = {}
         for key_node, value_node in node.value:
@@ -64,7 +68,9 @@ class UniqueKeyLoader(Loader):
                 )
             # check for duplicate keys
             if key in mapping:
-                raise constructor.ConstructorError('found duplicate key "%s"' % key_node.value)
+                raise constructor.ConstructorError(
+                    'found duplicate key "%s"' % key_node.value
+                )
             value = self.construct_object(value_node, deep=deep)
             mapping[key] = value
         return mapping
@@ -74,13 +80,17 @@ class UniqueKeyLoader(Loader):
 yaml.add_constructor(
     yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     UniqueKeyLoader.construct_mapping,
-    Loader=yaml.SafeLoader
+    Loader=SafeLoader,
 )
 
 
 def load_spec(module_name, spec_file):
     spec_string = generate_spec(module_name, spec_file)
-    return yaml.safe_load(spec_string)
+
+    # The use of yaml.load and passing SafeLoader is the same as yaml.safe_load which
+    # makes the same call. The difference here is that we use CSafeLoader where possible
+    # to improve performance and yaml.safe_load uses the python implementation by default.
+    return yaml.load(spec_string, SafeLoader)
 
 
 def generate_spec(module_name, spec_file):

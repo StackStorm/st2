@@ -116,7 +116,7 @@ def main():
     try:
         # Validate there are no duplicates keys in the YAML file.
         # The spec loader do not allow duplicate keys.
-        spec_loader.load_spec('st2common', 'openapi.yaml.j2')
+        spec_loader.load_spec("st2common", "openapi.yaml.j2")
 
         ret = 0
     except Exception:

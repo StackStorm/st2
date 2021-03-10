@@ -21,14 +21,15 @@ from st2common.util import spec_loader
 
 
 class SpecLoaderTest(unittest2.TestCase):
-
     def test_spec_loader(self):
-        self.assertTrue(isinstance(spec_loader.load_spec("st2common", "openapi.yaml.j2"), dict))
+        self.assertTrue(
+            isinstance(spec_loader.load_spec("st2common", "openapi.yaml.j2"), dict)
+        )
 
     def test_bad_spec_duplicate_keys(self):
         self.assertRaisesRegex(
             yaml.constructor.ConstructorError,
-            "found duplicate key \"swagger\"",
+            'found duplicate key "swagger"',
             spec_loader.load_spec,
             "st2tests.fixtures.specs",
             "openapi.yaml.j2",
