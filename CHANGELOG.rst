@@ -10,6 +10,14 @@ Fixed
 * Refactor spec_loader util to use yaml.safe_load instead of yaml.load. (security)
   Contributed by @ashwini-orchestral
 
+Changed
+~~~~~~~
+
+* All the code has been refactored using black and black style is automatically enforced and
+  required for all the new code. (#5156)
+
+  Contributed by @Kami.
+
 3.4.0 - March 02, 2021
 ----------------------
 
@@ -27,7 +35,8 @@ Added
 * Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
   Contributed by @hnanchahal
 
-* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from scratch. (part of upgrade instructions) [#5167]
+* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from scratch.
+  (part of upgrade instructions) [#5167]
   Contributed by @winem and @blag
 
 Changed
@@ -39,7 +48,7 @@ Changed
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
-* Added timeout parameter for packs.install action to help with long running installs that exceed the 
+* Added timeout parameter for packs.install action to help with long running installs that exceed the
   default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
 
   Contributed by @hnanchahal

@@ -18,14 +18,14 @@ from __future__ import absolute_import
 from st2common import log as logging
 from st2common import transport
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.db.trigger import triggertype_access, trigger_access, triggerinstance_access
-from st2common.persistence.base import (Access, ContentPackResource)
+from st2common.models.db.trigger import (
+    triggertype_access,
+    trigger_access,
+    triggerinstance_access,
+)
+from st2common.persistence.base import Access, ContentPackResource
 
-__all__ = [
-    'TriggerType',
-    'Trigger',
-    'TriggerInstance'
-]
+__all__ = ["TriggerType", "Trigger", "TriggerInstance"]
 
 LOG = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class Trigger(ContentPackResource):
         # Found in the innards of mongoengine.
         # e.g. {'pk': ObjectId('5609e91832ed356d04a93cc0')}
         delete_query = model_object._object_key
-        delete_query['ref_count__lte'] = 0
+        delete_query["ref_count__lte"] = 0
         cls._get_impl().delete_by_query(**delete_query)
 
         # Since delete_by_query cannot tell if teh delete actually happened check with a get call
@@ -73,14 +73,14 @@ class Trigger(ContentPackResource):
             try:
                 cls.publish_delete(model_object)
             except Exception:
-                LOG.exception('Publish failed.')
+                LOG.exception("Publish failed.")
 
         # Dispatch trigger
         if confirmed_delete and dispatch_trigger:
             try:
                 cls.dispatch_delete_trigger(model_object)
             except Exception:
-                LOG.exception('Trigger dispatch failed.')
+                LOG.exception("Trigger dispatch failed.")
 
         return model_object
 

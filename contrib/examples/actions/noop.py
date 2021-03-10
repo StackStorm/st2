@@ -5,6 +5,6 @@ from st2common.runners.base_action import Action
 
 class PrintParametersAction(Action):
     def run(self, **parameters):
-        print('=========')
+        print("=========")
         pprint(parameters)
-        print('=========')
+        print("=========")

@@ -29,26 +29,28 @@ LOG = logging.getLogger(__name__)
 
 def st2kv_(context, key, **kwargs):
     if not isinstance(key, six.string_types):
-        raise TypeError('Given key is not typeof string.')
+        raise TypeError("Given key is not typeof string.")
 
-    decrypt = kwargs.get('decrypt', False)
+    decrypt = kwargs.get("decrypt", False)
 
     if not isinstance(decrypt, bool):
-        raise TypeError('Decrypt parameter is not typeof bool.')
+        raise TypeError("Decrypt parameter is not typeof bool.")
 
     try:
-        username = context['__vars']['st2']['user']
+        username = context["__vars"]["st2"]["user"]
     except KeyError:
-        raise KeyError('Could not get user from context.')
+        raise KeyError("Could not get user from context.")
 
     try:
         user_db = auth_db_access.User.get(username)
     except Exception as e:
-        raise Exception('Failed to retrieve User object for user "%s", "%s"' %
-                        (username, six.text_type(e)))
+        raise Exception(
+            'Failed to retrieve User object for user "%s", "%s"'
+            % (username, six.text_type(e))
+        )
 
-    has_default = 'default' in kwargs
-    default_value = kwargs.get('default')
+    has_default = "default" in kwargs
+    default_value = kwargs.get("default")
 
     try:
         return kvp_util.get_key(key=key, user_db=user_db, decrypt=decrypt)

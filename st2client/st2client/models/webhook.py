@@ -24,8 +24,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Webhook(core.Resource):
-    _alias = 'Webhook'
-    _display_name = 'Webhook'
-    _plural = 'Webhooks'
-    _plural_display_name = 'Webhooks'
-    _repr_attributes = ['parameters', 'type', 'pack', 'name']
+    _alias = "Webhook"
+    _display_name = "Webhook"
+    _plural = "Webhooks"
+    _plural_display_name = "Webhooks"
+    _repr_attributes = ["parameters", "type", "pack", "name"]

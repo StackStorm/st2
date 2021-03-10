@@ -24,11 +24,7 @@ from st2client.utils.color import format_status
 
 DEFAULT_TERMINAL_SIZE_COLUMNS = 150
 
-__all__ = [
-    'DEFAULT_TERMINAL_SIZE_COLUMNS',
-
-    'get_terminal_size_columns'
-]
+__all__ = ["DEFAULT_TERMINAL_SIZE_COLUMNS", "get_terminal_size_columns"]
 
 
 def get_terminal_size_columns(default=DEFAULT_TERMINAL_SIZE_COLUMNS):
@@ -48,7 +44,7 @@ def get_terminal_size_columns(default=DEFAULT_TERMINAL_SIZE_COLUMNS):
     # This way it's consistent with upstream implementation. In the past, our implementation
     # checked those variables at the end as a fall back.
     try:
-        columns = os.environ['COLUMNS']
+        columns = os.environ["COLUMNS"]
         return int(columns)
     except (KeyError, ValueError):
         pass
@@ -56,15 +52,16 @@ def get_terminal_size_columns(default=DEFAULT_TERMINAL_SIZE_COLUMNS):
     def ioctl_GWINSZ(fd):
         import fcntl
         import termios
+
         # Return a tuple (lines, columns)
-        return struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
+        return struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, "1234"))
 
     # 2. try stdin, stdout, stderr
     for fd in (0, 1, 2):
         try:
             return ioctl_GWINSZ(fd)[1]
         except Exception:
-            pass
+            sys.stderr.write("\n")
 
     # 3. try os.ctermid()
     try:
@@ -74,19 +71,21 @@ def get_terminal_size_columns(default=DEFAULT_TERMINAL_SIZE_COLUMNS):
         finally:
             os.close(fd)
     except Exception:
-        pass
+        sys.stderr.write("\n")
 
     # 4. try `stty size`
     try:
-        process = subprocess.Popen(['stty', 'size'],
-                                   shell=False,
-                                   stdout=subprocess.PIPE,
-                                   stderr=open(os.devnull, 'w'))
+        process = subprocess.Popen(
+            ["stty", "size"],
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=open(os.devnull, "w"),
+        )
         result = process.communicate()
         if process.returncode == 0:
             return tuple(int(x) for x in result[0].split())[1]
     except Exception:
-        pass
+        sys.stderr.write("\n")
 
     # 5. return default fallback value
     return default
@@ -101,23 +100,23 @@ class TaskIndicator(object):
         return self.close()
 
     def add_stage(self, status, name):
-        self._write('\t[{:^20}] {}'.format(format_status(status), name))
+        self._write("\t[{:^20}] {}".format(format_status(status), name))
 
     def update_stage(self, status, name):
-        self._write('\t[{:^20}] {}'.format(format_status(status), name), override=True)
+        self._write("\t[{:^20}] {}".format(format_status(status), name), override=True)
 
     def finish_stage(self, status, name):
-        self._write('\t[{:^20}] {}'.format(format_status(status), name), override=True)
+        self._write("\t[{:^20}] {}".format(format_status(status), name), override=True)
 
     def close(self):
         if self.dirty:
-            self._write('\n')
+            self._write("\n")
 
     def _write(self, string, override=False):
         if override:
-            sys.stdout.write('\r')
+            sys.stdout.write("\r")
         else:
-            sys.stdout.write('\n')
+            sys.stdout.write("\n")
 
         sys.stdout.write(string)
         sys.stdout.flush()

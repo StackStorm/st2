@@ -25,15 +25,11 @@ from st2common import log as logging
 from st2common.util import driver_loader
 
 
-__all__ = [
-    'get_available_backends',
-    'get_backend_instance',
-    'get_sso_backend'
-]
+__all__ = ["get_available_backends", "get_backend_instance", "get_sso_backend"]
 
 LOG = logging.getLogger(__name__)
 
-BACKENDS_NAMESPACE = 'st2auth.sso.backends'
+BACKENDS_NAMESPACE = "st2auth.sso.backends"
 
 
 def get_available_backends():
@@ -41,7 +37,9 @@ def get_available_backends():
 
 
 def get_backend_instance(name):
-    sso_backend_cls = driver_loader.get_backend_driver(namespace=BACKENDS_NAMESPACE, name=name)
+    sso_backend_cls = driver_loader.get_backend_driver(
+        namespace=BACKENDS_NAMESPACE, name=name
+    )
 
     kwargs = {}
     sso_backend_kwargs = cfg.CONF.auth.sso_backend_kwargs
@@ -51,8 +49,8 @@ def get_backend_instance(name):
             kwargs = json.loads(sso_backend_kwargs)
         except ValueError as e:
             raise ValueError(
-                'Failed to JSON parse backend settings for backend "%s": %s' %
-                (name, six.text_type(e))
+                'Failed to JSON parse backend settings for backend "%s": %s'
+                % (name, six.text_type(e))
             )
 
     try:
@@ -60,9 +58,11 @@ def get_backend_instance(name):
     except Exception as e:
         tb_msg = traceback.format_exc()
         class_name = sso_backend_cls.__name__
-        msg = ('Failed to instantiate SSO backend "%s" (class %s) with backend settings '
-               '"%s": %s' % (name, class_name, str(kwargs), six.text_type(e)))
-        msg += '\n\n' + tb_msg
+        msg = (
+            'Failed to instantiate SSO backend "%s" (class %s) with backend settings '
+            '"%s": %s' % (name, class_name, str(kwargs), six.text_type(e))
+        )
+        msg += "\n\n" + tb_msg
         exc_cls = type(e)
         raise exc_cls(msg)
 

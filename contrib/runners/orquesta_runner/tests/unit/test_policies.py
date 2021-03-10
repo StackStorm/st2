@@ -23,6 +23,7 @@ import st2tests
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 from tests.unit import base
@@ -46,37 +47,45 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_PACK = 'orquesta_tests'
-TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
+TEST_PACK = "orquesta_tests"
+TEST_PACK_PATH = (
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
+)
 
 PACKS = [
     TEST_PACK_PATH,
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
 
 
 @mock.patch.object(
-    publishers.CUDPublisher,
-    'publish_update',
-    mock.MagicMock(return_value=None))
+    publishers.CUDPublisher, "publish_update", mock.MagicMock(return_value=None)
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create),
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create
+    ),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state
+    ),
+)
 class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(OrquestaRunnerTest, cls).setUpClass()
@@ -86,7 +95,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         policiesregistrar.register_policy_types(st2common)
 
         # Register test pack(s).
-        registrar_options = {'use_pack_cache': False, 'fail_on_failure': True}
+        registrar_options = {"use_pack_cache": False, "fail_on_failure": True}
         actions_registrar = actionsregistrar.ActionsRegistrar(**registrar_options)
         policies_registrar = policiesregistrar.PolicyRegistrar(**registrar_options)
 
@@ -106,27 +115,37 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
             ac_ex_db.delete()
 
     def test_retry_policy_applied_on_workflow_failure(self):
-        wf_name = 'sequential'
-        wf_ac_ref = TEST_PACK + '.' + wf_name
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_name + '.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_name = "sequential"
+        wf_ac_ref = TEST_PACK + "." + wf_name
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, wf_name + ".yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        self.assertEqual(
+            lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result
+        )
 
         # Ensure there is only one execution recorded.
         self.assertEqual(len(lv_db_access.LiveAction.query(action=wf_ac_ref)), 1)
 
         # Identify the records for the workflow and task.
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
-        t1_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))[0]
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        t1_ex_db = wf_db_access.TaskExecution.query(
+            workflow_execution=str(wf_ex_db.id)
+        )[0]
         t1_lv_ac_db = lv_db_access.LiveAction.query(task_execution=str(t1_ex_db.id))[0]
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
 
         # Manually set the status to fail.
         ac_svc.update_status(t1_lv_ac_db, ac_const.LIVEACTION_STATUS_FAILED)
         t1_lv_ac_db = lv_db_access.LiveAction.query(task_execution=str(t1_ex_db.id))[0]
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_ex_db.id))[0]
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
         self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         notifier.get_notifier().process(t1_ac_ex_db)
         workflows.get_engine().process(t1_ac_ex_db)
@@ -140,32 +159,48 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(len(lv_db_access.LiveAction.query(action=wf_ac_ref)), 2)
 
     def test_no_retry_policy_applied_on_task_failure(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflow.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "subworkflow.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        self.assertEqual(
+            lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result
+        )
 
         # Identify the records for the main workflow.
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
-        tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_db.id))
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        tk_ex_dbs = wf_db_access.TaskExecution.query(
+            workflow_execution=str(wf_ex_db.id)
+        )
         self.assertEqual(len(tk_ex_dbs), 1)
 
         # Identify the records for the tasks.
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[0].id))[0]
-        t1_wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(t1_ac_ex_db.id))[0]
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk_ex_dbs[0].id)
+        )[0]
+        t1_wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(t1_ac_ex_db.id)
+        )[0]
         self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
         self.assertEqual(t1_wf_ex_db.status, wf_statuses.RUNNING)
 
         # Ensure there is only one execution for the task.
-        tk_ac_ref = TEST_PACK + '.' + 'sequential'
+        tk_ac_ref = TEST_PACK + "." + "sequential"
         self.assertEqual(len(lv_db_access.LiveAction.query(action=tk_ac_ref)), 1)
 
         # Fail the subtask of the subworkflow.
-        t1_t1_ex_db = wf_db_access.TaskExecution.query(workflow_execution=str(t1_wf_ex_db.id))[0]
-        t1_t1_lv_ac_db = lv_db_access.LiveAction.query(task_execution=str(t1_t1_ex_db.id))[0]
+        t1_t1_ex_db = wf_db_access.TaskExecution.query(
+            workflow_execution=str(t1_wf_ex_db.id)
+        )[0]
+        t1_t1_lv_ac_db = lv_db_access.LiveAction.query(
+            task_execution=str(t1_t1_ex_db.id)
+        )[0]
         ac_svc.update_status(t1_t1_lv_ac_db, ac_const.LIVEACTION_STATUS_FAILED)
-        t1_t1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(t1_t1_ex_db.id))[0]
+        t1_t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_t1_ex_db.id)
+        )[0]
         self.assertEqual(t1_t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         notifier.get_notifier().process(t1_t1_ac_ex_db)
         workflows.get_engine().process(t1_t1_ac_ex_db)

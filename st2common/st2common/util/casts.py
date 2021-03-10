@@ -89,12 +89,12 @@ def _cast_none(x):
 
 # These types as they appear in json schema.
 CASTS = {
-    'array': _cast_object,
-    'boolean': _cast_boolean,
-    'integer': _cast_integer,
-    'number': _cast_number,
-    'object': _cast_object,
-    'string': _cast_string
+    "array": _cast_object,
+    "boolean": _cast_boolean,
+    "integer": _cast_integer,
+    "number": _cast_number,
+    "object": _cast_object,
+    "string": _cast_string,
 }
 
 

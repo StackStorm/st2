@@ -32,16 +32,13 @@ import st2common.constants.action
 from st2common.rbac.types import PermissionType
 from st2common.util import isotime
 
-__all__ = [
-    'load_spec',
-    'generate_spec'
-]
+__all__ = ["load_spec", "generate_spec"]
 
 ARGUMENTS = {
-    'DEFAULT_PACK_NAME': st2common.constants.pack.DEFAULT_PACK_NAME,
-    'LIVEACTION_STATUSES': st2common.constants.action.LIVEACTION_STATUSES,
-    'PERMISSION_TYPE': PermissionType,
-    'ISO8601_UTC_REGEX': isotime.ISO8601_UTC_REGEX
+    "DEFAULT_PACK_NAME": st2common.constants.pack.DEFAULT_PACK_NAME,
+    "LIVEACTION_STATUSES": st2common.constants.action.LIVEACTION_STATUSES,
+    "PERMISSION_TYPE": PermissionType,
+    "ISO8601_UTC_REGEX": isotime.ISO8601_UTC_REGEX,
 }
 
 

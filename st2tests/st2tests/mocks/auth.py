@@ -18,24 +18,18 @@ from __future__ import absolute_import
 from st2auth.backends.base import BaseAuthenticationBackend
 
 # auser:apassword in b64
-DUMMY_CREDS = 'YXVzZXI6YXBhc3N3b3Jk'
+DUMMY_CREDS = "YXVzZXI6YXBhc3N3b3Jk"
 
-__all__ = [
-    'DUMMY_CREDS',
-
-    'MockAuthBackend',
-    'MockRequest',
-
-    'get_mock_backend'
-]
+__all__ = ["DUMMY_CREDS", "MockAuthBackend", "MockRequest", "get_mock_backend"]
 
 
 class MockAuthBackend(BaseAuthenticationBackend):
     groups = []
 
     def authenticate(self, username, password):
-        return ((username == 'auser' and password == 'apassword') or
-                (username == 'username' and password == 'password:password'))
+        return (username == "auser" and password == "apassword") or (
+            username == "username" and password == "password:password"
+        )
 
     def get_user(self, username):
         return username
@@ -44,7 +38,7 @@ class MockAuthBackend(BaseAuthenticationBackend):
         return self.groups
 
 
-class MockRequest():
+class MockRequest:
     def __init__(self, ttl):
         self.ttl = ttl
 

@@ -33,7 +33,7 @@ LOG = logging.getLogger(__name__)
 
 SECRET_QUERY_PARAMS = [
     QUERY_PARAM_ATTRIBUTE_NAME,
-    QUERY_PARAM_API_KEY_ATTRIBUTE_NAME
+    QUERY_PARAM_API_KEY_ATTRIBUTE_NAME,
 ] + MASKED_ATTRIBUTES_BLACKLIST
 
 try:
@@ -68,21 +68,23 @@ class LoggingMiddleware(object):
 
         # Log the incoming request
         values = {
-            'method': request.method,
-            'path': request.path,
-            'remote_addr': request.remote_addr,
-            'query': query_params,
-            'request_id': request.headers.get(REQUEST_ID_HEADER, None)
+            "method": request.method,
+            "path": request.path,
+            "remote_addr": request.remote_addr,
+            "query": query_params,
+            "request_id": request.headers.get(REQUEST_ID_HEADER, None),
         }
 
-        LOG.info('%(request_id)s - %(method)s %(path)s with query=%(query)s' %
-                 values, extra=values)
+        LOG.info(
+            "%(request_id)s - %(method)s %(path)s with query=%(query)s" % values,
+            extra=values,
+        )
 
         def custom_start_response(status, headers, exc_info=None):
-            status_code.append(int(status.split(' ')[0]))
+            status_code.append(int(status.split(" ")[0]))
 
             for name, value in headers:
-                if name.lower() == 'content-length':
+                if name.lower() == "content-length":
                     content_length.append(int(value))
                     break
 
@@ -95,7 +97,7 @@ class LoggingMiddleware(object):
         except NotFoundException:
             endpoint = {}
 
-        log_result = endpoint.get('x-log-result', True)
+        log_result = endpoint.get("x-log-result", True)
 
         if isinstance(retval, (types.GeneratorType, itertools.chain)):
             # Note: We don't log the result when return value is a generator, because this would
@@ -105,22 +107,28 @@ class LoggingMiddleware(object):
 
         # Log the response
         values = {
-            'method': request.method,
-            'path': request.path,
-            'remote_addr': request.remote_addr,
-            'status': status_code[0],
-            'runtime': float("{0:.3f}".format((clock() - start_time) * 10**3)),
-            'content_length': content_length[0] if content_length else len(b''.join(retval)),
-            'request_id': request.headers.get(REQUEST_ID_HEADER, None)
+            "method": request.method,
+            "path": request.path,
+            "remote_addr": request.remote_addr,
+            "status": status_code[0],
+            "runtime": float("{0:.3f}".format((clock() - start_time) * 10 ** 3)),
+            "content_length": content_length[0]
+            if content_length
+            else len(b"".join(retval)),
+            "request_id": request.headers.get(REQUEST_ID_HEADER, None),
         }
 
-        log_msg = '%(request_id)s - %(status)s %(content_length)s %(runtime)sms' % (values)
+        log_msg = "%(request_id)s - %(status)s %(content_length)s %(runtime)sms" % (
+            values
+        )
         LOG.info(log_msg, extra=values)
 
         if log_result:
-            values['result'] = retval[0]
-            log_msg = ('%(request_id)s - %(status)s %(content_length)s %(runtime)sms\n%(result)s' %
-                      (values))
+            values["result"] = retval[0]
+            log_msg = (
+                "%(request_id)s - %(status)s %(content_length)s %(runtime)sms\n%(result)s"
+                % (values)
+            )
             LOG.debug(log_msg, extra=values)
 
         return retval
