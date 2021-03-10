@@ -760,21 +760,27 @@ class ActionExecutionsController(
                 liveaction_db, actionexecution_db = update_status(
                     liveaction_api, liveaction_db
                 )
-            elif (liveaction_api.status == action_constants.LIVEACTION_STATUS_CANCELING or
-                    liveaction_api.status == action_constants.LIVEACTION_STATUS_CANCELED):
+            elif (
+                liveaction_api.status == action_constants.LIVEACTION_STATUS_CANCELING
+                or liveaction_api.status == action_constants.LIVEACTION_STATUS_CANCELED
+            ):
                 liveaction_db, actionexecution_db = action_service.request_cancellation(
                     liveaction_db, requester_user.name or cfg.CONF.system_user.user
                 )
-            elif (liveaction_db.status == action_constants.LIVEACTION_STATUS_PAUSING and
-                    liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSED):
+            elif (
+                liveaction_db.status == action_constants.LIVEACTION_STATUS_PAUSING
+                and liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSED
+            ):
 
                 if action_service.is_children_active(liveaction_id):
                     liveaction_api.status = action_constants.LIVEACTION_STATUS_PAUSING
                 liveaction_db, actionexecution_db = update_status(
                     liveaction_api, liveaction_db
                 )
-            elif (liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSING or
-                    liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSED):
+            elif (
+                liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSING
+                or liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSED
+            ):
                 liveaction_db, actionexecution_db = action_service.request_pause(
                     liveaction_db, requester_user.name or cfg.CONF.system_user.user
                 )

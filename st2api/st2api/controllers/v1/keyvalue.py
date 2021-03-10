@@ -139,7 +139,7 @@ class KeyValuePairController(ResourceController):
         sort=None,
         offset=0,
         limit=None,
-        **raw_filters
+        **raw_filters,
     ):
         """
         List all keys.
