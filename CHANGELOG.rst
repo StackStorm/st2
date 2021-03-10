@@ -7,7 +7,7 @@ in development
 Fixed
 ~~~~~
 
-* Refactor spec_loader util to use yaml.safe_load instead of yaml.load. (security)
+* Refactor spec_loader util to use yaml.load with SafeLoader. (security)
   Contributed by @ashwini-orchestral
 
 Changed
