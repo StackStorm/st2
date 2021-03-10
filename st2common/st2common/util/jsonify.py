@@ -14,6 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+from st2common import log as logging
+
+LOG = logging.getLogger(__name__)
 
 try:
     import simplejson as json
@@ -67,8 +70,8 @@ def json_loads(obj, keys=None):
     for key in keys:
         try:
             obj[key] = json.loads(obj[key])
-        except:
-            pass
+        except Exception:
+            LOG.exception("Criteria pattern not valid JSON.")
     return obj
 
 
