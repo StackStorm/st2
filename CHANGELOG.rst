@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Refactor spec_loader util to use yaml.load with SafeLoader. (security)
+  Contributed by @ashwini-orchestral
+
 Changed
 ~~~~~~~
 
