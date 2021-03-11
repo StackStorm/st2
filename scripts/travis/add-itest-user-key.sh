@@ -2,6 +2,8 @@
 
 set -ex
 mkdir -p ~/.ssh
+# what is messing up $HOME?
+sudo grep -ri ENV /etc/sudoers*
 
 # Generate ssh keys on StackStorm box and copy over public key into remote box.
 ssh-keygen -f ~/.ssh/st2_id_rsa -P ""
