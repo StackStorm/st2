@@ -159,8 +159,8 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     # Warn on non utf-8 locale which could cause issues when running under Python 3 and working
     # with unicode data
     if (
-        fs_encoding.lower() not in VALID_UTF8_ENCODINGS
-        or encoding.lower() not in VALID_UTF8_ENCODINGS
+        fs_encoding.lower() not in VALID_UTF8_ENCODINGS or
+        encoding.lower() not in VALID_UTF8_ENCODINGS
     ):
         LOG.warning(
             NON_UTF8_LOCALE_WARNING_MSG

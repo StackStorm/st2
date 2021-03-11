@@ -73,12 +73,12 @@ def main():
 
     # 2. Ascii escape sequence
     LOG.info(
-        "Test info message with unicode 1 - "
-        + "好好好".encode("ascii", "backslashreplace").decode("ascii", "backslashreplace")
+        "Test info message with unicode 1 - " +
+        "好好好".encode("ascii", "backslashreplace").decode("ascii", "backslashreplace")
     )
     LOG.debug(
-        "Test debug message with unicode 1 - "
-        + "好好好".encode("ascii", "backslashreplace").decode("ascii", "backslashreplace")
+        "Test debug message with unicode 1 - " +
+        "好好好".encode("ascii", "backslashreplace").decode("ascii", "backslashreplace")
     )
 
 
