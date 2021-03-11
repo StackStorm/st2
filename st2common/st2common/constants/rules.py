@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-TRIGGER_PAYLOAD_PREFIX = 'trigger'
-TRIGGER_ITEM_PAYLOAD_PREFIX = 'item'
+TRIGGER_PAYLOAD_PREFIX = "trigger"
+TRIGGER_ITEM_PAYLOAD_PREFIX = "item"
 
-RULE_TYPE_STANDARD = 'standard'
-RULE_TYPE_BACKSTOP = 'backstop'
+RULE_TYPE_STANDARD = "standard"
+RULE_TYPE_BACKSTOP = "backstop"
 
-MATCH_CRITERIA = r'({{)\s*(.*)\s*(}})'
+MATCH_CRITERIA = r"({{)\s*(.*)\s*(}})"

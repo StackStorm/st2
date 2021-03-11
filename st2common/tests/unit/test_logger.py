@@ -36,13 +36,13 @@ from st2common.models.db.execution import ActionExecutionDB
 import st2tests.config as tests_config
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
-CONFIG_FILE_PATH = os.path.join(RESOURCES_DIR, 'logging.conf')
+RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../resources"))
+CONFIG_FILE_PATH = os.path.join(RESOURCES_DIR, "logging.conf")
 
 MOCK_MASKED_ATTRIBUTES_BLACKLIST = [
-    'blacklisted_1',
-    'blacklisted_2',
-    'blacklisted_3',
+    "blacklisted_1",
+    "blacklisted_2",
+    "blacklisted_3",
 ]
 
 
@@ -69,9 +69,8 @@ class LoggerTestCase(unittest.TestCase):
         self.cfg_fd, self.cfg_path = tempfile.mkstemp()
         self.info_log_fd, self.info_log_path = tempfile.mkstemp()
         self.audit_log_fd, self.audit_log_path = tempfile.mkstemp()
-        with open(self.cfg_path, 'a') as f:
-            f.write(self.config_text.format(self.info_log_path,
-                                            self.audit_log_path))
+        with open(self.cfg_path, "a") as f:
+            f.write(self.config_text.format(self.info_log_path, self.audit_log_path))
 
     def tearDown(self):
         self._remove_tempfile(self.cfg_fd, self.cfg_path)
@@ -84,7 +83,7 @@ class LoggerTestCase(unittest.TestCase):
         os.unlink(path)
 
     def test_logger_setup_failure(self):
-        config_file = '/tmp/abc123'
+        config_file = "/tmp/abc123"
         self.assertFalse(os.path.exists(config_file))
         self.assertRaises(Exception, logging.setup, config_file)
 
@@ -146,7 +145,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         formatter = ConsoleLogFormatter()
 
         # No extra attributes
-        mock_message = 'test message 1'
+        mock_message = "test message 1"
 
         record = MockRecord()
         record.msg = mock_message
@@ -155,94 +154,109 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         self.assertEqual(message, mock_message)
 
         # Some extra attributes
-        mock_message = 'test message 2'
+        mock_message = "test message 2"
 
         record = MockRecord()
         record.msg = mock_message
 
         # Add "extra" attributes
         record._user_id = 1
-        record._value = 'bar'
-        record.ignored = 'foo'  # this one is ignored since it doesnt have a prefix
+        record._value = "bar"
+        record.ignored = "foo"  # this one is ignored since it doesnt have a prefix
 
         message = formatter.format(record=record)
-        expected = 'test message 2 (value=\'bar\',user_id=1)'
+        expected = "test message 2 (value='bar',user_id=1)"
         self.assertEqual(sorted(message), sorted(expected))
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
-                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
+    @mock.patch(
+        "st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST",
+        MOCK_MASKED_ATTRIBUTES_BLACKLIST,
+    )
     def test_format_blacklisted_attributes_are_masked(self):
         formatter = ConsoleLogFormatter()
 
-        mock_message = 'test message 1'
+        mock_message = "test message 1"
 
         record = MockRecord()
         record.msg = mock_message
 
         # Add "extra" attributes
-        record._blacklisted_1 = 'test value 1'
-        record._blacklisted_2 = 'test value 2'
-        record._blacklisted_3 = {'key1': 'val1', 'blacklisted_1': 'val2', 'key3': 'val3'}
-        record._foo1 = 'bar'
+        record._blacklisted_1 = "test value 1"
+        record._blacklisted_2 = "test value 2"
+        record._blacklisted_3 = {
+            "key1": "val1",
+            "blacklisted_1": "val2",
+            "key3": "val3",
+        }
+        record._foo1 = "bar"
 
         message = formatter.format(record=record)
-        expected = ("test message 1 (blacklisted_1='********',blacklisted_2='********',"
-                    "blacklisted_3={'key3': 'val3', 'key1': 'val1', 'blacklisted_1': '********'},"
-                    "foo1='bar')")
+        expected = (
+            "test message 1 (blacklisted_1='********',blacklisted_2='********',"
+            "blacklisted_3={'key3': 'val3', 'key1': 'val1', 'blacklisted_1': '********'},"
+            "foo1='bar')"
+        )
         self.assertEqual(sorted(message), sorted(expected))
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
-                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
+    @mock.patch(
+        "st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST",
+        MOCK_MASKED_ATTRIBUTES_BLACKLIST,
+    )
     def test_format_custom_blacklist_attributes_are_masked(self):
-        cfg.CONF.set_override(group='log', name='mask_secrets_blacklist',
-                              override=['blacklisted_4', 'blacklisted_5'])
+        cfg.CONF.set_override(
+            group="log",
+            name="mask_secrets_blacklist",
+            override=["blacklisted_4", "blacklisted_5"],
+        )
         formatter = ConsoleLogFormatter()
 
-        mock_message = 'test message 1'
+        mock_message = "test message 1"
 
         record = MockRecord()
         record.msg = mock_message
 
         # Add "extra" attributes
-        record._blacklisted_1 = 'test value 1'
-        record._blacklisted_2 = 'test value 2'
-        record._blacklisted_3 = {'key1': 'val1', 'blacklisted_1': 'val2', 'key3': 'val3'}
-        record._blacklisted_4 = 'fowa'
-        record._blacklisted_5 = 'fiva'
-        record._foo1 = 'bar'
+        record._blacklisted_1 = "test value 1"
+        record._blacklisted_2 = "test value 2"
+        record._blacklisted_3 = {
+            "key1": "val1",
+            "blacklisted_1": "val2",
+            "key3": "val3",
+        }
+        record._blacklisted_4 = "fowa"
+        record._blacklisted_5 = "fiva"
+        record._foo1 = "bar"
 
         message = formatter.format(record=record)
-        expected = ("test message 1 (foo1='bar',blacklisted_1='********',blacklisted_2='********',"
-                    "blacklisted_3={'key3': 'val3', 'key1': 'val1', 'blacklisted_1': '********'},"
-                    "blacklisted_4='********',blacklisted_5='********')")
+        expected = (
+            "test message 1 (foo1='bar',blacklisted_1='********',blacklisted_2='********',"
+            "blacklisted_3={'key3': 'val3', 'key1': 'val1', 'blacklisted_1': '********'},"
+            "blacklisted_4='********',blacklisted_5='********')"
+        )
         self.assertEqual(sorted(message), sorted(expected))
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
-                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
+    @mock.patch(
+        "st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST",
+        MOCK_MASKED_ATTRIBUTES_BLACKLIST,
+    )
     def test_format_secret_action_parameters_are_masked(self):
         formatter = ConsoleLogFormatter()
 
-        mock_message = 'test message 1'
+        mock_message = "test message 1"
 
         parameters = {
-            'parameter1': {
-                'type': 'string',
-                'required': False
-            },
-            'parameter2': {
-                'type': 'string',
-                'required': False,
-                'secret': True
-            }
+            "parameter1": {"type": "string", "required": False},
+            "parameter2": {"type": "string", "required": False, "secret": True},
         }
-        mock_action_db = ActionDB(pack='testpack', name='test.action', parameters=parameters)
+        mock_action_db = ActionDB(
+            pack="testpack", name="test.action", parameters=parameters
+        )
 
         action = mock_action_db.to_serializable_dict()
-        parameters = {
-            'parameter1': 'value1',
-            'parameter2': 'value2'
-        }
-        mock_action_execution_db = ActionExecutionDB(action=action, parameters=parameters)
+        parameters = {"parameter1": "value1", "parameter2": "value2"}
+        mock_action_execution_db = ActionExecutionDB(
+            action=action, parameters=parameters
+        )
 
         record = MockRecord()
         record.msg = mock_message
@@ -250,97 +264,94 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         # Add "extra" attributes
         record._action_execution_db = mock_action_execution_db
 
-        expected_msg_part = (r"'parameters': {u?'parameter1': u?'value1', "
-                             r"u?'parameter2': u?'\*\*\*\*\*\*\*\*'}")
+        expected_msg_part = (
+            r"'parameters': {u?'parameter1': u?'value1', "
+            r"u?'parameter2': u?'\*\*\*\*\*\*\*\*'}"
+        )
 
         message = formatter.format(record=record)
-        self.assertIn('test message 1', message)
+        self.assertIn("test message 1", message)
         self.assertRegexpMatches(message, expected_msg_part)
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
-                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
+    @mock.patch(
+        "st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST",
+        MOCK_MASKED_ATTRIBUTES_BLACKLIST,
+    )
     def test_format_rule(self):
         expected_result = {
-            'description': 'Test description',
-            'tags': [],
-            'type': {
-                'ref': 'standard',
-                'parameters': {}},
-            'enabled': True,
-            'trigger': 'test tigger',
-            'metadata_file': None,
-            'context': {},
-            'criteria': {},
-            'action': {
-                'ref': '1234',
-                'parameters': {'b': 2}},
-            'uid': 'rule:testpack:test.action',
-            'pack': 'testpack',
-            'ref': 'testpack.test.action',
-            'id': None,
-            'name': 'test.action'
+            "description": "Test description",
+            "tags": [],
+            "type": {"ref": "standard", "parameters": {}},
+            "enabled": True,
+            "trigger": "test tigger",
+            "metadata_file": None,
+            "context": {},
+            "criteria": {},
+            "action": {"ref": "1234", "parameters": {"b": 2}},
+            "uid": "rule:testpack:test.action",
+            "pack": "testpack",
+            "ref": "testpack.test.action",
+            "id": None,
+            "name": "test.action",
         }
-        mock_rule_db = RuleDB(pack='testpack',
-                              name='test.action',
-                              description='Test description',
-                              trigger='test tigger',
-                              action={'ref': '1234', 'parameters': {'b': 2}})
+        mock_rule_db = RuleDB(
+            pack="testpack",
+            name="test.action",
+            description="Test description",
+            trigger="test tigger",
+            action={"ref": "1234", "parameters": {"b": 2}},
+        )
 
         result = mock_rule_db.to_serializable_dict()
         self.assertEqual(expected_result, result)
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
-                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
-    @mock.patch('st2common.models.db.rule.RuleDB._get_referenced_action_model')
-    def test_format_secret_rule_parameters_are_masked(self, mock__get_referenced_action_model):
+    @mock.patch(
+        "st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST",
+        MOCK_MASKED_ATTRIBUTES_BLACKLIST,
+    )
+    @mock.patch("st2common.models.db.rule.RuleDB._get_referenced_action_model")
+    def test_format_secret_rule_parameters_are_masked(
+        self, mock__get_referenced_action_model
+    ):
         expected_result = {
-            'description': 'Test description',
-            'tags': [],
-            'type': {
-                'ref': 'standard',
-                'parameters': {}},
-            'enabled': True,
-            'trigger': 'test tigger',
-            'metadata_file': None,
-            'context': {},
-            'criteria': {},
-            'action': {
-                'ref': '1234',
-                'parameters': {
-                    'parameter1': 'value1',
-                    'parameter2': '********'
-                }},
-            'uid': 'rule:testpack:test.action',
-            'pack': 'testpack',
-            'ref': 'testpack.test.action',
-            'id': None,
-            'name': 'test.action'
+            "description": "Test description",
+            "tags": [],
+            "type": {"ref": "standard", "parameters": {}},
+            "enabled": True,
+            "trigger": "test tigger",
+            "metadata_file": None,
+            "context": {},
+            "criteria": {},
+            "action": {
+                "ref": "1234",
+                "parameters": {"parameter1": "value1", "parameter2": "********"},
+            },
+            "uid": "rule:testpack:test.action",
+            "pack": "testpack",
+            "ref": "testpack.test.action",
+            "id": None,
+            "name": "test.action",
         }
 
         parameters = {
-            'parameter1': {
-                'type': 'string',
-                'required': False
-            },
-            'parameter2': {
-                'type': 'string',
-                'required': False,
-                'secret': True
-            }
+            "parameter1": {"type": "string", "required": False},
+            "parameter2": {"type": "string", "required": False, "secret": True},
         }
-        mock_action_db = ActionDB(pack='testpack', name='test.action', parameters=parameters)
+        mock_action_db = ActionDB(
+            pack="testpack", name="test.action", parameters=parameters
+        )
         mock__get_referenced_action_model.return_value = mock_action_db
-        cfg.CONF.set_override(group='log', name='mask_secrets',
-                              override=True)
-        mock_rule_db = RuleDB(pack='testpack',
-                              name='test.action',
-                              description='Test description',
-                              trigger='test tigger',
-                              action={'ref': '1234',
-                                      'parameters': {
-                                          'parameter1': 'value1',
-                                          'parameter2': 'value2'
-                                      }})
+        cfg.CONF.set_override(group="log", name="mask_secrets", override=True)
+        mock_rule_db = RuleDB(
+            pack="testpack",
+            name="test.action",
+            description="Test description",
+            trigger="test tigger",
+            action={
+                "ref": "1234",
+                "parameters": {"parameter1": "value1", "parameter2": "value2"},
+            },
+        )
 
         result = mock_rule_db.to_serializable_dict(True)
 
@@ -355,11 +366,18 @@ class GelfLogFormatterTestCase(unittest.TestCase):
     def test_format(self):
         formatter = GelfLogFormatter()
 
-        expected_keys = ['version', 'host', 'short_message', 'full_message',
-                         'timestamp', 'timestamp_f', 'level']
+        expected_keys = [
+            "version",
+            "host",
+            "short_message",
+            "full_message",
+            "timestamp",
+            "timestamp_f",
+            "level",
+        ]
 
         # No extra attributes
-        mock_message = 'test message 1'
+        mock_message = "test message 1"
 
         record = MockRecord()
         record.msg = mock_message
@@ -370,19 +388,19 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         for key in expected_keys:
             self.assertIn(key, parsed)
 
-        self.assertEqual(parsed['short_message'], mock_message)
-        self.assertEqual(parsed['full_message'], mock_message)
+        self.assertEqual(parsed["short_message"], mock_message)
+        self.assertEqual(parsed["full_message"], mock_message)
 
         # Some extra attributes
-        mock_message = 'test message 2'
+        mock_message = "test message 2"
 
         record = MockRecord()
         record.msg = mock_message
 
         # Add "extra" attributes
         record._user_id = 1
-        record._value = 'bar'
-        record.ignored = 'foo'  # this one is ignored since it doesnt have a prefix
+        record._value = "bar"
+        record.ignored = "foo"  # this one is ignored since it doesnt have a prefix
         record.created = 1234.5678
 
         message = formatter.format(record=record)
@@ -391,16 +409,16 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         for key in expected_keys:
             self.assertIn(key, parsed)
 
-        self.assertEqual(parsed['short_message'], mock_message)
-        self.assertEqual(parsed['full_message'], mock_message)
-        self.assertEqual(parsed['_user_id'], 1)
-        self.assertEqual(parsed['_value'], 'bar')
-        self.assertEqual(parsed['timestamp'], 1234)
-        self.assertEqual(parsed['timestamp_f'], 1234.5678)
-        self.assertNotIn('ignored', parsed)
+        self.assertEqual(parsed["short_message"], mock_message)
+        self.assertEqual(parsed["full_message"], mock_message)
+        self.assertEqual(parsed["_user_id"], 1)
+        self.assertEqual(parsed["_value"], "bar")
+        self.assertEqual(parsed["timestamp"], 1234)
+        self.assertEqual(parsed["timestamp_f"], 1234.5678)
+        self.assertNotIn("ignored", parsed)
 
         # Record with an exception
-        mock_exception = Exception('mock exception bar')
+        mock_exception = Exception("mock exception bar")
 
         try:
             raise mock_exception
@@ -408,7 +426,7 @@ class GelfLogFormatterTestCase(unittest.TestCase):
             mock_exc_info = sys.exc_info()
 
         # Some extra attributes
-        mock_message = 'test message 3'
+        mock_message = "test message 3"
 
         record = MockRecord()
         record.msg = mock_message
@@ -420,69 +438,77 @@ class GelfLogFormatterTestCase(unittest.TestCase):
         for key in expected_keys:
             self.assertIn(key, parsed)
 
-        self.assertEqual(parsed['short_message'], mock_message)
-        self.assertIn(mock_message, parsed['full_message'])
-        self.assertIn('Traceback', parsed['full_message'])
-        self.assertIn('_exception', parsed)
-        self.assertIn('_traceback', parsed)
+        self.assertEqual(parsed["short_message"], mock_message)
+        self.assertIn(mock_message, parsed["full_message"])
+        self.assertIn("Traceback", parsed["full_message"])
+        self.assertIn("_exception", parsed)
+        self.assertIn("_traceback", parsed)
 
     def test_extra_object_serialization(self):
         class MyClass1(object):
             def __repr__(self):
-                return 'repr'
+                return "repr"
 
         class MyClass2(object):
             def to_dict(self):
-                return 'to_dict'
+                return "to_dict"
 
         class MyClass3(object):
             def to_serializable_dict(self, mask_secrets=False):
-                return 'to_serializable_dict'
+                return "to_serializable_dict"
 
         formatter = GelfLogFormatter()
 
         record = MockRecord()
-        record.msg = 'message'
+        record.msg = "message"
         record._obj1 = MyClass1()
         record._obj2 = MyClass2()
         record._obj3 = MyClass3()
 
         message = formatter.format(record=record)
         parsed = json.loads(message)
-        self.assertEqual(parsed['_obj1'], 'repr')
-        self.assertEqual(parsed['_obj2'], 'to_dict')
-        self.assertEqual(parsed['_obj3'], 'to_serializable_dict')
+        self.assertEqual(parsed["_obj1"], "repr")
+        self.assertEqual(parsed["_obj2"], "to_dict")
+        self.assertEqual(parsed["_obj3"], "to_serializable_dict")
 
-    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
-                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
+    @mock.patch(
+        "st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST",
+        MOCK_MASKED_ATTRIBUTES_BLACKLIST,
+    )
     def test_format_blacklisted_attributes_are_masked(self):
         formatter = GelfLogFormatter()
 
         # Some extra attributes
-        mock_message = 'test message 1'
+        mock_message = "test message 1"
 
         record = MockRecord()
         record.msg = mock_message
 
         # Add "extra" attributes
-        record._blacklisted_1 = 'test value 1'
-        record._blacklisted_2 = 'test value 2'
-        record._blacklisted_3 = {'key1': 'val1', 'blacklisted_1': 'val2', 'key3': 'val3'}
-        record._foo1 = 'bar'
+        record._blacklisted_1 = "test value 1"
+        record._blacklisted_2 = "test value 2"
+        record._blacklisted_3 = {
+            "key1": "val1",
+            "blacklisted_1": "val2",
+            "key3": "val3",
+        }
+        record._foo1 = "bar"
 
         message = formatter.format(record=record)
         parsed = json.loads(message)
 
-        self.assertEqual(parsed['_blacklisted_1'], MASKED_ATTRIBUTE_VALUE)
-        self.assertEqual(parsed['_blacklisted_2'], MASKED_ATTRIBUTE_VALUE)
-        self.assertEqual(parsed['_blacklisted_3']['key1'], 'val1')
-        self.assertEqual(parsed['_blacklisted_3']['blacklisted_1'], MASKED_ATTRIBUTE_VALUE)
-        self.assertEqual(parsed['_blacklisted_3']['key3'], 'val3')
-        self.assertEqual(parsed['_foo1'], 'bar')
+        self.assertEqual(parsed["_blacklisted_1"], MASKED_ATTRIBUTE_VALUE)
+        self.assertEqual(parsed["_blacklisted_2"], MASKED_ATTRIBUTE_VALUE)
+        self.assertEqual(parsed["_blacklisted_3"]["key1"], "val1")
+        self.assertEqual(
+            parsed["_blacklisted_3"]["blacklisted_1"], MASKED_ATTRIBUTE_VALUE
+        )
+        self.assertEqual(parsed["_blacklisted_3"]["key3"], "val3")
+        self.assertEqual(parsed["_foo1"], "bar")
 
         # Assert that the original dict is left unmodified
-        self.assertEqual(record._blacklisted_1, 'test value 1')
-        self.assertEqual(record._blacklisted_2, 'test value 2')
-        self.assertEqual(record._blacklisted_3['key1'], 'val1')
-        self.assertEqual(record._blacklisted_3['blacklisted_1'], 'val2')
-        self.assertEqual(record._blacklisted_3['key3'], 'val3')
+        self.assertEqual(record._blacklisted_1, "test value 1")
+        self.assertEqual(record._blacklisted_2, "test value 2")
+        self.assertEqual(record._blacklisted_3["key1"], "val1")
+        self.assertEqual(record._blacklisted_3["blacklisted_1"], "val2")
+        self.assertEqual(record._blacklisted_3["key3"], "val3")

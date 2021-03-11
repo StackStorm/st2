@@ -53,22 +53,29 @@ from st2common.metrics.base import metrics_initialize
 
 
 __all__ = [
-    'setup',
-    'teardown',
-
-    'db_setup',
-    'db_teardown',
-
-    'register_service_in_service_registry'
+    "setup",
+    "teardown",
+    "db_setup",
+    "db_teardown",
+    "register_service_in_service_registry",
 ]
 
 LOG = logging.getLogger(__name__)
 
 
-def setup(service, config, setup_db=True, register_mq_exchanges=True,
-          register_signal_handlers=True, register_internal_trigger_types=False,
-          run_migrations=True, register_runners=True, service_registry=False,
-          capabilities=None, config_args=None):
+def setup(
+    service,
+    config,
+    setup_db=True,
+    register_mq_exchanges=True,
+    register_signal_handlers=True,
+    register_internal_trigger_types=False,
+    run_migrations=True,
+    register_runners=True,
+    service_registry=False,
+    capabilities=None,
+    config_args=None,
+):
     """
     Common setup function.
 
@@ -99,29 +106,38 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     else:
         config.parse_args()
 
-    version = '%s.%s.%s' % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
-    LOG.debug('Using Python: %s (%s)' % (version, sys.executable))
+    version = "%s.%s.%s" % (
+        sys.version_info[0],
+        sys.version_info[1],
+        sys.version_info[2],
+    )
+    LOG.debug("Using Python: %s (%s)" % (version, sys.executable))
 
     config_file_paths = cfg.CONF.config_file
     config_file_paths = [os.path.abspath(path) for path in config_file_paths]
-    LOG.debug('Using config files: %s', ','.join(config_file_paths))
+    LOG.debug("Using config files: %s", ",".join(config_file_paths))
 
     # Setup logging.
     logging_config_path = config.get_logging_config_path()
     logging_config_path = os.path.abspath(logging_config_path)
 
-    LOG.debug('Using logging config: %s', logging_config_path)
+    LOG.debug("Using logging config: %s", logging_config_path)
 
-    is_debug_enabled = (cfg.CONF.debug or cfg.CONF.system.debug)
+    is_debug_enabled = cfg.CONF.debug or cfg.CONF.system.debug
 
     try:
-        logging.setup(logging_config_path, redirect_stderr=cfg.CONF.log.redirect_stderr,
-                      excludes=cfg.CONF.log.excludes)
+        logging.setup(
+            logging_config_path,
+            redirect_stderr=cfg.CONF.log.redirect_stderr,
+            excludes=cfg.CONF.log.excludes,
+        )
     except KeyError as e:
         tb_msg = traceback.format_exc()
-        if 'log.setLevel' in tb_msg:
-            msg = 'Invalid log level selected. Log level names need to be all uppercase.'
-            msg += '\n\n' + getattr(e, 'message', six.text_type(e))
+        if "log.setLevel" in tb_msg:
+            msg = (
+                "Invalid log level selected. Log level names need to be all uppercase."
+            )
+            msg += "\n\n" + getattr(e, "message", six.text_type(e))
             raise KeyError(msg)
         else:
             raise e
@@ -134,10 +150,14 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         # duplicate "AUDIT" messages in production deployments where default service log level is
         # set to "INFO" and we already log messages with level AUDIT to a special dedicated log
         # file.
-        ignore_audit_log_messages = (handler.level >= stdlib_logging.INFO and
-                                     handler.level < stdlib_logging.AUDIT)
+        ignore_audit_log_messages = (
+            handler.level >= stdlib_logging.INFO
+            and handler.level < stdlib_logging.AUDIT
+        )
         if not is_debug_enabled and ignore_audit_log_messages:
-            LOG.debug('Excluding log messages with level "AUDIT" for handler "%s"' % (handler))
+            LOG.debug(
+                'Excluding log messages with level "AUDIT" for handler "%s"' % (handler)
+            )
             handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
 
     if not is_debug_enabled:
@@ -184,8 +204,9 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     # Register service in the service registry
     if cfg.CONF.coordination.service_registry and service_registry:
         # NOTE: It's important that we pass start_heart=True to start the hearbeat process
-        register_service_in_service_registry(service=service, capabilities=capabilities,
-                                             start_heart=True)
+        register_service_in_service_registry(
+            service=service, capabilities=capabilities, start_heart=True
+        )
 
     if sys.version_info[0] == 2:
         LOG.warning(PYTHON2_DEPRECATION)
@@ -220,7 +241,7 @@ def register_service_in_service_registry(service, capabilities=None, start_heart
 
     # 1. Create a group with the name of the service
     if not isinstance(service, six.binary_type):
-        group_id = service.encode('utf-8')
+        group_id = service.encode("utf-8")
     else:
         group_id = service
 
@@ -231,10 +252,12 @@ def register_service_in_service_registry(service, capabilities=None, start_heart
 
     # Include common capabilities such as hostname and process ID
     proc_info = system_info.get_process_info()
-    capabilities['hostname'] = proc_info['hostname']
-    capabilities['pid'] = proc_info['pid']
+    capabilities["hostname"] = proc_info["hostname"]
+    capabilities["pid"] = proc_info["pid"]
 
     # 1. Join the group as a member
-    LOG.debug('Joining service registry group "%s" as member_id "%s" with capabilities "%s"' %
-              (group_id, member_id, capabilities))
+    LOG.debug(
+        'Joining service registry group "%s" as member_id "%s" with capabilities "%s"'
+        % (group_id, member_id, capabilities)
+    )
     return coordinator.join_group(group_id, capabilities=capabilities).get()

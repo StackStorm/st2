@@ -28,6 +28,7 @@ from st2common.constants.pack import MANIFEST_FILE_NAME
 
 class GetInstalled(Action):
     """"Get information about installed pack."""
+
     def run(self, pack):
         """
         :param pack: Installed Pack Name to get info about
@@ -47,46 +48,42 @@ class GetInstalled(Action):
 
         # Pack doesn't exist, finish execution normally with empty metadata
         if not os.path.isdir(pack_path):
-            return {
-                'pack': None,
-                'git_status': None
-            }
+            return {"pack": None, "git_status": None}
 
         if not metadata_file:
-            error = ('Pack "%s" doesn\'t contain pack.yaml file.' % (pack))
+            error = 'Pack "%s" doesn\'t contain pack.yaml file.' % (pack)
             raise Exception(error)
 
         try:
             details = self._parse_yaml_file(metadata_file)
         except Exception as e:
-            error = ('Pack "%s" doesn\'t contain a valid pack.yaml file: %s' % (pack,
-                                                                                six.text_type(e)))
+            error = 'Pack "%s" doesn\'t contain a valid pack.yaml file: %s' % (
+                pack,
+                six.text_type(e),
+            )
             raise Exception(error)
 
         try:
             repo = Repo(pack_path)
             git_status = "Status:\n%s\n\nRemotes:\n%s" % (
-                repo.git.status().split('\n')[0],
-                "\n".join([remote.url for remote in repo.remotes])
+                repo.git.status().split("\n")[0],
+                "\n".join([remote.url for remote in repo.remotes]),
             )
 
             ahead_behind = repo.git.rev_list(
-                '--left-right', '--count', 'HEAD...origin/master'
+                "--left-right", "--count", "HEAD...origin/master"
             ).split()
             # Dear god.
-            if ahead_behind != [u'0', u'0']:
+            if ahead_behind != ["0", "0"]:
                 git_status += "\n\n"
-                git_status += "%s commits ahead " if ahead_behind[0] != u'0' else ""
-                git_status += "and " if u'0' not in ahead_behind else ""
-                git_status += "%s commits behind " if ahead_behind[1] != u'0' else ""
+                git_status += "%s commits ahead " if ahead_behind[0] != "0" else ""
+                git_status += "and " if "0" not in ahead_behind else ""
+                git_status += "%s commits behind " if ahead_behind[1] != "0" else ""
                 git_status += "origin/master."
         except InvalidGitRepositoryError:
             git_status = None
 
-        return {
-            'pack': details,
-            'git_status': git_status
-        }
+        return {"pack": details, "git_status": git_status}
 
     def _parse_yaml_file(self, file_path):
         with open(file_path) as data_file:

@@ -29,8 +29,8 @@ import st2auth.handlers as handlers
 
 
 HANDLER_MAPPINGS = {
-    'proxy': handlers.ProxyAuthHandler,
-    'standalone': handlers.StandaloneAuthHandler
+    "proxy": handlers.ProxyAuthHandler,
+    "standalone": handlers.StandaloneAuthHandler,
 }
 
 LOG = logging.getLogger(__name__)
@@ -38,17 +38,17 @@ LOG = logging.getLogger(__name__)
 
 class TokenValidationController(object):
     def post(self, request):
-        token = getattr(request, 'token', None)
+        token = getattr(request, "token", None)
 
         if not token:
-            raise exc.HTTPBadRequest('Token is not provided.')
+            raise exc.HTTPBadRequest("Token is not provided.")
 
         try:
-            return {'valid': auth_utils.validate_token(token) is not None}
+            return {"valid": auth_utils.validate_token(token) is not None}
         except (TokenNotFoundError, TokenExpiredError):
-            return {'valid': False}
+            return {"valid": False}
         except Exception:
-            msg = 'Unexpected error occurred while verifying token.'
+            msg = "Unexpected error occurred while verifying token."
             LOG.exception(msg)
             raise exc.HTTPInternalServerError(msg)
 
@@ -60,30 +60,32 @@ class TokenController(object):
         try:
             self.handler = HANDLER_MAPPINGS[cfg.CONF.auth.mode]()
         except KeyError:
-            raise ParamException("%s is not a valid auth mode" %
-                                 cfg.CONF.auth.mode)
+            raise ParamException("%s is not a valid auth mode" % cfg.CONF.auth.mode)
 
     def post(self, request, **kwargs):
         headers = {}
-        if 'x-forwarded-for' in kwargs:
-            headers['x-forwarded-for'] = kwargs.pop('x-forwarded-for')
+        if "x-forwarded-for" in kwargs:
+            headers["x-forwarded-for"] = kwargs.pop("x-forwarded-for")
 
-        authorization = kwargs.pop('authorization', None)
+        authorization = kwargs.pop("authorization", None)
         if authorization:
-            authorization = tuple(authorization.split(' '))
+            authorization = tuple(authorization.split(" "))
 
-        token = self.handler.handle_auth(request=request, headers=headers,
-                                         remote_addr=kwargs.pop('remote_addr', None),
-                                         remote_user=kwargs.pop('remote_user', None),
-                                         authorization=authorization,
-                                         **kwargs)
+        token = self.handler.handle_auth(
+            request=request,
+            headers=headers,
+            remote_addr=kwargs.pop("remote_addr", None),
+            remote_user=kwargs.pop("remote_user", None),
+            authorization=authorization,
+            **kwargs,
+        )
         return process_successful_response(token=token)
 
 
 def process_successful_response(token):
     resp = Response(json=token, status=http_client.CREATED)
     # NOTE: gunicon fails and throws an error if header value is not a string (e.g. if it's None)
-    resp.headers['X-API-URL'] = api_utils.get_base_public_api_url()
+    resp.headers["X-API-URL"] = api_utils.get_base_public_api_url()
     return resp
 
 

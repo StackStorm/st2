@@ -22,35 +22,67 @@ from st2client.commands import resource
 class SensorBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(SensorBranch, self).__init__(
-            Sensor, description, app, subparsers,
+            Sensor,
+            description,
+            app,
+            subparsers,
             parent_parser=parent_parser,
             read_only=True,
-            commands={
-                'list': SensorListCommand,
-                'get': SensorGetCommand
-            })
+            commands={"list": SensorListCommand, "get": SensorGetCommand},
+        )
 
-        self.commands['enable'] = SensorEnableCommand(self.resource, self.app, self.subparsers)
-        self.commands['disable'] = SensorDisableCommand(self.resource, self.app, self.subparsers)
+        self.commands["enable"] = SensorEnableCommand(
+            self.resource, self.app, self.subparsers
+        )
+        self.commands["disable"] = SensorDisableCommand(
+            self.resource, self.app, self.subparsers
+        )
 
 
 class SensorListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'description', 'enabled']
+    display_attributes = ["ref", "pack", "description", "enabled"]
 
 
 class SensorGetCommand(resource.ContentPackResourceGetCommand):
-    display_attributes = ['all']
-    attribute_display_order = ['id', 'uid', 'ref', 'pack', 'name', 'enabled', 'entry_point',
-                               'artifact_uri', 'trigger_types']
+    display_attributes = ["all"]
+    attribute_display_order = [
+        "id",
+        "uid",
+        "ref",
+        "pack",
+        "name",
+        "enabled",
+        "entry_point",
+        "artifact_uri",
+        "trigger_types",
+    ]
 
 
 class SensorEnableCommand(resource.ContentPackResourceEnableCommand):
-    display_attributes = ['all']
-    attribute_display_order = ['id', 'ref', 'pack', 'name', 'enabled', 'poll_interval',
-                               'entry_point', 'artifact_uri', 'trigger_types']
+    display_attributes = ["all"]
+    attribute_display_order = [
+        "id",
+        "ref",
+        "pack",
+        "name",
+        "enabled",
+        "poll_interval",
+        "entry_point",
+        "artifact_uri",
+        "trigger_types",
+    ]
 
 
 class SensorDisableCommand(resource.ContentPackResourceDisableCommand):
-    display_attributes = ['all']
-    attribute_display_order = ['id', 'ref', 'pack', 'name', 'enabled', 'poll_interval',
-                               'entry_point', 'artifact_uri', 'trigger_types']
+    display_attributes = ["all"]
+    attribute_display_order = [
+        "id",
+        "ref",
+        "pack",
+        "name",
+        "enabled",
+        "poll_interval",
+        "entry_point",
+        "artifact_uri",
+        "trigger_types",
+    ]

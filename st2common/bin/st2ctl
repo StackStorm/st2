@@ -43,19 +43,20 @@ function print_usage() {
     echo
     echo "Usage: st2ctl {reload, clean}"
     echo "optional arguments:"
-    echo "  --register-all                Register all."
-    echo "  --register-triggers           Register all triggers."
-    echo "  --register-sensors            Register all sensors."
-    echo "  --register-rules              Register all rules."
-    echo "  --register-runners            Register all runners."
-    echo "  --register-actions            Register all actions."
-    echo "  --register-aliases            Register all aliases."
-    echo "  --register-policies           Register all policies."
-    echo "  --register-configs            Register all configuration files."
-    echo "  --register-setup-virtualenvs  Create Python virtual environments for all the registered packs."
-    echo "  --register-fail-on-failure    Exit with non-zero if some resource registration fails. Deprecated. This is now a default behavior."
-    echo "  --register-no-fail-on-failure Don't exit with non-zero if some resource registration fails."
-    echo "  --verbose                     Output additional debug and informational messages."
+    echo "  --register-all                  Register all."
+    echo "  --register-triggers             Register all triggers."
+    echo "  --register-sensors              Register all sensors."
+    echo "  --register-rules                Register all rules."
+    echo "  --register-runners              Register all runners."
+    echo "  --register-actions              Register all actions."
+    echo "  --register-aliases              Register all aliases."
+    echo "  --register-policies             Register all policies."
+    echo "  --register-configs              Register all configuration files."
+    echo "  --register-setup-virtualenvs    Create Python virtual environments for all the registered packs."
+    echo "  --register-recreate-virtualenvs (Delete and re-)create Python virtual environments for all the registered packs."
+    echo "  --register-fail-on-failure      Exit with non-zero if some resource registration fails. Deprecated. This is now a default behavior."
+    echo "  --register-no-fail-on-failure   Don't exit with non-zero if some resource registration fails."
+    echo "  --verbose                       Output additional debug and informational messages."
     echo ""
     echo "Most commands require elevated privileges."
 }
@@ -140,10 +141,10 @@ function reopen_component_log_files() {
 }
 
 function register_content() {
-  ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-runners --register-policies --register-rules --register-sensors --register-triggers --register-configs --register-setup-virtualenvs --register-fail-on-failure --register-no-fail-on-failure --verbose'
+  ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-runners --register-policies --register-rules --register-sensors --register-triggers --register-configs --register-setup-virtualenvs --register-recreate-virtualenvs --register-fail-on-failure --register-no-fail-on-failure --verbose'
   DEFAULT_REGISTER_FLAGS='--register-runners --register-actions --register-aliases --register-sensors --register-triggers --register-configs --register-rules'
 
-  SUDO_FLAGS='--register-setup-virtualenvs'
+  SUDO_FLAGS='--register-setup-virtualenvs  --register-recreate-virtualenvs'
   flags="${@}"
 
   if [ ! -z ${1} ]; then

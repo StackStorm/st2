@@ -23,32 +23,33 @@ LOG = logging.getLogger(__name__)
 
 
 class InvalidInquiryInstance(st2_exc.StackStormBaseException):
-
     def __init__(self, inquiry_id):
-        Exception.__init__(self, 'Action execution "%s" is not an inquiry.' % inquiry_id)
+        Exception.__init__(
+            self, 'Action execution "%s" is not an inquiry.' % inquiry_id
+        )
 
 
 class InquiryTimedOut(st2_exc.StackStormBaseException):
-
     def __init__(self, inquiry_id):
-        Exception.__init__(self, 'Inquiry "%s" timed out and cannot be responded to.' % inquiry_id)
+        Exception.__init__(
+            self, 'Inquiry "%s" timed out and cannot be responded to.' % inquiry_id
+        )
 
 
 class InquiryAlreadyResponded(st2_exc.StackStormBaseException):
-
     def __init__(self, inquiry_id):
-        Exception.__init__(self, 'Inquiry "%s" has already been responded to.' % inquiry_id)
+        Exception.__init__(
+            self, 'Inquiry "%s" has already been responded to.' % inquiry_id
+        )
 
 
 class InquiryResponseUnauthorized(st2_exc.StackStormBaseException):
-
     def __init__(self, inquiry_id, user):
         msg = 'User "%s" does not have permission to respond to inquiry "%s".'
         Exception.__init__(self, msg % (user, inquiry_id))
 
 
 class InvalidInquiryResponse(st2_exc.StackStormBaseException):
-
     def __init__(self, inquiry_id, error):
         msg = 'Response for inquiry "%s" did not pass schema validation. %s'
         Exception.__init__(self, msg % (inquiry_id, error))

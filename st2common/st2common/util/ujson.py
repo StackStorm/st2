@@ -19,9 +19,7 @@ import copy
 
 import ujson
 
-__all__ = [
-    'fast_deepcopy'
-]
+__all__ = ["fast_deepcopy"]
 
 
 def fast_deepcopy(value, fall_back_to_deepcopy=True):

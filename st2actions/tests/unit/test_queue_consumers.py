@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import st2tests
 
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 import mock
@@ -39,16 +40,13 @@ from st2common.util import date as date_utils
 from st2tests.base import ExecutionDbTestCase
 
 
-PACKS = [
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
-]
+PACKS = [st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core"]
 
 
-@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-@mock.patch.object(executions, 'update_execution', mock.MagicMock())
-@mock.patch.object(Message, 'ack', mock.MagicMock())
+@mock.patch.object(PoolPublisher, "publish", mock.MagicMock())
+@mock.patch.object(executions, "update_execution", mock.MagicMock())
+@mock.patch.object(Message, "ack", mock.MagicMock())
 class QueueConsumerTest(ExecutionDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(QueueConsumerTest, cls).setUpClass()
@@ -58,8 +56,7 @@ class QueueConsumerTest(ExecutionDbTestCase):
 
         # Register test pack(s).
         actions_registrar = actionsregistrar.ActionsRegistrar(
-            use_pack_cache=False,
-            fail_on_failure=True
+            use_pack_cache=False, fail_on_failure=True
         )
 
         for pack in PACKS:
@@ -71,14 +68,16 @@ class QueueConsumerTest(ExecutionDbTestCase):
         self.scheduling_queue = scheduling_queue.get_handler()
         self.dispatcher = worker.get_worker()
 
-    def _create_liveaction_db(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
-        action_db = action_utils.get_action_by_ref('core.noop')
+    def _create_liveaction_db(
+        self, status=action_constants.LIVEACTION_STATUS_REQUESTED
+    ):
+        action_db = action_utils.get_action_by_ref("core.noop")
 
         liveaction_db = LiveActionDB(
             action=action_db.ref,
             parameters=None,
             start_timestamp=date_utils.get_datetime_utc_now(),
-            status=status
+            status=status,
         )
 
         liveaction_db = action.LiveAction.add_or_update(liveaction_db, publish=False)
@@ -91,15 +90,16 @@ class QueueConsumerTest(ExecutionDbTestCase):
         queued_request = self.scheduling_queue._get_next_execution()
         self.scheduling_queue._handle_execution(queued_request)
 
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value={'key': 'value'}))
+    @mock.patch.object(
+        RunnerContainer, "dispatch", mock.MagicMock(return_value={"key": "value"})
+    )
     def test_execute(self):
         liveaction_db = self._create_liveaction_db()
         self._process_request(liveaction_db)
 
         scheduled_liveaction_db = action_utils.get_liveaction_by_id(liveaction_db.id)
         scheduled_liveaction_db = self._wait_on_status(
-            scheduled_liveaction_db,
-            action_constants.LIVEACTION_STATUS_SCHEDULED
+            scheduled_liveaction_db, action_constants.LIVEACTION_STATUS_SCHEDULED
         )
         self.assertDictEqual(scheduled_liveaction_db.runner_info, {})
 
@@ -107,54 +107,56 @@ class QueueConsumerTest(ExecutionDbTestCase):
         dispatched_liveaction_db = action_utils.get_liveaction_by_id(liveaction_db.id)
         self.assertGreater(len(list(dispatched_liveaction_db.runner_info.keys())), 0)
         self.assertEqual(
-            dispatched_liveaction_db.status,
-            action_constants.LIVEACTION_STATUS_RUNNING
+            dispatched_liveaction_db.status, action_constants.LIVEACTION_STATUS_RUNNING
         )
 
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(side_effect=Exception('Boom!')))
+    @mock.patch.object(
+        RunnerContainer, "dispatch", mock.MagicMock(side_effect=Exception("Boom!"))
+    )
     def test_execute_failure(self):
         liveaction_db = self._create_liveaction_db()
         self._process_request(liveaction_db)
 
         scheduled_liveaction_db = action_utils.get_liveaction_by_id(liveaction_db.id)
         scheduled_liveaction_db = self._wait_on_status(
-            scheduled_liveaction_db,
-            action_constants.LIVEACTION_STATUS_SCHEDULED
+            scheduled_liveaction_db, action_constants.LIVEACTION_STATUS_SCHEDULED
         )
 
         self.dispatcher._queue_consumer._process_message(scheduled_liveaction_db)
         dispatched_liveaction_db = action_utils.get_liveaction_by_id(liveaction_db.id)
-        self.assertEqual(dispatched_liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(
+            dispatched_liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED
+        )
 
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
+    @mock.patch.object(RunnerContainer, "dispatch", mock.MagicMock(return_value=None))
     def test_execute_no_result(self):
         liveaction_db = self._create_liveaction_db()
         self._process_request(liveaction_db)
 
         scheduled_liveaction_db = action_utils.get_liveaction_by_id(liveaction_db.id)
         scheduled_liveaction_db = self._wait_on_status(
-            scheduled_liveaction_db,
-            action_constants.LIVEACTION_STATUS_SCHEDULED
+            scheduled_liveaction_db, action_constants.LIVEACTION_STATUS_SCHEDULED
         )
 
         self.dispatcher._queue_consumer._process_message(scheduled_liveaction_db)
         dispatched_liveaction_db = action_utils.get_liveaction_by_id(liveaction_db.id)
-        self.assertEqual(dispatched_liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(
+            dispatched_liveaction_db.status, action_constants.LIVEACTION_STATUS_FAILED
+        )
 
-    @mock.patch.object(RunnerContainer, 'dispatch', mock.MagicMock(return_value=None))
+    @mock.patch.object(RunnerContainer, "dispatch", mock.MagicMock(return_value=None))
     def test_execute_cancelation(self):
         liveaction_db = self._create_liveaction_db()
         self._process_request(liveaction_db)
 
         scheduled_liveaction_db = action_utils.get_liveaction_by_id(liveaction_db.id)
         scheduled_liveaction_db = self._wait_on_status(
-            scheduled_liveaction_db,
-            action_constants.LIVEACTION_STATUS_SCHEDULED
+            scheduled_liveaction_db, action_constants.LIVEACTION_STATUS_SCHEDULED
         )
 
         action_utils.update_liveaction_status(
             status=action_constants.LIVEACTION_STATUS_CANCELED,
-            liveaction_id=liveaction_db.id
+            liveaction_id=liveaction_db.id,
         )
 
         canceled_liveaction_db = action_utils.get_liveaction_by_id(liveaction_db.id)
@@ -162,11 +164,10 @@ class QueueConsumerTest(ExecutionDbTestCase):
         dispatched_liveaction_db = action_utils.get_liveaction_by_id(liveaction_db.id)
 
         self.assertEqual(
-            dispatched_liveaction_db.status,
-            action_constants.LIVEACTION_STATUS_CANCELED
+            dispatched_liveaction_db.status, action_constants.LIVEACTION_STATUS_CANCELED
         )
 
         self.assertDictEqual(
             dispatched_liveaction_db.result,
-            {'message': 'Action execution canceled by user.'}
+            {"message": "Action execution canceled by user."},
         )
