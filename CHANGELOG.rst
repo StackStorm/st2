@@ -12,6 +12,9 @@ Changed
 
   Contributed by @Kami.
 
+* Import ABC from collections.abc for Python 3.10 compatibility. (#5007)
+  Contributed by @tirkarthi
+
 3.4.0 - March 02, 2021
 ----------------------
 
