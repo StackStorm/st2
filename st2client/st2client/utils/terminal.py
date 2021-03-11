@@ -61,7 +61,7 @@ def get_terminal_size_columns(default=DEFAULT_TERMINAL_SIZE_COLUMNS):
         try:
             return ioctl_GWINSZ(fd)[1]
         except Exception:
-            pass
+            sys.stderr.write("\n")
 
     # 3. try os.ctermid()
     try:
@@ -71,7 +71,7 @@ def get_terminal_size_columns(default=DEFAULT_TERMINAL_SIZE_COLUMNS):
         finally:
             os.close(fd)
     except Exception:
-        pass
+        sys.stderr.write("\n")
 
     # 4. try `stty size`
     try:
@@ -85,7 +85,7 @@ def get_terminal_size_columns(default=DEFAULT_TERMINAL_SIZE_COLUMNS):
         if process.returncode == 0:
             return tuple(int(x) for x in result[0].split())[1]
     except Exception:
-        pass
+        sys.stderr.write("\n")
 
     # 5. return default fallback value
     return default
