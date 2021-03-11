@@ -18,6 +18,15 @@ Changed
 
   Contributed by @Kami.
 
+* Default nginx config (``conf/nginx/st2.conf``) which is used by the installer and Docker
+  images has been updated to only support TLS v1.2 (support for TLS v1.0 and v1.1 has been
+  removed).
+
+  If someone still needs to support those versions, they can modify the nginx config
+  accordingly. #5183
+
+  Contributed by @Kami and @ashwini.
+
 3.4.0 - March 02, 2021
 ----------------------
 
