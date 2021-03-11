@@ -154,7 +154,7 @@ def merge_source_requirements(sources):
                     projects.add(parsedreq.requirement.name)
                     merged_requirements.append(req)
 
-                    # Requirements lines like "vcs+proto://url"
+                # Requirements lines like "vcs+proto://url"
                 elif parsedreq.link:
                     merged_requirements.append(req)
                 else:
@@ -167,7 +167,7 @@ def merge_source_requirements(sources):
                     projects.add(req.name)
                     merged_requirements.append(req)
 
-                    # Requirements lines like "vcs+proto://url"
+                # Requirements lines like "vcs+proto://url"
                 elif req.link:
                     merged_requirements.append(req)
                 else:
