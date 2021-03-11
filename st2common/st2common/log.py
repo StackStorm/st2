@@ -35,34 +35,30 @@ from st2common.util.misc import prefix_dict_keys
 from st2common.util.misc import get_normalized_file_path
 
 __all__ = [
-    'getLogger',
-    'setup',
-
-    'FormatNamedFileHandler',
-    'ConfigurableSyslogHandler',
-
-    'LoggingStream',
-
-    'ignore_lib2to3_log_messages',
-    'ignore_statsd_log_messages'
+    "getLogger",
+    "setup",
+    "FormatNamedFileHandler",
+    "ConfigurableSyslogHandler",
+    "LoggingStream",
+    "ignore_lib2to3_log_messages",
+    "ignore_statsd_log_messages",
 ]
 
 # NOTE: We set AUDIT to the highest log level which means AUDIT log messages will always be
 # included (e.g. also if log level is set to INFO). To avoid that, we need to explicitly filter
 # out AUDIT log level in service setup code.
 logging.AUDIT = logging.CRITICAL + 10
-logging.addLevelName(logging.AUDIT, 'AUDIT')
+logging.addLevelName(logging.AUDIT, "AUDIT")
 
 LOGGER_KEYS = [
-    'debug',
-    'info',
-    'warning',
-    'error',
-    'critical',
-    'exception',
-    'log',
-
-    'audit'
+    "debug",
+    "info",
+    "warning",
+    "error",
+    "critical",
+    "exception",
+    "log",
+    "audit",
 ]
 
 # Note: This attribute is used by "find_caller" so it can correctly exclude this file when looking
@@ -89,10 +85,10 @@ def find_caller(stack_info=False, stacklevel=1):
     on what runtine we're working in.
     """
     if six.PY2:
-        rv = '(unknown file)', 0, '(unknown function)'
+        rv = "(unknown file)", 0, "(unknown function)"
     else:
         # python 3, has extra tuple element at the end for stack information
-        rv = '(unknown file)', 0, '(unknown function)', None
+        rv = "(unknown file)", 0, "(unknown function)", None
 
     try:
         f = logging.currentframe()
@@ -107,7 +103,7 @@ def find_caller(stack_info=False, stacklevel=1):
         if not f:
             f = orig_f
 
-        while hasattr(f, 'f_code'):
+        while hasattr(f, "f_code"):
             co = f.f_code
             filename = os.path.normcase(co.co_filename)
             if filename in (_srcfile, logging._srcfile):  # This line is modified.
@@ -121,16 +117,16 @@ def find_caller(stack_info=False, stacklevel=1):
                 sinfo = None
                 if stack_info:
                     sio = io.StringIO()
-                    sio.write('Stack (most recent call last):\n')
+                    sio.write("Stack (most recent call last):\n")
                     traceback.print_stack(f, file=sio)
                     sinfo = sio.getvalue()
-                    if sinfo[-1] == '\n':
+                    if sinfo[-1] == "\n":
                         sinfo = sinfo[:-1]
                     sio.close()
                 rv = (filename, f.f_lineno, co.co_name, sinfo)
             break
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Unable to find caller. {e}")
 
     return rv
 
@@ -139,8 +135,8 @@ def decorate_log_method(func):
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         # Prefix extra keys with underscore
-        if 'extra' in kwargs:
-            kwargs['extra'] = prefix_dict_keys(dictionary=kwargs['extra'], prefix='_')
+        if "extra" in kwargs:
+            kwargs["extra"] = prefix_dict_keys(dictionary=kwargs["extra"], prefix="_")
 
         try:
             return func(*args, **kwargs)
@@ -150,10 +146,11 @@ def decorate_log_method(func):
             # See:
             # - https://docs.python.org/release/2.7.3/library/logging.html#logging.Logger.exception
             # - https://docs.python.org/release/2.7.7/library/logging.html#logging.Logger.exception
-            if 'got an unexpected keyword argument \'extra\'' in six.text_type(e):
-                kwargs.pop('extra', None)
+            if "got an unexpected keyword argument 'extra'" in six.text_type(e):
+                kwargs.pop("extra", None)
                 return func(*args, **kwargs)
             raise e
+
     return func_wrapper
 
 
@@ -179,11 +176,11 @@ def decorate_logger_methods(logger):
 
 def getLogger(name):
     # make sure that prefix isn't appended multiple times to preserve logging name hierarchy
-    prefix = 'st2.'
+    prefix = "st2."
     if name.startswith(prefix):
         logger = logging.getLogger(name)
     else:
-        logger_name = '{}{}'.format(prefix, name)
+        logger_name = "{}{}".format(prefix, name)
         logger = logging.getLogger(logger_name)
 
     logger = decorate_logger_methods(logger=logger)
@@ -191,7 +188,6 @@ def getLogger(name):
 
 
 class LoggingStream(object):
-
     def __init__(self, name, level=logging.ERROR):
         self._logger = getLogger(name)
         self._level = level
@@ -219,11 +215,16 @@ def _add_exclusion_filters(handlers, excludes=None):
 
 def _redirect_stderr():
     # It is ok to redirect stderr as none of the st2 handlers write to stderr.
-    sys.stderr = LoggingStream('STDERR')
+    sys.stderr = LoggingStream("STDERR")
 
 
-def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_loggers=False,
-          st2_conf_path=None):
+def setup(
+    config_file,
+    redirect_stderr=True,
+    excludes=None,
+    disable_existing_loggers=False,
+    st2_conf_path=None,
+):
     """
     Configure logging from file.
 
@@ -232,16 +233,18 @@ def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_log
                           absolute path relative to st2.conf.
     :type st2_conf_path: ``str``
     """
-    if st2_conf_path and config_file[:2] == './' and not os.path.isfile(config_file):
+    if st2_conf_path and config_file[:2] == "./" and not os.path.isfile(config_file):
         # Logging config path is relative to st2.conf, resolve it to full absolute path
         directory = os.path.dirname(st2_conf_path)
         config_file_name = os.path.basename(config_file)
         config_file = os.path.join(directory, config_file_name)
 
     try:
-        logging.config.fileConfig(config_file,
-                                  defaults=None,
-                                  disable_existing_loggers=disable_existing_loggers)
+        logging.config.fileConfig(
+            config_file,
+            defaults=None,
+            disable_existing_loggers=disable_existing_loggers,
+        )
         handlers = logging.getLoggerClass().manager.root.handlers
         _add_exclusion_filters(handlers=handlers, excludes=excludes)
         if redirect_stderr:
@@ -251,13 +254,13 @@ def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_log
         tb_msg = traceback.format_exc()
 
         msg = str(exc)
-        msg += '\n\n' + tb_msg
+        msg += "\n\n" + tb_msg
 
         # revert stderr redirection since there is no logger in place.
         sys.stderr = sys.__stderr__
 
         # No logger yet therefore write to stderr
-        sys.stderr.write('ERROR: %s' % (msg))
+        sys.stderr.write("ERROR: %s" % (msg))
 
         raise exc_cls(six.text_type(msg))
 
@@ -271,10 +274,10 @@ def ignore_lib2to3_log_messages():
 
     class MockLoggingModule(object):
         def getLogger(self, *args, **kwargs):
-            return logging.getLogger('lib2to3')
+            return logging.getLogger("lib2to3")
 
     lib2to3.pgen2.driver.logging = MockLoggingModule()
-    logging.getLogger('lib2to3').setLevel(logging.ERROR)
+    logging.getLogger("lib2to3").setLevel(logging.ERROR)
 
 
 def ignore_statsd_log_messages():
@@ -288,8 +291,8 @@ def ignore_statsd_log_messages():
 
     class MockLoggingModule(object):
         def getLogger(self, *args, **kwargs):
-            return logging.getLogger('statsd')
+            return logging.getLogger("statsd")
 
     statsd.connection.logging = MockLoggingModule()
     statsd.client.logging = MockLoggingModule()
-    logging.getLogger('statsd').setLevel(logging.ERROR)
+    logging.getLogger("statsd").setLevel(logging.ERROR)

@@ -40,14 +40,14 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         super(WithItemsWiringTest, self).tearDown()
 
     def test_with_items(self):
-        wf_name = 'examples.orquesta-with-items'
+        wf_name = "examples.orquesta-with-items"
 
-        members = ['Lakshmi', 'Lindsay', 'Tomaz', 'Matt', 'Drew']
-        wf_input = {'members': members}
+        members = ["Lakshmi", "Lindsay", "Tomaz", "Matt", "Drew"]
+        wf_input = {"members": members}
 
-        message = '%s, resistance is futile!'
-        expected_output = {'items': [message % i for i in members]}
-        expected_result = {'output': expected_output}
+        message = "%s, resistance is futile!"
+        expected_output = {"items": [message % i for i in members]}
+        expected_result = {"output": expected_output}
 
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_completion(ex)
@@ -56,17 +56,17 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         self.assertDictEqual(ex.result, expected_result)
 
     def test_with_items_failure(self):
-        wf_name = 'examples.orquesta-test-with-items-failure'
+        wf_name = "examples.orquesta-test-with-items-failure"
 
         ex = self._execute_workflow(wf_name)
         ex = self._wait_for_completion(ex)
 
-        self._wait_for_task(ex, 'task1', num_task_exs=10)
+        self._wait_for_task(ex, "task1", num_task_exs=10)
 
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
 
     def test_with_items_concurrency(self):
-        wf_name = 'examples.orquesta-test-with-items'
+        wf_name = "examples.orquesta-test-with-items"
 
         concurrency = 2
         num_items = 5
@@ -74,22 +74,22 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
 
         for i in range(0, num_items):
             _, f = tempfile.mkstemp()
-            os.chmod(f, 0o755)   # nosec
+            os.chmod(f, 0o755)  # nosec
             self.tempfiles.append(f)
 
-        wf_input = {'tempfiles': self.tempfiles, 'concurrency': concurrency}
+        wf_input = {"tempfiles": self.tempfiles, "concurrency": concurrency}
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
 
-        self._wait_for_task(ex, 'task1', num_task_exs=2)
+        self._wait_for_task(ex, "task1", num_task_exs=2)
         os.remove(self.tempfiles[0])
         os.remove(self.tempfiles[1])
 
-        self._wait_for_task(ex, 'task1', num_task_exs=4)
+        self._wait_for_task(ex, "task1", num_task_exs=4)
         os.remove(self.tempfiles[2])
         os.remove(self.tempfiles[3])
 
-        self._wait_for_task(ex, 'task1', num_task_exs=5)
+        self._wait_for_task(ex, "task1", num_task_exs=5)
         os.remove(self.tempfiles[4])
 
         ex = self._wait_for_completion(ex)
@@ -97,7 +97,7 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_with_items_cancellation(self):
-        wf_name = 'examples.orquesta-test-with-items'
+        wf_name = "examples.orquesta-test-with-items"
 
         concurrency = 2
         num_items = 2
@@ -105,19 +105,16 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
 
         for i in range(0, num_items):
             _, f = tempfile.mkstemp()
-            os.chmod(f, 0o755)   # nosec
+            os.chmod(f, 0o755)  # nosec
             self.tempfiles.append(f)
 
-        wf_input = {'tempfiles': self.tempfiles, 'concurrency': concurrency}
+        wf_input = {"tempfiles": self.tempfiles, "concurrency": concurrency}
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
 
         # Wait for action executions to run.
         self._wait_for_task(
-            ex,
-            'task1',
-            ac_const.LIVEACTION_STATUS_RUNNING,
-            num_task_exs=concurrency
+            ex, "task1", ac_const.LIVEACTION_STATUS_RUNNING, num_task_exs=concurrency
         )
 
         # Cancel the workflow execution.
@@ -133,17 +130,14 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
 
         # Task is completed successfully for graceful exit.
         self._wait_for_task(
-            ex,
-            'task1',
-            ac_const.LIVEACTION_STATUS_SUCCEEDED,
-            num_task_exs=concurrency
+            ex, "task1", ac_const.LIVEACTION_STATUS_SUCCEEDED, num_task_exs=concurrency
         )
 
         # Wait for the ex to be canceled.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELED)
 
     def test_with_items_concurrency_cancellation(self):
-        wf_name = 'examples.orquesta-test-with-items'
+        wf_name = "examples.orquesta-test-with-items"
 
         concurrency = 2
         num_items = 4
@@ -151,19 +145,16 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
 
         for i in range(0, num_items):
             _, f = tempfile.mkstemp()
-            os.chmod(f, 0o755)   # nosec
+            os.chmod(f, 0o755)  # nosec
             self.tempfiles.append(f)
 
-        wf_input = {'tempfiles': self.tempfiles, 'concurrency': concurrency}
+        wf_input = {"tempfiles": self.tempfiles, "concurrency": concurrency}
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
 
         # Wait for action executions to run.
         self._wait_for_task(
-            ex,
-            'task1',
-            ac_const.LIVEACTION_STATUS_RUNNING,
-            num_task_exs=concurrency
+            ex, "task1", ac_const.LIVEACTION_STATUS_RUNNING, num_task_exs=concurrency
         )
 
         # Cancel the workflow execution.
@@ -180,27 +171,24 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
 
         # Task is completed successfully for graceful exit.
         self._wait_for_task(
-            ex,
-            'task1',
-            ac_const.LIVEACTION_STATUS_SUCCEEDED,
-            num_task_exs=concurrency
+            ex, "task1", ac_const.LIVEACTION_STATUS_SUCCEEDED, num_task_exs=concurrency
         )
 
         # Wait for the ex to be canceled.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELED)
 
     def test_with_items_pause_and_resume(self):
-        wf_name = 'examples.orquesta-test-with-items'
+        wf_name = "examples.orquesta-test-with-items"
 
         num_items = 2
         self.tempfiles = []
 
         for i in range(0, num_items):
             _, f = tempfile.mkstemp()
-            os.chmod(f, 0o755)   # nosec
+            os.chmod(f, 0o755)  # nosec
             self.tempfiles.append(f)
 
-        wf_input = {'tempfiles': self.tempfiles}
+        wf_input = {"tempfiles": self.tempfiles}
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
 
@@ -217,10 +205,7 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
 
         # Wait for action executions for task to succeed.
         self._wait_for_task(
-            ex,
-            'task1',
-            ac_const.LIVEACTION_STATUS_SUCCEEDED,
-            num_task_exs=num_items
+            ex, "task1", ac_const.LIVEACTION_STATUS_SUCCEEDED, num_task_exs=num_items
         )
 
         # Wait for the workflow execution to pause.
@@ -233,7 +218,7 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_with_items_concurrency_pause_and_resume(self):
-        wf_name = 'examples.orquesta-test-with-items'
+        wf_name = "examples.orquesta-test-with-items"
 
         concurrency = 2
         num_items = 4
@@ -241,10 +226,10 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
 
         for i in range(0, num_items):
             _, f = tempfile.mkstemp()
-            os.chmod(f, 0o755)   # nosec
+            os.chmod(f, 0o755)  # nosec
             self.tempfiles.append(f)
 
-        wf_input = {'tempfiles': self.tempfiles, 'concurrency': concurrency}
+        wf_input = {"tempfiles": self.tempfiles, "concurrency": concurrency}
         ex = self._execute_workflow(wf_name, wf_input)
         ex = self._wait_for_state(ex, [ac_const.LIVEACTION_STATUS_RUNNING])
 
@@ -261,10 +246,7 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
 
         # Wait for action executions for task to succeed.
         self._wait_for_task(
-            ex,
-            'task1',
-            ac_const.LIVEACTION_STATUS_SUCCEEDED,
-            num_task_exs=concurrency
+            ex, "task1", ac_const.LIVEACTION_STATUS_SUCCEEDED, num_task_exs=concurrency
         )
 
         # Wait for the workflow execution to pause.
@@ -280,17 +262,14 @@ class WithItemsWiringTest(base.TestWorkflowExecution):
 
         # Wait for action executions for task to succeed.
         self._wait_for_task(
-            ex,
-            'task1',
-            ac_const.LIVEACTION_STATUS_SUCCEEDED,
-            num_task_exs=num_items
+            ex, "task1", ac_const.LIVEACTION_STATUS_SUCCEEDED, num_task_exs=num_items
         )
 
         # Wait for completion.
         ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
     def test_subworkflow_empty_with_items(self):
-        wf_name = 'examples.orquesta-test-subworkflow-empty-with-items'
+        wf_name = "examples.orquesta-test-subworkflow-empty-with-items"
         ex = self._execute_workflow(wf_name)
         ex = self._wait_for_completion(ex)
 

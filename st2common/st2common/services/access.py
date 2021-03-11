@@ -27,15 +27,14 @@ from st2common.models.db.auth import TokenDB, UserDB
 from st2common.persistence.auth import Token, User
 from st2common import log as logging
 
-__all__ = [
-    'create_token',
-    'delete_token'
-]
+__all__ = ["create_token", "delete_token"]
 
 LOG = logging.getLogger(__name__)
 
 
-def create_token(username, ttl=None, metadata=None, add_missing_user=True, service=False):
+def create_token(
+    username, ttl=None, metadata=None, add_missing_user=True, service=False
+):
     """
     :param username: Username of the user to create the token for. If the account for this user
                      doesn't exist yet it will be created.
@@ -57,8 +56,10 @@ def create_token(username, ttl=None, metadata=None, add_missing_user=True, servi
     if ttl:
         # Note: We allow arbitrary large TTLs for service tokens.
         if not service and ttl > cfg.CONF.auth.token_ttl:
-            msg = ('TTL specified %s is greater than max allowed %s.' % (ttl,
-                                                                         cfg.CONF.auth.token_ttl))
+            msg = "TTL specified %s is greater than max allowed %s." % (
+                ttl,
+                cfg.CONF.auth.token_ttl,
+            )
             raise TTLTooLargeException(msg)
     else:
         ttl = cfg.CONF.auth.token_ttl
@@ -71,22 +72,27 @@ def create_token(username, ttl=None, metadata=None, add_missing_user=True, servi
                 user_db = UserDB(name=username)
                 User.add_or_update(user_db)
 
-                extra = {'username': username, 'user': user_db}
+                extra = {"username": username, "user": user_db}
                 LOG.audit('Registered new user "%s".' % (username), extra=extra)
             else:
                 raise UserNotFoundError()
 
     token = uuid.uuid4().hex
     expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
-    token = TokenDB(user=username, token=token, expiry=expiry, metadata=metadata, service=service)
+    token = TokenDB(
+        user=username, token=token, expiry=expiry, metadata=metadata, service=service
+    )
     Token.add_or_update(token)
 
-    username_string = username if username else 'an anonymous user'
+    username_string = username if username else "an anonymous user"
     token_expire_string = isotime.format(expiry, offset=False)
-    extra = {'username': username, 'token_expiration': token_expire_string}
+    extra = {"username": username, "token_expiration": token_expire_string}
 
-    LOG.audit('Access granted to "%s" with the token set to expire at "%s".' %
-              (username_string, token_expire_string), extra=extra)
+    LOG.audit(
+        'Access granted to "%s" with the token set to expire at "%s".'
+        % (username_string, token_expire_string),
+        extra=extra,
+    )
 
     return token
 

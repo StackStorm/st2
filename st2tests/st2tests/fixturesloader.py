@@ -21,16 +21,21 @@ import six
 
 from st2common.content.loader import MetaLoader
 
-from st2common.models.api.action import (ActionAPI, LiveActionAPI, ActionExecutionStateAPI,
-                                         RunnerTypeAPI, ActionAliasAPI)
+from st2common.models.api.action import (
+    ActionAPI,
+    LiveActionAPI,
+    ActionExecutionStateAPI,
+    RunnerTypeAPI,
+    ActionAliasAPI,
+)
 from st2common.models.api.auth import ApiKeyAPI, UserAPI
-from st2common.models.api.execution import (ActionExecutionAPI)
-from st2common.models.api.policy import (PolicyTypeAPI, PolicyAPI)
-from st2common.models.api.rule import (RuleAPI)
+from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
+from st2common.models.api.rule import RuleAPI
 from st2common.models.api.rule_enforcement import RuleEnforcementAPI
 from st2common.models.api.sensor import SensorTypeAPI
 from st2common.models.api.trace import TraceAPI
-from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
+from st2common.models.api.trigger import TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI
 
 from st2common.models.db.action import ActionDB
 from st2common.models.db.actionalias import ActionAliasDB
@@ -38,13 +43,13 @@ from st2common.models.db.auth import ApiKeyDB, UserDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.models.db.runner import RunnerTypeDB
-from st2common.models.db.execution import (ActionExecutionDB)
-from st2common.models.db.policy import (PolicyTypeDB, PolicyDB)
+from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.policy import PolicyTypeDB, PolicyDB
 from st2common.models.db.rule import RuleDB
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
 from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.db.trace import TraceDB
-from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB, TriggerInstanceDB)
+from st2common.models.db.trigger import TriggerDB, TriggerTypeDB, TriggerInstanceDB
 from st2common.persistence.action import Action
 from st2common.persistence.actionalias import ActionAlias
 from st2common.persistence.execution import ActionExecution
@@ -52,107 +57,125 @@ from st2common.persistence.executionstate import ActionExecutionState
 from st2common.persistence.auth import ApiKey, User
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
-from st2common.persistence.policy import (PolicyType, Policy)
+from st2common.persistence.policy import PolicyType, Policy
 from st2common.persistence.rule import Rule
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.persistence.sensor import SensorType
 from st2common.persistence.trace import Trace
-from st2common.persistence.trigger import (Trigger, TriggerType, TriggerInstance)
+from st2common.persistence.trigger import Trigger, TriggerType, TriggerInstance
 
 
-ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'aliases', 'executions', 'liveactions',
-                       'policies', 'policytypes', 'rules', 'runners', 'sensors',
-                       'triggertypes', 'triggers', 'triggerinstances', 'traces', 'apikeys',
-                       'users', 'enforcements']
+ALLOWED_DB_FIXTURES = [
+    "actions",
+    "actionstates",
+    "aliases",
+    "executions",
+    "liveactions",
+    "policies",
+    "policytypes",
+    "rules",
+    "runners",
+    "sensors",
+    "triggertypes",
+    "triggers",
+    "triggerinstances",
+    "traces",
+    "apikeys",
+    "users",
+    "enforcements",
+]
 ALLOWED_FIXTURES = copy.copy(ALLOWED_DB_FIXTURES)
-ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
+ALLOWED_FIXTURES.extend(["actionchains", "workflows"])
 
 FIXTURE_DB_MODEL = {
-    'actions': ActionDB,
-    'aliases': ActionAliasDB,
-    'actionstates': ActionExecutionStateDB,
-    'apikeys': ApiKeyDB,
-    'enforcements': RuleEnforcementDB,
-    'executions': ActionExecutionDB,
-    'liveactions': LiveActionDB,
-    'policies': PolicyDB,
-    'policytypes': PolicyTypeDB,
-    'rules': RuleDB,
-    'runners': RunnerTypeDB,
-    'sensors': SensorTypeDB,
-    'traces': TraceDB,
-    'triggertypes': TriggerTypeDB,
-    'triggers': TriggerDB,
-    'triggerinstances': TriggerInstanceDB,
-    'users': UserDB
+    "actions": ActionDB,
+    "aliases": ActionAliasDB,
+    "actionstates": ActionExecutionStateDB,
+    "apikeys": ApiKeyDB,
+    "enforcements": RuleEnforcementDB,
+    "executions": ActionExecutionDB,
+    "liveactions": LiveActionDB,
+    "policies": PolicyDB,
+    "policytypes": PolicyTypeDB,
+    "rules": RuleDB,
+    "runners": RunnerTypeDB,
+    "sensors": SensorTypeDB,
+    "traces": TraceDB,
+    "triggertypes": TriggerTypeDB,
+    "triggers": TriggerDB,
+    "triggerinstances": TriggerInstanceDB,
+    "users": UserDB,
 }
 
 FIXTURE_API_MODEL = {
-    'actions': ActionAPI,
-    'aliases': ActionAliasAPI,
-    'actionstates': ActionExecutionStateAPI,
-    'apikeys': ApiKeyAPI,
-    'enforcements': RuleEnforcementAPI,
-    'executions': ActionExecutionAPI,
-    'liveactions': LiveActionAPI,
-    'policies': PolicyAPI,
-    'policytypes': PolicyTypeAPI,
-    'rules': RuleAPI,
-    'runners': RunnerTypeAPI,
-    'sensors': SensorTypeAPI,
-    'traces': TraceAPI,
-    'triggertypes': TriggerTypeAPI,
-    'triggers': TriggerAPI,
-    'triggerinstances': TriggerInstanceAPI,
-    'users': UserAPI
+    "actions": ActionAPI,
+    "aliases": ActionAliasAPI,
+    "actionstates": ActionExecutionStateAPI,
+    "apikeys": ApiKeyAPI,
+    "enforcements": RuleEnforcementAPI,
+    "executions": ActionExecutionAPI,
+    "liveactions": LiveActionAPI,
+    "policies": PolicyAPI,
+    "policytypes": PolicyTypeAPI,
+    "rules": RuleAPI,
+    "runners": RunnerTypeAPI,
+    "sensors": SensorTypeAPI,
+    "traces": TraceAPI,
+    "triggertypes": TriggerTypeAPI,
+    "triggers": TriggerAPI,
+    "triggerinstances": TriggerInstanceAPI,
+    "users": UserAPI,
 }
 
 
 FIXTURE_PERSISTENCE_MODEL = {
-    'actions': Action,
-    'aliases': ActionAlias,
-    'actionstates': ActionExecutionState,
-    'apikeys': ApiKey,
-    'enforcements': RuleEnforcement,
-    'executions': ActionExecution,
-    'liveactions': LiveAction,
-    'policies': Policy,
-    'policytypes': PolicyType,
-    'rules': Rule,
-    'runners': RunnerType,
-    'sensors': SensorType,
-    'traces': Trace,
-    'triggertypes': TriggerType,
-    'triggers': Trigger,
-    'triggerinstances': TriggerInstance,
-    'users': User
+    "actions": Action,
+    "aliases": ActionAlias,
+    "actionstates": ActionExecutionState,
+    "apikeys": ApiKey,
+    "enforcements": RuleEnforcement,
+    "executions": ActionExecution,
+    "liveactions": LiveAction,
+    "policies": Policy,
+    "policytypes": PolicyType,
+    "rules": Rule,
+    "runners": RunnerType,
+    "sensors": SensorType,
+    "traces": Trace,
+    "triggertypes": TriggerType,
+    "triggers": Trigger,
+    "triggerinstances": TriggerInstance,
+    "users": User,
 }
 
 GIT_SUBMODULES_NOT_CHECKED_OUT_ERROR = """
 Git submodule "%s" is not checked out. Make sure to run "git submodule update --init
  --recursive" in the repository root directory to check out all the
 submodules.
-""".replace('\n', '').strip()
+""".replace(
+    "\n", ""
+).strip()
 
 
 def get_fixtures_base_path():
-    return os.path.join(os.path.dirname(__file__), 'fixtures')
+    return os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 def get_fixtures_packs_base_path():
-    return os.path.join(os.path.dirname(__file__), 'fixtures/packs')
+    return os.path.join(os.path.dirname(__file__), "fixtures/packs")
 
 
 def get_resources_base_path():
-    return os.path.join(os.path.dirname(__file__), 'resources')
+    return os.path.join(os.path.dirname(__file__), "resources")
 
 
 class FixturesLoader(object):
     def __init__(self):
         self.meta_loader = MetaLoader()
 
-    def save_fixtures_to_db(self, fixtures_pack='generic', fixtures_dict=None,
-                            use_object_ids=False):
+    def save_fixtures_to_db(
+        self, fixtures_pack="generic", fixtures_dict=None, use_object_ids=False
+    ):
         """
         Loads fixtures specified in fixtures_dict into the database
         and returns DB models for the fixtures.
@@ -193,17 +216,22 @@ class FixturesLoader(object):
             for fixture in fixtures:
                 # Guard against copy and type and similar typos
                 if fixture in loaded_fixtures:
-                    msg = 'Fixture "%s" is specified twice, probably a typo.' % (fixture)
+                    msg = 'Fixture "%s" is specified twice, probably a typo.' % (
+                        fixture
+                    )
                     raise ValueError(msg)
 
                 fixture_dict = self.meta_loader.load(
-                    self._get_fixture_file_path_abs(fixtures_pack_path, fixture_type, fixture))
+                    self._get_fixture_file_path_abs(
+                        fixtures_pack_path, fixture_type, fixture
+                    )
+                )
                 api_model = API_MODEL(**fixture_dict)
                 db_model = API_MODEL.to_model(api_model)
 
                 # Make sure we also set and use object id if that functionality is used
-                if use_object_ids and 'id' in fixture_dict:
-                    db_model.id = fixture_dict['id']
+                if use_object_ids and "id" in fixture_dict:
+                    db_model.id = fixture_dict["id"]
 
                 db_model = PERSISTENCE_MODEL.add_or_update(db_model)
                 loaded_fixtures[fixture] = db_model
@@ -212,7 +240,7 @@ class FixturesLoader(object):
 
         return db_models
 
-    def load_fixtures(self, fixtures_pack='generic', fixtures_dict=None):
+    def load_fixtures(self, fixtures_pack="generic", fixtures_dict=None):
         """
         Loads fixtures specified in fixtures_dict. We
         simply want to load the meta into dict objects.
@@ -241,13 +269,16 @@ class FixturesLoader(object):
             loaded_fixtures = {}
             for fixture in fixtures:
                 fixture_dict = self.meta_loader.load(
-                    self._get_fixture_file_path_abs(fixtures_pack_path, fixture_type, fixture))
+                    self._get_fixture_file_path_abs(
+                        fixtures_pack_path, fixture_type, fixture
+                    )
+                )
                 loaded_fixtures[fixture] = fixture_dict
             all_fixtures[fixture_type] = loaded_fixtures
 
         return all_fixtures
 
-    def load_models(self, fixtures_pack='generic', fixtures_dict=None):
+    def load_models(self, fixtures_pack="generic", fixtures_dict=None):
         """
         Loads fixtures specified in fixtures_dict as db models. This method must be
         used for fixtures that have associated DB models. We simply want to load the
@@ -281,7 +312,10 @@ class FixturesLoader(object):
             loaded_models = {}
             for fixture in fixtures:
                 fixture_dict = self.meta_loader.load(
-                    self._get_fixture_file_path_abs(fixtures_pack_path, fixture_type, fixture))
+                    self._get_fixture_file_path_abs(
+                        fixtures_pack_path, fixture_type, fixture
+                    )
+                )
                 api_model = API_MODEL(**fixture_dict)
                 db_model = API_MODEL.to_model(api_model)
                 loaded_models[fixture] = db_model
@@ -289,8 +323,9 @@ class FixturesLoader(object):
 
         return all_fixtures
 
-    def delete_fixtures_from_db(self, fixtures_pack='generic', fixtures_dict=None,
-                                raise_on_fail=False):
+    def delete_fixtures_from_db(
+        self, fixtures_pack="generic", fixtures_dict=None, raise_on_fail=False
+    ):
         """
         Deletes fixtures specified in fixtures_dict from the database.
 
@@ -320,7 +355,10 @@ class FixturesLoader(object):
             PERSISTENCE_MODEL = FIXTURE_PERSISTENCE_MODEL.get(fixture_type, None)
             for fixture in fixtures:
                 fixture_dict = self.meta_loader.load(
-                    self._get_fixture_file_path_abs(fixtures_pack_path, fixture_type, fixture))
+                    self._get_fixture_file_path_abs(
+                        fixtures_pack_path, fixture_type, fixture
+                    )
+                )
                 # Note that when we have a reference mechanism consistent for
                 # every model, we can just do a get and delete the object. Until
                 # then, this model conversions are necessary.
@@ -362,27 +400,36 @@ class FixturesLoader(object):
         fixtures_pack_path = self._get_fixtures_pack_path(fixtures_pack)
 
         if not self._is_fixture_pack_exists(fixtures_pack_path):
-            raise Exception('Fixtures pack not found ' +
-                            'in fixtures path %s.' % get_fixtures_base_path())
+            raise Exception(
+                "Fixtures pack not found "
+                + "in fixtures path %s." % get_fixtures_base_path()
+            )
         return fixtures_pack_path
 
     def _validate_fixture_dict(self, fixtures_dict, allowed=ALLOWED_FIXTURES):
         fixture_types = list(fixtures_dict.keys())
         for fixture_type in fixture_types:
             if fixture_type not in allowed:
-                raise Exception('Disallowed fixture type: %s' % fixture_type)
+                raise Exception(
+                    "Disallowed fixture type: %s. Valid fixture types are: %s"
+                    % (fixture_type, ", ".join(allowed))
+                )
 
     def _is_fixture_pack_exists(self, fixtures_pack_path):
         return os.path.exists(fixtures_pack_path)
 
-    def _get_fixture_file_path_abs(self, fixtures_pack_path, fixtures_type, fixture_name):
+    def _get_fixture_file_path_abs(
+        self, fixtures_pack_path, fixtures_type, fixture_name
+    ):
         return os.path.join(fixtures_pack_path, fixtures_type, fixture_name)
 
     def _get_fixtures_pack_path(self, fixtures_pack_name):
         return os.path.join(get_fixtures_base_path(), fixtures_pack_name)
 
     def get_fixture_file_path_abs(self, fixtures_pack, fixtures_type, fixture_name):
-        return os.path.join(get_fixtures_base_path(), fixtures_pack, fixtures_type, fixture_name)
+        return os.path.join(
+            get_fixtures_base_path(), fixtures_pack, fixtures_type, fixture_name
+        )
 
 
 def assert_submodules_are_checked_out():
@@ -391,9 +438,9 @@ def assert_submodules_are_checked_out():
     root of the directory and that the "st2tests/st2tests/fixtures/packs/test" git repo submodule
     used by the tests is checked out.
     """
-    pack_path = os.path.join(get_fixtures_packs_base_path(), 'test_content_version/')
+    pack_path = os.path.join(get_fixtures_packs_base_path(), "test_content_version/")
     pack_path = os.path.abspath(pack_path)
-    submodule_git_dir_or_file_path = os.path.join(pack_path, '.git')
+    submodule_git_dir_or_file_path = os.path.join(pack_path, ".git")
 
     # NOTE: In newer versions of git, that .git is a file and not a directory
     if not os.path.exists(submodule_git_dir_or_file_path):

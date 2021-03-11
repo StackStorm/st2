@@ -33,16 +33,13 @@ import st2common.constants.action
 from st2common.rbac.types import PermissionType
 from st2common.util import isotime
 
-__all__ = [
-    'load_spec',
-    'generate_spec'
-]
+__all__ = ["load_spec", "generate_spec"]
 
 ARGUMENTS = {
-    'DEFAULT_PACK_NAME': st2common.constants.pack.DEFAULT_PACK_NAME,
-    'LIVEACTION_STATUSES': st2common.constants.action.LIVEACTION_STATUSES,
-    'PERMISSION_TYPE': PermissionType,
-    'ISO8601_UTC_REGEX': isotime.ISO8601_UTC_REGEX
+    "DEFAULT_PACK_NAME": st2common.constants.pack.DEFAULT_PACK_NAME,
+    "LIVEACTION_STATUSES": st2common.constants.action.LIVEACTION_STATUSES,
+    "PERMISSION_TYPE": PermissionType,
+    "ISO8601_UTC_REGEX": isotime.ISO8601_UTC_REGEX,
 }
 
 
@@ -50,23 +47,35 @@ class UniqueKeyLoader(Loader):
     """
     YAML loader which throws on a duplicate key.
     """
+
     def construct_mapping(self, node, deep=False):
         if not isinstance(node, MappingNode):
-            raise ConstructorError(None, None,
-                    "expected a mapping node, but found %s" % node.id,
-                    node.start_mark)
+            raise ConstructorError(
+                None,
+                None,
+                "expected a mapping node, but found %s" % node.id,
+                node.start_mark,
+            )
         mapping = {}
         for key_node, value_node in node.value:
             key = self.construct_object(key_node, deep=deep)
             try:
                 hash(key)
             except TypeError as exc:
-                raise ConstructorError("while constructing a mapping", node.start_mark,
-                       "found unacceptable key (%s)" % exc, key_node.start_mark)
+                raise ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    "found unacceptable key (%s)" % exc,
+                    key_node.start_mark,
+                )
             # check for duplicate keys
             if key in mapping:
-                raise ConstructorError("while constructing a mapping", node.start_mark,
-                       "found duplicate key", key_node.start_mark)
+                raise ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    "found duplicate key",
+                    key_node.start_mark,
+                )
             value = self.construct_object(value_node, deep=deep)
             mapping[key] = value
         return mapping

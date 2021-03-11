@@ -21,18 +21,19 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
 
-__all__ = [
-    'ActionAliasDB'
-]
+__all__ = ["ActionAliasDB"]
 
 
 LOG = logging.getLogger(__name__)
 
-PACK_SEPARATOR = '.'
+PACK_SEPARATOR = "."
 
 
-class ActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMixin,
-                    stormbase.UIDFieldMixin):
+class ActionAliasDB(
+    stormbase.StormFoundationDB,
+    stormbase.ContentPackResourceMixin,
+    stormbase.UIDFieldMixin,
+):
     """
     Database entity that represent an Alias for an action.
 
@@ -46,42 +47,48 @@ class ActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMi
     """
 
     RESOURCE_TYPE = ResourceType.ACTION_ALIAS
-    UID_FIELDS = ['pack', 'name']
+    UID_FIELDS = ["pack", "name"]
 
     name = me.StringField(required=True)
     ref = me.StringField(required=True)
     description = me.StringField()
     pack = me.StringField(
-        required=True,
-        help_text='Name of the content pack.',
-        unique_with='name')
+        required=True, help_text="Name of the content pack.", unique_with="name"
+    )
     enabled = me.BooleanField(
-        required=True, default=True,
-        help_text='A flag indicating whether the action alias is enabled.')
-    action_ref = me.StringField(
         required=True,
-        help_text='Reference of the Action map this alias.')
+        default=True,
+        help_text="A flag indicating whether the action alias is enabled.",
+    )
+    action_ref = me.StringField(
+        required=True, help_text="Reference of the Action map this alias."
+    )
     formats = me.ListField(
-        help_text='Possible parameter formats that an alias supports.')
+        help_text="Possible parameter formats that an alias supports."
+    )
     ack = me.DictField(
-        help_text='Parameters pertaining to the acknowledgement message.'
+        help_text="Parameters pertaining to the acknowledgement message."
     )
     result = me.DictField(
-        help_text='Parameters pertaining to the execution result message.'
+        help_text="Parameters pertaining to the execution result message."
     )
     extra = me.DictField(
-        help_text='Additional parameters (usually adapter-specific) not covered in the schema.'
+        help_text="Additional parameters (usually adapter-specific) not covered in the schema."
     )
     immutable_parameters = me.DictField(
-        help_text='Parameters to be passed to the action on every execution.')
+        help_text="Parameters to be passed to the action on every execution."
+    )
 
     meta = {
-        'indexes': [
-            {'fields': ['name']},
-            {'fields': ['enabled']},
-            {'fields': ['formats']},
-        ] + (stormbase.ContentPackResourceMixin().get_indexes() +
-             stormbase.UIDFieldMixin.get_indexes())
+        "indexes": [
+            {"fields": ["name"]},
+            {"fields": ["enabled"]},
+            {"fields": ["formats"]},
+        ]
+        + (
+            stormbase.ContentPackResourceMixin().get_indexes()
+            + stormbase.UIDFieldMixin.get_indexes()
+        )
     }
 
     def __init__(self, *args, **values):
@@ -97,10 +104,12 @@ class ActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMi
         """
         result = []
 
-        formats = getattr(self, 'formats', [])
+        formats = getattr(self, "formats", [])
         for format_string in formats:
-            if isinstance(format_string, dict) and format_string.get('representation', None):
-                result.extend(format_string['representation'])
+            if isinstance(format_string, dict) and format_string.get(
+                "representation", None
+            ):
+                result.extend(format_string["representation"])
             else:
                 result.append(format_string)
 

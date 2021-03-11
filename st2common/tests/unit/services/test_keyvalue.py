@@ -22,17 +22,22 @@ from st2common.services.keyvalues import get_key_reference
 
 
 class KeyValueServicesTest(unittest2.TestCase):
-
     def test_get_key_reference_system_scope(self):
-        ref = get_key_reference(scope=SYSTEM_SCOPE, name='foo')
-        self.assertEqual(ref, 'foo')
+        ref = get_key_reference(scope=SYSTEM_SCOPE, name="foo")
+        self.assertEqual(ref, "foo")
 
     def test_get_key_reference_user_scope(self):
-        ref = get_key_reference(scope=USER_SCOPE, name='foo', user='stanley')
-        self.assertEqual(ref, 'stanley:foo')
-        self.assertRaises(InvalidUserException, get_key_reference,
-                          scope=USER_SCOPE, name='foo', user='')
+        ref = get_key_reference(scope=USER_SCOPE, name="foo", user="stanley")
+        self.assertEqual(ref, "stanley:foo")
+        self.assertRaises(
+            InvalidUserException,
+            get_key_reference,
+            scope=USER_SCOPE,
+            name="foo",
+            user="",
+        )
 
     def test_get_key_reference_invalid_scope_raises_exception(self):
-        self.assertRaises(InvalidScopeException, get_key_reference,
-                          scope='sketchy', name='foo')
+        self.assertRaises(
+            InvalidScopeException, get_key_reference, scope="sketchy", name="foo"
+        )

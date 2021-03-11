@@ -19,14 +19,12 @@ import six
 
 import datetime
 
-__all__ = [
-    'to_human_time_from_seconds'
-]
+__all__ = ["to_human_time_from_seconds"]
 
 if six.PY3:
     long_int = int
 else:
-    long_int = long     # noqa  # pylint: disable=E0602
+    long_int = long  # noqa  # pylint: disable=E0602
 
 
 def to_human_time_from_seconds(seconds):
@@ -39,8 +37,11 @@ def to_human_time_from_seconds(seconds):
 
     :rtype: ``str``
     """
-    assert (isinstance(seconds, int) or isinstance(seconds, int) or
-            isinstance(seconds, float))
+    assert (
+        isinstance(seconds, int)
+        or isinstance(seconds, int)
+        or isinstance(seconds, float)
+    )
 
     return _get_human_time(seconds)
 
@@ -59,10 +60,10 @@ def _get_human_time(seconds):
         return None
 
     if seconds == 0:
-        return '0s'
+        return "0s"
 
     if seconds < 1:
-        return '%s\u03BCs' % seconds  # Microseconds
+        return "%s\u03BCs" % seconds  # Microseconds
 
     if isinstance(seconds, float):
         seconds = long_int(round(seconds))  # Let's lose microseconds.
@@ -81,17 +82,17 @@ def _get_human_time(seconds):
     first_non_zero_pos = next((i for i, x in enumerate(time_parts) if x), None)
 
     if first_non_zero_pos is None:
-        return '0s'
+        return "0s"
     else:
         time_parts = time_parts[first_non_zero_pos:]
 
     if len(time_parts) == 1:
-        return '%ss' % tuple(time_parts)
+        return "%ss" % tuple(time_parts)
     elif len(time_parts) == 2:
-        return '%sm%ss' % tuple(time_parts)
+        return "%sm%ss" % tuple(time_parts)
     elif len(time_parts) == 3:
-        return '%sh%sm%ss' % tuple(time_parts)
+        return "%sh%sm%ss" % tuple(time_parts)
     elif len(time_parts) == 4:
-        return '%sd%sh%sm%ss' % tuple(time_parts)
+        return "%sd%sh%sm%ss" % tuple(time_parts)
     elif len(time_parts) == 5:
-        return '%sy%sd%sh%sm%ss' % tuple(time_parts)
+        return "%sy%sd%sh%sm%ss" % tuple(time_parts)

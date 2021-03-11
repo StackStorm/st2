@@ -322,7 +322,7 @@ if [ "${ENABLE_COVERAGE}" = true ]; then
 
   # Base options to enable test coverage reporting
   # --with-coverage : enables coverage reporting
-  # --cover-erase : removes old coverage reports before starting 
+  # --cover-erase : removes old coverage reports before starting
   NOSE_OPTS+=(--with-coverage --cover-erase)
 
   # Now, by default nosetests reports test coverage for every module found

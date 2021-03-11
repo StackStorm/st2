@@ -32,10 +32,12 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-__all__ = ['RuleViewController']
+__all__ = ["RuleViewController"]
 
 
-class RuleViewController(BaseResourceIsolationControllerMixin, ContentPackResourceController):
+class RuleViewController(
+    BaseResourceIsolationControllerMixin, ContentPackResourceController
+):
     """
     Add some extras to a Rule object to make it easier for UI to render a rule. The additions
     do not necessarily belong in the Rule itself but are still valuable augmentations.
@@ -74,64 +76,78 @@ class RuleViewController(BaseResourceIsolationControllerMixin, ContentPackResour
 
     model = RuleViewAPI
     access = Rule
-    supported_filters = {
-        'name': 'name',
-        'pack': 'pack',
-        'user': 'context.user'
-    }
+    supported_filters = {"name": "name", "pack": "pack", "user": "context.user"}
 
-    query_options = {
-        'sort': ['pack', 'name']
-    }
+    query_options = {"sort": ["pack", "name"]}
 
-    mandatory_include_fields_retrieve = ['pack', 'name', 'trigger']
+    mandatory_include_fields_retrieve = ["pack", "name", "trigger"]
 
-    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
-                limit=None, requester_user=None, **raw_filters):
-        rules = super(RuleViewController, self)._get_all(exclude_fields=exclude_attributes,
-                                                         include_fields=include_attributes,
-                                                         sort=sort,
-                                                         offset=offset,
-                                                         limit=limit,
-                                                         raw_filters=raw_filters,
-                                                         requester_user=requester_user)
+    def get_all(
+        self,
+        exclude_attributes=None,
+        include_attributes=None,
+        sort=None,
+        offset=0,
+        limit=None,
+        requester_user=None,
+        **raw_filters,
+    ):
+        rules = super(RuleViewController, self)._get_all(
+            exclude_fields=exclude_attributes,
+            include_fields=include_attributes,
+            sort=sort,
+            offset=offset,
+            limit=limit,
+            raw_filters=raw_filters,
+            requester_user=requester_user,
+        )
         result = self._append_view_properties(rules.json)
         rules.json = result
         return rules
 
     def get_one(self, ref_or_id, requester_user):
-        from_model_kwargs = {'mask_secrets': True}
-        rule = self._get_one(ref_or_id, permission_type=PermissionType.RULE_VIEW,
-                             requester_user=requester_user, from_model_kwargs=from_model_kwargs)
+        from_model_kwargs = {"mask_secrets": True}
+        rule = self._get_one(
+            ref_or_id,
+            permission_type=PermissionType.RULE_VIEW,
+            requester_user=requester_user,
+            from_model_kwargs=from_model_kwargs,
+        )
         result = self._append_view_properties([rule.json])[0]
         rule.json = result
         return rule
 
     def _append_view_properties(self, rules):
-        action_by_refs, trigger_by_refs, trigger_type_by_refs = self._get_referenced_models(rules)
+        (
+            action_by_refs,
+            trigger_by_refs,
+            trigger_type_by_refs,
+        ) = self._get_referenced_models(rules)
 
         for rule in rules:
-            action_ref = rule.get('action', {}).get('ref', None)
-            trigger_ref = rule.get('trigger', {}).get('ref', None)
-            trigger_type_ref = rule.get('trigger', {}).get('type', None)
+            action_ref = rule.get("action", {}).get("ref", None)
+            trigger_ref = rule.get("trigger", {}).get("ref", None)
+            trigger_type_ref = rule.get("trigger", {}).get("type", None)
 
             action_db = action_by_refs.get(action_ref, None)
 
-            if 'action' in rule:
-                rule['action']['description'] = action_db.description if action_db else ''
+            if "action" in rule:
+                rule["action"]["description"] = (
+                    action_db.description if action_db else ""
+                )
 
-            if 'trigger' in rule:
-                rule['trigger']['description'] = ''
+            if "trigger" in rule:
+                rule["trigger"]["description"] = ""
 
             trigger_db = trigger_by_refs.get(trigger_ref, None)
             if trigger_db:
-                rule['trigger']['description'] = trigger_db.description
+                rule["trigger"]["description"] = trigger_db.description
 
             # If description is not found in trigger get description from TriggerType
-            if 'trigger' in rule and not rule['trigger']['description']:
+            if "trigger" in rule and not rule["trigger"]["description"]:
                 trigger_type_db = trigger_type_by_refs.get(trigger_type_ref, None)
                 if trigger_type_db:
-                    rule['trigger']['description'] = trigger_type_db.description
+                    rule["trigger"]["description"] = trigger_type_db.description
 
         return rules
 
@@ -145,9 +161,9 @@ class RuleViewController(BaseResourceIsolationControllerMixin, ContentPackResour
         trigger_type_refs = set()
 
         for rule in rules:
-            action_ref = rule.get('action', {}).get('ref', None)
-            trigger_ref = rule.get('trigger', {}).get('ref', None)
-            trigger_type_ref = rule.get('trigger', {}).get('type', None)
+            action_ref = rule.get("action", {}).get("ref", None)
+            trigger_ref = rule.get("trigger", {}).get("ref", None)
+            trigger_type_ref = rule.get("trigger", {}).get("type", None)
 
             if action_ref:
                 action_refs.add(action_ref)
@@ -164,27 +180,31 @@ class RuleViewController(BaseResourceIsolationControllerMixin, ContentPackResour
 
         # The functions that will return args that can used to query.
         def ref_query_args(ref):
-            return {'ref': ref}
+            return {"ref": ref}
 
         def name_pack_query_args(ref):
             resource_ref = ResourceReference.from_string_reference(ref=ref)
-            return {'name': resource_ref.name, 'pack': resource_ref.pack}
+            return {"name": resource_ref.name, "pack": resource_ref.pack}
 
-        action_dbs = self._get_entities(model_persistence=Action,
-                                        refs=action_refs,
-                                        query_args=ref_query_args)
+        action_dbs = self._get_entities(
+            model_persistence=Action, refs=action_refs, query_args=ref_query_args
+        )
         for action_db in action_dbs:
             action_by_refs[action_db.ref] = action_db
 
-        trigger_dbs = self._get_entities(model_persistence=Trigger,
-                                         refs=trigger_refs,
-                                         query_args=name_pack_query_args)
+        trigger_dbs = self._get_entities(
+            model_persistence=Trigger,
+            refs=trigger_refs,
+            query_args=name_pack_query_args,
+        )
         for trigger_db in trigger_dbs:
             trigger_by_refs[trigger_db.get_reference().ref] = trigger_db
 
-        trigger_type_dbs = self._get_entities(model_persistence=TriggerType,
-                                              refs=trigger_type_refs,
-                                              query_args=name_pack_query_args)
+        trigger_type_dbs = self._get_entities(
+            model_persistence=TriggerType,
+            refs=trigger_type_refs,
+            query_args=name_pack_query_args,
+        )
         for trigger_type_db in trigger_type_dbs:
             trigger_type_by_refs[trigger_type_db.get_reference().ref] = trigger_type_db
 

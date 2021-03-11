@@ -28,8 +28,11 @@ from st2auth import backends as auth_backends
 
 
 def parse_args(args=None):
-    cfg.CONF(args=args, version=VERSION_STRING,
-             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
+    cfg.CONF(
+        args=args,
+        version=VERSION_STRING,
+        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+    )
 
 
 def register_opts():
@@ -50,47 +53,61 @@ def _register_app_opts():
 
     auth_opts = [
         cfg.StrOpt(
-            'host', default='127.0.0.1',
-            help='Host on which the service should listen on.'),
+            "host",
+            default="127.0.0.1",
+            help="Host on which the service should listen on.",
+        ),
         cfg.IntOpt(
-            'port', default=9100,
-            help='Port on which the service should listen on.'),
+            "port", default=9100, help="Port on which the service should listen on."
+        ),
+        cfg.BoolOpt("use_ssl", default=False, help="Specify to enable SSL / TLS mode"),
+        cfg.StrOpt(
+            "cert",
+            default="/etc/apache2/ssl/mycert.crt",
+            help='Path to the SSL certificate file. Only used when "use_ssl" is specified.',
+        ),
+        cfg.StrOpt(
+            "key",
+            default="/etc/apache2/ssl/mycert.key",
+            help='Path to the SSL private key file. Only used when "use_ssl" is specified.',
+        ),
+        cfg.StrOpt(
+            "logging",
+            default="/etc/st2/logging.auth.conf",
+            help="Path to the logging config.",
+        ),
+        cfg.BoolOpt("debug", default=False, help="Specify to enable debug mode."),
+        cfg.StrOpt(
+            "mode",
+            default=DEFAULT_MODE,
+            help="Authentication mode (%s)" % (",".join(VALID_MODES)),
+        ),
+        cfg.StrOpt(
+            "backend",
+            default=DEFAULT_BACKEND,
+            help="Authentication backend to use in a standalone mode. Available "
+            "backends: %s." % (", ".join(available_backends)),
+        ),
+        cfg.StrOpt(
+            "backend_kwargs",
+            default=None,
+            help="JSON serialized arguments which are passed to the authentication "
+            "backend in a standalone mode.",
+        ),
         cfg.BoolOpt(
-            'use_ssl', default=False,
-            help='Specify to enable SSL / TLS mode'),
+            "sso", default=False, help="Enable Single Sign On for GUI if true."
+        ),
         cfg.StrOpt(
-            'cert', default='/etc/apache2/ssl/mycert.crt',
-            help='Path to the SSL certificate file. Only used when "use_ssl" is specified.'),
+            "sso_backend",
+            default=DEFAULT_SSO_BACKEND,
+            help="Single Sign On backend to use when SSO is enabled. Available "
+            "backends: noop, saml2.",
+        ),
         cfg.StrOpt(
-            'key', default='/etc/apache2/ssl/mycert.key',
-            help='Path to the SSL private key file. Only used when "use_ssl" is specified.'),
-        cfg.StrOpt(
-            'logging', default='/etc/st2/logging.auth.conf',
-            help='Path to the logging config.'),
-        cfg.BoolOpt(
-            'debug', default=False,
-            help='Specify to enable debug mode.'),
-        cfg.StrOpt(
-            'mode', default=DEFAULT_MODE,
-            help='Authentication mode (%s)' % (','.join(VALID_MODES))),
-        cfg.StrOpt(
-            'backend', default=DEFAULT_BACKEND,
-            help='Authentication backend to use in a standalone mode. Available '
-                 'backends: %s.' % (', '.join(available_backends))),
-        cfg.StrOpt(
-            'backend_kwargs', default=None,
-            help='JSON serialized arguments which are passed to the authentication '
-                 'backend in a standalone mode.'),
-        cfg.BoolOpt(
-            'sso', default=False,
-            help='Enable Single Sign On for GUI if true.'),
-        cfg.StrOpt(
-            'sso_backend', default=DEFAULT_SSO_BACKEND,
-            help='Single Sign On backend to use when SSO is enabled. Available '
-                 'backends: noop, saml2.'),
-        cfg.StrOpt(
-            'sso_backend_kwargs', default=None,
-            help='JSON serialized arguments which are passed to the SSO backend.')
+            "sso_backend_kwargs",
+            default=None,
+            help="JSON serialized arguments which are passed to the SSO backend.",
+        ),
     ]
 
-    cfg.CONF.register_cli_opts(auth_opts, group='auth')
+    cfg.CONF.register_cli_opts(auth_opts, group="auth")

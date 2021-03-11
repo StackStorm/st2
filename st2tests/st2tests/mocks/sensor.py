@@ -27,10 +27,7 @@ from st2common.models.api.trace import TraceContext
 from st2reactor.container.sensor_wrapper import SensorService
 from st2tests.mocks.datastore import MockDatastoreService
 
-__all__ = [
-    'MockSensorWrapper',
-    'MockSensorService'
-]
+__all__ = ["MockSensorWrapper", "MockSensorService"]
 
 
 class MockSensorWrapper(object):
@@ -54,9 +51,11 @@ class MockSensorService(SensorService):
         # Holds a list of triggers which were dispatched
         self.dispatched_triggers = []
 
-        self._datastore_service = MockDatastoreService(logger=self._logger,
-                                                       pack_name=self._sensor_wrapper._pack,
-                                                       class_name=self._sensor_wrapper._class_name)
+        self._datastore_service = MockDatastoreService(
+            logger=self._logger,
+            pack_name=self._sensor_wrapper._pack,
+            class_name=self._sensor_wrapper._class_name,
+        )
 
     @property
     def datastore_service(self):
@@ -74,14 +73,11 @@ class MockSensorService(SensorService):
 
     def dispatch(self, trigger, payload=None, trace_tag=None):
         trace_context = TraceContext(trace_tag=trace_tag) if trace_tag else None
-        return self.dispatch_with_context(trigger=trigger, payload=payload,
-                                          trace_context=trace_context)
+        return self.dispatch_with_context(
+            trigger=trigger, payload=payload, trace_context=trace_context
+        )
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
-        item = {
-            'trigger': trigger,
-            'payload': payload,
-            'trace_context': trace_context
-        }
+        item = {"trigger": trigger, "payload": payload, "trace_context": trace_context}
         self.dispatched_triggers.append(item)
         return item

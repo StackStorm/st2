@@ -34,9 +34,7 @@ LOG = logging.getLogger(__name__)
 RUNNER = {
     "enabled": True,
     "name": "marathon",
-    "runner_parameters": {
-        "var1": {"type": "string"}
-    }
+    "runner_parameters": {"var1": {"type": "string"}},
 }
 
 ACTION = {
@@ -46,185 +44,227 @@ ACTION = {
     "parameters": {},
     "enabled": True,
     "entry_point": "",
-    "pack": "mocke"
+    "pack": "mocke",
 }
 
 EXECUTION = {
     "id": 12345,
-    "action": {
-        "ref": "mock.foobar"
-    },
+    "action": {"ref": "mock.foobar"},
     "status": "failed",
-    "result": "non-empty"
+    "result": "non-empty",
 }
 
 
 class TestExecutionResourceManager(unittest2.TestCase):
-
     @classmethod
     def setUpClass(cls):
         super(TestExecutionResourceManager, cls).setUpClass()
         cls.client = client.Client()
 
     @mock.patch.object(
-        models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=models.Execution(**EXECUTION)))
+        models.ResourceManager,
+        "get_by_id",
+        mock.MagicMock(return_value=models.Execution(**EXECUTION)),
+    )
     @mock.patch.object(
-        models.ResourceManager, 'get_by_ref_or_id',
-        mock.MagicMock(return_value=models.Action(**ACTION)))
+        models.ResourceManager,
+        "get_by_ref_or_id",
+        mock.MagicMock(return_value=models.Action(**ACTION)),
+    )
     @mock.patch.object(
-        models.ResourceManager, 'get_by_name',
-        mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
+        models.ResourceManager,
+        "get_by_name",
+        mock.MagicMock(return_value=models.RunnerType(**RUNNER)),
+    )
     @mock.patch.object(
-        httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
+        httpclient.HTTPClient,
+        "post",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(EXECUTION), 200, "OK")
+        ),
+    )
     def test_rerun_with_no_params(self):
-        self.client.executions.re_run(EXECUTION['id'], tasks=['foobar'])
+        self.client.executions.re_run(EXECUTION["id"], tasks=["foobar"])
 
-        endpoint = '/executions/%s/re_run' % EXECUTION['id']
+        endpoint = "/executions/%s/re_run" % EXECUTION["id"]
 
-        data = {
-            'tasks': ['foobar'],
-            'reset': ['foobar'],
-            'parameters': {},
-            'delay': 0
-        }
+        data = {"tasks": ["foobar"], "reset": ["foobar"], "parameters": {}, "delay": 0}
 
         httpclient.HTTPClient.post.assert_called_with(endpoint, data)
 
     @mock.patch.object(
-        models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=models.Execution(**EXECUTION)))
+        models.ResourceManager,
+        "get_by_id",
+        mock.MagicMock(return_value=models.Execution(**EXECUTION)),
+    )
     @mock.patch.object(
-        models.ResourceManager, 'get_by_ref_or_id',
-        mock.MagicMock(return_value=models.Action(**ACTION)))
+        models.ResourceManager,
+        "get_by_ref_or_id",
+        mock.MagicMock(return_value=models.Action(**ACTION)),
+    )
     @mock.patch.object(
-        models.ResourceManager, 'get_by_name',
-        mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
+        models.ResourceManager,
+        "get_by_name",
+        mock.MagicMock(return_value=models.RunnerType(**RUNNER)),
+    )
     @mock.patch.object(
-        httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
+        httpclient.HTTPClient,
+        "post",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(EXECUTION), 200, "OK")
+        ),
+    )
     def test_rerun_with_params(self):
-        params = {
-            'var1': 'testing...'
-        }
+        params = {"var1": "testing..."}
 
         self.client.executions.re_run(
-            EXECUTION['id'],
-            tasks=['foobar'],
-            parameters=params
+            EXECUTION["id"], tasks=["foobar"], parameters=params
         )
 
-        endpoint = '/executions/%s/re_run' % EXECUTION['id']
+        endpoint = "/executions/%s/re_run" % EXECUTION["id"]
 
         data = {
-            'tasks': ['foobar'],
-            'reset': ['foobar'],
-            'parameters': params,
-            'delay': 0
+            "tasks": ["foobar"],
+            "reset": ["foobar"],
+            "parameters": params,
+            "delay": 0,
         }
 
         httpclient.HTTPClient.post.assert_called_with(endpoint, data)
 
     @mock.patch.object(
-        models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=models.Execution(**EXECUTION)))
+        models.ResourceManager,
+        "get_by_id",
+        mock.MagicMock(return_value=models.Execution(**EXECUTION)),
+    )
     @mock.patch.object(
-        models.ResourceManager, 'get_by_ref_or_id',
-        mock.MagicMock(return_value=models.Action(**ACTION)))
+        models.ResourceManager,
+        "get_by_ref_or_id",
+        mock.MagicMock(return_value=models.Action(**ACTION)),
+    )
     @mock.patch.object(
-        models.ResourceManager, 'get_by_name',
-        mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
+        models.ResourceManager,
+        "get_by_name",
+        mock.MagicMock(return_value=models.RunnerType(**RUNNER)),
+    )
     @mock.patch.object(
-        httpclient.HTTPClient, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
+        httpclient.HTTPClient,
+        "post",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(EXECUTION), 200, "OK")
+        ),
+    )
     def test_rerun_with_delay(self):
-        self.client.executions.re_run(EXECUTION['id'], tasks=['foobar'], delay=100)
+        self.client.executions.re_run(EXECUTION["id"], tasks=["foobar"], delay=100)
 
-        endpoint = '/executions/%s/re_run' % EXECUTION['id']
+        endpoint = "/executions/%s/re_run" % EXECUTION["id"]
 
         data = {
-            'tasks': ['foobar'],
-            'reset': ['foobar'],
-            'parameters': {},
-            'delay': 100
+            "tasks": ["foobar"],
+            "reset": ["foobar"],
+            "parameters": {},
+            "delay": 100,
         }
 
         httpclient.HTTPClient.post.assert_called_with(endpoint, data)
 
     @mock.patch.object(
-        models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=models.Execution(**EXECUTION)))
+        models.ResourceManager,
+        "get_by_id",
+        mock.MagicMock(return_value=models.Execution(**EXECUTION)),
+    )
     @mock.patch.object(
-        models.ResourceManager, 'get_by_ref_or_id',
-        mock.MagicMock(return_value=models.Action(**ACTION)))
+        models.ResourceManager,
+        "get_by_ref_or_id",
+        mock.MagicMock(return_value=models.Action(**ACTION)),
+    )
     @mock.patch.object(
-        models.ResourceManager, 'get_by_name',
-        mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
+        models.ResourceManager,
+        "get_by_name",
+        mock.MagicMock(return_value=models.RunnerType(**RUNNER)),
+    )
     @mock.patch.object(
-        httpclient.HTTPClient, 'put',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
+        httpclient.HTTPClient,
+        "put",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(EXECUTION), 200, "OK")
+        ),
+    )
     def test_pause(self):
-        self.client.executions.pause(EXECUTION['id'])
+        self.client.executions.pause(EXECUTION["id"])
 
-        endpoint = '/executions/%s' % EXECUTION['id']
+        endpoint = "/executions/%s" % EXECUTION["id"]
 
-        data = {
-            'status': 'pausing'
-        }
+        data = {"status": "pausing"}
 
         httpclient.HTTPClient.put.assert_called_with(endpoint, data)
 
     @mock.patch.object(
-        models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=models.Execution(**EXECUTION)))
+        models.ResourceManager,
+        "get_by_id",
+        mock.MagicMock(return_value=models.Execution(**EXECUTION)),
+    )
     @mock.patch.object(
-        models.ResourceManager, 'get_by_ref_or_id',
-        mock.MagicMock(return_value=models.Action(**ACTION)))
+        models.ResourceManager,
+        "get_by_ref_or_id",
+        mock.MagicMock(return_value=models.Action(**ACTION)),
+    )
     @mock.patch.object(
-        models.ResourceManager, 'get_by_name',
-        mock.MagicMock(return_value=models.RunnerType(**RUNNER)))
+        models.ResourceManager,
+        "get_by_name",
+        mock.MagicMock(return_value=models.RunnerType(**RUNNER)),
+    )
     @mock.patch.object(
-        httpclient.HTTPClient, 'put',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
+        httpclient.HTTPClient,
+        "put",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(EXECUTION), 200, "OK")
+        ),
+    )
     def test_resume(self):
-        self.client.executions.resume(EXECUTION['id'])
+        self.client.executions.resume(EXECUTION["id"])
 
-        endpoint = '/executions/%s' % EXECUTION['id']
+        endpoint = "/executions/%s" % EXECUTION["id"]
 
-        data = {
-            'status': 'resuming'
-        }
+        data = {"status": "resuming"}
 
         httpclient.HTTPClient.put.assert_called_with(endpoint, data)
 
     @mock.patch.object(
-        models.core.Resource, 'get_url_path_name',
-        mock.MagicMock(return_value='executions'))
+        models.core.Resource,
+        "get_url_path_name",
+        mock.MagicMock(return_value="executions"),
+    )
     @mock.patch.object(
-        httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([EXECUTION]), 200, 'OK')))
+        httpclient.HTTPClient,
+        "get",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps([EXECUTION]), 200, "OK")
+        ),
+    )
     def test_get_children(self):
-        self.client.executions.get_children(EXECUTION['id'])
+        self.client.executions.get_children(EXECUTION["id"])
 
-        endpoint = '/executions/%s/children' % EXECUTION['id']
+        endpoint = "/executions/%s/children" % EXECUTION["id"]
 
-        data = {
-            'depth': -1
-        }
+        data = {"depth": -1}
 
         httpclient.HTTPClient.get.assert_called_with(url=endpoint, params=data)
 
     @mock.patch.object(
-        models.ResourceManager, 'get_all',
-        mock.MagicMock(return_value=[models.Execution(**EXECUTION)]))
-    @mock.patch.object(warnings, 'warn')
-    def test_st2client_liveactions_has_been_deprecated_and_emits_warning(self, mock_warn):
+        models.ResourceManager,
+        "get_all",
+        mock.MagicMock(return_value=[models.Execution(**EXECUTION)]),
+    )
+    @mock.patch.object(warnings, "warn")
+    def test_st2client_liveactions_has_been_deprecated_and_emits_warning(
+        self, mock_warn
+    ):
         self.assertEqual(mock_warn.call_args, None)
 
         self.client.liveactions.get_all()
 
-        expected_msg = 'st2client.liveactions has been renamed'
+        expected_msg = "st2client.liveactions has been renamed"
         self.assertTrue(len(mock_warn.call_args_list) >= 1)
         self.assertIn(expected_msg, mock_warn.call_args_list[0][0][0])
         self.assertEqual(mock_warn.call_args_list[0][0][1], DeprecationWarning)

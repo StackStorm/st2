@@ -50,15 +50,14 @@ from st2common.transport.queues import STREAM_EXECUTION_OUTPUT_QUEUE
 from st2common.transport.queues import WORKFLOW_EXECUTION_WORK_QUEUE
 from st2common.transport.queues import WORKFLOW_EXECUTION_RESUME_QUEUE
 
-LOG = logging.getLogger('st2common.transport.bootstrap')
+LOG = logging.getLogger("st2common.transport.bootstrap")
 
 __all__ = [
-    'register_exchanges',
-    'register_exchanges_with_retry',
-    'register_kombu_serializers',
-
-    'EXCHANGES',
-    'QUEUES'
+    "register_exchanges",
+    "register_exchanges_with_retry",
+    "register_kombu_serializers",
+    "EXCHANGES",
+    "QUEUES",
 ]
 
 # List of exchanges which are pre-declared on service set up.
@@ -72,7 +71,7 @@ EXCHANGES = [
     TRIGGER_INSTANCE_XCHG,
     SENSOR_CUD_XCHG,
     WORKFLOW_EXECUTION_XCHG,
-    WORKFLOW_EXECUTION_STATUS_MGMT_XCHG
+    WORKFLOW_EXECUTION_STATUS_MGMT_XCHG,
 ]
 
 # List of queues which are pre-declared on service startup.
@@ -85,41 +84,40 @@ QUEUES = [
     NOTIFIER_ACTIONUPDATE_WORK_QUEUE,
     RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE,
     RULESENGINE_WORK_QUEUE,
-
     STREAM_ANNOUNCEMENT_WORK_QUEUE,
     STREAM_EXECUTION_ALL_WORK_QUEUE,
     STREAM_LIVEACTION_WORK_QUEUE,
     STREAM_EXECUTION_OUTPUT_QUEUE,
-
     WORKFLOW_EXECUTION_WORK_QUEUE,
     WORKFLOW_EXECUTION_RESUME_QUEUE,
-
     # Those queues are dynamically / late created on some class init but we still need to
     # pre-declare them for redis Kombu backend to work.
-    reactor.get_trigger_cud_queue(name='st2.preinit', routing_key='init'),
-    reactor.get_sensor_cud_queue(name='st2.preinit', routing_key='init')
+    reactor.get_trigger_cud_queue(name="st2.preinit", routing_key="init"),
+    reactor.get_sensor_cud_queue(name="st2.preinit", routing_key="init"),
 ]
 
 
 def _do_register_exchange(exchange, connection, channel, retry_wrapper):
     try:
         kwargs = {
-            'exchange': exchange.name,
-            'type': exchange.type,
-            'durable': exchange.durable,
-            'auto_delete': exchange.auto_delete,
-            'arguments': exchange.arguments,
-            'nowait': False,
-            'passive': False
+            "exchange": exchange.name,
+            "type": exchange.type,
+            "durable": exchange.durable,
+            "auto_delete": exchange.auto_delete,
+            "arguments": exchange.arguments,
+            "nowait": False,
+            "passive": False,
         }
         # Use the retry wrapper to increase resiliency in recoverable errors.
-        retry_wrapper.ensured(connection=connection,
-                              obj=channel,
-                              to_ensure_func=channel.exchange_declare,
-                              **kwargs)
-        LOG.debug('Registered exchange %s (%s).' % (exchange.name, str(kwargs)))
+        retry_wrapper.ensured(
+            connection=connection,
+            obj=channel,
+            to_ensure_func=channel.exchange_declare,
+            **kwargs,
+        )
+        LOG.debug("Registered exchange %s (%s)." % (exchange.name, str(kwargs)))
     except Exception:
-        LOG.exception('Failed to register exchange: %s.', exchange.name)
+        LOG.exception("Failed to register exchange: %s.", exchange.name)
 
 
 def _do_predeclare_queue(channel, queue):
@@ -132,23 +130,31 @@ def _do_predeclare_queue(channel, queue):
         bound_queue.declare(nowait=False)
         LOG.debug('Predeclared queue for exchange "%s"' % (queue.exchange.name))
     except Exception:
-        LOG.exception('Failed to predeclare queue for exchange "%s"' % (queue.exchange.name))
+        LOG.exception(
+            'Failed to predeclare queue for exchange "%s"' % (queue.exchange.name)
+        )
 
     return bound_queue
 
 
 def register_exchanges():
-    LOG.debug('Registering exchanges...')
+    LOG.debug("Registering exchanges...")
     connection_urls = transport_utils.get_messaging_urls()
 
     with transport_utils.get_connection() as conn:
         # Use ConnectionRetryWrapper to deal with rmq clustering etc.
-        retry_wrapper = ConnectionRetryWrapper(cluster_size=len(connection_urls), logger=LOG)
+        retry_wrapper = ConnectionRetryWrapper(
+            cluster_size=len(connection_urls), logger=LOG
+        )
 
         def wrapped_register_exchanges(connection, channel):
             for exchange in EXCHANGES:
-                _do_register_exchange(exchange=exchange, connection=connection, channel=channel,
-                                      retry_wrapper=retry_wrapper)
+                _do_register_exchange(
+                    exchange=exchange,
+                    connection=connection,
+                    channel=channel,
+                    retry_wrapper=retry_wrapper,
+                )
 
         retry_wrapper.run(connection=conn, wrapped_callback=wrapped_register_exchanges)
 
@@ -166,7 +172,7 @@ def register_exchanges_with_retry():
     retrying_obj = retrying.Retrying(
         retry_on_exception=retry_if_io_error,
         wait_fixed=cfg.CONF.messaging.connection_retry_wait,
-        stop_max_attempt_number=cfg.CONF.messaging.connection_retries
+        stop_max_attempt_number=cfg.CONF.messaging.connection_retries,
     )
     return retrying_obj.call(register_exchanges)
 
@@ -181,24 +187,33 @@ def register_kombu_serializers():
 
     https://github.com/celery/kombu/blob/3.0/kombu/utils/encoding.py#L47
     """
+
     def pickle_dumps(obj, dumper=pickle.dumps):
         return dumper(obj, protocol=pickle_protocol)
 
     if six.PY3:
+
         def str_to_bytes(s):
             if isinstance(s, str):
-                return s.encode('utf-8')
+                return s.encode("utf-8")
             return s
 
         def unpickle(s):
             return pickle_loads(str_to_bytes(s))
+
     else:
-        def str_to_bytes(s):                # noqa
-            if isinstance(s, unicode):      # noqa  # pylint: disable=E0602
-                return s.encode('utf-8')
+
+        def str_to_bytes(s):  # noqa
+            if isinstance(s, unicode):  # noqa  # pylint: disable=E0602
+                return s.encode("utf-8")
             return s
+
         unpickle = pickle_loads  # noqa
 
-    register('pickle', pickle_dumps, unpickle,
-             content_type='application/x-python-serialize',
-             content_encoding='binary')
+    register(
+        "pickle",
+        pickle_dumps,
+        unpickle,
+        content_type="application/x-python-serialize",
+        content_encoding="binary",
+    )

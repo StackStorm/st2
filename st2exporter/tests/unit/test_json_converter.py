@@ -20,34 +20,43 @@ import unittest2
 from st2tests.fixturesloader import FixturesLoader
 from st2exporter.exporter.json_converter import JsonConverter
 
-DESCENDANTS_PACK = 'descendants'
+DESCENDANTS_PACK = "descendants"
 
 DESCENDANTS_FIXTURES = {
-    'executions': ['root_execution.yaml', 'child1_level1.yaml', 'child2_level1.yaml',
-                   'child1_level2.yaml', 'child2_level2.yaml', 'child3_level2.yaml',
-                   'child1_level3.yaml', 'child2_level3.yaml', 'child3_level3.yaml']
+    "executions": [
+        "root_execution.yaml",
+        "child1_level1.yaml",
+        "child2_level1.yaml",
+        "child1_level2.yaml",
+        "child2_level2.yaml",
+        "child3_level2.yaml",
+        "child1_level3.yaml",
+        "child2_level3.yaml",
+        "child3_level3.yaml",
+    ]
 }
 
 
 class TestJsonConverter(unittest2.TestCase):
 
     fixtures_loader = FixturesLoader()
-    loaded_fixtures = fixtures_loader.load_fixtures(fixtures_pack=DESCENDANTS_PACK,
-                                                    fixtures_dict=DESCENDANTS_FIXTURES)
+    loaded_fixtures = fixtures_loader.load_fixtures(
+        fixtures_pack=DESCENDANTS_PACK, fixtures_dict=DESCENDANTS_FIXTURES
+    )
 
     def test_convert(self):
-        executions_list = list(self.loaded_fixtures['executions'].values())
+        executions_list = list(self.loaded_fixtures["executions"].values())
         converter = JsonConverter()
         converted_doc = converter.convert(executions_list)
-        self.assertTrue(type(converted_doc), 'string')
+        self.assertTrue(type(converted_doc), "string")
         reversed_doc = json.loads(converted_doc)
         self.assertListEqual(executions_list, reversed_doc)
 
     def test_convert_non_list(self):
-        executions_dict = self.loaded_fixtures['executions']
+        executions_dict = self.loaded_fixtures["executions"]
         converter = JsonConverter()
         try:
             converter.convert(executions_dict)
-            self.fail('Should have thrown exception.')
+            self.fail("Should have thrown exception.")
         except ValueError:
             pass

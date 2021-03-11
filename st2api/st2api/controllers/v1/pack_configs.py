@@ -35,9 +35,7 @@ from st2common.persistence.pack import Config
 
 http_client = six.moves.http_client
 
-__all__ = [
-    'PackConfigsController'
-]
+__all__ = ["PackConfigsController"]
 
 LOG = logging.getLogger(__name__)
 
@@ -54,8 +52,15 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
         # this case, RBAC is checked on the parent PackDB object
         self.get_one_db_method = packs_service.get_pack_by_ref
 
-    def get_all(self, requester_user, sort=None, offset=0, limit=None, show_secrets=False,
-                **raw_filters):
+    def get_all(
+        self,
+        requester_user,
+        sort=None,
+        offset=0,
+        limit=None,
+        show_secrets=False,
+        **raw_filters,
+    ):
         """
         Retrieve configs for all the packs.
 
@@ -63,14 +68,18 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
             GET /configs/
         """
         from_model_kwargs = {
-            'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+            "mask_secrets": self._get_mask_secrets(
+                requester_user, show_secrets=show_secrets
+            )
         }
-        return super(PackConfigsController, self)._get_all(sort=sort,
-                                                           offset=offset,
-                                                           limit=limit,
-                                                           from_model_kwargs=from_model_kwargs,
-                                                           raw_filters=raw_filters,
-                                                           requester_user=requester_user)
+        return super(PackConfigsController, self)._get_all(
+            sort=sort,
+            offset=offset,
+            limit=limit,
+            from_model_kwargs=from_model_kwargs,
+            raw_filters=raw_filters,
+            requester_user=requester_user,
+        )
 
     def get_one(self, pack_ref, requester_user, show_secrets=False):
         """
@@ -80,7 +89,9 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
             GET /configs/<pack_ref>
         """
         from_model_kwargs = {
-            'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+            "mask_secrets": self._get_mask_secrets(
+                requester_user, show_secrets=show_secrets
+            )
         }
         try:
             instance = packs_service.get_pack_by_ref(pack_ref=pack_ref)
@@ -89,18 +100,22 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
             abort(http_client.NOT_FOUND, msg)
 
         rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                          resource_db=instance,
-                                                          permission_type=PermissionType.PACK_VIEW)
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=instance,
+            permission_type=PermissionType.PACK_VIEW,
+        )
 
-        return self._get_one_by_pack_ref(pack_ref=pack_ref, from_model_kwargs=from_model_kwargs)
+        return self._get_one_by_pack_ref(
+            pack_ref=pack_ref, from_model_kwargs=from_model_kwargs
+        )
 
     def put(self, pack_config_content, pack_ref, requester_user, show_secrets=False):
         """
-            Create a new config for a pack.
+        Create a new config for a pack.
 
-            Handles requests:
-                POST /configs/<pack_ref>
+        Handles requests:
+            POST /configs/<pack_ref>
         """
 
         try:
@@ -121,9 +136,9 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
     def _dump_config_to_disk(self, config_api):
         config_content = yaml.safe_dump(config_api.values, default_flow_style=False)
 
-        configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
-        config_path = os.path.join(configs_path, '%s.yaml' % config_api.pack)
-        with open(config_path, 'w') as f:
+        configs_path = os.path.join(cfg.CONF.system.base_path, "configs/")
+        config_path = os.path.join(configs_path, "%s.yaml" % config_api.pack)
+        with open(config_path, "w") as f:
             f.write(config_content)
 
 

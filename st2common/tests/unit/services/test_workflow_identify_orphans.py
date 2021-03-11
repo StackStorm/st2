@@ -24,6 +24,7 @@ import st2tests
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 from st2common.bootstrap import actionsregistrar
@@ -48,42 +49,51 @@ from st2tests.mocks import workflow as mock_wf_ex_xport
 
 LOG = logging.getLogger(__name__)
 
-TEST_PACK = 'orquesta_tests'
-TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
+TEST_PACK = "orquesta_tests"
+TEST_PACK_PATH = (
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
+)
 
 PACKS = [
     TEST_PACK_PATH,
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
 
 
 @mock.patch.object(
-    publishers.CUDPublisher,
-    'publish_update',
-    mock.MagicMock(return_value=None))
+    publishers.CUDPublisher, "publish_update", mock.MagicMock(return_value=None)
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create),
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create
+    ),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state
+    ),
+)
 class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
     ensure_indexes = True
     ensure_indexes_models = [
         ex_db_models.ActionExecutionDB,
         lv_db_models.LiveActionDB,
         wf_db_models.WorkflowExecutionDB,
-        wf_db_models.TaskExecutionDB
+        wf_db_models.TaskExecutionDB,
     ]
 
     @classmethod
@@ -95,8 +105,7 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
 
         # Register test pack(s).
         actions_registrar = actionsregistrar.ActionsRegistrar(
-            use_pack_cache=False,
-            fail_on_failure=True
+            use_pack_cache=False, fail_on_failure=True
         )
 
         for pack in PACKS:
@@ -119,8 +128,9 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
 
     def mock_workflow_records(self, completed=False, expired=True, log=True):
         status = (
-            ac_const.LIVEACTION_STATUS_SUCCEEDED if completed else
-            ac_const.LIVEACTION_STATUS_RUNNING
+            ac_const.LIVEACTION_STATUS_SUCCEEDED
+            if completed
+            else ac_const.LIVEACTION_STATUS_RUNNING
         )
 
         # Identify start and end timestamp
@@ -131,18 +141,24 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
         end_timestamp = utc_now_dt if completed else None
 
         # Assign metadata.
-        action_ref = 'orquesta_tests.sequential'
-        runner = 'orquesta'
-        user = 'stanley'
+        action_ref = "orquesta_tests.sequential"
+        runner = "orquesta"
+        user = "stanley"
 
         # Create the WorkflowExecutionDB record first since the ID needs to be
         # included in the LiveActionDB and ActionExecutionDB records.
-        st2_ctx = {'st2': {'action_execution_id': '123', 'action': 'foobar', 'runner': 'orquesta'}}
+        st2_ctx = {
+            "st2": {
+                "action_execution_id": "123",
+                "action": "foobar",
+                "runner": "orquesta",
+            }
+        }
         wf_ex_db = wf_db_models.WorkflowExecutionDB(
             context=st2_ctx,
             status=status,
             start_timestamp=start_timestamp,
-            end_timestamp=end_timestamp
+            end_timestamp=end_timestamp,
         )
 
         wf_ex_db = wf_db_access.WorkflowExecution.insert(wf_ex_db, publish=False)
@@ -152,13 +168,10 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
             workflow_execution=str(wf_ex_db.id),
             action=action_ref,
             action_is_workflow=True,
-            context={
-                'user': user,
-                'workflow_execution': str(wf_ex_db.id)
-            },
+            context={"user": user, "workflow_execution": str(wf_ex_db.id)},
             status=status,
             start_timestamp=start_timestamp,
-            end_timestamp=end_timestamp
+            end_timestamp=end_timestamp,
         )
 
         lv_ac_db = lv_db_access.LiveAction.insert(lv_ac_db, publish=False)
@@ -166,30 +179,20 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
         # Create the ActionExecutionDB record.
         ac_ex_db = ex_db_models.ActionExecutionDB(
             workflow_execution=str(wf_ex_db.id),
-            action={
-                'runner_type': runner,
-                'ref': action_ref
-            },
-            runner={
-                'name': runner
-            },
-            liveaction={
-                'id': str(lv_ac_db.id)
-            },
-            context={
-                'user': user,
-                'workflow_execution': str(wf_ex_db.id)
-            },
+            action={"runner_type": runner, "ref": action_ref},
+            runner={"name": runner},
+            liveaction={"id": str(lv_ac_db.id)},
+            context={"user": user, "workflow_execution": str(wf_ex_db.id)},
             status=status,
             start_timestamp=start_timestamp,
-            end_timestamp=end_timestamp
+            end_timestamp=end_timestamp,
         )
 
         if log:
-            ac_ex_db.log = [{'status': 'running', 'timestamp': start_timestamp}]
+            ac_ex_db.log = [{"status": "running", "timestamp": start_timestamp}]
 
         if log and status in ac_const.LIVEACTION_COMPLETED_STATES:
-            ac_ex_db.log.append({'status': status, 'timestamp': end_timestamp})
+            ac_ex_db.log.append({"status": status, "timestamp": end_timestamp})
 
         ac_ex_db = ex_db_access.ActionExecution.insert(ac_ex_db, publish=False)
 
@@ -199,14 +202,16 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
 
         return wf_ex_db, lv_ac_db, ac_ex_db
 
-    def mock_task_records(self, parent, task_id, task_route=0,
-                          completed=True, expired=False, log=True):
+    def mock_task_records(
+        self, parent, task_id, task_route=0, completed=True, expired=False, log=True
+    ):
         if not completed and expired:
-            raise ValueError('Task must be set completed=True if expired=True.')
+            raise ValueError("Task must be set completed=True if expired=True.")
 
         status = (
-            ac_const.LIVEACTION_STATUS_SUCCEEDED if completed else
-            ac_const.LIVEACTION_STATUS_RUNNING
+            ac_const.LIVEACTION_STATUS_SUCCEEDED
+            if completed
+            else ac_const.LIVEACTION_STATUS_RUNNING
         )
 
         parent_wf_ex_db, parent_ac_ex_db = parent[0], parent[2]
@@ -218,9 +223,9 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
         end_timestamp = expiry_dt if expired else utc_now_dt
 
         # Assign metadata.
-        action_ref = 'core.local'
-        runner = 'local-shell-cmd'
-        user = 'stanley'
+        action_ref = "core.local"
+        runner = "local-shell-cmd"
+        user = "stanley"
 
         # Create the TaskExecutionDB record first since the ID needs to be
         # included in the LiveActionDB and ActionExecutionDB records.
@@ -229,7 +234,7 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
             task_id=task_id,
             task_route=0,
             status=status,
-            start_timestamp=parent_wf_ex_db.start_timestamp
+            start_timestamp=parent_wf_ex_db.start_timestamp,
         )
 
         if status in ac_const.LIVEACTION_COMPLETED_STATES:
@@ -239,18 +244,15 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
 
         # Build context for LiveActionDB and ActionExecutionDB.
         context = {
-            'user': user,
-            'orquesta': {
-                'task_id': tk_ex_db.task_id,
-                'task_name': tk_ex_db.task_id,
-                'workflow_execution_id': str(parent_wf_ex_db.id),
-                'task_execution_id': str(tk_ex_db.id),
-                'task_route': tk_ex_db.task_route
+            "user": user,
+            "orquesta": {
+                "task_id": tk_ex_db.task_id,
+                "task_name": tk_ex_db.task_id,
+                "workflow_execution_id": str(parent_wf_ex_db.id),
+                "task_execution_id": str(tk_ex_db.id),
+                "task_route": tk_ex_db.task_route,
             },
-            'parent': {
-                'user': user,
-                'execution_id': str(parent_ac_ex_db.id)
-            }
+            "parent": {"user": user, "execution_id": str(parent_ac_ex_db.id)},
         }
 
         # Create the LiveActionDB record.
@@ -262,7 +264,7 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
             context=context,
             status=status,
             start_timestamp=tk_ex_db.start_timestamp,
-            end_timestamp=tk_ex_db.end_timestamp
+            end_timestamp=tk_ex_db.end_timestamp,
         )
 
         lv_ac_db = lv_db_access.LiveAction.insert(lv_ac_db, publish=False)
@@ -271,27 +273,22 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
         ac_ex_db = ex_db_models.ActionExecutionDB(
             workflow_execution=str(parent_wf_ex_db.id),
             task_execution=str(tk_ex_db.id),
-            action={
-                'runner_type': runner,
-                'ref': action_ref
-            },
-            runner={
-                'name': runner
-            },
-            liveaction={
-                'id': str(lv_ac_db.id)
-            },
+            action={"runner_type": runner, "ref": action_ref},
+            runner={"name": runner},
+            liveaction={"id": str(lv_ac_db.id)},
             context=context,
             status=status,
             start_timestamp=tk_ex_db.start_timestamp,
-            end_timestamp=tk_ex_db.end_timestamp
+            end_timestamp=tk_ex_db.end_timestamp,
         )
 
         if log:
-            ac_ex_db.log = [{'status': 'running', 'timestamp': tk_ex_db.start_timestamp}]
+            ac_ex_db.log = [
+                {"status": "running", "timestamp": tk_ex_db.start_timestamp}
+            ]
 
         if log and status in ac_const.LIVEACTION_COMPLETED_STATES:
-            ac_ex_db.log.append({'status': status, 'timestamp': tk_ex_db.end_timestamp})
+            ac_ex_db.log.append({"status": status, "timestamp": tk_ex_db.end_timestamp})
 
         ac_ex_db = ex_db_access.ActionExecution.insert(ac_ex_db, publish=False)
 
@@ -303,18 +300,18 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
 
         # Workflow that is still running with task completed and not expired.
         wf_ex_set_2 = self.mock_workflow_records(completed=False, expired=False)
-        self.mock_task_records(wf_ex_set_2, 'task1', completed=True, expired=False)
+        self.mock_task_records(wf_ex_set_2, "task1", completed=True, expired=False)
 
         # Workflow that is still running with task running and not expired.
         wf_ex_set_3 = self.mock_workflow_records(completed=False, expired=False)
-        self.mock_task_records(wf_ex_set_3, 'task1', completed=False, expired=False)
+        self.mock_task_records(wf_ex_set_3, "task1", completed=False, expired=False)
 
         # Workflow that is completed and not expired.
         self.mock_workflow_records(completed=True, expired=False)
 
         # Workflow that is completed with task completed and not expired.
         wf_ex_set_5 = self.mock_workflow_records(completed=True, expired=False)
-        self.mock_task_records(wf_ex_set_5, 'task1', completed=True, expired=False)
+        self.mock_task_records(wf_ex_set_5, "task1", completed=True, expired=False)
 
         orphaned_ac_ex_dbs = wf_svc.identify_orphaned_workflows()
         self.assertEqual(len(orphaned_ac_ex_dbs), 0)
@@ -339,33 +336,33 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
     def test_identify_orphans_with_task_executions(self):
         # Workflow that is still running with task completed and expired.
         wf_ex_set_1 = self.mock_workflow_records(completed=False, expired=True)
-        self.mock_task_records(wf_ex_set_1, 'task1', completed=True, expired=True)
+        self.mock_task_records(wf_ex_set_1, "task1", completed=True, expired=True)
 
         # Workflow that is still running with task completed and not expired.
         wf_ex_set_2 = self.mock_workflow_records(completed=False, expired=False)
-        self.mock_task_records(wf_ex_set_2, 'task1', completed=True, expired=False)
+        self.mock_task_records(wf_ex_set_2, "task1", completed=True, expired=False)
 
         # Workflow that is still running with task running and not expired.
         wf_ex_set_3 = self.mock_workflow_records(completed=False, expired=False)
-        self.mock_task_records(wf_ex_set_3, 'task1', completed=False, expired=False)
+        self.mock_task_records(wf_ex_set_3, "task1", completed=False, expired=False)
 
         # Workflow that is still running with multiple tasks and not expired.
         # One of the task completed passed expiry date but another task is still running.
         wf_ex_set_4 = self.mock_workflow_records(completed=False, expired=False)
-        self.mock_task_records(wf_ex_set_4, 'task1', completed=True, expired=True)
-        self.mock_task_records(wf_ex_set_4, 'task2', completed=False, expired=False)
+        self.mock_task_records(wf_ex_set_4, "task1", completed=True, expired=True)
+        self.mock_task_records(wf_ex_set_4, "task2", completed=False, expired=False)
 
         # Workflow that is still running with multiple tasks and not expired.
         # Both of the tasks are completed with one completed only recently.
         wf_ex_set_5 = self.mock_workflow_records(completed=False, expired=False)
-        self.mock_task_records(wf_ex_set_5, 'task1', completed=True, expired=True)
-        self.mock_task_records(wf_ex_set_5, 'task2', completed=True, expired=False)
+        self.mock_task_records(wf_ex_set_5, "task1", completed=True, expired=True)
+        self.mock_task_records(wf_ex_set_5, "task2", completed=True, expired=False)
 
         # Workflow that is still running with multiple tasks and not expired.
         # One of the task completed recently and another task is still running.
         wf_ex_set_6 = self.mock_workflow_records(completed=False, expired=False)
-        self.mock_task_records(wf_ex_set_6, 'task1', completed=True, expired=False)
-        self.mock_task_records(wf_ex_set_6, 'task2', completed=False, expired=False)
+        self.mock_task_records(wf_ex_set_6, "task1", completed=True, expired=False)
+        self.mock_task_records(wf_ex_set_6, "task2", completed=False, expired=False)
 
         orphaned_ac_ex_dbs = wf_svc.identify_orphaned_workflows()
         self.assertEqual(len(orphaned_ac_ex_dbs), 1)
@@ -373,8 +370,10 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
 
     def test_action_execution_with_missing_log_entries(self):
         # Workflow that is still running and expired. However the state change logs are missing.
-        wf_ex_set_1 = self.mock_workflow_records(completed=False, expired=True, log=False)
-        self.mock_task_records(wf_ex_set_1, 'task1', completed=True, expired=True)
+        wf_ex_set_1 = self.mock_workflow_records(
+            completed=False, expired=True, log=False
+        )
+        self.mock_task_records(wf_ex_set_1, "task1", completed=True, expired=True)
 
         orphaned_ac_ex_dbs = wf_svc.identify_orphaned_workflows()
         self.assertEqual(len(orphaned_ac_ex_dbs), 0)
@@ -385,7 +384,7 @@ class WorkflowServiceIdentifyOrphansTest(st2tests.WorkflowTestCase):
 
         # Workflow that is still running with task completed and expired.
         wf_ex_set_2 = self.mock_workflow_records(completed=False, expired=True)
-        self.mock_task_records(wf_ex_set_2, 'task1', completed=True, expired=True)
+        self.mock_task_records(wf_ex_set_2, "task1", completed=True, expired=True)
 
         # Ensure these workflows are identified as orphans.
         orphaned_ac_ex_dbs = wf_svc.identify_orphaned_workflows()

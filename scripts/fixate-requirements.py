@@ -43,18 +43,18 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     text_type = str
 else:
-    text_type = unicode     # noqa  # pylint: disable=E0602
+    text_type = unicode  # noqa  # pylint: disable=E0602
 
 OSCWD = os.path.abspath(os.curdir)
-GET_PIP = '    curl https://bootstrap.pypa.io/get-pip.py | python'
+GET_PIP = "    curl https://bootstrap.pypa.io/get-pip.py | python"
 
 try:
     import pip
     from pip import __version__ as pip_version
 except ImportError as e:
-    print('Failed to import pip: %s' % (text_type(e)))
-    print('')
-    print('Download pip:\n%s' % (GET_PIP))
+    print("Failed to import pip: %s" % (text_type(e)))
+    print("")
+    print("Download pip:\n%s" % (GET_PIP))
     sys.exit(1)
 
 try:
@@ -66,8 +66,8 @@ except ImportError:
     try:
         from pip._internal.req.req_file import parse_requirements
     except ImportError as e:
-        print('Failed to import parse_requirements from pip: %s' % (text_type(e)))
-        print('Using pip: %s' % (str(pip_version)))
+        print("Failed to import parse_requirements from pip: %s" % (text_type(e)))
+        print("Using pip: %s" % (str(pip_version)))
         sys.exit(1)
 
 try:
@@ -78,18 +78,37 @@ except ImportError:
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Tool for requirements.txt generation.')
-    parser.add_argument('-s', '--source-requirements', nargs='+',
-                        required=True,
-                        help='Specify paths to requirements file(s). '
-                        'In case several requirements files are given their content is merged.')
-    parser.add_argument('-f', '--fixed-requirements', required=True,
-                        help='Specify path to fixed-requirements.txt file.')
-    parser.add_argument('-o', '--output-file', default='requirements.txt',
-                        help='Specify path to the resulting requirements file.')
-    parser.add_argument('--skip', default=None,
-                        help=('Comma delimited list of requirements to not '
-                              'include in the generated file.'))
+    parser = argparse.ArgumentParser(
+        description="Tool for requirements.txt generation."
+    )
+    parser.add_argument(
+        "-s",
+        "--source-requirements",
+        nargs="+",
+        required=True,
+        help="Specify paths to requirements file(s). "
+        "In case several requirements files are given their content is merged.",
+    )
+    parser.add_argument(
+        "-f",
+        "--fixed-requirements",
+        required=True,
+        help="Specify path to fixed-requirements.txt file.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output-file",
+        default="requirements.txt",
+        help="Specify path to the resulting requirements file.",
+    )
+    parser.add_argument(
+        "--skip",
+        default=None,
+        help=(
+            "Comma delimited list of requirements to not "
+            "include in the generated file."
+        ),
+    )
     if len(sys.argv) < 2:
         parser.print_help()
         sys.exit(1)
@@ -97,9 +116,11 @@ def parse_args():
 
 
 def check_pip_version():
-    if StrictVersion(pip.__version__) < StrictVersion('6.1.0'):
-        print("Upgrade pip, your version `{0}' "
-              "is outdated:\n".format(pip.__version__), GET_PIP)
+    if StrictVersion(pip.__version__) < StrictVersion("6.1.0"):
+        print(
+            "Upgrade pip, your version `{0}' " "is outdated:\n".format(pip.__version__),
+            GET_PIP,
+        )
         sys.exit(1)
 
 
@@ -155,8 +176,9 @@ def merge_source_requirements(sources):
     return merged_requirements
 
 
-def write_requirements(sources=None, fixed_requirements=None, output_file=None,
-                       skip=None):
+def write_requirements(
+    sources=None, fixed_requirements=None, output_file=None, skip=None
+):
     """
     Write resulting requirements taking versions from the fixed_requirements.
     """
@@ -181,7 +203,9 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
                 continue
 
         if project_name in fixedreq_hash:
-            raise ValueError('Duplicate definition for dependency "%s"' % (project_name))
+            raise ValueError(
+                'Duplicate definition for dependency "%s"' % (project_name)
+            )
 
         fixedreq_hash[project_name] = req
 
@@ -205,7 +229,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
 
             if (hasattr(req, "is_editable") and req.is_editable) or \
                (hasattr(req, "editable") and req.editable):
-                rline = '-e %s' % (rline)
+                rline = "-e %s" % (rline)
         elif hasattr(req, "requirement") and req.requirement:
             project = parsedreq.requirement.name
             req_obj = fixedreq_hash.get(project, req)
@@ -227,30 +251,40 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
 
     # Sort the lines to guarantee a stable order
     lines_to_write = sorted(lines_to_write)
-    data = '\n'.join(lines_to_write) + '\n'
-    with open(output_file, 'w') as fp:
-        fp.write('# Don\'t edit this file. It\'s generated automatically!\n')
-        fp.write('# If you want to update global dependencies, modify fixed-requirements.txt\n')
-        fp.write('# and then run \'make requirements\' to update requirements.txt for all\n')
-        fp.write('# components.\n')
-        fp.write('# If you want to update depdencies for a single component, modify the\n')
-        fp.write('# in-requirements.txt for that component and then run \'make requirements\' to\n')
-        fp.write('# update the component requirements.txt\n')
+    data = "\n".join(lines_to_write) + "\n"
+    with open(output_file, "w") as fp:
+        fp.write("# Don't edit this file. It's generated automatically!\n")
+        fp.write(
+            "# If you want to update global dependencies, modify fixed-requirements.txt\n"
+        )
+        fp.write(
+            "# and then run 'make requirements' to update requirements.txt for all\n"
+        )
+        fp.write("# components.\n")
+        fp.write(
+            "# If you want to update depdencies for a single component, modify the\n"
+        )
+        fp.write(
+            "# in-requirements.txt for that component and then run 'make requirements' to\n"
+        )
+        fp.write("# update the component requirements.txt\n")
         fp.write(data)
 
-    print('Requirements written to: {0}'.format(output_file))
+    print("Requirements written to: {0}".format(output_file))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     check_pip_version()
     args = parse_args()
 
-    if args['skip']:
-        skip = args['skip'].split(',')
+    if args["skip"]:
+        skip = args["skip"].split(",")
     else:
         skip = None
 
-    write_requirements(sources=args['source_requirements'],
-                       fixed_requirements=args['fixed_requirements'],
-                       output_file=args['output_file'],
-                       skip=skip)
+    write_requirements(
+        sources=args["source_requirements"],
+        fixed_requirements=args["fixed_requirements"],
+        output_file=args["output_file"],
+        skip=skip,
+    )

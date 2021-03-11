@@ -25,12 +25,7 @@ import semver
 
 from st2common import __version__ as stackstorm_version
 
-__all__ = [
-    'get_stackstorm_version',
-    'get_python_version',
-
-    'complex_semver_match'
-]
+__all__ = ["get_stackstorm_version", "get_python_version", "complex_semver_match"]
 
 
 def get_stackstorm_version():
@@ -38,8 +33,8 @@ def get_stackstorm_version():
     Return a valid semver version string for the currently running StackStorm version.
     """
     # Special handling for dev versions which are not valid semver identifiers
-    if 'dev' in stackstorm_version and stackstorm_version.count('.') == 1:
-        version = stackstorm_version.replace('dev', '.0')
+    if "dev" in stackstorm_version and stackstorm_version.count(".") == 1:
+        version = stackstorm_version.replace("dev", ".0")
         return version
 
     return stackstorm_version
@@ -50,7 +45,7 @@ def get_python_version():
     Return Python version used by this installation.
     """
     version_info = sys.version_info
-    return '%s.%s.%s' % (version_info.major, version_info.minor, version_info.micro)
+    return "%s.%s.%s" % (version_info.major, version_info.minor, version_info.micro)
 
 
 def complex_semver_match(version, version_specifier):
@@ -63,10 +58,10 @@ def complex_semver_match(version, version_specifier):
 
     :rtype: ``bool``
     """
-    if version_specifier == 'all':
+    if version_specifier == "all":
         return True
 
-    split_version_specifier = version_specifier.split(',')
+    split_version_specifier = version_specifier.split(",")
 
     if len(split_version_specifier) == 1:
         # No comma, we can do a simple comparision
