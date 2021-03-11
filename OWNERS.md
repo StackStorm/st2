@@ -33,6 +33,8 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, StackStorm Exchange, Documentation.
 * JP Bourget ([@punkrokk](https://github.com/punkrokk)) <<jp.bourget@gmail.com>>
   - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCI.
+* Marcel Weinberg ([@winem](https://github.com/winem)), _CoreMedia_ <<mweinberg-os@email.de>>
+  - Systems, Core, CI/CD, Docker, Community.
 * Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)) <<mick@bitovi.com>>
   - Systems, ST2 Exchange. [Case Study](https://stackstorm.com/case-study-bitovi/).
 * Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
@@ -48,6 +50,7 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
+* Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ - StackStorm Exchange, ChatOps, Core, Discussions.
 * Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
 * Marcel Weinberg ([@winem](https://github.com/winem)) - Community, Docker, Core.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
