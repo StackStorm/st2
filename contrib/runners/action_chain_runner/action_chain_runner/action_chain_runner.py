@@ -955,11 +955,11 @@ class ActionChainRunner(ActionRunner):
         """
         if not isinstance(created_at, datetime.datetime):
             raise TypeError(
-                f"The created_at is not a datetime object" f" was({type(created_at)})."
+                f"The created_at is not a datetime object was({type(created_at)})."
             )
         if not isinstance(updated_at, datetime.datetime):
             raise TypeError(
-                f"The updated_at is not a datetime object" f" was({type(updated_at)})."
+                f"The updated_at is not a datetime object was({type(updated_at)})."
             )
 
         result = {}

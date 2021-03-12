@@ -177,7 +177,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             context = try_loads(context_string)
             if not isinstance(context, dict):
                 raise ValueError(
-                    f"Unable to convert st2-context from the headers into JSON"
+                    "Unable to convert st2-context from the headers into JSON"
                     f" (was {type(context)})."
                 )
             liveaction.context.update(context)
@@ -448,7 +448,7 @@ class ActionExecutionReRunController(
             if self.tasks:
                 if not isinstance(self.tasks, list):
                     raise TypeError(
-                        f"The tasks needs to be a list" f" (was {type(self.tasks)})."
+                        f"The tasks needs to be a list (was {type(self.tasks)})."
                     )
 
             if self.reset:

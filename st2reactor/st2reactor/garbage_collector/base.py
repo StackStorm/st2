@@ -234,7 +234,7 @@ class GarbageCollectorService(object):
         if timestamp >= utc_now:
             raise ValueError(
                 f"Calculated timestamp ({timestamp}) is"
-                f"later than now in UTC ({utc_now})."
+                f" later than now in UTC ({utc_now})."
             )
 
         try:
@@ -266,7 +266,7 @@ class GarbageCollectorService(object):
         if timestamp >= utc_now:
             raise ValueError(
                 f"Calculated timestamp ({timestamp}) is"
-                f"later than now in UTC ({utc_now})."
+                f" later than now in UTC ({utc_now})."
             )
 
         try:
@@ -297,7 +297,7 @@ class GarbageCollectorService(object):
         if timestamp >= utc_now:
             raise ValueError(
                 f"Calculated timestamp ({timestamp}) is"
-                f"later than now in UTC ({utc_now})."
+                f" later than now in UTC ({utc_now})."
             )
 
         try:

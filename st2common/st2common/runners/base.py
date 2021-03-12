@@ -395,7 +395,7 @@ class GitWorktreeActionRunner(ActionRunner):
         # Safety check to make sure we don't remove something outside /tmp
         if not worktree_path.startswith("/tmp"):
             raise ValueError(
-                f"The worktree path is not within /tmp" f" (was {type(worktree_path)})."
+                f"The worktree path is not within /tmp (was {type(worktree_path)})."
             )
         if not worktree_path.startswith("/tmp/%s" % (self.WORKTREE_DIRECTORY_PREFIX)):
             raise ValueError(
