@@ -163,6 +163,7 @@ class GarbageCollectorService(object):
         # Note: We sleep for a bit between garbage collection of each object type to prevent busy
         # waiting
         obj_type = "action executions"
+
         if (
             self._action_executions_ttl
             and self._action_executions_ttl >= MINIMUM_TTL_DAYS
@@ -174,6 +175,7 @@ class GarbageCollectorService(object):
             LOG.debug(skip_message, obj_type)
 
         obj_type = "action executions output"
+
         if (
             self._action_executions_output_ttl
             and self._action_executions_output_ttl >= MINIMUM_TTL_DAYS_EXECUTION_OUTPUT
@@ -185,6 +187,7 @@ class GarbageCollectorService(object):
             LOG.debug(skip_message, obj_type)
 
         obj_type = "trigger instances"
+
         if (
             self._trigger_instances_ttl
             and self._trigger_instances_ttl >= MINIMUM_TTL_DAYS
@@ -228,7 +231,11 @@ class GarbageCollectorService(object):
         timestamp_str = isotime.format(dt=timestamp)
         LOG.info("Deleting action executions older than: %s" % (timestamp_str))
 
-        assert timestamp < utc_now
+        if timestamp >= utc_now:
+            raise ValueError(
+                f"Calculated timestamp ({timestamp}) is"
+                f" later than now in UTC ({utc_now})."
+            )
 
         try:
             purge_executions(logger=LOG, timestamp=timestamp)
@@ -256,7 +263,11 @@ class GarbageCollectorService(object):
             "Deleting action executions output objects older than: %s" % (timestamp_str)
         )
 
-        assert timestamp < utc_now
+        if timestamp >= utc_now:
+            raise ValueError(
+                f"Calculated timestamp ({timestamp}) is"
+                f" later than now in UTC ({utc_now})."
+            )
 
         try:
             purge_execution_output_objects(logger=LOG, timestamp=timestamp)
@@ -283,7 +294,11 @@ class GarbageCollectorService(object):
         timestamp_str = isotime.format(dt=timestamp)
         LOG.info("Deleting trigger instances older than: %s" % (timestamp_str))
 
-        assert timestamp < utc_now
+        if timestamp >= utc_now:
+            raise ValueError(
+                f"Calculated timestamp ({timestamp}) is"
+                f" later than now in UTC ({utc_now})."
+            )
 
         try:
             purge_trigger_instances(logger=LOG, timestamp=timestamp)

@@ -731,7 +731,9 @@ class WorkflowManager(object):
         url = "/inspect"
 
         if not isinstance(definition, six.string_types):
-            raise TypeError("Workflow definition is not type of string.")
+            raise TypeError(
+                f"Workflow definition is not type of string (was {type(definition)})."
+            )
 
         if "headers" not in kwargs:
             kwargs["headers"] = {}
