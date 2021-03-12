@@ -1,8 +1,12 @@
 Changelog
 =========
 
-in development
+In development
 --------------
+
+
+3.4.1 - March 12, 2021
+----------------------
 
 
 * Service start up code has been updated to log a warning if a non-utf-8 encoding / locale is
