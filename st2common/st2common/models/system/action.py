@@ -48,8 +48,8 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 # Flags which are passed to every sudo invocation
 SUDO_COMMON_OPTIONS = [
-    "-E"
-]  # we want to preserve the environment of the user which ran sudo
+    "-E"  # we want to preserve the environment of the user which ran sudo
+]
 
 # Flags which are only passed to sudo when not running as current user and when
 # -u flag is used
@@ -190,7 +190,11 @@ class ShellCommandAction(object):
 
         :rtype: ``str``
         """
-        assert isinstance(args, (list, tuple))
+        if not isinstance(args, (list, tuple)):
+            raise TypeError(
+                "The args has a value that is not a list or a tuple"
+                f" (was {type(args)})."
+            )
 
         args = [quote_unix(arg) for arg in args]
         args = " ".join(args)
