@@ -7,7 +7,8 @@ in development
 Added
 ~~~~~~~
 
-* Added support for limit and offset in list_values method (#5097 and #5171.)
+* Added support for ``limit`` and ``offset`` argument to the ``list_values`` data store
+  service method (#5097 and #5171).
 
   Contributed by @anirudhbagri.
 
