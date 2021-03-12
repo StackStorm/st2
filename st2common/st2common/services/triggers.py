@@ -91,8 +91,8 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
         return trigger_db
     except StackStormDBObjectNotFoundError as e:
         LOG.debug(
-            'Database lookup for type="%s" parameters="%s" resulted ' +
-            "in exception : %s.",
+            'Database lookup for type="%s" parameters="%s" resulted '
+            + "in exception : %s.",
             type,
             parameters,
             e,
@@ -533,8 +533,10 @@ def _create_trigger(trigger_type):
     :param trigger_type: TriggerType db object.
     :type trigger_type: :class:`TriggerTypeDB`
     """
-    if (hasattr(trigger_type, "parameters_schema") and not
-            trigger_type["parameters_schema"]):
+    if (
+        hasattr(trigger_type, "parameters_schema")
+        and not trigger_type["parameters_schema"]
+    ):
         trigger_dict = {
             "name": trigger_type.name,
             "pack": trigger_type.pack,

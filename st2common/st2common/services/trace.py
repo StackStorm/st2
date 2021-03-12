@@ -386,8 +386,10 @@ def get_trace_component_for_trigger_instance(trigger_instance_db):
     caused_by = {}
     # Special handling for ACTION_SENSOR_TRIGGER and NOTIFY_TRIGGER where we
     # know how to maintain the links.
-    if (trigger_instance_db.trigger == ACTION_SENSOR_TRIGGER_REF or
-            trigger_instance_db.trigger == NOTIFY_TRIGGER_REF):
+    if (
+        trigger_instance_db.trigger == ACTION_SENSOR_TRIGGER_REF
+        or trigger_instance_db.trigger == NOTIFY_TRIGGER_REF
+    ):
         caused_by["type"] = "action_execution"
         # For both action trigger and notidy trigger execution_id is stored in the payload.
         caused_by["id"] = trigger_instance_db.payload["execution_id"]

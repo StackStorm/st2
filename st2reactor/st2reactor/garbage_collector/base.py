@@ -124,22 +124,28 @@ class GarbageCollectorService(object):
         """
         Validate that a user has supplied reasonable TTL values.
         """
-        if (self._action_executions_ttl and
-                self._action_executions_ttl < MINIMUM_TTL_DAYS):
+        if (
+            self._action_executions_ttl
+            and self._action_executions_ttl < MINIMUM_TTL_DAYS
+        ):
             raise ValueError(
                 "Minimum possible TTL for action_executions_ttl in days is %s"
                 % (MINIMUM_TTL_DAYS)
             )
 
-        if (self._trigger_instances_ttl and
-                self._trigger_instances_ttl < MINIMUM_TTL_DAYS):
+        if (
+            self._trigger_instances_ttl
+            and self._trigger_instances_ttl < MINIMUM_TTL_DAYS
+        ):
             raise ValueError(
                 "Minimum possible TTL for trigger_instances_ttl in days is %s"
                 % (MINIMUM_TTL_DAYS)
             )
 
-        if (self._action_executions_output_ttl and
-                self._action_executions_output_ttl < MINIMUM_TTL_DAYS_EXECUTION_OUTPUT):
+        if (
+            self._action_executions_output_ttl
+            and self._action_executions_output_ttl < MINIMUM_TTL_DAYS_EXECUTION_OUTPUT
+        ):
             raise ValueError(
                 (
                     "Minimum possible TTL for action_executions_output_ttl in days "
@@ -158,8 +164,10 @@ class GarbageCollectorService(object):
         # waiting
         obj_type = "action executions"
 
-        if (self._action_executions_ttl and
-                self._action_executions_ttl >= MINIMUM_TTL_DAYS):
+        if (
+            self._action_executions_ttl
+            and self._action_executions_ttl >= MINIMUM_TTL_DAYS
+        ):
             LOG.info(proc_message, obj_type)
             self._purge_action_executions()
             concurrency.sleep(self._sleep_delay)
@@ -168,8 +176,10 @@ class GarbageCollectorService(object):
 
         obj_type = "action executions output"
 
-        if (self._action_executions_output_ttl and
-                self._action_executions_output_ttl >= MINIMUM_TTL_DAYS_EXECUTION_OUTPUT):
+        if (
+            self._action_executions_output_ttl
+            and self._action_executions_output_ttl >= MINIMUM_TTL_DAYS_EXECUTION_OUTPUT
+        ):
             LOG.info(proc_message, obj_type)
             self._purge_action_executions_output()
             concurrency.sleep(self._sleep_delay)
@@ -178,8 +188,10 @@ class GarbageCollectorService(object):
 
         obj_type = "trigger instances"
 
-        if (self._trigger_instances_ttl and
-                self._trigger_instances_ttl >= MINIMUM_TTL_DAYS):
+        if (
+            self._trigger_instances_ttl
+            and self._trigger_instances_ttl >= MINIMUM_TTL_DAYS
+        ):
             LOG.info(proc_message, obj_type)
             self._purge_trigger_instances()
             concurrency.sleep(self._sleep_delay)

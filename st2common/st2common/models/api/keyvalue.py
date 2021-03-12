@@ -95,8 +95,8 @@ class KeyValuePairAPI(BaseAPI):
                 )
                 LOG.exception(msg)
                 LOG.info(
-                    "All API requests will now send out BAD_REQUEST " +
-                    "if you ask to store secrets in key value store."
+                    "All API requests will now send out BAD_REQUEST "
+                    + "if you ask to store secrets in key value store."
                 )
                 KeyValuePairAPI.crypto_key = None
             else:

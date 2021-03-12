@@ -328,8 +328,10 @@ class ActionChainRunner(ActionRunner):
         for child_exec_id in self.execution.children:
             child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
 
-            if (child_exec.runner["name"] in action_constants.WORKFLOW_RUNNER_TYPES and
-                    child_exec.status in action_constants.LIVEACTION_CANCELABLE_STATES):
+            if (
+                child_exec.runner["name"] in action_constants.WORKFLOW_RUNNER_TYPES
+                and child_exec.status in action_constants.LIVEACTION_CANCELABLE_STATES
+            ):
                 action_service.request_cancellation(
                     LiveAction.get(id=child_exec.liveaction["id"]),
                     self.context.get("user", None),
@@ -346,8 +348,10 @@ class ActionChainRunner(ActionRunner):
         for child_exec_id in self.execution.children:
             child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
 
-            if (child_exec.runner["name"] in action_constants.WORKFLOW_RUNNER_TYPES and
-                    child_exec.status == action_constants.LIVEACTION_STATUS_RUNNING):
+            if (
+                child_exec.runner["name"] in action_constants.WORKFLOW_RUNNER_TYPES
+                and child_exec.status == action_constants.LIVEACTION_STATUS_RUNNING
+            ):
                 action_service.request_pause(
                     LiveAction.get(id=child_exec.liveaction["id"]),
                     self.context.get("user", None),
@@ -423,9 +427,11 @@ class ActionChainRunner(ActionRunner):
             self.chain_holder.restore_vars(ctx_vars)
 
             # Restore result if any from the liveaction.
-            if (self.liveaction and
-                    hasattr(self.liveaction, "result") and
-                    self.liveaction.result):
+            if (
+                self.liveaction
+                and hasattr(self.liveaction, "result")
+                and self.liveaction.result
+            ):
 
                 result = self.liveaction.result
 
@@ -516,8 +522,10 @@ class ActionChainRunner(ActionRunner):
 
             try:
                 # If last task was paused, then fetch the liveaction and resume it first.
-                if (last_task and
-                        last_task["state"] == action_constants.LIVEACTION_STATUS_PAUSED):
+                if (
+                    last_task
+                    and last_task["state"] == action_constants.LIVEACTION_STATUS_PAUSED
+                ):
                     liveaction = action_db_util.get_liveaction_by_id(
                         last_task["liveaction_id"]
                     )
@@ -561,8 +569,10 @@ class ActionChainRunner(ActionRunner):
 
             try:
                 # If last task was paused, then fetch the liveaction and resume it first.
-                if (last_task and
-                        last_task["state"] == action_constants.LIVEACTION_STATUS_PAUSED):
+                if (
+                    last_task
+                    and last_task["state"] == action_constants.LIVEACTION_STATUS_PAUSED
+                ):
                     LOG.info(
                         "Resume task %s for chain %s.",
                         action_node.name,
@@ -616,8 +626,10 @@ class ActionChainRunner(ActionRunner):
                             action_node.name, condition="on-failure"
                         )
 
-                    elif (liveaction.status ==
-                            action_constants.LIVEACTION_STATUS_TIMED_OUT):
+                    elif (
+                        liveaction.status
+                        == action_constants.LIVEACTION_STATUS_TIMED_OUT
+                    ):
                         chain_status = action_constants.LIVEACTION_STATUS_TIMED_OUT
                         action_node = self.chain_holder.get_next_node(
                             action_node.name, condition="on-failure"
@@ -658,8 +670,10 @@ class ActionChainRunner(ActionRunner):
                             action_node.name, condition="on-failure"
                         )
 
-                    elif (liveaction.status ==
-                            action_constants.LIVEACTION_STATUS_SUCCEEDED):
+                    elif (
+                        liveaction.status
+                        == action_constants.LIVEACTION_STATUS_SUCCEEDED
+                    ):
                         chain_status = action_constants.LIVEACTION_STATUS_SUCCEEDED
                         action_node = self.chain_holder.get_next_node(
                             action_node.name, condition="on-success"
@@ -859,8 +873,8 @@ class ActionChainRunner(ActionRunner):
             raise e
 
         while wait_for_completion and liveaction.status not in (
-            action_constants.LIVEACTION_COMPLETED_STATES +
-            [
+            action_constants.LIVEACTION_COMPLETED_STATES
+            + [
                 action_constants.LIVEACTION_STATUS_PAUSED,
                 action_constants.LIVEACTION_STATUS_PENDING,
             ]
@@ -884,8 +898,8 @@ class ActionChainRunner(ActionRunner):
             raise e
 
         while wait_for_completion and liveaction.status not in (
-            action_constants.LIVEACTION_COMPLETED_STATES +
-            [action_constants.LIVEACTION_STATUS_PAUSED]
+            action_constants.LIVEACTION_COMPLETED_STATES
+            + [action_constants.LIVEACTION_STATUS_PAUSED]
         ):
             eventlet.sleep(sleep_delay)
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
