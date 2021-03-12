@@ -441,8 +441,7 @@ class ActionExecutionReRunController(
             if self.parameters:
                 if not isinstance(self.parameters, dict):
                     raise TypeError(
-                        "The parameters needs to be a dictionary"
-                        f" (was {type(self.parameters)})."
+                        f"The parameters needs to be a dictionary (was {type(self.parameters)})."
                     )
 
             if self.tasks:
@@ -482,8 +481,7 @@ class ActionExecutionReRunController(
         if spec_api.parameters:
             if not isinstance(spec_api.parameters, dict):
                 raise TypeError(
-                    f"The parameters needs to be a dictionary"
-                    f" (was {type(spec_api.parameters)})."
+                    f"The parameters needs to be a dictionary (was {type(spec_api.parameters)})."
                 )
 
         if spec_api.tasks:

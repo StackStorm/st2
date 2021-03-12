@@ -62,13 +62,11 @@ class AnnouncementDispatcher(object):
         """
         if not isinstance(payload, (type(None), dict)):
             raise TypeError(
-                "The payload has a value that is not a dictionary"
-                f" (was {type(payload)})."
+                f"The payload has a value that is not a dictionary (was {type(payload)})."
             )
         if not isinstance(trace_context, (type(None), dict, TraceContext)):
             raise TypeError(
-                "The trace context has a value that is not a"
-                " NoneType or dict or TraceContext"
+                "The trace context has a value that is not a NoneType or dict or TraceContext"
                 f" (was {type(trace_context)})."
             )
 
