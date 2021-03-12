@@ -180,6 +180,7 @@ class ResourceManager(object):
         pack = kwargs.pop("pack", None)
         prefix = kwargs.pop("prefix", None)
         user = kwargs.pop("user", None)
+        offset = kwargs.pop("offset", 0)
 
         params = kwargs.pop("params", {})
 
@@ -194,6 +195,9 @@ class ResourceManager(object):
 
         if user:
             params["user"] = user
+
+        if offset:
+            params["offset"] = offset
 
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != http_client.OK:
@@ -360,8 +364,11 @@ class ResourceManager(object):
             resp_json = response.json()
             if resp_json:
                 return resp_json
-        except:
-            pass
+        except Exception as e:
+            print(
+                "\nUnable to retrieve detailed message "
+                "from the HTTP response. %s\n" % six.text_type(e)
+            )
         return True
 
 
@@ -724,7 +731,9 @@ class WorkflowManager(object):
         url = "/inspect"
 
         if not isinstance(definition, six.string_types):
-            raise TypeError("Workflow definition is not type of string.")
+            raise TypeError(
+                f"Workflow definition is not type of string (was {type(definition)})."
+            )
 
         if "headers" not in kwargs:
             kwargs["headers"] = {}

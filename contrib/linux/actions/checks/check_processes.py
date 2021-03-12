@@ -19,6 +19,10 @@ import os
 import sys
 import re
 import json
+import logging
+
+
+LOG = logging.getLogger(__name__)
 
 
 class CheckProcs(object):
@@ -55,7 +59,8 @@ class CheckProcs(object):
                 cmdfh = open(self.procDir + "/" + p + "/cmdline")
                 cmd = cmdfh.readline()
                 pInfo[1] = cmd
-            except:
+            except Exception:
+                LOG.exception("Error: can't find file or read data.")
                 continue
             finally:
                 cmdfh.close()
