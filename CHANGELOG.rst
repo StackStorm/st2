@@ -21,7 +21,7 @@ Changed
 * Default nginx config (``conf/nginx/st2.conf``) which is used by the installer and Docker
   images has been updated to only support TLS v1.2 (support for TLS v1.0 and v1.1 has been
   removed). #5183
-  
+
   Contributed by @Kami and @shital.
 
 * Added web header settings for additional security hardening to nginx.conf: X-Frame-Options,
