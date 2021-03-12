@@ -22,10 +22,13 @@ Changed
   images has been updated to only support TLS v1.2 (support for TLS v1.0 and v1.1 has been
   removed).
 
+* Added web header settings for possible security issues, X-Frame-Options,
+  Strict-Transport-Security, X-XSS-Protection and server-tokens.
+
   If someone still needs to support those versions, they can modify the nginx config
   accordingly. #5183
 
-  Contributed by @Kami and @ashwini.
+  Contributed by @Kami and @shital.
 
 3.4.0 - March 02, 2021
 ----------------------
