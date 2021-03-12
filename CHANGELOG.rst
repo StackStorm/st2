@@ -5,6 +5,15 @@ in development
 --------------
 
 
+* Service start up code has been updated to log a warning if a non-utf-8 encoding / locale is
+  detected.
+
+  Using non-utf-8 locale while working with unicode data will result in various issues so users
+  are strongly recommended to ensure encoding for all the StackStorm service is
+  set to ``utf-8``. (#5182)
+
+  Contributed by @Kami.
+
 3.4.0 - March 02, 2021
 ----------------------
 

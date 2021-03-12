@@ -58,6 +58,38 @@ CMD = [PYTHON_BINARY, ST2API_BINARY, '--config-file']
 
 
 class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
+    def test_system_info_is_logged_on_startup(self):
+        # Verify INFO level service start up messages
+        process = self._start_process(config_path=ST2_CONFIG_INFO_LL_PATH)
+        self.add_process(process=process)
+
+        # Give it some time to start up
+        eventlet.sleep(3)
+        process.send_signal(signal.SIGKILL)
+
+        # Verify first 4 environment related log messages
+        stdout = process.stdout.read().decode("utf-8")
+        self.assertIn("INFO [-] Using Python:", stdout)
+        self.assertIn("INFO [-] Using fs encoding:", stdout)
+        self.assertIn("INFO [-] Using config files:", stdout)
+        self.assertIn("INFO [-] Using logging config:", stdout)
+
+    def test_warning_is_emitted_on_non_utf8_encoding(self):
+        env = os.environ.copy()
+        env["LC_ALL"] = "invalid"
+        process = self._start_process(config_path=ST2_CONFIG_INFO_LL_PATH, env=env)
+        self.add_process(process=process)
+
+        # Give it some time to start up
+        eventlet.sleep(3)
+        process.send_signal(signal.SIGKILL)
+
+        # Verify first 4 environment related log messages
+        stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n"))
+        self.assertIn("WARNING [-] Detected a non utf-8 locale / encoding", stdout)
+        self.assertIn("fs encoding: ascii", stdout)
+        self.assertIn("unknown locale: invalid", stdout)
+
     def test_audit_log_level_is_filtered_if_log_level_is_not_debug_or_audit(self):
         # 1. INFO log level - audit messages should not be included
         process = self._start_process(config_path=ST2_CONFIG_INFO_LL_PATH)
@@ -67,8 +99,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         eventlet.sleep(3)
         process.send_signal(signal.SIGKILL)
 
-        # First 3 log lines are debug messages about the environment which are always logged
-        stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
+        # First 4 log lines are debug messages about the environment which are always logged
+        stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[4:])
 
         self.assertIn('INFO [-]', stdout)
         self.assertNotIn('DEBUG [-]', stdout)
@@ -82,8 +114,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         eventlet.sleep(5)
         process.send_signal(signal.SIGKILL)
 
-        # First 3 log lines are debug messages about the environment which are always logged
-        stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
+        # First 4 log lines are debug messages about the environment which are always logged
+        stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[4:])
 
         self.assertIn('INFO [-]', stdout)
         self.assertIn('DEBUG [-]', stdout)
@@ -97,12 +129,12 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         eventlet.sleep(5)
         process.send_signal(signal.SIGKILL)
 
-        # First 3 log lines are debug messages about the environment which are always logged
-        stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
+        # First 4 log lines are debug messages about the environment which are always logged
+        stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[4:])
 
-        self.assertNotIn('INFO [-]', stdout)
-        self.assertNotIn('DEBUG [-]', stdout)
-        self.assertIn('AUDIT [-]', stdout)
+        self.assertIn("INFO [-]", stdout)
+        self.assertNotIn("DEBUG [-]", stdout)
+        self.assertIn("AUDIT [-]", stdout)
 
         # 2. INFO log level but system.debug set to True
         process = self._start_process(config_path=ST2_CONFIG_SYSTEM_DEBUG_PATH)
@@ -112,8 +144,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         eventlet.sleep(5)
         process.send_signal(signal.SIGKILL)
 
-        # First 3 log lines are debug messages about the environment which are always logged
-        stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n')[3:])
+        # First 4 log lines are debug messages about the environment which are always logged
+        stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[4:])
 
         self.assertIn('INFO [-]', stdout)
         self.assertIn('DEBUG [-]', stdout)
@@ -142,11 +174,17 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         stdout = '\n'.join(process.stdout.read().decode('utf-8').split('\n'))
         self.assertNotIn('heartbeat_tick', stdout)
 
-    def _start_process(self, config_path):
+    def _start_process(self, config_path, env=None):
         cmd = CMD + [config_path]
         cwd = os.path.abspath(os.path.join(BASE_DIR, '../../../'))
         cwd = os.path.abspath(cwd)
-        process = subprocess.Popen(cmd, cwd=cwd,
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                   shell=False, preexec_fn=os.setsid)
+        process = subprocess.Popen(
+            cmd,
+            env=env or os.environ.copy(),
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=False,
+            preexec_fn=os.setsid,
+        )
         return process
