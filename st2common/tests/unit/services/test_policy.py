@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 import st2common
@@ -32,23 +33,22 @@ import st2tests
 from st2tests import fixturesloader as fixtures
 
 
-PACK = 'generic'
+PACK = "generic"
 
 TEST_FIXTURES = {
-    'actions': [
-        'action1.yaml',     # wolfpack.action-1
-        'action2.yaml',     # wolfpack.action-2
-        'local.yaml'        # core.local
+    "actions": [
+        "action1.yaml",  # wolfpack.action-1
+        "action2.yaml",  # wolfpack.action-2
+        "local.yaml",  # core.local
     ],
-    'policies': [
-        'policy_2.yaml',    # mock policy on wolfpack.action-1
-        'policy_5.yaml'     # concurrency policy on wolfpack.action-2
-    ]
+    "policies": [
+        "policy_2.yaml",  # mock policy on wolfpack.action-1
+        "policy_5.yaml",  # concurrency policy on wolfpack.action-2
+    ],
 }
 
 
 class PolicyServiceTestCase(st2tests.DbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(PolicyServiceTestCase, cls).setUpClass()
@@ -60,28 +60,39 @@ class PolicyServiceTestCase(st2tests.DbTestCase):
         policies_registrar.register_policy_types(st2common)
 
         loader = fixtures.FixturesLoader()
-        loader.save_fixtures_to_db(fixtures_pack=PACK,
-                                   fixtures_dict=TEST_FIXTURES)
+        loader.save_fixtures_to_db(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
     def setUp(self):
         super(PolicyServiceTestCase, self).setUp()
 
-        params = {'action': 'wolfpack.action-1', 'parameters': {'actionstr': 'foo-last'}}
+        params = {
+            "action": "wolfpack.action-1",
+            "parameters": {"actionstr": "foo-last"},
+        }
         self.lv_ac_db_1 = action_db_models.LiveActionDB(**params)
         self.lv_ac_db_1, _ = action_service.request(self.lv_ac_db_1)
 
-        params = {'action': 'wolfpack.action-2', 'parameters': {'actionstr': 'foo-last'}}
+        params = {
+            "action": "wolfpack.action-2",
+            "parameters": {"actionstr": "foo-last"},
+        }
         self.lv_ac_db_2 = action_db_models.LiveActionDB(**params)
         self.lv_ac_db_2, _ = action_service.request(self.lv_ac_db_2)
 
-        params = {'action': 'core.local', 'parameters': {'cmd': 'date'}}
+        params = {"action": "core.local", "parameters": {"cmd": "date"}}
         self.lv_ac_db_3 = action_db_models.LiveActionDB(**params)
         self.lv_ac_db_3, _ = action_service.request(self.lv_ac_db_3)
 
     def tearDown(self):
-        action_service.update_status(self.lv_ac_db_1, action_constants.LIVEACTION_STATUS_CANCELED)
-        action_service.update_status(self.lv_ac_db_2, action_constants.LIVEACTION_STATUS_CANCELED)
-        action_service.update_status(self.lv_ac_db_3, action_constants.LIVEACTION_STATUS_CANCELED)
+        action_service.update_status(
+            self.lv_ac_db_1, action_constants.LIVEACTION_STATUS_CANCELED
+        )
+        action_service.update_status(
+            self.lv_ac_db_2, action_constants.LIVEACTION_STATUS_CANCELED
+        )
+        action_service.update_status(
+            self.lv_ac_db_3, action_constants.LIVEACTION_STATUS_CANCELED
+        )
 
     def test_action_has_policies(self):
         self.assertTrue(policy_service.has_policies(self.lv_ac_db_1))
@@ -93,7 +104,7 @@ class PolicyServiceTestCase(st2tests.DbTestCase):
         self.assertTrue(
             policy_service.has_policies(
                 self.lv_ac_db_2,
-                policy_types=policy_constants.POLICY_TYPES_REQUIRING_LOCK
+                policy_types=policy_constants.POLICY_TYPES_REQUIRING_LOCK,
             )
         )
 
@@ -101,6 +112,6 @@ class PolicyServiceTestCase(st2tests.DbTestCase):
         self.assertFalse(
             policy_service.has_policies(
                 self.lv_ac_db_1,
-                policy_types=policy_constants.POLICY_TYPES_REQUIRING_LOCK
+                policy_types=policy_constants.POLICY_TYPES_REQUIRING_LOCK,
             )
         )

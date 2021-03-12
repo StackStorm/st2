@@ -29,6 +29,7 @@ class StackStormDBObjectConflictError(StackStormBaseException):
     """
     Exception that captures a DB object conflict error.
     """
+
     def __init__(self, message, conflict_id, model_object):
         super(StackStormDBObjectConflictError, self).__init__(message)
         self.conflict_id = conflict_id
@@ -36,7 +37,9 @@ class StackStormDBObjectConflictError(StackStormBaseException):
 
 
 class StackStormDBObjectWriteConflictError(StackStormBaseException):
-
     def __init__(self, instance):
-        msg = 'Conflict saving DB object with id "%s" and rev "%s".' % (instance.id, instance.rev)
+        msg = 'Conflict saving DB object with id "%s" and rev "%s".' % (
+            instance.id,
+            instance.rev,
+        )
         super(StackStormDBObjectWriteConflictError, self).__init__(msg)

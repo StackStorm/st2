@@ -20,6 +20,7 @@ WSGI entry point used by gunicorn.
 import os
 
 from st2common.util.monkey_patch import monkey_patch
+
 # Note: We need to perform monkey patching in the worker. If we do it in
 # the master process (gunicorn_config.py), it breaks tons of things
 # including shutdown
@@ -32,8 +33,11 @@ monkey_patch()
 from st2api import app
 
 config = {
-    'is_gunicorn': True,
-    'config_args': ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
+    "is_gunicorn": True,
+    "config_args": [
+        "--config-file",
+        os.environ.get("ST2_CONFIG_PATH", "/etc/st2/st2.conf"),
+    ],
 }
 
 application = app.setup_app(config)

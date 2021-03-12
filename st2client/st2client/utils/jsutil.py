@@ -48,7 +48,7 @@ def _get_value_simple(doc, key):
     Returns the extracted value from the key specified (if found)
     Returns None if the key can not be found
     """
-    split_key = key.split('.')
+    split_key = key.split(".")
     if not split_key:
         return None
 
@@ -82,8 +82,9 @@ def get_value(doc, key):
         raise ValueError("key is None or empty: '{}'".format(key))
 
     if not isinstance(doc, dict):
-        raise ValueError("doc is not an instance of dict: type={} value='{}'".format(type(doc),
-                                                                                     doc))
+        raise ValueError(
+            "doc is not an instance of dict: type={} value='{}'".format(type(doc), doc)
+        )
     # jsonpath_rw can be very slow when processing expressions.
     # In the case of a simple expression we've created a "fast path" that avoids
     # the complexity introduced by running jsonpath_rw code.
@@ -113,12 +114,12 @@ def get_kvps(doc, keys):
         value = get_value(doc, key)
         if value is not None:
             nested = new_doc
-            while '.' in key:
-                attr = key[:key.index('.')]
+            while "." in key:
+                attr = key[: key.index(".")]
                 if attr not in nested:
                     nested[attr] = {}
                 nested = nested[attr]
-                key = key[key.index('.') + 1:]
+                key = key[key.index(".") + 1 :]
             nested[key] = value
 
     return new_doc

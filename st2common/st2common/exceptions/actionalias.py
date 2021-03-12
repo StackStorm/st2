@@ -16,9 +16,7 @@
 from __future__ import absolute_import
 from st2common.exceptions import StackStormBaseException
 
-__all__ = [
-    'ActionAliasAmbiguityException'
-]
+__all__ = ["ActionAliasAmbiguityException"]
 
 
 class ActionAliasAmbiguityException(ValueError, StackStormBaseException):

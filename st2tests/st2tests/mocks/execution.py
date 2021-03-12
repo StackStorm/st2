@@ -21,13 +21,10 @@ from st2actions.notifier import notifier
 from st2common.models.db.execution import ActionExecutionDB
 
 
-__all__ = [
-    'MockExecutionPublisher'
-]
+__all__ = ["MockExecutionPublisher"]
 
 
 class MockExecutionPublisher(object):
-
     @classmethod
     def publish_update(cls, payload):
         try:
@@ -39,7 +36,6 @@ class MockExecutionPublisher(object):
 
 
 class MockExecutionPublisherNonBlocking(object):
-
     @classmethod
     def publish_update(cls, payload):
         try:

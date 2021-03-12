@@ -19,7 +19,7 @@ import six
 
 from st2common.util import concurrency
 
-__all__ = ['ConnectionRetryWrapper', 'ClusterRetryContext']
+__all__ = ["ConnectionRetryWrapper", "ClusterRetryContext"]
 
 
 class ClusterRetryContext(object):
@@ -27,6 +27,7 @@ class ClusterRetryContext(object):
     Stores retry context for cluster retries. It makes certain assumptions
     on how cluster_size and retry should be determined.
     """
+
     def __init__(self, cluster_size):
         # No of nodes in a cluster
         self.cluster_size = cluster_size
@@ -101,6 +102,7 @@ class ConnectionRetryWrapper(object):
             retry_wrapper.run(connection=connection, wrapped_callback=wrapped_callback)
 
     """
+
     def __init__(self, cluster_size, logger, ensure_max_retries=3):
         self._retry_context = ClusterRetryContext(cluster_size=cluster_size)
         self._logger = logger
@@ -109,7 +111,7 @@ class ConnectionRetryWrapper(object):
         self._ensure_max_retries = ensure_max_retries
 
     def errback(self, exc, interval):
-        self._logger.error('Rabbitmq connection error: %s', exc.message)
+        self._logger.error("Rabbitmq connection error: %s", exc.message)
 
     def run(self, connection, wrapped_callback):
         """
@@ -141,8 +143,10 @@ class ConnectionRetryWrapper(object):
                     raise
 
                 # -1, 0 and 1+ are handled properly by eventlet.sleep
-                self._logger.debug('Received RabbitMQ server error, sleeping for %s seconds '
-                                   'before retrying: %s' % (wait, six.text_type(e)))
+                self._logger.debug(
+                    "Received RabbitMQ server error, sleeping for %s seconds "
+                    "before retrying: %s" % (wait, six.text_type(e))
+                )
                 concurrency.sleep(wait)
 
                 connection.close()
@@ -154,22 +158,28 @@ class ConnectionRetryWrapper(object):
 
                 def log_error_on_conn_failure(exc, interval):
                     self._logger.debug(
-                        'Failed to re-establish connection to RabbitMQ server, '
-                        'retrying in %s seconds: %s' % (interval, six.text_type(exc))
+                        "Failed to re-establish connection to RabbitMQ server, "
+                        "retrying in %s seconds: %s" % (interval, six.text_type(exc))
                     )
 
                 try:
                     # NOTE: This function blocks and tries to restablish a connection for
                     # indefinetly if "max_retries" argument is not specified
-                    connection.ensure_connection(max_retries=self._ensure_max_retries,
-                                                 errback=log_error_on_conn_failure)
+                    connection.ensure_connection(
+                        max_retries=self._ensure_max_retries,
+                        errback=log_error_on_conn_failure,
+                    )
                 except Exception:
-                    self._logger.exception('Connections to RabbitMQ cannot be re-established: %s',
-                                           six.text_type(e))
+                    self._logger.exception(
+                        "Connections to RabbitMQ cannot be re-established: %s",
+                        six.text_type(e),
+                    )
                     raise
             except Exception as e:
-                self._logger.exception('Connections to RabbitMQ cannot be re-established: %s',
-                                       six.text_type(e))
+                self._logger.exception(
+                    "Connections to RabbitMQ cannot be re-established: %s",
+                    six.text_type(e),
+                )
                 # Not being able to publish a message could be a significant issue for an app.
                 raise
             finally:
@@ -177,7 +187,7 @@ class ConnectionRetryWrapper(object):
                     try:
                         channel.close()
                     except Exception:
-                        self._logger.warning('Error closing channel.', exc_info=True)
+                        self._logger.warning("Error closing channel.", exc_info=True)
 
     def ensured(self, connection, obj, to_ensure_func, **kwargs):
         """
@@ -191,7 +201,6 @@ class ConnectionRetryWrapper(object):
         :type obj: Must support mixin kombu.abstract.MaybeChannelBound
         """
         ensuring_func = connection.ensure(
-            obj, to_ensure_func,
-            errback=self.errback,
-            max_retries=3)
+            obj, to_ensure_func, errback=self.errback, max_retries=3
+        )
         ensuring_func(**kwargs)

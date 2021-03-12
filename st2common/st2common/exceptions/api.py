@@ -16,8 +16,7 @@
 from __future__ import absolute_import
 from st2common.exceptions import StackStormBaseException
 
-__all__ = [
-]
+__all__ = []
 
 
 class InternalServerErrorException(StackStormBaseException):

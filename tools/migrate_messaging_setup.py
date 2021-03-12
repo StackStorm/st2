@@ -36,11 +36,13 @@ class Migrate_0_13_x_to_1_1_0(object):
     # changes or changes in durability proeprties.
     OLD_QS = [
         # Name changed in 1.1
-        reactor.get_trigger_cud_queue('st2.trigger.watch.timers', routing_key='#'),
+        reactor.get_trigger_cud_queue("st2.trigger.watch.timers", routing_key="#"),
         # Split to multiple queues in 1.1
-        reactor.get_trigger_cud_queue('st2.trigger.watch.sensorwrapper', routing_key='#'),
+        reactor.get_trigger_cud_queue(
+            "st2.trigger.watch.sensorwrapper", routing_key="#"
+        ),
         # Name changed in 1.1
-        reactor.get_trigger_cud_queue('st2.trigger.watch.webhooks', routing_key='#')
+        reactor.get_trigger_cud_queue("st2.trigger.watch.webhooks", routing_key="#"),
     ]
 
     def migrate(self):
@@ -53,7 +55,7 @@ class Migrate_0_13_x_to_1_1_0(object):
                 try:
                     bound_q.delete()
                 except:
-                    print('Failed to delete %s.' % q.name)
+                    print("Failed to delete %s." % q.name)
                     traceback.print_exc()
 
 
@@ -62,10 +64,10 @@ def main():
         migrator = Migrate_0_13_x_to_1_1_0()
         migrator.migrate()
     except:
-        print('Messaging setup migration failed.')
+        print("Messaging setup migration failed.")
         traceback.print_exc()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     config.parse_args(args={})
     main()

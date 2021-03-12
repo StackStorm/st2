@@ -27,8 +27,11 @@ CONF = cfg.CONF
 
 
 def parse_args(args=None):
-    cfg.CONF(args=args, version=VERSION_STRING,
-             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
+    cfg.CONF(
+        args=args,
+        version=VERSION_STRING,
+        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+    )
 
 
 def register_opts():
@@ -47,11 +50,13 @@ def _register_common_opts():
 def _register_rules_engine_opts():
     logging_opts = [
         cfg.StrOpt(
-            'logging', default='/etc/st2/logging.rulesengine.conf',
-            help='Location of the logging configuration file.')
+            "logging",
+            default="/etc/st2/logging.rulesengine.conf",
+            help="Location of the logging configuration file.",
+        )
     ]
 
-    CONF.register_opts(logging_opts, group='rulesengine')
+    CONF.register_opts(logging_opts, group="rulesengine")
 
 
 register_opts()

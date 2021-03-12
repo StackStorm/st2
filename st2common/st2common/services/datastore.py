@@ -24,11 +24,7 @@ from st2common.util.api import get_full_public_api_url
 from st2common.util.date import get_datetime_utc_now
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR, SYSTEM_SCOPE
 
-__all__ = [
-    'BaseDatastoreService',
-    'ActionDatastoreService',
-    'SensorDatastoreService'
-]
+__all__ = ["BaseDatastoreService", "ActionDatastoreService", "SensorDatastoreService"]
 
 
 class BaseDatastoreService(object):
@@ -63,7 +59,7 @@ class BaseDatastoreService(object):
         """
         client = self.get_api_client()
 
-        self._logger.debug('Retrieving user information')
+        self._logger.debug("Retrieving user information")
 
         result = client.get_user_info()
         return result
@@ -72,7 +68,7 @@ class BaseDatastoreService(object):
     # Methods for datastore management
     ##################################
 
-    def list_values(self, local=True, prefix=None):
+    def list_values(self, local=True, prefix=None, limit=None, offset=0):
         """
         Retrieve all the datastores items.
 
@@ -82,13 +78,20 @@ class BaseDatastoreService(object):
         :param prefix: Optional key name prefix / startswith filter.
         :type prefix: ``str``
 
+        :param limit: Number of keys to get. Defaults to the configuration set at 'api.max_page_size'.
+        :type limit: ``integer``
+
+        :param offset: Number of keys to offset. Defaults to 0.
+        :type offset: ``integer``
+
         :rtype: ``list`` of :class:`KeyValuePair`
         """
         client = self.get_api_client()
-        self._logger.debug('Retrieving all the values from the datastore')
+        self._logger.debug("Retrieving all the values from the datastore")
 
+        limit = limit or cfg.CONF.api.max_page_size
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
-        kvps = client.keys.get_all(prefix=key_prefix)
+        kvps = client.keys.get_all(prefix=key_prefix, limit=limit, offset=offset)
         return kvps
 
     def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
@@ -113,21 +116,19 @@ class BaseDatastoreService(object):
         :rtype: ``str`` or ``None``
         """
         if scope != SYSTEM_SCOPE:
-            raise ValueError('Scope %s is unsupported.' % scope)
+            raise ValueError("Scope %s is unsupported." % scope)
 
         name = self._get_full_key_name(name=name, local=local)
 
         client = self.get_api_client()
-        self._logger.debug('Retrieving value from the datastore (name=%s)', name)
+        self._logger.debug("Retrieving value from the datastore (name=%s)", name)
 
         try:
-            params = {'decrypt': str(decrypt).lower(), 'scope': scope}
+            params = {"decrypt": str(decrypt).lower(), "scope": scope}
             kvp = client.keys.get_by_id(id=name, params=params)
         except Exception as e:
             self._logger.exception(
-                'Exception retrieving value from datastore (name=%s): %s',
-                name,
-                e
+                "Exception retrieving value from datastore (name=%s): %s", name, e
             )
             return None
 
@@ -136,7 +137,9 @@ class BaseDatastoreService(object):
 
         return None
 
-    def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
+    def set_value(
+        self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False
+    ):
         """
         Set a value for the provided key.
 
@@ -165,14 +168,14 @@ class BaseDatastoreService(object):
         :rtype: ``bool``
         """
         if scope != SYSTEM_SCOPE:
-            raise ValueError('Scope %s is unsupported.' % scope)
+            raise ValueError("Scope %s is unsupported." % scope)
 
         name = self._get_full_key_name(name=name, local=local)
 
         value = str(value)
         client = self.get_api_client()
 
-        self._logger.debug('Setting value in the datastore (name=%s)', name)
+        self._logger.debug("Setting value in the datastore (name=%s)", name)
 
         instance = KeyValuePair()
         instance.id = name
@@ -208,7 +211,7 @@ class BaseDatastoreService(object):
         :rtype: ``bool``
         """
         if scope != SYSTEM_SCOPE:
-            raise ValueError('Scope %s is unsupported.' % scope)
+            raise ValueError("Scope %s is unsupported." % scope)
 
         name = self._get_full_key_name(name=name, local=local)
 
@@ -218,16 +221,14 @@ class BaseDatastoreService(object):
         instance.id = name
         instance.name = name
 
-        self._logger.debug('Deleting value from the datastore (name=%s)', name)
+        self._logger.debug("Deleting value from the datastore (name=%s)", name)
 
         try:
-            params = {'scope': scope}
+            params = {"scope": scope}
             client.keys.delete(instance=instance, params=params)
         except Exception as e:
             self._logger.exception(
-                'Exception deleting value from datastore (name=%s): %s',
-                name,
-                e
+                "Exception deleting value from datastore (name=%s): %s", name, e
             )
             return False
 
@@ -237,7 +238,7 @@ class BaseDatastoreService(object):
         """
         Retrieve API client instance.
         """
-        raise NotImplementedError('get_api_client() not implemented')
+        raise NotImplementedError("get_api_client() not implemented")
 
     def _get_full_key_name(self, name, local):
         """
@@ -282,7 +283,7 @@ class BaseDatastoreService(object):
         return full_name
 
     def _get_datastore_key_prefix(self):
-        prefix = '%s.%s' % (self._pack_name, self._class_name)
+        prefix = "%s.%s" % (self._pack_name, self._class_name)
         return prefix
 
 
@@ -299,8 +300,9 @@ class ActionDatastoreService(BaseDatastoreService):
         :param auth_token: Auth token used to authenticate with StackStorm API.
         :type auth_token: ``str``
         """
-        super(ActionDatastoreService, self).__init__(logger=logger, pack_name=pack_name,
-                                                     class_name=class_name)
+        super(ActionDatastoreService, self).__init__(
+            logger=logger, pack_name=pack_name, class_name=class_name
+        )
 
         self._auth_token = auth_token
         self._client = None
@@ -310,7 +312,7 @@ class ActionDatastoreService(BaseDatastoreService):
         Retrieve API client instance.
         """
         if not self._client:
-            self._logger.debug('Creating new Client object.')
+            self._logger.debug("Creating new Client object.")
 
             api_url = get_full_public_api_url()
             client = Client(api_url=api_url, token=self._auth_token)
@@ -330,8 +332,9 @@ class SensorDatastoreService(BaseDatastoreService):
     """
 
     def __init__(self, logger, pack_name, class_name, api_username):
-        super(SensorDatastoreService, self).__init__(logger=logger, pack_name=pack_name,
-                                                     class_name=class_name)
+        super(SensorDatastoreService, self).__init__(
+            logger=logger, pack_name=pack_name, class_name=class_name
+        )
         self._api_username = api_username
         self._token_expire = get_datetime_utc_now()
 
@@ -344,12 +347,15 @@ class SensorDatastoreService(BaseDatastoreService):
         if not self._client or token_expire:
             # Note: Late import to avoid high import cost (time wise)
             from st2common.services.access import create_token
-            self._logger.debug('Creating new Client object.')
+
+            self._logger.debug("Creating new Client object.")
 
             ttl = cfg.CONF.auth.service_token_ttl
             api_url = get_full_public_api_url()
 
-            temporary_token = create_token(username=self._api_username, ttl=ttl, service=True)
+            temporary_token = create_token(
+                username=self._api_username, ttl=ttl, service=True
+            )
             self._client = Client(api_url=api_url, token=temporary_token.token)
             self._token_expire = get_datetime_utc_now() + timedelta(seconds=ttl)
 

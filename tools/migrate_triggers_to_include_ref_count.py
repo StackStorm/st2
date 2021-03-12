@@ -27,7 +27,6 @@ from st2common.models.db.trigger import TriggerDB
 
 
 class TriggerMigrator(object):
-
     def _get_trigger_with_parameters(self):
         """
         All TriggerDB that has a parameter.
@@ -38,7 +37,7 @@ class TriggerMigrator(object):
         """
         All rules that reference the supplied trigger_ref.
         """
-        return Rule.get_all(**{'trigger': trigger_ref})
+        return Rule.get_all(**{"trigger": trigger_ref})
 
     def _update_trigger_ref_count(self, trigger_db, ref_count):
         """
@@ -56,7 +55,7 @@ class TriggerMigrator(object):
             trigger_ref = trigger_db.get_reference().ref
             rules = self._get_rules_for_trigger(trigger_ref=trigger_ref)
             ref_count = len(rules)
-            print('Updating Trigger %s to ref_count %s' % (trigger_ref, ref_count))
+            print("Updating Trigger %s to ref_count %s" % (trigger_ref, ref_count))
             self._update_trigger_ref_count(trigger_db=trigger_db, ref_count=ref_count)
 
 
@@ -76,5 +75,5 @@ def main():
         teartown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
