@@ -4,6 +4,19 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Added web header settings for additional security hardening to nginx.conf: X-Frame-Options,
+  Strict-Transport-Security, X-XSS-Protection and server-tokens. #5183
+
+  Contributed by @shital.
+
+* Added support for ``limit`` and ``offset`` argument to the ``list_values`` data store
+  service method (#5097 and #5171).
+
+  Contributed by @anirudhbagri.
+
 Fixed
 ~~~~~
 
@@ -23,11 +36,6 @@ Changed
   removed). #5183
 
   Contributed by @Kami and @shital.
-
-* Added web header settings for additional security hardening to nginx.conf: X-Frame-Options,
-  Strict-Transport-Security, X-XSS-Protection and server-tokens. #5183
-
-  Contributed by @shital.
 
 3.4.0 - March 02, 2021
 ----------------------
