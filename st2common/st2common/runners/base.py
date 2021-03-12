@@ -294,7 +294,7 @@ class GitWorktreeActionRunner(ActionRunner):
             if not entry_point.startswith(self.git_worktree_path):
                 raise ValueError(
                     f"The entry point value {self.entry_point}"
-                    "does not start with the git worktree path"
+                    " does not start with the git worktree path"
                     f"{self.git_worktree_path}."
                 )
 
@@ -399,8 +399,7 @@ class GitWorktreeActionRunner(ActionRunner):
             )
         if not worktree_path.startswith("/tmp/%s" % (self.WORKTREE_DIRECTORY_PREFIX)):
             raise ValueError(
-                f"The worktree path is not within /tmp/"
-                f" (was {type(worktree_path)})."
+                f"The worktree path is not within /tmp/ (was {type(worktree_path)})."
             )
 
         if self._debug:

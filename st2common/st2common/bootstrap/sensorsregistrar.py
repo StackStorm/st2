@@ -200,7 +200,7 @@ def register_sensors(
     if packs_base_paths:
         if not isinstance(packs_base_paths, list):
             raise TypeError(
-                f"The pack base paths has a value that is not a list"
+                "The pack base paths has a value that is not a list"
                 f" (was {type(packs_base_paths)})."
             )
 

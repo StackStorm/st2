@@ -42,7 +42,7 @@ def render_template(value, context=None):
     """
     if not isinstance(value, six.string_types):
         raise TypeError(
-            f"The template value needs to be of type string" f" (was {type(value)})."
+            f"The template value needs to be of type string (was {type(value)})."
         )
     context = context or {}
 

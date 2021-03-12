@@ -298,7 +298,7 @@ def get_pack_file_abs_path(
     if normalized_file_path not in result:
         raise ValueError(
             f"This is not a normalized path {normalized_file_path}"
-            f"to prevent directory traversal {result}."
+            f" to prevent directory traversal {result}."
         )
 
     # Final safety check for common prefix to avoid traversal attack

@@ -441,7 +441,7 @@ class ActionExecutionReRunController(
             if self.parameters:
                 if not isinstance(self.parameters, dict):
                     raise TypeError(
-                        f"The parameters needs to be a dictionary"
+                        "The parameters needs to be a dictionary"
                         f" (was {type(self.parameters)})."
                     )
 
@@ -454,7 +454,7 @@ class ActionExecutionReRunController(
             if self.reset:
                 if not isinstance(self.reset, list):
                     raise TypeError(
-                        f"The reset needs to be a list" f" (was {type(self.reset)})."
+                        f"The reset needs to be a list (was {type(self.reset)})."
                     )
 
             if list(set(self.reset) - set(self.tasks)):
@@ -489,13 +489,13 @@ class ActionExecutionReRunController(
         if spec_api.tasks:
             if not isinstance(spec_api.tasks, list):
                 raise TypeError(
-                    f"The tasks needs to be a list" f" (was {type(spec_api.tasks)})."
+                    f"The tasks needs to be a list (was {type(spec_api.tasks)})."
                 )
 
         if spec_api.reset:
             if not isinstance(spec_api.reset, list):
                 raise TypeError(
-                    f"The reset needs to be a list" f" (was {type(spec_api.reset)})."
+                    f"The reset needs to be a list (was {type(spec_api.reset)})."
                 )
 
         if list(set(spec_api.reset) - set(spec_api.tasks)):

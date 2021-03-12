@@ -185,7 +185,7 @@ class KeyValuePairAPI(BaseAPI):
             if value != original_value:
                 raise ValueError(
                     f"The encrypted value {value} is not the"
-                    f"same original encrypted value {original_value}."
+                    f" same original encrypted value {original_value}."
                 )
         elif secret:
             cls._verif_key_is_set_up(name=name)

@@ -280,7 +280,7 @@ def create_or_update_trigger_db(trigger, log_not_unique_error_as_debug=False):
     """
     if not isinstance(trigger, dict):
         raise ValueError(
-            f"The trigger has a value that is not a dictionary"
+            "The trigger has a value that is not a dictionary"
             f" (was {type(trigger)})."
         )
 
@@ -446,7 +446,7 @@ def create_or_update_trigger_type_db(trigger_type, log_not_unique_error_as_debug
     """
     if not isinstance(trigger_type, dict):
         raise ValueError(
-            f"The trigger has a value that is not a dictionary"
+            "The trigger has a value that is not a dictionary"
             f" (was {type(trigger_type)})."
         )
 

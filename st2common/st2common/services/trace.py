@@ -58,7 +58,7 @@ def _get_valid_trace_context(trace_context):
     """
     if not isinstance(trace_context, (TraceContext, dict)):
         raise TypeError(
-            f"The trace context has a value that is not a dictionary"
+            "The trace context has a value that is not a dictionary"
             f" (was {type(trace_context)})."
         )
 

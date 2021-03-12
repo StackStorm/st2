@@ -60,7 +60,7 @@ class ContentPackLoader(object):
         """
         if not isinstance(base_dirs, list):
             raise TypeError(
-                f"The base dirs has a value that is not a list"
+                "The base dirs has a value that is not a list"
                 f" (was {type(base_dirs)})."
             )
 
@@ -91,7 +91,7 @@ class ContentPackLoader(object):
         """
         if not isinstance(base_dirs, list):
             raise TypeError(
-                f"The base dirs has a value that is not a list"
+                "The base dirs has a value that is not a list"
                 f" (was {type(base_dirs)})."
             )
 

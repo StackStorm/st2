@@ -192,7 +192,7 @@ class ShellCommandAction(object):
         """
         if not isinstance(args, (list, tuple)):
             raise TypeError(
-                f"The args has a value that is not a list or a tuple"
+                "The args has a value that is not a list or a tuple"
                 f" (was {type(args)})."
             )
 
