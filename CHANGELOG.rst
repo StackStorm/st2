@@ -17,7 +17,7 @@ Changed
   required for all the new code. (#5156)
 
   Contributed by @Kami.
-  
+
 * Updated fixate-requirements to work with PIP 20.3.3 #512
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
