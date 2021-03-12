@@ -181,7 +181,10 @@ class PermissionType(Enum):
             return ResourceType.EXECUTION
 
         split = permission_type.split("_")
-        assert len(split) >= 2
+        if len(split) < 2:
+            raise ValueError(
+                f"The permission_type {permission_type} doesn't have an underscore."
+            )
 
         return "_".join(split[:-1])
 
@@ -193,7 +196,10 @@ class PermissionType(Enum):
         :rtype: ``str``
         """
         split = permission_type.split("_")
-        assert len(split) >= 2
+        if len(split) < 2:
+            raise ValueError(
+                f"The permission_type {permission_type} doesn't have an underscore."
+            )
 
         # Special case for PACK_VIEWS_INDEX_HEALTH
         if permission_type == PermissionType.PACK_VIEWS_INDEX_HEALTH:
