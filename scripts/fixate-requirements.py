@@ -158,7 +158,7 @@ def merge_source_requirements(sources):
                 elif parsedreq.link:
                     merged_requirements.append(req)
                 else:
-                    raise RuntimeError('Unexpected requirement {0}'.format(req))
+                    raise RuntimeError("Unexpected requirement {0}".format(req))
             else:
                 if req.req:
                     # Skip already added project name
@@ -171,7 +171,7 @@ def merge_source_requirements(sources):
                 elif req.link:
                     merged_requirements.append(req)
                 else:
-                    raise RuntimeError('Unexpected requirement {0}'.format(req))
+                    raise RuntimeError("Unexpected requirement {0}".format(req))
 
     return merged_requirements
 
@@ -227,8 +227,9 @@ def write_requirements(
             links.add(linkreq.link)
             rline = str(linkreq.link)
 
-            if (hasattr(req, "is_editable") and req.is_editable) or \
-               (hasattr(req, "editable") and req.editable):
+            if (hasattr(req, "is_editable") and req.is_editable) or (
+                hasattr(req, "editable") and req.editable
+            ):
                 rline = "-e %s" % (rline)
         elif hasattr(req, "requirement") and req.requirement:
             project = parsedreq.requirement.name
