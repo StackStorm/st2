@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
@@ -829,6 +830,18 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         args = shell.parser.parse_args(args=argv)
         shell.get_client(args=args)
         self.assertEqual(shell._get_auth_token.call_count, 0)
+
+    def test_get_one_unicode_character_in_name(self):
+        self._write_mock_config()
+
+        shell = Shell()
+        shell._get_auth_token = mock.Mock()
+
+        os.environ["ST2_AUTH_TOKEN"] = "fooo"
+        argv = ["action", "get", "examples.test_rule_utf8_náme"]
+        args = shell.parser.parse_args(args=argv)
+        shell.get_client(args=args)
+        self.assertEqual(args.ref_or_id, "examples.test_rule_utf8_náme")
 
     def test_reencode_list_replace_surrogate_escape(self):
         value = ["a", "b", "c", "d"]

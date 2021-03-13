@@ -295,6 +295,21 @@ class TestResourceCommand(unittest2.TestCase):
         args = self.parser.parse_args(["fakeresource", "delete", "cba"])
         self.assertRaises(Exception, self.branch.commands["delete"].run, args)
 
+    @mock.patch.object(
+        models.ResourceManager,
+        "get_by_id",
+        mock.MagicMock(return_value=base.FakeResource(**base.RESOURCES[0])),
+    )
+    def test_command_get_unicode_primary_key(self):
+        args = self.parser.parse_args(
+            ["fakeresource", "get", "examples.test_rule_utf8_náme"]
+        )
+        self.assertEqual(args.func, self.branch.commands["get"].run_and_print)
+        instance = self.branch.commands["get"].run(args)
+        actual = instance.serialize()
+        expected = json.loads(json.dumps(base.RESOURCES[0]))
+        self.assertEqual(actual, expected)
+
 
 class ResourceViewCommandTestCase(unittest2.TestCase):
     def setUp(self):
