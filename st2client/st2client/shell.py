@@ -98,6 +98,47 @@ similar.
 
 PACKAGE_METADATA_FILE_PATH = "/opt/stackstorm/st2/package.meta"
 
+"""
+Here we sanitize the provided args and ensure they contain valid unicode values.
+
+By default, sys.argv will contain a unicode string where the actual item values which contain
+unicode sequences are escaped using unicode surrogates.
+
+For example, if "examples.test_rule_utf8_náme" value is specified as a CLI argument, sys.argv
+and as such also url, would contain "examples.test_rule_utf8_n%ED%B3%83%ED%B2%A1me" which is not
+what we want.
+
+Complete sys.argv example:
+
+1. Default - ['shell.py', '--debug', 'rule', 'get', 'examples.test_rule_utf8_n\udcc3\udca1me']
+2. What we want - ['shell.py', '--debug', 'rule', 'get', 'examples.test_rule_utf8_náme']
+
+This won't work correctly when sending requests to the API. As such, we correctly escape the
+value to the unicode string here and then let the http layer (requests) correctly url encode
+this value.
+
+Technically, we could also just try to re-encode it in the HTTPClient and I tried that first, but
+it turns out more code in the client results in exceptions if it's not re-encoded as early as
+possible.
+"""
+
+REENCODE_ARGV = os.environ.get("ST2_CLI_RENCODE_ARGV", "true").lower() in [
+    "true",
+    "1",
+    "yes",
+]
+
+if REENCODE_ARGV:
+    try:
+        sys.argv = list(
+            map(
+                lambda arg: arg.encode("ascii", "surrogateescape").decode("utf-8"),
+                sys.argv,
+            )
+        )
+    except Exception as e:
+        print("Failed to re-encode sys.argv: %s" % (str(e)))
+
 
 def get_stackstorm_version():
     """
