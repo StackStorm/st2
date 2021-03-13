@@ -18,12 +18,12 @@ Based on http://code.activestate.com/recipes/576694/ (MIT license)
 """
 
 from __future__ import absolute_import
-import collections
+from collections.abc import MutableSet
 
 __all__ = ["OrderedSet"]
 
 
-class OrderedSet(collections.MutableSet):
+class OrderedSet(MutableSet):
     def __init__(self, iterable=None):
         self.end = end = []
         end += [None, end, end]  # sentinel node for doubly linked list

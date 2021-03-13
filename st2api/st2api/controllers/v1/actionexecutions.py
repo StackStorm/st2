@@ -177,7 +177,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             context = try_loads(context_string)
             if not isinstance(context, dict):
                 raise ValueError(
-                    "Unable to convert st2-context from the headers into JSON."
+                    "Unable to convert st2-context from the headers into JSON"
+                    f" (was {type(context)})."
                 )
             liveaction.context.update(context)
 
@@ -438,13 +439,22 @@ class ActionExecutionReRunController(
                 )
 
             if self.parameters:
-                assert isinstance(self.parameters, dict)
+                if not isinstance(self.parameters, dict):
+                    raise TypeError(
+                        f"The parameters needs to be a dictionary (was {type(self.parameters)})."
+                    )
 
             if self.tasks:
-                assert isinstance(self.tasks, list)
+                if not isinstance(self.tasks, list):
+                    raise TypeError(
+                        f"The tasks needs to be a list (was {type(self.tasks)})."
+                    )
 
             if self.reset:
-                assert isinstance(self.reset, list)
+                if not isinstance(self.reset, list):
+                    raise TypeError(
+                        f"The reset needs to be a list (was {type(self.reset)})."
+                    )
 
             if list(set(self.reset) - set(self.tasks)):
                 raise ValueError(
@@ -469,13 +479,22 @@ class ActionExecutionReRunController(
             )
 
         if spec_api.parameters:
-            assert isinstance(spec_api.parameters, dict)
+            if not isinstance(spec_api.parameters, dict):
+                raise TypeError(
+                    f"The parameters needs to be a dictionary (was {type(spec_api.parameters)})."
+                )
 
         if spec_api.tasks:
-            assert isinstance(spec_api.tasks, list)
+            if not isinstance(spec_api.tasks, list):
+                raise TypeError(
+                    f"The tasks needs to be a list (was {type(spec_api.tasks)})."
+                )
 
         if spec_api.reset:
-            assert isinstance(spec_api.reset, list)
+            if not isinstance(spec_api.reset, list):
+                raise TypeError(
+                    f"The reset needs to be a list (was {type(spec_api.reset)})."
+                )
 
         if list(set(spec_api.reset) - set(spec_api.tasks)):
             raise ValueError(
@@ -750,6 +769,7 @@ class ActionExecutionsController(
                 liveaction_db.status == action_constants.LIVEACTION_STATUS_PAUSING
                 and liveaction_api.status == action_constants.LIVEACTION_STATUS_PAUSED
             ):
+
                 if action_service.is_children_active(liveaction_id):
                     liveaction_api.status = action_constants.LIVEACTION_STATUS_PAUSING
                 liveaction_db, actionexecution_db = update_status(

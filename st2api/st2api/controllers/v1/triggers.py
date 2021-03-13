@@ -115,6 +115,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
         try:
             triggertype_db = TriggerTypeAPI.to_model(triggertype)
+
             if (
                 triggertype.id is not None
                 and len(triggertype.id) > 0
@@ -376,7 +377,11 @@ class TriggerInstanceResendController(
 
         def validate(self):
             if self.payload:
-                assert isinstance(self.payload, dict)
+                if not isinstance(self.payload, dict):
+                    raise TypeError(
+                        "The payload has a value that is not a dictionary"
+                        f" (was {type(self.payload)})."
+                    )
 
             return True
 

@@ -209,7 +209,6 @@ class KeyValuePairController(ResourceController):
             raw_filters["scope"] = FULL_SYSTEM_SCOPE
             raw_filters["prefix"] = prefix
 
-            assert "scope" in raw_filters
             kvp_apis_system = super(KeyValuePairController, self)._get_all(
                 from_model_kwargs=from_model_kwargs,
                 sort=sort,
@@ -229,8 +228,6 @@ class KeyValuePairController(ResourceController):
             else:
                 raw_filters["prefix"] = user_scope_prefix
 
-            assert "scope" in raw_filters
-            assert "prefix" in raw_filters
             kvp_apis_user = super(KeyValuePairController, self)._get_all(
                 from_model_kwargs=from_model_kwargs,
                 sort=sort,
@@ -249,8 +246,9 @@ class KeyValuePairController(ResourceController):
             prefix = get_key_reference(name=prefix or "", scope=scope, user=user)
             raw_filters["prefix"] = user_scope_prefix
 
-            assert "scope" in raw_filters
-            assert "prefix" in raw_filters
+            if "scope" not in raw_filters:
+                raise KeyError("The key scope is not found in raw_filters.")
+
             kvp_apis = super(KeyValuePairController, self)._get_all(
                 from_model_kwargs=from_model_kwargs,
                 sort=sort,
@@ -262,7 +260,9 @@ class KeyValuePairController(ResourceController):
         elif scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
             raw_filters["prefix"] = prefix
 
-            assert "scope" in raw_filters
+            if "scope" not in raw_filters:
+                raise KeyError("The key scope is not found in raw_filters.")
+
             kvp_apis = super(KeyValuePairController, self)._get_all(
                 from_model_kwargs=from_model_kwargs,
                 sort=sort,

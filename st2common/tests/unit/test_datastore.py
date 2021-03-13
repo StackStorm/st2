@@ -51,14 +51,22 @@ class DatastoreServiceTestCase(DbTestCase):
         self._set_mock_api_client(mock_api_client)
 
         self._datastore_service.list_values(local=True, prefix=None)
-        mock_api_client.keys.get_all.assert_called_with(prefix="core.TestSensor:")
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="core.TestSensor:", limit=100, offset=0
+        )
         self._datastore_service.list_values(local=True, prefix="ponies")
-        mock_api_client.keys.get_all.assert_called_with(prefix="core.TestSensor:ponies")
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="core.TestSensor:ponies", limit=100, offset=0
+        )
 
         self._datastore_service.list_values(local=False, prefix=None)
-        mock_api_client.keys.get_all.assert_called_with(prefix=None)
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix=None, limit=100, offset=0
+        )
         self._datastore_service.list_values(local=False, prefix="ponies")
-        mock_api_client.keys.get_all.assert_called_with(prefix="ponies")
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="ponies", limit=100, offset=0
+        )
 
         # No values in the datastore
         mock_api_client = mock.Mock()
@@ -84,6 +92,18 @@ class DatastoreServiceTestCase(DbTestCase):
         values = self._datastore_service.list_values(local=True)
         self.assertEqual(len(values), 2)
         self.assertEqual(values, mock_return_value)
+
+        # Test limit
+        _ = self._datastore_service.list_values(local=True, limit=1)
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="core.TestSensor:", limit=1, offset=0
+        )
+
+        # Test offset
+        _ = self._datastore_service.list_values(local=True, offset=1)
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="core.TestSensor:", limit=100, offset=1
+        )
 
     def test_datastore_operations_get_value(self):
         mock_api_client = mock.Mock()
