@@ -180,6 +180,7 @@ class ResourceManager(object):
         pack = kwargs.pop("pack", None)
         prefix = kwargs.pop("prefix", None)
         user = kwargs.pop("user", None)
+        offset = kwargs.pop("offset", 0)
 
         params = kwargs.pop("params", {})
 
@@ -194,6 +195,9 @@ class ResourceManager(object):
 
         if user:
             params["user"] = user
+
+        if offset:
+            params["offset"] = offset
 
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != http_client.OK:
