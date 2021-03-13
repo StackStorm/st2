@@ -63,6 +63,7 @@ from st2client.commands import service_registry
 from st2client.config import set_config
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
+from st2client.utils.misc import reencode_list_with_surrogate_escape_sequences
 from st2client.commands.auth import TokenCreateCommand
 from st2client.commands.auth import LoginCommand
 
@@ -130,12 +131,7 @@ REENCODE_ARGV = os.environ.get("ST2_CLI_RENCODE_ARGV", "true").lower() in [
 
 if REENCODE_ARGV:
     try:
-        sys.argv = list(
-            map(
-                lambda arg: arg.encode("ascii", "surrogateescape").decode("utf-8"),
-                sys.argv,
-            )
-        )
+        sys.argv = reencode_list_with_surrogate_escape_sequences(sys.argv)
     except Exception as e:
         print("Failed to re-encode sys.argv: %s" % (str(e)))
 
