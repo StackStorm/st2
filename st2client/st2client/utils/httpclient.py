@@ -15,8 +15,6 @@
 
 from __future__ import absolute_import
 
-from typing import Union
-
 import json
 import logging
 from pipes import quote as pquote
@@ -80,27 +78,6 @@ def get_url_without_trailing_slash(value):
     return result
 
 
-def sanitize_url(url: Union[bytes, str]) -> str:
-    """
-    Sanitize the provided url and ensure it's a valid unicode string.
-
-    By default, sys.argv will contain a unicode string where the actual item values which contain
-    unicode sequences are escaped using unicode surrogates.
-
-    For example, if "examples.test_rule_utf8_náme" value is specified as a CLI argument, sys.argv
-    and as such url, would contain "examples.test_rule_utf8_n%ED%B3%83%ED%B2%A1me" which is not
-    what we want.
-
-    This won't work correctly when sending requests to the API. As such, we correctly escape the
-    value to the unicode string here and then let the http layer (requests) correctly url encode
-    this value.
-    """
-    if isinstance(url, str):
-        url = url.encode("ascii", "surrogateescape").decode("utf-8")
-
-    return url
-
-
 class HTTPClient(object):
     def __init__(self, root, cacert=None, debug=False):
         self.root = get_url_without_trailing_slash(root)
@@ -110,7 +87,6 @@ class HTTPClient(object):
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     def get(self, url, **kwargs):
-        url = sanitize_url(url)
         response = requests.get(self.root + url, **kwargs)
         response = self._response_hook(response=response)
         return response
@@ -119,7 +95,6 @@ class HTTPClient(object):
     @add_auth_token_to_headers
     @add_json_content_type_to_headers
     def post(self, url, data, **kwargs):
-        url = sanitize_url(url)
         response = requests.post(self.root + url, json.dumps(data), **kwargs)
         response = self._response_hook(response=response)
         return response
@@ -127,7 +102,6 @@ class HTTPClient(object):
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     def post_raw(self, url, data, **kwargs):
-        url = sanitize_url(url)
         response = requests.post(self.root + url, data, **kwargs)
         response = self._response_hook(response=response)
         return response
@@ -136,7 +110,6 @@ class HTTPClient(object):
     @add_auth_token_to_headers
     @add_json_content_type_to_headers
     def put(self, url, data, **kwargs):
-        url = sanitize_url(url)
         response = requests.put(self.root + url, json.dumps(data), **kwargs)
         response = self._response_hook(response=response)
         return response
@@ -145,7 +118,6 @@ class HTTPClient(object):
     @add_auth_token_to_headers
     @add_json_content_type_to_headers
     def patch(self, url, data, **kwargs):
-        url = sanitize_url(url)
         response = requests.patch(self.root + url, data, **kwargs)
         response = self._response_hook(response=response)
         return response
@@ -153,7 +125,6 @@ class HTTPClient(object):
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
     def delete(self, url, **kwargs):
-        url = sanitize_url(url)
         response = requests.delete(self.root + url, **kwargs)
         response = self._response_hook(response=response)
         return response
