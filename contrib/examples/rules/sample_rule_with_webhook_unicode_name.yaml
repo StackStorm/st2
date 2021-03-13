@@ -1,5 +1,5 @@
 ---
-    name: "sample_rule_with_webhook_你好"
+    name: "unicode_rule_with_webhook_你好"
     pack: "examples"
     description: "Sample rule dumping webhook payload to a file. 你好吗"
     enabled: true
