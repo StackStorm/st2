@@ -29,7 +29,7 @@ import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 import webob
 from webob import cookies, exc, Request
-from webob.compat import url_unquote
+from six.moves import urllib
 
 from st2common.exceptions import rbac as rbac_exc
 from st2common.exceptions import auth as auth_exc
@@ -239,7 +239,10 @@ class Router(object):
             )
 
     def match(self, req):
-        path = url_unquote(req.path)
+        # NOTE: webob.url_unquote doesn't work correctly under Python 3 when paths contain non-ascii
+        # characters. That method supposed to handle Python 2 and Python 3 compatibility, but it
+        # doesn't work correctly under Python 3.
+        path = urllib.parse.unquote(req.path)
         LOG.debug("Match path: %s", path)
 
         if len(path) > 1 and path.endswith("/"):
