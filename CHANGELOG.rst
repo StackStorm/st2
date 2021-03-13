@@ -23,6 +23,11 @@ Fixed
 * Refactor spec_loader util to use yaml.load with SafeLoader. (security)
   Contributed by @ashwini-orchestral
 
+* Fix a bug in the API and CLI code which would prevent users from being able to retrieve resources
+  which contain non-ascii (utf-8) characters in the names / references. (bug fix) #5189
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 
