@@ -28,6 +28,15 @@ Fixed
 
   Contributed by @Kami.
 
+* Fix a bug in the API router code and make sure we return correct and user-friendly error to the
+  user in case we fail to parse the request URL / path because it contains invalid or incorrectly
+  URL encoded data.
+
+  Previously such errors weren't handled correctly which meant original exception with a stack
+  trace got propagated to the user. (bug fix) #5189
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 
