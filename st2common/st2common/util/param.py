@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import json
+
 import re
 import six
 import networkx as nx
@@ -37,6 +37,8 @@ from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
 from st2common.util.casts import get_cast
 from st2common.util.compat import to_unicode
 from st2common.util import jinja as jinja_utils
+from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import json_decode
 
 
 LOG = logging.getLogger(__name__)
@@ -198,7 +200,7 @@ def _render(node, render_context):
         complex_type = False
 
         if isinstance(node["template"], list) or isinstance(node["template"], dict):
-            node["template"] = json.dumps(node["template"])
+            node["template"] = json_encode(node["template"])
 
             # Finds occurrences of "{{variable}}" and adds `to_complex` filter
             # so types are honored. If it doesn't follow that syntax then it's
@@ -216,7 +218,7 @@ def _render(node, render_context):
         LOG.debug("Render complete: %s", result)
 
         if complex_type:
-            result = json.loads(result)
+            result = json_decode(result)
             LOG.debug("Complex Type Rendered: %s", result)
 
         return result

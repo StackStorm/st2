@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import os
 import re
 import sys
-import json
 import uuid
 import functools
 from subprocess import list2cmdline
@@ -54,6 +53,8 @@ from st2common.util.sandboxing import get_sandbox_virtualenv_path
 from st2common.util.shell import quote_unix
 from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
+from st2common.util.jsonify import json_decode
+from st2common.util.jsonify import json_encode
 
 from python_runner import python_action_wrapper
 
@@ -134,7 +135,7 @@ class PythonRunner(GitWorktreeActionRunner):
         LOG.debug("Getting user.")
         user = self.get_user()
         LOG.debug("Serializing parameters.")
-        serialized_parameters = json.dumps(
+        serialized_parameters = json_encode(
             action_parameters if action_parameters else {}
         )
         LOG.debug("Getting virtualenv_path.")
@@ -166,9 +167,9 @@ class PythonRunner(GitWorktreeActionRunner):
         LOG.debug("Setting args.")
 
         if self._use_parent_args:
-            parent_args = json.dumps(sys.argv[1:])
+            parent_args = json_encode(sys.argv[1:])
         else:
-            parent_args = json.dumps([])
+            parent_args = json_encode([])
 
         args = [
             python_path,
@@ -197,7 +198,7 @@ class PythonRunner(GitWorktreeActionRunner):
             args.append("--parameters=%s" % (serialized_parameters))
 
         if self._config:
-            args.append("--config=%s" % (json.dumps(self._config)))
+            args.append("--config=%s" % (json_encode(self._config)))
 
         if self._log_level != PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
             # We only pass --log-level parameter if non default log level value is specified
@@ -362,7 +363,7 @@ class PythonRunner(GitWorktreeActionRunner):
         # Parse the serialized action result object (if available)
         if action_result:
             try:
-                action_result = json.loads(action_result)
+                action_result = json_decode(action_result)
             except Exception as e:
                 # Failed to de-serialize the result, probably it contains non-simple type or similar
                 LOG.warning(

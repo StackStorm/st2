@@ -22,7 +22,7 @@ from st2common.util.misc import rstrip_last_char
 from st2common.util.misc import strip_shell_chars
 from st2common.util.misc import lowercase_value
 from st2common.util.misc import sanitize_output
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 
 __all__ = ["MiscUtilTestCase"]
 

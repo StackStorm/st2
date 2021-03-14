@@ -48,7 +48,7 @@ from st2common.util import date as date_utils
 from st2common.util import jinja as jinja_utils
 from st2common.util import param as param_utils
 from st2common.util.config_loader import get_config
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 
 __all__ = ["ActionChainRunner", "ChainHolder", "get_runner", "get_metadata"]
 

@@ -20,7 +20,7 @@ import six
 from st2common import log as logging
 from st2common.util import action_db as action_db_util
 from st2common.util.casts import get_cast
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 
 LOG = logging.getLogger(__name__)
 

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import json
 import hashlib
 
@@ -110,8 +111,8 @@ class TriggerDB(
         # pylint: disable=no-member
         uid = super(TriggerDB, self).get_uid()
 
-        # Note: We sort the resulting JSON object so that the same dictionary always results
-        # in the same hash
+        # NOTE: We intentionally use json.dumps instead of json_encode here for backward
+        # compatibility reasons.
         parameters = getattr(self, "parameters", {})
         parameters = json.dumps(parameters, sort_keys=True)
         parameters = hashlib.md5(parameters.encode()).hexdigest()
