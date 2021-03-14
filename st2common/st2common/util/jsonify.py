@@ -71,7 +71,10 @@ def json_loads(obj, keys=None):
         try:
             obj[key] = json.loads(obj[key])
         except Exception:
-            LOG.exception("Criteria pattern not valid JSON.")
+            # NOTE: This exception is not fatal so we intentionally don't log anything.
+            # Method behaves in "best effort" manner and dictionary value not being JSON
+            # string is perfectly valid (and common) scenario so we should not log anything
+            pass
     return obj
 
 
