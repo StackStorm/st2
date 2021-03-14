@@ -60,6 +60,14 @@ class ExecutionResult(formatters.Formatter):
             for attr in attrs:
                 value = jsutil.get_value(entry, attr)
                 value = strutil.strip_carriage_returns(strutil.unescape(value))
+
+                # transform the value of our attribute so things like 'status'
+                # and 'timestamp' are formatted nicely
+                transform_function = attribute_transform_functions.get(
+                    attr, lambda value: value
+                )
+                value = transform_function(value=value)
+
                 # TODO: This check is inherently flawed since it will crash st2client
                 # if the leading character is objectish start and last character is objectish
                 # end but the string isn't supposed to be a object. Try/Except will catch
@@ -76,7 +84,7 @@ class ExecutionResult(formatters.Formatter):
                         new_value = value
                     if type(new_value) in [dict, list]:
                         value = new_value
-                if type(value) in [dict, list]:
+                if isinstance(value, (dict, list)):
                     # 1. To get a nice overhang indent get safe_dump to generate output with
                     #    the attribute key and then remove the attribute key from the string.
                     # 2. Drop the trailing newline
@@ -88,7 +96,19 @@ class ExecutionResult(formatters.Formatter):
                         width=PLATFORM_MAXINT,
                         indent=2,
                     )[len(attr) + 2 : -1]
-                    value = ("\n" if isinstance(value, dict) else "") + formatted_value
+
+                    if isinstance(value, list):
+                        # Indent list values with 2 spaces for a nicer display.
+                        lines = formatted_value.split("\n")
+                        formatted_value = []
+                        for line in lines:
+                            formatted_value.append("  %s" % (line))
+
+                        formatted_value = "\n".join(formatted_value)
+
+                    value = (
+                        "\n" if isinstance(value, (dict, list)) else ""
+                    ) + formatted_value
                     value = strutil.dedupe_newlines(value)
 
                 # transform the value of our attribute so things like 'status'

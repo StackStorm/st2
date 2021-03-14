@@ -14,9 +14,28 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import yaml
+
+try:
+    from yaml import CSafeLoader as YamlSafeLoader
+except ImportError:
+    from yaml import SafeLoader as YamlSafeLoader
 
 __all__ = ["ALLOWED_EXTS", "PARSER_FUNCS"]
 
+
+# NOTE: We utilize CSafeLoader if available since it uses C extensions and is faster.
+#
+# SafeLoader / CSafeLoader are both safe to use and don't allow loading arbitrary Python objects.
+#
+# That's the actual class which is used internally by ``yaml.safe_load()``, but we can't use that
+# method directly since we want to use C extension if available (CSafeLoader) for faster parsing.
+#
+# See pyyaml docs for details https://pyyaml.org/wiki/PyYAMLDocumentation
+def yaml_safe_load(stream):
+    return yaml.load(stream, Loader=YamlSafeLoader)
+
+
 ALLOWED_EXTS = [".yaml", ".yml"]
-PARSER_FUNCS = {".yml": yaml.safe_load, ".yaml": yaml.safe_load}
+PARSER_FUNCS = {".yml": yaml_safe_load, ".yaml": yaml_safe_load}

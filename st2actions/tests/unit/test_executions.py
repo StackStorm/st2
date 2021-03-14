@@ -57,7 +57,11 @@ MOCK_FAIL_EXECUTION_CREATE = False
     LocalShellCommandRunner,
     "run",
     mock.MagicMock(
-        return_value=(action_constants.LIVEACTION_STATUS_FAILED, "Non-empty", None)
+        return_value=(
+            action_constants.LIVEACTION_STATUS_FAILED,
+            {"data": "Non-empty"},
+            None,
+        )
     ),
 )
 @mock.patch.object(
@@ -108,7 +112,12 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(execution.start_timestamp, liveaction.start_timestamp)
-        self.assertEqual(execution.end_timestamp, liveaction.end_timestamp)
+        # NOTE: Timestamp of liveaction and execution may be a bit different, depending on how long
+        # it takes to persist each object in the database
+        self.assertEqual(
+            execution.end_timestamp.replace(microsecond=0),
+            liveaction.end_timestamp.replace(microsecond=0),
+        )
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
@@ -136,7 +145,12 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(execution.start_timestamp, liveaction.start_timestamp)
-        self.assertEqual(execution.end_timestamp, liveaction.end_timestamp)
+        # NOTE: Timestamp of liveaction and execution may be a bit different, depending on how long
+        # it takes to persist each object in the database
+        self.assertEqual(
+            execution.end_timestamp.replace(microsecond=0),
+            liveaction.end_timestamp.replace(microsecond=0),
+        )
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
@@ -206,7 +220,12 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(execution.start_timestamp, liveaction.start_timestamp)
-        self.assertEqual(execution.end_timestamp, liveaction.end_timestamp)
+        # NOTE: Timestamp of liveaction and execution may be a bit different, depending on how long
+        # it takes to persist each object in the database
+        self.assertEqual(
+            execution.end_timestamp.replace(microsecond=0),
+            liveaction.end_timestamp.replace(microsecond=0),
+        )
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)

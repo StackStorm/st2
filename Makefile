@@ -62,14 +62,17 @@ ifndef PYLINT_CONCURRENCY
 	PYLINT_CONCURRENCY := 1
 endif
 
-NOSE_OPTS := --rednose --immediate --with-parallel --nocapture
+# NOTE: We exclude resourceregistrar DEBUG level log messages since those are very noisy (we
+# loaded resources for every tests) which makes tests hard to troubleshoot on failure due to
+# pages and pages and pages of noise.
+NOSE_OPTS := --rednose --immediate --with-parallel --nocapture --logging-filter=-st2.st2common.bootstrap
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture
+	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
 	NOSE_WITH_TIMER := 1
 endif
 
@@ -261,7 +264,7 @@ check-python-packages-nightly:
 	done
 
 .PHONY: ci-checks-nightly
-ci-checks-nightly: check-python-packages-nightly
+ci-checks-nightly: check-python-packages-nightly micro-benchmarks
 
 .PHONY: checklogs
 checklogs:
@@ -528,6 +531,9 @@ micro-benchmarks: requirements .micro-benchmarks
 	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_fast_deepcopy.py -k "test_fast_deepcopy_with_json_fixture_file"
 	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file,param:indent_sort_keys_tuple -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py  -k "test_json_dumps"
 	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py  -k "test_json_loads"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_multiple_fields"
 
 .PHONY: .cleanmongodb
 .cleanmongodb:

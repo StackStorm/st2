@@ -189,11 +189,8 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         with open(self.path, "r") as fd:
             content = fd.read()
 
-        if six.PY2:
-            self.assertEqual(content, FIXTURES["results"]["execution_unicode.txt"])
-        else:
-            content = content.replace(r"\xE2\x80\xA1", r"\u2021")
-            self.assertEqual(content, FIXTURES["results"]["execution_unicode_py3.txt"])
+        content = content.replace(r"\xE2\x80\xA1", r"\u2021")
+        self.assertEqual(content, FIXTURES["results"]["execution_unicode_py3.txt"])
 
     @mock.patch.object(
         httpclient.HTTPClient,
@@ -257,15 +254,9 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         with open(self.path, "r") as fd:
             content = fd.read()
 
-        if six.PY2:
-            self.assertEqual(
-                content, FIXTURES["results"]["execution_result_has_carriage_return.txt"]
-            )
-        else:
-            self.assertEqual(
-                content,
-                FIXTURES["results"]["execution_result_has_carriage_return_py3.txt"],
-            )
+        self.assertEqual(
+            content, FIXTURES["results"]["execution_result_has_carriage_return_py3.txt"]
+        )
 
     @mock.patch.object(
         httpclient.HTTPClient,

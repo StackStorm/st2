@@ -14,13 +14,25 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 
 import unittest2
+
+import yaml
+
+from yaml import SafeLoader
+
+try:
+    from yaml import CSafeLoader
+except ImportError:
+    CSafeLoader = None
+
 from mock import Mock
 
 from st2common.content.loader import ContentPackLoader
 from st2common.content.loader import LOG
+from st2common.constants.meta import yaml_safe_load
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../resources"))
@@ -101,3 +113,43 @@ class ContentLoaderTest(unittest2.TestCase):
             pack_dir=pack_path, content_type="sensors"
         )
         self.assertEqual(result, None)
+
+
+class YamlLoaderTestCase(unittest2.TestCase):
+    def test_yaml_safe_load(self):
+        # Verify C version of yaml loader indeed doesn't load non-safe data
+        dumped = yaml.dump(Foo)
+        self.assertTrue("!!python" in dumped)
+
+        # Regular load should work, but safe wrapper should fail
+        result = yaml.load(dumped)
+        self.assertTrue(result)
+
+        self.assertRaisesRegexp(
+            yaml.constructor.ConstructorError,
+            "could not determine a constructor",
+            yaml_safe_load,
+            dumped,
+        )
+
+        self.assertRaisesRegexp(
+            yaml.constructor.ConstructorError,
+            "could not determine a constructor",
+            yaml.load,
+            dumped,
+            Loader=SafeLoader,
+        )
+
+        if CSafeLoader:
+            self.assertRaisesRegexp(
+                yaml.constructor.ConstructorError,
+                "could not determine a constructor",
+                yaml.load,
+                dumped,
+                Loader=CSafeLoader,
+            )
+
+
+class Foo(object):
+    a = "1"
+    b = "c"

@@ -42,6 +42,8 @@ __all__ = [
 
 JSON_UNFRIENDLY_TYPES = (datetime.datetime, bson.ObjectId)
 
+DICT_FIELD_NOT_SET_MARKER = "dict-field-not-set"
+
 
 class StormFoundationDB(me.Document, DictSerializableClassMixin):
     """
