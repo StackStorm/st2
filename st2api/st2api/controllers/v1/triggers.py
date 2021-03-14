@@ -29,7 +29,7 @@ from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import isotime
 from st2common.validators.api.misc import validate_not_part_of_system_pack
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 
 http_client = six.moves.http_client
 

@@ -25,7 +25,7 @@ from oslo_config import cfg
 
 from st2common.constants.secrets import MASKED_ATTRIBUTES_BLACKLIST
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 
 __all__ = [
     "ConsoleLogFormatter",

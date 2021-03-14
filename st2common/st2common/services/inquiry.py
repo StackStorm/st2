@@ -33,7 +33,7 @@ from st2common.util import action_db as action_utils
 from st2common.util import date as date_utils
 from st2common.util import schema as schema_utils
 from st2common.util import system_info as sys_info_utils
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 
 
 LOG = logging.getLogger(__name__)

@@ -25,7 +25,7 @@ from jsonschema.validators import create
 from st2common.exceptions.action import InvalidActionParameterException
 from st2common.util import jsonify
 from st2common.util.misc import deep_update
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 
 __all__ = [
     "get_validator",

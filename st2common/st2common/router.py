@@ -42,7 +42,7 @@ from st2common.util.jsonify import json_encode
 from st2common.util.jsonify import json_decode
 from st2common.util.jsonify import get_json_type_for_python_value
 from st2common.util.http import parse_content_type_header
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 
 __all__ = [
     "Router",

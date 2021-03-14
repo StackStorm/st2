@@ -26,7 +26,7 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.util.enum import Enum
 from st2common.policies.base import ResourcePolicyApplicator
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy
 
 __all__ = ["RetryOnPolicy", "ExecutionRetryPolicyApplicator"]
 
