@@ -121,6 +121,9 @@ Fixed
 * Refactor spec_loader util to use yaml.load with SafeLoader. (security)
   Contributed by @ashwini-orchestral
 
+* Import ABC from collections.abc for Python 3.10 compatibility. (#5007)
+  Contributed by @tirkarthi
+
 3.4.0 - March 02, 2021
 ----------------------
 
