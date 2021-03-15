@@ -1,4 +1,4 @@
-import orjson
+import json
 
 from st2common.runners.base_action import Action
 
@@ -8,5 +8,5 @@ class LoadAndPrintFixtureAction(Action):
         with open(file_path, "r") as fp:
             content = fp.read()
 
-        data = orjson.loads(content)
+        data = json.loads(content)
         return data
