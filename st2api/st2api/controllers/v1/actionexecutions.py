@@ -19,6 +19,7 @@ import sys
 import traceback
 
 import six
+import orjson
 import jsonschema
 from oslo_config import cfg
 from six.moves import http_client
@@ -363,6 +364,61 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
 
         result = getattr(action_exec_db, attribute, None)
         return Response(json=result, status=http_client.OK)
+
+
+class ActionExecutionRawResultController(BaseActionExecutionNestedController):
+    def get(self, id, requester_user, download=False):
+        """
+        Retrieve raw action execution result object as a string or optionally force result download
+        as a file.
+
+        This is primarily to be used in scenarios where executions contain large results and JSON
+        loading and parsing it can be slow (e.g. in the st2web) and we just want to display raw
+        result.
+
+        Handles requests:
+
+            GET /executions/<id>/result/raw[?download=1]
+
+        :rtype: ``str``
+        """
+        download = str(download).lower() in ["1", "true"]
+
+        # NOTE: Here we intentionally use as_pymongo() to avoid mongoengine layer even for old style
+        # data
+        try:
+            result = (
+                self.access.impl.model.objects.filter(id=id)
+                .only("result")
+                .as_pymongo()[0]
+            )
+        except IndexError:
+            # TODO: return 404
+            return ""
+
+        if isinstance(result["result"], dict):
+            # For backward compatibility we also support old non JSON field storage format
+            string_data = orjson.dumps(result["result"], option=orjson.OPT_INDENT_2)
+        else:
+            # For new JSON storage format we just use raw value since it's already JSON serialized
+            # string
+            string_data = result["result"]
+            # TODO: Should we re-serialize for pretty print purposes. It adds around 80ms overhead
+            # for large executions so it's not terrible - e.g. 30ms for using raw results vs 100ms
+            # for reserializing it with pretty indent
+            # string_data = orjson.dumps(orjson.loads(result["result"]), option=orjson.OPT_INDENT_2)
+
+        response = Response()
+        response.headers["Content-Type"] = "text/plain"
+
+        if download:
+            filename = "execution_%s_result.json" % (id)
+            response.headers["Content-Disposition"] = "attachment; filename=%s" % (
+                filename
+            )
+
+        response.text = string_data.decode("utf-8")
+        return response
 
 
 class ActionExecutionOutputController(
@@ -940,3 +996,4 @@ action_execution_output_controller = ActionExecutionOutputController()
 action_execution_rerun_controller = ActionExecutionReRunController()
 action_execution_attribute_controller = ActionExecutionAttributeController()
 action_execution_children_controller = ActionExecutionChildrenController()
+action_execution_raw_result_controller = ActionExecutionRawResultController()

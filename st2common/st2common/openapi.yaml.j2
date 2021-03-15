@@ -1342,6 +1342,38 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/executions/{id}/result/raw:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_raw_result_controller.get
+      x-log-result: false
+      x-submit-metrics: false
+      description: |
+        Get one execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: download
+          in: query
+          description: True to force result file download instead of returning it as a response
+          type: boolean
+          default: false
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution attribute requested
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /api/v1/executions/views/filters:
     get:
       operationId: st2api.controllers.v1.execution_views:filters_controller.get_all
