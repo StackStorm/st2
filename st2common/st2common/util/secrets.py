@@ -21,7 +21,7 @@ from __future__ import absolute_import
 
 import six
 
-from st2common.util.deep_copy import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 
@@ -170,7 +170,7 @@ def mask_secret_parameters(parameters, secret_parameters, result=None):
     # all other recursive calls pass back referneces to this result object
     # so we can reuse it, saving memory and CPU cycles
     if result is None:
-        result = fast_deepcopy(parameters)
+        result = fast_deepcopy_dict(parameters)
 
     # iterate over the secret parameters
     for secret_param, secret_sub_params in iterator:
@@ -204,7 +204,7 @@ def mask_inquiry_response(response, schema):
     :param schema: Inquiry response schema
     :type schema: ``dict``
     """
-    result = fast_deepcopy(response)
+    result = fast_deepcopy_dict(response)
 
     for prop_name, prop_attrs in schema["properties"].items():
         if prop_attrs.get("secret") is True:

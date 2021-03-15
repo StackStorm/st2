@@ -59,7 +59,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
         )
 
     def _construct_context(self, wf_ex):
-        ctx = deep_copy.fast_deepcopy(self.context)
+        ctx = deep_copy.fast_deepcopy_dict(self.context)
         ctx["workflow_execution"] = str(wf_ex.id)
 
         return ctx

@@ -19,7 +19,7 @@ import copy
 
 import orjson
 
-__all__ = ["fast_deepcopy"]
+__all__ = ["fast_deepcopy_dict"]
 
 
 def default(obj):
@@ -29,7 +29,7 @@ def default(obj):
     raise TypeError
 
 
-def fast_deepcopy(value, fall_back_to_deepcopy=True):
+def fast_deepcopy_dict(value, fall_back_to_deepcopy=True):
     """
     Perform a fast deep copy of the provided value.
 

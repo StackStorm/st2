@@ -48,7 +48,7 @@ from st2common.util import date as date_utils
 from st2common.util import jinja as jinja_utils
 from st2common.util import param as param_utils
 from st2common.util.config_loader import get_config
-from st2common.util.deep_copy import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = ["ActionChainRunner", "ChainHolder", "get_runner", "get_metadata"]
 
@@ -85,7 +85,7 @@ class ChainHolder(object):
             )
 
     def restore_vars(self, ctx_vars):
-        self.vars.update(fast_deepcopy(ctx_vars))
+        self.vars.update(fast_deepcopy_dict(ctx_vars))
 
     def validate(self):
         """
