@@ -4,6 +4,25 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Added web header settings for additional security hardening to nginx.conf: X-Frame-Options,
+  Strict-Transport-Security, X-XSS-Protection and server-tokens. #5183
+
+  Contributed by @shital.
+
+* Added support for ``limit`` and ``offset`` argument to the ``list_values`` data store
+  service method (#5097 and #5171).
+
+  Contributed by @anirudhbagri.
+
+Fixed
+~~~~~
+
+* Refactor spec_loader util to use yaml.load with SafeLoader. (security)
+  Contributed by @ashwini-orchestral
+
 Changed
 ~~~~~~~
 
@@ -11,6 +30,15 @@ Changed
   required for all the new code. (#5156)
 
   Contributed by @Kami.
+
+* Default nginx config (``conf/nginx/st2.conf``) which is used by the installer and Docker
+  images has been updated to only support TLS v1.2 (support for TLS v1.0 and v1.1 has been
+  removed). #5183
+
+  Contributed by @Kami and @shital.
+
+* Import ABC from collections.abc for Python 3.10 compatibility. (#5007)
+  Contributed by @tirkarthi
 
 3.4.0 - March 02, 2021
 ----------------------

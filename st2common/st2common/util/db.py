@@ -15,9 +15,10 @@
 
 from __future__ import absolute_import
 
-import collections
 import mongoengine
 import six
+
+from collections.abc import Mapping
 
 
 def mongodb_to_python_types(value):
@@ -30,7 +31,7 @@ def mongodb_to_python_types(value):
     # functions used to convert JSON/YAML objects/strings will errored. This is caused
     # by the PR StackStorm/orquesta#191 which converts dict to collections.Mapping
     # in YAQL related functions.
-    elif isinstance(value, collections.Mapping):
+    elif isinstance(value, Mapping):
         value = dict(value)
 
     # Recursively traverse the dict and list to convert values.
