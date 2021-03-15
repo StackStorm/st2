@@ -31,21 +31,28 @@ def default(obj):
 
 def fast_deepcopy(value, fall_back_to_deepcopy=True):
     """
-    Perform a fast deepcopy of the provided value.
+    Perform a fast deep copy of the provided value.
 
-    :param fall_back_to_deepcopy: True to fall back to copy.deepcopy() in case ujson throws an
-                                  exception.
+    This function is designed primary to operate on values of a simple type (think JSON types -
+    dicts, lists, arrays, strings, ints).
+
+    It's up to 10x faster compared to copy.deepcopy().
+
+    In case the provided value contains non-simple types, we simply fall back to "copy.deepcopy()".
+    This means that we can still use it on values which sometimes, but not always contain complex
+    types - in that case, when value doesn't contain complex types we will perform much faster copy
+    and when it does, we will simply fall back to copy.deepcopy().
+
+    :param fall_back_to_deepcopy: True to fall back to copy.deepcopy() in case we fail to fast deep
+                                  copy the value because it contains complex types or similar.
     :type fall_back_to_deepcopy: ``bool``
     """
-    # NOTE: ujson / ujson round-trip is up to 10 times faster on smaller and larger dicts compared
-    # to copy.deepcopy(), but it has some edge cases with non-simple types such as datetimes
+    # NOTE: ujson / orjson round-trip is up to 10 times faster on smaller and larger dicts compared
+    # to copy.deepcopy(), but it has some edge cases with non-simple types such as datetimes, class
+    # instances, etc.
     try:
-        # NOTE: ujson serialized datetime to seconds since epoch (int) whereas orjson serializes it
-        # to a  RFC 3339 string by default
         value = orjson.loads(orjson.dumps(value, default=default))
     except (OverflowError, ValueError) as e:
-        # NOTE: ujson doesn't support 5 or 6 bytes utf-8 sequences which we use
-        # in our tests so we fall back to deep copy
         if not fall_back_to_deepcopy:
             raise e
 
