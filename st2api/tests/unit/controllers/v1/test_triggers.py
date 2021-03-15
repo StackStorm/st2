@@ -22,57 +22,52 @@ from st2tests.api import FunctionalTest
 http_client = six.moves.http_client
 
 TRIGGER_0 = {
-    'name': 'st2.test.trigger0',
-    'pack': 'dummy_pack_1',
-    'description': 'test trigger',
-    'type': 'dummy_pack_1.st2.test.triggertype0',
-    'parameters': {}
+    "name": "st2.test.trigger0",
+    "pack": "dummy_pack_1",
+    "description": "test trigger",
+    "type": "dummy_pack_1.st2.test.triggertype0",
+    "parameters": {},
 }
 
 TRIGGER_1 = {
-    'name': 'st2.test.trigger1',
-    'pack': 'dummy_pack_1',
-    'description': 'test trigger',
-    'type': 'dummy_pack_1.st2.test.triggertype1',
-    'parameters': {}
+    "name": "st2.test.trigger1",
+    "pack": "dummy_pack_1",
+    "description": "test trigger",
+    "type": "dummy_pack_1.st2.test.triggertype1",
+    "parameters": {},
 }
 
 TRIGGER_2 = {
-    'name': 'st2.test.trigger2',
-    'pack': 'dummy_pack_1',
-    'description': 'test trigger',
-    'type': 'dummy_pack_1.st2.test.triggertype2',
-    'parameters': {
-        'param1': {
-            'foo': 'bar'
-        }
-    }
+    "name": "st2.test.trigger2",
+    "pack": "dummy_pack_1",
+    "description": "test trigger",
+    "type": "dummy_pack_1.st2.test.triggertype2",
+    "parameters": {"param1": {"foo": "bar"}},
 }
 
 
-@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+@mock.patch.object(PoolPublisher, "publish", mock.MagicMock())
 class TestTriggerController(FunctionalTest):
-
     @classmethod
     def setUpClass(cls):
         super(TestTriggerController, cls).setUpClass()
         cls._setupTriggerTypes()
 
     def test_get_all(self):
-        resp = self.app.get('/v1/triggers')
+        resp = self.app.get("/v1/triggers")
         self.assertEqual(resp.status_int, http_client.OK)
         # TriggerType without parameters will register a trigger
         # with same name.
-        self.assertEqual(len(resp.json), 2, 'Get all failure. %s' % resp.json)
+        self.assertEqual(len(resp.json), 2, "Get all failure. %s" % resp.json)
         post_resp = self._do_post(TRIGGER_0)
         trigger_id_0 = self._get_trigger_id(post_resp)
         post_resp = self._do_post(TRIGGER_1)
         trigger_id_1 = self._get_trigger_id(post_resp)
-        resp = self.app.get('/v1/triggers')
+        resp = self.app.get("/v1/triggers")
         self.assertEqual(resp.status_int, http_client.OK)
         # TriggerType without parameters will register a trigger
         # with same name. So here we see 4 instead of 2.
-        self.assertEqual(len(resp.json), 4, 'Get all failure.')
+        self.assertEqual(len(resp.json), 4, "Get all failure.")
         self._do_delete(trigger_id_0)
         self._do_delete(trigger_id_1)
 
@@ -85,7 +80,7 @@ class TestTriggerController(FunctionalTest):
         self._do_delete(trigger_id)
 
     def test_get_one_fail(self):
-        resp = self._do_get_one('1')
+        resp = self._do_get_one("1")
         self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
     def test_post(self):
@@ -106,13 +101,15 @@ class TestTriggerController(FunctionalTest):
         # id is same in both cases.
         post_resp_2 = self._do_post(TRIGGER_1)
         self.assertEqual(post_resp_2.status_int, http_client.CREATED)
-        self.assertEqual(self._get_trigger_id(post_resp), self._get_trigger_id(post_resp_2))
+        self.assertEqual(
+            self._get_trigger_id(post_resp), self._get_trigger_id(post_resp_2)
+        )
         self._do_delete(self._get_trigger_id(post_resp))
 
     def test_put(self):
         post_resp = self._do_post(TRIGGER_1)
         update_input = post_resp.json
-        update_input['description'] = 'updated description.'
+        update_input["description"] = "updated description."
         put_resp = self._do_put(self._get_trigger_id(post_resp), update_input)
         self.assertEqual(put_resp.status_int, http_client.OK)
         self._do_delete(self._get_trigger_id(put_resp))
@@ -133,41 +130,43 @@ class TestTriggerController(FunctionalTest):
     @classmethod
     def _setupTriggerTypes(cls):
         TRIGGERTYPE_0 = {
-            'name': 'st2.test.triggertype0',
-            'pack': 'dummy_pack_1',
-            'description': 'test trigger',
-            'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
-            'parameters_schema': {}
+            "name": "st2.test.triggertype0",
+            "pack": "dummy_pack_1",
+            "description": "test trigger",
+            "payload_schema": {"tp1": None, "tp2": None, "tp3": None},
+            "parameters_schema": {},
         }
         TRIGGERTYPE_1 = {
-            'name': 'st2.test.triggertype1',
-            'pack': 'dummy_pack_1',
-            'description': 'test trigger',
-            'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
+            "name": "st2.test.triggertype1",
+            "pack": "dummy_pack_1",
+            "description": "test trigger",
+            "payload_schema": {"tp1": None, "tp2": None, "tp3": None},
         }
         TRIGGERTYPE_2 = {
-            'name': 'st2.test.triggertype2',
-            'pack': 'dummy_pack_1',
-            'description': 'test trigger',
-            'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
-            'parameters_schema': {'param1': {'type': 'object'}}
+            "name": "st2.test.triggertype2",
+            "pack": "dummy_pack_1",
+            "description": "test trigger",
+            "payload_schema": {"tp1": None, "tp2": None, "tp3": None},
+            "parameters_schema": {"param1": {"type": "object"}},
         }
-        cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_0, expect_errors=False)
-        cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_1, expect_errors=False)
-        cls.app.post_json('/v1/triggertypes', TRIGGERTYPE_2, expect_errors=False)
+        cls.app.post_json("/v1/triggertypes", TRIGGERTYPE_0, expect_errors=False)
+        cls.app.post_json("/v1/triggertypes", TRIGGERTYPE_1, expect_errors=False)
+        cls.app.post_json("/v1/triggertypes", TRIGGERTYPE_2, expect_errors=False)
 
     @staticmethod
     def _get_trigger_id(resp):
-        return resp.json['id']
+        return resp.json["id"]
 
     def _do_get_one(self, trigger_id):
-        return self.app.get('/v1/triggers/%s' % trigger_id, expect_errors=True)
+        return self.app.get("/v1/triggers/%s" % trigger_id, expect_errors=True)
 
     def _do_post(self, trigger):
-        return self.app.post_json('/v1/triggers', trigger, expect_errors=True)
+        return self.app.post_json("/v1/triggers", trigger, expect_errors=True)
 
     def _do_put(self, trigger_id, trigger):
-        return self.app.put_json('/v1/triggers/%s' % trigger_id, trigger, expect_errors=True)
+        return self.app.put_json(
+            "/v1/triggers/%s" % trigger_id, trigger, expect_errors=True
+        )
 
     def _do_delete(self, trigger_id):
-        return self.app.delete('/v1/triggers/%s' % trigger_id)
+        return self.app.delete("/v1/triggers/%s" % trigger_id)

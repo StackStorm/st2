@@ -22,15 +22,14 @@ from six.moves import range
 
 
 class TestHashWithApiKeys(unittest2.TestCase):
-
     def test_hash_repeatability(self):
         api_key = auth_utils.generate_api_key()
         hash1 = hash_utils.hash(api_key)
         hash2 = hash_utils.hash(api_key)
-        self.assertEqual(hash1, hash2, 'Expected a repeated hash.')
+        self.assertEqual(hash1, hash2, "Expected a repeated hash.")
 
     def test_hash_uniqueness(self):
         count = 10000
         api_keys = [auth_utils.generate_api_key() for _ in range(count)]
         hashes = set([hash_utils.hash(api_key) for api_key in api_keys])
-        self.assertEqual(len(hashes), count, 'Expected all unique hashes.')
+        self.assertEqual(len(hashes), count, "Expected all unique hashes.")

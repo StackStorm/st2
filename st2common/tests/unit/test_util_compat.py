@@ -19,18 +19,16 @@ import unittest2
 
 from st2common.util.compat import to_ascii
 
-__all__ = [
-    'CompatUtilsTestCase'
-]
+__all__ = ["CompatUtilsTestCase"]
 
 
 class CompatUtilsTestCase(unittest2.TestCase):
     def test_to_ascii(self):
         expected_values = [
-            ('already ascii', 'already ascii'),
-            (u'foo', 'foo'),
-            ('٩(̾●̮̮̃̾•̃̾)۶', '()'),
-            ('\xd9\xa9', '')
+            ("already ascii", "already ascii"),
+            ("foo", "foo"),
+            ("٩(̾●̮̮̃̾•̃̾)۶", "()"),
+            ("\xd9\xa9", ""),
         ]
 
         for input_value, expected_value in expected_values:

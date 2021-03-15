@@ -27,10 +27,7 @@ from st2common.util.secrets import mask_inquiry_response
 from st2common.util.secrets import mask_secret_parameters
 from st2common.constants.types import ResourceType
 
-__all__ = [
-    'ActionExecutionDB',
-    'ActionExecutionOutputDB'
-]
+__all__ = ["ActionExecutionDB", "ActionExecutionOutputDB"]
 
 
 LOG = logging.getLogger(__name__)
@@ -38,7 +35,7 @@ LOG = logging.getLogger(__name__)
 
 class ActionExecutionDB(stormbase.StormFoundationDB):
     RESOURCE_TYPE = ResourceType.EXECUTION
-    UID_FIELDS = ['id']
+    UID_FIELDS = ["id"]
 
     trigger = stormbase.EscapedDictField()
     trigger_type = stormbase.EscapedDictField()
@@ -52,22 +49,25 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     workflow_execution = me.StringField()
     task_execution = me.StringField()
     status = me.StringField(
-        required=True,
-        help_text='The current status of the liveaction.')
+        required=True, help_text="The current status of the liveaction."
+    )
     start_timestamp = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
-        help_text='The timestamp when the liveaction was created.')
+        help_text="The timestamp when the liveaction was created.",
+    )
     end_timestamp = ComplexDateTimeField(
-        help_text='The timestamp when the liveaction has finished.')
+        help_text="The timestamp when the liveaction has finished."
+    )
     parameters = stormbase.EscapedDynamicField(
         default={},
-        help_text='The key-value pairs passed as to the action runner & action.')
+        help_text="The key-value pairs passed as to the action runner & action.",
+    )
     result = stormbase.EscapedDynamicField(
-        default={},
-        help_text='Action defined result.')
+        default={}, help_text="Action defined result."
+    )
     context = me.DictField(
-        default={},
-        help_text='Contextual information on the action execution.')
+        default={}, help_text="Contextual information on the action execution."
+    )
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
     log = me.ListField(field=me.DictField())
@@ -76,49 +76,51 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     web_url = me.StringField(required=False)
 
     meta = {
-        'indexes': [
-            {'fields': ['rule.ref']},
-            {'fields': ['action.ref']},
-            {'fields': ['liveaction.id']},
-            {'fields': ['start_timestamp']},
-            {'fields': ['end_timestamp']},
-            {'fields': ['status']},
-            {'fields': ['parent']},
-            {'fields': ['rule.name']},
-            {'fields': ['runner.name']},
-            {'fields': ['trigger.name']},
-            {'fields': ['trigger_type.name']},
-            {'fields': ['trigger_instance.id']},
-            {'fields': ['context.user']},
-            {'fields': ['-start_timestamp', 'action.ref', 'status']},
-            {'fields': ['workflow_execution']},
-            {'fields': ['task_execution']}
+        "indexes": [
+            {"fields": ["rule.ref"]},
+            {"fields": ["action.ref"]},
+            {"fields": ["liveaction.id"]},
+            {"fields": ["start_timestamp"]},
+            {"fields": ["end_timestamp"]},
+            {"fields": ["status"]},
+            {"fields": ["parent"]},
+            {"fields": ["rule.name"]},
+            {"fields": ["runner.name"]},
+            {"fields": ["trigger.name"]},
+            {"fields": ["trigger_type.name"]},
+            {"fields": ["trigger_instance.id"]},
+            {"fields": ["context.user"]},
+            {"fields": ["-start_timestamp", "action.ref", "status"]},
+            {"fields": ["workflow_execution"]},
+            {"fields": ["task_execution"]},
         ]
     }
 
     def get_uid(self):
-        # TODO Construct od from non id field:
-        uid = [self.RESOURCE_TYPE, str(self.id)]
-        return ':'.join(uid)
+        # TODO Construct id from non id field:
+        uid = [self.RESOURCE_TYPE, str(self.id)]  # pylint: disable=no-member
+        return ":".join(uid)
 
     def mask_secrets(self, value):
         result = copy.deepcopy(value)
 
-        liveaction = result['liveaction']
+        liveaction = result["liveaction"]
         parameters = {}
         # pylint: disable=no-member
-        parameters.update(value.get('action', {}).get('parameters', {}))
-        parameters.update(value.get('runner', {}).get('runner_parameters', {}))
+        parameters.update(value.get("action", {}).get("parameters", {}))
+        parameters.update(value.get("runner", {}).get("runner_parameters", {}))
 
         secret_parameters = get_secret_parameters(parameters=parameters)
-        result['parameters'] = mask_secret_parameters(parameters=result.get('parameters', {}),
-                                                      secret_parameters=secret_parameters)
+        result["parameters"] = mask_secret_parameters(
+            parameters=result.get("parameters", {}), secret_parameters=secret_parameters
+        )
 
-        if 'parameters' in liveaction:
-            liveaction['parameters'] = mask_secret_parameters(parameters=liveaction['parameters'],
-                                                              secret_parameters=secret_parameters)
+        if "parameters" in liveaction:
+            liveaction["parameters"] = mask_secret_parameters(
+                parameters=liveaction["parameters"], secret_parameters=secret_parameters
+            )
 
-            if liveaction.get('action', '') == 'st2.inquiry.respond':
+            if liveaction.get("action", "") == "st2.inquiry.respond":
                 # Special case to mask parameters for `st2.inquiry.respond` action
                 # In this case, this execution is just a plain python action, not
                 # an inquiry, so we don't natively have a handle on the response
@@ -130,22 +132,24 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
                 #       it's just a placeholder to tell mask_secret_parameters()
                 #       that this parameter is indeed a secret parameter and to
                 #       mask it.
-                result['parameters']['response'] = mask_secret_parameters(
-                    parameters=liveaction['parameters']['response'],
-                    secret_parameters={p: 'string' for p in liveaction['parameters']['response']}
+                result["parameters"]["response"] = mask_secret_parameters(
+                    parameters=liveaction["parameters"]["response"],
+                    secret_parameters={
+                        p: "string" for p in liveaction["parameters"]["response"]
+                    },
                 )
 
         # TODO(mierdin): This logic should be moved to the dedicated Inquiry
         # data model once it exists.
-        if self.runner.get('name') == "inquirer":
+        if self.runner.get("name") == "inquirer":
 
-            schema = result['result'].get('schema', {})
-            response = result['result'].get('response', {})
+            schema = result["result"].get("schema", {})
+            response = result["result"].get("response", {})
 
             # We can only mask response secrets if response and schema exist and are
             # not empty
             if response and schema:
-                result['result']['response'] = mask_inquiry_response(response, schema)
+                result["result"]["response"] = mask_inquiry_response(response, schema)
         return result
 
     def get_masked_parameters(self):
@@ -155,7 +159,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         :rtype: ``dict``
         """
         serializable_dict = self.to_serializable_dict(mask_secrets=True)
-        return serializable_dict['parameters']
+        return serializable_dict["parameters"]
 
 
 class ActionExecutionOutputDB(stormbase.StormFoundationDB):
@@ -174,22 +178,25 @@ class ActionExecutionOutputDB(stormbase.StormFoundationDB):
         data: Actual output data. This could either be line, chunk or similar, depending on the
               runner.
     """
+
     execution_id = me.StringField(required=True)
     action_ref = me.StringField(required=True)
     runner_ref = me.StringField(required=True)
-    timestamp = ComplexDateTimeField(required=True, default=date_utils.get_datetime_utc_now)
-    output_type = me.StringField(required=True, default='output')
+    timestamp = ComplexDateTimeField(
+        required=True, default=date_utils.get_datetime_utc_now
+    )
+    output_type = me.StringField(required=True, default="output")
     delay = me.IntField()
 
     data = me.StringField()
 
     meta = {
-        'indexes': [
-            {'fields': ['execution_id']},
-            {'fields': ['action_ref']},
-            {'fields': ['runner_ref']},
-            {'fields': ['timestamp']},
-            {'fields': ['output_type']}
+        "indexes": [
+            {"fields": ["execution_id"]},
+            {"fields": ["action_ref"]},
+            {"fields": ["runner_ref"]},
+            {"fields": ["timestamp"]},
+            {"fields": ["output_type"]},
         ]
     }
 

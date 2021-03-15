@@ -23,32 +23,26 @@ import six
 from st2common.logging.filters import LoggerFunctionNameExclusionFilter
 
 __all__ = [
-    'reopen_log_files',
-
-    'set_log_level_for_all_handlers',
-    'set_log_level_for_all_loggers',
-
-    'add_global_filters_for_all_loggers'
+    "reopen_log_files",
+    "set_log_level_for_all_handlers",
+    "set_log_level_for_all_loggers",
+    "add_global_filters_for_all_loggers",
 ]
 
 LOG = logging.getLogger(__name__)
 
 # Because some loggers are just waste of attention span
-SPECIAL_LOGGERS = {
-    'swagger_spec_validator.ref_validators': logging.INFO
-}
+SPECIAL_LOGGERS = {"swagger_spec_validator.ref_validators": logging.INFO}
 
 # Log messages for function names which are very spammy and we want to filter out when DEBUG log
 # level is enabled
 IGNORED_FUNCTION_NAMES = [
     # Used by pyamqp, logs every heartbit tick every 2 ms by default
-    'heartbeat_tick'
+    "heartbeat_tick"
 ]
 
 # List of global filters which apply to all the loggers
-GLOBAL_FILTERS = [
-    LoggerFunctionNameExclusionFilter(exclusions=IGNORED_FUNCTION_NAMES)
-]
+GLOBAL_FILTERS = [LoggerFunctionNameExclusionFilter(exclusions=IGNORED_FUNCTION_NAMES)]
 
 
 def reopen_log_files(handlers):
@@ -65,8 +59,10 @@ def reopen_log_files(handlers):
         if not isinstance(handler, logging.FileHandler):
             continue
 
-        LOG.info('Re-opening log file "%s" with mode "%s"\n' %
-                 (handler.baseFilename, handler.mode))
+        LOG.info(
+            'Re-opening log file "%s" with mode "%s"\n'
+            % (handler.baseFilename, handler.mode)
+        )
 
         try:
             handler.acquire()
@@ -76,10 +72,10 @@ def reopen_log_files(handlers):
             try:
                 handler.release()
             except RuntimeError as e:
-                if 'cannot release' in six.text_type(e):
+                if "cannot release" in six.text_type(e):
                     # Release failed which most likely indicates that acquire failed
                     # and lock was never acquired
-                    LOG.warn('Failed to release lock', exc_info=True)
+                    LOG.warn("Failed to release lock", exc_info=True)
                 else:
                     raise e
 
@@ -112,7 +108,9 @@ def set_log_level_for_all_loggers(level=logging.DEBUG):
         logger = add_filters_for_logger(logger=logger, filters=GLOBAL_FILTERS)
 
         if logger.name in SPECIAL_LOGGERS:
-            set_log_level_for_all_handlers(logger=logger, level=SPECIAL_LOGGERS.get(logger.name))
+            set_log_level_for_all_handlers(
+                logger=logger, level=SPECIAL_LOGGERS.get(logger.name)
+            )
         else:
             set_log_level_for_all_handlers(logger=logger, level=level)
 
@@ -152,7 +150,7 @@ def add_filters_for_logger(logger, filters):
     if not isinstance(logger, logging.Logger):
         return logger
 
-    if not hasattr(logger, 'addFilter'):
+    if not hasattr(logger, "addFilter"):
         return logger
 
     for logger_filter in filters:
@@ -170,7 +168,7 @@ def get_logger_name_for_module(module, exclude_module_name=False):
     module_file = module.__file__
     base_dir = os.path.dirname(os.path.abspath(module_file))
     module_name = os.path.basename(module_file)
-    module_name = module_name.replace('.pyc', '').replace('.py', '')
+    module_name = module_name.replace(".pyc", "").replace(".py", "")
 
     split = base_dir.split(os.path.sep)
     split = [component for component in split if component]
@@ -178,15 +176,15 @@ def get_logger_name_for_module(module, exclude_module_name=False):
     # Find first component which starts with st2 and use that as a starting point
     start_index = 0
     for index, component in enumerate(reversed(split)):
-        if component.startswith('st2'):
-            start_index = ((len(split) - 1) - index)
+        if component.startswith("st2"):
+            start_index = (len(split) - 1) - index
             break
 
     split = split[start_index:]
 
     if exclude_module_name:
-        name = '.'.join(split)
+        name = ".".join(split)
     else:
-        name = '.'.join(split) + '.' + module_name
+        name = ".".join(split) + "." + module_name
 
     return name

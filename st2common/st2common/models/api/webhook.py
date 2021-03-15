@@ -15,20 +15,15 @@
 
 from st2common.models.api.base import BaseAPI
 
-__all___ = [
-    'WebhookBodyAPI'
-]
+__all___ = ["WebhookBodyAPI"]
 
 
 class WebhookBodyAPI(BaseAPI):
     schema = {
-        'type': 'object',
-        'properties': {
+        "type": "object",
+        "properties": {
             # Holds actual webhook body
-            'data': {
-                'type': ['object', 'array'],
-                'required': True
-            }
+            "data": {"type": ["object", "array"], "required": True}
         },
-        'additionalProperties': False
+        "additionalProperties": False,
     }

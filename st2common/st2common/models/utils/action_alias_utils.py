@@ -18,9 +18,15 @@ from __future__ import absolute_import
 import re
 import sys
 
-from sre_parse import (     # pylint: disable=E0611
-    parse, AT, AT_BEGINNING, AT_BEGINNING_STRING,
-    AT_END, AT_END_STRING, BRANCH, SUBPATTERN,
+from sre_parse import (  # pylint: disable=E0611
+    parse,
+    AT,
+    AT_BEGINNING,
+    AT_BEGINNING_STRING,
+    AT_END,
+    AT_END_STRING,
+    BRANCH,
+    SUBPATTERN,
 )
 
 from st2common.util.jinja import render_values
@@ -30,11 +36,10 @@ from st2common.exceptions.content import ParseException
 from st2common import log
 
 __all__ = [
-    'ActionAliasFormatParser',
-
-    'extract_parameters_for_action_alias_db',
-    'extract_parameters',
-    'search_regex_tokens',
+    "ActionAliasFormatParser",
+    "extract_parameters_for_action_alias_db",
+    "extract_parameters",
+    "search_regex_tokens",
 ]
 
 
@@ -48,10 +53,9 @@ else:
 
 
 class ActionAliasFormatParser(object):
-
     def __init__(self, alias_format=None, param_stream=None):
-        self._format = alias_format or ''
-        self._original_param_stream = param_stream or ''
+        self._format = alias_format or ""
+        self._original_param_stream = param_stream or ""
         self._param_stream = self._original_param_stream
         self._snippets = self.generate_snippets()
 
@@ -76,26 +80,26 @@ class ActionAliasFormatParser(object):
 
         # Formats for keys and values: key is a non-spaced string,
         # value is anything in quotes or curly braces, or a single word.
-        snippets['key'] = r'\s*(\S+?)\s*'
-        snippets['value'] = r'""|\'\'|"(.+?)"|\'(.+?)\'|({.+?})|(\S+)'
+        snippets["key"] = r"\s*(\S+?)\s*"
+        snippets["value"] = r'""|\'\'|"(.+?)"|\'(.+?)\'|({.+?})|(\S+)'
 
         # Extended value: also matches unquoted text (caution).
-        snippets['ext_value'] = r'""|\'\'|"(.+?)"|\'(.+?)\'|({.+?})|(.+?)'
+        snippets["ext_value"] = r'""|\'\'|"(.+?)"|\'(.+?)\'|({.+?})|(.+?)'
 
         # Key-value pair:
-        snippets['pairs'] = r'(?:^|\s+){key}=({value})'.format(**snippets)
+        snippets["pairs"] = r"(?:^|\s+){key}=({value})".format(**snippets)
 
         # End of string: multiple space-separated key-value pairs:
-        snippets['ending'] = r'.*?(({pairs}\s*)*)$'.format(**snippets)
+        snippets["ending"] = r".*?(({pairs}\s*)*)$".format(**snippets)
 
         # Default value in optional parameters:
-        snippets['default'] = r'\s*=\s*(?:{ext_value})\s*'.format(**snippets)
+        snippets["default"] = r"\s*=\s*(?:{ext_value})\s*".format(**snippets)
 
         # Optional parameter (has a default value):
-        snippets['optional'] = '{{' + snippets['key'] + snippets['default'] + '}}'
+        snippets["optional"] = "{{" + snippets["key"] + snippets["default"] + "}}"
 
         # Required parameter (no default value):
-        snippets['required'] = '{{' + snippets['key'] + '}}'
+        snippets["required"] = "{{" + snippets["key"] + "}}"
 
         return snippets
 
@@ -105,11 +109,13 @@ class ActionAliasFormatParser(object):
         # 1. Matching the arbitrary key-value pairs at the end of the command
         # to support extra parameters (not specified in the format string),
         # and cutting them from the command string afterwards.
-        ending_pairs = re.match(self._snippets['ending'], param_stream, re.DOTALL)
+        ending_pairs = re.match(self._snippets["ending"], param_stream, re.DOTALL)
         has_ending_pairs = ending_pairs and ending_pairs.group(1)
         if has_ending_pairs:
-            kv_pairs = re.findall(self._snippets['pairs'], ending_pairs.group(1), re.DOTALL)
-            param_stream = param_stream.replace(ending_pairs.group(1), '')
+            kv_pairs = re.findall(
+                self._snippets["pairs"], ending_pairs.group(1), re.DOTALL
+            )
+            param_stream = param_stream.replace(ending_pairs.group(1), "")
         else:
             kv_pairs = []
         param_stream = " %s " % (param_stream)
@@ -118,27 +124,36 @@ class ActionAliasFormatParser(object):
 
     def generate_optional_params_regex(self):
         # 2. Matching optional parameters (with default values).
-        return re.findall(self._snippets['optional'], self._format, re.DOTALL)
+        return re.findall(self._snippets["optional"], self._format, re.DOTALL)
 
     def transform_format_string_into_regex(self):
         # 3. Convert the mangled format string into a regex object
         # Transforming our format string into a regular expression,
         # substituting {{ ... }} with regex named groups, so that param_stream
         # matched against this expression yields a dict of params with values.
-        param_match = r'\1["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
-        reg = re.sub(r'(\s*)' + self._snippets['optional'], r'(?:' + param_match + r')?',
-                     self._format)
-        reg = re.sub(r'(\s*)' + self._snippets['required'], param_match, reg)
+        param_match = (
+            r'\1["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
+        )
+        reg = re.sub(
+            r"(\s*)" + self._snippets["optional"],
+            r"(?:" + param_match + r")?",
+            self._format,
+        )
+        reg = re.sub(r"(\s*)" + self._snippets["required"], param_match, reg)
 
         reg_tokens = parse(reg, flags=re.DOTALL)
 
         # Add a beginning anchor if none exists
-        if not search_regex_tokens(((AT, AT_BEGINNING), (AT, AT_BEGINNING_STRING)), reg_tokens):
-            reg = r'^\s*' + reg
+        if not search_regex_tokens(
+            ((AT, AT_BEGINNING), (AT, AT_BEGINNING_STRING)), reg_tokens
+        ):
+            reg = r"^\s*" + reg
 
         # Add an ending anchor if none exists
-        if not search_regex_tokens(((AT, AT_END), (AT, AT_END_STRING)), reg_tokens, backwards=True):
-            reg = reg + r'\s*$'
+        if not search_regex_tokens(
+            ((AT, AT_END), (AT, AT_END_STRING)), reg_tokens, backwards=True
+        ):
+            reg = reg + r"\s*$"
 
         return re.compile(reg, re.DOTALL)
 
@@ -147,8 +162,10 @@ class ActionAliasFormatParser(object):
         if not matched_stream:
             # If no match is found we throw since this indicates provided user string (command)
             # didn't match the provided format string
-            raise ParseException('Command "%s" doesn\'t match format string "%s"' %
-                                 (self._original_param_stream, self._format))
+            raise ParseException(
+                'Command "%s" doesn\'t match format string "%s"'
+                % (self._original_param_stream, self._format)
+            )
 
         # Compiling results from the steps 1-3.
         if matched_stream:
@@ -157,16 +174,16 @@ class ActionAliasFormatParser(object):
         # Apply optional parameters/add the default parameters
         for param in self._optional:
             matched_value = result[param[0]] if matched_stream else None
-            matched_result = matched_value or ''.join(param[1:])
+            matched_result = matched_value or "".join(param[1:])
             if matched_result is not None:
                 result[param[0]] = matched_result
 
         # Apply given parameters
         for pair in self._kv_pairs:
-            result[pair[0]] = ''.join(pair[2:])
+            result[pair[0]] = "".join(pair[2:])
 
         if self._format and not (self._param_stream.strip() or any(result.values())):
-            raise ParseException('No value supplied and no default value found.')
+            raise ParseException("No value supplied and no default value found.")
 
         return result
 
@@ -196,8 +213,9 @@ class ActionAliasFormatParser(object):
         return results
 
 
-def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_stream,
-                                           match_multiple=False):
+def extract_parameters_for_action_alias_db(
+    action_alias_db, format_str, param_stream, match_multiple=False
+):
     """
     Extract parameters from the user input based on the provided format string.
 
@@ -208,13 +226,14 @@ def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_st
     formats = action_alias_db.get_format_strings()
 
     if format_str not in formats:
-        raise ValueError('Format string "%s" is not available on the alias "%s"' %
-                         (format_str, action_alias_db.name))
+        raise ValueError(
+            'Format string "%s" is not available on the alias "%s"'
+            % (format_str, action_alias_db.name)
+        )
 
     result = extract_parameters(
-        format_str=format_str,
-        param_stream=param_stream,
-        match_multiple=match_multiple)
+        format_str=format_str, param_stream=param_stream, match_multiple=match_multiple
+    )
     return result
 
 
@@ -226,7 +245,9 @@ def extract_parameters(format_str, param_stream, match_multiple=False):
         return parser.get_extracted_param_value()
 
 
-def inject_immutable_parameters(action_alias_db, multiple_execution_parameters, action_context):
+def inject_immutable_parameters(
+    action_alias_db, multiple_execution_parameters, action_context
+):
     """
     Inject immutable parameters from the alias definiton on the execution parameters.
     Jinja expressions will be resolved.
@@ -235,26 +256,34 @@ def inject_immutable_parameters(action_alias_db, multiple_execution_parameters, 
     if not immutable_parameters:
         return multiple_execution_parameters
 
-    user = action_context.get('user', None)
+    user = action_context.get("user", None)
 
     context = {}
-    context.update({
-        kv_constants.DATASTORE_PARENT_SCOPE: {
-            kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
-                scope=kv_constants.FULL_SYSTEM_SCOPE),
-            kv_constants.USER_SCOPE: kv_service.UserKeyValueLookup(
-                scope=kv_constants.FULL_USER_SCOPE, user=user)
+    context.update(
+        {
+            kv_constants.DATASTORE_PARENT_SCOPE: {
+                kv_constants.SYSTEM_SCOPE: kv_service.KeyValueLookup(
+                    scope=kv_constants.FULL_SYSTEM_SCOPE
+                ),
+                kv_constants.USER_SCOPE: kv_service.UserKeyValueLookup(
+                    scope=kv_constants.FULL_USER_SCOPE, user=user
+                ),
+            }
         }
-    })
+    )
     context.update(action_context)
     rendered_params = render_values(immutable_parameters, context)
 
     for exec_params in multiple_execution_parameters:
-        overriden = [param for param in immutable_parameters.keys() if param in exec_params]
+        overriden = [
+            param for param in immutable_parameters.keys() if param in exec_params
+        ]
         if overriden:
             raise ValueError(
                 "Immutable arguments cannot be overriden: {}".format(
-                    ','.join(overriden)))
+                    ",".join(overriden)
+                )
+            )
 
         exec_params.update(rendered_params)
 

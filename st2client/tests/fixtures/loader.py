@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 try:
     import simplejson as json
 except ImportError:
@@ -24,8 +25,8 @@ import six
 import yaml
 
 
-ALLOWED_EXTS = ['.json', '.yaml', '.yml', '.txt']
-PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
+ALLOWED_EXTS = [".json", ".yaml", ".yml", ".txt"]
+PARSER_FUNCS = {".json": json.load, ".yml": yaml.safe_load, ".yaml": yaml.safe_load}
 
 
 def get_fixtures_base_path():
@@ -44,12 +45,14 @@ def load_content(file_path):
     file_name, file_ext = os.path.splitext(file_path)
 
     if file_ext not in ALLOWED_EXTS:
-        raise Exception('Unsupported meta type %s, file %s. Allowed: %s' %
-                        (file_ext, file_path, ALLOWED_EXTS))
+        raise Exception(
+            "Unsupported meta type %s, file %s. Allowed: %s"
+            % (file_ext, file_path, ALLOWED_EXTS)
+        )
 
     parser_func = PARSER_FUNCS.get(file_ext, None)
 
-    with open(file_path, 'r') as fd:
+    with open(file_path, "r") as fd:
         return parser_func(fd) if parser_func else fd.read()
 
 
@@ -75,7 +78,7 @@ def load_fixtures(fixtures_dict=None):
     for fixture_type, fixtures in six.iteritems(fixtures_dict):
         loaded_fixtures = {}
         for fixture in fixtures:
-            fixture_path = fixtures_base_path + '/' + fixture
+            fixture_path = fixtures_base_path + "/" + fixture
             fixture_dict = load_content(fixture_path)
             loaded_fixtures[fixture] = fixture_dict
         all_fixtures[fixture_type] = loaded_fixtures

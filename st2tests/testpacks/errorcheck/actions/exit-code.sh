@@ -6,4 +6,4 @@ if [ -n "$1" ]
         exit_code=$1
 fi
 
-exit $exit_code 
+exit $exit_code

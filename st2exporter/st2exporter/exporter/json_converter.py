@@ -15,15 +15,12 @@
 
 from st2common.util.jsonify import json_encode
 
-__all__ = [
-    'JsonConverter'
-]
+__all__ = ["JsonConverter"]
 
 
 class JsonConverter(object):
-
     def convert(self, items_list):
         if not isinstance(items_list, list):
-            raise ValueError('Items to be converted should be a list.')
+            raise ValueError("Items to be converted should be a list.")
         json_doc = json_encode(items_list)
         return json_doc

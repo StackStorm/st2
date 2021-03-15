@@ -17,10 +17,10 @@ from __future__ import absolute_import
 
 import os
 import re
-import collections
 
 import six
 
+from collections.abc import Iterable
 from st2common.util import schema as util_schema
 from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
@@ -30,27 +30,28 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.util import jinja as jinja_utils
 
 __all__ = [
-    'get_pack_ref_from_metadata',
-    'get_pack_metadata',
-    'get_pack_warnings',
-
-    'get_pack_common_libs_path_for_pack_ref',
-    'get_pack_common_libs_path_for_pack_db',
-
-    'validate_config_against_schema',
-
-    'normalize_pack_version'
+    "get_pack_ref_from_metadata",
+    "get_pack_metadata",
+    "get_pack_warnings",
+    "get_pack_common_libs_path_for_pack_ref",
+    "get_pack_common_libs_path_for_pack_db",
+    "validate_config_against_schema",
+    "normalize_pack_version",
 ]
 
 # Common format for python 2.7 warning
 if six.PY2:
-    PACK_PYTHON2_WARNING = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
-                           "Python 2 support will be dropped in future releases. " \
-                           "Please consider updating your packs to work with Python 3.x"
+    PACK_PYTHON2_WARNING = (
+        "DEPRECATION WARNING: Pack %s only supports Python 2.x. "
+        "Python 2 support will be dropped in future releases. "
+        "Please consider updating your packs to work with Python 3.x"
+    )
 else:
-    PACK_PYTHON2_WARNING = "DEPRECATION WARNING: Pack %s only supports Python 2.x. " \
-                           "Python 2 support has been removed since st2 v3.4.0. " \
-                           "Please update your packs to work with Python 3.x"
+    PACK_PYTHON2_WARNING = (
+        "DEPRECATION WARNING: Pack %s only supports Python 2.x. "
+        "Python 2 support has been removed since st2 v3.4.0. "
+        "Please update your packs to work with Python 3.x"
+    )
 
 
 def get_pack_ref_from_metadata(metadata, pack_directory_name=None):
@@ -69,19 +70,23 @@ def get_pack_ref_from_metadata(metadata, pack_directory_name=None):
     # which are in sub-directories)
     # 2. If attribute is not available, but pack name is and pack name meets the valid name
     # criteria, we use that
-    if metadata.get('ref', None):
-        pack_ref = metadata['ref']
-    elif pack_directory_name and re.match(PACK_REF_WHITELIST_REGEX, pack_directory_name):
+    if metadata.get("ref", None):
+        pack_ref = metadata["ref"]
+    elif pack_directory_name and re.match(
+        PACK_REF_WHITELIST_REGEX, pack_directory_name
+    ):
         pack_ref = pack_directory_name
     else:
-        if re.match(PACK_REF_WHITELIST_REGEX, metadata['name']):
-            pack_ref = metadata['name']
+        if re.match(PACK_REF_WHITELIST_REGEX, metadata["name"]):
+            pack_ref = metadata["name"]
         else:
-            msg = ('Pack name "%s" contains invalid characters and "ref" attribute is not '
-                   'available. You either need to add "ref" attribute which contains only word '
-                   'characters to the pack metadata file or update name attribute to contain only'
-                   'word characters.')
-            raise ValueError(msg % (metadata['name']))
+            msg = (
+                'Pack name "%s" contains invalid characters and "ref" attribute is not '
+                'available. You either need to add "ref" attribute which contains only word '
+                "characters to the pack metadata file or update name attribute to contain only"
+                "word characters."
+            )
+            raise ValueError(msg % (metadata["name"]))
 
     return pack_ref
 
@@ -95,7 +100,9 @@ def get_pack_metadata(pack_dir):
     manifest_path = os.path.join(pack_dir, MANIFEST_FILE_NAME)
 
     if not os.path.isfile(manifest_path):
-        raise ValueError('Pack "%s" is missing %s file' % (pack_dir, MANIFEST_FILE_NAME))
+        raise ValueError(
+            'Pack "%s" is missing %s file' % (pack_dir, MANIFEST_FILE_NAME)
+        )
 
     meta_loader = MetaLoader()
     content = meta_loader.load(manifest_path)
@@ -112,15 +119,16 @@ def get_pack_warnings(pack_metadata):
     :rtype: ``str``
     """
     warning = None
-    versions = pack_metadata.get('python_versions', None)
-    pack_name = pack_metadata.get('name', None)
-    if versions and set(versions) == set(['2']):
+    versions = pack_metadata.get("python_versions", None)
+    pack_name = pack_metadata.get("name", None)
+    if versions and set(versions) == set(["2"]):
         warning = PACK_PYTHON2_WARNING % pack_name
     return warning
 
 
-def validate_config_against_schema(config_schema, config_object, config_path,
-                                  pack_name=None):
+def validate_config_against_schema(
+    config_schema, config_object, config_path, pack_name=None
+):
     """
     Validate provided config dictionary against the provided config schema
     dictionary.
@@ -128,35 +136,49 @@ def validate_config_against_schema(config_schema, config_object, config_path,
     # NOTE: Lazy improt to avoid performance overhead of importing this module when it's not used
     import jsonschema
 
-    pack_name = pack_name or 'unknown'
+    pack_name = pack_name or "unknown"
 
-    schema = util_schema.get_schema_for_resource_parameters(parameters_schema=config_schema,
-                                                            allow_additional_properties=True)
+    schema = util_schema.get_schema_for_resource_parameters(
+        parameters_schema=config_schema, allow_additional_properties=True
+    )
     instance = config_object
 
     try:
-        cleaned = util_schema.validate(instance=instance, schema=schema,
-                                       cls=util_schema.CustomValidator, use_default=True,
-                                       allow_default_none=True)
+        cleaned = util_schema.validate(
+            instance=instance,
+            schema=schema,
+            cls=util_schema.CustomValidator,
+            use_default=True,
+            allow_default_none=True,
+        )
         for key in cleaned:
-            if (jinja_utils.is_jinja_expression(value=cleaned.get(key)) and
-                    "decrypt_kv" in cleaned.get(key) and config_schema.get(key).get('secret')):
-                raise ValueValidationException('Values specified as "secret: True" in config '
-                                               'schema are automatically decrypted by default. Use '
-                                               'of "decrypt_kv" jinja filter is not allowed for '
-                                               'such values. Please check the specified values in '
-                                               'the config or the default values in the schema.')
+            if (
+                jinja_utils.is_jinja_expression(value=cleaned.get(key))
+                and "decrypt_kv" in cleaned.get(key)
+                and config_schema.get(key).get("secret")
+            ):
+                raise ValueValidationException(
+                    'Values specified as "secret: True" in config '
+                    "schema are automatically decrypted by default. Use "
+                    'of "decrypt_kv" jinja filter is not allowed for '
+                    "such values. Please check the specified values in "
+                    "the config or the default values in the schema."
+                )
     except jsonschema.ValidationError as e:
-        attribute = getattr(e, 'path', [])
+        attribute = getattr(e, "path", [])
 
-        if isinstance(attribute, (tuple, list, collections.Iterable)):
+        if isinstance(attribute, (tuple, list, Iterable)):
             attribute = [str(item) for item in attribute]
-            attribute = '.'.join(attribute)
+            attribute = ".".join(attribute)
         else:
             attribute = str(attribute)
 
-        msg = ('Failed validating attribute "%s" in config for pack "%s" (%s): %s' %
-               (attribute, pack_name, config_path, six.text_type(e)))
+        msg = 'Failed validating attribute "%s" in config for pack "%s" (%s): %s' % (
+            attribute,
+            pack_name,
+            config_path,
+            six.text_type(e),
+        )
         raise jsonschema.ValidationError(msg)
 
     return cleaned
@@ -183,12 +205,12 @@ def get_pack_common_libs_path_for_pack_db(pack_db):
 
     :rtype: ``str``
     """
-    pack_dir = getattr(pack_db, 'path', None)
+    pack_dir = getattr(pack_db, "path", None)
 
     if not pack_dir:
         return None
 
-    libs_path = os.path.join(pack_dir, 'lib')
+    libs_path = os.path.join(pack_dir, "lib")
 
     return libs_path
 
@@ -202,8 +224,8 @@ def normalize_pack_version(version):
     """
     version = str(version)
 
-    version_seperator_count = version.count('.')
+    version_seperator_count = version.count(".")
     if version_seperator_count == 1:
-        version = version + '.0'
+        version = version + ".0"
 
     return version

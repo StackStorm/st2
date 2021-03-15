@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'get_url_without_trailing_slash'
-]
+__all__ = ["get_url_without_trailing_slash"]
 
 
 def get_url_without_trailing_slash(value):
@@ -27,5 +25,5 @@ def get_url_without_trailing_slash(value):
 
     :rtype: ``str``
     """
-    result = value[:-1] if value.endswith('/') else value
+    result = value[:-1] if value.endswith("/") else value
     return result

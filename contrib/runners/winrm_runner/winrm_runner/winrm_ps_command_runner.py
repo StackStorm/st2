@@ -20,19 +20,14 @@ from st2common import log as logging
 from st2common.runners.base import get_metadata as get_runner_metadata
 from winrm_runner.winrm_base import WinRmBaseRunner
 
-__all__ = [
-    'WinRmPsCommandRunner',
-    'get_runner',
-    'get_metadata'
-]
+__all__ = ["WinRmPsCommandRunner", "get_runner", "get_metadata"]
 
 LOG = logging.getLogger(__name__)
 
-RUNNER_COMMAND = 'cmd'
+RUNNER_COMMAND = "cmd"
 
 
 class WinRmPsCommandRunner(WinRmBaseRunner):
-
     def run(self, action_parameters):
         powershell_command = self.runner_parameters[RUNNER_COMMAND]
 
@@ -45,7 +40,10 @@ def get_runner():
 
 
 def get_metadata():
-    metadata = get_runner_metadata('winrm_runner')
-    metadata = [runner for runner in metadata if
-                runner['runner_module'] == __name__.split('.')[-1]][0]
+    metadata = get_runner_metadata("winrm_runner")
+    metadata = [
+        runner
+        for runner in metadata
+        if runner["runner_module"] == __name__.split(".")[-1]
+    ][0]
     return metadata

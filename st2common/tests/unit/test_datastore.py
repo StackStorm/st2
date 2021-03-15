@@ -28,12 +28,10 @@ from st2client.models.keyvalue import KeyValuePair
 from st2tests import DbTestCase
 from st2tests import config
 
-__all__ = [
-    'DatastoreServiceTestCase'
-]
+__all__ = ["DatastoreServiceTestCase"]
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
-RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
+RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../resources"))
 
 
 class DatastoreServiceTestCase(DbTestCase):
@@ -41,9 +39,9 @@ class DatastoreServiceTestCase(DbTestCase):
         super(DatastoreServiceTestCase, self).setUp()
         config.parse_args()
 
-        self._datastore_service = BaseDatastoreService(logger=mock.Mock(),
-                                                       pack_name='core',
-                                                       class_name='TestSensor')
+        self._datastore_service = BaseDatastoreService(
+            logger=mock.Mock(), pack_name="core", class_name="TestSensor"
+        )
         self._datastore_service.get_api_client = mock.Mock()
 
     def test_datastore_operations_list_values(self):
@@ -53,14 +51,22 @@ class DatastoreServiceTestCase(DbTestCase):
         self._set_mock_api_client(mock_api_client)
 
         self._datastore_service.list_values(local=True, prefix=None)
-        mock_api_client.keys.get_all.assert_called_with(prefix='core.TestSensor:')
-        self._datastore_service.list_values(local=True, prefix='ponies')
-        mock_api_client.keys.get_all.assert_called_with(prefix='core.TestSensor:ponies')
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="core.TestSensor:", limit=100, offset=0
+        )
+        self._datastore_service.list_values(local=True, prefix="ponies")
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="core.TestSensor:ponies", limit=100, offset=0
+        )
 
         self._datastore_service.list_values(local=False, prefix=None)
-        mock_api_client.keys.get_all.assert_called_with(prefix=None)
-        self._datastore_service.list_values(local=False, prefix='ponies')
-        mock_api_client.keys.get_all.assert_called_with(prefix='ponies')
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix=None, limit=100, offset=0
+        )
+        self._datastore_service.list_values(local=False, prefix="ponies")
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="ponies", limit=100, offset=0
+        )
 
         # No values in the datastore
         mock_api_client = mock.Mock()
@@ -74,11 +80,11 @@ class DatastoreServiceTestCase(DbTestCase):
 
         # Values in the datastore
         kvp1 = KeyValuePair()
-        kvp1.name = 'test1'
-        kvp1.value = 'bar'
+        kvp1.name = "test1"
+        kvp1.value = "bar"
         kvp2 = KeyValuePair()
-        kvp2.name = 'test2'
-        kvp2.value = 'bar'
+        kvp2.name = "test2"
+        kvp2.value = "bar"
         mock_return_value = [kvp1, kvp2]
         mock_api_client.keys.get_all.return_value = mock_return_value
         self._set_mock_api_client(mock_api_client)
@@ -87,15 +93,27 @@ class DatastoreServiceTestCase(DbTestCase):
         self.assertEqual(len(values), 2)
         self.assertEqual(values, mock_return_value)
 
+        # Test limit
+        _ = self._datastore_service.list_values(local=True, limit=1)
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="core.TestSensor:", limit=1, offset=0
+        )
+
+        # Test offset
+        _ = self._datastore_service.list_values(local=True, offset=1)
+        mock_api_client.keys.get_all.assert_called_with(
+            prefix="core.TestSensor:", limit=100, offset=1
+        )
+
     def test_datastore_operations_get_value(self):
         mock_api_client = mock.Mock()
         kvp1 = KeyValuePair()
-        kvp1.name = 'test1'
-        kvp1.value = 'bar'
+        kvp1.name = "test1"
+        kvp1.value = "bar"
         mock_api_client.keys.get_by_id.return_value = kvp1
         self._set_mock_api_client(mock_api_client)
 
-        value = self._datastore_service.get_value(name='test1', local=False)
+        value = self._datastore_service.get_value(name="test1", local=False)
         self.assertEqual(value, kvp1.value)
 
     def test_datastore_operations_set_value(self):
@@ -103,10 +121,12 @@ class DatastoreServiceTestCase(DbTestCase):
         mock_api_client.keys.update.return_value = True
         self._set_mock_api_client(mock_api_client)
 
-        value = self._datastore_service.set_value(name='test1', value='foo', local=False)
+        value = self._datastore_service.set_value(
+            name="test1", value="foo", local=False
+        )
         self.assertTrue(value)
-        kvp = mock_api_client.keys.update.call_args[1]['instance']
-        self.assertEqual(kvp.value, 'foo')
+        kvp = mock_api_client.keys.update.call_args[1]["instance"]
+        self.assertEqual(kvp.value, "foo")
         self.assertEqual(kvp.scope, SYSTEM_SCOPE)
 
     def test_datastore_operations_delete_value(self):
@@ -114,53 +134,69 @@ class DatastoreServiceTestCase(DbTestCase):
         mock_api_client.keys.delete.return_value = True
         self._set_mock_api_client(mock_api_client)
 
-        value = self._datastore_service.delete_value(name='test', local=False)
+        value = self._datastore_service.delete_value(name="test", local=False)
         self.assertTrue(value)
 
     def test_datastore_operations_set_encrypted_value(self):
         mock_api_client = mock.Mock()
         mock_api_client.keys.update.return_value = True
         self._set_mock_api_client(mock_api_client)
-        value = self._datastore_service.set_value(name='test1', value='foo', local=False,
-            encrypt=True)
+        value = self._datastore_service.set_value(
+            name="test1", value="foo", local=False, encrypt=True
+        )
         self.assertTrue(value)
-        kvp = mock_api_client.keys.update.call_args[1]['instance']
-        self.assertEqual(kvp.value, 'foo')
+        kvp = mock_api_client.keys.update.call_args[1]["instance"]
+        self.assertEqual(kvp.value, "foo")
         self.assertTrue(kvp.secret)
         self.assertEqual(kvp.scope, SYSTEM_SCOPE)
 
     def test_datastore_unsupported_scope(self):
-        self.assertRaises(ValueError, self._datastore_service.get_value, name='test1',
-            scope='NOT_SYSTEM')
-        self.assertRaises(ValueError, self._datastore_service.set_value, name='test1',
-            value='foo', scope='NOT_SYSTEM')
-        self.assertRaises(ValueError, self._datastore_service.delete_value, name='test1',
-            scope='NOT_SYSTEM')
+        self.assertRaises(
+            ValueError,
+            self._datastore_service.get_value,
+            name="test1",
+            scope="NOT_SYSTEM",
+        )
+        self.assertRaises(
+            ValueError,
+            self._datastore_service.set_value,
+            name="test1",
+            value="foo",
+            scope="NOT_SYSTEM",
+        )
+        self.assertRaises(
+            ValueError,
+            self._datastore_service.delete_value,
+            name="test1",
+            scope="NOT_SYSTEM",
+        )
 
     def test_datastore_get_exception(self):
         mock_api_client = mock.Mock()
         mock_api_client.keys.get_by_id.side_effect = ValueError("Exception test")
         self._set_mock_api_client(mock_api_client)
-        value = self._datastore_service.get_value(name='test1')
+        value = self._datastore_service.get_value(name="test1")
         self.assertEqual(value, None)
 
     def test_datastore_delete_exception(self):
         mock_api_client = mock.Mock()
         mock_api_client.keys.delete.side_effect = ValueError("Exception test")
         self._set_mock_api_client(mock_api_client)
-        delete_success = self._datastore_service.delete_value(name='test1')
+        delete_success = self._datastore_service.delete_value(name="test1")
         self.assertEqual(delete_success, False)
 
     def test_datastore_token_timeout(self):
-        datastore_service = SensorDatastoreService(logger=mock.Mock(),
-                                                   pack_name='core',
-                                                   class_name='TestSensor',
-                                                   api_username='sensor_service')
+        datastore_service = SensorDatastoreService(
+            logger=mock.Mock(),
+            pack_name="core",
+            class_name="TestSensor",
+            api_username="sensor_service",
+        )
 
         mock_api_client = mock.Mock()
         kvp1 = KeyValuePair()
-        kvp1.name = 'test1'
-        kvp1.value = 'bar'
+        kvp1.name = "test1"
+        kvp1.value = "bar"
         mock_api_client.keys.get_by_id.return_value = kvp1
 
         token_expire_time = get_datetime_utc_now() - timedelta(seconds=5)
@@ -170,10 +206,9 @@ class DatastoreServiceTestCase(DbTestCase):
         self._set_mock_api_client(mock_api_client)
 
         with mock.patch(
-            'st2common.services.datastore.Client',
-            return_value=mock_api_client
+            "st2common.services.datastore.Client", return_value=mock_api_client
         ) as datastore_client:
-            value = datastore_service.get_value(name='test1', local=False)
+            value = datastore_service.get_value(name="test1", local=False)
             self.assertTrue(datastore_client.called)
             self.assertEqual(value, kvp1.value)
             self.assertGreater(datastore_service._token_expire, token_expire_time)

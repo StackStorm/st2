@@ -22,9 +22,7 @@ from st2tests import config as tests_config
 
 from st2tests.api import FunctionalTest
 
-__all__ = [
-    'ServiceyRegistryControllerTestCase'
-]
+__all__ = ["ServiceyRegistryControllerTestCase"]
 
 
 class ServiceyRegistryControllerTestCase(FunctionalTest):
@@ -41,10 +39,11 @@ class ServiceyRegistryControllerTestCase(FunctionalTest):
 
         # NOTE: We mock call common_setup to emulate service being registered in the service
         # registry during bootstrap phase
-        register_service_in_service_registry(service='mock_service',
-                                             capabilities={'key1': 'value1',
-                                                           'name': 'mock_service'},
-                                             start_heart=True)
+        register_service_in_service_registry(
+            service="mock_service",
+            capabilities={"key1": "value1", "name": "mock_service"},
+            start_heart=True,
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -53,33 +52,40 @@ class ServiceyRegistryControllerTestCase(FunctionalTest):
         coordination.coordinator_teardown(cls.coordinator)
 
     def test_get_groups(self):
-        list_resp = self.app.get('/v1/service_registry/groups')
+        list_resp = self.app.get("/v1/service_registry/groups")
         self.assertEqual(list_resp.status_int, 200)
-        self.assertEqual(list_resp.json, {'groups': ['mock_service']})
+        self.assertEqual(list_resp.json, {"groups": ["mock_service"]})
 
     def test_get_group_members(self):
         proc_info = system_info.get_process_info()
         member_id = get_member_id()
 
         # 1. Group doesn't exist
-        resp = self.app.get('/v1/service_registry/groups/doesnt-exist/members', expect_errors=True)
+        resp = self.app.get(
+            "/v1/service_registry/groups/doesnt-exist/members", expect_errors=True
+        )
         self.assertEqual(resp.status_int, 404)
-        self.assertEqual(resp.json['faultstring'], 'Group with ID "doesnt-exist" not found.')
+        self.assertEqual(
+            resp.json["faultstring"], 'Group with ID "doesnt-exist" not found.'
+        )
 
         # 2. Group exists and has a single member
-        resp = self.app.get('/v1/service_registry/groups/mock_service/members')
+        resp = self.app.get("/v1/service_registry/groups/mock_service/members")
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, {
-            'members': [
-                {
-                    'group_id': 'mock_service',
-                    'member_id': member_id.decode('utf-8'),
-                    'capabilities': {
-                        'key1': 'value1',
-                        'name': 'mock_service',
-                        'hostname': proc_info['hostname'],
-                        'pid': proc_info['pid']
+        self.assertEqual(
+            resp.json,
+            {
+                "members": [
+                    {
+                        "group_id": "mock_service",
+                        "member_id": member_id.decode("utf-8"),
+                        "capabilities": {
+                            "key1": "value1",
+                            "name": "mock_service",
+                            "hostname": proc_info["hostname"],
+                            "pid": proc_info["pid"],
+                        },
                     }
-                }
-            ]
-        })
+                ]
+            },
+        )

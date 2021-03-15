@@ -31,8 +31,11 @@ CONF = cfg.CONF
 
 
 def parse_args(args=None):
-    cfg.CONF(args=args, version=VERSION_STRING,
-             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
+    cfg.CONF(
+        args=args,
+        version=VERSION_STRING,
+        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+    )
 
 
 def get_logging_config_path():
@@ -51,16 +54,20 @@ def _register_common_opts():
 def _register_app_opts():
     dump_opts = [
         cfg.StrOpt(
-            'dump_dir', default='/opt/stackstorm/exports/',
-            help='Directory to dump data to.')
+            "dump_dir",
+            default="/opt/stackstorm/exports/",
+            help="Directory to dump data to.",
+        )
     ]
 
-    CONF.register_opts(dump_opts, group='exporter')
+    CONF.register_opts(dump_opts, group="exporter")
 
     logging_opts = [
         cfg.StrOpt(
-            'logging', default='/etc/st2/logging.exporter.conf',
-            help='location of the logging.exporter.conf file')
+            "logging",
+            default="/etc/st2/logging.exporter.conf",
+            help="location of the logging.exporter.conf file",
+        )
     ]
 
-    CONF.register_opts(logging_opts, group='exporter')
+    CONF.register_opts(logging_opts, group="exporter")
