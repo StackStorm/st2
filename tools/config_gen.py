@@ -41,7 +41,7 @@ CONFIGS = [
 ]
 
 SKIP_GROUPS = ["api_pecan", "rbac", "results_tracker"]
-SKIP_OPTIONS = ["json_library"]
+SKIP_OPTIONS = []
 
 # We group auth options together to make it a bit more clear what applies where
 AUTH_OPTIONS = {
