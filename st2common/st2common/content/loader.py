@@ -58,7 +58,11 @@ class ContentPackLoader(object):
                  directory.
         :rtype: ``dict``
         """
-        assert isinstance(base_dirs, list)
+        if not isinstance(base_dirs, list):
+            raise TypeError(
+                "The base dirs has a value that is not a list"
+                f" (was {type(base_dirs)})."
+            )
 
         result = {}
         for base_dir in base_dirs:
@@ -85,7 +89,11 @@ class ContentPackLoader(object):
 
         :rtype: ``dict``
         """
-        assert isinstance(base_dirs, list)
+        if not isinstance(base_dirs, list):
+            raise TypeError(
+                "The base dirs has a value that is not a list"
+                f" (was {type(base_dirs)})."
+            )
 
         if content_type not in self.ALLOWED_CONTENT_TYPES:
             raise ValueError("Unsupported content_type: %s" % (content_type))

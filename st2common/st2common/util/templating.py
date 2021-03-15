@@ -40,7 +40,10 @@ def render_template(value, context=None):
     :param context: Template context.
     :type context: ``dict``
     """
-    assert isinstance(value, six.string_types)
+    if not isinstance(value, six.string_types):
+        raise TypeError(
+            f"The template value needs to be of type string (was {type(value)})."
+        )
     context = context or {}
 
     env = get_jinja_environment(allow_undefined=False)  # nosec

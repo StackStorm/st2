@@ -14,6 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+from st2common import log as logging
+
+LOG = logging.getLogger(__name__)
 
 try:
     import simplejson as json
@@ -160,7 +163,10 @@ def json_loads(obj, keys=None):
     for key in keys:
         try:
             obj[key] = json_decode(obj[key])
-        except:
+        except Exception:
+            # NOTE: This exception is not fatal so we intentionally don't log anything.
+            # Method behaves in "best effort" manner and dictionary value not being JSON
+            # string is perfectly valid (and common) scenario so we should not log anything
             pass
     return obj
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 
 if [ "$(whoami)" != 'root' ]; then
     echo 'Please run with sudo'

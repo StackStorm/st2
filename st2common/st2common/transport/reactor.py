@@ -91,8 +91,16 @@ class TriggerDispatcher(object):
         :param trace_context: Trace context to associate with Trigger.
         :type trace_context: ``TraceContext``
         """
-        assert isinstance(payload, (type(None), dict))
-        assert isinstance(trace_context, (type(None), TraceContext))
+        if payload and not isinstance(payload, dict):
+            raise TypeError(
+                f"The payload has a value that is not a dictionary"
+                f" (was {type(payload)})."
+            )
+        if trace_context and not isinstance(trace_context, TraceContext):
+            raise TypeError(
+                f"The trace context has a value that is not of type TraceContext"
+                f" (was {type(trace_context)})."
+            )
 
         payload = {"trigger": trigger, "payload": payload, TRACE_CONTEXT: trace_context}
         routing_key = "trigger_instance"
