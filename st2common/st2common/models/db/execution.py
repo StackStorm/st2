@@ -67,6 +67,9 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     result = JSONDictEscapedFieldCompatibilityField(
         default={}, help_text="Action defined result."
     )
+    result_size = me.IntField(
+        default=0, help_text="Size of the serialized result field value in bytes."
+    )
     context = me.DictField(
         default={}, help_text="Contextual information on the action execution."
     )
@@ -97,6 +100,24 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             {"fields": ["task_execution"]},
         ]
     }
+
+    def to_mongo(self, *args, **kwargs):
+        # Custom to_mongo() implementation which allows us to determine size of the serialized
+        # result field value and store that value in another "result_size" field.
+        # By doing that here we avoid double serialization of the value which adds overhad (once to
+        # actually serialize the value for storage and once to determine the size of the serialzied
+        # value).
+        # This information is only available for the new serialization format. Technically we could
+        # also do it for the old one as well, but storing that field value is already very slow and
+        # this would just add additional overhead.
+        data = super(ActionExecutionDB, self).to_mongo(*args, **kwargs)
+
+        if isinstance(data.get("result", None), bytes) and data["result"] != b"{}":
+            data["result_size"] = len(data["result"])
+        else:
+            data["result_size"] = 0
+
+        return data
 
     def get_uid(self):
         # TODO Construct id from non id field:

@@ -113,6 +113,7 @@ class ActionExecutionAPI(BaseAPI):
                     {"type": "string"},
                 ]
             },
+            "result_size": {"type": "integer"},
             "parent": {"type": "string"},
             "children": {
                 "type": "array",

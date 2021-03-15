@@ -115,6 +115,16 @@ Changed
 
   Contributed by @Kami.
 
+* Add new ``result_size`` field to the ``ActionExecutionDB`` model. This field will only be
+  populated for executions which utilize new field storage format.
+
+  It holds the size of serialzed execution result field in bytes. This field will allow us to
+  implement more efficient execution result retrieval and provide better UX since we will be
+  able to avoid loading execution results in the WebUI for executions with very large results
+  (which cause browser to freeze). (improvement) #4846
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 
