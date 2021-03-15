@@ -44,7 +44,7 @@ def fast_deepcopy(value, fall_back_to_deepcopy=True):
     and when it does, we will simply fall back to copy.deepcopy().
 
     :param fall_back_to_deepcopy: True to fall back to copy.deepcopy() in case we fail to fast deep
-                                  copy the value because it contains complex types or similar.
+                                  copy the value because it contains complex types or similar
     :type fall_back_to_deepcopy: ``bool``
     """
     # NOTE: ujson / orjson round-trip is up to 10 times faster on smaller and larger dicts compared
@@ -52,7 +52,7 @@ def fast_deepcopy(value, fall_back_to_deepcopy=True):
     # instances, etc.
     try:
         value = orjson.loads(orjson.dumps(value, default=default))
-    except (OverflowError, ValueError) as e:
+    except (OverflowError, ValueError, TypeError) as e:
         if not fall_back_to_deepcopy:
             raise e
 
