@@ -14,12 +14,15 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import json
+
 import re
+
 import six
 
 from st2common import log as logging
 from st2common.util.compat import to_unicode
+from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import json_decode
 
 
 __all__ = ["get_jinja_environment", "render_values", "is_jinja_expression"]
@@ -125,7 +128,7 @@ def render_values(mapping=None, context=None, allow_undefined=False):
         # jinja2 works with string so transform list and dict to strings.
         reverse_json_dumps = False
         if isinstance(v, dict) or isinstance(v, list):
-            v = json.dumps(v)
+            v = json_encode(v)
             reverse_json_dumps = True
         else:
             # Special case for text type to handle unicode
@@ -150,7 +153,7 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             rendered_mapping[k] = mapping[k]
             continue
         if reverse_json_dumps:
-            rendered_v = json.loads(rendered_v)
+            rendered_v = json_decode(rendered_v)
         rendered_mapping[k] = rendered_v
     LOG.info(
         "Mapping: %s, rendered_mapping: %s, context: %s",

@@ -28,7 +28,7 @@ from oslo_config import cfg
 import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 import webob
-from webob import cookies, exc, Request
+from webob import cookies, exc
 from webob.compat import url_unquote
 
 from st2common.exceptions import rbac as rbac_exc
@@ -39,6 +39,7 @@ from st2common.persistence.auth import User
 from st2common.rbac.backends import get_rbac_backend
 from st2common.util import date as date_utils
 from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import json_decode
 from st2common.util.jsonify import get_json_type_for_python_value
 from st2common.util.http import parse_content_type_header
 
@@ -143,7 +144,29 @@ class NotFoundException(Exception):
     pass
 
 
+class Request(webob.Request):
+    """
+    Custom Request implementation which uses our custom and faster json serializer and deserializer.
+    """
+
+    def _json_body__get(self):
+        return json_decode(self.body.decode(self.charset))
+
+    def _json_body__set(self, value):
+        self.body = json_encode(value).encode("utf-8")
+
+    def _json_body__del(self):
+        return super(Request, self)._json_body__del()
+
+    json = json_body = property(_json_body__get, _json_body__set, _json_body__del)
+
+
 class Response(webob.Response):
+    """
+    Custom Response implementation which uses our custom and faster json serializer and
+    deserializer.
+    """
+
     def __init__(
         self,
         body=None,
@@ -164,7 +187,8 @@ class Response(webob.Response):
                 json_body = kwargs.pop("json_body")
             else:
                 json_body = kwargs.pop("json")
-            body = json_encode(json_body).encode("UTF-8")
+
+            body = json_encode(json_body).encode("utf-8")
 
             if content_type is None:
                 content_type = "application/json"
@@ -174,10 +198,10 @@ class Response(webob.Response):
         )
 
     def _json_body__get(self):
-        return super(Response, self)._json_body__get()
+        return json_decode(self.body.decode(self.charset or "utf-8"))
 
     def _json_body__set(self, value):
-        self.body = json_encode(value).encode("UTF-8")
+        self.body = json_encode(value).encode("utf-8")
 
     def _json_body__del(self):
         return super(Response, self)._json_body__del()
