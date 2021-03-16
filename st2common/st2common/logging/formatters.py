@@ -25,7 +25,7 @@ from oslo_config import cfg
 
 from st2common.constants.secrets import MASKED_ATTRIBUTES_BLACKLIST
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = [
     "ConsoleLogFormatter",
@@ -87,7 +87,7 @@ def process_attribute_value(key, value):
             value = MASKED_ATTRIBUTE_VALUE
     elif isinstance(value, dict):
         # Note: We don't want to modify the original value
-        value = fast_deepcopy(value)
+        value = fast_deepcopy_dict(value)
 
         for dict_key, dict_value in six.iteritems(value):
             value[dict_key] = process_attribute_value(key=dict_key, value=dict_value)

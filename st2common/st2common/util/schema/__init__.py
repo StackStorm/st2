@@ -25,7 +25,7 @@ from jsonschema.validators import create
 from st2common.exceptions.action import InvalidActionParameterException
 from st2common.util import jsonify
 from st2common.util.misc import deep_update
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = [
     "get_validator",
@@ -80,7 +80,7 @@ RUNNER_PARAM_OVERRIDABLE_ATTRS = [
 
 
 def get_draft_schema(version="custom", additional_properties=False):
-    schema = fast_deepcopy(SCHEMAS[version])
+    schema = fast_deepcopy_dict(SCHEMAS[version])
     if additional_properties and "additionalProperties" in schema:
         del schema["additionalProperties"]
     return schema
@@ -199,7 +199,7 @@ def assign_default_values(instance, schema):
     """
     Assign default values on the provided instance based on the schema default specification.
     """
-    instance = fast_deepcopy(instance)
+    instance = fast_deepcopy_dict(instance)
     instance_is_dict = isinstance(instance, dict)
     instance_is_array = isinstance(instance, list)
 
@@ -262,7 +262,7 @@ def modify_schema_allow_default_none(schema):
     Manipulate the provided schema so None is also an allowed value for each attribute which
     defines a default value of None.
     """
-    schema = fast_deepcopy(schema)
+    schema = fast_deepcopy_dict(schema)
     properties = schema.get("properties", {})
 
     for property_name, property_data in six.iteritems(properties):
@@ -336,7 +336,7 @@ def validate(
     :param use_default: True to support the use of the optional "default" property.
     :type use_default: ``bool``
     """
-    instance = fast_deepcopy(instance)
+    instance = fast_deepcopy_dict(instance)
     schema_type = schema.get("type", None)
     instance_is_dict = isinstance(instance, dict)
 

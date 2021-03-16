@@ -26,7 +26,7 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.util.enum import Enum
 from st2common.policies.base import ResourcePolicyApplicator
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = ["RetryOnPolicy", "ExecutionRetryPolicyApplicator"]
 
@@ -179,7 +179,7 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
 
         # Add additional policy specific info to the context
         context = getattr(live_action_db, "context", {})
-        new_context = fast_deepcopy(context)
+        new_context = fast_deepcopy_dict(context)
         new_context["policies"] = {}
         new_context["policies"]["retry"] = {
             "applied_policy": self._policy_ref,
