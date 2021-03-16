@@ -638,6 +638,7 @@ class Router(object):
             response_spec_name = str(resp.status_code)
 
         response_spec = response_spec or default_response_spec
+        response_spec = response_spec or {}
         validate_response = response_spec.get("schema", {}).get(
             "validate_response", True
         )
