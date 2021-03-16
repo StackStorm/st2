@@ -40,6 +40,27 @@ Changed
 * Import ABC from collections.abc for Python 3.10 compatibility. (#5007)
   Contributed by @tirkarthi
 
+3.4.1 - March 14, 2021
+----------------------
+
+Added
+~~~~~
+
+* Update the service start up code to warn if the service locale encoding is not set to `utf-8` #5184
+
+  Contributed by @Kami
+
+Changed
+~~~~~~~
+
+* Use `sudo -E` to fix GitHub Actions tests #5187
+
+  Contributed by @cognifloyd
+
+* Properly handle unicode strings in logs #5184
+
+  Contributed by @Kami
+
 3.4.0 - March 02, 2021
 ----------------------
 
