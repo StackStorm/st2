@@ -38,6 +38,7 @@ from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.metrics.base import CounterWithTimer
 from st2common.metrics.base import Timer
 from st2common.util import jsonify
+from st2common.models.db.execution import ActionExecutionDB
 
 from st2common.runners.base import get_runner
 from st2common.runners.base import AsyncActionRunner, PollingAsyncActionRunner
@@ -393,12 +394,28 @@ class RunnerContainer(object):
 
         execution_written_to_db = date_utils.get_datetime_utc_now()
 
-        # Those two operations are fast since they operate on a single field in atomic fashion
+        # Sadly with the current ORM abstraction there is no better way to achieve updating
+        # result_size and we need to serialize the value again - luckily that operation is fast.
+        # To put things into perspective - on 4 MB result dictionary it only takes 7 ms which is
+        # negligible compared to other DB operations duration (and for smaller results it takes
+        # in sub ms range).
+        with Timer(key="action.executions.calculate_result_size"):
+            result_size = len(
+                ActionExecutionDB.result._serialize_field_value(execution_db.result)
+            )
+
+        # Those two operations are fast since they operate on two field in atomic fashion
         # with very small data
-        operations = {"set__end_timestamp": live_action_written_to_db_dt}
+        operations = {
+            "set__end_timestamp": live_action_written_to_db_dt,
+            "set__result_size": result_size,
+        }
         LiveAction.update(liveaction_db, publish=False, **operations)
 
-        operations = {"set__end_timestamp": execution_written_to_db}
+        operations = {
+            "set__end_timestamp": execution_written_to_db,
+            "set__result_size": result_size,
+        }
         ActionExecution.update(execution_db, publish=False, **operations)
 
         return liveaction_db

@@ -65,6 +65,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
     result = JSONDictEscapedFieldCompatibilityField(
         default={}, help_text="Action defined result."
     )
+    result_size = me.IntField(default=0, help_text="Serialized result size in bytes")
     context = me.DictField(
         default={}, help_text="Contextual information on the action execution."
     )
