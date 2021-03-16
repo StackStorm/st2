@@ -39,7 +39,7 @@ Changed
 
 * Import ABC from collections.abc for Python 3.10 compatibility. (#5007)
   Contributed by @tirkarthi
-  
+
 * Updated fixate-requirements to work with PIP 20.3.3 #512
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
