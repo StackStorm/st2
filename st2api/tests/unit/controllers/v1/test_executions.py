@@ -1411,8 +1411,9 @@ class ActionExecutionControllerTestCase(
         self.assertDictEqual(
             put_resp.json["result"], {"stdout": "foobar", "stderr": "barfoo"}
         )
-        self.assertEqual(put_resp.json["result_size"],
-                         len('{"stdout":"foobar","stderr":"barfoo"}'))
+        self.assertEqual(
+            put_resp.json["result_size"], len('{"stdout":"foobar","stderr":"barfoo"}')
+        )
 
         # 1. download=False, compress=False, pretty_format=False
         get_resp = self.app.get("/v1/executions/%s/result" % (execution_id))
@@ -1538,6 +1539,8 @@ class ActionExecutionControllerTestCase(
             )
 
     def test_get_single_attribute_success(self):
+        self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)
+
         exec_id = self.app.get("/v1/actionexecutions?limit=1").json[0]["id"]
 
         resp = self.app.get("/v1/executions/%s/attribute/status" % (exec_id))

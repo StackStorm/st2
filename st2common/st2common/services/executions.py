@@ -47,6 +47,7 @@ from st2common.models.api.rule import RuleAPI
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.runners import utils as runners_utils
+from st2common.metrics.base import Timer
 from six.moves import range
 
 
@@ -187,7 +188,11 @@ def _get_web_url_for_execution(execution_id):
     return "%s/#/history/%s/general" % (base_url, execution_id)
 
 
-def update_execution(liveaction_db, publish=True):
+def update_execution(liveaction_db, publish=True, set_result_size=False):
+    """
+    :param set_result_size: True to calculate size of the serialized result field value and set it
+                            on the "result_size" database field.
+    """
     execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
     decomposed = _decompose_liveaction(liveaction_db)
 
@@ -199,6 +204,19 @@ def update_execution(liveaction_db, publish=True):
         # Note: If the status changes we store this transition in the "log" attribute of action
         # execution
         kw["push__log"] = _create_execution_log_entry(liveaction_db.status)
+
+    if set_result_size:
+        # Sadly with the current ORM abstraction there is no better way to achieve updating
+        # result_size and we need to serialize the value again - luckily that operation is fast.
+        # To put things into perspective - on 4 MB result dictionary it only takes 7 ms which is
+        # negligible compared to other DB operations duration (and for smaller results it takes
+        # in sub ms range).
+        with Timer(key="action.executions.calculate_result_size"):
+            result_size = len(
+                ActionExecutionDB.result._serialize_field_value(liveaction_db.result)
+            )
+            kw["set__result_size"] = result_size
+
     execution = ActionExecution.update(execution, publish=publish, **kw)
     return execution
 

@@ -829,7 +829,9 @@ class ActionExecutionsController(
         def update_status(liveaction_api, liveaction_db):
             status = liveaction_api.status
             result = getattr(liveaction_api, "result", None)
-            liveaction_db = action_service.update_status(liveaction_db, status, result)
+            liveaction_db = action_service.update_status(
+                liveaction_db, status, result, set_result_size=True
+            )
             actionexecution_db = ActionExecution.get(
                 liveaction__id=str(liveaction_db.id)
             )

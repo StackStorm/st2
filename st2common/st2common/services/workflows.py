@@ -1472,7 +1472,7 @@ def update_execution_records(
         publish=pub_lv_ac,
     )
 
-    ex_svc.update_execution(wf_lv_ac_db, publish=pub_ac_ex)
+    ex_svc.update_execution(wf_lv_ac_db, publish=pub_ac_ex, set_result_size=True)
 
     # Invoke post run on the liveaction for the workflow execution.
     if status_changed and wf_lv_ac_db.status in ac_const.LIVEACTION_COMPLETED_STATES:
