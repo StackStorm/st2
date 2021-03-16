@@ -1342,7 +1342,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/executions/{id}/result/raw:
+  /api/v1/executions/{id}/result:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_raw_result_controller.get
       x-log-result: false

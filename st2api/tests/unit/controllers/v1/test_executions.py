@@ -1395,6 +1395,92 @@ class ActionExecutionControllerTestCase(
         resp = json.loads(get_resp.body)
         self.assertEqual(resp["result"]["response"]["secondfactor"], "supersecretvalue")
 
+    def test_get_raw_result(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+        get_resp = self._do_get_one(actionexecution_id)
+
+        execution_id = self._get_actionexecution_id(get_resp)
+        updates = {
+            "status": "succeeded",
+            "result": {"stdout": "foobar", "stderr": "barfoo"},
+        }
+        put_resp = self._do_put(execution_id, updates)
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json["status"], "succeeded")
+        self.assertDictEqual(
+            put_resp.json["result"], {"stdout": "foobar", "stderr": "barfoo"}
+        )
+        self.assertEqual(put_resp.json["result_size"],
+                         len('{"stdout":"foobar","stderr":"barfoo"}'))
+
+        # 1. download=False, compress=False, pretty_format=False
+        get_resp = self.app.get("/v1/executions/%s/result" % (execution_id))
+        self.assertEqual(get_resp.headers["Content-Type"], "text/json")
+        self.assertEqual(get_resp.body, b'{"stdout":"foobar","stderr":"barfoo"}')
+
+        # 2. download=False, compress=False, pretty_format=True
+        get_resp = self.app.get(
+            "/v1/executions/%s/result?pretty_format=1" % (execution_id)
+        )
+        expected_result = b"""
+{
+  "stdout": "foobar",
+  "stderr": "barfoo"
+}""".strip()
+        self.assertEqual(get_resp.headers["Content-Type"], "text/json")
+        self.assertEqual(get_resp.body, expected_result)
+
+        # 3. download=False, compress=True, pretty_format=False
+        # NOTE: webtest auto decompresses the result
+        get_resp = self.app.get("/v1/executions/%s/result?compress=1" % (execution_id))
+        self.assertEqual(get_resp.headers["Content-Type"], "application/x-gzip")
+        self.assertEqual(get_resp.body, b'{"stdout":"foobar","stderr":"barfoo"}')
+
+        # 4. download=True, compress=False, pretty_format=False
+        get_resp = self.app.get("/v1/executions/%s/result?download=1" % (execution_id))
+        self.assertEqual(get_resp.headers["Content-Type"], "text/json")
+        self.assertEqual(
+            get_resp.headers["Content-Disposition"],
+            "attachment; filename=execution_%s_result.json" % (execution_id),
+        )
+        self.assertEqual(get_resp.body, b'{"stdout":"foobar","stderr":"barfoo"}')
+
+        # 5. download=True, compress=False, pretty_format=True
+        get_resp = self.app.get(
+            "/v1/executions/%s/result?download=1&pretty_format=1" % (execution_id)
+        )
+        expected_result = b"""
+{
+  "stdout": "foobar",
+  "stderr": "barfoo"
+}""".strip()
+
+        self.assertEqual(get_resp.headers["Content-Type"], "text/json")
+        self.assertEqual(
+            get_resp.headers["Content-Disposition"],
+            "attachment; filename=execution_%s_result.json" % (execution_id),
+        )
+        self.assertEqual(get_resp.body, expected_result)
+
+        # 5. download=True, compress=True, pretty_format=True
+        get_resp = self.app.get(
+            "/v1/executions/%s/result?download=1&compress=1&pretty_format=1"
+            % (execution_id)
+        )
+        expected_result = b"""
+{
+  "stdout": "foobar",
+  "stderr": "barfoo"
+}""".strip()
+
+        self.assertEqual(get_resp.headers["Content-Type"], "application/x-gzip")
+        self.assertEqual(
+            get_resp.headers["Content-Disposition"],
+            "attachment; filename=execution_%s_result.json.gz" % (execution_id),
+        )
+        self.assertEqual(get_resp.body, expected_result)
+
     def test_get_include_attributes_and_secret_parameters(self):
         # Verify that secret parameters are correctly masked when using ?include_attributes filter
         self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)

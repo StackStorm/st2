@@ -373,8 +373,8 @@ class ActionExecutionRawResultController(BaseActionExecutionNestedController):
         self, id, requester_user, download=False, compress=False, pretty_format=False
     ):
         """
-        Retrieve raw action execution result object as a string or optionally force result download
-        as a file.
+        Retrieve raw action execution result object as a JSON string or optionally force result
+        download as a (compressed) file.
 
         This is primarily to be used in scenarios where executions contain large results and JSON
         loading and parsing it can be slow (e.g. in the st2web) and we just want to display raw
@@ -389,7 +389,7 @@ class ActionExecutionRawResultController(BaseActionExecutionNestedController):
 
         Handles requests:
 
-            GET /executions/<id>/result/raw[?download=1][&compress=1]
+            GET /executions/<id>/result[?download=1][&compress=1]
 
         TODO: Maybe we should also support pre-signed URLs for sharing externally with other
         people?
