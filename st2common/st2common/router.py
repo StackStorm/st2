@@ -638,11 +638,15 @@ class Router(object):
             response_spec_name = str(resp.status_code)
 
         response_spec = response_spec or default_response_spec
+        validate_response = response_spec.get("schema", {}).get(
+            "validate_response", True
+        )
 
         if (
             response_spec
             and "schema" in response_spec
             and not has_include_or_exclude_attributes
+            and validate_response
         ):
             # NOTE: We don't perform response validation when include or exclude attributes are
             # provided because this means partial response which likely won't pass the validation

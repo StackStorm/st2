@@ -1360,6 +1360,16 @@ paths:
           description: True to force result file download instead of returning it as a response
           type: boolean
           default: false
+        - name: compress
+          in: query
+          description: True to compress the response body
+          type: boolean
+          default: false
+        - name: pretty_format
+          in: query
+          description: True to pretty format the result (adds some overhead)
+          type: boolean
+          default: false
       x-parameters:
         - name: user
           in: context
@@ -1367,9 +1377,11 @@ paths:
           description: User performing the operation.
       responses:
         '200':
-          description: Execution attribute requested
+          description: Execution result
           schema:
             type: string
+            # Response is raw text so we don't want to perform validation on it
+            validate_response: false
         default:
           description: Unexpected error
           schema:
