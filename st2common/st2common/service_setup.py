@@ -22,6 +22,7 @@ from __future__ import absolute_import
 import os
 import sys
 import traceback
+import locale
 import logging as stdlib_logging
 
 import six
@@ -111,17 +112,40 @@ def setup(
         sys.version_info[1],
         sys.version_info[2],
     )
-    LOG.debug("Using Python: %s (%s)" % (version, sys.executable))
+
+    # We print locale related info to make it easier to troubleshoot issues where locale is not
+    # set correctly (e.g. using C / ascii, but services are trying to work with unicode data
+    # would result in things blowing up)
+
+    fs_encoding = sys.getfilesystemencoding()
+    default_encoding = sys.getdefaultencoding()
+    lang_env = os.environ.get("LANG", "unknown")
+
+    try:
+        language_code, encoding = locale.getdefaultlocale()
+
+        if language_code and encoding:
+            used_locale = ".".join([language_code, encoding])
+        else:
+            used_locale = "unable to retrieve locale"
+    except Exception as e:
+        used_locale = "unable to retrieve locale: %s " % (str(e))
+
+    LOG.info("Using Python: %s (%s)" % (version, sys.executable))
+    LOG.info(
+        "Using fs encoding: %s, default encoding: %s, LANG env variable: %s, locale: %s"
+        % (fs_encoding, default_encoding, lang_env, used_locale)
+    )
 
     config_file_paths = cfg.CONF.config_file
     config_file_paths = [os.path.abspath(path) for path in config_file_paths]
-    LOG.debug("Using config files: %s", ",".join(config_file_paths))
+    LOG.info("Using config files: %s", ",".join(config_file_paths))
 
     # Setup logging.
     logging_config_path = config.get_logging_config_path()
     logging_config_path = os.path.abspath(logging_config_path)
 
-    LOG.debug("Using logging config: %s", logging_config_path)
+    LOG.info("Using logging config: %s", logging_config_path)
 
     is_debug_enabled = cfg.CONF.debug or cfg.CONF.system.debug
 

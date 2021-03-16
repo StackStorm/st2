@@ -75,7 +75,10 @@ def run_command(
 
     :rtype: ``tuple`` (exit_code, stdout, stderr)
     """
-    assert isinstance(cmd, (list, tuple) + six.string_types)
+    if not isinstance(cmd, (list, tuple) + six.string_types):
+        raise TypeError(
+            f"Command must be a type of list, tuple, or string, not '{type(cmd)}'."
+        )
 
     if not env:
         env = os.environ.copy()

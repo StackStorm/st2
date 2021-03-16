@@ -23,7 +23,8 @@ kombu==4.6.6
 lockfile==0.12.2
 mongoengine==0.18.2
 networkx==1.11
-oslo.config>=1.12.1,<1.13
+orjson==3.5.0
+oslo.config<1.13,>=1.12.1
 paramiko==2.7.1
 pymongo==3.10.0
 python-dateutil==2.8.0

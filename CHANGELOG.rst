@@ -4,6 +4,19 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Added web header settings for additional security hardening to nginx.conf: X-Frame-Options,
+  Strict-Transport-Security, X-XSS-Protection and server-tokens. #5183
+
+  Contributed by @shital.
+
+* Added support for ``limit`` and ``offset`` argument to the ``list_values`` data store
+  service method (#5097 and #5171).
+
+  Contributed by @anirudhbagri.
+
 Fixed
 ~~~~~
 
@@ -18,6 +31,15 @@ Changed
 
   Contributed by @Kami.
 
+* Default nginx config (``conf/nginx/st2.conf``) which is used by the installer and Docker
+  images has been updated to only support TLS v1.2 (support for TLS v1.0 and v1.1 has been
+  removed). #5183
+
+  Contributed by @Kami and @shital.
+
+* Import ABC from collections.abc for Python 3.10 compatibility. (#5007)
+  Contributed by @tirkarthi
+  
 * Updated fixate-requirements to work with PIP 20.3.3 #512
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
@@ -63,6 +85,18 @@ Changed
   Contributed by @nmaludy, @winem, and @blag
 
 * Updated cryptography dependency to version 3.3.2 to avoid CVE-2020-36242 (security) #5151
+
+* Update most of the code in the StackStorm API and services layer to utilize ``orjson`` library
+  for serializing and de-serializing json.
+
+  That should result in better json serialization and deserialization performance.
+
+  The change should be fully backward compatible, only difference is that API JSON responses now
+  won't be indented using 4 spaces by default (indenting adds unnecessary overhead and if needed,
+  the response can be pretty formatted on the client side using ``jq`` or similar). (improvement)
+  #5153
+
+  Contributed by @Kami
 
 Fixed
 ~~~~~

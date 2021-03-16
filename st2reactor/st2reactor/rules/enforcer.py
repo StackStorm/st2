@@ -185,8 +185,9 @@ class RuleEnforcer(object):
             )
             return None
 
-        # This would signify some sort of coding error so assert.
-        assert trace_db
+        # This would signify some sort of coding error so raise ValueError.
+        if not trace_db:
+            raise ValueError("Trace database not found.")
 
         trace_db = trace_service.add_or_update_given_trace_db(
             trace_db=trace_db,

@@ -14,17 +14,18 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import itertools
-import json
 
 import requests
 import six
+from six.moves import range
 from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.persistence.pack import Pack
 from st2common.util.misc import lowercase_value
-from six.moves import range
+from st2common.util.jsonify import json_encode
 
 __all__ = [
     "get_pack_by_ref",
@@ -112,7 +113,9 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
             index_status["message"] = 'Index object is missing "packs" attribute.'
 
         if index_status["error"]:
-            logger.error("Index parsing error: %s" % json.dumps(index_status, indent=4))
+            logger.error(
+                "Index parsing error: %s" % json_encode(index_status, indent=4)
+            )
         else:
             # TODO: Notify on a duplicate pack aka pack being overwritten from a different index
             packs_data = index_json["packs"]
@@ -156,7 +159,7 @@ def fetch_pack_index(index_url=None, logger=None, allow_empty=False, proxy_confi
             % (
                 ("index" if len(index_urls) == 1 else "indexes"),
                 ", ".join(index_urls),
-                json.dumps(status, indent=4),
+                json_encode(status, indent=4),
             )
         )
     return (index, status)
