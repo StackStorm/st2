@@ -9,7 +9,7 @@ amqp==2.5.2
 apscheduler==3.6.3
 chardet<3.1.0
 cryptography==3.3.2
-dnspython<2.0.0,>=1.16.0
+dnspython>=1.16.0,<2.0.0
 eventlet==0.25.1
 flex==6.14.0
 git+https://github.com/StackStorm/orquesta.git@v1.3.0#egg=orquesta
@@ -24,7 +24,7 @@ lockfile==0.12.2
 mongoengine==0.18.2
 networkx==1.11
 orjson==3.5.0
-oslo.config<1.13,>=1.12.1
+oslo.config>=1.12.1,<1.13
 paramiko==2.7.1
 pymongo==3.10.0
 python-dateutil==2.8.0

@@ -12,7 +12,7 @@ argcomplete
 bcrypt==3.1.7
 chardet<3.1.0
 cryptography==3.3.2
-dnspython<2.0.0,>=1.16.0
+dnspython>=1.16.0,<2.0.0
 eventlet==0.25.1
 flex==6.14.0
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
@@ -36,7 +36,7 @@ nose
 nose-parallel==0.3.1
 nose-timer==0.7.5
 orjson==3.5.0
-oslo.config<1.13,>=1.12.1
+oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 paramiko==2.7.1
 passlib==1.7.1
