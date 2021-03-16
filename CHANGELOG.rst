@@ -125,7 +125,7 @@ Changed
 
   Contributed by @Kami.
 
-* Add new ``/v1/executiond/<id>/result[?download=1&compress=1&pretty_format=1]`` API endpoint
+* Add new ``/v1/executions/<id>/result[?download=1&compress=1&pretty_format=1]`` API endpoint
   which can be used used to retrieve or download raw execution result as (compressed) JSON file.
 
   This endpoint will primarily be used by st2web when executions produce very large results so
