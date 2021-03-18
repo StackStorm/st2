@@ -42,6 +42,7 @@ import os
 import json
 
 import pytest
+import mongoengine as me
 
 from st2common.service_setup import db_setup
 from st2common.models.db import stormbase
@@ -106,6 +107,14 @@ class LiveActionDB_JSONFieldWithHeaderAndZstandard(LiveActionDB):
     field3 = JSONDictField(
         default={}, use_header=True, compression_algorithm="zstandard"
     )
+
+
+class LiveActionDB_StringField(LiveActionDB):
+    value = me.StringField()
+
+
+class LiveActionDB_BinaryField(LiveActionDB):
+    value = me.BinaryField()
 
 
 def get_model_class_for_approach(approach: str) -> Type[LiveActionDB]:
@@ -320,3 +329,124 @@ def test_read_large_execution(benchmark, fixture_file: str, approach: str) -> No
     # Assert that result is correctly converted back to dict on retrieval
     assert retrieved_live_action_db == inserted_live_action_db
     assert retrieved_live_action_db.result == data
+
+
+@pytest.mark.parametrize(
+    "fixture_file",
+    [
+        "tiny_1.json",
+        "json_61kb.json",
+        "json_647kb.json",
+        "json_4mb.json",
+        "json_4mb_single_large_field.json",
+    ],
+    ids=[
+        "tiny_1",
+        "json_61kb",
+        "json_647kb",
+        "json_4mb",
+        "json_4mb_single_large_field",
+    ],
+)
+@pytest.mark.parametrize(
+    "approach",
+    [
+        "string_field",
+        "binary_field",
+    ],
+    ids=[
+        "string_field",
+        "binary_field",
+    ],
+)
+@pytest.mark.benchmark(group="test_model_save")
+def test_save_large_string_value(benchmark, fixture_file: str, approach: str) -> None:
+    # Here we time how long it takes to save a long string value on StringField and BinaryField
+    with open(os.path.join(FIXTURES_DIR, fixture_file), "rb") as fp:
+        content = fp.read()
+
+    db_setup()
+
+    if approach == "string_field":
+        model_cls = LiveActionDB_StringField
+        content = content.decode("utf-8")
+    elif approach == "binary_field":
+        model_cls = LiveActionDB_BinaryField
+    else:
+        raise ValueError("Unsupported approach")
+
+    def run_benchmark():
+        live_action_db = model_cls()
+        live_action_db.status = "succeeded"
+        live_action_db.action = "core.local"
+        live_action_db.value = content
+
+        inserted_live_action_db = LiveAction.add_or_update(live_action_db)
+        return inserted_live_action_db
+
+    inserted_live_action_db = benchmark.pedantic(
+        run_benchmark, iterations=10, rounds=10
+    )
+    assert bool(inserted_live_action_db.value)
+
+
+@pytest.mark.parametrize(
+    "fixture_file",
+    [
+        "tiny_1.json",
+        "json_61kb.json",
+        "json_647kb.json",
+        "json_4mb.json",
+        "json_4mb_single_large_field.json",
+    ],
+    ids=[
+        "tiny_1",
+        "json_61kb",
+        "json_647kb",
+        "json_4mb",
+        "json_4mb_single_large_field",
+    ],
+)
+@pytest.mark.parametrize(
+    "approach",
+    [
+        "string_field",
+        "binary_field",
+    ],
+    ids=[
+        "string_field",
+        "binary_field",
+    ],
+)
+@pytest.mark.benchmark(group="test_model_save")
+def test_read_large_string_value(benchmark, fixture_file: str, approach: str) -> None:
+    with open(os.path.join(FIXTURES_DIR, fixture_file), "rb") as fp:
+        content = fp.read()
+
+    db_setup()
+
+    if approach == "string_field":
+        model_cls = LiveActionDB_StringField
+        content = content.decode("utf-8")
+    elif approach == "binary_field":
+        model_cls = LiveActionDB_BinaryField
+    else:
+        raise ValueError("Unsupported approach")
+
+    # 1. Insert the model
+    live_action_db = model_cls()
+    live_action_db.status = "succeeded"
+    live_action_db.action = "core.local"
+    live_action_db.value = content
+
+    inserted_live_action_db = LiveAction.add_or_update(live_action_db)
+
+    def run_benchmark():
+        retrieved_live_action_db = LiveAction.get_by_id(inserted_live_action_db.id)
+        return retrieved_live_action_db
+
+    retrieved_live_action_db = benchmark.pedantic(
+        run_benchmark, iterations=10, rounds=10
+    )
+    assert retrieved_live_action_db == inserted_live_action_db
+    assert retrieved_live_action_db.value == content
