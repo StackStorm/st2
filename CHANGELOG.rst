@@ -40,6 +40,9 @@ Changed
 * Import ABC from collections.abc for Python 3.10 compatibility. (#5007)
   Contributed by @tirkarthi
 
+* Updated to use virtualenv 20.4.0/PIP20.3.3 and fixate-requirements to work with PIP 20.3.3 #512
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
 3.4.0 - March 02, 2021
 ----------------------
 
