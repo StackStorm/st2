@@ -86,13 +86,15 @@ def parse(value, preserve_original_tz=False):
     # We use udatetime since it's much faster than non-C alternatives
     # For compatibility reasons we still fall back to datetutil, but this should rarely happen
     # rfc3339 covers 90% of the iso8601 (it's a subset of it)
+    original_value = value
+
     try:
         if " " in value:
             # udatetime doesn't support notation with whitespace so we replace it with T
             value = value.replace(" ", "T")
         dt = udatetime.from_string(str(value))
     except Exception:
-        dt = dateutil.parser.parse(str(value))
+        dt = dateutil.parser.parse(str(original_value))
 
     if not dt.tzinfo:
         dt = add_utc_tz(dt)
