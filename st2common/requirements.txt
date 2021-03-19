@@ -36,6 +36,7 @@ routes==2.4.1
 semver==2.9.0
 six==1.13.0
 tooz==2.8.0
+udatetime==0.0.16
 ujson==1.35
 webob==1.8.5
 zake==0.2.2

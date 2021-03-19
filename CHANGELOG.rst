@@ -151,6 +151,11 @@ Improvements
 
   Contributed by @Kami.
 
+* For performance reasons, use ``udatetime`` library for parsing ISO8601 / RFC3339 date strings
+  where possible. (improvement) #4846
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 
