@@ -10,7 +10,7 @@ eventlet==0.30.1
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 git+https://github.com/StackStorm/st2-auth-ldap.git@master#egg=st2-auth-ldap
 gunicorn==19.9.0
-oslo.config<1.13,>=1.12.1
+oslo.config>=1.12.1,<1.13
 passlib==1.7.1
 pymongo==3.11.3
 six==1.13.0

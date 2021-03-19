@@ -25,7 +25,6 @@ tooz
 # Required by tooz - on new versions of tooz, all the backend dependencies need
 # to be installed manually
 zake
-ipaddr
 routes
 flex
 webob
