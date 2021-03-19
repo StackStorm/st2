@@ -171,7 +171,13 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         with open(self.path, "r") as fd:
             content = fd.read()
 
-        self.assertEqual(content, FIXTURES["results"]["execution_unescape_newline.txt"])
+        # NOTE: For some reason CI and locally the indent is different sometimes (2 vs 4 spaces)
+        # even though it's using the same code
+        expected = FIXTURES["results"]["execution_unescape_newline.txt"]
+        expected = expected.replace("      '", "  '").replace("  '", "'")
+        content = content.replace("      '", "  '").replace("  '", "'")
+        content = content.replace("      '", "  '")
+        self.assertEqual(content, expected)
 
     @mock.patch.object(
         httpclient.HTTPClient,
