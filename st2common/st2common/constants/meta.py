@@ -22,6 +22,10 @@ import yaml
 try:
     from yaml import CSafeLoader as YamlSafeLoader
 except ImportError:
+    # NOTE: We install libyaml-dev in our packages so libyaml will always be available when using
+    # official StackStorm packages.
+    # Only time it may not be available is if the user is doing custom install from source or
+    # similar.
     logging.getLogger(__name__).warn(
         "libYAML C bindings are not available. This means YAML "
         "parsing and serialization will be significantly slower. You are "
