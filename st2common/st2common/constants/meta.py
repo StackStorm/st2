@@ -21,6 +21,7 @@ import yaml
 
 try:
     from yaml import CSafeLoader as YamlSafeLoader
+    from yaml import CSafeDumper as YamlSafeDumper
 except ImportError:
     # NOTE: We install libyaml-dev in our packages so libyaml will always be available when using
     # official StackStorm packages.
@@ -33,6 +34,7 @@ except ImportError:
         "on Debian). For more information, see https://pyyaml.org/wiki/LibYAML"
     )
     from yaml import SafeLoader as YamlSafeLoader
+    from yaml import SafeDumper as YamlSafeDumper
 
 __all__ = ["ALLOWED_EXTS", "PARSER_FUNCS"]
 
@@ -44,9 +46,15 @@ __all__ = ["ALLOWED_EXTS", "PARSER_FUNCS"]
 # That's the actual class which is used internally by ``yaml.safe_load()``, but we can't use that
 # method directly since we want to use C extension if available (CSafeLoader) for faster parsing.
 #
+# Same goes for dumper class.
+#
 # See pyyaml docs for details https://pyyaml.org/wiki/PyYAMLDocumentation
 def yaml_safe_load(stream):
     return yaml.load(stream, Loader=YamlSafeLoader)
+
+
+def yaml_safe_dump(data, **kwargs):
+    return yaml.dump(data, Dumper=YamlSafeDumper, **kwargs)
 
 
 ALLOWED_EXTS = [".yaml", ".yml"]

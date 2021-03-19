@@ -18,9 +18,11 @@ from __future__ import absolute_import
 import json
 import jsonpath_rw
 import six
-import yaml
+import orjson
 
 from st2common.util import db as db_util
+from st2common.constants.meta import yaml_safe_load
+from st2common.constants.meta import yaml_safe_dump
 
 
 __all__ = [
@@ -35,11 +37,11 @@ __all__ = [
 
 
 def from_json_string(value):
-    return json.loads(six.text_type(value))
+    return orjson.loads(six.text_type(value))
 
 
 def from_yaml_string(value):
-    return yaml.safe_load(six.text_type(value))
+    return yaml_safe_load(six.text_type(value))
 
 
 def to_json_string(value, indent=None, sort_keys=False, separators=(",", ": ")):
@@ -70,7 +72,7 @@ def to_yaml_string(value, indent=None, allow_unicode=True):
     if allow_unicode is not None:
         options["allow_unicode"] = allow_unicode
 
-    return yaml.safe_dump(value, **options)
+    return yaml_safe_dump(value, **options)
 
 
 def json_escape(value):

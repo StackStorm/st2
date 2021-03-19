@@ -146,6 +146,11 @@ Improvements
 
   Contributed by @Kami.
 
+* Update various Jinja functiona to utilize C version of YAML ``safe_{load,dump}`` functions and
+  orjson for better performance. (improvement) #4846
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 
