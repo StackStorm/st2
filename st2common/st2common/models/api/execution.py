@@ -28,6 +28,7 @@ from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInst
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common import log as logging
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = ["ActionExecutionAPI", "ActionExecutionOutputAPI"]
 
@@ -177,7 +178,7 @@ class ActionExecutionAPI(BaseAPI):
             if not getattr(instance, attr, None):
                 continue
 
-            default = copy.deepcopy(meta.get("default", None))
+            default = fast_deepcopy_dict(meta.get("default", None))
             value = getattr(instance, attr, default)
 
             # pylint: disable=no-member
