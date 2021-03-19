@@ -96,6 +96,8 @@ class ExecutionResult(formatters.Formatter):
                     # 3. Set width to maxint so pyyaml does not split text. Anything longer
                     #    and likely we will see other issues like storage :P.
                     # NOTE: We use C version of the safe dumper which is faster.
+                    # Keep in mind that using YamlSafeDumper is the same as using yaml.safe_dumps
+                    # (same class is used underneath when using yaml.safe_dump) so the code is safe.
                     formatted_value = yaml.dump(
                         {attr: value},
                         default_flow_style=False,
