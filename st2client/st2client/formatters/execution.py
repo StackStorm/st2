@@ -24,6 +24,12 @@ import yaml
 try:
     from yaml import CSafeDumper as YamlSafeDumper
 except ImportError:
+    logging.getLogger(__name__).warn(
+        "libYAML C bindings are not available. This means YAML "
+        "parsing and serialization will be significantly slower. You are "
+        "strongly recommended to install libyaml (libyaml-dev package "
+        "on Debian). For more information, see https://pyyaml.org/wiki/LibYAML"
+    )
     from yaml import SafeDumper as YamlSafeDumper
 
 from st2client import formatters

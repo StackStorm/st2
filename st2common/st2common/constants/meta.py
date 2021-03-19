@@ -15,11 +15,19 @@
 
 from __future__ import absolute_import
 
+import logging
+
 import yaml
 
 try:
     from yaml import CSafeLoader as YamlSafeLoader
 except ImportError:
+    logging.getLogger(__name__).warn(
+        "libYAML C bindings are not available. This means YAML "
+        "parsing and serialization will be significantly slower. You are "
+        "strongly recommended to install libyaml (libyaml-dev package "
+        "on Debian). For more information, see https://pyyaml.org/wiki/LibYAML"
+    )
     from yaml import SafeLoader as YamlSafeLoader
 
 __all__ = ["ALLOWED_EXTS", "PARSER_FUNCS"]
