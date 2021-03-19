@@ -60,7 +60,15 @@ Changed
 
   Contributed by @cognifloyd
 
+Fixed
+~~~~~
+
 * Properly handle unicode strings in logs #5184
+
+  Fix a logging loop when attempting to encode Unicode characters in locales that do not support
+  Unicode characters - CVE-2021-28667.
+
+  See https://stackstorm.com/2021/03/10/stackstorm-v3-4-1-security-fix/ for more information.
 
   Contributed by @Kami
 
