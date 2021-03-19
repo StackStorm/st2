@@ -523,6 +523,8 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
     def to_python(self, value):
         if isinstance(value, dict):
             # Old format which used a native dict with escaped special characters
+            # TODO: We can remove that once we assume there is no more old style data in the
+            # database and save quite some time.
             value = mongoescape.unescape_chars(value)
             return value
 
