@@ -15,10 +15,10 @@
 
 """
 Micro benchmark which compares the performance of our fast_deepcopy_dict implementation using
-different underlying implementations (copy.deepcopy, urjson, orjson).
+different underlying implementations (copy.deepcopy, ujson, orjson).
 """
 
-# TODO: Also se actual orquesta context and execution fixture files which contain real life data
+# TODO: Also use actual orquesta context and execution fixture files which contain real life data
 # with large text strings, different value types, etc.
 
 import os

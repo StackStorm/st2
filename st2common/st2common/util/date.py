@@ -91,9 +91,7 @@ def parse(value, preserve_original_tz=False):
             # udatetime doesn't support notation with whitespace so we replace it with T
             value = value.replace(" ", "T")
         dt = udatetime.from_string(str(value))
-    except Exception as e:
-        print(e)
-        print(value)
+    except Exception:
         dt = dateutil.parser.parse(str(value))
 
     if not dt.tzinfo:
