@@ -134,6 +134,18 @@ Changed
 
   Contributed by @Kami.
 
+Improvements
+~~~~~~~~~~~~
+
+* CLI has been updated to use or ``orjson`` when parsing API response and C version of the YAML
+  safe dumper when formatting execution result for display. This should result in speed up when
+  displaying execution result (``st2 execution get``, etc.) for executions with large results.
+
+  When testing it locally, the difference for execution with 8 MB result was 18 seconds vs ~6
+  seconds. (improvement) #4846
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 

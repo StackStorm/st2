@@ -21,6 +21,11 @@ import struct
 
 import yaml
 
+try:
+    from yaml import CSafeDumper as YamlSafeDumper
+except ImportError:
+    from yaml import SafeDumper as YamlSafeDumper
+
 from st2client import formatters
 from st2client.config import get_config
 from st2client.utils import jsutil
@@ -90,11 +95,13 @@ class ExecutionResult(formatters.Formatter):
                     # 2. Drop the trailing newline
                     # 3. Set width to maxint so pyyaml does not split text. Anything longer
                     #    and likely we will see other issues like storage :P.
-                    formatted_value = yaml.safe_dump(
+                    # NOTE: We use C version of the safe dumper which is faster.
+                    formatted_value = yaml.dump(
                         {attr: value},
                         default_flow_style=False,
                         width=PLATFORM_MAXINT,
                         indent=2,
+                        Dumper=YamlSafeDumper,
                     )[len(attr) + 2 : -1]
 
                     if isinstance(value, list):

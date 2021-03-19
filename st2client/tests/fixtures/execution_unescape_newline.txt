@@ -14,5 +14,5 @@ result:
 Traceback (most recent call last):
  "
     stdout: 'FOOBAR2
-      '
+'
     succeeded: true
