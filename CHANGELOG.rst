@@ -146,6 +146,10 @@ Fixed
 * Updated to use virtualenv 20.4.0/PIP20.3.3 and fixate-requirements to work with PIP 20.3.3 #512
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
+* Fix ``st2 execution get --with-schema`` flag.  (bug fix) #4846
+
+  Contributed by @Kami.
+
 3.4.0 - March 02, 2021
 ----------------------
 
