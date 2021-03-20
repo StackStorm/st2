@@ -156,6 +156,13 @@ Improvements
 
   Contributed by @Kami.
 
+* Speed up service start up time by speeding up runners registration on service start up by
+  re-using existing stevedore ``ExtensionManager`` instance instead of instantiating new
+  ``DriverManager`` instance per extension which is not necessary and it's slow since it requires
+  disk / pkg resources scan for each extension. (improvement) #5198
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 
