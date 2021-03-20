@@ -66,6 +66,8 @@ endif
 # NOTE: We exclude resourceregistrar DEBUG level log messages since those are very noisy (we
 # loaded resources for every tests) which makes tests hard to troubleshoot on failure due to
 # pages and pages and pages of noise.
+# The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
+# See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
 NOSE_OPTS := --rednose --immediate --with-parallel --nocapture --logging-filter=-st2.st2common.bootstrap
 
 ifndef NOSE_TIME
