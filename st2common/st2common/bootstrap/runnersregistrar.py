@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-from stevedore.driver import DriverManager
 from stevedore.extension import ExtensionManager
 
 from st2common import log as logging
@@ -41,15 +40,13 @@ def register_runners(experimental=False, fail_on_failure=True):
     runner_count = 0
 
     manager = ExtensionManager(namespace=RUNNERS_NAMESPACE, invoke_on_load=False)
-    extension_names = manager.names()
 
-    for name in extension_names:
+    # NOTE: We use ExtensionManager directly instead of DriverManager per extension since that is
+    # much faster and allows us to reduce stevedore loading overead for each runner
+    for extension in manager.extensions:
+        name = extension.name
         LOG.debug('Found runner "%s"' % (name))
-
-        manager = DriverManager(
-            namespace=RUNNERS_NAMESPACE, invoke_on_load=False, name=name
-        )
-        runner_metadata = manager.driver.get_metadata()
+        runner_metadata = extension.plugin.get_metadata()
         runner_count += register_runner(runner_metadata, experimental)
 
     LOG.debug("End : register runners")
