@@ -1487,7 +1487,8 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
             "id", help=("ID of the %s." % resource.get_display_name().lower())
         )
         self.parser.add_argument(
-            ["-x", "--exclude-result"],
+            "-x",
+            "--exclude-result",
             dest="exclude_result",
             action="store_true",
             default=False,

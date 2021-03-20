@@ -35,5 +35,7 @@ pyrabbit
 pip-tools<5.4
 pytest==5.4.3
 pytest-benchmark==3.2.3
+# zstandard is used for micro benchmarks
 zstandard==0.15.1
+# ujson is used for micro benchmarks
 ujson==1.35
