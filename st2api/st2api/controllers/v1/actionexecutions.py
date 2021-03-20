@@ -1043,9 +1043,9 @@ class ActionExecutionsController(
                 "the response." % (resource_id, max_result_size)
             )
 
-            if include_fields:
+            if include_fields and "result" in include_fields:
                 include_fields.remove("result")
-            else:
+            elif not include_fields:
                 exclude_fields += ["result"]
 
         # Now call parent get by id with potentially modified include / exclude fields in case
