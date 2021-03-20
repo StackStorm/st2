@@ -15,10 +15,10 @@
 
 """
 Micro benchmark which compares the performance of our fast_deepcopy_dict implementation using
-different underlying implementations (copy.deepcopy, urjson, orjson).
+different underlying implementations (copy.deepcopy, ujson, orjson).
 """
 
-# TODO: Also se actual orquesta context and execution fixture files which contain real life data
+# TODO: Also use actual orquesta context and execution fixture files which contain real life data
 # with large text strings, different value types, etc.
 
 import os
@@ -86,8 +86,8 @@ def generate_random_dict(keys_count=10, depth=1):
         "1000_10_attributes",
     ],
 )
-@pytest.mark.benchmark(group="fast_deepcopy_dict")
-def test_fast_deepcopy_dict_with_dict_values(
+@pytest.mark.benchmark(group="fast_deepcopy")
+def test_fast_deepcopy_with_dict_values(
     benchmark, dict_keys_count_and_depth, implementation
 ):
     dict_keys, dict_depth = dict_keys_count_and_depth
@@ -127,10 +127,8 @@ def test_fast_deepcopy_dict_with_dict_values(
         "rows.json",
     ],
 )
-@pytest.mark.benchmark(group="fast_deepcopy_dict")
-def test_fast_deepcopy_dict_with_json_fixture_file(
-    benchmark, fixture_file, implementation
-):
+@pytest.mark.benchmark(group="fast_deepcopy")
+def test_fast_deepcopy_with_json_fixture_file(benchmark, fixture_file, implementation):
     with open(os.path.join(FIXTURES_DIR, fixture_file), "r") as fp:
         content = fp.read()
 

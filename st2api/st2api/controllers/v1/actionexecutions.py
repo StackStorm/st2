@@ -16,9 +16,11 @@
 import copy
 import re
 import sys
+import gzip
 import traceback
 
 import six
+import orjson
 import jsonschema
 from oslo_config import cfg
 from six.moves import http_client
@@ -44,6 +46,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
 from st2common.router import abort
 from st2common.router import Response
+from st2common.router import NotFoundException
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
@@ -363,6 +366,90 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
 
         result = getattr(action_exec_db, attribute, None)
         return Response(json=result, status=http_client.OK)
+
+
+class ActionExecutionRawResultController(BaseActionExecutionNestedController):
+    def get(
+        self, id, requester_user, download=False, compress=False, pretty_format=False
+    ):
+        """
+        Retrieve raw action execution result object as a JSON string or optionally force result
+        download as a (compressed) file.
+
+        This is primarily to be used in scenarios where executions contain large results and JSON
+        loading and parsing it can be slow (e.g. in the st2web) and we just want to display raw
+        result.
+
+        :param compress: True to compress the response using gzip (may come handy for executions
+                         with large results).
+        :param download: True to force downloading result to a file.
+        :param pretty_format: True to pretty format returned JSON data - this adds quite some
+                              overhead compared to the default behavior where we don't pretty
+                              format the result.
+
+        Handles requests:
+
+            GET /executions/<id>/result[?download=1][&compress=1]
+
+        TODO: Maybe we should also support pre-signed URLs for sharing externally with other
+        people?
+
+        It of course won't contain all the exection related data, but just sharing the result can
+        come handy in many situations.
+
+        :rtype: ``str``
+        """
+        # NOTE: Here we intentionally use as_pymongo() to avoid mongoengine layer even for old style
+        # data
+        try:
+            result = (
+                self.access.impl.model.objects.filter(id=id)
+                .only("result")
+                .as_pymongo()[0]
+            )
+        except IndexError:
+            raise NotFoundException("Execution with id %s not found" % (id))
+
+        if isinstance(result["result"], dict):
+            # For backward compatibility we also support old non JSON field storage format
+            if pretty_format:
+                response_body = orjson.dumps(
+                    result["result"], option=orjson.OPT_INDENT_2
+                )
+            else:
+                response_body = orjson.dumps(result["result"])
+        else:
+            # For new JSON storage format we just use raw value since it's already JSON serialized
+            # string
+            response_body = result["result"]
+
+            if pretty_format:
+                # Pretty format is not a default behavior since it adds quite some overhead (e.g.
+                # 10-30ms for non pretty format for 4 MB json vs ~120 ms for pretty formatted)
+                response_body = orjson.dumps(
+                    orjson.loads(result["result"]), option=orjson.OPT_INDENT_2
+                )
+
+        response = Response()
+        response.headers["Content-Type"] = "text/json"
+
+        if download:
+            filename = "execution_%s_result.json" % (id)
+
+            if compress:
+                filename += ".gz"
+
+            response.headers["Content-Disposition"] = "attachment; filename=%s" % (
+                filename
+            )
+
+        if compress:
+            response.headers["Content-Type"] = "application/x-gzip"
+            response.headers["Content-Encoding"] = "gzip"
+            response_body = gzip.compress(response_body)
+
+        response.body = response_body
+        return response
 
 
 class ActionExecutionOutputController(
@@ -742,7 +829,9 @@ class ActionExecutionsController(
         def update_status(liveaction_api, liveaction_db):
             status = liveaction_api.status
             result = getattr(liveaction_api, "result", None)
-            liveaction_db = action_service.update_status(liveaction_db, status, result)
+            liveaction_db = action_service.update_status(
+                liveaction_db, status, result, set_result_size=True
+            )
             actionexecution_db = ActionExecution.get(
                 liveaction__id=str(liveaction_db.id)
             )
@@ -940,3 +1029,4 @@ action_execution_output_controller = ActionExecutionOutputController()
 action_execution_rerun_controller = ActionExecutionReRunController()
 action_execution_attribute_controller = ActionExecutionAttributeController()
 action_execution_children_controller = ActionExecutionChildrenController()
+action_execution_raw_result_controller = ActionExecutionRawResultController()

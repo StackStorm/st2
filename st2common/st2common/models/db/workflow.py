@@ -21,6 +21,7 @@ from st2common.constants import types
 from st2common import fields as db_field_types
 from st2common import log as logging
 from st2common.models.db import stormbase
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.util import date as date_utils
 
 
@@ -38,12 +39,12 @@ class WorkflowExecutionDB(
     action_execution = me.StringField(required=True)
     spec = stormbase.EscapedDictField()
     graph = me.DictField()
-    input = stormbase.EscapedDictField()
+    input = JSONDictEscapedFieldCompatibilityField()
     notify = me.DictField()
-    context = stormbase.EscapedDictField()
-    state = stormbase.EscapedDictField()
+    context = JSONDictEscapedFieldCompatibilityField()
+    state = JSONDictEscapedFieldCompatibilityField()
     status = me.StringField(required=True)
-    output = stormbase.EscapedDictField()
+    output = JSONDictEscapedFieldCompatibilityField()
     errors = stormbase.EscapedDynamicField()
     start_timestamp = db_field_types.ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now
@@ -60,14 +61,14 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     task_name = me.StringField(required=True)
     task_id = me.StringField(required=True)
     task_route = me.IntField(required=True, min_value=0)
-    task_spec = stormbase.EscapedDictField()
+    task_spec = JSONDictEscapedFieldCompatibilityField()
     delay = me.IntField(min_value=0)
     itemized = me.BooleanField(default=False)
     items_count = me.IntField(min_value=0)
     items_concurrency = me.IntField(min_value=1)
-    context = stormbase.EscapedDictField()
+    context = JSONDictEscapedFieldCompatibilityField()
     status = me.StringField(required=True)
-    result = stormbase.EscapedDictField()
+    result = JSONDictEscapedFieldCompatibilityField()
     start_timestamp = db_field_types.ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now
     )

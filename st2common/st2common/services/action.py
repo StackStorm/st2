@@ -204,7 +204,9 @@ def request(liveaction):
     return liveaction, execution
 
 
-def update_status(liveaction, new_status, result=None, publish=True):
+def update_status(
+    liveaction, new_status, result=None, publish=True, set_result_size=False
+):
     if liveaction.status == new_status:
         return liveaction
 
@@ -221,7 +223,9 @@ def update_status(liveaction, new_status, result=None, publish=True):
         updates["end_timestamp"] = date_utils.get_datetime_utc_now()
 
     liveaction = action_utils.update_liveaction_status(**updates)
-    action_execution = executions.update_execution(liveaction)
+    action_execution = executions.update_execution(
+        liveaction, set_result_size=set_result_size
+    )
 
     msg = (
         "The status of action execution is changed from %s to %s. "

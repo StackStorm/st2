@@ -23,7 +23,7 @@ kombu==4.6.6
 lockfile==0.12.2
 mongoengine==0.18.2
 networkx==1.11
-orjson==3.5.0
+orjson==3.5.1
 oslo.config>=1.12.1,<1.13
 paramiko==2.7.1
 pymongo==3.10.0
@@ -36,6 +36,6 @@ routes==2.4.1
 semver==2.9.0
 six==1.13.0
 tooz==2.8.0
-ujson==1.35
+udatetime==0.0.16
 webob==1.8.5
 zake==0.2.2

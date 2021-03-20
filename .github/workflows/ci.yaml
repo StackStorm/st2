@@ -40,6 +40,7 @@ jobs:
           - name: 'Unit Tests'
             task: 'ci-unit'
             python-version: '3.6'
+          # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
           #   python-version: '3.6'
