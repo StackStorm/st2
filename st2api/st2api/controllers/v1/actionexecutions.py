@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
+
 import copy
 import re
 import sys
@@ -753,13 +755,9 @@ class ActionExecutionsController(
             )
         }
 
-        # Maximum limit for MongoDB collection document is 16 MB and the field itself can't be
-        # larger than that obviously. And in reality due to the other fields, overhead, etc,
-        # 14 is the upper limit.
-        if max_result_size and max_result_size > 14 * 1024 * 1024:
-            raise ValueError(
-                "?max_result_size query parameter must be smaller than 14 MB"
-            )
+        max_result_size = self._validate_max_result_size(
+            max_result_size=max_result_size
+        )
 
         # Special case for id == "last"
         if id == "last":
@@ -990,6 +988,28 @@ class ActionExecutionsController(
         return ActionExecutionAPI.from_model(
             execution_db, mask_secrets=from_model_kwargs["mask_secrets"]
         )
+
+    def _validate_max_result_size(
+        self, max_result_size: Optional[int]
+    ) -> Optional[int]:
+        """
+        Validate value of the ?max_result_size query parameter (if provided).
+        """
+        # Maximum limit for MongoDB collection document is 16 MB and the field itself can't be
+        # larger than that obviously. And in reality due to the other fields, overhead, etc,
+        # 14 is the upper limit.
+        if not max_result_size:
+            return max_result_size
+
+        if max_result_size <= 0:
+            raise ValueError("max_result_size must be a positive number")
+
+        if max_result_size > 14 * 1024 * 1024:
+            raise ValueError(
+                "max_result_size query parameter must be smaller than 14 MB"
+            )
+
+        return max_result_size
 
     def _get_by_id(
         self,

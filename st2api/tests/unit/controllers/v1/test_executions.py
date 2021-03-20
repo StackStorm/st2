@@ -420,6 +420,26 @@ class ActionExecutionControllerTestCase(
         self.assertTrue("result" not in get_resp.json)
         self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
 
+        # 6. max_result_size is not a positive number
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=-100", expect_errors=True
+        )
+        self.assertEqual(get_resp.status_int, 400)
+        self.assertEqual(
+            get_resp.json["faultstring"], "max_result_size must be a positive number"
+        )
+
+        # 7. max_result_size is > max possible value
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=%s" % ((14 * 1024 * 1024) + 1),
+            expect_errors=True,
+        )
+        self.assertEqual(get_resp.status_int, 400)
+        self.assertEqual(
+            get_resp.json["faultstring"],
+            "max_result_size query parameter must be smaller than 14 MB",
+        )
+
     def test_get_all_id_query_param_filtering_success(self):
         post_resp = self._do_post(LIVE_ACTION_1)
         actionexecution_id = self._get_actionexecution_id(post_resp)
