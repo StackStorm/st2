@@ -142,6 +142,7 @@ jobs:
           path: |
             ~/.cache/pip
             virtualenv
+            ~/virtualenv
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
@@ -168,7 +169,19 @@ jobs:
         run: |
           # Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
           #       only have to update it one place when we change the version
-          pip install --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
+          # Note: Use --user to avoid polluting system site-packages (which breaks one of our tests)
+          # TODO: simplify this once fixed in contrib/runners/python_runner/tests/integration/test_pythonrunner_behavior.py
+          if [[ ! -f ~/virtualenv/bin/virtualenv ]]; then  # use the cached version whenever possible
+            pip install --user --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
+            virtualenv --no-download ~/virtualenv
+            ~/virtualenv/bin/pip install --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
+            # drop the --user install virtualenv to prevent polluting tests
+            pip freeze --user | xargs pip uninstall -y
+            mkdir -p ~/.local/bin
+            ln -s ~/virtualenv/bin/virtualenv ~/.local/bin/virtualenv
+          fi
+          which virtualenv
+          virtualenv --version
       - name: Install requirements
         run: |
           ./scripts/travis/install-requirements.sh
@@ -221,6 +234,7 @@ jobs:
           git --version
           pip --version
           pip list
+          virtualenv --version
           # Print out various environment variables info
           make play
       - name: make
