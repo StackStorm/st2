@@ -114,6 +114,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '${{ matrix.python-version }}'
+      - name: Get date components for use in cache-keys
+        id: date
+        run: |
+          echo "::set-output name=year::$(/bin/date -u "+%Y")"
+          echo "::set-output name=month::$(/bin/date -u "+%m")"
+          echo "::set-output name=week::$(/bin/date -u "+%U")"
       - uses: actions/cache@v2
         with:
           path: |
@@ -122,6 +128,16 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.python }}-
+      - uses: actions/cache@v2
+        with:
+          path: |
+            /var/cache/apt/archives/*.deb
+            /var/cache/apt/archives/partial/*.deb
+            /var/cache/apt/*.bin
+          key: ${{ runner.os }}-apt-${{ steps.date.outputs.year }}-${{ steps.date.outputs.week }}
+          restore-keys: |
+            ${{ runner.os }}-apt-${{ steps.date.outputs.year }}-
+            ${{ runner.os }}-apt-
       - name: Install apt depedencies
         run: |
           # install dev dependencies for Python YAML and LDAP packages
