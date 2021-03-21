@@ -45,3 +45,6 @@ chmod 777 logs/*
 # root needs to access write some lock files when creating virtualenvs
 # o=other; X=only set execute bit if user execute bit is set (eg on dirs)
 chmod -R o+rwX ./virtualenv/
+# newer virtualenv versions are putting lock files under ~/.local
+# as this script runs with sudo, HOME is actually the CI user's home
+chmod -R o+rwX ${HOME}/.local/share/virtualenv
