@@ -44,6 +44,7 @@ from st2common.util import system_info
 from st2common.services import coordination
 from st2common.logging.misc import add_global_filters_for_all_loggers
 from st2common.constants.error_messages import PYTHON2_DEPRECATION
+from st2common.util.profiler import setup_eventlet_profiler
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
@@ -95,6 +96,10 @@ def setup(
     :param service: Name of the service.
     :param config: Config object to use to parse args.
     """
+    if "--enable-profiler" in sys.argv:
+        setup_eventlet_profiler(service_name="st2" + service)
+        sys.argv.remove("--enable-profiler")
+
     capabilities = capabilities or {}
 
     # Set up logger which logs everything which happens during and before config
