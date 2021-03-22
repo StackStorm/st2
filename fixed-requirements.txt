@@ -46,8 +46,9 @@ six==1.13.0
 sseclient-py==1.7
 stevedore==1.30.1
 tooz==2.8.0
-# Note: We use latest version of virtualenv which uses pip 19
-virtualenv==16.6.0
+# Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
+# virtualenv==20.4.0 (<21) has pip==20.3.3 wheel==0.36.2 setuptools==51.3.3
+virtualenv==20.4.0
 webob==1.8.5
 zake==0.2.2
 # test requirements below
@@ -62,4 +63,6 @@ python-dateutil==2.8.0
 python-statsd==2.1.0
 prometheus_client==0.1.1
 ujson==1.35
+orjson==3.5.1
+udatetime==0.0.16
 zipp>=0.5,<=1.0.0

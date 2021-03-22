@@ -55,21 +55,27 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
-PIP_VERSION ?= 20.0.2
+PIP_VERSION ?= 20.3.3
+SETUPTOOLS_VERSION ?= 51.3.3
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
 	PYLINT_CONCURRENCY := 1
 endif
 
-NOSE_OPTS := --rednose --immediate --with-parallel --nocapture
+# NOTE: We exclude resourceregistrar DEBUG level log messages since those are very noisy (we
+# loaded resources for every tests) which makes tests hard to troubleshoot on failure due to
+# pages and pages and pages of noise.
+# The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
+# See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
+NOSE_OPTS := --rednose --immediate --with-parallel --nocapture --logging-filter=-st2.st2common.bootstrap
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture
+	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
 	NOSE_WITH_TIMER := 1
 endif
 
@@ -261,7 +267,7 @@ check-python-packages-nightly:
 	done
 
 .PHONY: ci-checks-nightly
-ci-checks-nightly: check-python-packages-nightly
+ci-checks-nightly: check-python-packages-nightly micro-benchmarks
 
 .PHONY: checklogs
 checklogs:
@@ -326,6 +332,73 @@ schemasgen: requirements .schemasgen
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
+# Black task which checks if the code comforts to black code style
+.PHONY: black-check
+black: requirements .black-check
+
+.PHONY: .black-check
+.black-check:
+	@echo
+	@echo "================== black-check ===================="
+	@echo
+	# st2 components
+	@for component in $(COMPONENTS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
+	done
+	# runner modules and packages
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
+	done
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml contrib/ || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml tools/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml pylint_plugins/*.py || exit 1;
+
+# Black task which reformats the code using black
+.PHONY: black-format
+black: requirements .black-format
+
+.PHONY: .black-format
+.black-format:
+	@echo
+	@echo "================== black ===================="
+	@echo
+	# st2 components
+	@for component in $(COMPONENTS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --config pyproject.toml $$component/ || exit 1; \
+	done
+	# runner modules and packages
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --config pyproject.toml  $$component/ || exit 1; \
+	done
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml contrib/ || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml tools/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml pylint_plugins/*.py || exit 1;
+
+.PHONY: pre-commit-checks
+black: requirements .pre-commit-checks
+
+# Ensure all files contain no trailing whitespace + that all YAML files are valid.
+.PHONY: .pre-commit-checks
+.pre-commit-checks:
+	@echo
+	@echo "================== pre-commit-checks ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; pre-commit run trailing-whitespace --all --show-diff-on-failure
+	. $(VIRTUALENV_DIR)/bin/activate; pre-commit run check-yaml --all --show-diff-on-failure
 .PHONY: lint-api-spec
 lint-api-spec: requirements .lint-api-spec
 
@@ -394,11 +467,8 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
-	# Setuptools 42 added support for python_requires, which is used by the configparser package,
-	# which is required by the importlib-metadata package
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"
 
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
@@ -418,7 +488,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .generate-api-spec .flake8 .pylint .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
+.lint: .generate-api-spec .black-check .pre-commit-checks .flake8 .pylint .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -448,6 +518,24 @@ compilepy3:
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name router\.py -name \*.py \) -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2exporter; test $$? -eq 1
+
+.PHONY: micro-benchmarks
+micro-benchmarks: requirements .micro-benchmarks
+
+.PHONY: .micro-benchmarks
+.micro-benchmarks:
+	@echo
+	@echo "==================== micro-benchmarks ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_multiple_fields"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_string_value"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_string_value"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:dict_keys_count_and_depth -s -v st2common/benchmarks/micro/test_fast_deepcopy.py -k "test_fast_deepcopy_with_dict_values"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_fast_deepcopy.py -k "test_fast_deepcopy_with_json_fixture_file"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file,param:indent_sort_keys_tuple -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py  -k "test_json_dumps"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py  -k "test_json_loads"
 
 .PHONY: .cleanmongodb
 .cleanmongodb:
@@ -531,9 +619,7 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	#       only have to update it one place when we change the version
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
 
-	# setuptools >= 41.0.1 is required for packs.install in dev envs
-	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Fix for Travis CI race
@@ -979,7 +1065,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: .generated-files-check .black-check .pre-commit-checks .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: .rst-check
 .rst-check:

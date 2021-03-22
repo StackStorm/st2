@@ -28,23 +28,16 @@ from st2tests.fixturesloader import FixturesLoader
 
 
 TEST_FIXTURES = {
-    'actions': [
-        'action1.yaml',
-        'action3.yaml'
-    ],
-    'runners': [
-        'testrunner1.yaml',
-        'testrunner3.yaml'
-    ]
+    "actions": ["action1.yaml", "action3.yaml"],
+    "runners": ["testrunner1.yaml", "testrunner3.yaml"],
 }
 
-PACK = 'generic'
+PACK = "generic"
 LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
 
 class ActionParamsUtilsTest(DbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(ActionParamsUtilsTest, cls).setUpClass()
@@ -54,86 +47,105 @@ class ActionParamsUtilsTest(DbTestCase):
         cls.runnertype_dbs = {}
         cls.action_dbs = {}
 
-        for _, fixture in six.iteritems(FIXTURES['runners']):
+        for _, fixture in six.iteritems(FIXTURES["runners"]):
             instance = RunnerTypeAPI(**fixture)
             runnertype_db = RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
             cls.runnertype_dbs[runnertype_db.name] = runnertype_db
 
-        for _, fixture in six.iteritems(FIXTURES['actions']):
+        for _, fixture in six.iteritems(FIXTURES["actions"]):
             instance = ActionAPI(**fixture)
             action_db = Action.add_or_update(ActionAPI.to_model(instance))
             cls.action_dbs[action_db.name] = action_db
 
     def test_merge_action_runner_params_meta(self):
         required, optional, immutable = action_param_utils.get_params_view(
-            action_db=self.action_dbs['action-1'],
-            runner_db=self.runnertype_dbs['test-runner-1'])
+            action_db=self.action_dbs["action-1"],
+            runner_db=self.runnertype_dbs["test-runner-1"],
+        )
         merged = {}
         merged.update(required)
         merged.update(optional)
         merged.update(immutable)
 
         consolidated = action_param_utils.get_params_view(
-            action_db=self.action_dbs['action-1'],
-            runner_db=self.runnertype_dbs['test-runner-1'],
-            merged_only=True)
+            action_db=self.action_dbs["action-1"],
+            runner_db=self.runnertype_dbs["test-runner-1"],
+            merged_only=True,
+        )
 
         # Validate that merged_only view works.
         self.assertEqual(merged, consolidated)
 
         # Validate required params.
-        self.assertEqual(len(required), 1, 'Required should contain only one param.')
-        self.assertIn('actionstr', required, 'actionstr param is a required param.')
-        self.assertNotIn('actionstr', optional, 'actionstr should not be in optional parameters')
-        self.assertNotIn('actionstr', immutable, 'actionstr should not be in immutable parameters')
-        self.assertIn('actionstr', merged, 'actionstr should be in action parameters')
+        self.assertEqual(len(required), 1, "Required should contain only one param.")
+        self.assertIn("actionstr", required, "actionstr param is a required param.")
+        self.assertNotIn(
+            "actionstr", optional, "actionstr should not be in optional parameters"
+        )
+        self.assertNotIn(
+            "actionstr", immutable, "actionstr should not be in immutable parameters"
+        )
+        self.assertIn("actionstr", merged, "actionstr should be in action parameters")
 
         # Validate immutable params.
-        self.assertIn('runnerimmutable', immutable, 'runnerimmutable should be in immutable.')
-        self.assertIn('actionimmutable', immutable, 'actionimmutable should be in immutable.')
+        self.assertIn(
+            "runnerimmutable", immutable, "runnerimmutable should be in immutable."
+        )
+        self.assertIn(
+            "actionimmutable", immutable, "actionimmutable should be in immutable."
+        )
 
         # Validate optional params.
         for opt in optional:
-            self.assertIn(opt, merged, 'Optional %s should be in action parameters' % opt)
-            self.assertNotIn(opt, required, 'Optional %s should not be in required params' % opt)
-            self.assertNotIn(opt, immutable, 'Optional %s should not be in immutable params' % opt)
+            self.assertIn(
+                opt, merged, "Optional %s should be in action parameters" % opt
+            )
+            self.assertNotIn(
+                opt, required, "Optional %s should not be in required params" % opt
+            )
+            self.assertNotIn(
+                opt, immutable, "Optional %s should not be in immutable params" % opt
+            )
 
     def test_merge_param_meta_values(self):
         runner_meta = copy.deepcopy(
-            self.runnertype_dbs['test-runner-1'].runner_parameters['runnerdummy'])
-        action_meta = copy.deepcopy(self.action_dbs['action-1'].parameters['runnerdummy'])
-        merged_meta = action_param_utils._merge_param_meta_values(action_meta=action_meta,
-                                                                  runner_meta=runner_meta)
+            self.runnertype_dbs["test-runner-1"].runner_parameters["runnerdummy"]
+        )
+        action_meta = copy.deepcopy(
+            self.action_dbs["action-1"].parameters["runnerdummy"]
+        )
+        merged_meta = action_param_utils._merge_param_meta_values(
+            action_meta=action_meta, runner_meta=runner_meta
+        )
 
         # Description is in runner meta but not in action meta.
-        self.assertEqual(merged_meta['description'], runner_meta['description'])
+        self.assertEqual(merged_meta["description"], runner_meta["description"])
         # Default value is overridden in action.
-        self.assertEqual(merged_meta['default'], action_meta['default'])
+        self.assertEqual(merged_meta["default"], action_meta["default"])
         # Immutability is set in action.
-        self.assertEqual(merged_meta['immutable'], action_meta['immutable'])
+        self.assertEqual(merged_meta["immutable"], action_meta["immutable"])
 
     def test_merge_param_meta_require_override(self):
-        action_meta = {
-            'required': False
-        }
-        runner_meta = {
-            'required': True
-        }
-        merged_meta = action_param_utils._merge_param_meta_values(action_meta=action_meta,
-                                                                  runner_meta=runner_meta)
+        action_meta = {"required": False}
+        runner_meta = {"required": True}
+        merged_meta = action_param_utils._merge_param_meta_values(
+            action_meta=action_meta, runner_meta=runner_meta
+        )
 
-        self.assertEqual(merged_meta['required'], action_meta['required'])
+        self.assertEqual(merged_meta["required"], action_meta["required"])
 
     def test_validate_action_inputs(self):
         requires, unexpected = action_param_utils.validate_action_parameters(
-            self.action_dbs['action-1'].ref, {'foo': 'bar'})
+            self.action_dbs["action-1"].ref, {"foo": "bar"}
+        )
 
-        self.assertListEqual(requires, ['actionstr'])
-        self.assertListEqual(unexpected, ['foo'])
+        self.assertListEqual(requires, ["actionstr"])
+        self.assertListEqual(unexpected, ["foo"])
 
     def test_validate_overridden_action_inputs(self):
         requires, unexpected = action_param_utils.validate_action_parameters(
-            self.action_dbs['action-3'].ref, {'k1': 'foo'})
+            self.action_dbs["action-3"].ref, {"k1": "foo"}
+        )
 
         self.assertListEqual(requires, [])
         self.assertListEqual(unexpected, [])

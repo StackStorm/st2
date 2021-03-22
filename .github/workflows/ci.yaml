@@ -40,6 +40,10 @@ jobs:
           - name: 'Unit Tests'
             task: 'ci-unit'
             python-version: '3.6'
+          # This job is slow so we only run in on a daily basis
+          # - name: 'Micro Benchmarks'
+          #   task: 'micro-benchmarks'
+          #   python-version: '3.6'
           # Integration tests are not working yet, still done in Travis
           # - name: 'Integration Tests'
           #   task: 'ci-integration'
@@ -120,10 +124,10 @@ jobs:
             ${{ runner.os }}-${{ matrix.python }}-
       - name: Install apt depedencies
         run: |
-          # install dev dependencies for Python LDAP module
+          # install dev dependencies for Python YAML and LDAP packages
           # https://github.com/StackStorm/st2-auth-ldap
           sudo apt-get -y update
-          sudo apt-get -f -y install libldap2-dev libsasl2-dev libssl-dev ldap-utils
+          sudo apt-get -f -y install libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils
       - name: Install virtualenv
         run: |
           # Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we

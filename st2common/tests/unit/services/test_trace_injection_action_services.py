@@ -21,13 +21,13 @@ import st2common.services.action as action_services
 from st2tests.fixturesloader import FixturesLoader
 from st2tests import DbTestCase
 
-FIXTURES_PACK = 'traces'
+FIXTURES_PACK = "traces"
 
 TEST_MODELS = {
-    'executions': ['traceable_execution.yaml'],
-    'liveactions': ['traceable_liveaction.yaml'],
-    'actions': ['chain1.yaml'],
-    'runners': ['actionchain.yaml']
+    "executions": ["traceable_execution.yaml"],
+    "liveactions": ["traceable_liveaction.yaml"],
+    "actions": ["chain1.yaml"],
+    "runners": ["actionchain.yaml"],
 }
 
 
@@ -41,44 +41,52 @@ class TraceInjectionTests(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(TraceInjectionTests, cls).setUpClass()
-        cls.models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
-                                                          fixtures_dict=TEST_MODELS)
+        cls.models = FixturesLoader().save_fixtures_to_db(
+            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_MODELS
+        )
 
-        cls.traceable_liveaction = cls.models['liveactions']['traceable_liveaction.yaml']
-        cls.traceable_execution = cls.models['executions']['traceable_execution.yaml']
-        cls.action = cls.models['actions']['chain1.yaml']
+        cls.traceable_liveaction = cls.models["liveactions"][
+            "traceable_liveaction.yaml"
+        ]
+        cls.traceable_execution = cls.models["executions"]["traceable_execution.yaml"]
+        cls.action = cls.models["actions"]["chain1.yaml"]
 
     def test_trace_provided(self):
-        self.traceable_liveaction['context']['trace_context'] = {'trace_tag': 'OohLaLaLa'}
+        self.traceable_liveaction["context"]["trace_context"] = {
+            "trace_tag": "OohLaLaLa"
+        }
         action_services.request(self.traceable_liveaction)
         traces = Trace.get_all()
         self.assertEqual(len(traces), 1)
-        self.assertEqual(len(traces[0]['action_executions']), 1)
+        self.assertEqual(len(traces[0]["action_executions"]), 1)
 
         # Let's use existing trace id in trace context.
         # We shouldn't create new trace object.
         trace_id = str(traces[0].id)
-        self.traceable_liveaction['context']['trace_context'] = {'id_': trace_id}
+        self.traceable_liveaction["context"]["trace_context"] = {"id_": trace_id}
         action_services.request(self.traceable_liveaction)
         traces = Trace.get_all()
         self.assertEqual(len(traces), 1)
-        self.assertEqual(len(traces[0]['action_executions']), 2)
+        self.assertEqual(len(traces[0]["action_executions"]), 2)
 
     def test_trace_tag_resuse(self):
-        self.traceable_liveaction['context']['trace_context'] = {'trace_tag': 'blank space'}
+        self.traceable_liveaction["context"]["trace_context"] = {
+            "trace_tag": "blank space"
+        }
         action_services.request(self.traceable_liveaction)
         # Let's use same trace tag again and we should see two trace objects in db.
         action_services.request(self.traceable_liveaction)
-        traces = Trace.query(**{'trace_tag': 'blank space'})
+        traces = Trace.query(**{"trace_tag": "blank space"})
         self.assertEqual(len(traces), 2)
 
     def test_invalid_trace_id_provided(self):
         liveactions = LiveAction.get_all()
         self.assertEqual(len(liveactions), 1)  # fixtures loads it.
-        self.traceable_liveaction['context']['trace_context'] = {'id_': 'balleilaka'}
+        self.traceable_liveaction["context"]["trace_context"] = {"id_": "balleilaka"}
 
-        self.assertRaises(TraceNotFoundException, action_services.request,
-                          self.traceable_liveaction)
+        self.assertRaises(
+            TraceNotFoundException, action_services.request, self.traceable_liveaction
+        )
 
         # Make sure no liveactions are left behind
         liveactions = LiveAction.get_all()

@@ -28,11 +28,10 @@ from st2common.models.system.keyvalue import UserKeyReference
 from st2common.persistence.keyvalue import KeyValuePair
 
 __all__ = [
-    'get_kvp_for_name',
-    'get_values_for_names',
-
-    'KeyValueLookup',
-    'UserKeyValueLookup'
+    "get_kvp_for_name",
+    "get_values_for_names",
+    "KeyValueLookup",
+    "UserKeyValueLookup",
 ]
 
 LOG = logging.getLogger(__name__)
@@ -81,17 +80,17 @@ class BaseKeyValueLookup(object):
         :rtype: ``str``
         """
         key_name_parts = [DATASTORE_PARENT_SCOPE, self.scope]
-        key_name = self._key_prefix.split(':', 1)
+        key_name = self._key_prefix.split(":", 1)
 
         if len(key_name) == 1:
             key_name = key_name[0]
         elif len(key_name) >= 2:
             key_name = key_name[1]
         else:
-            key_name = ''
+            key_name = ""
 
         key_name_parts.append(key_name)
-        key_name = '.'.join(key_name_parts)
+        key_name = ".".join(key_name_parts)
         return key_name
 
 
@@ -99,7 +98,9 @@ class KeyValueLookup(BaseKeyValueLookup):
 
     scope = SYSTEM_SCOPE
 
-    def __init__(self, prefix=None, key_prefix=None, cache=None, scope=FULL_SYSTEM_SCOPE):
+    def __init__(
+        self, prefix=None, key_prefix=None, cache=None, scope=FULL_SYSTEM_SCOPE
+    ):
         if not scope:
             scope = FULL_SYSTEM_SCOPE
 
@@ -107,7 +108,7 @@ class KeyValueLookup(BaseKeyValueLookup):
             scope = FULL_SYSTEM_SCOPE
 
         self._prefix = prefix
-        self._key_prefix = key_prefix or ''
+        self._key_prefix = key_prefix or ""
         self._value_cache = cache or {}
         self._scope = scope
 
@@ -129,7 +130,7 @@ class KeyValueLookup(BaseKeyValueLookup):
     def _get(self, name):
         # get the value for this key and save in value_cache
         if self._key_prefix:
-            key = '%s.%s' % (self._key_prefix, name)
+            key = "%s.%s" % (self._key_prefix, name)
         else:
             key = name
 
@@ -144,12 +145,16 @@ class KeyValueLookup(BaseKeyValueLookup):
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
         # calls. Saving the value in cache avoids extra DB calls.
-        return KeyValueLookup(prefix=self._prefix, key_prefix=key, cache=self._value_cache,
-                              scope=self._scope)
+        return KeyValueLookup(
+            prefix=self._prefix,
+            key_prefix=key,
+            cache=self._value_cache,
+            scope=self._scope,
+        )
 
     def _get_kv(self, key):
         scope = self._scope
-        LOG.debug('Lookup system kv: scope: %s and key: %s', scope, key)
+        LOG.debug("Lookup system kv: scope: %s and key: %s", scope, key)
 
         try:
             kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
@@ -157,15 +162,17 @@ class KeyValueLookup(BaseKeyValueLookup):
             kvp = None
 
         if kvp:
-            LOG.debug('Got value %s from datastore.', kvp.value)
-        return kvp.value if kvp else ''
+            LOG.debug("Got value %s from datastore.", kvp.value)
+        return kvp.value if kvp else ""
 
 
 class UserKeyValueLookup(BaseKeyValueLookup):
 
     scope = USER_SCOPE
 
-    def __init__(self, user, prefix=None, key_prefix=None, cache=None, scope=FULL_USER_SCOPE):
+    def __init__(
+        self, user, prefix=None, key_prefix=None, cache=None, scope=FULL_USER_SCOPE
+    ):
         if not scope:
             scope = FULL_USER_SCOPE
 
@@ -173,7 +180,7 @@ class UserKeyValueLookup(BaseKeyValueLookup):
             scope = FULL_USER_SCOPE
 
         self._prefix = prefix
-        self._key_prefix = key_prefix or ''
+        self._key_prefix = key_prefix or ""
         self._value_cache = cache or {}
         self._user = user
         self._scope = scope
@@ -190,7 +197,7 @@ class UserKeyValueLookup(BaseKeyValueLookup):
     def _get(self, name):
         # get the value for this key and save in value_cache
         if self._key_prefix:
-            key = '%s.%s' % (self._key_prefix, name)
+            key = "%s.%s" % (self._key_prefix, name)
         else:
             key = UserKeyReference(name=name, user=self._user).ref
 
@@ -205,8 +212,13 @@ class UserKeyValueLookup(BaseKeyValueLookup):
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
         # calls. Saving the value in cache avoids extra DB calls.
-        return UserKeyValueLookup(prefix=self._prefix, user=self._user, key_prefix=key,
-                                  cache=self._value_cache, scope=self._scope)
+        return UserKeyValueLookup(
+            prefix=self._prefix,
+            user=self._user,
+            key_prefix=key,
+            cache=self._value_cache,
+            scope=self._scope,
+        )
 
     def _get_kv(self, key):
         scope = self._scope
@@ -216,7 +228,7 @@ class UserKeyValueLookup(BaseKeyValueLookup):
         except StackStormDBObjectNotFoundError:
             kvp = None
 
-        return kvp.value if kvp else ''
+        return kvp.value if kvp else ""
 
 
 def get_key_reference(scope, name, user=None):
@@ -232,12 +244,15 @@ def get_key_reference(scope, name, user=None):
 
     :rtype: ``str``
     """
-    if (scope == SYSTEM_SCOPE or scope == FULL_SYSTEM_SCOPE):
+    if scope == SYSTEM_SCOPE or scope == FULL_SYSTEM_SCOPE:
         return name
-    elif (scope == USER_SCOPE or scope == FULL_USER_SCOPE):
+    elif scope == USER_SCOPE or scope == FULL_USER_SCOPE:
         if not user:
-            raise InvalidUserException('A valid user must be specified for user key ref.')
+            raise InvalidUserException(
+                "A valid user must be specified for user key ref."
+            )
         return UserKeyReference(name=name, user=user).ref
     else:
-        raise InvalidScopeException('Scope "%s" is not valid. Allowed scopes are %s.' %
-                                    (scope, ALLOWED_SCOPES))
+        raise InvalidScopeException(
+            'Scope "%s" is not valid. Allowed scopes are %s.' % (scope, ALLOWED_SCOPES)
+        )

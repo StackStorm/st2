@@ -53,91 +53,102 @@ LOG = logging.getLogger(__name__)
 
 class ActionsController(resource.ContentPackResourceController):
     """
-        Implements the RESTful web endpoint that handles
-        the lifecycle of Actions in the system.
+    Implements the RESTful web endpoint that handles
+    the lifecycle of Actions in the system.
     """
+
     views = ActionViewsController()
 
     model = ActionAPI
     access = Action
-    supported_filters = {
-        'name': 'name',
-        'pack': 'pack',
-        'tags': 'tags.name'
-    }
+    supported_filters = {"name": "name", "pack": "pack", "tags": "tags.name"}
 
-    query_options = {
-        'sort': ['pack', 'name']
-    }
+    query_options = {"sort": ["pack", "name"]}
 
-    valid_exclude_attributes = [
-        'parameters',
-        'notify'
-    ]
+    valid_exclude_attributes = ["parameters", "notify"]
 
     def __init__(self, *args, **kwargs):
         super(ActionsController, self).__init__(*args, **kwargs)
         self._trigger_dispatcher = TriggerDispatcher(LOG)
 
-    def get_all(self, exclude_attributes=None, include_attributes=None, sort=None, offset=0,
-                limit=None, requester_user=None, **raw_filters):
-        return super(ActionsController, self)._get_all(exclude_fields=exclude_attributes,
-                                                       include_fields=include_attributes,
-                                                       sort=sort,
-                                                       offset=offset,
-                                                       limit=limit,
-                                                       raw_filters=raw_filters,
-                                                       requester_user=requester_user)
+    def get_all(
+        self,
+        exclude_attributes=None,
+        include_attributes=None,
+        sort=None,
+        offset=0,
+        limit=None,
+        requester_user=None,
+        **raw_filters,
+    ):
+        return super(ActionsController, self)._get_all(
+            exclude_fields=exclude_attributes,
+            include_fields=include_attributes,
+            sort=sort,
+            offset=offset,
+            limit=limit,
+            raw_filters=raw_filters,
+            requester_user=requester_user,
+        )
 
     def get_one(self, ref_or_id, requester_user):
-        return super(ActionsController, self)._get_one(ref_or_id, requester_user=requester_user,
-                                                       permission_type=PermissionType.ACTION_VIEW)
+        return super(ActionsController, self)._get_one(
+            ref_or_id,
+            requester_user=requester_user,
+            permission_type=PermissionType.ACTION_VIEW,
+        )
 
     def post(self, action, requester_user):
         """
-            Create a new action.
+        Create a new action.
 
-            Handles requests:
-                POST /actions/
+        Handles requests:
+            POST /actions/
         """
 
         permission_type = PermissionType.ACTION_CREATE
         rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
-                                                           resource_api=action,
-                                                           permission_type=permission_type)
+        rbac_utils.assert_user_has_resource_api_permission(
+            user_db=requester_user, resource_api=action, permission_type=permission_type
+        )
 
         try:
             # Perform validation
             validate_not_part_of_system_pack(action)
             action_validator.validate_action(action)
-        except (ValidationError, ValueError,
-                ValueValidationException, InvalidActionParameterException) as e:
-            LOG.exception('Unable to create action data=%s', action)
+        except (
+            ValidationError,
+            ValueError,
+            ValueValidationException,
+            InvalidActionParameterException,
+        ) as e:
+            LOG.exception("Unable to create action data=%s", action)
             abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         # Write pack data files to disk (if any are provided)
-        data_files = getattr(action, 'data_files', [])
+        data_files = getattr(action, "data_files", [])
         written_data_files = []
         if data_files:
-            written_data_files = self._handle_data_files(pack_ref=action.pack,
-                                                         data_files=data_files)
+            written_data_files = self._handle_data_files(
+                pack_ref=action.pack, data_files=data_files
+            )
 
         action_model = ActionAPI.to_model(action)
 
-        LOG.debug('/actions/ POST verified ActionAPI object=%s', action)
+        LOG.debug("/actions/ POST verified ActionAPI object=%s", action)
         action_db = Action.add_or_update(action_model)
-        LOG.debug('/actions/ POST saved ActionDB object=%s', action_db)
+        LOG.debug("/actions/ POST saved ActionDB object=%s", action_db)
 
         # Dispatch an internal trigger for each written data file. This way user
         # automate comitting this files to git using StackStorm rule
         if written_data_files:
-            self._dispatch_trigger_for_written_data_files(action_db=action_db,
-                                                          written_data_files=written_data_files)
+            self._dispatch_trigger_for_written_data_files(
+                action_db=action_db, written_data_files=written_data_files
+            )
 
-        extra = {'acion_db': action_db}
-        LOG.audit('Action created. Action.id=%s' % (action_db.id), extra=extra)
+        extra = {"acion_db": action_db}
+        LOG.audit("Action created. Action.id=%s" % (action_db.id), extra=extra)
         action_api = ActionAPI.from_model(action_db)
 
         return Response(json=action_api, status=http_client.CREATED)
@@ -148,13 +159,15 @@ class ActionsController(resource.ContentPackResourceController):
         # Assert permissions
         permission_type = PermissionType.ACTION_MODIFY
         rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                          resource_db=action_db,
-                                                          permission_type=permission_type)
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=action_db,
+            permission_type=permission_type,
+        )
 
         action_id = action_db.id
 
-        if not getattr(action, 'pack', None):
+        if not getattr(action, "pack", None):
             action.pack = action_db.pack
 
         # Perform validation
@@ -162,70 +175,81 @@ class ActionsController(resource.ContentPackResourceController):
         action_validator.validate_action(action)
 
         # Write pack data files to disk (if any are provided)
-        data_files = getattr(action, 'data_files', [])
+        data_files = getattr(action, "data_files", [])
         written_data_files = []
         if data_files:
-            written_data_files = self._handle_data_files(pack_ref=action.pack,
-                                                         data_files=data_files)
+            written_data_files = self._handle_data_files(
+                pack_ref=action.pack, data_files=data_files
+            )
 
         try:
             action_db = ActionAPI.to_model(action)
-            LOG.debug('/actions/ PUT incoming action: %s', action_db)
+            LOG.debug("/actions/ PUT incoming action: %s", action_db)
             action_db.id = action_id
             action_db = Action.add_or_update(action_db)
-            LOG.debug('/actions/ PUT after add_or_update: %s', action_db)
+            LOG.debug("/actions/ PUT after add_or_update: %s", action_db)
         except (ValidationError, ValueError) as e:
-            LOG.exception('Unable to update action data=%s', action)
+            LOG.exception("Unable to update action data=%s", action)
             abort(http_client.BAD_REQUEST, six.text_type(e))
             return
 
         # Dispatch an internal trigger for each written data file. This way user
         # automate committing this files to git using StackStorm rule
         if written_data_files:
-            self._dispatch_trigger_for_written_data_files(action_db=action_db,
-                                                          written_data_files=written_data_files)
+            self._dispatch_trigger_for_written_data_files(
+                action_db=action_db, written_data_files=written_data_files
+            )
 
         action_api = ActionAPI.from_model(action_db)
-        LOG.debug('PUT /actions/ client_result=%s', action_api)
+        LOG.debug("PUT /actions/ client_result=%s", action_api)
 
         return action_api
 
     def delete(self, ref_or_id, requester_user):
         """
-            Delete an action.
+        Delete an action.
 
-            Handles requests:
-                POST /actions/1?_method=delete
-                DELETE /actions/1
-                DELETE /actions/mypack.myaction
+        Handles requests:
+            POST /actions/1?_method=delete
+            DELETE /actions/1
+            DELETE /actions/mypack.myaction
         """
         action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         action_id = action_db.id
 
         permission_type = PermissionType.ACTION_DELETE
         rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                          resource_db=action_db,
-                                                          permission_type=permission_type)
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=action_db,
+            permission_type=permission_type,
+        )
 
         try:
             validate_not_part_of_system_pack(action_db)
         except ValueValidationException as e:
             abort(http_client.BAD_REQUEST, six.text_type(e))
 
-        LOG.debug('DELETE /actions/ lookup with ref_or_id=%s found object: %s',
-                  ref_or_id, action_db)
+        LOG.debug(
+            "DELETE /actions/ lookup with ref_or_id=%s found object: %s",
+            ref_or_id,
+            action_db,
+        )
 
         try:
             Action.delete(action_db)
         except Exception as e:
-            LOG.error('Database delete encountered exception during delete of id="%s". '
-                      'Exception was %s', action_id, e)
+            LOG.error(
+                'Database delete encountered exception during delete of id="%s". '
+                "Exception was %s",
+                action_id,
+                e,
+            )
             abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
-        extra = {'action_db': action_db}
-        LOG.audit('Action deleted. Action.id=%s' % (action_db.id), extra=extra)
+        extra = {"action_db": action_db}
+        LOG.audit("Action deleted. Action.id=%s" % (action_db.id), extra=extra)
         return Response(status=http_client.NO_CONTENT)
 
     def _handle_data_files(self, pack_ref, data_files):
@@ -238,13 +262,17 @@ class ActionsController(resource.ContentPackResourceController):
         2. Updates affected PackDB model
         """
         # Write files to disk
-        written_file_paths = self._write_data_files_to_disk(pack_ref=pack_ref,
-                                                            data_files=data_files)
+        written_file_paths = self._write_data_files_to_disk(
+            pack_ref=pack_ref, data_files=data_files
+        )
 
         # Update affected PackDB model (update a list of files)
         # Update PackDB
-        self._update_pack_model(pack_ref=pack_ref, data_files=data_files,
-                                written_file_paths=written_file_paths)
+        self._update_pack_model(
+            pack_ref=pack_ref,
+            data_files=data_files,
+            written_file_paths=written_file_paths,
+        )
 
         return written_file_paths
 
@@ -255,23 +283,27 @@ class ActionsController(resource.ContentPackResourceController):
         written_file_paths = []
 
         for data_file in data_files:
-            file_path = data_file['file_path']
-            content = data_file['content']
+            file_path = data_file["file_path"]
+            content = data_file["content"]
 
-            file_path = get_pack_resource_file_abs_path(pack_ref=pack_ref,
-                                                        resource_type='action',
-                                                        file_path=file_path)
+            file_path = get_pack_resource_file_abs_path(
+                pack_ref=pack_ref, resource_type="action", file_path=file_path
+            )
 
             LOG.debug('Writing data file "%s" to "%s"' % (str(data_file), file_path))
 
             try:
-                self._write_data_file(pack_ref=pack_ref, file_path=file_path, content=content)
+                self._write_data_file(
+                    pack_ref=pack_ref, file_path=file_path, content=content
+                )
             except (OSError, IOError) as e:
                 # Throw a more user-friendly exception on Permission denied error
                 if e.errno == errno.EACCES:
-                    msg = ('Unable to write data to "%s" (permission denied). Make sure '
-                           'permissions for that pack directory are configured correctly so '
-                           'st2api can write to it.' % (file_path))
+                    msg = (
+                        'Unable to write data to "%s" (permission denied). Make sure '
+                        "permissions for that pack directory are configured correctly so "
+                        "st2api can write to it." % (file_path)
+                    )
                     raise ValueError(msg)
                 raise e
 
@@ -285,7 +317,9 @@ class ActionsController(resource.ContentPackResourceController):
         """
         file_paths = []  # A list of paths relative to the pack directory for new files
         for file_path in written_file_paths:
-            file_path = get_relative_path_to_pack_file(pack_ref=pack_ref, file_path=file_path)
+            file_path = get_relative_path_to_pack_file(
+                pack_ref=pack_ref, file_path=file_path
+            )
             file_paths.append(file_path)
 
         pack_db = Pack.get_by_ref(pack_ref)
@@ -314,18 +348,18 @@ class ActionsController(resource.ContentPackResourceController):
             mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH
             os.makedirs(directory, mode)
 
-        with open(file_path, 'w') as fp:
+        with open(file_path, "w") as fp:
             fp.write(content)
 
     def _dispatch_trigger_for_written_data_files(self, action_db, written_data_files):
-        trigger = ACTION_FILE_WRITTEN_TRIGGER['name']
+        trigger = ACTION_FILE_WRITTEN_TRIGGER["name"]
         host_info = get_host_info()
 
         for file_path in written_data_files:
             payload = {
-                'ref': action_db.ref,
-                'file_path': file_path,
-                'host_info': host_info
+                "ref": action_db.ref,
+                "file_path": file_path,
+                "host_info": host_info,
             }
             self._trigger_dispatcher.dispatch(trigger=trigger, payload=payload)
 

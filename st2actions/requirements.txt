@@ -13,9 +13,9 @@ gitpython==2.1.15
 jinja2==2.10.3
 kombu==4.6.6
 lockfile==0.12.2
-oslo.config<1.13,>=1.12.1
+oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
-pyinotify==0.9.6 ; platform_system == "Linux"
+pyinotify==0.9.6; platform_system=="Linux"
 python-dateutil==2.8.0
 python-json-logger
 pyyaml==5.1.2

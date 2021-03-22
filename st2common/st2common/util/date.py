@@ -18,18 +18,16 @@ Date related utility functions.
 """
 
 from __future__ import absolute_import
+
 import datetime
+
+import udatetime
 
 import dateutil.tz
 import dateutil.parser
 
 
-__all__ = [
-    'get_datetime_utc_now',
-    'add_utc_tz',
-    'convert_to_utc',
-    'parse'
-]
+__all__ = ["get_datetime_utc_now", "add_utc_tz", "convert_to_utc", "parse"]
 
 
 def get_datetime_utc_now():
@@ -45,14 +43,14 @@ def get_datetime_utc_now():
 
 def append_milliseconds_to_time(date, millis):
     """
-        Return time UTC datetime object offset by provided milliseconds.
+    Return time UTC datetime object offset by provided milliseconds.
     """
     return convert_to_utc(date + datetime.timedelta(milliseconds=millis))
 
 
 def add_utc_tz(dt):
     if dt.tzinfo and dt.tzinfo.utcoffset(dt) != datetime.timedelta(0):
-        raise ValueError('datetime already contains a non UTC timezone')
+        raise ValueError("datetime already contains a non UTC timezone")
 
     return dt.replace(tzinfo=dateutil.tz.tzutc())
 
@@ -85,7 +83,18 @@ def parse(value, preserve_original_tz=False):
 
     :rtype: ``datetime.datetime``
     """
-    dt = dateutil.parser.parse(str(value))
+    # We use udatetime since it's much faster than non-C alternatives
+    # For compatibility reasons we still fall back to datetutil, but this should rarely happen
+    # rfc3339 covers 90% of the iso8601 (it's a subset of it)
+    original_value = value
+
+    try:
+        if " " in value:
+            # udatetime doesn't support notation with whitespace so we replace it with T
+            value = value.replace(" ", "T")
+        dt = udatetime.from_string(str(value))
+    except Exception:
+        dt = dateutil.parser.parse(str(original_value))
 
     if not dt.tzinfo:
         dt = add_utc_tz(dt)

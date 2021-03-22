@@ -25,62 +25,101 @@ MemoryActionAliasDB = ActionAliasDB
 
 
 ALIASES = [
-    MemoryActionAliasDB(name="kyle_reese", ref="terminator.1",
-        pack="the80s", enabled=True,
-        formats=["Come with me if you want to live"]
+    MemoryActionAliasDB(
+        name="kyle_reese",
+        ref="terminator.1",
+        pack="the80s",
+        enabled=True,
+        formats=["Come with me if you want to live"],
     ),
-    MemoryActionAliasDB(name="terminator", ref="terminator.2",
-        pack="the80s", enabled=True,
-        formats=["I need your {{item}}, your {{item2}}"
-            " and your {{vehicle}}"]
+    MemoryActionAliasDB(
+        name="terminator",
+        ref="terminator.2",
+        pack="the80s",
+        enabled=True,
+        formats=["I need your {{item}}, your {{item2}}" " and your {{vehicle}}"],
     ),
-    MemoryActionAliasDB(name="johnny_five_alive", ref="short_circuit.3",
-        pack="the80s", enabled=True,
-        formats=[{'display': 'Number 5 is {{status}}',
-            'representation': ['Number 5 is {{status=alive}}']},
-            'Hey, laser lips, your mama was a snow blower.']
+    MemoryActionAliasDB(
+        name="johnny_five_alive",
+        ref="short_circuit.3",
+        pack="the80s",
+        enabled=True,
+        formats=[
+            {
+                "display": "Number 5 is {{status}}",
+                "representation": ["Number 5 is {{status=alive}}"],
+            },
+            "Hey, laser lips, your mama was a snow blower.",
+        ],
     ),
-    MemoryActionAliasDB(name="i_feel_alive", ref="short_circuit.4",
-        pack="the80s", enabled=True,
-        formats=["How do I feel? I feel... {{status}}!"]
+    MemoryActionAliasDB(
+        name="i_feel_alive",
+        ref="short_circuit.4",
+        pack="the80s",
+        enabled=True,
+        formats=["How do I feel? I feel... {{status}}!"],
     ),
-    MemoryActionAliasDB(name='andy', ref='the_goonies.1',
-        pack="the80s", enabled=True,
-        formats=[{'display': 'Watch this.'}]
+    MemoryActionAliasDB(
+        name="andy",
+        ref="the_goonies.1",
+        pack="the80s",
+        enabled=True,
+        formats=[{"display": "Watch this."}],
     ),
-    MemoryActionAliasDB(name='andy', ref='the_goonies.5',
-        pack="the80s", enabled=True,
-        formats=[{'display': "He's just like his {{relation}}."}]
+    MemoryActionAliasDB(
+        name="andy",
+        ref="the_goonies.5",
+        pack="the80s",
+        enabled=True,
+        formats=[{"display": "He's just like his {{relation}}."}],
     ),
-    MemoryActionAliasDB(name='data', ref='the_goonies.6',
-        pack="the80s", enabled=True,
-        formats=[{'representation': "That's okay daddy. You can't hug a {{object}}."}]
+    MemoryActionAliasDB(
+        name="data",
+        ref="the_goonies.6",
+        pack="the80s",
+        enabled=True,
+        formats=[{"representation": "That's okay daddy. You can't hug a {{object}}."}],
     ),
-    MemoryActionAliasDB(name='mr_wang', ref='the_goonies.7',
-        pack="the80s", enabled=True,
-        formats=[{'representation': 'You are my greatest invention.'}]
+    MemoryActionAliasDB(
+        name="mr_wang",
+        ref="the_goonies.7",
+        pack="the80s",
+        enabled=True,
+        formats=[{"representation": "You are my greatest invention."}],
     ),
-    MemoryActionAliasDB(name="Ferris", ref="ferris_buellers_day_off.8",
-        pack="the80s", enabled=True,
-        formats=["Life moves pretty fast.",
-        "If you don't stop and look around once in a while, you could miss it."]
+    MemoryActionAliasDB(
+        name="Ferris",
+        ref="ferris_buellers_day_off.8",
+        pack="the80s",
+        enabled=True,
+        formats=[
+            "Life moves pretty fast.",
+            "If you don't stop and look around once in a while, you could miss it.",
+        ],
     ),
-    MemoryActionAliasDB(name="economics.teacher", ref="ferris_buellers_day_off.10",
-        pack="the80s", enabled=False,
-        formats=["Bueller?... Bueller?... Bueller? "]
+    MemoryActionAliasDB(
+        name="economics.teacher",
+        ref="ferris_buellers_day_off.10",
+        pack="the80s",
+        enabled=False,
+        formats=["Bueller?... Bueller?... Bueller? "],
     ),
-    MemoryActionAliasDB(name="spengler", ref="ghostbusters.10",
-        pack="the80s", enabled=True,
-        formats=["{{choice}} cross the {{target}}"]
-    )
+    MemoryActionAliasDB(
+        name="spengler",
+        ref="ghostbusters.10",
+        pack="the80s",
+        enabled=True,
+        formats=["{{choice}} cross the {{target}}"],
+    ),
 ]
 
 
-@mock.patch.object(MemoryActionAliasDB, 'get_uid')
+@mock.patch.object(MemoryActionAliasDB, "get_uid")
 class ActionAliasTestCase(unittest2.TestCase):
-    '''
+    """
     Test scenarios must consist of 80s movie quotes.
-    '''
+    """
+
     def check_data_structure(self, result):
         tmp = list(result.keys())
         tmp.sort()
@@ -93,7 +132,9 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
+        the80s = [
+            line for line in result.get("helpstrings") if line["pack"] == "the80s"
+        ]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -115,7 +156,9 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "you")
         self.check_data_structure(result)
         self.check_available_count(result, 4)
-        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
+        the80s = [
+            line for line in result.get("helpstrings") if line["pack"] == "the80s"
+        ]
         self.assertEqual(len(the80s), 4)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -123,12 +166,16 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "")
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
+        the80s = [
+            line for line in result.get("helpstrings") if line["pack"] == "the80s"
+        ]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
     def test_pack_no_match(self, mock):
-        result = generate_helpstring_result(ALIASES, "", "you_will_not_find_this_string")
+        result = generate_helpstring_result(
+            ALIASES, "", "you_will_not_find_this_string"
+        )
         self.check_data_structure(result)
         self.check_available_count(result, 0)
         self.assertEqual(result.get("helpstrings"), [])
@@ -137,7 +184,9 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s")
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
+        the80s = [
+            line for line in result.get("helpstrings") if line["pack"] == "the80s"
+        ]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -153,7 +202,9 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s", -3)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
+        the80s = [
+            line for line in result.get("helpstrings") if line["pack"] == "the80s"
+        ]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -161,7 +212,9 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s", 30)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
+        the80s = [
+            line for line in result.get("helpstrings") if line["pack"] == "the80s"
+        ]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -169,7 +222,9 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s", 3)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
+        the80s = [
+            line for line in result.get("helpstrings") if line["pack"] == "the80s"
+        ]
         self.assertEqual(len(the80s), 3)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -185,7 +240,9 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s", 0, -1)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
+        the80s = [
+            line for line in result.get("helpstrings") if line["pack"] == "the80s"
+        ]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -199,6 +256,8 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s", 0, 6)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
+        the80s = [
+            line for line in result.get("helpstrings") if line["pack"] == "the80s"
+        ]
         self.assertEqual(len(the80s), 4)
         self.assertEqual(the80s[0].get("display"), "He's just like his {{relation}}.")

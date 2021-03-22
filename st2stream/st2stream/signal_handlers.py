@@ -15,9 +15,7 @@
 
 import signal
 
-__all__ = [
-    'register_stream_signal_handlers'
-]
+__all__ = ["register_stream_signal_handlers"]
 
 
 def register_stream_signal_handlers(handler_func):

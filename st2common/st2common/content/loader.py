@@ -28,10 +28,7 @@ from st2common.constants.pack import MANIFEST_FILE_NAME
 if six.PY2:
     from io import open
 
-__all__ = [
-    'ContentPackLoader',
-    'MetaLoader'
-]
+__all__ = ["ContentPackLoader", "MetaLoader"]
 
 LOG = logging.getLogger(__name__)
 
@@ -45,12 +42,12 @@ class ContentPackLoader(object):
     # content - they just return a path
 
     ALLOWED_CONTENT_TYPES = [
-        'triggers',
-        'sensors',
-        'actions',
-        'rules',
-        'aliases',
-        'policies'
+        "triggers",
+        "sensors",
+        "actions",
+        "rules",
+        "aliases",
+        "policies",
     ]
 
     def get_packs(self, base_dirs):
@@ -61,7 +58,11 @@ class ContentPackLoader(object):
                  directory.
         :rtype: ``dict``
         """
-        assert isinstance(base_dirs, list)
+        if not isinstance(base_dirs, list):
+            raise TypeError(
+                "The base dirs has a value that is not a list"
+                f" (was {type(base_dirs)})."
+            )
 
         result = {}
         for base_dir in base_dirs:
@@ -88,10 +89,14 @@ class ContentPackLoader(object):
 
         :rtype: ``dict``
         """
-        assert isinstance(base_dirs, list)
+        if not isinstance(base_dirs, list):
+            raise TypeError(
+                "The base dirs has a value that is not a list"
+                f" (was {type(base_dirs)})."
+            )
 
         if content_type not in self.ALLOWED_CONTENT_TYPES:
-            raise ValueError('Unsupported content_type: %s' % (content_type))
+            raise ValueError("Unsupported content_type: %s" % (content_type))
 
         content = {}
         pack_to_dir_map = {}
@@ -99,14 +104,18 @@ class ContentPackLoader(object):
             if not os.path.isdir(base_dir):
                 raise ValueError('Directory "%s" doesn\'t exist' % (base_dir))
 
-            dir_content = self._get_content_from_dir(base_dir=base_dir, content_type=content_type)
+            dir_content = self._get_content_from_dir(
+                base_dir=base_dir, content_type=content_type
+            )
 
             # Check for duplicate packs
             for pack_name, pack_content in six.iteritems(dir_content):
                 if pack_name in content:
                     pack_dir = pack_to_dir_map[pack_name]
-                    LOG.warning('Pack "%s" already found in "%s", ignoring content from "%s"' %
-                                (pack_name, pack_dir, base_dir))
+                    LOG.warning(
+                        'Pack "%s" already found in "%s", ignoring content from "%s"'
+                        % (pack_name, pack_dir, base_dir)
+                    )
                 else:
                     content[pack_name] = pack_content
                     pack_to_dir_map[pack_name] = base_dir
@@ -126,13 +135,14 @@ class ContentPackLoader(object):
         :rtype: ``str``
         """
         if content_type not in self.ALLOWED_CONTENT_TYPES:
-            raise ValueError('Unsupported content_type: %s' % (content_type))
+            raise ValueError("Unsupported content_type: %s" % (content_type))
 
         if not os.path.isdir(pack_dir):
             raise ValueError('Directory "%s" doesn\'t exist' % (pack_dir))
 
-        content = self._get_content_from_pack_dir(pack_dir=pack_dir,
-                                                  content_type=content_type)
+        content = self._get_content_from_pack_dir(
+            pack_dir=pack_dir, content_type=content_type
+        )
         return content
 
     def _get_packs_from_dir(self, base_dir):
@@ -154,8 +164,9 @@ class ContentPackLoader(object):
 
             # Ignore missing or non directories
             try:
-                pack_content = self._get_content_from_pack_dir(pack_dir=pack_dir,
-                                                               content_type=content_type)
+                pack_content = self._get_content_from_pack_dir(
+                    pack_dir=pack_dir, content_type=content_type
+                )
             except ValueError:
                 continue
             else:
@@ -170,13 +181,13 @@ class ContentPackLoader(object):
             actions=self._get_actions,
             rules=self._get_rules,
             aliases=self._get_aliases,
-            policies=self._get_policies
+            policies=self._get_policies,
         )
 
         get_func = content_types.get(content_type)
 
         if get_func is None:
-            raise ValueError('Invalid content_type: %s' % (content_type))
+            raise ValueError("Invalid content_type: %s" % (content_type))
 
         if not os.path.isdir(pack_dir):
             raise ValueError('Directory "%s" doesn\'t exist' % (pack_dir))
@@ -185,22 +196,22 @@ class ContentPackLoader(object):
         return pack_content
 
     def _get_triggers(self, pack_dir):
-        return self._get_folder(pack_dir=pack_dir, content_type='triggers')
+        return self._get_folder(pack_dir=pack_dir, content_type="triggers")
 
     def _get_sensors(self, pack_dir):
-        return self._get_folder(pack_dir=pack_dir, content_type='sensors')
+        return self._get_folder(pack_dir=pack_dir, content_type="sensors")
 
     def _get_actions(self, pack_dir):
-        return self._get_folder(pack_dir=pack_dir, content_type='actions')
+        return self._get_folder(pack_dir=pack_dir, content_type="actions")
 
     def _get_rules(self, pack_dir):
-        return self._get_folder(pack_dir=pack_dir, content_type='rules')
+        return self._get_folder(pack_dir=pack_dir, content_type="rules")
 
     def _get_aliases(self, pack_dir):
-        return self._get_folder(pack_dir=pack_dir, content_type='aliases')
+        return self._get_folder(pack_dir=pack_dir, content_type="aliases")
 
     def _get_policies(self, pack_dir):
-        return self._get_folder(pack_dir=pack_dir, content_type='policies')
+        return self._get_folder(pack_dir=pack_dir, content_type="policies")
 
     def _get_folder(self, pack_dir, content_type):
         path = os.path.join(pack_dir, content_type)
@@ -233,8 +244,10 @@ class MetaLoader(object):
         file_name, file_ext = os.path.splitext(file_path)
 
         if file_ext not in ALLOWED_EXTS:
-            raise Exception('Unsupported meta type %s, file %s. Allowed: %s' %
-                            (file_ext, file_path, ALLOWED_EXTS))
+            raise Exception(
+                "Unsupported meta type %s, file %s. Allowed: %s"
+                % (file_ext, file_path, ALLOWED_EXTS)
+            )
 
         result = self._load(PARSER_FUNCS[file_ext], file_path)
 
@@ -246,12 +259,12 @@ class MetaLoader(object):
         return result
 
     def _load(self, parser_func, file_path):
-        with open(file_path, 'r', encoding='utf-8') as fd:
+        with open(file_path, "r", encoding="utf-8") as fd:
             try:
                 return parser_func(fd)
             except ValueError:
-                LOG.exception('Failed loading content from %s.', file_path)
+                LOG.exception("Failed loading content from %s.", file_path)
                 raise
             except ParserError:
-                LOG.exception('Failed loading content from %s.', file_path)
+                LOG.exception("Failed loading content from %s.", file_path)
                 raise

@@ -7,6 +7,184 @@ in development
 Added
 ~~~~~
 
+* Added web header settings for additional security hardening to nginx.conf: X-Frame-Options,
+  Strict-Transport-Security, X-XSS-Protection and server-tokens. #5183
+
+  Contributed by @shital.
+
+* Added support for ``limit`` and ``offset`` argument to the ``list_values`` data store
+  service method (#5097 and #5171).
+
+  Contributed by @anirudhbagri.
+
+* Various additional metrics have been added to the action runner service to provide for better
+  operational visibility. (improvement) #4846
+
+  Contributed by @Kami.
+
+Changed
+~~~~~~~
+
+* All the code has been refactored using black and black style is automatically enforced and
+  required for all the new code. (#5156)
+
+  Contributed by @Kami.
+
+* Default nginx config (``conf/nginx/st2.conf``) which is used by the installer and Docker
+  images has been updated to only support TLS v1.2 (support for TLS v1.0 and v1.1 has been
+  removed). #5183
+
+  Contributed by @Kami and @shital.
+
+* Add new ``-x`` argument to the ``st2 execution get`` command which allows
+  ``result`` field to be excluded from the output. (improvement) #4846
+
+* Update ``st2 execution get <id>`` command to also display execution ``log`` attribute which
+  includes execution state transition information.
+
+  By default ``end_timestamp`` attribute and ``duration`` attribute displayed in the command
+  output only include the time it took action runner to finish running actual action, but it
+  doesn't include the time it it takes action runner container to fully finish running the
+  execution - this includes persisting execution result in the database.
+
+  For actions which return large results, there could be a substantial discrepancy - e.g.
+  action itself could finish in 0.5 seconds, but writing data to the database could take
+  additional 5 seconds after the action code itself was executed.
+
+  For all purposes until the execution result is  persisted to the database, execution is
+  not considered as finished.
+
+  While writing result to the database action runner is also consuming CPU cycles since
+  serialization of large results is a CPU intensive task.
+
+  This means that "elapsed" attribute and start_timestamp + end_timestamp will make it look
+  like actual action completed in 0.5 seconds, but in reality it took 5.5 seconds (0.5 + 5 seconds).
+
+  Log attribute can be used to determine actual duration of the execution (from start to
+  finish). (improvement) #4846
+
+  Contributed by @Kami.
+
+* Various internal improvements (reducing number of DB queries, speeding up YAML parsing, using
+  DB object cache, etc.) which should speed up pack action registration between 15-30%. This is
+  especially pronounced with packs which have a lot of actions (e.g. aws one).
+  (improvement) #4846
+
+  Contributed by @Kami.
+
+* Underlying database field type and storage format for the ``Execution``, ``LiveAction``,
+  ``WorkflowExecutionDB``, ``TaskExecutionDB`` and ``TriggerInstanceDB`` database models has
+  changed.
+
+  This new format is much faster and efficient than the previous one. Users with larger executions
+  (executions with larger results) should see the biggest improvements, but the change also scales
+  down so there should also be improvements when reading and writing executions with small and
+  medium sized results.
+
+  Our micro and end to benchmarks have shown improvements up to 15-20x for write path (storing
+  model in the database) and up to 10x for the read path.
+
+  To put things into perspective - with previous version, running a Python runner action which
+  returns 8 MB result would take around ~18 seconds total, but with this new storage format, it
+  takes around 2 seconds (in this context, duration means the from the time the execution was
+  scheduled to the time the execution model and result was written and available in the database).
+
+  The difference is even larger when working with Orquesta workflows.
+
+  Overall performance improvement doesn't just mean large decrease in those operation timings, but
+  also large overall reduction of CPU usage - previously serializing large results was a CPU
+  intensive time since it included tons of conversions and transformations back and forth.
+
+  The new format is also around 10-20% more storage efficient which means that it should allows
+  for larger model values (MongoDB document size limit is 16 MB).
+
+  The actual change should be fully opaque and transparent to the end users - it's purely a
+  field storage implementation detail and the code takes care of automatically handling both
+  formats when working with those object.
+
+  Same field data storage optimizations have also been applied to workflow related database models
+  which should result in the same performance improvements for Orquesta workflows which pass larger
+  data sets / execution results around.
+
+  Trigger instance payload field has also been updated to use this new field type which should
+  result in lower CPU utilization and better throughput of rules engine service when working with
+  triggers with larger payloads.
+
+  This should address a long standing issue where StackStorm was reported to be slow and CPU
+  inefficient with handling large executions. (improvement) #4846
+
+  Contributed by @Kami.
+
+* Add new ``result_size`` field to the ``ActionExecutionDB`` model. This field will only be
+  populated for executions which utilize new field storage format.
+
+  It holds the size of serialzed execution result field in bytes. This field will allow us to
+  implement more efficient execution result retrieval and provide better UX since we will be
+  able to avoid loading execution results in the WebUI for executions with very large results
+  (which cause browser to freeze). (improvement) #4846
+
+  Contributed by @Kami.
+
+* Add new ``/v1/executions/<id>/result[?download=1&compress=1&pretty_format=1]`` API endpoint
+  which can be used used to retrieve or download raw execution result as (compressed) JSON file.
+
+  This endpoint will primarily be used by st2web when executions produce very large results so
+  we can avoid loading, parsing and formatting those very large results as JSON in the browser
+  which freezes the browser window / tab. (improvement) #4846
+
+  Contributed by @Kami.
+
+Improvements
+~~~~~~~~~~~~
+
+* CLI has been updated to use or ``orjson`` when parsing API response and C version of the YAML
+  safe dumper when formatting execution result for display. This should result in speed up when
+  displaying execution result (``st2 execution get``, etc.) for executions with large results.
+
+  When testing it locally, the difference for execution with 8 MB result was 18 seconds vs ~6
+  seconds. (improvement) #4846
+
+  Contributed by @Kami.
+
+* Update various Jinja functiona to utilize C version of YAML ``safe_{load,dump}`` functions and
+  orjson for better performance. (improvement) #4846
+
+  Contributed by @Kami.
+
+* For performance reasons, use ``udatetime`` library for parsing ISO8601 / RFC3339 date strings
+  where possible. (improvement) #4846
+
+  Contributed by @Kami.
+
+* Speed up service start up time by speeding up runners registration on service start up by
+  re-using existing stevedore ``ExtensionManager`` instance instead of instantiating new
+  ``DriverManager`` instance per extension which is not necessary and it's slow since it requires
+  disk / pkg resources scan for each extension. (improvement) #5198
+
+  Contributed by @Kami.
+
+Fixed
+~~~~~
+
+* Refactor spec_loader util to use yaml.load with SafeLoader. (security)
+  Contributed by @ashwini-orchestral
+
+* Import ABC from collections.abc for Python 3.10 compatibility. (#5007)
+  Contributed by @tirkarthi
+
+* Updated to use virtualenv 20.4.0/PIP20.3.3 and fixate-requirements to work with PIP 20.3.3 #512
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Fix ``st2 execution get --with-schema`` flag.  (bug fix) #4846
+
+  Contributed by @Kami.
+
+3.4.0 - March 02, 2021
+----------------------
+
+Added
+~~~~~
+
 * Added support for GitLab SSH URLs on pack install and download actions. (improvement) #5050
   Contributed by @asthLucas
 
@@ -18,7 +196,9 @@ Added
 * Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
   Contributed by @hnanchahal
 
-* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from scratch. (part of upgrade instructions) [#5167]
+* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from
+  scratch. (part of upgrade instructions) #5167
+
   Contributed by @winem and @blag
 
 Changed
@@ -30,7 +210,7 @@ Changed
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
-* Added timeout parameter for packs.install action to help with long running installs that exceed the 
+* Added timeout parameter for packs.install action to help with long running installs that exceed the
   default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
 
   Contributed by @hnanchahal
@@ -42,6 +222,18 @@ Changed
   Contributed by @nmaludy, @winem, and @blag
 
 * Updated cryptography dependency to version 3.3.2 to avoid CVE-2020-36242 (security) #5151
+
+* Update most of the code in the StackStorm API and services layer to utilize ``orjson`` library
+  for serializing and de-serializing json.
+
+  That should result in better json serialization and deserialization performance.
+
+  The change should be fully backward compatible, only difference is that API JSON responses now
+  won't be indented using 4 spaces by default (indenting adds unnecessary overhead and if needed,
+  the response can be pretty formatted on the client side using ``jq`` or similar). (improvement)
+  #5153
+
+  Contributed by @Kami
 
 Fixed
 ~~~~~
@@ -131,6 +323,7 @@ Added
 
 Changed
 ~~~~~~~
+
 * Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2
   ``v3.3.0`` (improvement) #4972
 
@@ -153,6 +346,7 @@ Changed
 
 Fixed
 ~~~~~
+
 * Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
 
   Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)

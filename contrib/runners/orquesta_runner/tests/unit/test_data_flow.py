@@ -26,6 +26,7 @@ import st2tests
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 from tests.unit import base
@@ -47,37 +48,45 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_PACK = 'orquesta_tests'
-TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
+TEST_PACK = "orquesta_tests"
+TEST_PACK_PATH = (
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
+)
 
 PACKS = [
     TEST_PACK_PATH,
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
 
 
 @mock.patch.object(
-    publishers.CUDPublisher,
-    'publish_update',
-    mock.MagicMock(return_value=None))
+    publishers.CUDPublisher, "publish_update", mock.MagicMock(return_value=None)
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create),
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create
+    ),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state
+    ),
+)
 class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(OrquestaRunnerTest, cls).setUpClass()
@@ -87,8 +96,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Register test pack(s).
         actions_registrar = actionsregistrar.ActionsRegistrar(
-            use_pack_cache=False,
-            fail_on_failure=True
+            use_pack_cache=False, fail_on_failure=True
         )
 
         for pack in PACKS:
@@ -99,22 +107,30 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         return runners.get_runner(runner_name, runner_name).__class__
 
     def assert_data_flow(self, data):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'data-flow.yaml')
-        wf_input = {'a1': data}
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'], parameters=wf_input)
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "data-flow.yaml")
+        wf_input = {"a1": data}
+        lv_ac_db = lv_db_models.LiveActionDB(
+            action=wf_meta["name"], parameters=wf_input
+        )
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 
         # Assert action execution is running.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        self.assertEqual(
+            lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result
+        )
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
         self.assertEqual(wf_ex_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert task1 is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task1'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
         tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk1_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk1_ex_db.id))[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction['id'])
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk1_ex_db.id)
+        )[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Manually handle action execution completion.
@@ -127,10 +143,12 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert task2 is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task2'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task2"}
         tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk2_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk2_ex_db.id))[0]
-        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction['id'])
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk2_ex_db.id)
+        )[0]
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction["id"])
         self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Manually handle action execution completion.
@@ -143,10 +161,12 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
 
         # Assert task3 is already completed.
-        query_filters = {'workflow_execution': str(wf_ex_db.id), 'task_id': 'task3'}
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task3"}
         tk3_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        tk3_ac_ex_db = ex_db_access.ActionExecution.query(task_execution=str(tk3_ex_db.id))[0]
-        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction['id'])
+        tk3_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk3_ex_db.id)
+        )[0]
+        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction["id"])
         self.assertEqual(tk3_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Manually handle action execution completion.
@@ -164,20 +184,20 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
 
         # Check workflow output.
         expected_output = {
-            'a5': wf_input['a1'] if six.PY3 else wf_input['a1'].decode('utf-8'),
-            'b5': wf_input['a1'] if six.PY3 else wf_input['a1'].decode('utf-8')
+            "a5": wf_input["a1"] if six.PY3 else wf_input["a1"].decode("utf-8"),
+            "b5": wf_input["a1"] if six.PY3 else wf_input["a1"].decode("utf-8"),
         }
 
         self.assertDictEqual(wf_ex_db.output, expected_output)
 
         # Check liveaction and action execution result.
-        expected_result = {'output': expected_output}
+        expected_result = {"output": expected_output}
 
         self.assertDictEqual(lv_ac_db.result, expected_result)
         self.assertDictEqual(ac_ex_db.result, expected_result)
 
     def test_string(self):
-        self.assert_data_flow('xyz')
+        self.assert_data_flow("xyz")
 
     def test_unicode_string(self):
-        self.assert_data_flow('床前明月光 疑是地上霜 舉頭望明月 低頭思故鄉')
+        self.assert_data_flow("床前明月光 疑是地上霜 舉頭望明月 低頭思故鄉")
