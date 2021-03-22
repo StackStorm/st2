@@ -42,7 +42,11 @@ class SensorTypeAPI(BaseAPI):
                 "type": "boolean",
                 "default": True,
             },
-            "trigger_types": {"type": "array", "items": TriggerTypeAPI.schema, "default": []},
+            "trigger_types": {
+                "type": "array",
+                "items": TriggerTypeAPI.schema,
+                "default": [],
+            },
             "poll_interval": {"type": "number"},
             "metadata_file": {
                 "description": "Path to the metadata file relative to the pack directory.",
