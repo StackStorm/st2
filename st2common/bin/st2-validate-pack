@@ -107,7 +107,7 @@ def main():
     if not validate_content(os.path.join(args.pack_path, "pack.yaml"), pack_models.PackAPI.schema):
         valid = 1
 
-    for directory, model in six.iteritems(pack_layout): 
+    for directory, model in six.iteritems(pack_layout):
         for meta in glob.glob(os.path.join(args.pack_path, directory, "*.yaml")):
             if not validate_content(meta, model.schema):
                 valid = 1
