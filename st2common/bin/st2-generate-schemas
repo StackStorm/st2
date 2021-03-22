@@ -26,6 +26,7 @@ from st2common.models.api import action as action_models
 from st2common.models.api import pack as pack_models
 from st2common.models.api import policy as policy_models
 from st2common.models.api import rule as rule_models
+from st2common.models.api import sensor as sensor_models
 
 content_models = {
     'pack': pack_models.PackAPI,
@@ -33,6 +34,7 @@ content_models = {
     'alias': action_models.ActionAliasAPI,
     'policy': policy_models.PolicyAPI,
     'rule': rule_models.RuleAPI,
+    'sensor': sensor_models.SensorTypeAPI,
 }
 
 def main():
