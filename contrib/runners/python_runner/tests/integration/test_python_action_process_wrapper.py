@@ -142,14 +142,21 @@ class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
             "python %s --pack=dummy --file-path=%s --config='%s' "
             "--stdin-parameters" % (WRAPPER_SCRIPT_PATH, file_path, config)
         )
-        exit_code, stdout, stderr = run_command(command_string, shell=True)
+        exit_code, stdout, stderr = run_command(
+            command_string, shell=True, close_fds=True
+        )
 
-        expected_msg = (
+        # Depending on how tests are spawned, sys.stdin may be opened and this will cause issues
+        # with this tests so we simply check for two different errors which are considered
+        # acceptable.
+        expected_msg_1 = (
             "ValueError: No input received and timed out while waiting for parameters "
             "from stdin"
         )
+        expected_msg_2 = "ValueError: Received no valid parameters data from sys.stdin"
+
         self.assertEqual(exit_code, 1)
-        self.assertIn(expected_msg, stderr)
+        self.assertTrue(expected_msg_1 in stderr or expected_msg_2 in stderr)
 
     def test_stdin_params_invalid_format_friendly_error(self):
         config = {}
