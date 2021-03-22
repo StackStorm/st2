@@ -28,7 +28,7 @@ class SensorTypeAPI(BaseAPI):
             "id": {"type": "string", "default": None},
             "ref": {"type": "string"},
             "uid": {"type": "string"},
-            "name": {"type": "string", "required": True},
+            "class_name": {"type": "string", "required": True},
             "pack": {"type": "string"},
             "description": {"type": "string"},
             "artifact_uri": {
