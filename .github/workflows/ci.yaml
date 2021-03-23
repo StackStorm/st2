@@ -165,6 +165,7 @@ jobs:
           # https://github.com/StackStorm/st2-auth-ldap
           sudo apt-get -y update
           sudo apt-get -f -y install libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils
+          sudo apt-get -y install shellcheck
       - name: Install virtualenv
         run: |
           set -x
@@ -214,6 +215,7 @@ jobs:
           pip --version
           pip list
           virtualenv --version
+          shellcheck --version
           # Print out various environment variables info
           make play
       - name: make

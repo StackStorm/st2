@@ -282,6 +282,13 @@ pylint: requirements .pylint
 .PHONY: configgen
 configgen: requirements .configgen
 
+.PHONY: .shellcheck
+.shellcheck:
+	@echo
+	@echo "================== shellcheck ===================="
+	@echo
+	shellcheck scripts/github/*.sh
+
 .PHONY: .configgen
 .configgen:
 	@echo
