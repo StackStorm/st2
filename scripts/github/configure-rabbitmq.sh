@@ -18,6 +18,7 @@ echo restarting rabbitmq container
 docker restart rabbitmq
 # wait for rabbitmq container to restart
 # TODO: Add timeout for just in case (config error or similar)
+# shellcheck disable=SC1083
 until [ "$(docker inspect -f {{.State.Running}} rabbitmq)" == "true" ]; do sleep 0.1; done
 echo enabled RabbitMQ plugins:
 # print plugins list to: (1) ease debugging, (2) pause till rabbitmq is really running

@@ -15,25 +15,28 @@ if [[ " ${TASK}" = *' ci-py3-'* ]]; then
     # silently invalidate the tests.
 
     # cleanup any invalid python2 cache
-    test -d virtualenv/lib/${PYTHON_VERSION} || rm -rf virtualenv/*
+    test -d "virtualenv/lib/${PYTHON_VERSION}" || rm -rf virtualenv/*
     # rebuild virtualenv if necessary
-    test -f virtualenv/bin/activate || virtualenv --python=${PYTHON_VERSION} virtualenv --no-download
+    test -f virtualenv/bin/activate || virtualenv --python="${PYTHON_VERSION}" virtualenv --no-download
 
     # Install runners
+    # shellcheck disable=SC1091
     . virtualenv/bin/activate
 
-    CURRENT_DIR=`pwd`
-    for RUNNER in `ls -d $CURRENT_DIR/contrib/runners/*`
+    CURRENT_DIR=$(pwd)
+    # shellcheck disable=SC2045
+    for RUNNER in $(ls -d "$CURRENT_DIR/contrib/runners/*")
     do
       echo "Installing runner: $RUNNER..."
-      cd $RUNNER
+      cd "${RUNNER}"
       python setup.py develop --no-deps
     done
     # Install mock runners
-    for RUNNER in `ls -d $CURRENT_DIR/st2common/tests/runners/*`
+    # shellcheck disable=SC2045
+    for RUNNER in $(ls -d "$CURRENT_DIR/st2common/tests/runners/*")
     do
       echo "Installing mock runner: $RUNNER..."
-      cd $RUNNER
+      cd "${RUNNER}"
       python setup.py develop --no-deps
     done
 

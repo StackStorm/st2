@@ -7,6 +7,7 @@ if [ "$(whoami)" != 'root' ]; then
 fi
 
 # Activate the virtualenv created during make requirements phase
+# shellcheck disable=SC1091
 source ./virtualenv/bin/activate
 
 # install st2 client
@@ -47,4 +48,4 @@ chmod 777 logs/*
 chmod -R o+rwX ./virtualenv/
 # newer virtualenv versions are putting lock files under ~/.local
 # as this script runs with sudo, HOME is actually the CI user's home
-chmod -R o+rwX ${HOME}/.local/share/virtualenv
+chmod -R o+rwX "${HOME}/.local/share/virtualenv"

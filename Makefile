@@ -287,7 +287,9 @@ configgen: requirements .configgen
 	@echo
 	@echo "================== shellcheck ===================="
 	@echo
+	shellcheck scripts/ci/*.sh
 	shellcheck scripts/github/*.sh
+	shellcheck scripts/*.sh
 
 .PHONY: .configgen
 .configgen:
@@ -1072,7 +1074,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: .generated-files-check .black-check .pre-commit-checks .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: .rst-check
 .rst-check:
