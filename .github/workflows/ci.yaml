@@ -167,6 +167,7 @@ jobs:
           sudo apt-get -f -y install libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils
       - name: Install virtualenv
         run: |
+          set -x
           # Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
           #       only have to update it one place when we change the version
           # Note: Use --user to avoid polluting system site-packages (which breaks one of our tests)
@@ -177,9 +178,9 @@ jobs:
             ~/virtualenv/bin/pip install --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
             # drop the --user install virtualenv to prevent polluting tests
             pip freeze --user | xargs pip uninstall -y
-            mkdir -p ~/.local/bin
-            ln -s ~/virtualenv/bin/virtualenv ~/.local/bin/virtualenv
           fi
+          mkdir -p ~/.local/bin
+          ln -s ~/virtualenv/bin/virtualenv ~/.local/bin/virtualenv
           which virtualenv
           virtualenv --version
       - name: Install requirements
