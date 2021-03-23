@@ -1,0 +1,11 @@
+---
+name: orquesta-data-flow-large-data
+description: A basic workflow which passes large JSON data around.
+runner_type: orquesta
+entry_point: workflows/orquesta-data-flow-large-data.yaml
+enabled: true
+parameters:
+  file_path:
+    type: string
+    required: true
+    description: "Path to the JSON fixture file to use."

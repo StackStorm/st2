@@ -15,11 +15,11 @@
 
 from __future__ import absolute_import
 
-import copy
 import functools
 import re
 import six
 import sys
+import copy
 import traceback
 
 from flex.core import validate
@@ -42,6 +42,7 @@ from st2common.util.jsonify import json_encode
 from st2common.util.jsonify import json_decode
 from st2common.util.jsonify import get_json_type_for_python_value
 from st2common.util.http import parse_content_type_header
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = [
     "Router",
@@ -232,7 +233,7 @@ class Router(object):
         self.spec = spec
         self.spec_resolver = jsonschema.RefResolver("", self.spec)
 
-        validate(copy.deepcopy(self.spec))
+        validate(fast_deepcopy_dict(self.spec))
 
         for filter in transforms:
             for (path, methods) in six.iteritems(spec["paths"]):
@@ -661,11 +662,16 @@ class Router(object):
             response_spec_name = str(resp.status_code)
 
         response_spec = response_spec or default_response_spec
+        response_spec = response_spec or {}
+        validate_response = response_spec.get("schema", {}).get(
+            "validate_response", True
+        )
 
         if (
             response_spec
             and "schema" in response_spec
             and not has_include_or_exclude_attributes
+            and validate_response
         ):
             # NOTE: We don't perform response validation when include or exclude attributes are
             # provided because this means partial response which likely won't pass the validation

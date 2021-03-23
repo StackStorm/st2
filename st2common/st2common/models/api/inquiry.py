@@ -14,7 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
+
 import six
 
 from st2common.constants.action import LIVEACTION_STATUSES
@@ -96,9 +98,15 @@ class InquiryAPI(BaseAPI):
         "additionalProperties": False,
     }
 
+    skip_unescape_field_names = [
+        "result",
+    ]
+
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
+
+        doc["result"] = ActionExecutionDB.result.parse_field_value(doc["result"])
 
         newdoc = {
             "id": doc["id"],
