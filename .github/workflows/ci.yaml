@@ -185,20 +185,20 @@ jobs:
           virtualenv --version
       - name: Install requirements
         run: |
-          ./scripts/travis/install-requirements.sh
+          ./scripts/ci/install-requirements.sh
       - name: Setup integration tests
         run: |
           # prep a ci-specific dev conf file that uses runner instead of stanley
           # this user is the username of the user in GitHub actions, used for SSH, etc during
           # integration tests (important)
           cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
-          scripts/travis/add-itest-user-key.sh
+          ./scripts/ci/add-itest-user-key.sh
           sudo .circle/add-itest-user.sh
       - name: Permissions Workaround
         if: "${{ env.TASK == 'ci-packs-tests' || env.TASK == 'ci-integration' }}"
         run: |
           echo "$ST2_CI_REPO_PATH"
-          sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/travis/permissions-workaround.sh
+          sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
       - name: Reconfigure RabbitMQ
         if: "${{ env.TASK == 'ci-unit' || env.TASK == 'ci-integration' }}"
         # bitnami image allows (see bitnami/rabbitmq readme):
@@ -206,29 +206,7 @@ jobs:
         # We need to switch to custom.conf or advanced.config.
         timeout-minutes: 2  # may die if rabbitmq fails to start
         run: |
-          set -x
-          # Use custom RabbitMQ config which enables SSL / TLS listener on port 5671 with test certs
-          sudo cp scripts/github/rabbitmq.conf /home/runner/rabbitmq_conf/custom.conf
-          # The code is checked out after the container is already up, so we don't mount them.
-          # We copy those certs into the dir that is mounted to /bitnami/conf
-          sudo cp -r st2tests/st2tests/fixtures/ssl_certs /home/runner/rabbitmq_conf/
-          # refresh rabbitmq config - based on ENTRYPOINT logic
-          docker exec rabbitmq bash -c 'cat /bitnami/conf/custom.conf >> /opt/bitnami/rabbitmq/etc/rabbitmq/rabbitmq.conf'
-          # sleep to prevent interleaved output in GHA logs
-          docker exec rabbitmq cat /opt/bitnami/rabbitmq/etc/rabbitmq/rabbitmq.conf && sleep 0.1
-          echo
-          echo restarting rabbitmq container
-          docker restart rabbitmq
-          # wait for rabbitmq container to restart
-          until [ "$(docker inspect -f {{.State.Running}} rabbitmq)" == "true" ]; do sleep 0.1; done
-          echo enabled RabbitMQ plugins:
-          # print plugins list to: (1) ease debugging, (2) pause till rabbitmq is really running
-          docker exec rabbitmq rabbitmq-plugins list -e
-          echo
-          sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
-          sudo chmod +x /usr/local/bin/rabbitmqadmin
-          # print logs from stdout (RABBITMQ_LOGS=-)
-          docker logs --tail=20 rabbitmq
+          ./scripts/github/configure-rabbitmq.sh
       - name: Print versions
         run: |
           # Print various binary versions
@@ -246,12 +224,12 @@ jobs:
         # Run any additional nightly checks only as part of a nightly (cron) build
         if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
         run: |
-          ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"
+          ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
         if: "${{ success() && ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
         run: |
-          ./scripts/travis/submit-codecov-coverage.sh
+          ./scripts/ci/submit-codecov-coverage.sh
   slack-notification:
     name: Slack notification for failed master builds
     if: always()
