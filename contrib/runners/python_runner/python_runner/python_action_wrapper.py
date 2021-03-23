@@ -359,6 +359,12 @@ if __name__ == "__main__":
 
         stdin_data = sys.stdin.readline().strip()
 
+        if not stdin_data:
+            # This could indicate that parent process (e.g. process which runs the tests has
+            # incorrectly opened the stdin and that one is then inherited by the process which is
+            # spawning it which will cause issues)
+            raise ValueError("Received no valid parameters data from sys.stdin")
+
         try:
             stdin_parameters = orjson.loads(stdin_data)
             stdin_parameters = stdin_parameters.get("parameters", {})
