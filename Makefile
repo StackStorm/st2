@@ -63,6 +63,10 @@ ifndef PYLINT_CONCURRENCY
 	PYLINT_CONCURRENCY := 1
 endif
 
+ifndef XARGS_CONCURRENCY
+	XARGS_CONCURRENCY := 8
+endif
+
 # NOTE: We exclude resourceregistrar DEBUG level log messages since those are very noisy (we
 # loaded resources for every tests) which makes tests hard to troubleshoot on failure due to
 # pages and pages and pages of noise.
@@ -164,7 +168,7 @@ install-runners:
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P 10 -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
+	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
 	#@for component in $(COMPONENTS_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing runner:" $$component; \
@@ -178,7 +182,7 @@ install-mock-runners:
 	@echo "================== INSTALL MOCK RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P 10 -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
+	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
 	#@for component in $(MOCK_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing mock runner:" $$component; \
@@ -612,11 +616,14 @@ distclean: clean
 	rm -rf *.egg-info*
 
 	# Generate finall requirements.txt file for each component
-	@for component in $(COMPONENTS_WITH_RUNNERS); do\
-		echo "==========================================================="; \
-		echo "Generating requirements.txt for" $$component; \
-		$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
-	done
+	# NOTE: We use xargs to speed things up by running commands in parallel
+	echo -e "$(COMPONENTS_WITH_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c "$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s {}/in-requirements.txt -f fixed-requirements.txt -o {}/requirements.txt"
+
+	#@for component in $(COMPONENTS_WITH_RUNNERS); do\
+	#	echo "==========================================================="; \
+	#	echo "Generating requirements.txt for" $$component; \
+	#	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
+	#done
 
 	@echo "==========================================================="
 
