@@ -28,16 +28,18 @@ if [[ " ${TASK}" = *' ci-py3-'* ]]; then
     for RUNNER in $(ls -d "$CURRENT_DIR/contrib/runners/*")
     do
       echo "Installing runner: $RUNNER..."
-      cd "${RUNNER}"
+      push "${RUNNER}" || exit 2
       python setup.py develop --no-deps
+      popd || exit 2
     done
     # Install mock runners
     # shellcheck disable=SC2045
     for RUNNER in $(ls -d "$CURRENT_DIR/st2common/tests/runners/*")
     do
       echo "Installing mock runner: $RUNNER..."
-      cd "${RUNNER}"
+      push "${RUNNER}" || exit 2
       python setup.py develop --no-deps
+      popd || exit 2
     done
 
     # NOTE: We create the environment and install the dependencies first. This
