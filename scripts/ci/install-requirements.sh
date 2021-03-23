@@ -28,7 +28,7 @@ if [[ " ${TASK}" = *' ci-py3-'* ]]; then
     for RUNNER in $(ls -d "$CURRENT_DIR/contrib/runners/*")
     do
       echo "Installing runner: $RUNNER..."
-      push "${RUNNER}" || exit 2
+      pushd "${RUNNER}" || exit 2
       python setup.py develop --no-deps
       popd || exit 2
     done
@@ -37,7 +37,7 @@ if [[ " ${TASK}" = *' ci-py3-'* ]]; then
     for RUNNER in $(ls -d "$CURRENT_DIR/st2common/tests/runners/*")
     do
       echo "Installing mock runner: $RUNNER..."
-      push "${RUNNER}" || exit 2
+      pushd "${RUNNER}" || exit 2
       python setup.py develop --no-deps
       popd || exit 2
     done

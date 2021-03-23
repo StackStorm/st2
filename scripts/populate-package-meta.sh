@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pushd "$GITDIR/scripts"
+pushd "$GITDIR/scripts" || exit 2
 
 config=../package.meta
 
@@ -18,4 +18,4 @@ package_meta
 
 echo Contents of package.meta for reference:
 cat ../package.meta
-popd
+popd || exit 2
