@@ -33,6 +33,7 @@ from st2common.models.api import policy as policy_models
 from st2common.models.api import rule as rule_models
 from st2common.models.api import sensor as sensor_models
 from st2common.util import schema as schema_utils
+from st2common.util import yml as yaml_utils
 
 pack_layout = {
     'actions': action_models.ActionAPI,
@@ -56,9 +57,9 @@ def validate_content(path, schema):
         return False
 
     try:
-        spec = yaml.safe_load(content)
+        spec = yaml_utils.unique_key_loader_safe_load(content)
     except Exception as e:
-        print(f"ERROR: Unable to load yaml for file \"{path}\".")
+        print(f"ERROR: Unable to load yaml for file \"{path}\" because {str(e)}.")
         return False
 
     pack_name = os.path.basename(path)
