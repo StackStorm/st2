@@ -23,6 +23,7 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.models.db.notification import NotificationSchema
 from st2common.fields import ComplexDateTimeField
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.util import date as date_utils
 from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_secret_parameters
@@ -61,7 +62,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
         default={},
         help_text="The key-value pairs passed as to the action runner & execution.",
     )
-    result = stormbase.EscapedDynamicField(
+    result = JSONDictEscapedFieldCompatibilityField(
         default={}, help_text="Action defined result."
     )
     context = me.DictField(
@@ -91,7 +92,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
             {"fields": ["context.trigger_instance.id"]},
             {"fields": ["workflow_execution"]},
             {"fields": ["task_execution"]},
-        ]
+        ],
     }
 
     def mask_secrets(self, value):

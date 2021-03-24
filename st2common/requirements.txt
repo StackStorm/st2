@@ -17,14 +17,14 @@ git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backe
 gitpython==2.1.15
 greenlet==0.4.17
 ipaddr
-jinja2==2.10.3
+jinja2==2.11.3
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==4.6.6
 lockfile==0.12.2
 mongoengine==0.22.1
 networkx==1.11
-orjson==3.5.0
+orjson==3.5.1
 oslo.config>=1.12.1,<1.13
 paramiko==2.7.1
 pymongo==3.11.3
@@ -37,6 +37,6 @@ routes==2.4.1
 semver==2.9.0
 six==1.13.0
 tooz==2.8.0
-ujson==1.35
+udatetime==0.0.16
 webob==1.8.5
 zake==0.2.2

@@ -447,6 +447,9 @@ class LiveActionAPI(BaseAPI):
         },
         "additionalProperties": False,
     }
+    skip_unescape_field_names = [
+        "result",
+    ]
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):

@@ -1,0 +1,989 @@
+{
+  "meta" : {
+    "view" : {
+      "id" : "825b-niea",
+      "name" : "2006 - 2011 NYS Math Test Results by Grade - Citywide - by Race-Ethnicity",
+      "assetType" : "dataset",
+      "attribution" : "Department of Education (DOE)",
+      "averageRating" : 0,
+      "category" : "Education",
+      "createdAt" : 1317851618,
+      "description" : "New York City Results on the New York State Mathematics Tests, Grades 3 - 8\r\nNotes:\r\nAs of 2006, the New York State Education Department expanded the ELA and mathematics testing programs to Grades 3-8. Previously, state tests were administered in Grades 4 and 8 and citywide tests were administered in Grades 3, 5, 6, and 7.\r\nIn 2006, NYSED treated District 75 students as a distinct geographic district. For 2007-2011, District 75 students are represented in their home districts and boroughs. Spreadsheets for District and Borough do not include District 75 students in 2006.\r\nStarting in 2010, NYSED changed the scale score required to meet each of the proficiency levels, increasing the number of questions students needed to answer correctly to meet proficiency.",
+      "displayType.bar" : "table",
+      "downloadCount" : 3439,
+      "hideFromCatalog" : false,
+      "hideFromDataJson" : false,
+      "indexUpdatedAt" : 1536597371,
+      "newBackend" : true,
+      "numberOfComments" : 0,
+      "oid" : 340572,
+      "provenance" : "official",
+      "publicationAppendEnabled" : false,
+      "publicationDate" : 1318352793,
+      "publicationGroup" : 243316,
+      "publicationStage" : "published",
+      "rowClass" : "",
+      "rowsUpdatedAt" : 1317851623,
+      "rowsUpdatedBy" : "rnig-m3uj",
+      "tableId" : 243316,
+      "totalTimesRated" : 0,
+      "viewCount" : 758,
+      "viewLastModified" : 1557933358,
+      "viewType" : "tabular",
+      "approvals" : [ {
+        "reviewedAt" : 1318352809,
+        "reviewedAutomatically" : true,
+        "state" : "approved",
+        "submissionId" : 1063896,
+        "submissionObject" : "public_audience_request",
+        "submissionOutcome" : "change_audience",
+        "submittedAt" : 1318352809,
+        "workflowId" : 2285,
+        "submissionDetails" : {
+          "permissionType" : "READ"
+        },
+        "submissionOutcomeApplication" : {
+          "failureCount" : 0,
+          "status" : "success"
+        },
+        "submitter" : {
+          "id" : "5fuc-pqz2",
+          "displayName" : "NYC OpenData"
+        }
+      } ],
+      "columns" : [ {
+        "id" : -1,
+        "name" : "sid",
+        "dataTypeName" : "meta_data",
+        "fieldName" : ":sid",
+        "position" : 0,
+        "renderTypeName" : "meta_data",
+        "format" : { },
+        "flags" : [ "hidden" ]
+      }, {
+        "id" : -1,
+        "name" : "id",
+        "dataTypeName" : "meta_data",
+        "fieldName" : ":id",
+        "position" : 0,
+        "renderTypeName" : "meta_data",
+        "format" : { },
+        "flags" : [ "hidden" ]
+      }, {
+        "id" : -1,
+        "name" : "position",
+        "dataTypeName" : "meta_data",
+        "fieldName" : ":position",
+        "position" : 0,
+        "renderTypeName" : "meta_data",
+        "format" : { },
+        "flags" : [ "hidden" ]
+      }, {
+        "id" : -1,
+        "name" : "created_at",
+        "dataTypeName" : "meta_data",
+        "fieldName" : ":created_at",
+        "position" : 0,
+        "renderTypeName" : "meta_data",
+        "format" : { },
+        "flags" : [ "hidden" ]
+      }, {
+        "id" : -1,
+        "name" : "created_meta",
+        "dataTypeName" : "meta_data",
+        "fieldName" : ":created_meta",
+        "position" : 0,
+        "renderTypeName" : "meta_data",
+        "format" : { },
+        "flags" : [ "hidden" ]
+      }, {
+        "id" : -1,
+        "name" : "updated_at",
+        "dataTypeName" : "meta_data",
+        "fieldName" : ":updated_at",
+        "position" : 0,
+        "renderTypeName" : "meta_data",
+        "format" : { },
+        "flags" : [ "hidden" ]
+      }, {
+        "id" : -1,
+        "name" : "updated_meta",
+        "dataTypeName" : "meta_data",
+        "fieldName" : ":updated_meta",
+        "position" : 0,
+        "renderTypeName" : "meta_data",
+        "format" : { },
+        "flags" : [ "hidden" ]
+      }, {
+        "id" : -1,
+        "name" : "meta",
+        "dataTypeName" : "meta_data",
+        "fieldName" : ":meta",
+        "position" : 0,
+        "renderTypeName" : "meta_data",
+        "format" : { },
+        "flags" : [ "hidden" ]
+      }, {
+        "id" : 2959952,
+        "name" : "Grade",
+        "dataTypeName" : "text",
+        "fieldName" : "grade",
+        "position" : 1,
+        "renderTypeName" : "text",
+        "tableColumnId" : 1554334,
+        "width" : 160,
+        "cachedContents" : {
+          "non_null" : 168,
+          "largest" : "All Grades",
+          "null" : 0,
+          "top" : [ {
+            "item" : "3",
+            "count" : 20
+          }, {
+            "item" : "4",
+            "count" : 19
+          }, {
+            "item" : "5",
+            "count" : 18
+          }, {
+            "item" : "6",
+            "count" : 17
+          }, {
+            "item" : "7",
+            "count" : 16
+          }, {
+            "item" : "8",
+            "count" : 15
+          }, {
+            "item" : "All Grades",
+            "count" : 14
+          } ],
+          "smallest" : "3"
+        },
+        "format" : { }
+      }, {
+        "id" : 2959953,
+        "name" : "Year",
+        "dataTypeName" : "text",
+        "fieldName" : "year",
+        "position" : 2,
+        "renderTypeName" : "text",
+        "tableColumnId" : 1554335,
+        "width" : 148,
+        "cachedContents" : {
+          "non_null" : 168,
+          "largest" : "2011",
+          "null" : 0,
+          "top" : [ {
+            "item" : "2006",
+            "count" : 20
+          }, {
+            "item" : "2007",
+            "count" : 19
+          }, {
+            "item" : "2008",
+            "count" : 18
+          }, {
+            "item" : "2009",
+            "count" : 17
+          }, {
+            "item" : "2010",
+            "count" : 16
+          }, {
+            "item" : "2011",
+            "count" : 15
+          } ],
+          "smallest" : "2006"
+        },
+        "format" : { }
+      }, {
+        "id" : 2959954,
+        "name" : "Category",
+        "dataTypeName" : "text",
+        "fieldName" : "category",
+        "position" : 3,
+        "renderTypeName" : "text",
+        "tableColumnId" : 1554336,
+        "width" : 196,
+        "cachedContents" : {
+          "non_null" : 168,
+          "largest" : "White",
+          "null" : 0,
+          "top" : [ {
+            "item" : "Asian",
+            "count" : 20
+          }, {
+            "item" : "Black",
+            "count" : 19
+          }, {
+            "item" : "Hispanic",
+            "count" : 18
+          }, {
+            "item" : "White",
+            "count" : 17
+          } ],
+          "smallest" : "Asian"
+        },
+        "format" : { }
+      }, {
+        "id" : 2959955,
+        "name" : "Number Tested",
+        "dataTypeName" : "number",
+        "fieldName" : "number_tested",
+        "position" : 4,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554337,
+        "width" : 256,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "30543.14285714286",
+          "largest" : "177382",
+          "null" : 0,
+          "top" : [ {
+            "item" : "9875",
+            "count" : 20
+          }, {
+            "item" : "9679",
+            "count" : 19
+          }, {
+            "item" : "9570",
+            "count" : 18
+          }, {
+            "item" : "62193",
+            "count" : 17
+          } ],
+          "smallest" : "9433",
+          "sum" : "5131248"
+        },
+        "format" : { }
+      }, {
+        "id" : 2959956,
+        "name" : "Mean Scale Score",
+        "dataTypeName" : "number",
+        "fieldName" : "mean_scale_score",
+        "position" : 5,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554338,
+        "width" : 292,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "678.4583333333333",
+          "largest" : "716",
+          "null" : 0,
+          "top" : [ {
+            "item" : "700",
+            "count" : 20
+          }, {
+            "item" : "675",
+            "count" : 19
+          }, {
+            "item" : "706",
+            "count" : 18
+          }, {
+            "item" : "704",
+            "count" : 17
+          }, {
+            "item" : "695",
+            "count" : 16
+          }, {
+            "item" : "661",
+            "count" : 15
+          }, {
+            "item" : "673",
+            "count" : 14
+          }, {
+            "item" : "664",
+            "count" : 13
+          }, {
+            "item" : "669",
+            "count" : 12
+          }, {
+            "item" : "662",
+            "count" : 11
+          }, {
+            "item" : "667",
+            "count" : 10
+          }, {
+            "item" : "677",
+            "count" : 9
+          }, {
+            "item" : "676",
+            "count" : 8
+          }, {
+            "item" : "680",
+            "count" : 7
+          }, {
+            "item" : "694",
+            "count" : 6
+          }, {
+            "item" : "683",
+            "count" : 5
+          }, {
+            "item" : "690",
+            "count" : 4
+          }, {
+            "item" : "703",
+            "count" : 3
+          }, {
+            "item" : "701",
+            "count" : 2
+          }, {
+            "item" : "698",
+            "count" : 1
+          } ],
+          "smallest" : "628",
+          "sum" : "113981"
+        },
+        "format" : { }
+      }, {
+        "id" : 2959957,
+        "name" : "Level 1 #",
+        "dataTypeName" : "number",
+        "fieldName" : "level_1_1",
+        "position" : 6,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554339,
+        "width" : 208,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "2876.238095238095",
+          "largest" : "33091",
+          "null" : 0,
+          "top" : [ {
+            "item" : "409",
+            "count" : 20
+          }, {
+            "item" : "423",
+            "count" : 19
+          }, {
+            "item" : "433",
+            "count" : 18
+          }, {
+            "item" : "2418",
+            "count" : 17
+          } ],
+          "smallest" : "43",
+          "sum" : "483208"
+        },
+        "format" : { }
+      }, {
+        "id" : 2959958,
+        "name" : "Level 1 %",
+        "dataTypeName" : "number",
+        "fieldName" : "level_1_2",
+        "position" : 7,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554340,
+        "width" : 208,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "7.532142857142857",
+          "largest" : "31.1",
+          "null" : 0,
+          "top" : [ {
+            "item" : "9.5",
+            "count" : 20
+          }, {
+            "item" : "12.6",
+            "count" : 19
+          }, {
+            "item" : "13.4",
+            "count" : 18
+          }, {
+            "item" : "4.3",
+            "count" : 17
+          }, {
+            "item" : "5.5",
+            "count" : 16
+          }, {
+            "item" : "7.3",
+            "count" : 15
+          }, {
+            "item" : "6.9",
+            "count" : 14
+          }, {
+            "item" : "10.4",
+            "count" : 13
+          }, {
+            "item" : "6.3",
+            "count" : 12
+          }, {
+            "item" : "2.5",
+            "count" : 11
+          }, {
+            "item" : "3.3",
+            "count" : 10
+          }, {
+            "item" : "3.2",
+            "count" : 9
+          }, {
+            "item" : "5.4",
+            "count" : 8
+          }, {
+            "item" : "4.5",
+            "count" : 7
+          }, {
+            "item" : "7.8",
+            "count" : 6
+          }, {
+            "item" : "4.4",
+            "count" : 5
+          }, {
+            "item" : "1.4",
+            "count" : 4
+          }, {
+            "item" : "2.9",
+            "count" : 3
+          }, {
+            "item" : "1.9",
+            "count" : 2
+          }, {
+            "item" : "2.3",
+            "count" : 1
+          } ],
+          "smallest" : "0.4",
+          "sum" : "1265.4"
+        },
+        "format" : {
+          "precisionStyle" : "percentage",
+          "percentScale" : "100",
+          "view" : "percent_bar_and_text"
+        }
+      }, {
+        "id" : 2959959,
+        "name" : "Level 2 #",
+        "dataTypeName" : "number",
+        "fieldName" : "level_2_1",
+        "position" : 8,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554341,
+        "width" : 208,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "7855.916666666667",
+          "largest" : "70036",
+          "null" : 0,
+          "top" : [ {
+            "item" : "1818",
+            "count" : 20
+          }, {
+            "item" : "1739",
+            "count" : 19
+          }, {
+            "item" : "2190",
+            "count" : 18
+          }, {
+            "item" : "11336",
+            "count" : 17
+          } ],
+          "smallest" : "216",
+          "sum" : "1319794"
+        },
+        "format" : { }
+      }, {
+        "id" : 2959960,
+        "name" : "Level 2 %",
+        "dataTypeName" : "number",
+        "fieldName" : "level_2_2",
+        "position" : 9,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554342,
+        "width" : 208,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "21.65357142857143",
+          "largest" : "49.6",
+          "null" : 0,
+          "top" : [ {
+            "item" : "41.4",
+            "count" : 20
+          }, {
+            "item" : "41.2",
+            "count" : 19
+          }, {
+            "item" : "39.2",
+            "count" : 18
+          }, {
+            "item" : "8.8",
+            "count" : 17
+          }, {
+            "item" : "13.0",
+            "count" : 16
+          }, {
+            "item" : "18.8",
+            "count" : 15
+          }, {
+            "item" : "24.5",
+            "count" : 14
+          }, {
+            "item" : "27.6",
+            "count" : 13
+          }, {
+            "item" : "16.5",
+            "count" : 12
+          }, {
+            "item" : "4.8",
+            "count" : 11
+          }, {
+            "item" : "7.4",
+            "count" : 10
+          }, {
+            "item" : "9.3",
+            "count" : 9
+          }, {
+            "item" : "13.6",
+            "count" : 8
+          }, {
+            "item" : "18.0",
+            "count" : 7
+          }, {
+            "item" : "12.8",
+            "count" : 6
+          }, {
+            "item" : "3.7",
+            "count" : 5
+          }, {
+            "item" : "6.0",
+            "count" : 4
+          }, {
+            "item" : "9.5",
+            "count" : 3
+          }, {
+            "item" : "11.7",
+            "count" : 2
+          }, {
+            "item" : "17.3",
+            "count" : 1
+          } ],
+          "smallest" : "2.0",
+          "sum" : "3637.8"
+        },
+        "format" : {
+          "precisionStyle" : "percentage",
+          "percentScale" : "100",
+          "view" : "percent_bar_and_text"
+        }
+      }, {
+        "id" : 2959961,
+        "name" : "Level 3 #",
+        "dataTypeName" : "number",
+        "fieldName" : "level_3_1",
+        "position" : 10,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554343,
+        "width" : 208,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "13487.13095238095",
+          "largest" : "102188",
+          "null" : 0,
+          "top" : [ {
+            "item" : "3435",
+            "count" : 20
+          }, {
+            "item" : "3023",
+            "count" : 19
+          }, {
+            "item" : "4142",
+            "count" : 18
+          }, {
+            "item" : "25191",
+            "count" : 17
+          } ],
+          "smallest" : "2762",
+          "sum" : "2265838"
+        },
+        "format" : { }
+      }, {
+        "id" : 2959962,
+        "name" : "Level 3 %",
+        "dataTypeName" : "number",
+        "fieldName" : "level_3_2",
+        "position" : 11,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554344,
+        "width" : 208,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "43.79047619047619",
+          "largest" : "71.8",
+          "null" : 0,
+          "top" : [ {
+            "item" : "48.4",
+            "count" : 20
+          }, {
+            "item" : "50.8",
+            "count" : 19
+          }, {
+            "item" : "51.0",
+            "count" : 18
+          }, {
+            "item" : "40.5",
+            "count" : 17
+          } ],
+          "smallest" : "24.3",
+          "sum" : "7356.8"
+        },
+        "format" : {
+          "precisionStyle" : "percentage",
+          "percentScale" : "100",
+          "view" : "percent_bar_and_text"
+        }
+      }, {
+        "id" : 2959963,
+        "name" : "Level 4 #",
+        "dataTypeName" : "number",
+        "fieldName" : "level_4_1",
+        "position" : 12,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554345,
+        "width" : 208,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "6323.857142857143",
+          "largest" : "33594",
+          "null" : 0,
+          "top" : [ {
+            "item" : "4213",
+            "count" : 20
+          }, {
+            "item" : "4494",
+            "count" : 19
+          }, {
+            "item" : "2805",
+            "count" : 18
+          }, {
+            "item" : "23248",
+            "count" : 17
+          } ],
+          "smallest" : "605",
+          "sum" : "1062408"
+        },
+        "format" : { }
+      }, {
+        "id" : 2959964,
+        "name" : "Level 4 %",
+        "dataTypeName" : "number",
+        "fieldName" : "level_4_2",
+        "position" : 13,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554346,
+        "width" : 208,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "27.01666666666667",
+          "largest" : "64.0",
+          "null" : 0,
+          "top" : [ {
+            "item" : "23.1",
+            "count" : 20
+          }, {
+            "item" : "44.6",
+            "count" : 19
+          }, {
+            "item" : "42.6",
+            "count" : 18
+          }, {
+            "item" : "37.4",
+            "count" : 17
+          } ],
+          "smallest" : "2.3",
+          "sum" : "4538.8"
+        },
+        "format" : {
+          "precisionStyle" : "percentage",
+          "percentScale" : "100",
+          "view" : "percent_bar_and_text"
+        }
+      }, {
+        "id" : 2959965,
+        "name" : "Level 3+4 #",
+        "dataTypeName" : "number",
+        "fieldName" : "level_3_4_1",
+        "position" : 14,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554347,
+        "width" : 232,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "19810.98809523810",
+          "largest" : "132637",
+          "null" : 0,
+          "top" : [ {
+            "item" : "9188",
+            "count" : 20
+          }, {
+            "item" : "7517",
+            "count" : 19
+          }, {
+            "item" : "6947",
+            "count" : 18
+          }, {
+            "item" : "48439",
+            "count" : 17
+          } ],
+          "smallest" : "6491",
+          "sum" : "3328246"
+        },
+        "format" : { }
+      }, {
+        "id" : 2959966,
+        "name" : "Level 3+4 %",
+        "dataTypeName" : "number",
+        "fieldName" : "level_3_4_2",
+        "position" : 15,
+        "renderTypeName" : "number",
+        "tableColumnId" : 1554348,
+        "width" : 232,
+        "cachedContents" : {
+          "non_null" : 168,
+          "average" : "70.81071428571429",
+          "largest" : "97.6",
+          "null" : 0,
+          "top" : [ {
+            "item" : "77.4",
+            "count" : 20
+          }, {
+            "item" : "77.7",
+            "count" : 19
+          }, {
+            "item" : "72.6",
+            "count" : 18
+          }, {
+            "item" : "77.9",
+            "count" : 17
+          } ],
+          "smallest" : "27.3",
+          "sum" : "11896.2"
+        },
+        "format" : {
+          "precisionStyle" : "percentage",
+          "percentScale" : "100",
+          "view" : "percent_bar_and_text"
+        }
+      } ],
+      "grants" : [ {
+        "inherited" : false,
+        "type" : "viewer",
+        "flags" : [ "public" ]
+      } ],
+      "metadata" : {
+        "rdfSubject" : "0",
+        "rdfClass" : "",
+        "attachments" : [ {
+          "filename" : "2006-2011_NYS__Math_Test_Results_-by_Grade_Citywide_by_Race_Ehnicity.xlsx",
+          "assetId" : "3412f519-436a-4558-a5a1-d004522f8161",
+          "name" : "2006-2011_NYS__Math_Test_Results_-by_Grade_Citywide_by_Race_Ehnicity.xlsx"
+        } ],
+        "custom_fields" : {
+          "Update" : {
+            "Automation" : "No",
+            "Date Made Public" : "10/11/2011",
+            "Update Frequency" : "Historical Data"
+          },
+          "Dataset Information" : {
+            "Agency" : "Department of Education (DOE)"
+          }
+        },
+        "availableDisplayTypes" : [ "table", "fatrow", "page" ],
+        "renderTypeConfig" : {
+          "visible" : {
+            "table" : true
+          }
+        }
+      },
+      "owner" : {
+        "id" : "5fuc-pqz2",
+        "displayName" : "NYC OpenData",
+        "profileImageUrlLarge" : "/api/users/5fuc-pqz2/profile_images/LARGE",
+        "profileImageUrlMedium" : "/api/users/5fuc-pqz2/profile_images/THUMB",
+        "profileImageUrlSmall" : "/api/users/5fuc-pqz2/profile_images/TINY",
+        "screenName" : "NYC OpenData",
+        "type" : "interactive",
+        "flags" : [ "acceptedEula", "mayBeStoriesCoOwner" ]
+      },
+      "query" : { },
+      "rights" : [ "read" ],
+      "tableAuthor" : {
+        "id" : "rnig-m3uj",
+        "displayName" : "Jorge J.",
+        "profileImageUrlLarge" : "/api/users/rnig-m3uj/profile_images/LARGE",
+        "profileImageUrlMedium" : "/api/users/rnig-m3uj/profile_images/THUMB",
+        "profileImageUrlSmall" : "/api/users/rnig-m3uj/profile_images/TINY",
+        "screenName" : "Jorge J.",
+        "type" : "interactive"
+      },
+      "tags" : [ "lifelong learning" ],
+      "flags" : [ "default", "ownerMayBeContacted", "restorable", "restorePossibleForType" ]
+    }
+  },
+  "data" : [ [ "row-yvru.xsvq_qzbq", "00000000-0000-0000-1B32-87B29F69422E", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2006", "Asian", "9768", "700", "243", "2.5", "543", "5.6", "4128", "42.3", "4854", "49.7", "8982", "92.0" ]
+, [ "row-q8z8.q7b3.3ppa", "00000000-0000-0000-D9CE-B1F89A0D1307", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2006", "Asian", "9973", "699", "294", "2.9", "600", "6.0", "4245", "42.6", "4834", "48.5", "9079", "91.0" ]
+, [ "row-i23x-4prc-46fj", "00000000-0000-0000-C9EE-2418870B5F93", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2006", "Asian", "9852", "691", "369", "3.7", "907", "9.2", "4379", "44.4", "4197", "42.6", "8576", "87.0" ]
+, [ "row-7u9v-dwwy.fhw3", "00000000-0000-0000-17FD-7D50A499A0E1", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2006", "Asian", "9606", "682", "452", "4.7", "1176", "12.2", "4646", "48.4", "3332", "34.7", "7978", "83.1" ]
+, [ "row-64kf_k4ma_4zgq", "00000000-0000-0000-6A3C-917EFD40527E", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2006", "Asian", "9433", "671", "521", "5.5", "1698", "18.0", "4690", "49.7", "2524", "26.8", "7214", "76.5" ]
+, [ "row-h8zg-qxyq.g4ge", "00000000-0000-0000-07BB-C9FC65F5ADEE", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2006", "Asian", "9593", "675", "671", "7.0", "1847", "19.3", "4403", "45.9", "2672", "27.9", "7075", "73.8" ]
+, [ "row-2e2j.nmuz_pgdd", "00000000-0000-0000-BEEE-72B03BE38AC8", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2006", "Asian", "58225", "687", "2550", "4.4", "6771", "11.6", "26491", "45.5", "22413", "38.5", "48904", "84.0" ]
+, [ "row-n6gf~sj3k.9mfc", "00000000-0000-0000-FF2C-B38AF0321A42", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2007", "Asian", "9750", "706", "156", "1.6", "402", "4.1", "3886", "39.9", "5306", "54.4", "9192", "94.3" ]
+, [ "row-kfrg~rt2s~gzkf", "00000000-0000-0000-96E0-0BEB278D0BB4", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2007", "Asian", "9881", "704", "209", "2.1", "564", "5.7", "3968", "40.2", "5140", "52.0", "9108", "92.2" ]
+, [ "row-fqc8-i9dc.fjub", "00000000-0000-0000-6918-3AF22F14C600", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2007", "Asian", "10111", "700", "211", "2.1", "626", "6.2", "4257", "42.1", "5017", "49.6", "9274", "91.7" ]
+, [ "row-syit-i236_n6nk", "00000000-0000-0000-D2CF-C9729F8B07D6", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2007", "Asian", "9808", "694", "343", "3.5", "778", "7.9", "4356", "44.4", "4331", "44.2", "8687", "88.6" ]
+, [ "row-smay~2r8n-gpd8", "00000000-0000-0000-CB52-8F8B39646AB5", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2007", "Asian", "9779", "685", "333", "3.4", "1220", "12.5", "4255", "43.5", "3971", "40.6", "8226", "84.1" ]
+, [ "row-bb8r_44xg-i8eb", "00000000-0000-0000-669A-64C164B103B3", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2007", "Asian", "9734", "681", "466", "4.8", "1537", "15.8", "4661", "47.9", "3070", "31.5", "7731", "79.4" ]
+, [ "row-aywe.gi5p~ewsq", "00000000-0000-0000-6F3F-AC348620878A", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2007", "Asian", "59063", "695", "1718", "2.9", "5127", "8.7", "25383", "43.0", "26835", "45.4", "52218", "88.4" ]
+, [ "row-tp2y_d5qd.vvym", "00000000-0000-0000-A8AD-85ACB57610E8", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2008", "Asian", "9951", "707", "67", "0.7", "275", "2.8", "4809", "48.3", "4800", "48.2", "9609", "96.6" ]
+, [ "row-7f3j_mmgq.5gnn", "00000000-0000-0000-FE29-813A3E5EC66C", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2008", "Asian", "9861", "706", "159", "1.6", "389", "3.9", "3874", "39.3", "5439", "55.2", "9313", "94.4" ]
+, [ "row-ab9q.yqt6_v5cp", "00000000-0000-0000-02EA-C68E40EBA0CA", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2008", "Asian", "10073", "704", "133", "1.3", "449", "4.5", "3958", "39.3", "5533", "54.9", "9491", "94.2" ]
+, [ "row-e8ns_2u83.rk8f", "00000000-0000-0000-C697-0612829F20BE", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2008", "Asian", "10106", "700", "179", "1.8", "599", "5.9", "3942", "39.0", "5386", "53.3", "9328", "92.3" ]
+, [ "row-qk6p~9378.fngy", "00000000-0000-0000-F508-982D1F920538", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2008", "Asian", "9973", "692", "193", "1.9", "767", "7.7", "4282", "42.9", "4731", "47.4", "9013", "90.4" ]
+, [ "row-d4tx.6tb8~g2fp", "00000000-0000-0000-9C6E-24DCFCBC4573", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2008", "Asian", "9964", "691", "261", "2.6", "1008", "10.1", "4720", "47.4", "3975", "39.9", "8695", "87.3" ]
+, [ "row-mz44-kwme-k6tk", "00000000-0000-0000-1139-D118B02138B0", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2008", "Asian", "59928", "700", "992", "1.7", "3487", "5.8", "25585", "42.7", "29864", "49.8", "55449", "92.5" ]
+, [ "row-dbb4-33hv.b5vh", "00000000-0000-0000-7D45-0FCED209A970", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2009", "Asian", "10984", "711", "43", "0.4", "216", "2.0", "5532", "50.4", "5193", "47.3", "10725", "97.6" ]
+, [ "row-enq8-shp2.didc", "00000000-0000-0000-D54C-8A086CD7F8B7", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2009", "Asian", "10052", "716", "99", "1.0", "260", "2.6", "3312", "32.9", "6381", "63.5", "9693", "96.4" ]
+, [ "row-58um_h8w3~rmwr", "00000000-0000-0000-C5AA-722DAAF5418E", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2009", "Asian", "10046", "706", "86", "0.9", "298", "3.0", "3231", "32.2", "6431", "64.0", "9662", "96.2" ]
+, [ "row-ih73.9nk7-a5ab", "00000000-0000-0000-A85D-C2952F26C8B4", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2009", "Asian", "10207", "701", "143", "1.4", "512", "5.0", "3919", "38.4", "5633", "55.2", "9552", "93.6" ]
+, [ "row-dkcm~kkbf-f39p", "00000000-0000-0000-F8B5-E11F30DABC7C", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2009", "Asian", "10370", "700", "76", "0.7", "507", "4.9", "4166", "40.2", "5621", "54.2", "9787", "94.4" ]
+, [ "row-v47x~3mx8-uu6c", "00000000-0000-0000-1C40-7FDA8005E509", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2009", "Asian", "10385", "695", "136", "1.3", "803", "7.7", "5111", "49.2", "4335", "41.7", "9446", "91.0" ]
+, [ "row-c9bh-5ch5~hac4", "00000000-0000-0000-6AE9-09CD18BD4263", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2009", "Asian", "62044", "705", "583", "0.9", "2596", "4.2", "25271", "40.7", "33594", "54.1", "58865", "94.9" ]
+, [ "row-qu2w_7wsu-ewev", "00000000-0000-0000-199E-2CF22EE082DA", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2010", "Asian", "10646", "709", "415", "3.9", "1823", "17.1", "3888", "36.5", "4520", "42.5", "8408", "79.0" ]
+, [ "row-fp3a-khgz.gwqn", "00000000-0000-0000-BC01-374048622124", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2010", "Asian", "11430", "709", "251", "2.2", "1626", "14.2", "3778", "33.1", "5775", "50.5", "9553", "83.6" ]
+, [ "row-e6hg-av4w_rmx2", "00000000-0000-0000-8F90-771D15BA9443", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2010", "Asian", "10553", "704", "237", "2.2", "1392", "13.2", "3848", "36.5", "5076", "48.1", "8924", "84.6" ]
+, [ "row-2wbh.9t3e_95d2", "00000000-0000-0000-DB35-36DA53CB4F89", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2010", "Asian", "10469", "701", "319", "3.0", "1571", "15.0", "3118", "29.8", "5461", "52.2", "8579", "81.9" ]
+, [ "row-qfet~mgf6_rm88", "00000000-0000-0000-8CAF-C8FAFA14C305", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2010", "Asian", "10834", "695", "396", "3.7", "1660", "15.3", "2987", "27.6", "5791", "53.5", "8778", "81.0" ]
+, [ "row-xygi-sezk.s5uh", "00000000-0000-0000-0AD8-336A66F4A0F2", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2010", "Asian", "11161", "701", "340", "3.0", "1910", "17.1", "3865", "34.6", "5046", "45.2", "8911", "79.8" ]
+, [ "row-zcbt~dzmu~n5gv", "00000000-0000-0000-A0DB-41B626CBF1C0", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2010", "Asian", "65093", "703", "1958", "3.0", "9982", "15.3", "21484", "33.0", "31669", "48.7", "53153", "81.7" ]
+, [ "row-c877.h34e~bmde", "00000000-0000-0000-427A-A36E152FD080", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2011", "Asian", "11007", "697", "402", "3.7", "1839", "16.7", "5652", "51.3", "3114", "28.3", "8766", "79.6" ]
+, [ "row-bn3z.3rxa_ap3n", "00000000-0000-0000-FB8B-3A19D005032F", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2011", "Asian", "10743", "708", "212", "2.0", "1269", "11.8", "3597", "33.5", "5665", "52.7", "9262", "86.2" ]
+, [ "row-95tn_i2gj~2qiv", "00000000-0000-0000-0758-A53C022243AD", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2011", "Asian", "11463", "706", "235", "2.1", "1347", "11.8", "4097", "35.7", "5784", "50.5", "9881", "86.2" ]
+, [ "row-sune~pujx_f256", "00000000-0000-0000-F17B-9EF64B900390", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2011", "Asian", "10328", "704", "274", "2.7", "1283", "12.4", "3176", "30.8", "5595", "54.2", "8771", "84.9" ]
+, [ "row-k6m6~47em.akyp", "00000000-0000-0000-FFFE-A19B4E17788F", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2011", "Asian", "10475", "698", "320", "3.1", "1445", "13.8", "2762", "26.4", "5948", "56.8", "8710", "83.2" ]
+, [ "row-kpvq.u6yw.vfn6", "00000000-0000-0000-A4A7-391C5D39B245", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2011", "Asian", "11031", "699", "319", "2.9", "1482", "13.4", "4075", "36.9", "5155", "46.7", "9230", "83.7" ]
+, [ "row-nry7~qcph~8qbg", "00000000-0000-0000-F054-6EC99586FD09", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2011", "Asian", "65047", "702", "1762", "2.7", "8665", "13.3", "23359", "35.9", "31261", "48.1", "54620", "84.0" ]
+, [ "row-y92a-2qju-xwxh", "00000000-0000-0000-48EC-BB8D15C99C78", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2006", "Black", "23596", "664", "2849", "12.1", "4717", "20.0", "12471", "52.9", "3559", "15.1", "16030", "67.9" ]
+, [ "row-8f8q-kvf3-qyzj", "00000000-0000-0000-A246-B8F2320EF3B6", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2006", "Black", "22801", "659", "2974", "13.0", "5552", "24.3", "11435", "50.2", "2840", "12.5", "14275", "62.6" ]
+, [ "row-q8cj.75vc.7vi6", "00000000-0000-0000-EC17-965AF31772B1", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2006", "Black", "23915", "649", "4248", "17.8", "7596", "31.8", "10194", "42.6", "1877", "7.8", "12071", "50.5" ]
+, [ "row-j8j2-vqii_e4m6", "00000000-0000-0000-9632-8A3AC269F5F9", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2006", "Black", "24497", "639", "5596", "22.8", "8568", "35.0", "9066", "37.0", "1267", "5.2", "10333", "42.2" ]
+, [ "row-cfkm_7rna~wb64", "00000000-0000-0000-CC4B-21B95DCC7296", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2006", "Black", "25524", "631", "6263", "24.5", "11109", "43.5", "7474", "29.3", "678", "2.7", "8152", "31.9" ]
+, [ "row-p66e_jzuw_y5wx", "00000000-0000-0000-5F91-D6DC8A4C8B3E", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2006", "Black", "25896", "628", "8048", "31.1", "10772", "41.6", "6471", "25.0", "605", "2.3", "7076", "27.3" ]
+, [ "row-bikr_nw6d-eg29", "00000000-0000-0000-01B5-B2C91B2CA08C", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2006", "Black", "146229", "644", "29978", "20.5", "48314", "33.0", "57111", "39.1", "10826", "7.4", "67937", "46.5" ]
+, [ "row-388p_3vej.s7rn", "00000000-0000-0000-C759-E94C3BD54495", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2007", "Black", "22677", "675", "1596", "7.0", "3643", "16.1", "12727", "56.1", "4711", "20.8", "17438", "76.9" ]
+, [ "row-qrt4.tvc5-i4f8", "00000000-0000-0000-7959-0011F5EE89C4", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2007", "Black", "22291", "663", "2354", "10.6", "5292", "23.7", "11589", "52.0", "3056", "13.7", "14645", "65.7" ]
+, [ "row-kunj.6cx9.kqv2", "00000000-0000-0000-E2DC-527F3D9DE5CB", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2007", "Black", "22838", "659", "2202", "9.6", "6401", "28.0", "11652", "51.0", "2583", "11.3", "14235", "62.3" ]
+, [ "row-ubew-ye3p-eydf", "00000000-0000-0000-3AE8-3231347BEFDC", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2007", "Black", "22603", "650", "3599", "15.9", "7007", "31.0", "9954", "44.0", "2043", "9.0", "11997", "53.1" ]
+, [ "row-b8cx-nvwf.ucf2", "00000000-0000-0000-458E-2B101173A25E", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2007", "Black", "24422", "644", "3547", "14.5", "10122", "41.4", "9298", "38.1", "1455", "6.0", "10753", "44.0" ]
+, [ "row-t2sh~9tap-zr9k", "00000000-0000-0000-B993-5916E484DE92", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2007", "Black", "24951", "636", "6184", "24.8", "10370", "41.6", "7582", "30.4", "815", "3.3", "8397", "33.7" ]
+, [ "row-7dzx_db4y-72rm", "00000000-0000-0000-D6ED-AEF13F631235", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2007", "Black", "139782", "654", "19482", "13.9", "42835", "30.6", "62802", "44.9", "14663", "10.5", "77465", "55.4" ]
+, [ "row-jtdd_qmni~r7cq", "00000000-0000-0000-A9D6-CDD505915181", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2008", "Black", "21082", "676", "924", "4.4", "2816", "13.4", "14251", "67.6", "3091", "14.7", "17342", "82.3" ]
+, [ "row-5975_jpye~qw7q", "00000000-0000-0000-2945-D52C645100BF", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2008", "Black", "21918", "668", "1877", "8.6", "4093", "18.7", "12487", "57.0", "3461", "15.8", "15948", "72.8" ]
+, [ "row-f52p~qmt8-9dgb", "00000000-0000-0000-4169-B6B111469D27", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2008", "Black", "21638", "665", "1449", "6.7", "4661", "21.5", "12492", "57.7", "3036", "14.0", "15528", "71.8" ]
+, [ "row-t5ub~m4wh.5txt", "00000000-0000-0000-379B-8208EADC6EE1", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2008", "Black", "21732", "657", "2185", "10.1", "5864", "27.0", "11145", "51.3", "2538", "11.7", "13683", "63.0" ]
+, [ "row-eqfj_mmx2-hsb4", "00000000-0000-0000-29AC-D9A450D20074", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2008", "Black", "23141", "654", "1717", "7.4", "7651", "33.1", "11722", "50.7", "2051", "8.9", "13773", "59.5" ]
+, [ "row-quw3~8dn2-wv2t", "00000000-0000-0000-7101-6E1195ED14FF", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2008", "Black", "23489", "647", "3243", "13.8", "8889", "37.8", "10018", "42.6", "1339", "5.7", "11357", "48.4" ]
+, [ "row-5z8w.7mux-imp8", "00000000-0000-0000-4E7C-9B4A04A4919A", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2008", "Black", "133000", "661", "11395", "8.6", "33974", "25.5", "72115", "54.2", "15516", "11.7", "87631", "65.9" ]
+, [ "row-pi8x.7a2c_tbr3", "00000000-0000-0000-B2EE-E601FAC06686", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2009", "Black", "20655", "680", "375", "1.8", "2134", "10.3", "14826", "71.8", "3320", "16.1", "18146", "87.9" ]
+, [ "row-63e4_u7t9~v8vw", "00000000-0000-0000-D7E9-D7C8635ED4B7", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2009", "Black", "20896", "677", "1315", "6.3", "3055", "14.6", "11723", "56.1", "4803", "23.0", "16526", "79.1" ]
+, [ "row-yd8a.ebab~ed7e", "00000000-0000-0000-E1F0-3D1CAB1181DA", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2009", "Black", "21158", "673", "815", "3.9", "3491", "16.5", "12436", "58.8", "4416", "20.9", "16852", "79.6" ]
+, [ "row-vy8y.4pe6-mk85", "00000000-0000-0000-624A-EBD2F73122A3", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2009", "Black", "21462", "664", "1463", "6.8", "5201", "24.2", "12102", "56.4", "2696", "12.6", "14798", "68.9" ]
+, [ "row-6uzi-axzu_664t", "00000000-0000-0000-6DF9-020F97DBE8B5", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2009", "Black", "22147", "664", "577", "2.6", "5067", "22.9", "13987", "63.2", "2516", "11.4", "16503", "74.5" ]
+, [ "row-k3en.8qgh_bv63", "00000000-0000-0000-A408-A10F5AFCC00C", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2009", "Black", "23054", "658", "1378", "6.0", "7430", "32.2", "12706", "55.1", "1540", "6.7", "14246", "61.8" ]
+, [ "row-snt7~9teb.dwmx", "00000000-0000-0000-5B37-A77F0B03D289", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2009", "Black", "129372", "669", "5923", "4.6", "26378", "20.4", "77780", "60.1", "19291", "14.9", "97071", "75.0" ]
+, [ "row-4ga7~djyy.ubbq", "00000000-0000-0000-C920-29FDDDD7B45E", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2010", "Black", "20268", "682", "3464", "17.1", "8393", "41.4", "5733", "28.3", "2678", "13.2", "8411", "41.5" ]
+, [ "row-ina9-arxm.9tb5", "00000000-0000-0000-893E-6032B0043647", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2010", "Black", "20767", "673", "2052", "9.9", "9289", "44.7", "6725", "32.4", "2701", "13.0", "9426", "45.4" ]
+, [ "row-y5wc_4iu7~x9xd", "00000000-0000-0000-C700-B5C5EE282192", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2010", "Black", "20354", "672", "2187", "10.7", "8769", "43.1", "6910", "33.9", "2488", "12.2", "9398", "46.2" ]
+, [ "row-qqaw_k8n3-i98s", "00000000-0000-0000-25B5-BC2596B39A96", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2010", "Black", "21092", "665", "3354", "15.9", "9385", "44.5", "5810", "27.5", "2543", "12.1", "8353", "39.6" ]
+, [ "row-yt9g.4zed.86h7", "00000000-0000-0000-53BD-F9601E133F18", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2010", "Black", "21566", "661", "3503", "16.2", "9682", "44.9", "6043", "28.0", "2338", "10.8", "8381", "38.9" ]
+, [ "row-ui8s~5jig_wdpd", "00000000-0000-0000-1C45-B91F4F8CED48", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2010", "Black", "22445", "662", "4146", "18.5", "11138", "49.6", "5457", "24.3", "1704", "7.6", "7161", "31.9" ]
+, [ "row-8ikp.zzpr-tcmm", "00000000-0000-0000-4C25-CCF8E73CAB09", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2010", "Black", "126492", "669", "18706", "14.8", "56656", "44.8", "36678", "29.0", "14452", "11.4", "51130", "40.4" ]
+, [ "row-tkvs~iz9e.xczb", "00000000-0000-0000-8505-3B38FC25C10A", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2011", "Black", "19784", "679", "3091", "15.6", "8370", "42.3", "7192", "36.4", "1131", "5.7", "8323", "42.1" ]
+, [ "row-ufuw~nkf7_7fdc", "00000000-0000-0000-6E23-3F986A63492C", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2011", "Black", "20272", "675", "1816", "9.0", "8386", "41.4", "7371", "36.4", "2699", "13.3", "10070", "49.7" ]
+, [ "row-u3dp.xibv.xhky", "00000000-0000-0000-0555-CAE36D1F9C5E", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2011", "Black", "19817", "675", "1786", "9.0", "7928", "40.0", "7876", "39.7", "2227", "11.2", "10103", "51.0" ]
+, [ "row-bnhu-n4gf_ma94", "00000000-0000-0000-2022-266A10C6216D", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2011", "Black", "20312", "667", "3122", "15.4", "8544", "42.1", "6335", "31.2", "2311", "11.4", "8646", "42.6" ]
+, [ "row-h39h-3vrq_qwri", "00000000-0000-0000-047A-534AEF06F271", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2011", "Black", "21095", "664", "3163", "15.0", "9100", "43.1", "6189", "29.3", "2643", "12.5", "8832", "41.9" ]
+, [ "row-ahuq.dqi2.2th9", "00000000-0000-0000-998F-F59ED31C581C", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2011", "Black", "21555", "663", "3419", "15.9", "9789", "45.4", "6838", "31.7", "1509", "7.0", "8347", "38.7" ]
+, [ "row-8isw.4p42-3exs", "00000000-0000-0000-5D53-BA7733BA2352", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2011", "Black", "122835", "670", "16397", "13.3", "52117", "42.4", "41801", "34.0", "12520", "10.2", "54321", "44.2" ]
+, [ "row-y7vm.8t8z-u9yh", "00000000-0000-0000-6415-0E35B10B8EF9", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2006", "Hispanic", "29329", "667", "3202", "10.9", "5429", "18.5", "15623", "53.3", "5075", "17.3", "20698", "70.6" ]
+, [ "row-xsqw-risw~u8nz", "00000000-0000-0000-DA8C-E7553A729135", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2006", "Hispanic", "28802", "661", "3685", "12.8", "6508", "22.6", "14652", "50.9", "3957", "13.7", "18609", "64.6" ]
+, [ "row-8dqf_7sq4.g6dw", "00000000-0000-0000-EC66-4CAC8D7D090B", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2006", "Hispanic", "29860", "652", "4630", "15.5", "8939", "29.9", "13274", "44.5", "3017", "10.1", "16291", "54.6" ]
+, [ "row-ch65.fc6f-cdf7", "00000000-0000-0000-27F1-E1E5054DCB66", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2006", "Hispanic", "29281", "641", "6413", "21.9", "9913", "33.9", "11302", "38.6", "1653", "5.6", "12955", "44.2" ]
+, [ "row-ghkb_z857_buu6", "00000000-0000-0000-5656-11F8A06684AB", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2006", "Hispanic", "30165", "633", "6629", "22.0", "12828", "42.5", "9801", "32.5", "907", "3.0", "10708", "35.5" ]
+, [ "row-hs6d~n77e~qxs9", "00000000-0000-0000-7D10-D0840CD4E63E", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2006", "Hispanic", "29945", "631", "8532", "28.5", "12512", "41.8", "8094", "27.0", "807", "2.7", "8901", "29.7" ]
+, [ "row-jffu_zjve-p37j", "00000000-0000-0000-DCF9-CE504086A306", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2006", "Hispanic", "177382", "647", "33091", "18.7", "56129", "31.6", "72746", "41.0", "15416", "8.7", "88162", "49.7" ]
+, [ "row-7jf2-zcxa~bjir", "00000000-0000-0000-3334-97DD4CBB6862", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2007", "Hispanic", "29026", "676", "1875", "6.5", "4320", "14.9", "16433", "56.6", "6398", "22.0", "22831", "78.7" ]
+, [ "row-fcva~qcsv_8pjc", "00000000-0000-0000-B682-C04A831243BA", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2007", "Hispanic", "28563", "666", "2818", "9.9", "6002", "21.0", "15131", "53.0", "4612", "16.1", "19743", "69.1" ]
+, [ "row-e57n_eggw~iwwa", "00000000-0000-0000-7445-8938F611F70A", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2007", "Hispanic", "28784", "662", "2734", "9.5", "7298", "25.4", "14858", "51.6", "3894", "13.5", "18752", "65.1" ]
+, [ "row-r3zp_eegf_y56t", "00000000-0000-0000-52A5-C132AB403B4D", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2007", "Hispanic", "28275", "653", "4155", "14.7", "8137", "28.8", "13125", "46.4", "2858", "10.1", "15983", "56.5" ]
+, [ "row-rt5i_4vav.84yf", "00000000-0000-0000-CDA1-D1DE6EFF738E", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2007", "Hispanic", "29304", "647", "3699", "12.6", "11467", "39.1", "12091", "41.3", "2047", "7.0", "14138", "48.2" ]
+, [ "row-8quf.hkp9.ue9m", "00000000-0000-0000-B5A0-B6C492515481", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2007", "Hispanic", "29857", "639", "6559", "22.0", "12136", "40.6", "10046", "33.6", "1116", "3.7", "11162", "37.4" ]
+, [ "row-k78i~ppzt~nyk8", "00000000-0000-0000-A9C7-2F25A1E2B686", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2007", "Hispanic", "173809", "657", "21840", "12.6", "49360", "28.4", "81684", "47.0", "20925", "12.0", "102609", "59.0" ]
+, [ "row-ua8s-piwf_uayw", "00000000-0000-0000-97C1-3E88AEEFC512", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2008", "Hispanic", "28253", "679", "992", "3.5", "3341", "11.8", "19286", "68.3", "4634", "16.4", "23920", "84.7" ]
+, [ "row-zmis-rkxz.wvec", "00000000-0000-0000-6511-C7096376A768", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2008", "Hispanic", "28393", "671", "2063", "7.3", "4807", "16.9", "16482", "58.0", "5041", "17.8", "21523", "75.8" ]
+, [ "row-rs3d.a4yi~gaqk", "00000000-0000-0000-5A8A-FFAEF98B1D39", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2008", "Hispanic", "28071", "669", "1720", "6.1", "5294", "18.9", "16372", "58.3", "4685", "16.7", "21057", "75.0" ]
+, [ "row-ufv5~fziw_u7sc", "00000000-0000-0000-E802-C1722A07EF0A", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2008", "Hispanic", "27760", "660", "2630", "9.5", "6860", "24.7", "14615", "52.6", "3655", "13.2", "18270", "65.8" ]
+, [ "row-vvma~5hwy-s2kt", "00000000-0000-0000-2206-DBAB80883B91", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2008", "Hispanic", "28770", "657", "1929", "6.7", "8549", "29.7", "15129", "52.6", "3163", "11.0", "18292", "63.6" ]
+, [ "row-c6dj~6y9w_p9m7", "00000000-0000-0000-FD30-2EAC78A775E6", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2008", "Hispanic", "28710", "651", "3444", "12.0", "10099", "35.2", "13286", "46.3", "1881", "6.6", "15167", "52.8" ]
+, [ "row-x939-32yg~sw4c", "00000000-0000-0000-96FE-F2497CE144BA", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2008", "Hispanic", "169957", "664", "12778", "7.5", "38950", "22.9", "95170", "56.0", "23059", "13.6", "118229", "69.6" ]
+, [ "row-kfu4.pmph~666x", "00000000-0000-0000-A199-6AAF59B215E4", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2009", "Hispanic", "28100", "683", "421", "1.5", "2458", "8.7", "20178", "71.8", "5043", "17.9", "25221", "89.8" ]
+, [ "row-rwcz.m3nf~xji6", "00000000-0000-0000-9E55-ADBBD504E29D", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2009", "Hispanic", "28121", "681", "1566", "5.6", "3550", "12.6", "15680", "55.8", "7325", "26.0", "23005", "81.8" ]
+, [ "row-kvux.esv2_aqn6", "00000000-0000-0000-E9A5-3D9B5F87F507", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2009", "Hispanic", "28045", "677", "886", "3.2", "3892", "13.9", "16048", "57.2", "7219", "25.7", "23267", "83.0" ]
+, [ "row-fb36-zeya~qchn", "00000000-0000-0000-4693-3F14D5BE409E", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2009", "Hispanic", "27715", "667", "1710", "6.2", "5881", "21.2", "15624", "56.4", "4500", "16.2", "20124", "72.6" ]
+, [ "row-45v9-kmwp~kf39", "00000000-0000-0000-04FC-DFB052477320", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2009", "Hispanic", "28086", "667", "712", "2.5", "5782", "20.6", "17737", "63.2", "3855", "13.7", "21592", "76.9" ]
+, [ "row-iwnj.kkus-w5me", "00000000-0000-0000-1368-5D131D77FC52", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2009", "Hispanic", "28981", "662", "1529", "5.3", "8024", "27.7", "16921", "58.4", "2507", "8.7", "19428", "67.0" ]
+, [ "row-sfrd.dv3n-5m9f", "00000000-0000-0000-2662-8D36A47A4A6B", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2009", "Hispanic", "169048", "673", "6824", "4.0", "29587", "17.5", "102188", "60.4", "30449", "18.0", "132637", "78.5" ]
+, [ "row-sq4v~u3z8-dp6j", "00000000-0000-0000-778B-5AA36F2C4B80", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2010", "Hispanic", "28833", "685", "4059", "14.1", "11200", "38.8", "9051", "31.4", "4523", "15.7", "13574", "47.1" ]
+, [ "row-99s3-udnm_ibss", "00000000-0000-0000-512C-2341E0FBEE3A", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2010", "Hispanic", "28457", "676", "2400", "8.4", "11762", "41.3", "9911", "34.8", "4384", "15.4", "14295", "50.2" ]
+, [ "row-88ad.hqrj~7itw", "00000000-0000-0000-2EE2-BD31CE6754D3", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2010", "Hispanic", "27926", "676", "2569", "9.2", "10599", "38.0", "10307", "36.9", "4451", "15.9", "14758", "52.8" ]
+, [ "row-eibw~jruh~w5zz", "00000000-0000-0000-4F7D-397BCF631F31", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2010", "Hispanic", "27921", "668", "3888", "13.9", "11513", "41.2", "8276", "29.6", "4244", "15.2", "12520", "44.8" ]
+, [ "row-f5b5~up2m~459i", "00000000-0000-0000-8862-FEB9C6036610", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2010", "Hispanic", "28040", "664", "4015", "14.3", "11423", "40.7", "8565", "30.5", "4037", "14.4", "12602", "44.9" ]
+, [ "row-wg9y_ge4f-hk9p", "00000000-0000-0000-652D-59CAB13E0CE3", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2010", "Hispanic", "28834", "665", "4561", "15.8", "13539", "47.0", "7982", "27.7", "2752", "9.5", "10734", "37.2" ]
+, [ "row-3r8w~yrjq_zr3x", "00000000-0000-0000-E9EA-D068647C9F46", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2010", "Hispanic", "170011", "673", "21492", "12.6", "70036", "41.2", "54092", "31.8", "24391", "14.3", "78483", "46.2" ]
+, [ "row-sn2s.cba6-r8iw", "00000000-0000-0000-A32D-76D0BA1272A2", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2011", "Hispanic", "29587", "680", "4050", "13.7", "11991", "40.5", "11774", "39.8", "1772", "6.0", "13546", "45.8" ]
+, [ "row-4npm~p8ke_y8ws", "00000000-0000-0000-0A7A-BE10181AAFE2", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2011", "Hispanic", "29199", "678", "2348", "8.0", "10790", "37.0", "11376", "39.0", "4685", "16.0", "16061", "55.0" ]
+, [ "row-bq2z-uygw-qwyc", "00000000-0000-0000-9C74-DE6B0474A5BF", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2011", "Hispanic", "28298", "677", "2450", "8.7", "10345", "36.6", "11595", "41.0", "3908", "13.8", "15503", "54.8" ]
+, [ "row-3uet~v5zk.gbjp", "00000000-0000-0000-E163-A90D3415FD43", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2011", "Hispanic", "28049", "671", "3751", "13.4", "10992", "39.2", "9305", "33.2", "4001", "14.3", "13306", "47.4" ]
+, [ "row-e47d-ekpi.4f5e", "00000000-0000-0000-BCEA-F8BF54498D85", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2011", "Hispanic", "28229", "667", "3626", "12.8", "11071", "39.2", "9157", "32.4", "4375", "15.5", "13532", "47.9" ]
+, [ "row-z8zs-2zfa.9nmi", "00000000-0000-0000-4201-6BC989C85588", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2011", "Hispanic", "28681", "667", "3851", "13.4", "12173", "42.4", "10212", "35.6", "2445", "8.5", "12657", "44.1" ]
+, [ "row-79yc_kpum~fxii", "00000000-0000-0000-0AC3-441EFE96A5B1", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2011", "Hispanic", "172043", "673", "20076", "11.7", "67362", "39.2", "63419", "36.9", "21186", "12.3", "84605", "49.2" ]
+, [ "row-2nm6~8xu8_rymc", "00000000-0000-0000-3F88-804157E3B53F", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2006", "White", "10393", "694", "379", "3.6", "674", "6.5", "4954", "47.7", "4386", "42.2", "9340", "89.9" ]
+, [ "row-pmxy~hbqy_b4zy", "00000000-0000-0000-3F91-ECEAB92CFF26", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2006", "White", "10574", "689", "458", "4.3", "928", "8.8", "5116", "48.4", "4072", "38.5", "9188", "86.9" ]
+, [ "row-aza5~tjzu~7cei", "00000000-0000-0000-DD6A-C647F41F74DB", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2006", "White", "10442", "682", "578", "5.5", "1361", "13.0", "5045", "48.3", "3458", "33.1", "8503", "81.4" ]
+, [ "row-358d~v7tv~cd5v", "00000000-0000-0000-2B33-767E40A684EB", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2006", "White", "10182", "670", "742", "7.3", "1913", "18.8", "5170", "50.8", "2357", "23.1", "7527", "73.9" ]
+, [ "row-2u7r_68hj~afzx", "00000000-0000-0000-9C9F-A39E6F87E7AA", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2006", "White", "10016", "663", "692", "6.9", "2451", "24.5", "5106", "51.0", "1767", "17.6", "6873", "68.6" ]
+, [ "row-hbkx.d55n.cgpb", "00000000-0000-0000-E626-E469D89B4FB0", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2006", "White", "10470", "660", "1090", "10.4", "2889", "27.6", "4980", "47.6", "1511", "14.4", "6491", "62.0" ]
+, [ "row-2hxz~5adf-8v4h", "00000000-0000-0000-6E4B-EFFD8E158ADC", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2006", "White", "62077", "676", "3939", "6.3", "10216", "16.5", "30371", "48.9", "17551", "28.3", "47922", "77.2" ]
+, [ "row-eu6h_v7rh-j2ic", "00000000-0000-0000-405C-C728D1977734", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2007", "White", "10304", "700", "254", "2.5", "491", "4.8", "4817", "46.7", "4742", "46.0", "9559", "92.8" ]
+, [ "row-xyjn_ex5s_vghx", "00000000-0000-0000-3FA9-A2EF9FCD96D7", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2007", "White", "10108", "694", "334", "3.3", "753", "7.4", "4856", "48.0", "4165", "41.2", "9021", "89.2" ]
+, [ "row-nprz_er2e.e87c", "00000000-0000-0000-5F5C-A0A10D95C242", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2007", "White", "10364", "688", "333", "3.2", "967", "9.3", "5287", "51.0", "3777", "36.4", "9064", "87.5" ]
+, [ "row-gy3s_fvv9_62ut", "00000000-0000-0000-BBAE-C3105344B59A", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2007", "White", "9869", "680", "528", "5.4", "1344", "13.6", "5010", "50.8", "2987", "30.3", "7997", "81.0" ]
+, [ "row-m973.ixfc_vmiq", "00000000-0000-0000-2686-ACEB3CCDE7C3", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2007", "White", "9909", "675", "442", "4.5", "1782", "18.0", "4769", "48.1", "2916", "29.4", "7685", "77.6" ]
+, [ "row-86ja~kgpy_k9dp", "00000000-0000-0000-FC0D-DE05BE3BC29B", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2007", "White", "9923", "666", "776", "7.8", "2431", "24.5", "5018", "50.6", "1698", "17.1", "6716", "67.7" ]
+, [ "row-m3kq~ga5q~agp5", "00000000-0000-0000-DF72-B4EEFE1F83F6", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2007", "White", "60477", "684", "2667", "4.4", "7768", "12.8", "29757", "49.2", "20285", "33.5", "50042", "82.7" ]
+, [ "row-mwzx.xctb.ba9r", "00000000-0000-0000-FB04-38D19B1939B7", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2008", "White", "10361", "700", "141", "1.4", "381", "3.7", "5748", "55.5", "4091", "39.5", "9839", "95.0" ]
+, [ "row-k8mb~beve~z4xp", "00000000-0000-0000-4626-48BC2B0E5918", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2008", "White", "10081", "697", "289", "2.9", "604", "6.0", "4689", "46.5", "4499", "44.6", "9188", "91.1" ]
+, [ "row-mhsp_37yi~uphm", "00000000-0000-0000-0608-423EDF18B57F", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2008", "White", "9931", "695", "192", "1.9", "599", "6.0", "4810", "48.4", "4330", "43.6", "9140", "92.0" ]
+, [ "row-gy8b_ub5p_qtdc", "00000000-0000-0000-97A7-3DB9FBC27C40", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2008", "White", "9802", "687", "326", "3.3", "936", "9.5", "4757", "48.5", "3783", "38.6", "8540", "87.1" ]
+, [ "row-b7c2~yfmt_zh9k", "00000000-0000-0000-D5B3-95E73212A648", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2008", "White", "9758", "683", "228", "2.3", "1144", "11.7", "4794", "49.1", "3592", "36.8", "8386", "85.9" ]
+, [ "row-wfyv.h64w_tu7j", "00000000-0000-0000-F23B-CBB032DD2B58", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2008", "White", "9871", "676", "423", "4.3", "1704", "17.3", "5302", "53.7", "2442", "24.7", "7744", "78.5" ]
+, [ "row-4ff8-t2v3_byqa", "00000000-0000-0000-E0AB-CA11B37CA7BC", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2008", "White", "59804", "690", "1599", "2.7", "5368", "9.0", "30100", "50.3", "22737", "38.0", "52837", "88.4" ]
+, [ "row-3ju5~94ek~2cwd", "00000000-0000-0000-6CA8-E92F36F89C60", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2009", "White", "11118", "702", "76", "0.7", "340", "3.1", "6513", "58.6", "4189", "37.7", "10702", "96.3" ]
+, [ "row-qrgu.ivpj_r9cn", "00000000-0000-0000-31F9-663338A7BED0", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2009", "White", "10270", "706", "200", "1.9", "454", "4.4", "4094", "39.9", "5522", "53.8", "9616", "93.6" ]
+, [ "row-hg5e-js59-62pt", "00000000-0000-0000-4969-7F4F017E8BD7", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2009", "White", "9955", "699", "124", "1.2", "480", "4.8", "4115", "41.3", "5236", "52.6", "9351", "93.9" ]
+, [ "row-cwgk_gbiv.vcj4", "00000000-0000-0000-E280-1E3A19243A30", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2009", "White", "9542", "692", "191", "2.0", "725", "7.6", "4527", "47.4", "4099", "43.0", "8626", "90.4" ]
+, [ "row-fthf~g3z3.s2xv", "00000000-0000-0000-CF3B-81F09EFE2361", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2009", "White", "9765", "690", "79", "0.8", "655", "6.7", "4869", "49.9", "4162", "42.6", "9031", "92.5" ]
+, [ "row-xkc7-hrxk~rh8x", "00000000-0000-0000-4848-54F22B067F47", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2009", "White", "9835", "683", "197", "2.0", "1175", "11.9", "5778", "58.7", "2685", "27.3", "8463", "86.0" ]
+, [ "row-4tk7-wkab-c3kg", "00000000-0000-0000-C489-B6364F10FF4D", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2009", "White", "60485", "696", "867", "1.4", "3829", "6.3", "29896", "49.4", "25893", "42.8", "55789", "92.2" ]
+, [ "row-pn7c.nk4i-5sk8", "00000000-0000-0000-82F4-AFFF143A1446", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2010", "White", "10985", "703", "552", "5.0", "2462", "22.4", "4087", "37.2", "3884", "35.4", "7971", "72.6" ]
+, [ "row-w543~6rfi-m4mp", "00000000-0000-0000-82A7-E582466F3718", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2010", "White", "10955", "701", "316", "2.9", "2122", "19.4", "4036", "36.8", "4481", "40.9", "8517", "77.7" ]
+, [ "row-w4ms-tcf5-sr4y", "00000000-0000-0000-BC2E-833498B49A05", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2010", "White", "10156", "698", "284", "2.8", "1771", "17.4", "4126", "40.6", "3975", "39.1", "8101", "79.8" ]
+, [ "row-t7mx.dm2p-gtnp", "00000000-0000-0000-AAB4-94F55932E0BF", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2010", "White", "9655", "691", "447", "4.6", "2005", "20.8", "3316", "34.3", "3887", "40.3", "7203", "74.6" ]
+, [ "row-m6us~gk42.5izr", "00000000-0000-0000-4CC5-8FA2CA65DEE8", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2010", "White", "9514", "688", "422", "4.4", "2012", "21.1", "3030", "31.8", "4050", "42.6", "7080", "74.4" ]
+, [ "row-3266_x39h-ze4v", "00000000-0000-0000-0E93-09B6844B1B6E", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2010", "White", "9963", "687", "548", "5.5", "2682", "26.9", "3850", "38.6", "2883", "28.9", "6733", "67.6" ]
+, [ "row-swdy~kw6a-sxgg", "00000000-0000-0000-F9EF-3D8DE7C58ED8", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2010", "White", "61228", "695", "2569", "4.2", "13054", "21.3", "22445", "36.7", "23160", "37.8", "45605", "74.5" ]
+, [ "row-f8qs.qpsr-m68j", "00000000-0000-0000-7BA9-F3A2B451A7BB", 0, 1542139428, null, 1542139428, null, "{ }", "3", "2011", "White", "11394", "694", "536", "4.7", "2198", "19.3", "6026", "52.9", "2634", "23.1", "8660", "76.0" ]
+, [ "row-g4uq~anm2-uiy3", "00000000-0000-0000-169E-B0813978C71D", 0, 1542139428, null, 1542139428, null, "{ }", "4", "2011", "White", "10867", "702", "306", "2.8", "1682", "15.5", "4033", "37.1", "4846", "44.6", "8879", "81.7" ]
+, [ "row-i6yz_wbge_khnu", "00000000-0000-0000-11E2-D5CA802D0782", 0, 1542139428, null, 1542139428, null, "{ }", "5", "2011", "White", "10808", "699", "311", "2.9", "1709", "15.8", "4532", "41.9", "4256", "39.4", "8788", "81.3" ]
+, [ "row-mm88~c8n4.tyfx", "00000000-0000-0000-D92B-C091D3670481", 0, 1542139428, null, 1542139428, null, "{ }", "6", "2011", "White", "9875", "695", "409", "4.1", "1818", "18.4", "3435", "34.8", "4213", "42.7", "7648", "77.4" ]
+, [ "row-sxyt.p8pk~ziwq", "00000000-0000-0000-1695-CBB42E513864", 0, 1542139428, null, 1542139428, null, "{ }", "7", "2011", "White", "9679", "690", "423", "4.4", "1739", "18.0", "3023", "31.2", "4494", "46.4", "7517", "77.7" ]
+, [ "row-kd3n_t3yf_bxec", "00000000-0000-0000-9CFC-43E494DD5002", 0, 1542139428, null, 1542139428, null, "{ }", "8", "2011", "White", "9570", "688", "433", "4.5", "2190", "22.9", "4142", "43.3", "2805", "29.3", "6947", "72.6" ]
+, [ "row-d737_yspn.34cu", "00000000-0000-0000-BD05-B7819588F5EA", 0, 1542139428, null, 1542139428, null, "{ }", "All Grades", "2011", "White", "62193", "695", "2418", "3.9", "11336", "18.2", "25191", "40.5", "23248", "37.4", "48439", "77.9" ]
+ ]
+}

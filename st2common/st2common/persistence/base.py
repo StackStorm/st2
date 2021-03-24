@@ -14,6 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+from typing import Optional
+from typing import List
+
 import abc
 
 import six
@@ -357,12 +361,19 @@ class Access(object):
 
 class ContentPackResource(Access):
     @classmethod
-    def get_by_ref(cls, ref):
+    def get_by_ref(cls, ref, only_fields: Optional[List[str]] = None):
+        """
+        :param: only_field: Optional lists if fields to retrieve. If not specified, it defaults to
+                            all fields.
+        """
         if not ref:
             return None
 
         ref_obj = ResourceReference.from_string_reference(ref=ref)
-        result = cls.query(name=ref_obj.name, pack=ref_obj.pack).first()
+        result = cls.query(
+            name=ref_obj.name, pack=ref_obj.pack, only_fields=only_fields
+        ).first()
+
         return result
 
     @classmethod

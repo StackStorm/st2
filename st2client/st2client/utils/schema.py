@@ -32,7 +32,7 @@ if sys.version_info[0] < 3:
 
 def _dict_to_schema(item):
     schema = {}
-    for key, value in item.iteritems():
+    for key, value in item.items():
         if isinstance(value, dict):
             schema[key] = {"type": "object", "parameters": _dict_to_schema(value)}
         else:

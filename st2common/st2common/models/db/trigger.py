@@ -22,6 +22,7 @@ import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.constants.types import ResourceType
 
 __all__ = [
@@ -135,7 +136,7 @@ class TriggerInstanceDB(stormbase.StormFoundationDB):
     """
 
     trigger = me.StringField()
-    payload = stormbase.EscapedDictField()
+    payload = JSONDictEscapedFieldCompatibilityField()
     occurrence_time = me.DateTimeField()
     status = me.StringField(
         required=True, help_text="Processing status of TriggerInstance."
