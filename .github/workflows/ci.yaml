@@ -102,6 +102,9 @@ jobs:
 
       # Name of the user who is running the CI (on GitHub Actions this is 'runner')
       ST2_CI_USER: 'runner'
+
+      # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
+      PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - name: Custom Environment Setup
         # built-in GitHub Actions environment variables
