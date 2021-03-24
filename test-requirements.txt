@@ -31,8 +31,10 @@ rstcheck>=3.3.1,<3.4
 tox==3.14.1
 pyrabbit
 # pip-tools provides pip-compile: to check for version conflicts
-# pip-tools 5.4 needs pip>=20.1, but we use 20.0.2
-pip-tools<5.4
+# pip-tools 5.3 needs pip<20.3
+# pip-tools 5.4 needs pip>=20.1
+# pip-tools 6.0 needs pip>=20.3
+pip-tools>=5.4,<6.1
 pytest==5.4.3
 pytest-benchmark==3.2.3
 # zstandard is used for micro benchmarks

@@ -44,28 +44,45 @@ jobs:
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
           #   python-version: '3.6'
-          # Integration tests are not working yet, still done in Travis
-          # - name: 'Integration Tests'
-          #   task: 'ci-integration'
+          - name: 'Integration Tests'
+            task: 'ci-integration'
+            python-version: '3.6'
     services:
       mongo:
         image: mongo:4.0
         ports:
           - 27017:27017
-      # Can't use RabbitMQ here for Integrations because we rely on custom config
-      # and SSL certs that are in the repo. In GHA, these services are started first
-      # before the code is checked out, so this is a non-starter, we need to do it
-      # manually below (TODO)
+
+      # In GHA, these services are started first before the code is checked out.
+      # We use bitnami images to facilitate reconfiguring RabbitMQ during ci-integration tests.
+      # We rely on custom config and SSL certs that are in the repo.
+      # Many images require config in env vars (which we can't change during the test job)
+      # or they require config in entrypoint args (which we can't override for GHA services)
+      # bitnami builds ways to get config files from mounted volumes.
       rabbitmq:
-        # use the -management version so it has the management tools installed
-        image: rabbitmq:3.8-management
+        image: bitnami/rabbitmq:3.8
+        volumes:
+          - /home/runner/rabbitmq_conf:/bitnami/conf  # RABBITMQ_MOUNTED_CONF_DIR
+        env:
+          # tell bitnami/rabbitmq to enable this by default
+          RABBITMQ_PLUGINS: rabbitmq_management
+          RABBITMQ_USERNAME: guest
+          RABBITMQ_PASSWORD: guest
+
+        # These are strictly docker options, not entrypoint args (GHA restriction)
+        options: >-
+          --name rabbitmq
+
         ports:
-          # SSL port
-          - 5671:5671
-          # standard port
-          - 5672:5672
-          # management port
-          - 15672:15672
+          # These 6 ports are exposed by bitnami/rabbitmq (see https://www.rabbitmq.com/networking.html#ports)
+          # host_port:container_port/protocol
+          - 5671:5671/tcp   # AMQP SSL port
+          - 5672:5672/tcp   # AMQP standard port
+          - 15672:15672/tcp # Management: HTTP, CLI
+          #- 15671:15671/tcp # Management: SSL port
+          #- 25672:25672/tcp # inter-node or CLI
+          #- 4369:4369/tcp   # epmd
+
     env:
       TASK: '${{ matrix.task }}'
 
@@ -114,14 +131,34 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '${{ matrix.python-version }}'
+      - name: Get date components for use in cache-keys
+        id: date
+        run: |
+          echo "::set-output name=year::$(/bin/date -u "+%Y")"
+          echo "::set-output name=month::$(/bin/date -u "+%m")"
+          echo "::set-output name=week::$(/bin/date -u "+%U")"
       - uses: actions/cache@v2
         with:
           path: |
             ~/.cache/pip
             virtualenv
-          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+            ~/virtualenv
+          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+          # !virtualenv/lib/python*/site-packages/st2*
+          # !virtualenv/bin/st2*
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.python }}-
+            ${{ runner.os }}-python-${{ matrix.python }}-
+      - uses: actions/cache@v2
+        with:
+          path: |
+            /var/cache/apt/archives/*.deb
+            /var/cache/apt/archives/partial/*.deb
+            /var/cache/apt/*.bin
+          key: ${{ runner.os }}-apt-${{ steps.date.outputs.year }}-${{ steps.date.outputs.week }}
+          restore-keys: |
+            ${{ runner.os }}-apt-${{ steps.date.outputs.year }}-
+            ${{ runner.os }}-apt-
       - name: Install apt depedencies
         run: |
           # install dev dependencies for Python YAML and LDAP packages
@@ -130,9 +167,22 @@ jobs:
           sudo apt-get -f -y install libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils
       - name: Install virtualenv
         run: |
+          set -x
           # Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
           #       only have to update it one place when we change the version
-          pip install --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
+          # Note: Use --user to avoid polluting system site-packages (which breaks one of our tests)
+          # TODO: simplify this once fixed in contrib/runners/python_runner/tests/integration/test_pythonrunner_behavior.py
+          if [[ ! -f ~/virtualenv/bin/virtualenv ]]; then  # use the cached version whenever possible
+            pip install --user --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
+            virtualenv --no-download ~/virtualenv
+            ~/virtualenv/bin/pip install --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
+            # drop the --user install virtualenv to prevent polluting tests
+            pip freeze --user | xargs pip uninstall -y
+          fi
+          mkdir -p ~/.local/bin
+          ln -s ~/virtualenv/bin/virtualenv ~/.local/bin/virtualenv
+          which virtualenv
+          virtualenv --version
       - name: Install requirements
         run: |
           ./scripts/travis/install-requirements.sh
@@ -149,34 +199,43 @@ jobs:
         run: |
           echo "$ST2_CI_REPO_PATH"
           sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/travis/permissions-workaround.sh
-      - name: Setup RabbitMQ (NOT WORKING YET)
-        if: "${{ env.TASK == 'ci-integration' }}"
+      - name: Reconfigure RabbitMQ
+        if: "${{ env.TASK == 'ci-unit' || env.TASK == 'ci-integration' }}"
+        # bitnami image allows (see bitnami/rabbitmq readme):
+        # Here we're copying a rabbitmq.config file which won't do anything.
+        # We need to switch to custom.conf or advanced.config.
+        timeout-minutes: 2  # may die if rabbitmq fails to start
         run: |
+          set -x
           # Use custom RabbitMQ config which enables SSL / TLS listener on port 5671 with test certs
-          # Travis runs as the 'travis' user, GitHub actions run as the 'runner' user,
-          # And the cert filepaths are slightly different between the two.
-          # Example:
-          #   Travis-CI:      /home/travis/build/StackStorm/st2/st2tests/st2tests/fixtures/ssl_certs/ca/ca_certificate_bundle.pem
-          #   GitHub Actions: /home/runner/work/st2/st2/st2tests/st2tests/fixtures/ssl_certs/ca/ca_certificate_bundle.pem
-          sed -i 's|/home/travis/build/StackStorm|/home/runner/work/st2|g' scripts/travis/rabbitmq.config
-          # Now that we've manged the config file, install it
-          sudo cp scripts/travis/rabbitmq.config /etc/rabbitmq/rabbitmq.config
-          # Install rabbitmq_management RabbitMQ plugin
-          sudo service rabbitmq-server restart
-          sleep 5
-          sudo rabbitmq-plugins enable rabbitmq_management
+          sudo cp scripts/github/rabbitmq.conf /home/runner/rabbitmq_conf/custom.conf
+          # The code is checked out after the container is already up, so we don't mount them.
+          # We copy those certs into the dir that is mounted to /bitnami/conf
+          sudo cp -r st2tests/st2tests/fixtures/ssl_certs /home/runner/rabbitmq_conf/
+          # refresh rabbitmq config - based on ENTRYPOINT logic
+          docker exec rabbitmq bash -c 'cat /bitnami/conf/custom.conf >> /opt/bitnami/rabbitmq/etc/rabbitmq/rabbitmq.conf'
+          # sleep to prevent interleaved output in GHA logs
+          docker exec rabbitmq cat /opt/bitnami/rabbitmq/etc/rabbitmq/rabbitmq.conf && sleep 0.1
+          echo
+          echo restarting rabbitmq container
+          docker restart rabbitmq
+          # wait for rabbitmq container to restart
+          until [ "$(docker inspect -f {{.State.Running}} rabbitmq)" == "true" ]; do sleep 0.1; done
+          echo enabled RabbitMQ plugins:
+          # print plugins list to: (1) ease debugging, (2) pause till rabbitmq is really running
+          docker exec rabbitmq rabbitmq-plugins list -e
+          echo
           sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
           sudo chmod +x /usr/local/bin/rabbitmqadmin
-          sudo service rabbitmq-server restart
-          # chmod to make glob work (*.log to avoid log dir)
-          sudo chmod a+rx /var/log/rabbitmq
-          sudo tail -n 30 /var/log/rabbitmq/*.log
+          # print logs from stdout (RABBITMQ_LOGS=-)
+          docker logs --tail=20 rabbitmq
       - name: Print versions
         run: |
           # Print various binary versions
           git --version
           pip --version
           pip list
+          virtualenv --version
           # Print out various environment variables info
           make play
       - name: make
