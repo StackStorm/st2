@@ -140,6 +140,8 @@ Changed
 
   Contributed by @Kami.
 
+* Update ``jinja2`` dependency to the latest stable version (2.11.3). #5195
+
 Improvements
 ~~~~~~~~~~~~
 

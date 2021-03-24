@@ -85,6 +85,12 @@ cache:
     #- .tox/
 
 install:
+  # This triggers the same behavior on travis as we found on github because it installs six in the system-site-packages
+  #- /opt/python/3.6.7/bin/pip install --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
+  #- mkdir -p ~/.local/bin
+  #- ln -s /opt/python/3.6.7/bin/virtualenv ~/.local/bin/virtualenv
+  - which virtualenv
+  - virtualenv --version
   - ./scripts/travis/install-requirements.sh
   # prep a travis-specific dev conf file that uses travis instead of stanley
   - cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
