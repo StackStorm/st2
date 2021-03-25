@@ -259,7 +259,11 @@ jobs:
       - name: make
         # use: script -e -c to print colors
         run: |
-          script -e -c "make ${TASK}"
+          for (( i=1; i <= 6; i++ ))
+          do
+            echo "Test run: $i"
+            script -e -c "make ${TASK}"
+          done
       - name: Nightly
         # Run any additional nightly checks only as part of a nightly (cron) build
         if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
