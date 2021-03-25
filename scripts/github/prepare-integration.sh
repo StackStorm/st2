@@ -17,7 +17,13 @@ sed -i "s#\#url = redis://localhost#url = redis://127.0.0.1#g" ./conf/st2.ci.con
 
 echo "Used config for the tests"
 echo ""
+echo "st2.dev.conf"
+echo ""
 cat conf/st2.dev.conf
+echo ""
+echo "st2.ci.conf"
+echo ""
+cat conf/st2.ci.conf || true
 echo ""
 
 # Needed by the coordination backend

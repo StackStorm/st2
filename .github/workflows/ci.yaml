@@ -44,25 +44,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        #   - name: 'Lint Checks'
-        #     task: 'ci-checks'
-        #     python-version: '3.6'
-        #   - name: 'Compile'
-        #     task: 'ci-compile'
-        #     python-version: '3.6'
-        #   - name: 'Pack Tests'
-        #     task: 'ci-packs-tests'
-        #     python-version: '3.6'
-        #   - name: 'Unit Tests'
-        #     task: 'ci-unit'
-        #     python-version: '3.6'
+          - name: 'Lint Checks'
+            task: 'ci-checks'
+            python-version: '3.6'
+          - name: 'Compile'
+            task: 'ci-compile'
+            python-version: '3.6'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            python-version: '3.6'
+          - name: 'Unit Tests'
+            task: 'ci-unit'
+            python-version: '3.6'
+          - name: 'Integration Tests'
+            task: 'ci-integration'
+            python-version: '3.6'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
           #   python-version: '3.6'
-          - name: 'Integration Tests'
-            task: 'ci-integration'
-            python-version: '3.6'
     services:
       mongo:
         image: mongo:4.0
@@ -259,11 +259,7 @@ jobs:
       - name: make
         # use: script -e -c to print colors
         run: |
-          for (( i=1; i <= 6; i++ ))
-          do
-            echo "Test run: $i"
-            script -e -c "make ${TASK}"
-          done
+          script -e -c "make ${TASK}"
       - name: Nightly
         # Run any additional nightly checks only as part of a nightly (cron) build
         if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
