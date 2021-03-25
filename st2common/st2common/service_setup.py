@@ -147,6 +147,9 @@ def setup(
 
     LOG.info("Using logging config: %s", logging_config_path)
 
+    LOG.info("Using coordination url: %s", cfg.CONF.coordination.url)
+    LOG.info("Using metrics driver: %s", cfg.CONF.metrics.driver)
+
     is_debug_enabled = cfg.CONF.debug or cfg.CONF.system.debug
 
     try:
