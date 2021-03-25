@@ -20,6 +20,9 @@ on:
     # run every night at midnight
     - cron:  '0 0 * * *'
 
+# TODO: Our workflow is far from ideal. We need to refactor it into multiple
+# ones and only run commands which are needed for some steps for those steps and
+# not for all
 jobs:
   ci:
     name: '${{ matrix.name }} - python (${{ matrix.python-version }})'
@@ -28,18 +31,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: 'Lint Checks'
-            task: 'ci-checks'
-            python-version: '3.6'
-          - name: 'Compile'
-            task: 'ci-compile'
-            python-version: '3.6'
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            python-version: '3.6'
-          - name: 'Unit Tests'
-            task: 'ci-unit'
-            python-version: '3.6'
+        #   - name: 'Lint Checks'
+        #     task: 'ci-checks'
+        #     python-version: '3.6'
+        #   - name: 'Compile'
+        #     task: 'ci-compile'
+        #     python-version: '3.6'
+        #   - name: 'Pack Tests'
+        #     task: 'ci-packs-tests'
+        #     python-version: '3.6'
+        #   - name: 'Unit Tests'
+        #     task: 'ci-unit'
+        #     python-version: '3.6'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
@@ -82,6 +85,22 @@ jobs:
           #- 15671:15671/tcp # Management: SSL port
           #- 25672:25672/tcp # inter-node or CLI
           #- 4369:4369/tcp   # epmd
+          #
+
+      # Used for the coordination backend for integration tests
+      # TODO: Only start this for integration tests via job step
+      # https://github.community/t/conditional-services-in-a-job/135301/3
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     env:
       TASK: '${{ matrix.task }}'
