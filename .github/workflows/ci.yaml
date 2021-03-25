@@ -225,7 +225,6 @@ jobs:
         run: |
           ./scripts/ci/install-requirements.sh
       - name: Setup Integration Tests
-        if: "${{ env.TASK == 'ci-packs-tests' || env.TASK == 'ci-integration' }}"
         run: |
           # prep a ci-specific dev conf file that uses runner instead of stanley
           # this user is the username of the user in GitHub actions, used for SSH, etc during
