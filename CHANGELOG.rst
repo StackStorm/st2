@@ -142,6 +142,8 @@ Changed
 
 * Update ``jinja2`` dependency to the latest stable version (2.11.3). #5195
 
+* Update ``pyyaml`` dependency to the latest stable version (5.4). #5207
+
 Improvements
 ~~~~~~~~~~~~
 
