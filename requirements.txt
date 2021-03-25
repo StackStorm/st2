@@ -38,7 +38,7 @@ nose-timer==0.7.5
 orjson==3.5.1
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
-paramiko==2.7.1
+paramiko==2.7.2
 passlib==1.7.1
 prettytable
 prompt-toolkit==1.0.15

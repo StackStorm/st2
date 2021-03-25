@@ -191,6 +191,11 @@ Fixed
   development uses class_name and registrar used to load sensor to database assign class_name
   to name in the database model. (bug fix)
 
+* Updated paramiko version to 2.7.2, to go with updated cryptography to prevent problems
+  with ssh keys on remote actions. #5201
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
 3.4.0 - March 02, 2021
 ----------------------
 
