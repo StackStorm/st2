@@ -44,6 +44,7 @@ from st2common.util import system_info
 from st2common.services import coordination
 from st2common.logging.misc import add_global_filters_for_all_loggers
 from st2common.constants.error_messages import PYTHON2_DEPRECATION
+from st2common.services.coordination import get_driver_name
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
@@ -147,7 +148,7 @@ def setup(
 
     LOG.info("Using logging config: %s", logging_config_path)
 
-    LOG.info("Using coordination url: %s", cfg.CONF.coordination.url)
+    LOG.info("Using coordination driver: %s", get_driver_name())
     LOG.info("Using metrics driver: %s", cfg.CONF.metrics.driver)
 
     is_debug_enabled = cfg.CONF.debug or cfg.CONF.system.debug

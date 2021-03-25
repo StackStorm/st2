@@ -79,7 +79,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.assertIn("INFO [-] Using fs encoding:", stdout)
         self.assertIn("INFO [-] Using config files:", stdout)
         self.assertIn("INFO [-] Using logging config:", stdout)
-        self.assertIn("INFO [-] Using coordination url:", stdout)
+        self.assertIn("INFO [-] Using coordination driver:", stdout)
         self.assertIn("INFO [-] Using metrics driver:", stdout)
 
         # 1. INFO log level - audit messages should not be included
