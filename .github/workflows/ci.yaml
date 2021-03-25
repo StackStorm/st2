@@ -24,7 +24,20 @@ on:
 # ones and only run commands which are needed for some steps for those steps and
 # not for all
 jobs:
+  pre_job:
+    name: Skip Duplicate Jobs Pre Job
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@4c656bbdb6906310fa6213604828008bc28fe55d # v3.3.0
+        with:
+          github_token: ${{ github.token }}
+
   ci:
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
     name: '${{ matrix.name }} - python (${{ matrix.python-version }})'
     runs-on: ubuntu-latest
     strategy:
