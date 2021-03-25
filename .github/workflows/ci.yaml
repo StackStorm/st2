@@ -20,8 +20,25 @@ on:
     # run every night at midnight
     - cron:  '0 0 * * *'
 
+# TODO: Our workflow is far from ideal. We need to refactor it into multiple
+# ones and only run commands which are needed for some steps for those steps and
+# not for all
 jobs:
+  pre_job:
+    name: Skip Duplicate Jobs Pre Job
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@4c656bbdb6906310fa6213604828008bc28fe55d # v3.3.0
+        with:
+          cancel_others: 'true'
+          github_token: ${{ github.token }}
+
   ci:
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
     name: '${{ matrix.name }} - python (${{ matrix.python-version }})'
     runs-on: ubuntu-latest
     strategy:
@@ -40,13 +57,13 @@ jobs:
           - name: 'Unit Tests'
             task: 'ci-unit'
             python-version: '3.6'
+          - name: 'Integration Tests'
+            task: 'ci-integration'
+            python-version: '3.6'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
           #   python-version: '3.6'
-          - name: 'Integration Tests'
-            task: 'ci-integration'
-            python-version: '3.6'
     services:
       mongo:
         image: mongo:4.0
@@ -82,6 +99,23 @@ jobs:
           #- 15671:15671/tcp # Management: SSL port
           #- 25672:25672/tcp # inter-node or CLI
           #- 4369:4369/tcp   # epmd
+          #
+
+      # Used for the coordination backend for integration tests
+      # TODO: Only start this for integration tests via job step
+      # https://github.community/t/conditional-services-in-a-job/135301/3
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     env:
       TASK: '${{ matrix.task }}'
@@ -191,7 +225,7 @@ jobs:
       - name: Install requirements
         run: |
           ./scripts/ci/install-requirements.sh
-      - name: Setup integration tests
+      - name: Setup Integration Tests
         run: |
           # prep a ci-specific dev conf file that uses runner instead of stanley
           # this user is the username of the user in GitHub actions, used for SSH, etc during
