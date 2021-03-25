@@ -33,6 +33,7 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@4c656bbdb6906310fa6213604828008bc28fe55d # v3.3.0
         with:
+          cancel_others: 'true'
           github_token: ${{ github.token }}
 
   ci:
