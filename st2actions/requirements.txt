@@ -18,6 +18,6 @@ oslo.utils<5.0,>=4.0.0
 pyinotify==0.9.6; platform_system=="Linux"
 python-dateutil==2.8.0
 python-json-logger
-pyyaml==5.1.2
+pyyaml==5.4
 requests[security]==2.23.0
 six==1.13.0
