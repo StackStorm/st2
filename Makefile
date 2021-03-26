@@ -155,6 +155,11 @@ play:
 	@echo
 	@echo INCLUDE_TESTS_IN_COVERAGE=$(INCLUDE_TESTS_IN_COVERAGE)
 	@echo
+	@echo NODE_TOTAL=$(NODE_TOTAL)
+	@echo
+	@echo
+	@echo NODE_INDEX=$(NODE_INDEX)
+	@echo
 
 .PHONY: check
 check: check-requirements check-sdist-requirements flake8 checklogs
