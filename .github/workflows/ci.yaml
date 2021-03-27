@@ -233,7 +233,6 @@ jobs:
           echo "::set-output name=month::$(/bin/date -u "+%m")"
           echo "::set-output name=week::$(/bin/date -u "+%U")"
       - name: Cache Python Dependencies
-        id: cache-apt-deps
         uses: actions/cache@v2
         with:
           path: |
@@ -247,10 +246,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
+        id: cache-apt-deps
         uses: actions/cache@v2
         with:
-          path: |
-            ~/apt_cache
+          path: "~/apt_cache"
+          # TODO: Also incorporate package names into cache key
           key: ${{ runner.os }}-apt-v2-${{ steps.date.outputs.year }}-${{ steps.date.outputs.week }}
           restore-keys: |
             ${{ runner.os }}-apt-v2-${{ steps.date.outputs.year }}-
@@ -259,19 +259,7 @@ jobs:
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
         run: |
-          if [[ "$CACHE_HIT" == 'true' ]]; then
-            echo "Restoring cached apt packages data from ~/apt_cache"
-            sudo cp --force --recursive ~/apt_cache/* /
-          else
-            sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils
-
-            mkdir -p ~/apt_cache
-
-            for dep in libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils; do
-                echo "Caching package files for package ${deb} into ~/apt_cache/"
-                dpkg -L $dep | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/apt_cache/
-            done
-          fi
+          ./scripts/github/install-apt-packages-from-cache.sh
           # - name: Install APT Depedencies
           #   run: |
           #     # install dev dependencies for Python YAML and LDAP packages
