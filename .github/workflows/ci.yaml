@@ -56,61 +56,61 @@ jobs:
             nosetests_node_total: 1
             nosetests_node_index: 0
             python-version: '3.6'
-              # - name: 'Compile (pip deps, pylint, etc.)'
-              #   task: 'ci-compile'
-              #   nosetests_node_total: 1
-              #   nosetests_node_index: 0
-              #   python-version: '3.6'
-              # - name: 'Pack Tests'
-              #   task: 'ci-packs-tests'
-              #   nosetests_node_total: 1
-              #   nosetests_node_index: 0
-              #   python-version: '3.6'
-              # - name: 'Unit Tests (chunk 1)'
-              #   task: 'ci-unit'
-              #   nosetests_node_total: 4
-              #   nosetests_node_index: 0
-              #   python-version: '3.6'
-              # - name: 'Unit Tests (chunk 2)'
-              #   task: 'ci-unit'
-              #   nosetests_node_total: 4
-              #   nosetests_node_index: 1
-              #   python-version: '3.6'
-              # - name: 'Unit Tests (chunk 3)'
-              #   task: 'ci-unit'
-              #   nosetests_node_total: 4
-              #   nosetests_node_index: 2
-              #   python-version: '3.6'
-              # - name: 'Unit Tests (chunk 4)'
-              #   task: 'ci-unit'
-              #   nosetests_node_total: 4
-              #   nosetests_node_index: 3
-              #   python-version: '3.6'
-              # - name: 'Integration Tests (chunk 1)'
-              #   task: 'ci-integration'
-              #   nosetests_node_total: 5
-              #   nosetests_node_index: 0
-              #   python-version: '3.6'
-              # - name: 'Integration Tests (chunk 2)'
-              #   task: 'ci-integration'
-              #   nosetests_node_total: 5
-              #   nosetests_node_index: 1
-              #   python-version: '3.6'
-              # - name: 'Integration Tests (chunk 3)'
-              #   task: 'ci-integration'
-              #   nosetests_node_total: 5
-              #   nosetests_node_index: 2
-              #   python-version: '3.6'
-              # - name: 'Integration Tests (chunk 4)'
-              #   task: 'ci-integration'
-              #   nosetests_node_total: 5
-              #   nosetests_node_index: 3
-              #   python-version: '3.6'
-              # - name: 'Integration Tests (chunk 5)'
-              #   task: 'ci-integration'
-              #   nosetests_node_total: 5
-              #   nosetests_node_index: 4
-              #   python-version: '3.6'
+          - name: 'Compile (pip deps, pylint, etc.)'
+            task: 'ci-compile'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version: '3.6'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version: '3.6'
+          - name: 'Unit Tests (chunk 1)'
+            task: 'ci-unit'
+            nosetests_node_total: 4
+            nosetests_node_index: 0
+            python-version: '3.6'
+          - name: 'Unit Tests (chunk 2)'
+            task: 'ci-unit'
+            nosetests_node_total: 4
+            nosetests_node_index: 1
+            python-version: '3.6'
+          - name: 'Unit Tests (chunk 3)'
+            task: 'ci-unit'
+            nosetests_node_total: 4
+            nosetests_node_index: 2
+            python-version: '3.6'
+          - name: 'Unit Tests (chunk 4)'
+            task: 'ci-unit'
+            nosetests_node_total: 4
+            nosetests_node_index: 3
+            python-version: '3.6'
+          - name: 'Integration Tests (chunk 1)'
+            task: 'ci-integration'
+            nosetests_node_total: 5
+            nosetests_node_index: 0
+            python-version: '3.6'
+          - name: 'Integration Tests (chunk 2)'
+            task: 'ci-integration'
+            nosetests_node_total: 5
+            nosetests_node_index: 1
+            python-version: '3.6'
+          - name: 'Integration Tests (chunk 3)'
+            task: 'ci-integration'
+            nosetests_node_total: 5
+            nosetests_node_index: 2
+            python-version: '3.6'
+          - name: 'Integration Tests (chunk 4)'
+            task: 'ci-integration'
+            nosetests_node_total: 5
+            nosetests_node_index: 3
+            python-version: '3.6'
+          - name: 'Integration Tests (chunk 5)'
+            task: 'ci-integration'
+            nosetests_node_total: 5
+            nosetests_node_index: 4
+            python-version: '3.6'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
@@ -322,7 +322,6 @@ jobs:
       - name: make
         # use: script -e -c to print colors
         run: |
-          exit 0
           script -e -c "make ${TASK}"
       - name: Nightly
         # Run any additional nightly checks only as part of a nightly (cron) build
