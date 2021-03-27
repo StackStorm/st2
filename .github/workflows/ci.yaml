@@ -77,18 +77,23 @@ jobs:
             python-version: '3.6'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
-            nosetests_node_total: 3
+            nosetests_node_total: 4
             nosetests_node_index: 0
             python-version: '3.6'
           - name: 'Integration Tests (chunk 2)'
             task: 'ci-integration'
-            nosetests_node_total: 3
+            nosetests_node_total: 4
             nosetests_node_index: 1
             python-version: '3.6'
           - name: 'Integration Tests (chunk 3)'
             task: 'ci-integration'
-            nosetests_node_total: 3
+            nosetests_node_total: 4
             nosetests_node_index: 2
+            python-version: '3.6'
+          - name: 'Integration Tests (chunk 4)'
+            task: 'ci-integration'
+            nosetests_node_total: 4
+            nosetests_node_index: 3
             python-version: '3.6'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
