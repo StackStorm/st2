@@ -320,7 +320,7 @@ jobs:
           ./scripts/ci/submit-codecov-coverage.sh
       - name: Stop Redis Service Container
         if: "${{ always() && env.TASK == 'ci-integration' }}"
-        run: docker stop redis || true
+        run: docker rm --force redis || true
   slack-notification:
     name: Slack notification for failed master builds
     if: always()
