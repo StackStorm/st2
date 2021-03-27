@@ -40,7 +40,9 @@ jobs:
 
   ci:
     needs: pre_job
-    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+    # NOTE: We always want to run job on master since we run some additional checks there (code
+    # coverage, etc)
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.name }} - python (${{ matrix.python-version }})'
     runs-on: ubuntu-latest
     strategy:
