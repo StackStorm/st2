@@ -284,6 +284,10 @@ check-python-packages-nightly:
 ci-checks-nightly: check-python-packages-nightly
 #ci-checks-nightly: check-python-packages-nightly micro-benchmarks
 
+# CI checks which are very slow and only run on a weekly basic
+.PHONY: ci-checks-weekly
+ci-checks-weekly: micro-benchmarks
+
 .PHONY: checklogs
 checklogs:
 	@echo
@@ -646,8 +650,8 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	#       only have to update it one place when we change the version
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
 
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
+	#$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
+	#$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
 
 	# Install requirements
 	for req in $(REQUIREMENTS); do \

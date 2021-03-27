@@ -181,7 +181,7 @@ jobs:
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
       COLUMNS: '120'
-      PYLINT_CONCURRENCY: '3'
+      PYLINT_CONCURRENCY: '4'
 
       # CI st2.conf (with ST2_CI_USER user instead of stanley)
       ST2_CONF: 'conf/st2.ci.conf'
