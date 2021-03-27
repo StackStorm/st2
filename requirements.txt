@@ -28,7 +28,7 @@ jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==4.6.6
 lockfile==0.12.2
-mock==2.0.0
+mock==3.0.5
 mongoengine==0.18.2
 more-itertools==5.0.0
 networkx==1.11

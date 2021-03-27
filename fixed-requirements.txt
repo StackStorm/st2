@@ -54,7 +54,7 @@ zake==0.2.2
 # test requirements below
 bcrypt==3.1.7
 jinja2==2.11.3
-mock==2.0.0
+mock==3.0.5
 more-itertools==5.0.0
 nose-timer==0.7.5
 nose-parallel==0.3.1

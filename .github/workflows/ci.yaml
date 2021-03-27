@@ -54,7 +54,7 @@ jobs:
             nosetests_node_total: 1
             nosetests_node_index: 0
             python-version: '3.6'
-          - name: 'Compile (pip deps, pylint)'
+          - name: 'Compile (pip deps, pylint, etc.)'
             task: 'ci-compile'
             nosetests_node_total: 1
             nosetests_node_index: 0

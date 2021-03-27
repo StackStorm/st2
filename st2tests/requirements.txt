@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 RandomWords
-mock==2.0.0
+mock==3.0.5
 nose
 nose-parallel==0.3.1
 nose-timer==0.7.5
