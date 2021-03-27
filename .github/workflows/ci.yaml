@@ -49,12 +49,12 @@ jobs:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         include:
-          - name: 'Lint Checks'
+          - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
             nosetests_node_total: 1
             nosetests_node_index: 0
             python-version: '3.6'
-          - name: 'Compile'
+          - name: 'Compile (pip deps, pylint)'
             task: 'ci-compile'
             nosetests_node_total: 1
             nosetests_node_index: 0

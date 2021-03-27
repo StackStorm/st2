@@ -1081,8 +1081,10 @@ debs:
 .PHONY: ci
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
+# NOTE: pylint is moved to ci-compile so we more evenly spread the load across
+# various different jobs to make the whole workflow complete faster
 .PHONY: ci-checks
-ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: .rst-check
 .rst-check:
@@ -1143,4 +1145,4 @@ ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html
 ci-packs-tests: .packs-tests
 
 .PHONY: ci-compile
-ci-compile: check-dependency-conflicts compilepy3
+ci-compile: check-dependency-conflicts compilepy3 .pylint
