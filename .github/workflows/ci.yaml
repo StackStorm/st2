@@ -56,61 +56,61 @@ jobs:
             nosetests_node_total: 1
             nosetests_node_index: 0
             python-version: '3.6'
-          - name: 'Compile (pip deps, pylint, etc.)'
-            task: 'ci-compile'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version: '3.6'
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version: '3.6'
-          - name: 'Unit Tests (chunk 1)'
-            task: 'ci-unit'
-            nosetests_node_total: 4
-            nosetests_node_index: 0
-            python-version: '3.6'
-          - name: 'Unit Tests (chunk 2)'
-            task: 'ci-unit'
-            nosetests_node_total: 4
-            nosetests_node_index: 1
-            python-version: '3.6'
-          - name: 'Unit Tests (chunk 3)'
-            task: 'ci-unit'
-            nosetests_node_total: 4
-            nosetests_node_index: 2
-            python-version: '3.6'
-          - name: 'Unit Tests (chunk 4)'
-            task: 'ci-unit'
-            nosetests_node_total: 4
-            nosetests_node_index: 3
-            python-version: '3.6'
-          - name: 'Integration Tests (chunk 1)'
-            task: 'ci-integration'
-            nosetests_node_total: 5
-            nosetests_node_index: 0
-            python-version: '3.6'
-          - name: 'Integration Tests (chunk 2)'
-            task: 'ci-integration'
-            nosetests_node_total: 5
-            nosetests_node_index: 1
-            python-version: '3.6'
-          - name: 'Integration Tests (chunk 3)'
-            task: 'ci-integration'
-            nosetests_node_total: 5
-            nosetests_node_index: 2
-            python-version: '3.6'
-          - name: 'Integration Tests (chunk 4)'
-            task: 'ci-integration'
-            nosetests_node_total: 5
-            nosetests_node_index: 3
-            python-version: '3.6'
-          - name: 'Integration Tests (chunk 5)'
-            task: 'ci-integration'
-            nosetests_node_total: 5
-            nosetests_node_index: 4
-            python-version: '3.6'
+              # - name: 'Compile (pip deps, pylint, etc.)'
+              #   task: 'ci-compile'
+              #   nosetests_node_total: 1
+              #   nosetests_node_index: 0
+              #   python-version: '3.6'
+              # - name: 'Pack Tests'
+              #   task: 'ci-packs-tests'
+              #   nosetests_node_total: 1
+              #   nosetests_node_index: 0
+              #   python-version: '3.6'
+              # - name: 'Unit Tests (chunk 1)'
+              #   task: 'ci-unit'
+              #   nosetests_node_total: 4
+              #   nosetests_node_index: 0
+              #   python-version: '3.6'
+              # - name: 'Unit Tests (chunk 2)'
+              #   task: 'ci-unit'
+              #   nosetests_node_total: 4
+              #   nosetests_node_index: 1
+              #   python-version: '3.6'
+              # - name: 'Unit Tests (chunk 3)'
+              #   task: 'ci-unit'
+              #   nosetests_node_total: 4
+              #   nosetests_node_index: 2
+              #   python-version: '3.6'
+              # - name: 'Unit Tests (chunk 4)'
+              #   task: 'ci-unit'
+              #   nosetests_node_total: 4
+              #   nosetests_node_index: 3
+              #   python-version: '3.6'
+              # - name: 'Integration Tests (chunk 1)'
+              #   task: 'ci-integration'
+              #   nosetests_node_total: 5
+              #   nosetests_node_index: 0
+              #   python-version: '3.6'
+              # - name: 'Integration Tests (chunk 2)'
+              #   task: 'ci-integration'
+              #   nosetests_node_total: 5
+              #   nosetests_node_index: 1
+              #   python-version: '3.6'
+              # - name: 'Integration Tests (chunk 3)'
+              #   task: 'ci-integration'
+              #   nosetests_node_total: 5
+              #   nosetests_node_index: 2
+              #   python-version: '3.6'
+              # - name: 'Integration Tests (chunk 4)'
+              #   task: 'ci-integration'
+              #   nosetests_node_total: 5
+              #   nosetests_node_index: 3
+              #   python-version: '3.6'
+              # - name: 'Integration Tests (chunk 5)'
+              #   task: 'ci-integration'
+              #   nosetests_node_total: 5
+              #   nosetests_node_index: 4
+              #   python-version: '3.6'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
@@ -232,7 +232,8 @@ jobs:
           echo "::set-output name=year::$(/bin/date -u "+%Y")"
           echo "::set-output name=month::$(/bin/date -u "+%m")"
           echo "::set-output name=week::$(/bin/date -u "+%U")"
-      - name: Python Dependencies
+      - name: Cache Python Dependencies
+        id: cache-apt-deps
         uses: actions/cache@v2
         with:
           path: |
@@ -245,25 +246,40 @@ jobs:
           key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-python-${{ matrix.python }}-
-      - name: APT Dependencies
+      - name: Cache APT Dependencies
         uses: actions/cache@v2
         with:
           path: |
-            /var/cache/apt/archives/*.deb
-            /var/cache/apt/archives/partial/*.deb
-            /var/cache/apt/*.bin
-          key: ${{ runner.os }}-apt-${{ steps.date.outputs.year }}-${{ steps.date.outputs.week }}
+            ~/apt_cache
+          key: ${{ runner.os }}-apt-v2-${{ steps.date.outputs.year }}-${{ steps.date.outputs.week }}
           restore-keys: |
-            ${{ runner.os }}-apt-${{ steps.date.outputs.year }}-
-            ${{ runner.os }}-apt-
-      - name: Install apt depedencies
+            ${{ runner.os }}-apt-v2-${{ steps.date.outputs.year }}-
+            ${{ runner.os }}-apt-v2-
+      - name: Install APT Depedencies
+        env:
+          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
         run: |
-          # install dev dependencies for Python YAML and LDAP packages
-          # https://github.com/StackStorm/st2-auth-ldap
-          sudo apt-get -y update
-          sudo apt-get -f -y install libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils
-          # shellcheck is already available in docker runner image we use
-          # sudo apt-get -y install shellcheck
+          if [[ "$CACHE_HIT" == 'true' ]]; then
+            echo "Restoring cached apt packages data from ~/apt_cache"
+            sudo cp --force --recursive ~/apt_cache/* /
+          else
+            sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils
+
+            mkdir -p ~/apt_cache
+
+            for dep in libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils; do
+                echo "Caching package files for package ${deb} into ~/apt_cache/"
+                dpkg -L $dep | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/apt_cache/
+            done
+          fi
+          # - name: Install APT Depedencies
+          #   run: |
+          #     # install dev dependencies for Python YAML and LDAP packages
+          #     # https://github.com/StackStorm/st2-auth-ldap
+          #     sudo apt-get -y update
+          #     sudo apt-get -f -y install libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils
+          #     # shellcheck is already available in docker runner image we use
+          #     # sudo apt-get -y install shellcheck
       - name: Install virtualenv
         run: |
           set -x
