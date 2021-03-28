@@ -644,14 +644,14 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	@echo "==================== requirements ===================="
 	@echo
 	# Show pip installed packages before we start
+	echo ""
 	$(VIRTUALENV_DIR)/bin/pip list
+	echo ""
 
 	# Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
 	#       only have to update it one place when we change the version
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
-
-	#$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
-	#$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
 
 	# Install requirements
 	for req in $(REQUIREMENTS); do \
@@ -681,7 +681,9 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	git submodule update --init --recursive --remote
 
 	# Show currently install requirements
+	echo ""
 	$(VIRTUALENV_DIR)/bin/pip list
+	echo ""
 
 .PHONY: check-dependency-conflicts
 check-dependency-conflicts:
