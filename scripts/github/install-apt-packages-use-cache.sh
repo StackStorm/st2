@@ -21,6 +21,15 @@ printf "dir::state::lists    ${APT_STATE_LISTS};\ndir::cache::archives    ${APT_
 mkdir -p "${APT_STATE_LISTS}/partial"
 mkdir -p "${APT_CACHE_ARCHIVES}/partial"
 
+ls -la "${APT_STATE_LISTS}"
+ls -la "${APT_CACHE_ARCHIVES}"
+
 sudo apt-get -y update
 # shellcheck disable=SC2086
 sudo apt-get -f -y install ${APT_PACKAGES}
+
+ls -la "${APT_STATE_LISTS}"
+ls -la "${APT_CACHE_ARCHIVES}"
+
+# Workaround for caching issue (ensure runer can read the downloaded packages)
+sudo chown -R runner:runner "${CACHE_DIRECTORY}"
