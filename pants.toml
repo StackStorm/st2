@@ -16,6 +16,7 @@ backend_packages = [
   "pants.backend.python.lint.bandit",
   "pants.backend.python.lint.black",
   "pants.backend.python.lint.flake8",
+  "pants.backend.python.lint.pylint",
 
   # shell
   "pants.backend.shell",
@@ -102,7 +103,7 @@ interpreter_constraints = [
 
 [python.resolves]
 st2 = "lockfiles/st2.lock"
-pylint_plugins = "lockfiles/pylint_plugins.lock"
+pylint_plugins = "lockfiles/pylint_plugins.lock" # lockfiles/pylint.lock should have same contents
 pants-plugins = "lockfiles/pants-plugins.lock"
 
 [python.resolves_to_interpreter_constraints]
@@ -161,9 +162,21 @@ extra_requirements = [
 config = "lint-configs/python/.flake8"
 
 [pylint]
+lockfile = "lockfiles/pylint.lock"
 version = "pylint~=2.8.2"
 extra_requirements = [
   "setuptools", # includes pkg_resources
+]
+config = "lint-configs/python/.pylintrc"
+source_plugins = [
+  # the /pylint_plugins directory
+  "pylint_plugins",
+]
+args = [
+  # needed in st2* components, runners, packs
+  "--load-plugins=pylint_plugins.api_models",
+  # needed in st2* components, runners
+  "--load-plugins=pylint_plugins.db_models",
 ]
 
 [pytest]
