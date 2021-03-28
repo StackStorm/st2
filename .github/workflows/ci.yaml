@@ -252,10 +252,10 @@ jobs:
           path: |
             ~/apt_cache
           # TODO: Also incorporate package names into cache key
-          key: ${{ runner.os }}-apt-v4-${{ steps.date.outputs.year }}-${{ steps.date.outputs.week }}
+          key: ${{ runner.os }}-apt-v5-${{ steps.date.outputs.year }}-${{ steps.date.outputs.week }}
           restore-keys: |
-            ${{ runner.os }}-apt-v4-${{ steps.date.outputs.year }}-
-            ${{ runner.os }}-apt-v4-
+            ${{ runner.os }}-apt-v5-${{ steps.date.outputs.year }}-
+            ${{ runner.os }}-apt-v5-
       - name: Install APT Depedencies
         run: |
           # install dev dependencies for Python YAML and LDAP packages
