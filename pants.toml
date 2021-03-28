@@ -9,6 +9,12 @@ backend_packages = [
   # shell
   "pants.backend.shell",
 ]
+# pants ignores files in .gitignore, .*/ directories, /dist/ directory, and __pycache__.
+pants_ignore.add = [
+  # TODO: remove these once we start building wheels with pants.
+  "dist_utils.py",
+  "setup.py",
+]
 
 [source]
 # recording each pack individually under root patterns is not great, but resolves these issues:
