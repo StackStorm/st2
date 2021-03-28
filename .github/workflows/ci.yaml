@@ -322,7 +322,6 @@ jobs:
       - name: make
         # use: script -e -c to print colors
         run: |
-          exit 0
           script -e -c "make ${TASK}"
       - name: Nightly
         # Run any additional nightly checks only as part of a nightly (cron) build
