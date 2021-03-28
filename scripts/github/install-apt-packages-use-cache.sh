@@ -21,10 +21,12 @@ printf "dir::state::lists    ${APT_STATE_LISTS};\ndir::cache::archives    ${APT_
 mkdir -p "${APT_STATE_LISTS}/partial"
 mkdir -p "${APT_CACHE_ARCHIVES}/partial"
 
-ls -la "${APT_STATE_LISTS}"
-ls -la "${APT_CACHE_ARCHIVES}"
+# NOTE apt-get update is only needed is there is no cache. If there is an existing cache, we don't
+# run it to speed things up
+if [[ "$CACHE_HIT" == 'false' ]]; then
+    sudo apt-get -y update
+fi
 
-sudo apt-get -y update
 # shellcheck disable=SC2086
 sudo apt-get -f -y install ${APT_PACKAGES}
 
