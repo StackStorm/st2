@@ -198,6 +198,16 @@ Fixed
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
+* Update rpm package metadata and fix ``Provides`` section for RHEL / CentOS 8 packages.
+
+  In the previous versions, RPM metadata would incorrectly signal that the ``st2`` package
+  provides various Python libraries which it doesn't (those Python libraries are only used
+  internally for the package local virtual environment).
+
+  https://github.com/StackStorm/st2-packages/pull/697
+
+  Contributed by @Kami.
+
 3.4.0 - March 02, 2021
 ----------------------
 
