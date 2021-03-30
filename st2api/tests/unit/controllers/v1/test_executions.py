@@ -387,7 +387,7 @@ class ActionExecutionControllerTestCase(
         self.assertEqual(get_resp.json["result"], data["result"])
         self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
 
-        # 3. ?max_result_size > actual result size - result field should not be returned
+        # 3. ?max_result_size < actual result size - result field should not be returned
         get_resp = self._do_get_one(
             actionexecution_id + "?max_result_size=%s" % (actual_result_size - 1)
         )
@@ -396,7 +396,7 @@ class ActionExecutionControllerTestCase(
         self.assertTrue("result" not in get_resp.json)
         self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
 
-        # 4. ?max_result_size > actual result size and ?include_attributes=result - result field
+        # 4. ?max_result_size < actual result size and ?include_attributes=result - result field
         # should not be returned
         get_resp = self._do_get_one(
             actionexecution_id
@@ -439,6 +439,15 @@ class ActionExecutionControllerTestCase(
             get_resp.json["faultstring"],
             "max_result_size query parameter must be smaller than 14 MB",
         )
+
+        # 8. ?max_result_size == actual result size - result should be returned
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=%s" % (actual_result_size)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertEqual(get_resp.json["result"], data["result"])
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
 
     def test_get_all_id_query_param_filtering_success(self):
         post_resp = self._do_post(LIVE_ACTION_1)

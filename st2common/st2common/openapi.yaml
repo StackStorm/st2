@@ -1098,7 +1098,7 @@ paths:
         - name: max_result_size
           in: query
           type: integer
-          description: True to exclude result field from the response for executions which result field exceeds the provided size.
+          description: True to exclude result field from the response for executions which result field exceeds the provided size in bytes.
       x-parameters:
         - name: user
           in: context
