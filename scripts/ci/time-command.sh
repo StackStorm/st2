@@ -19,11 +19,11 @@
 # If the command duration is longer than the specified threshold, the script
 # will print out an error and exit with non-zero status code.
 
-RED=`tput setaf 1`
-BOLD=`tput setab 7`
-BOLD=`tput bold`
-GREEN=`tput setaf 2`
-RESET=`tput sgr0`
+RED=$(tput setaf 1)
+BOLD=$(tput setab 7)
+BOLD=$(tput bold)
+#GREEN=$(tput setaf 2)
+RESET=$(tput sgr0)
 
 BASH_COMMAND_STRING=$1
 COMMAND_THRESHOLD=$2
@@ -39,13 +39,14 @@ echo ${EXIT_CODE}
 
 END_TS=$(date +%s)
 
-DURATION=$(expr ${END_TS} - ${START_TS})
+# shellcheck disable=SC2003
+DURATION=$(expr "${END_TS}" - "${START_TS}")
 
 echo ""
 echo "Command \"${BASH_COMMAND_STRING}\" duration: ${DURATION}s (COMMAND_THRESHOLD=${COMMAND_THRESHOLD}s)"
 echo ""
 
-if [ "${COMMAND_THRESHOLD}" ] && [ ${COMMAND_THRESHOLD} -lt ${DURATION} ]; then
+if [ "${COMMAND_THRESHOLD}" ] && [ "${COMMAND_THRESHOLD}" -lt "${DURATION}" ]; then
     >&2  echo "${RED}Command ${BOLD}${BASH_COMMAND_STRING}${RESET}${RED} took longer than ${BOLD}${COMMAND_THRESHOLD}${RESET}${RED} seconds, failing the build."
     >&2  echo "This likely means that a regression has been introduced in the code / tests which significantly slows things down."
     >&2  echo "If you think it's an intermediate error, re-run the tests."

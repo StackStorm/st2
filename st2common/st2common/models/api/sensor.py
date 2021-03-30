@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.trigger import TriggerTypeAPI
 from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.utils import sensor_type_utils
 
@@ -27,7 +28,7 @@ class SensorTypeAPI(BaseAPI):
             "id": {"type": "string", "default": None},
             "ref": {"type": "string"},
             "uid": {"type": "string"},
-            "name": {"type": "string", "required": True},
+            "class_name": {"type": "string", "required": True},
             "pack": {"type": "string"},
             "description": {"type": "string"},
             "artifact_uri": {
@@ -41,7 +42,11 @@ class SensorTypeAPI(BaseAPI):
                 "type": "boolean",
                 "default": True,
             },
-            "trigger_types": {"type": "array", "default": []},
+            "trigger_types": {
+                "type": "array",
+                "items": TriggerTypeAPI.schema,
+                "default": [],
+            },
             "poll_interval": {"type": "number"},
             "metadata_file": {
                 "description": "Path to the metadata file relative to the pack directory.",
