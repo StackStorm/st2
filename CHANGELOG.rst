@@ -173,6 +173,18 @@ Improvements
 
   Contributed by @Kami.
 
+* Add new ``?max_result_size`` query parameter filter to the ``GET /v1/executiond/<id>`` API
+  endpoint.
+
+  This query parameter allows clients to implement conditional execution result retrieval and
+  only retrieve the result field if it's smaller than the provided value.
+
+  This comes handy in the various client scenarios (such as st2web) where we don't display and
+  render very large results directly since it allows to speed things up and decrease amount of
+  data retrieved and parsed. (improvement) #5197
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 
