@@ -144,6 +144,13 @@ Changed
 
 * Update ``pyyaml`` dependency to the latest stable version (5.4). #5207
 
+* Update various dependencies to latest stable versions (``bcrypt``,
+  ``appscheduler``, ``pytz``, ``python-dateutil``, ``psutil``, ``passlib``, ``gunicorn``, ``flex``,
+  ``cryptography``. ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``,
+  ``requests``. #5215
+
+  Contributed by @Kami.
+
 Improvements
 ~~~~~~~~~~~~
 
