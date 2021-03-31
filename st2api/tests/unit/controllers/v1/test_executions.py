@@ -1553,7 +1553,7 @@ class ActionExecutionControllerTestCase(
 
         resp = self.app.get("/v1/executions/%s/attribute/trigger_instance" % (exec_id))
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, None)
+        self.assertEqual(resp.json, {})
 
         data = {}
         data["status"] = action_constants.LIVEACTION_STATUS_SUCCEEDED
