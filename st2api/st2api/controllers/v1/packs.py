@@ -104,7 +104,7 @@ class PackInstallController(ActionExecutionsControllerMixin):
             parameters["skip_dependencies"] = True
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         new_liveaction_api = LiveActionCreateAPI(
             action="packs.install", parameters=parameters, user=requester_user.name
@@ -127,7 +127,7 @@ class PackUninstallController(ActionExecutionsControllerMixin):
             parameters = {"packs": pack_uninstall_request.packs}
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         new_liveaction_api = LiveActionCreateAPI(
             action="packs.uninstall", parameters=parameters, user=requester_user.name

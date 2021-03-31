@@ -61,7 +61,7 @@ def check_inquiry(inquiry):
 def check_permission(inquiry, requester):
     # Normalize user object.
     user_db = (
-        auth_db_models.UserDB(requester)
+        auth_db_models.UserDB(name=requester)
         if isinstance(requester, six.string_types)
         else requester
     )
