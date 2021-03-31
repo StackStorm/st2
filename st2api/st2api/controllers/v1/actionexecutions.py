@@ -108,7 +108,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         :type liveaction: :class:`LiveActionAPI`
         """
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         # Assert action ref is valid
         action_ref = liveaction_api.action
@@ -799,7 +799,7 @@ class ActionExecutionsController(
 
         """
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         from_model_kwargs = {
             "mask_secrets": self._get_mask_secrets(
@@ -929,7 +929,7 @@ class ActionExecutionsController(
 
         """
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         from_model_kwargs = {
             "mask_secrets": self._get_mask_secrets(

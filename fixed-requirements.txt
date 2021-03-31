@@ -1,43 +1,43 @@
 # Packages versions fixed for the whole st2 stack
 # Note: amqp is used by kombu
 amqp==2.5.2
-apscheduler==3.6.3
+apscheduler==3.7.0
 # requests 2.23 requires chardet < 3.1.0
 chardet<3.1.0
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython>=1.16.0,<2.0.0
-cryptography==3.3.2
+cryptography==3.4.7
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
-eventlet==0.25.1
-flex==6.14.0
+eventlet==0.30.2
+flex==6.14.1
 gitpython==2.1.15
 # Note: greenlet is used by eventlet
-greenlet==0.4.15
-gunicorn==19.9.0
+greenlet==1.0.0
+gunicorn==20.1.0
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==4.6.6
 lockfile==0.12.2
-mongoengine==0.18.2
+mongoengine==0.23.0
 networkx==1.11
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 paramiko==2.7.2
-passlib==1.7.1
+passlib==1.7.4
 prance==0.9.0
 prompt-toolkit==1.0.15
 pyinotify==0.9.6; platform_system=="Linux"
-pymongo==3.10.0
+pymongo==3.11.3
 python-editor==1.0.4
 python-gnupg==0.4.5
 python-keyczar==0.716
-pytz==2019.1
+pytz==2021.1
 pywinrm==0.3.0
 pyyaml==5.4
-requests[security]==2.23.0
+requests[security]==2.25.1
 retrying==1.3.3
 routes==2.4.1
 semver==2.9.0
@@ -49,17 +49,17 @@ tooz==2.8.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
 # virtualenv==20.4.0 (<21) has pip==20.3.3 wheel==0.36.2 setuptools==51.3.3
 virtualenv==20.4.0
-webob==1.8.5
+webob==1.8.7
 zake==0.2.2
 # test requirements below
-bcrypt==3.1.7
+bcrypt==3.2.0
 jinja2==2.11.3
-mock==2.0.0
+mock==4.0.3
 more-itertools==5.0.0
 nose-timer==0.7.5
 nose-parallel==0.3.1
-psutil==5.6.6
-python-dateutil==2.8.0
+psutil==5.8.0
+python-dateutil==2.8.1
 python-statsd==2.1.0
 prometheus_client==0.1.1
 ujson==1.35

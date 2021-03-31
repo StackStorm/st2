@@ -119,6 +119,10 @@ def mock_get_token(*args, **kwargs):
     return USR_TOKEN
 
 
+def mock_get_by_name(name):
+    return UserDB(name=name)
+
+
 @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())
 class ActionExecutionControllerTestCaseAuthEnabled(FunctionalTest):
 
@@ -126,7 +130,7 @@ class ActionExecutionControllerTestCaseAuthEnabled(FunctionalTest):
 
     @classmethod
     @mock.patch.object(Token, "get", mock.MagicMock(side_effect=mock_get_token))
-    @mock.patch.object(User, "get_by_name", mock.MagicMock(side_effect=UserDB))
+    @mock.patch.object(User, "get_by_name", mock_get_by_name)
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
