@@ -26,9 +26,6 @@ echo ""
 cat conf/st2.ci.conf || true
 echo ""
 
-# Needed by the coordination backend
-pip install "redis==3.5.3"
-
 # install st2 client
 python ./st2client/setup.py develop
 st2 --version

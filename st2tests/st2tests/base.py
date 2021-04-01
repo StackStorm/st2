@@ -575,6 +575,7 @@ class IntegrationTestCase(TestCase):
                 except:
                     stderr = None
 
+                print("Stopping process with pid %s" % (process.id))
                 print('Process "%s"' % (process.pid))
                 print("Stdout: %s" % (stdout))
                 print("Stderr: %s" % (stderr))
