@@ -130,7 +130,7 @@ class RuleController(
         )
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         # Validate that the authenticated user is admin if user query param is provided
         user = requester_user.name
@@ -195,7 +195,7 @@ class RuleController(
         )
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
         # Validate that the authenticated user is admin if user query param is provided
         user = requester_user.name
         rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(

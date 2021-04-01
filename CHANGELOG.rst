@@ -144,6 +144,12 @@ Changed
 
 * Update ``pyyaml`` dependency to the latest stable version (5.4). #5207
 
+* Update various dependencies to latest stable versions (``bcrypt``, ``appscheduler``, ``pytz``,
+  ``python-dateutil``, ``psutil``, ``passlib``, ``gunicorn``, ``flex``, ``cryptography``.
+  ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``). #5215
+
+  Contributed by @Kami.
+
 Improvements
 ~~~~~~~~~~~~
 
@@ -173,6 +179,32 @@ Improvements
 
   Contributed by @Kami.
 
+* Add new ``?max_result_size`` query parameter filter to the ``GET /v1/executiond/<id>`` API
+  endpoint.
+
+  This query parameter allows clients to implement conditional execution result retrieval and
+  only retrieve the result field if it's smaller than the provided value.
+
+  This comes handy in the various client scenarios (such as st2web) where we don't display and
+  render very large results directly since it allows to speed things up and decrease amount of
+  data retrieved and parsed. (improvement) #5197
+
+  Contributed by @Kami.
+
+* Update default nginx config which is used for proxying API requests and serving static
+  content to only allow HTTP methods which are actually used by the services (get, post, put,
+  delete, options, head).
+
+  If a not-allowed method is used, nginx will abort the request early and return 405 status
+  code. #5193
+
+  Contributed by @ashwini-orchestral
+
+* Update default nginx config which is used for proxying API requests and serving static
+  content to not allow range requests. #5193
+
+  Contributed by @ashwini-orchestral
+
 Fixed
 ~~~~~
 
@@ -197,6 +229,16 @@ Fixed
   with ssh keys on remote actions. #5201
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Update rpm package metadata and fix ``Provides`` section for RHEL / CentOS 8 packages.
+
+  In the previous versions, RPM metadata would incorrectly signal that the ``st2`` package
+  provides various Python libraries which it doesn't (those Python libraries are only used
+  internally for the package local virtual environment).
+
+  https://github.com/StackStorm/st2-packages/pull/697
+
+  Contributed by @Kami.
 
 3.4.0 - March 02, 2021
 ----------------------
