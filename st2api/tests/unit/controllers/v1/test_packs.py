@@ -348,7 +348,7 @@ class PacksControllerTestCase(
 
 
         # up to Py3.6 requests.exceptions.RequestException() appends a trailing ,
-        if sys.version < (3, 8):
+        if sys.version_info < (3, 8):
             broken_index_message = "RequestException('index is broken',)"
         else:
             broken_index_message = "RequestException('index is broken')"
