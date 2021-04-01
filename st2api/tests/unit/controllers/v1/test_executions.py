@@ -45,6 +45,7 @@ from st2common.util import action_db as action_db_util
 from st2common.util import crypto as crypto_utils
 from st2common.util import date as date_utils
 from st2common.util import isotime
+from st2common.util.jsonify import json_encode
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 import st2common.validators.api.action as action_validator
 from st2tests.api import BaseActionExecutionControllerTestCase
@@ -349,6 +350,103 @@ class ActionExecutionControllerTestCase(
 
         get_resp = self._do_get_one("last")
         self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+    def test_get_one_max_result_size_query_parameter(self):
+        data = copy.deepcopy(LIVE_ACTION_1)
+        post_resp = self._do_post(LIVE_ACTION_1)
+
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+
+        # Update it with the result (this populates result and result size attributes)
+        data = {
+            "result": {"fooo": "a" * 1000},
+            "status": "succeeded",
+        }
+        actual_result_size = len(json_encode(data["result"]))
+
+        # NOTE: In real-life result_size is populdated in update_execution() method which is
+        # called in the end with the actual result
+        put_resp = self._do_put(actionexecution_id, data)
+        self.assertEqual(put_resp.json["result_size"], actual_result_size)
+        self.assertEqual(put_resp.json["result"], data["result"])
+
+        # 1. ?max_result_size query filter not provided
+        get_resp = self._do_get_one(actionexecution_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result"], data["result"])
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        # 2. ?max_result_size > actual result size
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=%s" % (actual_result_size + 1)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertEqual(get_resp.json["result"], data["result"])
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        # 3. ?max_result_size < actual result size - result field should not be returned
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=%s" % (actual_result_size - 1)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertTrue("result" not in get_resp.json)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        # 4. ?max_result_size < actual result size and ?include_attributes=result - result field
+        # should not be returned
+        get_resp = self._do_get_one(
+            actionexecution_id
+            + "?include_attributes=result,result_size&max_result_size=%s"
+            % (actual_result_size - 1)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertTrue("result" not in get_resp.json)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        # 5. ?max_result_size > actual result size and ?exclude_attributes=result - result field
+        # should not be returned
+        get_resp = self._do_get_one(
+            actionexecution_id
+            + "?include_attributes=result_size&exclude_attriubtes=result&max_result_size=%s"
+            % (actual_result_size - 1)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertTrue("result" not in get_resp.json)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        # 6. max_result_size is not a positive number
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=-100", expect_errors=True
+        )
+        self.assertEqual(get_resp.status_int, 400)
+        self.assertEqual(
+            get_resp.json["faultstring"], "max_result_size must be a positive number"
+        )
+
+        # 7. max_result_size is > max possible value
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=%s" % ((14 * 1024 * 1024) + 1),
+            expect_errors=True,
+        )
+        self.assertEqual(get_resp.status_int, 400)
+        self.assertEqual(
+            get_resp.json["faultstring"],
+            "max_result_size query parameter must be smaller than 14 MB",
+        )
+
+        # 8. ?max_result_size == actual result size - result should be returned
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=%s" % (actual_result_size)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertEqual(get_resp.json["result"], data["result"])
         self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
 
     def test_get_all_id_query_param_filtering_success(self):
@@ -1553,7 +1651,7 @@ class ActionExecutionControllerTestCase(
 
         resp = self.app.get("/v1/executions/%s/attribute/trigger_instance" % (exec_id))
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, None)
+        self.assertEqual(resp.json, {})
 
         data = {}
         data["status"] = action_constants.LIVEACTION_STATUS_SUCCEEDED

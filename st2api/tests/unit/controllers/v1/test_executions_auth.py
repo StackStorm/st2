@@ -119,6 +119,10 @@ def mock_get_token(*args, **kwargs):
     return USR_TOKEN
 
 
+def mock_get_by_name(name):
+    return UserDB(name=name)
+
+
 @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())
 class ActionExecutionControllerTestCaseAuthEnabled(FunctionalTest):
 

@@ -16,12 +16,14 @@ if [ ! "${TASK}" ]; then
 fi
 
 # Note: TASK could contain a list of multiple tasks
+# shellcheck disable=SC2068,SC2206
 TASKS=($TASK)
 
 EXISTING_TASKS=()
-for TASK_NAME in ${TASKS[@]}; do
-    $(make -n ${TASK_NAME}-nightly &> /dev/null)
+for TASK_NAME in "${TASKS[@]}"; do
+    make -n "${TASK_NAME}-nightly" &> /dev/null
 
+    # shellcheck disable=SC2181
     if [ $? -eq 0 ]; then
         # Task {TASK}-nightly exists
         EXISTING_TASKS+=("$TASK_NAME-nightly")
@@ -34,5 +36,6 @@ if [ ${#EXISTING_TASKS[@]} -eq 0 ]; then
     exit 0
 fi
 
+# shellcheck disable=SC2145
 echo "Running the following nightly tasks: ${EXISTING_TASKS[@]}"
-exec make ${EXISTING_TASKS[@]}
+exec make "${EXISTING_TASKS[@]}"

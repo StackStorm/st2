@@ -7,7 +7,27 @@ if [ "$(whoami)" != 'root' ]; then
 fi
 
 # Activate the virtualenv created during make requirements phase
+# shellcheck disable=SC1091
 source ./virtualenv/bin/activate
+
+# Enable coordination backend to avoid race conditions with orquesta tests due
+# to the lack of the coordination backend
+sed -i "s#\#url = redis://localhost#url = redis://127.0.0.1#g" ./conf/st2.dev.conf
+sed -i "s#\#url = redis://localhost#url = redis://127.0.0.1#g" ./conf/st2.ci.conf || true
+
+echo "Used config for the tests"
+echo ""
+echo "st2.dev.conf"
+echo ""
+cat conf/st2.dev.conf
+echo ""
+echo "st2.ci.conf"
+echo ""
+cat conf/st2.ci.conf || true
+echo ""
+
+# Needed by the coordination backend
+pip install "redis==3.5.3"
 
 # install st2 client
 python ./st2client/setup.py develop
@@ -47,4 +67,4 @@ chmod 777 logs/*
 chmod -R o+rwX ./virtualenv/
 # newer virtualenv versions are putting lock files under ~/.local
 # as this script runs with sudo, HOME is actually the CI user's home
-chmod -R o+rwX ${HOME}/.local/share/virtualenv
+chmod -R o+rwX "${HOME}/.local/share/virtualenv"

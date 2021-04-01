@@ -20,8 +20,25 @@ on:
     # run every night at midnight
     - cron:  '0 0 * * *'
 
+# TODO: Our workflow is far from ideal. We need to refactor it into multiple
+# ones and only run commands which are needed for some steps for those steps and
+# not for all
 jobs:
+  pre_job:
+    name: Skip Duplicate Jobs Pre Job
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@4c656bbdb6906310fa6213604828008bc28fe55d # v3.3.0
+        with:
+          cancel_others: 'true'
+          github_token: ${{ github.token }}
+
   ci:
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
     name: '${{ matrix.name }} - python (${{ matrix.python-version }})'
     runs-on: ubuntu-latest
     strategy:
@@ -38,13 +55,13 @@ jobs:
           - name: 'Unit Tests'
             task: 'ci-unit'
             python-version: '3.6'
+          - name: 'Integration Tests'
+            task: 'ci-integration'
+            python-version: '3.6'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
           #   python-version: '3.6'
-          - name: 'Integration Tests'
-            task: 'ci-integration'
-            python-version: '3.6'
     services:
       mongo:
         image: mongo:4.4
@@ -80,6 +97,23 @@ jobs:
           #- 15671:15671/tcp # Management: SSL port
           #- 25672:25672/tcp # inter-node or CLI
           #- 4369:4369/tcp   # epmd
+          #
+
+      # Used for the coordination backend for integration tests
+      # TODO: Only start this for integration tests via job step
+      # https://github.community/t/conditional-services-in-a-job/135301/3
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     env:
       TASK: '${{ matrix.task }}'
@@ -100,6 +134,9 @@ jobs:
 
       # Name of the user who is running the CI (on GitHub Actions this is 'runner')
       ST2_CI_USER: 'runner'
+
+      # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
+      PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - name: Custom Environment Setup
         # built-in GitHub Actions environment variables
@@ -163,6 +200,8 @@ jobs:
           # https://github.com/StackStorm/st2-auth-ldap
           sudo apt-get -y update
           sudo apt-get -f -y install libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils
+          # shellcheck is already available in docker runner image we use
+          # sudo apt-get -y install shellcheck
       - name: Install virtualenv
         run: |
           set -x
@@ -183,20 +222,20 @@ jobs:
           virtualenv --version
       - name: Install requirements
         run: |
-          ./scripts/travis/install-requirements.sh
-      - name: Setup integration tests
+          ./scripts/ci/install-requirements.sh
+      - name: Setup Integration Tests
         run: |
           # prep a ci-specific dev conf file that uses runner instead of stanley
           # this user is the username of the user in GitHub actions, used for SSH, etc during
           # integration tests (important)
           cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
-          scripts/travis/add-itest-user-key.sh
+          ./scripts/ci/add-itest-user-key.sh
           sudo .circle/add-itest-user.sh
       - name: Permissions Workaround
         if: "${{ env.TASK == 'ci-packs-tests' || env.TASK == 'ci-integration' }}"
         run: |
           echo "$ST2_CI_REPO_PATH"
-          sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/travis/permissions-workaround.sh
+          sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
       - name: Reconfigure RabbitMQ
         if: "${{ env.TASK == 'ci-unit' || env.TASK == 'ci-integration' }}"
         # bitnami image allows (see bitnami/rabbitmq readme):
@@ -204,29 +243,7 @@ jobs:
         # We need to switch to custom.conf or advanced.config.
         timeout-minutes: 2  # may die if rabbitmq fails to start
         run: |
-          set -x
-          # Use custom RabbitMQ config which enables SSL / TLS listener on port 5671 with test certs
-          sudo cp scripts/github/rabbitmq.conf /home/runner/rabbitmq_conf/custom.conf
-          # The code is checked out after the container is already up, so we don't mount them.
-          # We copy those certs into the dir that is mounted to /bitnami/conf
-          sudo cp -r st2tests/st2tests/fixtures/ssl_certs /home/runner/rabbitmq_conf/
-          # refresh rabbitmq config - based on ENTRYPOINT logic
-          docker exec rabbitmq bash -c 'cat /bitnami/conf/custom.conf >> /opt/bitnami/rabbitmq/etc/rabbitmq/rabbitmq.conf'
-          # sleep to prevent interleaved output in GHA logs
-          docker exec rabbitmq cat /opt/bitnami/rabbitmq/etc/rabbitmq/rabbitmq.conf && sleep 0.1
-          echo
-          echo restarting rabbitmq container
-          docker restart rabbitmq
-          # wait for rabbitmq container to restart
-          until [ "$(docker inspect -f {{.State.Running}} rabbitmq)" == "true" ]; do sleep 0.1; done
-          echo enabled RabbitMQ plugins:
-          # print plugins list to: (1) ease debugging, (2) pause till rabbitmq is really running
-          docker exec rabbitmq rabbitmq-plugins list -e
-          echo
-          sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
-          sudo chmod +x /usr/local/bin/rabbitmqadmin
-          # print logs from stdout (RABBITMQ_LOGS=-)
-          docker logs --tail=20 rabbitmq
+          ./scripts/github/configure-rabbitmq.sh
       - name: Print versions
         run: |
           # Print various binary versions
@@ -234,6 +251,7 @@ jobs:
           pip --version
           pip list
           virtualenv --version
+          shellcheck --version
           # Print out various environment variables info
           make play
       - name: make
@@ -244,12 +262,12 @@ jobs:
         # Run any additional nightly checks only as part of a nightly (cron) build
         if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
         run: |
-          ./scripts/travis/run-nightly-make-task-if-exists.sh "${TASK}"
+          ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
         if: "${{ success() && ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
         run: |
-          ./scripts/travis/submit-codecov-coverage.sh
+          ./scripts/ci/submit-codecov-coverage.sh
   slack-notification:
     name: Slack notification for failed master builds
     if: always()

@@ -15,7 +15,8 @@
 
 from __future__ import absolute_import
 
-from monotonic import monotonic
+from time import monotonic
+
 from pyrabbit.api import Client
 
 from st2common.util import concurrency
