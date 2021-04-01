@@ -191,6 +191,20 @@ Improvements
 
   Contributed by @Kami.
 
+* Update default nginx config which is used for proxying API requests and serving static
+  content to only allow HTTP methods which are actually used by the services (get, post, put,
+  delete, options, head).
+
+  If a not-allowed method is used, nginx will abort the request early and return 405 status
+  code. #5193
+
+  Contributed by @ashwini-orchestral
+
+* Update default nginx config which is used for proxying API requests and serving static
+  content to not allow range requests. #5193
+
+  Contributed by @ashwini-orchestral
+
 Fixed
 ~~~~~
 
