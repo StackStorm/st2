@@ -209,12 +209,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '${{ matrix.python-version }}'
-      - name: Get date components for use in cache-keys
-        id: date
-        run: |
-          echo "::set-output name=year::$(/bin/date -u "+%Y")"
-          echo "::set-output name=month::$(/bin/date -u "+%m")"
-          echo "::set-output name=week::$(/bin/date -u "+%U")"
       - name: Cache Python Dependencies
         uses: actions/cache@v2
         with:
@@ -235,9 +229,8 @@ jobs:
           path: |
             ~/apt_cache
           # TODO: Also incorporate package names into cache key
-          key: ${{ runner.os }}-apt-v5-${{ steps.date.outputs.year }}-${{ steps.date.outputs.week }}
+          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v5-${{ steps.date.outputs.year }}-
             ${{ runner.os }}-apt-v5-
       - name: Install APT Depedencies
         env:

@@ -4,9 +4,18 @@ set -e
 # Special script which supports installing apt-packages, caching installed files into a directory
 # and then on next run if cache is available, re-using that cache
 
+BASE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+APT_PACKAGES_FILE_PATH="${BASE_DIR}/apt-packages.txt"
+
 # Packages which will be installed and cached
 # NOTE: shellcheck is already available in docker runner image we use
-APT_PACKAGES="libldap2-dev libsasl2-dev libssl-dev libyaml-dev ldap-utils"
+# shellcheck disable=SC2002
+APT_PACKAGES=$(cat "${APT_PACKAGES_FILE_PATH}" | tr -d "\n")
+
+echo "Installing apt packages: ${APT_PACKAGES}"
+echo ""
+echo "CACHE_HIT=${CACHE_HIT}"
+echo ""
 
 # Directory where installed package files will be copied - should match directory specified for
 # cache target in github actions workflow
