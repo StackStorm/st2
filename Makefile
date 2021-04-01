@@ -155,6 +155,11 @@ play:
 	@echo
 	@echo INCLUDE_TESTS_IN_COVERAGE=$(INCLUDE_TESTS_IN_COVERAGE)
 	@echo
+	@echo NODE_TOTAL=$(NODE_TOTAL)
+	@echo
+	@echo
+	@echo NODE_INDEX=$(NODE_INDEX)
+	@echo
 
 .PHONY: check
 check: check-requirements check-sdist-requirements flake8 checklogs
@@ -275,7 +280,13 @@ check-python-packages-nightly:
 	done
 
 .PHONY: ci-checks-nightly
-ci-checks-nightly: check-python-packages-nightly micro-benchmarks
+# TODO: Ony run micro-benchmarks once a week since they are extremly slow on CI
+ci-checks-nightly: check-python-packages-nightly
+#ci-checks-nightly: check-python-packages-nightly micro-benchmarks
+
+# CI checks which are very slow and only run on a weekly basic
+.PHONY: ci-checks-weekly
+ci-checks-weekly: micro-benchmarks
 
 .PHONY: checklogs
 checklogs:
@@ -633,24 +644,14 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	@echo "==================== requirements ===================="
 	@echo
 	# Show pip installed packages before we start
+	echo ""
 	$(VIRTUALENV_DIR)/bin/pip list
+	echo ""
 
 	# Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
 	#       only have to update it one place when we change the version
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
-
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
-
-	# Fix for Travis CI race
-	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
-
-	# Fix for Travis CI caching issue
-	if [[ "$(TRAVIS_EVENT_TYPE)" != "" ]]; then\
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"; \
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"; \
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"; \
-	fi
 
 	# Install requirements
 	for req in $(REQUIREMENTS); do \
@@ -662,12 +663,7 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
-
-	# Note: We install prance here and not as part of any component
-	# requirements.txt because it has a conflict with our dependency (requires
-	# new version of requests) which we cant resolve at this moment
-	$(VIRTUALENV_DIR)/bin/pip install "prance==0.15.0"
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
@@ -685,7 +681,9 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	git submodule update --init --recursive --remote
 
 	# Show currently install requirements
+	echo ""
 	$(VIRTUALENV_DIR)/bin/pip list
+	echo ""
 
 .PHONY: check-dependency-conflicts
 check-dependency-conflicts:
@@ -1084,8 +1082,10 @@ debs:
 .PHONY: ci
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
+# NOTE: pylint is moved to ci-compile so we more evenly spread the load across
+# various different jobs to make the whole workflow complete faster
 .PHONY: ci-checks
-ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: .rst-check
 .rst-check:
@@ -1146,4 +1146,4 @@ ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html
 ci-packs-tests: .packs-tests
 
 .PHONY: ci-compile
-ci-compile: check-dependency-conflicts compilepy3
+ci-compile: check-dependency-conflicts compilepy3 .pylint
