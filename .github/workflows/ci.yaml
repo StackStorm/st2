@@ -44,20 +44,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.6, 3.8]
         include:
           - name: 'Lint Checks'
             task: 'ci-checks'
+            python-version: "3.6"
           - name: 'Compile'
             task: 'ci-compile'
+            python-version: "3.6"
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
+            python-version: "3.6"
           - name: 'Unit Tests'
             task: 'ci-unit'
-            python-version: '3.6'
+            python-version: "3.6"
           - name: 'Integration Tests'
             task: 'ci-integration'
-            python-version: '3.6'
+            python-version: "3.6"
+          - name: 'Lint Checks'
+            task: 'ci-checks'
+            python-version: "3.8"
+          - name: 'Compile'
+            task: 'ci-compile'
+            python-version: "3.8"
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            python-version: "3.8"
+          - name: 'Unit Tests'
+            task: 'ci-unit'
+            python-version: "3.8"
+          - name: 'Integration Tests'
+            task: 'ci-integration'
+            python-version: "3.8"
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
@@ -254,7 +271,7 @@ jobs:
           shellcheck --version
           # Print out various environment variables info
           make play
-      - name: make
+      - name: make '${TASK}'
         # use: script -e -c to print colors
         run: |
           script -e -c "make ${TASK}"
