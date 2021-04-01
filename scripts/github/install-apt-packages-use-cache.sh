@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 # Special script which supports installing apt-packages, caching installed files into a directory
 # and then on next run if cache is available, re-using that cache
@@ -23,9 +24,9 @@ mkdir -p "${APT_CACHE_ARCHIVES}/partial"
 
 # NOTE apt-get update is only needed is there is no cache. If there is an existing cache, we don't
 # run it to speed things up
-#if [[ "$CACHE_HIT" == 'false' ]]; then
-sudo apt-get -y update
-#fi
+if [[ "$CACHE_HIT" != 'true' ]]; then
+    sudo apt-get -y update
+fi
 
 # shellcheck disable=SC2086
 sudo apt-get -f -y install ${APT_PACKAGES}
