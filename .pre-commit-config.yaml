@@ -2,7 +2,7 @@
 # files.
 # This hook relies on development virtual environment being present in virtualenv/.
 default_language_version:
-  python: python3.6
+  python: python3.8
 
 exclude: '(build|dist)'
 repos:
