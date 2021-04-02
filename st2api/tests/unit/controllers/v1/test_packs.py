@@ -346,7 +346,6 @@ class PacksControllerTestCase(
     def test_index_health_broken(self):
         resp = self.app.get("/v1/packs/index/health")
 
-
         # up to Py3.6 requests.exceptions.RequestException() appends a trailing ,
         if sys.version_info < (3, 8):
             broken_index_message = "RequestException('index is broken',)"
