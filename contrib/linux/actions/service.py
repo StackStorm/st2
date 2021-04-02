@@ -18,7 +18,7 @@
 import re
 import sys
 import os
-import platform
+import distro as platform
 import subprocess
 
 from st2common.util.shell import quote_unix
