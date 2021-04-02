@@ -111,7 +111,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        concurrency.sleep(5)
+        concurrency.sleep(7)
 
         # Assert process has started and is running
         self.assertProcessIsRunning(process=process)
@@ -139,7 +139,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        concurrency.sleep(3)
+        concurrency.sleep(5)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -152,7 +152,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGTERM causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        concurrency.sleep(PROCESS_EXIT_TIMEOUT + 5)
+        concurrency.sleep(PROCESS_EXIT_TIMEOUT + 8)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -164,7 +164,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        concurrency.sleep(4)
+        concurrency.sleep(5)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -198,7 +198,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         pp = psutil.Process(process.pid)
 
         # Give it some time to start up
-        concurrency.sleep(4)
+        concurrency.sleep(5)
 
         stdout = process.stdout.read()
         self.assertTrue(
@@ -224,7 +224,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         pp = psutil.Process(process.pid)
 
         # Give it some time to start up
-        concurrency.sleep(8)
+        concurrency.sleep(1)
 
         # Container should exit and not respawn a sensor in single sensor mode
         stdout = process.stdout.read()
@@ -242,6 +242,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
     def _start_sensor_container(self, cmd=DEFAULT_CMD):
         subprocess = concurrency.get_subprocess_module()
+        print("Using command: %s" % (" ".join(cmd)))
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
