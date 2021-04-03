@@ -23,5 +23,5 @@ import sys
 
 from st2common.cmd import setup_pack_virtualenv
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(setup_pack_virtualenv.main(sys.argv[1:]))
