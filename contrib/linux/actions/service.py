@@ -35,7 +35,7 @@ from st2common.util.shell import quote_unix
 def get_linux_distribution():
     # platform.linux_distribution() is not available in Python >= 3.8
     if hasattr(platform, "linux_distribution"):
-        distro = platform.linux_distribution()[0]
+        distro = platform.linux_distribution()[0]  # pylint: disable=no-member
     else:
         # Fall back to shelling out to lsb_release
         result = subprocess.run(
