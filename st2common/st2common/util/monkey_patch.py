@@ -31,7 +31,7 @@ USE_DEBUGGER_FLAG = "--use-debugger"
 PARENT_ARGS_FLAG = "--parent-args="
 
 
-def monkey_patch(patch_thread=False):
+def monkey_patch(patch_thread=None):
     """
     Function which performs eventlet monkey patching and also takes into account "--use-debugger"
     argument in the command line arguments.
