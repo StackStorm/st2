@@ -150,6 +150,10 @@ Changed
 
   Contributed by @Kami.
 
+* Update code and dependencies so it supports Python 3.8 and Mongo DB 4.4 #5177
+
+  Contributed by @nzloshm @winem.
+
 Improvements
 ~~~~~~~~~~~~
 
