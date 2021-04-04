@@ -30,29 +30,30 @@ from st2common.models.api import rule as rule_models
 from st2common.models.api import sensor as sensor_models
 
 content_models = {
-    'pack': pack_models.PackAPI,
-    'action': action_models.ActionAPI,
-    'alias': action_models.ActionAliasAPI,
-    'policy': policy_models.PolicyAPI,
-    'rule': rule_models.RuleAPI,
-    'sensor': sensor_models.SensorTypeAPI,
+    "pack": pack_models.PackAPI,
+    "action": action_models.ActionAPI,
+    "alias": action_models.ActionAliasAPI,
+    "policy": policy_models.PolicyAPI,
+    "rule": rule_models.RuleAPI,
+    "sensor": sensor_models.SensorTypeAPI,
 }
+
 
 def main():
     scripts_dir = os.path.dirname(os.path.abspath(__file__))
-    schemas_dir = os.path.abspath(os.path.join(scripts_dir, '../../contrib/schemas'))
+    schemas_dir = os.path.abspath(os.path.join(scripts_dir, "../../contrib/schemas"))
 
     for name, model in six.iteritems(content_models):
         schema_text = json.dumps(model.schema, indent=4)
         print('Generated schema for the "%s" model.' % name)
 
-        schema_file = os.path.join(schemas_dir, name + '.json')
+        schema_file = os.path.join(schemas_dir, name + ".json")
         print('Schema will be written to "%s".' % schema_file)
 
-        with open(schema_file, 'w') as f:
+        with open(schema_file, "w") as f:
             f.write(schema_text)
-            f.write('\n')
+            f.write("\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
