@@ -150,6 +150,23 @@ Changed
 
   Contributed by @Kami.
 
+* StackStorm Web UI (``st2web``) has been updated to not render and display execution results
+  larger than 200 KB directly in the history panel in the right side bar by default anymore.
+  Instead a link to view or download the raw result is displayed.
+
+  Execution result widget was never optimized to display very large results (especially for
+  executions which return large nested dictionaries) so it would freeze and hang the whole
+  browser tab / window when trying to render / display large results.
+
+  If for some reason you want to revert to the old behavior (this is almost never a good idea
+  since it will cause browser to freeze when trying to display large results), you can do that by
+  setting ``max_execution_result_size_for_render`` option in the config to a very large value (e.g.
+  ``max_execution_result_size_for_render: 16 * 1024 * 1024``).
+
+  https://github.com/StackStorm/st2web/pull/868
+
+  Contributed by @Kami.
+
 Improvements
 ~~~~~~~~~~~~
 
