@@ -38,12 +38,13 @@ jobs:
           cancel_others: 'true'
           github_token: ${{ github.token }}
 
-  ci:
+  # Lint checks which don't depend on any service containes, etc. to be running.
+  lint-checks:
     needs: pre_job
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - python (${{ matrix.python-version }})'
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -53,19 +54,87 @@ jobs:
         include:
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
             python-version: '3.6'
           - name: 'Compile (pip deps, pylint, etc.)'
             task: 'ci-compile'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
             python-version: '3.6'
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version: '3.6'
+
+    env:
+      TASK: '${{ matrix.task }}'
+      COLUMNS: '120'
+      PYLINT_CONCURRENCY: '4'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Custom Environment Setup
+        run: |
+          ./scripts/github/setup-environment.sh
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: Cache Python Dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+            virtualenv
+            ~/virtualenv
+          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+          # !virtualenv/lib/python*/site-packages/st2*
+          # !virtualenv/bin/st2*
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python }}-
+      - name: Cache APT Dependencies
+        id: cache-apt-deps
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/apt_cache
+          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-v5-
+      - name: Install APT Depedencies
+        env:
+          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
+        run: |
+          # install dev dependencies for Python YAML and LDAP packages
+          # https://github.com/StackStorm/st2-auth-ldap
+          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Install virtualenv
+        run: |
+          ./scripts/github/install-virtualenv.sh
+      - name: Install requirements
+        run: |
+          ./scripts/ci/install-requirements.sh
+      - name: Print versions
+        run: |
+          ./scripts/ci/print-versions.sh
+      - name: make
+        # use: script -e -c to print colors
+        timeout-minutes: 25
+        run: |
+          script -e -c "make ${TASK}"
+      - name: Nightly
+        # Run any additional nightly checks only as part of a nightly (cron) build
+        if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
+        run: |
+          ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
+
+  unit-tests:
+    needs: pre_job
+    # NOTE: We always want to run job on master since we run some additional checks there (code
+    # coverage, etc)
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
+        # each job runs subset of tests.
+        include:
           - name: 'Unit Tests (chunk 1)'
             task: 'ci-unit'
             nosetests_node_total: 3
@@ -80,6 +149,155 @@ jobs:
             task: 'ci-unit'
             nosetests_node_total: 3
             nosetests_node_index: 2
+            python-version: '3.6'
+          # This job is slow so we only run in on a daily basis
+          # - name: 'Micro Benchmarks'
+          #   task: 'micro-benchmarks'
+          #   python-version: '3.6'
+          #   nosetests_node_total: 1
+          #  nosetests_node_ index: 0
+    services:
+      mongo:
+        image: mongo:4.0
+        ports:
+          - 27017:27017
+
+      rabbitmq:
+        image: rabbitmq:3.8-management
+        options: >-
+          --name rabbitmq
+        ports:
+          - 5671:5671/tcp   # AMQP SSL port
+          - 5672:5672/tcp   # AMQP standard port
+          - 15672:15672/tcp # Management: HTTP, CLI
+
+    env:
+      TASK: '${{ matrix.task }}'
+
+      NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
+      NODE_INDEX: '${{ matrix.nosetests_node_index }}'
+
+      # We need to explicitly specify terminal width otherwise some CLI tests fail on container
+      # environments where small terminal size is used.
+      COLUMNS: '120'
+
+      # CI st2.conf (with ST2_CI_USER user instead of stanley)
+      ST2_CONF: 'conf/st2.ci.conf'
+
+      # Tell StackStorm that we are indeed in CI mode, previously we hard coded a Travis specific
+      # environment variable in our test code, making it a PITA when we switch CI providers.
+      # Now, we simply set this environment varible here in the CI portion of our testing and
+      # it avoids any CI provider type lock-in.
+      ST2_CI: 'true'
+
+      # Name of the user who is running the CI (on GitHub Actions this is 'runner')
+      ST2_CI_USER: 'runner'
+
+      # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
+      PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Custom Environment Setup
+        run: |
+          ./scripts/github/setup-environment.sh
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: Cache Python Dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+            virtualenv
+            ~/virtualenv
+          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+          # !virtualenv/lib/python*/site-packages/st2*
+          # !virtualenv/bin/st2*
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python }}-
+      - name: Cache APT Dependencies
+        id: cache-apt-deps
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/apt_cache
+          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-v5-
+      - name: Install APT Depedencies
+        env:
+          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
+        run: |
+          # install dev dependencies for Python YAML and LDAP packages
+          # https://github.com/StackStorm/st2-auth-ldap
+          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Install virtualenv
+        run: |
+          ./scripts/github/install-virtualenv.sh
+      - name: Install requirements
+        run: |
+          ./scripts/ci/install-requirements.sh
+      - name: Setup Tests
+        run: |
+          # prep a ci-specific dev conf file that uses runner instead of stanley
+          # this user is the username of the user in GitHub actions, used for SSH, etc during
+          # integration tests (important)
+          cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
+
+          sudo -E ./scripts/ci/add-itest-user-key.sh
+      - name: Permissions Workaround
+        run: |
+          echo "$ST2_CI_REPO_PATH"
+          sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
+      - name: Reconfigure RabbitMQ
+        if: "${{ env.TASK == 'ci-unit' || env.TASK == 'ci-integration' }}"
+        # bitnami image allows (see bitnami/rabbitmq readme):
+        # Here we're copying a rabbitmq.config file which won't do anything.
+        # We need to switch to custom.conf or advanced.config.
+        timeout-minutes: 2  # may die if rabbitmq fails to start
+        run: |
+          ./scripts/github/configure-rabbitmq.sh
+      - name: Print versions
+        run: |
+          ./scripts/ci/print-versions.sh
+      - name: make
+        # use: script -e -c to print colors
+        timeout-minutes: 25
+        run: |
+          script -e -c "make ${TASK}"
+      - name: Nightly
+        # Run any additional nightly checks only as part of a nightly (cron) build
+        if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
+        run: |
+          ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
+      - name: Codecov
+        # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') }}"
+        run: |
+          ./scripts/ci/submit-codecov-coverage.sh
+
+  integration-tests:
+    needs: pre_job
+    # NOTE: We always want to run job on master since we run some additional checks there (code
+    # coverage, etc)
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
+        # each job runs subset of tests.
+        include:
+          # We run pack tests here since they rely on some integration tests set
+          # up (aka stanley user being present, etc.)
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
             python-version: '3.6'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
@@ -96,12 +314,6 @@ jobs:
             nosetests_node_total: 3
             nosetests_node_index: 2
             python-version: '3.6'
-          # This job is slow so we only run in on a daily basis
-          # - name: 'Micro Benchmarks'
-          #   task: 'micro-benchmarks'
-          #   python-version: '3.6'
-          #   nosetests_node_total: 1
-          #  nosetests_node_ index: 0
     services:
       mongo:
         image: mongo:4.0
@@ -164,7 +376,6 @@ jobs:
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
       COLUMNS: '120'
-      PYLINT_CONCURRENCY: '4'
 
       # CI st2.conf (with ST2_CI_USER user instead of stanley)
       ST2_CONF: 'conf/st2.ci.conf'
@@ -181,30 +392,11 @@ jobs:
       # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
-      - name: Custom Environment Setup
-        # built-in GitHub Actions environment variables
-        # https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables
-        #
-        # setting environment variables, so we can use shell logic
-        # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
-        run: |
-          IS_NIGHTLY_BUILD=$([ "${GITHUB_EVENT_NAME}" = "schedule" ] && echo "yes" || echo "no")
-          echo "IS_NIGHTLY_BUILD=${IS_NIGHTLY_BUILD}" >> $GITHUB_ENV
-
-          # NOTE: We only enable coverage for master builds and not pull requests
-          # since it has huge performance overhead (tests are 50% or so slower)
-          ENABLE_COVERAGE=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
-          echo "ENABLE_COVERAGE=${ENABLE_COVERAGE}" >> $GITHUB_ENV
-
-          # We only run tests with "--with-timer" flag on master and not for PRs since it adds 1-2
-          # minutes of overhead to each build.
-          NOSE_TIME=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
-          echo "NOSE_TIME=${NOSE_TIME}" >> $GITHUB_ENV
-
-          # Setup the path to the st2 repo in the CI build system
-          echo "ST2_CI_REPO_PATH=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Custom Environment Setup
+        run: |
+          ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }})'
         uses: actions/setup-python@v2
         with:
@@ -228,7 +420,6 @@ jobs:
         with:
           path: |
             ~/apt_cache
-          # TODO: Also incorporate package names into cache key
           key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
             ${{ runner.os }}-apt-v5-
@@ -241,22 +432,7 @@ jobs:
           ./scripts/github/install-apt-packages-use-cache.sh
       - name: Install virtualenv
         run: |
-          set -x
-          # Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
-          #       only have to update it one place when we change the version
-          # Note: Use --user to avoid polluting system site-packages (which breaks one of our tests)
-          # TODO: simplify this once fixed in contrib/runners/python_runner/tests/integration/test_pythonrunner_behavior.py
-          if [[ ! -f ~/virtualenv/bin/virtualenv ]]; then  # use the cached version whenever possible
-            pip install --user --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
-            virtualenv --no-download ~/virtualenv
-            ~/virtualenv/bin/pip install --upgrade --force-reinstall $(grep "^virtualenv" fixed-requirements.txt)
-            # drop the --user install virtualenv to prevent polluting tests
-            pip freeze --user | xargs pip uninstall -y
-          fi
-          mkdir -p ~/.local/bin
-          ln -s ~/virtualenv/bin/virtualenv ~/.local/bin/virtualenv
-          which virtualenv
-          virtualenv --version
+          ./scripts/github/install-virtualenv.sh
       - name: Install requirements
         run: |
           ./scripts/ci/install-requirements.sh
@@ -266,21 +442,18 @@ jobs:
           # this user is the username of the user in GitHub actions, used for SSH, etc during
           # integration tests (important)
           cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
-          ./scripts/ci/add-itest-user-key.sh
-          sudo .circle/add-itest-user.sh
+
+          sudo -E ./scripts/ci/add-itest-user-key.sh
       - name: Run Redis Service Container
-        if: "${{ env.TASK == 'ci-integration' }}"
         timeout-minutes: 2
         run: |
           docker run --rm --detach -p 127.0.0.1:6379:6379/tcp --name redis redis:latest
           until [ "$(docker inspect -f {{.State.Running}} redis)" == "true" ]; do sleep 0.1; done
       - name: Permissions Workaround
-        if: "${{ env.TASK == 'ci-packs-tests' || env.TASK == 'ci-integration' }}"
         run: |
           echo "$ST2_CI_REPO_PATH"
           sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
       - name: Reconfigure RabbitMQ
-        if: "${{ env.TASK == 'ci-unit' || env.TASK == 'ci-integration' }}"
         # bitnami image allows (see bitnami/rabbitmq readme):
         # Here we're copying a rabbitmq.config file which won't do anything.
         # We need to switch to custom.conf or advanced.config.
@@ -289,35 +462,28 @@ jobs:
           ./scripts/github/configure-rabbitmq.sh
       - name: Print versions
         run: |
-          # Print various binary versions
-          git --version
-          pip --version
-          pip list
-          virtualenv --version
-          shellcheck --version
-          # Print out various environment variables info
-          make play
+          ./scripts/ci/print-versions.sh
       - name: make
         # use: script -e -c to print colors
         run: |
           script -e -c "make ${TASK}"
-      - name: Nightly
-        # Run any additional nightly checks only as part of a nightly (cron) build
-        if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
-        run: |
-          ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && ((env.TASK == 'ci-unit') || (env.TASK == 'ci-integration')) && (env.ENABLE_COVERAGE == 'yes') }}"
+        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
+        timeout-minutes: 25
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
       - name: Stop Redis Service Container
-        if: "${{ always() && env.TASK == 'ci-integration' }}"
+        if: "${{ always() }}"
         run: docker rm --force redis || true
+
   slack-notification:
     name: Slack notification for failed master builds
     if: always()
-    needs: ci
+    needs:
+      - lint-checks
+      - unit-tests
+      - integration-tests
     runs-on: ubuntu-latest
     steps:
       - name: Workflow conclusion
@@ -345,3 +511,4 @@ jobs:
       # - name: Setup tmate session for debugging failed jobs (allows SSH into the container)
       #   uses: mxschmitt/action-tmate@v3
       #   if: "${{ failure() }}"
+      #
