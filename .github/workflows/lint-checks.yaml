@@ -1,0 +1,155 @@
+name: Lint Checks
+
+on:
+  push:
+    branches:
+      # only on merges to master branch
+      - master
+      # and version branches, which only include minor versions (eg: v3.4)
+      - v[0-9]+.[0-9]+
+    tags:
+      # also version tags, which include bugfix releases (eg: v3.4.0)
+      - v[0-9]+.[0-9]+.[0-9]+
+  pull_request:
+    type: [opened, reopened, edited]
+    branches:
+      # Only for PRs targeting those branches
+      - master
+      - v[0-9]+.[0-9]+
+  schedule:
+    # run every night at midnight
+    - cron:  '0 0 * * *'
+
+
+jobs:
+  # Special job which automatically cancels old runs for the same branch, prevents runs for the
+  # same file set which has already passed, etc.
+  pre_job:
+    name: Skip Duplicate Jobs Pre Job
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@4c656bbdb6906310fa6213604828008bc28fe55d # v3.3.0
+        with:
+          cancel_others: 'true'
+          github_token: ${{ github.token }}
+
+  # Lint checks which don't depend on any service containes, etc. to be running.
+  lint-checks:
+    needs: pre_job
+    # NOTE: We always want to run job on master since we run some additional checks there (code
+    # coverage, etc)
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
+        # each job runs subset of tests.
+        include:
+          - name: 'Lint Checks (black, flake8, etc.)'
+            task: 'ci-checks'
+            python-version: '3.6'
+          - name: 'Compile (pip deps, pylint, etc.)'
+            task: 'ci-compile'
+            python-version: '3.6'
+
+    env:
+      TASK: '${{ matrix.task }}'
+      COLUMNS: '120'
+      PYLINT_CONCURRENCY: '4'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Custom Environment Setup
+        run: |
+          ./scripts/github/setup-environment.sh
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: Cache Python Dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+            virtualenv
+            ~/virtualenv
+          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+          # !virtualenv/lib/python*/site-packages/st2*
+          # !virtualenv/bin/st2*
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python }}-
+      - name: Cache APT Dependencies
+        id: cache-apt-deps
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/apt_cache
+          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-v5-
+      - name: Install APT Depedencies
+        env:
+          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
+        run: |
+          # install dev dependencies for Python YAML and LDAP packages
+          # https://github.com/StackStorm/st2-auth-ldap
+          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Install virtualenv
+        run: |
+          ./scripts/github/install-virtualenv.sh
+      - name: Install requirements
+        run: |
+          ./scripts/ci/install-requirements.sh
+      - name: Print versions
+        run: |
+          ./scripts/ci/print-versions.sh
+      - name: make
+        # use: script -e -c to print colors
+        timeout-minutes: 25
+        run: |
+          script -e -c "make ${TASK}"
+      - name: Nightly
+        # Run any additional nightly checks only as part of a nightly (cron) build
+        if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
+        run: |
+          ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
+
+  slack-notification:
+    name: Slack notification for failed master builds
+    if: always()
+    needs:
+      - lint-checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow conclusion
+        # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
+        uses: technote-space/workflow-conclusion-action@v2
+      - name: CI Run Failure Slack Notification
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.ref == 'refs/heads/master' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: development
+          status: FAILED
+          color: danger
+
+      # HELPER FOR FUTURE DEVELOPERS:
+      #  If your GitHub Actions job is failing and you need to debug it, by default there is
+      #  no way to SSH into the container.
+      #  The step below can be uncommeted and will stop here and allow you to SSH in.
+      #  When this step is reached, simply refresh the GitHub Actions output for this build
+      #  and this SSH command will be printed every 5 seconds to the output.
+      #  Once you are done debugging in your SSH session, simply: touch /continue
+      #  and this will continue the build.
+      #
+      # - name: Setup tmate session for debugging failed jobs (allows SSH into the container)
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: "${{ failure() }}"
+      #
