@@ -182,7 +182,11 @@ class KeyValuePairAPI(BaseAPI):
                 raise ValueError(msg)
 
             # Additional safety check to ensure that the value hasn't been decrypted
-            assert value == original_value
+            if value != original_value:
+                raise ValueError(
+                    f"The encrypted value {value} is not the"
+                    f" same original encrypted value {original_value}."
+                )
         elif secret:
             cls._verif_key_is_set_up(name=name)
 
@@ -217,9 +221,9 @@ class KeyValuePairAPI(BaseAPI):
     @classmethod
     def _verif_key_is_set_up(cls, name):
         if not KeyValuePairAPI.crypto_key:
-            msg = "Crypto key not found in %s. Unable to encrypt / decrypt value for key %s." % (
-                KeyValuePairAPI.crypto_key_path,
-                name,
+            msg = (
+                "Crypto key not found in %s. Unable to encrypt / decrypt value for key %s."
+                % (KeyValuePairAPI.crypto_key_path, name)
             )
             raise CryptoKeyNotSetupException(msg)
 

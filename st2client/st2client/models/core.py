@@ -16,11 +16,11 @@
 from __future__ import absolute_import
 
 import os
-import json
 import logging
 from functools import wraps
 
 import six
+import orjson
 from six.moves import urllib
 from six.moves import http_client
 import requests
@@ -42,6 +42,28 @@ def add_auth_token_to_kwargs_from_env(func):
         return func(*args, **kwargs)
 
     return decorate
+
+
+def parse_api_response(response: requests.models.Response) -> dict:
+    """
+    Utility function which parses API json response using orjson.
+
+    requests uses simplejson, but this version uses orjson which can be up to 50% faster and that
+    is especially pronounced with larger response.
+    """
+    # Upstream implementation is available at
+    # https://github.com/psf/requests/blob/master/requests/models.py#L876
+    # NOTE: It's important that we manually decode response.content attribute before passing it to
+    # orjson otherwise orjson will try to decode it and will be slower.
+
+    # Inside tests content is not always bytes
+    if isinstance(response.content, str):
+        data = response.content
+    else:
+        data = response.content.decode("utf-8")
+
+    data = orjson.loads(data)
+    return data
 
 
 class Resource(object):
@@ -131,7 +153,7 @@ class Resource(object):
     @classmethod
     def deserialize(cls, doc):
         if type(doc) is not dict:
-            doc = json.loads(doc)
+            doc = orjson.loads(doc)
         return cls(**doc)
 
     def __str__(self):
@@ -161,7 +183,7 @@ class ResourceManager(object):
     @staticmethod
     def handle_error(response):
         try:
-            content = response.json()
+            content = parse_api_response(response)
             fault = content.get("faultstring", "") if content else ""
             if fault:
                 response.reason += "\nMESSAGE: %s" % fault
@@ -180,6 +202,7 @@ class ResourceManager(object):
         pack = kwargs.pop("pack", None)
         prefix = kwargs.pop("prefix", None)
         user = kwargs.pop("user", None)
+        offset = kwargs.pop("offset", 0)
 
         params = kwargs.pop("params", {})
 
@@ -195,10 +218,15 @@ class ResourceManager(object):
         if user:
             params["user"] = user
 
+        if offset:
+            params["offset"] = offset
+
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        return [self.resource.deserialize(item) for item in response.json()]
+        return [
+            self.resource.deserialize(item) for item in parse_api_response(response)
+        ]
 
     @add_auth_token_to_kwargs_from_env
     def get_by_id(self, id, **kwargs):
@@ -208,7 +236,8 @@ class ResourceManager(object):
             return None
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        return self.resource.deserialize(response.json())
+
+        return self.resource.deserialize(parse_api_response(response=response))
 
     @add_auth_token_to_kwargs_from_env
     def get_property(self, id_, property_name, self_deserialize=True, **kwargs):
@@ -244,9 +273,11 @@ class ResourceManager(object):
             self.handle_error(response)
 
         if self_deserialize:
-            return [self.resource.deserialize(item) for item in response.json()]
+            return [
+                self.resource.deserialize(item) for item in parse_api_response(response)
+            ]
         else:
-            return response.json()
+            return parse_api_response(response)
 
     @add_auth_token_to_kwargs_from_env
     def get_by_ref_or_id(self, ref_or_id, **kwargs):
@@ -282,7 +313,7 @@ class ResourceManager(object):
             return [], None
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        items = response.json()
+        items = parse_api_response(response)
         instances = [self.resource.deserialize(item) for item in items]
         return instances, response
 
@@ -318,7 +349,7 @@ class ResourceManager(object):
         response = self.client.post(url, instance.serialize(), **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(parse_api_response(response))
         return instance
 
     @add_auth_token_to_kwargs_from_env
@@ -327,7 +358,7 @@ class ResourceManager(object):
         response = self.client.put(url, instance.serialize(), **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(parse_api_response(response))
         return instance
 
     @add_auth_token_to_kwargs_from_env
@@ -357,11 +388,14 @@ class ResourceManager(object):
             self.handle_error(response)
             return False
         try:
-            resp_json = response.json()
+            resp_json = parse_api_response(response)
             if resp_json:
                 return resp_json
-        except:
-            pass
+        except Exception as e:
+            print(
+                "\nUnable to retrieve detailed message "
+                "from the HTTP response. %s\n" % six.text_type(e)
+            )
         return True
 
 
@@ -377,7 +411,7 @@ class ActionAliasResourceManager(ResourceManager):
         response = self.client.post(url, instance.serialize(), **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        match = response.json()
+        match = parse_api_response(response)
         return (
             self.resource.deserialize(match["actionalias"]),
             match["representation"],
@@ -392,7 +426,7 @@ class ActionAliasExecutionManager(ResourceManager):
 
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json()["results"][0])
+        instance = self.resource.deserialize(parse_api_response(response)["results"][0])
         return instance
 
 
@@ -443,7 +477,7 @@ class ExecutionResourceManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(parse_api_response(response))
         return instance
 
     @add_auth_token_to_kwargs_from_env
@@ -469,7 +503,7 @@ class ExecutionResourceManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return self.resource.deserialize(response.json())
+        return self.resource.deserialize(parse_api_response(response))
 
     @add_auth_token_to_kwargs_from_env
     def resume(self, execution_id, **kwargs):
@@ -481,7 +515,7 @@ class ExecutionResourceManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return self.resource.deserialize(response.json())
+        return self.resource.deserialize(parse_api_response(response))
 
     @add_auth_token_to_kwargs_from_env
     def get_children(self, execution_id, **kwargs):
@@ -497,7 +531,9 @@ class ExecutionResourceManager(ResourceManager):
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        return [self.resource.deserialize(item) for item in response.json()]
+        return [
+            self.resource.deserialize(item) for item in parse_api_response(response)
+        ]
 
 
 class InquiryResourceManager(ResourceManager):
@@ -516,7 +552,7 @@ class InquiryResourceManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return self.resource.deserialize(response.json())
+        return self.resource.deserialize(parse_api_response(response))
 
 
 class TriggerInstanceResourceManager(ResourceManager):
@@ -529,7 +565,7 @@ class TriggerInstanceResourceManager(ResourceManager):
         response = self.client.post(url, None, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        return response.json()
+        return parse_api_response(response)
 
 
 class AsyncRequest(Resource):
@@ -548,7 +584,7 @@ class PackResourceManager(ResourceManager):
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = AsyncRequest.deserialize(response.json())
+        instance = AsyncRequest.deserialize(parse_api_response(response))
         return instance
 
     @add_auth_token_to_kwargs_from_env
@@ -557,7 +593,7 @@ class PackResourceManager(ResourceManager):
         response = self.client.post(url, {"packs": packs}, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = AsyncRequest.deserialize(response.json())
+        instance = AsyncRequest.deserialize(parse_api_response(response))
         return instance
 
     @add_auth_token_to_kwargs_from_env
@@ -575,7 +611,7 @@ class PackResourceManager(ResourceManager):
                 return None
 
             self.handle_error(response)
-        data = response.json()
+        data = parse_api_response(response)
         if isinstance(data, list):
             return [self.resource.deserialize(item) for item in data]
         else:
@@ -592,7 +628,7 @@ class PackResourceManager(ResourceManager):
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(parse_api_response(response))
         return instance
 
 
@@ -603,7 +639,7 @@ class ConfigManager(ResourceManager):
         response = self.client.put(url, instance.values, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(parse_api_response(response))
         return instance
 
 
@@ -628,7 +664,7 @@ class WebhookManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return response.json()
+        return parse_api_response(response)
 
     @add_auth_token_to_kwargs_from_env
     def match(self, instance, **kwargs):
@@ -636,7 +672,7 @@ class WebhookManager(ResourceManager):
         response = self.client.post(url, instance.serialize(), **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        match = response.json()
+        match = parse_api_response(response)
         return (
             self.resource.deserialize(match["actionalias"]),
             match["representation"],
@@ -691,7 +727,7 @@ class StreamManager(object):
             # can be empty. In this case, rerun the query.
             if not message.data:
                 continue
-            yield json.loads(message.data)
+            yield orjson.loads(message.data)
 
 
 class WorkflowManager(object):
@@ -706,7 +742,7 @@ class WorkflowManager(object):
     @staticmethod
     def handle_error(response):
         try:
-            content = response.json()
+            content = parse_api_response(response)
             fault = content.get("faultstring", "") if content else ""
 
             if fault:
@@ -724,7 +760,9 @@ class WorkflowManager(object):
         url = "/inspect"
 
         if not isinstance(definition, six.string_types):
-            raise TypeError("Workflow definition is not type of string.")
+            raise TypeError(
+                f"Workflow definition is not type of string (was {type(definition)})."
+            )
 
         if "headers" not in kwargs:
             kwargs["headers"] = {}
@@ -736,7 +774,7 @@ class WorkflowManager(object):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return response.json()
+        return parse_api_response(response)
 
 
 class ServiceRegistryGroupsManager(ResourceManager):
@@ -750,7 +788,7 @@ class ServiceRegistryGroupsManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        groups = response.json()["groups"]
+        groups = parse_api_response(response)["groups"]
 
         result = []
         for group in groups:
@@ -771,7 +809,7 @@ class ServiceRegistryMembersManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        members = response.json()["members"]
+        members = parse_api_response(response)["members"]
 
         result = []
         for member in members:

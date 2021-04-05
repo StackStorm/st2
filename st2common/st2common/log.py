@@ -139,8 +139,8 @@ def find_caller(stack_info=False, stacklevel=1):
                     sio.close()
                 rv = (filename, f.f_lineno, co.co_name, sinfo)
             break
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Unable to find caller. {e}")
 
     return rv
 
@@ -250,7 +250,7 @@ def _patch_stdout():
     This function works around that by ensuring sys.stdout is always opened in utf-8 mode.
     """
 
-    stdout_encoding = getattr(sys.stdout, "encoding", "none")
+    stdout_encoding = str(getattr(sys.stdout, "encoding", "none")).lower()
 
     if stdout_encoding not in ["utf8", "utf-8"] and PATCH_STDOUT:
         LOG.info(

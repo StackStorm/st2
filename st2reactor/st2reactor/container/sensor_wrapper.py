@@ -52,6 +52,9 @@ from st2reactor.sensor import config
 from st2common.services.datastore import SensorDatastoreService
 from st2common.util.monkey_patch import use_select_poll_workaround
 
+
+LOG = logging.getLogger(__name__)
+
 __all__ = ["SensorWrapper", "SensorService"]
 
 use_select_poll_workaround(nose_only=False)
@@ -199,7 +202,10 @@ class SensorWrapper(object):
         try:
             config.parse_args(args=self._parent_args)
         except Exception:
-            pass
+            LOG.exception(
+                "Failed to parse config using parent args "
+                '(parent_args=%s): "%s".' % (str(self._parent_args))
+            )
 
         # 2. Establish DB connection
         username = (
@@ -420,7 +426,12 @@ if __name__ == "__main__":
     trigger_types = args.trigger_type_refs
     trigger_types = trigger_types.split(",") if trigger_types else []
     parent_args = json.loads(args.parent_args) if args.parent_args else []
-    assert isinstance(parent_args, list)
+
+    if not isinstance(parent_args, list):
+        raise TypeError(
+            "Command line arguments passed to the parent process must be a list"
+            f" (was {type(parent_args)})."
+        )
 
     obj = SensorWrapper(
         pack=args.pack,

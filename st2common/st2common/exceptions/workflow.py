@@ -30,7 +30,7 @@ def retry_on_connection_errors(exc):
     LOG.warning("Determining if exception %s should be retried.", type(exc))
 
     retrying = isinstance(exc, tooz.coordination.ToozConnectionError) or isinstance(
-        exc, mongoengine.connection.MongoEngineConnectionError
+        exc, mongoengine.connection.ConnectionFailure
     )
 
     if retrying:

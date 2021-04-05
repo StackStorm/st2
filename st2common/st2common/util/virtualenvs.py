@@ -284,6 +284,10 @@ def install_requirements(
     )
     exit_code, stdout, stderr = run_command(cmd=cmd, env=env)
 
+    # Normally we don't want this, even in debug logs. But it is useful to
+    # investigate pip behavior changes & broken virtualenv integration tests.
+    # logger.debug(f"\npip stdout=\n{stdout}")
+
     if exit_code != 0:
         stdout = to_ascii(stdout)
         stderr = to_ascii(stderr)
@@ -329,6 +333,10 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=
         "Installing requirement %s with command %s.", requirement, " ".join(cmd)
     )
     exit_code, stdout, stderr = run_command(cmd=cmd, env=env)
+
+    # Normally we don't want this, even in debug logs. But it is useful to
+    # investigate pip behavior changes & broken virtualenv integration tests.
+    # logger.debug(f"\npip stdout=\n{stdout}")
 
     if exit_code != 0:
         raise Exception(

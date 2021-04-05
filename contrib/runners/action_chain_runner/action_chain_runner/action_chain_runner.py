@@ -48,7 +48,7 @@ from st2common.util import date as date_utils
 from st2common.util import jinja as jinja_utils
 from st2common.util import param as param_utils
 from st2common.util.config_loader import get_config
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = ["ActionChainRunner", "ChainHolder", "get_runner", "get_metadata"]
 
@@ -85,7 +85,7 @@ class ChainHolder(object):
             )
 
     def restore_vars(self, ctx_vars):
-        self.vars.update(fast_deepcopy(ctx_vars))
+        self.vars.update(fast_deepcopy_dict(ctx_vars))
 
     def validate(self):
         """
@@ -327,6 +327,7 @@ class ActionChainRunner(ActionRunner):
         # Identify the list of action executions that are workflows and cascade pause.
         for child_exec_id in self.execution.children:
             child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
+
             if (
                 child_exec.runner["name"] in action_constants.WORKFLOW_RUNNER_TYPES
                 and child_exec.status in action_constants.LIVEACTION_CANCELABLE_STATES
@@ -346,6 +347,7 @@ class ActionChainRunner(ActionRunner):
         # Identify the list of action executions that are workflows and cascade pause.
         for child_exec_id in self.execution.children:
             child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
+
             if (
                 child_exec.runner["name"] in action_constants.WORKFLOW_RUNNER_TYPES
                 and child_exec.status == action_constants.LIVEACTION_STATUS_RUNNING
@@ -430,6 +432,7 @@ class ActionChainRunner(ActionRunner):
                 and hasattr(self.liveaction, "result")
                 and self.liveaction.result
             ):
+
                 result = self.liveaction.result
 
             # Initialize or rebuild existing context_result from liveaction
@@ -622,6 +625,7 @@ class ActionChainRunner(ActionRunner):
                         action_node = self.chain_holder.get_next_node(
                             action_node.name, condition="on-failure"
                         )
+
                     elif (
                         liveaction.status
                         == action_constants.LIVEACTION_STATUS_TIMED_OUT
@@ -665,6 +669,7 @@ class ActionChainRunner(ActionRunner):
                         action_node = self.chain_holder.get_next_node(
                             action_node.name, condition="on-failure"
                         )
+
                     elif (
                         liveaction.status
                         == action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -948,8 +953,14 @@ class ActionChainRunner(ActionRunner):
 
         :rtype: ``dict``
         """
-        assert isinstance(created_at, datetime.datetime)
-        assert isinstance(updated_at, datetime.datetime)
+        if not isinstance(created_at, datetime.datetime):
+            raise TypeError(
+                f"The created_at is not a datetime object was({type(created_at)})."
+            )
+        if not isinstance(updated_at, datetime.datetime):
+            raise TypeError(
+                f"The updated_at is not a datetime object was({type(updated_at)})."
+            )
 
         result = {}
 

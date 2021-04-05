@@ -70,6 +70,12 @@ except ImportError:
         print("Using pip: %s" % (str(pip_version)))
         sys.exit(1)
 
+try:
+    from pip._internal.req.constructors import parse_req_from_line
+except ImportError:
+    # Do not error, as will only use on pip >= 20
+    pass
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -138,19 +144,34 @@ def merge_source_requirements(sources):
     merged_requirements = []
     for infile_path in (locate_file(p, must_exist=True) for p in sources):
         for req in load_requirements(infile_path):
-            # Requirements starting with project name "project ..."
-            if req.req:
-                # Skip already added project name
-                if req.name in projects:
-                    continue
-                projects.add(req.name)
-                merged_requirements.append(req)
+            if hasattr(req, "requirement"):
+                # Requirements starting with project name "project ..."
+                parsedreq = parse_req_from_line(req.requirement, req.line_source)
+                if parsedreq.requirement:
+                    # Skip already added project name
+                    if parsedreq.requirement.name in projects:
+                        continue
+                    projects.add(parsedreq.requirement.name)
+                    merged_requirements.append(req)
 
-            # Requirements lines like "vcs+proto://url"
-            elif req.link:
-                merged_requirements.append(req)
+                # Requirements lines like "vcs+proto://url"
+                elif parsedreq.link:
+                    merged_requirements.append(req)
+                else:
+                    raise RuntimeError("Unexpected requirement {0}".format(req))
             else:
-                raise RuntimeError("Unexpected requirement {0}".format(req))
+                if req.req:
+                    # Skip already added project name
+                    if req.name in projects:
+                        continue
+                    projects.add(req.name)
+                    merged_requirements.append(req)
+
+                # Requirements lines like "vcs+proto://url"
+                elif req.link:
+                    merged_requirements.append(req)
+                else:
+                    raise RuntimeError("Unexpected requirement {0}".format(req))
 
     return merged_requirements
 
@@ -169,10 +190,17 @@ def write_requirements(
     # Make sure there are no duplicate / conflicting definitions
     fixedreq_hash = {}
     for req in fixed:
-        project_name = req.name
+        if hasattr(req, "requirement"):
+            parsedreq = parse_req_from_line(req.requirement, req.line_source)
+            project_name = parsedreq.requirement.name
 
-        if not req.req:
-            continue
+            if not req.requirement:
+                continue
+        else:
+            project_name = req.name
+
+            if not req.req:
+                continue
 
         if project_name in fixedreq_hash:
             raise ValueError(
@@ -184,22 +212,38 @@ def write_requirements(
     lines_to_write = []
     links = set()
     for req in requirements:
-        if req.name in skip:
+        if hasattr(req, "requirement"):
+            parsedreq = parse_req_from_line(req.requirement, req.line_source)
+            project_name = parsedreq.requirement.name
+            linkreq = parsedreq
+        else:
+            project_name = req.name
+            linkreq = req
+        if project_name in skip:
             continue
 
         # we don't have any idea how to process links, so just add them
-        if req.link and req.link not in links:
-            links.add(req.link)
-            rline = str(req.link)
+        if linkreq.link and linkreq.link not in links:
+            links.add(linkreq.link)
+            rline = str(linkreq.link)
 
-            if req.editable:
+            if (hasattr(req, "is_editable") and req.is_editable) or (
+                hasattr(req, "editable") and req.editable
+            ):
                 rline = "-e %s" % (rline)
-        elif req.req:
+        elif hasattr(req, "requirement") and req.requirement:
+            project = parsedreq.requirement.name
+            req_obj = fixedreq_hash.get(project, req)
+
+            rline = str(req_obj.requirement)
+
+            # Markers are included in req_obj.requirement, so no
+            # special processing required
+        elif hasattr(req, "req") and req.req:
             project = req.name
             req_obj = fixedreq_hash.get(project, req)
 
             rline = str(req_obj.req)
-
             # Also write out environment markers
             if req_obj.markers:
                 rline += " ; {}".format(str(req_obj.markers))

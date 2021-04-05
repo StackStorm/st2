@@ -118,7 +118,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             return
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         format_str = payload.format or ""
         command = payload.command or ""

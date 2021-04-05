@@ -14,12 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 
 import mongoengine as me
 
 from st2common import log as logging
 from st2common.models.db import stormbase
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
 from st2common.util.secrets import get_secret_parameters
@@ -62,9 +64,10 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         default={},
         help_text="The key-value pairs passed as to the action runner & action.",
     )
-    result = stormbase.EscapedDynamicField(
+    result = JSONDictEscapedFieldCompatibilityField(
         default={}, help_text="Action defined result."
     )
+    result_size = me.IntField(default=0, help_text="Serialized result size in bytes")
     context = me.DictField(
         default={}, help_text="Contextual information on the action execution."
     )
@@ -141,8 +144,9 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
 
         # TODO(mierdin): This logic should be moved to the dedicated Inquiry
         # data model once it exists.
-        if self.runner.get("name") == "inquirer":
+        result["result"] = ActionExecutionDB.result.parse_field_value(result["result"])
 
+        if self.runner.get("name") == "inquirer":
             schema = result["result"].get("schema", {})
             response = result["result"].get("response", {})
 

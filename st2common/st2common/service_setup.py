@@ -44,6 +44,7 @@ from st2common.util import system_info
 from st2common.services import coordination
 from st2common.logging.misc import add_global_filters_for_all_loggers
 from st2common.constants.error_messages import PYTHON2_DEPRECATION
+from st2common.services.coordination import get_driver_name
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
@@ -132,9 +133,9 @@ def setup(
 
     fs_encoding = sys.getfilesystemencoding()
     default_encoding = sys.getdefaultencoding()
+    lang_env = os.environ.get("LANG", "unknown")
     lang_env = os.environ.get("LANG", "notset")
     pythonioencoding_env = os.environ.get("PYTHONIOENCODING", "notset")
-
     try:
         language_code, encoding = locale.getdefaultlocale()
 
@@ -143,7 +144,6 @@ def setup(
         else:
             used_locale = "unable to retrieve locale"
     except Exception as e:
-        language_code, encoding = "unknown", "unknown"
         used_locale = "unable to retrieve locale: %s " % (str(e))
 
     LOG.info("Using Python: %s (%s)" % (version, sys.executable))
@@ -162,6 +162,8 @@ def setup(
     logging_config_path = os.path.abspath(logging_config_path)
 
     LOG.info("Using logging config: %s", logging_config_path)
+    LOG.info("Using coordination driver: %s", get_driver_name())
+    LOG.info("Using metrics driver: %s", cfg.CONF.metrics.driver)
 
     # Warn on non utf-8 locale which could cause issues when running under Python 3 and working
     # with unicode data

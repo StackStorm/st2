@@ -47,6 +47,7 @@ def run_command(
     shell=False,
     cwd=None,
     env=None,
+    close_fds=None,
 ):
     """
     Run the provided command in a subprocess and wait until it completes.
@@ -73,12 +74,22 @@ def run_command(
                 environment from the current process is inherited.
     :type env: ``dict``
 
+    :param close_fds: True to close all the fds. By default when None is provided we rely on
+                      default upstream behavior which may be Python version specific.
+
     :rtype: ``tuple`` (exit_code, stdout, stderr)
     """
-    assert isinstance(cmd, (list, tuple) + six.string_types)
+    if not isinstance(cmd, (list, tuple) + six.string_types):
+        raise TypeError(
+            f"Command must be a type of list, tuple, or string, not '{type(cmd)}'."
+        )
 
     if not env:
         env = os.environ.copy()
+
+    kwargs = {}
+    if close_fds is not None:
+        kwargs["close_fds"] = close_fds
 
     process = concurrency.subprocess_popen(
         args=cmd,
@@ -88,6 +99,7 @@ def run_command(
         env=env,
         cwd=cwd,
         shell=shell,
+        **kwargs,
     )
     stdout, stderr = process.communicate()
     exit_code = process.returncode

@@ -102,7 +102,10 @@ def run_command(
     """
     LOG.debug("Entering st2common.util.green.run_command.")
 
-    assert isinstance(cmd, (list, tuple) + six.string_types)
+    if not isinstance(cmd, (list, tuple) + six.string_types):
+        raise TypeError(
+            f"Command must be a type of list, tuple, or string, not '{type(cmd)}'."
+        )
 
     if (read_stdout_func and not read_stderr_func) or (
         read_stderr_func and not read_stdout_func
