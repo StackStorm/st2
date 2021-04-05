@@ -45,6 +45,7 @@ class FakeResource(models.Resource):
 class FakeResponse(object):
     def __init__(self, text, status_code, reason, *args):
         self.text = text
+        self.content = text
         self.status_code = status_code
         self.reason = reason
         if args:

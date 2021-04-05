@@ -17,7 +17,6 @@ from __future__ import absolute_import
 
 import ast
 import copy
-import json
 import uuid
 
 import requests
@@ -32,6 +31,8 @@ from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.util.jsonify import json_decode
+from st2common.util.jsonify import json_encode
 import six
 from six.moves import range
 
@@ -64,7 +65,7 @@ FILE_NAME = "file_name"
 FILE_CONTENT = "file_content"
 FILE_CONTENT_TYPE = "file_content_type"
 
-RESPONSE_BODY_PARSE_FUNCTIONS = {"application/json": json.loads}
+RESPONSE_BODY_PARSE_FUNCTIONS = {"application/json": json_decode}
 
 
 class HttpRunner(ActionRunner):
@@ -266,7 +267,7 @@ class HTTPClient(object):
                 data = self._cast_object(self.body)
 
                 try:
-                    data = json.dumps(data)
+                    data = json_encode(data)
                 except ValueError:
                     msg = "Request body (%s) can't be parsed as JSON" % (data)
                     raise ValueError(msg)
@@ -361,7 +362,7 @@ class HTTPClient(object):
     def _cast_object(self, value):
         if isinstance(value, str) or isinstance(value, six.text_type):
             try:
-                return json.loads(value)
+                return json_decode(value)
             except:
                 return ast.literal_eval(value)
         else:

@@ -453,7 +453,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertIn("PARAM_FLOAT=2.55", result["stdout"])
         self.assertIn("PARAM_BOOLEAN=1", result["stdout"])
         self.assertIn("PARAM_LIST=a,b,c", result["stdout"])
-        self.assertIn('PARAM_OBJECT={"foo": "bar"}', result["stdout"])
+        self.assertIn('PARAM_OBJECT={"foo":"bar"}', result["stdout"])
 
         action_parameters = {
             "param_string": "test string",
@@ -515,12 +515,12 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertIn("PARAM_FLOAT=2.55", result["stdout"])
         self.assertIn("PARAM_BOOLEAN=1", result["stdout"])
         self.assertIn("PARAM_LIST=a,b,c", result["stdout"])
-        self.assertIn('PARAM_OBJECT={"foo": "bar"}', result["stdout"])
+        self.assertIn('PARAM_OBJECT={"foo":"bar"}', result["stdout"])
 
         output_dbs = ActionExecutionOutput.query(output_type="stdout")
         self.assertEqual(len(output_dbs), 6)
         self.assertEqual(output_dbs[0].data, "PARAM_STRING=test string\n")
-        self.assertEqual(output_dbs[5].data, 'PARAM_OBJECT={"foo": "bar"}\n')
+        self.assertEqual(output_dbs[5].data, 'PARAM_OBJECT={"foo":"bar"}\n')
 
         output_dbs = ActionExecutionOutput.query(output_type="stderr")
         self.assertEqual(len(output_dbs), 0)

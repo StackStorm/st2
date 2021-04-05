@@ -47,7 +47,7 @@ TEST_FIXTURES = {
     "policies": ["policy_3.yaml", "policy_7.yaml"],
 }
 
-NON_EMPTY_RESULT = "non-empty"
+NON_EMPTY_RESULT = {"data": "non-empty"}
 MOCK_RUN_RETURN_VALUE = (
     action_constants.LIVEACTION_STATUS_RUNNING,
     NON_EMPTY_RESULT,

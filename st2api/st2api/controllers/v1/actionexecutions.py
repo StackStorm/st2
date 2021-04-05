@@ -13,15 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
+
 import copy
 import re
 import sys
+import gzip
 import traceback
 
 import six
+import orjson
 import jsonschema
 from oslo_config import cfg
 from six.moves import http_client
+from mongoengine.queryset.visitor import Q
 
 from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
@@ -44,6 +49,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
 from st2common.router import abort
 from st2common.router import Response
+from st2common.router import NotFoundException
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
@@ -102,7 +108,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         :type liveaction: :class:`LiveActionAPI`
         """
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         # Assert action ref is valid
         action_ref = liveaction_api.action
@@ -363,6 +369,90 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
 
         result = getattr(action_exec_db, attribute, None)
         return Response(json=result, status=http_client.OK)
+
+
+class ActionExecutionRawResultController(BaseActionExecutionNestedController):
+    def get(
+        self, id, requester_user, download=False, compress=False, pretty_format=False
+    ):
+        """
+        Retrieve raw action execution result object as a JSON string or optionally force result
+        download as a (compressed) file.
+
+        This is primarily to be used in scenarios where executions contain large results and JSON
+        loading and parsing it can be slow (e.g. in the st2web) and we just want to display raw
+        result.
+
+        :param compress: True to compress the response using gzip (may come handy for executions
+                         with large results).
+        :param download: True to force downloading result to a file.
+        :param pretty_format: True to pretty format returned JSON data - this adds quite some
+                              overhead compared to the default behavior where we don't pretty
+                              format the result.
+
+        Handles requests:
+
+            GET /executions/<id>/result[?download=1][&compress=1]
+
+        TODO: Maybe we should also support pre-signed URLs for sharing externally with other
+        people?
+
+        It of course won't contain all the exection related data, but just sharing the result can
+        come handy in many situations.
+
+        :rtype: ``str``
+        """
+        # NOTE: Here we intentionally use as_pymongo() to avoid mongoengine layer even for old style
+        # data
+        try:
+            result = (
+                self.access.impl.model.objects.filter(id=id)
+                .only("result")
+                .as_pymongo()[0]
+            )
+        except IndexError:
+            raise NotFoundException("Execution with id %s not found" % (id))
+
+        if isinstance(result["result"], dict):
+            # For backward compatibility we also support old non JSON field storage format
+            if pretty_format:
+                response_body = orjson.dumps(
+                    result["result"], option=orjson.OPT_INDENT_2
+                )
+            else:
+                response_body = orjson.dumps(result["result"])
+        else:
+            # For new JSON storage format we just use raw value since it's already JSON serialized
+            # string
+            response_body = result["result"]
+
+            if pretty_format:
+                # Pretty format is not a default behavior since it adds quite some overhead (e.g.
+                # 10-30ms for non pretty format for 4 MB json vs ~120 ms for pretty formatted)
+                response_body = orjson.dumps(
+                    orjson.loads(result["result"]), option=orjson.OPT_INDENT_2
+                )
+
+        response = Response()
+        response.headers["Content-Type"] = "text/json"
+
+        if download:
+            filename = "execution_%s_result.json" % (id)
+
+            if compress:
+                filename += ".gz"
+
+            response.headers["Content-Disposition"] = "attachment; filename=%s" % (
+                filename
+            )
+
+        if compress:
+            response.headers["Content-Type"] = "application/x-gzip"
+            response.headers["Content-Encoding"] = "gzip"
+            response_body = gzip.compress(response_body)
+
+        response.body = response_body
+        return response
 
 
 class ActionExecutionOutputController(
@@ -641,6 +731,7 @@ class ActionExecutionsController(
         exclude_attributes=None,
         include_attributes=None,
         show_secrets=False,
+        max_result_size=None,
     ):
         """
         Retrieve a single execution.
@@ -664,6 +755,10 @@ class ActionExecutionsController(
             )
         }
 
+        max_result_size = self._validate_max_result_size(
+            max_result_size=max_result_size
+        )
+
         # Special case for id == "last"
         if id == "last":
             execution_db = (
@@ -682,6 +777,7 @@ class ActionExecutionsController(
             requester_user=requester_user,
             from_model_kwargs=from_model_kwargs,
             permission_type=PermissionType.EXECUTION_VIEW,
+            get_by_id_kwargs={"max_result_size": max_result_size},
         )
 
     def post(
@@ -703,7 +799,7 @@ class ActionExecutionsController(
 
         """
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         from_model_kwargs = {
             "mask_secrets": self._get_mask_secrets(
@@ -742,7 +838,9 @@ class ActionExecutionsController(
         def update_status(liveaction_api, liveaction_db):
             status = liveaction_api.status
             result = getattr(liveaction_api, "result", None)
-            liveaction_db = action_service.update_status(liveaction_db, status, result)
+            liveaction_db = action_service.update_status(
+                liveaction_db, status, result, set_result_size=True
+            )
             actionexecution_db = ActionExecution.get(
                 liveaction__id=str(liveaction_db.id)
             )
@@ -831,7 +929,7 @@ class ActionExecutionsController(
 
         """
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         from_model_kwargs = {
             "mask_secrets": self._get_mask_secrets(
@@ -891,6 +989,94 @@ class ActionExecutionsController(
             execution_db, mask_secrets=from_model_kwargs["mask_secrets"]
         )
 
+    def _validate_max_result_size(
+        self, max_result_size: Optional[int]
+    ) -> Optional[int]:
+        """
+        Validate value of the ?max_result_size query parameter (if provided).
+        """
+        # Maximum limit for MongoDB collection document is 16 MB and the field itself can't be
+        # larger than that obviously. And in reality due to the other fields, overhead, etc,
+        # 14 is the upper limit.
+        if not max_result_size:
+            return max_result_size
+
+        if max_result_size <= 0:
+            raise ValueError("max_result_size must be a positive number")
+
+        if max_result_size > 14 * 1024 * 1024:
+            raise ValueError(
+                "max_result_size query parameter must be smaller than 14 MB"
+            )
+
+        return max_result_size
+
+    def _get_by_id(
+        self,
+        resource_id,
+        exclude_fields=None,
+        include_fields=None,
+        max_result_size=None,
+    ):
+        """
+        Custom version of _get_by_id() which supports ?max_result_size pre-filtering and not
+        returning result field for executions which result size exceeds this threshold.
+
+        This functionality allows us to implement fast and efficient retrievals in st2web.
+        """
+        exclude_fields = exclude_fields or []
+        include_fields = include_fields or []
+
+        if not max_result_size:
+            # If max_result_size is not provided we don't perform any prefiltering and directly
+            # call parent method
+            execution_db = super(ActionExecutionsController, self)._get_by_id(
+                resource_id=resource_id,
+                exclude_fields=exclude_fields,
+                include_fields=include_fields,
+            )
+            return execution_db
+
+        # Special query where we check if result size is smaller than pre-defined or that field
+        # doesn't not exist (old executions) and only return the result if the condition is met.
+        # This allows us to implement fast and efficient retrievals of executions on the client
+        # st2web side where we don't want to retrieve and display result directly for executions
+        # with large results
+        # Keep in mind that the query itself is very fast and adds almost no overhead for API
+        # operations which pass this query parameter because we first filter on the ID (indexed
+        # field) and perform projection query with two tiny fields (based on real life testing it
+        # takes less than 3 ms in most scenarios).
+        execution_db = self.access.get(
+            Q(id=resource_id)
+            & (Q(result_size__lte=max_result_size) | Q(result_size__not__exists=True)),
+            only_fields=["id", "result_size"],
+        )
+
+        # if result is empty, this means that execution either doesn't exist or the result is
+        # larger than threshold which means we don't want to retrieve and return result to
+        # the end user to we set exclude_fields accordingly
+        if not execution_db:
+            LOG.debug(
+                "Execution with id %s and result_size < %s not found. This means "
+                "execution with this ID doesn't exist or result_size exceeds the "
+                "threshold. Result field will be excluded from the retrieval and "
+                "the response." % (resource_id, max_result_size)
+            )
+
+            if include_fields and "result" in include_fields:
+                include_fields.remove("result")
+            elif not include_fields:
+                exclude_fields += ["result"]
+
+        # Now call parent get by id with potentially modified include / exclude fields in case
+        # result should not be included
+        execution_db = super(ActionExecutionsController, self)._get_by_id(
+            resource_id=resource_id,
+            exclude_fields=exclude_fields,
+            include_fields=include_fields,
+        )
+        return execution_db
+
     def _get_action_executions(
         self,
         exclude_fields=None,
@@ -940,3 +1126,4 @@ action_execution_output_controller = ActionExecutionOutputController()
 action_execution_rerun_controller = ActionExecutionReRunController()
 action_execution_attribute_controller = ActionExecutionAttributeController()
 action_execution_children_controller = ActionExecutionChildrenController()
+action_execution_raw_result_controller = ActionExecutionRawResultController()

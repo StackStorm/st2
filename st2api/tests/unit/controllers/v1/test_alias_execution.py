@@ -46,7 +46,7 @@ TEST_MODELS = {
 TEST_LOAD_MODELS = {"aliases": ["alias3.yaml"]}
 
 EXECUTION = ActionExecutionDB(
-    id="54e657d60640fd16887d6855", status=LIVEACTION_STATUS_SUCCEEDED, result=""
+    id="54e657d60640fd16887d6855", status=LIVEACTION_STATUS_SUCCEEDED, result={}
 )
 
 __all__ = ["AliasExecutionTestCase"]
@@ -150,7 +150,7 @@ class AliasExecutionTestCase(FunctionalTest):
             action={"parameters": self.action1.parameters},
             runner={"runner_parameters": self.runner1.runner_parameters},
             parameters={"param4": SUPER_SECRET_PARAMETER},
-            result="",
+            result={},
         )
 
         request.return_value = (None, execution)

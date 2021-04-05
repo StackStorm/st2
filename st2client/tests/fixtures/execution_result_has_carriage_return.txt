@@ -12,6 +12,7 @@
 | status          | succeeded                                                    |
 | start_timestamp | Fri, 05 Dec 2014 22:44:19 UTC                                |
 | end_timestamp   |                                                              |
+| log             |                                                              |
 | result          | {                                                            |
 |                 |     "unregister": {                                          |
 |                 |         "result": null,                                      |

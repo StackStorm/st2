@@ -20,10 +20,10 @@ import logging
 import os
 import re
 import sys
-import collections
 import functools
 
 import six
+from collections.abc import Mapping
 
 __all__ = [
     "prefix_dict_keys",
@@ -137,7 +137,7 @@ def deep_update(d, u):
     """
 
     for k, v in six.iteritems(u):
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, Mapping):
             r = deep_update(d.get(k, {}), v)
             d[k] = r
         else:

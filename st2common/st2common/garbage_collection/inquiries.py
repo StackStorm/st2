@@ -90,7 +90,7 @@ def purge_inquiries(logger):
                 # Request that root workflow resumes
                 root_liveaction = action_service.get_root_liveaction(liveaction_db)
                 action_service.request_resume(
-                    root_liveaction, UserDB(cfg.CONF.system_user.user)
+                    root_liveaction, UserDB(name=cfg.CONF.system_user.user)
                 )
 
     logger.info('Marked %s ttl-expired Inquiries as "timed out".' % (gc_count))
