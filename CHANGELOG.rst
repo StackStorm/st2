@@ -28,6 +28,20 @@ Added
 * Added the command line utility `st2-validate-pack` that can be used by pack developers to
   validate pack contents. (improvement)
 
+* Fix a bug in the API and CLI code which would prevent users from being able to retrieve resources
+  which contain non-ascii (utf-8) characters in the names / references. (bug fix) #5189
+
+  Contributed by @Kami.
+
+* Fix a bug in the API router code and make sure we return correct and user-friendly error to the
+  user in case we fail to parse the request URL / path because it contains invalid or incorrectly
+  URL encoded data.
+
+  Previously such errors weren't handled correctly which meant original exception with a stack
+  trace got propagated to the user. (bug fix) #5189
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 

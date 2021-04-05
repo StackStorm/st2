@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
@@ -32,6 +33,7 @@ import st2client
 from st2client.shell import Shell
 from st2client.client import Client
 from st2client.utils import httpclient
+from st2client.utils.misc import reencode_list_with_surrogate_escape_sequences
 from st2common.models.db.auth import TokenDB
 from tests import base
 
@@ -828,3 +830,34 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         args = shell.parser.parse_args(args=argv)
         shell.get_client(args=args)
         self.assertEqual(shell._get_auth_token.call_count, 0)
+
+    def test_get_one_unicode_character_in_name(self):
+        self._write_mock_config()
+
+        shell = Shell()
+        shell._get_auth_token = mock.Mock()
+
+        os.environ["ST2_AUTH_TOKEN"] = "fooo"
+        argv = ["action", "get", "examples.test_rule_utf8_náme"]
+        args = shell.parser.parse_args(args=argv)
+        shell.get_client(args=args)
+        self.assertEqual(args.ref_or_id, "examples.test_rule_utf8_náme")
+
+    def test_reencode_list_replace_surrogate_escape(self):
+        value = ["a", "b", "c", "d"]
+        expected = value
+        result = reencode_list_with_surrogate_escape_sequences(value)
+
+        self.assertEqual(result, expected)
+
+        value = ["a", "b", "c", "n\udcc3\udca1me"]
+        expected = ["a", "b", "c", "náme"]
+        result = reencode_list_with_surrogate_escape_sequences(value)
+
+        self.assertEqual(result, expected)
+
+        value = ["a", "b", "c", "你好"]
+        expected = value
+        result = reencode_list_with_surrogate_escape_sequences(value)
+
+        self.assertEqual(result, expected)
