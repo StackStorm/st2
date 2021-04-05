@@ -18,5 +18,5 @@
 import sys
 import st2common.persistence.cleanup as db_cleanup
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(db_cleanup.main(sys.argv[1:]))
