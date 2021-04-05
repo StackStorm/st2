@@ -20,9 +20,7 @@ import sys
 import six
 from gunicorn.workers.sync import SyncWorker
 
-__all__ = [
-    'EventletSyncWorker'
-]
+__all__ = ["EventletSyncWorker"]
 
 
 class EventletSyncWorker(SyncWorker):
@@ -44,7 +42,7 @@ class EventletSyncWorker(SyncWorker):
         except AssertionError as e:
             msg = six.text_type(e)
 
-            if 'do not call blocking functions from the mainloop' in msg:
+            if "do not call blocking functions from the mainloop" in msg:
                 # Workaround for "do not call blocking functions from the mainloop" issue
                 sys.exit(0)
 

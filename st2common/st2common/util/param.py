@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import json
+
 import re
 import six
 import networkx as nx
@@ -26,36 +26,46 @@ from st2common.util.config_loader import get_config
 from st2common.util.jinja import is_jinja_expression
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.pack import PACK_CONFIG_CONTEXT_KV_PREFIX
-from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
+from st2common.constants.keyvalue import (
+    DATASTORE_PARENT_SCOPE,
+    SYSTEM_SCOPE,
+    FULL_SYSTEM_SCOPE,
+)
 from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
 from st2common.util.casts import get_cast
 from st2common.util.compat import to_unicode
 from st2common.util import jinja as jinja_utils
+from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import json_decode
 
 
 LOG = logging.getLogger(__name__)
 ENV = jinja_utils.get_jinja_environment()
 
 __all__ = [
-    'render_live_params',
-    'render_final_params',
+    "render_live_params",
+    "render_final_params",
 ]
 
 
 def _split_params(runner_parameters, action_parameters, mixed_params):
     def pf(params, skips):
-        result = {k: v for k, v in six.iteritems(mixed_params)
-                  if k in params and k not in skips}
+        result = {
+            k: v
+            for k, v in six.iteritems(mixed_params)
+            if k in params and k not in skips
+        }
         return result
+
     return (pf(runner_parameters, {}), pf(action_parameters, runner_parameters))
 
 
 def _cast_params(rendered, parameter_schemas):
-    '''
+    """
     It's just here to make tests happy
-    '''
+    """
     casted_params = {}
     for k, v in six.iteritems(rendered):
         casted_params[k] = _cast(v, parameter_schemas[k] or {})
@@ -66,7 +76,7 @@ def _cast(v, parameter_schema):
     if v is None or not parameter_schema:
         return v
 
-    parameter_type = parameter_schema.get('type', None)
+    parameter_type = parameter_schema.get("type", None)
     if not parameter_type:
         return v
 
@@ -78,23 +88,27 @@ def _cast(v, parameter_schema):
 
 
 def _create_graph(action_context, config):
-    '''
+    """
     Creates a generic directed graph for depencency tree and fills it with basic context variables
-    '''
+    """
     G = nx.DiGraph()
     system_keyvalue_context = {SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)}
 
     # If both 'user' and 'api_user' are specified, this prioritize 'api_user'
-    user = action_context['user'] if 'user' in action_context else None
-    user = action_context['api_user'] if 'api_user' in action_context else user
+    user = action_context["user"] if "user" in action_context else None
+    user = action_context["api_user"] if "api_user" in action_context else user
 
     if not user:
         # When no user is not specified, this selects system-user's scope by default.
         user = cfg.CONF.system_user.user
-        LOG.info('Unable to retrieve user / api_user value from action_context. Falling back '
-                 'to and using system_user (%s).' % (user))
+        LOG.info(
+            "Unable to retrieve user / api_user value from action_context. Falling back "
+            "to and using system_user (%s)." % (user)
+        )
 
-    system_keyvalue_context[USER_SCOPE] = UserKeyValueLookup(scope=FULL_USER_SCOPE, user=user)
+    system_keyvalue_context[USER_SCOPE] = UserKeyValueLookup(
+        scope=FULL_USER_SCOPE, user=user
+    )
     G.add_node(DATASTORE_PARENT_SCOPE, value=system_keyvalue_context)
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
     G.add_node(PACK_CONFIG_CONTEXT_KV_PREFIX, value=config)
@@ -102,9 +116,9 @@ def _create_graph(action_context, config):
 
 
 def _process(G, name, value):
-    '''
+    """
     Determines whether parameter is a template or a value. Adds graph nodes and edges accordingly.
-    '''
+    """
     # Jinja defaults to ascii parser in python 2.x unless you set utf-8 support on per module level
     # Instead we're just assuming every string to be a unicode string
     if isinstance(value, str):
@@ -114,23 +128,21 @@ def _process(G, name, value):
     if isinstance(value, list) or isinstance(value, dict):
         complex_value_str = str(value)
 
-    is_jinja_expr = (
-        jinja_utils.is_jinja_expression(value) or jinja_utils.is_jinja_expression(
-            complex_value_str
-        )
-    )
+    is_jinja_expr = jinja_utils.is_jinja_expression(
+        value
+    ) or jinja_utils.is_jinja_expression(complex_value_str)
 
     if is_jinja_expr:
         G.add_node(name, template=value)
 
         template_ast = ENV.parse(value)
-        LOG.debug('Template ast: %s', template_ast)
+        LOG.debug("Template ast: %s", template_ast)
         # Dependencies of the node represent jinja variables used in the template
         # We're connecting nodes with an edge for every depencency to traverse them
         # in the right order and also make sure that we don't have missing or cyclic
         # dependencies upfront.
         dependencies = meta.find_undeclared_variables(template_ast)
-        LOG.debug('Dependencies: %s', dependencies)
+        LOG.debug("Dependencies: %s", dependencies)
         if dependencies:
             for dependency in dependencies:
                 G.add_edge(dependency, name)
@@ -139,24 +151,24 @@ def _process(G, name, value):
 
 
 def _process_defaults(G, schemas):
-    '''
+    """
     Process dependencies for parameters default values in the order schemas are defined.
-    '''
+    """
     for schema in schemas:
         for name, value in six.iteritems(schema):
             absent = name not in G.node
-            is_none = G.node.get(name, {}).get('value') is None
-            immutable = value.get('immutable', False)
+            is_none = G.node.get(name, {}).get("value") is None
+            immutable = value.get("immutable", False)
             if absent or is_none or immutable:
-                _process(G, name, value.get('default'))
+                _process(G, name, value.get("default"))
 
 
 def _validate(G):
-    '''
+    """
     Validates dependency graph to ensure it has no missing or cyclic dependencies
-    '''
+    """
     for name in G.nodes():
-        if 'value' not in G.node[name] and 'template' not in G.node[name]:
+        if "value" not in G.node[name] and "template" not in G.node[name]:
             msg = 'Dependency unsatisfied in variable "%s"' % name
             raise ParamException(msg)
 
@@ -172,51 +184,52 @@ def _validate(G):
 
             variable_names.append(variable_name)
 
-        variable_names = ', '.join(sorted(variable_names))
-        msg = ('Cyclic dependency found in the following variables: %s. Likely the variable is '
-               'referencing itself' % (variable_names))
+        variable_names = ", ".join(sorted(variable_names))
+        msg = (
+            "Cyclic dependency found in the following variables: %s. Likely the variable is "
+            "referencing itself" % (variable_names)
+        )
         raise ParamException(msg)
 
 
 def _render(node, render_context):
-    '''
+    """
     Render the node depending on its type
-    '''
-    if 'template' in node:
+    """
+    if "template" in node:
         complex_type = False
 
-        if isinstance(node['template'], list) or isinstance(node['template'], dict):
-            node['template'] = json.dumps(node['template'])
+        if isinstance(node["template"], list) or isinstance(node["template"], dict):
+            node["template"] = json_encode(node["template"])
 
             # Finds occurrences of "{{variable}}" and adds `to_complex` filter
             # so types are honored. If it doesn't follow that syntax then it's
             # rendered as a string.
-            node['template'] = re.sub(
-                r'"{{([A-z0-9_-]+)}}"', r'{{\1 | to_complex}}',
-                node['template']
+            node["template"] = re.sub(
+                r'"{{([A-z0-9_-]+)}}"', r"{{\1 | to_complex}}", node["template"]
             )
-            LOG.debug('Rendering complex type: %s', node['template'])
+            LOG.debug("Rendering complex type: %s", node["template"])
             complex_type = True
 
-        LOG.debug('Rendering node: %s with context: %s', node, render_context)
+        LOG.debug("Rendering node: %s with context: %s", node, render_context)
 
-        result = ENV.from_string(str(node['template'])).render(render_context)
+        result = ENV.from_string(str(node["template"])).render(render_context)
 
-        LOG.debug('Render complete: %s', result)
+        LOG.debug("Render complete: %s", result)
 
         if complex_type:
-            result = json.loads(result)
-            LOG.debug('Complex Type Rendered: %s', result)
+            result = json_decode(result)
+            LOG.debug("Complex Type Rendered: %s", result)
 
         return result
-    if 'value' in node:
-        return node['value']
+    if "value" in node:
+        return node["value"]
 
 
 def _resolve_dependencies(G):
-    '''
+    """
     Traverse the dependency graph starting from resolved nodes
-    '''
+    """
     context = {}
     for name in nx.topological_sort(G):
         node = G.node[name]
@@ -224,7 +237,7 @@ def _resolve_dependencies(G):
             context[name] = _render(node, context)
 
         except Exception as e:
-            LOG.debug('Failed to render %s: %s', name, e, exc_info=True)
+            LOG.debug("Failed to render %s: %s", name, e, exc_info=True)
             msg = 'Failed to render parameter "%s": %s' % (name, six.text_type(e))
             raise ParamException(msg)
 
@@ -232,9 +245,9 @@ def _resolve_dependencies(G):
 
 
 def _cast_params_from(params, context, schemas):
-    '''
+    """
     Pick a list of parameters from context and cast each of them according to the schemas provided
-    '''
+    """
     result = {}
 
     # First, cast only explicitly provided live parameters
@@ -258,17 +271,19 @@ def _cast_params_from(params, context, schemas):
         for param_name, param_details in schema.items():
 
             # Skip if the parameter have immutable set to true in schema
-            if param_details.get('immutable'):
+            if param_details.get("immutable"):
                 continue
 
             # Skip if the parameter doesn't have a default, or if the
             # value in the context is identical to the default
-            if 'default' not in param_details or \
-                    param_details.get('default') == context[param_name]:
+            if (
+                "default" not in param_details
+                or param_details.get("default") == context[param_name]
+            ):
                 continue
 
             # Skip if the default value isn't a Jinja expression
-            if not is_jinja_expression(param_details.get('default')):
+            if not is_jinja_expression(param_details.get("default")):
                 continue
 
             # Skip if the parameter is being overridden
@@ -280,22 +295,29 @@ def _cast_params_from(params, context, schemas):
     return result
 
 
-def render_live_params(runner_parameters, action_parameters, params, action_context,
-                       additional_contexts=None):
-    '''
+def render_live_params(
+    runner_parameters,
+    action_parameters,
+    params,
+    action_context,
+    additional_contexts=None,
+):
+    """
     Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
     dict of plain rendered parameters.
-    '''
+    """
     additional_contexts = additional_contexts or {}
 
-    pack = action_context.get('pack')
-    user = action_context.get('user')
+    pack = action_context.get("pack")
+    user = action_context.get("user")
 
     try:
         config = get_config(pack, user)
     except Exception as e:
-        LOG.info('Failed to retrieve config for pack %s and user %s: %s' % (pack, user,
-                 six.text_type(e)))
+        LOG.info(
+            "Failed to retrieve config for pack %s and user %s: %s"
+            % (pack, user, six.text_type(e))
+        )
         config = {}
 
     G = _create_graph(action_context, config)
@@ -310,18 +332,20 @@ def render_live_params(runner_parameters, action_parameters, params, action_cont
     _validate(G)
 
     context = _resolve_dependencies(G)
-    live_params = _cast_params_from(params, context, [action_parameters, runner_parameters])
+    live_params = _cast_params_from(
+        params, context, [action_parameters, runner_parameters]
+    )
 
     return live_params
 
 
 def render_final_params(runner_parameters, action_parameters, params, action_context):
-    '''
+    """
     Renders missing parameters required for action to execute. Treats parameters from the dict as
     plain values instead of trying to render them again. Returns dicts for action and runner
     parameters.
-    '''
-    config = get_config(action_context.get('pack'), action_context.get('user'))
+    """
+    config = get_config(action_context.get("pack"), action_context.get("user"))
 
     G = _create_graph(action_context, config)
 
@@ -331,18 +355,29 @@ def render_final_params(runner_parameters, action_parameters, params, action_con
     _validate(G)
 
     context = _resolve_dependencies(G)
-    context = _cast_params_from(context, context, [action_parameters, runner_parameters])
+    context = _cast_params_from(
+        context, context, [action_parameters, runner_parameters]
+    )
 
     return _split_params(runner_parameters, action_parameters, context)
 
 
-def get_finalized_params(runnertype_parameter_info, action_parameter_info, liveaction_parameters,
-                         action_context):
-    '''
+def get_finalized_params(
+    runnertype_parameter_info,
+    action_parameter_info,
+    liveaction_parameters,
+    action_context,
+):
+    """
     Left here to keep tests running. Later we would need to split tests so they start testing each
     function separately.
-    '''
-    params = render_live_params(runnertype_parameter_info, action_parameter_info,
-                                liveaction_parameters, action_context)
-    return render_final_params(runnertype_parameter_info, action_parameter_info, params,
-                               action_context)
+    """
+    params = render_live_params(
+        runnertype_parameter_info,
+        action_parameter_info,
+        liveaction_parameters,
+        action_context,
+    )
+    return render_final_params(
+        runnertype_parameter_info, action_parameter_info, params, action_context
+    )

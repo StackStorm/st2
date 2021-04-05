@@ -17,36 +17,30 @@ import sys
 
 
 TYPE_TABLE = {
-    dict: 'object',
-    list: 'array',
-    int: 'integer',
-    str: 'string',
-    float: 'number',
-    bool: 'boolean',
-    type(None): 'null',
+    dict: "object",
+    list: "array",
+    int: "integer",
+    str: "string",
+    float: "number",
+    bool: "boolean",
+    type(None): "null",
 }
 
 if sys.version_info[0] < 3:
-    TYPE_TABLE[unicode] = 'string'  # noqa  # pylint: disable=E0602
+    TYPE_TABLE[unicode] = "string"  # noqa  # pylint: disable=E0602
 
 
 def _dict_to_schema(item):
     schema = {}
-    for key, value in item.iteritems():
+    for key, value in item.items():
         if isinstance(value, dict):
-            schema[key] = {
-                'type': 'object',
-                'parameters': _dict_to_schema(value)
-            }
+            schema[key] = {"type": "object", "parameters": _dict_to_schema(value)}
         else:
-            schema[key] = {
-                'type': TYPE_TABLE[type(value)]
-            }
+            schema[key] = {"type": TYPE_TABLE[type(value)]}
 
     return schema
 
 
 def render_output_schema_from_output(output):
-    """Given an action output produce a reasonable schema to match.
-    """
+    """Given an action output produce a reasonable schema to match."""
     return _dict_to_schema(output)

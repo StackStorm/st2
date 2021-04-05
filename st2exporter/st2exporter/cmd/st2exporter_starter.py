@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from st2common.util.monkey_patch import monkey_patch
+
 monkey_patch()
 
 import os
@@ -25,26 +26,29 @@ from st2common.service_setup import teardown as common_teardown
 from st2exporter import config
 from st2exporter import worker
 
-__all__ = [
-    'main'
-]
+__all__ = ["main"]
 
 
 LOG = logging.getLogger(__name__)
 
 
 def _setup():
-    common_setup(service='exporter', config=config, setup_db=True, register_mq_exchanges=True,
-                 register_signal_handlers=True)
+    common_setup(
+        service="exporter",
+        config=config,
+        setup_db=True,
+        register_mq_exchanges=True,
+        register_signal_handlers=True,
+    )
 
 
 def _run_worker():
-    LOG.info('(PID=%s) Exporter started.', os.getpid())
+    LOG.info("(PID=%s) Exporter started.", os.getpid())
     export_worker = worker.get_worker()
     try:
         export_worker.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
-        LOG.info('(PID=%s) Exporter stopped.', os.getpid())
+        LOG.info("(PID=%s) Exporter stopped.", os.getpid())
         export_worker.shutdown()
     except:
         return 1
@@ -62,7 +66,7 @@ def main():
     except SystemExit as exit_code:
         sys.exit(exit_code)
     except:
-        LOG.exception('(PID=%s) Exporter quit due to exception.', os.getpid())
+        LOG.exception("(PID=%s) Exporter quit due to exception.", os.getpid())
         return 1
     finally:
         _teardown()

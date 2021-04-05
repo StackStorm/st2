@@ -23,9 +23,8 @@ from st2common.constants import action as ac_const
 
 
 class TaskRetryWiringTest(base.TestWorkflowExecution):
-
     def test_task_retry(self):
-        wf_name = 'examples.orquesta-task-retry'
+        wf_name = "examples.orquesta-task-retry"
 
         ex = self._execute_workflow(wf_name)
         ex = self._wait_for_completion(ex)
@@ -34,14 +33,15 @@ class TaskRetryWiringTest(base.TestWorkflowExecution):
 
         # Assert there are retries for the task.
         task_exs = [
-            task_ex for task_ex in self._get_children(ex)
-            if task_ex.context.get('orquesta', {}).get('task_name', '') == 'check'
+            task_ex
+            for task_ex in self._get_children(ex)
+            if task_ex.context.get("orquesta", {}).get("task_name", "") == "check"
         ]
 
         self.assertGreater(len(task_exs), 1)
 
     def test_task_retry_exhausted(self):
-        wf_name = 'examples.orquesta-task-retry-exhausted'
+        wf_name = "examples.orquesta-task-retry-exhausted"
 
         ex = self._execute_workflow(wf_name)
         ex = self._wait_for_completion(ex)
@@ -51,16 +51,18 @@ class TaskRetryWiringTest(base.TestWorkflowExecution):
 
         # Assert the task has exhausted the number of retries
         task_exs = [
-            task_ex for task_ex in self._get_children(ex)
-            if task_ex.context.get('orquesta', {}).get('task_name', '') == 'check'
+            task_ex
+            for task_ex in self._get_children(ex)
+            if task_ex.context.get("orquesta", {}).get("task_name", "") == "check"
         ]
 
-        self.assertListEqual(['failed'] * 3, [task_ex.status for task_ex in task_exs])
+        self.assertListEqual(["failed"] * 3, [task_ex.status for task_ex in task_exs])
 
         # Assert the task following the retry task is not run.
         task_exs = [
-            task_ex for task_ex in self._get_children(ex)
-            if task_ex.context.get('orquesta', {}).get('task_name', '') == 'delete'
+            task_ex
+            for task_ex in self._get_children(ex)
+            if task_ex.context.get("orquesta", {}).get("task_name", "") == "delete"
         ]
 
         self.assertEqual(len(task_exs), 0)

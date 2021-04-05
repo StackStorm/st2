@@ -21,15 +21,11 @@ stevedore dynamic plugin loading.
 from st2common import log as logging
 
 
-__all__ = [
-    'get_available_backends',
-    'get_backend_driver',
-    'get_backend_instance'
-]
+__all__ = ["get_available_backends", "get_backend_driver", "get_backend_instance"]
 
 LOG = logging.getLogger(__name__)
 
-BACKENDS_NAMESPACE = 'st2common.rbac.backend'
+BACKENDS_NAMESPACE = "st2common.rbac.backend"
 
 
 def get_available_backends(namespace, invoke_on_load=False):
@@ -62,8 +58,9 @@ def get_backend_driver(namespace, name, invoke_on_load=False):
     LOG.debug('Retrieving driver for backend "%s"' % (name))
 
     try:
-        manager = DriverManager(namespace=namespace, name=name,
-                                invoke_on_load=invoke_on_load)
+        manager = DriverManager(
+            namespace=namespace, name=name, invoke_on_load=invoke_on_load
+        )
     except RuntimeError:
         message = 'Invalid "%s" backend specified: %s' % (namespace, name)
         LOG.exception(message)
@@ -79,7 +76,9 @@ def get_backend_instance(namespace, name, invoke_on_load=False):
     :param name: Backend name.
     :type name: ``str``
     """
-    cls = get_backend_driver(namespace=namespace, name=name, invoke_on_load=invoke_on_load)
+    cls = get_backend_driver(
+        namespace=namespace, name=name, invoke_on_load=invoke_on_load
+    )
     cls_instance = cls()
 
     return cls_instance

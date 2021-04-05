@@ -33,6 +33,8 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, StackStorm Exchange, Documentation.
 * JP Bourget ([@punkrokk](https://github.com/punkrokk)) <<jp.bourget@gmail.com>>
   - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCI.
+* Marcel Weinberg ([@winem](https://github.com/winem)), _CoreMedia_ <<mweinberg-os@email.de>>
+  - Systems, Core, CI/CD, Docker, Community.
 * Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)) <<mick@bitovi.com>>
   - Systems, ST2 Exchange. [Case Study](https://stackstorm.com/case-study-bitovi/).
 * Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
@@ -48,6 +50,7 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
+* Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ - StackStorm Exchange, ChatOps, Core, Discussions.
 * Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
 * Marcel Weinberg ([@winem](https://github.com/winem)) - Community, Docker, Core.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
@@ -74,7 +77,7 @@ Thank you, Friends!
 * Johan Dahlberg ([@johandahlberg](https://github.com/johandahlberg)) - Using st2 for Bioinformatics/Science project, providing feedback & contributions in Ansible, Community, Workflows. [Case Study](https://stackstorm.com/case-study-scilifelab/).
 * Johan Hermansson ([@johanherman](https://github.com/johanherman)) - Using st2 for Bioinformatics/Science project, feedback & contributions in Ansible, Community, Workflows. [Case Study](https://stackstorm.com/case-study-scilifelab/).
 * Lakshmi Kannan ([@lakshmi-kannan](https://github.com/lakshmi-kannan)) - early Stormer. Initial Core platform architecture, scalability, reliability, Team Leadership during the project hard times.
-* Lindsay Hill ([@LindsayHill](https://github.com/LindsayHill)) - ex StackStorm product manager that made a significant impact building an ecosystem we see today. 
+* Lindsay Hill ([@LindsayHill](https://github.com/LindsayHill)) - ex StackStorm product manager that made a significant impact building an ecosystem we see today.
 * Manas Kelshikar ([@manasdk](https://github.com/manasdk)) - ex Stormer. Developed (well) early core platform features.
 * Vineesh Jain ([@VineeshJain](https://github.com/VineeshJain)) - ex Stormer. Community, Tests, Core, QA.
 * Warren Van Winckel ([@warrenvw](https://github.com/warrenvw)) - ex Stormer. Docker, Kubernetes, Vagrant, Infrastructure.

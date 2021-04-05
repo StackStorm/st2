@@ -25,8 +25,11 @@ CONF = cfg.CONF
 
 
 def parse_args(args=None):
-    cfg.CONF(args=args, version=VERSION_STRING,
-             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
+    cfg.CONF(
+        args=args,
+        version=VERSION_STRING,
+        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+    )
 
 
 def register_opts():

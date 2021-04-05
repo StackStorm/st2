@@ -16,10 +16,7 @@
 import six
 from oslo_config import cfg
 
-__all__ = [
-    'get_full_key_name',
-    'check_key'
-]
+__all__ = ["get_full_key_name", "check_key"]
 
 
 def get_full_key_name(key):
@@ -27,14 +24,14 @@ def get_full_key_name(key):
     Return full metric key name, taking into account optional  prefix which can be specified in the
     config.
     """
-    parts = ['st2']
+    parts = ["st2"]
 
     if cfg.CONF.metrics.prefix:
         parts.append(cfg.CONF.metrics.prefix)
 
     parts.append(key)
 
-    return '.'.join(parts)
+    return ".".join(parts)
 
 
 def check_key(key):

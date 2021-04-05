@@ -24,7 +24,7 @@ from six.moves import range
 class PrintToStdoutAndStderrAction(Action):
     def run(self, stdout_count=3, stderr_count=3):
         for index in range(0, stdout_count):
-            sys.stdout.write('stdout line %s\n' % (index))
+            sys.stdout.write("stdout line %s\n" % (index))
 
         for index in range(0, stderr_count):
-            sys.stderr.write('stderr line %s\n' % (index))
+            sys.stderr.write("stderr line %s\n" % (index))

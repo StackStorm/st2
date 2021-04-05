@@ -5,5 +5,5 @@ from st2api import cmd
 
 # TODO: Generalize this file so it can be moved to st2common.
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(cmd.api.main())

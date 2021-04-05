@@ -30,15 +30,9 @@ from st2common.util.misc import ignore_and_log_exception
 LOG = logging.getLogger(__name__)
 
 # Which exceptions thrown by statsd library should be considered as non-fatal
-NON_FATAL_EXC_CLASSES = [
-    socket.error,
-    IOError,
-    OSError
-]
+NON_FATAL_EXC_CLASSES = [socket.error, IOError, OSError]
 
-__all__ = [
-    'StatsdDriver'
-]
+__all__ = ["StatsdDriver"]
 
 
 class StatsdDriver(BaseMetricsDriver):
@@ -55,11 +49,15 @@ class StatsdDriver(BaseMetricsDriver):
     """
 
     def __init__(self):
-        statsd.Connection.set_defaults(host=cfg.CONF.metrics.host, port=cfg.CONF.metrics.port,
-                                       sample_rate=cfg.CONF.metrics.sample_rate)
+        statsd.Connection.set_defaults(
+            host=cfg.CONF.metrics.host,
+            port=cfg.CONF.metrics.port,
+            sample_rate=cfg.CONF.metrics.sample_rate,
+        )
 
-    @ignore_and_log_exception(exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG,
-                              level=stdlib_logging.WARNING)
+    @ignore_and_log_exception(
+        exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG, level=stdlib_logging.WARNING
+    )
     def time(self, key, time):
         """
         Timer metric
@@ -68,11 +66,12 @@ class StatsdDriver(BaseMetricsDriver):
         assert isinstance(time, Number)
 
         key = get_full_key_name(key)
-        timer = statsd.Timer('')
+        timer = statsd.Timer("")
         timer.send(key, time)
 
-    @ignore_and_log_exception(exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG,
-                              level=stdlib_logging.WARNING)
+    @ignore_and_log_exception(
+        exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG, level=stdlib_logging.WARNING
+    )
     def inc_counter(self, key, amount=1):
         """
         Increment counter
@@ -84,8 +83,9 @@ class StatsdDriver(BaseMetricsDriver):
         counter = statsd.Counter(key)
         counter.increment(delta=amount)
 
-    @ignore_and_log_exception(exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG,
-                              level=stdlib_logging.WARNING)
+    @ignore_and_log_exception(
+        exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG, level=stdlib_logging.WARNING
+    )
     def dec_counter(self, key, amount=1):
         """
         Decrement metric
@@ -97,8 +97,9 @@ class StatsdDriver(BaseMetricsDriver):
         counter = statsd.Counter(key)
         counter.decrement(delta=amount)
 
-    @ignore_and_log_exception(exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG,
-                              level=stdlib_logging.WARNING)
+    @ignore_and_log_exception(
+        exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG, level=stdlib_logging.WARNING
+    )
     def set_gauge(self, key, value):
         """
         Set gauge value.
@@ -110,8 +111,9 @@ class StatsdDriver(BaseMetricsDriver):
         gauge = statsd.Gauge(key)
         gauge.send(None, value)
 
-    @ignore_and_log_exception(exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG,
-                              level=stdlib_logging.WARNING)
+    @ignore_and_log_exception(
+        exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG, level=stdlib_logging.WARNING
+    )
     def inc_gauge(self, key, amount=1):
         """
         Increment gauge value.
@@ -123,8 +125,9 @@ class StatsdDriver(BaseMetricsDriver):
         gauge = statsd.Gauge(key)
         gauge.increment(None, amount)
 
-    @ignore_and_log_exception(exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG,
-                              level=stdlib_logging.WARNING)
+    @ignore_and_log_exception(
+        exc_classes=NON_FATAL_EXC_CLASSES, logger=LOG, level=stdlib_logging.WARNING
+    )
     def dec_gauge(self, key, amount=1):
         """
         Decrement gauge value.

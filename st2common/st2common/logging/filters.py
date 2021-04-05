@@ -17,9 +17,9 @@ from __future__ import absolute_import
 import logging
 
 __all__ = [
-    'LoggerNameExclusionFilter',
-    'LoggerFunctionNameExclusionFilter',
-    'LogLevelFilter',
+    "LoggerNameExclusionFilter",
+    "LoggerFunctionNameExclusionFilter",
+    "LogLevelFilter",
 ]
 
 
@@ -36,8 +36,11 @@ class LoggerNameExclusionFilter(object):
         if len(self._exclusions) < 1:
             return True
 
-        module_decomposition = record.name.split('.')
-        exclude = len(module_decomposition) > 0 and module_decomposition[0] in self._exclusions
+        module_decomposition = record.name.split(".")
+        exclude = (
+            len(module_decomposition) > 0
+            and module_decomposition[0] in self._exclusions
+        )
         return not exclude
 
 
@@ -54,7 +57,7 @@ class LoggerFunctionNameExclusionFilter(object):
         if len(self._exclusions) < 1:
             return True
 
-        function_name = getattr(record, 'funcName', None)
+        function_name = getattr(record, "funcName", None)
         if function_name in self._exclusions:
             return False
 

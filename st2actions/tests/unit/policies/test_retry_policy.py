@@ -35,19 +35,10 @@ from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
-__all__ = [
-    'RetryPolicyTestCase'
-]
+__all__ = ["RetryPolicyTestCase"]
 
-PACK = 'generic'
-TEST_FIXTURES = {
-    'actions': [
-        'action1.yaml'
-    ],
-    'policies': [
-        'policy_4.yaml'
-    ]
-}
+PACK = "generic"
+TEST_FIXTURES = {"actions": ["action1.yaml"], "policies": ["policy_4.yaml"]}
 
 
 class RetryPolicyTestCase(CleanDbTestCase):
@@ -66,18 +57,21 @@ class RetryPolicyTestCase(CleanDbTestCase):
         register_policy_types(st2actions)
 
         loader = FixturesLoader()
-        models = loader.save_fixtures_to_db(fixtures_pack=PACK,
-                                            fixtures_dict=TEST_FIXTURES)
+        models = loader.save_fixtures_to_db(
+            fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES
+        )
 
         # Instantiate policy applicator we will use in the tests
-        policy_db = models['policies']['policy_4.yaml']
-        retry_on = policy_db.parameters['retry_on']
-        max_retry_count = policy_db.parameters['max_retry_count']
-        self.policy = ExecutionRetryPolicyApplicator(policy_ref='test_policy',
-                                                     policy_type='action.retry',
-                                                     retry_on=retry_on,
-                                                     max_retry_count=max_retry_count,
-                                                     delay=0)
+        policy_db = models["policies"]["policy_4.yaml"]
+        retry_on = policy_db.parameters["retry_on"]
+        max_retry_count = policy_db.parameters["max_retry_count"]
+        self.policy = ExecutionRetryPolicyApplicator(
+            policy_ref="test_policy",
+            policy_type="action.retry",
+            retry_on=retry_on,
+            max_retry_count=max_retry_count,
+            delay=0,
+        )
 
     def test_retry_on_timeout_no_retry_since_no_timeout_reached(self):
         # Verify initial state
@@ -85,7 +79,9 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertSequenceEqual(ActionExecution.get_all(), [])
 
         # Start a mock action which succeeds
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "foo"}
+        )
         live_action_db, execution_db = action_service.request(liveaction)
 
         live_action_db.status = LIVEACTION_STATUS_SUCCEEDED
@@ -110,7 +106,9 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertSequenceEqual(ActionExecution.get_all(), [])
 
         # Start a mock action which times out
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "foo"}
+        )
         live_action_db, execution_db = action_service.request(liveaction)
 
         live_action_db.status = LIVEACTION_STATUS_TIMED_OUT
@@ -130,14 +128,16 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertEqual(action_execution_dbs[1].status, LIVEACTION_STATUS_REQUESTED)
 
         # Verify retried execution contains policy related context
-        original_liveaction_id = action_execution_dbs[0].liveaction['id']
+        original_liveaction_id = action_execution_dbs[0].liveaction["id"]
 
         context = action_execution_dbs[1].context
-        self.assertIn('policies', context)
-        self.assertEqual(context['policies']['retry']['retry_count'], 1)
-        self.assertEqual(context['policies']['retry']['applied_policy'], 'test_policy')
-        self.assertEqual(context['policies']['retry']['retried_liveaction_id'],
-                         original_liveaction_id)
+        self.assertIn("policies", context)
+        self.assertEqual(context["policies"]["retry"]["retry_count"], 1)
+        self.assertEqual(context["policies"]["retry"]["applied_policy"], "test_policy")
+        self.assertEqual(
+            context["policies"]["retry"]["retried_liveaction_id"],
+            original_liveaction_id,
+        )
 
         # Simulate success of second action so no it shouldn't be retried anymore
         live_action_db = live_action_dbs[1]
@@ -161,7 +161,9 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertSequenceEqual(ActionExecution.get_all(), [])
 
         # Start a mock action which times out
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "foo"}
+        )
         live_action_db, execution_db = action_service.request(liveaction)
 
         live_action_db.status = LIVEACTION_STATUS_TIMED_OUT
@@ -181,14 +183,16 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertEqual(action_execution_dbs[1].status, LIVEACTION_STATUS_REQUESTED)
 
         # Verify retried execution contains policy related context
-        original_liveaction_id = action_execution_dbs[0].liveaction['id']
+        original_liveaction_id = action_execution_dbs[0].liveaction["id"]
 
         context = action_execution_dbs[1].context
-        self.assertIn('policies', context)
-        self.assertEqual(context['policies']['retry']['retry_count'], 1)
-        self.assertEqual(context['policies']['retry']['applied_policy'], 'test_policy')
-        self.assertEqual(context['policies']['retry']['retried_liveaction_id'],
-                         original_liveaction_id)
+        self.assertIn("policies", context)
+        self.assertEqual(context["policies"]["retry"]["retry_count"], 1)
+        self.assertEqual(context["policies"]["retry"]["applied_policy"], "test_policy")
+        self.assertEqual(
+            context["policies"]["retry"]["retried_liveaction_id"],
+            original_liveaction_id,
+        )
 
         # Simulate timeout of second action which should cause another retry
         live_action_db = live_action_dbs[1]
@@ -212,14 +216,16 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertEqual(action_execution_dbs[2].status, LIVEACTION_STATUS_REQUESTED)
 
         # Verify retried execution contains policy related context
-        original_liveaction_id = action_execution_dbs[1].liveaction['id']
+        original_liveaction_id = action_execution_dbs[1].liveaction["id"]
 
         context = action_execution_dbs[2].context
-        self.assertIn('policies', context)
-        self.assertEqual(context['policies']['retry']['retry_count'], 2)
-        self.assertEqual(context['policies']['retry']['applied_policy'], 'test_policy')
-        self.assertEqual(context['policies']['retry']['retried_liveaction_id'],
-                         original_liveaction_id)
+        self.assertIn("policies", context)
+        self.assertEqual(context["policies"]["retry"]["retry_count"], 2)
+        self.assertEqual(context["policies"]["retry"]["applied_policy"], "test_policy")
+        self.assertEqual(
+            context["policies"]["retry"]["retried_liveaction_id"],
+            original_liveaction_id,
+        )
 
     def test_retry_on_timeout_max_retries_reached(self):
         # Verify initial state
@@ -227,12 +233,14 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertSequenceEqual(ActionExecution.get_all(), [])
 
         # Start a mock action which times out
-        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "foo"}
+        )
         live_action_db, execution_db = action_service.request(liveaction)
 
         live_action_db.status = LIVEACTION_STATUS_TIMED_OUT
-        live_action_db.context['policies'] = {}
-        live_action_db.context['policies']['retry'] = {'retry_count': 2}
+        live_action_db.context["policies"] = {}
+        live_action_db.context["policies"]["retry"] = {"retry_count": 2}
         execution_db.status = LIVEACTION_STATUS_TIMED_OUT
         LiveAction.add_or_update(live_action_db)
         ActionExecution.add_or_update(execution_db)
@@ -248,8 +256,10 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertEqual(action_execution_dbs[0].status, LIVEACTION_STATUS_TIMED_OUT)
 
     @mock.patch.object(
-        trace_service, 'get_trace_db_by_live_action',
-        mock.MagicMock(return_value=(None, None)))
+        trace_service,
+        "get_trace_db_by_live_action",
+        mock.MagicMock(return_value=(None, None)),
+    )
     def test_no_retry_on_workflow_task(self):
         # Verify initial state
         self.assertSequenceEqual(LiveAction.get_all(), [])
@@ -257,9 +267,9 @@ class RetryPolicyTestCase(CleanDbTestCase):
 
         # Start a mock action which times out
         live_action_db = LiveActionDB(
-            action='wolfpack.action-1',
-            parameters={'actionstr': 'foo'},
-            context={'parent': {'execution_id': 'abcde'}}
+            action="wolfpack.action-1",
+            parameters={"actionstr": "foo"},
+            context={"parent": {"execution_id": "abcde"}},
         )
 
         live_action_db, execution_db = action_service.request(live_action_db)
@@ -268,7 +278,7 @@ class RetryPolicyTestCase(CleanDbTestCase):
 
         # Expire the workflow instance.
         live_action_db.status = LIVEACTION_STATUS_TIMED_OUT
-        live_action_db.context['policies'] = {}
+        live_action_db.context["policies"] = {}
         execution_db.status = LIVEACTION_STATUS_TIMED_OUT
         LiveAction.add_or_update(live_action_db)
         ActionExecution.add_or_update(execution_db)
@@ -297,10 +307,12 @@ class RetryPolicyTestCase(CleanDbTestCase):
             LIVEACTION_STATUS_CANCELED,
         ]
 
-        action_ref = 'wolfpack.action-1'
+        action_ref = "wolfpack.action-1"
 
         for status in non_retry_statuses:
-            liveaction = LiveActionDB(action=action_ref, parameters={'actionstr': 'foo'})
+            liveaction = LiveActionDB(
+                action=action_ref, parameters={"actionstr": "foo"}
+            )
             live_action_db, execution_db = action_service.request(liveaction)
 
             live_action_db.status = status
