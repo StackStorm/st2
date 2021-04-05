@@ -257,6 +257,50 @@ Fixed
 
   Contributed by @Kami.
 
+3.4.1 - March 14, 2021
+----------------------
+
+Added
+~~~~~
+
+
+* Service start up code has been updated to log a warning if a non-utf-8 encoding / locale is
+  detected.
+
+  Using non-utf-8 locale while working with unicode data will result in various issues so users
+  are strongly recommended to ensure encoding for all the StackStorm service is
+  set to ``utf-8``. (#5182)
+
+  Contributed by @Kami.
+
+Changed
+~~~~~~~
+
+* Use `sudo -E` to fix GitHub Actions tests #5187
+
+  Contributed by @cognifloyd
+
+Fixed
+~~~~~
+
+* Properly handle unicode strings in logs #5184
+
+  Fix a logging loop when attempting to encode Unicode characters in locales that do not support
+  Unicode characters - CVE-2021-28667.
+
+  See https://stackstorm.com/2021/03/10/stackstorm-v3-4-1-security-fix/ for more information.
+
+  Contributed by @Kami
+
+* Fix SensorTypeAPI schema to use class_name instead of name since documentation for pack
+  development uses class_name and registrar used to load sensor to database assign class_name
+  to name in the database model. (bug fix)
+
+* Updated paramiko version to 2.7.2, to go with updated cryptography to prevent problems
+  with ssh keys on remote actions. #5201
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
 3.4.0 - March 02, 2021
 ----------------------
 
