@@ -85,6 +85,14 @@ def run_command(
 
     :param kill_func: Optional function which will be called on timeout to kill the process.
                       If not provided, it defaults to `process.kill`
+
+                      NOTE: If you are utilizing shell=True, you shoulf always specify a custom
+                      kill function which correctly kills shell process + the shell children
+                      process.
+
+                      If you don't do that, timeout handler won't work correctly / as expected -
+                      only the shell process will be killed, but not also the child processs
+                      spawned by the shell.
     :type kill_func: ``callable``
 
     :param read_stdout_func: Function which is responsible for reading process stdout when
