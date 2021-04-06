@@ -271,6 +271,11 @@ Fixed
 
   Contributed by @Kami.
 
+* Make sure ``st2common.util.green.shell.run_command()`` doesn't leave stray / zombie processes
+  laying around in some command timeout scenarios. #5220
+
+  Contributed by @r0m4n-z.
+
 3.4.1 - March 14, 2021
 ----------------------
 
