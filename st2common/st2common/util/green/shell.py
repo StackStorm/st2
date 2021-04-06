@@ -165,6 +165,8 @@ def run_command(
     # Special attribute we use to determine if the process timed out or not
     process._timed_out = False
 
+    # TODO: Now that we support Python >= 3.6 we should utilize timeout argument for the
+    # communicate() method and handle killing the process + read threads there.
     def on_timeout_expired(timeout):
         global timed_out
 
