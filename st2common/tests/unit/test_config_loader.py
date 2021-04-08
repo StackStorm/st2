@@ -557,7 +557,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(
             config_rendered,
             {
-                "regions": "us-east-1",
+                "regions": ["us-east-1"],
                 "profiles": {
                     "dev": {
                         "host": "127.0.0.3",

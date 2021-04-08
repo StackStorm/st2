@@ -1,7 +1,7 @@
 ---
   regions:
     type: "array"
-    required: true
+    required: false
     default: "us-east-1"
   profiles:
     type: "object"
@@ -12,11 +12,11 @@
       properties:
         host:
           type: "string"
-          required: true
+          required: false
           default: "127.0.0.3"
         port:
           type: "integer"
-          required: true
+          required: false
           default: 8080
         token:
           type: "string"
