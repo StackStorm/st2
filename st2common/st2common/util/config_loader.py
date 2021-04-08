@@ -134,7 +134,7 @@ class ContentPackConfigLoader(object):
                 parent_keys += [str(config_item_key)]
                 additional_properties = schema_item.get("additionalProperties", {})
                 if isinstance(additional_properties, dict):
-                    property_schema = defaultdict(additional_properties)
+                    property_schema = defaultdict(lambda: additional_properties)
                 else:
                     property_schema = {}
                 property_schema.update(schema_item.get("properties", {}))
