@@ -16,6 +16,8 @@
 from __future__ import absolute_import
 import copy
 
+from collections import defaultdict
+
 import six
 
 from oslo_config import cfg
@@ -130,8 +132,14 @@ class ContentPackConfigLoader(object):
             # Inspect nested object properties
             if is_dictionary:
                 parent_keys += [str(config_item_key)]
+                additional_properties = schema_item.get("additionalProperties", {})
+                if isinstance(additional_properties, dict):
+                    property_schema = defaultdict(additional_properties)
+                else:
+                    property_schema = {}
+                property_schema.update(schema_item.get("properties", {}))
                 self._assign_dynamic_config_values(
-                    schema=schema_item.get("properties", {}),
+                    schema=property_schema,
                     config=config[config_item_key],
                     parent_keys=parent_keys,
                 )
