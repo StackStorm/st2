@@ -1,0 +1,24 @@
+---
+  regions:
+    type: "array"
+    required: true
+    default: "us-east-1"
+  profiles:
+    type: "object"
+    required: false
+    additionalProperties:
+      type: object
+      additionalProperties: false
+      properties:
+        host:
+          type: "string"
+          required: true
+          default: "127.0.0.3"
+        port:
+          type: "integer"
+          required: true
+          default: 8080
+        token:
+          type: "string"
+          required: true
+          secret: true

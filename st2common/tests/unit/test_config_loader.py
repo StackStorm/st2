@@ -43,7 +43,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
     def test_get_config_some_values_overriden_in_datastore(self):
         # Test a scenario where some values are overriden in datastore via pack
-        # flobal config
+        # global config
         kvp_db = set_datastore_value_for_config_key(
             pack_name="dummy_pack_5",
             key_name="api_secret",
@@ -513,6 +513,66 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                         ]
                     },
                 ]
+            },
+        )
+
+        config_db.delete()
+
+    def test_get_config_dynamic_config_item_under_additional_properties(self):
+        pack_name = "dummy_pack_schema_with_additional_properties_1"
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        KeyValuePair.add_or_update(KeyValuePairDB(name="k0", value="v0"))
+        KeyValuePair.add_or_update(KeyValuePairDB(name="k1_encrypted", value="v1_encrypted", secret=True))
+
+        ####################
+        # values in objects under an object with additionalProperties
+        values = {
+            "profiles": {
+                "dev": {
+                    "host": "127.0.0.1",
+                    "token": "hard-coded-secret",
+                },
+                "stage": {
+                    "host": "127.0.0.2",
+                    "port": 8181,
+                    # unencrypted in datastore
+                    "token": "{{st2kv.system.k0}}",
+                },
+                "prod": {
+                    "host": "127.1.2.7",
+                    "port": 8282,
+                    # encrypted in datastore
+                    "token": "{{st2kv.system.k1_encrypted}}",
+                },
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        config_rendered = loader.get_config()
+
+        self.assertEqual(
+            config_rendered,
+            {
+                "regions": "us-east-1",
+                "profiles": {
+                    "dev": {
+                        "host": "127.0.0.1",
+                        "port": 8080,
+                        "token": "hard-coded-secret",
+                    },
+                    "stage": {
+                        "host": "127.0.0.2",
+                        "port": 8181,
+                        "token": "v0",
+                    },
+                    "prod": {
+                        "host": "127.1.2.7",
+                        "port": 8282,
+                        "token": "v1_encrypted",
+                    },
+                },
             },
         )
 
