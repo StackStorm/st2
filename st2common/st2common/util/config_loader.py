@@ -209,7 +209,7 @@ class ContentPackConfigLoader(object):
                 property_schema = self._get_object_property_schema(schema_item)
 
                 self._assign_default_values(
-                    schema=propety_schema, config=config[schema_item_key]
+                    schema=property_schema, config=config[schema_item_key]
                 )
 
         return config
