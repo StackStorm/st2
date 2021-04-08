@@ -532,11 +532,11 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         values = {
             "profiles": {
                 "dev": {
-                    "host": "127.0.0.1",
+                    # no host or port to test default value
                     "token": "hard-coded-secret",
                 },
                 "stage": {
-                    "host": "127.0.0.2",
+                    "host": "127.0.0.1",
                     "port": 8181,
                     # unencrypted in datastore
                     "token": "{{st2kv.system.k0}}",
@@ -560,12 +560,12 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                 "regions": "us-east-1",
                 "profiles": {
                     "dev": {
-                        "host": "127.0.0.1",
+                        "host": "127.0.0.3",
                         "port": 8080,
                         "token": "hard-coded-secret",
                     },
                     "stage": {
-                        "host": "127.0.0.2",
+                        "host": "127.0.0.1",
                         "port": 8181,
                         "token": "v0",
                     },
