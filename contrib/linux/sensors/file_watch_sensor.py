@@ -392,7 +392,7 @@ class FileWatchSensor(Sensor):
         self.tail_manager.stop()
 
     def add_trigger(self, trigger):
-        file_path = trigger['parameters'].get('file_path', None)
+        file_path = trigger["parameters"].get("file_path", None)
 
         if not file_path:
             self.logger.error('Received trigger type without "file_path" field.')
@@ -412,7 +412,7 @@ class FileWatchSensor(Sensor):
         pass
 
     def remove_trigger(self, trigger):
-        file_path = trigger['parameters'].get('file_path', None)
+        file_path = trigger["parameters"].get("file_path", None)
 
         if not file_path:
             self.logger.error('Received trigger type without "file_path" field.')

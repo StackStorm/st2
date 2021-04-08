@@ -9,7 +9,7 @@ RELEASE=1
 COMPONENTS := st2client
 
 .PHONY: rpm
-rpm: 
+rpm:
 	$(PY3) setup.py bdist_rpm --python=$(PY3)
 	mkdir -p $(RPM_ROOT)/RPMS/noarch
 	cp dist/$(COMPONENTS)*noarch.rpm $(RPM_ROOT)/RPMS/noarch/$(COMPONENTS)-$(VER)-$(RELEASE).noarch.rpm

@@ -19,9 +19,7 @@ from st2tests.mocks.action import MockActionWrapper
 from st2tests.mocks.action import MockActionService
 from st2tests.pack_resource import BasePackResourceTestCase
 
-__all__ = [
-    'BaseActionTestCase'
-]
+__all__ = ["BaseActionTestCase"]
 
 
 class BaseActionTestCase(BasePackResourceTestCase):
@@ -35,7 +33,7 @@ class BaseActionTestCase(BasePackResourceTestCase):
         super(BaseActionTestCase, self).setUp()
 
         class_name = self.action_cls.__name__
-        action_wrapper = MockActionWrapper(pack='tests', class_name=class_name)
+        action_wrapper = MockActionWrapper(pack="tests", class_name=class_name)
         self.action_service = MockActionService(action_wrapper=action_wrapper)
 
     def get_action_instance(self, config=None):
@@ -43,7 +41,9 @@ class BaseActionTestCase(BasePackResourceTestCase):
         Retrieve instance of the action class.
         """
         # pylint: disable=not-callable
-        instance = get_action_class_instance(action_cls=self.action_cls,
-                                             config=config,
-                                             action_service=self.action_service)
+        instance = get_action_class_instance(
+            action_cls=self.action_cls,
+            config=config,
+            action_service=self.action_service,
+        )
         return instance

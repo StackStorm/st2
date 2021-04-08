@@ -15,4 +15,4 @@
 
 from st2stream.cmd import api
 
-__all__ = ['api']
+__all__ = ["api"]

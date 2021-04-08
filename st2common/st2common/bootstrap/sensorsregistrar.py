@@ -26,10 +26,7 @@ import st2common.content.utils as content_utils
 from st2common.models.api.sensor import SensorTypeAPI
 from st2common.persistence.sensor import SensorType
 
-__all__ = [
-    'SensorsRegistrar',
-    'register_sensors'
-]
+__all__ = ["SensorsRegistrar", "register_sensors"]
 
 LOG = logging.getLogger(__name__)
 
@@ -51,15 +48,18 @@ class SensorsRegistrar(ResourceRegistrar):
         self.register_packs(base_dirs=base_dirs)
 
         registered_count = 0
-        content = self._pack_loader.get_content(base_dirs=base_dirs,
-                                                content_type='sensors')
+        content = self._pack_loader.get_content(
+            base_dirs=base_dirs, content_type="sensors"
+        )
 
         for pack, sensors_dir in six.iteritems(content):
             if not sensors_dir:
-                LOG.debug('Pack %s does not contain sensors.', pack)
+                LOG.debug("Pack %s does not contain sensors.", pack)
                 continue
             try:
-                LOG.debug('Registering sensors from pack %s:, dir: %s', pack, sensors_dir)
+                LOG.debug(
+                    "Registering sensors from pack %s:, dir: %s", pack, sensors_dir
+                )
                 sensors = self._get_sensors_from_pack(sensors_dir)
                 count = self._register_sensors_from_pack(pack=pack, sensors=sensors)
                 registered_count += count
@@ -67,8 +67,11 @@ class SensorsRegistrar(ResourceRegistrar):
                 if self._fail_on_failure:
                     raise e
 
-                LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir,
-                              six.text_type(e))
+                LOG.exception(
+                    'Failed registering all sensors from pack "%s": %s',
+                    sensors_dir,
+                    six.text_type(e),
+                )
 
         return registered_count
 
@@ -79,10 +82,11 @@ class SensorsRegistrar(ResourceRegistrar):
         :return: Number of sensors registered.
         :rtype: ``int``
         """
-        pack_dir = pack_dir[:-1] if pack_dir.endswith('/') else pack_dir
+        pack_dir = pack_dir[:-1] if pack_dir.endswith("/") else pack_dir
         _, pack = os.path.split(pack_dir)
-        sensors_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
-                                                              content_type='sensors')
+        sensors_dir = self._pack_loader.get_content_from_pack(
+            pack_dir=pack_dir, content_type="sensors"
+        )
 
         # Register pack first
         self.register_pack(pack_name=pack, pack_dir=pack_dir)
@@ -91,17 +95,22 @@ class SensorsRegistrar(ResourceRegistrar):
         if not sensors_dir:
             return registered_count
 
-        LOG.debug('Registering sensors from pack %s:, dir: %s', pack, sensors_dir)
+        LOG.debug("Registering sensors from pack %s:, dir: %s", pack, sensors_dir)
 
         try:
             sensors = self._get_sensors_from_pack(sensors_dir=sensors_dir)
-            registered_count = self._register_sensors_from_pack(pack=pack, sensors=sensors)
+            registered_count = self._register_sensors_from_pack(
+                pack=pack, sensors=sensors
+            )
         except Exception as e:
             if self._fail_on_failure:
                 raise e
 
-            LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir,
-                          six.text_type(e))
+            LOG.exception(
+                'Failed registering all sensors from pack "%s": %s',
+                sensors_dir,
+                six.text_type(e),
+            )
 
         return registered_count
 
@@ -115,11 +124,16 @@ class SensorsRegistrar(ResourceRegistrar):
                 self._register_sensor_from_pack(pack=pack, sensor=sensor)
             except Exception as e:
                 if self._fail_on_failure:
-                    msg = ('Failed to register sensor "%s" from pack "%s": %s' % (sensor, pack,
-                                                                                  six.text_type(e)))
+                    msg = 'Failed to register sensor "%s" from pack "%s": %s' % (
+                        sensor,
+                        pack,
+                        six.text_type(e),
+                    )
                     raise ValueError(msg)
 
-                LOG.debug('Failed to register sensor "%s": %s', sensor, six.text_type(e))
+                LOG.debug(
+                    'Failed to register sensor "%s": %s', sensor, six.text_type(e)
+                )
             else:
                 LOG.debug('Sensor "%s" successfully registered', sensor)
                 registered_count += 1
@@ -129,33 +143,35 @@ class SensorsRegistrar(ResourceRegistrar):
     def _register_sensor_from_pack(self, pack, sensor):
         sensor_metadata_file_path = sensor
 
-        LOG.debug('Loading sensor from %s.', sensor_metadata_file_path)
+        LOG.debug("Loading sensor from %s.", sensor_metadata_file_path)
         content = self._meta_loader.load(file_path=sensor_metadata_file_path)
 
-        pack_field = content.get('pack', None)
+        pack_field = content.get("pack", None)
         if not pack_field:
-            content['pack'] = pack
+            content["pack"] = pack
             pack_field = pack
         if pack_field != pack:
-            raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
-                            (pack, pack_field))
+            raise Exception(
+                'Model is in pack "%s" but field "pack" is different: %s'
+                % (pack, pack_field)
+            )
 
-        entry_point = content.get('entry_point', None)
+        entry_point = content.get("entry_point", None)
         if not entry_point:
-            raise ValueError('Sensor definition missing entry_point')
+            raise ValueError("Sensor definition missing entry_point")
 
         # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
         # the pack directory
-        metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
-                                                                     file_path=sensor,
-                                                                     use_pack_cache=True)
-        content['metadata_file'] = metadata_file
+        metadata_file = content_utils.get_relative_path_to_pack_file(
+            pack_ref=pack, file_path=sensor, use_pack_cache=True
+        )
+        content["metadata_file"] = metadata_file
 
         sensors_dir = os.path.dirname(sensor_metadata_file_path)
         sensor_file_path = os.path.join(sensors_dir, entry_point)
-        artifact_uri = 'file://%s' % (sensor_file_path)
-        content['artifact_uri'] = artifact_uri
-        content['entry_point'] = entry_point
+        artifact_uri = "file://%s" % (sensor_file_path)
+        content["artifact_uri"] = artifact_uri
+        content["entry_point"] = entry_point
 
         sensor_api = SensorTypeAPI(**content)
         sensor_model = SensorTypeAPI.to_model(sensor_api)
@@ -163,28 +179,37 @@ class SensorsRegistrar(ResourceRegistrar):
         sensor_types = SensorType.query(pack=sensor_model.pack, name=sensor_model.name)
         if len(sensor_types) >= 1:
             sensor_type = sensor_types[0]
-            LOG.debug('Found existing sensor id:%s with name:%s. Will update it.',
-                      sensor_type.id, sensor_type.name)
+            LOG.debug(
+                "Found existing sensor id:%s with name:%s. Will update it.",
+                sensor_type.id,
+                sensor_type.name,
+            )
             sensor_model.id = sensor_type.id
 
         try:
             sensor_model = SensorType.add_or_update(sensor_model)
         except:
-            LOG.exception('Failed creating sensor model for %s', sensor)
+            LOG.exception("Failed creating sensor model for %s", sensor)
 
         return sensor_model
 
 
-def register_sensors(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
-                     fail_on_failure=False):
+def register_sensors(
+    packs_base_paths=None, pack_dir=None, use_pack_cache=True, fail_on_failure=False
+):
     if packs_base_paths:
-        assert isinstance(packs_base_paths, list)
+        if not isinstance(packs_base_paths, list):
+            raise TypeError(
+                "The pack base paths has a value that is not a list"
+                f" (was {type(packs_base_paths)})."
+            )
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()
 
-    registrar = SensorsRegistrar(use_pack_cache=use_pack_cache,
-                                 fail_on_failure=fail_on_failure)
+    registrar = SensorsRegistrar(
+        use_pack_cache=use_pack_cache, fail_on_failure=fail_on_failure
+    )
 
     if pack_dir:
         result = registrar.register_from_pack(pack_dir=pack_dir)

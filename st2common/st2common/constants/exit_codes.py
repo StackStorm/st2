@@ -14,10 +14,10 @@
 # limitations under the License.
 
 __all__ = [
-    'SUCCESS_EXIT_CODE',
-    'FAILURE_EXIT_CODE',
-    'SIGKILL_EXIT_CODE',
-    'SIGTERM_EXIT_CODE'
+    "SUCCESS_EXIT_CODE",
+    "FAILURE_EXIT_CODE",
+    "SIGKILL_EXIT_CODE",
+    "SIGTERM_EXIT_CODE",
 ]
 
 SUCCESS_EXIT_CODE = 0

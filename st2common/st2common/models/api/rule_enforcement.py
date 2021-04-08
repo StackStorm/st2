@@ -28,95 +28,98 @@ from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_SUCCEED
 from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUSES
 from st2common.util import isotime
 
-__all__ = [
-    'RuleEnforcementAPI',
-    'RuleEnforcementViewAPI',
-
-    'RuleReferenceSpecDB'
-]
+__all__ = ["RuleEnforcementAPI", "RuleEnforcementViewAPI", "RuleReferenceSpecDB"]
 
 
 class RuleReferenceSpec(BaseAPI):
     schema = {
-        'type': 'object',
-        'properties': {
-            'ref': {
-                'type': 'string',
-                'required': True,
+        "type": "object",
+        "properties": {
+            "ref": {
+                "type": "string",
+                "required": True,
             },
-            'uid': {
-                'type': 'string',
-                'required': True,
+            "uid": {
+                "type": "string",
+                "required": True,
             },
-            'id': {
-                'type': 'string',
-                'required': False,
+            "id": {
+                "type": "string",
+                "required": False,
             },
         },
-        'additionalProperties': False
+        "additionalProperties": False,
     }
 
 
 class RuleEnforcementAPI(BaseAPI):
     model = RuleEnforcementDB
     schema = {
-        'title': 'RuleEnforcement',
-        'description': 'A specific instance of rule enforcement.',
-        'type': 'object',
-        'properties': {
-            'trigger_instance_id': {
-                'description': 'The unique identifier for the trigger instance ' +
-                               'that flipped the rule.',
-                'type': 'string',
-                'required': True
+        "title": "RuleEnforcement",
+        "description": "A specific instance of rule enforcement.",
+        "type": "object",
+        "properties": {
+            "trigger_instance_id": {
+                "description": "The unique identifier for the trigger instance "
+                + "that flipped the rule.",
+                "type": "string",
+                "required": True,
             },
-            'execution_id': {
-                'description': 'ID of the action execution that was invoked as a response.',
-                'type': 'string'
+            "execution_id": {
+                "description": "ID of the action execution that was invoked as a response.",
+                "type": "string",
             },
-            'failure_reason': {
-                'description': 'Reason for failure to execute the action specified in the rule.',
-                'type': 'string'
+            "failure_reason": {
+                "description": "Reason for failure to execute the action specified in the rule.",
+                "type": "string",
             },
-            'rule': RuleReferenceSpec.schema,
-            'enforced_at': {
-                'description': 'Timestamp when rule enforcement happened.',
-                'type': 'string',
-                'required': True
+            "rule": RuleReferenceSpec.schema,
+            "enforced_at": {
+                "description": "Timestamp when rule enforcement happened.",
+                "type": "string",
+                "required": True,
             },
             "status": {
                 "description": "Rule enforcement status.",
                 "type": "string",
-                "enum": RULE_ENFORCEMENT_STATUSES
+                "enum": RULE_ENFORCEMENT_STATUSES,
             },
         },
-        'additionalProperties': False
+        "additionalProperties": False,
     }
 
     @classmethod
     def to_model(cls, rule_enforcement):
-        trigger_instance_id = getattr(rule_enforcement, 'trigger_instance_id', None)
-        execution_id = getattr(rule_enforcement, 'execution_id', None)
-        enforced_at = getattr(rule_enforcement, 'enforced_at', None)
-        failure_reason = getattr(rule_enforcement, 'failure_reason', None)
-        status = getattr(rule_enforcement, 'status', RULE_ENFORCEMENT_STATUS_SUCCEEDED)
+        trigger_instance_id = getattr(rule_enforcement, "trigger_instance_id", None)
+        execution_id = getattr(rule_enforcement, "execution_id", None)
+        enforced_at = getattr(rule_enforcement, "enforced_at", None)
+        failure_reason = getattr(rule_enforcement, "failure_reason", None)
+        status = getattr(rule_enforcement, "status", RULE_ENFORCEMENT_STATUS_SUCCEEDED)
 
-        rule_ref_model = dict(getattr(rule_enforcement, 'rule', {}))
-        rule = RuleReferenceSpecDB(ref=rule_ref_model['ref'], id=rule_ref_model['id'],
-                                   uid=rule_ref_model['uid'])
+        rule_ref_model = dict(getattr(rule_enforcement, "rule", {}))
+        rule = RuleReferenceSpecDB(
+            ref=rule_ref_model["ref"],
+            id=rule_ref_model["id"],
+            uid=rule_ref_model["uid"],
+        )
 
         if enforced_at:
             enforced_at = isotime.parse(enforced_at)
 
-        return cls.model(trigger_instance_id=trigger_instance_id, execution_id=execution_id,
-                         failure_reason=failure_reason, enforced_at=enforced_at, rule=rule,
-                         status=status)
+        return cls.model(
+            trigger_instance_id=trigger_instance_id,
+            execution_id=execution_id,
+            failure_reason=failure_reason,
+            enforced_at=enforced_at,
+            rule=rule,
+            status=status,
+        )
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
         enforced_at = isotime.format(model.enforced_at, offset=False)
-        doc['enforced_at'] = enforced_at
+        doc["enforced_at"] = enforced_at
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)
 
@@ -126,7 +129,7 @@ class RuleEnforcementViewAPI(RuleEnforcementAPI):
     schema = copy.deepcopy(RuleEnforcementAPI.schema)
 
     # Update the schema to include additional execution properties
-    schema['properties']['execution'] = copy.deepcopy(ActionExecutionAPI.schema)
+    schema["properties"]["execution"] = copy.deepcopy(ActionExecutionAPI.schema)
 
     # Update the schema to include additional trigger instance properties
-    schema['properties']['trigger_instance'] = copy.deepcopy(TriggerInstanceAPI.schema)
+    schema["properties"]["trigger_instance"] = copy.deepcopy(TriggerInstanceAPI.schema)

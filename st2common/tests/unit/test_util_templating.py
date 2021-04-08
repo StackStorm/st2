@@ -26,41 +26,45 @@ class TemplatingUtilsTestCase(CleanDbTestCase):
         super(TemplatingUtilsTestCase, self).setUp()
 
         # Insert mock DB objects
-        kvp_1_db = KeyValuePairDB(name='key1', value='valuea')
+        kvp_1_db = KeyValuePairDB(name="key1", value="valuea")
         kvp_1_db = KeyValuePair.add_or_update(kvp_1_db)
 
-        kvp_2_db = KeyValuePairDB(name='key2', value='valueb')
+        kvp_2_db = KeyValuePairDB(name="key2", value="valueb")
         kvp_2_db = KeyValuePair.add_or_update(kvp_2_db)
 
-        kvp_3_db = KeyValuePairDB(name='stanley:key1', value='valuestanley1', scope=FULL_USER_SCOPE)
+        kvp_3_db = KeyValuePairDB(
+            name="stanley:key1", value="valuestanley1", scope=FULL_USER_SCOPE
+        )
         kvp_3_db = KeyValuePair.add_or_update(kvp_3_db)
 
-        kvp_4_db = KeyValuePairDB(name='joe:key1', value='valuejoe1', scope=FULL_USER_SCOPE)
+        kvp_4_db = KeyValuePairDB(
+            name="joe:key1", value="valuejoe1", scope=FULL_USER_SCOPE
+        )
         kvp_4_db = KeyValuePair.add_or_update(kvp_4_db)
 
     def test_render_template_with_system_and_user_context(self):
         # 1. No reference to the user inside the template
-        template = '{{st2kv.system.key1}}'
-        user = 'stanley'
+        template = "{{st2kv.system.key1}}"
+        user = "stanley"
 
         result = render_template_with_system_and_user_context(value=template, user=user)
-        self.assertEqual(result, 'valuea')
+        self.assertEqual(result, "valuea")
 
-        template = '{{st2kv.system.key2}}'
-        user = 'stanley'
+        template = "{{st2kv.system.key2}}"
+        user = "stanley"
 
         result = render_template_with_system_and_user_context(value=template, user=user)
-        self.assertEqual(result, 'valueb')
+        self.assertEqual(result, "valueb")
 
         # 2. Reference to the user inside the template
-        template = '{{st2kv.user.key1}}'
-        user = 'stanley'
+        template = "{{st2kv.user.key1}}"
+        user = "stanley"
 
         result = render_template_with_system_and_user_context(value=template, user=user)
-        self.assertEqual(result, 'valuestanley1')
+        self.assertEqual(result, "valuestanley1")
 
-        template = '{{st2kv.user.key1}}'
-        user = 'joe'
+        template = "{{st2kv.user.key1}}"
+        user = "joe"
 
         result = render_template_with_system_and_user_context(value=template, user=user)
-        self.assertEqual(result, 'valuejoe1')
+        self.assertEqual(result, "valuejoe1")

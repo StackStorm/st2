@@ -198,7 +198,7 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
         activate_virtualenv
 
         # Make sure virtualenv is using latest pip version
-        ${VIRTUALENV_DIR}/bin/pip install --upgrade "pip==20.0.2"
+        ${VIRTUALENV_DIR}/bin/pip install --upgrade "pip==20.3.3"
     fi
 
     if [ ! -d "${VIRTUALENV_DIR}" ]; then
@@ -322,7 +322,7 @@ if [ "${ENABLE_COVERAGE}" = true ]; then
 
   # Base options to enable test coverage reporting
   # --with-coverage : enables coverage reporting
-  # --cover-erase : removes old coverage reports before starting 
+  # --cover-erase : removes old coverage reports before starting
   NOSE_OPTS+=(--with-coverage --cover-erase)
 
   # Now, by default nosetests reports test coverage for every module found

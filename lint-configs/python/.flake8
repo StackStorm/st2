@@ -2,7 +2,14 @@
 max-line-length = 100
 # L102 - apache license header
 enable-extensions = L101,L102
-ignore = E128,E402,E722,W504
+# We ignore some rules which conflict with black
+# E203 - whitespace before ':' - in direct conflict with black rule
+# W503 line break before binary operator - in direct conflict with black rule
+# E501 is line length limit
+# https://black.readthedocs.io/en/stable/the_black_code_style.html#line-length
+# We don't really need line length rule since black formatting takes care of
+# that.
+ignore = E128,E402,E722,W504,E501,E203,W503
 exclude=*.egg/*,build,dist
 
 # Configuration for flake8-copyright extension
