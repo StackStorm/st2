@@ -523,7 +523,9 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
         KeyValuePair.add_or_update(KeyValuePairDB(name="k0", value="v0"))
-        KeyValuePair.add_or_update(KeyValuePairDB(name="k1_encrypted", value="v1_encrypted", secret=True))
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1_encrypted", value="v1_encrypted", secret=True)
+        )
 
         ####################
         # values in objects under an object with additionalProperties
