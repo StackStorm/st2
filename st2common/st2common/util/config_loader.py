@@ -135,7 +135,11 @@ class ContentPackConfigLoader(object):
         for config_item_key, config_item_value in iterator:
             if config_is_dict:
                 # different schema for each key/value pair
-                schema_item = schema.get(config_item_key, {})
+                try:
+                    # do not use schema.get() as schema might be a defaultdict
+                    schema_item = schema[config_item_key]
+                except KeyError:
+                    schema_item = {}
             if config_is_list:
                 # same schema is shared between every item in the list
                 schema_item = schema
