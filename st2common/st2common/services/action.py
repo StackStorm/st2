@@ -24,10 +24,13 @@ from st2common.exceptions import trace as trace_exc
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
+from st2common.persistence.workflow import TaskExecution
+from st2common.persistence.workflow import WorkflowExecution
 from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.runners import utils as runners_utils
 from st2common.services import executions
 from st2common.services import trace as trace_service
+from st2common.services import workflows as workflow_service
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
@@ -130,7 +133,7 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
     # XXX: There are cases when we don't want notifications to be sent for a particular
     # execution. So we should look at liveaction.parameters['notify']
     # and not set liveaction.notify.
-    if not _is_notify_empty(action_db.notify):
+    if not _is_notify_skipped(liveaction) and not _is_notify_empty(action_db.notify):
         liveaction.notify = action_db.notify
 
     # Write to database and send to message queue.
@@ -548,3 +551,17 @@ def _is_notify_empty(notify_db):
     if not notify_db:
         return True
     return not (notify_db.on_complete or notify_db.on_success or notify_db.on_failure)
+
+
+def _is_notify_skipped(liveaction):
+    """
+    notification is skipped if action execution is under workflow context and
+    task is not specified under wf_ex_db.notify["tasks"].
+    """
+    if not workflow_service.is_action_execution_under_workflow_context(
+    liveaction
+    ):
+        return False
+    wf_ex_db = WorkflowExecution.get_by_id(liveaction.workflow_execution)
+    task_ex_db = TaskExecution.get_by_id(liveaction.task_execution)
+    return not wf_ex_db.notify or task_ex_db.task_name not in wf_ex_db.notify.get("tasks", {})
