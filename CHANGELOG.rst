@@ -42,6 +42,8 @@ Added
 
   Contributed by @Kami.
 
+* Make redis the default coordinator backend.
+
 * Fix a bug in the pack config loader so that objects covered by an additionalProperties schema
   can use encrypted datastore keys and have their default values applied correctly. #5225
 
