@@ -16,8 +16,6 @@
 from __future__ import absolute_import
 import copy
 
-from collections import defaultdict
-
 import six
 
 from oslo_config import cfg
@@ -101,16 +99,19 @@ class ContentPackConfigLoader(object):
         return config
 
     @staticmethod
-    def _get_object_property_schema(object_schema, init_additional_properties=None):
+    def _get_object_property_schema(object_schema, additional_properties_keys=None):
+        """
+        Create a schema for an object property using both additionalProperties and properties.
+
+        :rtype: ``dict``
+        """
+        property_schema = {}
         additional_properties = object_schema.get("additionalProperties", {})
+        # additionalProperties can be a boolean or a dict
         if additional_properties and isinstance(additional_properties, dict):
-            property_schema = defaultdict(lambda: additional_properties)
-        else:
-            property_schema = {}
-        if init_additional_properties:
-            # ensure that these keys are present in the object (vs just defaultdict)
-            for key in init_additional_properties:
-                property_schema.__missing__(key)
+            # ensure that these keys are present in the object
+            for key in additional_properties_keys:
+                property_schema[key] = additional_properties
         property_schema.update(object_schema.get("properties", {}))
         return property_schema
 
@@ -135,11 +136,7 @@ class ContentPackConfigLoader(object):
         for config_item_key, config_item_value in iterator:
             if config_is_dict:
                 # different schema for each key/value pair
-                try:
-                    # do not use schema.get() as schema might be a defaultdict
-                    schema_item = schema[config_item_key]
-                except KeyError:
-                    schema_item = {}
+                schema_item = schema.get(config_item_key, {})
             if config_is_list:
                 # same schema is shared between every item in the list
                 schema_item = schema
@@ -150,7 +147,10 @@ class ContentPackConfigLoader(object):
             # Inspect nested object properties
             if is_dictionary:
                 parent_keys += [str(config_item_key)]
-                property_schema = self._get_object_property_schema(schema_item)
+                property_schema = self._get_object_property_schema(
+                    schema_item,
+                    additional_properties_keys=config_item_value.keys(),
+                )
                 self._assign_dynamic_config_values(
                     schema=property_schema,
                     config=config[config_item_key],
@@ -216,11 +216,7 @@ class ContentPackConfigLoader(object):
 
                 property_schema = self._get_object_property_schema(
                     schema_item,
-                    init_additional_properties=(
-                        config[schema_item_key].keys()
-                        if has_additional_properties
-                        else None
-                    ),
+                    additional_properties_keys=config[schema_item_key].keys(),
                 )
 
                 self._assign_default_values(

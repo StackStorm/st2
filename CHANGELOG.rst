@@ -43,7 +43,7 @@ Added
   Contributed by @Kami.
 
 * Fix a bug in the pack config loader so that objects covered by an additionalProperties schema
-  can use encrypted datastore keys and have their default values applied correctly.
+  can use encrypted datastore keys and have their default values applied correctly. #5225
 
   Contributed by @cognifloyd.
 
