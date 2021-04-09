@@ -558,10 +558,10 @@ def _is_notify_skipped(liveaction):
     notification is skipped if action execution is under workflow context and
     task is not specified under wf_ex_db.notify["tasks"].
     """
-    if not workflow_service.is_action_execution_under_workflow_context(
-    liveaction
-    ):
+    if not workflow_service.is_action_execution_under_workflow_context(liveaction):
         return False
     wf_ex_db = WorkflowExecution.get_by_id(liveaction.workflow_execution)
     task_ex_db = TaskExecution.get_by_id(liveaction.task_execution)
-    return not wf_ex_db.notify or task_ex_db.task_name not in wf_ex_db.notify.get("tasks", {})
+    return not wf_ex_db.notify or task_ex_db.task_name not in wf_ex_db.notify.get(
+        "tasks", {}
+    )
