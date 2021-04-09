@@ -1,6 +1,6 @@
 ---
-  regions:
-    type: "array"
+  region:
+    type: "string"
     required: false
     default: "us-east-1"
   profiles:
