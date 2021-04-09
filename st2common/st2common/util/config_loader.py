@@ -101,12 +101,16 @@ class ContentPackConfigLoader(object):
         return config
 
     @staticmethod
-    def _get_object_property_schema(object_schema):
+    def _get_object_property_schema(object_schema, init_additional_properties=None):
         additional_properties = object_schema.get("additionalProperties", {})
-        if isinstance(additional_properties, dict):
+        if additional_properties and isinstance(additional_properties, dict):
             property_schema = defaultdict(lambda: additional_properties)
         else:
             property_schema = {}
+        if init_additional_properties:
+            # ensure that these keys are present in the object (vs just defaultdict)
+            for key in init_additional_properties:
+                property_schema.__missing__(key)
         property_schema.update(object_schema.get("properties", {}))
         return property_schema
 
@@ -206,7 +210,14 @@ class ContentPackConfigLoader(object):
                 if not config.get(schema_item_key, None):
                     config[schema_item_key] = {}
 
-                property_schema = self._get_object_property_schema(schema_item)
+                property_schema = self._get_object_property_schema(
+                    schema_item,
+                    init_additional_properties=(
+                        config[schema_item_key].keys()
+                        if has_additional_properties
+                        else None
+                    ),
+                )
 
                 self._assign_default_values(
                     schema=property_schema, config=config[schema_item_key]
