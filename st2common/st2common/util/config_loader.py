@@ -144,9 +144,11 @@ class ContentPackConfigLoader(object):
             is_dictionary = isinstance(config_item_value, dict)
             is_list = isinstance(config_item_value, list)
 
+            # pass a copy of parent_keys so the loop doesn't add sibling keys
+            current_keys = parent_keys + [str(config_item_keys)]
+
             # Inspect nested object properties
             if is_dictionary:
-                parent_keys += [str(config_item_key)]
                 property_schema = self._get_object_property_schema(
                     schema_item,
                     additional_properties_keys=config_item_value.keys(),
@@ -154,15 +156,14 @@ class ContentPackConfigLoader(object):
                 self._assign_dynamic_config_values(
                     schema=property_schema,
                     config=config[config_item_key],
-                    parent_keys=parent_keys,
+                    parent_keys=current_keys,
                 )
             # Inspect nested list items
             elif is_list:
-                parent_keys += [str(config_item_key)]
                 self._assign_dynamic_config_values(
                     schema=schema_item.get("items", {}),
                     config=config[config_item_key],
-                    parent_keys=parent_keys,
+                    parent_keys=current_keys,
                 )
             else:
                 is_jinja_expression = jinja_utils.is_jinja_expression(
@@ -171,9 +172,7 @@ class ContentPackConfigLoader(object):
 
                 if is_jinja_expression:
                     # Resolve / render the Jinja template expression
-                    full_config_item_key = ".".join(
-                        parent_keys + [str(config_item_key)]
-                    )
+                    full_config_item_key = ".".join(current_keys)
                     value = self._get_datastore_value_for_expression(
                         key=full_config_item_key,
                         value=config_item_value,
