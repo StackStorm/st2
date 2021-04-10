@@ -42,6 +42,8 @@ Added
 
   Contributed by @Kami.
 
+* Make redis the default coordinator backend.
+
 Changed
 ~~~~~~~
 
