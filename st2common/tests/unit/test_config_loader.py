@@ -545,6 +545,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                     "host": "127.1.2.7",
                     "port": 8282,
                     # encrypted in datastore
+                    # (schema declares `secret: true` which triggers auto-decryption)
                     "token": "{{st2kv.system.k1_encrypted}}",
                 },
             }
