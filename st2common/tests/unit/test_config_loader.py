@@ -522,7 +522,6 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         pack_name = "dummy_pack_schema_with_additional_properties_1"
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
-        KeyValuePair.add_or_update(KeyValuePairDB(name="k0", value="v0"))
         KeyValuePair.add_or_update(
             KeyValuePairDB(name="k1_encrypted", value="v1_encrypted", secret=True)
         )
@@ -535,18 +534,13 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                     # no host or port to test default value
                     "token": "hard-coded-secret",
                 },
-                "stage": {
-                    "host": "127.0.0.1",
-                    "port": 8181,
-                    # unencrypted in datastore
-                    "token": "{{st2kv.system.k0}}",
-                },
                 "prod": {
                     "host": "127.1.2.7",
                     "port": 8282,
                     # encrypted in datastore
-                    # (schema declares `secret: true` which triggers auto-decryption)
                     "token": "{{st2kv.system.k1_encrypted}}",
+                    # schema declares `secret: true` which triggers auto-decryption.
+                    # If this were not encrypted, it would try to decrypt it and fail.
                 },
             }
         }
@@ -564,11 +558,6 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                         "host": "127.0.0.3",
                         "port": 8080,
                         "token": "hard-coded-secret",
-                    },
-                    "stage": {
-                        "host": "127.0.0.1",
-                        "port": 8181,
-                        "token": "v0",
                     },
                     "prod": {
                         "host": "127.1.2.7",
