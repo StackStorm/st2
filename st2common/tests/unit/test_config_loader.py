@@ -19,8 +19,10 @@ from st2common.models.db.pack import ConfigDB
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.keyvalue import KeyValuePair
+from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.util.config_loader import ContentPackConfigLoader
+from st2common.util import crypto
 
 from st2tests.base import CleanDbTestCase
 
@@ -522,8 +524,11 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         pack_name = "dummy_pack_schema_with_additional_properties_1"
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
+        encrypted_value = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v1_encrypted"
+        )
         KeyValuePair.add_or_update(
-            KeyValuePairDB(name="k1_encrypted", value="v1_encrypted", secret=True)
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value, secret=True)
         )
 
         ####################
