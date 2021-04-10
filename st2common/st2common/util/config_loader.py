@@ -145,7 +145,7 @@ class ContentPackConfigLoader(object):
             is_list = isinstance(config_item_value, list)
 
             # pass a copy of parent_keys so the loop doesn't add sibling keys
-            current_keys = parent_keys + [str(config_item_keys)]
+            current_keys = parent_keys + [str(config_item_key)]
 
             # Inspect nested object properties
             if is_dictionary:
