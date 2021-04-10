@@ -558,10 +558,47 @@ def _is_notify_skipped(liveaction):
     notification is skipped if action execution is under workflow context and
     task is not specified under wf_ex_db.notify["tasks"].
     """
-    if not workflow_service.is_action_execution_under_workflow_context(liveaction):
-        return False
-    wf_ex_db = WorkflowExecution.get_by_id(liveaction.workflow_execution)
-    task_ex_db = TaskExecution.get_by_id(liveaction.task_execution)
-    return not wf_ex_db.notify or task_ex_db.task_name not in wf_ex_db.notify.get(
-        "tasks", {}
+    is_under_workflow_context = (
+        workflow_service.is_action_execution_under_workflow_context(liveaction)
     )
+    is_under_action_chain_context = is_action_execution_under_action_chain_context(
+        liveaction
+    )
+    if is_under_workflow_context:
+        wf_ex_db = WorkflowExecution.get(
+            id=liveaction.workflow_execution, only_fields=["notify"]
+        )
+        task_ex_db = TaskExecution.get(
+            id=liveaction.task_execution, only_fields=["task_name"]
+        )
+        return not wf_ex_db.notify or task_ex_db.task_name not in wf_ex_db.notify.get(
+            "tasks", {}
+        )
+    if is_under_action_chain_context:
+        task_name = liveaction.context["chain"]["name"]
+        parent = liveaction.context.get("parent")
+        if parent:
+            parent_execution_db = ActionExecution.get(
+                id=parent["execution_id"],
+                only_fields=["action.parameters", "parameters"],
+            )
+            skip_notify_tasks = parent_execution_db["parameters"].get("skip_notify", [])
+            default_skip_notify_tasks = parent_execution_db["action"]["parameters"].get(
+                "skip_notify", {}
+            )
+            if skip_notify_tasks:
+                if task_name in skip_notify_tasks:
+                    return True
+                # If skip_notify parameter is specified, but task is not skipped.
+                return False
+            # If skip_notify parameter is not specified, check the task in default list.
+            return task_name in default_skip_notify_tasks.get("default", [])
+    return False
+
+
+def is_action_execution_under_action_chain_context(liveaction):
+    """
+    The action execution is executed under action-chain context
+    if it contains the chain key in its context dictionary.
+    """
+    return liveaction.context and "chain" in liveaction.context

@@ -6,3 +6,5 @@ tasks:
   task1:
     action: orquesta_tests.sequential-notify who="Lakshmi"
 
+  task2:
+    action: orquesta_tests.sequential who="Lakshmi"
