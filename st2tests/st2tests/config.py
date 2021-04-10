@@ -77,7 +77,16 @@ def _register_config_opts():
 
 
 def _override_db_opts():
-    CONF.set_override(name="db_name", override="st2-test", group="database")
+    node_index = os.environ.get("NODE_INDEX", None)
+    db_per_worker = os.environ.get("DB_PER_WORKER", "")
+    if node_index and db_per_worker:
+        # When running multiple unit tests in parallel at the same time we need to use different
+        # db per worker to ensure DB isolation.
+        CONF.set_override(
+            name="db_name", override="st2-test-%s" % (node_index), group="database"
+        )
+    else:
+        CONF.set_override(name="db_name", override="st2-test", group="database")
     CONF.set_override(name="host", override="127.0.0.1", group="database")
 
 
