@@ -243,6 +243,10 @@ Improvements
 
   Contributed by @ashwini-orchestral
 
+* Drop unused python dependencies: prometheus_client, python-gnupg, more-itertools, zipp. #5228
+
+  Contributed by @cognifloyd.
+
 Fixed
 ~~~~~
 

@@ -30,7 +30,6 @@ kombu==4.6.6
 lockfile==0.12.2
 mock==4.0.3
 mongoengine==0.23.0
-more-itertools==5.0.0
 networkx==1.11
 nose
 nose-parallel==0.3.1
@@ -69,4 +68,3 @@ unittest2
 webob==1.8.7
 webtest
 zake==0.2.2
-zipp>=0.5,<=1.0.0
