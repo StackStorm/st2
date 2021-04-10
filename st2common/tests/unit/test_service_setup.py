@@ -67,8 +67,11 @@ def mock_get_logging_config_path():
 
 
 class ServiceSetupTestCase(CleanFilesTestCase):
-    def test_no_logging_config_found(self):
+    def setUp(self):
+        cfg.CONF.reset()
+        config.reset()
 
+    def test_no_logging_config_found(self):
         config.get_logging_config_path = mock_get_logging_config_path
 
         if six.PY3:
