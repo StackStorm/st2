@@ -15,7 +15,8 @@
 
 # This script allows users to easily run unit tests in parallel on multi-core systems. Compared
 # to just running single-threaded make .unit-tests, this offers much faster run time.
-
+# NOTE: Based on average CPU utilization of each test run process, it's ok to set this value to
+# num cores * 1.5-2
 NUM_WORKERS=${NUM_WORKERS:-$(nproc)}
 
 # TODO: Add support for FAIL_ON_FAILURE (aka fail and exit immediately + kill other running
