@@ -20,9 +20,6 @@ on:
     # run every night at midnight
     - cron:  '0 0 * * *'
 
-# TODO: Our workflow is far from ideal. We need to refactor it into multiple
-# ones and only run commands which are needed for some steps for those steps and
-# not for all
 jobs:
   # Special job which automatically cancels old runs for the same branch, prevents runs for the
   # same file set which has already passed, etc.
@@ -313,11 +310,11 @@ jobs:
           # the step to either fail or timeout quite often. We run those tests
           # separately so we can re-run just that set of tests on failure /
           # timeout instead of needing to re runn the whole build.
-          - name: 'Integration Tests (Orquesta)'
-            task: 'ci-orquesta'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version: '3.6'
+          #- name: 'Integration Tests (Orquesta)'
+          #  task: 'ci-orquesta'
+          #  nosetests_node_total: 1
+          #  nosetests_node_index: 0
+          #  python-version: '3.6'
     services:
       mongo:
         image: mongo:4.0
@@ -473,33 +470,6 @@ jobs:
         # use: script -e -c to print colors
         run: |
           script -e -c "make ${TASK}" && exit 0
-      - name: make (orquesta tests)
-        if: "${{ env.TASK == 'ci-orquesta' }}"
-        timeout-minutes: 10
-        env:
-          MAX_ATTEMPTS: 3
-          RETRY_DELAY: 5
-        # use: script -e -c to print colors
-        run: |
-          # There is a race in some orequesta integration tests so they tend to fail quite often.
-          # To avoid needed to re-run whole workflow in such case, we should try to retry this
-          # specific step. This saves us a bunch of time manually re-running the whole workflow.
-          # TODO: Try to identify problematic tests (iirc mostly orquesta ones) and only retry /
-          # re-run those.
-          set +e
-
-          for i in $(seq 1 ${MAX_ATTEMPTS}); do
-            echo "Attempt: ${i}/${MAX_ATTEMPTS}"
-
-            script -e -c "make ${TASK}" && exit 0
-
-            echo "Command failed, will retry in ${RETRY_DELAY} seconds..."
-            sleep ${RETRY_DELAY}
-          done
-
-          set -e
-          echo "Failed after ${MAX_ATTEMPTS} attempts, failing the job."
-          exit 1
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
         if: "${{ success() && env.ENABLE_COVERAGE == 'yes' && env.TASK == 'ci-integration' }}"
