@@ -19,6 +19,10 @@ import mock
 from mock import call
 from six.moves import range
 
+import st2tests.config as tests_config
+
+tests_config.parse_args()
+
 import st2common
 from st2actions.scheduler import handler as scheduling_queue
 from st2common.bootstrap.policiesregistrar import register_policy_types
