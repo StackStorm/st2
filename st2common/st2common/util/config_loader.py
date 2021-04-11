@@ -98,6 +98,23 @@ class ContentPackConfigLoader(object):
         config = self._assign_default_values(schema=schema_values, config=config)
         return config
 
+    @staticmethod
+    def _get_object_property_schema(object_schema, additional_properties_keys=None):
+        """
+        Create a schema for an object property using both additionalProperties and properties.
+
+        :rtype: ``dict``
+        """
+        property_schema = {}
+        additional_properties = object_schema.get("additionalProperties", {})
+        # additionalProperties can be a boolean or a dict
+        if additional_properties and isinstance(additional_properties, dict):
+            # ensure that these keys are present in the object
+            for key in additional_properties_keys:
+                property_schema[key] = additional_properties
+        property_schema.update(object_schema.get("properties", {}))
+        return property_schema
+
     def _assign_dynamic_config_values(self, schema, config, parent_keys=None):
         """
         Assign dynamic config value for a particular config item if the ite utilizes a Jinja
@@ -127,21 +144,26 @@ class ContentPackConfigLoader(object):
             is_dictionary = isinstance(config_item_value, dict)
             is_list = isinstance(config_item_value, list)
 
+            # pass a copy of parent_keys so the loop doesn't add sibling keys
+            current_keys = parent_keys + [str(config_item_key)]
+
             # Inspect nested object properties
             if is_dictionary:
-                parent_keys += [str(config_item_key)]
+                property_schema = self._get_object_property_schema(
+                    schema_item,
+                    additional_properties_keys=config_item_value.keys(),
+                )
                 self._assign_dynamic_config_values(
-                    schema=schema_item.get("properties", {}),
+                    schema=property_schema,
                     config=config[config_item_key],
-                    parent_keys=parent_keys,
+                    parent_keys=current_keys,
                 )
             # Inspect nested list items
             elif is_list:
-                parent_keys += [str(config_item_key)]
                 self._assign_dynamic_config_values(
                     schema=schema_item.get("items", {}),
                     config=config[config_item_key],
-                    parent_keys=parent_keys,
+                    parent_keys=current_keys,
                 )
             else:
                 is_jinja_expression = jinja_utils.is_jinja_expression(
@@ -150,9 +172,7 @@ class ContentPackConfigLoader(object):
 
                 if is_jinja_expression:
                     # Resolve / render the Jinja template expression
-                    full_config_item_key = ".".join(
-                        parent_keys + [str(config_item_key)]
-                    )
+                    full_config_item_key = ".".join(current_keys)
                     value = self._get_datastore_value_for_expression(
                         key=full_config_item_key,
                         value=config_item_value,
@@ -182,18 +202,24 @@ class ContentPackConfigLoader(object):
             default_value = schema_item.get("default", None)
             is_object = schema_item.get("type", None) == "object"
             has_properties = schema_item.get("properties", None)
+            has_additional_properties = schema_item.get("additionalProperties", None)
 
             if has_default_value and not has_config_value:
                 # Config value is not provided, but default value is, use a default value
                 config[schema_item_key] = default_value
 
             # Inspect nested object properties
-            if is_object and has_properties:
+            if is_object and (has_properties or has_additional_properties):
                 if not config.get(schema_item_key, None):
                     config[schema_item_key] = {}
 
+                property_schema = self._get_object_property_schema(
+                    schema_item,
+                    additional_properties_keys=config[schema_item_key].keys(),
+                )
+
                 self._assign_default_values(
-                    schema=schema_item["properties"], config=config[schema_item_key]
+                    schema=property_schema, config=config[schema_item_key]
                 )
 
         return config
