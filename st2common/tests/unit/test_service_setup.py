@@ -94,7 +94,7 @@ def mock_get_logging_config_path():
 class ServiceSetupTestCase(CleanFilesTestCase):
     def setUp(self):
         super(ServiceSetupTestCase, self).setUp()
-        config.USE_DEFAULT_CONFIG_FILES = True
+        config.USE_DEFAULT_CONFIG_FILES = False
 
     def tearDown(self):
         super(ServiceSetupTestCase, self).tearDown()
@@ -167,6 +167,8 @@ class ServiceSetupTestCase(CleanFilesTestCase):
         "st2tests.config.DEFAULT_CONFIG_FILE_PATH", MOCK_DEFAULT_CONFIG_FILE_PATH
     )
     def test_service_setup_default_st2_conf_config_is_used(self):
+        config.USE_DEFAULT_CONFIG_FILES = True
+
         _, mock_logging_config_path = tempfile.mkstemp()
         self.to_delete_files.append(mock_logging_config_path)
 
