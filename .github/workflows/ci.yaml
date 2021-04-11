@@ -301,18 +301,22 @@ jobs:
             python-version: '3.6'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
-            nosetests_node_total: 3
+            nosetests_node_total: 2
             nosetests_node_index: 0
             python-version: '3.6'
           - name: 'Integration Tests (chunk 2)'
             task: 'ci-integration'
-            nosetests_node_total: 3
+            nosetests_node_total: 2
             nosetests_node_index: 1
             python-version: '3.6'
-          - name: 'Integration Tests (chunk 3)'
-            task: 'ci-integration'
-            nosetests_node_total: 3
-            nosetests_node_index: 2
+          # There are a bunch of race conditions in Orquesta tests which causes
+          # the step to either fail or timeout quite often. We run those tests
+          # separately so we can re-run just that set of tests on failure /
+          # timeout instead of needing to re runn the whole build.
+          - name: 'Integration Tests (Orquesta)'
+            task: 'ci-orquesta'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
             python-version: '3.6'
     services:
       mongo:
@@ -464,7 +468,14 @@ jobs:
         run: |
           ./scripts/ci/print-versions.sh
       - name: make
-        timeout-minutes: 9
+        if: "${{ env.TASK == 'ci-integration' }}"
+        timeout-minutes: 8
+        # use: script -e -c to print colors
+        run: |
+          script -e -c "make ${TASK}" && exit 0
+      - name: make (orquesta tests)
+        if: "${{ env.TASK == 'ci-orquesta' }}"
+        timeout-minutes: 8
         env:
           MAX_ATTEMPTS: 3
           RETRY_DELAY: 5
@@ -475,7 +486,9 @@ jobs:
           # specific step. This saves us a bunch of time manually re-running the whole workflow.
           # TODO: Try to identify problematic tests (iirc mostly orquesta ones) and only retry /
           # re-run those.
-          set          for i in $(seq 1 ${MAX_ATTEMPTS}); do
+          set +e
+
+          for i in $(seq 1 ${MAX_ATTEMPTS}); do
             echo "Attempt: ${i}/${MAX_ATTEMPTS}"
 
             script -e -c "make ${TASK}" && exit 0
