@@ -2,7 +2,7 @@
 # Orquesta tests have a lot of race conditions which result in intermediate failures and timeouts.
 # Utilizing separate workflow allows us to re-run just this workflow / job on failure instead of
 # wasting time and resources by needing to re-run all the jobs.
-name: Orquesta Integration Tests
+name: CI
 
 on:
   push:

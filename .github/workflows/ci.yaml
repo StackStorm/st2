@@ -1,4 +1,4 @@
-name: Lint Checks, Unit Tests, Integration Tests
+name: CI
 
 on:
   push:
