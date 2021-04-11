@@ -464,7 +464,7 @@ jobs:
         run: |
           ./scripts/ci/print-versions.sh
       - name: make
-        timeout-minutes: 25  # may die if rabbitmq fails to start
+        timeout-minutes: 15
         env:
           MAX_ATTEMPTS: 3
           RETRY_DELAY: 5
