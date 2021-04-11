@@ -113,7 +113,7 @@ jobs:
           ./scripts/ci/print-versions.sh
       - name: make
         # use: script -e -c to print colors
-        timeout-minutes: 25
+        timeout-minutes: 7
         run: |
           script -e -c "make ${TASK}"
       - name: Nightly
@@ -265,7 +265,7 @@ jobs:
           ./scripts/ci/print-versions.sh
       - name: make
         # use: script -e -c to print colors
-        timeout-minutes: 25
+        timeout-minutes: 8
         run: |
           script -e -c "make ${TASK}"
       - name: Nightly
@@ -464,7 +464,7 @@ jobs:
         run: |
           ./scripts/ci/print-versions.sh
       - name: make
-        timeout-minutes: 15
+        timeout-minutes: 9
         env:
           MAX_ATTEMPTS: 3
           RETRY_DELAY: 5
@@ -475,8 +475,7 @@ jobs:
           # specific step. This saves us a bunch of time manually re-running the whole workflow.
           # TODO: Try to identify problematic tests (iirc mostly orquesta ones) and only retry /
           # re-run those.
-          set +e
-          for i in $(seq 1 ${MAX_ATTEMPTS}); do
+          set          for i in $(seq 1 ${MAX_ATTEMPTS}); do
             echo "Attempt: ${i}/${MAX_ATTEMPTS}"
 
             script -e -c "make ${TASK}" && exit 0
