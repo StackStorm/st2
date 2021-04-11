@@ -469,13 +469,13 @@ jobs:
           ./scripts/ci/print-versions.sh
       - name: make
         if: "${{ env.TASK == 'ci-integration' }}"
-        timeout-minutes: 8
+        timeout-minutes: 7
         # use: script -e -c to print colors
         run: |
           script -e -c "make ${TASK}" && exit 0
       - name: make (orquesta tests)
         if: "${{ env.TASK == 'ci-orquesta' }}"
-        timeout-minutes: 8
+        timeout-minutes: 10
         env:
           MAX_ATTEMPTS: 3
           RETRY_DELAY: 5

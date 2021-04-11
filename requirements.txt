@@ -32,7 +32,7 @@ mock==4.0.3
 mongoengine==0.23.0
 networkx==1.11
 nose
-nose-parallel==0.3.1
+nose-parallel==0.4.0
 nose-timer==0.7.5
 orjson==3.5.1
 oslo.config>=1.12.1,<1.13
