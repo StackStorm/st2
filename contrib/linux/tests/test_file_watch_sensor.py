@@ -49,7 +49,7 @@ def test_file_watch_sensor():
 
     time.sleep(WAIT_TIME)
 
-    th = threading.Thread(target=fws.run)
+    # th = threading.Thread(target=fws.run)
     th = eventlet.spawn(fws.run)
     # th.start()
 
@@ -127,7 +127,7 @@ def test_file_watch_sensor_without_trigger_filepath():
 
     time.sleep(WAIT_TIME)
 
-    th = threading.Thread(target=fws.run)
+    # th = threading.Thread(target=fws.run)
     th = eventlet.spawn(fws.run)
     # th.start()
 
@@ -167,7 +167,7 @@ def test_file_watch_sensor_without_trigger_ref():
 
     time.sleep(WAIT_TIME)
 
-    th = threading.Thread(target=fws.run)
+    # th = threading.Thread(target=fws.run)
     th = eventlet.spawn(fws.run)
     # th.start()
 
