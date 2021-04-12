@@ -26,6 +26,7 @@ from watchdog.events import FileSystemEventHandler
 try:
     from st2reactor.sensor.base import Sensor
 except ImportError:
+
     class Sensor:
         def __init__(self, *args, sensor_service=None, config=None, **kwargs):
             self.sensor_service = sensor_service
@@ -39,6 +40,7 @@ class EventHandler(FileSystemEventHandler):
     individual files, since the directory events will include events for
     individual files.
     """
+
     def __init__(self, *args, callbacks=None, **kwargs):
         self.callbacks = callbacks or {}
 
@@ -47,22 +49,22 @@ class EventHandler(FileSystemEventHandler):
             super().dispatch(event)
 
     def on_created(self, event):
-        cb = self.callbacks.get('created')
+        cb = self.callbacks.get("created")
         if cb:
             cb(event=event)
 
     def on_modified(self, event):
-        cb = self.callbacks.get('modified')
+        cb = self.callbacks.get("modified")
         if cb:
             cb(event=event)
 
     def on_moved(self, event):
-        cb = self.callbacks.get('moved')
+        cb = self.callbacks.get("moved")
         if cb:
             cb(event=event)
 
     def on_deleted(self, event):
-        cb = self.callbacks.get('deleted')
+        cb = self.callbacks.get("deleted")
         if cb:
             cb(event=event)
 
@@ -98,8 +100,17 @@ class SingleFileTail(object):
     where one file is quickly created and/or updated may trigger race
     conditions and therefore unpredictable behavior.
     """
-    def __init__(self, path, handler, follow=False, read_all=False,
-                 observer=None, logger=None, fd=None):
+
+    def __init__(
+        self,
+        path,
+        handler,
+        follow=False,
+        read_all=False,
+        observer=None,
+        logger=None,
+        fd=None,
+    ):
         if logger is None:
             raise Exception("SingleFileTail was initialized without a logger")
 
@@ -108,7 +119,7 @@ class SingleFileTail(object):
         self.handler = handler
         self.follow = follow
         self.read_all = read_all
-        self.buffer = ''
+        self.buffer = ""
         self.observer = observer or Observer()
         self.logger = logger
         self.watch = None
@@ -146,7 +157,7 @@ class SingleFileTail(object):
         # If the 1024 bytes cuts the line off in the middle of a multi-byte
         # utf-8 character then decoding will raise an UnicodeDecodeError.
         try:
-            buffer = buffer.decode(encoding='utf8')
+            buffer = buffer.decode(encoding="utf8")
         except UnicodeDecodeError as e:
             # Grab the first few bytes of the partial character
             # e.start is the first byte of the decoding issue
@@ -174,7 +185,7 @@ class SingleFileTail(object):
             buff = os.read(fd, number_of_bytes_to_read)
             if len(buff) == number_of_bytes_to_read:
                 buffer += buff
-                return buffer.decode(encoding='utf8')
+                return buffer.decode(encoding="utf8")
 
             # If we did not successfully read a complete character, there's
             # nothing else we can really do but reraise the exception
@@ -195,11 +206,13 @@ class SingleFileTail(object):
             if self.buffer:
                 self.logger.debug(f"Appending to existing buffer: '{self.buffer}'")
                 buff = self.buffer + buff
-                self.buffer = ''
+                self.buffer = ""
 
             lines = buff.splitlines(True)
             # If the last character of the last line is not a newline
-            if lines and lines[-1] and lines[-1][-1] != '\n':  # Incomplete line in the buffer
+            if (
+                lines and lines[-1] and lines[-1][-1] != "\n"
+            ):  # Incomplete line in the buffer
                 self.logger.debug(f"Saving partial line in the buffer: '{lines[-1]}'")
                 self.buffer = lines[-1]  # Save the last line fragment
                 lines = lines[:-1]
@@ -212,7 +225,9 @@ class SingleFileTail(object):
         # Directory watches will fire events for unrelated files
         # Ignore all events except those for our path
         if event and self.get_event_src_path(event) != self.abs_path:
-            self.logger.debug(f"Ignoring event for non-tracked file: '{event.src_path}'")
+            self.logger.debug(
+                f"Ignoring event for non-tracked file: '{event.src_path}'"
+            )
             return
 
         # Guard against this being called twice - happens sometimes with inotify
@@ -267,20 +282,22 @@ class SingleFileTail(object):
             else:
                 self.fd = os.open(self.path, os.O_RDONLY | os.O_NONBLOCK)
 
-                if self.read_all or seek_to == 'start':
+                if self.read_all or seek_to == "start":
                     self.logger.debug("Seeking to start")
                     os.lseek(self.fd, 0, os.SEEK_SET)
 
-                if not self.read_all or seek_to == 'end':
+                if not self.read_all or seek_to == "end":
                     self.logger.debug("Seeking to end")
                     os.lseek(self.fd, 0, os.SEEK_END)
 
-                file_event_handler = EventHandler(callbacks={
-                    'created': self.open,
-                    'deleted': self.close,
-                    'modified': self.read,
-                    'moved': self.reopen_and_read,
-                })
+                file_event_handler = EventHandler(
+                    callbacks={
+                        "created": self.open,
+                        "deleted": self.close,
+                        "modified": self.read,
+                        "moved": self.reopen_and_read,
+                    }
+                )
 
                 self.logger.debug(f"Scheduling watch on file: '{self.path}'")
                 self.watch = self.observer.schedule(file_event_handler, self.path)
@@ -289,14 +306,22 @@ class SingleFileTail(object):
         # Avoid watching this twice
         self.logger.debug(f"Parent watch: {self.parent_watch}")
         if not self.parent_watch:
-            dir_event_handler = EventHandler(callbacks={
-                'created': self.open_and_read,
-                'moved': self.reopen_and_read,
-            })
+            dir_event_handler = EventHandler(
+                callbacks={
+                    "created": self.open_and_read,
+                    "moved": self.reopen_and_read,
+                }
+            )
 
-            self.logger.debug(f"Scheduling watch on parent directory: '{self.parent_dir}'")
-            self.parent_watch = self.observer.schedule(dir_event_handler, self.parent_dir)
-            self.logger.debug(f"Scheduled watch on parent directory: '{self.parent_dir}'")
+            self.logger.debug(
+                f"Scheduling watch on parent directory: '{self.parent_dir}'"
+            )
+            self.parent_watch = self.observer.schedule(
+                dir_event_handler, self.parent_dir
+            )
+            self.logger.debug(
+                f"Scheduled watch on parent directory: '{self.parent_dir}'"
+            )
 
     def close(self, event=None, emit_remaining=True, end_parent_watch=True):
         self.logger.debug(f"Closing single file tail on '{self.path}'")
@@ -304,7 +329,7 @@ class SingleFileTail(object):
         if self.buffer and emit_remaining:
             self.logger.debug(f"Emitting remaining partial line: '{self.buffer}'")
             self.handler(self.path, self.buffer)
-            self.buffer = ''
+            self.buffer = ""
         if self.parent_watch and end_parent_watch:
             self.logger.debug(f"Unscheduling parent directory watch: {self.parent_dir}")
             self.observer.unschedule(self.parent_watch)
@@ -338,10 +363,14 @@ class TailManager(object):
     def tail_file(self, path, handler, follow=False, read_all=False):
         if handler not in self.tails.setdefault(path, {}):
             self.logger.debug(f"Tailing single file: {path}")
-            sft = SingleFileTail(path, handler,
-                                 follow=follow, read_all=read_all,
-                                 observer=self.observer,
-                                 logger=self.logger)
+            sft = SingleFileTail(
+                path,
+                handler,
+                follow=follow,
+                read_all=read_all,
+                observer=self.observer,
+                logger=self.logger,
+            )
             self.tails[path][handler] = sft
 
     def stop_tailing_file(self, path, handler):
@@ -398,10 +427,10 @@ class FileWatchSensor(Sensor):
             self.logger.error('Received trigger type without "file_path" field.')
             return
 
-        self.trigger = trigger.get('ref', None)
+        self.trigger = trigger.get("ref", None)
 
         if not self.trigger:
-            raise Exception('Trigger %s did not contain a ref.' % trigger)
+            raise Exception("Trigger %s did not contain a ref." % trigger)
 
         self.tail_manager.tail_file(file_path, self._handle_line)
         self.logger.info('Added file "%s"' % (file_path))
@@ -425,16 +454,19 @@ class FileWatchSensor(Sensor):
 
     def _handle_line(self, file_path, line):
         payload = {
-            'file_path': file_path,
-            'file_name': pathlib.Path(file_path).name,
-            'line': line
+            "file_path": file_path,
+            "file_name": pathlib.Path(file_path).name,
+            "line": line,
         }
-        self.logger.debug('Sending payload %s for trigger %s to sensor_service.',
-                          payload, self.trigger)
+        self.logger.debug(
+            "Sending payload %s for trigger %s to sensor_service.",
+            payload,
+            self.trigger,
+        )
         self.sensor_service.dispatch(trigger=self.trigger, payload=payload)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     tm = TailManager(logger=logger)
     tm.tail_file(__file__, handler=print)
@@ -443,4 +475,5 @@ if __name__ == '__main__':
     def halt(sig, frame):
         tm.stop()
         sys.exit(0)
+
     signal.signal(signal.SIGINT, halt)

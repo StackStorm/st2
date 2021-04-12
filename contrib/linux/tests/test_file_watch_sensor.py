@@ -35,12 +35,13 @@ def test_file_watch_sensor():
     mock_sensor_service = mock.MagicMock()
     mock_logger = mock.MagicMock()
 
-    filename = 'test.txt'
+    filename = "test.txt"
     filepath = pathlib.Path(filename).absolute().resolve()
     filepath.touch()
 
-    fws = FileWatchSensor(sensor_service=mock_sensor_service, config={},
-                          logger=mock_logger)
+    fws = FileWatchSensor(
+        sensor_service=mock_sensor_service, config={}, logger=mock_logger
+    )
 
     time.sleep(WAIT_TIME)
 
@@ -54,48 +55,50 @@ def test_file_watch_sensor():
 
     time.sleep(WAIT_TIME)
 
-    fws.add_trigger({
-        'id': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-        'pack': 'linux',
-        'name': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-        'ref': 'linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-        'uid': 'trigger:linux:asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-        'type': 'linux.file_watch.line',
-        'parameters': {
-            'file_path': filepath,
-            'follow': True,
-        },
-    })
+    fws.add_trigger(
+        {
+            "id": "asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+            "pack": "linux",
+            "name": "asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+            "ref": "linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+            "uid": "trigger:linux:asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+            "type": "linux.file_watch.line",
+            "parameters": {
+                "file_path": filepath,
+                "follow": True,
+            },
+        }
+    )
 
     time.sleep(WAIT_TIME)
 
-    with open(filepath, 'a') as f:
+    with open(filepath, "a") as f:
         f.write("Added line 1\n")
 
     time.sleep(WAIT_TIME)
 
-    with open(filepath, 'a') as f:
+    with open(filepath, "a") as f:
         f.write("Added line 2\n")
 
     time.sleep(WAIT_TIME)
 
     expected_calls = [
         mock.call(
-            trigger='linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+            trigger="linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
             payload={
-                'file_path': pathlib.PosixPath('/vagrant/contrib/linux/test.txt'),
-                'file_name': 'test.txt',
-                'line': 'Added line 1',
+                "file_path": pathlib.PosixPath("/vagrant/contrib/linux/test.txt"),
+                "file_name": "test.txt",
+                "line": "Added line 1",
             },
         ),
         mock.call(
-            trigger='linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+            trigger="linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
             payload={
-                'file_path': pathlib.PosixPath('/vagrant/contrib/linux/test.txt'),
-                'file_name': 'test.txt',
-                'line': 'Added line 2',
+                "file_path": pathlib.PosixPath("/vagrant/contrib/linux/test.txt"),
+                "file_name": "test.txt",
+                "line": "Added line 2",
             },
-        )
+        ),
     ]
     mock_sensor_service.dispatch.assert_has_calls(expected_calls, any_order=False)
     print(mock_logger.method_calls)
@@ -110,12 +113,13 @@ def test_file_watch_sensor_without_trigger_filepath():
     mock_sensor_service = mock.MagicMock()
     mock_logger = mock.MagicMock()
 
-    filename = 'test.txt'
+    filename = "test.txt"
     filepath = pathlib.Path(filename).absolute().resolve()
     filepath.touch()
 
-    fws = FileWatchSensor(sensor_service=mock_sensor_service, config={},
-                          logger=mock_logger)
+    fws = FileWatchSensor(
+        sensor_service=mock_sensor_service, config={}, logger=mock_logger
+    )
 
     time.sleep(WAIT_TIME)
 
@@ -129,30 +133,33 @@ def test_file_watch_sensor_without_trigger_filepath():
 
     time.sleep(WAIT_TIME)
 
-    fws.add_trigger({
-        'id': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-        'pack': 'linux',
-        'name': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-        'ref': 'linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-        'uid': 'trigger:linux:asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-        'type': 'linux.file_watch.line',
-        'parameters': {
-            # 'file_path': filepath,
-            'follow': True,
-        },
-    })
+    fws.add_trigger(
+        {
+            "id": "asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+            "pack": "linux",
+            "name": "asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+            "ref": "linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+            "uid": "trigger:linux:asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+            "type": "linux.file_watch.line",
+            "parameters": {
+                # 'file_path': filepath,
+                "follow": True,
+            },
+        }
+    )
 
 
 def test_file_watch_sensor_without_trigger_ref():
     mock_sensor_service = mock.MagicMock()
     mock_logger = mock.MagicMock()
 
-    filename = 'test.txt'
+    filename = "test.txt"
     filepath = pathlib.Path(filename).absolute().resolve()
     filepath.touch()
 
-    fws = FileWatchSensor(sensor_service=mock_sensor_service, config={},
-                          logger=mock_logger)
+    fws = FileWatchSensor(
+        sensor_service=mock_sensor_service, config={}, logger=mock_logger
+    )
 
     time.sleep(WAIT_TIME)
 
@@ -167,30 +174,34 @@ def test_file_watch_sensor_without_trigger_ref():
     time.sleep(WAIT_TIME)
 
     try:
-        fws.add_trigger({
-            'id': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-            'pack': 'linux',
-            'name': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-            # 'ref': 'linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-            'uid': 'trigger:linux:asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
-            'type': 'linux.file_watch.line',
-            'parameters': {
-                'file_path': filepath,
-                'follow': True,
-            },
-        })
+        fws.add_trigger(
+            {
+                "id": "asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+                "pack": "linux",
+                "name": "asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+                # 'ref': 'linux.asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
+                "uid": "trigger:linux:asdf.adsfasdf-asdf-asdf-asdfasdfasdf",
+                "type": "linux.file_watch.line",
+                "parameters": {
+                    "file_path": filepath,
+                    "follow": True,
+                },
+            }
+        )
     except Exception as e:
         # Make sure we ignore the right exception
-        if 'did not contain a ref' not in str(e):
+        if "did not contain a ref" not in str(e):
             raise e
     else:
-        raise AssertionError("FileWatchSensor.add_trigger() did not raise an "
-                             "exception when passed a trigger without a ref")
+        raise AssertionError(
+            "FileWatchSensor.add_trigger() did not raise an "
+            "exception when passed a trigger without a ref"
+        )
     finally:
         os.unlink(filepath)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # logger.setLevel(logging.DEBUG)
 
     # handler = logging.StreamHandler(sys.stderr)

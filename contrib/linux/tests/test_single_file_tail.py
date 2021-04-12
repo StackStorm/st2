@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 def test_read_chunk_over_multibyte_character_boundary():
-    wide_characters = [None, None, '\u0130', '\u2050', '\U00088080']
+    wide_characters = [None, None, "\u0130", "\u2050", "\U00088080"]
     for n in range(2, 5):
         yield from _gen_n_byte_character_tests(1024, n, wide_characters[n])
 
@@ -47,12 +47,12 @@ def _gen_n_byte_character_tests(chunk_size, n, char):
 
 
 def _run_n_byte_character_tests(chunk_size, n, length, char):
-    filename = f'chunk_boundary_{n}u_{length}.txt'
+    filename = f"chunk_boundary_{n}u_{length}.txt"
 
-    with open(filename, 'wb+') as f:
+    with open(filename, "wb+") as f:
         # Write out a file that is of the given length
         # aaaaaa...aaa\x82
-        f.write(('a' * (length - n) + char).encode('utf-8'))
+        f.write(("a" * (length - n) + char).encode("utf-8"))
 
     fd = os.open(filename, os.O_RDONLY)
 
@@ -64,24 +64,24 @@ def _run_n_byte_character_tests(chunk_size, n, length, char):
     os.unlink(filename)
 
     if length < chunk_size + n:
-        assert result == ('a' * (length - n) + char)
+        assert result == ("a" * (length - n) + char)
     else:
-        assert result == ('a' * chunk_size)
+        assert result == ("a" * chunk_size)
 
 
 def test_read_chunk_with_bad_utf8_character():
-    filename = 'bad_utf8_character.txt'
+    filename = "bad_utf8_character.txt"
 
-    utf8_str = '\U00088080'
-    utf8_bytes = utf8_str.encode('utf-8')
+    utf8_str = "\U00088080"
+    utf8_bytes = utf8_str.encode("utf-8")
     chopped_utf8_bytes = utf8_bytes[:-1]
 
-    with open(filename, 'wb+') as f:
+    with open(filename, "wb+") as f:
         # Write out a file that is of the given length
         # aaaaaa...aaa\x82
-        f.write(b'a')
+        f.write(b"a")
         f.write(chopped_utf8_bytes)
-        f.write(b'a')
+        f.write(b"a")
 
     fd = os.open(filename, os.O_RDONLY)
 
@@ -101,9 +101,9 @@ def test_read_chunk_with_bad_utf8_character():
 
 
 def test_read_chunk_from_nonexistent_file():
-    filename = 'nonexistent_file.txt'
+    filename = "nonexistent_file.txt"
 
-    with open(filename, 'w+') as f:
+    with open(filename, "w+") as f:
         f.write("This file will not exist in a few moments")
 
     fd = os.open(filename, os.O_RDONLY)
@@ -113,10 +113,11 @@ def test_read_chunk_from_nonexistent_file():
 
     sft = SingleFileTail(None, None, fd=fd, logger=logger)
 
-    assert sft.read_chunk(fd=fd) == ''
+    assert sft.read_chunk(fd=fd) == ""
 
 
 # Helper function
+
 
 def append_to_list(list_to_append, path, element):
     logger.debug(f"Appending ({path}):\n{element} to {list_to_append}")
@@ -128,16 +129,17 @@ def test_initialize_without_logger():
         SingleFileTail(None, None, fd=None)
     except Exception as e:
         expected_message = "SingleFileTail was initialized without a logger"
-        if hasattr(e, 'message') and e.message != expected_message:
+        if hasattr(e, "message") and e.message != expected_message:
             raise e
     else:
-        raise AssertionError("SingleFileTail initialized fine without a "
-                             "logger parameter")
+        raise AssertionError(
+            "SingleFileTail initialized fine without a " "logger parameter"
+        )
 
 
 def test_append_to_watched_file_with_absolute_path():
-    tailed_filename = (pathlib.Path.cwd() / pathlib.Path('tailed_file.txt')).resolve()
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = (pathlib.Path.cwd() / pathlib.Path("tailed_file.txt")).resolve()
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -146,13 +148,14 @@ def test_append_to_watched_file_with_absolute_path():
 
     observer = Observer()
 
-    sft = SingleFileTail(tailed_filename, append_to_list_partial,
-                         observer=observer, logger=logger)
+    sft = SingleFileTail(
+        tailed_filename, append_to_list_partial, observer=observer, logger=logger
+    )
 
     observer.start()
     time.sleep(WAIT_TIME)
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -168,8 +171,8 @@ def test_append_to_watched_file_with_absolute_path():
 
 
 def test_append_to_watched_file_with_relative_path():
-    tailed_filename = pathlib.Path('tailed_file.txt')
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = pathlib.Path("tailed_file.txt")
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -178,13 +181,14 @@ def test_append_to_watched_file_with_relative_path():
 
     observer = Observer()
 
-    sft = SingleFileTail(tailed_filename, append_to_list_partial,
-                         observer=observer, logger=logger)
+    sft = SingleFileTail(
+        tailed_filename, append_to_list_partial, observer=observer, logger=logger
+    )
 
     observer.start()
     time.sleep(WAIT_TIME)
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -200,8 +204,8 @@ def test_append_to_watched_file_with_relative_path():
 
 
 def test_append_to_watched_file_observer_start_first():
-    tailed_filename = pathlib.Path('tailed_file.txt')
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = pathlib.Path("tailed_file.txt")
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -211,10 +215,11 @@ def test_append_to_watched_file_observer_start_first():
     observer = Observer()
     observer.start()
 
-    sft = SingleFileTail(tailed_filename, append_to_list_partial,
-                         observer=observer, logger=logger)
+    sft = SingleFileTail(
+        tailed_filename, append_to_list_partial, observer=observer, logger=logger
+    )
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -230,10 +235,10 @@ def test_append_to_watched_file_observer_start_first():
 
 
 def test_not_watched_file():
-    tailed_filename = 'tailed_file.txt'
-    not_tailed_filename = 'not_tailed_file.txt'
-    new_not_tailed_filename = not_tailed_filename.replace('.txt', '_moved.txt')
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = "tailed_file.txt"
+    not_tailed_filename = "not_tailed_file.txt"
+    new_not_tailed_filename = not_tailed_filename.replace(".txt", "_moved.txt")
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -242,12 +247,13 @@ def test_not_watched_file():
 
     observer = Observer()
 
-    sft = SingleFileTail(tailed_filename, append_to_list_partial,
-                         observer=observer, logger=logger)
+    sft = SingleFileTail(
+        tailed_filename, append_to_list_partial, observer=observer, logger=logger
+    )
 
     observer.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -255,7 +261,7 @@ def test_not_watched_file():
         "Added line 1",
     ]
 
-    with open(not_tailed_filename, 'a+') as f:
+    with open(not_tailed_filename, "a+") as f:
         f.write("Added line 1 - not tailed\n")
     time.sleep(WAIT_TIME)
 
@@ -284,7 +290,7 @@ def test_not_watched_file():
 
 
 def test_watch_nonexistent_file():
-    tailed_filename = 'tailed_file.txt'
+    tailed_filename = "tailed_file.txt"
 
     if os.path.exists(tailed_filename):
         os.unlink(tailed_filename)
@@ -294,8 +300,9 @@ def test_watch_nonexistent_file():
 
     observer = Observer()
 
-    sft = SingleFileTail(tailed_filename, append_to_list_partial,
-                         observer=observer, logger=logger)
+    sft = SingleFileTail(
+        tailed_filename, append_to_list_partial, observer=observer, logger=logger
+    )
 
     observer.start()
 
@@ -303,7 +310,7 @@ def test_watch_nonexistent_file():
 
     assert not os.path.exists(tailed_filename)
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -322,15 +329,15 @@ def test_watch_nonexistent_file():
 
 
 def test_follow_watched_file_moved():
-    tailed_filename = 'tailed_file_to_move.txt'
-    new_filename = tailed_filename.replace('_to_move.txt', '_moved.txt')
+    tailed_filename = "tailed_file_to_move.txt"
+    new_filename = tailed_filename.replace("_to_move.txt", "_moved.txt")
 
     if os.path.exists(new_filename):
         os.unlink(new_filename)
     if os.path.exists(tailed_filename):
         os.unlink(tailed_filename)
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -339,12 +346,17 @@ def test_follow_watched_file_moved():
 
     observer = Observer()
 
-    sft = SingleFileTail(tailed_filename, append_to_list_partial, follow=True,
-                         observer=observer, logger=logger)
+    sft = SingleFileTail(
+        tailed_filename,
+        append_to_list_partial,
+        follow=True,
+        observer=observer,
+        logger=logger,
+    )
 
     observer.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -352,7 +364,7 @@ def test_follow_watched_file_moved():
         "Added line 1",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 2")  # No newline
     time.sleep(WAIT_TIME)
 
@@ -367,7 +379,7 @@ def test_follow_watched_file_moved():
         "Added line 1",
     ]
 
-    with open(new_filename, 'a+') as f:
+    with open(new_filename, "a+") as f:
         f.write(" - end of line 2\n")
     time.sleep(WAIT_TIME)
 
@@ -376,7 +388,7 @@ def test_follow_watched_file_moved():
         "Added line 2 - end of line 2",
     ]
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("New file - text line 1\n")
         f.write("New file - text line 2\n")
     time.sleep(WAIT_TIME)
@@ -395,15 +407,15 @@ def test_follow_watched_file_moved():
 
 
 def test_not_followed_watched_file_moved():
-    tailed_filename = 'tailed_file_to_move.txt'
-    new_filename = tailed_filename.replace('_to_move.txt', '_moved.txt')
+    tailed_filename = "tailed_file_to_move.txt"
+    new_filename = tailed_filename.replace("_to_move.txt", "_moved.txt")
 
     if os.path.exists(new_filename):
         os.unlink(new_filename)
     if os.path.exists(tailed_filename):
         os.unlink(tailed_filename)
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -412,12 +424,17 @@ def test_not_followed_watched_file_moved():
 
     observer = Observer()
 
-    sft = SingleFileTail(tailed_filename, append_to_list_partial, follow=False,
-                         observer=observer, logger=logger)
+    sft = SingleFileTail(
+        tailed_filename,
+        append_to_list_partial,
+        follow=False,
+        observer=observer,
+        logger=logger,
+    )
 
     observer.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -425,7 +442,7 @@ def test_not_followed_watched_file_moved():
         "Added line 1",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 2")  # No newline
     time.sleep(WAIT_TIME)
 
@@ -441,7 +458,7 @@ def test_not_followed_watched_file_moved():
         "Added line 2",
     ]
 
-    with open(new_filename, 'a+') as f:
+    with open(new_filename, "a+") as f:
         f.write(" - end of line 2\n")
     time.sleep(WAIT_TIME)
 
@@ -452,7 +469,7 @@ def test_not_followed_watched_file_moved():
 
     assert not os.path.exists(tailed_filename)
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("Recreated file - text line 1\n")
         f.write("Recreated file - text line 2\n")
     time.sleep(WAIT_TIME)
@@ -475,9 +492,9 @@ def test_not_followed_watched_file_moved():
 
 
 def test_non_watched_file_moved():
-    tailed_filename = 'tailed_file_to_move.txt'
-    not_tailed_filename = f'not_{tailed_filename}'
-    new_not_tailed_filename = not_tailed_filename.replace('_to_move.txt', '_moved.txt')
+    tailed_filename = "tailed_file_to_move.txt"
+    not_tailed_filename = f"not_{tailed_filename}"
+    new_not_tailed_filename = not_tailed_filename.replace("_to_move.txt", "_moved.txt")
 
     if os.path.exists(not_tailed_filename):
         os.unlink(not_tailed_filename)
@@ -486,10 +503,10 @@ def test_non_watched_file_moved():
     if os.path.exists(tailed_filename):
         os.unlink(tailed_filename)
 
-    with open(not_tailed_filename, 'w+') as f:
+    with open(not_tailed_filename, "w+") as f:
         f.write("Text here will not be monitored\n")
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -498,12 +515,13 @@ def test_non_watched_file_moved():
 
     observer = Observer()
 
-    sft = SingleFileTail(tailed_filename, append_to_list_partial,
-                         observer=observer, logger=logger)
+    sft = SingleFileTail(
+        tailed_filename, append_to_list_partial, observer=observer, logger=logger
+    )
 
     observer.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -527,8 +545,8 @@ def test_non_watched_file_moved():
 
 
 def test_watched_file_deleted():
-    tailed_filename = 'tailed_file_deleted.txt'
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = "tailed_file_deleted.txt"
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -537,13 +555,14 @@ def test_watched_file_deleted():
 
     observer = Observer()
 
-    sft = SingleFileTail(tailed_filename, append_to_list_partial,
-                         observer=observer, logger=logger)
+    sft = SingleFileTail(
+        tailed_filename, append_to_list_partial, observer=observer, logger=logger
+    )
 
     observer.start()
     time.sleep(WAIT_TIME)
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -564,8 +583,8 @@ def test_watched_file_deleted():
 
 
 def test_watched_file_immediately_deleted():
-    tailed_filename = 'tailed_file_deleted.txt'
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = "tailed_file_deleted.txt"
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -574,8 +593,9 @@ def test_watched_file_immediately_deleted():
 
     observer = Observer()
 
-    sft = SingleFileTail(tailed_filename, append_to_list_partial,
-                         observer=observer, logger=logger)
+    sft = SingleFileTail(
+        tailed_filename, append_to_list_partial, observer=observer, logger=logger
+    )
 
     observer.start()
     time.sleep(WAIT_TIME)
@@ -589,14 +609,14 @@ def test_watched_file_immediately_deleted():
     observer.stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
 
     logger.setLevel(logging.DEBUG)
 
     handler = logging.StreamHandler(sys.stderr)
     handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(name)s: %(levelname)s: %(message)s')
+    formatter = logging.Formatter("%(name)s: %(levelname)s: %(message)s")
 
     logger.addHandler(handler)
 

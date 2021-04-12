@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 # Helper function
 
+
 def append_to_list(list_to_append, path, element):
     logger.debug(f"Appending ({path}):\n{element} to {list_to_append}")
     list_to_append.append(element)
@@ -41,17 +42,18 @@ def test_initialized_without_logger():
         TailManager()
     except Exception as e:
         expected_message = "TailManager was initialized without a logger"
-        exc_msg = getattr(e, 'message', e.args[0])
+        exc_msg = getattr(e, "message", e.args[0])
         if exc_msg != expected_message:
             raise e
     else:
-        raise AssertionError("TailManager initialized fine without a "
-                             "logger parameter")
+        raise AssertionError(
+            "TailManager initialized fine without a " "logger parameter"
+        )
 
 
 def test_append_to_watched_file_with_absolute_path():
-    tailed_filename = (pathlib.Path.cwd() / pathlib.Path('tailed_file.txt')).resolve()
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = (pathlib.Path.cwd() / pathlib.Path("tailed_file.txt")).resolve()
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -62,7 +64,7 @@ def test_append_to_watched_file_with_absolute_path():
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -78,10 +80,10 @@ def test_append_to_watched_file_with_absolute_path():
 
 
 def test_not_watched_file():
-    tailed_filename = 'tailed_file.txt'
-    not_tailed_filename = 'not_tailed_file.txt'
-    new_not_tailed_filename = not_tailed_filename.replace('.txt', '_moved.txt')
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = "tailed_file.txt"
+    not_tailed_filename = "not_tailed_file.txt"
+    new_not_tailed_filename = not_tailed_filename.replace(".txt", "_moved.txt")
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -92,7 +94,7 @@ def test_not_watched_file():
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -100,7 +102,7 @@ def test_not_watched_file():
         "Added line 1",
     ]
 
-    with open(not_tailed_filename, 'a+') as f:
+    with open(not_tailed_filename, "a+") as f:
         f.write("Added line 1 - not tailed\n")
     time.sleep(WAIT_TIME)
 
@@ -129,7 +131,7 @@ def test_not_watched_file():
 
 
 def test_watch_nonexistent_file():
-    tailed_filename = 'tailed_file.txt'
+    tailed_filename = "tailed_file.txt"
 
     if os.path.exists(tailed_filename):
         os.unlink(tailed_filename)
@@ -144,7 +146,7 @@ def test_watch_nonexistent_file():
 
     assert appended_lines == []
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -161,15 +163,15 @@ def test_watch_nonexistent_file():
 
 
 def test_follow_watched_file_moved():
-    tailed_filename = 'tailed_file_to_move.txt'
-    new_filename = tailed_filename.replace('_to_move.txt', '_moved.txt')
+    tailed_filename = "tailed_file_to_move.txt"
+    new_filename = tailed_filename.replace("_to_move.txt", "_moved.txt")
 
     if os.path.exists(new_filename):
         os.unlink(new_filename)
     if os.path.exists(tailed_filename):
         os.unlink(tailed_filename)
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -180,7 +182,7 @@ def test_follow_watched_file_moved():
     tm.tail_file(tailed_filename, handler=append_to_list_partial, follow=True)
     tm.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -188,7 +190,7 @@ def test_follow_watched_file_moved():
         "Added line 1",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 2")  # No newline
     time.sleep(WAIT_TIME)
 
@@ -203,7 +205,7 @@ def test_follow_watched_file_moved():
         "Added line 1",
     ]
 
-    with open(new_filename, 'a+') as f:
+    with open(new_filename, "a+") as f:
         f.write(" - end of line 2\n")
     time.sleep(WAIT_TIME)
 
@@ -212,7 +214,7 @@ def test_follow_watched_file_moved():
         "Added line 2 - end of line 2",
     ]
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("New file - text line 1\n")
         f.write("New file - text line 2\n")
     time.sleep(WAIT_TIME)
@@ -231,15 +233,15 @@ def test_follow_watched_file_moved():
 
 
 def test_not_followed_watched_file_moved():
-    tailed_filename = 'tailed_file_to_move.txt'
-    new_filename = tailed_filename.replace('_to_move.txt', '_moved.txt')
+    tailed_filename = "tailed_file_to_move.txt"
+    new_filename = tailed_filename.replace("_to_move.txt", "_moved.txt")
 
     if os.path.exists(new_filename):
         os.unlink(new_filename)
     if os.path.exists(tailed_filename):
         os.unlink(tailed_filename)
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -250,7 +252,7 @@ def test_not_followed_watched_file_moved():
     tm.tail_file(tailed_filename, handler=append_to_list_partial, follow=False)
     tm.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -258,7 +260,7 @@ def test_not_followed_watched_file_moved():
         "Added line 1",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 2")  # No newline
     time.sleep(WAIT_TIME)
 
@@ -274,7 +276,7 @@ def test_not_followed_watched_file_moved():
         "Added line 2",
     ]
 
-    with open(new_filename, 'a+') as f:
+    with open(new_filename, "a+") as f:
         f.write(" - end of line 2\n")
     time.sleep(WAIT_TIME)
 
@@ -283,7 +285,7 @@ def test_not_followed_watched_file_moved():
         "Added line 2",
     ]
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("Recreated file - text line 1\n")
         f.write("Recreated file - text line 2\n")
     time.sleep(WAIT_TIME)
@@ -304,9 +306,9 @@ def test_not_followed_watched_file_moved():
 
 
 def test_non_watched_file_moved():
-    tailed_filename = 'tailed_file_to_move.txt'
-    not_tailed_filename = f'not_{tailed_filename}'
-    new_not_tailed_filename = not_tailed_filename.replace('_to_move.txt', '_moved.txt')
+    tailed_filename = "tailed_file_to_move.txt"
+    not_tailed_filename = f"not_{tailed_filename}"
+    new_not_tailed_filename = not_tailed_filename.replace("_to_move.txt", "_moved.txt")
 
     if os.path.exists(not_tailed_filename):
         os.unlink(not_tailed_filename)
@@ -315,10 +317,10 @@ def test_non_watched_file_moved():
     if os.path.exists(tailed_filename):
         os.unlink(tailed_filename)
 
-    with open(not_tailed_filename, 'w+') as f:
+    with open(not_tailed_filename, "w+") as f:
         f.write("Text here will not be monitored\n")
 
-    with open(tailed_filename, 'w+') as f:
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -329,7 +331,7 @@ def test_non_watched_file_moved():
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -353,8 +355,8 @@ def test_non_watched_file_moved():
 
 
 def test_watched_file_deleted():
-    tailed_filename = 'tailed_file_deleted.txt'
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = "tailed_file_deleted.txt"
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -365,7 +367,7 @@ def test_watched_file_deleted():
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -383,8 +385,8 @@ def test_watched_file_deleted():
 
 
 def test_watched_file_immediately_deleted():
-    tailed_filename = 'tailed_file_deleted.txt'
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = "tailed_file_deleted.txt"
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -401,8 +403,8 @@ def test_watched_file_immediately_deleted():
 
 
 def test_append_to_watched_file():
-    tailed_filename = 'tailed_file.txt'
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = "tailed_file.txt"
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -413,7 +415,7 @@ def test_append_to_watched_file():
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -421,7 +423,7 @@ def test_append_to_watched_file():
         "Added line 1",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 2\n")
     time.sleep(WAIT_TIME)
 
@@ -430,7 +432,7 @@ def test_append_to_watched_file():
         "Added line 2",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Start of added partial line 1")
     time.sleep(WAIT_TIME)
 
@@ -439,7 +441,7 @@ def test_append_to_watched_file():
         "Added line 2",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write(" - finished partial line 1\nStart of added partial line 2")
     time.sleep(WAIT_TIME)
 
@@ -449,7 +451,7 @@ def test_append_to_watched_file():
         "Start of added partial line 1 - finished partial line 1",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write(" - finished partial line 2\n")
     time.sleep(WAIT_TIME)
 
@@ -460,7 +462,7 @@ def test_append_to_watched_file():
         "Start of added partial line 2 - finished partial line 2",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Final line without a newline")
     time.sleep(WAIT_TIME)
 
@@ -481,8 +483,8 @@ def test_append_to_watched_file():
 
 
 def test_tail_file_twice():
-    tailed_filename = 'tailed_file.txt'
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = "tailed_file.txt"
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -494,7 +496,7 @@ def test_tail_file_twice():
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -502,7 +504,7 @@ def test_tail_file_twice():
         "Added line 1",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 2\n")
     time.sleep(WAIT_TIME)
 
@@ -511,7 +513,7 @@ def test_tail_file_twice():
         "Added line 2",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Start of added partial line 1")
     time.sleep(WAIT_TIME)
 
@@ -520,7 +522,7 @@ def test_tail_file_twice():
         "Added line 2",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write(" - finished partial line 1\nStart of added partial line 2")
     time.sleep(WAIT_TIME)
 
@@ -530,7 +532,7 @@ def test_tail_file_twice():
         "Start of added partial line 1 - finished partial line 1",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write(" - finished partial line 2\n")
     time.sleep(WAIT_TIME)
 
@@ -541,7 +543,7 @@ def test_tail_file_twice():
         "Start of added partial line 2 - finished partial line 2",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Final line without a newline")
     time.sleep(WAIT_TIME)
 
@@ -562,8 +564,8 @@ def test_tail_file_twice():
 
 
 def test_stop():
-    tailed_filename = 'tailed_file_stop.txt'
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = "tailed_file_stop.txt"
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -574,7 +576,7 @@ def test_stop():
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -582,7 +584,7 @@ def test_stop():
         "Added line 1",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Final line without a newline")
     time.sleep(WAIT_TIME)
 
@@ -598,8 +600,8 @@ def test_stop():
 
 
 def test_stop_twice():
-    tailed_filename = 'tailed_file_stop.txt'
-    with open(tailed_filename, 'w+') as f:
+    tailed_filename = "tailed_file_stop.txt"
+    with open(tailed_filename, "w+") as f:
         f.write("Preexisting text line 1\n")
         f.write("Preexisting text line 2\n")
 
@@ -610,7 +612,7 @@ def test_stop_twice():
     tm.tail_file(tailed_filename, handler=append_to_list_partial)
     tm.start()
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Added line 1\n")
     time.sleep(WAIT_TIME)
 
@@ -618,7 +620,7 @@ def test_stop_twice():
         "Added line 1",
     ]
 
-    with open(tailed_filename, 'a+') as f:
+    with open(tailed_filename, "a+") as f:
         f.write("Final line without a newline")
     time.sleep(WAIT_TIME)
 
@@ -634,14 +636,14 @@ def test_stop_twice():
     os.unlink(tailed_filename)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
 
     logger.setLevel(logging.DEBUG)
 
     handler = logging.StreamHandler(sys.stderr)
     handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(name)s: %(levelname)s: %(message)s')
+    formatter = logging.Formatter("%(name)s: %(levelname)s: %(message)s")
 
     logger.addHandler(handler)
 
