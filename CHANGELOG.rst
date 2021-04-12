@@ -42,6 +42,13 @@ Added
 
   Contributed by @Kami.
 
+* Make redis the default coordinator backend.
+
+* Fix a bug in the pack config loader so that objects covered by an additionalProperties schema
+  can use encrypted datastore keys and have their default values applied correctly. #5225
+
+  Contributed by @cognifloyd.
+
 Changed
 ~~~~~~~
 
@@ -235,6 +242,10 @@ Improvements
   content to not allow range requests. #5193
 
   Contributed by @ashwini-orchestral
+
+* Drop unused python dependencies: prometheus_client, python-gnupg, more-itertools, zipp. #5228
+
+  Contributed by @cognifloyd.
 
 Fixed
 ~~~~~
