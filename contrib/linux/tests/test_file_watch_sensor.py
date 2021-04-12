@@ -129,7 +129,7 @@ def test_file_watch_sensor_without_trigger_filepath():
 
     time.sleep(WAIT_TIME)
 
-    result = fws.add_trigger({
+    fws.add_trigger({
         'id': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
         'pack': 'linux',
         'name': 'asdf.adsfasdf-asdf-asdf-asdfasdfasdf',
@@ -141,8 +141,6 @@ def test_file_watch_sensor_without_trigger_filepath():
             'follow': True,
         },
     })
-
-    assert result is None
 
 
 def test_file_watch_sensor_without_trigger_ref():

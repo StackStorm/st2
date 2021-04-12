@@ -41,7 +41,8 @@ def test_initialized_without_logger():
         TailManager()
     except Exception as e:
         expected_message = "TailManager was initialized without a logger"
-        if hasattr(e, 'message') and e.message != expected_message:
+        exc_msg = getattr(e, 'message', e.args[0])
+        if exc_msg != expected_message:
             raise e
     else:
         raise AssertionError("TailManager initialized fine without a "
