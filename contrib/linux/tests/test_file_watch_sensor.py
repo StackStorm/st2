@@ -14,12 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
 import logging
 import os
 import pathlib
-import sys
-import threading
+# import sys
+# import threading
 import time
 
 import eventlet
@@ -49,7 +48,7 @@ def test_file_watch_sensor():
 
     time.sleep(WAIT_TIME)
 
-    # th = threading.Thread(target=fws.run)
+    th = threading.Thread(target=fws.run)
     th = eventlet.spawn(fws.run)
     # th.start()
 
@@ -127,7 +126,7 @@ def test_file_watch_sensor_without_trigger_filepath():
 
     time.sleep(WAIT_TIME)
 
-    # th = threading.Thread(target=fws.run)
+    th = threading.Thread(target=fws.run)
     th = eventlet.spawn(fws.run)
     # th.start()
 
@@ -167,7 +166,7 @@ def test_file_watch_sensor_without_trigger_ref():
 
     time.sleep(WAIT_TIME)
 
-    # th = threading.Thread(target=fws.run)
+    th = threading.Thread(target=fws.run)
     th = eventlet.spawn(fws.run)
     # th.start()
 

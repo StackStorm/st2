@@ -20,8 +20,6 @@ import os
 import pathlib
 import time
 
-from watchdog.observers import Observer
-
 from file_watch_sensor import TailManager
 
 WAIT_TIME = 1

@@ -347,7 +347,7 @@ class SingleFileTail(object):
             self.logger.debug(f"Closing file handle {self.fd}")
             os.close(self.fd)
             self.fd = None
-            self.logger.debug(f"Closed file handle")
+            self.logger.debug("Closed file handle")
 
 
 class TailManager(object):
