@@ -199,8 +199,6 @@ if __name__ == '__main__':
 
     # logger.addHandler(handler)
 
-    # test_single_file_tail_watched_file_deleted()
-
     test_file_watch_sensor()
     test_file_watch_sensor_without_trigger_filepath()
     test_file_watch_sensor_without_trigger_ref()

@@ -645,4 +645,16 @@ if __name__ == '__main__':
 
     logger.addHandler(handler)
 
-    test_single_file_tail_append_to_watched_file_with_relative_path()
+    test_initialized_without_logger()
+    test_append_to_watched_file_with_absolute_path()
+    test_not_watched_file()
+    test_watch_nonexistent_file()
+    test_follow_watched_file_moved()
+    test_not_followed_watched_file_moved()
+    test_non_watched_file_moved()
+    test_watched_file_deleted()
+    test_watched_file_immediately_deleted()
+    test_append_to_watched_file()
+    test_tail_file_twice()
+    test_stop()
+    test_stop_twice()
