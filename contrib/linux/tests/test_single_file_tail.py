@@ -129,7 +129,8 @@ def test_initialize_without_logger():
         SingleFileTail(None, None, fd=None)
     except Exception as e:
         expected_message = "SingleFileTail was initialized without a logger"
-        if hasattr(e, "message") and e.message != expected_message:
+        exception_message = getattr(e, "message", e.args[0])
+        if exception_message != expected_message:
             raise e
     else:
         raise AssertionError(
