@@ -173,6 +173,8 @@ source_plugins = [
   "pylint_plugins",
 ]
 args = [
+  # match the current Makefile usage with -E (TODO: drop this)
+  "--errors-only",
   # needed in st2* components, runners, packs
   "--load-plugins=api_models",
   # needed in st2* components, runners
