@@ -1,1 +1,10 @@
-python_sources()
+python_sources(
+    dependencies=[
+        ":jsonschema",
+    ]
+)
+
+resources(
+    name="jsonschema",
+    sources=["*.json"],
+)
