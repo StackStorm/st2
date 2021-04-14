@@ -34,20 +34,20 @@ def parse_args(args=None):
     )
 
 
-def register_opts():
-    _register_common_opts()
-    _register_notifier_opts()
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_notifier_opts(ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
     return cfg.CONF.notifier.logging
 
 
-def _register_common_opts():
+def _register_common_opts(ignore_errors=False):
     common_config.register_opts()
 
 
-def _register_notifier_opts():
+def _register_notifier_opts(ignore_errors=False):
     notifier_opts = [
         cfg.StrOpt(
             "logging",
@@ -56,7 +56,9 @@ def _register_notifier_opts():
         )
     ]
 
-    CONF.register_opts(notifier_opts, group="notifier")
+    common_config.do_register_opts(
+        notifier_opts, group="notifier", ignore_errors=ignore_errors
+    )
 
 
-register_opts()
+register_opts(ignore_errors=True)

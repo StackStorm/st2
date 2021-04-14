@@ -156,7 +156,7 @@ class TestActionChainNotifications(ExecutionDbTestCase):
         )
         self.assertIsNone(task1_live.notify)
 
-        execution = self._wait_for_children(execution, retries=300)
+        execution = self._wait_for_children(execution, expected_children=2, retries=300)
         self.assertEqual(len(execution.children), 2)
 
         # Assert task2 notify is not skipped
@@ -194,7 +194,7 @@ class TestActionChainNotifications(ExecutionDbTestCase):
         )
         self.assertEqual(notify, MOCK_NOTIFY)
 
-        execution = self._wait_for_children(execution, retries=300)
+        execution = self._wait_for_children(execution, expected_children=2, retries=300)
         self.assertEqual(len(execution.children), 2)
 
         # Assert task2 notify is not skipped by default.
@@ -203,12 +203,31 @@ class TestActionChainNotifications(ExecutionDbTestCase):
         self.assertIsNone(task2_live.notify)
         MockLiveActionPublisherNonBlocking.wait_all()
 
-    def _wait_for_children(self, execution, interval=0.1, retries=100):
+    def _wait_for_children(
+        self, execution, expected_children=1, interval=0.1, retries=100
+    ):
         # Wait until the execution has children.
         for i in range(0, retries):
             execution = ActionExecution.get_by_id(str(execution.id))
-            if len(getattr(execution, "children", [])) <= 0:
-                eventlet.sleep(interval)
-                continue
+            found_children = len(getattr(execution, "children", []))
+
+            if found_children == expected_children:
+                return execution
+
+            if found_children > expected_children:
+                raise AssertionError(
+                    "Expected %s children, but got %s"
+                    % (expected_children, found_children)
+                )
+
+            eventlet.sleep(interval)
+
+        found_children = len(getattr(execution, "children", []))
+
+        if found_children != expected_children:
+            raise AssertionError(
+                "Expected %s children, but got %s after %s retry attempts"
+                % (expected_children, found_children, retries)
+            )
 
         return execution

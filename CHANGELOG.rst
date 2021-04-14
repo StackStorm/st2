@@ -188,6 +188,12 @@ Changed
 
   Contributed by @Kami.
 
+* Some of the config option registration code has been refactored to ignore "option already
+  registered" errors. That was done as a work around for an occasional race in the tests and
+  also to make all of the config option registration code expose the same consistent API. #5234
+
+  Contributed by @Kami.
+
 Improvements
 ~~~~~~~~~~~~
 
