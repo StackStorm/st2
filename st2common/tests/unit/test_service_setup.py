@@ -20,13 +20,11 @@ import tempfile
 import six
 import mock
 
-from oslo_config import cfg
 from oslo_config.cfg import ConfigFilesNotFoundError
 
 from st2common import service_setup
 from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.transport.bootstrap_utils import QUEUES
-from st2common import config as st2common_config
 
 from st2tests.base import CleanFilesTestCase
 from st2tests import config
@@ -59,6 +57,33 @@ format=%(asctime)s %(levelname)s [-] %(message)s
 datefmt=
 """.strip()
 
+MOCK_LOGGING_CONFIG_VALID = """
+[loggers]
+keys=root
+
+[handlers]
+keys=consoleHandler
+
+[formatters]
+keys=simpleConsoleFormatter
+
+[logger_root]
+level=DEBUG
+handlers=consoleHandler
+
+[handler_consoleHandler]
+class=StreamHandler
+level=DEBUG
+formatter=simpleConsoleFormatter
+args=(sys.stdout,)
+
+[formatter_simpleConsoleFormatter]
+class=st2common.logging.formatters.ConsoleLogFormatter
+format=%(asctime)s %(levelname)s [-] %(message)s
+datefmt=
+""".strip()
+
+
 MOCK_DEFAULT_CONFIG_FILE_PATH = "/etc/st2/st2.conf-test-patched"
 
 
@@ -67,8 +92,15 @@ def mock_get_logging_config_path():
 
 
 class ServiceSetupTestCase(CleanFilesTestCase):
-    def test_no_logging_config_found(self):
+    def setUp(self):
+        super(ServiceSetupTestCase, self).setUp()
+        config.USE_DEFAULT_CONFIG_FILES = False
 
+    def tearDown(self):
+        super(ServiceSetupTestCase, self).tearDown()
+        config.USE_DEFAULT_CONFIG_FILES = False
+
+    def test_no_logging_config_found(self):
         config.get_logging_config_path = mock_get_logging_config_path
 
         if six.PY3:
@@ -132,15 +164,21 @@ class ServiceSetupTestCase(CleanFilesTestCase):
         self.assertEqual(mock_declare.call_count, len(QUEUES))
 
     @mock.patch(
-        "st2common.constants.system.DEFAULT_CONFIG_FILE_PATH",
-        MOCK_DEFAULT_CONFIG_FILE_PATH,
-    )
-    @mock.patch(
-        "st2common.config.DEFAULT_CONFIG_FILE_PATH", MOCK_DEFAULT_CONFIG_FILE_PATH
+        "st2tests.config.DEFAULT_CONFIG_FILE_PATH", MOCK_DEFAULT_CONFIG_FILE_PATH
     )
     def test_service_setup_default_st2_conf_config_is_used(self):
-        st2common_config.get_logging_config_path = mock_get_logging_config_path
-        cfg.CONF.reset()
+        config.USE_DEFAULT_CONFIG_FILES = True
+
+        _, mock_logging_config_path = tempfile.mkstemp()
+        self.to_delete_files.append(mock_logging_config_path)
+
+        with open(mock_logging_config_path, "w") as fp:
+            fp.write(MOCK_LOGGING_CONFIG_VALID)
+
+        def mock_get_logging_config_path():
+            return mock_logging_config_path
+
+        config.get_logging_config_path = mock_get_logging_config_path
 
         # 1. DEFAULT_CONFIG_FILE_PATH config path should be used by default (/etc/st2/st2.conf)
         expected_msg = "Failed to find some config files: %s" % (
@@ -151,16 +189,15 @@ class ServiceSetupTestCase(CleanFilesTestCase):
             expected_msg,
             service_setup.setup,
             service="api",
-            config=st2common_config,
+            config=config,
             config_args=["--debug"],
             setup_db=False,
             register_mq_exchanges=False,
             register_signal_handlers=False,
             register_internal_trigger_types=False,
             run_migrations=False,
+            register_runners=False,
         )
-
-        cfg.CONF.reset()
 
         # 2. --config-file should still override default config file path option
         config_file_path = "/etc/st2/config.override.test"
@@ -170,11 +207,12 @@ class ServiceSetupTestCase(CleanFilesTestCase):
             expected_msg,
             service_setup.setup,
             service="api",
-            config=st2common_config,
+            config=config,
             config_args=["--config-file", config_file_path],
             setup_db=False,
             register_mq_exchanges=False,
             register_signal_handlers=False,
             register_internal_trigger_types=False,
             run_migrations=False,
+            register_runners=False,
         )
