@@ -61,9 +61,23 @@ LOGGER_KEYS = [
     "audit",
 ]
 
+# True if sys.stdout should be patched and re-opened with utf-8 encoding in situations where
+# utf-8 encoding is not used (if we don't do that and a logger tries to log a unicode string,
+# log format would go in an infinite loop).
+# We only expose this variable for testing purposes
+PATCH_STDOUT = os.environ.get("ST2_LOG_PATCH_STDOUT", "true").lower() in [
+    "true",
+    "1",
+    "yes",
+]
+
+LOG = logging.getLogger(__name__)
+
 # Note: This attribute is used by "find_caller" so it can correctly exclude this file when looking
 # for the logger method caller frame.
 _srcfile = get_normalized_file_path(__file__)
+
+_original_stdstderr = sys.stderr
 
 
 def find_caller(stack_info=False, stacklevel=1):
@@ -193,6 +207,13 @@ class LoggingStream(object):
         self._level = level
 
     def write(self, message):
+        # Work around for infinite loop issue - ensure we don't log unicode data.
+        # If message contains unicode sequences and process locale is not set to utf-8, it would
+        # result in infinite lop in _log on formatting the message.
+        # This is because of the differences between Python 2.7 and Python 3 with log error
+        # handlers.
+        message = message.encode("utf-8", "replace").decode("ascii", "ignore")
+
         self._logger._log(self._level, message, None)
 
     def flush(self):
@@ -216,6 +237,33 @@ def _add_exclusion_filters(handlers, excludes=None):
 def _redirect_stderr():
     # It is ok to redirect stderr as none of the st2 handlers write to stderr.
     sys.stderr = LoggingStream("STDERR")
+
+
+def _patch_stdout():
+    """
+    This function re-opens sys.stdout using utf-8 encoding.
+
+    It's to be used in situations where process encoding / locale is not set to utf-8. In such
+    situations when unicode sequence is logged, it would cause logging formatter to go in an infite
+    loop on formatting a record.
+
+    This function works around that by ensuring sys.stdout is always opened in utf-8 mode.
+    """
+
+    stdout_encoding = str(getattr(sys.stdout, "encoding", "none")).lower()
+
+    if stdout_encoding not in ["utf8", "utf-8"] and PATCH_STDOUT:
+        LOG.info(
+            "Patching sys.stdout and re-opening it with utf-8 encoding (originally opened "
+            "with %s encoding)..." % (stdout_encoding)
+        )
+        sys.stdout = open(
+            sys.stdout.fileno(),
+            mode="w",
+            encoding="utf-8",
+            errors="replace",
+            buffering=1,
+        )
 
 
 def setup(
@@ -249,6 +297,7 @@ def setup(
         _add_exclusion_filters(handlers=handlers, excludes=excludes)
         if redirect_stderr:
             _redirect_stderr()
+        _patch_stdout()
     except Exception as exc:
         exc_cls = type(exc)
         tb_msg = traceback.format_exc()

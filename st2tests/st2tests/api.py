@@ -23,7 +23,11 @@ import json
 
 import six
 import webtest
+import webob.compat
+import webob.request
 import mock
+
+from six.moves import urllib
 
 from oslo_config import cfg
 
@@ -55,6 +59,25 @@ class ResponseValidationError(ValueError):
 
 class ResponseLeakError(ValueError):
     pass
+
+
+# NOTE: This is not ideal, but we need to patch those functions so it works correctly for the
+# tests.
+# The problem is that for the unit based api tests we utilize webtest which has the same bug as
+# webob when handling unicode characters in the path names and the actual unit test API code doesn't
+# follow exactly the same code path as actual production code which doesn't utilize webtest
+# In short, that's why important we also have end to end tests for API endpoints!
+webob.request.url_unquote = urllib.parse.unquote
+webob.compat.url_unquote = urllib.parse.unquote
+
+
+def bytes_(s, encoding="utf-8", errors="strict"):
+    if isinstance(s, six.text_type):
+        return s.encode("utf-8", errors)
+
+
+webob.compat.bytes_ = bytes_
+webob.request.bytes_ = bytes_
 
 
 class TestApp(webtest.TestApp):

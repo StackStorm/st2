@@ -28,6 +28,27 @@ Added
 * Added the command line utility `st2-validate-pack` that can be used by pack developers to
   validate pack contents. (improvement)
 
+* Fix a bug in the API and CLI code which would prevent users from being able to retrieve resources
+  which contain non-ascii (utf-8) characters in the names / references. (bug fix) #5189
+
+  Contributed by @Kami.
+
+* Fix a bug in the API router code and make sure we return correct and user-friendly error to the
+  user in case we fail to parse the request URL / path because it contains invalid or incorrectly
+  URL encoded data.
+
+  Previously such errors weren't handled correctly which meant original exception with a stack
+  trace got propagated to the user. (bug fix) #5189
+
+  Contributed by @Kami.
+
+* Make redis the default coordinator backend.
+
+* Fix a bug in the pack config loader so that objects covered by an additionalProperties schema
+  can use encrypted datastore keys and have their default values applied correctly. #5225
+
+  Contributed by @cognifloyd.
+
 Changed
 ~~~~~~~
 
@@ -154,6 +175,23 @@ Changed
 
   Contributed by @nzloshm @winem.
 
+* StackStorm Web UI (``st2web``) has been updated to not render and display execution results
+  larger than 200 KB directly in the history panel in the right side bar by default anymore.
+  Instead a link to view or download the raw result is displayed.
+
+  Execution result widget was never optimized to display very large results (especially for
+  executions which return large nested dictionaries) so it would freeze and hang the whole
+  browser tab / window when trying to render / display large results.
+
+  If for some reason you want to revert to the old behavior (this is almost never a good idea
+  since it will cause browser to freeze when trying to display large results), you can do that by
+  setting ``max_execution_result_size_for_render`` option in the config to a very large value (e.g.
+  ``max_execution_result_size_for_render: 16 * 1024 * 1024``).
+
+  https://github.com/StackStorm/st2web/pull/868
+
+  Contributed by @Kami.
+
 Improvements
 ~~~~~~~~~~~~
 
@@ -209,6 +247,10 @@ Improvements
 
   Contributed by @ashwini-orchestral
 
+* Drop unused python dependencies: prometheus_client, python-gnupg, more-itertools, zipp. #5228
+
+  Contributed by @cognifloyd.
+
 Fixed
 ~~~~~
 
@@ -243,6 +285,55 @@ Fixed
   https://github.com/StackStorm/st2-packages/pull/697
 
   Contributed by @Kami.
+
+* Make sure ``st2common.util.green.shell.run_command()`` doesn't leave stray / zombie processes
+  laying around in some command timeout scenarios. #5220
+
+  Contributed by @r0m4n-z.
+
+3.4.1 - March 14, 2021
+----------------------
+
+Added
+~~~~~
+
+
+* Service start up code has been updated to log a warning if a non-utf-8 encoding / locale is
+  detected.
+
+  Using non-utf-8 locale while working with unicode data will result in various issues so users
+  are strongly recommended to ensure encoding for all the StackStorm service is
+  set to ``utf-8``. (#5182)
+
+  Contributed by @Kami.
+
+Changed
+~~~~~~~
+
+* Use `sudo -E` to fix GitHub Actions tests #5187
+
+  Contributed by @cognifloyd
+
+Fixed
+~~~~~
+
+* Properly handle unicode strings in logs #5184
+
+  Fix a logging loop when attempting to encode Unicode characters in locales that do not support
+  Unicode characters - CVE-2021-28667.
+
+  See https://stackstorm.com/2021/03/10/stackstorm-v3-4-1-security-fix/ for more information.
+
+  Contributed by @Kami
+
+* Fix SensorTypeAPI schema to use class_name instead of name since documentation for pack
+  development uses class_name and registrar used to load sensor to database assign class_name
+  to name in the database model. (bug fix)
+
+* Updated paramiko version to 2.7.2, to go with updated cryptography to prevent problems
+  with ssh keys on remote actions. #5201
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
 3.4.0 - March 02, 2021
 ----------------------

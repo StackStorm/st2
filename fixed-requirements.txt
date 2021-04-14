@@ -32,11 +32,11 @@ prompt-toolkit==1.0.15
 pyinotify==0.9.6; platform_system=="Linux"
 pymongo==3.11.3
 python-editor==1.0.4
-python-gnupg==0.4.5
 python-keyczar==0.716
 pytz==2021.1
 pywinrm==0.3.0
 pyyaml==5.4
+redis==3.5.3
 requests[security]==2.25.1
 retrying==1.3.3
 routes==2.4.1
@@ -55,14 +55,11 @@ zake==0.2.2
 bcrypt==3.2.0
 jinja2==2.11.3
 mock==4.0.3
-more-itertools==5.0.0
 nose-timer==0.7.5
 nose-parallel==0.3.1
 psutil==5.8.0
 python-dateutil==2.8.1
 python-statsd==2.1.0
-prometheus_client==0.1.1
 ujson==1.35
 orjson==3.5.1
 udatetime==0.0.16
-zipp>=0.5,<=1.0.0

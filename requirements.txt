@@ -30,7 +30,6 @@ kombu==4.6.6
 lockfile==0.12.2
 mock==4.0.3
 mongoengine==0.23.0
-more-itertools==5.0.0
 networkx==1.11
 nose
 nose-parallel==0.3.1
@@ -53,6 +52,7 @@ python-statsd==2.1.0
 pytz==2021.1
 pywinrm==0.3.0
 pyyaml==5.4
+redis==3.5.3
 rednose
 requests[security]==2.25.1
 retrying==1.3.3
@@ -68,4 +68,3 @@ unittest2
 webob==1.8.7
 webtest
 zake==0.2.2
-zipp>=0.5,<=1.0.0

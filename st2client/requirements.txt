@@ -10,7 +10,6 @@ chardet<3.1.0
 cryptography==3.4.7
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
-more-itertools==5.0.0
 orjson==3.5.1
 prettytable
 prompt-toolkit==1.0.15
@@ -21,4 +20,3 @@ pyyaml==5.4
 requests[security]==2.25.1
 six==1.13.0
 sseclient-py==1.7
-zipp>=0.5,<=1.0.0

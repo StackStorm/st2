@@ -29,7 +29,7 @@ import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 import webob
 from webob import cookies, exc
-from webob.compat import url_unquote
+from six.moves import urllib
 
 from st2common.exceptions import rbac as rbac_exc
 from st2common.exceptions import auth as auth_exc
@@ -264,7 +264,31 @@ class Router(object):
             )
 
     def match(self, req):
-        path = url_unquote(req.path)
+        # NOTE: webob.url_unquote doesn't work correctly under Python 3 when paths contain non-ascii
+        # characters. That method supposed to handle Python 2 and Python 3 compatibility, but it
+        # doesn't work correctly under Python 3.
+        try:
+            path = urllib.parse.unquote(req.path)
+        except Exception as e:
+            # This exception being thrown indicates that the URL / path contains bad or incorrectly
+            # URL escaped characters. Instead of returning this stack track + 500 error to the
+            # user we return a friendly and more correct exception
+            # NOTE: We should not access or log req.path here since it's a property which results
+            # in exception and if we try to log it, it will fail.
+            try:
+                path = req.environ["PATH_INFO"]
+            except Exception:
+                path = "unknown"
+
+            LOG.error('Failed to parse request URL / path "%s": %s' % (path, str(e)))
+
+            abort(
+                400,
+                'Failed to parse request path "%s". URL likely contains invalid or incorrectly '
+                "URL encoded values." % (path),
+            )
+            return
+
         LOG.debug("Match path: %s", path)
 
         if len(path) > 1 and path.endswith("/"):

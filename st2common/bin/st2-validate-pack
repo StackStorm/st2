@@ -36,11 +36,11 @@ from st2common.util import schema as schema_utils
 from st2common.util import yml as yaml_utils
 
 pack_layout = {
-    'actions': action_models.ActionAPI,
-    'aliases': action_models.ActionAliasAPI,
-    'policies': policy_models.PolicyAPI,
-    'rules': rule_models.RuleAPI,
-    'sensors': sensor_models.SensorTypeAPI,
+    "actions": action_models.ActionAPI,
+    "aliases": action_models.ActionAliasAPI,
+    "policies": policy_models.PolicyAPI,
+    "rules": rule_models.RuleAPI,
+    "sensors": sensor_models.SensorTypeAPI,
 }
 
 
@@ -49,23 +49,23 @@ def validate_content(path, schema):
     content = None
     spec = None
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         content = f.read()
 
     if content is None:
-        print(f"ERROR: Unable to read file \"{path}\".")
+        print(f'ERROR: Unable to read file "{path}".')
         return False
 
     try:
         spec = yaml_utils.unique_key_loader_safe_load(content)
     except Exception as e:
-        print(f"ERROR: Unable to load yaml for file \"{path}\" because {str(e)}.")
+        print(f'ERROR: Unable to load yaml for file "{path}" because {str(e)}.')
         return False
 
     pack_name = os.path.basename(path)
 
-    if 'pack' not in spec:
-        spec['pack'] = pack_name
+    if "pack" not in spec:
+        spec["pack"] = pack_name
 
     validator = schema_utils.CustomValidator(schema)
 
@@ -81,15 +81,17 @@ def validate_content(path, schema):
 
     for error in errors:
         print(
-            "ERROR: %s for file \"%s\" at \"%s\"" %
-            (error["message"].replace("'", "\""), path, error["spec_path"])
+            'ERROR: %s for file "%s" at "%s"'
+            % (error["message"].replace("'", '"'), path, error["spec_path"])
         )
 
     return len(errors) <= 0
 
 
 def main():
-    parser = argparse.ArgumentParser("A utility for validating StackStorm pack content.")
+    parser = argparse.ArgumentParser(
+        "A utility for validating StackStorm pack content."
+    )
 
     parser.add_argument(
         "-p",
@@ -102,12 +104,14 @@ def main():
     args = parser.parse_args()
 
     if not os.path.isdir(args.pack_path):
-        print(f"ERROR: The path \"{args.pack_path}\" does not exist.")
+        print(f'ERROR: The path "{args.pack_path}" does not exist.')
         exit(1)
 
     valid = 0
 
-    if not validate_content(os.path.join(args.pack_path, "pack.yaml"), pack_models.PackAPI.schema):
+    if not validate_content(
+        os.path.join(args.pack_path, "pack.yaml"), pack_models.PackAPI.schema
+    ):
         valid = 1
 
     for directory, model in six.iteritems(pack_layout):
@@ -118,5 +122,5 @@ def main():
     exit(valid)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
