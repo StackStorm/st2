@@ -287,6 +287,12 @@ Fixed
 
   Contributed by @r0m4n-z.
 
+* Fix support for skipping notifications for workflow actions. Previously if action metadata
+  specified an empty list for ``notify`` parameter value, that would be ignored / not handled
+  correctly for workflow (orquesta, action chain) actions. #5221 #5227
+
+  Contributed by @khushboobhatia01.
+
 3.4.1 - March 14, 2021
 ----------------------
 
