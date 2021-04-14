@@ -1,0 +1,7 @@
+chain:
+  -
+    name: task1
+    ref: core.local
+    params:
+      cmd: echo foobar
+

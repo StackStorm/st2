@@ -24,10 +24,13 @@ from st2common.exceptions import trace as trace_exc
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
+from st2common.persistence.workflow import TaskExecution
+from st2common.persistence.workflow import WorkflowExecution
 from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.runners import utils as runners_utils
 from st2common.services import executions
 from st2common.services import trace as trace_service
+from st2common.services import workflows as workflow_service
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
@@ -130,7 +133,7 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
     # XXX: There are cases when we don't want notifications to be sent for a particular
     # execution. So we should look at liveaction.parameters['notify']
     # and not set liveaction.notify.
-    if not _is_notify_empty(action_db.notify):
+    if not _is_notify_skipped(liveaction) and not _is_notify_empty(action_db.notify):
         liveaction.notify = action_db.notify
 
     # Write to database and send to message queue.
@@ -548,3 +551,54 @@ def _is_notify_empty(notify_db):
     if not notify_db:
         return True
     return not (notify_db.on_complete or notify_db.on_success or notify_db.on_failure)
+
+
+def _is_notify_skipped(liveaction):
+    """
+    notification is skipped if action execution is under workflow context and
+    task is not specified under wf_ex_db.notify["tasks"].
+    """
+    is_under_workflow_context = (
+        workflow_service.is_action_execution_under_workflow_context(liveaction)
+    )
+    is_under_action_chain_context = is_action_execution_under_action_chain_context(
+        liveaction
+    )
+    if is_under_workflow_context:
+        wf_ex_db = WorkflowExecution.get(
+            id=liveaction.workflow_execution, only_fields=["notify"]
+        )
+        task_ex_db = TaskExecution.get(
+            id=liveaction.task_execution, only_fields=["task_name"]
+        )
+        return not wf_ex_db.notify or task_ex_db.task_name not in wf_ex_db.notify.get(
+            "tasks", {}
+        )
+    if is_under_action_chain_context:
+        task_name = liveaction.context["chain"]["name"]
+        parent = liveaction.context.get("parent")
+        if parent:
+            parent_execution_db = ActionExecution.get(
+                id=parent["execution_id"],
+                only_fields=["action.parameters", "parameters"],
+            )
+            skip_notify_tasks = parent_execution_db["parameters"].get("skip_notify", [])
+            default_skip_notify_tasks = parent_execution_db["action"]["parameters"].get(
+                "skip_notify", {}
+            )
+            if skip_notify_tasks:
+                if task_name in skip_notify_tasks:
+                    return True
+                # If skip_notify parameter is specified, but task is not skipped.
+                return False
+            # If skip_notify parameter is not specified, check the task in default list.
+            return task_name in default_skip_notify_tasks.get("default", [])
+    return False
+
+
+def is_action_execution_under_action_chain_context(liveaction):
+    """
+    The action execution is executed under action-chain context
+    if it contains the chain key in its context dictionary.
+    """
+    return liveaction.context and "chain" in liveaction.context
