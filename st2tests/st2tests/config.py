@@ -21,6 +21,7 @@ from oslo_config import cfg, types
 
 from st2common import log as logging
 import st2common.config as common_config
+from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
 from st2common.constants.garbage_collection import DEFAULT_SLEEP_DELAY
 from st2common.constants.sensors import DEFAULT_PARTITION_LOADER
@@ -29,14 +30,22 @@ from st2tests.fixturesloader import get_fixtures_packs_base_path
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
+# Ued for tests. For majority of tests, we want this value to be False.
+USE_DEFAULT_CONFIG_FILES = False
+
 
 def reset():
     cfg.CONF.reset()
 
 
-def parse_args(coordinator_noop=True):
+def parse_args(args=None, coordinator_noop=True):
     _setup_config_opts(coordinator_noop=coordinator_noop)
-    CONF(args=[])
+
+    kwargs = {}
+    if USE_DEFAULT_CONFIG_FILES:
+        kwargs["default_config_files"] = [DEFAULT_CONFIG_FILE_PATH]
+
+    cfg.CONF(args=args or [], **kwargs)
 
 
 def _setup_config_opts(coordinator_noop=True):
