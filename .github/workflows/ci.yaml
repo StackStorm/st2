@@ -180,6 +180,8 @@ jobs:
 
       # CI st2.conf (with ST2_CI_USER user instead of stanley)
       ST2_CONF: 'conf/st2.ci.conf'
+      # Needed for st2 gunicorn process
+      ST2_CONFIG_PATH: '/home/runner/work/st2/conf/st2.ci.conf'
 
       # Tell StackStorm that we are indeed in CI mode, previously we hard coded a Travis specific
       # environment variable in our test code, making it a PITA when we switch CI providers.
