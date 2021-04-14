@@ -42,16 +42,16 @@ def get_logging_config_path():
     return cfg.CONF.exporter.logging
 
 
-def register_opts():
-    _register_common_opts()
-    _register_app_opts()
+def _register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_app_opts(ignore_errors=ignore_errors)
 
 
-def _register_common_opts():
-    common_config.register_opts()
+def _register_common_opts(ignore_errors=False):
+    common_config.register_opts(ignore_errors=ignore_errors)
 
 
-def _register_app_opts():
+def _register_app_opts(ignore_errors=False):
     dump_opts = [
         cfg.StrOpt(
             "dump_dir",
@@ -60,7 +60,9 @@ def _register_app_opts():
         )
     ]
 
-    CONF.register_opts(dump_opts, group="exporter")
+    common_config.do_register_opts(
+        dump_opts, group="exporter", ignore_errors=ignore_errors
+    )
 
     logging_opts = [
         cfg.StrOpt(
@@ -70,4 +72,6 @@ def _register_app_opts():
         )
     ]
 
-    CONF.register_opts(logging_opts, group="exporter")
+    common_config.do_register_opts(
+        logging_opts, group="exporter", ignore_errors=ignore_errors
+    )
