@@ -72,14 +72,14 @@ endif
 # pages and pages and pages of noise.
 # The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
 # See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
-NOSE_OPTS := --rednose --immediate --with-parallel --nocapture --logging-filter=-st2.st2common.bootstrap
+NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
+	NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
 	NOSE_WITH_TIMER := 1
 endif
 
@@ -895,15 +895,16 @@ endif
 			nosetests $(NOSE_OPTS) -s -v \
 			$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/integration || exit 1; \
 	done
-	@echo
-	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
-	@echo "The tests assume st2 is running on 127.0.0.1."
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; \
-		COVERAGE_FILE=.coverage.integration.orquesta \
-		nosetests $(NOSE_OPTS) -s -v \
-		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
-
+	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
+	# ci-integration-full target
+#	@echo
+#	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
+#	@echo "The tests assume st2 is running on 127.0.0.1."
+#	@echo
+#	. $(VIRTUALENV_DIR)/bin/activate; \
+@#		COVERAGE_FILE=.coverage.integration.orquesta \
+@#		nosetests $(NOSE_OPTS) -s -v \
+@#		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
@@ -1137,6 +1138,10 @@ ci-unit: .unit-tests-coverage-html
 	@echo
 	sudo -E ./scripts/github/prepare-integration.sh
 
+.PHONY: ci-integration-full
+ci-integration-full: .ci-prepare-integration .itests-coverage-html  .orquesta-itests-coverage-html
+
+# All integration tests minus orquesta ones
 .PHONY: ci-integration
 ci-integration: .ci-prepare-integration .itests-coverage-html
 

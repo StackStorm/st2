@@ -15,6 +15,10 @@
 
 import os
 
+from io import BytesIO
+
+import greenlet
+
 from st2common.util.monkey_patch import monkey_patch
 
 monkey_patch()
@@ -27,6 +31,8 @@ from st2common.util.shell import kill_process
 from st2common.util.shell import quote_unix
 
 _all__ = ["GreenShellUtilsTestCase"]
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class GreenShellUtilsTestCase(IntegrationTestCase):
@@ -77,6 +83,42 @@ class GreenShellUtilsTestCase(IntegrationTestCase):
         # Verify there is no zombie process left laying around
         self.assertNoStrayProcessesLeft("sleep 1589")
 
+    def test_run_command_timeout_shell_and_custom_kill_func_and_read_funcs(self):
+        # This test represents our local runner setup where we use a preexec_func + custom kill_func
+        # NOTE: When using shell=True. we should alaways use custom kill_func to ensure child shell
+        # processses are in fact killed as well.
+        def mock_read_stdout(process_stdout, stdout_buffer):
+            stdout_buffer.write(process_stdout.read())
+
+        def mock_read_stderr(process_stderr, stderr_buffer):
+            stderr_buffer.write(process_stderr.read())
+
+        read_stdout_buffer = BytesIO()
+        read_stderr_buffer = BytesIO()
+
+        exit_code, stdout, stderr, timed_out = run_command(
+            cmd='echo "pre sleep"; >&2 echo "pre sleep stderr" ; sleep 1589; echo "post sleep"',
+            preexec_func=os.setsid,
+            timeout=1,
+            kill_func=kill_process,
+            shell=True,
+            read_stdout_func=mock_read_stdout,
+            read_stderr_func=mock_read_stderr,
+            read_stdout_buffer=read_stdout_buffer,
+            read_stderr_buffer=read_stderr_buffer,
+        )
+        self.assertEqual(exit_code, TIMEOUT_EXIT_CODE)
+        self.assertEqual(stdout.strip(), b"pre sleep")
+        self.assertEqual(stderr.strip(), b"pre sleep stderr")
+        self.assertTrue(timed_out)
+
+        # Only initial produced line should be read
+        self.assertEqual(read_stdout_buffer.getvalue().strip(), b"pre sleep")
+        self.assertEqual(read_stderr_buffer.getvalue().strip(), b"pre sleep stderr")
+
+        # Verify there is no zombie process left laying around
+        self.assertNoStrayProcessesLeft("sleep 1589")
+
     def test_run_command_timeout_no_shell_no_custom_kill_func(self):
         exit_code, stdout, stderr, timed_out = run_command(
             cmd=["sleep", "1599"], preexec_func=os.setsid, timeout=1
@@ -88,6 +130,47 @@ class GreenShellUtilsTestCase(IntegrationTestCase):
 
         # Verify there is no zombie process left laying around
         self.assertNoStrayProcessesLeft("sleep 1599")
+
+    def test_run_command_timeout_no_shell_no_custom_kill_func_and_read_funcs(self):
+        def mock_read_stdout(process_stdout, stdout_buffer):
+            try:
+                stdout_buffer.write(process_stdout.readline())
+            except greenlet.GreenletExit:
+                pass
+
+        def mock_read_stderr(process_stderr, stderr_buffer):
+            try:
+                stderr_buffer.write(process_stderr.readline())
+            except greenlet.GreenletExit:
+                pass
+
+        read_stdout_buffer = BytesIO()
+        read_stderr_buffer = BytesIO()
+
+        script_path = os.path.abspath(
+            os.path.join(BASE_DIR, "../fixtures/print_to_stdout_stderr_sleep.sh")
+        )
+
+        exit_code, stdout, stderr, timed_out = run_command(
+            cmd=[script_path],
+            preexec_func=os.setsid,
+            timeout=3,
+            read_stdout_func=mock_read_stdout,
+            read_stderr_func=mock_read_stderr,
+            read_stdout_buffer=read_stdout_buffer,
+            read_stderr_buffer=read_stderr_buffer,
+        )
+        self.assertEqual(exit_code, TIMEOUT_EXIT_CODE)
+        self.assertEqual(stdout.strip(), b"pre sleep")
+        self.assertEqual(stderr.strip(), b"pre sleep stderr")
+        self.assertTrue(timed_out)
+
+        # Only initial produced line should be read
+        self.assertEqual(read_stdout_buffer.getvalue().strip(), b"pre sleep")
+        self.assertEqual(read_stderr_buffer.getvalue().strip(), b"pre sleep stderr")
+
+        # Verify there is no zombie process left laying around
+        self.assertNoStrayProcessesLeft("print_to_stdout_stderr_sleep")
 
     def assertNoStrayProcessesLeft(self, grep_string: str) -> None:
         """

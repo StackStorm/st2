@@ -42,7 +42,7 @@ def get_logging_config_path():
     return cfg.CONF.exporter.logging
 
 
-def _register_opts(ignore_errors=False):
+def register_opts(ignore_errors=False):
     _register_common_opts(ignore_errors=ignore_errors)
     _register_app_opts(ignore_errors=ignore_errors)
 
