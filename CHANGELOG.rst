@@ -167,7 +167,8 @@ Changed
 
 * Update various dependencies to latest stable versions (``bcrypt``, ``appscheduler``, ``pytz``,
   ``python-dateutil``, ``psutil``, ``passlib``, ``gunicorn``, ``flex``, ``cryptography``.
-  ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``). #5215
+  ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``,
+  ``pyyaml``, ``kombu``, ``amqp``). #5215
 
   Contributed by @Kami.
 

@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 RandomWords
-amqp==2.5.2
+amqp==5.0.6
 apscheduler==3.7.0
 argcomplete
 bcrypt==3.2.0
@@ -26,15 +26,15 @@ gunicorn==20.1.0
 jinja2==2.11.3
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
-kombu==4.6.6
+kombu==5.0.2
 lockfile==0.12.2
 mock==4.0.3
 mongoengine==0.23.0
 networkx==1.11
 nose
 nose-parallel==0.4.0
-nose-timer==0.7.5
-orjson==3.5.1
+nose-timer==1.0.1
+orjson==3.5.2
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 paramiko==2.7.2
@@ -51,7 +51,7 @@ python-json-logger
 python-statsd==2.1.0
 pytz==2021.1
 pywinrm==0.3.0
-pyyaml==5.4
+pyyaml==5.4.1
 redis==3.5.3
 rednose
 requests[security]==2.25.1
