@@ -262,7 +262,10 @@ jobs:
           ./scripts/ci/print-versions.sh
       - name: make
         # use: script -e -c to print colors
-        timeout-minutes: 8
+        # TODO: Use dynamic timeout value based on the branch - for master we
+        # need to use timeout x2 due to coverage overhead
+        # timeout-minutes: 8
+        timeout-minutes: 14
         run: |
           script -e -c "make ${TASK}"
       - name: Nightly
@@ -466,7 +469,10 @@ jobs:
           ./scripts/ci/print-versions.sh
       - name: make
         if: "${{ env.TASK == 'ci-integration' }}"
-        timeout-minutes: 7
+        #timeout-minutes: 7
+        # TODO: Use dynamic timeout value based on the branch - for master we
+        # need to use timeout x2 due to coverage overhead
+        timeout-minutes: 14
         # use: script -e -c to print colors
         run: |
           script -e -c "make ${TASK}" && exit 0
