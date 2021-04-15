@@ -23,5 +23,5 @@ import sys
 from st2reactor.cmd import timersengine
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(timersengine.main())

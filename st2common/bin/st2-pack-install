@@ -38,5 +38,5 @@ import sys
 
 from st2common.cmd import install_pack
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(install_pack.main(sys.argv[1:]))

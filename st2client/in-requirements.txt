@@ -13,7 +13,5 @@ python-editor
 prompt-toolkit
 cryptography
 orjson
-more-itertools==5.0.0
-zipp>=0.5,<=1.0.0
 # needed by requests
 chardet

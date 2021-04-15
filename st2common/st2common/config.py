@@ -36,15 +36,19 @@ def do_register_opts(opts, group=None, ignore_errors=False):
             raise
 
 
-def do_register_cli_opts(opt, ignore_errors=False):
+def do_register_cli_opts(opt, ignore_errors=False, group=None):
     # TODO: This function has broken name, it should work with lists :/
     if not isinstance(opt, (list, tuple)):
         opts = [opt]
     else:
         opts = opt
 
+    kwargs = {}
+    if group:
+        kwargs["group"] = group
+
     try:
-        cfg.CONF.register_cli_opts(opts)
+        cfg.CONF.register_cli_opts(opts, **kwargs)
     except:
         if not ignore_errors:
             raise
@@ -393,8 +397,13 @@ def register_opts(ignore_errors=False):
 
     # Runner options
     default_python_bin_path = sys.executable
-    base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
+    # If the virtualenv uses a symlinked python, then try using virtualenv from that venv
+    # first before looking for virtualenv installed in python's system-site-packages.
+    base_dir = os.path.dirname(default_python_bin_path)
     default_virtualenv_bin_path = os.path.join(base_dir, "virtualenv")
+    if not os.path.exists(default_virtualenv_bin_path):
+        base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
+        default_virtualenv_bin_path = os.path.join(base_dir, "virtualenv")
 
     action_runner_opts = [
         # Common runner options
@@ -449,7 +458,9 @@ def register_opts(ignore_errors=False):
         ),
     ]
 
-    do_register_opts(action_runner_opts, group="actionrunner")
+    do_register_opts(
+        action_runner_opts, group="actionrunner", ignore_errors=ignore_errors
+    )
 
     dispatcher_pool_opts = [
         cfg.IntOpt(
@@ -464,7 +475,9 @@ def register_opts(ignore_errors=False):
         ),
     ]
 
-    do_register_opts(dispatcher_pool_opts, group="actionrunner")
+    do_register_opts(
+        dispatcher_pool_opts, group="actionrunner", ignore_errors=ignore_errors
+    )
 
     ssh_runner_opts = [
         cfg.StrOpt(
@@ -500,7 +513,7 @@ def register_opts(ignore_errors=False):
         ),
     ]
 
-    do_register_opts(ssh_runner_opts, group="ssh_runner")
+    do_register_opts(ssh_runner_opts, group="ssh_runner", ignore_errors=ignore_errors)
 
     # Common options (used by action runner and sensor container)
     action_sensor_opts = [
@@ -516,7 +529,9 @@ def register_opts(ignore_errors=False):
         ),
     ]
 
-    do_register_opts(action_sensor_opts, group="action_sensor")
+    do_register_opts(
+        action_sensor_opts, group="action_sensor", ignore_errors=ignore_errors
+    )
 
     # Common options for content
     pack_lib_opts = [
@@ -533,7 +548,7 @@ def register_opts(ignore_errors=False):
         )
     ]
 
-    do_register_opts(pack_lib_opts, group="packs")
+    do_register_opts(pack_lib_opts, group="packs", ignore_errors=ignore_errors)
 
     # Coordination options
     coord_opts = [
@@ -714,8 +729,8 @@ def register_opts(ignore_errors=False):
     )
 
 
-def parse_args(args=None):
-    register_opts()
+def parse_args(args=None, ignore_errors=False):
+    register_opts(ignore_errors=ignore_errors)
     cfg.CONF(
         args=args,
         version=VERSION_STRING,
