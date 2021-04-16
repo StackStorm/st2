@@ -194,6 +194,10 @@ Changed
 
   Contributed by @Kami.
 
+* Update ``pyywinrm`` dependency to the latest stable version (0.4.1). #5212
+
+  Contributed by @chadpatt .
+
 Improvements
 ~~~~~~~~~~~~
 
