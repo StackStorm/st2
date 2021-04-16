@@ -35,20 +35,20 @@ def parse_args(args=None):
     )
 
 
-def register_opts():
-    _register_common_opts()
-    _register_app_opts()
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_app_opts(ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
     return cfg.CONF.auth.logging
 
 
-def _register_common_opts():
-    st2cfg.register_opts()
+def _register_common_opts(ignore_errors=False):
+    st2cfg.register_opts(ignore_errors=ignore_errors)
 
 
-def _register_app_opts():
+def _register_app_opts(ignore_errors=False):
     available_backends = auth_backends.get_available_backends()
 
     auth_opts = [
@@ -110,4 +110,4 @@ def _register_app_opts():
         ),
     ]
 
-    cfg.CONF.register_cli_opts(auth_opts, group="auth")
+    st2cfg.do_register_cli_opts(auth_opts, group="auth", ignore_errors=ignore_errors)

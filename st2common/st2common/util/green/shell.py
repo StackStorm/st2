@@ -85,6 +85,14 @@ def run_command(
 
     :param kill_func: Optional function which will be called on timeout to kill the process.
                       If not provided, it defaults to `process.kill`
+
+                      NOTE: If you are utilizing shell=True, you shoulf always specify a custom
+                      kill function which correctly kills shell process + the shell children
+                      process.
+
+                      If you don't do that, timeout handler won't work correctly / as expected -
+                      only the shell process will be killed, but not also the child processs
+                      spawned by the shell.
     :type kill_func: ``callable``
 
     :param read_stdout_func: Function which is responsible for reading process stdout when
@@ -154,6 +162,11 @@ def run_command(
             read_stderr_func, process.stderr, read_stderr_buffer
         )
 
+    # Special attribute we use to determine if the process timed out or not
+    process._timed_out = False
+
+    # TODO: Now that we support Python >= 3.6 we should utilize timeout argument for the
+    # communicate() method and handle killing the process + read threads there.
     def on_timeout_expired(timeout):
         global timed_out
 
@@ -165,9 +178,7 @@ def run_command(
             # Note: We explicitly set the returncode to indicate the timeout.
             LOG.debug("Command execution timeout reached.")
 
-            # NOTE: It's important we set returncode twice - here and below to avoid race in this
-            # function because "kill_func()" is async and "process.kill()" is not.
-            process.returncode = TIMEOUT_EXIT_CODE
+            process._timed_out = True
 
             if kill_func:
                 LOG.debug("Calling kill_func.")
@@ -176,9 +187,8 @@ def run_command(
                 LOG.debug("Killing process.")
                 process.kill()
 
-            # NOTE: It's imporant to set returncode here as well, since call to process.kill() sets
-            # it and overwrites it if we set it earlier.
-            process.returncode = TIMEOUT_EXIT_CODE
+            process.wait()
+            process._timed_out = True
 
             if read_stdout_func and read_stderr_func:
                 LOG.debug("Killing read_stdout_thread and read_stderr_thread")
@@ -205,7 +215,11 @@ def run_command(
         stdout, stderr = process.communicate()
 
     concurrency.cancel(timeout_thread)
-    exit_code = process.returncode
+
+    if getattr(process, "_timed_out", False):
+        exit_code = TIMEOUT_EXIT_CODE
+    else:
+        exit_code = process.returncode
 
     if read_stdout_func and read_stderr_func:
         # Wait on those green threads to finish reading from stdout and stderr before continuing

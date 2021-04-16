@@ -42,7 +42,7 @@ class WorkflowExceptionTest(unittest2.TestCase):
         exc = coordination.ToozConnectionError("foobar")
         self.assertTrue(wf_exc.retry_on_connection_errors(exc))
 
-        exc = mongoengine.connection.MongoEngineConnectionError()
+        exc = mongoengine.connection.ConnectionFailure()
         self.assertTrue(wf_exc.retry_on_connection_errors(exc))
 
     def test_do_not_retry_on_connection_errors(self):

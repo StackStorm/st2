@@ -49,6 +49,7 @@ def setup(
     setup_db=True,
     register_mq_exchanges=True,
     register_internal_trigger_types=False,
+    ignore_register_config_opts_errors=False,
 ):
     """
     Common setup function.
@@ -67,7 +68,14 @@ def setup(
     register_common_cli_options()
 
     # Parse args to setup config
-    config.parse_args()
+    # NOTE: This code is not the best, but it's only realistic option we have at this point.
+    # Refactoring all the code and config modules to avoid import time side affects would be a big
+    # rabbit hole. Luckily registering same options twice is not really a big deal or fatal error
+    # so we simply ignore such errors.
+    if config.__name__ == "st2common.config" and ignore_register_config_opts_errors:
+        config.parse_args(ignore_errors=True)
+    else:
+        config.parse_args()
 
     if cfg.CONF.debug:
         cfg.CONF.verbose = True

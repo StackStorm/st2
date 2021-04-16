@@ -72,14 +72,14 @@ endif
 # pages and pages and pages of noise.
 # The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
 # See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
-NOSE_OPTS := --rednose --immediate --with-parallel --nocapture --logging-filter=-st2.st2common.bootstrap
+NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
+	NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
 	NOSE_WITH_TIMER := 1
 endif
 
@@ -154,6 +154,11 @@ play:
 	@echo NOSE_COVERAGE_PACKAGES=$(NOSE_COVERAGE_PACKAGES)
 	@echo
 	@echo INCLUDE_TESTS_IN_COVERAGE=$(INCLUDE_TESTS_IN_COVERAGE)
+	@echo
+	@echo NODE_TOTAL=$(NODE_TOTAL)
+	@echo
+	@echo
+	@echo NODE_INDEX=$(NODE_INDEX)
 	@echo
 
 .PHONY: check
@@ -275,7 +280,13 @@ check-python-packages-nightly:
 	done
 
 .PHONY: ci-checks-nightly
-ci-checks-nightly: check-python-packages-nightly micro-benchmarks
+# TODO: Ony run micro-benchmarks once a week since they are extremly slow on CI
+ci-checks-nightly: check-python-packages-nightly
+#ci-checks-nightly: check-python-packages-nightly micro-benchmarks
+
+# CI checks which are very slow and only run on a weekly basic
+.PHONY: ci-checks-weekly
+ci-checks-weekly: micro-benchmarks
 
 .PHONY: checklogs
 checklogs:
@@ -364,6 +375,7 @@ black: requirements .black-check
 		echo "Running black on" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black $$(grep -rl '^#!/.*python' $$component/bin) || exit 1; \
 	done
 	# runner modules and packages
 	@for component in $(COMPONENTS_RUNNERS); do\
@@ -371,6 +383,7 @@ black: requirements .black-check
 		echo "Running black on" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black $$(grep -rl '^#!/.*python' $$component/bin) || exit 1; \
 	done
 	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml contrib/ || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml scripts/*.py || exit 1;
@@ -392,6 +405,7 @@ black: requirements .black-format
 		echo "Running black on" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate ; black --config pyproject.toml $$component/ || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black $$(grep -rl '^#!/.*python' $$component/bin) || exit 1; \
 	done
 	# runner modules and packages
 	@for component in $(COMPONENTS_RUNNERS); do\
@@ -399,6 +413,7 @@ black: requirements .black-format
 		echo "Running black on" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate ; black --config pyproject.toml  $$component/ || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black $$(grep -rl '^#!/.*python' $$component/bin) || exit 1; \
 	done
 	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml contrib/ || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml scripts/*.py || exit 1;
@@ -633,24 +648,14 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	@echo "==================== requirements ===================="
 	@echo
 	# Show pip installed packages before we start
+	echo ""
 	$(VIRTUALENV_DIR)/bin/pip list
+	echo ""
 
 	# Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
 	#       only have to update it one place when we change the version
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
-
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
-
-	# Fix for Travis CI race
-	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
-
-	# Fix for Travis CI caching issue
-	if [[ "$(TRAVIS_EVENT_TYPE)" != "" ]]; then\
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"; \
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"; \
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"; \
-	fi
 
 	# Install requirements
 	for req in $(REQUIREMENTS); do \
@@ -662,12 +667,7 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
-
-	# Note: We install prance here and not as part of any component
-	# requirements.txt because it has a conflict with our dependency (requires
-	# new version of requests) which we cant resolve at this moment
-	$(VIRTUALENV_DIR)/bin/pip install "prance==0.15.0"
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
@@ -685,7 +685,9 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	git submodule update --init --recursive --remote
 
 	# Show currently install requirements
+	echo ""
 	$(VIRTUALENV_DIR)/bin/pip list
+	echo ""
 
 .PHONY: check-dependency-conflicts
 check-dependency-conflicts:
@@ -893,15 +895,16 @@ endif
 			nosetests $(NOSE_OPTS) -s -v \
 			$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/integration || exit 1; \
 	done
-	@echo
-	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
-	@echo "The tests assume st2 is running on 127.0.0.1."
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; \
-		COVERAGE_FILE=.coverage.integration.orquesta \
-		nosetests $(NOSE_OPTS) -s -v \
-		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
-
+	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
+	# ci-integration-full target
+#	@echo
+#	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
+#	@echo "The tests assume st2 is running on 127.0.0.1."
+#	@echo
+#	. $(VIRTUALENV_DIR)/bin/activate; \
+@#		COVERAGE_FILE=.coverage.integration.orquesta \
+@#		nosetests $(NOSE_OPTS) -s -v \
+@#		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
@@ -1084,8 +1087,10 @@ debs:
 .PHONY: ci
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
+# NOTE: pylint is moved to ci-compile so we more evenly spread the load across
+# various different jobs to make the whole workflow complete faster
 .PHONY: ci-checks
-ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: .rst-check
 .rst-check:
@@ -1133,6 +1138,10 @@ ci-unit: .unit-tests-coverage-html
 	@echo
 	sudo -E ./scripts/github/prepare-integration.sh
 
+.PHONY: ci-integration-full
+ci-integration-full: .ci-prepare-integration .itests-coverage-html  .orquesta-itests-coverage-html
+
+# All integration tests minus orquesta ones
 .PHONY: ci-integration
 ci-integration: .ci-prepare-integration .itests-coverage-html
 
@@ -1146,4 +1155,4 @@ ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html
 ci-packs-tests: .packs-tests
 
 .PHONY: ci-compile
-ci-compile: check-dependency-conflicts compilepy3
+ci-compile: check-dependency-conflicts compilepy3 .pylint

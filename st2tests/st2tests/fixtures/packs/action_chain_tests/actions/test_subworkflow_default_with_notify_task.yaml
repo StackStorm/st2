@@ -1,0 +1,11 @@
+---
+name: test_subworkflow_default_with_notify_task
+description: A sample workflow that calls another subworkflow which has notify.
+pack: action_chain_tests
+runner_type: action-chain
+entry_point: chains/test_subworkflow_default_with_notify_task.yaml
+enabled: true
+parameters:
+  skip_notify:
+    default:
+      - task2
