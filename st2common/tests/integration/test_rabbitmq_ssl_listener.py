@@ -79,35 +79,15 @@ class RabbitMQTLSListenerTestCase(unittest2.TestCase):
                 connection.release()
 
     def test_ssl_connection_on_ssl_listener_success(self):
-        # NOTE: Older version uses to default so cert_reques=ssl.CERT_NONE so we also do that here.
-        # As an alternative, we could set a valid ca cert here (but we already have different tests
-        # which exercise those code paths).
-        connection_kwargs = {
-            "ssl": {
-                "cert_reqs": ssl.CERT_NONE,
-            }
-        }
+        ca_cert_path = os.path.join(CERTS_FIXTURES_PATH, "ca/ca_certificate_bundle.pem")
 
-        # Using query param notation
-        urls = "amqp://guest:guest@127.0.0.1:5671/?ssl=true"
-        connection = transport_utils.get_connection(
-            urls=urls, connection_kwargs=connection_kwargs
-        )
-
-        try:
-            self.assertTrue(connection.connect())
-            self.assertTrue(connection.connected)
-        finally:
-            if connection:
-                connection.release()
-
-        # Using messaging.ssl config option
         cfg.CONF.set_override(name="ssl", override=True, group="messaging")
+        cfg.CONF.set_override(
+            name="ssl_ca_certs", override=ca_cert_path, group="messaging"
+        )
 
         urls = "amqp://guest:guest@127.0.0.1:5671/"
-        connection = transport_utils.get_connection(
-            urls=urls, connection_kwargs=connection_kwargs
-        )
+        connection = transport_utils.get_connection(urls=urls)
 
         try:
             self.assertTrue(connection.connect())
