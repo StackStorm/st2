@@ -2,7 +2,7 @@
 # Orquesta tests have a lot of race conditions which result in intermediate failures and timeouts.
 # Utilizing separate workflow allows us to re-run just this workflow / job on failure instead of
 # wasting time and resources by needing to re-run all the jobs.
-name: CI
+name: Orquesta CI
 
 on:
   push:
@@ -232,6 +232,7 @@ jobs:
         with:
           name: logs
           path: logs/
+        retention-days: 3
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
         if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
