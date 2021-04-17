@@ -219,7 +219,6 @@ jobs:
           set +e
           for i in $(seq 1 ${MAX_ATTEMPTS}); do
             echo "Attempt: ${i}/${MAX_ATTEMPTS}"
-            # TODO: Add timeout and retry on timeout
             script -e -c "timeout 10m make ${TASK}" && exit 0
             exit_code=$?
             echo "Command failed / timed out (exit_code=${exit_code}), will retry in ${RETRY_DELAY} seconds..."
