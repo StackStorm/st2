@@ -2,7 +2,7 @@
 # Orquesta tests have a lot of race conditions which result in intermediate failures and timeouts.
 # Utilizing separate workflow allows us to re-run just this workflow / job on failure instead of
 # wasting time and resources by needing to re-run all the jobs.
-name: CI
+name: Orquesta CI
 
 on:
   push:
@@ -205,9 +205,9 @@ jobs:
         run: |
           ./scripts/ci/print-versions.sh
       - name: make
-        timeout-minutes: 20
+        timeout-minutes: 31
         env:
-          MAX_ATTEMPTS: 2
+          MAX_ATTEMPTS: 3
           RETRY_DELAY: 5
         # use: script -e -c to print colors
         run: |
@@ -219,8 +219,9 @@ jobs:
           set +e
           for i in $(seq 1 ${MAX_ATTEMPTS}); do
             echo "Attempt: ${i}/${MAX_ATTEMPTS}"
-            script -e -c "make ${TASK}" && exit 0
-            echo "Command failed, will retry in ${RETRY_DELAY} seconds..."
+            script -e -c "timeout 10m make ${TASK}" && exit 0
+            exit_code=$?
+            echo "Command failed / timed out (exit_code=${exit_code}), will retry in ${RETRY_DELAY} seconds..."
             sleep ${RETRY_DELAY}
           done
           set -e
@@ -228,9 +229,20 @@ jobs:
           exit 1
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' && env.TASK == 'ci-integration' }}"
+        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+      - name: Compress Service Logs Before upload
+        if: ${{ failure() }}
+        run: |
+          tar cvzpf logs.tar.gz logs/*
+      - name: Upload StackStorm services Logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.tar.gz
+          retention-days: 7
       - name: Stop Redis Service Container
         if: "${{ always() }}"
         run: docker rm --force redis || true
