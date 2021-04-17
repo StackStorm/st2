@@ -226,9 +226,15 @@ jobs:
           set -e
           echo "Failed after ${MAX_ATTEMPTS} attempts, failing the job."
           exit 1
+      - name: Upload StackStorm services Logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs/
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' && env.TASK == 'ci-integration' }}"
+        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
       - name: Stop Redis Service Container
