@@ -481,6 +481,17 @@ jobs:
         if: "${{ success() && env.ENABLE_COVERAGE == 'yes' && env.TASK == 'ci-integration' }}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+      - name: Compress Service Logs Before upload
+        if: ${{ failure() && env.TASK == 'ci-integration' }}
+        run: |
+          tar cvzpf logs.tar.gz logs/*
+      - name: Upload StackStorm services Logs
+        if: ${{ failure() && env.TASK == 'ci-integration' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.tar.gz
+          retention-days: 7
       - name: Stop Redis Service Container
         if: "${{ always() }}"
         run: docker rm --force redis || true
