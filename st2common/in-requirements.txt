@@ -25,6 +25,8 @@ tooz
 # Required by tooz - on new versions of tooz, all the backend dependencies need
 # to be installed manually
 zake
+# default coordinator backend configured for tooz
+redis
 routes
 flex
 webob

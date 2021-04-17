@@ -55,6 +55,7 @@ function init(){
     CURRENT_DIR=`pwd`
     CURRENT_USER=`whoami`
     CURRENT_USER_GROUP=`id -gn`
+    echo "Current user:group = ${CURRENT_USER}:${CURRENT_USER_GROUP}"
 
     if [[ (${COMMAND_PATH} == /*) ]] ;
     then
@@ -153,7 +154,9 @@ function st2start(){
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
         # Clone st2tests in /tmp directory.
         pushd /tmp
-        git clone https://github.com/StackStorm/st2tests.git
+        echo Cloning https://github.com/StackStorm/st2tests.git
+        # -q = no progress reporting (better for CI). Errors will still print.
+        git clone -q https://github.com/StackStorm/st2tests.git
         ret=$?
         if [ ${ret} -eq 0 ]; then
             cp -Rp ./st2tests/packs/fixtures $PACKS_BASE_DIR

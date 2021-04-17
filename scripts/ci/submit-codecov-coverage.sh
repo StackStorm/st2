@@ -24,7 +24,7 @@ if [[ "${USER}" == "runner" || ${TRAVIS_TEST_RESULT} -eq 0 ]]; then
     pip install eventlet
     # NOTE: codecov only supports coverage==4.5.2
     pip install 'coverage<5.0'
-    pip install codecov
+    pip install "codecov==2.1.11"
 
     # 2. Combine coverage report and submit coverage report to codecovs.io
     codecov --required

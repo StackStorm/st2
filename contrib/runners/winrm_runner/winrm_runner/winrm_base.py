@@ -232,10 +232,6 @@ class WinRmBaseRunner(ActionRunner):
         if len(rs.std_err):
             # if there was an error message, clean it it up and make it human
             # readable
-            if isinstance(rs.std_err, bytes):
-                # decode bytes into utf-8 because of a bug in pywinrm
-                # real fix is here: https://github.com/diyan/pywinrm/pull/222/files
-                rs.std_err = rs.std_err.decode("utf-8")
             rs.std_err = session._clean_error_msg(rs.std_err)
         return rs
 

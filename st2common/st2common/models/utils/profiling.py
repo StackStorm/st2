@@ -83,7 +83,7 @@ def log_query_and_profile_data_for_queryset(queryset):
     # Note: We need to clone the queryset when using explain because explain advances the cursor
     # internally which changes the function result
     cloned_queryset = queryset.clone()
-    explain_info = cloned_queryset.explain(format=True)
+    explain_info = cloned_queryset.explain()
 
     if mongo_query is not None and collection_name is not None:
         mongo_shell_query = construct_mongo_shell_query(

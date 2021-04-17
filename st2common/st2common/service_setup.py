@@ -44,6 +44,7 @@ from st2common.util import system_info
 from st2common.services import coordination
 from st2common.logging.misc import add_global_filters_for_all_loggers
 from st2common.constants.error_messages import PYTHON2_DEPRECATION
+from st2common.services.coordination import get_driver_name
 from st2common.util.profiler import setup_eventlet_profiler
 
 # Note: This is here for backward compatibility.
@@ -61,6 +62,19 @@ __all__ = [
     "db_teardown",
     "register_service_in_service_registry",
 ]
+
+# Message which is logged if non utf-8 locale is detected on startup.
+NON_UTF8_LOCALE_WARNING_MSG = """
+Detected a non utf-8 locale / encoding (fs encoding: %s, default encoding: %s, locale: %s).
+Using non utf-8 locale while working with unicode data will result in exceptions and undefined
+behavior.
+You are strongly encouraged to configure all the StackStorm services to use utf-8 encoding (e.g.
+LANG=en_US.UTF-8).
+""".strip().replace(
+    "\n", " "
+)
+
+VALID_UTF8_ENCODINGS = ["utf8", "utf-8"]
 
 LOG = logging.getLogger(__name__)
 
@@ -125,7 +139,8 @@ def setup(
     fs_encoding = sys.getfilesystemencoding()
     default_encoding = sys.getdefaultencoding()
     lang_env = os.environ.get("LANG", "unknown")
-
+    lang_env = os.environ.get("LANG", "notset")
+    pythonioencoding_env = os.environ.get("PYTHONIOENCODING", "notset")
     try:
         language_code, encoding = locale.getdefaultlocale()
 
@@ -138,8 +153,9 @@ def setup(
 
     LOG.info("Using Python: %s (%s)" % (version, sys.executable))
     LOG.info(
-        "Using fs encoding: %s, default encoding: %s, LANG env variable: %s, locale: %s"
-        % (fs_encoding, default_encoding, lang_env, used_locale)
+        "Using fs encoding: %s, default encoding: %s, locale: %s, LANG env variable: %s, "
+        "PYTHONIOENCODING env variable: %s"
+        % (fs_encoding, default_encoding, lang_env, used_locale, pythonioencoding_env)
     )
 
     config_file_paths = cfg.CONF.config_file
@@ -151,6 +167,19 @@ def setup(
     logging_config_path = os.path.abspath(logging_config_path)
 
     LOG.info("Using logging config: %s", logging_config_path)
+    LOG.info("Using coordination driver: %s", get_driver_name())
+    LOG.info("Using metrics driver: %s", cfg.CONF.metrics.driver)
+
+    # Warn on non utf-8 locale which could cause issues when running under Python 3 and working
+    # with unicode data
+    if (
+        fs_encoding.lower() not in VALID_UTF8_ENCODINGS
+        or encoding.lower() not in VALID_UTF8_ENCODINGS
+    ):
+        LOG.warning(
+            NON_UTF8_LOCALE_WARNING_MSG
+            % (fs_encoding, default_encoding, used_locale.strip())
+        )
 
     is_debug_enabled = cfg.CONF.debug or cfg.CONF.system.debug
 
@@ -184,8 +213,15 @@ def setup(
             and handler.level < stdlib_logging.AUDIT
         )
         if not is_debug_enabled and ignore_audit_log_messages:
+            try:
+                handler_repr = str(handler)
+            except TypeError:
+                # In case handler doesn't have name assigned, repr would throw
+                handler_repr = "unknown"
+
             LOG.debug(
-                'Excluding log messages with level "AUDIT" for handler "%s"' % (handler)
+                'Excluding log messages with level "AUDIT" for handler "%s"'
+                % (handler_repr)
             )
             handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
 
