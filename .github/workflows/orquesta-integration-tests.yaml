@@ -227,7 +227,7 @@ jobs:
           echo "Failed after ${MAX_ATTEMPTS} attempts, failing the job."
           exit 1
       - name: Upload StackStorm services Logs
-        if: ${{ failure() }}
+        #if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: logs
