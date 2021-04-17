@@ -490,7 +490,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: logs
-          path: logs/
+          path: logs.tar.gz
         retention-days: 3
       - name: Stop Redis Service Container
         if: "${{ always() }}"
