@@ -26,6 +26,7 @@ import locale
 import logging as stdlib_logging
 
 import six
+import eventlet.debug
 from oslo_config import cfg
 from tooz.coordination import GroupAlreadyExist
 
@@ -110,10 +111,6 @@ def setup(
     :param service: Name of the service.
     :param config: Config object to use to parse args.
     """
-    if "--enable-profiler" in sys.argv:
-        setup_eventlet_profiler(service_name="st2" + service)
-        sys.argv.remove("--enable-profiler")
-
     capabilities = capabilities or {}
 
     # Set up logger which logs everything which happens during and before config
@@ -125,6 +122,9 @@ def setup(
         config.parse_args(config_args)
     else:
         config.parse_args()
+
+    if cfg.CONF.enable_profiler:
+        setup_eventlet_profiler(service_name="st2" + service)
 
     version = "%s.%s.%s" % (
         sys.version_info[0],
@@ -275,6 +275,17 @@ def setup(
 
     if sys.version_info[0] == 2:
         LOG.warning(PYTHON2_DEPRECATION)
+
+    # NOTE: This must be called here at the end of the setup phase since some of the setup code and
+    # modules like jinja, stevedore, etc load files from disk on init which is slow and will be
+    # detected as blocking operation, but this is not really an issue inside the service startup /
+    # init phase.
+    if cfg.CONF.enable_eventlet_blocking_detection:
+        print("Eventlet long running / blocking operation detection logic enabled")
+        print(cfg.CONF.eventlet_blocking_detection_resolution)
+        eventlet.debug.hub_blocking_detection(
+            state=True, resolution=cfg.CONF.eventlet_blocking_detection_resolution
+        )
 
 
 def teardown():

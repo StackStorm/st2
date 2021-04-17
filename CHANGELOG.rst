@@ -49,6 +49,24 @@ Added
 
   Contributed by @cognifloyd.
 
+* Add new ``--enable-profiler`` flag to all the servies. This flag enables cProfiler based profiler
+  for the service in question and  dumps the profiling data to a file on process
+  exit.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when profiling code. #5199
+
+  Contributed by @Kami.
+
+* Add new ``--enable-eventlet-blocking-detection`` flag to all the servies. This flag enables
+  eventlet long operation / blocked main loop logic which throws an exception if a particular
+  code blocks longer than a specific duration in seconds.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when debugging code. #5199
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 
