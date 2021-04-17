@@ -232,11 +232,11 @@ jobs:
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
       - name: Compress Service Logs Before upload
-        if: ${{ failure()  || true }}
+        if: ${{ failure() }}
         run: |
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
-        if: ${{ failure() || true }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: logs
