@@ -491,7 +491,7 @@ jobs:
         with:
           name: logs
           path: logs.tar.gz
-        retention-days: 3
+          retention-days: 7
       - name: Stop Redis Service Container
         if: "${{ always() }}"
         run: docker rm --force redis || true
