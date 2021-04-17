@@ -205,9 +205,9 @@ jobs:
         run: |
           ./scripts/ci/print-versions.sh
       - name: make
-        timeout-minutes: 20
+        timeout-minutes: 31
         env:
-          MAX_ATTEMPTS: 2
+          MAX_ATTEMPTS: 3
           RETRY_DELAY: 5
         # use: script -e -c to print colors
         run: |
@@ -219,8 +219,10 @@ jobs:
           set +e
           for i in $(seq 1 ${MAX_ATTEMPTS}); do
             echo "Attempt: ${i}/${MAX_ATTEMPTS}"
-            script -e -c "make ${TASK}" && exit 0
-            echo "Command failed, will retry in ${RETRY_DELAY} seconds..."
+            # TODO: Add timeout and retry on timeout
+            script -e -c "timeout 10m make ${TASK}" && exit 0
+            exit_code=$?
+            echo "Command failed / timed out (exit_code=${exit_code}), will retry in ${RETRY_DELAY} seconds..."
             sleep ${RETRY_DELAY}
           done
           set -e
