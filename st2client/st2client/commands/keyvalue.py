@@ -208,12 +208,16 @@ class KeyValuePairGetCommand(resource.ResourceGetCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        resource_name = getattr(args, self.pk_argument_name, None)
         decrypt = getattr(args, "decrypt", False)
         scope = getattr(args, "scope", DEFAULT_GET_SCOPE)
         kwargs["params"] = {"decrypt": str(decrypt).lower()}
         kwargs["params"]["scope"] = scope
-        return self.get_resource_by_id(id=resource_name, **kwargs)
+
+        resource_ids = getattr(args, self.pk_argument_name, None)
+        resources = self._get_multiple_resources(
+            resource_ids=resource_ids, kwargs=kwargs
+        )
+        return resources
 
 
 class KeyValuePairSetCommand(resource.ResourceCommand):

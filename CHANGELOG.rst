@@ -167,7 +167,8 @@ Changed
 
 * Update various dependencies to latest stable versions (``bcrypt``, ``appscheduler``, ``pytz``,
   ``python-dateutil``, ``psutil``, ``passlib``, ``gunicorn``, ``flex``, ``cryptography``.
-  ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``). #5215
+  ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``,
+  ``python-ldap``). #5215, https://github.com/StackStorm/st2-auth-ldap/pull/94
 
   Contributed by @Kami.
 
@@ -191,6 +192,16 @@ Changed
   https://github.com/StackStorm/st2web/pull/868
 
   Contributed by @Kami.
+
+* Some of the config option registration code has been refactored to ignore "option already
+  registered" errors. That was done as a work around for an occasional race in the tests and
+  also to make all of the config option registration code expose the same consistent API. #5234
+
+  Contributed by @Kami.
+
+* Update ``pyywinrm`` dependency to the latest stable version (0.4.1). #5212
+
+  Contributed by @chadpatt .
 
 Improvements
 ~~~~~~~~~~~~
@@ -251,6 +262,22 @@ Improvements
 
   Contributed by @cognifloyd.
 
+* Update majority of the "resource get" CLI commands (e.g. ``st2 execution get``,
+  ``st2 action get``, ``st2 rule get``, ``st2 pack get``, ``st2 apikey get``, ``st2 trace get``,
+  ``st2 key get``, ``st2 webhook get``, ``st2  timer get``, etc.) so they allow for retrieval
+  and printing of information for multiple resources using the following notation:
+  ``st2 <resource> get <id 1> <id 2> <id n>``, e.g. ``st2 action.get pack.show packs.get
+  packs.delete``
+
+  This change is fully backward compatible when retrieving only a single resource (aka single
+  id is passed to the command).
+
+  When retrieving a single source the command will throw and exit with non-zero if a resource is
+  not found, but when retrieving multiple resources, command will just print an error and
+  continue with printing the details of any other found resources. (new feature) #4912
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 
@@ -290,6 +317,12 @@ Fixed
   laying around in some command timeout scenarios. #5220
 
   Contributed by @r0m4n-z.
+
+* Fix support for skipping notifications for workflow actions. Previously if action metadata
+  specified an empty list for ``notify`` parameter value, that would be ignored / not handled
+  correctly for workflow (orquesta, action chain) actions. #5221 #5227
+
+  Contributed by @khushboobhatia01.
 
 3.4.1 - March 14, 2021
 ----------------------
