@@ -74,11 +74,6 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
 
         # Verify first 4 environment related log messages
         stdout = process.stdout.read().decode("utf-8")
-        print("=====")
-        print(stdout)
-        print("=====")
-        print(stdout)
-        print("=====")
         self.assertIn("INFO [-] Using Python:", stdout)
         self.assertIn("INFO [-] Using fs encoding:", stdout)
         self.assertIn("INFO [-] Using config files:", stdout)
