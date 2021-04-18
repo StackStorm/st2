@@ -34,6 +34,7 @@ import sys
 # we already use in a couple of other places.
 if "nose" in sys.modules.keys():
     from st2common.util.monkey_patch import monkey_patch
+
     monkey_patch()
 
 import copy
