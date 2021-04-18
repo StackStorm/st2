@@ -55,6 +55,11 @@ jobs:
             nosetests_node_total: 1
             nosetests_node_index: 0
             python-version: '3.6'
+          - name: 'Integration Tests (Orquesta)'
+            task: 'ci-orquesta'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version: '3.8'
     services:
       mongo:
         image: mongo:4.0
