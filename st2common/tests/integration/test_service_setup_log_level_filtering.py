@@ -82,6 +82,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
     def test_warning_is_emitted_on_non_utf8_encoding(self):
         env = os.environ.copy()
         env["LC_ALL"] = "invalid"
+        env["ST2_LOG_PATCH_STDOUT"] = "false"
+        env["PYTHONIOENCODING"] = "ascii"
         process = self._start_process(config_path=ST2_CONFIG_INFO_LL_PATH, env=env)
         self.add_process(process=process)
 
@@ -92,7 +94,10 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         # Verify first 4 environment related log messages
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n"))
         self.assertIn("WARNING [-] Detected a non utf-8 locale / encoding", stdout)
-        self.assertIn("fs encoding: ascii", stdout)
+
+        if sys.version_info < (3, 8, 0):
+            self.assertIn("fs encoding: ascii", stdout)
+
         self.assertIn("unknown locale: invalid", stdout)
 
     def test_audit_log_level_is_filtered_if_log_level_is_not_debug_or_audit(self):

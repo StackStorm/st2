@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import os
 import sys
 import signal
+import unittest
 
 import eventlet
 from eventlet.green import subprocess
@@ -30,7 +31,7 @@ TEST_FILE_PATH = os.path.join(BASE_DIR, "log_unicode_data.py")
 
 
 class LogFormattingAndEncodingTestCase(IntegrationTestCase):
-    def test_formatting_with_unicode_data_works_no_stdout_patching(self):
+    def test_formatting_with_unicode_data_works_no_stdout_patching_valid_utf8_encoding(self):
         # Ensure that process doesn't end up in an infinite loop if non-utf8 locale / encoding is
         # used and a unicode sequence is logged.
 
@@ -65,6 +66,11 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
         self.assertIn(
             "DEBUG [-] Test debug message with unicode 1 - \u597d\u597d\u597d", stdout
         )
+
+    @unittest.skipIf(sys.version_info >= (3, 8, 0), "Skipping test under Python >= 3.8")
+    def test_formatting_with_unicode_data_works_no_stdout_patching_non_valid_utf8_encoding(self):
+        # Ensure that process doesn't end up in an infinite loop if non-utf8 locale / encoding is
+        # used and a unicode sequence is logged.
 
         # 2. Process is not using utf-8 encoding - LC_ALL set to invalid locale - should result in
         # single exception being logged, but not infinite loop
@@ -104,6 +110,10 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
         self.assertIn(
             "DEBUG [-] Test debug message with unicode 1 - \u597d\u597d\u597d", stdout
         )
+
+    def test_formatting_with_unicode_data_works_no_stdout_patching_ascii_pythonioencoding(self):
+        # Ensure that process doesn't end up in an infinite loop if non-utf8 locale / encoding is
+        # used and a unicode sequence is logged.
 
         # 3. Process is not using utf-8 encoding - PYTHONIOENCODING set to ascii - should result in
         # single exception being logged, but not infinite loop
