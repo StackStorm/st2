@@ -258,6 +258,22 @@ Improvements
 
   Contributed by @cognifloyd.
 
+* Update majority of the "resource get" CLI commands (e.g. ``st2 execution get``,
+  ``st2 action get``, ``st2 rule get``, ``st2 pack get``, ``st2 apikey get``, ``st2 trace get``,
+  ``st2 key get``, ``st2 webhook get``, ``st2  timer get``, etc.) so they allow for retrieval
+  and printing of information for multiple resources using the following notation:
+  ``st2 <resource> get <id 1> <id 2> <id n>``, e.g. ``st2 action.get pack.show packs.get
+  packs.delete``
+
+  This change is fully backward compatible when retrieving only a single resource (aka single
+  id is passed to the command).
+
+  When retrieving a single source the command will throw and exit with non-zero if a resource is
+  not found, but when retrieving multiple resources, command will just print an error and
+  continue with printing the details of any other found resources. (new feature) #4912
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 

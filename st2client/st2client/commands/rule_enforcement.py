@@ -56,11 +56,6 @@ class RuleEnforcementGetCommand(resource.ResourceGetCommand):
 
     pk_argument_name = "id"
 
-    @resource.add_auth_token_to_kwargs_from_cli
-    def run(self, args, **kwargs):
-        resource_id = getattr(args, self.pk_argument_name, None)
-        return self.get_resource_by_id(resource_id, **kwargs)
-
 
 class RuleEnforcementListCommand(resource.ResourceCommand):
     display_attributes = [
