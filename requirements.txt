@@ -8,7 +8,7 @@
 RandomWords
 amqp==2.5.2
 apscheduler==3.7.0
-argcomplete
+argcomplete==1.12.2
 bcrypt==3.2.0
 chardet<3.1.0
 cryptography==3.4.7
@@ -39,7 +39,7 @@ oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 paramiko==2.7.2
 passlib==1.7.4
-prettytable
+prettytable==2.1.0
 prompt-toolkit==1.0.15
 psutil==5.8.0
 pyinotify==0.9.6; platform_system=="Linux"
