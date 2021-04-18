@@ -160,7 +160,9 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
             "DEBUG [-] Test debug message with unicode 1 - \u597d\u597d\u597d", stdout
         )
 
-    def test_formatting_with_unicode_data_works_with_stdout_patching(self):
+    def test_formatting_with_unicode_data_works_with_stdout_patching_valid_utf8_encoding(
+        self,
+    ):
         # Test a scenario where patching is enabled which means it should never result in infinite
         # loop
         # 1. Process is using a utf-8 encoding
@@ -180,7 +182,6 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
         stdout = process.stdout.read().decode("utf-8")
         stderr = process.stderr.read().decode("utf-8")
         stdout_lines = stdout.split("\n")
-        print(stderr)
 
         self.assertEqual(stderr, "")
         self.assertTrue(len(stdout_lines) < 20)
@@ -196,6 +197,9 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
             "DEBUG [-] Test debug message with unicode 1 - \u597d\u597d\u597d", stdout
         )
 
+    def test_formatting_with_unicode_data_works_with_stdout_patching_non_valid_utf8_encoding(
+        self,
+    ):
         # 2. Process is not using utf-8 encoding
         process = self._start_process(
             env={
@@ -212,6 +216,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
 
         stdout = process.stdout.read().decode("utf-8")
         stderr = process.stderr.read().decode("utf-8")
+        stdout_lines = stdout.split("\n")
 
         self.assertEqual(stderr, "")
         self.assertTrue(len(stdout_lines) < 50)
@@ -227,6 +232,9 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
             "DEBUG [-] Test debug message with unicode 1 - \u597d\u597d\u597d", stdout
         )
 
+    def test_formatting_with_unicode_data_works_with_stdout_patching__ascii_pythonioencoding(
+        self,
+    ):
         # 3. Process is not using utf-8 encoding - PYTHONIOENCODING set to ascii
         process = self._start_process(
             env={
