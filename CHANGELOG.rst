@@ -49,6 +49,22 @@ Added
 
   Contributed by @cognifloyd.
 
+* Add new ``database.compressors`` and ``database.zlib_compression_level`` config option which
+  specifies compression algorithms client supports for network / transport level compression
+  when talking to MongoDB.
+
+  Actual compression algorithm used will be then decided by the server and depends on the
+  algorithms which are supported by the server + client.
+
+  Possible / valid values include: zstd, zlib. Keep in mind that zstandard (zstd) is only supported
+  by MongoDB >= 4.2.
+
+  Our official Debian and RPM packages bundle ``zstandard`` dependency by default which means
+  setting this value to ``zstd`` should work out of the box as long as the server runs
+  MongoDB >= 4.2. #5177
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 
@@ -171,6 +187,10 @@ Changed
   ``python-ldap``). #5215, https://github.com/StackStorm/st2-auth-ldap/pull/94
 
   Contributed by @Kami.
+
+* Update code and dependencies so it supports Python 3.8 and Mongo DB 4.4 #5177
+
+  Contributed by @nzloshm @winem @Kami.
 
 * StackStorm Web UI (``st2web``) has been updated to not render and display execution results
   larger than 200 KB directly in the history panel in the right side bar by default anymore.

@@ -16,6 +16,8 @@ oslo.config
 paramiko
 pyyaml
 pymongo
+# used for optional network level compression for mongodb
+zstandard
 cryptography
 requests
 retrying

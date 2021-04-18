@@ -122,7 +122,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         self.reset()
 
         schedule_q_dbs = []
-        delays = [2000, 5000, 4000]
+        delays = [500, 1000, 800]
         expected_order = [0, 2, 1]
         test_cases = []
 
@@ -151,7 +151,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
             )
 
         # Wait maximum delay seconds so the query works as expected
-        eventlet.sleep(3.2)
+        eventlet.sleep(1.0)
 
         for index in expected_order:
             test_case = test_cases[index]

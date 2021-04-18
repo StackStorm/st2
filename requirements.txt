@@ -8,7 +8,7 @@
 RandomWords
 amqp==2.5.2
 apscheduler==3.7.0
-argcomplete
+argcomplete==1.12.2
 bcrypt==3.2.0
 chardet<3.1.0
 cryptography==3.4.7
@@ -23,6 +23,7 @@ git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backe
 gitpython==2.1.15
 greenlet==1.0.0
 gunicorn==20.1.0
+importlib-metadata==3.10.1
 jinja2==2.11.3
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
@@ -39,7 +40,7 @@ oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 paramiko==2.7.2
 passlib==1.7.4
-prettytable
+prettytable==2.1.0
 prompt-toolkit==1.0.15
 psutil==5.8.0
 pyinotify==0.9.6; platform_system=="Linux"
@@ -68,3 +69,4 @@ unittest2
 webob==1.8.7
 webtest
 zake==0.2.2
+zstandard==0.15.2

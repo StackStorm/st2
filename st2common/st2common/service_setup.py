@@ -136,6 +136,7 @@ def setup(
     lang_env = os.environ.get("LANG", "unknown")
     lang_env = os.environ.get("LANG", "notset")
     pythonioencoding_env = os.environ.get("PYTHONIOENCODING", "notset")
+
     try:
         language_code, encoding = locale.getdefaultlocale()
 
@@ -145,6 +146,7 @@ def setup(
             used_locale = "unable to retrieve locale"
     except Exception as e:
         used_locale = "unable to retrieve locale: %s " % (str(e))
+        encoding = "unknown"
 
     LOG.info("Using Python: %s (%s)" % (version, sys.executable))
     LOG.info(

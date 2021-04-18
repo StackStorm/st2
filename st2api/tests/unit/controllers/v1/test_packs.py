@@ -17,6 +17,7 @@ import os
 
 import requests
 import mock
+import sys
 
 from st2common.content.loader import ContentPackLoader
 from st2common.models.db.pack import PackDB
@@ -345,6 +346,13 @@ class PacksControllerTestCase(
     def test_index_health_broken(self):
         resp = self.app.get("/v1/packs/index/health")
 
+        # up to Py3.6 requests.exceptions.RequestException() appends a trailing ,
+        if sys.version_info < (3, 8):
+            broken_index_message = "RequestException('index is broken',)"
+        else:
+            broken_index_message = "RequestException('index is broken')"
+
+        self.maxDiff = None
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(
             resp.json,
@@ -361,7 +369,7 @@ class PacksControllerTestCase(
                         },
                         {
                             "url": "http://broken.example.com",
-                            "message": "RequestException('index is broken',)",
+                            "message": broken_index_message,
                             "packs": 0,
                             "error": "unresponsive",
                         },
@@ -494,8 +502,6 @@ class PacksControllerTestCase(
         packs_base_path = os.path.join(fixtures_base_path, "packs")
         pack_names = [
             "dummy_pack_1",
-            "dummy_pack_2",
-            "dummy_pack_3",
             "dummy_pack_10",
         ]
         mock_return_value = {}

@@ -1,6 +1,5 @@
 ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
-TOX_DIR := .tox
 OS := $(shell uname)
 
 # We separate the OSX X and Linux virtualenvs so we can run in a Docker
