@@ -23,6 +23,7 @@ git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backe
 gitpython==2.1.15
 greenlet==1.0.0
 gunicorn==20.1.0
+importlib-metadata==3.10.1
 jinja2==2.11.3
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
