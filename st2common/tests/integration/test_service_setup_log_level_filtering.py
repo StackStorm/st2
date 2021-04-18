@@ -69,7 +69,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(3)
+        eventlet.sleep(4)
         process.send_signal(signal.SIGKILL)
 
         # Verify first 4 environment related log messages
@@ -88,7 +88,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(3)
+        eventlet.sleep(4)
         process.send_signal(signal.SIGKILL)
 
         # Verify first 4 environment related log messages
@@ -106,7 +106,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(3)
+        eventlet.sleep(4)
         process.send_signal(signal.SIGKILL)
 
         # Verify first 4 environment related log messages
@@ -123,7 +123,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(3)
+        eventlet.sleep(4)
         process.send_signal(signal.SIGKILL)
 
         # First 6 log lines are debug messages about the environment which are always logged
