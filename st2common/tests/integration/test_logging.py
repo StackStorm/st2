@@ -220,7 +220,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
 
         self.assertEqual(stderr, "")
         print(stdout)
-        self.assertTrue(len(stdout_lines) < 50)
+        self.assertTrue(len(stdout_lines) < 100)
 
         self.assertIn("INFO [-] Test info message 1", stdout)
         self.assertIn("Test debug message 1", stdout)
