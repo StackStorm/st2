@@ -15,6 +15,27 @@
 
 from __future__ import absolute_import
 
+import sys
+
+# NOTE: We need to perform eventlet monkey patching, especially the thread module before importing
+# pymongo and mongoengine. If we don't do that, tests will hang because pymongo connection checker
+# thread will be constructed before monkey patching.
+# This is not an issue for any services where we have code structured correctly so we perform
+# monkey patching as early as possible, but this is not always the case with tests and when monkey
+# patching happens inside the tests really depends on tests ordering.
+# One option would be to simply add monkey_patch() call to the top of every single test file, but
+# this would result in tons of duplication.
+# Another option is to simply perform monkey patching right here before importing pymongo in case
+# we detected we are inside the tests.
+# And third option is to re-arrange the imports to we lazily import pymongo when we first need it
+# because monkey patching will already be performed by then.
+# For now, we go with option 2) since it seems to be good enough of a compromise.
+# We detect if we are running inside tests by checking if "nose" module is present - the same logic
+# we already use in a couple of other places.
+if "nose" in sys.modules.keys():
+    from st2common.util.monkey_patch import monkey_patch
+    monkey_patch()
+
 import copy
 import importlib
 import traceback
