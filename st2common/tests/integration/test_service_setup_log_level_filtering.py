@@ -74,6 +74,9 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
 
         # Verify first 4 environment related log messages
         stdout = process.stdout.read().decode("utf-8")
+        stderr = process.stderr.read().decode("utf-8")
+        print(stdout)
+        print(stderr)
         self.assertIn("INFO [-] Using Python:", stdout)
         self.assertIn("INFO [-] Using fs encoding:", stdout)
         self.assertIn("INFO [-] Using config files:", stdout)
@@ -93,6 +96,9 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
 
         # Verify first 4 environment related log messages
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n"))
+        stderr = process.stderr.read().decode("utf-8")
+        print(stdout)
+        print(stderr)
         self.assertIn("WARNING [-] Detected a non utf-8 locale / encoding", stdout)
 
         if sys.version_info < (3, 8, 0):
