@@ -69,3 +69,4 @@ unittest2
 webob==1.8.7
 webtest
 zake==0.2.2
+zstandard==0.15.2

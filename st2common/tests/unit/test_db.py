@@ -103,10 +103,12 @@ class DbConnectionTestCase(DbTestCase):
     def setUp(self):
         # NOTE: It's important we re-establish a connection on each setUp
         self.setUpClass()
+        cfg.CONF.reset()
 
     def tearDown(self):
         # NOTE: It's important we disconnect here otherwise tests will fail
         disconnect()
+        cfg.CONF.reset()
 
     def test_check_connect(self):
         """
@@ -120,6 +122,78 @@ class DbConnectionTestCase(DbTestCase):
             cfg.CONF.database.port,
         )
         self.assertIn(expected_str, str(client), "Not connected to desired host.")
+
+    def test_network_level_compression(self):
+        disconnect()
+
+        db_name = "st2"
+        db_host = "localhost"
+        db_port = 27017
+
+        # If running version < MongoDB 4.2 we skip this check since zstd is only supported in server
+        # >= 4.2
+        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        server_version = tuple(
+            [int(x) for x in connection.server_info()["version"].split(".")]
+        )
+
+        if server_version < (4, 2, 0):
+            self.skipTest("Skipping test since running MongoDB < 4.2")
+            return
+
+        disconnect()
+
+        # 1. Verify default is no compression
+        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        # Sadly there is no nicer way to assert that it seems
+        self.assertFalse("compressors=['zstd']" in str(connection))
+        self.assertFalse("compressors" in str(connection))
+
+        # 2. Verify using zstd works - specified using config option
+        disconnect()
+
+        cfg.CONF.set_override(name="compressors", group="database", override="zstd")
+
+        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        # Sadly there is no nicer way to assert that it seems
+        self.assertTrue("compressors=['zstd']" in str(connection))
+
+        # 3. Verify using zstd works - specified inside URI
+        disconnect()
+
+        cfg.CONF.set_override(name="compressors", group="database", override=None)
+        db_host = "mongodb://127.0.0.1/?compressors=zstd"
+
+        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        # Sadly there is no nicer way to assert that it seems
+        self.assertTrue("compressors=['zstd']" in str(connection))
+
+        # 4. Verify using zlib works - specified using config option
+        disconnect()
+
+        cfg.CONF.set_override(name="compressors", group="database", override="zlib")
+        cfg.CONF.set_override(
+            name="zlib_compression_level", group="database", override=8
+        )
+
+        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        # Sadly there is no nicer way to assert that it seems
+        self.assertTrue("compressors=['zlib']" in str(connection))
+        self.assertTrue("zlibcompressionlevel=8" in str(connection))
+
+        # 5. Verify using zlib works - specified inside URI
+        disconnect()
+
+        cfg.CONF.set_override(name="compressors", group="database", override=None)
+        cfg.CONF.set_override(
+            name="zlib_compression_level", group="database", override=None
+        )
+        db_host = "mongodb://127.0.0.1/?compressors=zlib&zlibCompressionLevel=9"
+
+        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        # Sadly there is no nicer way to assert that it seems
+        self.assertTrue("compressors=['zlib']" in str(connection))
+        self.assertTrue("zlibcompressionlevel=9" in str(connection))
 
     def test_get_ssl_kwargs(self):
         # 1. No SSL kwargs provided
