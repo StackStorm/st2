@@ -166,7 +166,7 @@ jobs:
           #  nosetests_node_ index: 0
     services:
       mongo:
-        image: mongo:4.0
+        image: mongo:4.4
         ports:
           - 27017:27017
 
