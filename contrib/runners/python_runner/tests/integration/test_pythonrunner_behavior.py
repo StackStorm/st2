@@ -21,6 +21,10 @@ import os
 import mock
 import tempfile
 
+from st2common.util.monkey_patch import use_select_poll_workaround
+
+use_select_poll_workaround()
+
 from oslo_config import cfg
 
 from python_runner import python_runner
