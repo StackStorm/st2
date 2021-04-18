@@ -63,6 +63,21 @@ CMD = [PYTHON_BINARY, ST2API_BINARY, "--config-file"]
 
 
 class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
+    def setUp(self):
+        super(ServiceSetupLogLevelFilteringTestCase, self).setUp()
+        self._reset_env()
+
+    def tearDown(self):
+        super(ServiceSetupLogLevelFilteringTestCase, self).tearDown()
+        self._reset_env()
+
+    def _reset_env(self):
+        keys_to_delete = ["LC_ALL", "ST2_LOG_PATCH_STDOUT", "PYTHONIOENCODING"]
+
+        for key in keys_to_delete:
+            if key in os.environ:
+                del os.environ[key]
+
     def test_system_info_is_logged_on_startup(self):
         # Verify INFO level service start up messages
         process = self._start_process(config_path=ST2_CONFIG_INFO_LL_PATH)
