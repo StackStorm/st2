@@ -174,7 +174,7 @@ Changed
 
 * Update code and dependencies so it supports Python 3.8 and Mongo DB 4.4 #5177
 
-  Contributed by @nzloshm @winem.
+  Contributed by @nzloshm @winem @Kami.
 
 * StackStorm Web UI (``st2web``) has been updated to not render and display execution results
   larger than 200 KB directly in the history panel in the right side bar by default anymore.
