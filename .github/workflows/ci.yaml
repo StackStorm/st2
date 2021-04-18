@@ -1,4 +1,4 @@
-name: ci
+name: CI
 
 on:
   push:
@@ -20,9 +20,6 @@ on:
     # run every night at midnight
     - cron:  '0 0 * * *'
 
-# TODO: Our workflow is far from ideal. We need to refactor it into multiple
-# ones and only run commands which are needed for some steps for those steps and
-# not for all
 jobs:
   # Special job which automatically cancels old runs for the same branch, prevents runs for the
   # same file set which has already passed, etc.
@@ -119,7 +116,7 @@ jobs:
           ./scripts/ci/print-versions.sh
       - name: make
         # use: script -e -c to print colors
-        timeout-minutes: 25
+        timeout-minutes: 7
         run: |
           script -e -c "make ${TASK}"
       - name: Nightly
@@ -276,7 +273,10 @@ jobs:
           ./scripts/ci/print-versions.sh
       - name: make
         # use: script -e -c to print colors
-        timeout-minutes: 25
+        # TODO: Use dynamic timeout value based on the branch - for master we
+        # need to use timeout x2 due to coverage overhead
+        # timeout-minutes: 8
+        timeout-minutes: 14
         run: |
           script -e -c "make ${TASK}"
       - name: Nightly
@@ -486,36 +486,30 @@ jobs:
 
           ./scripts/ci/print-versions.sh
       - name: make
-        timeout-minutes: 25  # may die if rabbitmq fails to start
-        env:
-          MAX_ATTEMPTS: 3
-          RETRY_DELAY: 5
+        if: "${{ env.TASK == 'ci-integration' }}"
+        #timeout-minutes: 7
+        # TODO: Use dynamic timeout value based on the branch - for master we
+        # need to use timeout x2 due to coverage overhead
+        timeout-minutes: 14  # may die if rabbitmq fails to start
         # use: script -e -c to print colors
         run: |
-          # There is a race in some orequesta integration tests so they tend to fail quite often.
-          # To avoid needed to re-run whole workflow in such case, we should try to retry this
-          # specific step. This saves us a bunch of time manually re-running the whole workflow.
-          # TODO: Try to identify problematic tests (iirc mostly orquesta ones) and only retry /
-          # re-run those.
-          set +e
-          for i in $(seq 1 ${MAX_ATTEMPTS}); do
-            echo "Attempt: ${i}/${MAX_ATTEMPTS}"
-
-            script -e -c "make ${TASK}" && exit 0
-
-            echo "Command failed, will retry in ${RETRY_DELAY} seconds..."
-            sleep ${RETRY_DELAY}
-          done
-
-          set -e
-          echo "Failed after ${MAX_ATTEMPTS} attempts, failing the job."
-          exit 1
+          script -e -c "make ${TASK}" && exit 0
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
         if: "${{ success() && env.ENABLE_COVERAGE == 'yes' && env.TASK == 'ci-integration' }}"
-        timeout-minutes: 25
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+      - name: Compress Service Logs Before upload
+        if: ${{ failure() && env.TASK == 'ci-integration' }}
+        run: |
+          tar cvzpf logs.tar.gz logs/*
+      - name: Upload StackStorm services Logs
+        if: ${{ failure() && env.TASK == 'ci-integration' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.tar.gz
+          retention-days: 7
       - name: Stop Redis Service Container
         if: "${{ always() }}"
         run: docker rm --force redis || true
