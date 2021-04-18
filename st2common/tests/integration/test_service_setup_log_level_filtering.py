@@ -194,6 +194,9 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
 
         # First 6 log lines are debug messages about the environment which are always logged
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[6:])
+        stderr = process.stderr.read().decode("utf-8")
+        print(stdout)
+        print(stderr)
 
         self.assertIn("INFO [-]", stdout)
         self.assertIn("DEBUG [-]", stdout)
