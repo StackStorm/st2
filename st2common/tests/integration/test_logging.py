@@ -31,7 +31,9 @@ TEST_FILE_PATH = os.path.join(BASE_DIR, "log_unicode_data.py")
 
 
 class LogFormattingAndEncodingTestCase(IntegrationTestCase):
-    def test_formatting_with_unicode_data_works_no_stdout_patching_valid_utf8_encoding(self):
+    def test_formatting_with_unicode_data_works_no_stdout_patching_valid_utf8_encoding(
+        self,
+    ):
         # Ensure that process doesn't end up in an infinite loop if non-utf8 locale / encoding is
         # used and a unicode sequence is logged.
 
@@ -68,7 +70,9 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
         )
 
     @unittest.skipIf(sys.version_info >= (3, 8, 0), "Skipping test under Python >= 3.8")
-    def test_formatting_with_unicode_data_works_no_stdout_patching_non_valid_utf8_encoding(self):
+    def test_formatting_with_unicode_data_works_no_stdout_patching_non_valid_utf8_encoding(
+        self,
+    ):
         # Ensure that process doesn't end up in an infinite loop if non-utf8 locale / encoding is
         # used and a unicode sequence is logged.
 
@@ -111,7 +115,9 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
             "DEBUG [-] Test debug message with unicode 1 - \u597d\u597d\u597d", stdout
         )
 
-    def test_formatting_with_unicode_data_works_no_stdout_patching_ascii_pythonioencoding(self):
+    def test_formatting_with_unicode_data_works_no_stdout_patching_ascii_pythonioencoding(
+        self,
+    ):
         # Ensure that process doesn't end up in an infinite loop if non-utf8 locale / encoding is
         # used and a unicode sequence is logged.
 
