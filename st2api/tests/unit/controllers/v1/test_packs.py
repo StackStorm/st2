@@ -502,8 +502,6 @@ class PacksControllerTestCase(
         packs_base_path = os.path.join(fixtures_base_path, "packs")
         pack_names = [
             "dummy_pack_1",
-            "dummy_pack_2",
-            "dummy_pack_3",
             "dummy_pack_10",
         ]
         mock_return_value = {}

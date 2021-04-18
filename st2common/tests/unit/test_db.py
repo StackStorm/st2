@@ -132,7 +132,12 @@ class DbConnectionTestCase(DbTestCase):
 
         # If running version < MongoDB 4.2 we skip this check since zstd is only supported in server
         # >= 4.2
-        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        connection = db_setup(
+            db_name=db_name,
+            db_host=db_host,
+            db_port=db_port,
+            ensure_indexes=False,
+        )
         server_version = tuple(
             [int(x) for x in connection.server_info()["version"].split(".")]
         )
@@ -144,7 +149,12 @@ class DbConnectionTestCase(DbTestCase):
         disconnect()
 
         # 1. Verify default is no compression
-        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        connection = db_setup(
+            db_name=db_name,
+            db_host=db_host,
+            db_port=db_port,
+            ensure_indexes=False,
+        )
         # Sadly there is no nicer way to assert that it seems
         self.assertFalse("compressors=['zstd']" in str(connection))
         self.assertFalse("compressors" in str(connection))
@@ -154,7 +164,12 @@ class DbConnectionTestCase(DbTestCase):
 
         cfg.CONF.set_override(name="compressors", group="database", override="zstd")
 
-        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        connection = db_setup(
+            db_name=db_name,
+            db_host=db_host,
+            db_port=db_port,
+            ensure_indexes=False,
+        )
         # Sadly there is no nicer way to assert that it seems
         self.assertTrue("compressors=['zstd']" in str(connection))
 
@@ -164,7 +179,12 @@ class DbConnectionTestCase(DbTestCase):
         cfg.CONF.set_override(name="compressors", group="database", override=None)
         db_host = "mongodb://127.0.0.1/?compressors=zstd"
 
-        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        connection = db_setup(
+            db_name=db_name,
+            db_host=db_host,
+            db_port=db_port,
+            ensure_indexes=False,
+        )
         # Sadly there is no nicer way to assert that it seems
         self.assertTrue("compressors=['zstd']" in str(connection))
 
@@ -176,7 +196,12 @@ class DbConnectionTestCase(DbTestCase):
             name="zlib_compression_level", group="database", override=8
         )
 
-        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        connection = db_setup(
+            db_name=db_name,
+            db_host=db_host,
+            db_port=db_port,
+            ensure_indexes=False,
+        )
         # Sadly there is no nicer way to assert that it seems
         self.assertTrue("compressors=['zlib']" in str(connection))
         self.assertTrue("zlibcompressionlevel=8" in str(connection))
@@ -190,7 +215,12 @@ class DbConnectionTestCase(DbTestCase):
         )
         db_host = "mongodb://127.0.0.1/?compressors=zlib&zlibCompressionLevel=9"
 
-        connection = db_setup(db_name=db_name, db_host=db_host, db_port=db_port)
+        connection = db_setup(
+            db_name=db_name,
+            db_host=db_host,
+            db_port=db_port,
+            ensure_indexes=False,
+        )
         # Sadly there is no nicer way to assert that it seems
         self.assertTrue("compressors=['zlib']" in str(connection))
         self.assertTrue("zlibcompressionlevel=9" in str(connection))
@@ -283,6 +313,7 @@ class DbConnectionTestCase(DbTestCase):
             username="username",
             password="password",
             authentication_mechanism="MONGODB-X509",
+            ensure_indexes=False,
         )
 
         call_args = mock_mongoengine.connection.connect.call_args_list[0][0]
@@ -324,6 +355,7 @@ class DbConnectionTestCase(DbTestCase):
             db_port=db_port,
             username=username,
             password=password,
+            ensure_indexes=False,
         )
 
         expected_message = (
@@ -350,6 +382,7 @@ class DbConnectionTestCase(DbTestCase):
             db_port=db_port,
             username=username,
             password=password,
+            ensure_indexes=False,
         )
 
         expected_message = (
@@ -376,6 +409,7 @@ class DbConnectionTestCase(DbTestCase):
             db_port=db_port,
             username=username,
             password=password,
+            ensure_indexes=False,
         )
 
         expected_message = (
@@ -401,6 +435,7 @@ class DbConnectionTestCase(DbTestCase):
             db_port=db_port,
             username=username,
             password=password,
+            ensure_indexes=False,
         )
 
         expected_message = (
@@ -426,6 +461,7 @@ class DbConnectionTestCase(DbTestCase):
             db_port=db_port,
             username=username,
             password=password,
+            ensure_indexes=False,
         )
 
         expected_message = (
@@ -464,6 +500,7 @@ class DbConnectionTestCase(DbTestCase):
             db_port=db_port,
             username=username,
             password=password,
+            ensure_indexes=False,
         )
 
         expected_message = (
@@ -488,9 +525,7 @@ class DbConnectionTestCase(DbTestCase):
         db_host = "localhost"
         db_port = 27017
 
-        cfg.CONF.set_override(
-            name="connection_timeout", group="database", override=1000
-        )
+        cfg.CONF.set_override(name="connection_timeout", group="database", override=300)
 
         start = time.time()
         self.assertRaises(
@@ -500,15 +535,16 @@ class DbConnectionTestCase(DbTestCase):
             db_host=db_host,
             db_port=db_port,
             ssl=True,
+            ensure_indexes=False,
         )
         end = time.time()
         diff = end - start
 
-        self.assertTrue(diff >= 1)
+        self.assertTrue(diff >= 0.3)
 
         disconnect()
 
-        cfg.CONF.set_override(name="connection_timeout", group="database", override=400)
+        cfg.CONF.set_override(name="connection_timeout", group="database", override=200)
 
         start = time.time()
         self.assertRaises(
@@ -518,11 +554,12 @@ class DbConnectionTestCase(DbTestCase):
             db_host=db_host,
             db_port=db_port,
             ssl=True,
+            ensure_indexes=False,
         )
         end = time.time()
         diff = end - start
 
-        self.assertTrue(diff >= 0.4)
+        self.assertTrue(diff >= 0.1)
 
 
 class DbCleanupTestCase(DbTestCase):

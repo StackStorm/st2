@@ -121,6 +121,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
             class_name="TestSensor",
             trigger_types=trigger_types,
             parent_args=parent_args,
+            db_ensure_indexes=False,
         )
         self.assertIsInstance(wrapper._sensor_instance, Sensor)
         self.assertIsNotNone(wrapper._sensor_instance)
@@ -137,6 +138,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
             trigger_types=trigger_types,
             parent_args=parent_args,
             poll_interval=poll_interval,
+            db_ensure_indexes=False,
         )
         self.assertIsNotNone(wrapper._sensor_instance)
         self.assertIsInstance(wrapper._sensor_instance, PollingSensor)
