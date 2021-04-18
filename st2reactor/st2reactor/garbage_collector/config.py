@@ -23,8 +23,6 @@ from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
 from st2common.constants.garbage_collection import DEFAULT_SLEEP_DELAY
 
-common_config.register_opts()
-
 CONF = cfg.CONF
 
 

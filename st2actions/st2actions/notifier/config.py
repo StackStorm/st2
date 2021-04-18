@@ -21,8 +21,6 @@ import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 
-common_config.register_opts()
-
 CONF = cfg.CONF
 
 
@@ -44,7 +42,7 @@ def get_logging_config_path():
 
 
 def _register_common_opts(ignore_errors=False):
-    common_config.register_opts()
+    common_config.register_opts(ignore_errors=ignore_errors)
 
 
 def _register_notifier_opts(ignore_errors=False):
