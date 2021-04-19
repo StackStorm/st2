@@ -276,7 +276,7 @@ jobs:
         # TODO: Use dynamic timeout value based on the branch - for master we
         # need to use timeout x2 due to coverage overhead
         # timeout-minutes: 8
-        timeout-minutes: 18
+        timeout-minutes: 19
         run: |
           script -e -c "make ${TASK}"
       - name: Nightly
