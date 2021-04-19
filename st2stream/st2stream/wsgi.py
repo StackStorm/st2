@@ -15,6 +15,7 @@
 
 import os
 from st2common.util.monkey_patch import monkey_patch
+
 monkey_patch()
 
 from st2stream import app
