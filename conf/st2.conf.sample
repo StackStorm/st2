@@ -189,6 +189,8 @@ redirect_stderr = False
 [messaging]
 # URL of all the nodes in a messaging service cluster.
 cluster_urls =  # comma separated list allowed here.
+# Compression algorithm to use for compressing the payloads which are sent over the message bus. Valid values include: zstd, lzma, bz2, gzip. Defaults to no compression.
+compression = None
 # How many times should we retry connection before failing.
 connection_retries = 10
 # How long should we wait between connection retries.

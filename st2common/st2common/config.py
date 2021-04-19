@@ -321,7 +321,7 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "compression",
             default=None,
-            help="Compression algorithm to use for compressing the payloads which are send over "
+            help="Compression algorithm to use for compressing the payloads which are sent over "
             "the message bus. Valid values include: zstd, lzma, bz2, gzip. Defaults to no "
             "compression.",
         ),
