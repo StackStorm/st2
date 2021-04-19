@@ -32,7 +32,8 @@ from st2common.util.wsgi import shutdown_server_kill_pending_requests
 from st2stream.signal_handlers import register_stream_signal_handlers
 from st2stream import config
 
-config.register_opts()
+config.register_opts(ignore_errors=True)
+
 from st2stream import app
 
 __all__ = ["main"]
