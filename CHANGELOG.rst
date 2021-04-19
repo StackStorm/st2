@@ -65,6 +65,12 @@ Added
 
   Contributed by @Kami.
 
+* Add support for compressing the payloads which are sent over the message bus. Compression is
+  disabled by default and user can enable it by setting ``transport.compression`` config option
+  to one of the following values: ``zstd``, ``lzma``, ``bz2``, ``gzip``.
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 
