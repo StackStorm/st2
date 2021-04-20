@@ -134,25 +134,51 @@ def get_model_class_for_approach(approach: str) -> Type[LiveActionDB]:
     return model_cls
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_8mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_8mb",
-        "json_4mb_single_large_field",
-    ],
-)
+# NOTE: On CI we skip 8 MB fixture file since it's very slow and substantially slows down that
+# workflow.
+ST2_CI = os.environ.get("ST2_CI", "false").lower() == "true"
+
+if ST2_CI:
+    PYTEST_FIXTURE_FILE_PARAM_DECORATOR = pytest.mark.parametrize(
+        "fixture_file",
+        [
+            "tiny_1.json",
+            "json_61kb.json",
+            "json_647kb.json",
+            "json_4mb.json",
+            "json_4mb_single_large_field.json",
+        ],
+        ids=[
+            "tiny_1",
+            "json_61kb",
+            "json_647kb",
+            "json_4mb",
+            "json_4mb_single_large_field",
+        ],
+    )
+else:
+    PYTEST_FIXTURE_FILE_PARAM_DECORATOR = pytest.mark.parametrize(
+        "fixture_file",
+        [
+            "tiny_1.json",
+            "json_61kb.json",
+            "json_647kb.json",
+            "json_4mb.json",
+            "json_8mb.json",
+            "json_4mb_single_large_field.json",
+        ],
+        ids=[
+            "tiny_1",
+            "json_61kb",
+            "json_647kb",
+            "json_4mb",
+            "json_8mb",
+            "json_4mb_single_large_field",
+        ],
+    )
+
+
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.parametrize(
     "approach",
     [
@@ -197,40 +223,7 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
     assert inserted_live_action_db == retrieved_live_action_db
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_4mb_single_large_field",
-    ],
-)
-@pytest.mark.parametrize(
-    "approach",
-    [
-        "escaped_dynamic_field",
-        "escaped_dict_field",
-        "json_dict_field",
-        "json_dict_field_with_header",
-        "json_dict_field_with_header_and_zstd",
-    ],
-    ids=[
-        "escaped_dynamic_field",
-        "escaped_dict_field",
-        "json_dict_field",
-        "json_dict_field_w_header",
-        "json_dict_field_w_header_and_zstd",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.benchmark(group="live_action_save_multiple_fields")
 def test_save_multiple_fields(benchmark, fixture_file: str, approach: str) -> None:
     # Here we benchmark a scenario where a single model contains multiple fields with a new
@@ -252,7 +245,9 @@ def test_save_multiple_fields(benchmark, fixture_file: str, approach: str) -> No
         live_action_db.action = "core.local"
         live_action_db.field1 = data
         live_action_db.field2 = data
-        live_action_db.field3 = data
+        # On CI we only test with two fields otherwise it takes very long time to complete
+        if not ST2_CI:
+            live_action_db.field3 = data
 
         inserted_live_action_db = LiveAction.add_or_update(live_action_db)
         return inserted_live_action_db
@@ -262,29 +257,12 @@ def test_save_multiple_fields(benchmark, fixture_file: str, approach: str) -> No
     # Assert that result is correctly converted back to dict on retrieval
     assert inserted_live_action_db.field1 == data
     assert inserted_live_action_db.field2 == data
-    assert inserted_live_action_db.field3 == data
+    if not ST2_CI:
+        assert inserted_live_action_db.field3 == data
     assert inserted_live_action_db == retrieved_live_action_db
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_8mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_8mb",
-        "json_4mb_single_large_field",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.parametrize(
     "approach",
     [
@@ -331,23 +309,7 @@ def test_read_large_execution(benchmark, fixture_file: str, approach: str) -> No
     assert retrieved_live_action_db.result == data
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_4mb_single_large_field",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.parametrize(
     "approach",
     [
@@ -388,34 +350,7 @@ def test_save_large_string_value(benchmark, fixture_file: str, approach: str) ->
     assert bool(inserted_live_action_db.value)
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_4mb_single_large_field",
-    ],
-)
-@pytest.mark.parametrize(
-    "approach",
-    [
-        "string_field",
-        "binary_field",
-    ],
-    ids=[
-        "string_field",
-        "binary_field",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.benchmark(group="test_model_save")
 def test_read_large_string_value(benchmark, fixture_file: str, approach: str) -> None:
     with open(os.path.join(FIXTURES_DIR, fixture_file), "rb") as fp:
