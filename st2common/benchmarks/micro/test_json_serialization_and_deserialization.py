@@ -86,7 +86,7 @@ def test_json_dumps(benchmark, fixture_file, indent_sort_keys_tuple, implementat
         else:
             raise ValueError("Invalid implementation: %s" % (implementation))
 
-    result = benchmark.pedantic(run_benchmark, iterations=5, rounds=5)
+    result = benchmark(run_benchmark)
     assert len(result) >= 40000
 
 
@@ -128,5 +128,5 @@ def test_json_loads(benchmark, fixture_file, implementation):
         else:
             raise ValueError("Invalid implementation: %s" % (implementation))
 
-    result = benchmark.pedantic(run_benchmark, iterations=10, rounds=10)
+    result = benchmark(run_benchmark)
     assert result == content_loaded

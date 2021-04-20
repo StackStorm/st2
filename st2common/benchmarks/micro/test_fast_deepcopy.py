@@ -103,7 +103,7 @@ def test_fast_deepcopy_with_dict_values(
         else:
             raise ValueError("Invalid implementation: %s" % (implementation))
 
-    result = benchmark.pedantic(run_benchmark, iterations=50, rounds=50)
+    result = benchmark(run_benchmark)
     assert result == data, "Output is not the same as the input"
 
 
@@ -148,5 +148,5 @@ def test_fast_deepcopy_with_json_fixture_file(benchmark, fixture_file, implement
         else:
             raise ValueError("Invalid implementation: %s" % (implementation))
 
-    result = benchmark.pedantic(run_benchmark, iterations=5, rounds=5)
+    result = benchmark(run_benchmark)
     assert result == data, "Output is not the same as the input"

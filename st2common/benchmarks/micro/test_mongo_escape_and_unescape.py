@@ -61,7 +61,7 @@ def test_escape_chars(benchmark, fixture_file: str) -> None:
         result = mongoescape.escape_chars(data)
         return result
 
-    escaped_data = benchmark.pedantic(run_benchmark, iterations=10, rounds=10)
+    escaped_data = benchmark(run_benchmark)
     unescaped_data = mongoescape.unescape_chars(escaped_data)
     assert escaped_data != data
     assert unescaped_data == data
@@ -98,6 +98,6 @@ def test_unescape_chars(benchmark, fixture_file: str) -> None:
         result = mongoescape.unescape_chars(escaped_data)
         return result
 
-    unescaped_data = benchmark.pedantic(run_benchmark, iterations=10, rounds=10)
+    unescaped_data = benchmark(run_benchmark)
     escaped_data = mongoescape.escape_chars(escaped_data)
     assert unescaped_data != escaped_data

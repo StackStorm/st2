@@ -50,36 +50,14 @@ jobs:
         ports:
           - 27017:27017
 
-      # In GHA, these services are started first before the code is checked out.
-      # We use bitnami images to facilitate reconfiguring RabbitMQ during ci-integration tests.
-      # We rely on custom config and SSL certs that are in the repo.
-      # Many images require config in env vars (which we can't change during the test job)
-      # or they require config in entrypoint args (which we can't override for GHA services)
-      # bitnami builds ways to get config files from mounted volumes.
       rabbitmq:
-        image: bitnami/rabbitmq:3.8
-        volumes:
-          - /home/runner/rabbitmq_conf:/bitnami/conf  # RABBITMQ_MOUNTED_CONF_DIR
-        env:
-          # tell bitnami/rabbitmq to enable this by default
-          RABBITMQ_PLUGINS: rabbitmq_management
-          RABBITMQ_USERNAME: guest
-          RABBITMQ_PASSWORD: guest
-
-        # These are strictly docker options, not entrypoint args (GHA restriction)
+        image: rabbitmq:3.8-management
         options: >-
           --name rabbitmq
-
         ports:
-          # These 6 ports are exposed by bitnami/rabbitmq (see https://www.rabbitmq.com/networking.html#ports)
-          # host_port:container_port/protocol
           - 5671:5671/tcp   # AMQP SSL port
           - 5672:5672/tcp   # AMQP standard port
           - 15672:15672/tcp # Management: HTTP, CLI
-          #- 15671:15671/tcp # Management: SSL port
-          #- 25672:25672/tcp # inter-node or CLI
-          #- 4369:4369/tcp   # epmd
-          #
 
     env:
       TASK: '${{ matrix.task }}'
@@ -133,10 +111,10 @@ jobs:
         run: |
           ./scripts/ci/print-versions.sh
       - name: Run Micro Benchmarks
-        timeout-minutes: 45
+        timeout-minutes: 30
         # use: script -e -c to print colors
         run: |
-          make ${TASK}
+          script -e -c "make ${TASK}" && exit 0
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
         if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
