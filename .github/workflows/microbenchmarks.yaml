@@ -115,17 +115,7 @@ jobs:
         # use: script -e -c to print colors
         run: |
           script -e -c "make ${TASK}" && exit 0
-      - name: Codecov
-        # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
-        run: |
-          ./scripts/ci/submit-codecov-coverage.sh
-      - name: Compress Service Logs Before upload
-        if: ${{ failure() }}
-        run: |
-          tar cvzpf logs.tar.gz logs/*
       - name: Upload Histograms
-        if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: benchmark_histograms
