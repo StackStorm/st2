@@ -49,6 +49,7 @@ coverage*.xml
 .tox
 nosetests.xml
 htmlcov
+benchmark_histograms/
 
 # Mr Developer
 .idea
