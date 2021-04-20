@@ -224,6 +224,23 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
 
 
 @PYTEST_FIXTURE_FILE_PARAM_DECORATOR
+@pytest.mark.parametrize(
+    "approach",
+    [
+        "escaped_dynamic_field",
+        "escaped_dict_field",
+        "json_dict_field",
+        "json_dict_field_with_header",
+        "json_dict_field_with_header_and_zstd",
+    ],
+    ids=[
+        "escaped_dynamic_field",
+        "escaped_dict_field",
+        "json_dict_field",
+        "json_dict_field_w_header",
+        "json_dict_field_w_header_and_zstd",
+    ],
+)
 @pytest.mark.benchmark(group="live_action_save_multiple_fields")
 def test_save_multiple_fields(benchmark, fixture_file: str, approach: str) -> None:
     # Here we benchmark a scenario where a single model contains multiple fields with a new
@@ -351,6 +368,17 @@ def test_save_large_string_value(benchmark, fixture_file: str, approach: str) ->
 
 
 @PYTEST_FIXTURE_FILE_PARAM_DECORATOR
+@pytest.mark.parametrize(
+    "approach",
+    [
+        "string_field",
+        "binary_field",
+    ],
+    ids=[
+        "string_field",
+        "binary_field",
+    ],
+)
 @pytest.mark.benchmark(group="test_model_save")
 def test_read_large_string_value(benchmark, fixture_file: str, approach: str) -> None:
     with open(os.path.join(FIXTURES_DIR, fixture_file), "rb") as fp:

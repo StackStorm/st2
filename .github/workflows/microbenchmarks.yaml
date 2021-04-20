@@ -3,9 +3,6 @@
 name: Micro Benchmarks
 
 on:
-  push:
-    branches:
-      - message_bus_compression_support
   pull_request:
     type: [opened, reopened, edited]
     branches:
