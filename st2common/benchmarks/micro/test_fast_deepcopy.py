@@ -21,6 +21,10 @@ different underlying implementations (copy.deepcopy, ujson, orjson).
 # TODO: Also use actual orquesta context and execution fixture files which contain real life data
 # with large text strings, different value types, etc.
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import os
 import copy
 import random

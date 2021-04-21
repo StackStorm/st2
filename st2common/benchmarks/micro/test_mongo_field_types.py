@@ -36,6 +36,10 @@ The goal of that benchmark is to determine a more efficient approach which is al
 implement in a backward compatible manner.
 """
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 from typing import Type
 
 import os

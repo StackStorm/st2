@@ -16,9 +16,13 @@
 """
 Micro benchmarks which benchmark our mongo escape and unescape function.
 
-NOTE: We utiliz JSON fixture files which also contain values even though escaping only operates
+NOTE: We utilize JSON fixture files which also contain values even though escaping only operates
 on the item keys.
 """
+
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
 
 import os
 import json

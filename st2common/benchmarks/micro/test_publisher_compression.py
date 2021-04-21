@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 from kombu import Exchange
 from kombu.serialization import pickle
 
