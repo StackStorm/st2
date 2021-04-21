@@ -53,11 +53,13 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.fields import JSONDictField
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
+from common import ST2_CI
+from common import FIXTURES_DIR
+from common import PYTEST_FIXTURE_FILE_PARAM_DECORATOR
+from common import PYTEST_FIXTURE_FILE_PARAM_NO_8MB_DECORATOR
 
 
-# Needeed so we can subclass it
+# Needed so we can subclass it
 LiveActionDB._meta["allow_inheritance"] = True
 
 
@@ -137,50 +139,6 @@ def get_model_class_for_approach(approach: str) -> Type[LiveActionDB]:
     return model_cls
 
 
-# NOTE: On CI we skip 8 MB fixture file since it's very slow and substantially slows down that
-# workflow.
-ST2_CI = os.environ.get("ST2_CI", "false").lower() == "true"
-
-if ST2_CI:
-    PYTEST_FIXTURE_FILE_PARAM_DECORATOR = pytest.mark.parametrize(
-        "fixture_file",
-        [
-            "tiny_1.json",
-            "json_61kb.json",
-            "json_647kb.json",
-            "json_4mb.json",
-            "json_4mb_single_large_field.json",
-        ],
-        ids=[
-            "tiny_1",
-            "json_61kb",
-            "json_647kb",
-            "json_4mb",
-            "json_4mb_single_large_field",
-        ],
-    )
-else:
-    PYTEST_FIXTURE_FILE_PARAM_DECORATOR = pytest.mark.parametrize(
-        "fixture_file",
-        [
-            "tiny_1.json",
-            "json_61kb.json",
-            "json_647kb.json",
-            "json_4mb.json",
-            "json_8mb.json",
-            "json_4mb_single_large_field.json",
-        ],
-        ids=[
-            "tiny_1",
-            "json_61kb",
-            "json_647kb",
-            "json_4mb",
-            "json_8mb",
-            "json_4mb_single_large_field",
-        ],
-    )
-
-
 @PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.parametrize(
     "approach",
@@ -226,7 +184,7 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
     assert inserted_live_action_db == retrieved_live_action_db
 
 
-@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
+@PYTEST_FIXTURE_FILE_PARAM_NO_8MB_DECORATOR
 @pytest.mark.parametrize(
     "approach",
     [

@@ -28,28 +28,11 @@ import zstandard as zstd
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.transport import publishers
 
-from test_mongo_field_types import FIXTURES_DIR
+from common import FIXTURES_DIR
+from common import PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_8mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_8mb",
-        "json_4mb_single_large_field",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.parametrize(
     "algorithm",
     [
@@ -88,25 +71,7 @@ def test_pickled_object_compression(
     assert isinstance(result, bytes)
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_8mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_8mb",
-        "json_4mb_single_large_field",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.parametrize(
     "algorithm",
     [

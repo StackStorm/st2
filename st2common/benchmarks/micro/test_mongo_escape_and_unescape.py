@@ -30,8 +30,7 @@ import pytest
 
 from st2common.util import mongoescape
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
+from common import FIXTURES_DIR
 
 
 @pytest.mark.parametrize(

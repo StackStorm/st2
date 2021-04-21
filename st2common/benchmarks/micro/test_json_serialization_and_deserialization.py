@@ -26,8 +26,7 @@ import orjson
 
 from st2common.util.jsonify import json_encode_orjson
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
+from common import FIXTURES_DIR
 
 
 @pytest.mark.parametrize(
