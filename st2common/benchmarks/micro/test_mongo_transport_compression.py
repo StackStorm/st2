@@ -49,7 +49,7 @@ from common import PYTEST_FIXTURE_FILE_PARAM_DECORATOR
     ],
 )
 @pytest.mark.benchmark(group="test_model_save")
-def test_save_exection(benchmark, fixture_file: str, compression):
+def test_save_execution(benchmark, fixture_file: str, compression):
     with open(os.path.join(FIXTURES_DIR, fixture_file), "rb") as fp:
         content = fp.read()
 
@@ -85,7 +85,7 @@ def test_save_exection(benchmark, fixture_file: str, compression):
     ],
 )
 @pytest.mark.benchmark(group="test_model_read")
-def test_read_exection(benchmark, fixture_file: str, compression):
+def test_read_execution(benchmark, fixture_file: str, compression):
     with open(os.path.join(FIXTURES_DIR, fixture_file), "rb") as fp:
         content = fp.read()
 
