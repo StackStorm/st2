@@ -2,7 +2,7 @@
 coverage==4.5.2
 pep8==1.7.1
 st2flake8==0.1.0
-astroid==2.5.2
+astroid==2.5.3
 pylint==2.7.4
 pylint-plugin-utils>=0.4
 black==20.8b1
