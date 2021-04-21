@@ -53,7 +53,6 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.fields import JSONDictField
 
-from common import ST2_CI
 from common import FIXTURES_DIR
 from common import PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 from common import PYTEST_FIXTURE_FILE_PARAM_NO_8MB_DECORATOR
@@ -223,9 +222,7 @@ def test_save_multiple_fields(benchmark, fixture_file: str, approach: str) -> No
         live_action_db.action = "core.local"
         live_action_db.field1 = data
         live_action_db.field2 = data
-        # On CI we only test with two fields otherwise it takes very long time to complete
-        if not ST2_CI:
-            live_action_db.field3 = data
+        live_action_db.field3 = data
 
         inserted_live_action_db = LiveAction.add_or_update(live_action_db)
         return inserted_live_action_db
@@ -235,8 +232,7 @@ def test_save_multiple_fields(benchmark, fixture_file: str, approach: str) -> No
     # Assert that result is correctly converted back to dict on retrieval
     assert inserted_live_action_db.field1 == data
     assert inserted_live_action_db.field2 == data
-    if not ST2_CI:
-        assert inserted_live_action_db.field3 == data
+    assert inserted_live_action_db.field3 == data
     assert inserted_live_action_db == retrieved_live_action_db
 
 
