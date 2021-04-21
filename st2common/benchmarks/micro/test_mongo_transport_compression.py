@@ -57,7 +57,12 @@ def test_save_execution(benchmark, fixture_file: str, compression):
 
     # NOTE: It's important we correctly reestablish connection before each setting change
     disconnect()
-    db_setup()
+    connection = db_setup()
+
+    if compression is None:
+        assert "compressors" not in str(connection)
+    elif compression == "zstd":
+        assert "compressors=['zstd']" in str(connection)
 
     def run_benchmark():
         live_action_db = LiveActionDB()
@@ -93,7 +98,12 @@ def test_read_execution(benchmark, fixture_file: str, compression):
 
     # NOTE: It's important we correctly reestablish connection before each setting change
     disconnect()
-    db_setup()
+    connection = db_setup()
+
+    if compression is None:
+        assert "compressors" not in str(connection)
+    elif compression == "zstd":
+        assert "compressors=['zstd']" in str(connection)
 
     live_action_db = LiveActionDB()
     live_action_db.status = "succeeded"
