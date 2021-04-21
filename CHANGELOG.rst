@@ -49,6 +49,22 @@ Added
 
   Contributed by @cognifloyd.
 
+* Add new ``database.compressors`` and ``database.zlib_compression_level`` config option which
+  specifies compression algorithms client supports for network / transport level compression
+  when talking to MongoDB.
+
+  Actual compression algorithm used will be then decided by the server and depends on the
+  algorithms which are supported by the server + client.
+
+  Possible / valid values include: zstd, zlib. Keep in mind that zstandard (zstd) is only supported
+  by MongoDB >= 4.2.
+
+  Our official Debian and RPM packages bundle ``zstandard`` dependency by default which means
+  setting this value to ``zstd`` should work out of the box as long as the server runs
+  MongoDB >= 4.2. #5177
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 
@@ -168,9 +184,15 @@ Changed
 * Update various dependencies to latest stable versions (``bcrypt``, ``appscheduler``, ``pytz``,
   ``python-dateutil``, ``psutil``, ``passlib``, ``gunicorn``, ``flex``, ``cryptography``.
   ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``,
-  ``pyyaml``, ``kombu``, ``amqp``). #5215
+  ``pyyaml``, ``kombu``, ``amqp``, ``python-ldap``).
+
+  #5215, https://github.com/StackStorm/st2-auth-ldap/pull/94
 
   Contributed by @Kami.
+
+* Update code and dependencies so it supports Python 3.8 and Mongo DB 4.4 #5177
+
+  Contributed by @nzloshm @winem @Kami.
 
 * StackStorm Web UI (``st2web``) has been updated to not render and display execution results
   larger than 200 KB directly in the history panel in the right side bar by default anymore.
@@ -257,6 +279,22 @@ Improvements
 * Drop unused python dependencies: prometheus_client, python-gnupg, more-itertools, zipp. #5228
 
   Contributed by @cognifloyd.
+
+* Update majority of the "resource get" CLI commands (e.g. ``st2 execution get``,
+  ``st2 action get``, ``st2 rule get``, ``st2 pack get``, ``st2 apikey get``, ``st2 trace get``,
+  ``st2 key get``, ``st2 webhook get``, ``st2  timer get``, etc.) so they allow for retrieval
+  and printing of information for multiple resources using the following notation:
+  ``st2 <resource> get <id 1> <id 2> <id n>``, e.g. ``st2 action.get pack.show packs.get
+  packs.delete``
+
+  This change is fully backward compatible when retrieving only a single resource (aka single
+  id is passed to the command).
+
+  When retrieving a single source the command will throw and exit with non-zero if a resource is
+  not found, but when retrieving multiple resources, command will just print an error and
+  continue with printing the details of any other found resources. (new feature) #4912
+
+  Contributed by @Kami.
 
 Fixed
 ~~~~~

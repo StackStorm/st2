@@ -15,6 +15,32 @@
 
 from __future__ import absolute_import
 
+import sys
+
+# NOTE: We need to perform eventlet monkey patching, especially the thread module before importing
+# pymongo and mongoengine. If we don't do that, tests will hang because pymongo connection checker
+# thread will be constructed before monkey patching with reference to non patched threading module.
+# This is not an issue for any service where we have code structured correctly so we perform
+# monkey patching as early as possible, but this is not always the case with tests and when monkey
+# patching happens inside the tests really depends on tests import ordering, etc.
+#
+# One option would be to simply add monkey_patch() call to the top of every single test file, but
+# this would result in tons of duplication.
+#
+# Another option is to simply perform monkey patching right here before importing pymongo in case
+# we detected we are running inside tests.
+#
+# And third option is to re-arrange the imports so we lazily import pymongo + mongoengine when we
+# first need it because monkey patching will already be performed by then.
+#
+# For now, we go with option 2) since it seems to be good enough of a compromise. We detect if we
+# are running inside tests by checking if "nose" module is present - the same logic we already use
+# in a couple of other places (and something which would need to be changed if we switch to pytest).
+if "nose" in sys.modules.keys():
+    from st2common.util.monkey_patch import monkey_patch
+
+    monkey_patch()
+
 import copy
 import importlib
 import traceback
@@ -141,6 +167,16 @@ def _db_connect(
         ssl_match_hostname=ssl_match_hostname,
     )
 
+    compressor_kwargs = {}
+
+    if cfg.CONF.database.compressors:
+        compressor_kwargs["compressors"] = cfg.CONF.database.compressors
+
+    if cfg.CONF.database.zlib_compression_level is not None:
+        compressor_kwargs[
+            "zlibCompressionLevel"
+        ] = cfg.CONF.database.zlib_compression_level
+
     # NOTE: We intentionally set "serverSelectionTimeoutMS" to 3 seconds. By default it's set to
     # 30 seconds, which means it will block up to 30 seconds and fail if there are any SSL related
     # or other errors
@@ -155,6 +191,7 @@ def _db_connect(
         connectTimeoutMS=connection_timeout,
         serverSelectionTimeoutMS=connection_timeout,
         **ssl_kwargs,
+        **compressor_kwargs,
     )
 
     # NOTE: Since pymongo 3.0, connect() method is lazy and not blocking (always returns success)

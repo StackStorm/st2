@@ -151,9 +151,11 @@ class TestInquirySubcommands(TestInquiryBase):
         args = ["inquiry", "get", inquiry_id]
         retcode = self.shell.run(args)
         self.assertEqual(
-            'Inquiry "%s" is not found.\n\n' % inquiry_id, self.stdout.getvalue()
+            'Inquiry "%s" is not found.\n\nERROR: Resource asdbv not found.\n\n'
+            % inquiry_id,
+            self.stdout.getvalue(),
         )
-        self.assertEqual(retcode, 2)
+        self.assertEqual(retcode, 1)
 
     @mock.patch.object(
         requests,

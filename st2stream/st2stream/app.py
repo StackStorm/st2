@@ -52,7 +52,7 @@ def setup_app(config={}):
         # including shutdown
         monkey_patch()
 
-        st2stream_config.register_opts()
+        st2stream_config.register_opts(ignore_errors=True)
         capabilities = {
             "name": "stream",
             "listen_host": cfg.CONF.stream.host,
