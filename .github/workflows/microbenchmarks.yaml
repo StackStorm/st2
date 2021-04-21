@@ -3,10 +3,6 @@
 name: Micro Benchmarks
 
 on:
-  pull_request:
-    type: [opened, reopened, edited]
-    branches:
-      - master
   schedule:
     - cron:  '30 3 * * *'
 

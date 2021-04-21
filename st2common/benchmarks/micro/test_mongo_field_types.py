@@ -379,7 +379,7 @@ def test_save_large_string_value(benchmark, fixture_file: str, approach: str) ->
         "binary_field",
     ],
 )
-@pytest.mark.benchmark(group="test_model_save")
+@pytest.mark.benchmark(group="test_model_read")
 def test_read_large_string_value(benchmark, fixture_file: str, approach: str) -> None:
     with open(os.path.join(FIXTURES_DIR, fixture_file), "rb") as fp:
         content = fp.read()
