@@ -3,6 +3,12 @@
 name: Micro Benchmarks
 
 on:
+  pull_request:
+    type: [opened, reopened, edited]
+    branches:
+      # Only for PRs targeting those branches
+      - master
+      - v[0-9]+.[0-9]+
   schedule:
     - cron:  '30 3 * * *'
 
