@@ -234,6 +234,10 @@ Changed
 
   Contributed by @chadpatt .
 
+* Monkey patch on st2stream earlier in flow #5240
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
 Improvements
 ~~~~~~~~~~~~
 
