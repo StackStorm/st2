@@ -3,12 +3,6 @@
 name: Micro Benchmarks
 
 on:
-  pull_request:
-    type: [opened, reopened, edited]
-    branches:
-      # Only for PRs targeting those branches
-      - master
-      - v[0-9]+.[0-9]+
   schedule:
     - cron:  '30 3 * * *'
 
@@ -43,6 +37,11 @@ jobs:
             nosetests_node_total: 1
             nosetests_node_index: 0
             python-version: '3.6'
+          - name: 'Microbenchmarks'
+            task: 'micro-benchmarks'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version: '3.8'
     services:
       mongo:
         image: mongo:4.4
