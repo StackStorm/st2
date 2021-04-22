@@ -23,7 +23,10 @@ from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.base import APIUIDMixin
 from st2common.models.api.tag import TagsHelper
-from st2common.models.api.notification import (NotificationSubSchemaAPI, NotificationsHelper)
+from st2common.models.api.notification import (
+    NotificationSubSchemaAPI,
+    NotificationsHelper,
+)
 from st2common.models.db.action import ActionDB
 from st2common.models.db.actionalias import ActionAliasDB
 from st2common.models.db.executionstate import ActionExecutionStateDB
@@ -34,17 +37,16 @@ from st2common.models.system.common import ResourceReference
 
 
 __all__ = [
-    'ActionAPI',
-    'ActionCreateAPI',
-    'LiveActionAPI',
-    'LiveActionCreateAPI',
-    'RunnerTypeAPI',
-
-    'AliasExecutionAPI',
-    'AliasMatchAndExecuteInputAPI',
-    'ActionAliasAPI',
-    'ActionAliasMatchAPI',
-    'ActionAliasHelpAPI'
+    "ActionAPI",
+    "ActionCreateAPI",
+    "LiveActionAPI",
+    "LiveActionCreateAPI",
+    "RunnerTypeAPI",
+    "AliasExecutionAPI",
+    "AliasMatchAndExecuteInputAPI",
+    "ActionAliasAPI",
+    "ActionAliasMatchAPI",
+    "ActionAliasHelpAPI",
 ]
 
 
@@ -56,6 +58,7 @@ class RunnerTypeAPI(BaseAPI):
     The representation of an RunnerType in the system. An RunnerType
     has a one-to-one mapping to a particular ActionRunner implementation.
     """
+
     model = RunnerTypeDB
     schema = {
         "title": "Runner",
@@ -65,42 +68,40 @@ class RunnerTypeAPI(BaseAPI):
             "id": {
                 "description": "The unique identifier for the action runner.",
                 "type": "string",
-                "default": None
+                "default": None,
             },
-            "uid": {
-                "type": "string"
-            },
+            "uid": {"type": "string"},
             "name": {
                 "description": "The name of the action runner.",
                 "type": "string",
-                "required": True
+                "required": True,
             },
             "description": {
                 "description": "The description of the action runner.",
-                "type": "string"
+                "type": "string",
             },
             "enabled": {
                 "description": "Enable or disable the action runner.",
                 "type": "boolean",
-                "default": True
+                "default": True,
             },
             "runner_package": {
                 "description": "The python package that implements the "
-                               "action runner for this type.",
+                "action runner for this type.",
                 "type": "string",
-                "required": False
+                "required": False,
             },
             "runner_module": {
                 "description": "The python module that implements the "
-                               "action runner for this type.",
+                "action runner for this type.",
                 "type": "string",
-                "required": True
+                "required": True,
             },
             "query_module": {
                 "description": "The python module that implements the "
-                               "results tracker (querier) for the runner.",
+                "results tracker (querier) for the runner.",
                 "type": "string",
-                "required": False
+                "required": False,
             },
             "runner_parameters": {
                 "description": "Input parameters for the action runner.",
@@ -108,24 +109,22 @@ class RunnerTypeAPI(BaseAPI):
                 "patternProperties": {
                     r"^\w+$": util_schema.get_action_parameters_schema()
                 },
-                'additionalProperties': False
+                "additionalProperties": False,
             },
             "output_key": {
                 "description": "Default key to expect results to be published to.",
                 "type": "string",
-                "required": False
+                "required": False,
             },
             "output_schema": {
                 "description": "Schema for the runner's output.",
                 "type": "object",
-                "patternProperties": {
-                    r"^\w+$": util_schema.get_action_output_schema()
-                },
-                'additionalProperties': False,
-                "default": {}
+                "patternProperties": {r"^\w+$": util_schema.get_action_output_schema()},
+                "additionalProperties": False,
+                "default": {},
             },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     def __init__(self, **kw):
@@ -138,25 +137,34 @@ class RunnerTypeAPI(BaseAPI):
         # modified one
         for key, value in kw.items():
             setattr(self, key, value)
-        if not hasattr(self, 'runner_parameters'):
-            setattr(self, 'runner_parameters', dict())
+        if not hasattr(self, "runner_parameters"):
+            setattr(self, "runner_parameters", dict())
 
     @classmethod
     def to_model(cls, runner_type):
         name = runner_type.name
         description = runner_type.description
-        enabled = getattr(runner_type, 'enabled', True)
-        runner_package = getattr(runner_type, 'runner_package', runner_type.runner_module)
+        enabled = getattr(runner_type, "enabled", True)
+        runner_package = getattr(
+            runner_type, "runner_package", runner_type.runner_module
+        )
         runner_module = str(runner_type.runner_module)
-        runner_parameters = getattr(runner_type, 'runner_parameters', dict())
-        output_key = getattr(runner_type, 'output_key', None)
-        output_schema = getattr(runner_type, 'output_schema', dict())
-        query_module = getattr(runner_type, 'query_module', None)
+        runner_parameters = getattr(runner_type, "runner_parameters", dict())
+        output_key = getattr(runner_type, "output_key", None)
+        output_schema = getattr(runner_type, "output_schema", dict())
+        query_module = getattr(runner_type, "query_module", None)
 
-        model = cls.model(name=name, description=description, enabled=enabled,
-                          runner_package=runner_package, runner_module=runner_module,
-                          runner_parameters=runner_parameters, output_schema=output_schema,
-                          query_module=query_module, output_key=output_key)
+        model = cls.model(
+            name=name,
+            description=description,
+            enabled=enabled,
+            runner_package=runner_package,
+            runner_module=runner_module,
+            runner_parameters=runner_parameters,
+            output_schema=output_schema,
+            query_module=query_module,
+            output_key=output_key,
+        )
 
         return model
 
@@ -174,44 +182,42 @@ class ActionAPI(BaseAPI, APIUIDMixin):
         "properties": {
             "id": {
                 "description": "The unique identifier for the action.",
-                "type": "string"
+                "type": "string",
             },
             "ref": {
                 "description": "System computed user friendly reference for the action. \
                                 Provided value will be overridden by computed value.",
-                "type": "string"
+                "type": "string",
             },
-            "uid": {
-                "type": "string"
-            },
+            "uid": {"type": "string"},
             "name": {
                 "description": "The name of the action.",
                 "type": "string",
-                "required": True
+                "required": True,
             },
             "description": {
                 "description": "The description of the action.",
-                "type": "string"
+                "type": "string",
             },
             "enabled": {
                 "description": "Enable or disable the action from invocation.",
                 "type": "boolean",
-                "default": True
+                "default": True,
             },
             "runner_type": {
                 "description": "The type of runner that executes the action.",
                 "type": "string",
-                "required": True
+                "required": True,
             },
             "entry_point": {
                 "description": "The entry point for the action.",
                 "type": "string",
-                "default": ""
+                "default": "",
             },
             "pack": {
                 "description": "The content pack this action belongs to.",
                 "type": "string",
-                "default": DEFAULT_PACK_NAME
+                "default": DEFAULT_PACK_NAME,
             },
             "parameters": {
                 "description": "Input parameters for the action.",
@@ -219,22 +225,20 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "patternProperties": {
                     r"^\w+$": util_schema.get_action_parameters_schema()
                 },
-                'additionalProperties': False,
-                "default": {}
+                "additionalProperties": False,
+                "default": {},
             },
             "output_schema": {
                 "description": "Schema for the action's output.",
                 "type": "object",
-                "patternProperties": {
-                    r"^\w+$": util_schema.get_action_output_schema()
-                },
-                'additionalProperties': False,
-                "default": {}
+                "patternProperties": {r"^\w+$": util_schema.get_action_output_schema()},
+                "additionalProperties": False,
+                "default": {},
             },
             "tags": {
                 "description": "User associated metadata assigned to this object.",
                 "type": "array",
-                "items": {"type": "object"}
+                "items": {"type": "object"},
             },
             "notify": {
                 "description": "Notification settings for action.",
@@ -242,52 +246,52 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "properties": {
                     "on-complete": NotificationSubSchemaAPI,
                     "on-failure": NotificationSubSchemaAPI,
-                    "on-success": NotificationSubSchemaAPI
+                    "on-success": NotificationSubSchemaAPI,
                 },
-                "additionalProperties": False
+                "additionalProperties": False,
             },
             "metadata_file": {
                 "description": "Path to the metadata file relative to the pack directory.",
                 "type": "string",
-                "default": ""
-            }
+                "default": "",
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     def __init__(self, **kw):
         for key, value in kw.items():
             setattr(self, key, value)
-        if not hasattr(self, 'parameters'):
-            setattr(self, 'parameters', dict())
-        if not hasattr(self, 'entry_point'):
-            setattr(self, 'entry_point', '')
+        if not hasattr(self, "parameters"):
+            setattr(self, "parameters", dict())
+        if not hasattr(self, "entry_point"):
+            setattr(self, "entry_point", "")
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         action = cls._from_model(model)
-        action['runner_type'] = action.get('runner_type', {}).get('name', None)
-        action['tags'] = TagsHelper.from_model(model.tags)
+        action["runner_type"] = action.get("runner_type", {}).get("name", None)
+        action["tags"] = TagsHelper.from_model(model.tags)
 
-        if getattr(model, 'notify', None):
-            action['notify'] = NotificationsHelper.from_model(model.notify)
+        if getattr(model, "notify", None):
+            action["notify"] = NotificationsHelper.from_model(model.notify)
 
         return cls(**action)
 
     @classmethod
     def to_model(cls, action):
-        name = getattr(action, 'name', None)
-        description = getattr(action, 'description', None)
-        enabled = bool(getattr(action, 'enabled', True))
+        name = getattr(action, "name", None)
+        description = getattr(action, "description", None)
+        enabled = bool(getattr(action, "enabled", True))
         entry_point = str(action.entry_point)
         pack = str(action.pack)
-        runner_type = {'name': str(action.runner_type)}
-        parameters = getattr(action, 'parameters', dict())
-        output_schema = getattr(action, 'output_schema', dict())
-        tags = TagsHelper.to_model(getattr(action, 'tags', []))
+        runner_type = {"name": str(action.runner_type)}
+        parameters = getattr(action, "parameters", dict())
+        output_schema = getattr(action, "output_schema", dict())
+        tags = TagsHelper.to_model(getattr(action, "tags", []))
         ref = ResourceReference.to_string_reference(pack=pack, name=name)
 
-        if getattr(action, 'notify', None):
+        if getattr(action, "notify", None):
             notify = NotificationsHelper.to_model(action.notify)
         else:
             # We use embedded document model for ``notify`` in action model. If notify is
@@ -296,12 +300,22 @@ class ActionAPI(BaseAPI, APIUIDMixin):
             # to use an empty document.
             notify = NotificationsHelper.to_model({})
 
-        metadata_file = getattr(action, 'metadata_file', None)
+        metadata_file = getattr(action, "metadata_file", None)
 
-        model = cls.model(name=name, description=description, enabled=enabled,
-                          entry_point=entry_point, pack=pack, runner_type=runner_type,
-                          tags=tags, parameters=parameters, output_schema=output_schema,
-                          notify=notify, ref=ref, metadata_file=metadata_file)
+        model = cls.model(
+            name=name,
+            description=description,
+            enabled=enabled,
+            entry_point=entry_point,
+            pack=pack,
+            runner_type=runner_type,
+            tags=tags,
+            parameters=parameters,
+            output_schema=output_schema,
+            notify=notify,
+            ref=ref,
+            metadata_file=metadata_file,
+        )
 
         return model
 
@@ -310,28 +324,31 @@ class ActionCreateAPI(ActionAPI, APIUIDMixin):
     """
     API model for create action operation.
     """
+
     schema = copy.deepcopy(ActionAPI.schema)
-    schema['properties']['data_files'] = {
-        'description': 'Optional action script and data files which are written to the filesystem.',
-        'type': 'array',
-        'items': {
-            'type': 'object',
-            'properties': {
-                'file_path': {
-                    'type': 'string',
-                    'description': ('Path to the file relative to the pack actions directory '
-                                    '(e.g. my_action.py)'),
-                    'required': True
+    schema["properties"]["data_files"] = {
+        "description": "Optional action script and data files which are written to the filesystem.",
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": (
+                        "Path to the file relative to the pack actions directory "
+                        "(e.g. my_action.py)"
+                    ),
+                    "required": True,
                 },
-                'content': {
-                    'type': 'string',
-                    'description': 'Raw file content.',
-                    'required': True
+                "content": {
+                    "type": "string",
+                    "description": "Raw file content.",
+                    "required": True,
                 },
             },
-            'additionalProperties': False
+            "additionalProperties": False,
         },
-        'default': []
+        "default": [],
     }
 
 
@@ -339,8 +356,9 @@ class ActionUpdateAPI(ActionAPI, APIUIDMixin):
     """
     API model for update action operation.
     """
+
     schema = copy.deepcopy(ActionCreateAPI.schema)
-    del schema['properties']['pack']['default']
+    del schema["properties"]["pack"]["default"]
 
 
 class LiveActionAPI(BaseAPI):
@@ -356,27 +374,27 @@ class LiveActionAPI(BaseAPI):
         "properties": {
             "id": {
                 "description": "The unique identifier for the action execution.",
-                "type": "string"
+                "type": "string",
             },
             "status": {
                 "description": "The current status of the action execution.",
                 "type": "string",
-                "enum": LIVEACTION_STATUSES
+                "enum": LIVEACTION_STATUSES,
             },
             "start_timestamp": {
                 "description": "The start time when the action is executed.",
                 "type": "string",
-                "pattern": isotime.ISO8601_UTC_REGEX
+                "pattern": isotime.ISO8601_UTC_REGEX,
             },
             "end_timestamp": {
                 "description": "The timestamp when the action has finished.",
                 "type": "string",
-                "pattern": isotime.ISO8601_UTC_REGEX
+                "pattern": isotime.ISO8601_UTC_REGEX,
             },
             "action": {
                 "description": "Reference to the action to be executed.",
                 "type": "string",
-                "required": True
+                "required": True,
             },
             "parameters": {
                 "description": "Input parameters for the action.",
@@ -390,58 +408,59 @@ class LiveActionAPI(BaseAPI):
                             {"type": "number"},
                             {"type": "object"},
                             {"type": "string"},
-                            {"type": "null"}
+                            {"type": "null"},
                         ]
                     }
                 },
-                'additionalProperties': False
+                "additionalProperties": False,
             },
             "result": {
-                "anyOf": [{"type": "array"},
-                          {"type": "boolean"},
-                          {"type": "integer"},
-                          {"type": "number"},
-                          {"type": "object"},
-                          {"type": "string"}]
+                "anyOf": [
+                    {"type": "array"},
+                    {"type": "boolean"},
+                    {"type": "integer"},
+                    {"type": "number"},
+                    {"type": "object"},
+                    {"type": "string"},
+                ]
             },
-            "context": {
-                "type": "object"
-            },
-            "callback": {
-                "type": "object"
-            },
-            "runner_info": {
-                "type": "object"
-            },
+            "context": {"type": "object"},
+            "callback": {"type": "object"},
+            "runner_info": {"type": "object"},
             "notify": {
                 "description": "Notification settings for liveaction.",
                 "type": "object",
                 "properties": {
                     "on-complete": NotificationSubSchemaAPI,
                     "on-failure": NotificationSubSchemaAPI,
-                    "on-success": NotificationSubSchemaAPI
+                    "on-success": NotificationSubSchemaAPI,
                 },
-                "additionalProperties": False
+                "additionalProperties": False,
             },
             "delay": {
-                "description": ("How long (in milliseconds) to delay the execution before"
-                                "scheduling."),
+                "description": (
+                    "How long (in milliseconds) to delay the execution before"
+                    "scheduling."
+                ),
                 "type": "integer",
-            }
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
+    skip_unescape_field_names = [
+        "result",
+    ]
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = super(cls, cls)._from_model(model, mask_secrets=mask_secrets)
         if model.start_timestamp:
-            doc['start_timestamp'] = isotime.format(model.start_timestamp, offset=False)
+            doc["start_timestamp"] = isotime.format(model.start_timestamp, offset=False)
         if model.end_timestamp:
-            doc['end_timestamp'] = isotime.format(model.end_timestamp, offset=False)
+            doc["end_timestamp"] = isotime.format(model.end_timestamp, offset=False)
 
-        if getattr(model, 'notify', None):
-            doc['notify'] = NotificationsHelper.from_model(model.notify)
+        if getattr(model, "notify", None):
+            doc["notify"] = NotificationsHelper.from_model(model.notify)
 
         return cls(**doc)
 
@@ -449,32 +468,40 @@ class LiveActionAPI(BaseAPI):
     def to_model(cls, live_action):
         action = live_action.action
 
-        if getattr(live_action, 'start_timestamp', None):
+        if getattr(live_action, "start_timestamp", None):
             start_timestamp = isotime.parse(live_action.start_timestamp)
         else:
             start_timestamp = None
 
-        if getattr(live_action, 'end_timestamp', None):
+        if getattr(live_action, "end_timestamp", None):
             end_timestamp = isotime.parse(live_action.end_timestamp)
         else:
             end_timestamp = None
 
-        status = getattr(live_action, 'status', None)
-        parameters = getattr(live_action, 'parameters', dict())
-        context = getattr(live_action, 'context', dict())
-        callback = getattr(live_action, 'callback', dict())
-        result = getattr(live_action, 'result', None)
-        delay = getattr(live_action, 'delay', None)
+        status = getattr(live_action, "status", None)
+        parameters = getattr(live_action, "parameters", dict())
+        context = getattr(live_action, "context", dict())
+        callback = getattr(live_action, "callback", dict())
+        result = getattr(live_action, "result", None)
+        delay = getattr(live_action, "delay", None)
 
-        if getattr(live_action, 'notify', None):
+        if getattr(live_action, "notify", None):
             notify = NotificationsHelper.to_model(live_action.notify)
         else:
             notify = None
 
-        model = cls.model(action=action,
-                          start_timestamp=start_timestamp, end_timestamp=end_timestamp,
-                          status=status, parameters=parameters, context=context,
-                          callback=callback, result=result, notify=notify, delay=delay)
+        model = cls.model(
+            action=action,
+            start_timestamp=start_timestamp,
+            end_timestamp=end_timestamp,
+            status=status,
+            parameters=parameters,
+            context=context,
+            callback=callback,
+            result=result,
+            notify=notify,
+            delay=delay,
+        )
 
         return model
 
@@ -483,11 +510,12 @@ class LiveActionCreateAPI(LiveActionAPI):
     """
     API model for action execution create (run action) operations.
     """
+
     schema = copy.deepcopy(LiveActionAPI.schema)
-    schema['properties']['user'] = {
-        'description': 'User context under which action should run (admins only)',
-        'type': 'string',
-        'default': None
+    schema["properties"]["user"] = {
+        "description": "User context under which action should run (admins only)",
+        "type": "string",
+        "default": None,
     }
 
 
@@ -496,6 +524,7 @@ class ActionExecutionStateAPI(BaseAPI):
     System entity that represents state of an action in the system.
     This is used only in tests for now.
     """
+
     model = ActionExecutionStateDB
     schema = {
         "title": "ActionExecutionState",
@@ -504,25 +533,25 @@ class ActionExecutionStateAPI(BaseAPI):
         "properties": {
             "id": {
                 "description": "The unique identifier for the action execution state.",
-                "type": "string"
+                "type": "string",
             },
             "execution_id": {
                 "type": "string",
                 "description": "ID of the action execution.",
-                "required": True
+                "required": True,
             },
             "query_context": {
                 "type": "object",
                 "description": "query context to be used by querier.",
-                "required": True
+                "required": True,
             },
             "query_module": {
                 "type": "string",
                 "description": "Name of the query module.",
-                "required": True
-            }
+                "required": True,
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     @classmethod
@@ -531,8 +560,11 @@ class ActionExecutionStateAPI(BaseAPI):
         query_module = state.query_module
         query_context = state.query_context
 
-        model = cls.model(execution_id=execution_id, query_module=query_module,
-                          query_context=query_context)
+        model = cls.model(
+            execution_id=execution_id,
+            query_module=query_module,
+            query_context=query_context,
+        )
         return model
 
 
@@ -540,6 +572,7 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
     """
     Alias for an action in the system.
     """
+
     model = ActionAliasDB
     schema = {
         "title": "ActionAlias",
@@ -548,42 +581,40 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
         "properties": {
             "id": {
                 "description": "The unique identifier for the action alias.",
-                "type": "string"
+                "type": "string",
             },
             "ref": {
                 "description": (
                     "System computed user friendly reference for the alias. "
                     "Provided value will be overridden by computed value."
                 ),
-                "type": "string"
+                "type": "string",
             },
-            "uid": {
-                "type": "string"
-            },
+            "uid": {"type": "string"},
             "name": {
                 "type": "string",
                 "description": "Name of the action alias.",
-                "required": True
+                "required": True,
             },
             "pack": {
                 "description": "The content pack this actionalias belongs to.",
                 "type": "string",
-                "required": True
+                "required": True,
             },
             "description": {
                 "type": "string",
                 "description": "Description of the action alias.",
-                "default": None
+                "default": None,
             },
             "enabled": {
                 "description": "Flag indicating of action alias is enabled.",
                 "type": "boolean",
-                "default": True
+                "default": True,
             },
             "action_ref": {
                 "type": "string",
                 "description": "Reference to the aliased action.",
-                "required": True
+                "required": True,
             },
             "formats": {
                 "type": "array",
@@ -596,13 +627,13 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
                                 "display": {"type": "string"},
                                 "representation": {
                                     "type": "array",
-                                    "items": {"type": "string"}
-                                }
-                            }
-                        }
+                                    "items": {"type": "string"},
+                                },
+                            },
+                        },
                     ]
                 },
-                "description": "Possible parameter format."
+                "description": "Possible parameter format.",
             },
             "ack": {
                 "type": "object",
@@ -610,56 +641,65 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
                     "enabled": {"type": "boolean"},
                     "format": {"type": "string"},
                     "extra": {"type": "object"},
-                    "append_url": {"type": "boolean"}
+                    "append_url": {"type": "boolean"},
                 },
-                "description": "Acknowledgement message format."
+                "description": "Acknowledgement message format.",
             },
             "result": {
                 "type": "object",
                 "properties": {
                     "enabled": {"type": "boolean"},
                     "format": {"type": "string"},
-                    "extra": {"type": "object"}
+                    "extra": {"type": "object"},
                 },
-                "description": "Execution message format."
+                "description": "Execution message format.",
             },
             "extra": {
                 "type": "object",
-                "description": "Extra parameters, usually adapter-specific."
+                "description": "Extra parameters, usually adapter-specific.",
             },
             "immutable_parameters": {
                 "type": "object",
-                "description": "Parameters to be passed to the action on every execution."
+                "description": "Parameters to be passed to the action on every execution.",
             },
             "metadata_file": {
                 "description": "Path to the metadata file relative to the pack directory.",
                 "type": "string",
-                "default": ""
-            }
+                "default": "",
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     @classmethod
     def to_model(cls, alias):
         name = alias.name
-        description = getattr(alias, 'description', None)
+        description = getattr(alias, "description", None)
         pack = alias.pack
         ref = ResourceReference.to_string_reference(pack=pack, name=name)
-        enabled = getattr(alias, 'enabled', True)
+        enabled = getattr(alias, "enabled", True)
         action_ref = alias.action_ref
         formats = alias.formats
-        ack = getattr(alias, 'ack', None)
-        result = getattr(alias, 'result', None)
-        extra = getattr(alias, 'extra', None)
-        immutable_parameters = getattr(alias, 'immutable_parameters', None)
-        metadata_file = getattr(alias, 'metadata_file', None)
+        ack = getattr(alias, "ack", None)
+        result = getattr(alias, "result", None)
+        extra = getattr(alias, "extra", None)
+        immutable_parameters = getattr(alias, "immutable_parameters", None)
+        metadata_file = getattr(alias, "metadata_file", None)
 
-        model = cls.model(name=name, description=description, pack=pack, ref=ref,
-                          enabled=enabled, action_ref=action_ref, formats=formats,
-                          ack=ack, result=result, extra=extra,
-                          immutable_parameters=immutable_parameters,
-                          metadata_file=metadata_file)
+        model = cls.model(
+            name=name,
+            description=description,
+            pack=pack,
+            ref=ref,
+            enabled=enabled,
+            action_ref=action_ref,
+            formats=formats,
+            ack=ack,
+            result=result,
+            extra=extra,
+            immutable_parameters=immutable_parameters,
+            metadata_file=metadata_file,
+        )
         return model
 
 
@@ -667,6 +707,7 @@ class AliasExecutionAPI(BaseAPI):
     """
     Alias for an action in the system.
     """
+
     model = None
     schema = {
         "title": "AliasExecution",
@@ -676,48 +717,48 @@ class AliasExecutionAPI(BaseAPI):
             "name": {
                 "type": "string",
                 "description": "Name of the action alias which matched.",
-                "required": True
+                "required": True,
             },
             "format": {
                 "type": "string",
                 "description": "Format string which matched.",
-                "required": True
+                "required": True,
             },
             "command": {
                 "type": "string",
                 "description": "Command used in chat.",
-                "required": True
+                "required": True,
             },
             "user": {
                 "type": "string",
                 "description": "User that requested the execution.",
-                "default": "channel"  # TODO: This value doesnt get set
+                "default": "channel",  # TODO: This value doesnt get set
             },
             "source_channel": {
                 "type": "string",
                 "description": "Channel from which the execution was requested. This is not the "
-                               "channel as defined by the notification system.",
-                "required": True
+                "channel as defined by the notification system.",
+                "required": True,
             },
             "source_context": {
                 "type": "object",
                 "description": "ALL data included with the message (also called the message "
-                               "envelope). This is currently only used by the Microsoft Teams "
-                               "adapter.",
-                "required": False
+                "envelope). This is currently only used by the Microsoft Teams "
+                "adapter.",
+                "required": False,
             },
             "notification_channel": {
                 "type": "string",
                 "description": "StackStorm notification channel to use to respond.",
-                "required": False
+                "required": False,
             },
             "notification_route": {
                 "type": "string",
                 "description": "StackStorm notification route to use to respond.",
-                "required": False
-            }
+                "required": False,
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     @classmethod
@@ -734,6 +775,7 @@ class AliasMatchAndExecuteInputAPI(BaseAPI):
     """
     API object used for alias execution "match and execute" API endpoint request payload.
     """
+
     model = None
     schema = {
         "title": "ActionAliasMatchAndExecuteInputAPI",
@@ -743,7 +785,7 @@ class AliasMatchAndExecuteInputAPI(BaseAPI):
             "command": {
                 "type": "string",
                 "description": "Command used in chat.",
-                "required": True
+                "required": True,
             },
             "user": {
                 "type": "string",
@@ -753,22 +795,22 @@ class AliasMatchAndExecuteInputAPI(BaseAPI):
                 "type": "string",
                 "description": "Channel from which the execution was requested. This is not the \
                                 channel as defined by the notification system.",
-                "required": True
+                "required": True,
             },
             "notification_channel": {
                 "type": "string",
                 "description": "StackStorm notification channel to use to respond.",
                 "required": False,
-                "default": None
+                "default": None,
             },
             "notification_route": {
                 "type": "string",
                 "description": "StackStorm notification route to use to respond.",
                 "required": False,
-                "default": None
-            }
+                "default": None,
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
 
@@ -776,6 +818,7 @@ class ActionAliasMatchAPI(BaseAPI):
     """
     API model used for alias match API endpoint.
     """
+
     model = None
 
     schema = {
@@ -786,10 +829,10 @@ class ActionAliasMatchAPI(BaseAPI):
             "command": {
                 "type": "string",
                 "description": "Command string to try to match the aliases against.",
-                "required": True
+                "required": True,
             }
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     @classmethod
@@ -805,6 +848,7 @@ class ActionAliasHelpAPI(BaseAPI):
     """
     API model used to display action-alias help API endpoint.
     """
+
     model = None
 
     schema = {
@@ -816,28 +860,28 @@ class ActionAliasHelpAPI(BaseAPI):
                 "type": "string",
                 "description": "Find help strings containing keyword.",
                 "required": False,
-                "default": ""
+                "default": "",
             },
             "pack": {
                 "type": "string",
                 "description": "List help strings for a specific pack.",
                 "required": False,
-                "default": ""
+                "default": "",
             },
             "offset": {
                 "type": "integer",
                 "description": "List help strings from the offset position.",
                 "required": False,
-                "default": 0
+                "default": 0,
             },
             "limit": {
                 "type": "integer",
                 "description": "Limit the number of help strings returned.",
                 "required": False,
-                "default": 0
-            }
+                "default": 0,
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     @classmethod

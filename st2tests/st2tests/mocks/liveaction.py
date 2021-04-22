@@ -26,14 +26,10 @@ from st2actions.scheduler import handler as scheduling_queue
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 
-__all__ = [
-    'MockLiveActionPublisher',
-    'MockLiveActionPublisherNonBlocking'
-]
+__all__ = ["MockLiveActionPublisher", "MockLiveActionPublisherNonBlocking"]
 
 
 class MockLiveActionPublisher(object):
-
     @classmethod
     def process(cls, payload):
         ex_req = scheduling.get_scheduler_entrypoint().process(payload)
@@ -106,7 +102,6 @@ class MockLiveActionPublisherNonBlocking(object):
 
 
 class MockLiveActionPublisherSchedulingQueueOnly(object):
-
     @classmethod
     def process(cls, payload):
         scheduling.get_scheduler_entrypoint().process(payload)

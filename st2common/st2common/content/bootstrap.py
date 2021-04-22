@@ -38,59 +38,77 @@ import st2common.content.utils as content_utils
 from st2common.metrics.base import Timer
 from st2common.util.virtualenvs import setup_pack_virtualenv
 
-__all__ = [
-    'main'
-]
+__all__ = ["main"]
 
-LOG = logging.getLogger('st2common.content.bootstrap')
+LOG = logging.getLogger("st2common.content.bootstrap")
 
-cfg.CONF.register_cli_opt(cfg.BoolOpt('experimental', default=False))
+cfg.CONF.register_cli_opt(cfg.BoolOpt("experimental", default=False))
 
 
 def register_opts():
     content_opts = [
-        cfg.BoolOpt('all', default=False, help='Register sensors, actions and rules.'),
-        cfg.BoolOpt('triggers', default=False, help='Register triggers.'),
-        cfg.BoolOpt('sensors', default=False, help='Register sensors.'),
-        cfg.BoolOpt('actions', default=False, help='Register actions.'),
-        cfg.BoolOpt('runners', default=False, help='Register runners.'),
-        cfg.BoolOpt('rules', default=False, help='Register rules.'),
-        cfg.BoolOpt('aliases', default=False, help='Register aliases.'),
-        cfg.BoolOpt('policies', default=False, help='Register policies.'),
-        cfg.BoolOpt('configs', default=False, help='Register and load pack configs.'),
-
-        cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.'),
-        cfg.StrOpt('runner-dir', default=None, help='Directory to load runners from.'),
-        cfg.BoolOpt('setup-virtualenvs', default=False, help=('Setup Python virtual environments '
-                                                              'all the Python runner actions.')),
-
+        cfg.BoolOpt("all", default=False, help="Register sensors, actions and rules."),
+        cfg.BoolOpt("triggers", default=False, help="Register triggers."),
+        cfg.BoolOpt("sensors", default=False, help="Register sensors."),
+        cfg.BoolOpt("actions", default=False, help="Register actions."),
+        cfg.BoolOpt("runners", default=False, help="Register runners."),
+        cfg.BoolOpt("rules", default=False, help="Register rules."),
+        cfg.BoolOpt("aliases", default=False, help="Register aliases."),
+        cfg.BoolOpt("policies", default=False, help="Register policies."),
+        cfg.BoolOpt("configs", default=False, help="Register and load pack configs."),
+        cfg.StrOpt(
+            "pack", default=None, help="Directory to the pack to register content from."
+        ),
+        cfg.StrOpt("runner-dir", default=None, help="Directory to load runners from."),
+        cfg.BoolOpt(
+            "setup-virtualenvs",
+            default=False,
+            help=(
+                "Setup Python virtual environments " "all the Python runner actions."
+            ),
+        ),
+        cfg.BoolOpt(
+            "recreate-virtualenvs",
+            default=False,
+            help=(
+                "Recreate Python virtual "
+                "environments for all the Python "
+                "Python runner actions."
+            ),
+        ),
         # General options
         # Note: This value should default to False since we want fail on failure behavior by
         # default.
-        cfg.BoolOpt('no-fail-on-failure', default=False,
-                    help=('Don\'t exit with non-zero if some resource registration fails.')),
+        cfg.BoolOpt(
+            "no-fail-on-failure",
+            default=False,
+            help=("Don't exit with non-zero if some resource registration fails."),
+        ),
         # Note: Fail on failure is now a default behavior. This flag is only left here for backward
         # compatibility reasons, but it's not actually used.
-        cfg.BoolOpt('fail-on-failure', default=True,
-                    help=('Exit with non-zero if some resource registration fails.'))
+        cfg.BoolOpt(
+            "fail-on-failure",
+            default=True,
+            help=("Exit with non-zero if some resource registration fails."),
+        ),
     ]
     try:
-        cfg.CONF.register_cli_opts(content_opts, group='register')
+        cfg.CONF.register_cli_opts(content_opts, group="register")
     except:
-        sys.stderr.write('Failed registering opts.\n')
+        sys.stderr.write("Failed registering opts.\n")
 
 
 register_opts()
 
 
-def setup_virtualenvs():
+def setup_virtualenvs(recreate_virtualenvs=False):
     """
     Setup Python virtual environments for all the registered or the provided pack.
     """
 
-    LOG.info('=========================================================')
-    LOG.info('########### Setting up virtual environments #############')
-    LOG.info('=========================================================')
+    LOG.info("=========================================================")
+    LOG.info("########### Setting up virtual environments #############")
+    LOG.info("=========================================================")
     pack_dir = cfg.CONF.register.pack
     fail_on_failure = not cfg.CONF.register.no_fail_on_failure
 
@@ -110,21 +128,40 @@ def setup_virtualenvs():
         # 2. Retrieve available packs (aka packs which have been registered)
         pack_names = registrar.get_registered_packs()
 
+    if recreate_virtualenvs:
+        """
+        update = False:
+        this is more than an update of an existing virtualenv
+        the virtualenv itself will be removed & recreated
+        this is i.e. useful for updates to a newer Python release
+        """
+        update = False
+    else:
+        """
+        update = True:
+        only dependencies inside the virtualenv will be updated
+        """
+        update = True
+
     setup_count = 0
     for pack_name in pack_names:
         try:
-            setup_pack_virtualenv(pack_name=pack_name, update=True, logger=LOG)
+            setup_pack_virtualenv(pack_name=pack_name, update=update, logger=LOG)
         except Exception as e:
             exc_info = not fail_on_failure
-            LOG.warning('Failed to setup virtualenv for pack "%s": %s', pack_name, e,
-                        exc_info=exc_info)
+            LOG.warning(
+                'Failed to setup virtualenv for pack "%s": %s',
+                pack_name,
+                e,
+                exc_info=exc_info,
+            )
 
             if fail_on_failure:
                 raise e
         else:
             setup_count += 1
 
-    LOG.info('Setup virtualenv for %s pack(s).' % (setup_count))
+    LOG.info("Setup virtualenv for %s pack(s)." % (setup_count))
 
 
 def register_triggers():
@@ -134,22 +171,21 @@ def register_triggers():
     registered_count = 0
 
     try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering triggers #####################')
-        LOG.info('=========================================================')
-        with Timer(key='st2.register.triggers'):
+        LOG.info("=========================================================")
+        LOG.info("############## Registering triggers #####################")
+        LOG.info("=========================================================")
+        with Timer(key="st2.register.triggers"):
             registered_count = triggers_registrar.register_triggers(
-                pack_dir=pack_dir,
-                fail_on_failure=fail_on_failure
+                pack_dir=pack_dir, fail_on_failure=fail_on_failure
             )
     except Exception as e:
         exc_info = not fail_on_failure
-        LOG.warning('Failed to register sensors: %s', e, exc_info=exc_info)
+        LOG.warning("Failed to register sensors: %s", e, exc_info=exc_info)
 
         if fail_on_failure:
             raise e
 
-    LOG.info('Registered %s triggers.' % (registered_count))
+    LOG.info("Registered %s triggers." % (registered_count))
 
 
 def register_sensors():
@@ -159,22 +195,21 @@ def register_sensors():
     registered_count = 0
 
     try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering sensors ######################')
-        LOG.info('=========================================================')
-        with Timer(key='st2.register.sensors'):
+        LOG.info("=========================================================")
+        LOG.info("############## Registering sensors ######################")
+        LOG.info("=========================================================")
+        with Timer(key="st2.register.sensors"):
             registered_count = sensors_registrar.register_sensors(
-                pack_dir=pack_dir,
-                fail_on_failure=fail_on_failure
+                pack_dir=pack_dir, fail_on_failure=fail_on_failure
             )
     except Exception as e:
         exc_info = not fail_on_failure
-        LOG.warning('Failed to register sensors: %s', e, exc_info=exc_info)
+        LOG.warning("Failed to register sensors: %s", e, exc_info=exc_info)
 
         if fail_on_failure:
             raise e
 
-    LOG.info('Registered %s sensors.' % (registered_count))
+    LOG.info("Registered %s sensors." % (registered_count))
 
 
 def register_runners():
@@ -184,24 +219,23 @@ def register_runners():
 
     # 1. Register runner types
     try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering runners ######################')
-        LOG.info('=========================================================')
-        with Timer(key='st2.register.runners'):
+        LOG.info("=========================================================")
+        LOG.info("############## Registering runners ######################")
+        LOG.info("=========================================================")
+        with Timer(key="st2.register.runners"):
             registered_count = runners_registrar.register_runners(
-                fail_on_failure=fail_on_failure,
-                experimental=False
+                fail_on_failure=fail_on_failure, experimental=False
             )
     except Exception as error:
         exc_info = not fail_on_failure
 
         # TODO: Narrow exception window
-        LOG.warning('Failed to register runners: %s', error, exc_info=exc_info)
+        LOG.warning("Failed to register runners: %s", error, exc_info=exc_info)
 
         if fail_on_failure:
             raise error
 
-    LOG.info('Registered %s runners.', registered_count)
+    LOG.info("Registered %s runners.", registered_count)
 
 
 def register_actions():
@@ -213,22 +247,23 @@ def register_actions():
     registered_count = 0
 
     try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering actions ######################')
-        LOG.info('=========================================================')
-        with Timer(key='st2.register.actions'):
+        LOG.info("=========================================================")
+        LOG.info("############## Registering actions ######################")
+        LOG.info("=========================================================")
+        with Timer(key="st2.register.actions"):
             registered_count = actions_registrar.register_actions(
                 pack_dir=pack_dir,
-                fail_on_failure=fail_on_failure
+                fail_on_failure=fail_on_failure,
+                use_runners_cache=True,
             )
     except Exception as e:
         exc_info = not fail_on_failure
-        LOG.warning('Failed to register actions: %s', e, exc_info=exc_info)
+        LOG.warning("Failed to register actions: %s", e, exc_info=exc_info)
 
         if fail_on_failure:
             raise e
 
-    LOG.info('Registered %s actions.' % (registered_count))
+    LOG.info("Registered %s actions." % (registered_count))
 
 
 def register_rules():
@@ -239,28 +274,27 @@ def register_rules():
     registered_count = 0
 
     try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering rules ########################')
-        LOG.info('=========================================================')
+        LOG.info("=========================================================")
+        LOG.info("############## Registering rules ########################")
+        LOG.info("=========================================================")
         rule_types_registrar.register_rule_types()
     except Exception as e:
-        LOG.warning('Failed to register rule types: %s', e, exc_info=True)
+        LOG.warning("Failed to register rule types: %s", e, exc_info=True)
         return
 
     try:
-        with Timer(key='st2.register.rules'):
+        with Timer(key="st2.register.rules"):
             registered_count = rules_registrar.register_rules(
-                pack_dir=pack_dir,
-                fail_on_failure=fail_on_failure
+                pack_dir=pack_dir, fail_on_failure=fail_on_failure
             )
     except Exception as e:
         exc_info = not fail_on_failure
-        LOG.warning('Failed to register rules: %s', e, exc_info=exc_info)
+        LOG.warning("Failed to register rules: %s", e, exc_info=exc_info)
 
         if fail_on_failure:
             raise e
 
-    LOG.info('Registered %s rules.', registered_count)
+    LOG.info("Registered %s rules.", registered_count)
 
 
 def register_aliases():
@@ -270,21 +304,20 @@ def register_aliases():
     registered_count = 0
 
     try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering aliases ######################')
-        LOG.info('=========================================================')
-        with Timer(key='st2.register.aliases'):
+        LOG.info("=========================================================")
+        LOG.info("############## Registering aliases ######################")
+        LOG.info("=========================================================")
+        with Timer(key="st2.register.aliases"):
             registered_count = aliases_registrar.register_aliases(
-                pack_dir=pack_dir,
-                fail_on_failure=fail_on_failure
+                pack_dir=pack_dir, fail_on_failure=fail_on_failure
             )
     except Exception as e:
         if fail_on_failure:
             raise e
 
-        LOG.warning('Failed to register aliases.', exc_info=True)
+        LOG.warning("Failed to register aliases.", exc_info=True)
 
-    LOG.info('Registered %s aliases.', registered_count)
+    LOG.info("Registered %s aliases.", registered_count)
 
 
 def register_policies():
@@ -295,31 +328,32 @@ def register_policies():
     registered_type_count = 0
 
     try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering policy types #################')
-        LOG.info('=========================================================')
-        with Timer(key='st2.register.policies'):
+        LOG.info("=========================================================")
+        LOG.info("############## Registering policy types #################")
+        LOG.info("=========================================================")
+        with Timer(key="st2.register.policies"):
             registered_type_count = policies_registrar.register_policy_types(st2common)
     except Exception:
-        LOG.warning('Failed to register policy types.', exc_info=True)
+        LOG.warning("Failed to register policy types.", exc_info=True)
 
-    LOG.info('Registered %s policy types.', registered_type_count)
+    LOG.info("Registered %s policy types.", registered_type_count)
 
     registered_count = 0
     try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering policies #####################')
-        LOG.info('=========================================================')
-        registered_count = policies_registrar.register_policies(pack_dir=pack_dir,
-                                                                fail_on_failure=fail_on_failure)
+        LOG.info("=========================================================")
+        LOG.info("############## Registering policies #####################")
+        LOG.info("=========================================================")
+        registered_count = policies_registrar.register_policies(
+            pack_dir=pack_dir, fail_on_failure=fail_on_failure
+        )
     except Exception as e:
         exc_info = not fail_on_failure
-        LOG.warning('Failed to register policies: %s', e, exc_info=exc_info)
+        LOG.warning("Failed to register policies: %s", e, exc_info=exc_info)
 
         if fail_on_failure:
             raise e
 
-    LOG.info('Registered %s policies.', registered_count)
+    LOG.info("Registered %s policies.", registered_count)
 
 
 def register_configs():
@@ -329,23 +363,23 @@ def register_configs():
     registered_count = 0
 
     try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering configs ######################')
-        LOG.info('=========================================================')
-        with Timer(key='st2.register.configs'):
+        LOG.info("=========================================================")
+        LOG.info("############## Registering configs ######################")
+        LOG.info("=========================================================")
+        with Timer(key="st2.register.configs"):
             registered_count = configs_registrar.register_configs(
                 pack_dir=pack_dir,
                 fail_on_failure=fail_on_failure,
-                validate_configs=True
+                validate_configs=True,
             )
     except Exception as e:
         exc_info = not fail_on_failure
-        LOG.warning('Failed to register configs: %s', e, exc_info=exc_info)
+        LOG.warning("Failed to register configs: %s", e, exc_info=exc_info)
 
         if fail_on_failure:
             raise e
 
-    LOG.info('Registered %s configs.' % (registered_count))
+    LOG.info("Registered %s configs." % (registered_count))
 
 
 def register_content():
@@ -393,10 +427,18 @@ def register_content():
     if cfg.CONF.register.setup_virtualenvs:
         setup_virtualenvs()
 
+    if cfg.CONF.register.recreate_virtualenvs:
+        setup_virtualenvs(recreate_virtualenvs=True)
+
 
 def setup(argv):
-    common_setup(config=config, setup_db=True, register_mq_exchanges=True,
-                 register_internal_trigger_types=True)
+    common_setup(
+        config=config,
+        setup_db=True,
+        register_mq_exchanges=True,
+        register_internal_trigger_types=True,
+        ignore_register_config_opts_errors=True,
+    )
 
 
 def teardown():
@@ -410,5 +452,5 @@ def main(argv):
 
 
 # This script registers actions and rules from content-packs.
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv[1:])

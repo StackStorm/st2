@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import json
 import re
 
 import six
@@ -27,16 +26,15 @@ from st2common.constants.rules import MATCH_CRITERIA
 from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
 from st2common.persistence.rule_enforcement import RuleEnforcement
+from st2common.util.jsonify import json_decode
 
 from st2common.util.payload import PayloadLookup
 from st2common.util.templating import render_template_with_system_context
 
-__all__ = [
-    'RuleFilter'
-]
+__all__ = ["RuleFilter"]
 
 
-LOG = logging.getLogger('st2reactor.ruleenforcement.filter')
+LOG = logging.getLogger("st2reactor.ruleenforcement.filter")
 
 
 class RuleFilter(object):
@@ -58,9 +56,9 @@ class RuleFilter(object):
 
         # Base context used with a logger
         self._base_logger_context = {
-            'rule': self.rule,
-            'trigger': self.trigger,
-            'trigger_instance': self.trigger_instance
+            "rule": self.rule,
+            "trigger": self.trigger,
+            "trigger_instance": self.trigger_instance,
         }
 
     def filter(self):
@@ -69,12 +67,18 @@ class RuleFilter(object):
 
         :rtype: ``bool``
         """
-        LOG.info('Validating rule %s for %s.', self.rule.ref, self.trigger['name'],
-                 extra=self._base_logger_context)
+        LOG.info(
+            "Validating rule %s for %s.",
+            self.rule.ref,
+            self.trigger["name"],
+            extra=self._base_logger_context,
+        )
 
         if not self.rule.enabled:
             if self.extra_info:
-                LOG.info('Validation failed for rule %s as it is disabled.', self.rule.ref)
+                LOG.info(
+                    "Validation failed for rule %s as it is disabled.", self.rule.ref
+                )
             return False
 
         criteria = self.rule.criteria
@@ -85,52 +89,66 @@ class RuleFilter(object):
 
         payload_lookup = PayloadLookup(self.trigger_instance.payload)
 
-        LOG.debug('Trigger payload: %s', self.trigger_instance.payload,
-                  extra=self._base_logger_context)
+        LOG.debug(
+            "Trigger payload: %s",
+            self.trigger_instance.payload,
+            extra=self._base_logger_context,
+        )
 
         for (criterion_k, criterion_v) in six.iteritems(criteria):
-            is_rule_applicable, payload_value, criterion_pattern = self._check_criterion(
-                criterion_k,
-                criterion_v,
-                payload_lookup
-            )
+            (
+                is_rule_applicable,
+                payload_value,
+                criterion_pattern,
+            ) = self._check_criterion(criterion_k, criterion_v, payload_lookup)
             if not is_rule_applicable:
                 if self.extra_info:
-                    criteria_extra_info = '\n'.join([
-                        '  key: %s' % criterion_k,
-                        '  pattern: %s' % criterion_pattern,
-                        '  type: %s' % criterion_v['type'],
-                        '  payload: %s' % payload_value
-                    ])
-                    LOG.info('Validation for rule %s failed on criteria -\n%s', self.rule.ref,
-                             criteria_extra_info,
-                             extra=self._base_logger_context)
+                    criteria_extra_info = "\n".join(
+                        [
+                            "  key: %s" % criterion_k,
+                            "  pattern: %s" % criterion_pattern,
+                            "  type: %s" % criterion_v["type"],
+                            "  payload: %s" % payload_value,
+                        ]
+                    )
+                    LOG.info(
+                        "Validation for rule %s failed on criteria -\n%s",
+                        self.rule.ref,
+                        criteria_extra_info,
+                        extra=self._base_logger_context,
+                    )
                 break
 
         if not is_rule_applicable:
-            LOG.debug('Rule %s not applicable for %s.', self.rule.id, self.trigger['name'],
-                      extra=self._base_logger_context)
+            LOG.debug(
+                "Rule %s not applicable for %s.",
+                self.rule.id,
+                self.trigger["name"],
+                extra=self._base_logger_context,
+            )
 
         return is_rule_applicable
 
     def _check_criterion(self, criterion_k, criterion_v, payload_lookup):
-        if 'type' not in criterion_v:
+        if "type" not in criterion_v:
             # Comparison operator type not specified, can't perform a comparison
             return (False, None, None)
 
-        criteria_operator = criterion_v['type']
-        criteria_condition = criterion_v.get('condition', None)
-        criteria_pattern = criterion_v.get('pattern', None)
+        criteria_operator = criterion_v["type"]
+        criteria_condition = criterion_v.get("condition", None)
+        criteria_pattern = criterion_v.get("pattern", None)
 
         # Render the pattern (it can contain a jinja expressions)
         try:
             criteria_pattern = self._render_criteria_pattern(
                 criteria_pattern=criteria_pattern,
-                criteria_context=payload_lookup.context
+                criteria_context=payload_lookup.context,
             )
         except Exception as e:
-            msg = ('Failed to render pattern value "%s" for key "%s"' % (criteria_pattern,
-                                                                         criterion_k))
+            msg = 'Failed to render pattern value "%s" for key "%s"' % (
+                criteria_pattern,
+                criterion_k,
+            )
             LOG.exception(msg, extra=self._base_logger_context)
             self._create_rule_enforcement(failure_reason=msg, exc=e)
 
@@ -144,7 +162,7 @@ class RuleFilter(object):
             else:
                 payload_value = None
         except Exception as e:
-            msg = ('Failed transforming criteria key %s' % criterion_k)
+            msg = "Failed transforming criteria key %s" % criterion_k
             LOG.exception(msg, extra=self._base_logger_context)
             self._create_rule_enforcement(failure_reason=msg, exc=e)
 
@@ -154,13 +172,18 @@ class RuleFilter(object):
 
         try:
             if criteria_operator == criteria_operators.SEARCH:
-                result = op_func(value=payload_value, criteria_pattern=criteria_pattern,
-                                 criteria_condition=criteria_condition,
-                                 check_function=self._bool_criterion)
+                result = op_func(
+                    value=payload_value,
+                    criteria_pattern=criteria_pattern,
+                    criteria_condition=criteria_condition,
+                    check_function=self._bool_criterion,
+                )
             else:
                 result = op_func(value=payload_value, criteria_pattern=criteria_pattern)
         except Exception as e:
-            msg = ('There might be a problem with the criteria in rule %s' % (self.rule.ref))
+            msg = "There might be a problem with the criteria in rule %s" % (
+                self.rule.ref
+            )
             LOG.exception(msg, extra=self._base_logger_context)
             self._create_rule_enforcement(failure_reason=msg, exc=e)
 
@@ -185,9 +208,9 @@ class RuleFilter(object):
             return criteria_pattern
 
         LOG.debug(
-            'Rendering criteria pattern (%s) with context: %s',
+            "Rendering criteria pattern (%s) with context: %s",
             criteria_pattern,
-            criteria_context
+            criteria_context,
         )
 
         to_complex = False
@@ -197,30 +220,24 @@ class RuleFilter(object):
         if len(re.findall(MATCH_CRITERIA, criteria_pattern)) > 0:
             LOG.debug("Rendering Complex")
             complex_criteria_pattern = re.sub(
-                MATCH_CRITERIA, r'\1\2 | to_complex\3',
-                criteria_pattern
+                MATCH_CRITERIA, r"\1\2 | to_complex\3", criteria_pattern
             )
 
             try:
                 criteria_rendered = render_template_with_system_context(
-                    value=complex_criteria_pattern,
-                    context=criteria_context
+                    value=complex_criteria_pattern, context=criteria_context
                 )
-                criteria_rendered = json.loads(criteria_rendered)
+                criteria_rendered = json_decode(criteria_rendered)
                 to_complex = True
             except ValueError as error:
-                LOG.debug('Criteria pattern not valid JSON: %s', error)
+                LOG.debug("Criteria pattern not valid JSON: %s", error)
 
         if not to_complex:
             criteria_rendered = render_template_with_system_context(
-                value=criteria_pattern,
-                context=criteria_context
+                value=criteria_pattern, context=criteria_context
             )
 
-        LOG.debug(
-            'Rendered criteria pattern: %s',
-            criteria_rendered
-        )
+        LOG.debug("Rendered criteria pattern: %s", criteria_rendered)
 
         return criteria_rendered
 
@@ -231,19 +248,32 @@ class RuleFilter(object):
         Without that, only way for users to find out about those failes matches is by inspecting
         the logs.
         """
-        failure_reason = ('Failed to match rule "%s" against trigger instance "%s": %s: %s' %
-                          (self.rule.ref, str(self.trigger_instance.id), failure_reason, str(exc)))
-        rule_spec = {'ref': self.rule.ref, 'id': str(self.rule.id), 'uid': self.rule.uid}
-        enforcement_db = RuleEnforcementDB(trigger_instance_id=str(self.trigger_instance.id),
-                                           rule=rule_spec,
-                                           failure_reason=failure_reason,
-                                           status=RULE_ENFORCEMENT_STATUS_FAILED)
+        failure_reason = (
+            'Failed to match rule "%s" against trigger instance "%s": %s: %s'
+            % (
+                self.rule.ref,
+                str(self.trigger_instance.id),
+                failure_reason,
+                str(exc),
+            )
+        )
+        rule_spec = {
+            "ref": self.rule.ref,
+            "id": str(self.rule.id),
+            "uid": self.rule.uid,
+        }
+        enforcement_db = RuleEnforcementDB(
+            trigger_instance_id=str(self.trigger_instance.id),
+            rule=rule_spec,
+            failure_reason=failure_reason,
+            status=RULE_ENFORCEMENT_STATUS_FAILED,
+        )
 
         try:
             RuleEnforcement.add_or_update(enforcement_db)
         except:
-            extra = {'enforcement_db': enforcement_db}
-            LOG.exception('Failed writing enforcement model to db.', extra=extra)
+            extra = {"enforcement_db": enforcement_db}
+            LOG.exception("Failed writing enforcement model to db.", extra=extra)
 
         return enforcement_db
 
@@ -253,6 +283,7 @@ class SecondPassRuleFilter(RuleFilter):
     Special filter that handles all second pass rules. For not these are only
     backstop rules i.e. those that can match when no other rule has matched.
     """
+
     def __init__(self, trigger_instance, trigger, rule, first_pass_matched):
         """
         :param trigger_instance: TriggerInstance DB object.
@@ -277,4 +308,4 @@ class SecondPassRuleFilter(RuleFilter):
         return super(SecondPassRuleFilter, self).filter()
 
     def _is_backstop_rule(self):
-        return self.rule.type['ref'] == RULE_TYPE_BACKSTOP
+        return self.rule.type["ref"] == RULE_TYPE_BACKSTOP

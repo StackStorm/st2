@@ -28,20 +28,23 @@ CONF = cfg.CONF
 
 
 def parse_args(args=None):
-    CONF(args=args, version=VERSION_STRING,
-         default_config_files=[DEFAULT_CONFIG_FILE_PATH])
+    CONF(
+        args=args,
+        version=VERSION_STRING,
+        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+    )
 
 
-def register_opts():
-    _register_common_opts()
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
 
 
-def _register_common_opts():
-    common_config.register_opts()
+def _register_common_opts(ignore_errors=False):
+    common_config.register_opts(ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
     return CONF.actionrunner.logging
 
 
-register_opts()
+register_opts(ignore_errors=True)

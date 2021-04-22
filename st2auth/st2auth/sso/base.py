@@ -16,9 +16,7 @@ import abc
 import six
 
 
-__all__ = [
-    'BaseSingleSignOnBackend'
-]
+__all__ = ["BaseSingleSignOnBackend"]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -32,5 +30,7 @@ class BaseSingleSignOnBackend(object):
         raise NotImplementedError(msg)
 
     def verify_response(self, response):
-        msg = 'The function "verify_response" is not implemented in the base SSO backend.'
+        msg = (
+            'The function "verify_response" is not implemented in the base SSO backend.'
+        )
         raise NotImplementedError(msg)

@@ -24,9 +24,7 @@ from st2common import log as logging
 
 LOG = logging.getLogger(__name__)
 
-__all__ = [
-    'shutdown_server_kill_pending_requests'
-]
+__all__ = ["shutdown_server_kill_pending_requests"]
 
 
 def shutdown_server_kill_pending_requests(sock, worker_pool, wait_time=2):
@@ -46,7 +44,7 @@ def shutdown_server_kill_pending_requests(sock, worker_pool, wait_time=2):
     sock.close()
 
     active_requests = worker_pool.running()
-    LOG.info('Shutting down. Requests left: %s', active_requests)
+    LOG.info("Shutting down. Requests left: %s", active_requests)
 
     # Give active requests some time to finish
     if active_requests > 0:
@@ -57,5 +55,5 @@ def shutdown_server_kill_pending_requests(sock, worker_pool, wait_time=2):
     for coro in running_corutines:
         eventlet.greenthread.kill(coro)
 
-    LOG.info('Exiting...')
+    LOG.info("Exiting...")
     raise SystemExit()

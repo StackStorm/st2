@@ -24,6 +24,7 @@ from oslo_config import cfg
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 from tests.unit import base
@@ -45,37 +46,45 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_PACK = 'orquesta_tests'
-TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
+TEST_PACK = "orquesta_tests"
+TEST_PACK_PATH = (
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
+)
 
 PACKS = [
     TEST_PACK_PATH,
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + '/core'
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
 
 
 @mock.patch.object(
-    publishers.CUDPublisher,
-    'publish_update',
-    mock.MagicMock(return_value=None))
+    publishers.CUDPublisher, "publish_update", mock.MagicMock(return_value=None)
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_create),
+)
 @mock.patch.object(
     lv_ac_xport.LiveActionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(side_effect=mock_lv_ac_xport.MockLiveActionPublisher.publish_state),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_create',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create))
+    "publish_create",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_create
+    ),
+)
 @mock.patch.object(
     wf_ex_xport.WorkflowExecutionPublisher,
-    'publish_state',
-    mock.MagicMock(side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state))
+    "publish_state",
+    mock.MagicMock(
+        side_effect=mock_wf_ex_xport.MockWorkflowExecutionPublisher.publish_state
+    ),
+)
 class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(OrquestaRunnerCancelTest, cls).setUpClass()
@@ -85,8 +94,7 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
 
         # Register test pack(s).
         actions_registrar = actionsregistrar.ActionsRegistrar(
-            use_pack_cache=False,
-            fail_on_failure=True
+            use_pack_cache=False, fail_on_failure=True
         )
 
         for pack in PACKS:
@@ -96,15 +104,15 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
     def get_runner_class(cls, runner_name):
         return runners.get_runner(runner_name, runner_name).__class__
 
-    @mock.patch.object(
-        ac_svc, 'is_children_active',
-        mock.MagicMock(return_value=True))
+    @mock.patch.object(ac_svc, "is_children_active", mock.MagicMock(return_value=True))
     def test_cancel(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        self.assertEqual(
+            lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result
+        )
 
         requester = cfg.CONF.system_user.user
         lv_ac_db, ac_ex_db = ac_svc.request_cancellation(lv_ac_db, requester)
@@ -112,23 +120,33 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELING)
 
     def test_cancel_workflow_cascade_down_to_subworkflow(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflow.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "subworkflow.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        self.assertEqual(
+            lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result
+        )
 
         # Identify the records for the subworkflow.
-        wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
+        wf_ex_dbs = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )
         self.assertEqual(len(wf_ex_dbs), 1)
 
-        tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_dbs[0].id))
+        tk_ex_dbs = wf_db_access.TaskExecution.query(
+            workflow_execution=str(wf_ex_dbs[0].id)
+        )
         self.assertEqual(len(tk_ex_dbs), 1)
 
-        tk_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[0].id))
+        tk_ac_ex_dbs = ex_db_access.ActionExecution.query(
+            task_execution=str(tk_ex_dbs[0].id)
+        )
         self.assertEqual(len(tk_ac_ex_dbs), 1)
 
-        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_dbs[0].liveaction['id'])
+        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(
+            tk_ac_ex_dbs[0].liveaction["id"]
+        )
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Cancel the main workflow.
@@ -145,23 +163,33 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
 
     def test_cancel_subworkflow_cascade_up_to_workflow(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflow.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "subworkflow.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        self.assertEqual(
+            lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result
+        )
 
         # Identify the records for the subworkflow.
-        wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
+        wf_ex_dbs = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )
         self.assertEqual(len(wf_ex_dbs), 1)
 
-        tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_dbs[0].id))
+        tk_ex_dbs = wf_db_access.TaskExecution.query(
+            workflow_execution=str(wf_ex_dbs[0].id)
+        )
         self.assertEqual(len(tk_ex_dbs), 1)
 
-        tk_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[0].id))
+        tk_ac_ex_dbs = ex_db_access.ActionExecution.query(
+            task_execution=str(tk_ex_dbs[0].id)
+        )
         self.assertEqual(len(tk_ac_ex_dbs), 1)
 
-        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_dbs[0].liveaction['id'])
+        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(
+            tk_ac_ex_dbs[0].liveaction["id"]
+        )
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Cancel the subworkflow.
@@ -183,34 +211,50 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
 
     def test_cancel_subworkflow_cascade_up_to_workflow_with_other_subworkflows(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'subworkflows.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "subworkflows.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        self.assertEqual(
+            lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result
+        )
 
         # Identify the records for the subworkflow.
-        wf_ex_dbs = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))
+        wf_ex_dbs = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )
         self.assertEqual(len(wf_ex_dbs), 1)
 
-        tk_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=str(wf_ex_dbs[0].id))
+        tk_ex_dbs = wf_db_access.TaskExecution.query(
+            workflow_execution=str(wf_ex_dbs[0].id)
+        )
         self.assertEqual(len(tk_ex_dbs), 2)
 
-        tk1_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[0].id))
+        tk1_ac_ex_dbs = ex_db_access.ActionExecution.query(
+            task_execution=str(tk_ex_dbs[0].id)
+        )
         self.assertEqual(len(tk1_ac_ex_dbs), 1)
 
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_dbs[0].liveaction['id'])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(
+            tk1_ac_ex_dbs[0].liveaction["id"]
+        )
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
-        tk2_ac_ex_dbs = ex_db_access.ActionExecution.query(task_execution=str(tk_ex_dbs[1].id))
+        tk2_ac_ex_dbs = ex_db_access.ActionExecution.query(
+            task_execution=str(tk_ex_dbs[1].id)
+        )
         self.assertEqual(len(tk2_ac_ex_dbs), 1)
 
-        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_dbs[0].liveaction['id'])
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(
+            tk2_ac_ex_dbs[0].liveaction["id"]
+        )
         self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Cancel the subworkflow which should cascade up to the root.
         requester = cfg.CONF.system_user.user
-        tk1_lv_ac_db, tk1_ac_ex_db = ac_svc.request_cancellation(tk1_lv_ac_db, requester)
+        tk1_lv_ac_db, tk1_ac_ex_db = ac_svc.request_cancellation(
+            tk1_lv_ac_db, requester
+        )
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELING)
 
         # Assert the main workflow is canceling.
@@ -239,15 +283,21 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
 
     def test_cancel_before_wf_ex_db_created(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        self.assertEqual(
+            lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result
+        )
 
         # Delete the workfow execution to mock issue where the record has not been created yet.
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
-        wf_db_access.WorkflowExecution.delete(wf_ex_db, publish=False, dispatch_trigger=False)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        wf_db_access.WorkflowExecution.delete(
+            wf_ex_db, publish=False, dispatch_trigger=False
+        )
 
         # Cancel the action execution.
         requester = cfg.CONF.system_user.user
@@ -256,15 +306,19 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
 
     def test_cancel_after_wf_ex_db_completed(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        self.assertEqual(
+            lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result
+        )
 
         # Delete the workfow execution to mock issue where the workflow is already completed
         # but the liveaction and action execution have not had time to be updated.
-        wf_ex_db = wf_db_access.WorkflowExecution.query(action_execution=str(ac_ex_db.id))[0]
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
         wf_ex_db.status = wf_ex_statuses.SUCCEEDED
         wf_ex_db = wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
 
@@ -275,14 +329,16 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
 
     @mock.patch.object(
-        wf_svc, 'request_cancellation',
-        mock.MagicMock(side_effect=Exception('foobar')))
+        wf_svc, "request_cancellation", mock.MagicMock(side_effect=Exception("foobar"))
+    )
     def test_cancel_unexpected_exception(self):
-        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, 'sequential.yaml')
-        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta['name'])
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result)
+        self.assertEqual(
+            lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING, lv_ac_db.result
+        )
 
         # Cancel the action execution.
         requester = cfg.CONF.system_user.user
@@ -297,4 +353,6 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         # to raise an exception and the records will be stuck in a canceling
         # status and user is unable to easily clean up.
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELED)
-        self.assertIn('Error encountered when canceling', lv_ac_db.result.get('error', ''))
+        self.assertIn(
+            "Error encountered when canceling", lv_ac_db.result.get("error", "")
+        )

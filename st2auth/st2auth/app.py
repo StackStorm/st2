@@ -36,34 +36,38 @@ LOG = logging.getLogger(__name__)
 def setup_app(config=None):
     config = config or {}
 
-    LOG.info('Creating st2auth: %s as OpenAPI app.', VERSION_STRING)
+    LOG.info("Creating st2auth: %s as OpenAPI app.", VERSION_STRING)
 
-    is_gunicorn = config.get('is_gunicorn', False)
+    is_gunicorn = config.get("is_gunicorn", False)
     if is_gunicorn:
         # NOTE: We only want to perform this logic in the WSGI worker
-        st2auth_config.register_opts()
+        st2auth_config.register_opts(ignore_errors=True)
         capabilities = {
-            'name': 'auth',
-            'listen_host': cfg.CONF.auth.host,
-            'listen_port': cfg.CONF.auth.port,
-            'listen_ssl': cfg.CONF.auth.use_ssl,
-            'type': 'active'
+            "name": "auth",
+            "listen_host": cfg.CONF.auth.host,
+            "listen_port": cfg.CONF.auth.port,
+            "listen_ssl": cfg.CONF.auth.use_ssl,
+            "type": "active",
         }
 
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
-        common_setup(service='auth', config=st2auth_config, setup_db=True,
-                     register_mq_exchanges=False,
-                     register_signal_handlers=True,
-                     register_internal_trigger_types=False,
-                     run_migrations=False,
-                     service_registry=True,
-                     capabilities=capabilities,
-                     config_args=config.get('config_args', None))
+        common_setup(
+            service="auth",
+            config=st2auth_config,
+            setup_db=True,
+            register_mq_exchanges=False,
+            register_signal_handlers=True,
+            register_internal_trigger_types=False,
+            run_migrations=False,
+            service_registry=True,
+            capabilities=capabilities,
+            config_args=config.get("config_args", None),
+        )
 
         # pysaml2 uses subprocess communicate which calls communicate_with_poll
-        if cfg.CONF.auth.sso and cfg.CONF.auth.sso_backend == 'saml2':
+        if cfg.CONF.auth.sso and cfg.CONF.auth.sso_backend == "saml2":
             use_select_poll_workaround(nose_only=False)
 
     # Additional pre-run time checks
@@ -71,10 +75,8 @@ def setup_app(config=None):
 
     router = Router(debug=cfg.CONF.auth.debug, is_gunicorn=is_gunicorn)
 
-    spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
-    transforms = {
-        '^/auth/v1/': ['/', '/v1/']
-    }
+    spec = spec_loader.load_spec("st2common", "openapi.yaml.j2")
+    transforms = {"^/auth/v1/": ["/", "/v1/"]}
     router.add_spec(spec, transforms=transforms)
 
     app = router.as_wsgi
@@ -83,8 +85,8 @@ def setup_app(config=None):
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)
-    app = ResponseInstrumentationMiddleware(app, router, service_name='auth')
+    app = ResponseInstrumentationMiddleware(app, router, service_name="auth")
     app = RequestIDMiddleware(app)
-    app = RequestInstrumentationMiddleware(app, router, service_name='auth')
+    app = RequestInstrumentationMiddleware(app, router, service_name="auth")
 
     return app
