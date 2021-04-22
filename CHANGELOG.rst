@@ -65,6 +65,19 @@ Added
 
   Contributed by @Kami.
 
+* Add support for compressing the payloads which are sent over the message bus. Compression is
+  disabled by default and user can enable it by setting ``messaging.compression`` config option
+  to one of the following values: ``zstd``, ``lzma``, ``bz2``, ``gzip``.
+
+  In most cases we recommend using ``zstd`` (zstandard) since it offers best trade off between
+  compression ratio and number of CPU cycles spent for compression and compression.
+
+  How this will affect the deployment and throughput is very much user specific (workflow and
+  resources available). It may make sense to enable it when generic action trigger is enabled
+  and when working with executions with large textual results. #5241
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 

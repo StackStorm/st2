@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import copy
 
 from kombu.messaging import Producer
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.metrics.base import Timer
@@ -56,7 +57,9 @@ class PoolPublisher(object):
     def errback(self, exc, interval):
         LOG.error("Rabbitmq connection error: %s", exc.message, exc_info=False)
 
-    def publish(self, payload, exchange, routing_key=""):
+    def publish(self, payload, exchange, routing_key="", compression=None):
+        compression = compression or cfg.CONF.messaging.compression
+
         with Timer(key="amqp.pool_publisher.publish_with_retries." + exchange.name):
             with self.pool.acquire(block=True) as connection:
                 retry_wrapper = ConnectionRetryWrapper(
@@ -74,6 +77,7 @@ class PoolPublisher(object):
                         "exchange": exchange,
                         "routing_key": routing_key,
                         "serializer": "pickle",
+                        "compression": compression,
                         "content_encoding": "utf-8",
                     }
 

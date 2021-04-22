@@ -1,5 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
-# Copyright 2019 Extreme Networks, Inc.
+# Copyright 2021 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import os
 import json
 import simplejson
@@ -23,8 +26,7 @@ import orjson
 
 from st2common.util.jsonify import json_encode_orjson
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
+from common import FIXTURES_DIR
 
 
 @pytest.mark.parametrize(
@@ -86,7 +88,7 @@ def test_json_dumps(benchmark, fixture_file, indent_sort_keys_tuple, implementat
         else:
             raise ValueError("Invalid implementation: %s" % (implementation))
 
-    result = benchmark.pedantic(run_benchmark, iterations=5, rounds=5)
+    result = benchmark(run_benchmark)
     assert len(result) >= 40000
 
 
@@ -128,5 +130,5 @@ def test_json_loads(benchmark, fixture_file, implementation):
         else:
             raise ValueError("Invalid implementation: %s" % (implementation))
 
-    result = benchmark.pedantic(run_benchmark, iterations=10, rounds=10)
+    result = benchmark(run_benchmark)
     assert result == content_loaded

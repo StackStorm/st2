@@ -27,4 +27,5 @@ echo
 sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
 sudo chmod +x /usr/local/bin/rabbitmqadmin
 # print logs from stdout (RABBITMQ_LOGS=-)
-docker logs --tail=20 rabbitmq
+docker logs --tail=100 rabbitmq
+# TODO: Fail here if service fails to start and exit with -2
