@@ -65,6 +65,19 @@ Added
 
   Contributed by @Kami.
 
+* Add support for compressing the payloads which are sent over the message bus. Compression is
+  disabled by default and user can enable it by setting ``messaging.compression`` config option
+  to one of the following values: ``zstd``, ``lzma``, ``bz2``, ``gzip``.
+
+  In most cases we recommend using ``zstd`` (zstandard) since it offers best trade off between
+  compression ratio and number of CPU cycles spent for compression and compression.
+
+  How this will affect the deployment and throughput is very much user specific (workflow and
+  resources available). It may make sense to enable it when generic action trigger is enabled
+  and when working with executions with large textual results. #5241
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 
@@ -184,7 +197,9 @@ Changed
 * Update various dependencies to latest stable versions (``bcrypt``, ``appscheduler``, ``pytz``,
   ``python-dateutil``, ``psutil``, ``passlib``, ``gunicorn``, ``flex``, ``cryptography``.
   ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``,
-  ``python-ldap``). #5215, https://github.com/StackStorm/st2-auth-ldap/pull/94
+  ``pyyaml``, ``kombu``, ``amqp``, ``python-ldap``).
+
+  #5215, https://github.com/StackStorm/st2-auth-ldap/pull/94
 
   Contributed by @Kami.
 
@@ -218,6 +233,10 @@ Changed
 * Update ``pyywinrm`` dependency to the latest stable version (0.4.1). #5212
 
   Contributed by @chadpatt .
+
+* Monkey patch on st2stream earlier in flow #5240
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
 Improvements
 ~~~~~~~~~~~~

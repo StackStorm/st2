@@ -79,23 +79,15 @@ class RabbitMQTLSListenerTestCase(unittest2.TestCase):
                 connection.release()
 
     def test_ssl_connection_on_ssl_listener_success(self):
-        # Using query param notation
-        urls = "amqp://guest:guest@127.0.0.1:5671/?ssl=true"
-        connection = transport_utils.get_connection(urls=urls)
+        ca_cert_path = os.path.join(CERTS_FIXTURES_PATH, "ca/ca_certificate_bundle.pem")
 
-        try:
-            self.assertTrue(connection.connect())
-            self.assertTrue(connection.connected)
-        finally:
-            if connection:
-                connection.release()
-
-        # Using messaging.ssl config option
         cfg.CONF.set_override(name="ssl", override=True, group="messaging")
-
-        connection = transport_utils.get_connection(
-            urls="amqp://guest:guest@127.0.0.1:5671/"
+        cfg.CONF.set_override(
+            name="ssl_ca_certs", override=ca_cert_path, group="messaging"
         )
+
+        urls = "amqp://guest:guest@127.0.0.1:5671/"
+        connection = transport_utils.get_connection(urls=urls)
 
         try:
             self.assertTrue(connection.connect())
