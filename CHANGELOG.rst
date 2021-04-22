@@ -78,6 +78,15 @@ Added
 
   Contributed by @Kami.
 
+* Add new ``api.same_site_cookie`` config option with which user can control the value for
+  ``SameSite`` attribute for the ``auth-token`` cookie we set when authenticating via st2web.
+
+  For backward compatibility reasons it defaults to ``none``. Users who don't need to support old
+  browsers or have some other specific reason to disable it and encouraged to set this option to
+  ``strict``.
+
+  Contributed by @Kami.
+
 Changed
 ~~~~~~~
 

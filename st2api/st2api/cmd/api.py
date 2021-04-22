@@ -68,6 +68,11 @@ def _setup():
     # Additional pre-run time checks
     validate_rbac_is_correctly_configured()
 
+    if cfg.CONF.api.same_site_cookie not in ["strict", "lax", "none"]:
+        raise ValueError(
+            "Valid values for api.same_site_cookie config options are: strict, lax, none"
+        )
+
 
 def _run_server():
     host = cfg.CONF.api.host

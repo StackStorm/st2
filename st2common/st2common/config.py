@@ -373,6 +373,15 @@ def register_opts(ignore_errors=False):
             default=True,
             help="True to mask secrets in the API responses",
         ),
+        cfg.StrOpt(
+            "same_site_cookie",
+            default="none",
+            help="SameSite attribute value for the "
+            "auth-token cookie we set on successful authentication from st2web. Valid values are "
+            "strict, lax, none. If you "
+            "don't have a specific reason (e.g. supporting old browsers) you are "
+            "recommended to set this value to strict.",
+        ),
     ]
 
     do_register_opts(api_opts, "api", ignore_errors)
