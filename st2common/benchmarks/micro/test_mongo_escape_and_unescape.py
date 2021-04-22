@@ -1,5 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
-# Copyright 2019 Extreme Networks, Inc.
+# Copyright 2021 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +15,13 @@
 """
 Micro benchmarks which benchmark our mongo escape and unescape function.
 
-NOTE: We utiliz JSON fixture files which also contain values even though escaping only operates
+NOTE: We utilize JSON fixture files which also contain values even though escaping only operates
 on the item keys.
 """
+
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
 
 import os
 import json
@@ -27,8 +30,7 @@ import pytest
 
 from st2common.util import mongoescape
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
+from common import FIXTURES_DIR
 
 
 @pytest.mark.parametrize(
@@ -61,7 +63,7 @@ def test_escape_chars(benchmark, fixture_file: str) -> None:
         result = mongoescape.escape_chars(data)
         return result
 
-    escaped_data = benchmark.pedantic(run_benchmark, iterations=10, rounds=10)
+    escaped_data = benchmark(run_benchmark)
     unescaped_data = mongoescape.unescape_chars(escaped_data)
     assert escaped_data != data
     assert unescaped_data == data
@@ -98,6 +100,6 @@ def test_unescape_chars(benchmark, fixture_file: str) -> None:
         result = mongoescape.unescape_chars(escaped_data)
         return result
 
-    unescaped_data = benchmark.pedantic(run_benchmark, iterations=10, rounds=10)
+    unescaped_data = benchmark(run_benchmark)
     escaped_data = mongoescape.escape_chars(escaped_data)
     assert unescaped_data != escaped_data
