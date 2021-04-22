@@ -197,7 +197,9 @@ Changed
 * Update various dependencies to latest stable versions (``bcrypt``, ``appscheduler``, ``pytz``,
   ``python-dateutil``, ``psutil``, ``passlib``, ``gunicorn``, ``flex``, ``cryptography``.
   ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``,
-  ``python-ldap``). #5215, https://github.com/StackStorm/st2-auth-ldap/pull/94
+  ``pyyaml``, ``kombu``, ``amqp``, ``python-ldap``).
+
+  #5215, https://github.com/StackStorm/st2-auth-ldap/pull/94
 
   Contributed by @Kami.
 
