@@ -1,5 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
-# Copyright 2019 Extreme Networks, Inc.
+# Copyright 2021 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,6 +35,10 @@ The goal of that benchmark is to determine a more efficient approach which is al
 implement in a backward compatible manner.
 """
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 from typing import Type
 
 import os
@@ -50,11 +53,12 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.fields import JSONDictField
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
+from common import FIXTURES_DIR
+from common import PYTEST_FIXTURE_FILE_PARAM_DECORATOR
+from common import PYTEST_FIXTURE_FILE_PARAM_NO_8MB_DECORATOR
 
 
-# Needeed so we can subclass it
+# Needed so we can subclass it
 LiveActionDB._meta["allow_inheritance"] = True
 
 
@@ -134,25 +138,7 @@ def get_model_class_for_approach(approach: str) -> Type[LiveActionDB]:
     return model_cls
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_8mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_8mb",
-        "json_4mb_single_large_field",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.parametrize(
     "approach",
     [
@@ -190,30 +176,14 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
         inserted_live_action_db = LiveAction.add_or_update(live_action_db)
         return inserted_live_action_db
 
-    inserted_live_action_db = benchmark.pedantic(run_benchmark, iterations=3, rounds=3)
+    inserted_live_action_db = benchmark(run_benchmark)
     retrieved_live_action_db = LiveAction.get_by_id(inserted_live_action_db.id)
     # Assert that result is correctly converted back to dict on retrieval
     assert inserted_live_action_db.result == data
     assert inserted_live_action_db == retrieved_live_action_db
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_4mb_single_large_field",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_NO_8MB_DECORATOR
 @pytest.mark.parametrize(
     "approach",
     [
@@ -257,7 +227,7 @@ def test_save_multiple_fields(benchmark, fixture_file: str, approach: str) -> No
         inserted_live_action_db = LiveAction.add_or_update(live_action_db)
         return inserted_live_action_db
 
-    inserted_live_action_db = benchmark.pedantic(run_benchmark, iterations=3, rounds=3)
+    inserted_live_action_db = benchmark(run_benchmark)
     retrieved_live_action_db = LiveAction.get_by_id(inserted_live_action_db.id)
     # Assert that result is correctly converted back to dict on retrieval
     assert inserted_live_action_db.field1 == data
@@ -266,25 +236,7 @@ def test_save_multiple_fields(benchmark, fixture_file: str, approach: str) -> No
     assert inserted_live_action_db == retrieved_live_action_db
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_8mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_8mb",
-        "json_4mb_single_large_field",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.parametrize(
     "approach",
     [
@@ -325,29 +277,13 @@ def test_read_large_execution(benchmark, fixture_file: str, approach: str) -> No
         retrieved_live_action_db = LiveAction.get_by_id(inserted_live_action_db.id)
         return retrieved_live_action_db
 
-    retrieved_live_action_db = benchmark.pedantic(run_benchmark, iterations=3, rounds=3)
+    retrieved_live_action_db = benchmark(run_benchmark)
     # Assert that result is correctly converted back to dict on retrieval
     assert retrieved_live_action_db == inserted_live_action_db
     assert retrieved_live_action_db.result == data
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_4mb_single_large_field",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.parametrize(
     "approach",
     [
@@ -384,29 +320,11 @@ def test_save_large_string_value(benchmark, fixture_file: str, approach: str) ->
         inserted_live_action_db = LiveAction.add_or_update(live_action_db)
         return inserted_live_action_db
 
-    inserted_live_action_db = benchmark.pedantic(
-        run_benchmark, iterations=10, rounds=10
-    )
+    inserted_live_action_db = benchmark(run_benchmark)
     assert bool(inserted_live_action_db.value)
 
 
-@pytest.mark.parametrize(
-    "fixture_file",
-    [
-        "tiny_1.json",
-        "json_61kb.json",
-        "json_647kb.json",
-        "json_4mb.json",
-        "json_4mb_single_large_field.json",
-    ],
-    ids=[
-        "tiny_1",
-        "json_61kb",
-        "json_647kb",
-        "json_4mb",
-        "json_4mb_single_large_field",
-    ],
-)
+@PYTEST_FIXTURE_FILE_PARAM_DECORATOR
 @pytest.mark.parametrize(
     "approach",
     [
@@ -418,7 +336,7 @@ def test_save_large_string_value(benchmark, fixture_file: str, approach: str) ->
         "binary_field",
     ],
 )
-@pytest.mark.benchmark(group="test_model_save")
+@pytest.mark.benchmark(group="test_model_read")
 def test_read_large_string_value(benchmark, fixture_file: str, approach: str) -> None:
     with open(os.path.join(FIXTURES_DIR, fixture_file), "rb") as fp:
         content = fp.read()
@@ -445,8 +363,6 @@ def test_read_large_string_value(benchmark, fixture_file: str, approach: str) ->
         retrieved_live_action_db = LiveAction.get_by_id(inserted_live_action_db.id)
         return retrieved_live_action_db
 
-    retrieved_live_action_db = benchmark.pedantic(
-        run_benchmark, iterations=10, rounds=10
-    )
+    retrieved_live_action_db = benchmark(run_benchmark)
     assert retrieved_live_action_db == inserted_live_action_db
     assert retrieved_live_action_db.value == content
