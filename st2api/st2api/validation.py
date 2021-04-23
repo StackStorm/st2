@@ -15,10 +15,28 @@
 
 from oslo_config import cfg
 
-__all__ = ["validate_rbac_is_correctly_configured"]
+__all__ = [
+    "validate_same_cookie_is_correctly_configured",
+    "validate_rbac_is_correctly_configured",
+]
 
 
-def validate_rbac_is_correctly_configured():
+def validate_same_cookie_is_correctly_configured() -> bool:
+    """
+    Function which verifies that SameCookie config option value is correctly configured.
+
+    This method should be called in the api init phase so we catch any misconfiguration issues
+    before startup.
+    """
+    if cfg.CONF.api.same_site_cookie not in ["strict", "lax", "none"]:
+        raise ValueError(
+            "Valid values for api.same_site_cookie config option are: strict, lax, none."
+        )
+
+    return True
+
+
+def validate_rbac_is_correctly_configured() -> bool:
     """
     Function which verifies that RBAC is correctly set up and configured.
     """

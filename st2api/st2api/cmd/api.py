@@ -36,6 +36,7 @@ from st2api import config
 config.register_opts(ignore_errors=True)
 
 from st2api import app
+from st2api.validation import validate_same_cookie_is_correctly_configured
 from st2api.validation import validate_rbac_is_correctly_configured
 
 __all__ = ["main"]
@@ -66,12 +67,8 @@ def _setup():
     )
 
     # Additional pre-run time checks
+    validate_same_cookie_is_correctly_configured()
     validate_rbac_is_correctly_configured()
-
-    if cfg.CONF.api.same_site_cookie not in ["strict", "lax", "none"]:
-        raise ValueError(
-            "Valid values for api.same_site_cookie config options are: strict, lax, none"
-        )
 
 
 def _run_server():

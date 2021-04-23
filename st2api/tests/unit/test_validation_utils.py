@@ -16,6 +16,7 @@
 import unittest2
 from oslo_config import cfg
 
+from st2api.validation import validate_same_cookie_is_correctly_configured
 from st2api.validation import validate_rbac_is_correctly_configured
 from st2tests import config as tests_config
 
@@ -26,6 +27,17 @@ class ValidationUtilsTestCase(unittest2.TestCase):
     def setUp(self):
         super(ValidationUtilsTestCase, self).setUp()
         tests_config.parse_args()
+
+    def test_validate_same_cookie_is_correctly_configured_success(self):
+        valid_values = [
+            "strict",
+            "lax",
+            "none",
+        ]
+
+        for value in valid_values:
+            cfg.CONF.set_override(group="api", name="same_site_cookie", override=value)
+            self.assertTrue(validate_same_cookie_is_correctly_configured())
 
     def test_validate_rbac_is_correctly_configured_succcess(self):
         result = validate_rbac_is_correctly_configured()
