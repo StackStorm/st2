@@ -15,22 +15,39 @@
 
 from oslo_config import cfg
 
+from webob import cookies
+
 __all__ = [
-    "validate_same_cookie_is_correctly_configured",
+    "validate_auth_cookie_is_correctly_configured",
     "validate_rbac_is_correctly_configured",
 ]
 
 
-def validate_same_cookie_is_correctly_configured() -> bool:
+def validate_auth_cookie_is_correctly_configured() -> bool:
     """
     Function which verifies that SameCookie config option value is correctly configured.
 
     This method should be called in the api init phase so we catch any misconfiguration issues
     before startup.
     """
-    if cfg.CONF.api.same_site_cookie not in ["strict", "lax", "none", None]:
+    if cfg.CONF.api.auth_cookie_same_site not in ["strict", "lax", "none", None]:
         raise ValueError(
-            "Valid values for api.same_site_cookie config option are: strict, lax, none."
+            "Valid values for api.auth_cookie_same_site config option are: strict, lax, none."
+        )
+
+    # Now we try to make a dummy cookie to verify all the options are configured correctly. Some
+    # Options are mutually exclusive - e.g. SameSite none and Secure false.
+    try:
+        cookies.make_cookie(
+            "test_cookie",
+            "dummyvalue",
+            httponly=True,
+            secure=cfg.CONF.api.auth_cookie_secure,
+            samesite=cfg.CONF.api.auth_cookie_same_site,
+        )
+    except Exception as e:
+        raise ValueError(
+            "Failed to validate api.auth_cookie config options: %s" % (str(e))
         )
 
     return True

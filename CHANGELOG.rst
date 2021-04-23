@@ -78,12 +78,18 @@ Added
 
   Contributed by @Kami.
 
-* Add new ``api.same_site_cookie`` config option with which user can control the value for
-  ``SameSite`` attribute for the ``auth-token`` cookie we set when authenticating via st2web.
+* Add new ``api.auth_cookie_secure`` and ``api.auth_cookie_same_site`` config options which
+  specify values which are set for ``secure`` and ``SameSite`` attribute for the auth cookie
+  we set when authenticating via token / api key in query parameter value (e.g. via st2web).
 
-  For backward compatibility reasons it defaults to ``none``. Users who don't need to support old
-  browsers or have some other specific reason to disable it and encouraged to set this option to
-  ``strict``.
+  For security reasons, ``api.auth_cookie_secure`` defaults to ``True``. This should only be
+  changed to ``False`` if you have a valid reason to not run StackStorm behind HTTPs proxy.
+
+  Default value for ``api.auth_cookie_same_site`` is ``Strict``. If you want to disable this
+  functionality so it behaves the same as in the previous releases, you can set that option
+  to ``None``.
+
+  #5248
 
   Contributed by @Kami.
 

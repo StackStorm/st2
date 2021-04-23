@@ -374,8 +374,15 @@ def register_opts(ignore_errors=False):
             help="True to mask secrets in the API responses",
         ),
         cfg.StrOpt(
-            "same_site_cookie",
-            default=None,
+            "auth_cookie_secure",
+            default=True,
+            help='True if secure flag should be set for "auth-token" cookie which is set on successful '
+            "authentication via st2web. You should only set this to False if you have a good "
+            "reason to not run and access StackStorm behind https proxy.",
+        ),
+        cfg.StrOpt(
+            "auth_cookie_same_site",
+            default="lax",
             help="SameSite attribute value for the "
             "auth-token cookie we set on successful authentication from st2web. Valid values are "
             "strict, lax, none, None. If you "

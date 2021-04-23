@@ -78,7 +78,7 @@ class TestTokenBasedAuth(FunctionalTest):
         ),
     )
     @mock.patch.object(User, "get_by_name", mock.Mock(return_value=USER_DB))
-    def test_token_validation_token_in_query_params_cookie_is_set(self):
+    def test_token_validation_token_in_query_params_auth_cookie_is_set(self):
         response = self.app.get(
             "/v1/actions?x-auth-token=%s" % (TOKEN), expect_errors=False
         )
@@ -87,14 +87,17 @@ class TestTokenBasedAuth(FunctionalTest):
         self.assertTrue("Set-Cookie" in response.headers)
         self.assertTrue("HttpOnly" in response.headers["Set-Cookie"])
 
-        # Also test same cookie values
+        # Also test same cookie values + secure
         valid_values = [
             "strict",
             "lax",
         ]
 
         for value in valid_values:
-            cfg.CONF.set_override(group="api", name="same_site_cookie", override=value)
+            cfg.CONF.set_override(
+                group="api", name="auth_cookie_same_site", override=value
+            )
+            cfg.CONF.set_override(group="api", name="auth_cookie_secure", override=True)
 
             response = self.app.get(
                 "/v1/actions?x-auth-token=%s" % (TOKEN), expect_errors=False
@@ -104,6 +107,21 @@ class TestTokenBasedAuth(FunctionalTest):
             self.assertTrue("Set-Cookie" in response.headers)
             self.assertTrue("HttpOnly" in response.headers["Set-Cookie"])
             self.assertTrue("SameSite=%s" % (value) in response.headers["Set-Cookie"])
+            self.assertTrue("secure" in response.headers["Set-Cookie"])
+
+        # SameSite=Lax, Secure=False
+        cfg.CONF.set_override(group="api", name="auth_cookie_same_site", override="lax")
+        cfg.CONF.set_override(group="api", name="auth_cookie_secure", override=False)
+
+        response = self.app.get(
+            "/v1/actions?x-auth-token=%s" % (TOKEN), expect_errors=False
+        )
+        self.assertIn("application/json", response.headers["content-type"])
+        self.assertEqual(response.status_int, 200)
+        self.assertTrue("Set-Cookie" in response.headers)
+        self.assertTrue("HttpOnly" in response.headers["Set-Cookie"])
+        self.assertTrue("SameSite=lax" in response.headers["Set-Cookie"])
+        self.assertTrue("secure" not in response.headers["Set-Cookie"])
 
     @mock.patch.object(
         Token,

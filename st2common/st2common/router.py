@@ -383,7 +383,8 @@ class Router(object):
                                     token,
                                     max_age=max_age,
                                     httponly=True,
-                                    samesite=cfg.CONF.api.same_site_cookie,
+                                    secure=cfg.CONF.api.auth_cookie_secure,
+                                    samesite=cfg.CONF.api.auth_cookie_same_site,
                                 )
 
                             break
