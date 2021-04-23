@@ -85,7 +85,7 @@ Added
   For security reasons, ``api.auth_cookie_secure`` defaults to ``True``. This should only be
   changed to ``False`` if you have a valid reason to not run StackStorm behind HTTPs proxy.
 
-  Default value for ``api.auth_cookie_same_site`` is ``Strict``. If you want to disable this
+  Default value for ``api.auth_cookie_same_site`` is ``lax``. If you want to disable this
   functionality so it behaves the same as in the previous releases, you can set that option
   to ``None``.
 
