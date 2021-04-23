@@ -93,7 +93,6 @@ class StringReader(object):
         if "description" in self.spec:
 
             def get_bottom_toolbar_tokens(cli):
-                # pylint: disable=no-member
                 return [(token.Token.Toolbar, self.spec["description"])]
 
             self.options["get_bottom_toolbar_tokens"] = get_bottom_toolbar_tokens
