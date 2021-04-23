@@ -375,10 +375,10 @@ def register_opts(ignore_errors=False):
         ),
         cfg.StrOpt(
             "same_site_cookie",
-            default="none",
+            default=None,
             help="SameSite attribute value for the "
             "auth-token cookie we set on successful authentication from st2web. Valid values are "
-            "strict, lax, none. If you "
+            "strict, lax, none, None. If you "
             "don't have a specific reason (e.g. supporting old browsers) you are "
             "recommended to set this value to strict.",
         ),

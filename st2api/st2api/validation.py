@@ -28,7 +28,7 @@ def validate_same_cookie_is_correctly_configured() -> bool:
     This method should be called in the api init phase so we catch any misconfiguration issues
     before startup.
     """
-    if cfg.CONF.api.same_site_cookie not in ["strict", "lax", "none"]:
+    if cfg.CONF.api.same_site_cookie not in ["strict", "lax", "none", None]:
         raise ValueError(
             "Valid values for api.same_site_cookie config option are: strict, lax, none."
         )
