@@ -30,9 +30,14 @@ def validate_auth_cookie_is_correctly_configured() -> bool:
     This method should be called in the api init phase so we catch any misconfiguration issues
     before startup.
     """
-    if cfg.CONF.api.auth_cookie_same_site not in ["strict", "lax", "none", None]:
+    if cfg.CONF.api.auth_cookie_same_site not in ["strict", "lax", "none", "None"]:
         raise ValueError(
-            "Valid values for api.auth_cookie_same_site config option are: strict, lax, none."
+            'Got invalid value "%s" (type %s) for cfg.CONF.api.auth_cookie_same_site config '
+            "option. Valid values are: strict, lax, none, None."
+            % (
+                cfg.CONF.api.auth_cookie_same_site,
+                type(cfg.CONF.api.auth_cookie_same_site),
+            )
         )
 
     # Now we try to make a dummy cookie to verify all the options are configured correctly. Some

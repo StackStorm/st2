@@ -51,9 +51,7 @@ class ValidationUtilsTestCase(unittest2.TestCase):
                 group="api", name="auth_cookie_same_site", override=value
             )
 
-            expected_msg = (
-                "Valid values for api.auth_cookie_same_site config option are:"
-            )
+            expected_msg = "Valid values are: strict, lax, none"
             self.assertRaisesRegexp(
                 ValueError, expected_msg, validate_auth_cookie_is_correctly_configured
             )
