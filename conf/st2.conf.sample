@@ -32,7 +32,8 @@ workflows_pool_size = 40
 [api]
 # List of origins allowed for api, auth and stream
 allow_origin = http://127.0.0.1:3000 # comma separated list allowed here.
-# SameSite attribute value for the auth-token cookie we set on successful authentication from st2web. Valid values are strict, lax, none, None. If you don't have a specific reason (e.g. supporting old browsers) you are recommended to set this value to strict.
+# SameSite attribute value for the auth-token cookie we set on successful authentication from st2web. If you don't have a specific reason (e.g. supporting old browsers) you are recommended to set this value to strict.
+# Valid values: strict, lax, none, None
 auth_cookie_same_site = lax
 # True if secure flag should be set for "auth-token" cookie which is set on successful authentication via st2web. You should only set this to False if you have a good reason to not run and access StackStorm behind https proxy.
 auth_cookie_secure = True
@@ -140,6 +141,7 @@ ssl = False
 # ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from MongoDB.
 ssl_ca_certs = None
 # Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided
+# Valid values: none, optional, required
 ssl_cert_reqs = None
 # Certificate file used to identify the localconnection
 ssl_certfile = None
@@ -149,7 +151,7 @@ ssl_keyfile = None
 ssl_match_hostname = True
 # username for db login
 username = None
-# Compression level when compressors is set to zlib. Valid calues are -1 to 9. Defaults to 6.
+# Compression level when compressors is set to zlib. Valid values are -1 to 9. Defaults to 6.
 zlib_compression_level =
 
 [exporter]
@@ -193,7 +195,8 @@ redirect_stderr = False
 [messaging]
 # URL of all the nodes in a messaging service cluster.
 cluster_urls =  # comma separated list allowed here.
-# Compression algorithm to use for compressing the payloads which are sent over the message bus. Valid values include: zstd, lzma, bz2, gzip. Defaults to no compression.
+# Compression algorithm to use for compressing the payloads which are sent over the message bus. Defaults to no compression.
+# Valid values: zstd, lzma, bz2, gzip, None
 compression = None
 # How many times should we retry connection before failing.
 connection_retries = 10
@@ -206,6 +209,7 @@ ssl = False
 # ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from RabbitMQ.
 ssl_ca_certs = None
 # Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided.
+# Valid values: none, optional, required
 ssl_cert_reqs = None
 # Certificate file used to identify the local connection (client).
 ssl_certfile = None
