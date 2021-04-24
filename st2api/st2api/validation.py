@@ -43,12 +43,20 @@ def validate_auth_cookie_is_correctly_configured() -> bool:
     # Now we try to make a dummy cookie to verify all the options are configured correctly. Some
     # Options are mutually exclusive - e.g. SameSite none and Secure false.
     try:
+        # NOTE: None and none don't mean the same thing - None implies not setting this attribute
+        # (backward compatibility) and none implies setting this attribute value to none
+        same_site = cfg.CONF.api.auth_cookie_same_site
+
+        kwargs = {}
+        if same_site != "None":
+            kwargs["samesite"] = same_site
+
         cookies.make_cookie(
             "test_cookie",
             "dummyvalue",
             httponly=True,
             secure=cfg.CONF.api.auth_cookie_secure,
-            samesite=cfg.CONF.api.auth_cookie_same_site,
+            **kwargs,
         )
     except Exception as e:
         raise ValueError(

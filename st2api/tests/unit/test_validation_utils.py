@@ -33,6 +33,7 @@ class ValidationUtilsTestCase(unittest2.TestCase):
             "strict",
             "lax",
             "none",
+            "None",
         ]
 
         cfg.CONF.set_override(group="api", name="auth_cookie_secure", override=True)

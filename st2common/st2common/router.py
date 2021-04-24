@@ -378,13 +378,22 @@ class Router(object):
                                 max_age = (
                                     auth_resp.expiry - date_utils.get_datetime_utc_now()
                                 )
+                                # NOTE: None and none don't mean the same thing - None implies not
+                                # setting this attribute at all (backward compatibility) and none
+                                # implies setting this attribute value to none
+                                same_site = cfg.CONF.api.auth_cookie_same_site
+
+                                kwargs = {}
+                                if same_site != "None":
+                                    kwargs["samesite"] = same_site
+
                                 cookie_token = cookies.make_cookie(
                                     definition["x-set-cookie"],
                                     token,
                                     max_age=max_age,
                                     httponly=True,
                                     secure=cfg.CONF.api.auth_cookie_secure,
-                                    samesite=cfg.CONF.api.auth_cookie_same_site,
+                                    **kwargs,
                                 )
 
                             break

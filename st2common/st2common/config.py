@@ -373,7 +373,7 @@ def register_opts(ignore_errors=False):
             default=True,
             help="True to mask secrets in the API responses",
         ),
-        cfg.StrOpt(
+        cfg.BoolOpt(
             "auth_cookie_secure",
             default=True,
             help='True if secure flag should be set for "auth-token" cookie which is set on successful '
@@ -383,6 +383,7 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "auth_cookie_same_site",
             default="lax",
+            choices=["strict", "lax", "none", "None"],
             help="SameSite attribute value for the "
             "auth-token cookie we set on successful authentication from st2web. Valid values are "
             "strict, lax, none, None. If you "

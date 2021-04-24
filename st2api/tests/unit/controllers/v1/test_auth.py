@@ -88,10 +88,7 @@ class TestTokenBasedAuth(FunctionalTest):
         self.assertTrue("HttpOnly" in response.headers["Set-Cookie"])
 
         # Also test same cookie values + secure
-        valid_values = [
-            "strict",
-            "lax",
-        ]
+        valid_values = ["strict", "lax", "none", "None"]
 
         for value in valid_values:
             cfg.CONF.set_override(
@@ -106,7 +103,14 @@ class TestTokenBasedAuth(FunctionalTest):
             self.assertEqual(response.status_int, 200)
             self.assertTrue("Set-Cookie" in response.headers)
             self.assertTrue("HttpOnly" in response.headers["Set-Cookie"])
-            self.assertTrue("SameSite=%s" % (value) in response.headers["Set-Cookie"])
+
+            if value == "None":
+                self.assertFalse("SameSite" in response.headers["Set-Cookie"])
+            else:
+                self.assertTrue(
+                    "SameSite=%s" % (value) in response.headers["Set-Cookie"]
+                )
+
             self.assertTrue("secure" in response.headers["Set-Cookie"])
 
         # SameSite=Lax, Secure=False
