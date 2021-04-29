@@ -16,7 +16,7 @@ import copy
 import unittest2
 
 from st2common.util import output_schema
-
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.constants.action import (
     LIVEACTION_STATUS_SUCCEEDED,
     LIVEACTION_STATUS_FAILED,
