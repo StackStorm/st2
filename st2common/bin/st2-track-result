@@ -33,53 +33,54 @@ LOG = logging.getLogger(__name__)
 
 def setup():
     cfg.CONF.register_cli_opt(
-        cfg.StrOpt('id', positional=True, help='ID of the action execution.',
-                   required=True)
+        cfg.StrOpt(
+            "id", positional=True, help="ID of the action execution.", required=True
+        )
     )
 
     cfg.CONF.register_cli_opt(
-        cfg.BoolOpt('delete', default=False, help='Delete the result tracker entry.')
+        cfg.BoolOpt("delete", default=False, help="Delete the result tracker entry.")
     )
 
     script_setup.setup(config, register_mq_exchanges=False)
 
 
 def add_result_tracker(exec_id):
-    LOG.info('Retrieving action execution record...')
+    LOG.info("Retrieving action execution record...")
     exec_db = ActionExecution.get_by_id(exec_id)
     LOG.info('Found action execution record for "%s".', exec_id)
 
     # Check runner type.
-    runner_type = exec_db.action.get('runner_type')
+    runner_type = exec_db.action.get("runner_type")
 
     # Although mistral runner is removed, we want to leave in the result
     # tracker so it can be enabled for other runners easily. Adjust this
     # if when runners that support result tracker are added.
-    if runner_type != 'mistral-v2':
-        LOG.error('Result tracker is only supported for Mistral workflows.')
+    if runner_type != "mistral-v2":
+        LOG.error("Result tracker is only supported for Mistral workflows.")
         return
 
     # Skip if action execution is completed.
     if exec_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
         LOG.info('Action execution "%s" is already in a completed state.', exec_id)
-        LOG.info('Result tracker entry is not created.')
+        LOG.info("Result tracker entry is not created.")
         return
 
-    LOG.info('Retrieving runner type and liveaction records...')
-    runnertype_db = action_db.get_runnertype_by_name(exec_db.action.get('runner_type'))
-    liveaction_db = action_db.get_liveaction_by_id(exec_db.liveaction['id'])
+    LOG.info("Retrieving runner type and liveaction records...")
+    runnertype_db = action_db.get_runnertype_by_name(exec_db.action.get("runner_type"))
+    liveaction_db = action_db.get_liveaction_by_id(exec_db.liveaction["id"])
 
     # Skip if liveaction is completed.
     if liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
         LOG.info('Liveaction "%s" is already in a completed state.', liveaction_db.id)
-        LOG.info('Result tracker entry is not created.')
+        LOG.info("Result tracker entry is not created.")
         return
 
     # Add query into action execution state DB
     try:
-        LOG.info('Inserting new request tracker entry...')
+        LOG.info("Inserting new request tracker entry...")
         queries.setup_query(liveaction_db.id, runnertype_db, liveaction_db.context)
-        LOG.info('Successfully inserted the result tracker entry.')
+        LOG.info("Successfully inserted the result tracker entry.")
     except (db_exc.StackStormDBObjectConflictError, me.NotUniqueError):
         LOG.error('Action execution "%s" already has a result tracker entry.', exec_id)
     except Exception as e:
@@ -88,29 +89,29 @@ def add_result_tracker(exec_id):
     # Add result tracker for children workflows.
     for child_exec_id in exec_db.children:
         child_exec = ActionExecution.get(id=child_exec_id, raise_exception=True)
-        if child_exec.runner['name'] == 'mistral-v2':
+        if child_exec.runner["name"] == "mistral-v2":
             LOG.info('Adding result tracker for children "%s"...', child_exec_id)
             add_result_tracker(child_exec_id)
 
 
 def del_result_tracker(exec_id):
-    LOG.info('Retrieving action execution record...')
+    LOG.info("Retrieving action execution record...")
     exec_db = ActionExecution.get_by_id(exec_id)
     LOG.info('Found action execution record for "%s".', exec_id)
 
-    LOG.info('Retrieving runner type and liveaction records...')
-    liveaction_db = action_db.get_liveaction_by_id(exec_db.liveaction['id'])
+    LOG.info("Retrieving runner type and liveaction records...")
+    liveaction_db = action_db.get_liveaction_by_id(exec_db.liveaction["id"])
 
-    LOG.info('Removing result tracker entry...')
+    LOG.info("Removing result tracker entry...")
     removed = queries.remove_query(liveaction_db.id)
 
     if removed:
-        LOG.info('Successfully removed the result tracker entry.')
+        LOG.info("Successfully removed the result tracker entry.")
     else:
-        LOG.info('There is no result tracker entry to remove.')
+        LOG.info("There is no result tracker entry to remove.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     setup()
 
     if not cfg.CONF.delete:

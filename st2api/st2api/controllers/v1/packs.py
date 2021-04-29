@@ -104,7 +104,7 @@ class PackInstallController(ActionExecutionsControllerMixin):
             parameters["skip_dependencies"] = True
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         new_liveaction_api = LiveActionCreateAPI(
             action="packs.install", parameters=parameters, user=requester_user.name
@@ -127,7 +127,7 @@ class PackUninstallController(ActionExecutionsControllerMixin):
             parameters = {"packs": pack_uninstall_request.packs}
 
         if not requester_user:
-            requester_user = UserDB(cfg.CONF.system_user.user)
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
 
         new_liveaction_api = LiveActionCreateAPI(
             action="packs.uninstall", parameters=parameters, user=requester_user.name
@@ -186,7 +186,8 @@ class PackRegisterController(object):
             result["policy_types"] = policies_registrar.register_policy_types(st2common)
 
         use_pack_cache = False
-
+        # TODO: To speed up this operation since it's mostli IO bound we could use green thread
+        # pool here and register different resources concurrently
         fail_on_failure = getattr(pack_register_request, "fail_on_failure", True)
         for type, (Registrar, name) in six.iteritems(ENTITIES):
             if type in types or name in types:

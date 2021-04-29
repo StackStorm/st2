@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import json
 import logging
 
+import orjson
 import yaml
 
 from st2client import formatters
@@ -33,7 +34,7 @@ class BaseFormatter(formatters.Formatter):
     def format(self, subject, *args, **kwargs):
         attributes = kwargs.get("attributes", None)
         if type(subject) is str:
-            subject = json.loads(subject)
+            subject = orjson.loads(subject)
         elif not isinstance(subject, (list, tuple)) and not hasattr(
             subject, "__iter__"
         ):

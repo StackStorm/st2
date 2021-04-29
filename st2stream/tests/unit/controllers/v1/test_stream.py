@@ -136,7 +136,7 @@ class TestStreamController(FunctionalTest):
 
     @mock.patch.object(st2common.stream.listener, "listen", mock.Mock())
     def test_get_all_with_filters(self):
-        cfg.CONF.set_override(name="heartbeat", group="stream", override=0.1)
+        cfg.CONF.set_override(name="heartbeat", group="stream", override=0.02)
 
         listener = st2common.stream.listener.get_listener(name="stream")
         process_execution = listener.processor(ActionExecutionAPI)

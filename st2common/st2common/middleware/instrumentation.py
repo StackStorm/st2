@@ -20,6 +20,8 @@ from st2common.metrics.base import CounterWithTimer
 from st2common.metrics.base import get_driver
 from st2common.util.date import get_datetime_utc_now
 from st2common.router import NotFoundException
+from st2common.router import Response
+from st2common.util.jsonify import json_encode
 
 __all__ = ["RequestInstrumentationMiddleware", "ResponseInstrumentationMiddleware"]
 
@@ -47,6 +49,16 @@ class RequestInstrumentationMiddleware(object):
             endpoint, _ = self.router.match(request)
         except NotFoundException:
             endpoint = {}
+        except Exception as e:
+            # Special case to make sure we return friendly error to the user.
+            # If we don't do that and router.match() throws an exception, we will return stack trace
+            # to the end user which is not good.
+            status_code = getattr(e, "status_code", 500)
+            headers = {"Content-Type": "application/json"}
+            body = {"faultstring": getattr(e, "detail", str(e))}
+            response_body = json_encode(body)
+            resp = Response(response_body, status=status_code, headers=headers)
+            return resp(environ, start_response)
 
         # NOTE: We don't track per request and response metrics for /v1/executions/<id> and some
         # other endpoints because this would result in a lot of unique metrics which is an

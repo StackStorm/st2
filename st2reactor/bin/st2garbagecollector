@@ -22,5 +22,5 @@ import sys
 
 from st2reactor.cmd import garbagecollector
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(garbagecollector.main())

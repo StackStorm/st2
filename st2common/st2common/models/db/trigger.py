@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import json
 import hashlib
 
@@ -21,6 +22,7 @@ import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.constants.types import ResourceType
 
 __all__ = [
@@ -110,8 +112,8 @@ class TriggerDB(
         # pylint: disable=no-member
         uid = super(TriggerDB, self).get_uid()
 
-        # Note: We sort the resulting JSON object so that the same dictionary always results
-        # in the same hash
+        # NOTE: We intentionally use json.dumps instead of json_encode here for backward
+        # compatibility reasons.
         parameters = getattr(self, "parameters", {})
         parameters = json.dumps(parameters, sort_keys=True)
         parameters = hashlib.md5(parameters.encode()).hexdigest()
@@ -134,7 +136,7 @@ class TriggerInstanceDB(stormbase.StormFoundationDB):
     """
 
     trigger = me.StringField()
-    payload = stormbase.EscapedDictField()
+    payload = JSONDictEscapedFieldCompatibilityField()
     occurrence_time = me.DateTimeField()
     status = me.StringField(
         required=True, help_text="Processing status of TriggerInstance."

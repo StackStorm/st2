@@ -22,7 +22,7 @@ from st2common.util.misc import rstrip_last_char
 from st2common.util.misc import strip_shell_chars
 from st2common.util.misc import lowercase_value
 from st2common.util.misc import sanitize_output
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = ["MiscUtilTestCase"]
 
@@ -65,7 +65,15 @@ class MiscUtilTestCase(unittest2.TestCase):
         expected_value = {"testa": "testb", "testc": "testd", "teste": "teste"}
         self.assertEqual(expected_value, lowercase_value(value=value))
 
-    def test_fast_deepcopy_success(self):
+    def test_fast_deepcopy_dict_success(self):
+        class Foo(object):
+            a = 1
+            b = 2
+            c = 3
+            d = [1, 2, 3]
+
+        obj = Foo()
+
         values = [
             "a",
             "٩(̾●̮̮̃̾•̃̾)۶",
@@ -82,9 +90,26 @@ class MiscUtilTestCase(unittest2.TestCase):
         ]
 
         for value, expected_value in zip(values, expected_values):
-            result = fast_deepcopy(value)
+            result = fast_deepcopy_dict(value)
             self.assertEqual(result, value)
             self.assertEqual(result, expected_value)
+
+        # Non-simple type, should fall back to copy.deepcopy()
+        value = {"a": 1, "b": [1, 2, 3], "c": obj}
+        expected_value = {"a": 1, "b": [1, 2, 3]}
+
+        result = fast_deepcopy_dict(value)
+        result_c = result.pop("c")
+        self.assertEqual(result, expected_value)
+        self.assertEqual(result_c.a, 1)
+        self.assertEqual(result_c.b, 2)
+        self.assertEqual(result_c.c, 3)
+        self.assertEqual(result_c.d, [1, 2, 3])
+
+        # fall_back_to_deepcopy=False
+        self.assertRaises(
+            TypeError, fast_deepcopy_dict, value, fall_back_to_deepcopy=False
+        )
 
     def test_sanitize_output_use_pyt_false(self):
         # pty is not used, \r\n shouldn't be replaced with \n

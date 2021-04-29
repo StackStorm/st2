@@ -75,7 +75,7 @@ class InquiryWiringTest(base.TestWorkflowExecution):
         )
 
         # Allow some time for the first inquiry to get processed.
-        eventlet.sleep(1)
+        eventlet.sleep(2)
 
         # Respond to the second inquiry.
         t2_ac_exs = self._wait_for_task(
