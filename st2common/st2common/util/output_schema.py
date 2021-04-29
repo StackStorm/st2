@@ -20,6 +20,7 @@ import jsonschema
 
 from st2common.util import schema
 from st2common.constants import action as action_constants
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 
 LOG = logging.getLogger(__name__)
@@ -37,16 +38,55 @@ def _validate_runner(runner_schema, result):
     schema.validate(result, runner_schema, cls=schema.get_validator("custom"))
 
 
-def _validate_action(action_schema, result, output_key):
-    LOG.debug("Validating action output: %s", action_schema)
+def _prepare_action_schema(action_schema):
+    """
+    Prepares the final action schema.
 
-    final_result = result[output_key]
+    :param action_schema: action schema of a action execution ouput.
+    :return: final_action_schema: along with type and additionalProperties flag.
+    :rtype: ``dict``.
+    """
 
-    action_schema = {
+    final_action_schema = {
         "type": "object",
         "properties": action_schema,
         "additionalProperties": False,
     }
+
+    return final_action_schema
+
+
+def output_schema_secret_masking(result, output_key, action_schema):
+    """
+    Masks the secret parameters provided in output schema.
+
+    :param result: result of the action execution.
+    :param output_key: key for parsing specific result from action execution result.
+    :param action_schema: action schema of a action execution ouput.
+    :return: final_result: to be displayed in CLI or Web UI with masked secrets.
+    :rtype: ``dict``.
+    """
+
+    final_result = result[output_key]
+
+    final_action_schema = action_schema
+
+    # accessing parameters marked secret as true in the output_schema in
+    # action_schema and masking them for the final result of the output
+    for key in final_action_schema["properties"]:
+        if final_action_schema.get("properties", {}).get(key).get("secret", False):
+            final_result[key] = MASKED_ATTRIBUTE_VALUE
+
+    return final_result
+
+
+def _validate_action(action_schema, result, output_key):
+    LOG.debug("Validating action output: %s", action_schema)
+
+    action_schema = _prepare_action_schema(action_schema)
+    final_result = output_schema_secret_masking(result=result,
+                                                output_key=output_key,
+                                                action_schema=action_schema)
 
     schema.validate(final_result, action_schema, cls=schema.get_validator("custom"))
 

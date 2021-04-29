@@ -58,6 +58,60 @@ ACTION_SCHEMA_FAIL = {
     "not_a_key_you_have": {"type": "string"},
 }
 
+ACTION_SCHEMA_WITH_SECRET_PARAMS = {
+    "type": "object",
+    "properties": {
+        "param_1": {"type": "string", "required": True, "secret": True},
+        "param_2": {"type": "string", "required": True},
+        "param_3": {
+            "type": "string",
+            "required": True,
+            "secret": True,
+            "description": "sample description",
+        },
+    },
+    "additionalProperties": False,
+}
+
+RESULT_BEFORE_MASKING_WITH_SECRET_PARAMS = {
+    "stdout": "",
+    "stderr": "",
+    "exit_code": 0,
+    "result": {
+        "param_1": "to_be_masked",
+        "param_2": "not_to_be_masked",
+        "param_3": "to_be_masked",
+    },
+}
+
+ACTION_SCHEMA_WITHOUT_SECRET_PARAMS = {
+    "type": "object",
+    "properties": {
+        "param_1": {
+            "type": "string",
+            "required": True,
+        },
+        "param_2": {"type": "string", "required": True},
+        "param_3": {
+            "type": "string",
+            "required": True,
+            "description": "sample description",
+        },
+    },
+    "additionalProperties": False,
+}
+
+RESULT_BEFORE_MASKING_WITHOUT_SECRET_PARAMS = {
+    "stdout": "",
+    "stderr": "",
+    "exit_code": 0,
+    "result": {
+        "param_1": "not_to_be_masked",
+        "param_2": "not_to_be_masked",
+        "param_3": "not_to_be_masked",
+    },
+}
+
 OUTPUT_KEY = "output"
 
 
@@ -117,3 +171,39 @@ class OutputSchemaTestCase(unittest2.TestCase):
         self.assertIn(expected_result["error"], result["error"])
         self.assertEqual(result["message"], expected_result["message"])
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+
+    def test_output_schema_secret_masking(self):
+        """Test case for testing final output result for the output schema with secret parameters."""
+
+        OUTPUT_KEY = "result"
+        result = output_schema.output_schema_secret_masking(
+            result=RESULT_BEFORE_MASKING_WITH_SECRET_PARAMS,
+            output_key=OUTPUT_KEY,
+            action_schema=ACTION_SCHEMA_WITH_SECRET_PARAMS,
+        )
+
+        expected_result = {
+            "param_1": MASKED_ATTRIBUTE_VALUE,
+            "param_2": "not_to_be_masked",
+            "param_3": MASKED_ATTRIBUTE_VALUE,
+        }
+
+        self.assertEqual(result, expected_result)
+
+    def test_output_schema_without_secret_params(self):
+        """Test case for testing final output result for the output schema without secret parameters."""
+
+        OUTPUT_KEY = "result"
+        result = output_schema.output_schema_secret_masking(
+            result=RESULT_BEFORE_MASKING_WITHOUT_SECRET_PARAMS,
+            output_key=OUTPUT_KEY,
+            action_schema=ACTION_SCHEMA_WITHOUT_SECRET_PARAMS,
+        )
+
+        expected_result = {
+            "param_1": "not_to_be_masked",
+            "param_2": "not_to_be_masked",
+            "param_3": "not_to_be_masked",
+        }
+
+        self.assertEqual(result, expected_result)
