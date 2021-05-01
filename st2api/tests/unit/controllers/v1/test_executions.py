@@ -1580,6 +1580,14 @@ class ActionExecutionControllerTestCase(
         )
         self.assertEqual(get_resp.body, expected_result)
 
+    def test_get_include_attributes_overlapping_values(self):
+        resp = self.app.get(
+            "/v1/actionexecutions?include_attributes=context,context.user,action"
+        )
+        self.assertIn("context", resp.json[0])
+        self.assertIn("action", resp.json[0])
+        self.assertNotIn("parameters", resp.json[0])
+
     def test_get_include_attributes_and_secret_parameters(self):
         # Verify that secret parameters are correctly masked when using ?include_attributes filter
         self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)
