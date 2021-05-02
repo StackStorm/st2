@@ -632,9 +632,9 @@ class ActionRunCommandMixin(object):
             sys.stdout.write("\n")
 
             if poll_counter == 0 and force_retry_on_finish:
-                # In some situations we want to retry execution details from API
-                # even if it has already finished before performing even a single poll. This ensures
-                # we have the latest data for a particular execution.
+                # In some situations we want to retrieve execution details from API even if it has
+                # already finished before performing even a single poll. This ensures we have the
+                # latest data for a particular execution.
                 execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
 
             if execution.status == LIVEACTION_STATUS_CANCELED:
