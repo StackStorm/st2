@@ -16,6 +16,8 @@ oslo.config
 paramiko
 pyyaml
 pymongo
+# used for optional network level compression for mongodb
+zstandard
 cryptography
 requests
 retrying
@@ -25,6 +27,8 @@ tooz
 # Required by tooz - on new versions of tooz, all the backend dependencies need
 # to be installed manually
 zake
+# default coordinator backend configured for tooz
+redis
 routes
 flex
 webob

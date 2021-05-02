@@ -26,6 +26,11 @@ import hashlib
 import stat
 import re
 
+# This test workaround needs to be used before importing git
+from st2common.util.monkey_patch import use_select_poll_workaround
+
+use_select_poll_workaround()
+
 import six
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject

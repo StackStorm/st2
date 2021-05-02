@@ -1,4 +1,5 @@
 # Remember to list implicit packages here, otherwise version won't be fixated!
+importlib-metadata
 argcomplete
 prettytable
 pytz
@@ -13,7 +14,5 @@ python-editor
 prompt-toolkit
 cryptography
 orjson
-more-itertools==5.0.0
-zipp>=0.5,<=1.0.0
 # needed by requests
 chardet

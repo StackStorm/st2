@@ -1,0 +1,264 @@
+# We run orquesta integration tests as part of a separate workflow.
+# Orquesta tests have a lot of race conditions which result in intermediate failures and timeouts.
+# Utilizing separate workflow allows us to re-run just this workflow / job on failure instead of
+# wasting time and resources by needing to re-run all the jobs.
+name: Orquesta CI
+
+on:
+  push:
+    branches:
+      # only on merges to master branch
+      - master
+      # and version branches, which only include minor versions (eg: v3.4)
+      - v[0-9]+.[0-9]+
+    tags:
+      # also version tags, which include bugfix releases (eg: v3.4.0)
+      - v[0-9]+.[0-9]+.[0-9]+
+  pull_request:
+    type: [opened, reopened, edited]
+    branches:
+      # Only for PRs targeting those branches
+      - master
+      - v[0-9]+.[0-9]+
+  schedule:
+    # run every night at midnight
+    - cron:  '0 0 * * *'
+
+jobs:
+  # Special job which automatically cancels old runs for the same branch, prevents runs for the
+  # same file set which has already passed, etc.
+  pre_job:
+    name: Skip Duplicate Jobs Pre Job
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@4c656bbdb6906310fa6213604828008bc28fe55d # v3.3.0
+        with:
+          cancel_others: 'true'
+          github_token: ${{ github.token }}
+
+  integration-tests:
+    needs: pre_job
+    # NOTE: We always want to run job on master since we run some additional checks there (code
+    # coverage, etc)
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'Integration Tests (Orquesta)'
+            task: 'ci-orquesta'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version: '3.6'
+          - name: 'Integration Tests (Orquesta)'
+            task: 'ci-orquesta'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version: '3.8'
+    services:
+      mongo:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
+
+      rabbitmq:
+        image: rabbitmq:3.8-management
+        options: >-
+          --name rabbitmq
+        ports:
+          - 5671:5671/tcp   # AMQP SSL port
+          - 5672:5672/tcp   # AMQP standard port
+          - 15672:15672/tcp # Management: HTTP, CLI
+
+      # Used for the coordination backend for integration tests
+      # NOTE: To speed things up, we only start redis for integration tests
+      # where it's needed
+      # redis:
+      #   # Docker Hub image
+      #   image: redis
+      #   # Set health checks to wait until redis has started
+      #   options: >-
+      #     --name "redis"
+      #     --health-cmd "redis-cli ping"
+      #     --health-interval 10s
+      #     --health-timeout 5s
+      #     --health-retries 5
+      #   ports:
+      #     - 6379:6379/tcp
+
+    env:
+      TASK: '${{ matrix.task }}'
+
+      NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
+      NODE_INDEX: '${{ matrix.nosetests_node_index }}'
+
+      # We need to explicitly specify terminal width otherwise some CLI tests fail on container
+      # environments where small terminal size is used.
+      COLUMNS: '120'
+
+      # CI st2.conf (with ST2_CI_USER user instead of stanley)
+      ST2_CONF: 'conf/st2.ci.conf'
+
+      # Tell StackStorm that we are indeed in CI mode, previously we hard coded a Travis specific
+      # environment variable in our test code, making it a PITA when we switch CI providers.
+      # Now, we simply set this environment varible here in the CI portion of our testing and
+      # it avoids any CI provider type lock-in.
+      ST2_CI: 'true'
+
+      # Name of the user who is running the CI (on GitHub Actions this is 'runner')
+      ST2_CI_USER: 'runner'
+
+      # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
+      PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Custom Environment Setup
+        run: |
+          ./scripts/github/setup-environment.sh
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: Cache Python Dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+            virtualenv
+            ~/virtualenv
+          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+          # !virtualenv/lib/python*/site-packages/st2*
+          # !virtualenv/bin/st2*
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python }}-
+      - name: Cache APT Dependencies
+        id: cache-apt-deps
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/apt_cache
+          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-v5-
+      - name: Install APT Depedencies
+        env:
+          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
+        run: |
+          # install dev dependencies for Python YAML and LDAP packages
+          # https://github.com/StackStorm/st2-auth-ldap
+          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Install virtualenv
+        run: |
+          ./scripts/github/install-virtualenv.sh
+      - name: Install requirements
+        run: |
+          ./scripts/ci/install-requirements.sh
+      - name: Setup Integration Tests
+        run: |
+          # prep a ci-specific dev conf file that uses runner instead of stanley
+          # this user is the username of the user in GitHub actions, used for SSH, etc during
+          # integration tests (important)
+          cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
+
+          sudo -E ./scripts/ci/add-itest-user-key.sh
+      - name: Run Redis Service Container
+        timeout-minutes: 2
+        run: |
+          docker run --rm --detach -p 127.0.0.1:6379:6379/tcp --name redis redis:latest
+          until [ "$(docker inspect -f {{.State.Running}} redis)" == "true" ]; do sleep 0.1; done
+      - name: Permissions Workaround
+        run: |
+          echo "$ST2_CI_REPO_PATH"
+          sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
+      - name: Print versions
+        run: |
+          ./scripts/ci/print-versions.sh
+      - name: make
+        timeout-minutes: 31
+        env:
+          MAX_ATTEMPTS: 3
+          RETRY_DELAY: 5
+        # use: script -e -c to print colors
+        run: |
+          # There is a race in some orequesta integration tests so they tend to fail quite often.
+          # To avoid needed to re-run whole workflow in such case, we should try to retry this
+          # specific step. This saves us a bunch of time manually re-running the whole workflow.
+          # TODO: Try to identify problematic tests (iirc mostly orquesta ones) and only retry /
+          # re-run those.
+          set +e
+          for i in $(seq 1 ${MAX_ATTEMPTS}); do
+            echo "Attempt: ${i}/${MAX_ATTEMPTS}"
+            script -e -c "timeout 10m make ${TASK}" && exit 0
+            exit_code=$?
+            echo "Command failed / timed out (exit_code=${exit_code}), will retry in ${RETRY_DELAY} seconds..."
+            sleep ${RETRY_DELAY}
+          done
+          set -e
+          echo "Failed after ${MAX_ATTEMPTS} attempts, failing the job."
+          exit 1
+      - name: Upload StackStorm services Logs
+        #if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs/
+      - name: Codecov
+        # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
+        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
+        run: |
+          ./scripts/ci/submit-codecov-coverage.sh
+      - name: Compress Service Logs Before upload
+        if: ${{ failure() }}
+        run: |
+          tar cvzpf logs.tar.gz logs/*
+      - name: Upload StackStorm services Logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.tar.gz
+          retention-days: 7
+      - name: Stop Redis Service Container
+        if: "${{ always() }}"
+        run: docker rm --force redis || true
+
+  slack-notification:
+    name: Slack notification for failed master builds
+    if: always()
+    needs:
+      - integration-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow conclusion
+        # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
+        uses: technote-space/workflow-conclusion-action@v2
+      - name: CI Run Failure Slack Notification
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.ref == 'refs/heads/master' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: development
+          status: FAILED
+          color: danger
+
+      # HELPER FOR FUTURE DEVELOPERS:
+      #  If your GitHub Actions job is failing and you need to debug it, by default there is
+      #  no way to SSH into the container.
+      #  The step below can be uncommeted and will stop here and allow you to SSH in.
+      #  When this step is reached, simply refresh the GitHub Actions output for this build
+      #  and this SSH command will be printed every 5 seconds to the output.
+      #  Once you are done debugging in your SSH session, simply: touch /continue
+      #  and this will continue the build.
+      #
+      # - name: Setup tmate session for debugging failed jobs (allows SSH into the container)
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: "${{ failure() }}"
+      #

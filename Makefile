@@ -1,6 +1,5 @@
 ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
-TOX_DIR := .tox
 OS := $(shell uname)
 
 # We separate the OSX X and Linux virtualenvs so we can run in a Docker
@@ -72,14 +71,14 @@ endif
 # pages and pages and pages of noise.
 # The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
 # See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
-NOSE_OPTS := --rednose --immediate --with-parallel --nocapture --logging-filter=-st2.st2common.bootstrap
+NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
+	NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
 	NOSE_WITH_TIMER := 1
 endif
 
@@ -559,15 +558,19 @@ micro-benchmarks: requirements .micro-benchmarks
 	@echo
 	@echo "==================== micro-benchmarks ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_execution"
-	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_execution"
-	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_multiple_fields"
-	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_string_value"
-	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_string_value"
-	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:dict_keys_count_and_depth -s -v st2common/benchmarks/micro/test_fast_deepcopy.py -k "test_fast_deepcopy_with_dict_values"
-	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_fast_deepcopy.py -k "test_fast_deepcopy_with_json_fixture_file"
-	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file,param:indent_sort_keys_tuple -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py  -k "test_json_dumps"
-	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py  -k "test_json_loads"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_multiple_fields"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_string_value"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_string_value"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_transport_compression.py -k "test_save_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_transport_compression.py -k "test_read_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:dict_keys_count_and_depth -s -v st2common/benchmarks/micro/test_fast_deepcopy.py -k "test_fast_deepcopy_with_dict_values"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_fast_deepcopy.py -k "test_fast_deepcopy_with_json_fixture_file"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file,param:indent_sort_keys_tuple -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py -k "test_json_dumps"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py -k "test_json_loads"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_publisher_compression.py -k "test_pickled_object_compression"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_publisher_compression.py -k "test_pickled_object_compression_publish"
 
 .PHONY: .cleanmongodb
 .cleanmongodb:
@@ -895,15 +898,16 @@ endif
 			nosetests $(NOSE_OPTS) -s -v \
 			$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/integration || exit 1; \
 	done
-	@echo
-	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
-	@echo "The tests assume st2 is running on 127.0.0.1."
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; \
-		COVERAGE_FILE=.coverage.integration.orquesta \
-		nosetests $(NOSE_OPTS) -s -v \
-		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
-
+	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
+	# ci-integration-full target
+#	@echo
+#	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
+#	@echo "The tests assume st2 is running on 127.0.0.1."
+#	@echo
+#	. $(VIRTUALENV_DIR)/bin/activate; \
+@#		COVERAGE_FILE=.coverage.integration.orquesta \
+@#		nosetests $(NOSE_OPTS) -s -v \
+@#		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
@@ -1137,6 +1141,10 @@ ci-unit: .unit-tests-coverage-html
 	@echo
 	sudo -E ./scripts/github/prepare-integration.sh
 
+.PHONY: ci-integration-full
+ci-integration-full: .ci-prepare-integration .itests-coverage-html  .orquesta-itests-coverage-html
+
+# All integration tests minus orquesta ones
 .PHONY: ci-integration
 ci-integration: .ci-prepare-integration .itests-coverage-html
 

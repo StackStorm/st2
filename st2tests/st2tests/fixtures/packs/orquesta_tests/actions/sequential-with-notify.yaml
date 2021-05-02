@@ -1,0 +1,17 @@
+---
+name: sequential-notify
+description: A basic sequential workflow with notify on-complete.
+pack: orquesta_tests
+runner_type: orquesta
+entry_point: workflows/sequential.yaml
+enabled: true
+notify:
+  on-complete:
+    routes:
+      - hubot
+parameters:
+  who:
+    required: true
+    type: string
+    default: Stanley
+

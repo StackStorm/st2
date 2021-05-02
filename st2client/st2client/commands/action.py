@@ -1473,6 +1473,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
         "end_timestamp",
         "log",
     ]
+    pk_argument_name = "id"
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionGetCommand, self).__init__(
@@ -1484,7 +1485,9 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
         )
 
         self.parser.add_argument(
-            "id", help=("ID of the %s." % resource.get_display_name().lower())
+            "id",
+            nargs="+",
+            help=("ID of the %s." % resource.get_display_name().lower()),
         )
         self.parser.add_argument(
             "-x",
@@ -1510,21 +1513,21 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
         if args.exclude_result:
             kwargs["params"] = {"exclude_attributes": "result"}
 
-        execution = self.get_resource_by_id(id=args.id, **kwargs)
-        return execution
+        resource_ids = getattr(args, self.pk_argument_name, None)
+        resources = self._get_multiple_resources(
+            resource_ids=resource_ids, kwargs=kwargs
+        )
+        return resources
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
-        try:
-            execution = self.run(args, **kwargs)
+        executions = self.run(args, **kwargs)
 
+        for execution in executions:
             if not args.json and not args.yaml:
                 # Include elapsed time for running executions
                 execution = format_execution_status(execution)
-        except resource.ResourceNotFoundError:
-            self.print_not_found(args.id)
-            raise ResourceNotFoundError("Execution with id %s not found." % (args.id))
-        return self._print_execution_details(execution=execution, args=args, **kwargs)
+            self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
 class ActionExecutionCancelCommand(resource.ResourceCommand):

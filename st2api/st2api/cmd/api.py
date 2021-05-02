@@ -33,9 +33,9 @@ from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2api import config
 
-config.register_opts()
-from st2api import app
+config.register_opts(ignore_errors=True)
 
+from st2api import app
 from st2api.validation import validate_rbac_is_correctly_configured
 
 __all__ = ["main"]

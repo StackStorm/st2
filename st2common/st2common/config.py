@@ -36,15 +36,19 @@ def do_register_opts(opts, group=None, ignore_errors=False):
             raise
 
 
-def do_register_cli_opts(opt, ignore_errors=False):
+def do_register_cli_opts(opt, ignore_errors=False, group=None):
     # TODO: This function has broken name, it should work with lists :/
     if not isinstance(opt, (list, tuple)):
         opts = [opt]
     else:
         opts = opt
 
+    kwargs = {}
+    if group:
+        kwargs["group"] = group
+
     try:
-        cfg.CONF.register_cli_opts(opts)
+        cfg.CONF.register_cli_opts(opts, **kwargs)
     except:
         if not ignore_errors:
             raise
@@ -239,6 +243,20 @@ def register_opts(ignore_errors=False):
             "By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, "
             "MONGODB-CR (MongoDB Challenge Response protocol) for older servers.",
         ),
+        cfg.StrOpt(
+            "compressors",
+            default="",
+            help="Comma delimited string of compression algorithms to use for transport level "
+            "compression. Actual algorithm will then be decided based on the algorithms "
+            "supported by the client and the server. For example: zstd. Defaults to no "
+            "compression. Keep in mind that zstd is only supported with MongoDB 4.2 and later.",
+        ),
+        cfg.IntOpt(
+            "zlib_compression_level",
+            default="",
+            help="Compression level when compressors is set to zlib. Valid calues are -1 to 9. "
+            "Defaults to 6.",
+        ),
     ]
 
     do_register_opts(db_opts, "database", ignore_errors)
@@ -299,6 +317,13 @@ def register_opts(ignore_errors=False):
             "login_method",
             default=None,
             help="Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).",
+        ),
+        cfg.StrOpt(
+            "compression",
+            default=None,
+            help="Compression algorithm to use for compressing the payloads which are sent over "
+            "the message bus. Valid values include: zstd, lzma, bz2, gzip. Defaults to no "
+            "compression.",
         ),
     ]
 
@@ -454,7 +479,9 @@ def register_opts(ignore_errors=False):
         ),
     ]
 
-    do_register_opts(action_runner_opts, group="actionrunner")
+    do_register_opts(
+        action_runner_opts, group="actionrunner", ignore_errors=ignore_errors
+    )
 
     dispatcher_pool_opts = [
         cfg.IntOpt(
@@ -469,7 +496,9 @@ def register_opts(ignore_errors=False):
         ),
     ]
 
-    do_register_opts(dispatcher_pool_opts, group="actionrunner")
+    do_register_opts(
+        dispatcher_pool_opts, group="actionrunner", ignore_errors=ignore_errors
+    )
 
     ssh_runner_opts = [
         cfg.StrOpt(
@@ -505,7 +534,7 @@ def register_opts(ignore_errors=False):
         ),
     ]
 
-    do_register_opts(ssh_runner_opts, group="ssh_runner")
+    do_register_opts(ssh_runner_opts, group="ssh_runner", ignore_errors=ignore_errors)
 
     # Common options (used by action runner and sensor container)
     action_sensor_opts = [
@@ -521,7 +550,9 @@ def register_opts(ignore_errors=False):
         ),
     ]
 
-    do_register_opts(action_sensor_opts, group="action_sensor")
+    do_register_opts(
+        action_sensor_opts, group="action_sensor", ignore_errors=ignore_errors
+    )
 
     # Common options for content
     pack_lib_opts = [
@@ -538,7 +569,7 @@ def register_opts(ignore_errors=False):
         )
     ]
 
-    do_register_opts(pack_lib_opts, group="packs")
+    do_register_opts(pack_lib_opts, group="packs", ignore_errors=ignore_errors)
 
     # Coordination options
     coord_opts = [
@@ -719,8 +750,8 @@ def register_opts(ignore_errors=False):
     )
 
 
-def parse_args(args=None):
-    register_opts()
+def parse_args(args=None, ignore_errors=False):
+    register_opts(ignore_errors=ignore_errors)
     cfg.CONF(
         args=args,
         version=VERSION_STRING,
