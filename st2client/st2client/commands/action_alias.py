@@ -256,7 +256,7 @@ class ActionAliasTestCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         # 3. Run chatops.format_result action with the result of the completed execution
         print("")
-        print("Execution (%s) has finished, rendering result..." % (execution_id))
+        print(f"Execution ({execution_id}) has finished, rendering result...")
         print("")
 
         format_execution = Execution()
