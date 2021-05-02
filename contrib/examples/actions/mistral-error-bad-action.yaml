@@ -1,7 +1,0 @@
----
-description: A sample workflow for testing error handling if action does not exist.
-enabled: true
-entry_point: workflows/tests/mistral-error-bad-action.yaml
-name: mistral-error-bad-action
-pack: examples
-runner_type: mistral-v2

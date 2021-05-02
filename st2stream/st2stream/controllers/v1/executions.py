@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -134,7 +135,10 @@ class ActionExecutionOutputStreamController(ResourceController):
 
         def make_response():
             app_iter = itertools.chain(existing_output_iter(), new_output_iter())
-            res = Response(content_type='text/event-stream', app_iter=app_iter)
+            res = Response(headerlist=[("X-Accel-Buffering", "no"),
+                ('Cache-Control', 'no-cache'),
+                ("Content-Type", "text/event-stream; charset=UTF-8")],
+                app_iter=app_iter)
             return res
 
         res = make_response()

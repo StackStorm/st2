@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -128,10 +129,8 @@ class TimersController(resource.ContentPackResourceController):
         # Note: Permission checking for creating and deleting a timer is done during rule
         # creation
         ref = self._get_timer_ref(trigger)
-
-        removed = self._timers.remove_trigger(ref, trigger)
-        if removed:
-            LOG.info('Stopped timer %s with parameters %s.', ref, trigger['parameters'])
+        self._timers.remove_trigger(ref, trigger)
+        LOG.info('Stopped timer %s with parameters %s.', ref, trigger['parameters'])
 
     def _register_timer_trigger_types(self):
         for trigger_type in TIMER_TRIGGER_TYPES.values():

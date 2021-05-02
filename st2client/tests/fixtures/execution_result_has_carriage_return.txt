@@ -46,9 +46,7 @@
 |                 | st2api PID: 16614                                            |
 |                 | sensor_container is not running                              |
 |                 | history PID: 16616                                           |
-|                 | rules_engine PID: 16617                                      |
-|                 | mistral PID: 16624                                           |
-|                 | mistral PID: 16625"                                          |
+|                 | rules_engine PID: 16617"                                     |
 |                 |         }                                                    |
 |                 |     },                                                       |
 |                 |     "delete": {                                              |

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -407,7 +408,7 @@ class Shell(BaseCLIApp):
             func(args)
 
             return 0
-        except OperationFailureException as e:
+        except OperationFailureException:
             if debug:
                 self._print_debug_info(args=args)
             return 2

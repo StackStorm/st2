@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -117,7 +118,8 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         with term.TaskIndicator() as indicator:
             events = ['st2.execution__create', 'st2.execution__update']
-            for event in stream_mgr.listen(events, **kwargs):
+            for event in stream_mgr.listen(events, end_execution_id=parent_id,
+                    end_event="st2.execution__update", **kwargs):
                 execution = Execution(**event)
 
                 if execution.id == parent_id \
@@ -282,6 +284,10 @@ class PackInstallCommand(PackAsyncCommand):
             self.print_output(pack_instances, table.MultiColumnTable,
                               attributes=args.attr, widths=args.width,
                               json=args.json, yaml=args.yaml)
+
+        warnings = instance.result['output']['warning_list']
+        for warning in warnings:
+            print(warning)
 
 
 class PackRemoveCommand(PackAsyncCommand):

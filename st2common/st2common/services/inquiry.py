@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -129,7 +130,7 @@ def respond(inquiry, response, requester=None):
     if liveaction_db.context.get('parent'):
         LOG.debug('Resuming workflow parent(s) for inquiry "%s".' % str(inquiry.id))
 
-        # For action execution under Action Chain and Mistral workflows, request the entire
+        # For action execution under Action Chain workflows, request the entire
         # workflow to resume. Orquesta handles resume differently and so does not require root
         # to resume. Orquesta allows for specifc branches to resume while other is paused. When
         # there is no other paused branches, the conductor will resume the rest of the workflow.

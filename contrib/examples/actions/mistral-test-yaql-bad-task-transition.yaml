@@ -1,7 +1,0 @@
----
-name: mistral-test-yaql-bad-task-transition
-pack: examples
-description: A sample workflow used to test bad task transition statement.
-enabled: true
-entry_point: workflows/tests/mistral-test-yaql-bad-task-transition.yaml
-runner_type: mistral-v2

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -209,7 +210,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
 
                 try:
                     syncer.sync(user_db=user_db, groups=user_groups)
-                except Exception as e:
+                except Exception:
                     # Note: Failed sync is not fatal
                     LOG.exception('Failed to synchronize remote groups for user "%s"' % (username),
                                   extra=extra)

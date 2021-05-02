@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -278,7 +279,7 @@ def get_pack_file_abs_path(pack_ref, file_path, resource_type=None, use_pack_cac
         raise ValueError(msg)
 
     path_components.append(normalized_file_path)
-    result = os.path.join(*path_components)
+    result = os.path.join(*path_components)     # pylint: disable=E1120
 
     assert normalized_file_path in result
 
@@ -322,7 +323,7 @@ def get_pack_resource_file_abs_path(pack_ref, resource_type, file_path):
         raise ValueError('Invalid resource type: %s' % (resource_type))
 
     path_components.append(file_path)
-    file_path = os.path.join(*path_components)
+    file_path = os.path.join(*path_components)  # pylint: disable=E1120
     result = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path,
                                     resource_type=resource_type)
     return result

@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,16 +131,16 @@ MOCK_LIVEACTION_3_SUCCEDED = {
     'status': LIVEACTION_STATUS_SUCCEEDED
 }
 
-# Mock objects for Mistral workflow execution
+# Mock objects for Orquesta workflow execution
 MOCK_LIVEACTION_4_RUNNING = {
     'id': 'idfoo4',
     'status': LIVEACTION_STATUS_RUNNING
 }
 
 MOCK_LIVEACTION_4_CHILD_1_RUNNING = {
-    'id': 'idmistralchild1',
+    'id': 'idorquestachild1',
     'context': {
-        'mistral': {
+        'orquesta': {
             'task_name': 'task_1'
         },
         'parent': {
@@ -150,22 +151,22 @@ MOCK_LIVEACTION_4_CHILD_1_RUNNING = {
 }
 
 MOCK_LIVEACTION_4_CHILD_1_1_RUNNING = {
-    'id': 'idmistralchild1_1',
+    'id': 'idorquestachild1_1',
     'context': {
-        'mistral': {
+        'orquesta': {
             'task_name': 'task_1'
         },
         'parent': {
-            'execution_id': 'idmistralchild1'
+            'execution_id': 'idorquestachild1'
         }
     },
     'status': LIVEACTION_STATUS_RUNNING
 }
 
 MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED = {
-    'id': 'idmistralchild1',
+    'id': 'idorquestachild1',
     'context': {
-        'mistral': {
+        'orquesta': {
             'task_name': 'task_1',
         },
         'parent': {
@@ -176,50 +177,50 @@ MOCK_LIVEACTION_4_CHILD_1_SUCCEEDED = {
 }
 
 MOCK_LIVEACTION_4_CHILD_1_1_SUCCEEDED = {
-    'id': 'idmistralchild1_1',
+    'id': 'idorquestachild1_1',
     'context': {
-        'mistral': {
+        'orquesta': {
             'task_name': 'task_1',
         },
         'parent': {
-            'execution_id': 'idmistralchild1'
+            'execution_id': 'idorquestachild1'
         }
     },
     'status': LIVEACTION_STATUS_SUCCEEDED
 }
 
 MOCK_LIVEACTION_4_CHILD_1_OUTPUT_1 = {
-    'execution_id': 'idmistralchild1',
+    'execution_id': 'idorquestachild1',
     'timestamp': '1505732598',
     'output_type': 'stdout',
-    'data': 'line mistral 4\n'
+    'data': 'line orquesta 4\n'
 }
 
 MOCK_LIVEACTION_4_CHILD_1_OUTPUT_2 = {
-    'execution_id': 'idmistralchild1',
+    'execution_id': 'idorquestachild1',
     'timestamp': '1505732598',
     'output_type': 'stderr',
-    'data': 'line mistral 5\n'
+    'data': 'line orquesta 5\n'
 }
 
 MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_1 = {
-    'execution_id': 'idmistralchild1_1',
+    'execution_id': 'idorquestachild1_1',
     'timestamp': '1505732598',
     'output_type': 'stdout',
-    'data': 'line mistral 4\n'
+    'data': 'line orquesta 4\n'
 }
 
 MOCK_LIVEACTION_4_CHILD_1_1_OUTPUT_2 = {
-    'execution_id': 'idmistralchild1_1',
+    'execution_id': 'idorquestachild1_1',
     'timestamp': '1505732598',
     'output_type': 'stderr',
-    'data': 'line mistral 5\n'
+    'data': 'line orquesta 5\n'
 }
 
 MOCK_LIVEACTION_4_CHILD_2_RUNNING = {
-    'id': 'idmistralchild2',
+    'id': 'idorquestachild2',
     'context': {
-        'mistral': {
+        'orquesta': {
             'task_name': 'task_2',
         },
         'parent': {
@@ -230,9 +231,9 @@ MOCK_LIVEACTION_4_CHILD_2_RUNNING = {
 }
 
 MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT = {
-    'id': 'idmistralchild2',
+    'id': 'idorquestachild2',
     'context': {
-        'mistral': {
+        'orquesta': {
             'task_name': 'task_2',
         },
         'parent': {
@@ -243,10 +244,10 @@ MOCK_LIVEACTION_4_CHILD_2_TIMED_OUT = {
 }
 
 MOCK_LIVEACTION_4_CHILD_2_OUTPUT_1 = {
-    'execution_id': 'idmistralchild2',
+    'execution_id': 'idorquestachild2',
     'timestamp': '1505732598',
     'output_type': 'stdout',
-    'data': 'line mistral 100\n'
+    'data': 'line orquesta 100\n'
 }
 
 MOCK_LIVEACTION_4_SUCCEDED = {
@@ -446,7 +447,7 @@ Execution idfoo3 has completed (status=succeeded).
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_4_RUNNING),
                                                      200, 'OK')))
     @mock.patch('st2client.client.StreamManager', autospec=True)
-    def test_tail_mistral_workflow_execution(self, mock_stream_manager):
+    def test_tail_orquesta_workflow_execution(self, mock_stream_manager):
         argv = ['execution', 'tail', 'idfoo4']
 
         MOCK_EVENTS = [
@@ -492,17 +493,17 @@ Execution idfoo3 has completed (status=succeeded).
         expected_result = """
 Execution idfoo4 has started.
 
-Child execution (task=task_1) idmistralchild1 has started.
+Child execution (task=task_1) idorquestachild1 has started.
 
-line mistral 4
-line mistral 5
+line orquesta 4
+line orquesta 5
 
-Child execution (task=task_1) idmistralchild1 has finished (status=succeeded).
-Child execution (task=task_2) idmistralchild2 has started.
+Child execution (task=task_1) idorquestachild1 has finished (status=succeeded).
+Child execution (task=task_2) idorquestachild2 has started.
 
-line mistral 100
+line orquesta 100
 
-Child execution (task=task_2) idmistralchild2 has finished (status=timeout).
+Child execution (task=task_2) idorquestachild2 has finished (status=timeout).
 
 Execution idfoo4 has completed (status=succeeded).
 """.lstrip()
@@ -514,7 +515,7 @@ Execution idfoo4 has completed (status=succeeded).
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(MOCK_LIVEACTION_4_RUNNING),
                                                      200, 'OK')))
     @mock.patch('st2client.client.StreamManager', autospec=True)
-    def test_tail_double_nested_mistral_workflow_execution(self, mock_stream_manager):
+    def test_tail_double_nested_orquesta_workflow_execution(self, mock_stream_manager):
         argv = ['execution', 'tail', 'idfoo4']
 
         MOCK_EVENTS = [
@@ -583,21 +584,21 @@ Execution idfoo4 has completed (status=succeeded).
         expected_result = """
 Execution idfoo4 has started.
 
-Child execution (task=task_1) idmistralchild1 has started.
+Child execution (task=task_1) idorquestachild1 has started.
 
-Child execution (task=task_1) idmistralchild1_1 has started.
+Child execution (task=task_1) idorquestachild1_1 has started.
 
-line mistral 4
-line mistral 5
+line orquesta 4
+line orquesta 5
 
-Child execution (task=task_1) idmistralchild1_1 has finished (status=succeeded).
+Child execution (task=task_1) idorquestachild1_1 has finished (status=succeeded).
 
-Child execution (task=task_1) idmistralchild1 has finished (status=succeeded).
-Child execution (task=task_2) idmistralchild2 has started.
+Child execution (task=task_1) idorquestachild1 has finished (status=succeeded).
+Child execution (task=task_2) idorquestachild2 has started.
 
-line mistral 100
+line orquesta 100
 
-Child execution (task=task_2) idmistralchild2 has finished (status=timeout).
+Child execution (task=task_2) idorquestachild2 has finished (status=timeout).
 
 Execution idfoo4 has completed (status=succeeded).
 """.lstrip()
@@ -645,11 +646,11 @@ Execution idfoo4 has completed (status=succeeded).
         stderr = self.stderr.getvalue()
 
         expected_result = """
-Child execution (task=task_2) idmistralchild2 has started.
+Child execution (task=task_2) idorquestachild2 has started.
 
-line mistral 100
+line orquesta 100
 
-Child execution (task=task_2) idmistralchild2 has finished (status=timeout).
+Child execution (task=task_2) idorquestachild2 has finished (status=timeout).
 """.lstrip()
 
         self.assertEqual(stdout, expected_result)

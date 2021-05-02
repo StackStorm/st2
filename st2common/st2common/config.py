@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -471,57 +472,8 @@ def register_opts(ignore_errors=False):
 
     do_register_opts(coord_opts, 'coordination', ignore_errors)
 
-    # Mistral options
-    mistral_opts = [
-        cfg.StrOpt(
-            'v2_base_url', default='http://127.0.0.1:8989/v2',
-            help='v2 API root endpoint.'),
-        cfg.IntOpt(
-            'retry_exp_msec', default=1000,
-            help='Multiplier for the exponential backoff.'),
-        cfg.IntOpt(
-            'retry_exp_max_msec', default=300000,
-            help='Max time for each set of backoff.'),
-        cfg.IntOpt(
-            'retry_stop_max_msec', default=600000,
-            help='Max time to stop retrying.'),
-        cfg.StrOpt(
-            'keystone_username', default=None,
-            help='Username for authentication.'),
-        cfg.StrOpt(
-            'keystone_password', default=None,
-            help='Password for authentication.'),
-        cfg.StrOpt(
-            'keystone_project_name', default=None,
-            help='OpenStack project scope.'),
-        cfg.StrOpt(
-            'keystone_auth_url', default=None,
-            help='Auth endpoint for Keystone.'),
-        cfg.StrOpt(
-            'cacert', default=None,
-            help='Optional certificate to validate endpoint.'),
-        cfg.BoolOpt(
-            'insecure', default=False,
-            help='Allow insecure communication with Mistral.'),
-        cfg.BoolOpt(
-            'enable_polling', default=False,
-            help='Enable results tracking and disable callbacks.'),
-        cfg.FloatOpt(
-            'jitter_interval', default=0.1,
-            help='Jitter interval to smooth out HTTP requests '
-                 'to mistral tasks and executions API.'),
-        cfg.StrOpt(
-            'api_url', default=None,
-            help='URL Mistral uses to talk back to the API.'
-                 'If not provided it defaults to public API URL. '
-                 'Note: This needs to be a base URL without API '
-                 'version (e.g. http://127.0.0.1:9101)')
-    ]
-
-    do_register_opts(mistral_opts, group='mistral', ignore_errors=ignore_errors)
-
     # Results Tracker query module options
-    # Note that these are currently used only by mistral query module.
+    # Note that these are currently not used
     query_opts = [
         cfg.IntOpt(
             'thread_pool_size', default=10,

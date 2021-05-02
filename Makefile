@@ -15,17 +15,18 @@ else
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
-PYTHON_VERSION ?= python2.7
+# Assign PYTHON_VERSION if it doesn't already exist
+PYTHON_VERSION ?= python3
 
 BINARIES := bin
 
 # All components are prefixed by st2 and not .egg-info.
 COMPONENTS := $(shell ls -a | grep ^st2 | grep -v .egg-info)
 COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
+MOCK_RUNNERS := $(wildcard st2common/tests/runners/*)
 COMPONENTS_WITHOUT_ST2TESTS := $(shell ls -a | grep ^st2 | grep -v .egg-info | grep -v st2tests | grep -v st2exporter)
 
 COMPONENTS_WITH_RUNNERS := $(COMPONENTS) $(COMPONENTS_RUNNERS)
-COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER := $(foreach component,$(filter-out contrib/runners/mistral_v2,$(COMPONENTS_WITH_RUNNERS)),$(component))
 
 COMPONENTS_TEST_DIRS := $(wildcard st2*/tests) $(wildcard contrib/runners/*/tests)
 
@@ -43,15 +44,15 @@ space_char :=
 space_char +=
 COMPONENT_PYTHONPATH = $(subst $(space_char),:,$(realpath $(COMPONENTS_WITH_RUNNERS)))
 COMPONENTS_TEST := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS)),$(component))
-COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER := $(foreach component,$(filter-out $(COMPONENT_SPECIFIC_TESTS),$(COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER)),$(component))
 COMPONENTS_TEST_COMMA := $(subst $(slash),$(dot),$(subst $(space_char),$(comma),$(COMPONENTS_TEST)))
 COMPONENTS_TEST_MODULES := $(subst $(slash),$(dot),$(COMPONENTS_TEST_DIRS))
 COMPONENTS_TEST_MODULES_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST_MODULES))
 
-COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.* .coverage.mistral.*
+COVERAGE_GLOBS := .coverage.unit.* .coverage.integration.*
 COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 
 REQUIREMENTS := test-requirements.txt requirements.txt
+
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
 PIP_VERSION ?= 20.0.2
@@ -61,14 +62,14 @@ ifndef PYLINT_CONCURRENCY
 	PYLINT_CONCURRENCY := 1
 endif
 
-NOSE_OPTS := --rednose --immediate --with-parallel
+NOSE_OPTS := --rednose --immediate --with-parallel --nocapture
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer
+	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture
 	NOSE_WITH_TIMER := 1
 endif
 
@@ -108,13 +109,13 @@ all: requirements configgen check tests
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
+	@echo PYTHON_VERSION=$(PYTHON_VERSION) \($$($(PYTHON_VERSION) --version)\)
+	@echo
 	@echo COVERAGE_GLOBS=$(COVERAGE_GLOBS_QUOTED)
 	@echo
 	@echo COMPONENTS=$(COMPONENTS)
 	@echo
 	@echo COMPONENTS_WITH_RUNNERS=$(COMPONENTS_WITH_RUNNERS)
-	@echo
-	@echo COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER=$(COMPONENTS_WITH_RUNNERS_WITHOUT_MISTRAL_RUNNER)
 	@echo
 	@echo COMPONENTS_TEST=$(COMPONENTS_TEST)
 	@echo
@@ -126,13 +127,9 @@ play:
 	@echo
 	@echo COMPONENTS_TEST_MODULES_COMMA=$(COMPONENTS_TEST_MODULES_COMMA)
 	@echo
-	@echo COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER=$(COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER)
-	@echo
 	@echo COMPONENT_PYTHONPATH=$(COMPONENT_PYTHONPATH)
 	@echo
-	@echo TRAVIS_PULL_REQUEST=$(TRAVIS_PULL_REQUEST)
-	@echo
-	@echo TRAVIS_EVENT_TYPE=$(TRAVIS_EVENT_TYPE)
+	@echo GITHUB_EVENT_NAME=$(GITHUB_EVENT_NAME)
 	@echo
 	@echo NOSE_OPTS=$(NOSE_OPTS)
 	@echo
@@ -159,6 +156,18 @@ install-runners:
 	@for component in $(COMPONENTS_RUNNERS); do \
 		echo "==========================================================="; \
 		echo "Installing runner:" $$component; \
+		echo "==========================================================="; \
+		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
+	done
+
+.PHONY: install-mock-runners
+install-mock-runners:
+	@echo ""
+	@echo "================== INSTALL MOCK RUNNERS ===================="
+	@echo ""
+	@for component in $(MOCK_RUNNERS); do \
+		echo "==========================================================="; \
+		echo "Installing mock runner:" $$component; \
 		echo "==========================================================="; \
 		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
 	done
@@ -219,8 +228,7 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
-
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -256,7 +264,7 @@ checklogs:
 	@echo
 	@echo "================== LOG WATCHER ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; ./tools/log_watcher.py 10
+	. $(VIRTUALENV_DIR)/bin/activate; python ./tools/log_watcher.py 10
 
 .PHONY: pylint
 pylint: requirements .pylint
@@ -322,7 +330,7 @@ lint-api-spec: requirements .lint-api-spec
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf
 
 .PHONY: generate-api-spec
 generate-api-spec: requirements .generate-api-spec
@@ -336,14 +344,14 @@ generate-api-spec: requirements .generate-api-spec
 	echo "# Edit st2common/st2common/openapi.yaml.j2 and then run" >> st2common/st2common/openapi.yaml
 	echo "# make .generate-api-spec" >> st2common/st2common/openapi.yaml
 	echo "# to generate the final spec file" >> st2common/st2common/openapi.yaml
-	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf >> st2common/st2common/openapi.yaml
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf >> st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
 circle-lint-api-spec:
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf || echo "Open API spec lint failed."
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf || echo "Open API spec lint failed."
 
 .PHONY: flake8
 flake8: requirements .flake8
@@ -382,11 +390,12 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
 	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
 	# Setuptools 42 added support for python_requires, which is used by the configparser package,
 	# which is required by the importlib-metadata package
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
+
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"
@@ -410,17 +419,11 @@ lint: requirements .lint
 .PHONY: clean
 clean: .cleanpycs
 
-.PHONY: compile
-compile:
-	@echo "======================= compile ========================"
-	@echo "------- Compile all .py files (syntax check test - Python 2) ------"
-	@if python -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox"), quiet=True)' | grep .; then exit 1; else exit 0; fi
-
 .PHONY: compilepy3
 compilepy3:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 3) ------"
-	@if python3 -c 'import compileall,re; compileall.compile_dir(".", rx=re.compile(r"/virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test"), quiet=True)' | grep .; then exit 1; else exit 0; fi
+	python3 -m compileall -f -q -x 'virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test' .
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -436,7 +439,7 @@ compilepy3:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py | -name inquiry\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py -name \*.py ! -name compat\.py ! -name inquiry\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
@@ -455,16 +458,6 @@ compilepy3:
 	@mongo --eval "rs.initiate()"
 	@sleep 15
 
-.PHONY: .cleanmysql
-.cleanmysql:
-	@echo "==================== cleanmysql ===================="
-	@echo "----- Dropping all Mistral MYSQL databases -----"
-	@mysql -uroot -pStackStorm -e "DROP DATABASE IF EXISTS mistral"
-	@mysql -uroot -pStackStorm -e "CREATE DATABASE mistral"
-	@mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'127.0.0.1' IDENTIFIED BY 'StackStorm'"
-	@mysql -uroot -pStackStorm -e "FLUSH PRIVILEGES"
-	@/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/tools/sync_db.py --config-file /etc/mistral/mistral.conf
-
 .PHONY: .cleanrabbitmq
 .cleanrabbitmq:
 	@echo "==================== cleanrabbitmq ===================="
@@ -479,7 +472,7 @@ compilepy3:
 	@echo "Removing all coverage results directories"
 	@echo
 	rm -rf .coverage $(COVERAGE_GLOBS) \
-		.coverage.unit .coverage.integration .coverage.mistral
+		.coverage.unit .coverage.integration
 
 .PHONY: distclean
 distclean: clean
@@ -524,10 +517,17 @@ distclean: clean
 	@echo "==========================================================="
 
 .PHONY: requirements
-requirements: virtualenv .requirements .sdist-requirements install-runners
+requirements: virtualenv .requirements .sdist-requirements install-runners install-mock-runners
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
+	# Show pip installed packages before we start
+	$(VIRTUALENV_DIR)/bin/pip list
+
+	# Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
+	#       only have to update it one place when we change the version
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
+
 	# setuptools >= 41.0.1 is required for packs.install in dev envs
 	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
@@ -536,18 +536,10 @@ requirements: virtualenv .requirements .sdist-requirements install-runners
 	# Fix for Travis CI race
 	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
 
-	# Fix for Travis CI caching issue
-	if [[ "$(TRAVIS_EVENT_TYPE)" != "" ]]; then\
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"; \
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"; \
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"; \
-	fi
-
 	# Install requirements
-	#
 	for req in $(REQUIREMENTS); do \
-			echo "Installing $$req..." ; \
-			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
+		echo "Installing $$req..." ; \
+		$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
 	done
 
 	# Install st2common package to load drivers defined in st2common setup.py
@@ -567,9 +559,23 @@ requirements: virtualenv .requirements .sdist-requirements install-runners
 	# make targets. This speeds up the build
 	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
-	# Some of the tests rely on submodule so we need to make sure submodules are check out
-	git submodule update --recursive --remote
+	# Install st2auth to register SSO drivers
+	# NOTE: We pass --no-deps to the script so we don't install all the
+	# package dependencies which are already installed as part of "requirements"
+	# make targets. This speeds up the build
+	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
+	# Some of the tests rely on submodule so we need to make sure submodules are check out
+	git submodule update --init --recursive --remote
+
+	# Show currently install requirements
+	$(VIRTUALENV_DIR)/bin/pip list
+
+.PHONY: check-dependency-conflicts
+check-dependency-conflicts:
+	@echo
+	@echo "==================== check-dependency-conflicts ===================="
+	@echo
 	# Verify there are no conflicting dependencies
 	cat st2*/requirements.txt contrib/runners/*/requirements.txt | sort -u > req.txt && \
 	$(VIRTUALENV_DIR)/bin/pip-compile req.txt; \
@@ -619,14 +625,17 @@ endif
 	#echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
 	#touch $(VIRTUALENV_DIR)/bin/activate.fish
 
+	# debug pip installed packages
+	$(VIRTUALENV_DIR)/bin/pip list
+
 .PHONY: tests
 tests: pytests
 
 .PHONY: pytests
-pytests: compile requirements .flake8 .pylint .pytests-coverage
+pytests: compilepy3 requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile .configgen .generate-api-spec .unit-tests clean
+.pytests: compilepy3 .configgen .generate-api-spec .unit-tests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html clean
@@ -663,7 +672,7 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
-	for component in $(COMPONENTS_TEST_WITHOUT_MISTRAL_RUNNER); do\
+	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
@@ -722,13 +731,13 @@ itests: requirements .itests
 	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    nosetests $(NOSE_OPTS) -s -v \
 		    $$component/tests/integration || exit 1; \
 		echo "-----------------------------------------------------------"; \
-		echo "Done running tests in" $$component; \
+		echo "Done running integration tests in" $$component; \
 		echo "==========================================================="; \
 	done
 
@@ -744,7 +753,7 @@ endif
 	@mongo st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
@@ -752,7 +761,7 @@ endif
 		    $(NOSE_COVERAGE_PACKAGES) \
 		    $$component/tests/integration || exit 1; \
 		echo "-----------------------------------------------------------"; \
-		echo "Done running tests in" $$component; \
+		echo "Done integration running tests in" $$component; \
 		echo "==========================================================="; \
 	done
 	@echo
@@ -761,7 +770,7 @@ endif
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
@@ -814,43 +823,8 @@ endif
 .PHONY: .itests-coverage-html
 .itests-coverage-html: .integration-tests-coverage-html
 
-.PHONY: mistral-itests
-mistral-itests: requirements .mistral-itests
-
-.PHONY: .mistral-itests
-.mistral-itests:
-	@echo
-	@echo "==================== MISTRAL integration tests ===================="
-	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/mistral || exit 1;
-
-.PHONY: .run-mistral-itests-coverage
-ifdef INCLUDE_TESTS_IN_COVERAGE
-.run-mistral-itests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),st2tests.mistral.integration
-endif
-.run-mistral-itests-coverage:
-	@echo
-	@echo "==================== MISTRAL integration tests with coverage ===================="
-	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; \
-	    COVERAGE_FILE=.coverage.mistral.integration \
-	    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
-	    $(NOSE_COVERAGE_PACKAGES) \
-		st2tests/integration/mistral || exit 1;
-
-.coverage.mistral.integration:
-	if [ ! -e .coverage.mistral.integration ]; then \
-		make .run-mistral-itests-coverage; \
-	fi
-
-.PHONY: .mistral-itests-coverage-html
-.mistral-itests-coverage-html: .coverage.mistral.integration
-	. $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.mistral.integration coverage html
-
 .PHONY: .coverage-combine
-.coverage-combine: .run-unit-tests-coverage .run-integration-tests-coverage .run-mistral-itests-coverage
+.coverage-combine: .run-unit-tests-coverage .run-integration-tests-coverage
 	. $(VIRTUALENV_DIR)/bin/activate; coverage combine $(COVERAGE_GLOBS)
 
 # This is a real target, but we need to do our own make trickery in case some
@@ -946,7 +920,7 @@ runners-itests: requirements .runners-itests
 	@echo "----- Dropping st2-test db -----"
 	@for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/integration || exit 1; \
 	done
@@ -959,7 +933,7 @@ runners-itests: requirements .runners-itests
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
+		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html $$component/tests/integration || exit 1; \
@@ -992,41 +966,10 @@ debs:
 
 
 .PHONY: ci
-ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
+ci: ci-checks ci-unit ci-integration ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
-
-.PHONY: ci-py3-unit
-ci-py3-unit:
-	@echo
-	@echo "==================== ci-py3-unit ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit -vv
-
-.PHONY: ci-py3-packs-tests
-ci-py3-packs-tests:
-	@echo
-	@echo "==================== ci-py3-packs-tests ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-packs -vv
-
-.PHONY: ci-py3-unit-nightly
-ci-py3-unit-nightly:
-	@echo
-	@echo "==================== ci-py3-unit ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-unit-nightly -vv
-
-.PHONY: ci-py3-integration
-ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
-
-.PHONY: .ci-py3-integration
-.ci-py3-integration:
-	@echo
-	@echo "==================== ci-py3-integration ===================="
-	@echo
-	NOSE_WITH_TIMER=$(NOSE_WITH_TIMER) tox -e py36-integration -vv
+ci-checks: .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
 
 .PHONY: .rst-check
 .rst-check:
@@ -1067,17 +1010,11 @@ ci-py3-integration: requirements .ci-prepare-integration .ci-py3-integration
 .PHONY: ci-unit
 ci-unit: .unit-tests-coverage-html
 
-.PHONY: ci-unit-nightly
-ci-unit-nightly:
-	# NOTE: We run mistral runner checks only as part of a nightly build to speed up
-	# non nightly builds (Mistral will be deprecated in the future)
-	@echo
-	@echo "============== ci-unit-nightly =============="
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v  contrib/runners/mistral_v2/tests/unit
-
 .PHONY: .ci-prepare-integration
 .ci-prepare-integration:
+	@echo
+	@echo "==================== prepare integration ===================="
+	@echo
 	sudo -E ./scripts/travis/prepare-integration.sh
 
 .PHONY: ci-integration
@@ -1086,15 +1023,11 @@ ci-integration: .ci-prepare-integration .itests-coverage-html
 .PHONY: ci-runners
 ci-runners: .ci-prepare-integration .runners-itests-coverage-html
 
-.PHONY: .ci-prepare-mistral
-.ci-prepare-mistral:
-	sudo -E ./scripts/travis/setup-mistral.sh
-
-.PHONY: ci-mistral
-ci-mistral: .ci-prepare-integration .ci-prepare-mistral .mistral-itests-coverage-html
-
 .PHONY: ci-orquesta
 ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html
 
 .PHONY: ci-packs-tests
 ci-packs-tests: .packs-tests
+
+.PHONY: ci-compile
+ci-compile: check-dependency-conflicts compilepy3

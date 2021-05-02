@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -324,9 +325,9 @@ def keyczar_symmetric_encrypt(encrypt_key, plaintext):
 
     :rtype: ``str``
     """
-    from keyczar.keys import AesKey as KeyczarAesKey
-    from keyczar.keys import HmacKey as KeyczarHmacKey
-    from keyczar.keyinfo import GetMode
+    from keyczar.keys import AesKey as KeyczarAesKey  # pylint: disable=import-error
+    from keyczar.keys import HmacKey as KeyczarHmacKey  # pylint: disable=import-error
+    from keyczar.keyinfo import GetMode  # pylint: disable=import-error
 
     encrypt_key = KeyczarAesKey(encrypt_key.aes_key_string,
                                 KeyczarHmacKey(encrypt_key.hmac_key_string,
@@ -351,9 +352,9 @@ def keyczar_symmetric_decrypt(decrypt_key, ciphertext):
 
     :rtype: ``str``
     """
-    from keyczar.keys import AesKey as KeyczarAesKey
-    from keyczar.keys import HmacKey as KeyczarHmacKey
-    from keyczar.keyinfo import GetMode
+    from keyczar.keys import AesKey as KeyczarAesKey  # pylint: disable=import-error
+    from keyczar.keys import HmacKey as KeyczarHmacKey  # pylint: disable=import-error
+    from keyczar.keyinfo import GetMode  # pylint: disable=import-error
 
     decrypt_key = KeyczarAesKey(decrypt_key.aes_key_string,
                                 KeyczarHmacKey(decrypt_key.hmac_key_string,

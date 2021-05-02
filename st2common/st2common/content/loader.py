@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -242,7 +243,7 @@ class MetaLoader(object):
         return result
 
     def _load(self, parser_func, file_path):
-        with open(file_path, 'r') as fd:
+        with open(file_path, 'r', encoding='utf-8') as fd:
             try:
                 return parser_func(fd)
             except ValueError:

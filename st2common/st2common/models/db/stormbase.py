@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,7 +68,7 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
 
     def __str__(self):
         attrs = list()
-        for k in sorted(self._fields.keys()):
+        for k in sorted(self._fields.keys()):   # pylint: disable=E1101
             v = getattr(self, k)
             v = '"%s"' % str(v) if type(v) in [str, six.text_type, datetime.datetime] else str(v)
             attrs.append('%s=%s' % (k, v))
@@ -97,7 +98,7 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
         :rtype: ``dict``
         """
         serializable_dict = {}
-        for k in sorted(six.iterkeys(self._fields)):
+        for k in sorted(six.iterkeys(self._fields)):    # pylint: disable=E1101
             v = getattr(self, k)
             if isinstance(v, JSON_UNFRIENDLY_TYPES):
                 v = str(v)

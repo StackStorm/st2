@@ -1,3 +1,4 @@
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +35,7 @@ LOG = logging.getLogger(__name__)
 @six.add_metaclass(abc.ABCMeta)
 class BaseAPI(object):
     schema = abc.abstractproperty
+    name = None
 
     def __init__(self, **kw):
         for key, value in kw.items():

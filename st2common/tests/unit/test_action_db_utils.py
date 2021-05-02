@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +42,7 @@ class ActionDBUtilsTestCase(DbTestCase):
     liveaction_db = None
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) :
         super(ActionDBUtilsTestCase, cls).setUpClass()
         ActionDBUtilsTestCase._setup_test_models()
 
