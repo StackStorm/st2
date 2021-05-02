@@ -18,20 +18,25 @@ from __future__ import absolute_import
 import six
 from six.moves import zip
 
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 # Note: Because of old rule escaping code, two different characters can be translated back to dot
-RULE_CRITERIA_UNESCAPED = ['.']
-RULE_CRITERIA_ESCAPED = [u'\u2024']
-RULE_CRITERIA_ESCAPE_TRANSLATION = dict(list(zip(RULE_CRITERIA_UNESCAPED, RULE_CRITERIA_ESCAPED)))
-RULE_CRITERIA_UNESCAPE_TRANSLATION = dict(list(zip(RULE_CRITERIA_ESCAPED, RULE_CRITERIA_UNESCAPED)))
+RULE_CRITERIA_UNESCAPED = ["."]
+RULE_CRITERIA_ESCAPED = ["\u2024"]
+RULE_CRITERIA_ESCAPE_TRANSLATION = dict(
+    list(zip(RULE_CRITERIA_UNESCAPED, RULE_CRITERIA_ESCAPED))
+)
+RULE_CRITERIA_UNESCAPE_TRANSLATION = dict(
+    list(zip(RULE_CRITERIA_ESCAPED, RULE_CRITERIA_UNESCAPED))
+)
 
 # http://docs.mongodb.org/manual/faq/developers/#faq-dollar-sign-escaping
-UNESCAPED = ['.', '$']
-ESCAPED = [u'\uFF0E', u'\uFF04']
+UNESCAPED = [".", "$"]
+ESCAPED = ["\uFF0E", "\uFF04"]
 ESCAPE_TRANSLATION = dict(list(zip(UNESCAPED, ESCAPED)))
 UNESCAPE_TRANSLATION = dict(
-    list(zip(ESCAPED, UNESCAPED)) + list(zip(RULE_CRITERIA_ESCAPED, RULE_CRITERIA_UNESCAPED))
+    list(zip(ESCAPED, UNESCAPED))
+    + list(zip(RULE_CRITERIA_ESCAPED, RULE_CRITERIA_UNESCAPED))
 )
 
 
@@ -68,7 +73,7 @@ def escape_chars(field):
     if not isinstance(field, dict) and not isinstance(field, list):
         return field
 
-    value = fast_deepcopy(field)
+    value = fast_deepcopy_dict(field)
 
     return _translate_chars(value, ESCAPE_TRANSLATION)
 
@@ -77,6 +82,6 @@ def unescape_chars(field):
     if not isinstance(field, dict) and not isinstance(field, list):
         return field
 
-    value = fast_deepcopy(field)
+    value = fast_deepcopy_dict(field)
 
     return _translate_chars(value, UNESCAPE_TRANSLATION)

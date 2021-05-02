@@ -27,7 +27,6 @@ from six.moves import range
 
 
 class TestPersistence(DbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(TestPersistence, cls).setUpClass()
@@ -38,7 +37,7 @@ class TestPersistence(DbTestCase):
         super(TestPersistence, self).tearDown()
 
     def test_crud(self):
-        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={'a': 1})
+        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={"a": 1})
         obj1 = self.access.add_or_update(obj1)
         obj2 = self.access.get(name=obj1.name)
         self.assertIsNotNone(obj2)
@@ -59,16 +58,16 @@ class TestPersistence(DbTestCase):
         self.assertIsNone(obj2)
 
     def test_count(self):
-        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={'user': 'system'})
+        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={"user": "system"})
         obj1 = self.access.add_or_update(obj1)
-        obj2 = FakeModelDB(name=uuid.uuid4().hex, context={'user': 'stanley'})
+        obj2 = FakeModelDB(name=uuid.uuid4().hex, context={"user": "stanley"})
         obj2 = self.access.add_or_update(obj2)
         self.assertEqual(self.access.count(), 2)
 
     def test_get_all(self):
-        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={'user': 'system'})
+        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={"user": "system"})
         obj1 = self.access.add_or_update(obj1)
-        obj2 = FakeModelDB(name=uuid.uuid4().hex, context={'user': 'stanley'})
+        obj2 = FakeModelDB(name=uuid.uuid4().hex, context={"user": "stanley"})
         obj2 = self.access.add_or_update(obj2)
         objs = self.access.get_all()
         self.assertIsNotNone(objs)
@@ -76,33 +75,35 @@ class TestPersistence(DbTestCase):
         self.assertListEqual(list(objs), [obj1, obj2])
 
     def test_query_by_id(self):
-        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={'user': 'system'})
+        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={"user": "system"})
         obj1 = self.access.add_or_update(obj1)
         obj2 = self.access.get_by_id(str(obj1.id))
         self.assertIsNotNone(obj2)
         self.assertEqual(obj1.id, obj2.id)
         self.assertEqual(obj1.name, obj2.name)
         self.assertDictEqual(obj1.context, obj2.context)
-        self.assertRaises(StackStormDBObjectNotFoundError,
-                          self.access.get_by_id, str(bson.ObjectId()))
+        self.assertRaises(
+            StackStormDBObjectNotFoundError, self.access.get_by_id, str(bson.ObjectId())
+        )
 
     def test_query_by_name(self):
-        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={'user': 'system'})
+        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={"user": "system"})
         obj1 = self.access.add_or_update(obj1)
         obj2 = self.access.get_by_name(obj1.name)
         self.assertIsNotNone(obj2)
         self.assertEqual(obj1.id, obj2.id)
         self.assertEqual(obj1.name, obj2.name)
         self.assertDictEqual(obj1.context, obj2.context)
-        self.assertRaises(StackStormDBObjectNotFoundError, self.access.get_by_name,
-                          uuid.uuid4().hex)
+        self.assertRaises(
+            StackStormDBObjectNotFoundError, self.access.get_by_name, uuid.uuid4().hex
+        )
 
     def test_query_filter(self):
-        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={'user': 'system'})
+        obj1 = FakeModelDB(name=uuid.uuid4().hex, context={"user": "system"})
         obj1 = self.access.add_or_update(obj1)
-        obj2 = FakeModelDB(name=uuid.uuid4().hex, context={'user': 'stanley'})
+        obj2 = FakeModelDB(name=uuid.uuid4().hex, context={"user": "stanley"})
         obj2 = self.access.add_or_update(obj2)
-        objs = self.access.query(context__user='system')
+        objs = self.access.query(context__user="system")
         self.assertIsNotNone(objs)
         self.assertGreater(len(objs), 0)
         self.assertEqual(obj1.id, objs[0].id)
@@ -113,17 +114,17 @@ class TestPersistence(DbTestCase):
         obj1 = FakeModelDB(name=uuid.uuid4().hex)
         obj1 = self.access.add_or_update(obj1)
 
-        objs = self.access.query(index='null')
+        objs = self.access.query(index="null")
         self.assertEqual(len(objs), 1)
         self.assertEqual(obj1.id, objs[0].id)
         self.assertEqual(obj1.name, objs[0].name)
-        self.assertIsNone(getattr(obj1, 'index', None))
+        self.assertIsNone(getattr(obj1, "index", None))
 
         objs = self.access.query(index=None)
         self.assertEqual(len(objs), 1)
         self.assertEqual(obj1.id, objs[0].id)
         self.assertEqual(obj1.name, objs[0].name)
-        self.assertIsNone(getattr(obj1, 'index', None))
+        self.assertIsNone(getattr(obj1, "index", None))
 
     def test_datetime_range(self):
         base = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
@@ -132,12 +133,12 @@ class TestPersistence(DbTestCase):
             obj = FakeModelDB(name=uuid.uuid4().hex, timestamp=timestamp)
             self.access.add_or_update(obj)
 
-        dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
+        dt_range = "2014-12-25T00:00:10Z..2014-12-25T00:00:19Z"
         objs = self.access.query(timestamp=dt_range)
         self.assertEqual(len(objs), 10)
         self.assertLess(objs[0].timestamp, objs[9].timestamp)
 
-        dt_range = '2014-12-25T00:00:19Z..2014-12-25T00:00:10Z'
+        dt_range = "2014-12-25T00:00:19Z..2014-12-25T00:00:10Z"
         objs = self.access.query(timestamp=dt_range)
         self.assertEqual(len(objs), 10)
         self.assertLess(objs[9].timestamp, objs[0].timestamp)
@@ -146,52 +147,61 @@ class TestPersistence(DbTestCase):
         count = 100
         page_size = 25
         pages = int(count / page_size)
-        users = ['Peter', 'Susan', 'Edmund', 'Lucy']
+        users = ["Peter", "Susan", "Edmund", "Lucy"]
 
         for user in users:
-            context = {'user': user}
+            context = {"user": user}
             for i in range(count):
-                self.access.add_or_update(FakeModelDB(name=uuid.uuid4().hex,
-                                                      context=context, index=i))
+                self.access.add_or_update(
+                    FakeModelDB(name=uuid.uuid4().hex, context=context, index=i)
+                )
 
         self.assertEqual(self.access.count(), len(users) * count)
 
         for user in users:
             for i in range(pages):
                 offset = i * page_size
-                objs = self.access.query(context__user=user, order_by=['index'],
-                                         offset=offset, limit=page_size)
+                objs = self.access.query(
+                    context__user=user,
+                    order_by=["index"],
+                    offset=offset,
+                    limit=page_size,
+                )
                 self.assertEqual(len(objs), page_size)
                 for j in range(page_size):
-                    self.assertEqual(objs[j].context['user'], user)
+                    self.assertEqual(objs[j].context["user"], user)
                     self.assertEqual(objs[j].index, (i * page_size) + j)
 
     def test_sort_multiple(self):
         count = 60
         base = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(count):
-            category = 'type1' if i % 2 else 'type2'
+            category = "type1" if i % 2 else "type2"
             timestamp = base + datetime.timedelta(seconds=i)
-            obj = FakeModelDB(name=uuid.uuid4().hex, timestamp=timestamp, category=category)
+            obj = FakeModelDB(
+                name=uuid.uuid4().hex, timestamp=timestamp, category=category
+            )
             self.access.add_or_update(obj)
 
-        objs = self.access.query(order_by=['category', 'timestamp'])
+        objs = self.access.query(order_by=["category", "timestamp"])
         self.assertEqual(len(objs), count)
         for i in range(count):
-            category = 'type1' if i < count / 2 else 'type2'
+            category = "type1" if i < count / 2 else "type2"
             self.assertEqual(objs[i].category, category)
         self.assertLess(objs[0].timestamp, objs[(int(count / 2)) - 1].timestamp)
-        self.assertLess(objs[int(count / 2)].timestamp, objs[(int(count / 2)) - 1].timestamp)
+        self.assertLess(
+            objs[int(count / 2)].timestamp, objs[(int(count / 2)) - 1].timestamp
+        )
         self.assertLess(objs[int(count / 2)].timestamp, objs[count - 1].timestamp)
 
     def test_escaped_field(self):
-        context = {'a.b.c': 'abc'}
+        context = {"a.b.c": "abc"}
         obj1 = FakeModelDB(name=uuid.uuid4().hex, context=context)
         obj2 = self.access.add_or_update(obj1)
 
         # Check that the original dict has not been altered.
-        self.assertIn('a.b.c', list(context.keys()))
-        self.assertNotIn('a\uff0eb\uff0ec', list(context.keys()))
+        self.assertIn("a.b.c", list(context.keys()))
+        self.assertNotIn("a\uff0eb\uff0ec", list(context.keys()))
 
         # Check to_python has run and context is not left escaped.
         self.assertDictEqual(obj2.context, context)
@@ -206,26 +216,26 @@ class TestPersistence(DbTestCase):
         count = 5
         ts = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(count):
-            category = 'type1'
-            obj = FakeModelDB(name='test-%s' % (i), timestamp=ts, category=category)
+            category = "type1"
+            obj = FakeModelDB(name="test-%s" % (i), timestamp=ts, category=category)
             self.access.add_or_update(obj)
 
         model_dbs = FakeModel.query()
-        self.assertEqual(model_dbs[0].name, 'test-0')
+        self.assertEqual(model_dbs[0].name, "test-0")
         self.assertEqual(model_dbs[0].timestamp, ts)
-        self.assertEqual(model_dbs[0].category, 'type1')
+        self.assertEqual(model_dbs[0].category, "type1")
 
         # only id
-        model_dbs = FakeModel.query(only_fields=['id'])
+        model_dbs = FakeModel.query(only_fields=["id"])
         self.assertTrue(model_dbs[0].id)
         self.assertEqual(model_dbs[0].name, None)
         self.assertEqual(model_dbs[0].timestamp, None)
         self.assertEqual(model_dbs[0].category, None)
 
         # only name - note: id is always included
-        model_dbs = FakeModel.query(only_fields=['name'])
+        model_dbs = FakeModel.query(only_fields=["name"])
         self.assertTrue(model_dbs[0].id)
-        self.assertEqual(model_dbs[0].name, 'test-0')
+        self.assertEqual(model_dbs[0].name, "test-0")
         self.assertEqual(model_dbs[0].timestamp, None)
         self.assertEqual(model_dbs[0].category, None)
 
@@ -233,28 +243,28 @@ class TestPersistence(DbTestCase):
         count = 5
         ts = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(count):
-            category = 'type1'
-            obj = FakeModelDB(name='test-2-%s' % (i), timestamp=ts, category=category)
+            category = "type1"
+            obj = FakeModelDB(name="test-2-%s" % (i), timestamp=ts, category=category)
             self.access.add_or_update(obj)
 
         model_dbs = FakeModel.query()
-        self.assertEqual(model_dbs[0].name, 'test-2-0')
+        self.assertEqual(model_dbs[0].name, "test-2-0")
         self.assertEqual(model_dbs[0].timestamp, ts)
-        self.assertEqual(model_dbs[0].category, 'type1')
+        self.assertEqual(model_dbs[0].category, "type1")
 
-        model_dbs = FakeModel.query(exclude_fields=['name'])
+        model_dbs = FakeModel.query(exclude_fields=["name"])
         self.assertTrue(model_dbs[0].id)
         self.assertEqual(model_dbs[0].name, None)
         self.assertEqual(model_dbs[0].timestamp, ts)
-        self.assertEqual(model_dbs[0].category, 'type1')
+        self.assertEqual(model_dbs[0].category, "type1")
 
-        model_dbs = FakeModel.query(exclude_fields=['name', 'timestamp'])
+        model_dbs = FakeModel.query(exclude_fields=["name", "timestamp"])
         self.assertTrue(model_dbs[0].id)
         self.assertEqual(model_dbs[0].name, None)
         self.assertEqual(model_dbs[0].timestamp, None)
-        self.assertEqual(model_dbs[0].category, 'type1')
+        self.assertEqual(model_dbs[0].category, "type1")
 
-        model_dbs = FakeModel.query(exclude_fields=['name', 'timestamp', 'category'])
+        model_dbs = FakeModel.query(exclude_fields=["name", "timestamp", "category"])
         self.assertTrue(model_dbs[0].id)
         self.assertEqual(model_dbs[0].name, None)
         self.assertEqual(model_dbs[0].timestamp, None)

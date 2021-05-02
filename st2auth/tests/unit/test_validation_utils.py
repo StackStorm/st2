@@ -19,9 +19,7 @@ from oslo_config import cfg
 from st2auth.validation import validate_auth_backend_is_correctly_configured
 from st2tests import config as tests_config
 
-__all__ = [
-    'ValidationUtilsTestCase'
-]
+__all__ = ["ValidationUtilsTestCase"]
 
 
 class ValidationUtilsTestCase(unittest2.TestCase):
@@ -34,22 +32,31 @@ class ValidationUtilsTestCase(unittest2.TestCase):
         self.assertTrue(result)
 
     def test_validate_auth_backend_is_correctly_configured_invalid_backend(self):
-        cfg.CONF.set_override(group='auth', name='mode', override='invalid')
-        expected_msg = ('Invalid auth mode "invalid" specified in the config. '
-                        'Valid modes are: proxy, standalone')
-        self.assertRaisesRegexp(ValueError, expected_msg,
-                                validate_auth_backend_is_correctly_configured)
+        cfg.CONF.set_override(group="auth", name="mode", override="invalid")
+        expected_msg = (
+            'Invalid auth mode "invalid" specified in the config. '
+            "Valid modes are: proxy, standalone"
+        )
+        self.assertRaisesRegexp(
+            ValueError, expected_msg, validate_auth_backend_is_correctly_configured
+        )
 
-    def test_validate_auth_backend_is_correctly_configured_backend_doesnt_expose_groups(self):
+    def test_validate_auth_backend_is_correctly_configured_backend_doesnt_expose_groups(
+        self,
+    ):
         # Flat file backend doesn't expose user group membership information aha provide
         # "has group info" capability
-        cfg.CONF.set_override(group='auth', name='backend', override='flat_file')
-        cfg.CONF.set_override(group='auth', name='backend_kwargs',
-                              override='{"file_path": "dummy"}')
-        cfg.CONF.set_override(group='rbac', name='enable', override=True)
-        cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
+        cfg.CONF.set_override(group="auth", name="backend", override="flat_file")
+        cfg.CONF.set_override(
+            group="auth", name="backend_kwargs", override='{"file_path": "dummy"}'
+        )
+        cfg.CONF.set_override(group="rbac", name="enable", override=True)
+        cfg.CONF.set_override(group="rbac", name="sync_remote_groups", override=True)
 
-        expected_msg = ('Configured auth backend doesn\'t expose user group information. Disable '
-                        'remote group synchronization or')
-        self.assertRaisesRegexp(ValueError, expected_msg,
-                                validate_auth_backend_is_correctly_configured)
+        expected_msg = (
+            "Configured auth backend doesn't expose user group information. Disable "
+            "remote group synchronization or"
+        )
+        self.assertRaisesRegexp(
+            ValueError, expected_msg, validate_auth_backend_is_correctly_configured
+        )

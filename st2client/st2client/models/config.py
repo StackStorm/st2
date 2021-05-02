@@ -19,14 +19,14 @@ from st2client.models import core
 
 
 class Config(core.Resource):
-    _display_name = 'Config'
-    _plural = 'Configs'
-    _plural_display_name = 'Configs'
+    _display_name = "Config"
+    _plural = "Configs"
+    _plural_display_name = "Configs"
 
 
 class ConfigSchema(core.Resource):
-    _display_name = 'Config Schema'
-    _plural = 'ConfigSchema'
-    _plural_display_name = 'Config Schemas'
-    _url_path = 'config_schemas'
-    _repr_attributes = ['id', 'pack', 'attributes']
+    _display_name = "Config Schema"
+    _plural = "ConfigSchema"
+    _plural_display_name = "Config Schemas"
+    _url_path = "config_schemas"
+    _repr_attributes = ["id", "pack", "attributes"]

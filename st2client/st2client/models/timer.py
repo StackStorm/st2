@@ -24,7 +24,7 @@ LOG = logging.getLogger(__name__)
 
 
 class Timer(core.Resource):
-    _alias = 'Timer'
-    _display_name = 'Timer'
-    _plural = 'Timers'
-    _plural_display_name = 'Timers'
+    _alias = "Timer"
+    _display_name = "Timer"
+    _plural = "Timers"
+    _plural_display_name = "Timers"

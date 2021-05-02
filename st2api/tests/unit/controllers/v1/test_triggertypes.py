@@ -23,33 +23,34 @@ from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 http_client = six.moves.http_client
 
 TRIGGER_0 = {
-    'name': 'st2.test.triggertype0',
-    'pack': 'dummy_pack_1',
-    'description': 'test trigger',
-    'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
-    'parameters_schema': {}
+    "name": "st2.test.triggertype0",
+    "pack": "dummy_pack_1",
+    "description": "test trigger",
+    "payload_schema": {"tp1": None, "tp2": None, "tp3": None},
+    "parameters_schema": {},
 }
 TRIGGER_1 = {
-    'name': 'st2.test.triggertype1',
-    'pack': 'dummy_pack_2',
-    'description': 'test trigger',
-    'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
+    "name": "st2.test.triggertype1",
+    "pack": "dummy_pack_2",
+    "description": "test trigger",
+    "payload_schema": {"tp1": None, "tp2": None, "tp3": None},
 }
 TRIGGER_2 = {
-    'name': 'st2.test.triggertype3',
-    'pack': 'dummy_pack_3',
-    'description': 'test trigger',
-    'payload_schema': {'tp1': None, 'tp2': None, 'tp3': None},
-    'parameters_schema': {'param1': {'type': 'object'}}
+    "name": "st2.test.triggertype3",
+    "pack": "dummy_pack_3",
+    "description": "test trigger",
+    "payload_schema": {"tp1": None, "tp2": None, "tp3": None},
+    "parameters_schema": {"param1": {"type": "object"}},
 }
 
 
-class TriggerTypeControllerTestCase(FunctionalTest,
-                                    APIControllerWithIncludeAndExcludeFilterTestCase):
-    get_all_path = '/v1/triggertypes'
+class TriggerTypeControllerTestCase(
+    FunctionalTest, APIControllerWithIncludeAndExcludeFilterTestCase
+):
+    get_all_path = "/v1/triggertypes"
     controller_cls = TriggerTypeController
-    include_attribute_field_name = 'payload_schema'
-    exclude_attribute_field_name = 'parameters_schema'
+    include_attribute_field_name = "payload_schema"
+    exclude_attribute_field_name = "parameters_schema"
 
     @classmethod
     def setUpClass(cls):
@@ -71,19 +72,19 @@ class TriggerTypeControllerTestCase(FunctionalTest,
         trigger_id_0 = self.__get_trigger_id(post_resp)
         post_resp = self.__do_post(TRIGGER_1)
         trigger_id_1 = self.__get_trigger_id(post_resp)
-        resp = self.app.get('/v1/triggertypes')
+        resp = self.app.get("/v1/triggertypes")
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertEqual(len(resp.json), 2, 'Get all failure.')
+        self.assertEqual(len(resp.json), 2, "Get all failure.")
 
         # ?pack query filter
-        resp = self.app.get('/v1/triggertypes?pack=doesnt-exist-invalid')
+        resp = self.app.get("/v1/triggertypes?pack=doesnt-exist-invalid")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 0)
 
-        resp = self.app.get('/v1/triggertypes?pack=%s' % (TRIGGER_0['pack']))
+        resp = self.app.get("/v1/triggertypes?pack=%s" % (TRIGGER_0["pack"]))
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 1)
-        self.assertEqual(resp.json[0]['pack'], TRIGGER_0['pack'])
+        self.assertEqual(resp.json[0]["pack"], TRIGGER_0["pack"])
 
         self.__do_delete(trigger_id_0)
         self.__do_delete(trigger_id_1)
@@ -97,7 +98,7 @@ class TriggerTypeControllerTestCase(FunctionalTest,
         self.__do_delete(trigger_id)
 
     def test_get_one_fail(self):
-        resp = self.__do_get_one('1')
+        resp = self.__do_get_one("1")
         self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
     def test_post(self):
@@ -116,13 +117,13 @@ class TriggerTypeControllerTestCase(FunctionalTest,
         self.assertEqual(post_resp.status_int, http_client.CREATED)
         post_resp_2 = self.__do_post(TRIGGER_1)
         self.assertEqual(post_resp_2.status_int, http_client.CONFLICT)
-        self.assertEqual(post_resp_2.json['conflict-id'], org_id)
+        self.assertEqual(post_resp_2.json["conflict-id"], org_id)
         self.__do_delete(org_id)
 
     def test_put(self):
         post_resp = self.__do_post(TRIGGER_1)
         update_input = post_resp.json
-        update_input['description'] = 'updated description.'
+        update_input["description"] = "updated description."
         put_resp = self.__do_put(self.__get_trigger_id(post_resp), update_input)
         self.assertEqual(put_resp.status_int, http_client.OK)
         self.__do_delete(self.__get_trigger_id(put_resp))
@@ -151,16 +152,18 @@ class TriggerTypeControllerTestCase(FunctionalTest,
 
     @staticmethod
     def __get_trigger_id(resp):
-        return resp.json['id']
+        return resp.json["id"]
 
     def __do_get_one(self, trigger_id):
-        return self.app.get('/v1/triggertypes/%s' % trigger_id, expect_errors=True)
+        return self.app.get("/v1/triggertypes/%s" % trigger_id, expect_errors=True)
 
     def __do_post(self, trigger):
-        return self.app.post_json('/v1/triggertypes', trigger, expect_errors=True)
+        return self.app.post_json("/v1/triggertypes", trigger, expect_errors=True)
 
     def __do_put(self, trigger_id, trigger):
-        return self.app.put_json('/v1/triggertypes/%s' % trigger_id, trigger, expect_errors=True)
+        return self.app.put_json(
+            "/v1/triggertypes/%s" % trigger_id, trigger, expect_errors=True
+        )
 
     def __do_delete(self, trigger_id):
-        return self.app.delete('/v1/triggertypes/%s' % trigger_id)
+        return self.app.delete("/v1/triggertypes/%s" % trigger_id)

@@ -31,8 +31,11 @@ from st2common.persistence.base import Access, ContentPackResource
 
 
 class Migration(object):
-    class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
-                 stormbase.ContentPackResourceMixin):
+    class RuleDB(
+        stormbase.StormFoundationDB,
+        stormbase.TagsMixin,
+        stormbase.ContentPackResourceMixin,
+    ):
         """Specifies the action to invoke on the occurrence of a Trigger. It
         also includes the transformation to perform to match the impedance
         between the payload of a TriggerInstance and input of a action.
@@ -43,22 +46,23 @@ class Migration(object):
             status: enabled or disabled. If disabled occurrence of the trigger
             does not lead to execution of a action and vice-versa.
         """
+
         name = me.StringField(required=True)
         ref = me.StringField(required=True)
         description = me.StringField()
         pack = me.StringField(
-            required=False,
-            help_text='Name of the content pack.',
-            unique_with='name')
+            required=False, help_text="Name of the content pack.", unique_with="name"
+        )
         trigger = me.StringField()
         criteria = stormbase.EscapedDictField()
         action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
-        enabled = me.BooleanField(required=True, default=True,
-                                  help_text=u'Flag indicating whether the rule is enabled.')
+        enabled = me.BooleanField(
+            required=True,
+            default=True,
+            help_text="Flag indicating whether the rule is enabled.",
+        )
 
-        meta = {
-            'indexes': stormbase.TagsMixin.get_indexes()
-        }
+        meta = {"indexes": stormbase.TagsMixin.get_indexes()}
 
 
 # specialized access objects
@@ -76,15 +80,17 @@ class RuleDB(stormbase.StormBaseDB, stormbase.TagsMixin):
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
+
     trigger = me.StringField()
     criteria = stormbase.EscapedDictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
-    enabled = me.BooleanField(required=True, default=True,
-                              help_text=u'Flag indicating whether the rule is enabled.')
+    enabled = me.BooleanField(
+        required=True,
+        default=True,
+        help_text="Flag indicating whether the rule is enabled.",
+    )
 
-    meta = {
-        'indexes': stormbase.TagsMixin.get_indexes()
-    }
+    meta = {"indexes": stormbase.TagsMixin.get_indexes()}
 
 
 rule_access_without_pack = MongoDBAccess(RuleDB)
@@ -100,7 +106,7 @@ class RuleWithoutPack(Access):
     @classmethod
     def _get_by_object(cls, object):
         # For Rule name is unique.
-        name = getattr(object, 'name', '')
+        name = getattr(object, "name", "")
         return cls.get_by_name(name)
 
 
@@ -126,13 +132,14 @@ def migrate_rules():
                 action=rule.action,
                 enabled=rule.enabled,
                 pack=DEFAULT_PACK_NAME,
-                ref=ResourceReference.to_string_reference(pack=DEFAULT_PACK_NAME,
-                                                          name=rule.name)
+                ref=ResourceReference.to_string_reference(
+                    pack=DEFAULT_PACK_NAME, name=rule.name
+                ),
             )
-            print('Migrating rule: %s to rule: %s' % (rule.name, rule_with_pack.ref))
+            print("Migrating rule: %s to rule: %s" % (rule.name, rule_with_pack.ref))
             RuleWithPack.add_or_update(rule_with_pack)
     except Exception as e:
-        print('Migration failed. %s' % six.text_type(e))
+        print("Migration failed. %s" % six.text_type(e))
 
 
 def main():
@@ -148,5 +155,5 @@ def main():
     db_teardown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

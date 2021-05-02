@@ -26,10 +26,10 @@ from st2client import __version__
 
 check_pip_version()
 
-ST2_COMPONENT = 'st2client'
+ST2_COMPONENT = "st2client"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
-README_FILE = os.path.join(BASE_DIR, 'README.rst')
+REQUIREMENTS_FILE = os.path.join(BASE_DIR, "requirements.txt")
+README_FILE = os.path.join(BASE_DIR, "README.rst")
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 apply_vagrant_workaround()
@@ -40,43 +40,41 @@ with open(README_FILE) as f:
 setup(
     name=ST2_COMPONENT,
     version=__version__,
-    description=('Python client library and CLI for the StackStorm (st2) event-driven '
-                 'automation platform.'),
+    description=(
+        "Python client library and CLI for the StackStorm (st2) event-driven "
+        "automation platform."
+    ),
     long_description=readme,
-    author='StackStorm',
-    author_email='info@stackstorm.com',
-    url='https://stackstorm.com/',
+    author="StackStorm",
+    author_email="info@stackstorm.com",
+    url="https://stackstorm.com/",
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Information Technology',
-        'Intended Audience :: Developers',
-        'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7'
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: Developers",
+        "Intended Audience :: System Administrators",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
     ],
     install_requires=install_reqs,
     dependency_links=dep_links,
     test_suite=ST2_COMPONENT,
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['setuptools', 'tests']),
-    entry_points={
-        'console_scripts': [
-            'st2 = st2client.shell:main'
-        ]
-    },
+    packages=find_packages(exclude=["setuptools", "tests"]),
+    entry_points={"console_scripts": ["st2 = st2client.shell:main"]},
     project_urls={
-        'Pack Exchange': 'https://exchange.stackstorm.org',
-        'Repository': 'https://github.com/StackStorm/st2',
-        'Documentation': 'https://docs.stackstorm.com',
-        'Community': 'https://stackstorm.com/community-signup',
-        'Questions': 'https://forum.stackstorm.com/',
-        'Donate': 'https://funding.communitybridge.org/projects/stackstorm',
-        'News/Blog': 'https://stackstorm.com/blog',
-        'Security': 'https://docs.stackstorm.com/latest/security.html',
-        'Bug Reports': 'https://github.com/StackStorm/st2/issues',
-    }
+        "Pack Exchange": "https://exchange.stackstorm.org",
+        "Repository": "https://github.com/StackStorm/st2",
+        "Documentation": "https://docs.stackstorm.com",
+        "Community": "https://stackstorm.com/community-signup",
+        "Questions": "https://forum.stackstorm.com/",
+        "Donate": "https://funding.communitybridge.org/projects/stackstorm",
+        "News/Blog": "https://stackstorm.com/blog",
+        "Security": "https://docs.stackstorm.com/latest/security.html",
+        "Bug Reports": "https://github.com/StackStorm/st2/issues",
+    },
 )

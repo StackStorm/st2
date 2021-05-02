@@ -24,15 +24,8 @@ LOG = logging.getLogger(__name__)
 
 
 class Inquiry(core.Resource):
-    _display_name = 'Inquiry'
-    _plural = 'Inquiries'
-    _plural_display_name = 'Inquiries'
-    _url_path = 'inquiries'
-    _repr_attributes = [
-        'id',
-        'schema',
-        'roles',
-        'users',
-        'route',
-        'ttl'
-    ]
+    _display_name = "Inquiry"
+    _plural = "Inquiries"
+    _plural_display_name = "Inquiries"
+    _url_path = "inquiries"
+    _repr_attributes = ["id", "schema", "roles", "users", "route", "ttl"]

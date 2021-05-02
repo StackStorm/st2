@@ -22,9 +22,7 @@ from st2common.services.keyvalues import UserKeyValueLookup
 from st2common.util.crypto import read_crypto_key
 from st2common.util.crypto import symmetric_decrypt
 
-__all__ = [
-    'decrypt_kv'
-]
+__all__ = ["decrypt_kv"]
 
 
 def decrypt_kv(value):
@@ -41,11 +39,13 @@ def decrypt_kv(value):
 
     # NOTE: If value is None this indicate key value item doesn't exist and we hrow a more
     # user-friendly error
-    if is_kv_item and value == '':
+    if is_kv_item and value == "":
         # Build original key name
         key_name = original_value.get_key_name()
-        raise ValueError('Referenced datastore item "%s" doesn\'t exist or it contains an empty '
-                         'string' % (key_name))
+        raise ValueError(
+            'Referenced datastore item "%s" doesn\'t exist or it contains an empty '
+            "string" % (key_name)
+        )
 
     crypto_key_path = cfg.CONF.keyvalue.encryption_key_path
     crypto_key = read_crypto_key(key_path=crypto_key_path)

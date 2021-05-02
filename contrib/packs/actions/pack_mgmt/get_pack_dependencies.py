@@ -40,7 +40,7 @@ class GetPackDependencies(Action):
             return result
 
         for pack, status in six.iteritems(packs_status):
-            if 'success' not in status.lower():
+            if "success" not in status.lower():
                 continue
 
             dependency_packs = get_dependency_list(pack)
@@ -50,40 +50,51 @@ class GetPackDependencies(Action):
             for dep_pack in dependency_packs:
                 name_or_url, pack_version = self.get_name_and_version(dep_pack)
 
-                if len(name_or_url.split('/')) == 1:
+                if len(name_or_url.split("/")) == 1:
                     pack_name = name_or_url
                 else:
                     name_or_git = name_or_url.split("/")[-1]
-                    pack_name = name_or_git if '.git' not in name_or_git else \
-                        name_or_git.split('.')[0]
+                    pack_name = (
+                        name_or_git
+                        if ".git" not in name_or_git
+                        else name_or_git.split(".")[0]
+                    )
 
                 # Check existing pack by pack name
                 existing_pack_version = get_pack_version(pack_name)
 
                 # Try one more time to get existing pack version by name if 'stackstorm-' is in
                 # pack name
-                if not existing_pack_version and 'stackstorm-' in pack_name.lower():
-                    existing_pack_version = get_pack_version(pack_name.split('stackstorm-')[-1])
+                if not existing_pack_version and "stackstorm-" in pack_name.lower():
+                    existing_pack_version = get_pack_version(
+                        pack_name.split("stackstorm-")[-1]
+                    )
 
                 if existing_pack_version:
-                    if existing_pack_version and not existing_pack_version.startswith('v'):
-                        existing_pack_version = 'v' + existing_pack_version
-                    if pack_version and not pack_version.startswith('v'):
-                        pack_version = 'v' + pack_version
-                    if pack_version and existing_pack_version != pack_version \
-                            and dep_pack not in conflict_list:
+                    if existing_pack_version and not existing_pack_version.startswith(
+                        "v"
+                    ):
+                        existing_pack_version = "v" + existing_pack_version
+                    if pack_version and not pack_version.startswith("v"):
+                        pack_version = "v" + pack_version
+                    if (
+                        pack_version
+                        and existing_pack_version != pack_version
+                        and dep_pack not in conflict_list
+                    ):
                         conflict_list.append(dep_pack)
                 else:
-                    conflict = self.check_dependency_list_for_conflict(name_or_url, pack_version,
-                                                                       dependency_list)
+                    conflict = self.check_dependency_list_for_conflict(
+                        name_or_url, pack_version, dependency_list
+                    )
                     if conflict:
                         conflict_list.append(dep_pack)
                     elif dep_pack not in dependency_list:
                         dependency_list.append(dep_pack)
 
-        result['dependency_list'] = dependency_list
-        result['conflict_list'] = conflict_list
-        result['nested'] = nested - 1
+        result["dependency_list"] = dependency_list
+        result["conflict_list"] = conflict_list
+        result["nested"] = nested - 1
 
         return result
 
@@ -112,7 +123,7 @@ def get_pack_version(pack=None):
     pack_path = get_pack_base_path(pack)
     try:
         pack_metadata = get_pack_metadata(pack_dir=pack_path)
-        result = pack_metadata.get('version', None)
+        result = pack_metadata.get("version", None)
     except Exception:
         result = None
     finally:
@@ -124,9 +135,9 @@ def get_dependency_list(pack=None):
 
     try:
         pack_metadata = get_pack_metadata(pack_dir=pack_path)
-        result = pack_metadata.get('dependencies', None)
+        result = pack_metadata.get("dependencies", None)
     except Exception:
-        print('Could not open pack.yaml at location %s' % pack_path)
+        print("Could not open pack.yaml at location %s" % pack_path)
         result = None
     finally:
         return result

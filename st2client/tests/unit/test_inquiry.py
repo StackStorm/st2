@@ -31,12 +31,12 @@ LOG = logging.getLogger(__name__)
 
 def _randomize_inquiry_id(inquiry):
     newinquiry = copy.deepcopy(inquiry)
-    newinquiry['id'] = str(uuid.uuid4())
+    newinquiry["id"] = str(uuid.uuid4())
     # ID can't have '1440' in it, otherwise our `count()` fails
     # when inspecting the inquiry list output for test:
     # test_list_inquiries_limit()
-    while '1440' in newinquiry['id']:
-        newinquiry['id'] = str(uuid.uuid4())
+    while "1440" in newinquiry["id"]:
+        newinquiry["id"] = str(uuid.uuid4())
     return newinquiry
 
 
@@ -45,8 +45,7 @@ def _generate_inquiries(count):
 
 
 class TestInquiryBase(base.BaseCLITestCase):
-    """Base class for "inquiry" CLI tests
-    """
+    """Base class for "inquiry" CLI tests"""
 
     capture_output = True
 
@@ -54,8 +53,8 @@ class TestInquiryBase(base.BaseCLITestCase):
         super(TestInquiryBase, self).__init__(*args, **kwargs)
 
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
+        self.parser.add_argument("-t", "--token", dest="token")
+        self.parser.add_argument("--api-key", dest="api_key")
         self.shell = shell.Shell()
 
     def setUp(self):
@@ -72,14 +71,12 @@ SCHEMA_DEFAULT = {
         "continue": {
             "type": "boolean",
             "description": "Would you like to continue the workflow?",
-            "required": True
+            "required": True,
         }
     },
 }
 
-RESPONSE_DEFAULT = {
-    "continue": True
-}
+RESPONSE_DEFAULT = {"continue": True}
 
 SCHEMA_MULTIPLE = {
     "title": "response_data",
@@ -88,30 +85,24 @@ SCHEMA_MULTIPLE = {
         "name": {
             "type": "string",
             "description": "What is your name?",
-            "required": True
+            "required": True,
         },
         "pin": {
             "type": "integer",
             "description": "What is your PIN?",
-            "required": True
+            "required": True,
         },
         "paradox": {
             "type": "boolean",
             "description": "This statement is False.",
-            "required": True
-        }
+            "required": True,
+        },
     },
 }
 
-RESPONSE_MULTIPLE = {
-    "name": "matt",
-    "pin": 1234,
-    "paradox": True
-}
+RESPONSE_MULTIPLE = {"name": "matt", "pin": 1234, "paradox": True}
 
-RESPONSE_BAD = {
-    "foo": "bar"
-}
+RESPONSE_BAD = {"foo": "bar"}
 
 INQUIRY_1 = {
     "id": "abcdef",
@@ -119,7 +110,7 @@ INQUIRY_1 = {
     "roles": [],
     "users": [],
     "route": "",
-    "ttl": 1440
+    "ttl": 1440,
 }
 
 INQUIRY_MULTIPLE = {
@@ -128,145 +119,202 @@ INQUIRY_MULTIPLE = {
     "roles": [],
     "users": [],
     "route": "",
-    "ttl": 1440
+    "ttl": 1440,
 }
 
 
 class TestInquirySubcommands(TestInquiryBase):
-
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(INQUIRY_1), 200, 'OK')))
+        requests,
+        "get",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(INQUIRY_1), 200, "OK")
+        ),
+    )
     def test_get_inquiry(self):
-        """Test retrieval of a single inquiry
-        """
-        inquiry_id = 'abcdef'
-        args = ['inquiry', 'get', inquiry_id]
+        """Test retrieval of a single inquiry"""
+        inquiry_id = "abcdef"
+        args = ["inquiry", "get", inquiry_id]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 404, 'NOT FOUND')))
+        requests,
+        "get",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps({}), 404, "NOT FOUND")
+        ),
+    )
     def test_get_inquiry_not_found(self):
-        """Test retrieval of a inquiry that doesn't exist
-        """
-        inquiry_id = 'asdbv'
-        args = ['inquiry', 'get', inquiry_id]
+        """Test retrieval of a inquiry that doesn't exist"""
+        inquiry_id = "asdbv"
+        args = ["inquiry", "get", inquiry_id]
         retcode = self.shell.run(args)
-        self.assertEqual('Inquiry "%s" is not found.\n\n' % inquiry_id, self.stdout.getvalue())
-        self.assertEqual(retcode, 2)
+        self.assertEqual(
+            'Inquiry "%s" is not found.\n\nERROR: Resource asdbv not found.\n\n'
+            % inquiry_id,
+            self.stdout.getvalue(),
+        )
+        self.assertEqual(retcode, 1)
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps([INQUIRY_1]), 200, 'OK', {'X-Total-Count': '1'}
-        ))))
+        requests,
+        "get",
+        mock.MagicMock(
+            return_value=(
+                base.FakeResponse(
+                    json.dumps([INQUIRY_1]), 200, "OK", {"X-Total-Count": "1"}
+                )
+            )
+        ),
+    )
     def test_list_inquiries(self):
-        """Test retrieval of a list of Inquiries
-        """
-        args = ['inquiry', 'list']
+        """Test retrieval of a list of Inquiries"""
+        args = ["inquiry", "list"]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
-        self.assertEqual(self.stdout.getvalue().count('1440'), 1)
+        self.assertEqual(self.stdout.getvalue().count("1440"), 1)
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps(_generate_inquiries(50)), 200, 'OK', {'X-Total-Count': '55'}
-        ))))
+        requests,
+        "get",
+        mock.MagicMock(
+            return_value=(
+                base.FakeResponse(
+                    json.dumps(_generate_inquiries(50)),
+                    200,
+                    "OK",
+                    {"X-Total-Count": "55"},
+                )
+            )
+        ),
+    )
     def test_list_inquiries_limit(self):
-        """Test retrieval of a list of Inquiries while using the "limit" option
-        """
-        args = ['inquiry', 'list', '-n', '50']
+        """Test retrieval of a list of Inquiries while using the "limit" option"""
+        args = ["inquiry", "list", "-n", "50"]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
-        self.assertEqual(self.stdout.getvalue().count('1440'), 50)
-        self.assertIn('Note: Only first 50 inquiries are displayed.', self.stderr.getvalue())
+        self.assertEqual(self.stdout.getvalue().count("1440"), 50)
+        self.assertIn(
+            "Note: Only first 50 inquiries are displayed.", self.stderr.getvalue()
+        )
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps([]), 200, 'OK', {'X-Total-Count': '0'}
-        ))))
+        requests,
+        "get",
+        mock.MagicMock(
+            return_value=(
+                base.FakeResponse(json.dumps([]), 200, "OK", {"X-Total-Count": "0"})
+            )
+        ),
+    )
     def test_list_empty_inquiries(self):
-        """Test empty list of Inquiries
-        """
-        args = ['inquiry', 'list']
+        """Test empty list of Inquiries"""
+        args = ["inquiry", "list"]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps(INQUIRY_1), 200, 'OK'
-        ))))
+        requests,
+        "get",
+        mock.MagicMock(
+            return_value=(base.FakeResponse(json.dumps(INQUIRY_1), 200, "OK"))
+        ),
+    )
     @mock.patch.object(
-        requests, 'put',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps({"id": "abcdef", "response": RESPONSE_DEFAULT}), 200, 'OK'
-        ))))
-    @mock.patch('st2client.commands.inquiry.InteractiveForm')
+        requests,
+        "put",
+        mock.MagicMock(
+            return_value=(
+                base.FakeResponse(
+                    json.dumps({"id": "abcdef", "response": RESPONSE_DEFAULT}),
+                    200,
+                    "OK",
+                )
+            )
+        ),
+    )
+    @mock.patch("st2client.commands.inquiry.InteractiveForm")
     def test_respond(self, mock_form):
-        """Test interactive response
-        """
+        """Test interactive response"""
         form_instance = mock_form.return_value
         form_instance.initiate_dialog.return_value = RESPONSE_DEFAULT
-        args = ['inquiry', 'respond', 'abcdef']
+        args = ["inquiry", "respond", "abcdef"]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps(INQUIRY_1), 200, 'OK'
-        ))))
+        requests,
+        "get",
+        mock.MagicMock(
+            return_value=(base.FakeResponse(json.dumps(INQUIRY_1), 200, "OK"))
+        ),
+    )
     @mock.patch.object(
-        requests, 'put',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps({"id": "abcdef", "response": RESPONSE_DEFAULT}), 200, 'OK'
-        ))))
+        requests,
+        "put",
+        mock.MagicMock(
+            return_value=(
+                base.FakeResponse(
+                    json.dumps({"id": "abcdef", "response": RESPONSE_DEFAULT}),
+                    200,
+                    "OK",
+                )
+            )
+        ),
+    )
     def test_respond_response_flag(self):
-        """Test response without interactive mode
-        """
-        args = ['inquiry', 'respond', '-r', '"%s"' % RESPONSE_DEFAULT, 'abcdef']
+        """Test response without interactive mode"""
+        args = ["inquiry", "respond", "-r", '"%s"' % RESPONSE_DEFAULT, "abcdef"]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 0)
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps(INQUIRY_1), 200, 'OK'
-        ))))
+        requests,
+        "get",
+        mock.MagicMock(
+            return_value=(base.FakeResponse(json.dumps(INQUIRY_1), 200, "OK"))
+        ),
+    )
     @mock.patch.object(
-        requests, 'put',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps({}), 400, '400 Client Error: Bad Request'
-        ))))
+        requests,
+        "put",
+        mock.MagicMock(
+            return_value=(
+                base.FakeResponse(json.dumps({}), 400, "400 Client Error: Bad Request")
+            )
+        ),
+    )
     def test_respond_invalid(self):
-        """Test invalid response
-        """
-        args = ['inquiry', 'respond', '-r', '"%s"' % RESPONSE_BAD, 'abcdef']
+        """Test invalid response"""
+        args = ["inquiry", "respond", "-r", '"%s"' % RESPONSE_BAD, "abcdef"]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 1)
-        self.assertEqual('ERROR: 400 Client Error: Bad Request', self.stdout.getvalue().strip())
+        self.assertEqual(
+            "ERROR: 400 Client Error: Bad Request", self.stdout.getvalue().strip()
+        )
 
     def test_respond_nonexistent_inquiry(self):
-        """Test responding to an inquiry that doesn't exist
-        """
-        inquiry_id = '134234'
-        args = ['inquiry', 'respond', '-r', '"%s"' % RESPONSE_DEFAULT, inquiry_id]
+        """Test responding to an inquiry that doesn't exist"""
+        inquiry_id = "134234"
+        args = ["inquiry", "respond", "-r", '"%s"' % RESPONSE_DEFAULT, inquiry_id]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 1)
-        self.assertEqual('ERROR: Resource with id "%s" doesn\'t exist.' % inquiry_id,
-                         self.stdout.getvalue().strip())
+        self.assertEqual(
+            'ERROR: Resource with id "%s" doesn\'t exist.' % inquiry_id,
+            self.stdout.getvalue().strip(),
+        )
 
     @mock.patch.object(
-        requests, 'get',
-        mock.MagicMock(return_value=(base.FakeResponse(
-            json.dumps({}), 404, '404 Client Error: Not Found'
-        ))))
-    @mock.patch('st2client.commands.inquiry.InteractiveForm')
+        requests,
+        "get",
+        mock.MagicMock(
+            return_value=(
+                base.FakeResponse(json.dumps({}), 404, "404 Client Error: Not Found")
+            )
+        ),
+    )
+    @mock.patch("st2client.commands.inquiry.InteractiveForm")
     def test_respond_nonexistent_inquiry_interactive(self, mock_form):
         """Test interactively responding to an inquiry that doesn't exist
 
@@ -274,11 +322,13 @@ class TestInquirySubcommands(TestInquiryBase):
         responding with PUT, in order to retrieve the desired schema for this inquiry.
         So, we want to test that interaction separately.
         """
-        inquiry_id = '253432'
+        inquiry_id = "253432"
         form_instance = mock_form.return_value
         form_instance.initiate_dialog.return_value = RESPONSE_DEFAULT
-        args = ['inquiry', 'respond', inquiry_id]
+        args = ["inquiry", "respond", inquiry_id]
         retcode = self.shell.run(args)
         self.assertEqual(retcode, 1)
-        self.assertEqual('ERROR: Resource with id "%s" doesn\'t exist.' % inquiry_id,
-                         self.stdout.getvalue().strip())
+        self.assertEqual(
+            'ERROR: Resource with id "%s" doesn\'t exist.' % inquiry_id,
+            self.stdout.getvalue().strip(),
+        )

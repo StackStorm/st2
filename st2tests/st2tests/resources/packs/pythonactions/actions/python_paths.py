@@ -22,5 +22,5 @@ from st2common.runners.base_action import Action
 
 class PythonPathsAction(Action):
     def run(self):
-        print('sys.path: %s' % (sys.path))
-        print('PYTHONPATH: %s' % (os.environ.get('PYTHONPATH')))
+        print("sys.path: %s" % (sys.path))
+        print("PYTHONPATH: %s" % (os.environ.get("PYTHONPATH")))

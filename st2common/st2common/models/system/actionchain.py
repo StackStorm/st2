@@ -31,45 +31,45 @@ class Node(object):
             "name": {
                 "description": "The name of this node.",
                 "type": "string",
-                "required": True
+                "required": True,
             },
             "ref": {
                 "type": "string",
                 "description": "Ref of the action to be executed.",
-                "required": True
+                "required": True,
             },
             "params": {
                 "type": "object",
-                "description": ("Parameter for the execution (old name, here for backward "
-                                "compatibility reasons)."),
-                "default": {}
+                "description": (
+                    "Parameter for the execution (old name, here for backward "
+                    "compatibility reasons)."
+                ),
+                "default": {},
             },
             "parameters": {
                 "type": "object",
                 "description": "Parameter for the execution.",
-                "default": {}
+                "default": {},
             },
             "on-success": {
                 "type": "string",
                 "description": "Name of the node to invoke on successful completion of action"
-                               " executed for this node.",
-                "default": ""
+                " executed for this node.",
+                "default": "",
             },
             "on-failure": {
                 "type": "string",
                 "description": "Name of the node to invoke on failure of action executed for this"
-                               " node.",
-                "default": ""
+                " node.",
+                "default": "",
             },
             "publish": {
                 "description": "The variables to publish from the result. Should be of the form"
-                               " name.foo. o1: {{node_name.foo}} will result in creation of a"
-                               " variable o1 which is now available for reference through"
-                               " remainder of the chain as a global variable.",
+                " name.foo. o1: {{node_name.foo}} will result in creation of a"
+                " variable o1 which is now available for reference through"
+                " remainder of the chain as a global variable.",
                 "type": "object",
-                "patternProperties": {
-                    r"^\w+$": {}
-                }
+                "patternProperties": {r"^\w+$": {}},
             },
             "notify": {
                 "description": "Notification settings for action.",
@@ -77,43 +77,49 @@ class Node(object):
                 "properties": {
                     "on-complete": NotificationSubSchemaAPI,
                     "on-failure": NotificationSubSchemaAPI,
-                    "on-success": NotificationSubSchemaAPI
+                    "on-success": NotificationSubSchemaAPI,
                 },
-                "additionalProperties": False
-            }
+                "additionalProperties": False,
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     def __init__(self, **kw):
-        for prop in six.iterkeys(self.schema.get('properties', [])):
+        for prop in six.iterkeys(self.schema.get("properties", [])):
             value = kw.get(prop, None)
             # having '-' in the property name lead to challenges in referencing the property.
             # At hindsight the schema property should've been on_success rather than on-success.
-            prop = prop.replace('-', '_')
+            prop = prop.replace("-", "_")
             setattr(self, prop, value)
 
     def validate(self):
-        params = getattr(self, 'params', {})
-        parameters = getattr(self, 'parameters', {})
+        params = getattr(self, "params", {})
+        parameters = getattr(self, "parameters", {})
 
         if params and parameters:
-            msg = ('Either "params" or "parameters" attribute needs to be provided, but not '
-                   'both')
+            msg = (
+                'Either "params" or "parameters" attribute needs to be provided, but not '
+                "both"
+            )
             raise ValueError(msg)
 
         return self
 
     def get_parameters(self):
         # Note: "params" is old deprecated attribute which will be removed in a future release
-        params = getattr(self, 'params', {})
-        parameters = getattr(self, 'parameters', {})
+        params = getattr(self, "params", {})
+        parameters = getattr(self, "parameters", {})
 
         return parameters or params
 
     def __repr__(self):
-        return ('<Node name=%s, ref=%s, on-success=%s, on-failure=%s>' %
-                (self.name, self.ref, self.on_success, self.on_failure))
+        return "<Node name=%s, ref=%s, on-success=%s, on-failure=%s>" % (
+            self.name,
+            self.ref,
+            self.on_success,
+            self.on_failure,
+        )
 
 
 class ActionChain(object):
@@ -127,31 +133,34 @@ class ActionChain(object):
                 "description": "The chain.",
                 "type": "array",
                 "items": [Node.schema],
-                "required": True
+                "required": True,
             },
             "default": {
                 "type": "string",
-                "description": "name of the action to be executed."
+                "description": "name of the action to be executed.",
             },
             "vars": {
                 "description": "",
                 "type": "object",
-                "patternProperties": {
-                    r"^\w+$": {}
-                }
-            }
+                "patternProperties": {r"^\w+$": {}},
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     def __init__(self, **kw):
-        util_schema.validate(instance=kw, schema=self.schema, cls=util_schema.CustomValidator,
-                             use_default=False, allow_default_none=True)
+        util_schema.validate(
+            instance=kw,
+            schema=self.schema,
+            cls=util_schema.CustomValidator,
+            use_default=False,
+            allow_default_none=True,
+        )
 
-        for prop in six.iterkeys(self.schema.get('properties', [])):
+        for prop in six.iterkeys(self.schema.get("properties", [])):
             value = kw.get(prop, None)
             # special handling for chain property to create the Node object
-            if prop == 'chain':
+            if prop == "chain":
                 nodes = []
                 for node in value:
                     ac_node = Node(**node)

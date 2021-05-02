@@ -22,17 +22,12 @@ from st2common.constants.trace import TRACE_CONTEXT
 from st2common.models.api.trace import TraceContext
 from st2common.transport import publishers
 
-__all__ = [
-    'AnnouncementPublisher',
-    'AnnouncementDispatcher',
-
-    'get_queue'
-]
+__all__ = ["AnnouncementPublisher", "AnnouncementDispatcher", "get_queue"]
 
 LOG = logging.getLogger(__name__)
 
 # Exchange for Announcements
-ANNOUNCEMENT_XCHG = Exchange('st2.announcement', type='topic')
+ANNOUNCEMENT_XCHG = Exchange("st2.announcement", type="topic")
 
 
 class AnnouncementPublisher(object):
@@ -65,19 +60,29 @@ class AnnouncementDispatcher(object):
         :param trace_context: Trace context to associate with Announcement.
         :type trace_context: ``TraceContext``
         """
-        assert isinstance(payload, (type(None), dict))
-        assert isinstance(trace_context, (type(None), dict, TraceContext))
+        if not isinstance(payload, (type(None), dict)):
+            raise TypeError(
+                f"The payload has a value that is not a dictionary (was {type(payload)})."
+            )
+        if not isinstance(trace_context, (type(None), dict, TraceContext)):
+            raise TypeError(
+                "The trace context has a value that is not a NoneType or dict or TraceContext"
+                f" (was {type(trace_context)})."
+            )
 
-        payload = {
-            'payload': payload,
-            TRACE_CONTEXT: trace_context
-        }
+        payload = {"payload": payload, TRACE_CONTEXT: trace_context}
 
-        self._logger.debug('Dispatching announcement (routing_key=%s,payload=%s)',
-                           routing_key, payload)
+        self._logger.debug(
+            "Dispatching announcement (routing_key=%s,payload=%s)", routing_key, payload
+        )
         self._publisher.publish(payload=payload, routing_key=routing_key)
 
 
-def get_queue(name=None, routing_key='#', exclusive=False, auto_delete=False):
-    return Queue(name, ANNOUNCEMENT_XCHG, routing_key=routing_key, exclusive=exclusive,
-                 auto_delete=auto_delete)
+def get_queue(name=None, routing_key="#", exclusive=False, auto_delete=False):
+    return Queue(
+        name,
+        ANNOUNCEMENT_XCHG,
+        routing_key=routing_key,
+        exclusive=exclusive,
+        auto_delete=auto_delete,
+    )

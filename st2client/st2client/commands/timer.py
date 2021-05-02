@@ -22,30 +22,39 @@ from st2client.commands import resource
 class TimerBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(TimerBranch, self).__init__(
-            Timer, description, app, subparsers,
+            Timer,
+            description,
+            app,
+            subparsers,
             parent_parser=parent_parser,
             read_only=True,
-            commands={
-                'list': TimerListCommand,
-                'get': TimerGetCommand
-            })
+            commands={"list": TimerListCommand, "get": TimerGetCommand},
+        )
 
 
 class TimerListCommand(resource.ResourceListCommand):
-    display_attributes = ['id', 'uid', 'pack', 'name', 'type', 'parameters']
+    display_attributes = ["id", "uid", "pack", "name", "type", "parameters"]
 
     def __init__(self, resource, *args, **kwargs):
         super(TimerListCommand, self).__init__(resource, *args, **kwargs)
 
-        self.parser.add_argument('-ty', '--timer-type', type=str, dest='timer_type',
-                                 help=("List %s type, example: 'core.st2.IntervalTimer', \
-                                       'core.st2.DateTimer', 'core.st2.CronTimer'." %
-                                       resource.get_plural_display_name().lower()), required=False)
+        self.parser.add_argument(
+            "-ty",
+            "--timer-type",
+            type=str,
+            dest="timer_type",
+            help=(
+                "List %s type, example: 'core.st2.IntervalTimer', \
+                                       'core.st2.DateTimer', 'core.st2.CronTimer'."
+                % resource.get_plural_display_name().lower()
+            ),
+            required=False,
+        )
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         if args.timer_type:
-            kwargs['timer_type'] = args.timer_type
+            kwargs["timer_type"] = args.timer_type
 
         if kwargs:
             return self.manager.query(**kwargs)
@@ -54,5 +63,5 @@ class TimerListCommand(resource.ResourceListCommand):
 
 
 class TimerGetCommand(resource.ResourceGetCommand):
-    display_attributes = ['all']
-    attribute_display_order = ['type', 'pack', 'name', 'description', 'parameters']
+    display_attributes = ["all"]
+    attribute_display_order = ["type", "pack", "name", "description", "parameters"]

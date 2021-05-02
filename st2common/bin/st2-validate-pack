@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+#
+# Copyright 2021 The StackStorm Authors.
+#
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import absolute_import
+
+import argparse
+import glob
+import inspect
+import json
+import os
+import six
+import yaml
+
+from st2common.models.api import action as action_models
+from st2common.models.api import pack as pack_models
+from st2common.models.api import policy as policy_models
+from st2common.models.api import rule as rule_models
+from st2common.models.api import sensor as sensor_models
+from st2common.util import schema as schema_utils
+from st2common.util import yml as yaml_utils
+
+pack_layout = {
+    "actions": action_models.ActionAPI,
+    "aliases": action_models.ActionAliasAPI,
+    "policies": policy_models.PolicyAPI,
+    "rules": rule_models.RuleAPI,
+    "sensors": sensor_models.SensorTypeAPI,
+}
+
+
+def validate_content(path, schema):
+    errors = []
+    content = None
+    spec = None
+
+    with open(path, "r") as f:
+        content = f.read()
+
+    if content is None:
+        print(f'ERROR: Unable to read file "{path}".')
+        return False
+
+    try:
+        spec = yaml_utils.unique_key_loader_safe_load(content)
+    except Exception as e:
+        print(f'ERROR: Unable to load yaml for file "{path}" because {str(e)}.')
+        return False
+
+    pack_name = os.path.basename(path)
+
+    if "pack" not in spec:
+        spec["pack"] = pack_name
+
+    validator = schema_utils.CustomValidator(schema)
+
+    for e in validator.iter_errors(spec):
+        spec_path = ""
+
+        for s in list(e.absolute_path):
+            spec_path += (
+                f"[{str(s)}]" if isinstance(s, int) else f".{s}" if spec_path else s
+            )
+
+        errors.append({"message": e.message, "spec_path": spec_path})
+
+    for error in errors:
+        print(
+            'ERROR: %s for file "%s" at "%s"'
+            % (error["message"].replace("'", '"'), path, error["spec_path"])
+        )
+
+    return len(errors) <= 0
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        "A utility for validating StackStorm pack content."
+    )
+
+    parser.add_argument(
+        "-p",
+        "--pack-path",
+        type=str,
+        required=True,
+        help="The path where the pack is located.",
+    )
+
+    args = parser.parse_args()
+
+    if not os.path.isdir(args.pack_path):
+        print(f'ERROR: The path "{args.pack_path}" does not exist.')
+        exit(1)
+
+    valid = 0
+
+    if not validate_content(
+        os.path.join(args.pack_path, "pack.yaml"), pack_models.PackAPI.schema
+    ):
+        valid = 1
+
+    for directory, model in six.iteritems(pack_layout):
+        for meta in glob.glob(os.path.join(args.pack_path, directory, "*.yaml")):
+            if not validate_content(meta, model.schema):
+                valid = 1
+
+    exit(valid)
+
+
+if __name__ == "__main__":
+    main()

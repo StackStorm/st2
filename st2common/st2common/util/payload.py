@@ -22,11 +22,8 @@ from st2common.services.keyvalues import KeyValueLookup
 
 
 class PayloadLookup(object):
-
     def __init__(self, payload, prefix=TRIGGER_PAYLOAD_PREFIX):
-        self.context = {
-            prefix: payload
-        }
+        self.context = {prefix: payload}
 
         for system_scope in SYSTEM_SCOPES:
             self.context[system_scope] = KeyValueLookup(scope=system_scope)
