@@ -131,13 +131,14 @@ class Client(object):
         self.api_key = api_key
 
         if basic_auth:
-            if len(basic_auth.split(":")) != 2:
+            # NOTE: We assume username can't contain colons
+            if len(basic_auth.split(":", 1)) != 2:
                 raise ValueError(
                     "basic_auth config options needs to be in the "
                     "username:password notation"
                 )
 
-            self.basic_auth = tuple(basic_auth.split(":"))
+            self.basic_auth = tuple(basic_auth.split(":", 1))
         else:
             self.basic_auth = None
 

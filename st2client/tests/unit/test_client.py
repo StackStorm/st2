@@ -89,6 +89,25 @@ class TestClientEndpoints(unittest2.TestCase):
             "http://127.0.0.1:9101/v1/actions", auth=("username", "password"), params={}
         )
 
+    @mock.patch.object(
+        requests,
+        "get",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, "OK")),
+    )
+    def test_basic_auth_option_success_password_with_colon(self):
+        client = Client(basic_auth="username:password:with:colon")
+        self.assertEqual(client.basic_auth, ("username", "password:with:colon"))
+
+        self.assertEqual(requests.get.call_count, 0)
+        client.actions.get_all()
+        self.assertEqual(requests.get.call_count, 1)
+
+        requests.get.assert_called_with(
+            "http://127.0.0.1:9101/v1/actions",
+            auth=("username", "password:with:colon"),
+            params={},
+        )
+
     def test_basic_auth_option_invalid_notation(self):
         self.assertRaisesRegex(
             ValueError,
