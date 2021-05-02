@@ -528,6 +528,23 @@ class ResourceController(object):
             result.append(field)
         result = list(set(result))
 
+        # Special case to correctly handle "overlapping" include fields.
+        # If we see something like foo, bar, baz, bar.foo we simply remove bar.foo and retrieve
+        # complete "bar" field.
+        # That's for backward compatibility with MongoDB < 4.4 which automatically handles this
+        # conversion on the server side. MongoDB 4.4 doesn't automatically handle this conversion
+        # anymore and throws an exception.
+        # See https://github.com/StackStorm/st2/pull/5177#issuecomment-825200761 for details
+        for field in result:
+            if "." not in field:
+                continue
+
+            partial_field = field.split(".")[0]
+            if partial_field in result:
+                # parent field is already included in the result, remove this unncessary
+                # child field filtering
+                result.remove(field)
+
         return result
 
 

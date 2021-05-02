@@ -21,6 +21,8 @@ Have deep platform knowledge & experience and demonstrate technical leadership a
   - ChatOps, StackStorm Exchange, Community, Documentation, CI/CD.
 * Eugen Cusmaunsa ([@armab](https://github.com/armab)) <<armab@stackstorm.com>>
   - Systems, Deployments, Docker, K8s, HA, Ansible, Chef, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering, Community.
+* Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
+  - Community, Core, Systems, Infrastructure, StackStorm Exchange, Puppet deployment. [Case Study](https://stackstorm.com/case-study-encore/).
 * Tomaz Muraus ([@kami](https://github.com/kami)) <<tomaz@stackstorm.com>>
   - Core, Performance, API, Scalability, CI/CD, Systems, Deployments, Packaging, OpenSource.
 * Winson Chan ([@m4dcoder](https://github.com/m4dcoder)) <<wcchan@stackstorm.com>>
@@ -37,8 +39,6 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Systems, Core, CI/CD, Docker, Community.
 * Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)) <<mick@bitovi.com>>
   - Systems, ST2 Exchange. [Case Study](https://stackstorm.com/case-study-bitovi/).
-* Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
-  - Community, Core, Systems, StackStorm Exchange, Puppet deployment. [Case Study](https://stackstorm.com/case-study-dmm/).
 
 --------
 
