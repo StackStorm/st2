@@ -186,7 +186,8 @@ class PackRegisterController(object):
             result["policy_types"] = policies_registrar.register_policy_types(st2common)
 
         use_pack_cache = False
-
+        # TODO: To speed up this operation since it's mostli IO bound we could use green thread
+        # pool here and register different resources concurrently
         fail_on_failure = getattr(pack_register_request, "fail_on_failure", True)
         for type, (Registrar, name) in six.iteritems(ENTITIES):
             if type in types or name in types:

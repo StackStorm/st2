@@ -243,6 +243,20 @@ def register_opts(ignore_errors=False):
             "By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, "
             "MONGODB-CR (MongoDB Challenge Response protocol) for older servers.",
         ),
+        cfg.StrOpt(
+            "compressors",
+            default="",
+            help="Comma delimited string of compression algorithms to use for transport level "
+            "compression. Actual algorithm will then be decided based on the algorithms "
+            "supported by the client and the server. For example: zstd. Defaults to no "
+            "compression. Keep in mind that zstd is only supported with MongoDB 4.2 and later.",
+        ),
+        cfg.IntOpt(
+            "zlib_compression_level",
+            default="",
+            help="Compression level when compressors is set to zlib. Valid calues are -1 to 9. "
+            "Defaults to 6.",
+        ),
     ]
 
     do_register_opts(db_opts, "database", ignore_errors)
@@ -303,6 +317,13 @@ def register_opts(ignore_errors=False):
             "login_method",
             default=None,
             help="Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).",
+        ),
+        cfg.StrOpt(
+            "compression",
+            default=None,
+            help="Compression algorithm to use for compressing the payloads which are sent over "
+            "the message bus. Valid values include: zstd, lzma, bz2, gzip. Defaults to no "
+            "compression.",
         ),
     ]
 

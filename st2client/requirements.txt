@@ -5,18 +5,19 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-argcomplete
+argcomplete==1.12.2
 chardet<3.1.0
 cryptography==3.4.7
+importlib-metadata==3.10.1
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
-orjson==3.5.1
-prettytable
+orjson==3.5.2
+prettytable==2.1.0
 prompt-toolkit==1.0.15
 python-dateutil==2.8.1
 python-editor==1.0.4
 pytz==2021.1
-pyyaml==5.4
+pyyaml==5.4.1
 requests[security]==2.25.1
 six==1.13.0
 sseclient-py==1.7

@@ -13,16 +13,137 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import ssl
+import random
 
 import unittest2
+import eventlet
 
+from bson.objectid import ObjectId
+from kombu.mixins import ConsumerMixin
+from kombu import Exchange
+from kombu import Queue
+from oslo_config import cfg
+
+from st2common.transport.publishers import PoolPublisher
 from st2common.transport.utils import _get_ssl_kwargs
+from st2common.transport import utils as transport_utils
+from st2common.models.db.liveaction import LiveActionDB
 
 __all__ = ["TransportUtilsTestCase"]
 
 
+class QueueConsumer(ConsumerMixin):
+    def __init__(self, connection, queue):
+        self.connection = connection
+        self.queue = queue
+
+        self.received_messages = []
+
+    def get_consumers(self, Consumer, channel):
+        return [
+            Consumer(
+                queues=[self.queue], accept=["pickle"], callbacks=[self.process_task]
+            )
+        ]
+
+    def process_task(self, body, message):
+        self.received_messages.append((body, message))
+        message.ack()
+
+
 class TransportUtilsTestCase(unittest2.TestCase):
+    def tearDown(self):
+        super(TransportUtilsTestCase, self).tearDown()
+        cfg.CONF.set_override(name="compression", group="messaging", override=None)
+
+    def test_publish_compression(self):
+        live_action_db = LiveActionDB()
+        live_action_db.id = ObjectId()
+        live_action_db.status = "succeeded"
+        live_action_db.action = "core.local"
+        live_action_db.result = {"foo": "bar"}
+
+        exchange = Exchange("st2.execution.test", type="topic")
+        queue_name = "test-" + str(random.randint(1, 10000))
+        queue = Queue(
+            name=queue_name, exchange=exchange, routing_key="#", auto_delete=True
+        )
+        publisher = PoolPublisher()
+
+        with transport_utils.get_connection() as connection:
+            connection.connect()
+            watcher = QueueConsumer(connection=connection, queue=queue)
+            watcher_thread = eventlet.greenthread.spawn(watcher.run)
+
+        # Give it some time to start up since we are publishing on a new queue
+        eventlet.sleep(0.5)
+
+        self.assertEqual(len(watcher.received_messages), 0)
+
+        # 1. Verify compression is off as a default
+        publisher.publish(payload=live_action_db, exchange=exchange)
+        eventlet.sleep(0.2)
+
+        self.assertEqual(len(watcher.received_messages), 1)
+        self.assertEqual(
+            watcher.received_messages[0][1].properties["content_type"],
+            "application/x-python-serialize",
+        )
+        self.assertEqual(
+            watcher.received_messages[0][1].properties["content_encoding"], "binary"
+        )
+        self.assertEqual(
+            watcher.received_messages[0][1].properties["application_headers"], {}
+        )
+        self.assertEqual(watcher.received_messages[0][0].id, live_action_db.id)
+
+        # 2. Verify config level option is used
+        cfg.CONF.set_override(name="compression", group="messaging", override="zstd")
+        publisher.publish(payload=live_action_db, exchange=exchange)
+
+        eventlet.sleep(0.2)
+
+        self.assertEqual(len(watcher.received_messages), 2)
+        self.assertEqual(
+            watcher.received_messages[1][1].properties["content_type"],
+            "application/x-python-serialize",
+        )
+        self.assertEqual(
+            watcher.received_messages[1][1].properties["content_encoding"], "binary"
+        )
+        self.assertEqual(
+            watcher.received_messages[1][1].properties["application_headers"],
+            {"compression": "application/zstd"},
+        )
+        self.assertEqual(watcher.received_messages[1][0].id, live_action_db.id)
+
+        # 2. Verify argument level option is used and has precedence over config one
+        cfg.CONF.set_override(name="compression", group="messaging", override="zstd")
+        publisher.publish(payload=live_action_db, exchange=exchange, compression="gzip")
+
+        eventlet.sleep(0.2)
+
+        self.assertEqual(len(watcher.received_messages), 3)
+        self.assertEqual(
+            watcher.received_messages[2][1].properties["content_type"],
+            "application/x-python-serialize",
+        )
+        self.assertEqual(
+            watcher.received_messages[2][1].properties["content_encoding"], "binary"
+        )
+        self.assertEqual(
+            watcher.received_messages[2][1].properties["application_headers"],
+            {"compression": "application/x-gzip"},
+        )
+        self.assertEqual(watcher.received_messages[2][0].id, live_action_db.id)
+
+        watcher_thread.kill()
+
     def test_get_ssl_kwargs(self):
         # 1. No SSL kwargs provided
         ssl_kwargs = _get_ssl_kwargs()

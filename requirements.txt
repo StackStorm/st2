@@ -6,9 +6,9 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 RandomWords
-amqp==2.5.2
+amqp==5.0.6
 apscheduler==3.7.0
-argcomplete
+argcomplete==1.12.2
 bcrypt==3.2.0
 chardet<3.1.0
 cryptography==3.4.7
@@ -23,23 +23,24 @@ git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backe
 gitpython==2.1.15
 greenlet==1.0.0
 gunicorn==20.1.0
+importlib-metadata==3.10.1
 jinja2==2.11.3
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
-kombu==4.6.6
+kombu==5.0.2
 lockfile==0.12.2
 mock==4.0.3
 mongoengine==0.23.0
 networkx==1.11
 nose
 nose-parallel==0.4.0
-nose-timer==0.7.5
-orjson==3.5.1
+nose-timer==1.0.1
+orjson==3.5.2
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 paramiko==2.7.2
 passlib==1.7.4
-prettytable
+prettytable==2.1.0
 prompt-toolkit==1.0.15
 psutil==5.8.0
 pyinotify==0.9.6; platform_system=="Linux"
@@ -51,7 +52,7 @@ python-json-logger
 python-statsd==2.1.0
 pytz==2021.1
 pywinrm==0.4.1
-pyyaml==5.4
+pyyaml==5.4.1
 redis==3.5.3
 rednose
 requests[security]==2.25.1
@@ -68,3 +69,4 @@ unittest2
 webob==1.8.7
 webtest
 zake==0.2.2
+zstandard==0.15.2

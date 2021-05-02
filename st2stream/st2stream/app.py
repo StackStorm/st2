@@ -34,7 +34,6 @@ from st2common.middleware.logging import LoggingMiddleware
 from st2common.middleware.instrumentation import RequestInstrumentationMiddleware
 from st2common.middleware.instrumentation import ResponseInstrumentationMiddleware
 from st2common.router import Router
-from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
@@ -47,12 +46,8 @@ def setup_app(config={}):
 
     is_gunicorn = config.get("is_gunicorn", False)
     if is_gunicorn:
-        # Note: We need to perform monkey patching in the worker. If we do it in
-        # the master process (gunicorn_config.py), it breaks tons of things
-        # including shutdown
-        monkey_patch()
 
-        st2stream_config.register_opts()
+        st2stream_config.register_opts(ignore_errors=True)
         capabilities = {
             "name": "stream",
             "listen_host": cfg.CONF.stream.host,

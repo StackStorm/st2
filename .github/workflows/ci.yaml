@@ -55,6 +55,12 @@ jobs:
           - name: 'Compile (pip deps, pylint, etc.)'
             task: 'ci-compile'
             python-version: '3.6'
+          - name: 'Lint Checks (black, flake8, etc.)'
+            task: 'ci-checks'
+            python-version: '3.8'
+          - name: 'Compile (pip deps, pylint, etc.)'
+            task: 'ci-compile'
+            python-version: '3.8'
 
     env:
       TASK: '${{ matrix.task }}'
@@ -80,9 +86,9 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          key: ${{ runner.os }}-v2-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-python-${{ matrix.python }}-
+            ${{ runner.os }}-v2-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v2
@@ -134,19 +140,24 @@ jobs:
         include:
           - name: 'Unit Tests (chunk 1)'
             task: 'ci-unit'
-            nosetests_node_total: 3
+            nosetests_node_total: 2
             nosetests_node_index: 0
             python-version: '3.6'
           - name: 'Unit Tests (chunk 2)'
             task: 'ci-unit'
-            nosetests_node_total: 3
+            nosetests_node_total: 2
             nosetests_node_index: 1
             python-version: '3.6'
-          - name: 'Unit Tests (chunk 3)'
+          - name: 'Unit Tests (chunk 1)'
             task: 'ci-unit'
-            nosetests_node_total: 3
-            nosetests_node_index: 2
-            python-version: '3.6'
+            nosetests_node_total: 2
+            nosetests_node_index: 0
+            python-version: '3.8'
+          - name: 'Unit Tests (chunk 2)'
+            task: 'ci-unit'
+            nosetests_node_total: 2
+            nosetests_node_index: 1
+            python-version: '3.8'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
@@ -155,7 +166,7 @@ jobs:
           #  nosetests_node_ index: 0
     services:
       mongo:
-        image: mongo:4.0
+        image: mongo:4.4
         ports:
           - 27017:27017
 
@@ -265,7 +276,7 @@ jobs:
         # TODO: Use dynamic timeout value based on the branch - for master we
         # need to use timeout x2 due to coverage overhead
         # timeout-minutes: 8
-        timeout-minutes: 14
+        timeout-minutes: 19
         run: |
           script -e -c "make ${TASK}"
       - name: Nightly
@@ -309,18 +320,24 @@ jobs:
             nosetests_node_total: 2
             nosetests_node_index: 1
             python-version: '3.6'
-          # There are a bunch of race conditions in Orquesta tests which causes
-          # the step to either fail or timeout quite often. We run those tests
-          # separately so we can re-run just that set of tests on failure /
-          # timeout instead of needing to re runn the whole build.
-          #- name: 'Integration Tests (Orquesta)'
-          #  task: 'ci-orquesta'
-          #  nosetests_node_total: 1
-          #  nosetests_node_index: 0
-          #  python-version: '3.6'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version: '3.8'
+          - name: 'Integration Tests (chunk 1)'
+            task: 'ci-integration'
+            nosetests_node_total: 2
+            nosetests_node_index: 0
+            python-version: '3.8'
+          - name: 'Integration Tests (chunk 2)'
+            task: 'ci-integration'
+            nosetests_node_total: 2
+            nosetests_node_index: 1
+            python-version: '3.8'
     services:
       mongo:
-        image: mongo:4.0
+        image: mongo:4.4
         ports:
           - 27017:27017
 
@@ -466,13 +483,14 @@ jobs:
           ./scripts/github/configure-rabbitmq.sh
       - name: Print versions
         run: |
+
           ./scripts/ci/print-versions.sh
       - name: make
         if: "${{ env.TASK == 'ci-integration' }}"
         #timeout-minutes: 7
         # TODO: Use dynamic timeout value based on the branch - for master we
         # need to use timeout x2 due to coverage overhead
-        timeout-minutes: 14
+        timeout-minutes: 14  # may die if rabbitmq fails to start
         # use: script -e -c to print colors
         run: |
           script -e -c "make ${TASK}" && exit 0
@@ -481,6 +499,17 @@ jobs:
         if: "${{ success() && env.ENABLE_COVERAGE == 'yes' && env.TASK == 'ci-integration' }}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+      - name: Compress Service Logs Before upload
+        if: ${{ failure() && env.TASK == 'ci-integration' }}
+        run: |
+          tar cvzpf logs.tar.gz logs/*
+      - name: Upload StackStorm services Logs
+        if: ${{ failure() && env.TASK == 'ci-integration' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.tar.gz
+          retention-days: 7
       - name: Stop Redis Service Container
         if: "${{ always() }}"
         run: docker rm --force redis || true

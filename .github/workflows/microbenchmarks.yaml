@@ -1,0 +1,141 @@
+# Workflow which runs micro benchmarks on nightly basis
+# We run it nightly instead on every PR / merge to master since some of those benchmarks take quite a while.
+name: Micro Benchmarks
+
+on:
+  schedule:
+    - cron:  '30 3 * * *'
+
+jobs:
+  # Special job which automatically cancels old runs for the same branch, prevents runs for the
+  # same file set which has already passed, etc.
+  pre_job:
+    name: Skip Duplicate Jobs Pre Job
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@4c656bbdb6906310fa6213604828008bc28fe55d # v3.3.0
+        with:
+          cancel_others: 'true'
+          github_token: ${{ github.token }}
+
+  micro-benchmarks:
+    needs: pre_job
+    # NOTE: We always want to run job on master since we run some additional checks there (code
+    # coverage, etc)
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'Microbenchmarks'
+            task: 'micro-benchmarks'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version: '3.6'
+          - name: 'Microbenchmarks'
+            task: 'micro-benchmarks'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version: '3.8'
+    services:
+      mongo:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
+
+      rabbitmq:
+        image: rabbitmq:3.8-management
+        options: >-
+          --name rabbitmq
+        ports:
+          - 5671:5671/tcp   # AMQP SSL port
+          - 5672:5672/tcp   # AMQP standard port
+          - 15672:15672/tcp # Management: HTTP, CLI
+
+    env:
+      TASK: '${{ matrix.task }}'
+
+      NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
+      NODE_INDEX: '${{ matrix.nosetests_node_index }}'
+
+      COLUMNS: '120'
+      ST2_CI: 'true'
+
+      # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
+      PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: Cache Python Dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+            virtualenv
+            ~/virtualenv
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python }}-
+      - name: Cache APT Dependencies
+        id: cache-apt-deps
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/apt_cache
+          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-v5-
+      - name: Install APT Dependencies
+        env:
+          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
+        run: |
+          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Install virtualenv
+        run: |
+          ./scripts/github/install-virtualenv.sh
+      - name: Install requirements
+        run: |
+          ./scripts/ci/install-requirements.sh
+      - name: Print versions
+        run: |
+          ./scripts/ci/print-versions.sh
+      - name: Run Micro Benchmarks
+        timeout-minutes: 30
+        # use: script -e -c to print colors
+        run: |
+          script -e -c "make ${TASK}" && exit 0
+      - name: Upload Histograms
+        uses: actions/upload-artifact@v2
+        with:
+          name: benchmark_histograms
+          path: benchmark_histograms/
+          retention-days: 30
+
+  slack-notification:
+    name: Slack notification for failed builds
+    if: always()
+    needs:
+      - micro-benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow conclusion
+        # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
+        uses: technote-space/workflow-conclusion-action@v2
+      - name: CI Run Failure Slack Notification
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: development
+          status: FAILED
+          color: danger
