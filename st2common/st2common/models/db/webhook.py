@@ -29,7 +29,7 @@ class WebhookDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """
 
     RESOURCE_TYPE = ResourceType.WEBHOOK
-    UID_FIELDS = ['name']
+    UID_FIELDS = ["name"]
 
     name = me.StringField(required=True)
 
@@ -40,7 +40,7 @@ class WebhookDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
 
     def _normalize_name(self, name):
         # Remove trailing slash if present
-        if name.endswith('/'):
+        if name.endswith("/"):
             name = name[:-1]
 
         return name

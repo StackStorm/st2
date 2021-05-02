@@ -28,7 +28,7 @@ Troubleshooting Guide
   $ sudo netstat -tupln | grep 910
   tcp     0    0 0.0.0.0:9100    0.0.0.0:*   LISTEN  32420/python
   tcp     0    0 0.0.0.0:9102    0.0.0.0:*   LISTEN  32403/python
-  
+
 As we can see from above output port ``9101`` is not even up. To verify this let us try another command:
 
 .. code:: bash
@@ -36,10 +36,10 @@ As we can see from above output port ``9101`` is not even up. To verify this let
   $ ps auxww | grep st2 | grep 910
   vagrant  32420  0.2  1.5  79228 31364 pts/10   Ss+  18:27   0:00 /home/vagrant/git/st2/virtualenv/bin/python
   ./virtualenv/bin/gunicorn st2auth.wsgi:application -k eventlet -b 0.0.0.0:9100 --workers 1
-  vagrant@ether git/st2 (master %) » ps auxww | grep st2 | grep 32403  
+  vagrant@ether git/st2 (master %) » ps auxww | grep st2 | grep 32403
   vagrant  32403  0.2  1.5  79228 31364 pts/3    Ss+  18:27   0:00 /home/vagrant/git/st2/virtualenv/bin/python
   ./virtualenv/bin/gunicorn st2stream.wsgi:application -k eventlet -b 0.0.0.0:9102 --workers 1
-  
+
 - This suggests that the API process crashed, we can verify that by running ``screen -ls``.::
 
 .. code:: bash
@@ -51,19 +51,19 @@ As we can see from above output port ``9101`` is not even up. To verify this let
 	 15767.st2-sensorcontainer	(04/26/2016 06:39:10 PM)	(Detached)
 	 15762.st2-stream	(04/26/2016 06:39:10 PM)	(Detached)
     3 Sockets in /var/run/screen/S-vagrant.
- 
-- Now let us check the logs for any errors: 
+
+- Now let us check the logs for any errors:
 
 .. code:: bash
 
   tail logs/st2api.log
-  2016-04-26 18:27:15,603 140317722756912 AUDIT triggers [-] Trigger updated. Trigger.id=570e9704909a5030cf758e6d 
-  (trigger_db={'description': None, 'parameters': {}, 'ref_count': 0, 'name': u'st2.sensor.process_exit', 
-  'uid': u'trigger:core:st2.sensor.process_exit:5f02f0889301fd7be1ac972c11bf3e7d', 'type': u'core.st2.sensor.process_exit', 
+  2016-04-26 18:27:15,603 140317722756912 AUDIT triggers [-] Trigger updated. Trigger.id=570e9704909a5030cf758e6d
+  (trigger_db={'description': None, 'parameters': {}, 'ref_count': 0, 'name': u'st2.sensor.process_exit',
+  'uid': u'trigger:core:st2.sensor.process_exit:5f02f0889301fd7be1ac972c11bf3e7d', 'type': u'core.st2.sensor.process_exit',
   'id': '570e9704909a5030cf758e6d', 'pack': u'core'})
-  2016-04-26 18:27:15,603 140317722756912 AUDIT triggers [-] Trigger created for parameter-less TriggerType. 
-  Trigger.id=570e9704909a5030cf758e6d (trigger_db={'description': None, 'parameters': {}, 'ref_count': 0, 
-  'name': u'st2.sensor.process_exit', 'uid': u'trigger:core:st2.sensor.process_exit:5f02f0889301fd7be1ac972c11bf3e7d', 
+  2016-04-26 18:27:15,603 140317722756912 AUDIT triggers [-] Trigger created for parameter-less TriggerType.
+  Trigger.id=570e9704909a5030cf758e6d (trigger_db={'description': None, 'parameters': {}, 'ref_count': 0,
+  'name': u'st2.sensor.process_exit', 'uid': u'trigger:core:st2.sensor.process_exit:5f02f0889301fd7be1ac972c11bf3e7d',
   'type': u'core.st2.sensor.process_exit', 'id': '570e9704909a5030cf758e6d', 'pack': u'core'})
   2016-04-26 18:27:15,605 140317722756912 DEBUG base [-] Conflict while trying to save in DB.
   Traceback (most recent call last):
@@ -94,7 +94,7 @@ As we can see from above output port ``9101`` is not even up. To verify this let
   NotUniqueError: Could not save document (E11000 duplicate key error index: st2.role_d_b.$name_1 dup key: { : "system_admin" })
   2016-04-26 18:27:15,676 140317722756912 INFO driver [-] Generating grammar tables from /usr/lib/python2.7/lib2to3/Grammar.txt
   2016-04-26 18:27:15,693 140317722756912 INFO driver [-] Generating grammar tables from /usr/lib/python2.7/lib2to3/PatternGrammar.txt
-  
+
 - To figure out whats wrong let us dig down further. Activate the virtualenv in st2 and run following command :
 
 .. code:: bash
@@ -108,7 +108,7 @@ The above mentioned command will give out logs, we may find some error in the en
     File "/home/vagrant/git/st2/st2common/st2common/models/api/keyvalue.py", line 19, in <module>
       from keyczar.keys import AesKey
   ImportError: No module named keyczar.keys
-  
+
 So the problem is : module keyczar is missing. This module can be downloaded using following command:
 
 *Solution:*
@@ -116,7 +116,7 @@ So the problem is : module keyczar is missing. This module can be downloaded usi
 .. code:: bash
 
   (virtualenv) $ pip install python-keyczar
-  
+
 
 This should fix the issue. Now deactivate the virtual env and run ``tools/launchdev.sh restart``
 

@@ -13,13 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import os
 
 from st2stream import app
 
 config = {
-    'is_gunicorn': True,
-    'config_args': ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
+    "is_gunicorn": True,
+    "config_args": [
+        "--config-file",
+        os.environ.get("ST2_CONFIG_PATH", "/etc/st2/st2.conf"),
+    ],
 }
 
 application = app.setup_app(config)

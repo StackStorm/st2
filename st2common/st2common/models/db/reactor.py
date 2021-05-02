@@ -14,18 +14,17 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from st2common.models.db.rule import (ActionExecutionSpecDB, RuleDB)
+from st2common.models.db.rule import ActionExecutionSpecDB, RuleDB
 from st2common.models.db.sensor import SensorTypeDB
-from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB, TriggerInstanceDB)
+from st2common.models.db.trigger import TriggerDB, TriggerTypeDB, TriggerInstanceDB
 
 __all__ = [
-    'ActionExecutionSpecDB',
-    'RuleDB',
-    'SensorTypeDB',
-    'TriggerTypeDB',
-    'TriggerDB',
-    'TriggerInstanceDB'
+    "ActionExecutionSpecDB",
+    "RuleDB",
+    "SensorTypeDB",
+    "TriggerTypeDB",
+    "TriggerDB",
+    "TriggerInstanceDB",
 ]
 
-MODELS = [RuleDB, SensorTypeDB, TriggerDB, TriggerInstanceDB,
-          TriggerTypeDB]
+MODELS = [RuleDB, SensorTypeDB, TriggerDB, TriggerInstanceDB, TriggerTypeDB]

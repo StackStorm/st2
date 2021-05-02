@@ -20,24 +20,23 @@ import logging
 import os
 import re
 import sys
-import collections
 import functools
 
 import six
+from collections.abc import Mapping
 
 __all__ = [
-    'prefix_dict_keys',
-    'compare_path_file_name',
-    'get_field_name_from_mongoengine_error',
-
-    'sanitize_output',
-    'strip_shell_chars',
-    'rstrip_last_char',
-    'lowercase_value'
+    "prefix_dict_keys",
+    "compare_path_file_name",
+    "get_field_name_from_mongoengine_error",
+    "sanitize_output",
+    "strip_shell_chars",
+    "rstrip_last_char",
+    "lowercase_value",
 ]
 
 
-def prefix_dict_keys(dictionary, prefix='_'):
+def prefix_dict_keys(dictionary, prefix="_"):
     """
     Prefix dictionary keys with a provided prefix.
 
@@ -52,7 +51,7 @@ def prefix_dict_keys(dictionary, prefix='_'):
     result = {}
 
     for key, value in six.iteritems(dictionary):
-        result['%s%s' % (prefix, key)] = value
+        result["%s%s" % (prefix, key)] = value
 
     return result
 
@@ -89,7 +88,7 @@ def sanitize_output(input_str, uses_pty=False):
     output = strip_shell_chars(input_str)
 
     if uses_pty:
-        output = output.replace('\r\n', '\n')
+        output = output.replace("\r\n", "\n")
 
     return output
 
@@ -105,8 +104,8 @@ def strip_shell_chars(input_str):
 
     :rtype: ``str``
     """
-    stripped_str = rstrip_last_char(input_str, '\n')
-    stripped_str = rstrip_last_char(stripped_str, '\r')
+    stripped_str = rstrip_last_char(input_str, "\n")
+    stripped_str = rstrip_last_char(stripped_str, "\r")
     return stripped_str
 
 
@@ -127,7 +126,7 @@ def rstrip_last_char(input_str, char_to_strip):
         return input_str
 
     if input_str.endswith(char_to_strip):
-        return input_str[:-len(char_to_strip)]
+        return input_str[: -len(char_to_strip)]
 
     return input_str
 
@@ -138,7 +137,7 @@ def deep_update(d, u):
     """
 
     for k, v in six.iteritems(u):
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, Mapping):
             r = deep_update(d.get(k, {}), v)
             d[k] = r
         else:
@@ -153,10 +152,10 @@ def get_normalized_file_path(file_path):
 
     :rtype: ``str``
     """
-    if hasattr(sys, 'frozen'):  # support for py2exe
-        file_path = 'logging%s__init__%s' % (os.sep, file_path[-4:])
-    elif file_path[-4:].lower() in ['.pyc', '.pyo']:
-        file_path = file_path[:-4] + '.py'
+    if hasattr(sys, "frozen"):  # support for py2exe
+        file_path = "logging%s__init__%s" % (os.sep, file_path[-4:])
+    elif file_path[-4:].lower() in [".pyc", ".pyo"]:
+        file_path = file_path[:-4] + ".py"
     else:
         file_path = file_path
 
@@ -193,7 +192,7 @@ def get_field_name_from_mongoengine_error(exc):
     """
     msg = str(exc)
 
-    match = re.match("Cannot resolve field \"(.+?)\"", msg)
+    match = re.match('Cannot resolve field "(.+?)"', msg)
 
     if match:
         return match.groups()[0]
@@ -201,7 +200,9 @@ def get_field_name_from_mongoengine_error(exc):
     return msg
 
 
-def ignore_and_log_exception(exc_classes=(Exception,), logger=None, level=logging.WARNING):
+def ignore_and_log_exception(
+    exc_classes=(Exception,), logger=None, level=logging.WARNING
+):
     """
     Decorator which catches the provided exception classes and logs them instead of letting them
     bubble all the way up.
@@ -214,13 +215,14 @@ def ignore_and_log_exception(exc_classes=(Exception,), logger=None, level=loggin
             try:
                 return func(*args, **kwargs)
             except exc_classes as e:
-                if len(args) >= 1 and getattr(args[0], '__class__', None):
-                    func_name = '%s.%s' % (args[0].__class__.__name__, func.__name__)
+                if len(args) >= 1 and getattr(args[0], "__class__", None):
+                    func_name = "%s.%s" % (args[0].__class__.__name__, func.__name__)
                 else:
                     func_name = func.__name__
 
-                message = ('Exception in fuction "%s": %s' % (func_name, str(e)))
+                message = 'Exception in fuction "%s": %s' % (func_name, str(e))
                 logger.log(level, message)
 
         return wrapper
+
     return decorator

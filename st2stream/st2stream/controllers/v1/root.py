@@ -15,9 +15,7 @@
 
 from st2stream.controllers.v1.stream import StreamController
 
-__all__ = [
-    'RootController'
-]
+__all__ = ["RootController"]
 
 
 class RootController(object):

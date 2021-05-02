@@ -24,7 +24,6 @@ from tests.unit.base import ChangeRevFakeModel, ChangeRevFakeModelDB
 
 
 class TestChangeRevision(DbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(TestChangeRevision, cls).setUpClass()
@@ -35,7 +34,7 @@ class TestChangeRevision(DbTestCase):
         super(TestChangeRevision, self).tearDown()
 
     def test_crud(self):
-        initial = ChangeRevFakeModelDB(name=uuid.uuid4().hex, context={'a': 1})
+        initial = ChangeRevFakeModelDB(name=uuid.uuid4().hex, context={"a": 1})
 
         # Test create
         created = self.access.add_or_update(initial)
@@ -47,14 +46,14 @@ class TestChangeRevision(DbTestCase):
         self.assertDictEqual(created.context, retrieved.context)
 
         # Test update
-        retrieved = self.access.update(retrieved, context={'a': 2})
+        retrieved = self.access.update(retrieved, context={"a": 2})
         updated = self.access.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
         self.assertEqual(retrieved.rev, updated.rev)
         self.assertDictEqual(retrieved.context, updated.context)
 
         # Test add or update
-        retrieved.context = {'a': 1, 'b': 2}
+        retrieved.context = {"a": 1, "b": 2}
         retrieved = self.access.add_or_update(retrieved)
         updated = self.access.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
@@ -65,13 +64,11 @@ class TestChangeRevision(DbTestCase):
         created.delete()
 
         self.assertRaises(
-            db_exc.StackStormDBObjectNotFoundError,
-            self.access.get_by_id,
-            doc_id
+            db_exc.StackStormDBObjectNotFoundError, self.access.get_by_id, doc_id
         )
 
     def test_write_conflict(self):
-        initial = ChangeRevFakeModelDB(name=uuid.uuid4().hex, context={'a': 1})
+        initial = ChangeRevFakeModelDB(name=uuid.uuid4().hex, context={"a": 1})
 
         # Prep record
         created = self.access.add_or_update(initial)
@@ -83,7 +80,7 @@ class TestChangeRevision(DbTestCase):
         retrieved2 = self.access.get_by_id(doc_id)
 
         # Test update on instance 1, expect success
-        retrieved1 = self.access.update(retrieved1, context={'a': 2})
+        retrieved1 = self.access.update(retrieved1, context={"a": 2})
         updated = self.access.get_by_id(doc_id)
         self.assertNotEqual(created.rev, updated.rev)
         self.assertEqual(retrieved1.rev, updated.rev)
@@ -94,5 +91,5 @@ class TestChangeRevision(DbTestCase):
             db_exc.StackStormDBObjectWriteConflictError,
             self.access.update,
             retrieved2,
-            context={'a': 1, 'b': 2}
+            context={"a": 1, "b": 2},
         )

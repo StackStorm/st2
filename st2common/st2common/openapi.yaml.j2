@@ -1091,6 +1091,10 @@ paths:
           in: query
           description: Show secrets in plain text
           type: boolean
+        - name: max_result_size
+          in: query
+          type: integer
+          description: True to exclude result field from the response for executions which result field exceeds the provided size in bytes.
       x-parameters:
         - name: user
           in: context
@@ -1338,6 +1342,50 @@ paths:
               trigger:
                 type: object
               # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/executions/{id}/result:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_raw_result_controller.get
+      x-log-result: false
+      x-submit-metrics: false
+      description: |
+        Get one execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: download
+          in: query
+          description: True to force result file download instead of returning it as a response
+          type: boolean
+          default: false
+        - name: compress
+          in: query
+          description: True to compress the response body
+          type: boolean
+          default: false
+        - name: pretty_format
+          in: query
+          description: True to pretty format the result (adds some overhead)
+          type: boolean
+          default: false
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution result
+          schema:
+            type: string
+            # Response is raw text so we don't want to perform validation on it
+            validate_response: false
         default:
           description: Unexpected error
           schema:
@@ -4882,6 +4930,9 @@ definitions:
 #          - type: number
 #          - type: object
 #          - type: string
+      result_size:
+        type: integer
+        default: 0
       parent:
         type: string
       children:

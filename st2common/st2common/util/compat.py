@@ -24,16 +24,15 @@ import six
 
 
 __all__ = [
-    'mock_open_name',
-
-    'to_unicode',
-    'to_ascii',
+    "mock_open_name",
+    "to_unicode",
+    "to_ascii",
 ]
 
 if six.PY3:
-    mock_open_name = 'builtins.open'
+    mock_open_name = "builtins.open"
 else:
-    mock_open_name = '__builtin__.open'
+    mock_open_name = "__builtin__.open"
 
 
 def to_unicode(value):
@@ -63,4 +62,4 @@ def to_ascii(value):
     if six.PY3:
         value = value.encode()
 
-    return value.decode('ascii', errors='ignore')
+    return value.decode("ascii", errors="ignore")

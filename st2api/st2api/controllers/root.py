@@ -15,23 +15,21 @@
 
 from st2common import __version__
 
-__all__ = [
-    'RootController'
-]
+__all__ = ["RootController"]
 
 
 class RootController(object):
     def index(self):
         data = {}
 
-        if 'dev' in __version__:
-            docs_url = 'http://docs.stackstorm.com/latest'
+        if "dev" in __version__:
+            docs_url = "http://docs.stackstorm.com/latest"
         else:
-            docs_version = '.'.join(__version__.split('.')[:2])
-            docs_url = 'http://docs.stackstorm.com/%s' % docs_version
+            docs_version = ".".join(__version__.split(".")[:2])
+            docs_url = "http://docs.stackstorm.com/%s" % docs_version
 
-        data['version'] = __version__
-        data['docs_url'] = docs_url
+        data["version"] = __version__
+        data["docs_url"] = docs_url
         return data
 
 

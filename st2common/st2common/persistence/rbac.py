@@ -20,12 +20,7 @@ from st2common.models.db.rbac import user_role_assignment_access
 from st2common.models.db.rbac import permission_grant_access
 from st2common.models.db.rbac import group_to_role_mapping_access
 
-__all__ = [
-    'Role',
-    'UserRoleAssignment',
-    'PermissionGrant',
-    'GroupToRoleMapping'
-]
+__all__ = ["Role", "UserRoleAssignment", "PermissionGrant", "GroupToRoleMapping"]
 
 
 class Role(base.Access):

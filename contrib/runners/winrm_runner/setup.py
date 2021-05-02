@@ -26,33 +26,35 @@ from dist_utils import apply_vagrant_workaround
 from winrm_runner import __version__
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
+REQUIREMENTS_FILE = os.path.join(BASE_DIR, "requirements.txt")
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='stackstorm-runner-winrm',
+    name="stackstorm-runner-winrm",
     version=__version__,
-    description=('WinRM shell command and PowerShell script action runner for'
-                 ' the StackStorm event-driven automation platform'),
-    author='StackStorm',
-    author_email='info@stackstorm.com',
-    license='Apache License (2.0)',
-    url='https://stackstorm.com/',
+    description=(
+        "WinRM shell command and PowerShell script action runner for"
+        " the StackStorm event-driven automation platform"
+    ),
+    author="StackStorm",
+    author_email="info@stackstorm.com",
+    license="Apache License (2.0)",
+    url="https://stackstorm.com/",
     install_requires=install_reqs,
     dependency_links=dep_links,
-    test_suite='tests',
+    test_suite="tests",
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['setuptools', 'tests']),
-    package_data={'winrm_runner': ['runner.yaml']},
+    packages=find_packages(exclude=["setuptools", "tests"]),
+    package_data={"winrm_runner": ["runner.yaml"]},
     scripts=[],
     entry_points={
-        'st2common.runners.runner': [
-            'winrm-cmd = winrm_runner.winrm_command_runner',
-            'winrm-ps-cmd = winrm_runner.winrm_ps_command_runner',
-            'winrm-ps-script = winrm_runner.winrm_ps_script_runner',
+        "st2common.runners.runner": [
+            "winrm-cmd = winrm_runner.winrm_command_runner",
+            "winrm-ps-cmd = winrm_runner.winrm_ps_command_runner",
+            "winrm-ps-script = winrm_runner.winrm_ps_script_runner",
         ],
-    }
+    },
 )

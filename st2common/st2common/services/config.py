@@ -28,13 +28,15 @@ from st2common.persistence.keyvalue import KeyValuePair
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
-    'set_datastore_value_for_config_key',
+    "set_datastore_value_for_config_key",
 ]
 
 LOG = logging.getLogger(__name__)
 
 
-def set_datastore_value_for_config_key(pack_name, key_name, value, secret=False, user=None):
+def set_datastore_value_for_config_key(
+    pack_name, key_name, value, secret=False, user=None
+):
     """
     Set config value in the datastore.
 

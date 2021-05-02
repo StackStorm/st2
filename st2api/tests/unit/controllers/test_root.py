@@ -15,15 +15,13 @@
 
 from st2tests.api import FunctionalTest
 
-__all__ = [
-    'RootControllerTestCase'
-]
+__all__ = ["RootControllerTestCase"]
 
 
 class RootControllerTestCase(FunctionalTest):
     def test_get_index(self):
-        paths = ['/', '/v1/', '/v1']
+        paths = ["/", "/v1/", "/v1"]
         for path in paths:
             resp = self.app.get(path)
-            self.assertIn('version', resp.json)
-            self.assertIn('docs_url', resp.json)
+            self.assertIn("version", resp.json)
+            self.assertIn("docs_url", resp.json)

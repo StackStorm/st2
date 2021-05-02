@@ -12,12 +12,13 @@ def fib(n):
         return n
     return fib(n - 2) + fib(n - 1)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     try:
         startNumber = int(float(sys.argv[1]))
         endNumber = int(float(sys.argv[2]))
         results = map(str, map(fib, list(range(startNumber, endNumber))))
-        results = ' '.join(results)
+        results = " ".join(results)
         print(results)
     except Exception as e:
         traceback.print_exc(file=sys.stderr)

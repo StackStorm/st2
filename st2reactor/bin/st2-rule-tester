@@ -17,5 +17,5 @@
 
 from st2reactor.cmd import rule_tester
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     rule_tester.main()

@@ -21,68 +21,85 @@ import six
 from st2common.runners.base_action import Action
 from st2common.util.pack_management import download_pack
 
-__all__ = [
-    'DownloadGitRepoAction'
-]
+__all__ = ["DownloadGitRepoAction"]
 
 
 class DownloadGitRepoAction(Action):
     def __init__(self, config=None, action_service=None):
-        super(DownloadGitRepoAction, self).__init__(config=config, action_service=action_service)
-
-        self.https_proxy = os.environ.get('https_proxy', self.config.get('https_proxy', None))
-        self.http_proxy = os.environ.get('http_proxy', self.config.get('http_proxy', None))
-        self.proxy_ca_bundle_path = os.environ.get(
-            'proxy_ca_bundle_path',
-            self.config.get('proxy_ca_bundle_path', None)
+        super(DownloadGitRepoAction, self).__init__(
+            config=config, action_service=action_service
         )
-        self.no_proxy = os.environ.get('no_proxy', self.config.get('no_proxy', None))
+
+        self.https_proxy = os.environ.get(
+            "https_proxy", self.config.get("https_proxy", None)
+        )
+        self.http_proxy = os.environ.get(
+            "http_proxy", self.config.get("http_proxy", None)
+        )
+        self.proxy_ca_bundle_path = os.environ.get(
+            "proxy_ca_bundle_path", self.config.get("proxy_ca_bundle_path", None)
+        )
+        self.no_proxy = os.environ.get("no_proxy", self.config.get("no_proxy", None))
 
         self.proxy_config = None
 
         if self.http_proxy or self.https_proxy:
-            self.logger.debug('Using proxy %s',
-                              self.http_proxy if self.http_proxy else self.https_proxy)
+            self.logger.debug(
+                "Using proxy %s",
+                self.http_proxy if self.http_proxy else self.https_proxy,
+            )
             self.proxy_config = {
-                'https_proxy': self.https_proxy,
-                'http_proxy': self.http_proxy,
-                'proxy_ca_bundle_path': self.proxy_ca_bundle_path,
-                'no_proxy': self.no_proxy
+                "https_proxy": self.https_proxy,
+                "http_proxy": self.http_proxy,
+                "proxy_ca_bundle_path": self.proxy_ca_bundle_path,
+                "no_proxy": self.no_proxy,
             }
 
         # This is needed for git binary to work with a proxy
-        if self.https_proxy and not os.environ.get('https_proxy', None):
-            os.environ['https_proxy'] = self.https_proxy
+        if self.https_proxy and not os.environ.get("https_proxy", None):
+            os.environ["https_proxy"] = self.https_proxy
 
-        if self.http_proxy and not os.environ.get('http_proxy', None):
-            os.environ['http_proxy'] = self.http_proxy
+        if self.http_proxy and not os.environ.get("http_proxy", None):
+            os.environ["http_proxy"] = self.http_proxy
 
-        if self.no_proxy and not os.environ.get('no_proxy', None):
-            os.environ['no_proxy'] = self.no_proxy
+        if self.no_proxy and not os.environ.get("no_proxy", None):
+            os.environ["no_proxy"] = self.no_proxy
 
-        if self.proxy_ca_bundle_path and not os.environ.get('proxy_ca_bundle_path', None):
-            os.environ['no_proxy'] = self.no_proxy
+        if self.proxy_ca_bundle_path and not os.environ.get(
+            "proxy_ca_bundle_path", None
+        ):
+            os.environ["no_proxy"] = self.no_proxy
 
-    def run(self, packs, abs_repo_base, verifyssl=True, force=False,
-            dependency_list=None):
+    def run(
+        self, packs, abs_repo_base, verifyssl=True, force=False, dependency_list=None
+    ):
         result = {}
         pack_url = None
 
         if dependency_list:
             for pack_dependency in dependency_list:
-                pack_result = download_pack(pack=pack_dependency, abs_repo_base=abs_repo_base,
-                                            verify_ssl=verifyssl, force=force,
-                                            proxy_config=self.proxy_config, force_permissions=True,
-                                            logger=self.logger)
+                pack_result = download_pack(
+                    pack=pack_dependency,
+                    abs_repo_base=abs_repo_base,
+                    verify_ssl=verifyssl,
+                    force=force,
+                    proxy_config=self.proxy_config,
+                    force_permissions=True,
+                    logger=self.logger,
+                )
                 pack_url, pack_ref, pack_result = pack_result
                 result[pack_ref] = pack_result
         else:
             for pack in packs:
-                pack_result = download_pack(pack=pack, abs_repo_base=abs_repo_base,
-                                            verify_ssl=verifyssl, force=force,
-                                            proxy_config=self.proxy_config,
-                                            force_permissions=True,
-                                            logger=self.logger)
+                pack_result = download_pack(
+                    pack=pack,
+                    abs_repo_base=abs_repo_base,
+                    verify_ssl=verifyssl,
+                    force=force,
+                    proxy_config=self.proxy_config,
+                    force_permissions=True,
+                    logger=self.logger,
+                )
                 pack_url, pack_ref, pack_result = pack_result
                 result[pack_ref] = pack_result
 
@@ -99,14 +116,16 @@ class DownloadGitRepoAction(Action):
 
         if not atleast_one_success:
             message_list = []
-            message_list.append('The pack has not been downloaded from "%s".\n' % (repo_url))
-            message_list.append('Errors:')
+            message_list.append(
+                'The pack has not been downloaded from "%s".\n' % (repo_url)
+            )
+            message_list.append("Errors:")
 
             for pack, value in result.items():
                 success, error = value
                 message_list.append(error)
 
-            message = '\n'.join(message_list)
+            message = "\n".join(message_list)
             raise Exception(message)
 
         return sanitized_result

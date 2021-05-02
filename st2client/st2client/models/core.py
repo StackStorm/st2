@@ -16,11 +16,11 @@
 from __future__ import absolute_import
 
 import os
-import json
 import logging
 from functools import wraps
 
 import six
+import orjson
 from six.moves import urllib
 from six.moves import http_client
 import requests
@@ -34,13 +34,36 @@ LOG = logging.getLogger(__name__)
 def add_auth_token_to_kwargs_from_env(func):
     @wraps(func)
     def decorate(*args, **kwargs):
-        if not kwargs.get('token') and os.environ.get('ST2_AUTH_TOKEN', None):
-            kwargs['token'] = os.environ.get('ST2_AUTH_TOKEN')
-        if not kwargs.get('api_key') and os.environ.get('ST2_API_KEY', None):
-            kwargs['api_key'] = os.environ.get('ST2_API_KEY')
+        if not kwargs.get("token") and os.environ.get("ST2_AUTH_TOKEN", None):
+            kwargs["token"] = os.environ.get("ST2_AUTH_TOKEN")
+        if not kwargs.get("api_key") and os.environ.get("ST2_API_KEY", None):
+            kwargs["api_key"] = os.environ.get("ST2_API_KEY")
 
         return func(*args, **kwargs)
+
     return decorate
+
+
+def parse_api_response(response: requests.models.Response) -> dict:
+    """
+    Utility function which parses API json response using orjson.
+
+    requests uses simplejson, but this version uses orjson which can be up to 50% faster and that
+    is especially pronounced with larger response.
+    """
+    # Upstream implementation is available at
+    # https://github.com/psf/requests/blob/master/requests/models.py#L876
+    # NOTE: It's important that we manually decode response.content attribute before passing it to
+    # orjson otherwise orjson will try to decode it and will be slower.
+
+    # Inside tests content is not always bytes
+    if isinstance(response.content, str):
+        data = response.content
+    else:
+        data = response.content.decode("utf-8")
+
+    data = orjson.loads(data)
+    return data
 
 
 class Resource(object):
@@ -81,8 +104,11 @@ class Resource(object):
         exclude_attributes = exclude_attributes or []
 
         attributes = list(self.__dict__.keys())
-        attributes = [attr for attr in attributes if not attr.startswith('__') and
-                      attr not in exclude_attributes]
+        attributes = [
+            attr
+            for attr in attributes
+            if not attr.startswith("__") and attr not in exclude_attributes
+        ]
 
         result = {}
         for attribute in attributes:
@@ -102,15 +128,15 @@ class Resource(object):
     @classmethod
     def get_plural_name(cls):
         if not cls._plural:
-            raise Exception('The %s class is missing class attributes '
-                            'in its definition.' % cls.__name__)
+            raise Exception(
+                "The %s class is missing class attributes "
+                "in its definition." % cls.__name__
+            )
         return cls._plural
 
     @classmethod
     def get_plural_display_name(cls):
-        return (cls._plural_display_name
-                if cls._plural_display_name
-                else cls._plural)
+        return cls._plural_display_name if cls._plural_display_name else cls._plural
 
     @classmethod
     def get_url_path_name(cls):
@@ -120,14 +146,14 @@ class Resource(object):
         return cls.get_plural_name().lower()
 
     def serialize(self):
-        return dict((k, v)
-                    for k, v in six.iteritems(self.__dict__)
-                    if not k.startswith('_'))
+        return dict(
+            (k, v) for k, v in six.iteritems(self.__dict__) if not k.startswith("_")
+        )
 
     @classmethod
     def deserialize(cls, doc):
         if type(doc) is not dict:
-            doc = json.loads(doc)
+            doc = orjson.loads(doc)
         return cls(**doc)
 
     def __str__(self):
@@ -140,16 +166,15 @@ class Resource(object):
         attributes = []
         for attribute in self._repr_attributes:
             value = getattr(self, attribute, None)
-            attributes.append('%s=%s' % (attribute, value))
+            attributes.append("%s=%s" % (attribute, value))
 
-        attributes = ','.join(attributes)
+        attributes = ",".join(attributes)
         class_name = self.__class__.__name__
-        result = '<%s %s>' % (class_name, attributes)
+        result = "<%s %s>" % (class_name, attributes)
         return result
 
 
 class ResourceManager(object):
-
     def __init__(self, resource, endpoint, cacert=None, debug=False):
         self.resource = resource
         self.debug = debug
@@ -158,53 +183,61 @@ class ResourceManager(object):
     @staticmethod
     def handle_error(response):
         try:
-            content = response.json()
-            fault = content.get('faultstring', '') if content else ''
+            content = parse_api_response(response)
+            fault = content.get("faultstring", "") if content else ""
             if fault:
-                response.reason += '\nMESSAGE: %s' % fault
+                response.reason += "\nMESSAGE: %s" % fault
         except Exception as e:
-            response.reason += ('\nUnable to retrieve detailed message '
-                                'from the HTTP response. %s\n' % six.text_type(e))
+            response.reason += (
+                "\nUnable to retrieve detailed message "
+                "from the HTTP response. %s\n" % six.text_type(e)
+            )
         response.raise_for_status()
 
     @add_auth_token_to_kwargs_from_env
     def get_all(self, **kwargs):
         # TODO: This is ugly, stop abusing kwargs
-        url = '/%s' % self.resource.get_url_path_name()
-        limit = kwargs.pop('limit', None)
-        pack = kwargs.pop('pack', None)
-        prefix = kwargs.pop('prefix', None)
-        user = kwargs.pop('user', None)
+        url = "/%s" % self.resource.get_url_path_name()
+        limit = kwargs.pop("limit", None)
+        pack = kwargs.pop("pack", None)
+        prefix = kwargs.pop("prefix", None)
+        user = kwargs.pop("user", None)
+        offset = kwargs.pop("offset", 0)
 
-        params = kwargs.pop('params', {})
+        params = kwargs.pop("params", {})
 
         if limit:
-            params['limit'] = limit
+            params["limit"] = limit
 
         if pack:
-            params['pack'] = pack
+            params["pack"] = pack
 
         if prefix:
-            params['prefix'] = prefix
+            params["prefix"] = prefix
 
         if user:
-            params['user'] = user
+            params["user"] = user
+
+        if offset:
+            params["offset"] = offset
 
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        return [self.resource.deserialize(item)
-                for item in response.json()]
+        return [
+            self.resource.deserialize(item) for item in parse_api_response(response)
+        ]
 
     @add_auth_token_to_kwargs_from_env
     def get_by_id(self, id, **kwargs):
-        url = '/%s/%s' % (self.resource.get_url_path_name(), id)
+        url = "/%s/%s" % (self.resource.get_url_path_name(), id)
         response = self.client.get(url, **kwargs)
         if response.status_code == http_client.NOT_FOUND:
             return None
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        return self.resource.deserialize(response.json())
+
+        return self.resource.deserialize(parse_api_response(response=response))
 
     @add_auth_token_to_kwargs_from_env
     def get_property(self, id_, property_name, self_deserialize=True, **kwargs):
@@ -214,14 +247,18 @@ class ResourceManager(object):
         property_name: Name of the property
         self_deserialize: #Implies use the deserialize method implemented by this resource.
         """
-        token = kwargs.pop('token', None)
-        api_key = kwargs.pop('api_key', None)
+        token = kwargs.pop("token", None)
+        api_key = kwargs.pop("api_key", None)
 
         if kwargs:
-            url = '/%s/%s/%s/?%s' % (self.resource.get_url_path_name(), id_, property_name,
-                                     urllib.parse.urlencode(kwargs))
+            url = "/%s/%s/%s/?%s" % (
+                self.resource.get_url_path_name(),
+                id_,
+                property_name,
+                urllib.parse.urlencode(kwargs),
+            )
         else:
-            url = '/%s/%s/%s/' % (self.resource.get_url_path_name(), id_, property_name)
+            url = "/%s/%s/%s/" % (self.resource.get_url_path_name(), id_, property_name)
 
         if token:
             response = self.client.get(url, token=token)
@@ -236,9 +273,11 @@ class ResourceManager(object):
             self.handle_error(response)
 
         if self_deserialize:
-            return [self.resource.deserialize(item) for item in response.json()]
+            return [
+                self.resource.deserialize(item) for item in parse_api_response(response)
+            ]
         else:
-            return response.json()
+            return parse_api_response(response)
 
     @add_auth_token_to_kwargs_from_env
     def get_by_ref_or_id(self, ref_or_id, **kwargs):
@@ -246,19 +285,21 @@ class ResourceManager(object):
 
     def _query_details(self, **kwargs):
         if not kwargs:
-            raise Exception('Query parameter is not provided.')
+            raise Exception("Query parameter is not provided.")
 
-        token = kwargs.get('token', None)
-        api_key = kwargs.get('api_key', None)
-        params = kwargs.get('params', {})
+        token = kwargs.get("token", None)
+        api_key = kwargs.get("api_key", None)
+        params = kwargs.get("params", {})
 
         for k, v in six.iteritems(kwargs):
             # Note: That's a special case to support api_key and token kwargs
-            if k not in ['token', 'api_key', 'params']:
+            if k not in ["token", "api_key", "params"]:
                 params[k] = v
 
-        url = '/%s/?%s' % (self.resource.get_url_path_name(),
-                           urllib.parse.urlencode(params))
+        url = "/%s/?%s" % (
+            self.resource.get_url_path_name(),
+            urllib.parse.urlencode(params),
+        )
 
         if token:
             response = self.client.get(url, token=token)
@@ -272,7 +313,7 @@ class ResourceManager(object):
             return [], None
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        items = response.json()
+        items = parse_api_response(response)
         instances = [self.resource.deserialize(item) for item in items]
         return instances, response
 
@@ -284,8 +325,8 @@ class ResourceManager(object):
     @add_auth_token_to_kwargs_from_env
     def query_with_count(self, **kwargs):
         instances, response = self._query_details(**kwargs)
-        if response and 'X-Total-Count' in response.headers:
-            return (instances, int(response.headers['X-Total-Count']))
+        if response and "X-Total-Count" in response.headers:
+            return (instances, int(response.headers["X-Total-Count"]))
         else:
             return (instances, None)
 
@@ -296,36 +337,40 @@ class ResourceManager(object):
             return None
         else:
             if len(instances) > 1:
-                raise Exception('More than one %s named "%s" are found.' %
-                                (self.resource.__name__.lower(), name))
+                raise Exception(
+                    'More than one %s named "%s" are found.'
+                    % (self.resource.__name__.lower(), name)
+                )
             return instances[0]
 
     @add_auth_token_to_kwargs_from_env
     def create(self, instance, **kwargs):
-        url = '/%s' % self.resource.get_url_path_name()
+        url = "/%s" % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(parse_api_response(response))
         return instance
 
     @add_auth_token_to_kwargs_from_env
     def update(self, instance, **kwargs):
-        url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
+        url = "/%s/%s" % (self.resource.get_url_path_name(), instance.id)
         response = self.client.put(url, instance.serialize(), **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(parse_api_response(response))
         return instance
 
     @add_auth_token_to_kwargs_from_env
     def delete(self, instance, **kwargs):
-        url = '/%s/%s' % (self.resource.get_url_path_name(), instance.id)
+        url = "/%s/%s" % (self.resource.get_url_path_name(), instance.id)
         response = self.client.delete(url, **kwargs)
 
-        if response.status_code not in [http_client.OK,
-                                        http_client.NO_CONTENT,
-                                        http_client.NOT_FOUND]:
+        if response.status_code not in [
+            http_client.OK,
+            http_client.NO_CONTENT,
+            http_client.NOT_FOUND,
+        ]:
             self.handle_error(response)
             return False
 
@@ -333,19 +378,24 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def delete_by_id(self, instance_id, **kwargs):
-        url = '/%s/%s' % (self.resource.get_url_path_name(), instance_id)
+        url = "/%s/%s" % (self.resource.get_url_path_name(), instance_id)
         response = self.client.delete(url, **kwargs)
-        if response.status_code not in [http_client.OK,
-                                        http_client.NO_CONTENT,
-                                        http_client.NOT_FOUND]:
+        if response.status_code not in [
+            http_client.OK,
+            http_client.NO_CONTENT,
+            http_client.NOT_FOUND,
+        ]:
             self.handle_error(response)
             return False
         try:
-            resp_json = response.json()
+            resp_json = parse_api_response(response)
             if resp_json:
                 return resp_json
-        except:
-            pass
+        except Exception as e:
+            print(
+                "\nUnable to retrieve detailed message "
+                "from the HTTP response. %s\n" % six.text_type(e)
+            )
         return True
 
 
@@ -357,30 +407,36 @@ class ActionAliasResourceManager(ResourceManager):
 
     @add_auth_token_to_kwargs_from_env
     def match(self, instance, **kwargs):
-        url = '/%s/match' % self.resource.get_url_path_name()
+        url = "/%s/match" % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        match = response.json()
-        return (self.resource.deserialize(match['actionalias']), match['representation'])
+        match = parse_api_response(response)
+        return (
+            self.resource.deserialize(match["actionalias"]),
+            match["representation"],
+        )
 
 
 class ActionAliasExecutionManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def match_and_execute(self, instance, **kwargs):
-        url = '/%s/match_and_execute' % self.resource.get_url_path_name()
+        url = "/%s/match_and_execute" % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
 
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json()["results"][0])
+        instance = self.resource.deserialize(parse_api_response(response)["results"][0])
         return instance
 
 
 class ActionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def get_entrypoint(self, ref_or_id, **kwargs):
-        url = '/%s/views/entry_point/%s' % (self.resource.get_url_path_name(), ref_or_id)
+        url = "/%s/views/entry_point/%s" % (
+            self.resource.get_url_path_name(),
+            ref_or_id,
+        )
 
         response = self.client.get(url, **kwargs)
         if response.status_code != http_client.OK:
@@ -391,35 +447,45 @@ class ActionResourceManager(ResourceManager):
 
 class ExecutionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, delay=0, **kwargs):
-        url = '/%s/%s/re_run' % (self.resource.get_url_path_name(), execution_id)
+    def re_run(
+        self,
+        execution_id,
+        parameters=None,
+        tasks=None,
+        no_reset=None,
+        delay=0,
+        **kwargs,
+    ):
+        url = "/%s/%s/re_run" % (self.resource.get_url_path_name(), execution_id)
 
         tasks = tasks or []
         no_reset = no_reset or []
 
         if list(set(no_reset) - set(tasks)):
-            raise ValueError('List of tasks to reset does not match the tasks to rerun.')
+            raise ValueError(
+                "List of tasks to reset does not match the tasks to rerun."
+            )
 
         data = {
-            'parameters': parameters or {},
-            'tasks': tasks,
-            'reset': list(set(tasks) - set(no_reset)),
-            'delay': delay
+            "parameters": parameters or {},
+            "tasks": tasks,
+            "reset": list(set(tasks) - set(no_reset)),
+            "delay": delay,
         }
 
         response = self.client.post(url, data, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(parse_api_response(response))
         return instance
 
     @add_auth_token_to_kwargs_from_env
     def get_output(self, execution_id, output_type=None, **kwargs):
-        url = '/%s/%s/output' % (self.resource.get_url_path_name(), execution_id)
+        url = "/%s/%s/output" % (self.resource.get_url_path_name(), execution_id)
 
         if output_type:
-            url += '?' + urllib.parse.urlencode({'output_type': output_type})
+            url += "?" + urllib.parse.urlencode({"output_type": output_type})
 
         response = self.client.get(url, **kwargs)
         if response.status_code != http_client.OK:
@@ -429,76 +495,77 @@ class ExecutionResourceManager(ResourceManager):
 
     @add_auth_token_to_kwargs_from_env
     def pause(self, execution_id, **kwargs):
-        url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
-        data = {'status': 'pausing'}
+        url = "/%s/%s" % (self.resource.get_url_path_name(), execution_id)
+        data = {"status": "pausing"}
 
         response = self.client.put(url, data, **kwargs)
 
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return self.resource.deserialize(response.json())
+        return self.resource.deserialize(parse_api_response(response))
 
     @add_auth_token_to_kwargs_from_env
     def resume(self, execution_id, **kwargs):
-        url = '/%s/%s' % (self.resource.get_url_path_name(), execution_id)
-        data = {'status': 'resuming'}
+        url = "/%s/%s" % (self.resource.get_url_path_name(), execution_id)
+        data = {"status": "resuming"}
 
         response = self.client.put(url, data, **kwargs)
 
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return self.resource.deserialize(response.json())
+        return self.resource.deserialize(parse_api_response(response))
 
     @add_auth_token_to_kwargs_from_env
     def get_children(self, execution_id, **kwargs):
-        url = '/%s/%s/children' % (self.resource.get_url_path_name(), execution_id)
+        url = "/%s/%s/children" % (self.resource.get_url_path_name(), execution_id)
 
-        depth = kwargs.pop('depth', -1)
+        depth = kwargs.pop("depth", -1)
 
-        params = kwargs.pop('params', {})
+        params = kwargs.pop("params", {})
 
         if depth:
-            params['depth'] = depth
+            params["depth"] = depth
 
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        return [self.resource.deserialize(item) for item in response.json()]
+        return [
+            self.resource.deserialize(item) for item in parse_api_response(response)
+        ]
 
 
 class InquiryResourceManager(ResourceManager):
-
     @add_auth_token_to_kwargs_from_env
     def respond(self, inquiry_id, inquiry_response, **kwargs):
         """
         Update st2.inquiry.respond action
         Update st2client respond command to use this?
         """
-        url = '/%s/%s' % (self.resource.get_url_path_name(), inquiry_id)
+        url = "/%s/%s" % (self.resource.get_url_path_name(), inquiry_id)
 
-        payload = {
-            "id": inquiry_id,
-            "response": inquiry_response
-        }
+        payload = {"id": inquiry_id, "response": inquiry_response}
 
         response = self.client.put(url, payload, **kwargs)
 
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return self.resource.deserialize(response.json())
+        return self.resource.deserialize(parse_api_response(response))
 
 
 class TriggerInstanceResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def re_emit(self, trigger_instance_id, **kwargs):
-        url = '/%s/%s/re_emit' % (self.resource.get_url_path_name(), trigger_instance_id)
+        url = "/%s/%s/re_emit" % (
+            self.resource.get_url_path_name(),
+            trigger_instance_id,
+        )
         response = self.client.post(url, None, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        return response.json()
+        return parse_api_response(response)
 
 
 class AsyncRequest(Resource):
@@ -508,34 +575,34 @@ class AsyncRequest(Resource):
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def install(self, packs, force=False, skip_dependencies=False, **kwargs):
-        url = '/%s/install' % (self.resource.get_url_path_name())
+        url = "/%s/install" % (self.resource.get_url_path_name())
         payload = {
-            'packs': packs,
-            'force': force,
-            'skip_dependencies': skip_dependencies
+            "packs": packs,
+            "force": force,
+            "skip_dependencies": skip_dependencies,
         }
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = AsyncRequest.deserialize(response.json())
+        instance = AsyncRequest.deserialize(parse_api_response(response))
         return instance
 
     @add_auth_token_to_kwargs_from_env
     def remove(self, packs, **kwargs):
-        url = '/%s/uninstall' % (self.resource.get_url_path_name())
-        response = self.client.post(url, {'packs': packs}, **kwargs)
+        url = "/%s/uninstall" % (self.resource.get_url_path_name())
+        response = self.client.post(url, {"packs": packs}, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = AsyncRequest.deserialize(response.json())
+        instance = AsyncRequest.deserialize(parse_api_response(response))
         return instance
 
     @add_auth_token_to_kwargs_from_env
     def search(self, args, ignore_errors=False, **kwargs):
-        url = '/%s/index/search' % (self.resource.get_url_path_name())
-        if 'query' in vars(args):
-            payload = {'query': args.query}
+        url = "/%s/index/search" % (self.resource.get_url_path_name())
+        if "query" in vars(args):
+            payload = {"query": args.query}
         else:
-            payload = {'pack': args.pack}
+            payload = {"pack": args.pack}
 
         response = self.client.post(url, payload, **kwargs)
 
@@ -544,7 +611,7 @@ class PackResourceManager(ResourceManager):
                 return None
 
             self.handle_error(response)
-        data = response.json()
+        data = parse_api_response(response)
         if isinstance(data, list):
             return [self.resource.deserialize(item) for item in data]
         else:
@@ -552,27 +619,27 @@ class PackResourceManager(ResourceManager):
 
     @add_auth_token_to_kwargs_from_env
     def register(self, packs=None, types=None, **kwargs):
-        url = '/%s/register' % (self.resource.get_url_path_name())
+        url = "/%s/register" % (self.resource.get_url_path_name())
         payload = {}
         if types:
-            payload['types'] = types
+            payload["types"] = types
         if packs:
-            payload['packs'] = packs
+            payload["packs"] = packs
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(parse_api_response(response))
         return instance
 
 
 class ConfigManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def update(self, instance, **kwargs):
-        url = '/%s/%s' % (self.resource.get_url_path_name(), instance.pack)
+        url = "/%s/%s" % (self.resource.get_url_path_name(), instance.pack)
         response = self.client.put(url, instance.values, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = self.resource.deserialize(parse_api_response(response))
         return instance
 
 
@@ -584,37 +651,37 @@ class WebhookManager(ResourceManager):
 
     @add_auth_token_to_kwargs_from_env
     def post_generic_webhook(self, trigger, payload=None, trace_tag=None, **kwargs):
-        url = '/webhooks/st2'
+        url = "/webhooks/st2"
 
         headers = {}
-        data = {
-            'trigger': trigger,
-            'payload': payload or {}
-        }
+        data = {"trigger": trigger, "payload": payload or {}}
 
         if trace_tag:
-            headers['St2-Trace-Tag'] = trace_tag
+            headers["St2-Trace-Tag"] = trace_tag
 
         response = self.client.post(url, data=data, headers=headers, **kwargs)
 
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return response.json()
+        return parse_api_response(response)
 
     @add_auth_token_to_kwargs_from_env
     def match(self, instance, **kwargs):
-        url = '/%s/match' % self.resource.get_url_path_name()
+        url = "/%s/match" % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
-        match = response.json()
-        return (self.resource.deserialize(match['actionalias']), match['representation'])
+        match = parse_api_response(response)
+        return (
+            self.resource.deserialize(match["actionalias"]),
+            match["representation"],
+        )
 
 
 class StreamManager(object):
     def __init__(self, endpoint, cacert=None, debug=False):
-        self._url = httpclient.get_url_without_trailing_slash(endpoint) + '/stream'
+        self._url = httpclient.get_url_without_trailing_slash(endpoint) + "/stream"
         self.debug = debug
         self.cacert = cacert
 
@@ -631,25 +698,25 @@ class StreamManager(object):
         if events and isinstance(events, six.string_types):
             events = [events]
 
-        if 'token' in kwargs:
-            query_params['x-auth-token'] = kwargs.get('token')
+        if "token" in kwargs:
+            query_params["x-auth-token"] = kwargs.get("token")
 
-        if 'api_key' in kwargs:
-            query_params['st2-api-key'] = kwargs.get('api_key')
+        if "api_key" in kwargs:
+            query_params["st2-api-key"] = kwargs.get("api_key")
 
-        if 'end_event' in kwargs:
-            query_params['end_event'] = kwargs.get('end_event')
+        if "end_event" in kwargs:
+            query_params["end_event"] = kwargs.get("end_event")
 
-        if 'end_execution_id' in kwargs:
-            query_params['end_execution_id'] = kwargs.get('end_execution_id')
+        if "end_execution_id" in kwargs:
+            query_params["end_execution_id"] = kwargs.get("end_execution_id")
 
         if events:
-            query_params['events'] = ','.join(events)
+            query_params["events"] = ",".join(events)
 
         if self.cacert is not None:
-            request_params['verify'] = self.cacert
+            request_params["verify"] = self.cacert
 
-        query_string = '?' + urllib.parse.urlencode(query_params)
+        query_string = "?" + urllib.parse.urlencode(query_params)
         url = url + query_string
 
         response = requests.get(url, stream=True, **request_params)
@@ -660,56 +727,60 @@ class StreamManager(object):
             # can be empty. In this case, rerun the query.
             if not message.data:
                 continue
-            yield json.loads(message.data)
+            yield orjson.loads(message.data)
 
 
 class WorkflowManager(object):
     def __init__(self, endpoint, cacert, debug):
         self.debug = debug
         self.cacert = cacert
-        self.endpoint = endpoint + '/workflows'
-        self.client = httpclient.HTTPClient(root=self.endpoint, cacert=cacert, debug=debug)
+        self.endpoint = endpoint + "/workflows"
+        self.client = httpclient.HTTPClient(
+            root=self.endpoint, cacert=cacert, debug=debug
+        )
 
     @staticmethod
     def handle_error(response):
         try:
-            content = response.json()
-            fault = content.get('faultstring', '') if content else ''
+            content = parse_api_response(response)
+            fault = content.get("faultstring", "") if content else ""
 
             if fault:
-                response.reason += '\nMESSAGE: %s' % fault
+                response.reason += "\nMESSAGE: %s" % fault
         except Exception as e:
             response.reason += (
-                '\nUnable to retrieve detailed message '
-                'from the HTTP response. %s\n' % six.text_type(e)
+                "\nUnable to retrieve detailed message "
+                "from the HTTP response. %s\n" % six.text_type(e)
             )
 
         response.raise_for_status()
 
     @add_auth_token_to_kwargs_from_env
     def inspect(self, definition, **kwargs):
-        url = '/inspect'
+        url = "/inspect"
 
         if not isinstance(definition, six.string_types):
-            raise TypeError('Workflow definition is not type of string.')
+            raise TypeError(
+                f"Workflow definition is not type of string (was {type(definition)})."
+            )
 
-        if 'headers' not in kwargs:
-            kwargs['headers'] = {}
+        if "headers" not in kwargs:
+            kwargs["headers"] = {}
 
-        kwargs['headers']['content-type'] = 'text/plain'
+        kwargs["headers"]["content-type"] = "text/plain"
 
         response = self.client.post_raw(url, definition, **kwargs)
 
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return response.json()
+        return parse_api_response(response)
 
 
 class ServiceRegistryGroupsManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def list(self, **kwargs):
-        url = '/service_registry/groups'
+        url = "/service_registry/groups"
 
         headers = {}
         response = self.client.get(url, headers=headers, **kwargs)
@@ -717,21 +788,20 @@ class ServiceRegistryGroupsManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        groups = response.json()['groups']
+        groups = parse_api_response(response)["groups"]
 
         result = []
         for group in groups:
-            item = self.resource.deserialize({'group_id': group})
+            item = self.resource.deserialize({"group_id": group})
             result.append(item)
 
         return result
 
 
 class ServiceRegistryMembersManager(ResourceManager):
-
     @add_auth_token_to_kwargs_from_env
     def list(self, group_id, **kwargs):
-        url = '/service_registry/groups/%s/members' % (group_id)
+        url = "/service_registry/groups/%s/members" % (group_id)
 
         headers = {}
         response = self.client.get(url, headers=headers, **kwargs)
@@ -739,14 +809,14 @@ class ServiceRegistryMembersManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        members = response.json()['members']
+        members = parse_api_response(response)["members"]
 
         result = []
         for member in members:
             data = {
-                'group_id': group_id,
-                'member_id': member['member_id'],
-                'capabilities': member['capabilities']
+                "group_id": group_id,
+                "member_id": member["member_id"],
+                "capabilities": member["capabilities"],
             }
             item = self.resource.deserialize(data)
             result.append(item)

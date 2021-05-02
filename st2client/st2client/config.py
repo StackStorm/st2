@@ -13,10 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'get_config',
-    'set_config'
-]
+__all__ = ["get_config", "set_config"]
 
 # Stores parsed config dictionary
 CONFIG = {}
