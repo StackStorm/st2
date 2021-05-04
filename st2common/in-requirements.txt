@@ -41,6 +41,7 @@ orjson
 amqp
 # Used by st2-pack-* commands
 gitpython
+gitdb
 lockfile
 # needed by requests
 chardet
