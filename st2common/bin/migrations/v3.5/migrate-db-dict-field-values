@@ -144,10 +144,6 @@ def migrate_workflow_objects() -> None:
     for workflow_execution_db in workflow_execution_dbs or []:
         print("Migrating WorkflowExecutionDB with id %s" % (workflow_execution_db.id))
 
-        # This is a bit of a "hack", but it's the easiest way to tell mongoengine that a specific
-        # field has been updated and should be saved. If we don't do, nothing will be re-saved on
-        # .save() call due to mongoengine only trying to save what has changed to make it more
-        # efficient instead of always re-saving the whole object.
         workflow_execution_db._mark_as_changed("input")
         workflow_execution_db._mark_as_changed("context")
         workflow_execution_db._mark_as_changed("state")
