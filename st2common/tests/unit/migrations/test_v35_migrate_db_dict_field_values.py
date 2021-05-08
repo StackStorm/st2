@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
-
-sys.path.append("/home/vagrant/st2/st2common/bin/migrations/v3.5/")
 
 from st2common.constants import action as action_constants
 from st2common.models.db import stormbase
@@ -32,6 +31,9 @@ from st2common.constants.triggers import TRIGGER_INSTANCE_PROCESSED
 from st2common.constants.triggers import TRIGGER_INSTANCE_PENDING
 
 from st2tests import DbTestCase
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "../../../bin/migrations/v3.5/")))
 
 import st2_migrate_db_dict_field_values as migration_module
 
