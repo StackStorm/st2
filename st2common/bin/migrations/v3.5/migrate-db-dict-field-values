@@ -45,9 +45,9 @@ from st2common import config
 from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.workflow import WorkflowExecution
 from st2common.persistence.workflow import TaskExecution
-from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.trigger import TriggerInstance
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.triggers import TRIGGER_INSTANCE_COMPLETED_STATES
@@ -78,6 +78,7 @@ def migrate_executions() -> None:
         return None
 
     print("Will migrate %s ActionExecutionDB objects" % (len(execution_dbs)))
+    print("")
 
     for execution_db in execution_dbs:
         print("Migrating ActionExecutionDB with id %s" % (execution_db.id))
@@ -138,9 +139,10 @@ def migrate_workflow_objects() -> None:
             "Will migrate %s WorkflowExecutionDB objects"
             % (len(workflow_execution_dbs))
         )
+        print("")
 
     for workflow_execution_db in workflow_execution_dbs or []:
-        print("Migrating ActionExecutionDB with id %s" % (workflow_execution_db.id))
+        print("Migrating WorkflowExecutionDB with id %s" % (workflow_execution_db.id))
 
         # This is a bit of a "hack", but it's the easiest way to tell mongoengine that a specific
         # field has been updated and should be saved. If we don't do, nothing will be re-saved on
@@ -176,6 +178,7 @@ def migrate_workflow_objects() -> None:
         print("Found no TaskExecutionDB objects to migrate.")
     else:
         print("Will migrate %s TaskExecutionDB objects" % (len(task_execution_dbs)))
+        print("")
 
     for task_execution_db in task_execution_dbs or []:
         print("Migrating TaskExecutionDB with id %s" % (task_execution_db.id))
@@ -209,7 +212,7 @@ def migrate_triggers() -> None:
         print("Found no TriggerInstanceDB objects to migrate.")
         return None
 
-    print("Will migrate %s ActionExecutionDB objects" % (len(trigger_instance_dbs)))
+    print("Will migrate %s TriggerInstanceDB objects" % (len(trigger_instance_dbs)))
 
     for trigger_instance_db in trigger_instance_dbs:
         print("Migrating TriggerInstanceDB with id %s" % (trigger_instance_db.id))
