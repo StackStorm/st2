@@ -41,8 +41,6 @@ could also determine that based on the presence of result_size field).
 import sys
 import traceback
 
-from mongoengine.queryset.visitor import Q
-
 from st2common import config
 from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
@@ -97,8 +95,13 @@ def migrate_executions() -> None:
 
         # Migrate corresponding LiveAction object
         try:
-            liveaction_db = LiveAction.get_by_id(execution_db.liveaction["id"])
-        except Exception:
+            liveaction_id = execution_db.liveaction.get("id", None)
+            liveaction_db = LiveAction.get_by_id(liveaction_id)
+        except Exception as e:
+            print(
+                "Failed to migrate LiveActionDB with id %s, ignoring error (%s)"
+                % (liveaction_id, str(e))
+            )
             # If liveaction for some reason doesn't exist (would likely represent corrupted data) we
             # simply ignore that error since it's not fatal.
             continue
