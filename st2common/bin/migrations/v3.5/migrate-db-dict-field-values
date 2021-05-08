@@ -63,18 +63,14 @@ def migrate_executions() -> None:
 
     # 1. Migrate ActionExecutionDB objects
     execution_dbs = ActionExecution.query(
-        Q(result_size__not__exists=True) & Q(status__in=LIVEACTION_COMPLETED_STATES)
-    )
-
-    execution_dbs = ActionExecution.query(
         __raw__={
             "result": {
-                "not": {
+                "$not": {
                     "$type": "binData",
                 },
             },
             "status": {
-                "in": LIVEACTION_COMPLETED_STATES,
+                "$in": LIVEACTION_COMPLETED_STATES,
             },
         }
     )
@@ -122,12 +118,12 @@ def migrate_workflow_objects() -> None:
     workflow_execution_dbs = WorkflowExecution.query(
         __raw__={
             "output": {
-                "not": {
+                "$not": {
                     "$type": "binData",
                 },
             },
             "status": {
-                "in": LIVEACTION_COMPLETED_STATES,
+                "$in": LIVEACTION_COMPLETED_STATES,
             },
         }
     )
@@ -163,12 +159,12 @@ def migrate_workflow_objects() -> None:
     task_execution_dbs = TaskExecution.query(
         __raw__={
             "result": {
-                "not": {
+                "$not": {
                     "$type": "binData",
                 },
             },
             "status": {
-                "in": LIVEACTION_COMPLETED_STATES,
+                "$in": LIVEACTION_COMPLETED_STATES,
             },
         }
     )
@@ -196,12 +192,12 @@ def migrate_triggers() -> None:
     trigger_instance_dbs = TriggerInstance.query(
         __raw__={
             "payload": {
-                "not": {
+                "$not": {
                     "$type": "binData",
                 },
             },
             "status": {
-                "in": TRIGGER_INSTANCE_COMPLETED_STATES,
+                "$in": TRIGGER_INSTANCE_COMPLETED_STATES,
             },
         }
     )
