@@ -93,7 +93,7 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
         execution_dbs = ActionExecution.query(
             __raw__={
                 "result": {
-                    "not": {
+                    "$not": {
                         "$type": "binData",
                     },
                 }
@@ -250,7 +250,7 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
         workflow_execution_dbs = WorkflowExecution.query(
             __raw__={
                 "output": {
-                    "not": {
+                    "$not": {
                         "$type": "binData",
                     },
                 }
@@ -269,7 +269,7 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
         task_execution_dbs = TaskExecution.query(
             __raw__={
                 "result": {
-                    "not": {
+                    "$not": {
                         "$type": "binData",
                     },
                 }
