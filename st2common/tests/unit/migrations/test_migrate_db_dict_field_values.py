@@ -33,7 +33,7 @@ from st2common.constants.triggers import TRIGGER_INSTANCE_PENDING
 
 from st2tests import DbTestCase
 
-import migrate_db_dict_field_values as migration_module
+import st2_migrate_db_dict_field_values as migration_module
 
 
 MOCK_RESULT_1 = {
