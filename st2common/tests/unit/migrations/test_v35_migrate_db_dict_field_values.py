@@ -33,7 +33,9 @@ from st2common.constants.triggers import TRIGGER_INSTANCE_PENDING
 from st2tests import DbTestCase
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "../../../bin/migrations/v3.5/")))
+sys.path.append(
+    os.path.abspath(os.path.join(BASE_DIR, "../../../bin/migrations/v3.5/"))
+)
 
 import st2_migrate_db_dict_field_values as migration_module
 
@@ -52,46 +54,31 @@ MOCK_RESULT_2 = {
 
 MOCK_PAYLOAD_1 = {"yaaaas": "le payload!"}
 
-
 MOCK_PAYLOAD_2 = {"yaaaas": "le payload! 2"}
 
-# Needed so we can subclass it
-ActionExecutionDB._meta["allow_inheritance"] = True
-LiveActionDB._meta["allow_inheritance"] = True
-
-WorkflowExecutionDB._meta["allow_inheritance"] = True
-TaskExecutionDB._meta["allow_inheritance"] = True
-
-TriggerInstanceDB._meta["allow_inheritance"] = True
-
-
-class ActionExecutionDB_OldFieldType(ActionExecutionDB):
-    result = stormbase.EscapedDynamicField(default={})
-
-
-class LiveActionDB_OldFieldType(LiveActionDB):
-    result = stormbase.EscapedDynamicField(default={})
-
-
-class WorkflowExecutionDB_OldFieldType(WorkflowExecutionDB):
-    input = stormbase.EscapedDictField()
-    context = stormbase.EscapedDictField()
-    state = stormbase.EscapedDictField()
-    output = stormbase.EscapedDictField()
-
-
-class TaskExecutionDB_OldFieldType(TaskExecutionDB):
-    task_spec = stormbase.EscapedDictField()
-    context = stormbase.EscapedDictField()
-    result = stormbase.EscapedDictField()
-
-
-class TriggerInstanceDB_OldFieldType(TriggerInstanceDB):
-    payload = stormbase.EscapedDictField()
+# NOTE: We define those classes and set allow_inheritance inside the methods so importing this
+# module doesn't have side affect and break / affect other tests
 
 
 class DBFieldsMigrationScriptTestCase(DbTestCase):
+    @classmethod
+    def tearDownClass(cls):
+        ActionExecutionDB._meta["allow_inheritance"] = False
+        LiveActionDB._meta["allow_inheritance"] = False
+        WorkflowExecutionDB._meta["allow_inheritance"] = False
+        TaskExecutionDB._meta["allow_inheritance"] = False
+        TriggerInstanceDB._meta["allow_inheritance"] = False
+
     def test_migrate_executions(self):
+        ActionExecutionDB._meta["allow_inheritance"] = True
+        LiveActionDB._meta["allow_inheritance"] = True
+
+        class ActionExecutionDB_OldFieldType(ActionExecutionDB):
+            result = stormbase.EscapedDynamicField(default={})
+
+        class LiveActionDB_OldFieldType(LiveActionDB):
+            result = stormbase.EscapedDynamicField(default={})
+
         execution_dbs = ActionExecution.query(
             __raw__={
                 "result": {
@@ -249,6 +236,20 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
         self.assertEqual(liveaction_db_2_retrieved.result, MOCK_RESULT_2)
 
     def test_migrate_workflows(self):
+        WorkflowExecutionDB._meta["allow_inheritance"] = True
+        TaskExecutionDB._meta["allow_inheritance"] = True
+
+        class WorkflowExecutionDB_OldFieldType(WorkflowExecutionDB):
+            input = stormbase.EscapedDictField()
+            context = stormbase.EscapedDictField()
+            state = stormbase.EscapedDictField()
+            output = stormbase.EscapedDictField()
+
+        class TaskExecutionDB_OldFieldType(TaskExecutionDB):
+            task_spec = stormbase.EscapedDictField()
+            context = stormbase.EscapedDictField()
+            result = stormbase.EscapedDictField()
+
         workflow_execution_dbs = WorkflowExecution.query(
             __raw__={
                 "output": {
@@ -406,6 +407,11 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
         self.assertEqual(workflow_execution_2_db_retrieved.output, MOCK_RESULT_2)
 
     def test_migrate_triggers(self):
+        TriggerInstanceDB._meta["allow_inheritance"] = True
+
+        class TriggerInstanceDB_OldFieldType(TriggerInstanceDB):
+            payload = stormbase.EscapedDictField()
+
         trigger_instance_dbs = TriggerInstance.query(
             __raw__={
                 "payload": {
