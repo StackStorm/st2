@@ -97,9 +97,9 @@ jobs:
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v6-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-apt-v7-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v6-
+            ${{ runner.os }}-apt-v7-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
