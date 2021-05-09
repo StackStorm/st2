@@ -7,7 +7,7 @@
 # update the component requirements.txt
 apscheduler==3.7.0
 chardet<3.1.0
-eventlet==0.30.2
+eventlet==0.31.0
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 gitpython==3.1.15
 jinja2==2.11.3
