@@ -9,8 +9,10 @@
 ![Python 3.6,3.8](https://img.shields.io/badge/python-3.6,3.8-blue)
 [![Apache Licensed](https://img.shields.io/github/license/StackStorm/st2)](LICENSE)
 [![Join our community Slack](https://img.shields.io/badge/slack-stackstorm-success.svg?logo=slack)](https://stackstorm.com/community-signup)
+[![Code Search](https://img.shields.io/badge/code%20search-Sourcegraph-%2300B4F2?logo=sourcegraph)](https://sourcegraph.com/stackstorm)
 [![Forum](https://img.shields.io/discourse/https/forum.stackstorm.com/posts.svg)](https://forum.stackstorm.com/)
 [![Twitter Follow](https://img.shields.io/twitter/follow/StackStorm?style=social)](https://twitter.com/StackStorm/)
+
 ---
 
 ## TL;DR
