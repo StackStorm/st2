@@ -29,6 +29,7 @@ from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common import log as logging
 from st2common.util.deep_copy import fast_deepcopy_dict
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 __all__ = ["ActionExecutionAPI", "ActionExecutionOutputAPI"]
 
@@ -151,10 +152,35 @@ class ActionExecutionAPI(BaseAPI):
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
+        """
+        Retrieve provided DB model instance and create API model class instance for the same.
+
+        :param model: DB model class instance.
+        :type model: :class: ``ActionExecutionDB``
+
+        :param mask_secrets: flag to mask the secrets or not.
+        :type mask_secrets: ``boolean``
+
+        :return: cls(**attrs): to be displayed in CLI or Web UI with masked secrets.
+        :rtype: class: ``ActionExecutionAPI``
+        """
+
         doc = cls._from_model(model, mask_secrets=mask_secrets)
+        output_schema_result = ActionExecutionDB.result.parse_field_value(doc["result"])
 
-        doc["result"] = ActionExecutionDB.result.parse_field_value(doc["result"])
+        # accessing parameters marked secret as true in the output_schema
+        # and masking them for the result in action execution API
+        if output_schema_result:
+            for key in doc["action"]["output_schema"]:
+                if (
+                    doc.get("action", {})
+                    .get("output_schema", {})
+                    .get(key)
+                    .get("secret", False)
+                ):
+                    output_schema_result["result"][key] = MASKED_ATTRIBUTE_VALUE
 
+        doc["result"] = output_schema_result
         start_timestamp = model.start_timestamp
         start_timestamp_iso = isotime.format(start_timestamp, offset=False)
         doc["start_timestamp"] = start_timestamp_iso
