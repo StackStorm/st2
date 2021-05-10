@@ -10,8 +10,7 @@
 [![Apache Licensed](https://img.shields.io/github/license/StackStorm/st2)](LICENSE)
 [![Join our community Slack](https://img.shields.io/badge/slack-stackstorm-success.svg?logo=slack)](https://stackstorm.com/community-signup)
 [![Forum](https://img.shields.io/discourse/https/forum.stackstorm.com/posts.svg)](https://forum.stackstorm.com/)
-![Twitter Follow](https://img.shields.io/twitter/follow/StackStorm?style=social)
-
+[![Twitter Follow](https://img.shields.io/twitter/follow/StackStorm?style=social)](https://twitter.com/StackStorm/)
 ---
 
 ## TL;DR
