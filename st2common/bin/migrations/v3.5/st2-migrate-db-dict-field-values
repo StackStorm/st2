@@ -58,6 +58,15 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.triggers import TRIGGER_INSTANCE_COMPLETED_STATES
 
+# We retrieve and process up to this amount of object IDs in a single MongoDB query. This is done
+# to avoid potentially retrieving many 10s of millions of object ids in a single query
+BATCH_SIZE = 1000
+
+
+# NOTE: To avoid unncessary mongoengine object churn when retrieving only object ids (aka to avoid
+# instantiating model class with a single field), we use raw pymongo value which is a dict with a
+# single value
+
 
 def migrate_executions() -> None:
     """
@@ -73,20 +82,24 @@ def migrate_executions() -> None:
     # works correctly - with PersistanceClass.query().only() all the fields will still be retrieved.
 
     # 1. Migrate ActionExecutionDB objects
-    execution_dbs = ActionExecutionDB.objects(
-        __raw__={
-            "result": {
-                "$not": {
-                    "$type": "binData",
+    result = (
+        ActionExecutionDB.objects(
+            __raw__={
+                "result": {
+                    "$not": {
+                        "$type": "binData",
+                    },
+                },
+                "status": {
+                    "$in": LIVEACTION_COMPLETED_STATES,
                 },
             },
-            "status": {
-                "$in": LIVEACTION_COMPLETED_STATES,
-            },
-        },
-    ).only("id")
-    execution_ids = [str(execution_db.id) for execution_db in execution_dbs]
-    objects_count = len(execution_ids)
+        )
+        .only("id")
+        .as_pymongo()
+    )
+    execution_ids = [str(item["_id"]) for item in result]
+    objects_count = result.count()
 
     if not execution_ids:
         print("Found no ActionExecutionDB objects to migrate.")
@@ -152,23 +165,24 @@ def migrate_workflow_objects() -> None:
     print("Migrating workflow objects")
 
     # 1. Migrate WorkflowExecutionDB
-    workflow_execution_dbs = WorkflowExecutionDB.objects(
-        __raw__={
-            "output": {
-                "$not": {
-                    "$type": "binData",
+    result = (
+        WorkflowExecutionDB.objects(
+            __raw__={
+                "output": {
+                    "$not": {
+                        "$type": "binData",
+                    },
                 },
-            },
-            "status": {
-                "$in": LIVEACTION_COMPLETED_STATES,
-            },
-        }
-    ).only("id")
-    workflow_execution_ids = [
-        str(workflow_execution_db.id)
-        for workflow_execution_db in workflow_execution_dbs
-    ]
-    objects_count = len(workflow_execution_ids)
+                "status": {
+                    "$in": LIVEACTION_COMPLETED_STATES,
+                },
+            }
+        )
+        .only("id")
+        .as_pymongo()
+    )
+    workflow_execution_ids = [str(item["_id"]) for item in result]
+    objects_count = result.count()
 
     if not workflow_execution_ids:
         print("Found no WorkflowExecutionDB objects to migrate.")
@@ -205,22 +219,24 @@ def migrate_workflow_objects() -> None:
         print("")
 
     # 2. Migrate TaskExecutionDB
-    task_execution_dbs = TaskExecutionDB.objects(
-        __raw__={
-            "result": {
-                "$not": {
-                    "$type": "binData",
+    result = (
+        TaskExecutionDB.objects(
+            __raw__={
+                "result": {
+                    "$not": {
+                        "$type": "binData",
+                    },
                 },
-            },
-            "status": {
-                "$in": LIVEACTION_COMPLETED_STATES,
-            },
-        }
-    ).only("id")
-    task_execution_ids = [
-        str(task_execution_db.id) for task_execution_db in task_execution_dbs
-    ]
-    objects_count = len(task_execution_ids)
+                "status": {
+                    "$in": LIVEACTION_COMPLETED_STATES,
+                },
+            }
+        )
+        .only("id")
+        .as_pymongo()
+    )
+    task_execution_ids = [str(item["_id"]) for item in result]
+    objects_count = result.count()
 
     if not task_execution_ids:
         print("Found no TaskExecutionDB objects to migrate.")
@@ -256,22 +272,24 @@ def migrate_workflow_objects() -> None:
 def migrate_triggers() -> None:
     print("Migrating trigger objects")
 
-    trigger_instance_dbs = TriggerInstanceDB.objects(
-        __raw__={
-            "payload": {
-                "$not": {
-                    "$type": "binData",
+    result = (
+        TriggerInstanceDB.objects(
+            __raw__={
+                "payload": {
+                    "$not": {
+                        "$type": "binData",
+                    },
                 },
-            },
-            "status": {
-                "$in": TRIGGER_INSTANCE_COMPLETED_STATES,
-            },
-        }
-    ).only("id")
-    trigger_instance_ids = [
-        str(trigger_instance_db.id) for trigger_instance_db in trigger_instance_dbs
-    ]
-    objects_count = len(trigger_instance_dbs)
+                "status": {
+                    "$in": TRIGGER_INSTANCE_COMPLETED_STATES,
+                },
+            }
+        )
+        .only("id")
+        .as_pymongo()
+    )
+    trigger_instance_ids = [str(item["_id"]) for item in result]
+    objects_count = result.count()
 
     if not trigger_instance_ids:
         print("Found no TriggerInstanceDB objects to migrate.")
