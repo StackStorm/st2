@@ -40,7 +40,10 @@ could also determine that based on the presence of result_size field).
 
 import sys
 import time
+import datetime
 import traceback
+
+from oslo_config import cfg
 
 from st2common import config
 from st2common.service_setup import db_setup
@@ -60,15 +63,15 @@ from st2common.constants.triggers import TRIGGER_INSTANCE_COMPLETED_STATES
 
 # We retrieve and process up to this amount of object IDs in a single MongoDB query. This is done
 # to avoid potentially retrieving many 10s of millions of object ids in a single query
+# TODO: Implement batching --since-ts, --model=action,trigger,workflow flag
 BATCH_SIZE = 1000
-
 
 # NOTE: To avoid unncessary mongoengine object churn when retrieving only object ids (aka to avoid
 # instantiating model class with a single field), we use raw pymongo value which is a dict with a
 # single value
 
 
-def migrate_executions() -> None:
+def migrate_executions(start_dt: datetime.datetime) -> None:
     """
     Perform migrations for execution related objects (ActionExecutionDB, LiveActionDB).
     """
@@ -94,6 +97,7 @@ def migrate_executions() -> None:
                     "$in": LIVEACTION_COMPLETED_STATES,
                 },
             },
+            start_timestamp__gte=start_dt,
         )
         .only("id")
         .as_pymongo()
@@ -161,7 +165,7 @@ def migrate_executions() -> None:
         print("")
 
 
-def migrate_workflow_objects() -> None:
+def migrate_workflow_objects(start_dt: datetime.datetime) -> None:
     print("Migrating workflow objects")
 
     # 1. Migrate WorkflowExecutionDB
@@ -176,7 +180,8 @@ def migrate_workflow_objects() -> None:
                 "status": {
                     "$in": LIVEACTION_COMPLETED_STATES,
                 },
-            }
+            },
+            start_timestamp__gte=start_dt,
         )
         .only("id")
         .as_pymongo()
@@ -230,7 +235,8 @@ def migrate_workflow_objects() -> None:
                 "status": {
                     "$in": LIVEACTION_COMPLETED_STATES,
                 },
-            }
+            },
+            start_timestamp__gte=start_dt,
         )
         .only("id")
         .as_pymongo()
@@ -269,7 +275,7 @@ def migrate_workflow_objects() -> None:
         print("")
 
 
-def migrate_triggers() -> None:
+def migrate_triggers(start_dt: datetime.datetime) -> None:
     print("Migrating trigger objects")
 
     result = (
@@ -283,7 +289,8 @@ def migrate_triggers() -> None:
                 "status": {
                     "$in": TRIGGER_INSTANCE_COMPLETED_STATES,
                 },
-            }
+            },
+            occurrence_time__gte=start_dt,
         )
         .only("id")
         .as_pymongo()
@@ -322,7 +329,7 @@ def migrate_triggers() -> None:
         print("")
 
 
-def migrate_objects(display_prompt: bool = True) -> None:
+def migrate_objects(start_dt: datetime.datetime, display_prompt: bool = True) -> None:
     print("StackStorm v3.5 database field data migration script\n")
 
     if display_prompt:
@@ -335,13 +342,18 @@ def migrate_objects(display_prompt: bool = True) -> None:
         )
         print("")
 
-    print("Migrating affected database objects to utilize new field type")
+    start_dt_str = start_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    print(
+        "Migrating affected database objects newer than %s to utilize new field type"
+        % (start_dt_str)
+    )
     print("")
 
     start_ts = int(time.time())
-    migrate_executions()
-    migrate_workflow_objects()
-    migrate_triggers()
+    migrate_executions(start_dt=start_dt)
+    migrate_workflow_objects(start_dt=start_dt)
+    migrate_triggers(start_dt=start_dt)
     end_ts = int(time.time())
 
     duration = end_ts - start_ts
@@ -352,18 +364,41 @@ def migrate_objects(display_prompt: bool = True) -> None:
     )
 
 
+def _register_cli_opts():
+    cfg.CONF.register_cli_opt(
+        cfg.BoolOpt(
+            "yes",
+            short="y",
+            required=False,
+            default=False,
+        )
+    )
+
+    # Unix timestamp which indicates how far we should go when migrating data. We default to
+    # now - 30 days. Keep in mind that using longer period may take a long time in case there are
+    # many objects in the database
+    default_ts = int(time.time()) - (30 * 86400)
+    cfg.CONF.register_cli_opt(
+        cfg.IntOpt(
+            "start-ts",
+            required=False,
+            default=default_ts,
+        )
+    )
+
+
 def main():
-    if "--yes" in sys.argv:
-        sys.argv.remove("--yes")
-        display_prompt = False
-    else:
-        display_prompt = True
+    _register_cli_opts()
 
     config.parse_args()
     db_setup()
 
+    start_dt = datetime.datetime.utcfromtimestamp(cfg.CONF.start_ts).replace(
+        tzinfo=datetime.timezone.utc
+    )
+
     try:
-        migrate_objects(display_prompt=display_prompt)
+        migrate_objects(start_dt=start_dt, display_prompt=not cfg.CONF.yes)
         exit_code = 0
     except Exception as e:
         print("ABORTED: Objects migration aborted on first failure: %s" % (str(e)))
