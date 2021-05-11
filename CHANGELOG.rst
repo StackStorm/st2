@@ -239,13 +239,13 @@ Changed
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
 * Support % in CLI arguments by reading the ConfigParser() arguments with raw=True.
-  
+
   This removes support for '%' interpolations on the configuration arguments.
 
   See https://docs.python.org/3.8/library/configparser.html#configparser.ConfigParser.get for
   further details. #5253
 
-  Contributed by @winem. 
+  Contributed by @winem.
 
 Improvements
 ~~~~~~~~~~~~
