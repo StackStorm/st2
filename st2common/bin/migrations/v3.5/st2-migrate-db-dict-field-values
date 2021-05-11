@@ -44,6 +44,10 @@ import traceback
 from st2common import config
 from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
+from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.workflow import WorkflowExecutionDB
+from st2common.models.db.workflow import TaskExecutionDB
+from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.workflow import WorkflowExecution
@@ -57,10 +61,17 @@ def migrate_executions() -> None:
     """
     Perform migrations for execution related objects (ActionExecutionDB, LiveActionDB).
     """
-    print("Migration execution objects")
+    print("Migrating execution objects")
+
+    # NOTE: We first only retrieve the IDs because there could be a lot of objects in the database
+    # and this could result in massive ram use. Technically, mongoengine loads querysets lazily,
+    # but this is not always the case so it's better to first retrieve all the IDs and then retrieve
+    # objects one by one.
+    # Keep in mind we need to use ModelClass.objects and not PersistanceClass.query() so .only()
+    # works correctly - with PersistanceClass.query().only() all the fields will still be retrieved.
 
     # 1. Migrate ActionExecutionDB objects
-    execution_dbs = ActionExecution.query(
+    execution_dbs = ActionExecutionDB.objects(
         __raw__={
             "result": {
                 "$not": {
@@ -70,18 +81,20 @@ def migrate_executions() -> None:
             "status": {
                 "$in": LIVEACTION_COMPLETED_STATES,
             },
-        }
-    )
+        },
+    ).only("id")
+    execution_ids = [str(execution_db.id) for execution_db in execution_dbs]
 
-    if not execution_dbs:
+    if not execution_ids:
         print("Found no ActionExecutionDB objects to migrate.")
         return None
 
-    print("Will migrate %s ActionExecutionDB objects" % (len(execution_dbs)))
+    print("Will migrate %s ActionExecutionDB objects" % (len(execution_ids)))
     print("")
 
-    for execution_db in execution_dbs:
-        print("Migrating ActionExecutionDB with id %s" % (execution_db.id))
+    for execution_id in execution_ids:
+        execution_db = ActionExecution.get_by_id(execution_id)
+        print("Migrating ActionExecutionDB with id %s" % (execution_id))
 
         # This is a bit of a "hack", but it's the easiest way to tell mongoengine that a specific
         # field has been updated and should be saved. If we don't do, nothing will be re-saved on
@@ -119,7 +132,7 @@ def migrate_workflow_objects() -> None:
     print("Migrating workflow objects")
 
     # 1. Migrate WorkflowExecutionDB
-    workflow_execution_dbs = WorkflowExecution.query(
+    workflow_execution_dbs = WorkflowExecutionDB.objects(
         __raw__={
             "output": {
                 "$not": {
@@ -130,18 +143,23 @@ def migrate_workflow_objects() -> None:
                 "$in": LIVEACTION_COMPLETED_STATES,
             },
         }
-    )
+    ).only("id")
+    workflow_execution_ids = [
+        str(workflow_execution_db.id)
+        for workflow_execution_db in workflow_execution_dbs
+    ]
 
-    if not workflow_execution_dbs:
+    if not workflow_execution_ids:
         print("Found no WorkflowExecutionDB objects to migrate.")
     else:
         print(
             "Will migrate %s WorkflowExecutionDB objects"
-            % (len(workflow_execution_dbs))
+            % (len(workflow_execution_ids))
         )
         print("")
 
-    for workflow_execution_db in workflow_execution_dbs or []:
+    for workflow_execution_id in workflow_execution_ids or []:
+        workflow_execution_db = WorkflowExecution.get_by_id(workflow_execution_id)
         print("Migrating WorkflowExecutionDB with id %s" % (workflow_execution_db.id))
 
         workflow_execution_db._mark_as_changed("input")
@@ -157,7 +175,7 @@ def migrate_workflow_objects() -> None:
         print("")
 
     # 2. Migrate TaskExecutionDB
-    task_execution_dbs = TaskExecution.query(
+    task_execution_dbs = TaskExecutionDB.objects(
         __raw__={
             "result": {
                 "$not": {
@@ -168,15 +186,19 @@ def migrate_workflow_objects() -> None:
                 "$in": LIVEACTION_COMPLETED_STATES,
             },
         }
-    )
+    ).only("id")
+    task_execution_ids = [
+        str(task_execution_db.id) for task_execution_db in task_execution_dbs
+    ]
 
-    if not task_execution_dbs:
+    if not task_execution_ids:
         print("Found no TaskExecutionDB objects to migrate.")
     else:
-        print("Will migrate %s TaskExecutionDB objects" % (len(task_execution_dbs)))
+        print("Will migrate %s TaskExecutionDB objects" % (len(task_execution_ids)))
         print("")
 
-    for task_execution_db in task_execution_dbs or []:
+    for task_execution_id in task_execution_ids or []:
+        task_execution_db = TaskExecution.get_by_id(task_execution_id)
         print("Migrating TaskExecutionDB with id %s" % (task_execution_db.id))
 
         task_execution_db._mark_as_changed("task_spec")
@@ -189,9 +211,9 @@ def migrate_workflow_objects() -> None:
 
 
 def migrate_triggers() -> None:
-    print("Migratting trigger objects")
+    print("Migrating trigger objects")
 
-    trigger_instance_dbs = TriggerInstance.query(
+    trigger_instance_dbs = TriggerInstanceDB.objects(
         __raw__={
             "payload": {
                 "$not": {
@@ -202,15 +224,19 @@ def migrate_triggers() -> None:
                 "$in": TRIGGER_INSTANCE_COMPLETED_STATES,
             },
         }
-    )
+    ).only("id")
+    trigger_instance_ids = [
+        str(trigger_instance_db.id) for trigger_instance_db in trigger_instance_dbs
+    ]
 
-    if not trigger_instance_dbs:
+    if not trigger_instance_ids:
         print("Found no TriggerInstanceDB objects to migrate.")
         return None
 
-    print("Will migrate %s TriggerInstanceDB objects" % (len(trigger_instance_dbs)))
+    print("Will migrate %s TriggerInstanceDB objects" % (len(trigger_instance_ids)))
 
-    for trigger_instance_db in trigger_instance_dbs:
+    for trigger_instance_id in trigger_instance_ids or []:
+        trigger_instance_db = TriggerInstance.get_by_id(trigger_instance_id)
         print("Migrating TriggerInstanceDB with id %s" % (trigger_instance_db.id))
 
         trigger_instance_db._mark_as_changed("payload")
@@ -222,8 +248,21 @@ def migrate_triggers() -> None:
         print("")
 
 
-def migrate_objects() -> None:
+def migrate_objects(display_prompt: bool = True) -> None:
+    print("StackStorm v3.5 database field data migration script\n")
+
+    if display_prompt:
+        input(
+            "You are stronly recommended to create database backup before running the "
+            "migration script.\n\nDepending on the number of the objects in the database, "
+            "migration may take multiple hours or more. You are recommended to start the the "
+            "script in a screen session or similar. \n\n"
+            "To proceed with the migration, press enter and to cancel it, press CTRL+C."
+        )
+        print("")
+
     print("Migrating affected database objects to utilize new field type")
+    print("")
 
     migrate_executions()
     migrate_workflow_objects()
@@ -231,12 +270,17 @@ def migrate_objects() -> None:
 
 
 def main():
-    config.parse_args()
+    if "--yes" in sys.argv:
+        sys.argv.remove("--yes")
+        display_prompt = False
+    else:
+        display_prompt = True
 
+    config.parse_args()
     db_setup()
 
     try:
-        migrate_objects()
+        migrate_objects(display_prompt=display_prompt)
         print("SUCCESS: All database objects migrated successfully.")
         exit_code = 0
     except Exception as e:
