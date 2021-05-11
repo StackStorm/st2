@@ -54,6 +54,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.workflow import WorkflowExecution
 from st2common.persistence.workflow import TaskExecution
 from st2common.persistence.trigger import TriggerInstance
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.triggers import TRIGGER_INSTANCE_COMPLETED_STATES
 
@@ -94,7 +95,15 @@ def migrate_executions() -> None:
     print("")
 
     for execution_id in execution_ids:
-        execution_db = ActionExecution.get_by_id(execution_id)
+        try:
+            execution_db = ActionExecution.get_by_id(execution_id)
+        except StackStormDBObjectNotFoundError:
+            print(
+                "Skipping ActionExecutionDB with id %s which is missing in the database"
+                % (execution_id)
+            )
+            continue
+
         print("Migrating ActionExecutionDB with id %s" % (execution_id))
 
         # This is a bit of a "hack", but it's the easiest way to tell mongoengine that a specific
@@ -109,16 +118,21 @@ def migrate_executions() -> None:
         print("ActionExecutionDB with id %s has been migrated" % (execution_db.id))
 
         # Migrate corresponding LiveAction object
+        liveaction = execution_db.liveaction or {}
+        liveaction_id = liveaction.get("id", None)
+
+        if not liveaction_id:
+            continue
+
         try:
-            liveaction_id = execution_db.liveaction.get("id", None)
             liveaction_db = LiveAction.get_by_id(liveaction_id)
-        except Exception as e:
-            print(
-                "Failed to migrate LiveActionDB with id %s, ignoring error (%s)"
-                % (liveaction_id, str(e))
-            )
+        except StackStormDBObjectNotFoundError:
             # If liveaction for some reason doesn't exist (would likely represent corrupted data) we
             # simply ignore that error since it's not fatal.
+            print(
+                "Skipping LiveActionDB with id %s which is missing in the database"
+                % (liveaction_db)
+            )
             continue
 
         liveaction_db._mark_as_changed("result")
@@ -160,7 +174,15 @@ def migrate_workflow_objects() -> None:
         print("")
 
     for workflow_execution_id in workflow_execution_ids or []:
-        workflow_execution_db = WorkflowExecution.get_by_id(workflow_execution_id)
+        try:
+            workflow_execution_db = WorkflowExecution.get_by_id(workflow_execution_id)
+        except StackStormDBObjectNotFoundError as e:
+            print(
+                "Skipping WorkflowExecutionDB with id %s which is missing in the database"
+                % (workflow_execution_id)
+            )
+            continue
+
         print("Migrating WorkflowExecutionDB with id %s" % (workflow_execution_db.id))
 
         workflow_execution_db._mark_as_changed("input")
@@ -199,7 +221,15 @@ def migrate_workflow_objects() -> None:
         print("")
 
     for task_execution_id in task_execution_ids or []:
-        task_execution_db = TaskExecution.get_by_id(task_execution_id)
+        try:
+            task_execution_db = TaskExecution.get_by_id(task_execution_id)
+        except StackStormDBObjectNotFoundError as e:
+            print(
+                "Skipping TaskExecutionDB with id %s which is missing in the database"
+                % (task_execution_db)
+            )
+            continue
+
         print("Migrating TaskExecutionDB with id %s" % (task_execution_db.id))
 
         task_execution_db._mark_as_changed("task_spec")
@@ -237,7 +267,15 @@ def migrate_triggers() -> None:
     print("Will migrate %s TriggerInstanceDB objects" % (len(trigger_instance_ids)))
 
     for trigger_instance_id in trigger_instance_ids or []:
-        trigger_instance_db = TriggerInstance.get_by_id(trigger_instance_id)
+        try:
+            trigger_instance_db = TriggerInstance.get_by_id(trigger_instance_id)
+        except StackStormDBObjectNotFoundError as e:
+            print(
+                "Skipping TriggerInstanceDB with id %s which is missing in the database"
+                % (trigger_instance_id)
+            )
+            continue
+
         print("Migrating TriggerInstanceDB with id %s" % (trigger_instance_db.id))
 
         trigger_instance_db._mark_as_changed("payload")
