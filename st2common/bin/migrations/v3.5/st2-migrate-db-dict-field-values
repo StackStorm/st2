@@ -86,15 +86,17 @@ def migrate_executions() -> None:
         },
     ).only("id")
     execution_ids = [str(execution_db.id) for execution_db in execution_dbs]
+    objects_count = len(execution_ids)
 
     if not execution_ids:
         print("Found no ActionExecutionDB objects to migrate.")
+        print("")
         return None
 
-    print("Will migrate %s ActionExecutionDB objects" % (len(execution_ids)))
+    print("Will migrate %s ActionExecutionDB objects" % (objects_count))
     print("")
 
-    for execution_id in execution_ids:
+    for index, execution_id in enumerate(execution_ids, 1):
         try:
             execution_db = ActionExecution.get_by_id(execution_id)
         except StackStormDBObjectNotFoundError:
@@ -104,7 +106,10 @@ def migrate_executions() -> None:
             )
             continue
 
-        print("Migrating ActionExecutionDB with id %s" % (execution_id))
+        print(
+            "[%s/%s] Migrating ActionExecutionDB with id %s"
+            % (index, objects_count, execution_id)
+        )
 
         # This is a bit of a "hack", but it's the easiest way to tell mongoengine that a specific
         # field has been updated and should be saved. If we don't do, nothing will be re-saved on
@@ -163,27 +168,29 @@ def migrate_workflow_objects() -> None:
         str(workflow_execution_db.id)
         for workflow_execution_db in workflow_execution_dbs
     ]
+    objects_count = len(workflow_execution_ids)
 
     if not workflow_execution_ids:
         print("Found no WorkflowExecutionDB objects to migrate.")
+        print("")
     else:
-        print(
-            "Will migrate %s WorkflowExecutionDB objects"
-            % (len(workflow_execution_ids))
-        )
+        print("Will migrate %s WorkflowExecutionDB objects" % (objects_count))
         print("")
 
-    for workflow_execution_id in workflow_execution_ids or []:
+    for index, workflow_execution_id in enumerate(workflow_execution_ids, 1):
         try:
             workflow_execution_db = WorkflowExecution.get_by_id(workflow_execution_id)
-        except StackStormDBObjectNotFoundError as e:
+        except StackStormDBObjectNotFoundError:
             print(
                 "Skipping WorkflowExecutionDB with id %s which is missing in the database"
                 % (workflow_execution_id)
             )
             continue
 
-        print("Migrating WorkflowExecutionDB with id %s" % (workflow_execution_db.id))
+        print(
+            "[%s/%s] Migrating WorkflowExecutionDB with id %s"
+            % (index, objects_count, workflow_execution_id)
+        )
 
         workflow_execution_db._mark_as_changed("input")
         workflow_execution_db._mark_as_changed("context")
@@ -213,24 +220,29 @@ def migrate_workflow_objects() -> None:
     task_execution_ids = [
         str(task_execution_db.id) for task_execution_db in task_execution_dbs
     ]
+    objects_count = len(task_execution_ids)
 
     if not task_execution_ids:
         print("Found no TaskExecutionDB objects to migrate.")
+        print("")
     else:
-        print("Will migrate %s TaskExecutionDB objects" % (len(task_execution_ids)))
+        print("Will migrate %s TaskExecutionDB objects" % (objects_count))
         print("")
 
-    for task_execution_id in task_execution_ids or []:
+    for index, task_execution_id in enumerate(task_execution_ids, 1):
         try:
             task_execution_db = TaskExecution.get_by_id(task_execution_id)
-        except StackStormDBObjectNotFoundError as e:
+        except StackStormDBObjectNotFoundError:
             print(
                 "Skipping TaskExecutionDB with id %s which is missing in the database"
                 % (task_execution_db)
             )
             continue
 
-        print("Migrating TaskExecutionDB with id %s" % (task_execution_db.id))
+        print(
+            "[%s/%s] Migrating TaskExecutionDB with id %s"
+            % (index, objects_count, task_execution_id)
+        )
 
         task_execution_db._mark_as_changed("task_spec")
         task_execution_db._mark_as_changed("context")
@@ -259,24 +271,29 @@ def migrate_triggers() -> None:
     trigger_instance_ids = [
         str(trigger_instance_db.id) for trigger_instance_db in trigger_instance_dbs
     ]
+    objects_count = len(trigger_instance_dbs)
 
     if not trigger_instance_ids:
         print("Found no TriggerInstanceDB objects to migrate.")
+        print("")
         return None
 
-    print("Will migrate %s TriggerInstanceDB objects" % (len(trigger_instance_ids)))
+    print("Will migrate %s TriggerInstanceDB objects" % (objects_count))
 
-    for trigger_instance_id in trigger_instance_ids or []:
+    for index, trigger_instance_id in enumerate(trigger_instance_ids, 1):
         try:
             trigger_instance_db = TriggerInstance.get_by_id(trigger_instance_id)
-        except StackStormDBObjectNotFoundError as e:
+        except StackStormDBObjectNotFoundError:
             print(
                 "Skipping TriggerInstanceDB with id %s which is missing in the database"
                 % (trigger_instance_id)
             )
             continue
 
-        print("Migrating TriggerInstanceDB with id %s" % (trigger_instance_db.id))
+        print(
+            "[%s/%s] Migrating TriggerInstanceDB with id %s"
+            % (index, objects_count, trigger_instance_id)
+        )
 
         trigger_instance_db._mark_as_changed("payload")
 
@@ -311,7 +328,6 @@ def migrate_objects(display_prompt: bool = True) -> None:
 
     duration = end_ts - start_ts
 
-    print("")
     print(
         "SUCCESS: All database objects migrated successfully (duration: %s seconds)."
         % (duration)
