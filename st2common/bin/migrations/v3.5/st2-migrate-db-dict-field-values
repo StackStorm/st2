@@ -39,6 +39,7 @@ could also determine that based on the presence of result_size field).
 """
 
 import sys
+import time
 import traceback
 
 from st2common import config
@@ -264,9 +265,19 @@ def migrate_objects(display_prompt: bool = True) -> None:
     print("Migrating affected database objects to utilize new field type")
     print("")
 
+    start_ts = int(time.time())
     migrate_executions()
     migrate_workflow_objects()
     migrate_triggers()
+    end_ts = int(time.time())
+
+    duration = end_ts - start_ts
+
+    print("")
+    print(
+        "SUCCESS: All database objects migrated successfully (duration: %s seconds)."
+        % (duration)
+    )
 
 
 def main():
@@ -281,7 +292,6 @@ def main():
 
     try:
         migrate_objects(display_prompt=display_prompt)
-        print("SUCCESS: All database objects migrated successfully.")
         exit_code = 0
     except Exception as e:
         print("ABORTED: Objects migration aborted on first failure: %s" % (str(e)))
