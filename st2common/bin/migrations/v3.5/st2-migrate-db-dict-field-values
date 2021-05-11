@@ -118,7 +118,8 @@ def migrate_executions() -> None:
         execution_db._mark_as_changed("result")
         execution_db._mark_as_changed("result_size")
 
-        #  print(getattr(execution_db, "_changed_fields", []))
+        # NOTE: If you want to view changed fields, you can access execution_db._changed_fields
+
         execution_db.save()
         print("ActionExecutionDB with id %s has been migrated" % (execution_db.id))
 
@@ -142,7 +143,6 @@ def migrate_executions() -> None:
 
         liveaction_db._mark_as_changed("result")
 
-        # print(getattr(liveaction_db, "_changed_fields", []))
         liveaction_db.save()
         print("Related LiveActionDB with id %s has been migrated" % (liveaction_db.id))
         print("")
@@ -309,10 +309,10 @@ def migrate_objects(display_prompt: bool = True) -> None:
 
     if display_prompt:
         input(
-            "You are stronly recommended to create database backup before running the "
+            "You are strongly recommended to create database backup before running the "
             "migration script.\n\nDepending on the number of the objects in the database, "
-            "migration may take multiple hours or more. You are recommended to start the the "
-            "script in a screen session or similar. \n\n"
+            "migration may take multiple hours or more. You are recommended to start the "
+            "script in a screen session, tmux or similar. \n\n"
             "To proceed with the migration, press enter and to cancel it, press CTRL+C."
         )
         print("")
