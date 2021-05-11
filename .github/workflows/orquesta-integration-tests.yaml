@@ -44,7 +44,7 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -57,10 +57,12 @@ jobs:
             nosetests_node_total: 1
             nosetests_node_index: 0
             python-version: '3.6.13'
+            python-version-short: '3.6'
           - name: 'Integration Tests (Orquesta)'
             task: 'ci-orquesta'
             nosetests_node_total: 1
             nosetests_node_index: 0
+            python-version-short: '3.8'
             python-version: '3.8.10'
     services:
       mongo:
