@@ -48,6 +48,7 @@ from oslo_config import cfg
 from st2common import config
 from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
+from st2common.util import isotime
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.workflow import WorkflowExecutionDB
 from st2common.models.db.workflow import TaskExecutionDB
@@ -349,20 +350,22 @@ def migrate_triggers(start_dt: datetime.datetime, end_dt: datetime.datetime) -> 
 def migrate_objects(
     start_dt: datetime.datetime, end_dt: datetime.datetime, display_prompt: bool = True
 ) -> None:
+    start_dt_str = start_dt.strftime("%Y-%m-%d %H:%M:%S")
+    end_dt_str = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+
     print("StackStorm v3.5 database field data migration script\n")
 
     if display_prompt:
         input(
-            "You are strongly recommended to create database backup before running the "
-            "migration script.\n\nDepending on the number of the objects in the database, "
+            "Will migrate objects with creation date between %s UTC and %s UTC.\n\n"
+            "You are strongly recommended to create database backup before proceeding.\n\n"
+            "Depending on the number of the objects in the database, "
             "migration may take multiple hours or more. You are recommended to start the "
             "script in a screen session, tmux or similar. \n\n"
-            "To proceed with the migration, press enter and to cancel it, press CTRL+C."
+            "To proceed with the migration, press enter and to cancel it, press CTRL+C.\n"
+            % (start_dt_str, end_dt_str)
         )
         print("")
-
-    start_dt_str = start_dt.strftime("%Y-%m-%d %H:%M:%S")
-    end_dt_str = end_dt.strftime("%Y-%m-%d %H:%M:%S")
 
     print(
         "Migrating affected database objects between %s and %s"
@@ -431,15 +434,13 @@ def main():
     config.parse_args()
     db_setup()
 
-    start_dt = datetime.datetime.strptime(cfg.CONF.start_dt, "%Y-%m-%dT%H:%M:%SZ")
-    start_dt = start_dt.replace(tzinfo=datetime.timezone.utc)
+    start_dt = isotime.parse(cfg.CONF.start_dt)
 
     if cfg.CONF.end_dt == "now":
         end_dt = datetime.datetime.utcnow()
         end_dt = end_dt.replace(tzinfo=datetime.timezone.utc)
     else:
-        end_dt = datetime.datetime.strptime(cfg.CONF.end_dt, "%Y-%m-%dT%H:%M:%SZ")
-        end_dt = end_dt.replace(tzinfo=datetime.timezone.utc)
+        end_dt = isotime.parse(cfg.CONF.end_dt)
 
     try:
         migrate_objects(
