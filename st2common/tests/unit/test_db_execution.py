@@ -193,10 +193,11 @@ class ActionExecutionModelTest(DbTestCase):
         for value in masked["parameters"]["response"].values():
             self.assertEqual(value, MASKED_ATTRIBUTE_VALUE)
 
-    def test_ouput_schema_secret_param_masking(self):
-        """Test that the parameter marked secret as true in output schema is maked in the output result
+    def test_output_schema_secret_param_masking(self):
+        """
+        Test that the parameter marked secret as true in output schema is masked in the output result
 
-        here out of two parameters in output schema is marked secret as true and we are asserting only
+        here, out of two parameters in output schema is marked secret as true and we are asserting only
         that is masked in the output result.
         """
 
