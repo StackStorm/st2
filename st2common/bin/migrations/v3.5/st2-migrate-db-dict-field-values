@@ -320,6 +320,7 @@ def migrate_triggers(start_dt: datetime.datetime, end_dt: datetime.datetime) -> 
         return None
 
     print("Will migrate %s TriggerInstanceDB objects" % (objects_count))
+    print("")
 
     for index, trigger_instance_id in enumerate(trigger_instance_ids, 1):
         try:
