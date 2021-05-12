@@ -85,6 +85,7 @@ def migrate_executions(start_dt: datetime.datetime) -> None:
     # works correctly - with PersistanceClass.query().only() all the fields will still be retrieved.
 
     # 1. Migrate ActionExecutionDB objects
+    # 1.1 Find all executions where field type is not binData
     result = (
         ActionExecutionDB.objects(
             __raw__={
@@ -102,7 +103,36 @@ def migrate_executions(start_dt: datetime.datetime) -> None:
         .only("id")
         .as_pymongo()
     )
-    execution_ids = [str(item["_id"]) for item in result]
+    execution_ids = set([str(item["_id"]) for item in result])
+
+    # 1.2 Find all executions which don't contain "result_size" attribute, but field type is
+    # aready binData
+    # This is just aa workaround for migration script issue during development which has been
+    # resolved.
+    # https://github.com/StackStorm/st2/pull/5255#issuecomment-839920397
+    # This code path can be removed once @AJ runs that code on his setup.
+    result = (
+        ActionExecutionDB.objects(
+            __raw__={
+                "result": {
+                    "$type": "binData",
+                },
+                "status": {
+                    "$in": LIVEACTION_COMPLETED_STATES,
+                },
+            },
+            result_size__not__exists=True,
+            start_timestamp__gte=start_dt,
+        )
+        .only("id")
+        .as_pymongo()
+    )
+
+    for item in result:
+        execution_ids.add(str(item["_id"]))
+
+    execution_ids = list(execution_ids)
+
     objects_count = result.count()
 
     if not execution_ids:
@@ -134,6 +164,16 @@ def migrate_executions(start_dt: datetime.datetime) -> None:
         # efficient instead of always re-saving the whole object.
         execution_db._mark_as_changed("result")
         execution_db._mark_as_changed("result_size")
+
+        # We need to explicitly set result_size attribute since Document.save() code path doesn't
+        # populate it (but other code paths we utilize elsewhere do).
+        # Technically we could do it on document clean() / validate() method, but we don't want that
+        # since execution update code in action runner and elsewhere is optimized to make partial
+        # updates more efficient.
+        result_size = len(
+            ActionExecutionDB.result._serialize_field_value(execution_db.result or {})
+        )
+        execution_db.result_size = result_size
 
         # NOTE: If you want to view changed fields, you can access execution_db._changed_fields
 
