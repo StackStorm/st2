@@ -71,7 +71,7 @@ BATCH_SIZE = 1000
 # single value
 
 
-def migrate_executions(start_dt: datetime.datetime) -> None:
+def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -> None:
     """
     Perform migrations for execution related objects (ActionExecutionDB, LiveActionDB).
     """
@@ -99,6 +99,7 @@ def migrate_executions(start_dt: datetime.datetime) -> None:
                 },
             },
             start_timestamp__gte=start_dt,
+            start_timestamp__lte=end_dt,
         )
         .only("id")
         .as_pymongo()
@@ -123,6 +124,7 @@ def migrate_executions(start_dt: datetime.datetime) -> None:
             },
             result_size__not__exists=True,
             start_timestamp__gte=start_dt,
+            start_timestamp__lte=end_dt,
         )
         .only("id")
         .as_pymongo()
@@ -205,7 +207,9 @@ def migrate_executions(start_dt: datetime.datetime) -> None:
         print("")
 
 
-def migrate_workflow_objects(start_dt: datetime.datetime) -> None:
+def migrate_workflow_objects(
+    start_dt: datetime.datetime, end_dt: datetime.datetime
+) -> None:
     print("Migrating workflow objects")
 
     # 1. Migrate WorkflowExecutionDB
@@ -222,6 +226,7 @@ def migrate_workflow_objects(start_dt: datetime.datetime) -> None:
                 },
             },
             start_timestamp__gte=start_dt,
+            start_timestamp__lte=end_dt,
         )
         .only("id")
         .as_pymongo()
@@ -277,6 +282,7 @@ def migrate_workflow_objects(start_dt: datetime.datetime) -> None:
                 },
             },
             start_timestamp__gte=start_dt,
+            start_timestamp__lte=end_dt,
         )
         .only("id")
         .as_pymongo()
@@ -315,7 +321,7 @@ def migrate_workflow_objects(start_dt: datetime.datetime) -> None:
         print("")
 
 
-def migrate_triggers(start_dt: datetime.datetime) -> None:
+def migrate_triggers(start_dt: datetime.datetime, end_dt: datetime.datetime) -> None:
     print("Migrating trigger objects")
 
     result = (
@@ -331,6 +337,7 @@ def migrate_triggers(start_dt: datetime.datetime) -> None:
                 },
             },
             occurrence_time__gte=start_dt,
+            occurrence_time__lte=end_dt,
         )
         .only("id")
         .as_pymongo()
@@ -369,7 +376,9 @@ def migrate_triggers(start_dt: datetime.datetime) -> None:
         print("")
 
 
-def migrate_objects(start_dt: datetime.datetime, display_prompt: bool = True) -> None:
+def migrate_objects(
+    start_dt: datetime.datetime, end_dt: datetime.datetime, display_prompt: bool = True
+) -> None:
     print("StackStorm v3.5 database field data migration script\n")
 
     if display_prompt:
@@ -383,17 +392,18 @@ def migrate_objects(start_dt: datetime.datetime, display_prompt: bool = True) ->
         print("")
 
     start_dt_str = start_dt.strftime("%Y-%m-%d %H:%M:%S")
+    end_dt_str = end_dt.strftime("%Y-%m-%d %H:%M:%S")
 
     print(
-        "Migrating affected database objects newer than %s to utilize new field type"
-        % (start_dt_str)
+        "Migrating affected database objects between %s and %s"
+        % (start_dt_str, end_dt_str)
     )
     print("")
 
     start_ts = int(time.time())
-    migrate_executions(start_dt=start_dt)
-    migrate_workflow_objects(start_dt=start_dt)
-    migrate_triggers(start_dt=start_dt)
+    migrate_executions(start_dt=start_dt, end_dt=end_dt)
+    migrate_workflow_objects(start_dt=start_dt, end_dt=end_dt)
+    migrate_triggers(start_dt=start_dt, end_dt=end_dt)
     end_ts = int(time.time())
 
     duration = end_ts - start_ts
@@ -414,15 +424,33 @@ def _register_cli_opts():
         )
     )
 
-    # Unix timestamp which indicates how far we should go when migrating data. We default to
-    # now - 30 days. Keep in mind that using longer period may take a long time in case there are
-    # many objects in the database
-    default_ts = int(time.time()) - (30 * 86400)
+    # We default to past 30 days. Keep in mind that using longer period may take a long time in
+    # case there are many objects in the database.
+    now_dt = datetime.datetime.utcnow()
+    start_dt = now_dt - datetime.timedelta(days=30)
+
     cfg.CONF.register_cli_opt(
-        cfg.IntOpt(
-            "start-ts",
+        cfg.StrOpt(
+            "start-dt",
             required=False,
-            default=default_ts,
+            help=(
+                "Start cut off ISO UTC iso date time string for objects which will be migrated. "
+                "Defaults to now - 30 days."
+                "Example value: 2020-03-13T19:01:27Z"
+            ),
+            default=start_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
+    )
+    cfg.CONF.register_cli_opt(
+        cfg.StrOpt(
+            "end-dt",
+            required=False,
+            help=(
+                "End cut off UTC ISO date time string for objects which will be migrated."
+                "Defaults to now."
+                "Example value: 2020-03-13T19:01:27Z"
+            ),
+            default=now_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
         )
     )
 
@@ -433,12 +461,15 @@ def main():
     config.parse_args()
     db_setup()
 
-    start_dt = datetime.datetime.utcfromtimestamp(cfg.CONF.start_ts).replace(
-        tzinfo=datetime.timezone.utc
-    )
+    start_dt = datetime.datetime.strptime(cfg.CONF.start_dt, "%Y-%m-%dT%H:%M:%SZ")
+    start_dt = start_dt.replace(tzinfo=datetime.timezone.utc)
+    end_dt = datetime.datetime.strptime(cfg.CONF.end_dt, "%Y-%m-%dT%H:%M:%SZ")
+    end_dt = end_dt.replace(tzinfo=datetime.timezone.utc)
 
     try:
-        migrate_objects(start_dt=start_dt, display_prompt=not cfg.CONF.yes)
+        migrate_objects(
+            start_dt=start_dt, end_dt=end_dt, display_prompt=not cfg.CONF.yes
+        )
         exit_code = 0
     except Exception as e:
         print("ABORTED: Objects migration aborted on first failure: %s" % (str(e)))
