@@ -28,6 +28,7 @@ from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_inquiry_response
 from st2common.util.secrets import mask_secret_parameters
 from st2common.constants.types import ResourceType
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 __all__ = ["ActionExecutionDB", "ActionExecutionOutputDB"]
 
@@ -105,6 +106,16 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         return ":".join(uid)
 
     def mask_secrets(self, value):
+        """
+        Masks the secret parameters in input and output schema for action execution output.
+
+        :param value: action execution object.
+        :type value: ``dict``
+
+        :return: result: action execution object with masked secret paramters in input and output schema.
+        :rtype: result: ``dict``
+        """
+        
         result = copy.deepcopy(value)
 
         liveaction = result["liveaction"]
@@ -141,11 +152,27 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
                         p: "string" for p in liveaction["parameters"]["response"]
                     },
                 )
+        
+        output_schema_result = ActionExecutionDB.result.parse_field_value(
+            result["result"]
+        )
+        
+        # accessing parameters marked secret as true in the output_schema
+        # and masking them for the result in action execution API
+        if output_schema_result:
+            for key in result["action"]["output_schema"]:
+                if (
+                    result.get("action", {})
+                    .get("output_schema", {})
+                    .get(key)
+                    .get("secret", False)
+                ):
+                    output_schema_result["result"][key] = MASKED_ATTRIBUTE_VALUE
 
+        result["result"] = output_schema_result
+        
         # TODO(mierdin): This logic should be moved to the dedicated Inquiry
         # data model once it exists.
-        result["result"] = ActionExecutionDB.result.parse_field_value(result["result"])
-
         if self.runner.get("name") == "inquirer":
             schema = result["result"].get("schema", {})
             response = result["result"].get("response", {})
