@@ -85,7 +85,6 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
     # works correctly - with PersistanceClass.query().only() all the fields will still be retrieved.
 
     # 1. Migrate ActionExecutionDB objects
-    # 1.1 Find all executions where field type is not binData
     result = (
         ActionExecutionDB.objects(
             __raw__={
@@ -105,36 +104,6 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
         .as_pymongo()
     )
     execution_ids = set([str(item["_id"]) for item in result])
-
-    # 1.2 Find all executions which don't contain "result_size" attribute, but field type is
-    # aready binData
-    # This is just aa workaround for migration script issue during development which has been
-    # resolved.
-    # https://github.com/StackStorm/st2/pull/5255#issuecomment-839920397
-    # This code path can be removed once @AJ runs that code on his setup.
-    result = (
-        ActionExecutionDB.objects(
-            __raw__={
-                "result": {
-                    "$type": "binData",
-                },
-                "status": {
-                    "$in": LIVEACTION_COMPLETED_STATES,
-                },
-            },
-            result_size__not__exists=True,
-            start_timestamp__gte=start_dt,
-            start_timestamp__lte=end_dt,
-        )
-        .only("id")
-        .as_pymongo()
-    )
-
-    for item in result:
-        execution_ids.add(str(item["_id"]))
-
-    execution_ids = list(execution_ids)
-
     objects_count = result.count()
 
     if not execution_ids:
