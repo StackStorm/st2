@@ -152,7 +152,9 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
+
         doc["result"] = ActionExecutionDB.result.parse_field_value(doc["result"])
+
         start_timestamp = model.start_timestamp
         start_timestamp_iso = isotime.format(start_timestamp, offset=False)
         doc["start_timestamp"] = start_timestamp_iso
