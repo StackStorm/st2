@@ -242,6 +242,8 @@ Changed
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
+* Remove duplicate host header in the nginx config for the auth endpoint.
+
 Improvements
 ~~~~~~~~~~~~
 
