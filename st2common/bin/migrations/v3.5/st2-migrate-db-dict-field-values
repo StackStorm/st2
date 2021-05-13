@@ -62,12 +62,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.triggers import TRIGGER_INSTANCE_COMPLETED_STATES
 
-# We retrieve and process up to this amount of object IDs in a single MongoDB query. This is done
-# to avoid potentially retrieving many 10s of millions of object ids in a single query
-# TODO: Implement batching --since-ts, --model=action,trigger,workflow flag
-BATCH_SIZE = 1000
-
-# NOTE: To avoid unncessary mongoengine object churn when retrieving only object ids (aka to avoid
+# NOTE: To avoid unnecessary mongoengine object churn when retrieving only object ids (aka to avoid
 # instantiating model class with a single field), we use raw pymongo value which is a dict with a
 # single value
 
