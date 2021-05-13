@@ -9,6 +9,7 @@ from pants.engine.rules import collect_rules, rule, _uncacheable_rule
 from pants.engine.target import Target
 
 from .exceptions import ServiceMissingError
+from .platform import Platform
 
 
 class UsesMongoRequest(PytestPluginSetupRequest):
@@ -31,23 +32,23 @@ async def mongo_is_running() -> MongoStatus:
 
 
 @rule
-async def assert_mongo_is_running(request: UsesMongoRequest, mongo_status: MongoStatus) -> PytestPluginSetup:
+async def assert_mongo_is_running(
+    request: UsesMongoRequest, mongo_status: MongoStatus, platform: Platform
+) -> PytestPluginSetup:
     if not mongo_status.is_running:
-        platform = ""  # TODO: lookup
-
-        if platform == "CentOS7":
+        if platform.os == "CentOS7":
             insturctions = """
                 helpful instructions for installation / running required service
                 """
-        elif platform == "CentOS8":
+        elif platform.os == "CentOS8":
             insturctions = """
                 helpful instructions for installation / running required service
                 """
-        elif platform == "Ubuntu":
+        elif platform.os == "Ubuntu":
             insturctions = """
                 helpful instructions for installation / running required service
                 """
-        elif platform == "MacOSX":
+        elif platform.os == "MacOSX":
             insturctions = """
                 helpful instructions for installation / running required service
                 """
