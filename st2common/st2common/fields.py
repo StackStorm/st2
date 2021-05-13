@@ -458,10 +458,14 @@ class JSONDictField(BinaryField):
         """
         Serialize and encode the provided field value.
         """
+        def default(obj):
+            if isinstance(obj, set):
+                return list(obj)
+            raise TypeError
         if not self.use_header:
-            return orjson.dumps(value)
+            return orjson.dumps(value, default=default)
 
-        data = orjson.dumps(value)
+        data = orjson.dumps(value, default=default)
 
         if self.compression_algorithm == "zstandard":
             # NOTE: At this point zstandard is only test dependency
