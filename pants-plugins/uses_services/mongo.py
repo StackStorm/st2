@@ -31,7 +31,7 @@ async def mongo_is_running() -> MongoStatus:
 
 
 @rule
-def assert_mongo_is_running(request: UsesMongoRequest, mongo_status: MongoStatus) -> PytestPluginSetup:
+async def assert_mongo_is_running(request: UsesMongoRequest, mongo_status: MongoStatus) -> PytestPluginSetup:
     if not mongo_status.is_running:
         platform = ""  # TODO: lookup
 
