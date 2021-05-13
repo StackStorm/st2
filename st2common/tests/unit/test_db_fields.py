@@ -73,6 +73,11 @@ ModelJsonDictFieldAccess = MongoDBAccess(ModelWithJSONDictFieldDB)
 
 
 class JSONDictFieldTestCase(unittest2.TestCase):
+    def test_set_to_mongo(self):
+        field = JSONDictField(use_header=False)
+        result = field.to_mongo({"test":{1,2}})
+        self.assertTrue(isinstance(result, bytes))
+ 
     def test_to_mongo(self):
         field = JSONDictField(use_header=False)
         result = field.to_mongo(MOCK_DATA_DICT)
