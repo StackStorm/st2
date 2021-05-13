@@ -167,7 +167,11 @@ Changed
   triggers with larger payloads.
 
   This should address a long standing issue where StackStorm was reported to be slow and CPU
-  inefficient with handling large executions. (improvement) #4846
+  inefficient with handling large executions.
+
+  If you want to migrate existing database objects to utilize the new type, you can use
+  ``st2common/bin/migrations/v3.5/st2-migrate-db-dict-field-values`` migration
+  script. (improvement) #4846
 
   Contributed by @Kami.
 
