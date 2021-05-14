@@ -458,10 +458,12 @@ class JSONDictField(BinaryField):
         """
         Serialize and encode the provided field value.
         """
+
         def default(obj):
             if isinstance(obj, set):
                 return list(obj)
             raise TypeError
+
         if not self.use_header:
             return orjson.dumps(value, default=default)
 
