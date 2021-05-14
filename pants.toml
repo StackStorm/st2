@@ -30,6 +30,10 @@ backend_packages = [
   "schemas",
   "uses_services",
 ]
+plugins = [
+  # dependencies for internal plugins
+  "distro",
+]
 # pants ignores files in .gitignore, .*/ directories, /dist/ directory, and __pycache__.
 pants_ignore.add = [
   # TODO: remove these once we start building wheels with pants.
