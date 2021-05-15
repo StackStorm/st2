@@ -1,16 +1,9 @@
 ---
-name: my_action
-runner_type: python-script
-description: A simple python action for testing purposes.
-enabled: true
-entry_point: my_action.py
-output_schema:
-  k1:
-    type: string
-    required: true
-  k2:
-    type: string
-    required: true
-    secret: true
-  k3:
-    type: boolean
+"name": "local"
+"runner_type": "local-shell-script"
+"description": "Action that executes an arbitrary Linux command on the localhost."
+"enabled": true
+"entry_point": "my_action.py"
+"parameters":
+    "sudo":
+        "immutable": true
