@@ -9,6 +9,7 @@ from pants.backend.python.util_rules.pex import (
 from pants.engine.fs import Digest, PathGlobs
 from pants.engine.process import Process, ProcessCacheScope, ProcessResult
 from pants.engine.rules import collect_rules, rule
+from pants.option.global_options import GlobMatchErrorBehavior
 from pants.util.logging import LogLevel
 from .inspect_platform import Platform
 
@@ -28,7 +29,11 @@ async def get_platform() -> Platform:
     )
 
     script_path = "pants-plugins/uses_services/inspect_platform.py"
-    script_digest = await Get(Digest, PathGlobs([script_path]))
+    script_digest = await Get(
+        Digest,
+        PathGlobs([script_path]),
+        glob_match_error_behavior=GlobMatchErrorBehavior.error,
+    )
 
     result = await Get(
         ProcessResult,
