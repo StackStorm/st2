@@ -6,16 +6,16 @@ from pants.backend.python.util_rules.pex import (
     VenvPex,
     VenvPexProcess,
 )
-from pants.engine.fs import EMPTY_DIGEST, CreateDigest, Digest, FileContent, FileDigest
+from pants.engine.fs import Digest, PathGlobs
 from pants.engine.process import Process, ProcessCacheScope, ProcessResult
-from pants.engine.rules import collect_rules, _uncacheable_rule
+from pants.engine.rules import collect_rules, rule
 from pants.util.logging import LogLevel
-from .inspect_platform import Platform, __file__ as inspect_platform_full_path
+from .inspect_platform import Platform
 
 __all__ = ["Platform", "get_platform", "rules"]
 
 
-@_uncacheable_rule
+@rule
 async def get_platform() -> Platform:
 
     distro_pex = await Get(
@@ -27,14 +27,8 @@ async def get_platform() -> Platform:
         ),
     )
 
-    script_path = "./inspect_platform.py"
-    with open(inspect_platform_full_path, "rb") as script_file:
-        script_contents = script_file.read()
-
-    script_digest = await Get(
-        Digest,
-        CreateDigest([FileContent(script_path, script_contents, is_executable=True)]),
-    )
+    script_path = "pants-plugins/uses_services/inspect_platform.py"
+    script_digest = await Get(Digest, PathGlobs([script_path]))
 
     result = await Get(
         ProcessResult,
