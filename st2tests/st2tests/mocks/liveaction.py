@@ -32,6 +32,10 @@ __all__ = ["MockLiveActionPublisher", "MockLiveActionPublisherNonBlocking"]
 class MockLiveActionPublisher(object):
     @classmethod
     def process(cls, payload):
+        print()
+        print("PAYLOAD")
+        print(payload)
+
         ex_req = scheduling.get_scheduler_entrypoint().process(payload)
 
         if ex_req is not None:
@@ -47,6 +51,11 @@ class MockLiveActionPublisher(object):
     @classmethod
     def publish_state(cls, payload, state):
         try:
+            print()
+            print("PUBLISH_STATE")
+            print(payload)
+            print(state)
+
             if isinstance(payload, LiveActionDB):
                 if state == action_constants.LIVEACTION_STATUS_REQUESTED:
                     cls.process(payload)

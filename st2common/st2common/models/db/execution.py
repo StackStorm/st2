@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import copy
+import six
 
 import mongoengine as me
 
@@ -115,7 +116,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         :return: result: action execution object with masked secret paramters in input and output schema.
         :rtype: result: ``dict``
         """
-        
+
         result = copy.deepcopy(value)
 
         liveaction = result["liveaction"]
@@ -152,25 +153,21 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
                         p: "string" for p in liveaction["parameters"]["response"]
                     },
                 )
-        
+
         output_schema_result = ActionExecutionDB.result.parse_field_value(
             result["result"]
         )
-        
+
         # accessing parameters marked secret as true in the output_schema
         # and masking them for the result in action execution API
         if output_schema_result:
-            for key in result["action"]["output_schema"]:
-                if (
-                    result.get("action", {})
-                    .get("output_schema", {})
-                    .get(key)
-                    .get("secret", False)
-                ):
+            for key, spec in six.iteritems(result["action"]["output_schema"]):
+                if spec.get("secret", False):
+                    # TODO: Change to output_schema_result[output_key][key] = MASKED_ATTRIBUTE_VALUE
                     output_schema_result["result"][key] = MASKED_ATTRIBUTE_VALUE
 
         result["result"] = output_schema_result
-        
+
         # TODO(mierdin): This logic should be moved to the dedicated Inquiry
         # data model once it exists.
         if self.runner.get("name") == "inquirer":
