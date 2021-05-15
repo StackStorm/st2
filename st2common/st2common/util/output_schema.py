@@ -20,6 +20,7 @@ import jsonschema
 
 from st2common.util import schema
 from st2common.constants import action as action_constants
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 
 LOG = logging.getLogger(__name__)
@@ -49,6 +50,23 @@ def _validate_action(action_schema, result, output_key):
     }
 
     schema.validate(final_result, action_schema, cls=schema.get_validator("custom"))
+
+
+def mask_secret_output(value, output_schema_result):
+    value = copy.deepcopy(value)
+    for key in value["action"]["output_schema"]:
+        if (
+            value.get("action", {})
+            .get("output_schema", {})
+            .get(key)
+            .get("secret", False)
+        ):
+            if output_schema_result.get("result"):
+                output_schema_result["result"][key] = MASKED_ATTRIBUTE_VALUE
+            if output_schema_result.get("body"):
+                output_schema_result["body"][key] = MASKED_ATTRIBUTE_VALUE
+
+    return output_schema_result
 
 
 def validate_output(runner_schema, action_schema, result, status, output_key):
