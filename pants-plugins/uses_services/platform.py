@@ -6,12 +6,12 @@ from pants.backend.python.util_rules.pex import (
     VenvPex,
     VenvPexProcess,
 )
-from pants.engine.fs import Digest, PathGlobs
+from pants.engine.fs import CreateDigest, Digest, FileContent
 from pants.engine.process import Process, ProcessCacheScope, ProcessResult
 from pants.engine.rules import collect_rules, rule
 from pants.option.global_options import GlobMatchErrorBehavior
 from pants.util.logging import LogLevel
-from .inspect_platform import Platform
+from .inspect_platform import Platform, __file__ as inspect_platform_full_path
 
 __all__ = ["Platform", "get_platform", "rules"]
 
@@ -28,11 +28,16 @@ async def get_platform() -> Platform:
         ),
     )
 
-    script_path = "pants-plugins/uses_services/inspect_platform.py"
+    script_path = "./inspect_platform.py"
+
+    # pants is already watching this directory as it is under a source root.
+    # So, we don't need to double watch with PathGlobs, just open it.
+    with open(inspect_platform_full_path, "rb") as script_file:
+        script_contents = script_file.read()
+
     script_digest = await Get(
         Digest,
-        PathGlobs([script_path]),
-        glob_match_error_behavior=GlobMatchErrorBehavior.error,
+        CreateDigest([FileContent(script_path, script_contents)]),
     )
 
     result = await Get(
