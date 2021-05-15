@@ -156,8 +156,7 @@ async def assert_mongo_is_running(
                 """
             )
 
-
-        raise ServiceMissingError("mongo", instructions)
+        raise ServiceMissingError("mongo", platform, instructions)
 
     return PytestPluginSetup()
 
