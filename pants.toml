@@ -32,7 +32,7 @@ backend_packages = [
 ]
 plugins = [
   # dependencies for internal plugins
-  "distro",
+  #"distro",  # dep of the pex
 ]
 # pants ignores files in .gitignore, .*/ directories, /dist/ directory, and __pycache__.
 pants_ignore.add = [
