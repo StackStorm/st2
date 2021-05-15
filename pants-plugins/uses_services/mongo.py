@@ -36,19 +36,35 @@ async def assert_mongo_is_running(
     request: UsesMongoRequest, mongo_status: MongoStatus, platform: Platform
 ) -> PytestPluginSetup:
     if not mongo_status.is_running:
-        if platform.os == "CentOS7":
+        if platform.distro == "centos" and platform.major_version == "7":
             insturctions = """
                 helpful instructions for installation / running required service
                 """
-        elif platform.os == "CentOS8":
+        elif (
+            (platform.distro == "centos" and platform.major_version == "8")
+            or platform.distro == "rhel"
+            or "rhel" in platform.like
+        ):
             insturctions = """
                 helpful instructions for installation / running required service
                 """
-        elif platform.os == "Ubuntu":
+        elif platform.distro == "ubuntu" and platform.codename == "xenial":
             insturctions = """
                 helpful instructions for installation / running required service
                 """
-        elif platform.os == "MacOSX":
+        elif platform.distro == "ubuntu" and platform.codename == "bionic":
+            insturctions = """
+                helpful instructions for installation / running required service
+                """
+        elif (
+            (platform.distro == "ubuntu" and platform.codename == "focal")
+            or platform.distro == "debian"
+            or "debian" in distro.like
+        ):
+            insturctions = """
+                helpful instructions for installation / running required service
+                """
+        elif platform.os == "Darwin":  # Mac OS X
             insturctions = """
                 helpful instructions for installation / running required service
                 """
