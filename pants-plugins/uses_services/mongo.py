@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from textwrap import dedent
+
 # TODO: this is planned / does not exist yet
 from pants.backend.python.goals.pytest_runner import (
     PytestPluginSetupRequest,
@@ -36,44 +38,114 @@ async def assert_mongo_is_running(
     request: UsesMongoRequest, mongo_status: MongoStatus, platform: Platform
 ) -> PytestPluginSetup:
     if not mongo_status.is_running:
-        if platform.distro == "centos" and platform.major_version == "7":
-            insturctions = """
-                helpful instructions for installation / running required service
+        if platform.distro in ["ubuntu", "debian"] or "debian" in distro.like:
+            insturctions = dedent(
+                """\
+                If mongo is installed, but not running try:
+
+                systemctl start mongod
+
+                If mongo is not installed, this is one way to install it:
+
+                # Add key and repo for the latest stable MongoDB (4.0)
+                rpm --import https://www.mongodb.org/static/pgp/server-4.0.asc
+                sh -c "cat <<EOT > /etc/yum.repos.d/mongodb-org-4.repo
+                [mongodb-org-4]
+                name=MongoDB Repository
+                baseurl=https://repo.mongodb.org/yum/redhat/${OSRELEASE_VERSION}/mongodb-org/4.0/x86_64/
+                gpgcheck=1
+                enabled=1
+                gpgkey=https://www.mongodb.org/static/pgp/server-4.0.asc
+                EOT"
+                # install mongo
+                yum install mongodb-org
+                # Don't forget to start mongo.
+                """
+            )
+        elif platform.distro == "centos" and platform.major_version == "7":
+            insturctions = dedent(
+                """\
+                If mongo is installed, but not running try:
+
+                service mongo start
+
+                If mongo is not installed, this is one way to install it:
+
+                apt-get install mongodb mongodb-server
                 """
         elif (
             (platform.distro == "centos" and platform.major_version == "8")
             or platform.distro == "rhel"
             or "rhel" in platform.like
         ):
-            insturctions = """
-                helpful instructions for installation / running required service
-                """
-        elif platform.distro == "ubuntu" and platform.codename == "xenial":
-            insturctions = """
-                helpful instructions for installation / running required service
-                """
-        elif platform.distro == "ubuntu" and platform.codename == "bionic":
-            insturctions = """
-                helpful instructions for installation / running required service
-                """
-        elif (
-            (platform.distro == "ubuntu" and platform.codename == "focal")
-            or platform.distro == "debian"
-            or "debian" in distro.like
-        ):
-            insturctions = """
-                helpful instructions for installation / running required service
-                """
-        elif platform.os == "Darwin":  # Mac OS X
-            insturctions = """
-                helpful instructions for installation / running required service
-                """
-        else:
-            insturctions = """
-                helpful instructions for installation / running required service
-                """
+            insturctions = dedent(
+                """\
+                If mongo is installed, but not running try:
 
-        raise ServiceMissingError(instructions)
+                systemctl start mongod
+
+                If mongo is not installed, this is one way to install it:
+
+                apt-get install mongodb mongodb-server
+                """
+            )
+        elif platform.os == "Linux":
+            insturctions = dedent(
+                f"""\
+                You are on Linux using {platform.distro_name}, which is not
+                one of our generally supported distributions. We recommend
+                you use vagrant for local development with something like:
+
+                vagrant init stackstorm/st2
+                vagrant up
+                vagrant ssh
+
+                Please see: https://docs.stackstorm.com/install/vagrant.html
+
+                For anyone who wants to attempt local development without vagrant,
+                you are pretty much on your own. At a minimum you need to install
+                and start mongo with something like:
+
+                systemctl start mongod
+
+                We would be interested to hear about alternative distros people
+                are using for development. If you are able, please let us know
+                on slack which distro you are using:
+
+                Arch: {platform.arch}
+                Distro: {platform.distro}
+                Distro Codename: {platform.distro_codename}
+                Distro Version: {platform.distro_version}
+
+                Thanks and Good Luck!
+                """
+            )
+        elif platform.os == "Darwin":  # Mac OS X
+            insturctions = dedent(
+                """\
+                TODO: Mac OS X instructions for installing/starting mongo
+                """
+            )
+        else:
+            insturctions = dedent(
+                """\
+                You are not on Linux. In this case we recommend using vagrant
+                for local development with something like:
+
+                vagrant init stackstorm/st2
+                vagrant up
+                vagrant ssh
+
+                Please see: https://docs.stackstorm.com/install/vagrant.html
+
+                For anyone who wants to attempt local development without vagrant,
+                you are pretty much on your own. At a minimum you need to install
+                and start mongo. Good luck!
+                """
+            )
+
+
+        raise ServiceMissingError("mongo", instructions)
 
     return PytestPluginSetup()
 
