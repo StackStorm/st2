@@ -80,6 +80,7 @@ async def assert_mongo_is_running(
                 If mongo is not installed, this is one way to install it:
 
                 apt-get install mongodb mongodb-server
+                # Don't forget to start mongo.
                 """
             )
         elif platform.os == "Linux":
