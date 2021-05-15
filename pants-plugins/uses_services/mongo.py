@@ -38,13 +38,21 @@ async def assert_mongo_is_running(
     request: UsesMongoRequest, mongo_status: MongoStatus, platform: Platform
 ) -> PytestPluginSetup:
     if not mongo_status.is_running:
-        if platform.distro in ["ubuntu", "debian"] or "debian" in distro.like:
+        elif platform.distro in ["centos", "rhel"] or "rhel" in platform.like:
             insturctions = dedent(
-                """\
+                f"""\
                 If mongo is installed, but not running try:
 
-                systemctl start mongod
+                """
+            )
 
+            if platform.major_version == "7"
+                instructions += "\nservice mongo start\n"
+            else:
+                instructions += "\nsystemctl start mongod\n"
+
+            instructions += dedent(
+                """
                 If mongo is not installed, this is one way to install it:
 
                 # Add key and repo for the latest stable MongoDB (4.0)
@@ -62,22 +70,7 @@ async def assert_mongo_is_running(
                 # Don't forget to start mongo.
                 """
             )
-        elif platform.distro == "centos" and platform.major_version == "7":
-            insturctions = dedent(
-                """\
-                If mongo is installed, but not running try:
-
-                service mongo start
-
-                If mongo is not installed, this is one way to install it:
-
-                apt-get install mongodb mongodb-server
-                """
-        elif (
-            (platform.distro == "centos" and platform.major_version == "8")
-            or platform.distro == "rhel"
-            or "rhel" in platform.like
-        ):
+        elif platform.distro in ["ubuntu", "debian"] or "debian" in distro.like:
             insturctions = dedent(
                 """\
                 If mongo is installed, but not running try:
