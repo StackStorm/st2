@@ -120,10 +120,22 @@ async def assert_mongo_is_running(
                 Thanks and Good Luck!
                 """
             )
-        elif platform.os == "Darwin":  # Mac OS X
+        elif platform.os == "Darwin":  # MacOS
             insturctions = dedent(
                 """\
-                TODO: Mac OS X instructions for installing/starting mongo
+                You are on Mac OS. Generally we recommend using vagrant for local
+                development on Mac OS with something like:
+
+                vagrant init stackstorm/st2
+                vagrant up
+                vagrant ssh
+
+                Please see: https://docs.stackstorm.com/install/vagrant.html
+
+                For anyone who wants to attempt local development without vagrant,
+                you may run into some speed bumps. Others StackStorm developers have
+                been known to use Mac OS for development, so feel free to ask for
+                help in slack. At a minimum you need to install and start mongo.
                 """
             )
         else:
