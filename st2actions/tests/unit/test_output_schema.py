@@ -38,27 +38,37 @@ from st2tests.mocks import liveaction as mock_lv_ac_xport
 
 
 TEST_PACK = "dummy_pack_1"
-TEST_PACK_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
+TEST_PACK_PATH = (
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
+)
 
 PACKS = [
     TEST_PACK_PATH,
 ]
 
 MOCK_PYTHON_ACTION_RESULT = {
-    'stderr': '',
-    'stdout': '',
-    'result': {'k1': 'foobar', 'k2': 'shhhh!'},
-    'exit_code': 0,
+    "stderr": "",
+    "stdout": "",
+    "result": {"k1": "foobar", "k2": "shhhh!"},
+    "exit_code": 0,
 }
 
-MOCK_PYTHON_RUNNER_OUTPUT = (ac_const.LIVEACTION_STATUS_SUCCEEDED, MOCK_PYTHON_ACTION_RESULT, None)
+MOCK_PYTHON_RUNNER_OUTPUT = (
+    ac_const.LIVEACTION_STATUS_SUCCEEDED,
+    MOCK_PYTHON_ACTION_RESULT,
+    None,
+)
 
 MOCK_HTTP_ACTION_RESULT = {
-    'status_code': 200,
-    'body': {'k1': 'foobar', 'k2': 'shhhh!'},
+    "status_code": 200,
+    "body": {"k1": "foobar", "k2": "shhhh!"},
 }
 
-MOCK_HTTP_RUNNER_OUTPUT = (ac_const.LIVEACTION_STATUS_SUCCEEDED, MOCK_HTTP_ACTION_RESULT, None)
+MOCK_HTTP_RUNNER_OUTPUT = (
+    ac_const.LIVEACTION_STATUS_SUCCEEDED,
+    MOCK_HTTP_ACTION_RESULT,
+    None,
+)
 
 
 @mock.patch.object(
@@ -91,39 +101,55 @@ class ActionExecutionOutputSchemaTest(st2tests.ExecutionDbTestCase):
             actions_registrar.register_from_pack(pack)
 
     @mock.patch.object(
-        python_runner.PythonRunner, "run",
+        python_runner.PythonRunner,
+        "run",
         mock.MagicMock(return_value=MOCK_PYTHON_RUNNER_OUTPUT),
     )
     def test_python_action(self):
         # Execute a python action with output schema and secret
-        lv_ac_db = lv_db_models.LiveActionDB(action="dummy_pack_1.my_action")
+        lv_ac_db = lv_db_models.LiveActionDB(action="dummy_pack_1.my_py_action")
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
-        ac_ex_db = self._wait_on_ac_ex_status(ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db = self._wait_on_ac_ex_status(
+            ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED
+        )
 
         # Assert expected output written to the database
-        expected_output = {'k1': 'foobar', 'k2': 'shhhh!'}
-        self.assertDictEqual(ac_ex_db.result['result'], expected_output)
+        expected_output = {"k1": "foobar", "k2": "shhhh!"}
+        self.assertDictEqual(ac_ex_db.result["result"], expected_output)
 
         # Assert expected output on conversion to API model
-        ac_ex_api = ex_api_models.ActionExecutionAPI.from_model(ac_ex_db, mask_secrets=True)
-        expected_masked_output = {'k1': 'foobar', 'k2': secrets_const.MASKED_ATTRIBUTE_VALUE}
-        self.assertDictEqual(ac_ex_api.result['result'], expected_masked_output)
+        ac_ex_api = ex_api_models.ActionExecutionAPI.from_model(
+            ac_ex_db, mask_secrets=True
+        )
+        expected_masked_output = {
+            "k1": "foobar",
+            "k2": secrets_const.MASKED_ATTRIBUTE_VALUE,
+        }
+        self.assertDictEqual(ac_ex_api.result["result"], expected_masked_output)
 
     @mock.patch.object(
-        http_runner.HttpRunner, "run",
+        http_runner.HttpRunner,
+        "run",
         mock.MagicMock(return_value=MOCK_HTTP_RUNNER_OUTPUT),
     )
     def test_http_action(self):
         # Execute a http action with output schema and secret
         lv_ac_db = lv_db_models.LiveActionDB(action="dummy_pack_1.my_http_action")
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
-        ac_ex_db = self._wait_on_ac_ex_status(ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        ac_ex_db = self._wait_on_ac_ex_status(
+            ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED
+        )
 
         # Assert expected output written to the database
-        expected_output = {'k1': 'foobar', 'k2': 'shhhh!'}
-        self.assertDictEqual(ac_ex_db.result['body'], expected_output)
+        expected_output = {"k1": "foobar", "k2": "shhhh!"}
+        self.assertDictEqual(ac_ex_db.result["body"], expected_output)
 
         # Assert expected output on conversion to API model
-        ac_ex_api = ex_api_models.ActionExecutionAPI.from_model(ac_ex_db, mask_secrets=True)
-        expected_masked_output = {'k1': 'foobar', 'k2': secrets_const.MASKED_ATTRIBUTE_VALUE}
-        self.assertDictEqual(ac_ex_api.result['body'], expected_masked_output)
+        ac_ex_api = ex_api_models.ActionExecutionAPI.from_model(
+            ac_ex_db, mask_secrets=True
+        )
+        expected_masked_output = {
+            "k1": "foobar",
+            "k2": secrets_const.MASKED_ATTRIBUTE_VALUE,
+        }
+        self.assertDictEqual(ac_ex_api.result["body"], expected_masked_output)
