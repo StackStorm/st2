@@ -18,6 +18,5 @@ from st2common.runners.base_action import Action
 
 
 class MyAction(Action):
-
     def run(self):
-        return {'k1': 'v1', 'k2': 'v2'}
+        pass
