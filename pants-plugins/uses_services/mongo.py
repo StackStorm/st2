@@ -11,6 +11,7 @@ from pants.engine.rules import collect_rules, rule, _uncacheable_rule
 from pants.engine.target import Target
 
 from .exceptions import ServiceMissingError
+from .is_mongo_running import __file__ as is_mongo_running_full_path
 from .platform import Platform
 
 
@@ -25,18 +26,20 @@ class MongoStatus:
     is_running: bool
 
 
-@_uncacheable_rule
+@rule
 async def mongo_is_running() -> MongoStatus:
-    # These config opts are used via oslo_config.cfg.CONF.database.{host,port,db_name}
+    # These config opts are used via oslo_config.cfg.CONF.database.{host,port,db_name,connection_timeout}
     # These config opts currently hard-coded in:
     #   for unit tests: st2tests/st2tests/config.py
     #   for integration tests: conf/st2.tests*.conf st2tests/st2tests/fixtures/conf/st2.tests*.conf
     #       (changed by setting ST2_CONFIG_PATH env var inside the tests)
     # TODO: for unit tests: modify code to pull from an env var and then use per-pantsd-slot db_name
     # TODO: for int tests: modify st2.tests*.conf on the fly to set the per-pantsd-slot db_name
-    _db_host = "127.0.0.1"  # localhost in test_db.DbConnectionTestCase
-    _db_port = 27017
-    _db_name = "st2-test"  # st2 in test_db.DbConnectionTestCase
+
+    db_host = "127.0.0.1"  # localhost in test_db.DbConnectionTestCase
+    db_port = 27017
+    db_name = "st2-test"  # st2 in test_db.DbConnectionTestCase
+    connection_timeout = 3000
 
     # so st2-test database gets dropped between:
     #   - each component (st2*/ && various config/ dirs) in Makefile
@@ -51,11 +54,40 @@ async def mongo_is_running() -> MongoStatus:
     #        for component in $(COMPONENTS_TEST)
     #            nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/unit
 
-    # TODO: logic to determine if it is running
-    # maybe something like https://stackoverflow.com/a/53640204
-    # https://github.com/Lucas-C/dotfiles_and_notes/blob/master/languages/python/mongo_ping_client.py
-    # download it?
-    return MongoStatus(True)
+    mongoengine_pex = await Get(
+        VenvPex,
+        PexRequest(
+            output_filename="mongoengine.pex",
+            internal_only=True,
+            requirements=[PexRequirements({"mongoengine", "pymongo"})],
+        ),
+    )
+
+    script_path = "./is_mongo_running.py"
+
+    # pants is already watching this directory as it is under a source root.
+    # So, we don't need to double watch with PathGlobs, just open it.
+    with open(is_mongo_running_full_path, "rb") as script_file:
+        script_contents = script_file.read()
+
+    script_digest = await Get(
+        Digest,
+        CreateDigest([FileContent(script_path, script_contents)]),
+    )
+
+    result = await Get(
+        FallibleProcessResult,
+        VenvPexProcess(
+            mongoengine_pex,
+            argv=[script_path, db_host, db_port, db_name, connection_timeout],
+            input_digest=script_digest,
+            description=f"Checking to see if Mongo is up and accessible.",
+            # this can change from run to run, so don't cache results.
+            cache_scope=ProcessCacheScope.PER_RESTART,  # NEVER?
+            level=LogLevl.DEBUG,
+        ),
+    )
+    return MongoStatus(result.exit_code == 0)
 
 
 @rule
