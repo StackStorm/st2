@@ -27,9 +27,34 @@ class MongoStatus:
 
 @_uncacheable_rule
 async def mongo_is_running() -> MongoStatus:
+    # These config opts are used via oslo_config.cfg.CONF.database.{host,port,db_name}
+    # These config opts currently hard-coded in:
+    #   for unit tests: st2tests/st2tests/config.py
+    #   for integration tests: conf/st2.tests*.conf st2tests/st2tests/fixtures/conf/st2.tests*.conf
+    #       (changed by setting ST2_CONFIG_PATH env var inside the tests)
+    # TODO: for unit tests: modify code to pull from an env var and then use per-pantsd-slot db_name
+    # TODO: for int tests: modify st2.tests*.conf on the fly to set the per-pantsd-slot db_name
+    _db_host = "127.0.0.1"  # localhost in test_db.DbConnectionTestCase
+    _db_port = 27017
+    _db_name = "st2-test"  # st2 in test_db.DbConnectionTestCase
+
+    # so st2-test database gets dropped between:
+    #   - each component (st2*/ && various config/ dirs) in Makefile
+    #   - DbTestCase/CleanDbTestCase setUpClass
+
+    #   with our version of oslo.config (newer are slower) we can't directly override opts w/ environment variables.
+
+    # Makefile
+    #    .run-unit-tests-with-coverage (<- .combine-unit-tests-coverage <- .coverage.unit <- .unit-tests-coverage-html <- ci-unit <- ci)
+    #        echo "----- Dropping st2-test db -----"
+    #        mongo st2-test --eval "db.dropDatabase();"
+    #        for component in $(COMPONENTS_TEST)
+    #            nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/unit
+
     # TODO: logic to determine if it is running
     # maybe something like https://stackoverflow.com/a/53640204
     # https://github.com/Lucas-C/dotfiles_and_notes/blob/master/languages/python/mongo_ping_client.py
+    # download it?
     return MongoStatus(True)
 
 
