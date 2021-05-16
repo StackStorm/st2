@@ -2,6 +2,8 @@ import json
 
 from dataclasses import asdict, dataclass
 
+__all__ = ["__file__", "Platform"]
+
 
 @dataclass(frozen=True)
 class Platform:
