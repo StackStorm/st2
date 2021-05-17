@@ -6,5 +6,8 @@ __defaults__(
 
 shell_sources(
     name="shell",
+    dependencies=[
+        "st2tests/conf:st2.conf",
+    ],
     skip_shellcheck=True,
 )
