@@ -54,17 +54,22 @@ def _validate_action(action_schema, result, output_key):
 
 def mask_secret_output(value, output_schema_result):
     value = copy.deepcopy(value)
-    for key in value["action"]["output_schema"]:
-        if (
-            value.get("action", {})
-            .get("output_schema", {})
-            .get(key)
-            .get("secret", False)
-        ):
-            if output_schema_result.get("result"):
-                output_schema_result["result"][key] = MASKED_ATTRIBUTE_VALUE
-            if output_schema_result.get("body"):
-                output_schema_result["body"][key] = MASKED_ATTRIBUTE_VALUE
+    if (
+        value["action"]["runner_type"] != "local-shell-cmd"
+        and value["action"]["runner_type"] != "orquesta"
+        and value["action"]["runner_type"] != "announcement"
+        and value["action"]["runner_type"] != "inquirer"
+        and value["action"]["runner_type"] != "noop"
+        and value["action"]["runner_type"] != "remote-shell-script"
+        and value["action"]["runner_type"] != "winrm-cmd"
+        and value["action"]["runner_type"] != "winrm-ps-cmd"
+        and value["action"]["runner_type"] != "winrm-ps-script"
+    ):
+        output_key = value["runner"]["output_key"]
+        for key, spec in six.iteritems(value["action"]["output_schema"]):
+            if spec.get("secret", False):
+                if output_schema_result.get(output_key):
+                    output_schema_result[output_key][key] = MASKED_ATTRIBUTE_VALUE
 
     return output_schema_result
 
