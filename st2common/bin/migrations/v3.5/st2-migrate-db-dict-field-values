@@ -1,0 +1,455 @@
+#!/usr/bin/env python
+# Copyright 2021 The StackStorm Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Migration which which migrates data for existing objects in the database which utilize
+EscapedDictField or EscapedDynamicField and have been updated to use new JsonDictField.
+
+Migration step is idempotent and can be retried on failures / partial runs.
+
+Keep in mind that running this migration script is optional and it may take a long time of you have
+a lot of very large objects in the database (aka executions) - reading a lot of data from the
+database using the old field types is slow and CPU intensive.
+
+New field type is automatically used for all the new objects when upgrading to v3.5 so migration is
+optional because in most cases users are viewing recent / new executions and not old ones which may
+still utilize old field typo which is slow to read / write.
+
+Right now the script utilizes no concurrency and performs migration one object by one. That's done
+for simplicity reasons and also to avoid massive CPU usage spikes when running this script with
+large concurrency on large objects.
+
+Keep in mind that only "completed" objects are processes - this means Executions in "final" states
+(succeeded, failed, timeout, etc.).
+
+We determine if an object should be migrating using mongodb $type query (for execution objects we
+could also determine that based on the presence of result_size field).
+"""
+
+import sys
+import time
+import datetime
+import traceback
+
+from oslo_config import cfg
+
+from st2common import config
+from st2common.service_setup import db_setup
+from st2common.service_setup import db_teardown
+from st2common.util import isotime
+from st2common.models.db.execution import ActionExecutionDB
+from st2common.models.db.workflow import WorkflowExecutionDB
+from st2common.models.db.workflow import TaskExecutionDB
+from st2common.models.db.trigger import TriggerInstanceDB
+from st2common.persistence.execution import ActionExecution
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.workflow import WorkflowExecution
+from st2common.persistence.workflow import TaskExecution
+from st2common.persistence.trigger import TriggerInstance
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.constants.action import LIVEACTION_COMPLETED_STATES
+from st2common.constants.triggers import TRIGGER_INSTANCE_COMPLETED_STATES
+
+# NOTE: To avoid unnecessary mongoengine object churn when retrieving only object ids (aka to avoid
+# instantiating model class with a single field), we use raw pymongo value which is a dict with a
+# single value
+
+
+def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -> None:
+    """
+    Perform migrations for execution related objects (ActionExecutionDB, LiveActionDB).
+    """
+    print("Migrating execution objects")
+
+    # NOTE: We first only retrieve the IDs because there could be a lot of objects in the database
+    # and this could result in massive ram use. Technically, mongoengine loads querysets lazily,
+    # but this is not always the case so it's better to first retrieve all the IDs and then retrieve
+    # objects one by one.
+    # Keep in mind we need to use ModelClass.objects and not PersistanceClass.query() so .only()
+    # works correctly - with PersistanceClass.query().only() all the fields will still be retrieved.
+
+    # 1. Migrate ActionExecutionDB objects
+    result = (
+        ActionExecutionDB.objects(
+            __raw__={
+                "result": {
+                    "$not": {
+                        "$type": "binData",
+                    },
+                },
+                "status": {
+                    "$in": LIVEACTION_COMPLETED_STATES,
+                },
+            },
+            start_timestamp__gte=start_dt,
+            start_timestamp__lte=end_dt,
+        )
+        .only("id")
+        .as_pymongo()
+    )
+    execution_ids = set([str(item["_id"]) for item in result])
+    objects_count = result.count()
+
+    if not execution_ids:
+        print("Found no ActionExecutionDB objects to migrate.")
+        print("")
+        return None
+
+    print("Will migrate %s ActionExecutionDB objects" % (objects_count))
+    print("")
+
+    for index, execution_id in enumerate(execution_ids, 1):
+        try:
+            execution_db = ActionExecution.get_by_id(execution_id)
+        except StackStormDBObjectNotFoundError:
+            print(
+                "Skipping ActionExecutionDB with id %s which is missing in the database"
+                % (execution_id)
+            )
+            continue
+
+        print(
+            "[%s/%s] Migrating ActionExecutionDB with id %s"
+            % (index, objects_count, execution_id)
+        )
+
+        # This is a bit of a "hack", but it's the easiest way to tell mongoengine that a specific
+        # field has been updated and should be saved. If we don't do, nothing will be re-saved on
+        # .save() call due to mongoengine only trying to save what has changed to make it more
+        # efficient instead of always re-saving the whole object.
+        execution_db._mark_as_changed("result")
+        execution_db._mark_as_changed("result_size")
+
+        # We need to explicitly set result_size attribute since Document.save() code path doesn't
+        # populate it (but other code paths we utilize elsewhere do).
+        # Technically we could do it on document clean() / validate() method, but we don't want that
+        # since execution update code in action runner and elsewhere is optimized to make partial
+        # updates more efficient.
+        result_size = len(
+            ActionExecutionDB.result._serialize_field_value(execution_db.result or {})
+        )
+        execution_db.result_size = result_size
+
+        # NOTE: If you want to view changed fields, you can access execution_db._changed_fields
+
+        execution_db.save()
+        print("ActionExecutionDB with id %s has been migrated" % (execution_db.id))
+
+        # Migrate corresponding LiveAction object
+        liveaction = execution_db.liveaction or {}
+        liveaction_id = liveaction.get("id", None)
+
+        if not liveaction_id:
+            continue
+
+        try:
+            liveaction_db = LiveAction.get_by_id(liveaction_id)
+        except StackStormDBObjectNotFoundError:
+            # If liveaction for some reason doesn't exist (would likely represent corrupted data) we
+            # simply ignore that error since it's not fatal.
+            print(
+                "Skipping LiveActionDB with id %s which is missing in the database"
+                % (liveaction_db)
+            )
+            continue
+
+        liveaction_db._mark_as_changed("result")
+
+        liveaction_db.save()
+        print("Related LiveActionDB with id %s has been migrated" % (liveaction_db.id))
+        print("")
+
+
+def migrate_workflow_objects(
+    start_dt: datetime.datetime, end_dt: datetime.datetime
+) -> None:
+    print("Migrating workflow objects")
+
+    # 1. Migrate WorkflowExecutionDB
+    result = (
+        WorkflowExecutionDB.objects(
+            __raw__={
+                "output": {
+                    "$not": {
+                        "$type": "binData",
+                    },
+                },
+                "status": {
+                    "$in": LIVEACTION_COMPLETED_STATES,
+                },
+            },
+            start_timestamp__gte=start_dt,
+            start_timestamp__lte=end_dt,
+        )
+        .only("id")
+        .as_pymongo()
+    )
+    workflow_execution_ids = [str(item["_id"]) for item in result]
+    objects_count = result.count()
+
+    if not workflow_execution_ids:
+        print("Found no WorkflowExecutionDB objects to migrate.")
+        print("")
+    else:
+        print("Will migrate %s WorkflowExecutionDB objects" % (objects_count))
+        print("")
+
+    for index, workflow_execution_id in enumerate(workflow_execution_ids, 1):
+        try:
+            workflow_execution_db = WorkflowExecution.get_by_id(workflow_execution_id)
+        except StackStormDBObjectNotFoundError:
+            print(
+                "Skipping WorkflowExecutionDB with id %s which is missing in the database"
+                % (workflow_execution_id)
+            )
+            continue
+
+        print(
+            "[%s/%s] Migrating WorkflowExecutionDB with id %s"
+            % (index, objects_count, workflow_execution_id)
+        )
+
+        workflow_execution_db._mark_as_changed("input")
+        workflow_execution_db._mark_as_changed("context")
+        workflow_execution_db._mark_as_changed("state")
+        workflow_execution_db._mark_as_changed("output")
+
+        workflow_execution_db.save()
+        print(
+            "WorkflowExecutionDB with id %s has been migrated"
+            % (workflow_execution_db.id)
+        )
+        print("")
+
+    # 2. Migrate TaskExecutionDB
+    result = (
+        TaskExecutionDB.objects(
+            __raw__={
+                "result": {
+                    "$not": {
+                        "$type": "binData",
+                    },
+                },
+                "status": {
+                    "$in": LIVEACTION_COMPLETED_STATES,
+                },
+            },
+            start_timestamp__gte=start_dt,
+            start_timestamp__lte=end_dt,
+        )
+        .only("id")
+        .as_pymongo()
+    )
+    task_execution_ids = [str(item["_id"]) for item in result]
+    objects_count = result.count()
+
+    if not task_execution_ids:
+        print("Found no TaskExecutionDB objects to migrate.")
+        print("")
+    else:
+        print("Will migrate %s TaskExecutionDB objects" % (objects_count))
+        print("")
+
+    for index, task_execution_id in enumerate(task_execution_ids, 1):
+        try:
+            task_execution_db = TaskExecution.get_by_id(task_execution_id)
+        except StackStormDBObjectNotFoundError:
+            print(
+                "Skipping TaskExecutionDB with id %s which is missing in the database"
+                % (task_execution_db)
+            )
+            continue
+
+        print(
+            "[%s/%s] Migrating TaskExecutionDB with id %s"
+            % (index, objects_count, task_execution_id)
+        )
+
+        task_execution_db._mark_as_changed("task_spec")
+        task_execution_db._mark_as_changed("context")
+        task_execution_db._mark_as_changed("result")
+
+        task_execution_db.save()
+        print("TaskExecutionDB with id %s has been migrated" % (task_execution_db.id))
+        print("")
+
+
+def migrate_triggers(start_dt: datetime.datetime, end_dt: datetime.datetime) -> None:
+    print("Migrating trigger objects")
+
+    result = (
+        TriggerInstanceDB.objects(
+            __raw__={
+                "payload": {
+                    "$not": {
+                        "$type": "binData",
+                    },
+                },
+                "status": {
+                    "$in": TRIGGER_INSTANCE_COMPLETED_STATES,
+                },
+            },
+            occurrence_time__gte=start_dt,
+            occurrence_time__lte=end_dt,
+        )
+        .only("id")
+        .as_pymongo()
+    )
+    trigger_instance_ids = [str(item["_id"]) for item in result]
+    objects_count = result.count()
+
+    if not trigger_instance_ids:
+        print("Found no TriggerInstanceDB objects to migrate.")
+        print("")
+        return None
+
+    print("Will migrate %s TriggerInstanceDB objects" % (objects_count))
+    print("")
+
+    for index, trigger_instance_id in enumerate(trigger_instance_ids, 1):
+        try:
+            trigger_instance_db = TriggerInstance.get_by_id(trigger_instance_id)
+        except StackStormDBObjectNotFoundError:
+            print(
+                "Skipping TriggerInstanceDB with id %s which is missing in the database"
+                % (trigger_instance_id)
+            )
+            continue
+
+        print(
+            "[%s/%s] Migrating TriggerInstanceDB with id %s"
+            % (index, objects_count, trigger_instance_id)
+        )
+
+        trigger_instance_db._mark_as_changed("payload")
+
+        trigger_instance_db.save()
+        print(
+            "TriggerInstanceDB with id %s has been migrated" % (trigger_instance_db.id)
+        )
+        print("")
+
+
+def migrate_objects(
+    start_dt: datetime.datetime, end_dt: datetime.datetime, display_prompt: bool = True
+) -> None:
+    start_dt_str = start_dt.strftime("%Y-%m-%d %H:%M:%S")
+    end_dt_str = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    print("StackStorm v3.5 database field data migration script\n")
+
+    if display_prompt:
+        input(
+            "Will migrate objects with creation date between %s UTC and %s UTC.\n\n"
+            "You are strongly recommended to create database backup before proceeding.\n\n"
+            "Depending on the number of the objects in the database, "
+            "migration may take multiple hours or more. You are recommended to start the "
+            "script in a screen session, tmux or similar. \n\n"
+            "To proceed with the migration, press enter and to cancel it, press CTRL+C.\n"
+            % (start_dt_str, end_dt_str)
+        )
+        print("")
+
+    print(
+        "Migrating affected database objects between %s and %s"
+        % (start_dt_str, end_dt_str)
+    )
+    print("")
+
+    start_ts = int(time.time())
+    migrate_executions(start_dt=start_dt, end_dt=end_dt)
+    migrate_workflow_objects(start_dt=start_dt, end_dt=end_dt)
+    migrate_triggers(start_dt=start_dt, end_dt=end_dt)
+    end_ts = int(time.time())
+
+    duration = end_ts - start_ts
+
+    print(
+        "SUCCESS: All database objects migrated successfully (duration: %s seconds)."
+        % (duration)
+    )
+
+
+def _register_cli_opts():
+    cfg.CONF.register_cli_opt(
+        cfg.BoolOpt(
+            "yes",
+            short="y",
+            required=False,
+            default=False,
+        )
+    )
+
+    # We default to past 30 days. Keep in mind that using longer period may take a long time in
+    # case there are many objects in the database.
+    now_dt = datetime.datetime.utcnow()
+    start_dt = now_dt - datetime.timedelta(days=30)
+
+    cfg.CONF.register_cli_opt(
+        cfg.StrOpt(
+            "start-dt",
+            required=False,
+            help=(
+                "Start cut off ISO UTC iso date time string for objects which will be migrated. "
+                "Defaults to now - 30 days."
+                "Example value: 2020-03-13T19:01:27Z"
+            ),
+            default=start_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
+    )
+    cfg.CONF.register_cli_opt(
+        cfg.StrOpt(
+            "end-dt",
+            required=False,
+            help=(
+                "End cut off UTC ISO date time string for objects which will be migrated."
+                "Defaults to now."
+                "Example value: 2020-03-13T19:01:27Z"
+            ),
+            default=now_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
+    )
+
+
+def main():
+    _register_cli_opts()
+
+    config.parse_args()
+    db_setup()
+
+    start_dt = isotime.parse(cfg.CONF.start_dt)
+
+    if cfg.CONF.end_dt == "now":
+        end_dt = datetime.datetime.utcnow()
+        end_dt = end_dt.replace(tzinfo=datetime.timezone.utc)
+    else:
+        end_dt = isotime.parse(cfg.CONF.end_dt)
+
+    try:
+        migrate_objects(
+            start_dt=start_dt, end_dt=end_dt, display_prompt=not cfg.CONF.yes
+        )
+        exit_code = 0
+    except Exception as e:
+        print("ABORTED: Objects migration aborted on first failure: %s" % (str(e)))
+        traceback.print_exc()
+        exit_code = 1
+
+    db_teardown()
+    sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    main()

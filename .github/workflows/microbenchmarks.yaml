@@ -26,22 +26,26 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        # NOTE: We need to use full Python version as part of Python deps cache key otherwise
+        # setup virtualenv step will fail.
         include:
           - name: 'Microbenchmarks'
             task: 'micro-benchmarks'
             nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version: '3.6'
+            python-version-short: '3.6'
+            python-version: '3.6.13'
           - name: 'Microbenchmarks'
             task: 'micro-benchmarks'
             nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version: '3.8'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
     services:
       mongo:
         image: mongo:4.4
@@ -91,9 +95,9 @@ jobs:
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-apt-v7-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v5-
+            ${{ runner.os }}-apt-v7-
       - name: Install APT Dependencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
