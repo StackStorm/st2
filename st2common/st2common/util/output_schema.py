@@ -12,9 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys
-import logging
 
+import logging
+import sys
 import traceback
 import jsonschema
 
@@ -52,26 +52,17 @@ def _validate_action(action_schema, result, output_key):
     schema.validate(final_result, action_schema, cls=schema.get_validator("custom"))
 
 
-def mask_secret_output(value, output_schema_result):
-    value = copy.deepcopy(value)
-    if (
-        value["action"]["runner_type"] != "local-shell-cmd"
-        and value["action"]["runner_type"] != "orquesta"
-        and value["action"]["runner_type"] != "announcement"
-        and value["action"]["runner_type"] != "inquirer"
-        and value["action"]["runner_type"] != "noop"
-        and value["action"]["runner_type"] != "remote-shell-script"
-        and value["action"]["runner_type"] != "winrm-cmd"
-        and value["action"]["runner_type"] != "winrm-ps-cmd"
-        and value["action"]["runner_type"] != "winrm-ps-script"
-    ):
-        output_key = value["runner"]["output_key"]
-        for key, spec in six.iteritems(value["action"]["output_schema"]):
-            if spec.get("secret", False):
-                if output_schema_result.get(output_key):
-                    output_schema_result[output_key][key] = MASKED_ATTRIBUTE_VALUE
+def mask_secret_output(ac_ex, output_value):
+    output_key = ac_ex["runner"].get("output_key")
+    output_schema = ac_ex["action"].get("output_schema")
 
-    return output_schema_result
+    if output_key and output_schema:
+        if output_key in output_value:
+            for key, spec in output_schema.items():
+                if key in output_value[output_key] and spec.get("secret", False):
+                    output_value[output_key][key] = MASKED_ATTRIBUTE_VALUE
+
+    return output_value
 
 
 def validate_output(runner_schema, action_schema, result, status, output_key):

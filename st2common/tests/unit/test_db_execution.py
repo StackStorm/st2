@@ -110,7 +110,7 @@ ACTIONEXECUTIONS = {
             },
         },
         "status": "succeeded",
-        "runner": {"name": "inquirer"},
+        "runner": {"name": "inquirer", "output_key": "result"},
         "liveaction": OUTPUT_SCHEMA_LIVEACTION,
         "result": OUTPUT_SCHEMA_RESULT,
     },
@@ -194,11 +194,11 @@ class ActionExecutionModelTest(DbTestCase):
             self.assertEqual(value, MASKED_ATTRIBUTE_VALUE)
 
     def test_output_schema_secret_param_masking(self):
-        """
-        Test that the parameter marked secret as true in output schema is masked in the output result
+        """Test that the output marked as secret in the output schema is masked in the output result
 
-        here, out of two parameters in output schema is marked secret as true and we are asserting only
-        that is masked in the output result.
+        In this test case, one of the output parameters is marked as secret in the output schema
+        while the other output parameter is not marked as secret. The value of the first output
+        parameter should be masked in the output result.
         """
 
         masked = self.executions["execution_3"].mask_secrets(

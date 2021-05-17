@@ -16,7 +16,6 @@
 from __future__ import absolute_import
 
 import copy
-import six
 
 import mongoengine as me
 
@@ -154,13 +153,9 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
                     },
                 )
 
-        output_schema_result = ActionExecutionDB.result.parse_field_value(
-            result["result"]
-        )
-        masked_output_schema_result = output_schema.mask_secret_output(
-            value, output_schema_result
-        )
-        result["result"] = masked_output_schema_result
+        output_value = ActionExecutionDB.result.parse_field_value(result["result"])
+        masked_output_value = output_schema.mask_secret_output(result, output_value)
+        result["result"] = masked_output_value
 
         # TODO(mierdin): This logic should be moved to the dedicated Inquiry
         # data model once it exists.

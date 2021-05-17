@@ -9,3 +9,11 @@ parameters:
   a1:
     required: true
     type: string
+output_schema:
+  a5:
+    type: string
+    required: true
+  b5:
+    type: string
+    required: true
+    secret: true

@@ -18,6 +18,7 @@ import mock
 
 from http_runner import http_runner
 from python_runner import python_runner
+from orquesta_runner import orquesta_runner
 
 import st2tests
 
@@ -37,13 +38,9 @@ from st2common.transport import publishers
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 
 
-TEST_PACK = "dummy_pack_1"
-TEST_PACK_PATH = (
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
-)
-
 PACKS = [
-    TEST_PACK_PATH,
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/dummy_pack_1",
+    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/orquesta_tests",
 ]
 
 MOCK_PYTHON_ACTION_RESULT = {
@@ -67,6 +64,14 @@ MOCK_HTTP_ACTION_RESULT = {
 MOCK_HTTP_RUNNER_OUTPUT = (
     ac_const.LIVEACTION_STATUS_SUCCEEDED,
     MOCK_HTTP_ACTION_RESULT,
+    None,
+)
+
+MOCK_ORQUESTA_ACTION_RESULT = {"errors": [], "output": {"a5": "foobar", "b5": "shhhh!"}}
+
+MOCK_ORQUESTA_RUNNER_OUTPUT = (
+    ac_const.LIVEACTION_STATUS_SUCCEEDED,
+    MOCK_ORQUESTA_ACTION_RESULT,
     None,
 )
 
@@ -153,3 +158,32 @@ class ActionExecutionOutputSchemaTest(st2tests.ExecutionDbTestCase):
             "k2": secrets_const.MASKED_ATTRIBUTE_VALUE,
         }
         self.assertDictEqual(ac_ex_api.result["body"], expected_masked_output)
+
+    @mock.patch.object(
+        orquesta_runner.OrquestaRunner,
+        "run",
+        mock.MagicMock(return_value=MOCK_ORQUESTA_RUNNER_OUTPUT),
+    )
+    def test_orquesta_action(self):
+        # Execute an orquesta action with output schema and secret
+        lv_ac_db = lv_db_models.LiveActionDB(
+            action="orquesta_tests.data-flow", parameters={"a1": "foobar"}
+        )
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+        ac_ex_db = self._wait_on_ac_ex_status(
+            ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED
+        )
+
+        # Assert expected output written to the database
+        expected_output = {"a5": "foobar", "b5": "shhhh!"}
+        self.assertDictEqual(ac_ex_db.result["output"], expected_output)
+
+        # Assert expected output on conversion to API model
+        ac_ex_api = ex_api_models.ActionExecutionAPI.from_model(
+            ac_ex_db, mask_secrets=True
+        )
+        expected_masked_output = {
+            "a5": "foobar",
+            "b5": secrets_const.MASKED_ATTRIBUTE_VALUE,
+        }
+        self.assertDictEqual(ac_ex_api.result["output"], expected_masked_output)
