@@ -291,8 +291,5 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         # self.assertDictEqual(lv_ac_db.result, expected_result)
         # self.assertDictEqual(ac_ex_db.result, expected_result)
 
-    def test_string(self):
-        self.assert_data_flow("xyz")
-
-    def test_unicode_string(self):
-        self.assert_data_flow("床前明月光 疑是地上霜 舉頭望明月 低頭思故鄉")
+    def test_string_2(self):
+        self.test_workflow_for_action_with_output_schema("xyz")
