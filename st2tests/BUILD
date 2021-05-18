@@ -7,6 +7,9 @@ st2_component_python_distribution(
         "./st2tests/mocks/runners",
         # fixture packs
         "./st2tests/fixtures:rbac_fixtures",
+        "./st2tests/fixtures/packs:all_packs",
+        "./st2tests/fixtures/packs_1:all_packs",
+        "./st2tests/fixtures/packs_invalid:all_packs",
         # fixtures in packs that are not (directly) packs
         "./st2tests/fixtures/packs/executions",
         "./st2tests/fixtures/packs/runners",

@@ -10,6 +10,14 @@ python_tests(
         "st2common/tests/unit/base.py",
     ],
     uses=["mongo", "rabbitmq"],
+    overrides={
+        "test_util_file_system.py": dict(
+            dependencies=[
+                "st2tests/st2tests/policies",
+                "st2tests/st2tests/policies/meta:policies_meta",
+            ],
+        ),
+    },
 )
 
 python_test_utils(
