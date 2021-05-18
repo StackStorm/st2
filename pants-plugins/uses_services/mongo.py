@@ -12,7 +12,7 @@ from pants.engine.target import Target
 
 from .exceptions import ServiceMissingError
 from .is_mongo_running import __file__ as is_mongo_running_full_path
-from .platform import Platform
+from .platform_ import Platform
 
 
 class UsesMongoRequest(PytestPluginSetupRequest):

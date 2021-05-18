@@ -10,7 +10,7 @@ from pants.engine.target import (
 )
 
 # from . import mongo
-from . import platform
+from . import platform_
 
 
 supported_services = ("mongo", "rabbitmq", "redis")
@@ -38,7 +38,7 @@ class UsesServicesField(StringSequenceField):
 def rules():
     return [
         PythonTests.register_plugin_field(UsesServicesField),
-        *platform.rules(),
+        *platform_.rules(),
         # *mongo.rules(),
     ]
 
