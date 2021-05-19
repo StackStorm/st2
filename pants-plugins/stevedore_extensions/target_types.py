@@ -22,11 +22,6 @@ from pants.backend.python.target_types import EntryPoint
 from pants.source.filespec import Filespec
 
 
-# See `target_types_rules.py` for a dependency injection rule.
-class StevedoreExtensionDependencies(Dependencies):
-    supports_transitive_excludes = True
-
-
 @dataclass(frozen=True)
 class StevedoreEntryPoint:
     name: str
@@ -102,9 +97,9 @@ class ResolveStevedoreEntryPointsRequest:
     entry_points_field: StevedoreEntryPointsField
 
 
+# See `target_types_rules.py` for a dependency injection rule.
 # based on pants.core.target_types.RelocatedFilesSources
 class StevedoreSources(Sources):
-    # We solely register this field for codegen to work.
     alias = "_stevedore_sources"
     expected_num_files = 0
 
