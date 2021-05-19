@@ -22,9 +22,9 @@ from pants.source.source_root import SourceRoot, SourceRootRequest
 from stevedore_extensions.target_types import (
     ResolvedStevedoreEntryPoints,
     ResolveStevedoreEntryPointsRequest,
+    StevedoreDependencies,
     StevedoreEntryPoints,
     StevedoreEntryPointsField,
-    StevedoreSources,
 )
 
 
@@ -82,14 +82,13 @@ async def resolve_stevedore_entry_points(request: ResolveStevedoreEntryPointsReq
 
 
 class InjectStevedoreExtensionDependencies(InjectDependenciesRequest):
-    inject_for = StevedoreSources  # FIXME: this is not a Dependencies class
+    inject_for = StevedoreDependencies
 
 
 @rule(desc="Inferring dependency from the stevedore_extension `entry_points` field")
 async def inject_stevedore_entry_points_dependencies(
     request: InjectStevedoreExtensionDependencies, python_infer_subsystem: PythonInferSubsystem
 ) -> InjectedDependencies:
-    print("inject_stevedore_entry_points_dependencies")
     # TODO: this might not be the best option to use as it is for "binary targets"
     # if not python_infer_subsystem.entry_points:
     #     return InjectedDependencies()
@@ -107,7 +106,7 @@ async def inject_stevedore_entry_points_dependencies(
         return InjectedDependencies()
     address = original_tgt.target.address
     owners_per_entry_point = await MultiGet(
-        Get(PythonModuleOwners, PythonModule(entry_point.value))
+        Get(PythonModuleOwners, PythonModule(entry_point.value.module))
         for entry_point in entry_points.val
     )
     original_entry_points = original_tgt.target[StevedoreEntryPointsField].value

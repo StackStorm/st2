@@ -98,8 +98,14 @@ class ResolveStevedoreEntryPointsRequest:
 
 
 # See `target_types_rules.py` for a dependency injection rule.
+class StevedoreDependencies(Dependencies):
+    # dummy field for dependency injection to work
+    alias = "_stevedore_dependencies"
+
+
 # based on pants.core.target_types.RelocatedFilesSources
 class StevedoreSources(Sources):
+    # dummy field for codegen to work
     alias = "_stevedore_sources"
     expected_num_files = 0
 
@@ -111,6 +117,7 @@ class StevedoreExtension(Target):
         StevedoreNamespaceField,
         StevedoreEntryPointsField,
         StevedoreSources,
+        StevedoreDependencies,
     )
     help = f"Entry points used to generate setuptools metadata for stevedore."
 
