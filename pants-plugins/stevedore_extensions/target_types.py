@@ -39,6 +39,13 @@ class StevedoreEntryPoints(Collection[StevedoreEntryPoint]):
 
 class StevedoreNamespaceField(StringField):
     alias = "namespace"
+    help = (
+        "The stevedore extension namespace.\n\nThis looks like a python module "
+        "'my.stevedore.namespace', but a python module of that name does not "
+        "need to exist. This is what a stevedore ExtensionManager uses to look up "
+        "relevant entry_points from pkg_resources."
+    )
+    required = True
 
 
 class StevedoreEntryPointsField(AsyncFieldMixin, SecondaryOwnerMixin, DictStringToStringField):
