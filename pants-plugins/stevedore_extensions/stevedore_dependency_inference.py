@@ -3,25 +3,22 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import List, Mapping, Tuple
 
-from pants.backend.python.target_types import PythonTests
+from pants.backend.python.target_types import PythonTests, PythonTestsDependencies
 from pants.base.specs import AddressSpecs, DescendantAddresses
 from pants.engine.addresses import Address
 from pants.engine.rules import collect_rules, Get, MultiGet, rule, UnionRule
 from pants.engine.target import (
-    # Dependencies,
-    InferDependenciesRequest,
-    InferredDependencies,
+    InjectDependenciesRequest,
+    InjectedDependencies,
     StringSequenceField,
-    # SpecialCasedDependencies,
     Targets,
+    WrappedTarget,
 )
 from pants.util.frozendict import FrozenDict
 from pants.util.logging import LogLevel
 from pants.util.ordered_set import FrozenOrderedSet, OrderedSet
 
 from stevedore_extensions.target_types import (
-    # ResolveStevedoreEntryPointsRequest,
-    # ResolvedStevedoreEntryPoints,
     StevedoreExtension,
     StevedoreNamespaceField,
     StevedoreSources,
@@ -60,16 +57,20 @@ async def map_stevedore_extensions() -> StevedoreExtensions:
     )
 
 
-class InferStevedoreNamespaceDependencies(InferDependenciesRequest):
-    infer_from = StevedoreNamespacesField  # FIXME: This is not a Sources class
+class InjectStevedoreNamespaceDependencies(InjectDependenciesRequest):
+    inject_for = PythonTestsDependencies
 
 
-@rule(desc="Infer stevedore_extension target dependencies for python_tests based on namespace list.")
-async def infer_stevedore_dependencies(
-    request: InferStevedoreNamespaceDependencies, stevedore_extensions: StevedoreExtensions
-) -> InferredDependencies:
-    print("infer_stevedore_dependencies")
-    namespaces: StevedoreNamespacesField = request.sources_field
+@rule(desc="Inject stevedore_extension target dependencies for python_tests based on namespace list.")
+async def inject_stevedore_dependencies(
+    request: InjectStevedoreNamespaceDependencies, stevedore_extensions: StevedoreExtensions
+) -> InjectedDependencies:
+    original_tgt: WrappedTarget
+    original_tgt = await Get(WrappedTarget, Address, request.dependencies_field.address)
+    if original_tgt.target.get(StevedoreNamespacesField).value is None:
+        return InjectedDependencies()
+
+    namespaces: StevedoreNamespacesField = original_tgt.target[StevedoreNamespacesField]
 
     addresses = []
     for namespace in namespaces.value:
@@ -77,12 +78,12 @@ async def infer_stevedore_dependencies(
         addresses.extend(extension.address for extension in extensions)
 
     result: OrderedSet[Address] = OrderedSet(addresses)
-    return InferredDependencies(sorted(result), sibling_dependencies_inferrable=True)
+    return InjectedDependencies(sorted(result))
 
 
 def rules():
     return [
         *collect_rules(),
         PythonTests.register_plugin_field(StevedoreNamespacesField),
-        UnionRule(InferDependenciesRequest, InferStevedoreNamespaceDependencies),
+        UnionRule(InjectDependenciesRequest, InjectStevedoreNamespaceDependencies),
     ]
