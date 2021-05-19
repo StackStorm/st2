@@ -56,7 +56,7 @@ async def resolve_stevedore_entry_points(request: ResolveStevedoreEntryPointsReq
                 [full_glob],
                 glob_match_error_behavior=GlobMatchErrorBehavior.error,
                 description_of_origin=f"{address}'s `{request.entry_points_field.alias}` field",
-            ),
+            )
         )
         # We will have already raised if the glob did not match, i.e. if there were no files. But
         # we need to check if they used a file glob (`*` or `**`) that resolved to >1 file.
@@ -99,7 +99,7 @@ async def inject_stevedore_entry_points_dependencies(
         Get(ExplicitlyProvidedDependencies, DependenciesRequest(original_tgt.target[Dependencies])),
         Get(
             ResolvedStevedoreEntryPoints,
-            ResolveStevedoreEntryPointsRequest(original_tgt.target[StevedoreEntryPointsField]),
+            ResolveStevedoreEntryPointsRequest(original_tgt.target[StevedoreEntryPointsField])
         ),
     )
     if entry_points.val is None:
