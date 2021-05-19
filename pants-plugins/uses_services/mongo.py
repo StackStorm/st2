@@ -70,7 +70,7 @@ async def mongo_is_running() -> MongoStatus:
             output_filename="mongoengine.pex",
             internal_only=True,
             requirements=[PexRequirements({"mongoengine", "pymongo"})],
-        ),
+        )
     )
 
     script_path = "./is_mongo_running.py"
@@ -82,7 +82,7 @@ async def mongo_is_running() -> MongoStatus:
 
     script_digest = await Get(
         Digest,
-        CreateDigest([FileContent(script_path, script_contents)]),
+        CreateDigest([FileContent(script_path, script_contents)])
     )
 
     result = await Get(
@@ -95,7 +95,7 @@ async def mongo_is_running() -> MongoStatus:
             # this can change from run to run, so don't cache results.
             cache_scope=ProcessCacheScope.PER_RESTART,  # NEVER?
             level=LogLevel.DEBUG,
-        ),
+        )
     )
     return MongoStatus(result.exit_code == 0)
 

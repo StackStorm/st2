@@ -2,7 +2,7 @@ import json
 
 from dataclasses import asdict, dataclass
 
-__all__ = ["__file__", "Platform"]
+__all__ = ["Platform"]
 
 
 @dataclass(frozen=True)
