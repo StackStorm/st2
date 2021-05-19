@@ -46,6 +46,7 @@ async def resolve_stevedore_entry_points(request: ResolveStevedoreEntryPointsReq
         # into a module path (cases #4 and #5).
         if not ep_val.module.endswith(".py"):
             resolved.append(entry_point)
+            continue
 
         # Use the engine to validate that the file exists and that it resolves to only one file.
         full_glob = os.path.join(address.spec_path, ep_val.module)
