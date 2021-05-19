@@ -87,13 +87,11 @@ class InjectStevedoreExtensionDependencies(InjectDependenciesRequest):
 
 @rule(desc="Inferring dependency from the stevedore_extension `entry_points` field")
 async def inject_stevedore_entry_points_dependencies(
-    request: InjectStevedoreExtensionDependencies, python_infer_subsystem: PythonInferSubsystem
+    request: InjectStevedoreExtensionDependencies
 ) -> InjectedDependencies:
-    # TODO: this might not be the best option to use as it is for "binary targets"
-    # if not python_infer_subsystem.entry_points:
-    #     return InjectedDependencies()
-    original_tgt: WrappedTarget
-    original_tgt = await Get(WrappedTarget, Address, request.dependencies_field.address)
+    original_tgt: WrappedTarget = await Get(
+        WrappedTarget, Address, request.dependencies_field.address
+    )
     entry_points: ResolvedStevedoreEntryPoints
     explicitly_provided_deps, entry_points = await MultiGet(
         Get(ExplicitlyProvidedDependencies, DependenciesRequest(original_tgt.target[Dependencies])),

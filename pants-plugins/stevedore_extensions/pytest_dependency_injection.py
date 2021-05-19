@@ -6,22 +6,22 @@ from typing import List, Mapping, Tuple
 from pants.backend.python.target_types import PythonTests, PythonTestsDependencies
 from pants.base.specs import AddressSpecs, DescendantAddresses
 from pants.engine.addresses import Address
-from pants.engine.rules import collect_rules, Get, MultiGet, rule, UnionRule
+from pants.engine.rules import collect_rules, Get, rule, UnionRule
 from pants.engine.target import (
     InjectDependenciesRequest,
     InjectedDependencies,
-    StringSequenceField,
     Targets,
     WrappedTarget,
 )
 from pants.util.frozendict import FrozenDict
 from pants.util.logging import LogLevel
-from pants.util.ordered_set import FrozenOrderedSet, OrderedSet
+from pants.util.ordered_set import OrderedSet
 
 from stevedore_extensions.target_types import (
     StevedoreExtension,
     StevedoreNamespaceField,
-    StevedoreSources,
+    StevedoreNamespacesField,
+    StevedoreDependencies,
 )
 
 
@@ -31,22 +31,10 @@ class StevedoreExtensions:
     mapping: FrozenDict[str, Tuple[StevedoreExtension]]
 
 
-# This is a lot like a SpecialCasedDependencies field, but it doesn't list targets directly.
-class StevedoreNamespacesField(StringSequenceField):
-    alias = "stevedore_namespaces"
-    help = (
-        "A list of stevedore namespaces to include for tests.\n\n"
-        "All stevedore_extension targets with these namespaces will be added as "
-        "dependencies so that they are available on PYTHONPATH during tests. "
-        "The stevedore namespace format (my.stevedore.extension) is similar "
-        "to a python namespace."
-    )
-
-
 @rule(desc="Creating map of stevedore_extension namespaces to StevedoreExtension targets", level=LogLevel.DEBUG)
 async def map_stevedore_extensions() -> StevedoreExtensions:
     all_expanded_targets = await Get(Targets, AddressSpecs([DescendantAddresses("")]))
-    stevedore_extensions = tuple(tgt for tgt in all_expanded_targets if tgt.has_field(StevedoreSources))
+    stevedore_extensions = tuple(tgt for tgt in all_expanded_targets if tgt.has_field(StevedoreDependencies))
     mapping: Mapping[str, List[StevedoreExtension]] = defaultdict(list)
     for extension in stevedore_extensions:
         mapping[extension[StevedoreNamespaceField].value].append(extension)

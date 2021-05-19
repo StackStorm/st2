@@ -16,6 +16,7 @@ from pants.engine.target import (
     SecondaryOwnerMixin,
     Sources,
     StringField,
+    StringSequenceField,
     Target,
 )
 from pants.backend.python.target_types import EntryPoint
@@ -122,3 +123,13 @@ class StevedoreExtension(Target):
     help = f"Entry points used to generate setuptools metadata for stevedore."
 
 
+# This is a lot like a SpecialCasedDependencies field, but it doesn't list targets directly.
+class StevedoreNamespacesField(StringSequenceField):
+    alias = "stevedore_namespaces"
+    help = (
+        "A list of stevedore namespaces to include for tests.\n\n"
+        "All stevedore_extension targets with these namespaces will be added as "
+        "dependencies so that they are available on PYTHONPATH during tests. "
+        "The stevedore namespace format (my.stevedore.extension) is similar "
+        "to a python namespace."
+    )
