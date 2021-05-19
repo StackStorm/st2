@@ -16,6 +16,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from unittest.result import TestResult
+
 # NOTE: We need to perform monkeypatch before importing ssl module otherwise tests will fail.
 # See https://github.com/StackStorm/st2/pull/4834 for details
 from st2common.util.monkey_patch import monkey_patch
@@ -316,7 +318,8 @@ class DbTestCase(BaseDbTestCase):
     def tearDownClass(cls):
         drop_db = True
 
-        if cls.current_result.errors or cls.current_result.failures:
+        # TODO: alternate method for pytest?
+        if cls.current_result and (cls.current_result.errors or cls.current_result.failures):
             # Don't drop DB on test failure
             drop_db = False
 
@@ -325,8 +328,11 @@ class DbTestCase(BaseDbTestCase):
 
     def run(self, result=None):
         # Remember result for use in tearDown and tearDownClass
-        self.current_result = result
-        self.__class__.current_result = result
+        # pytest sets result to _pytest.unittest.TestCaseFunction
+        # which does not have attributes: errors, failures
+        if isinstance(result, TestResult):
+            self.current_result = result
+            self.__class__.current_result = result
         super(DbTestCase, self).run(result=result)
 
 
