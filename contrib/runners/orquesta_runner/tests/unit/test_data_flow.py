@@ -202,7 +202,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
     def test_unicode_string(self):
         self.assert_data_flow("床前明月光 疑是地上霜 舉頭望明月 低頭思故鄉")
     
-    def test_workflow_for_action_with_output_schema(self, data):
+    def workflow_for_action_with_output_schema(self, data):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "secret-params-flow.yaml")
         wf_input = {"a1": data}
         lv_ac_db = lv_db_models.LiveActionDB(
@@ -292,4 +292,4 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         # self.assertDictEqual(ac_ex_db.result, expected_result)
 
     def test_string_2(self):
-        self.test_workflow_for_action_with_output_schema("xyz")
+        self.workflow_for_action_with_output_schema("xyz")
