@@ -7,9 +7,8 @@ from pants.backend.python.util_rules.pex import (
     VenvPexProcess,
 )
 from pants.engine.fs import CreateDigest, Digest, FileContent
-from pants.engine.process import Process, ProcessCacheScope, ProcessResult
-from pants.engine.rules import collect_rules, rule
-from pants.option.global_options import GlobMatchErrorBehavior
+from pants.engine.process import ProcessCacheScope, ProcessResult
+from pants.engine.rules import collect_rules, Get, rule
 from pants.util.logging import LogLevel
 from .inspect_platform import Platform, __file__ as inspect_platform_full_path
 
@@ -49,7 +48,7 @@ async def get_platform() -> Platform:
             description=f"Introspecting platform (arch, os, distro)",
             # this can change from run to run, so don't cache results.
             cache_scope=ProcessCacheScope.PER_RESTART,  # NEVER?
-            level=LogLevl.DEBUG,
+            level=LogLevel.DEBUG,
         ),
     )
     platform = json.loads(result.stdout)

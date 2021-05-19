@@ -7,12 +7,22 @@ from pants.backend.python.goals.pytest_runner import (
     PytestPluginSetupRequest,
     PytestPluginSetup,
 )
-from pants.engine.rules import collect_rules, rule, _uncacheable_rule
+from pants.backend.python.util_rules.pex import (
+    PexRequest,
+    PexRequirements,
+    VenvPex,
+    VenvPexProcess,
+)
+from pants.engine.fs import CreateDigest, Digest, FileContent
+from pants.engine.rules import collect_rules, Get, rule
+from pants.engine.process import FallibleProcessResult, ProcessCacheScope
 from pants.engine.target import Target
+from pants.util.logging import LogLevel
 
 from .exceptions import ServiceMissingError
 from .is_mongo_running import __file__ as is_mongo_running_full_path
 from .platform_ import Platform
+from .uses_services import UsesServicesField
 
 
 class UsesMongoRequest(PytestPluginSetupRequest):
@@ -84,7 +94,7 @@ async def mongo_is_running() -> MongoStatus:
             description=f"Checking to see if Mongo is up and accessible.",
             # this can change from run to run, so don't cache results.
             cache_scope=ProcessCacheScope.PER_RESTART,  # NEVER?
-            level=LogLevl.DEBUG,
+            level=LogLevel.DEBUG,
         ),
     )
     return MongoStatus(result.exit_code == 0)
@@ -95,15 +105,15 @@ async def assert_mongo_is_running(
     request: UsesMongoRequest, mongo_status: MongoStatus, platform: Platform
 ) -> PytestPluginSetup:
     if not mongo_status.is_running:
-        elif platform.distro in ["centos", "rhel"] or "rhel" in platform.like:
-            insturctions = dedent(
+        if platform.distro in ["centos", "rhel"] or "rhel" in platform.distro_like:
+            instructions = dedent(
                 f"""\
                 If mongo is installed, but not running try:
 
                 """
             )
 
-            if platform.major_version == "7"
+            if platform.distro_major_version == "7":
                 instructions += "\nservice mongo start\n"
             else:
                 instructions += "\nsystemctl start mongod\n"
@@ -127,8 +137,8 @@ async def assert_mongo_is_running(
                 # Don't forget to start mongo.
                 """
             )
-        elif platform.distro in ["ubuntu", "debian"] or "debian" in distro.like:
-            insturctions = dedent(
+        elif platform.distro in ["ubuntu", "debian"] or "debian" in platform.distro_like:
+            instructions = dedent(
                 """\
                 If mongo is installed, but not running try:
 
@@ -141,7 +151,7 @@ async def assert_mongo_is_running(
                 """
             )
         elif platform.os == "Linux":
-            insturctions = dedent(
+            instructions = dedent(
                 f"""\
                 You are on Linux using {platform.distro_name}, which is not
                 one of our generally supported distributions. We recommend
@@ -172,7 +182,7 @@ async def assert_mongo_is_running(
                 """
             )
         elif platform.os == "Darwin":  # MacOS
-            insturctions = dedent(
+            instructions = dedent(
                 """\
                 You are on Mac OS. Generally we recommend using vagrant for local
                 development on Mac OS with something like:
@@ -190,7 +200,7 @@ async def assert_mongo_is_running(
                 """
             )
         else:
-            insturctions = dedent(
+            instructions = dedent(
                 """\
                 You are not on Linux. In this case we recommend using vagrant
                 for local development with something like:
