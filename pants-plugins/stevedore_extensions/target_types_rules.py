@@ -106,16 +106,22 @@ async def inject_stevedore_entry_points_dependencies(
     if entry_points.val is None:
         return InjectedDependencies()
     address = original_tgt.target.address
+    owners_per_entry_point = await MultiGet(
+        Get(PythonModuleOwners, PythonModule(entry_point.value))
+        for entry_point in entry_points.val
+    )
+    original_entry_points = original_tgt.target[StevedoreEntryPointsField].value
     resolved_owners = []
-    for i, entry_point in enumerate(entry_points.val):
-        owners = await Get(PythonModuleOwners, PythonModule(entry_point.value.module))
+    for entry_point, owners, original_ep in zip(
+        entry_points.val, owners_per_entry_point, original_entry_points
+    ):
         explicitly_provided_deps.maybe_warn_of_ambiguous_dependency_inference(
             owners.ambiguous,
             address,
             import_reference="module",
             context=(
                 f"The stevedore_extension target {address} has in its entry_points field "
-                f"`\"{entry_point.name}\": \"{repr(original_tgt.target[StevedoreEntryPointsField].value[i].value.spec)}\"`,"
+                f"`\"{entry_point.name}\": \"{repr(original_ep.value.spec)}\"`,"
                 f"which maps to the Python module `{entry_point.value.module}`"
             ),
         )
