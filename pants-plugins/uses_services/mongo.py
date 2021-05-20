@@ -29,7 +29,10 @@ from uses_services.uses_services import UsesServicesField
 class UsesMongoRequest(PytestPluginSetupRequest):
     @classmethod
     def is_applicable(cls, target: Target) -> bool:
-        return "mongo" in target.get(UsesServicesField).value
+        if not target.has_field(UsesServicesField):
+            return False
+        uses = target.get(UsesServicesField).value
+        return uses is not None and "mongo" in uses
 
 
 @dataclass(frozen=True)
@@ -70,7 +73,7 @@ async def mongo_is_running() -> MongoStatus:
         PexRequest(
             output_filename="mongoengine.pex",
             internal_only=True,
-            requirements=[PexRequirements({"mongoengine", "pymongo"})],
+            requirements=PexRequirements({"mongoengine", "pymongo"}),
         )
     )
 
@@ -90,7 +93,7 @@ async def mongo_is_running() -> MongoStatus:
         FallibleProcessResult,
         VenvPexProcess(
             mongoengine_pex,
-            argv=[script_path, db_host, db_port, db_name, connection_timeout],
+            argv=(script_path, db_host, str(db_port), db_name, str(connection_timeout)),
             input_digest=script_digest,
             description=f"Checking to see if Mongo is up and accessible.",
             # this can change from run to run, so don't cache results.

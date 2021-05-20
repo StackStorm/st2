@@ -10,12 +10,13 @@ from pants.engine.fs import CreateDigest, Digest, FileContent
 from pants.engine.process import ProcessCacheScope, ProcessResult
 from pants.engine.rules import collect_rules, Get, rule
 from pants.util.logging import LogLevel
+# noinspection PyProtectedMember
 from .inspect_platform import Platform, __file__ as inspect_platform_full_path
 
 __all__ = ["Platform", "get_platform", "rules"]
 
 
-@rule
+@rule(desc="Get details (os, distro, etc) about platform running tests.")
 async def get_platform() -> Platform:
 
     distro_pex = await Get(
@@ -23,8 +24,8 @@ async def get_platform() -> Platform:
         PexRequest(
             output_filename="distro.pex",
             internal_only=True,
-            requirements=[PexRequirements({"distro"})],
-        ),
+            requirements=PexRequirements({"distro"}),
+        )
     )
 
     script_path = "./inspect_platform.py"
@@ -43,13 +44,13 @@ async def get_platform() -> Platform:
         ProcessResult,
         VenvPexProcess(
             distro_pex,
-            argv=[script_path],
+            argv=(script_path,),
             input_digest=script_digest,
             description=f"Introspecting platform (arch, os, distro)",
             # this can change from run to run, so don't cache results.
             cache_scope=ProcessCacheScope.PER_RESTART,  # NEVER?
             level=LogLevel.DEBUG,
-        ),
+        )
     )
     platform = json.loads(result.stdout)
     return Platform(**platform)

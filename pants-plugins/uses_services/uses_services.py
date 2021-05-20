@@ -26,6 +26,7 @@ class UsesServicesField(StringSequenceField):
                 raise InvalidFieldChoiceException(
                     address, cls.alias, service, valid_choices=cls.valid_choices
                 )
+        return tuple(services)
 
 
 def rules():

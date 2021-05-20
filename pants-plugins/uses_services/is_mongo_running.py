@@ -1,5 +1,4 @@
 import sys
-from typing import cast, Iterable, Tuple
 
 
 def _is_mongo_running(db_host: str, db_port: int, db_name: str, connection_timeout_ms: int) -> bool:
@@ -27,8 +26,7 @@ def _is_mongo_running(db_host: str, db_port: int, db_name: str, connection_timeo
 
 
 if __name__ == "__main__":
-    args = cast(Iterable[Tuple[int, str]], enumerate(sys.argv))
-    args = dict(args)
+    args = dict((k, v) for k, v in enumerate(sys.argv))
     db_host = args.get(1, "127.0.0.1")
     db_port = args.get(2, 27017)
     db_name = args.get(3, "st2-test")
