@@ -17,6 +17,7 @@ from pants.engine.fs import CreateDigest, Digest, FileContent
 from pants.engine.rules import collect_rules, Get, rule
 from pants.engine.process import FallibleProcessResult, ProcessCacheScope
 from pants.engine.target import Target
+from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
 
 from uses_services.exceptions import ServiceMissingError
@@ -223,4 +224,7 @@ async def assert_mongo_is_running(
 
 
 def rules():
-    return collect_rules()
+    return [
+        *collect_rules(),
+        UnionRule(PytestPluginSetupRequest, UsesMongoRequest),
+    ]
