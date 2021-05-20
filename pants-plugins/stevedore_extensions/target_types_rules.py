@@ -4,7 +4,7 @@ import dataclasses
 import os
 
 from pants.backend.python.dependency_inference.module_mapper import PythonModule, PythonModuleOwners
-from pants.backend.python.dependency_inference.rules import PythonInferSubsystem, import_rules
+from pants.backend.python.dependency_inference.rules import import_rules
 from pants.engine.addresses import Address
 from pants.engine.fs import GlobMatchErrorBehavior, PathGlobs, Paths
 from pants.engine.rules import Get, collect_rules, MultiGet, rule, UnionRule
