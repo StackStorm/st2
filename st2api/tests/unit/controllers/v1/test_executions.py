@@ -364,7 +364,7 @@ class ActionExecutionControllerTestCase(
         )
         post_resp = cls.app.post_json("/v1/actions", cls.action_decrypt_secret_param)
         cls.action_decrypt_secret_param["id"] = post_resp.json["id"]
-        
+
         cls.action_with_output_schema_secret_param = copy.deepcopy(
             ACTION_WITH_OUTPUT_SCHEMA_WITH_SECRET_PARAMS
         )
