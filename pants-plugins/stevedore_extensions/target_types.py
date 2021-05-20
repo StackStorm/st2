@@ -14,7 +14,6 @@ from pants.engine.target import (
     DictStringToStringField,
     InvalidFieldException,
     SecondaryOwnerMixin,
-    Sources,
     StringField,
     StringSequenceField,
     Target,
@@ -104,20 +103,12 @@ class StevedoreDependencies(Dependencies):
     alias = "_stevedore_dependencies"
 
 
-# based on pants.core.target_types.RelocatedFilesSources
-class StevedoreSources(Sources):
-    # dummy field for codegen to work
-    alias = "_stevedore_sources"
-    expected_num_files = 0
-
-
 class StevedoreExtension(Target):
     alias = "stevedore_extension"
     core_fields = (
         *COMMON_TARGET_FIELDS,
         StevedoreNamespaceField,
         StevedoreEntryPointsField,
-        StevedoreSources,
         StevedoreDependencies,
     )
     help = f"Entry points used to generate setuptools metadata for stevedore."
