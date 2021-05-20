@@ -365,6 +365,8 @@ Fixed
 
   Contributed by @khushboobhatia01.
 
+* Clean up to remove unused methods in the action execution concurrency policies.
+
 3.4.1 - March 14, 2021
 ----------------------
 
