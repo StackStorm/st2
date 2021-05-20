@@ -190,3 +190,44 @@ class OutputSchemaTestCase(unittest2.TestCase):
             ac_ex, copy.deepcopy(ACTION_RESULT)
         )
         self.assertDictEqual(masked_output, expected_masked_output)
+
+    def test_mask_secret_output_noop(self):
+        ac_ex = {
+            "action": {
+                "output_schema": ACTION_OUTPUT_SCHEMA_WITH_SECRET,
+            },
+            "runner": {
+                "output_key": OUTPUT_KEY,
+                "output_schema": RUNNER_OUTPUT_SCHEMA,
+            },
+        }
+
+        # The result is type of None.
+        ac_ex_result = None
+        expected_masked_output = None
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertEqual(masked_output, expected_masked_output)
+
+        # The result is empty.
+        ac_ex_result = {}
+        expected_masked_output = {}
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+        # The output is type of None.
+        ac_ex_result = {"output": None}
+        expected_masked_output = {"output": None}
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+        # The output is not type of dict or list.
+        ac_ex_result = {"output": "foobar"}
+        expected_masked_output = {"output": "foobar"}
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+        # The output key is missing.
+        ac_ex_result = {"output1": None}
+        expected_masked_output = {"output1": None}
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
