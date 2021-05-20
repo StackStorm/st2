@@ -67,7 +67,10 @@ MOCK_HTTP_RUNNER_OUTPUT = (
     None,
 )
 
-MOCK_ORQUESTA_ACTION_RESULT = {"errors": [], "output": {"a5": "foobar", "b5": "shhhh!"}}
+MOCK_ORQUESTA_ACTION_RESULT = {
+    "errors": [],
+    "output": {"a6": "foobar", "b6": "foobar", "a7": "foobar", "b7": "shhhh!"},
+}
 
 MOCK_ORQUESTA_RUNNER_OUTPUT = (
     ac_const.LIVEACTION_STATUS_SUCCEEDED,
@@ -165,9 +168,11 @@ class ActionExecutionOutputSchemaTest(st2tests.ExecutionDbTestCase):
         mock.MagicMock(return_value=MOCK_ORQUESTA_RUNNER_OUTPUT),
     )
     def test_orquesta_action(self):
+        wf_input = "foobar"
+
         # Execute an orquesta action with output schema and secret
         lv_ac_db = lv_db_models.LiveActionDB(
-            action="orquesta_tests.data-flow", parameters={"a1": "foobar"}
+            action="orquesta_tests.data-flow", parameters={"a1": wf_input}
         )
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
         ac_ex_db = self._wait_on_ac_ex_status(
@@ -175,7 +180,12 @@ class ActionExecutionOutputSchemaTest(st2tests.ExecutionDbTestCase):
         )
 
         # Assert expected output written to the database
-        expected_output = {"a5": "foobar", "b5": "shhhh!"}
+        expected_output = {
+            "a6": wf_input,
+            "b6": wf_input,
+            "a7": wf_input,
+            "b7": "shhhh!",
+        }
         self.assertDictEqual(ac_ex_db.result["output"], expected_output)
 
         # Assert expected output on conversion to API model
@@ -183,7 +193,9 @@ class ActionExecutionOutputSchemaTest(st2tests.ExecutionDbTestCase):
             ac_ex_db, mask_secrets=True
         )
         expected_masked_output = {
-            "a5": "foobar",
-            "b5": secrets_const.MASKED_ATTRIBUTE_VALUE,
+            "a6": wf_input,
+            "b6": wf_input,
+            "a7": wf_input,
+            "b7": secrets_const.MASKED_ATTRIBUTE_VALUE,
         }
         self.assertDictEqual(ac_ex_api.result["output"], expected_masked_output)
