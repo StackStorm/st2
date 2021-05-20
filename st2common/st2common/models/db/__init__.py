@@ -38,6 +38,9 @@ import sys
 # in a couple of other places (and something which would need to be changed if we switch to pytest).
 # For pytest, we set sys._called_from_test in conftest.py
 if "nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"):
+    # pytest can load any test file first, which randomizes where the monkey_patch is needed.
+    # thus mongoengine might already be loaded at this point under pytest!
+    # In that case, we just add the monkey_patch to the top of that test file.
     from st2common.util.monkey_patch import monkey_patch
 
     monkey_patch()
