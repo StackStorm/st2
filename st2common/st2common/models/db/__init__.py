@@ -36,7 +36,8 @@ import sys
 # For now, we go with option 2) since it seems to be good enough of a compromise. We detect if we
 # are running inside tests by checking if "nose" module is present - the same logic we already use
 # in a couple of other places (and something which would need to be changed if we switch to pytest).
-if "nose" in sys.modules.keys():
+# For pytest, we set sys._called_from_test in conftest.py
+if "nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"):
     from st2common.util.monkey_patch import monkey_patch
 
     monkey_patch()
