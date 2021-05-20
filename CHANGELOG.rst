@@ -244,6 +244,8 @@ Changed
 
 * Remove duplicate host header in the nginx config for the auth endpoint.
 
+* Update orquesta to v1.4.0.
+
 Improvements
 ~~~~~~~~~~~~
 
