@@ -497,7 +497,7 @@ class ActionExecutionOutputController(
 
         from_model_kwargs = {
             "mask_secrets": self._get_mask_secrets(
-                requester_user, show_secrets=False
+                requester_user, show_secrets=show_secrets
             )
         }
 
