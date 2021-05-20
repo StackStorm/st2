@@ -69,5 +69,7 @@ def get_driver(policy_ref, policy_type, **parameters):
             # interested in
             continue
 
-        if issubclass(obj, ResourcePolicyApplicator) and not obj.__name__.startswith("Base"):
+        if issubclass(obj, ResourcePolicyApplicator) and not obj.__name__.startswith(
+            "Base"
+        ):
             return obj(policy_ref, policy_type, **parameters)
