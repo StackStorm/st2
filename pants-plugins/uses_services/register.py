@@ -1,13 +1,9 @@
-from pants.backend.python.target_types import PythonTests
-
-from . import mongo
-from . import platform_
-from .uses_services import UsesServicesField
+from uses_services import mongo, platform_, uses_services
 
 
 def rules():
     return [
-        PythonTests.register_plugin_field(UsesServicesField),
+        *uses_services.rules(),
         *platform_.rules(),
         *mongo.rules(),
     ]

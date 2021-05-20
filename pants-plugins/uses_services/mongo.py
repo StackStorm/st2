@@ -19,10 +19,10 @@ from pants.engine.process import FallibleProcessResult, ProcessCacheScope
 from pants.engine.target import Target
 from pants.util.logging import LogLevel
 
-from .exceptions import ServiceMissingError
-from .is_mongo_running import __file__ as is_mongo_running_full_path
-from .platform_ import Platform
-from .uses_services import UsesServicesField
+from uses_services.exceptions import ServiceMissingError
+from uses_services.is_mongo_running import __file__ as is_mongo_running_full_path
+from uses_services.platform_ import Platform
+from uses_services.uses_services import UsesServicesField
 
 
 class UsesMongoRequest(PytestPluginSetupRequest):
@@ -36,7 +36,7 @@ class MongoStatus:
     is_running: bool
 
 
-@rule
+@rule(desc="Test to see if mongodb is running and accessible for tests.")
 async def mongo_is_running() -> MongoStatus:
     # These config opts are used via oslo_config.cfg.CONF.database.{host,port,db_name,connection_timeout}
     # These config opts currently hard-coded in:
@@ -100,7 +100,7 @@ async def mongo_is_running() -> MongoStatus:
     return MongoStatus(result.exit_code == 0)
 
 
-@rule
+@rule("Report that mongodb is required for test runs.")
 async def assert_mongo_is_running(
     request: UsesMongoRequest, mongo_status: MongoStatus, platform: Platform
 ) -> PytestPluginSetup:
