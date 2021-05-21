@@ -16,7 +16,7 @@ from uses_services.scripts.inspect_platform import Platform, __file__ as inspect
 __all__ = ["Platform", "get_platform", "rules"]
 
 
-@rule(desc="Get details (os, distro, etc) about platform running tests.")
+@rule(desc="Get details (os, distro, etc) about platform running tests.", level=LogLevel.DEBUG)
 async def get_platform() -> Platform:
     script_path = "./inspect_platform.py"
 

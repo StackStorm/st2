@@ -32,7 +32,7 @@ class UsesMongoRequest(PytestPluginSetupRequest):
         return uses is not None and "mongo" in uses
 
 
-@rule(desc="Test to see if mongodb is running and accessible for tests.")
+@rule(desc="Test to see if mongodb is running and accessible for tests.", level=LogLevel.DEBUG)
 async def mongo_is_running(request: UsesMongoRequest, platform: Platform) -> PytestPluginSetup:
 
     # These config opts are used via oslo_config.cfg.CONF.database.{host,port,db_name,connection_timeout}
