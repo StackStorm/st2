@@ -31,53 +31,81 @@ from stevedore_extensions.target_types import (
 
 @rule(desc="Determining the entry points for a `stevedore_extension` target", level=LogLevel.DEBUG)
 async def resolve_stevedore_entry_points(request: ResolveStevedoreEntryPointsRequest) -> ResolvedStevedoreEntryPoints:
+
+    # supported schemes mirror those in resolve_pex_entry_point:
+    #  1) this does not support None, unlike pex_entry_point.
+    #  2) `path.to.module` => preserve exactly.
+    #  3) `path.to.module:func` => preserve exactly.
+    #  4) `app.py` => convert into `path.to.app`.
+    #  5) `app.py:func` => convert into `path.to.app:func`.
+
     address = request.entry_points_field.address
-    resolved = []
-    for entry_point in request.entry_points_field.value:
-        ep_val = entry_point.value
 
-        # supported schemes mirror those in resolve_pex_entry_point:
-        #  1) this does not support None, unlike pex_entry_point.
-        #  2) `path.to.module` => preserve exactly.
-        #  3) `path.to.module:func` => preserve exactly.
-        #  4) `app.py` => convert into `path.to.app`.
-        #  5) `app.py:func` => convert into `path.to.app:func`.
-
-        # If it's already a module (cases #2 and #3), simply use that. Otherwise, convert the file name
-        # into a module path (cases #4 and #5).
-        if not ep_val.module.endswith(".py"):
-            resolved.append(entry_point)
-            continue
-
-        # Use the engine to validate that the file exists and that it resolves to only one file.
-        full_glob = os.path.join(address.spec_path, ep_val.module)
-        entry_point_paths = await Get(
+    # Use the engine to validate that any file exists
+    entry_point_paths_results = await MultiGet(
+        Get(
             Paths,
             PathGlobs(
-                [full_glob],
+                [os.path.join(address.spec_path, entry_point.value.module)],
                 glob_match_error_behavior=GlobMatchErrorBehavior.error,
                 description_of_origin=f"{address}'s `{request.entry_points_field.alias}` field",
             )
         )
-        # We will have already raised if the glob did not match, i.e. if there were no files. But
-        # we need to check if they used a file glob (`*` or `**`) that resolved to >1 file.
+        for entry_point in request.entry_points_field.value
+        if entry_point.value.module.endswith(".py")
+    )
+
+    # use iter so we can use next() below
+    iter_entry_point_paths_results = iter(entry_point_paths_results)
+
+    # We will have already raised if the glob did not match, i.e. if there were no files. But
+    # we need to check if they used a file glob (`*` or `**`) that resolved to >1 file.
+    for entry_point in request.entry_points_field.value:
+        # We just need paths here. If it's already a path, skip it until the next loop.
+        if not entry_point.value.module.endswith(".py"):
+            continue
+
+        entry_point_paths = next(iter_entry_point_paths_results)
         if len(entry_point_paths.files) != 1:
             raise InvalidFieldException(
                 f"Multiple files matched for the `{request.entry_points_field.alias}` "
-                f"{ep_val.spec!r} for the target {address}, but only one file expected. Are you using "
+                f"{entry_point.value.spec!r} for the target {address}, but only one file expected. Are you using "
                 f"a glob, rather than a file name?\n\n"
                 f"All matching files: {list(entry_point_paths.files)}."
             )
-        entry_point_path = entry_point_paths.files[0]
-        source_root = await Get(
+
+    # restart the iterator
+    iter_entry_point_paths_results = iter(entry_point_paths_results)
+
+    source_root_results = await MultiGet(
+        Get(
             SourceRoot,
             SourceRootRequest,
-            SourceRootRequest.for_file(entry_point_path),
+            SourceRootRequest.for_file(next(iter_entry_point_paths_results).files[0])
         )
+        for entry_point in request.entry_points_field.value
+        if entry_point.value.module.endswith(".py")
+    )
+
+    # restart the iterator
+    iter_entry_point_paths_results = iter(entry_point_paths_results)
+    iter_source_root_results = iter(source_root_results)
+
+    resolved = []
+    for entry_point in request.entry_points_field.value:
+        # If it's already a module (cases #2 and #3), we'll just use that.
+        # Otherwise, convert the file name into a module path (cases #4 and #5).
+        if not entry_point.value.module.endswith(".py"):
+            resolved.append(entry_point)
+            continue
+
+        entry_point_path = next(iter_entry_point_paths_results).files[0]
+        source_root = next(iter_source_root_results)
+
         stripped_source_path = os.path.relpath(entry_point_path, source_root.path)
         module_base, _ = os.path.splitext(stripped_source_path)
         normalized_path = module_base.replace(os.path.sep, ".")
-        resolved_ep_val = dataclasses.replace(ep_val, module=normalized_path)
+        resolved_ep_val = dataclasses.replace(entry_point.value, module=normalized_path)
         resolved.append(dataclasses.replace(entry_point, value=resolved_ep_val))
     return ResolvedStevedoreEntryPoints(StevedoreEntryPoints(resolved))
 
@@ -99,7 +127,7 @@ async def inject_stevedore_entry_points_dependencies(
         Get(
             ResolvedStevedoreEntryPoints,
             ResolveStevedoreEntryPointsRequest(original_tgt.target[StevedoreEntryPointsField])
-        ),
+        )
     )
     if entry_points.val is None:
         return InjectedDependencies()
