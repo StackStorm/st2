@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 from textwrap import dedent
 
-# TODO: this is planned / does not exist yet
 from pants.backend.python.goals.pytest_runner import (
     PytestPluginSetupRequest,
     PytestPluginSetup,
@@ -14,7 +13,7 @@ from pants.backend.python.util_rules.pex import (
     VenvPexProcess,
 )
 from pants.engine.fs import CreateDigest, Digest, FileContent
-from pants.engine.rules import collect_rules, Get, rule
+from pants.engine.rules import collect_rules, Get, MultiGet, rule
 from pants.engine.process import FallibleProcessResult, ProcessCacheScope
 from pants.engine.target import Target
 from pants.engine.unions import UnionRule
@@ -68,15 +67,6 @@ async def mongo_is_running() -> MongoStatus:
     #        for component in $(COMPONENTS_TEST)
     #            nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/unit
 
-    mongoengine_pex = await Get(
-        VenvPex,
-        PexRequest(
-            output_filename="mongoengine.pex",
-            internal_only=True,
-            requirements=PexRequirements({"mongoengine", "pymongo"}),
-        )
-    )
-
     script_path = "./is_mongo_running.py"
 
     # pants is already watching this directory as it is under a source root.
@@ -84,9 +74,19 @@ async def mongo_is_running() -> MongoStatus:
     with open(is_mongo_running_full_path, "rb") as script_file:
         script_contents = script_file.read()
 
-    script_digest = await Get(
-        Digest,
-        CreateDigest([FileContent(script_path, script_contents)])
+    script_digest, mongoengine_pex = await MultiGet(
+        Get(
+            Digest,
+            CreateDigest([FileContent(script_path, script_contents)])
+        ),
+        Get(
+            VenvPex,
+            PexRequest(
+                output_filename="mongoengine.pex",
+                internal_only=True,
+                requirements=PexRequirements({"mongoengine", "pymongo"}),
+            )
+        )
     )
 
     result = await Get(
