@@ -49,7 +49,7 @@ class InjectStevedoreNamespaceDependencies(InjectDependenciesRequest):
     inject_for = PythonTestsDependencies
 
 
-@rule(desc="Inject stevedore_extension target dependencies for python_tests based on namespace list.")
+@rule(desc="Inject stevedore_extension target dependencies for python_tests based on namespace list.", level=LogLevel.DEBUG)
 async def inject_stevedore_dependencies(
     request: InjectStevedoreNamespaceDependencies, stevedore_extensions: StevedoreExtensions
 ) -> InjectedDependencies:

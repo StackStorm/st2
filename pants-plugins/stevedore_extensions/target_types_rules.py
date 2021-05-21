@@ -18,6 +18,7 @@ from pants.engine.target import (
     WrappedTarget,
 )
 from pants.source.source_root import SourceRoot, SourceRootRequest
+from pants.util.logging import LogLevel
 
 from stevedore_extensions.target_types import (
     ResolvedStevedoreEntryPoints,
@@ -28,7 +29,7 @@ from stevedore_extensions.target_types import (
 )
 
 
-@rule(desc="Determining the entry points for a `stevedore_extension` target")
+@rule(desc="Determining the entry points for a `stevedore_extension` target", level=LogLevel.DEBUG)
 async def resolve_stevedore_entry_points(request: ResolveStevedoreEntryPointsRequest) -> ResolvedStevedoreEntryPoints:
     address = request.entry_points_field.address
     resolved = []
@@ -85,7 +86,7 @@ class InjectStevedoreExtensionDependencies(InjectDependenciesRequest):
     inject_for = StevedoreDependencies
 
 
-@rule(desc="Inferring dependency from the stevedore_extension `entry_points` field")
+@rule(desc="Inferring dependency from the stevedore_extension `entry_points` field", level=LogLevel.DEBUG)
 async def inject_stevedore_entry_points_dependencies(
     request: InjectStevedoreExtensionDependencies
 ) -> InjectedDependencies:
