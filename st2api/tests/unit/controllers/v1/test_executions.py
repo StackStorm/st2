@@ -171,6 +171,34 @@ ACTION_DEFAULT_ENCRYPT_SECRET_PARAMS = {
     },
 }
 
+ACTION_WITH_OUTPUT_SCHEMA_WITH_SECRET_PARAMS = {
+    "name": "st2.dummy.action_with_output_schema_secret_param",
+    "description": "An action that contains output_schema with secret parameters",
+    "enabled": True,
+    "entry_point": "/tmp/test/action_with_output_schema_secret_param.py",
+    "pack": "starterpack",
+    "runner_type": "python-script",
+    "parameters": {},
+    "output_schema": {
+        "secret_param_1": {"type": "string", "required": True, "secret": True},
+        "secret_param_2": {"type": "string", "required": True, "secret": True},
+    },
+}
+
+ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAMS = {
+    "name": "st2.dummy.action_with_output_schema_without_secret_params",
+    "description": "An action that contains output_schema without secret parameters",
+    "enabled": True,
+    "entry_point": "/tmp/test/action_with_output_schema_without_secret_params.py",
+    "pack": "starterpack",
+    "runner_type": "python-script",
+    "parameters": {},
+    "output_schema": {
+        "non_secret_param_1": {"type": "string", "required": True},
+        "non_secret_param_2": {"type": "string", "required": True},
+    },
+}
+
 LIVE_ACTION_1 = {
     "action": "sixpack.st2.dummy.action1",
     "parameters": {
@@ -252,6 +280,16 @@ LIVE_ACTION_WITH_SECRET_PARAM = {
     "action": "sixpack.st2.dummy.action1",
 }
 
+LIVE_ACTION_WITH_OUTPUT_SCHEMA_SECRET_PARAM = {
+    "parameters": {},
+    "action": "starterpack.st2.dummy.action_with_output_schema_secret_param",
+}
+
+LIVE_ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAM = {
+    "parameters": {},
+    "action": "starterpack.st2.dummy.action_with_output_schema_without_secret_params",
+}
+
 # Do not add parameters to this. There are tests that will test first without params,
 # then make a copy with params.
 LIVE_ACTION_DEFAULT_TEMPLATE = {
@@ -327,6 +365,22 @@ class ActionExecutionControllerTestCase(
         post_resp = cls.app.post_json("/v1/actions", cls.action_decrypt_secret_param)
         cls.action_decrypt_secret_param["id"] = post_resp.json["id"]
 
+        cls.action_with_output_schema_secret_param = copy.deepcopy(
+            ACTION_WITH_OUTPUT_SCHEMA_WITH_SECRET_PARAMS
+        )
+        post_resp = cls.app.post_json(
+            "/v1/actions", cls.action_with_output_schema_secret_param
+        )
+        cls.action_with_output_schema_secret_param["id"] = post_resp.json["id"]
+
+        cls.action_with_output_schema_without_secret_params = copy.deepcopy(
+            ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAMS
+        )
+        post_resp = cls.app.post_json(
+            "/v1/actions", cls.action_with_output_schema_without_secret_params
+        )
+        cls.action_with_output_schema_without_secret_params["id"] = post_resp.json["id"]
+
     @classmethod
     def tearDownClass(cls):
         cls.app.delete("/v1/actions/%s" % cls.action1["id"])
@@ -336,6 +390,12 @@ class ActionExecutionControllerTestCase(
         cls.app.delete("/v1/actions/%s" % cls.action_inquiry["id"])
         cls.app.delete("/v1/actions/%s" % cls.action_template["id"])
         cls.app.delete("/v1/actions/%s" % cls.action_decrypt["id"])
+        cls.app.delete(
+            "/v1/actions/%s" % cls.action_with_output_schema_secret_param["id"]
+        )
+        cls.app.delete(
+            "/v1/actions/%s" % cls.action_with_output_schema_without_secret_params["id"]
+        )
         super(BaseActionExecutionControllerTestCase, cls).tearDownClass()
 
     def test_get_one(self):
@@ -1785,6 +1845,80 @@ class ActionExecutionControllerTestCase(
                 "Invalid or unsupported exclude attribute specified:"
                 in resp.json["faultstring"]
             )
+
+    def test_get_one_with_masked_secrets_in_output_schema(self):
+        """
+        Test that the parameters marked secret as true in output schema are masked in
+        GET API of action execution.
+        """
+
+        post_resp = self._do_post(LIVE_ACTION_WITH_OUTPUT_SCHEMA_SECRET_PARAM)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+
+        updates = {
+            "status": "succeeded",
+            "result": {
+                "exit_code": 0,
+                "stderr": "",
+                "stdout": "",
+                "result": {
+                    "secret_param_1": "foo",
+                    "secret_param_2": "bar",
+                },
+            },
+        }
+
+        put_resp = self._do_put(actionexecution_id, updates)
+        self.assertEqual(put_resp.status_int, 200)
+        get_resp = self._do_get_one(actionexecution_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        expected_result_in_get_resp = {
+            "secret_param_1": MASKED_ATTRIBUTE_VALUE,
+            "secret_param_2": MASKED_ATTRIBUTE_VALUE,
+        }
+
+        self.assertDictEqual(
+            get_resp.json["result"]["result"], expected_result_in_get_resp
+        )
+
+    def test_get_one_without_masked_secrets_in_output_schema(self):
+        """
+        Test that the parameters not marked secret as true in output schema are not masked
+        in GET API of action execution.
+        """
+
+        post_resp = self._do_post(LIVE_ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAM)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+
+        updates = {
+            "status": "succeeded",
+            "result": {
+                "exit_code": 0,
+                "stderr": "",
+                "stdout": "",
+                "result": {
+                    "non_secret_param_1": "abc",
+                    "non_secret_param_2": "xyz",
+                },
+            },
+        }
+
+        put_resp = self._do_put(actionexecution_id, updates)
+        self.assertEqual(put_resp.status_int, 200)
+        get_resp = self._do_get_one(actionexecution_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        expected_result_in_get_resp = {
+            "non_secret_param_1": "abc",
+            "non_secret_param_2": "xyz",
+        }
+
+        self.assertDictEqual(
+            get_resp.json["result"]["result"], expected_result_in_get_resp
+        )
 
     def _insert_mock_models(self):
         execution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))

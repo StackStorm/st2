@@ -78,6 +78,11 @@ Added
 
   Contributed by @Kami.
 
+* Mask secrets in output of an action execution in the API if the action has an output schema
+  defined and one or more output parameters are marked as secret. #5250
+
+  Contributed by @mahesh-orch.
+
 Changed
 ~~~~~~~
 
