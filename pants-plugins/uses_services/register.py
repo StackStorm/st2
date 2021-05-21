@@ -1,9 +1,9 @@
-from uses_services import mongo, platform_, uses_services
+from uses_services import mongo, platform_, target_types
 
 
 def rules():
     return [
-        *uses_services.rules(),
+        *target_types.rules(),
         *platform_.rules(),
         *mongo.rules(),
     ]
