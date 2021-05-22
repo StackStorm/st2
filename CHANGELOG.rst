@@ -78,6 +78,11 @@ Added
 
   Contributed by @Kami.
 
+* Mask secrets in output of an action execution in the API if the action has an output schema
+  defined and one or more output parameters are marked as secret. #5250
+
+  Contributed by @mahesh-orch.
+
 Changed
 ~~~~~~~
 
@@ -167,7 +172,11 @@ Changed
   triggers with larger payloads.
 
   This should address a long standing issue where StackStorm was reported to be slow and CPU
-  inefficient with handling large executions. (improvement) #4846
+  inefficient with handling large executions.
+
+  If you want to migrate existing database objects to utilize the new type, you can use
+  ``st2common/bin/migrations/v3.5/st2-migrate-db-dict-field-values`` migration
+  script. (improvement) #4846
 
   Contributed by @Kami.
 
@@ -237,6 +246,10 @@ Changed
 * Monkey patch on st2stream earlier in flow #5240
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Remove duplicate host header in the nginx config for the auth endpoint.
+
+* Update orquesta to v1.4.0.
 
 Improvements
 ~~~~~~~~~~~~
@@ -358,6 +371,8 @@ Fixed
   correctly for workflow (orquesta, action chain) actions. #5221 #5227
 
   Contributed by @khushboobhatia01.
+
+* Clean up to remove unused methods in the action execution concurrency policies. #5268
 
 3.4.1 - March 14, 2021
 ----------------------

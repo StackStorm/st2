@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import json
 import six
 
 from st2common.constants import action as action_constants
@@ -41,15 +40,6 @@ class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
             action=action,
         )
         self.attributes = attributes or []
-
-    def _get_lock_uid(self, target):
-        meta = {
-            "policy_type": self._policy_type,
-            "action": target.action,
-            "attributes": self.attributes,
-        }
-
-        return json.dumps(meta)
 
     def _get_filters(self, target):
         filters = {
