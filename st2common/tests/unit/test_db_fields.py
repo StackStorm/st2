@@ -106,6 +106,16 @@ class JSONDictFieldTestCase(unittest2.TestCase):
 
         self.assertEqual(result_to_python, MOCK_DATA_DICT)
 
+        # sets get serialized to a list
+        input_dict = {"a": 1, "set": {1, 2, 3, 4, 4, 4, 5, 5}}
+        result = {"a": 1, "set": [1, 2, 3, 4, 5]}
+
+        field = JSONDictField(use_header=False)
+        result_to_mongo = field.to_mongo(input_dict)
+        result_to_python = field.to_python(result_to_mongo)
+
+        self.assertEqual(result_to_python, result)
+
     def test_parse_field_value(self):
         # 1. Value not provided, should use default one
         field = JSONDictField(use_header=False, default={})
