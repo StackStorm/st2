@@ -1,7 +1,6 @@
 # coding: utf-8
 from typing import Iterable, Optional, Tuple
 
-from pants.backend.python.target_types import PythonTests
 from pants.build_graph.address import Address
 from pants.engine.target import InvalidFieldChoiceException, StringSequenceField
 
@@ -27,7 +26,3 @@ class UsesServicesField(StringSequenceField):
                     address, cls.alias, service, valid_choices=cls.valid_choices
                 )
         return tuple(services)
-
-
-def rules():
-    return [PythonTests.register_plugin_field(UsesServicesField)]
