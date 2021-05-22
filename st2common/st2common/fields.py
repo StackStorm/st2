@@ -458,7 +458,17 @@ class JSONDictField(BinaryField):
         """
         Serialize and encode the provided field value.
         """
-
+        # Orquesta workflows support toSet() YAQL operator which returns a set which used to get
+        # serialized to list by mongoengine DictField.
+        #
+        # For backward compatibility reasons, we need to support serializing set to a list as
+        # well.
+        #
+        # Based on micro benchmarks, using default function adds very little overhead (1%) so it
+        # should be safe to use default for every operation.
+        #
+        # If this turns out to be not true or it adds more overhead in other scenarios, we should
+        # revisit this decision and only use "default" argument where needed (aka Workflow models).
         def default(obj):
             if isinstance(obj, set):
                 return list(obj)
