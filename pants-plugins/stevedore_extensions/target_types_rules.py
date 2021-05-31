@@ -143,7 +143,7 @@ async def inject_stevedore_entry_points_dependencies(
             ResolveStevedoreEntryPointsRequest(
                 original_tgt.target[StevedoreEntryPointsField]
             )
-        )
+        ),
     )
     if entry_points.val is None:
         return InjectedDependencies()
