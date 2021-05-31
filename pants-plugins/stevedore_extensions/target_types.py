@@ -43,7 +43,9 @@ class StevedoreNamespaceField(StringField):
     required = True
 
 
-class StevedoreEntryPointsField(AsyncFieldMixin, SecondaryOwnerMixin, DictStringToStringField):
+class StevedoreEntryPointsField(
+    AsyncFieldMixin, SecondaryOwnerMixin, DictStringToStringField
+):
     # based on pants.backend.python.target_types.PexEntryPointField
     alias = "entry_points"
     help = (
@@ -60,7 +62,9 @@ class StevedoreEntryPointsField(AsyncFieldMixin, SecondaryOwnerMixin, DictString
     value: StevedoreEntryPoints
 
     @classmethod
-    def compute_value(cls, raw_value: Optional[Dict[str, str]], address: Address) -> Collection[StevedoreEntryPoint]:
+    def compute_value(
+        cls, raw_value: Optional[Dict[str, str]], address: Address
+    ) -> Collection[StevedoreEntryPoint]:
         # TODO: maybe support raw entry point maps like ["name = path.to.module:func"]
         #       raw_value: Optional[Union[Dict[str, str], List[str]]]
         raw_entry_points = super().compute_value(raw_value, address)

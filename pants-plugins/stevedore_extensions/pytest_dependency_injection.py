@@ -28,20 +28,24 @@ from stevedore_extensions.target_types import (
 @dataclass(frozen=True)
 class StevedoreExtensions:
     """A mapping of stevedore namespaces to a list the targets that provide them"""
+
     mapping: FrozenDict[str, Tuple[StevedoreExtension]]
 
 
-@rule(desc="Creating map of stevedore_extension namespaces to StevedoreExtension targets", level=LogLevel.DEBUG)
+@rule(
+    desc="Creating map of stevedore_extension namespaces to StevedoreExtension targets",
+    level=LogLevel.DEBUG,
+)
 async def map_stevedore_extensions() -> StevedoreExtensions:
     all_expanded_targets = await Get(Targets, AddressSpecs([DescendantAddresses("")]))
-    stevedore_extensions = tuple(tgt for tgt in all_expanded_targets if tgt.has_field(StevedoreDependencies))
+    stevedore_extensions = tuple(
+        tgt for tgt in all_expanded_targets if tgt.has_field(StevedoreDependencies)
+    )
     mapping: Mapping[str, List[StevedoreExtension]] = defaultdict(list)
     for extension in stevedore_extensions:
         mapping[extension[StevedoreNamespaceField].value].append(extension)
     return StevedoreExtensions(
-        FrozenDict(
-            (k, tuple(v)) for k, v in sorted(mapping.items())
-        )
+        FrozenDict((k, tuple(v)) for k, v in sorted(mapping.items()))
     )
 
 
@@ -49,9 +53,13 @@ class InjectStevedoreNamespaceDependencies(InjectDependenciesRequest):
     inject_for = PythonTestsDependencies
 
 
-@rule(desc="Inject stevedore_extension target dependencies for python_tests based on namespace list.", level=LogLevel.DEBUG)
+@rule(
+    desc="Inject stevedore_extension target dependencies for python_tests based on namespace list.",
+    level=LogLevel.DEBUG,
+)
 async def inject_stevedore_dependencies(
-    request: InjectStevedoreNamespaceDependencies, stevedore_extensions: StevedoreExtensions
+    request: InjectStevedoreNamespaceDependencies,
+    stevedore_extensions: StevedoreExtensions,
 ) -> InjectedDependencies:
     original_tgt: WrappedTarget
     original_tgt = await Get(WrappedTarget, Address, request.dependencies_field.address)

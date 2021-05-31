@@ -3,7 +3,10 @@
 import dataclasses
 import os
 
-from pants.backend.python.dependency_inference.module_mapper import PythonModule, PythonModuleOwners
+from pants.backend.python.dependency_inference.module_mapper import (
+    PythonModule,
+    PythonModuleOwners,
+)
 from pants.backend.python.dependency_inference.rules import import_rules
 from pants.engine.addresses import Address
 from pants.engine.fs import GlobMatchErrorBehavior, PathGlobs, Paths
@@ -29,8 +32,13 @@ from stevedore_extensions.target_types import (
 )
 
 
-@rule(desc="Determining the entry points for a `stevedore_extension` target", level=LogLevel.DEBUG)
-async def resolve_stevedore_entry_points(request: ResolveStevedoreEntryPointsRequest) -> ResolvedStevedoreEntryPoints:
+@rule(
+    desc="Determining the entry points for a `stevedore_extension` target",
+    level=LogLevel.DEBUG,
+)
+async def resolve_stevedore_entry_points(
+    request: ResolveStevedoreEntryPointsRequest,
+) -> ResolvedStevedoreEntryPoints:
 
     # supported schemes mirror those in resolve_pex_entry_point:
     #  1) this does not support None, unlike pex_entry_point.
@@ -114,19 +122,27 @@ class InjectStevedoreExtensionDependencies(InjectDependenciesRequest):
     inject_for = StevedoreDependencies
 
 
-@rule(desc="Inferring dependency from the stevedore_extension `entry_points` field", level=LogLevel.DEBUG)
+@rule(
+    desc="Inferring dependency from the stevedore_extension `entry_points` field",
+    level=LogLevel.DEBUG,
+)
 async def inject_stevedore_entry_points_dependencies(
-    request: InjectStevedoreExtensionDependencies
+    request: InjectStevedoreExtensionDependencies,
 ) -> InjectedDependencies:
     original_tgt: WrappedTarget = await Get(
         WrappedTarget, Address, request.dependencies_field.address
     )
     entry_points: ResolvedStevedoreEntryPoints
     explicitly_provided_deps, entry_points = await MultiGet(
-        Get(ExplicitlyProvidedDependencies, DependenciesRequest(original_tgt.target[Dependencies])),
+        Get(
+            ExplicitlyProvidedDependencies,
+            DependenciesRequest(original_tgt.target[Dependencies])
+        ),
         Get(
             ResolvedStevedoreEntryPoints,
-            ResolveStevedoreEntryPointsRequest(original_tgt.target[StevedoreEntryPointsField])
+            ResolveStevedoreEntryPointsRequest(
+                original_tgt.target[StevedoreEntryPointsField]
+            )
         )
     )
     if entry_points.val is None:
@@ -147,11 +163,13 @@ async def inject_stevedore_entry_points_dependencies(
             import_reference="module",
             context=(
                 f"The stevedore_extension target {address} has in its entry_points field "
-                f"`\"{entry_point.name}\": \"{repr(original_ep.value.spec)}\"`,"
+                f'`"{entry_point.name}": "{repr(original_ep.value.spec)}"`,'
                 f"which maps to the Python module `{entry_point.value.module}`"
             ),
         )
-        maybe_disambiguated = explicitly_provided_deps.disambiguated_via_ignores(owners.ambiguous)
+        maybe_disambiguated = explicitly_provided_deps.disambiguated_via_ignores(
+            owners.ambiguous
+        )
         unambiguous_owners = owners.unambiguous or (
             (maybe_disambiguated,) if maybe_disambiguated else ()
         )
