@@ -7,4 +7,6 @@ resource(
     source="requirements.txt",
 )
 
-python_sources()
+python_sources(
+    dependencies=[":metadata"],
+)
