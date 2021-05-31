@@ -1,3 +1,7 @@
+pack_metadata(
+    name="metadata",
+)
+
 resource(
     name="pack_requirements",
     source="requirements.txt",

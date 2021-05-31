@@ -1,4 +1,6 @@
-python_sources()
+pack_metadata(
+    name="metadata",
+)
 
 python_requirements(
     name="reqs",
@@ -7,3 +9,5 @@ python_requirements(
     # https://github.com/pantsbuild/pants/pull/17390
     module_mapping={"mail-parser": ["mailparser"]},
 )
+
+python_sources()
