@@ -19,7 +19,9 @@ from pants.util.logging import LogLevel
 
 from uses_services.exceptions import ServiceMissingError
 from uses_services.platform_ import Platform
-from uses_services.scripts.is_mongo_running import __file__ as is_mongo_running_full_path
+from uses_services.scripts.is_mongo_running import (
+    __file__ as is_mongo_running_full_path,
+)
 from uses_services.target_types import UsesServicesField
 
 
@@ -32,8 +34,13 @@ class UsesMongoRequest(PytestPluginSetupRequest):
         return uses is not None and "mongo" in uses
 
 
-@rule(desc="Test to see if mongodb is running and accessible for tests.", level=LogLevel.DEBUG)
-async def mongo_is_running(request: UsesMongoRequest, platform: Platform) -> PytestPluginSetup:
+@rule(
+    desc="Test to see if mongodb is running and accessible for tests.",
+    level=LogLevel.DEBUG,
+)
+async def mongo_is_running(
+    request: UsesMongoRequest, platform: Platform
+) -> PytestPluginSetup:
 
     # These config opts are used via oslo_config.cfg.CONF.database.{host,port,db_name,connection_timeout}
     # These config opts currently hard-coded in:
@@ -69,10 +76,7 @@ async def mongo_is_running(request: UsesMongoRequest, platform: Platform) -> Pyt
         script_contents = script_file.read()
 
     script_digest, mongoengine_pex = await MultiGet(
-        Get(
-            Digest,
-            CreateDigest([FileContent(script_path, script_contents)])
-        ),
+        Get(Digest, CreateDigest([FileContent(script_path, script_contents)])),
         Get(
             VenvPex,
             PexRequest(
@@ -80,7 +84,7 @@ async def mongo_is_running(request: UsesMongoRequest, platform: Platform) -> Pyt
                 internal_only=True,
                 requirements=PexRequirements({"mongoengine", "pymongo"}),
             )
-        )
+        ),
     )
 
     result = await Get(

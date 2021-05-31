@@ -10,13 +10,20 @@ from pants.engine.fs import CreateDigest, Digest, FileContent
 from pants.engine.process import ProcessCacheScope, ProcessResult
 from pants.engine.rules import collect_rules, Get, MultiGet, rule
 from pants.util.logging import LogLevel
+
 # noinspection PyProtectedMember
-from uses_services.scripts.inspect_platform import Platform, __file__ as inspect_platform_full_path
+from uses_services.scripts.inspect_platform import (
+    Platform,
+    __file__ as inspect_platform_full_path,
+)
 
 __all__ = ["Platform", "get_platform", "rules"]
 
 
-@rule(desc="Get details (os, distro, etc) about platform running tests.", level=LogLevel.DEBUG)
+@rule(
+    desc="Get details (os, distro, etc) about platform running tests.",
+    level=LogLevel.DEBUG,
+)
 async def get_platform() -> Platform:
     script_path = "./inspect_platform.py"
 
@@ -37,7 +44,7 @@ async def get_platform() -> Platform:
                 internal_only=True,
                 requirements=PexRequirements({"distro"}),
             )
-        )
+        ),
     )
 
     result = await Get(
