@@ -12,7 +12,7 @@ class PackMetadataSources(FilesSources):
         "**/*.yaml",
         "**/*.yml",
         "icon.png",  # used in st2web ui
-        "requirements*.txt",
+        # "requirements*.txt",  # including this causes target conflicts
         # "README.md",
         # "HISTORY.md",
     )
