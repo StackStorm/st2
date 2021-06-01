@@ -6,17 +6,3 @@ resources(
         "./rbac_invalid/**/*.yaml",
     ],
 )
-
-target(
-    name="packs_metadata",
-    dependencies=[
-        "./aliases:metadata",
-        "./backstop:metadata",
-        "./generic:metadata",
-        "./localrunner_pack:metadata",
-        "./packs:packs_metadata",
-        "./packs_1:packs_metadata",
-        "./packs_invalid:packs_metadata",
-        "./traces:metadata",
-    ],
-)
