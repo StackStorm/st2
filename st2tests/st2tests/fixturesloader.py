@@ -169,6 +169,12 @@ def get_resources_base_path():
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "resources"))
 
 
+def get_pack_fixture_name_and_path_from(fixture_file):
+    pack_name = os.path.basename(os.path.dirname(fixture_file))
+    pack_path = os.path.join(get_fixtures_packs_base_path(), pack_name)
+    return pack_name, pack_path
+
+
 class FixturesLoader(object):
     def __init__(self):
         self.meta_loader = MetaLoader()
