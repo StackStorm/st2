@@ -38,11 +38,9 @@ from st2common.util.crypto import keyczar_symmetric_encrypt
 from st2common.util.crypto import cryptography_symmetric_encrypt
 from st2common.util.crypto import cryptography_symmetric_decrypt
 
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixtures.keyczar_keys.fixture import FIXTURE_PATH as KEY_FIXTURES_PATH
 
 __all__ = ["CryptoUtilsTestCase", "CryptoUtilsKeyczarCompatibilityTestCase"]
-
-KEY_FIXTURES_PATH = os.path.join(get_fixtures_base_path(), "keyczar_keys/")
 
 
 class CryptoUtilsTestCase(TestCase):
