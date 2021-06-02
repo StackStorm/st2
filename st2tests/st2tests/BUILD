@@ -5,6 +5,5 @@ python_sources(
         "st2tests/conf:logging.conf",
         "./resources:ssh",
         "./resources:packs",
-        "./fixtures:registered_content",
     ],
 )
