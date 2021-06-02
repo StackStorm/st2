@@ -1,5 +1,3 @@
-python_sources()
-
 resources(
     name="st2.tests.conf",
     sources=["st2.tests*.conf"],
@@ -9,4 +7,10 @@ resources(
 files(
     name="logging-conf",
     sources=["logging.*.conf"],
+)
+
+python_sources(
+    dependencies=[
+        ":st2.tests.conf",
+    ],
 )
