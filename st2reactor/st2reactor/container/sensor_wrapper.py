@@ -169,6 +169,7 @@ class SensorWrapper(object):
         trigger_types,
         poll_interval=None,
         parent_args=None,
+        db_ensure_indexes=True,
     ):
         """
         :param pack: Name of the pack this sensor belongs to.
@@ -189,6 +190,9 @@ class SensorWrapper(object):
 
         :param parent_args: Command line arguments passed to the parent process.
         :type parse_args: ``list``
+
+        :param db_ensure_indexes: True to ensure indexes. This should really only be set to False
+                                  in tests to speed things up.
         """
         self._pack = pack
         self._file_path = file_path
@@ -224,6 +228,7 @@ class SensorWrapper(object):
             cfg.CONF.database.port,
             username=username,
             password=password,
+            ensure_indexes=db_ensure_indexes,
             ssl=cfg.CONF.database.ssl,
             ssl_keyfile=cfg.CONF.database.ssl_keyfile,
             ssl_certfile=cfg.CONF.database.ssl_certfile,

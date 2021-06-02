@@ -127,11 +127,6 @@ class InquiryGetCommand(resource.ResourceGetCommand):
     def __init__(self, kv_resource, *args, **kwargs):
         super(InquiryGetCommand, self).__init__(kv_resource, *args, **kwargs)
 
-    @resource.add_auth_token_to_kwargs_from_cli
-    def run(self, args, **kwargs):
-        resource_name = getattr(args, self.pk_argument_name, None)
-        return self.get_resource_by_id(id=resource_name, **kwargs)
-
 
 class InquiryRespondCommand(resource.ResourceCommand):
     display_attributes = ["id", "response"]

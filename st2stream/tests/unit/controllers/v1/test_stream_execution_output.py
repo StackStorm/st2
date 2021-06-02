@@ -44,11 +44,11 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
         )
 
     def test_get_output_running_execution(self):
-        # Retrieve lister instance to avoid race with listener connection not being established
+        # Retrieve listener instance to avoid race with listener connection not being established
         # early enough for tests to pass.
         # NOTE: This only affects tests where listeners are not pre-initialized.
         listener = get_listener(name="execution_output")
-        eventlet.sleep(1.0)
+        eventlet.sleep(0.5)
 
         # Test the execution output API endpoint for execution which is running (blocking)
         status = action_constants.LIVEACTION_STATUS_RUNNING
@@ -89,14 +89,14 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
             output_db = ActionExecutionOutputDB(**output_params)
             ActionExecutionOutput.add_or_update(output_db)
 
-            eventlet.sleep(1.0)
+            eventlet.sleep(0.5)
 
             # Transition execution to completed state so the connection closes
             action_execution_db.status = action_constants.LIVEACTION_STATUS_SUCCEEDED
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
 
         eventlet.spawn_after(0.2, insert_mock_data)
-        eventlet.spawn_after(1.5, publish_action_finished, action_execution_db)
+        eventlet.spawn_after(1.0, publish_action_finished, action_execution_db)
 
         # Retrieve data while execution is running - endpoint return new data once it's available
         # and block until the execution finishes

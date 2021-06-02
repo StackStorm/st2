@@ -23,8 +23,6 @@ from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
 from st2common.constants.garbage_collection import DEFAULT_SLEEP_DELAY
 
-common_config.register_opts()
-
 CONF = cfg.CONF
 
 
@@ -36,20 +34,20 @@ def parse_args(args=None):
     )
 
 
-def register_opts():
-    _register_common_opts()
-    _register_garbage_collector_opts()
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_garbage_collector_opts(ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
     return cfg.CONF.garbagecollector.logging
 
 
-def _register_common_opts():
-    common_config.register_opts()
+def _register_common_opts(ignore_errors=False):
+    common_config.register_opts(ignore_errors=ignore_errors)
 
 
-def _register_garbage_collector_opts():
+def _register_garbage_collector_opts(ignore_errors=False):
     logging_opts = [
         cfg.StrOpt(
             "logging",
@@ -58,7 +56,9 @@ def _register_garbage_collector_opts():
         )
     ]
 
-    CONF.register_opts(logging_opts, group="garbagecollector")
+    common_config.do_register_opts(
+        logging_opts, group="garbagecollector", ignore_errors=ignore_errors
+    )
 
     common_opts = [
         cfg.IntOpt(
@@ -74,7 +74,9 @@ def _register_garbage_collector_opts():
         ),
     ]
 
-    CONF.register_opts(common_opts, group="garbagecollector")
+    common_config.do_register_opts(
+        common_opts, group="garbagecollector", ignore_errors=ignore_errors
+    )
 
     ttl_opts = [
         cfg.IntOpt(
@@ -96,7 +98,9 @@ def _register_garbage_collector_opts():
         ),
     ]
 
-    CONF.register_opts(ttl_opts, group="garbagecollector")
+    common_config.do_register_opts(
+        ttl_opts, group="garbagecollector", ignore_errors=ignore_errors
+    )
 
     inquiry_opts = [
         cfg.BoolOpt(
@@ -107,7 +111,9 @@ def _register_garbage_collector_opts():
         )
     ]
 
-    CONF.register_opts(inquiry_opts, group="garbagecollector")
+    common_config.do_register_opts(
+        inquiry_opts, group="garbagecollector", ignore_errors=ignore_errors
+    )
 
 
-register_opts()
+register_opts(ignore_errors=True)

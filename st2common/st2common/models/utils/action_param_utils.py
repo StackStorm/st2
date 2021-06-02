@@ -20,7 +20,7 @@ import six
 from st2common import log as logging
 from st2common.util import action_db as action_db_util
 from st2common.util.casts import get_cast
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 LOG = logging.getLogger(__name__)
 
@@ -53,12 +53,14 @@ def _merge_param_meta_values(action_meta=None, runner_meta=None):
 
 def get_params_view(action_db=None, runner_db=None, merged_only=False):
     if runner_db:
-        runner_params = fast_deepcopy(getattr(runner_db, "runner_parameters", {})) or {}
+        runner_params = (
+            fast_deepcopy_dict(getattr(runner_db, "runner_parameters", {})) or {}
+        )
     else:
         runner_params = {}
 
     if action_db:
-        action_params = fast_deepcopy(getattr(action_db, "parameters", {})) or {}
+        action_params = fast_deepcopy_dict(getattr(action_db, "parameters", {})) or {}
     else:
         action_params = {}
 

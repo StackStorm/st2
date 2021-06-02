@@ -10,12 +10,14 @@ jsonschema
 kombu
 mongoengine
 networkx
-git+https://github.com/StackStorm/orquesta.git@v1.3.0#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@v1.4.0#egg=orquesta
 git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backend
 oslo.config
 paramiko
 pyyaml
 pymongo
+# used for optional network level compression for mongodb
+zstandard
 cryptography
 requests
 retrying
@@ -25,18 +27,21 @@ tooz
 # Required by tooz - on new versions of tooz, all the backend dependencies need
 # to be installed manually
 zake
-ipaddr
+# default coordinator backend configured for tooz
+redis
 routes
 flex
 webob
 jsonpath-rw
 python-statsd
-ujson
+udatetime
+orjson
 # Note: amqp is used by kombu, this needs to be added here to be picked up by
 # requirements fixate script.
 amqp
 # Used by st2-pack-* commands
 gitpython
+gitdb
 lockfile
 # needed by requests
 chardet
