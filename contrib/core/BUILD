@@ -10,4 +10,6 @@ python_requirements(
     module_mapping={"mail-parser": ["mailparser"]},
 )
 
-python_sources()
+python_sources(
+    dependencies=[":metadata"],
+)
