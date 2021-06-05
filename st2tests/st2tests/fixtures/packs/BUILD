@@ -2,6 +2,12 @@
 # which is a git submodule.
 # The test_content_version* targets are dependencies of ./test_content_version_fixture
 
+unmatched_globs(
+    name="git_submodule",
+    dependencies=[":test_content_version", ":test_content_version_metadata"],
+    message_on_error="You need git submodules! Please init ... instructions",
+)
+
 pack_metadata(
     name="test_content_version_metadata",
     sources=[
