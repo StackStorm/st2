@@ -46,6 +46,7 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
 Contributors are using and occasionally contributing back to the project, might be active in conversations or express their opinion on the project’s direction.
 They're not part of the TSC voting process, but appreciated for their contribution, involvement and may become Maintainers in the future depending on their effort and involvement. See [How to become a Maintainer?](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#how-to-become-a-maintainer)
 [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and have permissions to help triage the Issues and review PRs.
+* Anand Patel ([@arms11](https://github.com/arms11)), _VMware_ - Docker, Kubernetes.
 * AJ Jonen ([@guzzijones](https://github.com/guzzijones)) - ST2 Web UI, Orquesta, Core.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
@@ -56,6 +57,7 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
+
 
 # Friends
 People that are currently not very active maintainers/contributors but who participated in and formed the project we have today.
