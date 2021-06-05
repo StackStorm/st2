@@ -2,7 +2,7 @@
 # which is a git submodule.
 # The test_content_version* targets are dependencies of ./test_content_version_fixture
 
-resources(
+pack_metadata(
     name="test_content_version_metadata",
     sources=[
         "test_content_version/pack.yaml",
