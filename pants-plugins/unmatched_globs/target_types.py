@@ -1,85 +1,98 @@
 import dataclasses
 
-from typing import Sequence
+from typing import Any, Dict, Optional, Sequence
+from typing_extensions import final
 
-from pants.engine.addresses import Address, Addresses
-from pants.engine.fs import (
-    GlobMatchErrorBehavior,
-    PathGlobs,
-    Paths,
+from pants.backend.python.target_types import (
+    InterpreterConstraintsField,
+    PythonLibrary,
+    PythonLibrarySources,
 )
-from pants.engine.rules import Get, MultiGet
+from pants.engine.addresses import Address
 from pants.engine.target import (
+    AsyncFieldMixin,
     COMMON_TARGET_FIELDS,
     Dependencies,
-    DependenciesRequest,
-    Sources,
     StringField,
     Target,
-    WrappedTarget,
 )
+from pants.engine.unions import UnionMembership
+
+from pack_metadata.target_types import PackMetadata, PackMetadataSources
 
 
-class MessageOnErrorField(StringField):
-    alias = "message_on_error"
+class UnmatchedGlobsError(Exception):
+    """Error thrown when a required set of globs didn't match."""
+
+
+class MessageOnUnmatchedGlobsField(StringField):
+    alias = "message_on_unmatched_globs"
     required = True
-    help = "The message to warn with when the dependency globs do not match."
+    help = "The message to warn with when the sources field has unmatched globs."
 
 
-# See `target_types_rules.py` for a dependency injection rule.
-class UnmatchedGlobsDependencies(Dependencies):
-    required = True
-
-
-class UnmatchedGlobsSources(Sources):
+class NoUnmatchedGlobsSourcesMixin(AsyncFieldMixin):
     def validate_resolved_files(self, files: Sequence[str]) -> None:
-        original_tgt: WrappedTarget = await Get(
-            WrappedTarget, Address, self.address
+        if not files:
+            raise UnmatchedGlobsError("inner unmatched globs error")
+
+
+class PythonLibrarySourcesNoUnmatchedGlobs(
+    NoUnmatchedGlobsSourcesMixin, PythonLibrarySources
+):
+    required = True
+
+
+class PackMetadataSourcesNoUnmatchedGlobs(
+    NoUnmatchedGlobsSourcesMixin, PackMetadataSources
+):
+    required = True
+
+
+class UnmatchedGlobsTargetMixin(Target):
+    @final
+    def __init__(
+        self,
+        unhydrated_values: Dict[str, Any],
+        address: Address,
+        *,
+        union_membership: Optional[UnionMembership] = None,
+    ) -> None:
+        unmatched_globs_error_msg = unhydrated_values.get(
+            MessageOnUnmatchedGlobsField.alias, "There were unmatched_globs!"
         )
-
-        error_message = original_tgt.target[MessageOnErrorField]
-
-        dependencies = await Get(
-            Addresses,
-            DependenciesRequest(original_tgt.target[UnmatchedGlobsDependencies])
-        )
-        dependency_targets = await MultiGet(
-            Get(WrappedTarget, Address, address)
-            for address in dependencies
-        )
-
-        sources_fields = [
-            wrapped_tgt.target.get(field)
-            for wrapped_tgt in dependency_targets
-            for field in wrapped_tgt.target
-            if (isinstance(field, Sources) and wrapped_tgt.target.get(field))
-        ]
-
-        path_globs = [
-            dataclasses.replace(
-                source_field.path_globs(),
-                glob_match_error_behavior=GlobMatchErrorBehavior.error,
-                description_of_origin=error_message,
+        try:
+            super(UnmatchedGlobsTargetMixin, self).__init__(
+                unhydrated_values, address, union_membership=union_membership
             )
-            for source_field in sources_fields
-        ]
-
-        # Use the engine to error when the globs do not match
-        await MultiGet(
-            Get(
-                Paths,
-                PathGlobs,
-                path_glob
-            ) for path_glob in path_globs
-        )
+        except UnmatchedGlobsError:
+            raise UnmatchedGlobsError(unmatched_globs_error_msg)
 
 
-class UnmatchedGlobsTarget(Target):
-    alias = "unmatched_globs"
+_unmatched_globs_help = """
+The *_no_unmatched_globs variant errors if the sources field has unmatched globs.
+When it errors, it prints the message from the `message_on_unmatched_globs` field.
+"""
+
+
+class PythonLibraryNoUnmatchedGlobs(UnmatchedGlobsTargetMixin, PythonLibrary):
+    alias = "python_library_no_unmatched_globs"
     core_fields = (
         *COMMON_TARGET_FIELDS,
-        UnmatchedGlobsSources,
-        UnmatchedGlobsDependencies,
-        MessageOnErrorField,
+        InterpreterConstraintsField,
+        Dependencies,
+        PythonLibrarySourcesNoUnmatchedGlobs,
+        MessageOnUnmatchedGlobsField,
     )
-    help = "Declare an error message to show when dependency globs do not match."
+    help = PythonLibrary.help + _unmatched_globs_help
+
+
+class PackMetadataNoUnmatchedGlobs(UnmatchedGlobsTargetMixin, PackMetadata):
+    alias = "pack_metadata_no_unmatched_globs"
+    core_fields = (
+        *COMMON_TARGET_FIELDS,
+        Dependencies,
+        PackMetadataSourcesNoUnmatchedGlobs,
+        MessageOnUnmatchedGlobsField,
+    )
+    help = PackMetadata.help + _unmatched_globs_help

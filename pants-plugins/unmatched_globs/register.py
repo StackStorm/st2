@@ -1,5 +1,8 @@
-from unmatched_globs.target_types import UnmatchedGlobsTarget
+from unmatched_globs.target_types import (
+    PackMetadataNoUnmatchedGlobs,
+    PythonLibraryNoUnmatchedGlobs,
+)
 
 
 def target_types():
-    return [UnmatchedGlobsTarget]
+    return [PackMetadataNoUnmatchedGlobs, PythonLibraryNoUnmatchedGlobs]
