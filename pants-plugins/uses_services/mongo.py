@@ -95,7 +95,7 @@ async def mongo_is_running(
             input_digest=script_digest,
             description=f"Checking to see if Mongo is up and accessible.",
             # this can change from run to run, so don't cache results.
-            cache_scope=ProcessCacheScope.NEVER,  # PER_RESTART isn't enough
+            cache_scope=ProcessCacheScope.PER_SESSION,
             level=LogLevel.DEBUG,
         )
     )
