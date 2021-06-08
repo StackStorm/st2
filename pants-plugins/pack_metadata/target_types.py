@@ -29,7 +29,12 @@ class PackMetadataInGitSubmoduleSources(PackMetadataSources):
 
     def validate_resolved_files(self, files: Sequence[str]) -> None:
         if not files:
-            raise UnmatchedGlobsError("Instructions go here")
+            raise UnmatchedGlobsError(
+                # see: st2tests.fixturesloader.GIT_SUBMODULES_NOT_CHECKED_OUT_ERROR
+                "One or more git submodules is not checked out. Make sure to run "
+                '"git submodule update --init --recursive"'
+                "in the repository root directory to check out all the submodules."
+            )
         super().validate_resolved_files(files)
 
 
