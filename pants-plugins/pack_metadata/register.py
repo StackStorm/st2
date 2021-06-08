@@ -1,5 +1,5 @@
 from pack_metadata import tailor
-from pack_metadata.target_types import PackMetadata
+from pack_metadata.target_types import PackMetadata, PackMetadataInGitSubmodule
 
 
 def rules():
@@ -7,4 +7,4 @@ def rules():
 
 
 def target_types():
-    return [PackMetadata]
+    return [PackMetadata, PackMetadataInGitSubmodule]
