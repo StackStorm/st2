@@ -1,5 +1,5 @@
 python_sources()
 
 shell_sources(
-    name="tools0",
+    name="shell",
 )

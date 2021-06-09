@@ -1,5 +1,5 @@
 python_sources()
 
 shell_sources(
-    name="v2.10",
+    name="shell",
 )
