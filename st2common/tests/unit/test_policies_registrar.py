@@ -27,7 +27,7 @@ import st2common.bootstrap.policiesregistrar as policies_registrar
 from st2common.persistence.policy import Policy
 from st2common.persistence.policy import PolicyType
 from st2tests.base import CleanDbTestCase
-from st2tests.fixturesloader import get_fixtures_packs_base_path
+from st2tests.fixtures.packs.all_packs_glob import PACKS_PATH
 from st2tests.fixtures.packs.dummy_pack_1.fixture import (
     PACK_NAME as DUMMY_PACK_1,
     PACK_PATH as DUMMY_PACK_1_PATH,
@@ -63,8 +63,7 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
         policies_dbs = Policy.get_all()
         self.assertEqual(len(policies_dbs), 0)
 
-        packs_base_path = get_fixtures_packs_base_path()
-        count = policies_registrar.register_policies(packs_base_paths=[packs_base_path])
+        count = policies_registrar.register_policies(packs_base_paths=[PACKS_PATH])
 
         # Verify PolicyDB objects have been created
         policies_dbs = Policy.get_all()

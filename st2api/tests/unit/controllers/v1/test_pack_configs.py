@@ -19,12 +19,13 @@ import mock
 
 from st2tests.api import FunctionalTest
 from st2api.controllers.v1.pack_configs import PackConfigsController
-from st2tests.fixturesloader import get_fixtures_packs_base_path
+
+# import this so that pants can infer dependencies for the glob below
+from st2tests.fixtures.packs.all_packs_glob import PACKS_PATH
 
 __all__ = ["PackConfigsControllerTestCase"]
 
-PACKS_PATH = get_fixtures_packs_base_path()
-CONFIGS_COUNT = len(glob.glob("%s/configs/*.yaml" % (PACKS_PATH)))
+CONFIGS_COUNT = len(glob.glob(f"{PACKS_PATH}/configs/*.yaml"))
 assert CONFIGS_COUNT > 1
 
 
