@@ -5,4 +5,5 @@ python_sources(
 shell_sources(
     name="shell",
     sources=["st2ctl", "st2-self-check", "st2-run-pack-tests"],
+    skip_shellcheck=True,
 )

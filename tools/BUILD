@@ -6,4 +6,5 @@ shell_sources(
         "*.sh",
         "st2-setup-*",
     ],
+    skip_shellcheck=True,
 )
