@@ -107,7 +107,7 @@ jobs:
 
   # Build & Test st2 packages
   packages:
-    parallelism: 4
+    parallelism: 3
     # 4CPUs & 8GB RAM CircleCI machine
     # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
