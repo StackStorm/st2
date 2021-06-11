@@ -52,7 +52,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         ]
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
         exit_code, _, stderr = run_command(cmd=cmd)
-        self.assertIn("Registered 1 actions.", stderr)
+        self.assertIn("Registered 3 actions.", stderr)
         self.assertEqual(exit_code, 0)
 
     def test_register_from_pack_fail_on_failure_pack_dir_doesnt_exist(self):

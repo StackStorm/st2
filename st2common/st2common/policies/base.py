@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import abc
 import importlib
 import inspect
@@ -56,23 +57,6 @@ class ResourcePolicyApplicator(object):
         :rtype: ``object``
         """
         return target
-
-    def _get_lock_name(self, values):
-        """
-        Return a safe string which can be used as a lock name.
-
-        :param values: Dictionary with values to use in the lock name.
-        :type values: ``dict``
-
-        :rtype: ``st``
-        """
-        lock_uid = []
-
-        for key, value in six.iteritems(values):
-            lock_uid.append("%s=%s" % (key, value))
-
-        lock_uid = ",".join(lock_uid)
-        return lock_uid
 
 
 def get_driver(policy_ref, policy_type, **parameters):

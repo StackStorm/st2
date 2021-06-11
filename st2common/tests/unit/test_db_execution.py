@@ -72,20 +72,47 @@ RESPOND_LIVEACTION = {
     "action": "st2.inquiry.respond",
 }
 
+OUTPUT_SCHEMA_RESULT = {
+    "stdout": "",
+    "stderr": "",
+    "result": {
+        "os_secret_param": "to_be_masked",
+        "os_non_secret_param": "not_to_be_masked",
+    },
+}
+
+OUTPUT_SCHEMA_LIVEACTION = {
+    "action": "core.ask",
+    "parameters": {},
+}
+
 ACTIONEXECUTIONS = {
     "execution_1": {
-        "action": {"uid": "action:core:ask"},
+        "action": {"uid": "action:core:ask", "output_schema": {}},
         "status": "succeeded",
         "runner": {"name": "inquirer"},
         "liveaction": INQUIRY_LIVEACTION,
         "result": INQUIRY_RESULT,
     },
     "execution_2": {
-        "action": {"uid": "action:st2:inquiry.respond"},
+        "action": {"uid": "action:st2:inquiry.respond", "output_schema": {}},
         "status": "succeeded",
         "runner": {"name": "python-script"},
         "liveaction": RESPOND_LIVEACTION,
         "result": {"exit_code": 0, "result": None, "stderr": "", "stdout": ""},
+    },
+    "execution_3": {
+        "action": {
+            "uid": "action:core:ask",
+            "output_schema": {
+                "os_secret_param": {"type": "string", "required": True, "secret": True},
+                "os_non_secret_param": {"type": "string", "required": True},
+            },
+        },
+        "status": "succeeded",
+        "runner": {"name": "inquirer", "output_key": "result"},
+        "liveaction": OUTPUT_SCHEMA_LIVEACTION,
+        "result": OUTPUT_SCHEMA_RESULT,
     },
 }
 
@@ -165,6 +192,24 @@ class ActionExecutionModelTest(DbTestCase):
         )
         for value in masked["parameters"]["response"].values():
             self.assertEqual(value, MASKED_ATTRIBUTE_VALUE)
+
+    def test_output_schema_secret_param_masking(self):
+        """Test that the output marked as secret in the output schema is masked in the output result
+
+        In this test case, one of the output parameters is marked as secret in the output schema
+        while the other output parameter is not marked as secret. The value of the first output
+        parameter should be masked in the output result.
+        """
+
+        masked = self.executions["execution_3"].mask_secrets(
+            self.executions["execution_3"].to_serializable_dict()
+        )
+        self.assertEqual(
+            masked["result"]["result"]["os_secret_param"], MASKED_ATTRIBUTE_VALUE
+        )
+        self.assertEqual(
+            masked["result"]["result"]["os_non_secret_param"], "not_to_be_masked"
+        )
 
     @staticmethod
     def _save_execution(execution):

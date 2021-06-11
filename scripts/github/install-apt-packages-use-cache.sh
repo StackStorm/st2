@@ -17,6 +17,14 @@ echo ""
 echo "CACHE_HIT=${CACHE_HIT}"
 echo ""
 
+# TODO: Recently using cached dependency started failing so I (@Kami) temporary disabled cache.
+# We should investigate why it's failing and try to fix it.
+sudo apt-get -y update
+# shellcheck disable=SC2086
+sudo apt-get -f -y --reinstall install ${APT_PACKAGES}
+sudo dpkg -l
+exit 0
+
 # Directory where installed package files will be copied - should match directory specified for
 # cache target in github actions workflow
 CACHE_DIRECTORY="${HOME}/apt_cache"
@@ -38,7 +46,7 @@ if [[ "$CACHE_HIT" != 'true' ]]; then
 fi
 
 # shellcheck disable=SC2086
-sudo apt-get -f -y install ${APT_PACKAGES}
+sudo apt-get -f -y --reinstall install ${APT_PACKAGES}
 
 ls -la "${APT_STATE_LISTS}"
 ls -la "${APT_CACHE_ARCHIVES}"
