@@ -3,14 +3,15 @@
 **StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product).
 
 [![Build Status](https://github.com/StackStorm/st2/actions/workflows/ci.yaml/badge.svg)](https://github.com/StackStorm/st2/actions/workflows/ci.yaml)
-[![Travis Integration Tests Status](https://api.travis-ci.com/StackStorm/st2.svg?branch=master)](https://travis-ci.com/github/StackStorm/st2/builds)
 [![Packages Build Status](https://circleci.com/gh/StackStorm/st2/tree/master.svg?style=shield)](https://circleci.com/gh/StackStorm/st2)
 [![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1833/badge)](https://bestpractices.coreinfrastructure.org/projects/1833)
-![Python 3.6](https://img.shields.io/badge/python-3.6-blue)
+![Python 3.6,3.8](https://img.shields.io/badge/python-3.6,%203.8-blue)
 [![Apache Licensed](https://img.shields.io/github/license/StackStorm/st2)](LICENSE)
 [![Join our community Slack](https://img.shields.io/badge/slack-stackstorm-success.svg?logo=slack)](https://stackstorm.com/community-signup)
+[![Code Search](https://img.shields.io/badge/code%20search-Sourcegraph-%2300B4F2?logo=sourcegraph)](https://sourcegraph.com/stackstorm)
 [![Forum](https://img.shields.io/discourse/https/forum.stackstorm.com/posts.svg)](https://forum.stackstorm.com/)
+[![Twitter Follow](https://img.shields.io/twitter/follow/StackStorm?style=social)](https://twitter.com/StackStorm/)
 
 ---
 
