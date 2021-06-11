@@ -616,7 +616,7 @@ class PacksControllerTestCase(
 
         self.assertEqual(resp.status_int, 200)
         # 13 real plus 1 mock runner
-        self.assertEqual(resp.json, {"actions": 1, "runners": 14})
+        self.assertEqual(resp.json, {"actions": 3, "runners": 14})
 
         # Verify that plural name form also works
         resp = self.app.post_json(
@@ -625,7 +625,7 @@ class PacksControllerTestCase(
 
         self.assertEqual(resp.status_int, 200)
         # 13 real plus 1 mock runner
-        self.assertEqual(resp.json, {"actions": 1, "runners": 14})
+        self.assertEqual(resp.json, {"actions": 3, "runners": 14})
 
         # Register single resource from a single pack specified multiple times - verify that
         # resources from the same pack are only registered once
@@ -640,7 +640,7 @@ class PacksControllerTestCase(
 
         self.assertEqual(resp.status_int, 200)
         # 13 real plus 1 mock runner
-        self.assertEqual(resp.json, {"actions": 1, "runners": 14})
+        self.assertEqual(resp.json, {"actions": 3, "runners": 14})
 
         # Register resources from a single (non-existent pack)
         resp = self.app.post_json(

@@ -1,0 +1,22 @@
+---
+name: my_http_action
+runner_type: http-request
+description: A simple mock http action for testing purposes.
+enabled: true
+entry_point: ''
+parameters:
+  url:
+    type: string
+    required: true
+    immutable: true
+    default: https://api.stackstorm.com
+output_schema:
+  k1:
+    type: string
+    required: true
+  k2:
+    type: string
+    required: true
+    secret: true
+  k3:
+    type: boolean
