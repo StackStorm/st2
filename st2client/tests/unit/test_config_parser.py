@@ -83,6 +83,11 @@ class CLIConfigParserTestCase(unittest2.TestCase):
         self.assertTrue(result["cli"]["cache_token"], True)
 
     def test_get_config_for_unicode_char(self):
+        '''
+        this test tests for config parameters with unicode characters and the % sign
+        the % sign interpolation is disabled since values are read with raw=True
+        details: https://docs.python.org/3.8/library/configparser.html#configparser.ConfigParser.get
+        '''
         parser = CLIConfigParser(
             config_file_path=CONFIG_FILE_PATH_UNICODE, validate_config_exists=False
         )
