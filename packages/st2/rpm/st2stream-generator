@@ -6,7 +6,7 @@ LATE_DIR=${3:-/tmp}
 
 ST2SVC="st2stream"
 DEFAULT_IP="127.0.0.1"
-DEFFALT_PORT="9102"
+DEFAULT_PORT="9102"
 
 function nolog() {
     true
@@ -32,7 +32,7 @@ log "Supplied directories: Early='${EARLY_DIR}' Normal='${NORMAL_DIR}' Late='${L
 BIND_HOST=$(/usr/bin/crudini --get /etc/st2/st2.conf ${ST2SVC:3} host 2>/dev/null || echo ${DEFAULT_IP})
 log "Host bind='${BIND_HOST}'"
 
-BIND_PORT=$(/usr/bin/crudini --get /etc/st2/st2.conf ${ST2SVC:3} port 2>/dev/null || echo ${DEFFALT_PORT})
+BIND_PORT=$(/usr/bin/crudini --get /etc/st2/st2.conf ${ST2SVC:3} port 2>/dev/null || echo ${DEFAULT_PORT})
 log "Host port='${BIND_PORT}'"
 
 writef "[Unit]"
