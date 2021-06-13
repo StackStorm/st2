@@ -1,9 +1,0 @@
-[Unit]
-Description=StackStorm st2auth Socket
-PartOf=st2auth.service
-
-[Socket]
-ListenStream=127.0.0.1:9100
-
-[Install]
-WantedBy=sockets.target

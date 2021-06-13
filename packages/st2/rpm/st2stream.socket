@@ -1,9 +1,0 @@
-[Unit]
-Description=StackStorm st2stream Socket
-PartOf=st2stream.service
-
-[Socket]
-ListenStream=127.0.0.1:9102
-
-[Install]
-WantedBy=sockets.target
