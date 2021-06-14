@@ -57,7 +57,7 @@ async def resolve_stevedore_entry_points(
                 [os.path.join(address.spec_path, entry_point.value.module)],
                 glob_match_error_behavior=GlobMatchErrorBehavior.error,
                 description_of_origin=f"{address}'s `{request.entry_points_field.alias}` field",
-            )
+            ),
         )
         for entry_point in request.entry_points_field.value
         if entry_point.value.module.endswith(".py")
@@ -89,7 +89,7 @@ async def resolve_stevedore_entry_points(
         Get(
             SourceRoot,
             SourceRootRequest,
-            SourceRootRequest.for_file(next(iter_entry_point_paths_results).files[0])
+            SourceRootRequest.for_file(next(iter_entry_point_paths_results).files[0]),
         )
         for entry_point in request.entry_points_field.value
         if entry_point.value.module.endswith(".py")
@@ -136,13 +136,13 @@ async def inject_stevedore_entry_points_dependencies(
     explicitly_provided_deps, entry_points = await MultiGet(
         Get(
             ExplicitlyProvidedDependencies,
-            DependenciesRequest(original_tgt.target[Dependencies])
+            DependenciesRequest(original_tgt.target[Dependencies]),
         ),
         Get(
             ResolvedStevedoreEntryPoints,
             ResolveStevedoreEntryPointsRequest(
                 original_tgt.target[StevedoreEntryPointsField]
-            )
+            ),
         ),
     )
     if entry_points.val is None:
