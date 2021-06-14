@@ -127,7 +127,7 @@ class StevedoreExtension(Target):
         StevedoreEntryPointsField,
         StevedoreDependencies,
     )
-    help = f"Entry points used to generate setuptools metadata for stevedore."
+    help = "Entry points used to generate setuptools metadata for stevedore."
 
 
 # This is a lot like a SpecialCasedDependencies field, but it doesn't list targets directly.
