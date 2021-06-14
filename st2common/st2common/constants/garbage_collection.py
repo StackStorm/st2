@@ -28,7 +28,7 @@ DEFAULT_COLLECTION_INTERVAL = 600
 DEFAULT_SLEEP_DELAY = 2
 
 # Minimum value for the TTL. If user supplies value lower than this, we will throw.
-MINIMUM_TTL_DAYS = 7
+MINIMUM_TTL_DAYS = 1
 
 # Minimum TTL in days for action execution output objects.
 MINIMUM_TTL_DAYS_EXECUTION_OUTPUT = 1
