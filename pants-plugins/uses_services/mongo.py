@@ -106,7 +106,7 @@ async def mongo_is_running(
             mongoengine_pex,
             argv=(script_path, db_host, str(db_port), db_name, str(connection_timeout)),
             input_digest=script_digest,
-            description=f"Checking to see if Mongo is up and accessible.",
+            description="Checking to see if Mongo is up and accessible.",
             # this can change from run to run, so don't cache results.
             cache_scope=ProcessCacheScope.PER_SESSION,
             level=LogLevel.DEBUG,
@@ -119,7 +119,7 @@ async def mongo_is_running(
 
     if platform.distro in ["centos", "rhel"] or "rhel" in platform.distro_like:
         instructions = dedent(
-            f"""\
+            """\
             If mongo is installed, but not running try:
 
             """

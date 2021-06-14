@@ -66,7 +66,7 @@ async def get_platform() -> Platform:
             distro_pex,
             argv=(script_path,),
             input_digest=script_digest,
-            description=f"Introspecting platform (arch, os, distro)",
+            description="Introspecting platform (arch, os, distro)",
             # this can change from run to run, so don't cache results.
             cache_scope=ProcessCacheScope.PER_RESTART_SUCCESSFULL,
             level=LogLevel.DEBUG,

@@ -34,7 +34,8 @@ class Platform:
 
 def _get_platform() -> Platform:
     # late import so that Platform can be imported in the pants plugin as well
-    import platform, distro
+    import distro
+    import platform
 
     return Platform(
         arch=platform.machine(),  # x86_64
