@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import os
 
 import st2common.bootstrap.triggersregistrar as triggers_registrar
 from st2common.persistence.trigger import Trigger

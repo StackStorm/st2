@@ -15,8 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 from oslo_config import cfg
 
 from st2common.util.monkey_patch import use_select_poll_workaround
