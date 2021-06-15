@@ -27,7 +27,7 @@ DEFAULT_COLLECTION_INTERVAL = 600
 # How to long to wait / sleep between collection of different object types (in seconds)
 DEFAULT_SLEEP_DELAY = 2
 
-# Minimum value for the TTL. If user supplies value lower than this, we will throw.
+# Minimum TTL in days for action executions and trigger instances.
 MINIMUM_TTL_DAYS = 1
 
 # Minimum TTL in days for action execution output objects.
