@@ -194,6 +194,12 @@ def update_execution(liveaction_db, publish=True, set_result_size=False):
                             on the "result_size" database field.
     """
     execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+    
+    # Skip execution object update when action is already in completed state.
+    if execution.status in action_constants.LIVEACTION_COMPLETED_STATES:
+        LOG.debug("[%s] Skipping execution update. Action execution state: %s" % (execution.id, execution.status))
+        return execution
+    
     decomposed = _decompose_liveaction(liveaction_db)
 
     kw = {}
