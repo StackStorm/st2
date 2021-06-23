@@ -18,8 +18,8 @@ flex==6.14.1
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/orquesta.git@v1.4.0#egg=orquesta
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
-git+https://github.com/StackStorm/st2-auth-ldap.git@master#egg=st2-auth-ldap
-git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backend
+git+https://github.com/StackStorm/st2-auth-ldap.git@v3.5#egg=st2-auth-ldap
+git+https://github.com/StackStorm/st2-rbac-backend.git@v3.5#egg=st2-rbac-backend
 gitdb==4.0.2
 gitpython==3.1.15
 greenlet==1.0.0
