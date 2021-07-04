@@ -1,4 +1,4 @@
-StackStorm was founded in 2013. After several acquisitions the project has finally joined [The Linux Foundation](https://www.linuxfoundation.org/projects/directory/) in 2019.<br>
+ StackStorm was founded in 2013. After several acquisitions the project has finally joined [The Linux Foundation](https://www.linuxfoundation.org/projects/directory/) in 2019.<br>
 
 This page lists active project maintainers and their areas of expertise. This can be used for routing PRs, discussions, questions and overall coordination.
 
@@ -46,16 +46,17 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
 Contributors are using and occasionally contributing back to the project, might be active in conversations or express their opinion on the project’s direction.
 They're not part of the TSC voting process, but appreciated for their contribution, involvement and may become Maintainers in the future depending on their effort and involvement. See [How to become a Maintainer?](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#how-to-become-a-maintainer)
 [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and have permissions to help triage the Issues and review PRs.
+* Anand Patel ([@arms11](https://github.com/arms11)), _VMware_ - Docker, Kubernetes.
 * AJ Jonen ([@guzzijones](https://github.com/guzzijones)) - ST2 Web UI, Orquesta, Core.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
 * Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ - StackStorm Exchange, ChatOps, Core, Discussions.
-* Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
 * Marcel Weinberg ([@winem](https://github.com/winem)) - Community, Docker, Core.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
+
 
 # Friends
 People that are currently not very active maintainers/contributors but who participated in and formed the project we have today.
@@ -76,6 +77,7 @@ Thank you, Friends!
 * Jinping Han ([@jinpingh](https://github.com/jinpingh)) - ex Stormer. Community, Core, Tests, Pack Dependencies.
 * Johan Dahlberg ([@johandahlberg](https://github.com/johandahlberg)) - Using st2 for Bioinformatics/Science project, providing feedback & contributions in Ansible, Community, Workflows. [Case Study](https://stackstorm.com/case-study-scilifelab/).
 * Johan Hermansson ([@johanherman](https://github.com/johanherman)) - Using st2 for Bioinformatics/Science project, feedback & contributions in Ansible, Community, Workflows. [Case Study](https://stackstorm.com/case-study-scilifelab/).
+* Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
 * Lakshmi Kannan ([@lakshmi-kannan](https://github.com/lakshmi-kannan)) - early Stormer. Initial Core platform architecture, scalability, reliability, Team Leadership during the project hard times.
 * Lindsay Hill ([@LindsayHill](https://github.com/LindsayHill)) - ex StackStorm product manager that made a significant impact building an ecosystem we see today.
 * Manas Kelshikar ([@manasdk](https://github.com/manasdk)) - ex Stormer. Developed (well) early core platform features.
