@@ -4,12 +4,16 @@ Changelog
 in development
 --------------
 
-Improvements
-~~~~~~~~~~~~
+Changed
+~~~~~~~
+
+* Fixed ``__init__.py`` files to use double quotes to better align with black linting #5299
+
+  Contributed by @blag.
+
 * Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
 
   Contributed by @ericreeves.
-
 
 3.5.0 - June 23, 2021
 ---------------------
@@ -272,7 +276,6 @@ Changed
 * Remove duplicate host header in the nginx config for the auth endpoint.
 
 * Update orquesta to v1.4.0.
-
 
 Improvements
 ~~~~~~~~~~~~
