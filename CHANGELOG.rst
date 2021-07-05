@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Improvements
+~~~~~~~~~~~~
+* Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
+
+  Contributed by @ericreeves.
+
 
 3.5.0 - June 23, 2021
 ---------------------
@@ -267,9 +273,6 @@ Changed
 
 * Update orquesta to v1.4.0.
 
-* Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
-
-  Contributed by @ericreeves.
 
 Improvements
 ~~~~~~~~~~~~
