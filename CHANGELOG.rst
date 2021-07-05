@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* Fixed ``__init__.py`` files to use double quotes to better align with black linting #5299
+
+  Contributed by @blag.
 
 3.5.0 - June 23, 2021
 ---------------------
