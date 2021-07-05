@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+3.5.0 - June 23, 2021
+---------------------
+
 Added
 ~~~~~
 
