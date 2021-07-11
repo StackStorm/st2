@@ -36,13 +36,13 @@ def register(linter):
     pass
 
 
-def infer_copy_deepcopy(node):
+def infer_copy_deepcopy(call_node):
     if not (
-        isinstance(node.value, nodes.Call)
-        and node.value.func.as_string() == "copy.deepcopy"
+        isinstance(call_node, nodes.Call)
+        and call_node.func.as_string() == "copy.deepcopy"
     ):
         return
-    return node.value.args[0].infer()
+    return next(call_node.args[0].infer())
 
 
 def transform(cls):
@@ -69,21 +69,20 @@ def transform(cls):
             assigns.remove(schema_assign_node)
 
             # We only care about "schema = copy.deepcopy(...)"
-            schema_dict_node = infer_copy_deepcopy(schema_assign_node)
+            schema_dict_node = infer_copy_deepcopy(schema_assign_node.value)
             if not schema_dict_node:
                 return
 
             for assign_node in assigns:
                 # schema["properties"]["ttl"] = {...}
                 target = assign_node.targets[0]
-                property_name_node = None
                 try:
                     if (
                         isinstance(target, nodes.Subscript)
                         and target.value.value.name == "schema"
                         and target.value.slice.value.value == "properties"
                     ):
-                        propery_name_node = target.slice.value
+                        property_name_node = target.slice.value
                     else:
                         # not schema["properties"]
                         continue
@@ -118,28 +117,59 @@ def transform(cls):
                 "-", "_"
             )  # Note: We do the same in Python code
 
+            # an indirect reference to copy.deepcopy() as in:
+            #   REQUIRED_ATTR_SCHEMAS = {"action": copy.deepcopy(ActionAPI.schema)}
+            #   schema = {"properties": {"action": REQUIRED_ATTR_SCHEMAS["action"]}}
+            if isinstance(property_data_node, nodes.Subscript):
+                var_name = property_data_node.value.name
+                subscript = property_data_node.slice.value.value
+
+                # lookup var by name (assume its at module level)
+                var_node = next(cls.root().igetattr(var_name))
+
+                # assume it is a dict at this point
+                data_node = None
+                for key_node, value_node in var_node.items:
+                    if key_node.value == subscript:
+                        # infer will resolve a Dict
+                        data_node = next(value_node.infer())
+                        if data_node is astroid.Uninferable:
+                            data_node = infer_copy_deepcopy(value_node)
+                        break
+                if data_node:
+                    property_data_node = data_node
+
+            if not isinstance(property_data_node, nodes.Dict):
+                # if infer_copy_deepcopy already ran, we may need to resolve the dict
+                data_node = next(property_data_node.infer())
+                if data_node is not astroid.Uninferable:
+                    property_data_node = data_node
+
             property_type_node = None
-            for property_key_node, property_value_node in property_data_node.items:
-                if property_key_node.value == "type":
-                    property_type_node = property_value_node
-                    break
-            if property_type_node and not isinstance(property_type_node, nodes.Dict):
-                # if infer_copy_deepcopy already ran, and now we need to resolve the dict
-                property_type_node = next(property_type_node.infer())
+            if isinstance(property_data_node, nodes.Dict):
+                for property_key_node, property_value_node in property_data_node.items:
+                    if property_key_node.value == "type":
+                        property_type_node = next(property_value_node.infer())
+                        break
 
-                # an indirect reference to copy.deepcopy() as in:
-                #   REQUIRED_ATTR_SCHEMAS = {"action": copy.deepcopy(ActionAPI.schema)}
-                #   schema = {"properties": {"action": REQUIRED_ATTR_SCHEMAS["action"]}}
-                node = infer_copy_deepcopy(property_type_node)
-
-                if node:
-                    property_type_node = node
-
-            property_type = property_type_node.value if property_type_node else None
-
-            if isinstance(property_type, (list, tuple)):
+            if property_type_node is None and isinstance(
+                property_data_node, nodes.Attribute
+            ):
+                # reference schema from another file
+                #   from ... import TriggerAPI
+                #   schema = {"properties": {"trigger": TriggerAPI.schema}}
+                property_type = "object"
+            elif property_type_node is None:
+                property_type = None
+            elif isinstance(property_type_node, nodes.Const):
+                property_type = property_type_node.value
+            elif isinstance(property_type_node, (nodes.List, nodes.Tuple)):
                 # Hack for attributes with multiple types (e.g. string, null)
-                property_type = property_type[0]
+                property_type = property_type_node.elts[
+                    0
+                ].value  # elts has "elements" in the list/tuple
+            else:
+                raise Exception(property_type_node.repr_tree())
 
             if property_type == "object":
                 node = nodes.Dict()
