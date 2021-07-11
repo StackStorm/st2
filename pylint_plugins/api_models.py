@@ -36,6 +36,15 @@ def register(linter):
     pass
 
 
+def infer_copy_deepcopy(node):
+    if not (
+        isinstance(node.value, nodes.Call)
+        and node.value.func.as_string() == "copy.deepcopy"
+    ):
+        return
+    return node.value.args[0].infer()
+
+
 def transform(cls):
     if cls.name in CLASS_NAME_BLACKLIST:
         return
@@ -43,24 +52,90 @@ def transform(cls):
     if cls.name.endswith("API") or "schema" in cls.locals:
         # This is a class which defines attributes in "schema" variable using json schema.
         # Those attributes are then assigned during run time inside the constructor
-        fqdn = cls.qname()
-        module_name, class_name = fqdn.rsplit(".", 1)
+        schema_dict_node = next(cls.igetattr("schema"))
 
-        module = __import__(module_name, fromlist=[class_name])
-        actual_cls = getattr(module, class_name)
+        extra_schema_properties = {}
 
-        schema = actual_cls.schema
+        if schema_dict_node is astroid.Uninferable:
+            # schema = copy.deepcopy(ActionAPI.schema)
 
-        if not isinstance(schema, dict):
-            # Not a class we are interested in
+            assigns = [n for n in cls.get_children() if isinstance(n, nodes.Assign)]
+            schema_assign_name_node = cls.local_attr("schema")[0]
+            schema_assign_node = next(
+                assign
+                for assign in assigns
+                if assign.targets[0] == schema_assign_name_node
+            )
+            assigns.remove(schema_assign_node)
+
+            # We only care about "schema = copy.deepcopy(...)"
+            schema_dict_node = infer_copy_deepcopy(schema_assign_node)
+            if not schema_dict_node:
+                return
+
+            for assign_node in assigns:
+                # schema["properties"]["ttl"] = {...}
+                target = assign_node.targets[0]
+                property_name_node = None
+                try:
+                    if (
+                        isinstance(target, nodes.Subscript)
+                        and target.value.value.name == "schema"
+                        and target.value.slice.value.value == "properties"
+                    ):
+                        propery_name_node = target.slice.value
+                    else:
+                        # not schema["properties"]
+                        continue
+                except AttributeError:
+                    continue
+
+                # schema["properties"]["execution"] = copy.deepcopy(ActionExecutionAPI.schema)
+                inferred_value = infer_copy_deepcopy(assign_node.value)
+
+                extra_schema_properties[property_name_node] = (
+                    inferred_value if inferred_value else assign_node.value
+                )
+
+        if not isinstance(schema_dict_node, nodes.Dict):
+            # Not a class we are interested in (like BaseAPI)
             return
 
-        properties = schema.get("properties", {})
-        for property_name, property_data in six.iteritems(properties):
-            property_name = property_name.replace(
+        properties_dict_node = None
+        for key_node, value_node in schema_dict_node.items:
+            if key_node.value == "properties":
+                properties_dict_node = value_node
+                break
+
+        if not properties_dict_node and not extra_schema_properties:
+            # Not a class we can do anything with
+            return
+
+        for property_name_node, property_data_node in properties_dict_node.items + list(
+            extra_schema_properties.items()
+        ):
+            property_name = property_name_node.value.replace(
                 "-", "_"
             )  # Note: We do the same in Python code
-            property_type = property_data.get("type", None)
+
+            property_type_node = None
+            for property_key_node, property_value_node in property_data_node.items:
+                if property_key_node.value == "type":
+                    property_type_node = property_value_node
+                    break
+            if property_type_node and not isinstance(property_type_node, nodes.Dict):
+                # if infer_copy_deepcopy already ran, and now we need to resolve the dict
+                property_type_node = next(property_type_node.infer())
+
+                # an indirect reference to copy.deepcopy() as in:
+                #   REQUIRED_ATTR_SCHEMAS = {"action": copy.deepcopy(ActionAPI.schema)}
+                #   schema = {"properties": {"action": REQUIRED_ATTR_SCHEMAS["action"]}}
+                node = infer_copy_deepcopy(property_type_node)
+
+                if node:
+                    property_type_node = node
+
+            property_type = property_type_node.value if property_type_node else None
 
             if isinstance(property_type, (list, tuple)):
                 # Hack for attributes with multiple types (e.g. string, null)
