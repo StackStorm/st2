@@ -22,7 +22,6 @@ constructor.
 """
 
 import astroid
-import six
 
 from astroid import MANAGER
 from astroid import nodes
