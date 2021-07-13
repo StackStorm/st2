@@ -1,5 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
-# Copyright 2019 Extreme Networks, Inc.
+# Copyright 2021 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,4 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "3.6dev"
+from __future__ import absolute_import
+
+from st2common.runners.base_action import Action
+
+
+class PyAction(Action):
+    def run(self, k1):
+        return {"k2": k1}

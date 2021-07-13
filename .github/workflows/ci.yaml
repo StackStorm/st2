@@ -41,26 +41,32 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
+        # NOTE: We need to use full Python version as part of Python deps cache key otherwise
+        # setup virtualenv step will fail.
         include:
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
-            python-version: '3.6'
+            python-version-short: '3.6'
+            python-version: '3.6.13'
           - name: 'Compile (pip deps, pylint, etc.)'
             task: 'ci-compile'
-            python-version: '3.6'
+            python-version-short: '3.6'
+            python-version: '3.6.13'
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
-            python-version: '3.8'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
           - name: 'Compile (pip deps, pylint, etc.)'
             task: 'ci-compile'
-            python-version: '3.8'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
 
     env:
       TASK: '${{ matrix.task }}'
@@ -95,9 +101,9 @@ jobs:
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-apt-v7-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v5-
+            ${{ runner.os }}-apt-v7-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
@@ -130,7 +136,7 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -142,26 +148,30 @@ jobs:
             task: 'ci-unit'
             nosetests_node_total: 2
             nosetests_node_index: 0
-            python-version: '3.6'
+            python-version-short: '3.6'
+            python-version: '3.6.13'
           - name: 'Unit Tests (chunk 2)'
             task: 'ci-unit'
             nosetests_node_total: 2
             nosetests_node_index: 1
-            python-version: '3.6'
+            python-version-short: '3.6'
+            python-version: '3.6.13'
           - name: 'Unit Tests (chunk 1)'
             task: 'ci-unit'
             nosetests_node_total: 2
             nosetests_node_index: 0
-            python-version: '3.8'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
           - name: 'Unit Tests (chunk 2)'
             task: 'ci-unit'
             nosetests_node_total: 2
             nosetests_node_index: 1
-            python-version: '3.8'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
-          #   python-version: '3.6'
+          #   python-version: '3.6.13'
           #   nosetests_node_total: 1
           #  nosetests_node_ index: 0
     services:
@@ -295,7 +305,7 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -309,32 +319,38 @@ jobs:
             task: 'ci-packs-tests'
             nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version: '3.6'
+            python-version-short: '3.6'
+            python-version: '3.6.13'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
             nosetests_node_total: 2
             nosetests_node_index: 0
-            python-version: '3.6'
+            python-version-short: '3.6'
+            python-version: '3.6.13'
           - name: 'Integration Tests (chunk 2)'
             task: 'ci-integration'
             nosetests_node_total: 2
             nosetests_node_index: 1
-            python-version: '3.6'
+            python-version-short: '3.6'
+            python-version: '3.6.13'
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
             nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version: '3.8'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
             nosetests_node_total: 2
             nosetests_node_index: 0
-            python-version: '3.8'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
           - name: 'Integration Tests (chunk 2)'
             task: 'ci-integration'
             nosetests_node_total: 2
             nosetests_node_index: 1
-            python-version: '3.8'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
     services:
       mongo:
         image: mongo:4.4
