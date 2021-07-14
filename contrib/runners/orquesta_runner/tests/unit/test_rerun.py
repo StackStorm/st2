@@ -33,7 +33,6 @@ from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
 from st2common.persistence import workflow as wf_db_access
 from st2common.services import action as action_service
-from st2common.services import executions as execution_service
 from st2common.services import workflows as workflow_service
 from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import workflow as wf_ex_xport
