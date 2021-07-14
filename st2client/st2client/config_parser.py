@@ -152,7 +152,7 @@ class CLIConfigParser(object):
                         msg = 'Invalid type "%s" for option "%s"' % (key_type, key)
                         raise ValueError(msg)
 
-                    value = get_func(section, key)
+                    value = get_func(section, key, raw=True)
                     result[section][key] = value
                 else:
                     result[section][key] = key_default_value
