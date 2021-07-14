@@ -52,7 +52,11 @@ PACKS = [
     st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
 
-RUNNER_RESULT_FAILED = (action_constants.LIVEACTION_STATUS_FAILED, {}, {})
+RUNNER_RESULT_FAILED = (
+    action_constants.LIVEACTION_STATUS_FAILED,
+    {"stderror": "..."},
+    {},
+)
 RUNNER_RESULT_RUNNING = (
     action_constants.LIVEACTION_STATUS_RUNNING,
     {"stdout": "..."},
@@ -216,10 +220,12 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         # Delete the workflow execution.
         wf_db_access.WorkflowExecution.delete(wf_ex_db, publish=False)
 
-        # Manually delete the workflow_execution_id from context of the action execution.
+        # Manually delete the workflow_execution_id from context of the liveaction.
         lv_ac_db1.context.pop("workflow_execution")
         lv_ac_db1 = lv_db_access.LiveAction.add_or_update(lv_ac_db1, publish=False)
-        ac_ex_db1 = execution_service.update_execution(lv_ac_db1, publish=False)
+        # Manually delete the workflow_execution_id from context of the action execution.
+        ac_ex_db1.context.pop("workflow_execution")
+        ac_ex_db1 = ex_db_access.ActionExecution.add_or_update(ac_ex_db1, publish=False)
 
         # Rerun the execution.
         context = {"re-run": {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}}

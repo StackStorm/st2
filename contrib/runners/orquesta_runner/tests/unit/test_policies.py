@@ -29,6 +29,7 @@ tests_config.parse_args()
 from tests.unit import base
 
 import st2common
+from local_runner import local_shell_command_runner
 from st2actions.notifier import notifier
 from st2actions.workflows import workflows
 from st2common.bootstrap import actionsregistrar
@@ -56,6 +57,8 @@ PACKS = [
     TEST_PACK_PATH,
     st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
+
+RUNNER_RESULT_FAILED = (ac_const.LIVEACTION_STATUS_FAILED, {"stderror": "..."}, {})
 
 
 @mock.patch.object(
@@ -114,6 +117,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         for ac_ex_db in ex_db_access.ActionExecution.get_all():
             ac_ex_db.delete()
 
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED]),
+    )
     def test_retry_policy_applied_on_workflow_failure(self):
         wf_name = "sequential"
         wf_ac_ref = TEST_PACK + "." + wf_name
@@ -158,6 +166,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         # Ensure execution is retried.
         self.assertEqual(len(lv_db_access.LiveAction.query(action=wf_ac_ref)), 2)
 
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED]),
+    )
     def test_no_retry_policy_applied_on_task_failure(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "subworkflow.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
