@@ -19,7 +19,6 @@ import sys
 
 import six
 import editor
-import warnings
 import yaml
 
 from st2client.models import Config
