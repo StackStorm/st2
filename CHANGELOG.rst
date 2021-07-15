@@ -7,7 +7,7 @@ in development
 Changed
 ~~~~~~~
 
-* Removed --python3 deprecated flag from st2client
+* Removed --python3 deprecated flag from st2client. #5305
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
