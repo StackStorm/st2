@@ -18,6 +18,7 @@ import os.path
 import stat
 import errno
 
+from oslo_config import cfg
 import six
 from mongoengine import ValidationError
 
@@ -235,9 +236,20 @@ class ActionsController(resource.ContentPackResourceController):
             ref_or_id,
             action_db,
         )
+        
+        BASE_PATH = cfg.CONF.system.base_path
+        pack_name = action_db["pack"]
+        entry_point = action_db["entry_point"]
+        metadate_file = action_db["metadata_file"]
+        ACTION_PYTHON_FILE_PATH = os.path.join(BASE_PATH, "packs", pack_name, "actions", entry_point)
+        ACTION_METADATA_FILE_PATH = os.path.join(BASE_PATH, "packs", pack_name, metadate_file)
 
         try:
             Action.delete(action_db)
+            if os.path.exists(ACTION_PYTHON_FILE_PATH):
+                os.remove(ACTION_PYTHON_FILE_PATH)
+            if os.path.exists(ACTION_METADATA_FILE_PATH):
+                os.remove(ACTION_METADATA_FILE_PATH)
         except Exception as e:
             LOG.error(
                 'Database delete encountered exception during delete of id="%s". '
