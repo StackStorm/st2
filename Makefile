@@ -7,10 +7,12 @@ OS := $(shell uname)
 ifeq ($(OS),Darwin)
 	VIRTUALENV_DIR ?= virtualenv-osx
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client-osx
+	VIRTUALENV_ST2CLIENT_PYPI_DIR ?= virtualenv-st2client-pypi-osx
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components-osx
 else
 	VIRTUALENV_DIR ?= virtualenv
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client
+	VIRTUALENV_ST2CLIENT_PYPI_DIR ?= virtualenv-st2client-pypi
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
@@ -477,6 +479,34 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 scripts/
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 tools/
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 pylint_plugins/
+
+# Make task which verifies st2client README will parse pypi checks
+. PHONY: .st2client-pypi-check
+st2client-pypi-check:
+	@echo
+	@echo "==================== st2client pypi check ===================="
+	@echo
+	test -f $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate || virtualenv --python=python3 $(VIRTUALENV_ST2CLIENT_PYPI_DIR) --no-download
+
+	# Setup PYTHONPATH in bash activate script...
+	# Delete existing entries (if any)
+	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	echo 'export PYTHONPATH' >> $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	touch $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	chmod +x $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/pip install --upgrade "readme_renderer"
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/pip install --upgrade "restructuredtext-lint"
+
+	# Check with readme-renderer
+	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m readme_renderer README.rst ; cd ..
+        # Check with old setup.py check - encounters errors that readme_renderer doesn't
+	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; rst-lint README.rst ; cd ..
 
 # Make task which verifies st2client installs and works fine
 .PHONY: .st2client-install-check
@@ -1105,7 +1135,7 @@ ci: ci-checks ci-unit ci-integration ci-packs-tests
 # NOTE: pylint is moved to ci-compile so we more evenly spread the load across
 # various different jobs to make the whole workflow complete faster
 .PHONY: ci-checks
-ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages .st2client-pypi-check
 
 .PHONY: .rst-check
 .rst-check:
