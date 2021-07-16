@@ -482,7 +482,7 @@ flake8: requirements .flake8
 
 # Make task which verifies st2client README will parse pypi checks
 . PHONY: .st2client-pypi-check
-st2client-pypi-check:
+.st2client-pypi-check:
 	@echo
 	@echo "==================== st2client pypi check ===================="
 	@echo
