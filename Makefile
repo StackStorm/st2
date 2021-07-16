@@ -506,7 +506,7 @@ flake8: requirements .flake8
 	# Check with readme-renderer
 	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m readme_renderer README.rst
         # Check with old setup.py check - encounters errors that readme_renderer doesn't
-	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; rst-lint README.rst 
+	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; rst-lint README.rst
 
 # Make task which verifies st2client installs and works fine
 .PHONY: .st2client-install-check
