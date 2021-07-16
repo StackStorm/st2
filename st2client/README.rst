@@ -4,7 +4,7 @@ StackStorm CLI and Python Client
 Install stable / production version from Python Package Index (PyPi)
 --------------------------------------------------------------------
 
-.. sourcecode:: bashc
+.. sourcecode:: bash
 
     pip install st2client
 
