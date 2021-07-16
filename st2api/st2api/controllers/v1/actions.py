@@ -246,10 +246,10 @@ class ActionsController(resource.ContentPackResourceController):
 
         try:
             Action.delete(action_db)
-            if os.path.exists(ACTION_PYTHON_FILE_PATH):
-                os.remove(ACTION_PYTHON_FILE_PATH)
-            if os.path.exists(ACTION_METADATA_FILE_PATH):
-                os.remove(ACTION_METADATA_FILE_PATH)
+            if os.path.exists(action_entrypoint_file_path):
+                os.remove(action_entrypoint_file_path)
+            if os.path.exists(action_metadata_file_path):
+                os.remove(action_metadata_file_path)
         except Exception as e:
             LOG.error(
                 'Database delete encountered exception during delete of id="%s". '
