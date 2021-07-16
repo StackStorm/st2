@@ -241,8 +241,12 @@ class ActionsController(resource.ContentPackResourceController):
         pack_name = action_db["pack"]
         entry_point = action_db["entry_point"]
         metadate_file = action_db["metadata_file"]
-        action_entrypoint_file_path = os.path.join(BASE_PATH, "packs", pack_name, "actions", entry_point)
-        action_metadata_file_path = os.path.join(BASE_PATH, "packs", pack_name, metadate_file)
+        action_entrypoint_file_path = os.path.join(
+            BASE_PATH, "packs", pack_name, "actions", entry_point
+        )
+        action_metadata_file_path = os.path.join(
+            BASE_PATH, "packs", pack_name, metadate_file
+        )
 
         try:
             Action.delete(action_db)
