@@ -5,7 +5,7 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-eventlet==0.30.2
+eventlet==0.31.0
 kombu==5.0.2
 oslo.config>=1.12.1,<1.13
 six==1.13.0

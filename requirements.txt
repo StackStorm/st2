@@ -13,7 +13,7 @@ bcrypt==3.2.0
 chardet<3.1.0
 cryptography==3.4.7
 dnspython>=1.16.0,<2.0.0
-eventlet==0.30.2
+eventlet==0.31.0
 flex==6.14.1
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/orquesta.git@v1.4.0#egg=orquesta
