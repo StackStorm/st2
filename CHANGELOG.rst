@@ -7,6 +7,11 @@ in development
 Changed
 ~~~~~~~
 
+* Removed --python3 deprecated flag from st2client. #5305
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+  Contributed by @blag.
 * Fixed ``__init__.py`` files to use double quotes to better align with black linting #5299
 
   Contributed by @blag.
