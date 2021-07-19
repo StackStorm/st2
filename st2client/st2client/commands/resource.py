@@ -35,6 +35,7 @@ from st2client import commands
 from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.utils.types import OrderedSet
+import st2client
 
 ALLOWED_EXTS = [".json", ".yaml", ".yml"]
 PARSER_FUNCS = {".json": json.load, ".yml": yaml.safe_load, ".yaml": yaml.safe_load}
@@ -735,16 +736,29 @@ class ResourceDeleteCommand(ResourceCommand):
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
-        self.manager.delete(instance, **kwargs)
+        if isinstance(instance, st2client.models.action.Action):
+            user_input = input(
+                "It will delete action files on disk as well. Do you want to continue? (y/n): "
+            )
+            if user_input.lower() == "y" or user_input.lower() == "yes":
+                self.manager.delete(instance, **kwargs)
+                print(
+                    'Resource with id "%s" has been successfully deleted from database and disk.'
+                    % (resource_id)
+                )
+            else:
+                print("Action is not deleted.")
+        else:
+            self.manager.delete(instance, **kwargs)
+            print(
+                'Resource with id "%s" has been successfully deleted.' % (resource_id)
+            )
 
     def run_and_print(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
 
         try:
             self.run(args, **kwargs)
-            print(
-                'Resource with id "%s" has been successfully deleted.' % (resource_id)
-            )
         except ResourceNotFoundError:
             self.print_not_found(resource_id)
             raise OperationFailureException("Resource %s not found." % resource_id)
