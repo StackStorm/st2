@@ -250,10 +250,37 @@ class ActionsController(resource.ContentPackResourceController):
 
         try:
             Action.delete(action_db)
+
             if os.path.exists(action_entrypoint_file_path):
-                os.remove(action_entrypoint_file_path)
+                try:
+                    os.remove(action_entrypoint_file_path)
+                except PermissionError:
+                    LOG.error(
+                        'No permission to delete the "%s" file',
+                        action_entrypoint_file_path,
+                    )
+                except Exception as e:
+                    LOG.error(
+                        'Unable to delete "%s" file. Exception was "%s"',
+                        action_entrypoint_file_path,
+                        e,
+                    )
+
             if os.path.exists(action_metadata_file_path):
-                os.remove(action_metadata_file_path)
+                try:
+                    os.remove(action_metadata_file_path)
+                except PermissionError:
+                    LOG.error(
+                        'No permission to delete the "%s" file',
+                        action_metadata_file_path,
+                    )
+                except Exception as e:
+                    LOG.error(
+                        'Unable to delete "%s" file. Exception was "%s"',
+                        action_metadata_file_path,
+                        e,
+                    )
+
         except Exception as e:
             LOG.error(
                 'Database delete encountered exception during delete of id="%s". '
