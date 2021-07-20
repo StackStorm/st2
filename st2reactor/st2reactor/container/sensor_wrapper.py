@@ -435,7 +435,6 @@ if __name__ == "__main__":
     if not isinstance(parent_args, list):
         raise TypeError(
             "Command line arguments passed to the parent process must be a list"
-            f" (was {type(parent_args)})."
         )
 
     obj = SensorWrapper(
