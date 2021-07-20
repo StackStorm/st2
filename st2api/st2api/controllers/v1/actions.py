@@ -18,9 +18,9 @@ import os.path
 import stat
 import errno
 
+from mongoengine import ValidationError
 from oslo_config import cfg
 import six
-from mongoengine import ValidationError
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
@@ -236,7 +236,7 @@ class ActionsController(resource.ContentPackResourceController):
             ref_or_id,
             action_db,
         )
-        
+
         BASE_PATH = cfg.CONF.system.base_path
         pack_name = action_db["pack"]
         entry_point = action_db["entry_point"]
