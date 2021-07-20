@@ -13,4 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "3.6dev"
+from __future__ import absolute_import
+from st2common.runners.base_action import Action
+
+
+class MyAction(Action):
+    def run(self):
+        k1 = "xyz"
+        k2 = "abc"
+        k3 = True
+        return {"k1": k1, "k2": k2, "k3": k3}

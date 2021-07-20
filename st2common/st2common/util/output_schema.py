@@ -12,14 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys
-import logging
 
+import logging
+import sys
 import traceback
 import jsonschema
 
 from st2common.util import schema
 from st2common.constants import action as action_constants
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 
 LOG = logging.getLogger(__name__)
@@ -49,6 +50,29 @@ def _validate_action(action_schema, result, output_key):
     }
 
     schema.validate(final_result, action_schema, cls=schema.get_validator("custom"))
+
+
+def mask_secret_output(ac_ex, output_value):
+    if not output_value:
+        return output_value
+
+    if not isinstance(output_value, dict) and not isinstance(output_value, list):
+        return output_value
+
+    output_key = ac_ex["runner"].get("output_key")
+    output_schema = ac_ex["action"].get("output_schema")
+
+    if not output_key or not output_schema:
+        return output_value
+
+    if not output_value.get(output_key):
+        return output_value
+
+    for key, spec in output_schema.items():
+        if key in output_value[output_key] and spec.get("secret", False):
+            output_value[output_key][key] = MASKED_ATTRIBUTE_VALUE
+
+    return output_value
 
 
 def validate_output(runner_schema, action_schema, result, status, output_key):
