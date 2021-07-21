@@ -993,6 +993,7 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         )[0]
         tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
         self.assertEqual(tk1_lv_ac_db.context.get("user"), username)
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
 
         # Action execution result can contain dotted notation so ensure this is tested.
         result = {"127.0.0.1": {"hostname": "foobar"}}

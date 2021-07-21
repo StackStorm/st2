@@ -182,6 +182,9 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         )
         self.assertEqual(len(execution.log), 1)
         # Check status is not updated if it's already in completed state.
+        self.assertEqual(
+            pre_update_status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
         self.assertEqual(execution.log[0]["status"], pre_update_status)
 
     @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())

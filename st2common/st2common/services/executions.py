@@ -198,8 +198,8 @@ def update_execution(liveaction_db, publish=True, set_result_size=False):
     # Skip execution object update when action is already in completed state.
     if execution.status in action_constants.LIVEACTION_COMPLETED_STATES:
         LOG.debug(
-            "[%s] Skipping execution update. Action execution state: %s"
-            % (execution.id, execution.status)
+            "[%s] Action is already in completed state: %s. Skipping execution update to state: %s."
+            % (execution.id, execution.status, liveaction_db.status)
         )
         return execution
 
