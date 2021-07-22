@@ -69,8 +69,9 @@ def mask_secret_output(ac_ex, output_value):
         return output_value
 
     for key, spec in output_schema.items():
-        if key in output_value[output_key] and spec.get("secret", False):
-            output_value[output_key][key] = MASKED_ATTRIBUTE_VALUE
+        if not isinstance(output_value[output_key], bool):
+            if key in output_value[output_key] and spec.get("secret", False):
+                output_value[output_key][key] = MASKED_ATTRIBUTE_VALUE
 
     return output_value
 
