@@ -24,7 +24,6 @@ from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 
-
 LOG = logging.getLogger(__name__)
 
 
