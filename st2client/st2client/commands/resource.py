@@ -756,7 +756,7 @@ class ResourceDeleteCommand(ResourceCommand):
                 if user_input.lower() == "y" or user_input.lower() == "yes":
                     self.manager.delete(instance, **kwargs)
                     print(
-                        'Resource with id "%s" has been successfully deleted from database and disk.'
+                        'Resource with id "%s" has been successfully deleted from db and disk.'
                         % (resource_id)
                     )
                 else:
