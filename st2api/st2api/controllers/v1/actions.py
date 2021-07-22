@@ -19,7 +19,6 @@ import stat
 import errno
 
 from mongoengine import ValidationError
-from oslo_config import cfg
 import six
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
@@ -43,6 +42,7 @@ from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_pack_resource_file_abs_path
 from st2common.content.utils import get_relative_path_to_pack_file
+from st2common.services.packs import delete_action_files_from_pack
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
@@ -237,50 +237,17 @@ class ActionsController(resource.ContentPackResourceController):
             action_db,
         )
 
-        BASE_PATH = cfg.CONF.system.base_path
         pack_name = action_db["pack"]
         entry_point = action_db["entry_point"]
-        metadate_file = action_db["metadata_file"]
-        action_entrypoint_file_path = os.path.join(
-            BASE_PATH, "packs", pack_name, "actions", entry_point
-        )
-        action_metadata_file_path = os.path.join(
-            BASE_PATH, "packs", pack_name, metadate_file
-        )
+        metadata_file = action_db["metadata_file"]
 
         try:
             Action.delete(action_db)
-
-            if os.path.exists(action_entrypoint_file_path):
-                try:
-                    os.remove(action_entrypoint_file_path)
-                except PermissionError:
-                    LOG.error(
-                        'No permission to delete the "%s" file',
-                        action_entrypoint_file_path,
-                    )
-                except Exception as e:
-                    LOG.error(
-                        'Unable to delete "%s" file. Exception was "%s"',
-                        action_entrypoint_file_path,
-                        e,
-                    )
-
-            if os.path.exists(action_metadata_file_path):
-                try:
-                    os.remove(action_metadata_file_path)
-                except PermissionError:
-                    LOG.error(
-                        'No permission to delete the "%s" file',
-                        action_metadata_file_path,
-                    )
-                except Exception as e:
-                    LOG.error(
-                        'Unable to delete "%s" file. Exception was "%s"',
-                        action_metadata_file_path,
-                        e,
-                    )
-
+            delete_action_files_from_pack(
+                pack_name=pack_name,
+                entry_point=entry_point,
+                metadata_file=metadata_file,
+            )
         except Exception as e:
             LOG.error(
                 'Database delete encountered exception during delete of id="%s". '
