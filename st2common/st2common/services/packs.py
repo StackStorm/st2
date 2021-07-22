@@ -219,6 +219,7 @@ def search_pack_index(
 
     return list(itertools.chain.from_iterable(matches))
 
+
 def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
     """
     Prepares the path for entry_point file and metadata file of action and
