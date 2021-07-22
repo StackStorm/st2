@@ -732,27 +732,41 @@ class ResourceDeleteCommand(ResourceCommand):
 
         self.parser.add_argument(argument, metavar=metavar, help=help)
 
+        self.parser.add_argument(
+            "--yes",
+            action="store_true",
+            help="Auto yes flag to delete action files from disk.",
+        )        
+
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
-        if isinstance(instance, st2client.models.action.Action):
-            user_input = input(
-                "It will delete action files on disk as well. Do you want to continue? (y/n): "
-            )
-            if user_input.lower() == "y" or user_input.lower() == "yes":
-                self.manager.delete(instance, **kwargs)
-                print(
-                    'Resource with id "%s" has been successfully deleted from database and disk.'
-                    % (resource_id)
-                )
-            else:
-                print("Action is not deleted.")
-        else:
+        if args.yes:
             self.manager.delete(instance, **kwargs)
             print(
-                'Resource with id "%s" has been successfully deleted.' % (resource_id)
+                'Resource with id "%s" has been successfully deleted from database and disk.'
+                % (resource_id)
             )
+        else:
+            if isinstance(instance, st2client.models.action.Action):
+                user_input = input(
+                    "It will delete action files on disk as well. Do you want to continue? (y/n): "
+                )
+                if user_input.lower() == "y" or user_input.lower() == "yes":
+                    self.manager.delete(instance, **kwargs)
+                    print(
+                        'Resource with id "%s" has been successfully deleted from database and disk.'
+                        % (resource_id)
+                    )
+                else:
+                    print("Action is not deleted.")
+            else:
+                self.manager.delete(instance, **kwargs)
+                print(
+                    'Resource with id "%s" has been successfully deleted.'
+                    % (resource_id)
+                )
 
     def run_and_print(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
