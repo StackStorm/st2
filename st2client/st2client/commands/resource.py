@@ -736,7 +736,7 @@ class ResourceDeleteCommand(ResourceCommand):
             "--yes",
             action="store_true",
             help="Auto yes flag to delete action files from disk.",
-        )        
+        )
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
