@@ -23,11 +23,7 @@ from st2common.exceptions.db import StackStormDBObjectConflictError
 
 LOG = logging.getLogger(__name__)
 
-__all__ = [
-    'run_all',
-
-    'insert_system_roles'
-]
+__all__ = ["run_all", "insert_system_roles"]
 
 
 def run_all():
@@ -40,7 +36,7 @@ def insert_system_roles():
     """
     system_roles = SystemRole.get_valid_values()
 
-    LOG.debug('Inserting system roles (%s)' % (str(system_roles)))
+    LOG.debug("Inserting system roles (%s)" % (str(system_roles)))
 
     for role_name in system_roles:
         description = role_name

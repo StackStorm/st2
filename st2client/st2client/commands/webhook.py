@@ -23,37 +23,47 @@ from st2client.models import Webhook
 class WebhookBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(WebhookBranch, self).__init__(
-            Webhook, description, app, subparsers,
+            Webhook,
+            description,
+            app,
+            subparsers,
             parent_parser=parent_parser,
             read_only=True,
-            commands={
-                'list': WebhookListCommand,
-                'get': WebhookGetCommand
-            })
+            commands={"list": WebhookListCommand, "get": WebhookGetCommand},
+        )
 
 
 class WebhookListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['url', 'type', 'description']
+    display_attributes = ["url", "type", "description"]
 
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
 
         for instance in instances:
-            instance.url = instance.parameters['url']
+            instance.url = instance.parameters["url"]
 
         instances = sorted(instances, key=lambda k: k.url)
 
         if args.json or args.yaml:
-            self.print_output(instances, table.MultiColumnTable,
-                              attributes=args.attr, widths=args.width,
-                              json=args.json, yaml=args.yaml)
+            self.print_output(
+                instances,
+                table.MultiColumnTable,
+                attributes=args.attr,
+                widths=args.width,
+                json=args.json,
+                yaml=args.yaml,
+            )
         else:
-            self.print_output(instances, table.MultiColumnTable,
-                              attributes=args.attr, widths=args.width)
+            self.print_output(
+                instances,
+                table.MultiColumnTable,
+                attributes=args.attr,
+                widths=args.width,
+            )
 
 
 class WebhookGetCommand(resource.ResourceGetCommand):
-    display_attributes = ['all']
-    attribute_display_order = ['type', 'description']
+    display_attributes = ["all"]
+    attribute_display_order = ["type", "description"]
 
-    pk_argument_name = 'url'
+    pk_argument_name = "url"

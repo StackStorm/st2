@@ -23,9 +23,7 @@ import st2common.util.jsonify as jsonify
 
 LOG = logging.getLogger(__name__)
 
-__all__ = [
-    'get_runner'
-]
+__all__ = ["get_runner"]
 
 
 def get_runner():
@@ -36,6 +34,7 @@ class MockRunner(ActionRunner):
     """
     Runner which does absolutely nothing.
     """
+
     KEYS_TO_TRANSFORM = []
 
     def __init__(self, runner_id):
@@ -47,9 +46,9 @@ class MockRunner(ActionRunner):
     def run(self, action_parameters):
 
         result = {
-            'failed': False,
-            'succeeded': True,
-            'return_code': 0,
+            "failed": False,
+            "succeeded": True,
+            "return_code": 0,
         }
 
         status = LIVEACTION_STATUS_SUCCEEDED

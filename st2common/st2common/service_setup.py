@@ -22,6 +22,7 @@ from __future__ import absolute_import
 import os
 import sys
 import traceback
+import locale
 import logging as stdlib_logging
 
 import six
@@ -43,6 +44,7 @@ from st2common.util import system_info
 from st2common.services import coordination
 from st2common.logging.misc import add_global_filters_for_all_loggers
 from st2common.constants.error_messages import PYTHON2_DEPRECATION
+from st2common.services.coordination import get_driver_name
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
@@ -53,22 +55,42 @@ from st2common.metrics.base import metrics_initialize
 
 
 __all__ = [
-    'setup',
-    'teardown',
-
-    'db_setup',
-    'db_teardown',
-
-    'register_service_in_service_registry'
+    "setup",
+    "teardown",
+    "db_setup",
+    "db_teardown",
+    "register_service_in_service_registry",
 ]
+
+# Message which is logged if non utf-8 locale is detected on startup.
+NON_UTF8_LOCALE_WARNING_MSG = """
+Detected a non utf-8 locale / encoding (fs encoding: %s, default encoding: %s, locale: %s).
+Using non utf-8 locale while working with unicode data will result in exceptions and undefined
+behavior.
+You are strongly encouraged to configure all the StackStorm services to use utf-8 encoding (e.g.
+LANG=en_US.UTF-8).
+""".strip().replace(
+    "\n", " "
+)
+
+VALID_UTF8_ENCODINGS = ["utf8", "utf-8"]
 
 LOG = logging.getLogger(__name__)
 
 
-def setup(service, config, setup_db=True, register_mq_exchanges=True,
-          register_signal_handlers=True, register_internal_trigger_types=False,
-          run_migrations=True, register_runners=True, service_registry=False,
-          capabilities=None, config_args=None):
+def setup(
+    service,
+    config,
+    setup_db=True,
+    register_mq_exchanges=True,
+    register_signal_handlers=True,
+    register_internal_trigger_types=False,
+    run_migrations=True,
+    register_runners=True,
+    service_registry=False,
+    capabilities=None,
+    config_args=None,
+):
     """
     Common setup function.
 
@@ -99,29 +121,78 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     else:
         config.parse_args()
 
-    version = '%s.%s.%s' % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
-    LOG.debug('Using Python: %s (%s)' % (version, sys.executable))
+    version = "%s.%s.%s" % (
+        sys.version_info[0],
+        sys.version_info[1],
+        sys.version_info[2],
+    )
+
+    # We print locale related info to make it easier to troubleshoot issues where locale is not
+    # set correctly (e.g. using C / ascii, but services are trying to work with unicode data
+    # would result in things blowing up)
+
+    fs_encoding = sys.getfilesystemencoding()
+    default_encoding = sys.getdefaultencoding()
+    lang_env = os.environ.get("LANG", "unknown")
+    lang_env = os.environ.get("LANG", "notset")
+    pythonioencoding_env = os.environ.get("PYTHONIOENCODING", "notset")
+
+    try:
+        language_code, encoding = locale.getdefaultlocale()
+
+        if language_code and encoding:
+            used_locale = ".".join([language_code, encoding])
+        else:
+            used_locale = "unable to retrieve locale"
+    except Exception as e:
+        used_locale = "unable to retrieve locale: %s " % (str(e))
+        encoding = "unknown"
+
+    LOG.info("Using Python: %s (%s)" % (version, sys.executable))
+    LOG.info(
+        "Using fs encoding: %s, default encoding: %s, locale: %s, LANG env variable: %s, "
+        "PYTHONIOENCODING env variable: %s"
+        % (fs_encoding, default_encoding, lang_env, used_locale, pythonioencoding_env)
+    )
 
     config_file_paths = cfg.CONF.config_file
     config_file_paths = [os.path.abspath(path) for path in config_file_paths]
-    LOG.debug('Using config files: %s', ','.join(config_file_paths))
+    LOG.info("Using config files: %s", ",".join(config_file_paths))
 
     # Setup logging.
     logging_config_path = config.get_logging_config_path()
     logging_config_path = os.path.abspath(logging_config_path)
 
-    LOG.debug('Using logging config: %s', logging_config_path)
+    LOG.info("Using logging config: %s", logging_config_path)
+    LOG.info("Using coordination driver: %s", get_driver_name())
+    LOG.info("Using metrics driver: %s", cfg.CONF.metrics.driver)
 
-    is_debug_enabled = (cfg.CONF.debug or cfg.CONF.system.debug)
+    # Warn on non utf-8 locale which could cause issues when running under Python 3 and working
+    # with unicode data
+    if (
+        fs_encoding.lower() not in VALID_UTF8_ENCODINGS
+        or encoding.lower() not in VALID_UTF8_ENCODINGS
+    ):
+        LOG.warning(
+            NON_UTF8_LOCALE_WARNING_MSG
+            % (fs_encoding, default_encoding, used_locale.strip())
+        )
+
+    is_debug_enabled = cfg.CONF.debug or cfg.CONF.system.debug
 
     try:
-        logging.setup(logging_config_path, redirect_stderr=cfg.CONF.log.redirect_stderr,
-                      excludes=cfg.CONF.log.excludes)
+        logging.setup(
+            logging_config_path,
+            redirect_stderr=cfg.CONF.log.redirect_stderr,
+            excludes=cfg.CONF.log.excludes,
+        )
     except KeyError as e:
         tb_msg = traceback.format_exc()
-        if 'log.setLevel' in tb_msg:
-            msg = 'Invalid log level selected. Log level names need to be all uppercase.'
-            msg += '\n\n' + getattr(e, 'message', six.text_type(e))
+        if "log.setLevel" in tb_msg:
+            msg = (
+                "Invalid log level selected. Log level names need to be all uppercase."
+            )
+            msg += "\n\n" + getattr(e, "message", six.text_type(e))
             raise KeyError(msg)
         else:
             raise e
@@ -134,10 +205,21 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         # duplicate "AUDIT" messages in production deployments where default service log level is
         # set to "INFO" and we already log messages with level AUDIT to a special dedicated log
         # file.
-        ignore_audit_log_messages = (handler.level >= stdlib_logging.INFO and
-                                     handler.level < stdlib_logging.AUDIT)
+        ignore_audit_log_messages = (
+            handler.level >= stdlib_logging.INFO
+            and handler.level < stdlib_logging.AUDIT
+        )
         if not is_debug_enabled and ignore_audit_log_messages:
-            LOG.debug('Excluding log messages with level "AUDIT" for handler "%s"' % (handler))
+            try:
+                handler_repr = str(handler)
+            except TypeError:
+                # In case handler doesn't have name assigned, repr would throw
+                handler_repr = "unknown"
+
+            LOG.debug(
+                'Excluding log messages with level "AUDIT" for handler "%s"'
+                % (handler_repr)
+            )
             handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
 
     if not is_debug_enabled:
@@ -184,8 +266,9 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     # Register service in the service registry
     if cfg.CONF.coordination.service_registry and service_registry:
         # NOTE: It's important that we pass start_heart=True to start the hearbeat process
-        register_service_in_service_registry(service=service, capabilities=capabilities,
-                                             start_heart=True)
+        register_service_in_service_registry(
+            service=service, capabilities=capabilities, start_heart=True
+        )
 
     if sys.version_info[0] == 2:
         LOG.warning(PYTHON2_DEPRECATION)
@@ -220,7 +303,7 @@ def register_service_in_service_registry(service, capabilities=None, start_heart
 
     # 1. Create a group with the name of the service
     if not isinstance(service, six.binary_type):
-        group_id = service.encode('utf-8')
+        group_id = service.encode("utf-8")
     else:
         group_id = service
 
@@ -231,10 +314,12 @@ def register_service_in_service_registry(service, capabilities=None, start_heart
 
     # Include common capabilities such as hostname and process ID
     proc_info = system_info.get_process_info()
-    capabilities['hostname'] = proc_info['hostname']
-    capabilities['pid'] = proc_info['pid']
+    capabilities["hostname"] = proc_info["hostname"]
+    capabilities["pid"] = proc_info["pid"]
 
     # 1. Join the group as a member
-    LOG.debug('Joining service registry group "%s" as member_id "%s" with capabilities "%s"' %
-              (group_id, member_id, capabilities))
+    LOG.debug(
+        'Joining service registry group "%s" as member_id "%s" with capabilities "%s"'
+        % (group_id, member_id, capabilities)
+    )
     return coordinator.join_group(group_id, capabilities=capabilities).get()

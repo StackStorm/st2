@@ -27,14 +27,11 @@ from st2common import log as logging
 
 
 __all__ = [
-    'PackConfigDict',
-
-    'get_logger_for_python_runner_action',
-    'get_action_class_instance',
-
-    'make_read_and_store_stream_func',
-
-    'invoke_post_run',
+    "PackConfigDict",
+    "get_logger_for_python_runner_action",
+    "get_action_class_instance",
+    "make_read_and_store_stream_func",
+    "invoke_post_run",
 ]
 
 LOG = logging.getLogger(__name__)
@@ -61,6 +58,7 @@ class PackConfigDict(dict):
     This class throws a user-friendly exception in case user tries to access config item which
     doesn't exist in the dict.
     """
+
     def __init__(self, pack_name, *args):
         super(PackConfigDict, self).__init__(*args)
         self._pack_name = pack_name
@@ -72,8 +70,8 @@ class PackConfigDict(dict):
             # Note: We use late import to avoid performance overhead
             from oslo_config import cfg
 
-            configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
-            config_path = os.path.join(configs_path, self._pack_name + '.yaml')
+            configs_path = os.path.join(cfg.CONF.system.base_path, "configs/")
+            config_path = os.path.join(configs_path, self._pack_name + ".yaml")
             msg = CONFIG_MISSING_ITEM_ERROR % (self._pack_name, key, config_path)
             raise ValueError(msg)
 
@@ -83,11 +81,11 @@ class PackConfigDict(dict):
         super(PackConfigDict, self).__setitem__(key, value)
 
 
-def get_logger_for_python_runner_action(action_name, log_level='debug'):
+def get_logger_for_python_runner_action(action_name, log_level="debug"):
     """
     Set up a logger which logs all the messages with level DEBUG and above to stderr.
     """
-    logger_name = 'actions.python.%s' % (action_name)
+    logger_name = "actions.python.%s" % (action_name)
 
     if logger_name not in LOGGERS:
         level_name = log_level.upper()
@@ -97,7 +95,7 @@ def get_logger_for_python_runner_action(action_name, log_level='debug'):
         console = stdlib_logging.StreamHandler()
         console.setLevel(log_level_constant)
 
-        formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        formatter = stdlib_logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s")
         console.setFormatter(formatter)
         logger.addHandler(console)
         logger.setLevel(log_level_constant)
@@ -123,8 +121,8 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
     :type action_service: :class:`ActionService`
     """
     kwargs = {}
-    kwargs['config'] = config
-    kwargs['action_service'] = action_service
+    kwargs["config"] = config
+    kwargs["action_service"] = action_service
 
     # Note: This is done for backward compatibility reasons. We first try to pass
     # "action_service" argument to the action class constructor, but if that doesn't work (e.g. old
@@ -133,13 +131,15 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
     try:
         action_instance = action_cls(**kwargs)
     except TypeError as e:
-        if 'unexpected keyword argument \'action_service\'' not in six.text_type(e):
+        if "unexpected keyword argument 'action_service'" not in six.text_type(e):
             raise e
 
-        LOG.debug('Action class (%s) constructor doesn\'t take "action_service" argument, '
-                  'falling back to late assignment...' % (action_cls.__class__.__name__))
+        LOG.debug(
+            'Action class (%s) constructor doesn\'t take "action_service" argument, '
+            "falling back to late assignment..." % (action_cls.__class__.__name__)
+        )
 
-        action_service = kwargs.pop('action_service', None)
+        action_service = kwargs.pop("action_service", None)
         action_instance = action_cls(**kwargs)
         action_instance.action_service = action_service
 
@@ -166,7 +166,7 @@ def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
                     break
 
                 if isinstance(line, six.binary_type):
-                    line = line.decode('utf-8')
+                    line = line.decode("utf-8")
 
                 buff.write(line)
 
@@ -175,7 +175,9 @@ def make_read_and_store_stream_func(execution_db, action_db, store_data_func):
                     continue
 
                 if cfg.CONF.actionrunner.stream_output:
-                    store_data_func(execution_db=execution_db, action_db=action_db, data=line)
+                    store_data_func(
+                        execution_db=execution_db, action_db=action_db, data=line
+                    )
         except RuntimeError:
             # process was terminated abruptly
             pass
@@ -193,31 +195,40 @@ def invoke_post_run(liveaction_db, action_db=None):
     from st2common.util import action_db as action_db_utils
     from st2common.content import utils as content_utils
 
-    LOG.info('Invoking post run for action execution %s.', liveaction_db.id)
+    LOG.info("Invoking post run for action execution %s.", liveaction_db.id)
 
     # Identify action and runner.
     if not action_db:
         action_db = action_db_utils.get_action_by_ref(liveaction_db.action)
 
     if not action_db:
-        LOG.error('Unable to invoke post run. Action %s no longer exists.', liveaction_db.action)
+        LOG.error(
+            "Unable to invoke post run. Action %s no longer exists.",
+            liveaction_db.action,
+        )
         return
 
-    LOG.info('Action execution %s runs %s of runner type %s.',
-             liveaction_db.id, action_db.name, action_db.runner_type['name'])
+    LOG.info(
+        "Action execution %s runs %s of runner type %s.",
+        liveaction_db.id,
+        action_db.name,
+        action_db.runner_type["name"],
+    )
 
     # Get instance of the action runner and related configuration.
-    runner_type_db = action_db_utils.get_runnertype_by_name(action_db.runner_type['name'])
+    runner_type_db = action_db_utils.get_runnertype_by_name(
+        action_db.runner_type["name"]
+    )
 
     runner = runners.get_runner(name=runner_type_db.name)
 
     entry_point = content_utils.get_entry_point_abs_path(
-        pack=action_db.pack,
-        entry_point=action_db.entry_point)
+        pack=action_db.pack, entry_point=action_db.entry_point
+    )
 
     libs_dir_path = content_utils.get_action_libs_abs_path(
-        pack=action_db.pack,
-        entry_point=action_db.entry_point)
+        pack=action_db.pack, entry_point=action_db.entry_point
+    )
 
     # Configure the action runner.
     runner.runner_type_db = runner_type_db
@@ -226,8 +237,8 @@ def invoke_post_run(liveaction_db, action_db=None):
     runner.liveaction = liveaction_db
     runner.liveaction_id = str(liveaction_db.id)
     runner.entry_point = entry_point
-    runner.context = getattr(liveaction_db, 'context', dict())
-    runner.callback = getattr(liveaction_db, 'callback', dict())
+    runner.context = getattr(liveaction_db, "context", dict())
+    runner.callback = getattr(liveaction_db, "callback", dict())
     runner.libs_dir_path = libs_dir_path
 
     # Invoke the post_run method.

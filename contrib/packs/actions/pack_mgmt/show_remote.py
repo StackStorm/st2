@@ -19,11 +19,10 @@ from st2common.services.packs import get_pack_from_index
 
 class ShowRemote(Action):
     """Get detailed information about an available pack from the StackStorm Exchange index"""
+
     def run(self, pack):
         """
         :param pack: Pack Name to get info about
         :type pack: ``str``
         """
-        return {
-            'pack': get_pack_from_index(pack)
-        }
+        return {"pack": get_pack_from_index(pack)}

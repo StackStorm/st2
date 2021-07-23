@@ -1,0 +1,12 @@
+chain:
+  -
+    name: task1
+    ref: action_chain_tests.test_chain_sequential
+    on-success: task2
+
+  -
+    name: task2
+    ref: core.local
+    params:
+      cmd: echo foobar
+

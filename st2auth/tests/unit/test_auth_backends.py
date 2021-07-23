@@ -25,4 +25,4 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 class AuthenticationBackendsTestCase(unittest2.TestCase):
     def test_flat_file_backend_is_available_by_default(self):
         available_backends = get_available_backends()
-        self.assertIn('flat_file', available_backends)
+        self.assertIn("flat_file", available_backends)

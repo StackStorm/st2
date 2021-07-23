@@ -23,9 +23,6 @@ logging = /etc/st2/logging.actionrunner.conf
 # The line should be commented and 'always-copy' removed when using EL7 or EL8 as it causes virtualenv issues on pack install
 virtualenv_opts = --always-copy
 
-[resultstracker]
-logging = /etc/st2/logging.resultstracker.conf
-
 [notifier]
 logging = /etc/st2/logging.notifier.conf
 
@@ -82,3 +79,7 @@ use_paramiko_ssh_runner = True
 
 [database]
 host = st2-multi-node-controller
+
+[coordination]
+# url = kazoo://st2-multi-node-controller
+url = redis://st2-multi-node-controller

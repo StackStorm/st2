@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-from stevedore.driver import DriverManager
 from stevedore.extension import ExtensionManager
 
 from st2common import log as logging
@@ -26,7 +25,7 @@ from st2common.constants.runners import RUNNERS_NAMESPACE
 from st2common.util.action_db import get_runnertype_by_name
 
 __all__ = [
-    'register_runner_types',
+    "register_runner_types",
 ]
 
 
@@ -37,37 +36,37 @@ def register_runners(experimental=False, fail_on_failure=True):
     """
     Register runners
     """
-    LOG.debug('Start : register runners')
+    LOG.debug("Start : register runners")
     runner_count = 0
 
     manager = ExtensionManager(namespace=RUNNERS_NAMESPACE, invoke_on_load=False)
-    extension_names = manager.names()
 
-    for name in extension_names:
+    # NOTE: We use ExtensionManager directly instead of DriverManager per extension since that is
+    # much faster and allows us to reduce stevedore loading overhead for each runner
+    for extension in manager.extensions:
+        name = extension.name
         LOG.debug('Found runner "%s"' % (name))
-
-        manager = DriverManager(namespace=RUNNERS_NAMESPACE, invoke_on_load=False, name=name)
-        runner_metadata = manager.driver.get_metadata()
+        runner_metadata = extension.plugin.get_metadata()
         runner_count += register_runner(runner_metadata, experimental)
 
-    LOG.debug('End : register runners')
+    LOG.debug("End : register runners")
 
     return runner_count
 
 
 def register_runner(runner_type, experimental):
     # For backward compatibility reasons, we also register runners under the old names
-    runner_names = [runner_type['name']] + runner_type.get('aliases', [])
+    runner_names = [runner_type["name"]] + runner_type.get("aliases", [])
     for runner_name in runner_names:
-        runner_type['name'] = runner_name
-        runner_experimental = runner_type.get('experimental', False)
+        runner_type["name"] = runner_name
+        runner_experimental = runner_type.get("experimental", False)
 
         if runner_experimental and not experimental:
             LOG.debug('Skipping experimental runner "%s"' % (runner_name))
             continue
 
         # Remove additional, non db-model attributes
-        non_db_attributes = ['experimental', 'aliases']
+        non_db_attributes = ["experimental", "aliases"]
         for attribute in non_db_attributes:
             if attribute in runner_type:
                 del runner_type[attribute]
@@ -81,13 +80,13 @@ def register_runner(runner_type, experimental):
 
         # Note: We don't want to overwrite "enabled" attribute which is already in the database
         # (aka we don't want to re-enable runner which has been disabled by the user)
-        if runner_type_db and runner_type_db['enabled'] != runner_type['enabled']:
-            runner_type['enabled'] = runner_type_db['enabled']
+        if runner_type_db and runner_type_db["enabled"] != runner_type["enabled"]:
+            runner_type["enabled"] = runner_type_db["enabled"]
 
         # If package is not provided, assume it's the same as module name for backward
         # compatibility reasons
-        if not runner_type.get('runner_package', None):
-            runner_type['runner_package'] = runner_type['runner_module']
+        if not runner_type.get("runner_package", None):
+            runner_type["runner_package"] = runner_type["runner_module"]
 
         runner_type_api = RunnerTypeAPI(**runner_type)
         runner_type_api.validate()
@@ -97,16 +96,19 @@ def register_runner(runner_type, experimental):
             runner_type_model.id = runner_type_db.id
 
         try:
-
             runner_type_db = RunnerType.add_or_update(runner_type_model)
 
-            extra = {'runner_type_db': runner_type_db}
+            extra = {"runner_type_db": runner_type_db}
             if update:
-                LOG.audit('RunnerType updated. RunnerType %s', runner_type_db, extra=extra)
+                LOG.audit(
+                    "RunnerType updated. RunnerType %s", runner_type_db, extra=extra
+                )
             else:
-                LOG.audit('RunnerType created. RunnerType %s', runner_type_db, extra=extra)
+                LOG.audit(
+                    "RunnerType created. RunnerType %s", runner_type_db, extra=extra
+                )
         except Exception:
-            LOG.exception('Unable to register runner type %s.', runner_type['name'])
+            LOG.exception("Unable to register runner type %s.", runner_type["name"])
             return 0
     return 1
 

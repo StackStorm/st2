@@ -32,7 +32,7 @@ class PacksTransformationAction(Action):
 
         packs = []
         for pack_name, status in six.iteritems(packs_status):
-            if 'success' in status.lower():
+            if "success" in status.lower():
                 packs.append(pack_name)
 
         packs_list.extend(packs)

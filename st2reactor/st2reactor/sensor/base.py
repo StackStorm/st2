@@ -21,10 +21,7 @@ import six
 
 from st2common.util import concurrency
 
-__all__ = [
-    'Sensor',
-    'PollingSensor'
-]
+__all__ = ["Sensor", "PollingSensor"]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -107,7 +104,9 @@ class PollingSensor(BaseSensor):
     """
 
     def __init__(self, sensor_service, config=None, poll_interval=5):
-        super(PollingSensor, self).__init__(sensor_service=sensor_service, config=config)
+        super(PollingSensor, self).__init__(
+            sensor_service=sensor_service, config=config
+        )
         self._poll_interval = poll_interval
 
     @abc.abstractmethod

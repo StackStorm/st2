@@ -18,9 +18,7 @@ import re
 from st2common.util.actionalias_matching import normalise_alias_format_string
 
 
-__all__ = [
-    'generate_helpstring_result'
-]
+__all__ = ["generate_helpstring_result"]
 
 
 def generate_helpstring_result(aliases, filter=None, pack=None, limit=0, offset=0):
@@ -44,7 +42,7 @@ def generate_helpstring_result(aliases, filter=None, pack=None, limit=0, offset=
     matches = []
     count = 0
     if not (isinstance(limit, int) and isinstance(offset, int)):
-        raise TypeError('limit or offset argument is not an integer')
+        raise TypeError("limit or offset argument is not an integer")
     for alias in aliases:
         # Skip disable aliases.
         if not alias.enabled:
@@ -56,7 +54,7 @@ def generate_helpstring_result(aliases, filter=None, pack=None, limit=0, offset=
             display, _, _ = normalise_alias_format_string(format_)
             if display:
                 # Skip help strings not containing keyword.
-                if not re.search(filter or '', display, flags=re.IGNORECASE):
+                if not re.search(filter or "", display, flags=re.IGNORECASE):
                     continue
                 # Skip over help strings not within the requested offset/limit range.
                 if (offset == 0 and limit > 0) and count >= limit:
@@ -65,14 +63,18 @@ def generate_helpstring_result(aliases, filter=None, pack=None, limit=0, offset=
                 elif (offset > 0 and limit == 0) and count < offset:
                     count += 1
                     continue
-                elif (offset > 0 and limit > 0) and (count < offset or count >= offset + limit):
+                elif (offset > 0 and limit > 0) and (
+                    count < offset or count >= offset + limit
+                ):
                     count += 1
                     continue
 
-                matches.append({
-                    "pack": alias.pack,
-                    "display": display,
-                    "description": alias.description
-                })
+                matches.append(
+                    {
+                        "pack": alias.pack,
+                        "display": display,
+                        "description": alias.description,
+                    }
+                )
                 count += 1
     return {"available": count, "helpstrings": matches}

@@ -36,55 +36,60 @@ LOG = logging.getLogger(__name__)
 def setup_app(config=None):
     config = config or {}
 
-    LOG.info('Creating st2api: %s as OpenAPI app.', VERSION_STRING)
+    LOG.info("Creating st2api: %s as OpenAPI app.", VERSION_STRING)
 
-    is_gunicorn = config.get('is_gunicorn', False)
+    is_gunicorn = config.get("is_gunicorn", False)
     if is_gunicorn:
         # NOTE: We only want to perform this logic in the WSGI worker
-        st2api_config.register_opts()
+        st2api_config.register_opts(ignore_errors=True)
         capabilities = {
-            'name': 'api',
-            'listen_host': cfg.CONF.api.host,
-            'listen_port': cfg.CONF.api.port,
-            'type': 'active'
+            "name": "api",
+            "listen_host": cfg.CONF.api.host,
+            "listen_port": cfg.CONF.api.port,
+            "type": "active",
         }
 
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
-        common_setup(service='api', config=st2api_config, setup_db=True,
-                     register_mq_exchanges=True,
-                     register_signal_handlers=True,
-                     register_internal_trigger_types=True,
-                     run_migrations=True,
-                     service_registry=True,
-                     capabilities=capabilities,
-                     config_args=config.get('config_args', None))
+        common_setup(
+            service="api",
+            config=st2api_config,
+            setup_db=True,
+            register_mq_exchanges=True,
+            register_signal_handlers=True,
+            register_internal_trigger_types=True,
+            run_migrations=True,
+            service_registry=True,
+            capabilities=capabilities,
+            config_args=config.get("config_args", None),
+        )
 
     # Additional pre-run time checks
     validate_rbac_is_correctly_configured()
 
-    router = Router(debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable,
-                    is_gunicorn=is_gunicorn)
+    router = Router(
+        debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable, is_gunicorn=is_gunicorn
+    )
 
-    spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
+    spec = spec_loader.load_spec("st2common", "openapi.yaml.j2")
     transforms = {
-        '^/api/v1/$': ['/v1'],
-        '^/api/v1/': ['/', '/v1/'],
-        '^/api/v1/executions': ['/actionexecutions', '/v1/actionexecutions'],
-        '^/api/exp/': ['/exp/']
+        "^/api/v1/$": ["/v1"],
+        "^/api/v1/": ["/", "/v1/"],
+        "^/api/v1/executions": ["/actionexecutions", "/v1/actionexecutions"],
+        "^/api/exp/": ["/exp/"],
     }
     router.add_spec(spec, transforms=transforms)
 
     app = router.as_wsgi
 
     # Order is important. Check middleware for detailed explanation.
-    app = StreamingMiddleware(app, path_whitelist=['/v1/executions/*/output*'])
+    app = StreamingMiddleware(app, path_whitelist=["/v1/executions/*/output*"])
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)
-    app = ResponseInstrumentationMiddleware(app, router, service_name='api')
+    app = ResponseInstrumentationMiddleware(app, router, service_name="api")
     app = RequestIDMiddleware(app)
-    app = RequestInstrumentationMiddleware(app, router, service_name='api')
+    app = RequestInstrumentationMiddleware(app, router, service_name="api")
 
     return app

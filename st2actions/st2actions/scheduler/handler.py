@@ -37,10 +37,7 @@ from st2common.util import action_db as action_utils
 from st2common.metrics import base as metrics
 from st2common.exceptions import db as db_exc
 
-__all__ = [
-    'ActionExecutionSchedulingQueueHandler',
-    'get_handler'
-]
+__all__ = ["ActionExecutionSchedulingQueueHandler", "get_handler"]
 
 
 LOG = logging.getLogger(__name__)
@@ -61,14 +58,15 @@ class ActionExecutionSchedulingQueueHandler(object):
         # fast (< 5 seconds). If an item is still being marked as processing it likely indicates
         # that the scheduler process which was processing that item crashed or similar so we need
         # to mark it as "handling=False" so some other scheduler process can pick it up.
-        self._execution_scheduling_timeout_threshold_ms = \
+        self._execution_scheduling_timeout_threshold_ms = (
             cfg.CONF.scheduler.execution_scheduling_timeout_threshold_min * 60 * 1000
+        )
         self._coordinator = coordination_service.get_coordinator(start_heart=True)
         self._main_thread = None
         self._cleanup_thread = None
 
     def run(self):
-        LOG.debug('Starting scheduler handler...')
+        LOG.debug("Starting scheduler handler...")
 
         while not self._shutdown:
             eventlet.greenthread.sleep(cfg.CONF.scheduler.sleep_interval)
@@ -77,7 +75,8 @@ class ActionExecutionSchedulingQueueHandler(object):
     @retrying.retry(
         retry_on_exception=service_utils.retry_on_exceptions,
         stop_max_attempt_number=cfg.CONF.scheduler.retry_max_attempt,
-        wait_fixed=cfg.CONF.scheduler.retry_wait_msec)
+        wait_fixed=cfg.CONF.scheduler.retry_wait_msec,
+    )
     def process(self):
         execution_queue_item_db = self._get_next_execution()
 
@@ -85,7 +84,7 @@ class ActionExecutionSchedulingQueueHandler(object):
             self._pool.spawn(self._handle_execution, execution_queue_item_db)
 
     def cleanup(self):
-        LOG.debug('Starting scheduler garbage collection...')
+        LOG.debug("Starting scheduler garbage collection...")
 
         while not self._shutdown:
             eventlet.greenthread.sleep(cfg.CONF.scheduler.gc_interval)
@@ -99,11 +98,11 @@ class ActionExecutionSchedulingQueueHandler(object):
         False so other scheduler can pick it up.
         """
         query = {
-            'scheduled_start_timestamp__lte': date.append_milliseconds_to_time(
+            "scheduled_start_timestamp__lte": date.append_milliseconds_to_time(
                 date.get_datetime_utc_now(),
-                -self._execution_scheduling_timeout_threshold_ms
+                -self._execution_scheduling_timeout_threshold_ms,
             ),
-            'handling': True
+            "handling": True,
         }
 
         execution_queue_item_dbs = ActionExecutionSchedulingQueue.query(**query) or []
@@ -112,17 +111,19 @@ class ActionExecutionSchedulingQueueHandler(object):
             execution_queue_item_db.handling = False
 
             try:
-                ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
+                ActionExecutionSchedulingQueue.add_or_update(
+                    execution_queue_item_db, publish=False
+                )
                 LOG.info(
                     '[%s] Removing lock for orphaned execution queue item "%s".',
                     execution_queue_item_db.action_execution_id,
-                    str(execution_queue_item_db.id)
+                    str(execution_queue_item_db.id),
                 )
             except db_exc.StackStormDBObjectWriteConflictError:
                 LOG.info(
                     '[%s] Execution queue item "%s" updated during garbage collection.',
                     execution_queue_item_db.action_execution_id,
-                    str(execution_queue_item_db.id)
+                    str(execution_queue_item_db.id),
                 )
 
     # TODO: Remove this function for fixing missing action_execution_id in v3.2.
@@ -132,7 +133,9 @@ class ActionExecutionSchedulingQueueHandler(object):
         """
         Auto-populate the action_execution_id in ActionExecutionSchedulingQueue if empty.
         """
-        for entry in ActionExecutionSchedulingQueue.query(action_execution_id__in=['', None]):
+        for entry in ActionExecutionSchedulingQueue.query(
+            action_execution_id__in=["", None]
+        ):
             execution_db = ActionExecution.get(liveaction__id=entry.liveaction_id)
 
             if not execution_db:
@@ -152,23 +155,27 @@ class ActionExecutionSchedulingQueueHandler(object):
         moved back into requested status.
         """
 
-        policy_delayed_liveaction_dbs = LiveAction.query(status='policy-delayed') or []
+        policy_delayed_liveaction_dbs = LiveAction.query(status="policy-delayed") or []
 
         for liveaction_db in policy_delayed_liveaction_dbs:
-            ex_que_qry = {'liveaction_id': str(liveaction_db.id), 'handling': False}
-            execution_queue_item_dbs = ActionExecutionSchedulingQueue.query(**ex_que_qry) or []
+            ex_que_qry = {"liveaction_id": str(liveaction_db.id), "handling": False}
+            execution_queue_item_dbs = (
+                ActionExecutionSchedulingQueue.query(**ex_que_qry) or []
+            )
 
             for execution_queue_item_db in execution_queue_item_dbs:
                 # Mark the entry in the scheduling queue for handling.
                 try:
                     execution_queue_item_db.handling = True
-                    execution_queue_item_db = ActionExecutionSchedulingQueue.add_or_update(
-                        execution_queue_item_db, publish=False)
+                    execution_queue_item_db = (
+                        ActionExecutionSchedulingQueue.add_or_update(
+                            execution_queue_item_db, publish=False
+                        )
+                    )
                 except db_exc.StackStormDBObjectWriteConflictError:
-                    msg = (
-                        '[%s] Item "%s" is currently being processed by another scheduler.' %
-                        (execution_queue_item_db.action_execution_id,
-                            str(execution_queue_item_db.id))
+                    msg = '[%s] Item "%s" is currently being processed by another scheduler.' % (
+                        execution_queue_item_db.action_execution_id,
+                        str(execution_queue_item_db.id),
                     )
                     LOG.error(msg)
                     raise Exception(msg)
@@ -177,7 +184,7 @@ class ActionExecutionSchedulingQueueHandler(object):
                 LOG.info(
                     '[%s] Removing policy-delayed entry "%s" from the scheduling queue.',
                     execution_queue_item_db.action_execution_id,
-                    str(execution_queue_item_db.id)
+                    str(execution_queue_item_db.id),
                 )
 
                 ActionExecutionSchedulingQueue.delete(execution_queue_item_db)
@@ -186,18 +193,20 @@ class ActionExecutionSchedulingQueueHandler(object):
                 LOG.info(
                     '[%s] Removing policy-delayed entry "%s" from the scheduling queue.',
                     execution_queue_item_db.action_execution_id,
-                    str(execution_queue_item_db.id)
+                    str(execution_queue_item_db.id),
                 )
 
                 liveaction_db = action_service.update_status(
-                    liveaction_db, action_constants.LIVEACTION_STATUS_REQUESTED)
+                    liveaction_db, action_constants.LIVEACTION_STATUS_REQUESTED
+                )
 
                 execution_service.update_execution(liveaction_db)
 
     @retrying.retry(
         retry_on_exception=service_utils.retry_on_exceptions,
         stop_max_attempt_number=cfg.CONF.scheduler.retry_max_attempt,
-        wait_fixed=cfg.CONF.scheduler.retry_wait_msec)
+        wait_fixed=cfg.CONF.scheduler.retry_wait_msec,
+    )
     def _handle_garbage_collection(self):
         self._reset_handling_flag()
 
@@ -212,13 +221,10 @@ class ActionExecutionSchedulingQueueHandler(object):
         due to a policy.
         """
         query = {
-            'scheduled_start_timestamp__lte': date.get_datetime_utc_now(),
-            'handling': False,
-            'limit': 1,
-            'order_by': [
-                '+scheduled_start_timestamp',
-                '+original_start_timestamp'
-            ]
+            "scheduled_start_timestamp__lte": date.get_datetime_utc_now(),
+            "handling": False,
+            "limit": 1,
+            "order_by": ["+scheduled_start_timestamp", "+original_start_timestamp"],
         }
 
         execution_queue_item_db = ActionExecutionSchedulingQueue.query(**query).first()
@@ -229,45 +235,52 @@ class ActionExecutionSchedulingQueueHandler(object):
         # Mark that this scheduler process is currently handling (processing) that request
         # NOTE: This operation is atomic (CAS)
         msg = '[%s] Retrieved item "%s" from scheduling queue.'
-        LOG.info(msg, execution_queue_item_db.action_execution_id, execution_queue_item_db.id)
+        LOG.info(
+            msg, execution_queue_item_db.action_execution_id, execution_queue_item_db.id
+        )
         execution_queue_item_db.handling = True
 
         try:
-            ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
+            ActionExecutionSchedulingQueue.add_or_update(
+                execution_queue_item_db, publish=False
+            )
             return execution_queue_item_db
         except db_exc.StackStormDBObjectWriteConflictError:
             LOG.info(
                 '[%s] Item "%s" is already handled by another scheduler.',
                 execution_queue_item_db.action_execution_id,
-                str(execution_queue_item_db.id)
+                str(execution_queue_item_db.id),
             )
 
         return None
 
-    @metrics.CounterWithTimer(key='scheduler.handle_execution')
+    @metrics.CounterWithTimer(key="scheduler.handle_execution")
     def _handle_execution(self, execution_queue_item_db):
         action_execution_id = str(execution_queue_item_db.action_execution_id)
         liveaction_id = str(execution_queue_item_db.liveaction_id)
         queue_item_id = str(execution_queue_item_db.id)
-        extra = {'queue_item_id': queue_item_id}
+        extra = {"queue_item_id": queue_item_id}
 
         LOG.info(
             '[%s] Scheduling Liveaction "%s".',
-            action_execution_id, liveaction_id, extra=extra
+            action_execution_id,
+            liveaction_id,
+            extra=extra,
         )
 
         try:
             liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
         except StackStormDBObjectNotFoundError:
             msg = '[%s] Failed to find liveaction "%s" in the database (queue_item_id=%s).'
-            LOG.exception(msg, action_execution_id, liveaction_id, queue_item_id, extra=extra)
+            LOG.exception(
+                msg, action_execution_id, liveaction_id, queue_item_id, extra=extra
+            )
             ActionExecutionSchedulingQueue.delete(execution_queue_item_db)
             raise
 
         # Identify if the action has policies that require locking.
         action_has_policies_require_lock = policy_service.has_policies(
-            liveaction_db,
-            policy_types=policy_constants.POLICY_TYPES_REQUIRING_LOCK
+            liveaction_db, policy_types=policy_constants.POLICY_TYPES_REQUIRING_LOCK
         )
 
         # Acquire a distributed lock if the referenced action has specific policies attached.
@@ -275,9 +288,9 @@ class ActionExecutionSchedulingQueueHandler(object):
             # Warn users that the coordination service is not configured.
             if not coordination_service.configured():
                 LOG.warn(
-                    '[%s] Coordination backend is not configured. '
-                    'Policy enforcement is best effort.',
-                    action_execution_id
+                    "[%s] Coordination backend is not configured. "
+                    "Policy enforcement is best effort.",
+                    action_execution_id,
                 )
 
             # Acquire a distributed lock before querying the database to make sure that only one
@@ -304,11 +317,14 @@ class ActionExecutionSchedulingQueueHandler(object):
         action_execution_id = str(execution_queue_item_db.action_execution_id)
         liveaction_id = str(execution_queue_item_db.liveaction_id)
         queue_item_id = str(execution_queue_item_db.id)
-        extra = {'queue_item_id': queue_item_id}
+        extra = {"queue_item_id": queue_item_id}
 
         LOG.info(
             '[%s] Liveaction "%s" has status "%s" before applying policies.',
-            action_execution_id, liveaction_id, liveaction_db.status, extra=extra
+            action_execution_id,
+            liveaction_id,
+            liveaction_db.status,
+            extra=extra,
         )
 
         # Apply policies defined for the action.
@@ -316,13 +332,18 @@ class ActionExecutionSchedulingQueueHandler(object):
 
         LOG.info(
             '[%s] Liveaction "%s" has status "%s" after applying policies.',
-            action_execution_id, liveaction_id, liveaction_db.status, extra=extra
+            action_execution_id,
+            liveaction_id,
+            liveaction_db.status,
+            extra=extra,
         )
 
         if liveaction_db.status == action_constants.LIVEACTION_STATUS_DELAYED:
             LOG.info(
                 '[%s] Liveaction "%s" is delayed and scheduling queue is updated.',
-                action_execution_id, liveaction_id, extra=extra
+                action_execution_id,
+                liveaction_id,
+                extra=extra,
             )
 
             liveaction_db = action_service.update_status(
@@ -330,23 +351,30 @@ class ActionExecutionSchedulingQueueHandler(object):
             )
 
             execution_queue_item_db.handling = False
-            execution_queue_item_db.scheduled_start_timestamp = date.append_milliseconds_to_time(
-                date.get_datetime_utc_now(),
-                POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS
+            execution_queue_item_db.scheduled_start_timestamp = (
+                date.append_milliseconds_to_time(
+                    date.get_datetime_utc_now(),
+                    POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS,
+                )
             )
 
             try:
-                ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
+                ActionExecutionSchedulingQueue.add_or_update(
+                    execution_queue_item_db, publish=False
+                )
             except db_exc.StackStormDBObjectWriteConflictError:
                 LOG.warning(
-                    '[%s] Database write conflict on updating scheduling queue.',
-                    action_execution_id, extra=extra
+                    "[%s] Database write conflict on updating scheduling queue.",
+                    action_execution_id,
+                    extra=extra,
                 )
 
             return
 
-        if (liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES or
-                liveaction_db.status in action_constants.LIVEACTION_CANCEL_STATES):
+        if (
+            liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES
+            or liveaction_db.status in action_constants.LIVEACTION_CANCEL_STATES
+        ):
             ActionExecutionSchedulingQueue.delete(execution_queue_item_db)
             return
 
@@ -356,33 +384,41 @@ class ActionExecutionSchedulingQueueHandler(object):
         action_execution_id = str(execution_queue_item_db.action_execution_id)
         liveaction_id = str(execution_queue_item_db.liveaction_id)
         queue_item_id = str(execution_queue_item_db.id)
-        extra = {'queue_item_id': queue_item_id}
+        extra = {"queue_item_id": queue_item_id}
 
         LOG.info(
             '[%s] Liveaction "%s" is delayed and scheduling queue is updated.',
-            action_execution_id, liveaction_id, extra=extra
+            action_execution_id,
+            liveaction_id,
+            extra=extra,
         )
 
         liveaction_db = action_service.update_status(
             liveaction_db, action_constants.LIVEACTION_STATUS_DELAYED, publish=False
         )
 
-        execution_queue_item_db.scheduled_start_timestamp = date.append_milliseconds_to_time(
-            date.get_datetime_utc_now(),
-            POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS
+        execution_queue_item_db.scheduled_start_timestamp = (
+            date.append_milliseconds_to_time(
+                date.get_datetime_utc_now(), POLICY_DELAYED_EXECUTION_RESCHEDULE_TIME_MS
+            )
         )
 
         try:
             execution_queue_item_db.handling = False
-            ActionExecutionSchedulingQueue.add_or_update(execution_queue_item_db, publish=False)
+            ActionExecutionSchedulingQueue.add_or_update(
+                execution_queue_item_db, publish=False
+            )
         except db_exc.StackStormDBObjectWriteConflictError:
             LOG.warning(
-                '[%s] Database write conflict on updating scheduling queue.',
-                action_execution_id, extra=extra
+                "[%s] Database write conflict on updating scheduling queue.",
+                action_execution_id,
+                extra=extra,
             )
 
     def _schedule(self, liveaction_db, execution_queue_item_db):
-        if self._is_execution_queue_item_runnable(liveaction_db, execution_queue_item_db):
+        if self._is_execution_queue_item_runnable(
+            liveaction_db, execution_queue_item_db
+        ):
             self._update_to_scheduled(liveaction_db, execution_queue_item_db)
 
     @staticmethod
@@ -396,7 +432,7 @@ class ActionExecutionSchedulingQueueHandler(object):
         valid_status = [
             action_constants.LIVEACTION_STATUS_REQUESTED,
             action_constants.LIVEACTION_STATUS_SCHEDULED,
-            action_constants.LIVEACTION_STATUS_DELAYED
+            action_constants.LIVEACTION_STATUS_DELAYED,
         ]
 
         if liveaction_db.status in valid_status:
@@ -405,11 +441,14 @@ class ActionExecutionSchedulingQueueHandler(object):
         action_execution_id = str(execution_queue_item_db.action_execution_id)
         liveaction_id = str(execution_queue_item_db.liveaction_id)
         queue_item_id = str(execution_queue_item_db.id)
-        extra = {'queue_item_id': queue_item_id}
+        extra = {"queue_item_id": queue_item_id}
 
         LOG.info(
             '[%s] Ignoring Liveaction "%s" with status "%s" after policies are applied.',
-            action_execution_id, liveaction_id, liveaction_db.status, extra=extra
+            action_execution_id,
+            liveaction_id,
+            liveaction_db.status,
+            extra=extra,
         )
 
         ActionExecutionSchedulingQueue.delete(execution_queue_item_db)
@@ -421,18 +460,26 @@ class ActionExecutionSchedulingQueueHandler(object):
         action_execution_id = str(execution_queue_item_db.action_execution_id)
         liveaction_id = str(execution_queue_item_db.liveaction_id)
         queue_item_id = str(execution_queue_item_db.id)
-        extra = {'queue_item_id': queue_item_id}
+        extra = {"queue_item_id": queue_item_id}
 
         # Update liveaction status to "scheduled".
         LOG.info(
             '[%s] Liveaction "%s" with status "%s" is updated to status "scheduled."',
-            action_execution_id, liveaction_id, liveaction_db.status, extra=extra
+            action_execution_id,
+            liveaction_id,
+            liveaction_db.status,
+            extra=extra,
         )
 
-        if liveaction_db.status in [action_constants.LIVEACTION_STATUS_REQUESTED,
-                                    action_constants.LIVEACTION_STATUS_DELAYED]:
+        if liveaction_db.status in [
+            action_constants.LIVEACTION_STATUS_REQUESTED,
+            action_constants.LIVEACTION_STATUS_DELAYED,
+        ]:
             liveaction_db = action_service.update_status(
-                liveaction_db, action_constants.LIVEACTION_STATUS_SCHEDULED, publish=False)
+                liveaction_db,
+                action_constants.LIVEACTION_STATUS_SCHEDULED,
+                publish=False,
+            )
 
         # Publish the "scheduled" status here manually. Otherwise, there could be a
         # race condition with the update of the action_execution_db if the execution

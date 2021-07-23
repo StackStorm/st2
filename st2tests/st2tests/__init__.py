@@ -23,11 +23,11 @@ from st2tests.base import WorkflowTestCase
 
 
 __all__ = [
-    'EventletTestCase',
-    'DbTestCase',
-    'ExecutionDbTestCase',
-    'DbModelTestCase',
-    'WorkflowTestCase'
+    "EventletTestCase",
+    "DbTestCase",
+    "ExecutionDbTestCase",
+    "DbModelTestCase",
+    "WorkflowTestCase",
 ]
 
-__version__ = '3.3dev'
+__version__ = "3.6dev"

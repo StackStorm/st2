@@ -21,28 +21,28 @@ import bson
 import six
 import mongoengine as me
 from oslo_config import cfg
-import json
 
 from st2common.util import mongoescape
 from st2common.models.base import DictSerializableClassMixin
 from st2common.models.system.common import ResourceReference
 from st2common.constants.types import ResourceType
+from st2common.util.jsonify import json_decode
 
 __all__ = [
-    'StormFoundationDB',
-    'StormBaseDB',
-
-    'EscapedDictField',
-    'EscapedDynamicField',
-    'TagField',
-
-    'RefFieldMixin',
-    'UIDFieldMixin',
-    'TagsMixin',
-    'ContentPackResourceMixin'
+    "StormFoundationDB",
+    "StormBaseDB",
+    "EscapedDictField",
+    "EscapedDynamicField",
+    "TagField",
+    "RefFieldMixin",
+    "UIDFieldMixin",
+    "TagsMixin",
+    "ContentPackResourceMixin",
 ]
 
 JSON_UNFRIENDLY_TYPES = (datetime.datetime, bson.ObjectId)
+
+DICT_FIELD_NOT_SET_MARKER = "dict-field-not-set"
 
 
 class StormFoundationDB(me.Document, DictSerializableClassMixin):
@@ -62,17 +62,19 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
     # don't do that
 
     # see http://docs.mongoengine.org/guide/defining-documents.html#abstract-classes
-    meta = {
-        'abstract': True
-    }
+    meta = {"abstract": True}
 
     def __str__(self):
         attrs = list()
-        for k in sorted(self._fields.keys()):   # pylint: disable=E1101
+        for k in sorted(self._fields.keys()):  # pylint: disable=E1101
             v = getattr(self, k)
-            v = '"%s"' % str(v) if type(v) in [str, six.text_type, datetime.datetime] else str(v)
-            attrs.append('%s=%s' % (k, v))
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
+            v = (
+                '"%s"' % str(v)
+                if type(v) in [str, six.text_type, datetime.datetime]
+                else str(v)
+            )
+            attrs.append("%s=%s" % (k, v))
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(attrs))
 
     def get_resource_type(self):
         return self.RESOURCE_TYPE
@@ -98,12 +100,12 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
         :rtype: ``dict``
         """
         serializable_dict = {}
-        for k in sorted(six.iterkeys(self._fields)):    # pylint: disable=E1101
+        for k in sorted(six.iterkeys(self._fields)):  # pylint: disable=E1101
             v = getattr(self, k)
             if isinstance(v, JSON_UNFRIENDLY_TYPES):
                 v = str(v)
             elif isinstance(v, me.EmbeddedDocument):
-                v = json.loads(v.to_json())
+                v = json_decode(v.to_json())
 
             serializable_dict[k] = v
 
@@ -120,17 +122,15 @@ class StormBaseDB(StormFoundationDB):
     description = me.StringField()
 
     # see http://docs.mongoengine.org/guide/defining-documents.html#abstract-classes
-    meta = {
-        'abstract': True
-    }
+    meta = {"abstract": True}
 
 
 class EscapedDictField(me.DictField):
-
     def to_mongo(self, value, use_db_field=True, fields=None):
         value = mongoescape.escape_chars(value)
-        return super(EscapedDictField, self).to_mongo(value=value, use_db_field=use_db_field,
-                                                      fields=fields)
+        return super(EscapedDictField, self).to_mongo(
+            value=value, use_db_field=use_db_field, fields=fields
+        )
 
     def to_python(self, value):
         value = super(EscapedDictField, self).to_python(value)
@@ -138,18 +138,18 @@ class EscapedDictField(me.DictField):
 
     def validate(self, value):
         if not isinstance(value, dict):
-            self.error('Only dictionaries may be used in a DictField')
+            self.error("Only dictionaries may be used in a DictField")
         if me.fields.key_not_string(value):
             self.error("Invalid dictionary key - documents must have only string keys")
         me.base.ComplexBaseField.validate(self, value)
 
 
 class EscapedDynamicField(me.DynamicField):
-
     def to_mongo(self, value, use_db_field=True, fields=None):
         value = mongoescape.escape_chars(value)
-        return super(EscapedDynamicField, self).to_mongo(value=value, use_db_field=use_db_field,
-                                                         fields=fields)
+        return super(EscapedDynamicField, self).to_mongo(
+            value=value, use_db_field=use_db_field, fields=fields
+        )
 
     def to_python(self, value):
         value = super(EscapedDynamicField, self).to_python(value)
@@ -161,6 +161,7 @@ class TagField(me.EmbeddedDocument):
     To be attached to a db model object for the purpose of providing supplemental
     information.
     """
+
     name = me.StringField(max_length=1024)
     value = me.StringField(max_length=1024)
 
@@ -169,11 +170,12 @@ class TagsMixin(object):
     """
     Mixin to include tags on an object.
     """
+
     tags = me.ListField(field=me.EmbeddedDocumentField(TagField))
 
     @classmethod
     def get_indexes(cls):
-        return ['tags.name', 'tags.value']
+        return ["tags.name", "tags.value"]
 
 
 class RefFieldMixin(object):
@@ -192,7 +194,7 @@ class UIDFieldMixin(object):
     the system.
     """
 
-    UID_SEPARATOR = ':'  # TODO: Move to constants
+    UID_SEPARATOR = ":"  # TODO: Move to constants
 
     RESOURCE_TYPE = abc.abstractproperty
     UID_FIELDS = abc.abstractproperty
@@ -205,13 +207,7 @@ class UIDFieldMixin(object):
         # models in the database before ensure_indexes() is called.
         # This field gets populated in the constructor which means it will be lazily assigned next
         # time the model is saved (e.g. once register-content is ran).
-        indexes = [
-            {
-                'fields': ['uid'],
-                'unique': True,
-                'sparse': True
-            }
-        ]
+        indexes = [{"fields": ["uid"], "unique": True, "sparse": True}]
         return indexes
 
     def get_uid(self):
@@ -224,7 +220,7 @@ class UIDFieldMixin(object):
         parts.append(self.RESOURCE_TYPE)
 
         for field in self.UID_FIELDS:
-            value = getattr(self, field, None) or ''
+            value = getattr(self, field, None) or ""
             parts.append(value)
 
         uid = self.UID_SEPARATOR.join(parts)
@@ -257,8 +253,11 @@ class ContentPackResourceMixin(object):
 
     metadata_file = me.StringField(
         required=False,
-        help_text=('Path to the metadata file (file on disk which contains resource definition) '
-                   'relative to the pack directory.'))
+        help_text=(
+            "Path to the metadata file (file on disk which contains resource definition) "
+            "relative to the pack directory."
+        ),
+    )
 
     def get_pack_uid(self):
         """
@@ -276,7 +275,7 @@ class ContentPackResourceMixin(object):
 
         :rtype: :class:`ResourceReference`
         """
-        if getattr(self, 'ref', None):
+        if getattr(self, "ref", None):
             ref = ResourceReference.from_string_reference(ref=self.ref)
         else:
             ref = ResourceReference(pack=self.pack, name=self.name)
@@ -287,7 +286,7 @@ class ContentPackResourceMixin(object):
     def get_indexes(cls):
         return [
             {
-                'fields': ['metadata_file'],
+                "fields": ["metadata_file"],
             }
         ]
 
@@ -298,9 +297,4 @@ class ChangeRevisionFieldMixin(object):
 
     @classmethod
     def get_indexes(cls):
-        return [
-            {
-                'fields': ['id', 'rev'],
-                'unique': True
-            }
-        ]
+        return [{"fields": ["id", "rev"], "unique": True}]

@@ -19,55 +19,43 @@ from st2common.policies import ResourcePolicyApplicator, get_driver
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
-__all__ = [
-    'PolicyTestCase'
-]
+__all__ = ["PolicyTestCase"]
 
-PACK = 'generic'
+PACK = "generic"
 TEST_FIXTURES = {
-    'runners': [
-        'testrunner1.yaml'
-    ],
-    'actions': [
-        'action1.yaml'
-    ],
-    'policytypes': [
-        'fake_policy_type_1.yaml',
-        'fake_policy_type_2.yaml'
-    ],
-    'policies': [
-        'policy_1.yaml',
-        'policy_2.yaml'
-    ]
+    "runners": ["testrunner1.yaml"],
+    "actions": ["action1.yaml"],
+    "policytypes": ["fake_policy_type_1.yaml", "fake_policy_type_2.yaml"],
+    "policies": ["policy_1.yaml", "policy_2.yaml"],
 }
 
 
 class PolicyTestCase(DbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(PolicyTestCase, cls).setUpClass()
 
         loader = FixturesLoader()
-        loader.save_fixtures_to_db(fixtures_pack=PACK,
-                                   fixtures_dict=TEST_FIXTURES)
+        loader.save_fixtures_to_db(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
     def test_get_by_ref(self):
-        policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
+        policy_db = Policy.get_by_ref("wolfpack.action-1.concurrency")
         self.assertIsNotNone(policy_db)
-        self.assertEqual(policy_db.pack, 'wolfpack')
-        self.assertEqual(policy_db.name, 'action-1.concurrency')
+        self.assertEqual(policy_db.pack, "wolfpack")
+        self.assertEqual(policy_db.name, "action-1.concurrency")
 
         policy_type_db = PolicyType.get_by_ref(policy_db.policy_type)
         self.assertIsNotNone(policy_type_db)
-        self.assertEqual(policy_type_db.resource_type, 'action')
-        self.assertEqual(policy_type_db.name, 'concurrency')
+        self.assertEqual(policy_type_db.resource_type, "action")
+        self.assertEqual(policy_type_db.name, "concurrency")
 
     def test_get_driver(self):
-        policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
-        policy = get_driver(policy_db.ref, policy_db.policy_type, **policy_db.parameters)
+        policy_db = Policy.get_by_ref("wolfpack.action-1.concurrency")
+        policy = get_driver(
+            policy_db.ref, policy_db.policy_type, **policy_db.parameters
+        )
         self.assertIsInstance(policy, ResourcePolicyApplicator)
         self.assertEqual(policy._policy_ref, policy_db.ref)
         self.assertEqual(policy._policy_type, policy_db.policy_type)
-        self.assertTrue(hasattr(policy, 'threshold'))
+        self.assertTrue(hasattr(policy, "threshold"))
         self.assertEqual(policy.threshold, 3)

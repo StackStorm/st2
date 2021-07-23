@@ -14,7 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
+
 import six
 
 from st2common.constants.action import LIVEACTION_STATUSES
@@ -54,30 +56,11 @@ class InquiryAPI(BaseAPI):
         "description": "Record of an Inquiry",
         "type": "object",
         "properties": {
-            "id": {
-                "type": "string",
-                "required": True
-            },
-            "route": {
-                "type": "string",
-                "default": "",
-                "required": True
-            },
-            "ttl": {
-                "type": "integer",
-                "default": 1440,
-                "required": True
-            },
-            "users": {
-                "type": "array",
-                "default": [],
-                "required": True
-            },
-            "roles": {
-                "type": "array",
-                "default": [],
-                "required": True
-            },
+            "id": {"type": "string", "required": True},
+            "route": {"type": "string", "default": "", "required": True},
+            "ttl": {"type": "integer", "default": 1440, "required": True},
+            "users": {"type": "array", "default": [], "required": True},
+            "roles": {"type": "array", "default": [], "required": True},
             "schema": {
                 "type": "object",
                 "default": {
@@ -87,54 +70,61 @@ class InquiryAPI(BaseAPI):
                         "continue": {
                             "type": "boolean",
                             "description": "Would you like to continue the workflow?",
-                            "required": True
+                            "required": True,
                         }
                     },
                 },
-                "required": True
+                "required": True,
             },
-            "liveaction": REQUIRED_ATTR_SCHEMAS['liveaction'],
-            "runner": REQUIRED_ATTR_SCHEMAS['runner'],
+            "liveaction": REQUIRED_ATTR_SCHEMAS["liveaction"],
+            "runner": REQUIRED_ATTR_SCHEMAS["runner"],
             "status": {
                 "description": "The current status of the action execution.",
                 "type": "string",
-                "enum": LIVEACTION_STATUSES
+                "enum": LIVEACTION_STATUSES,
             },
             "parent": {"type": "string"},
             "result": {
-                "anyOf": [{"type": "array"},
-                          {"type": "boolean"},
-                          {"type": "integer"},
-                          {"type": "number"},
-                          {"type": "object"},
-                          {"type": "string"}]
-            }
+                "anyOf": [
+                    {"type": "array"},
+                    {"type": "boolean"},
+                    {"type": "integer"},
+                    {"type": "number"},
+                    {"type": "object"},
+                    {"type": "string"},
+                ]
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
+
+    skip_unescape_field_names = [
+        "result",
+    ]
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
 
+        doc["result"] = ActionExecutionDB.result.parse_field_value(doc["result"])
+
         newdoc = {
-            'id': doc['id'],
-            'runner': doc.get('runner', None),
-            'status': doc.get('status', None),
-            'liveaction': doc.get('liveaction', None),
-            'parent': doc.get('parent', None),
-            'result': doc.get('result', None)
+            "id": doc["id"],
+            "runner": doc.get("runner", None),
+            "status": doc.get("status", None),
+            "liveaction": doc.get("liveaction", None),
+            "parent": doc.get("parent", None),
+            "result": doc.get("result", None),
         }
 
-        for field in ['route', 'ttl', 'users', 'roles', 'schema']:
-            newdoc[field] = doc['result'].get(field, None)
+        for field in ["route", "ttl", "users", "roles", "schema"]:
+            newdoc[field] = doc["result"].get(field, None)
 
         return cls(**newdoc)
 
 
 class InquiryResponseAPI(BaseAPI):
-    """A more pruned Inquiry model, containing only the fields needed for an API response
-    """
+    """A more pruned Inquiry model, containing only the fields needed for an API response"""
 
     model = ActionExecutionDB
     schema = {
@@ -142,30 +132,11 @@ class InquiryResponseAPI(BaseAPI):
         "description": "Record of an Inquiry",
         "type": "object",
         "properties": {
-            "id": {
-                "type": "string",
-                "required": True
-            },
-            "route": {
-                "type": "string",
-                "default": "",
-                "required": True
-            },
-            "ttl": {
-                "type": "integer",
-                "default": 1440,
-                "required": True
-            },
-            "users": {
-                "type": "array",
-                "default": [],
-                "required": True
-            },
-            "roles": {
-                "type": "array",
-                "default": [],
-                "required": True
-            },
+            "id": {"type": "string", "required": True},
+            "route": {"type": "string", "default": "", "required": True},
+            "ttl": {"type": "integer", "default": 1440, "required": True},
+            "users": {"type": "array", "default": [], "required": True},
+            "roles": {"type": "array", "default": [], "required": True},
             "schema": {
                 "type": "object",
                 "default": {
@@ -175,14 +146,14 @@ class InquiryResponseAPI(BaseAPI):
                         "continue": {
                             "type": "boolean",
                             "description": "Would you like to continue the workflow?",
-                            "required": True
+                            "required": True,
                         }
                     },
                 },
-                "required": True
-            }
+                "required": True,
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     @classmethod
@@ -201,9 +172,7 @@ class InquiryResponseAPI(BaseAPI):
         else:
             doc = model
 
-        newdoc = {
-            "id": doc["id"]
-        }
+        newdoc = {"id": doc["id"]}
         for field in ["route", "ttl", "users", "roles", "schema"]:
             newdoc[field] = doc["result"].get(field)
 
@@ -211,16 +180,16 @@ class InquiryResponseAPI(BaseAPI):
 
     @classmethod
     def from_inquiry_api(cls, inquiry_api, mask_secrets=False):
-        """ Allows translation of InquiryAPI directly to InquiryResponseAPI
+        """Allows translation of InquiryAPI directly to InquiryResponseAPI
 
         This bypasses the DB modeling, since there's no DB model for Inquiries yet.
         """
 
         return cls(
-            id=getattr(inquiry_api, 'id', None),
-            route=getattr(inquiry_api, 'route', None),
-            ttl=getattr(inquiry_api, 'ttl', None),
-            users=getattr(inquiry_api, 'users', None),
-            roles=getattr(inquiry_api, 'roles', None),
-            schema=getattr(inquiry_api, 'schema', None)
+            id=getattr(inquiry_api, "id", None),
+            route=getattr(inquiry_api, "route", None),
+            ttl=getattr(inquiry_api, "ttl", None),
+            users=getattr(inquiry_api, "users", None),
+            roles=getattr(inquiry_api, "roles", None),
+            schema=getattr(inquiry_api, "schema", None),
         )

@@ -1,0 +1,11 @@
+---
+name: test_chain_sequential
+description: A sample workflow which has notify.
+pack: action_chain_tests
+runner_type: action-chain
+entry_point: chains/test_chain_sequential.yaml
+enabled: true
+notify:
+  on-complete:
+    routes:
+      - hubot

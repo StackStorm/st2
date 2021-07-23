@@ -24,12 +24,7 @@ from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.api.trace import TraceContext
 from st2common.transport.announcement import AnnouncementDispatcher
 
-__all__ = [
-    'AnnouncementRunner',
-
-    'get_runner',
-    'get_metadata'
-]
+__all__ = ["AnnouncementRunner", "get_runner", "get_metadata"]
 
 LOG = logging.getLogger(__name__)
 
@@ -42,28 +37,28 @@ class AnnouncementRunner(ActionRunner):
     def pre_run(self):
         super(AnnouncementRunner, self).pre_run()
 
-        LOG.debug('Entering AnnouncementRunner.pre_run() for liveaction_id="%s"',
-                  self.liveaction_id)
+        LOG.debug(
+            'Entering AnnouncementRunner.pre_run() for liveaction_id="%s"',
+            self.liveaction_id,
+        )
 
-        if not self.runner_parameters.get('experimental'):
-            message = ('Experimental flag is missing for action %s' % self.action.ref)
-            LOG.exception('Experimental runner is called without experimental flag.')
+        if not self.runner_parameters.get("experimental"):
+            message = "Experimental flag is missing for action %s" % self.action.ref
+            LOG.exception("Experimental runner is called without experimental flag.")
             raise runnerexceptions.ActionRunnerPreRunError(message)
 
-        self._route = self.runner_parameters.get('route')
+        self._route = self.runner_parameters.get("route")
 
     def run(self, action_parameters):
-        trace_context = self.liveaction.context.get('trace_context', None)
+        trace_context = self.liveaction.context.get("trace_context", None)
         if trace_context:
             trace_context = TraceContext(**trace_context)
 
-        self._dispatcher.dispatch(self._route,
-                                  payload=action_parameters,
-                                  trace_context=trace_context)
+        self._dispatcher.dispatch(
+            self._route, payload=action_parameters, trace_context=trace_context
+        )
 
-        result = {
-            "output": action_parameters
-        }
+        result = {"output": action_parameters}
         result.update(action_parameters)
 
         return (LIVEACTION_STATUS_SUCCEEDED, result, None)
@@ -74,4 +69,4 @@ def get_runner():
 
 
 def get_metadata():
-    return get_runner_metadata('announcement_runner')[0]
+    return get_runner_metadata("announcement_runner")[0]
