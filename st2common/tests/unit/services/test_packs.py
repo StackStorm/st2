@@ -50,8 +50,8 @@ class DeleteActionFilesTest(unittest2.TestCase):
         on the call of delete_action_files_from_pack function.
         """
 
-        self.assertEqual(os.path.exists(self.entry_point), True)
-        self.assertEqual(os.path.exists(self.metadata_file), True)
+        self.assertTrue(os.path.exists(self.entry_point))
+        self.assertTrue(os.path.exists(self.metadata_file))
         delete_action_files_from_pack(TEST_PACK, self.entry_point, self.metadata_file)
-        self.assertEqual(os.path.exists(self.entry_point), False)
-        self.assertEqual(os.path.exists(self.metadata_file), False)
+        self.assertFalse(os.path.exists(self.entry_point))
+        self.assertFalse(os.path.exists(self.metadata_file))
