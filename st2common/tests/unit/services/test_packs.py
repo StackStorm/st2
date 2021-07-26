@@ -37,11 +37,11 @@ class DeleteActionFilesTest(unittest2.TestCase):
     metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
 
     # creating test entry_point file in pack
-    with open(entry_point, "w") as f1:
+    with open(entry_point, "w") as f:
         f1.write("# Entry point file to be removed")
 
     # creating test metadata file in pack
-    with open(metadata_file, "w") as f1:
+    with open(metadata_file, "w") as f:
         f1.write("# Metadata file to be removed")
 
     def test_delete_action_files_from_pack(self):
