@@ -38,11 +38,11 @@ class DeleteActionFilesTest(unittest2.TestCase):
 
     # creating test entry_point file in pack
     with open(entry_point, "w") as f:
-        f1.write("# Entry point file to be removed")
+        f.write("# Entry point file to be removed")
 
     # creating test metadata file in pack
     with open(metadata_file, "w") as f:
-        f1.write("# Metadata file to be removed")
+        f.write("# Metadata file to be removed")
 
     def test_delete_action_files_from_pack(self):
         """
