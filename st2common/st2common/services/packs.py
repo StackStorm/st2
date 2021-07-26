@@ -282,9 +282,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
                 e,
             )
             if os.path.isfile(action_metadata_file_path):
-                msg = (
-                    'Delete operation unsuccessful. "{0}" file still exists on disk'.format(
-                        action_metadata_file_path
-                    )
+                msg = 'Delete operation unsuccessful. "{0}" file still exists on disk'.format(
+                    action_metadata_file_path
                 )
                 abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(msg))
