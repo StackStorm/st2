@@ -751,7 +751,7 @@ class ResourceDeleteCommand(ResourceCommand):
         else:
             if isinstance(instance, st2client.models.action.Action):
                 user_input = input(
-                    "It will delete action files on disk as well. Do you want to continue? (y/n): "
+                    "The resource files on disk will be deleted. Do you want to continue? (y/n): "
                 )
                 if user_input.lower() == "y" or user_input.lower() == "yes":
                     self.manager.delete(instance, **kwargs)
