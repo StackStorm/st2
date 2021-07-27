@@ -358,12 +358,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), num_items)
 
-        # Reset the action executions to running status.
-        for ac_ex in t1_ac_ex_dbs:
-            self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_RUNNING
-            )
-
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
             task_execution=str(t1_ex_db.id)
         )
@@ -440,12 +434,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), concurrency)
 
-        # Reset the action executions to running status.
-        for ac_ex in t1_ac_ex_dbs:
-            self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_RUNNING
-            )
-
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
             task_execution=str(t1_ex_db.id)
         )
@@ -518,12 +506,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), num_items)
-
-        # Reset the action executions to running status.
-        for ac_ex in t1_ac_ex_dbs:
-            self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_RUNNING
-            )
 
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
             task_execution=str(t1_ex_db.id)
@@ -618,12 +600,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), concurrency)
-
-        # Reset the action executions to running status.
-        for ac_ex in t1_ac_ex_dbs:
-            self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_RUNNING
-            )
 
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
             task_execution=str(t1_ex_db.id)

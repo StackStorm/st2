@@ -998,13 +998,6 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         # Action execution result can contain dotted notation so ensure this is tested.
         result = {"127.0.0.1": {"hostname": "foobar"}}
 
-        ac_svc.update_status(
-            tk1_lv_ac_db,
-            ac_const.LIVEACTION_STATUS_FAILED,
-            result=result,
-            publish=False,
-        )
-
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]

@@ -223,6 +223,9 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         lv_ac_db1.context.pop("workflow_execution")
         lv_ac_db1 = lv_db_access.LiveAction.add_or_update(lv_ac_db1, publish=False)
         # Manually delete the workflow_execution_id from context of the action execution.
+        # We cannot use execution_service.update_execution here because by the time we reach
+        # execution_service.update_execution, action is already in completed state.
+        # Popping of workflow id and and updating the execution object will not work.
         ac_ex_db1.context.pop("workflow_execution")
         ac_ex_db1 = ex_db_access.ActionExecution.add_or_update(ac_ex_db1, publish=False)
 
