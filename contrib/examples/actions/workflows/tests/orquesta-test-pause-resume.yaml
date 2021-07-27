@@ -19,4 +19,4 @@ tasks:
     task2:
         action: core.local
         input:
-            cmd: 'echo "<% $.var1 %>"' 
+            cmd: 'echo "<% $.var1 %>"'

@@ -25,6 +25,7 @@ from __future__ import absolute_import
 # Ignore CryptographyDeprecationWarning warnings which appear on older versions of Python 2.7
 import warnings
 from cryptography.utils import CryptographyDeprecationWarning
+
 warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
 
 import os
@@ -62,17 +63,18 @@ from st2client.commands import service_registry
 from st2client.config import set_config
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
+from st2client.utils.misc import reencode_list_with_surrogate_escape_sequences
 from st2client.commands.auth import TokenCreateCommand
 from st2client.commands.auth import LoginCommand
 
 
-__all__ = [
-    'Shell'
-]
+__all__ = ["Shell"]
 
 LOGGER = logging.getLogger(__name__)
 
-CLI_DESCRIPTION = 'CLI for StackStorm event-driven automation platform. https://stackstorm.com'
+CLI_DESCRIPTION = (
+    "CLI for StackStorm event-driven automation platform. https://stackstorm.com"
+)
 USAGE_STRING = """
 Usage: %(prog)s [options] <command> <sub command> [options]
 
@@ -83,15 +85,55 @@ For example:
     %(prog)s --debug run core.local cmd=date
 """.strip()
 
-NON_UTF8_LOCALE = """
+NON_UTF8_LOCALE = (
+    """
 Locale %s with encoding %s which is not UTF-8 is used. This means that some functionality which
 relies on outputting unicode characters won't work.
 
 You are encouraged to use UTF-8 locale by setting LC_ALL environment variable to en_US.UTF-8 or
 similar.
-""".strip().replace('\n', ' ').replace('  ', ' ')
+""".strip()
+    .replace("\n", " ")
+    .replace("  ", " ")
+)
 
-PACKAGE_METADATA_FILE_PATH = '/opt/stackstorm/st2/package.meta'
+PACKAGE_METADATA_FILE_PATH = "/opt/stackstorm/st2/package.meta"
+
+"""
+Here we sanitize the provided args and ensure they contain valid unicode values.
+
+By default, sys.argv will contain a unicode string where the actual item values which contain
+unicode sequences are escaped using unicode surrogates.
+
+For example, if "examples.test_rule_utf8_náme" value is specified as a CLI argument, sys.argv
+and as such also url, would contain "examples.test_rule_utf8_n%ED%B3%83%ED%B2%A1me" which is not
+what we want.
+
+Complete sys.argv example:
+
+1. Default - ['shell.py', '--debug', 'rule', 'get', 'examples.test_rule_utf8_n\udcc3\udca1me']
+2. What we want - ['shell.py', '--debug', 'rule', 'get', 'examples.test_rule_utf8_náme']
+
+This won't work correctly when sending requests to the API. As such, we correctly escape the
+value to the unicode string here and then let the http layer (requests) correctly url encode
+this value.
+
+Technically, we could also just try to re-encode it in the HTTPClient and I tried that first, but
+it turns out more code in the client results in exceptions if it's not re-encoded as early as
+possible.
+"""
+
+REENCODE_ARGV = os.environ.get("ST2_CLI_RENCODE_ARGV", "true").lower() in [
+    "true",
+    "1",
+    "yes",
+]
+
+if REENCODE_ARGV:
+    try:
+        sys.argv = reencode_list_with_surrogate_escape_sequences(sys.argv)
+    except Exception as e:
+        print("Failed to re-encode sys.argv: %s" % (str(e)))
 
 
 def get_stackstorm_version():
@@ -101,7 +143,7 @@ def get_stackstorm_version():
 
     :rtype: ``str``
     """
-    if 'dev' in __version__:
+    if "dev" in __version__:
         version = __version__
 
         if not os.path.isfile(PACKAGE_METADATA_FILE_PATH):
@@ -115,11 +157,11 @@ def get_stackstorm_version():
             return version
 
         try:
-            git_revision = config.get('server', 'git_sha')
+            git_revision = config.get("server", "git_sha")
         except Exception:
             return version
 
-        version = '%s (%s)' % (version, git_revision)
+        version = "%s (%s)" % (version, git_revision)
     else:
         version = __version__
 
@@ -143,214 +185,237 @@ class Shell(BaseCLIApp):
 
         # Set up general program options.
         self.parser.add_argument(
-            '--version',
-            action='version',
-            version='%(prog)s {version}, on Python {python_major}.{python_minor}.{python_patch}'
-                    .format(version=get_stackstorm_version(),
-                            python_major=sys.version_info.major,
-                            python_minor=sys.version_info.minor,
-                            python_patch=sys.version_info.micro))
-
-        self.parser.add_argument(
-            '--url',
-            action='store',
-            dest='base_url',
-            default=None,
-            help='Base URL for the API servers. Assumes all servers use the '
-                 'same base URL and default ports are used. Get ST2_BASE_URL '
-                 'from the environment variables by default.'
+            "--version",
+            action="version",
+            version="%(prog)s {version}, on Python {python_major}.{python_minor}.{python_patch}".format(
+                version=get_stackstorm_version(),
+                python_major=sys.version_info.major,
+                python_minor=sys.version_info.minor,
+                python_patch=sys.version_info.micro,
+            ),
         )
 
         self.parser.add_argument(
-            '--auth-url',
-            action='store',
-            dest='auth_url',
+            "--url",
+            action="store",
+            dest="base_url",
             default=None,
-            help='URL for the authentication service. Get ST2_AUTH_URL '
-                 'from the environment variables by default.'
+            help="Base URL for the API servers. Assumes all servers use the "
+            "same base URL and default ports are used. Get ST2_BASE_URL "
+            "from the environment variables by default.",
         )
 
         self.parser.add_argument(
-            '--api-url',
-            action='store',
-            dest='api_url',
+            "--auth-url",
+            action="store",
+            dest="auth_url",
             default=None,
-            help='URL for the API server. Get ST2_API_URL '
-                 'from the environment variables by default.'
+            help="URL for the authentication service. Get ST2_AUTH_URL "
+            "from the environment variables by default.",
         )
 
         self.parser.add_argument(
-            '--stream-url',
-            action='store',
-            dest='stream_url',
+            "--api-url",
+            action="store",
+            dest="api_url",
             default=None,
-            help='URL for the stream endpoint. Get ST2_STREAM_URL'
-                 'from the environment variables by default.'
+            help="URL for the API server. Get ST2_API_URL "
+            "from the environment variables by default.",
         )
 
         self.parser.add_argument(
-            '--api-version',
-            action='store',
-            dest='api_version',
+            "--stream-url",
+            action="store",
+            dest="stream_url",
             default=None,
-            help='API version to use. Get ST2_API_VERSION '
-                 'from the environment variables by default.'
+            help="URL for the stream endpoint. Get ST2_STREAM_URL"
+            "from the environment variables by default.",
         )
 
         self.parser.add_argument(
-            '--cacert',
-            action='store',
-            dest='cacert',
+            "--api-version",
+            action="store",
+            dest="api_version",
             default=None,
-            help='Path to the CA cert bundle for the SSL endpoints. '
-                 'Get ST2_CACERT from the environment variables by default. '
-                 'If this is not provided, then SSL cert will not be verified.'
+            help="API version to use. Get ST2_API_VERSION "
+            "from the environment variables by default.",
         )
 
         self.parser.add_argument(
-            '--config-file',
-            action='store',
-            dest='config_file',
+            "--cacert",
+            action="store",
+            dest="cacert",
             default=None,
-            help='Path to the CLI config file'
+            help="Path to the CA cert bundle for the SSL endpoints. "
+            "Get ST2_CACERT from the environment variables by default. "
+            "If this is not provided, then SSL cert will not be verified.",
         )
 
         self.parser.add_argument(
-            '--print-config',
-            action='store_true',
-            dest='print_config',
+            "--config-file",
+            action="store",
+            dest="config_file",
+            default=None,
+            help="Path to the CLI config file",
+        )
+
+        self.parser.add_argument(
+            "--print-config",
+            action="store_true",
+            dest="print_config",
             default=False,
-            help='Parse the config file and print the values'
+            help="Parse the config file and print the values",
         )
 
         self.parser.add_argument(
-            '--skip-config',
-            action='store_true',
-            dest='skip_config',
+            "--skip-config",
+            action="store_true",
+            dest="skip_config",
             default=False,
-            help='Don\'t parse and use the CLI config file'
+            help="Don't parse and use the CLI config file",
         )
 
         self.parser.add_argument(
-            '--debug',
-            action='store_true',
-            dest='debug',
+            "--debug",
+            action="store_true",
+            dest="debug",
             default=False,
-            help='Enable debug mode'
+            help="Enable debug mode",
         )
 
         # Set up list of commands and subcommands.
-        self.subparsers = self.parser.add_subparsers(dest='parser')
+        self.subparsers = self.parser.add_subparsers(dest="parser")
         self.subparsers.required = True
         self.commands = {}
 
-        self.commands['run'] = action.ActionRunCommand(
-            models.Action, self, self.subparsers, name='run', add_help=False)
+        self.commands["run"] = action.ActionRunCommand(
+            models.Action, self, self.subparsers, name="run", add_help=False
+        )
 
-        self.commands['action'] = action.ActionBranch(
-            'An activity that happens as a response to the external event.',
-            self, self.subparsers)
+        self.commands["action"] = action.ActionBranch(
+            "An activity that happens as a response to the external event.",
+            self,
+            self.subparsers,
+        )
 
-        self.commands['action-alias'] = action_alias.ActionAliasBranch(
-            'Action aliases.',
-            self, self.subparsers)
+        self.commands["action-alias"] = action_alias.ActionAliasBranch(
+            "Action aliases.", self, self.subparsers
+        )
 
-        self.commands['auth'] = auth.TokenCreateCommand(
-            models.Token, self, self.subparsers, name='auth')
+        self.commands["auth"] = auth.TokenCreateCommand(
+            models.Token, self, self.subparsers, name="auth"
+        )
 
-        self.commands['login'] = auth.LoginCommand(
-            models.Token, self, self.subparsers, name='login')
+        self.commands["login"] = auth.LoginCommand(
+            models.Token, self, self.subparsers, name="login"
+        )
 
-        self.commands['whoami'] = auth.WhoamiCommand(
-            models.Token, self, self.subparsers, name='whoami')
+        self.commands["whoami"] = auth.WhoamiCommand(
+            models.Token, self, self.subparsers, name="whoami"
+        )
 
-        self.commands['api-key'] = auth.ApiKeyBranch(
-            'API Keys.',
-            self, self.subparsers)
+        self.commands["api-key"] = auth.ApiKeyBranch("API Keys.", self, self.subparsers)
 
-        self.commands['execution'] = action.ActionExecutionBranch(
-            'An invocation of an action.',
-            self, self.subparsers)
+        self.commands["execution"] = action.ActionExecutionBranch(
+            "An invocation of an action.", self, self.subparsers
+        )
 
-        self.commands['inquiry'] = inquiry.InquiryBranch(
-            'Inquiries provide an opportunity to ask a question '
-            'and wait for a response in a workflow.',
-            self, self.subparsers)
+        self.commands["inquiry"] = inquiry.InquiryBranch(
+            "Inquiries provide an opportunity to ask a question "
+            "and wait for a response in a workflow.",
+            self,
+            self.subparsers,
+        )
 
-        self.commands['key'] = keyvalue.KeyValuePairBranch(
-            'Key value pair is used to store commonly used configuration '
-            'for reuse in sensors, actions, and rules.',
-            self, self.subparsers)
+        self.commands["key"] = keyvalue.KeyValuePairBranch(
+            "Key value pair is used to store commonly used configuration "
+            "for reuse in sensors, actions, and rules.",
+            self,
+            self.subparsers,
+        )
 
-        self.commands['pack'] = pack.PackBranch(
-            'A group of related integration resources: '
-            'actions, rules, and sensors.',
-            self, self.subparsers)
+        self.commands["pack"] = pack.PackBranch(
+            "A group of related integration resources: " "actions, rules, and sensors.",
+            self,
+            self.subparsers,
+        )
 
-        self.commands['policy'] = policy.PolicyBranch(
-            'Policy that is enforced on a resource.',
-            self, self.subparsers)
+        self.commands["policy"] = policy.PolicyBranch(
+            "Policy that is enforced on a resource.", self, self.subparsers
+        )
 
-        self.commands['policy-type'] = policy.PolicyTypeBranch(
-            'Type of policy that can be applied to resources.',
-            self, self.subparsers)
+        self.commands["policy-type"] = policy.PolicyTypeBranch(
+            "Type of policy that can be applied to resources.", self, self.subparsers
+        )
 
-        self.commands['rule'] = rule.RuleBranch(
+        self.commands["rule"] = rule.RuleBranch(
             'A specification to invoke an "action" on a "trigger" selectively '
-            'based on some criteria.',
-            self, self.subparsers)
+            "based on some criteria.",
+            self,
+            self.subparsers,
+        )
 
-        self.commands['webhook'] = webhook.WebhookBranch(
-            'Webhooks.',
-            self, self.subparsers)
+        self.commands["webhook"] = webhook.WebhookBranch(
+            "Webhooks.", self, self.subparsers
+        )
 
-        self.commands['timer'] = timer.TimerBranch(
-            'Timers.',
-            self, self.subparsers)
+        self.commands["timer"] = timer.TimerBranch("Timers.", self, self.subparsers)
 
-        self.commands['runner'] = resource.ResourceBranch(
+        self.commands["runner"] = resource.ResourceBranch(
             models.RunnerType,
-            'Runner is a type of handler for a specific class of actions.',
-            self, self.subparsers, read_only=True, has_disable=True)
+            "Runner is a type of handler for a specific class of actions.",
+            self,
+            self.subparsers,
+            read_only=True,
+            has_disable=True,
+        )
 
-        self.commands['sensor'] = sensor.SensorBranch(
-            'An adapter which allows you to integrate StackStorm with external system.',
-            self, self.subparsers)
+        self.commands["sensor"] = sensor.SensorBranch(
+            "An adapter which allows you to integrate StackStorm with external system.",
+            self,
+            self.subparsers,
+        )
 
-        self.commands['trace'] = trace.TraceBranch(
-            'A group of executions, rules and triggerinstances that are related.',
-            self, self.subparsers)
+        self.commands["trace"] = trace.TraceBranch(
+            "A group of executions, rules and triggerinstances that are related.",
+            self,
+            self.subparsers,
+        )
 
-        self.commands['trigger'] = trigger.TriggerTypeBranch(
-            'An external event that is mapped to a st2 input. It is the '
-            'st2 invocation point.',
-            self, self.subparsers)
+        self.commands["trigger"] = trigger.TriggerTypeBranch(
+            "An external event that is mapped to a st2 input. It is the "
+            "st2 invocation point.",
+            self,
+            self.subparsers,
+        )
 
-        self.commands['trigger-instance'] = triggerinstance.TriggerInstanceBranch(
-            'Actual instances of triggers received by st2.',
-            self, self.subparsers)
+        self.commands["trigger-instance"] = triggerinstance.TriggerInstanceBranch(
+            "Actual instances of triggers received by st2.", self, self.subparsers
+        )
 
-        self.commands['rule-enforcement'] = rule_enforcement.RuleEnforcementBranch(
-            'Models that represent enforcement of rules.',
-            self, self.subparsers)
+        self.commands["rule-enforcement"] = rule_enforcement.RuleEnforcementBranch(
+            "Models that represent enforcement of rules.", self, self.subparsers
+        )
 
-        self.commands['workflow'] = workflow.WorkflowBranch(
-            'Commands for workflow authoring related operations. '
-            'Only orquesta workflows are supported.',
-            self, self.subparsers)
+        self.commands["workflow"] = workflow.WorkflowBranch(
+            "Commands for workflow authoring related operations. "
+            "Only orquesta workflows are supported.",
+            self,
+            self.subparsers,
+        )
 
         # Service Registry
-        self.commands['service-registry'] = service_registry.ServiceRegistryBranch(
-            'Service registry group and membership related commands.',
-            self, self.subparsers)
+        self.commands["service-registry"] = service_registry.ServiceRegistryBranch(
+            "Service registry group and membership related commands.",
+            self,
+            self.subparsers,
+        )
 
         # RBAC
-        self.commands['role'] = rbac.RoleBranch(
-            'RBAC roles.',
-            self, self.subparsers)
-        self.commands['role-assignment'] = rbac.RoleAssignmentBranch(
-            'RBAC role assignments.',
-            self, self.subparsers)
+        self.commands["role"] = rbac.RoleBranch("RBAC roles.", self, self.subparsers)
+        self.commands["role-assignment"] = rbac.RoleAssignmentBranch(
+            "RBAC role assignments.", self, self.subparsers
+        )
 
     def run(self, argv):
         debug = False
@@ -369,9 +434,9 @@ class Shell(BaseCLIApp):
         # Provide autocomplete for shell
         argcomplete.autocomplete(self.parser)
 
-        if '--print-config' in argv:
+        if "--print-config" in argv:
             # Hack because --print-config requires no command to be specified
-            argv = argv + ['action', 'list']
+            argv = argv + ["action", "list"]
 
         # Parse command line arguments.
         args = self.parser.parse_args(args=argv)
@@ -389,7 +454,7 @@ class Shell(BaseCLIApp):
 
         # Setup client and run the command
         try:
-            debug = getattr(args, 'debug', False)
+            debug = getattr(args, "debug", False)
             if debug:
                 set_log_level_for_all_loggers(level=logging.DEBUG)
 
@@ -399,7 +464,7 @@ class Shell(BaseCLIApp):
             # TODO: This is not so nice work-around for Python 3 because of a breaking change in
             # Python 3 - https://bugs.python.org/issue16308
             try:
-                func = getattr(args, 'func')
+                func = getattr(args, "func")
             except AttributeError:
                 parser.print_help()
                 sys.exit(2)
@@ -414,9 +479,9 @@ class Shell(BaseCLIApp):
             return 2
         except Exception as e:
             # We allow exception to define custom exit codes
-            exit_code = getattr(e, 'exit_code', 1)
+            exit_code = getattr(e, "exit_code", 1)
 
-            print('ERROR: %s\n' % e)
+            print("ERROR: %s\n" % e)
             if debug:
                 self._print_debug_info(args=args)
 
@@ -426,10 +491,10 @@ class Shell(BaseCLIApp):
         config = self._parse_config_file(args=args)
 
         for section, options in six.iteritems(config):
-            print('[%s]' % (section))
+            print("[%s]" % (section))
 
             for name, value in six.iteritems(options):
-                print('%s = %s' % (name, value))
+                print("%s = %s" % (name, value))
 
     def _check_locale_and_print_warning(self):
         """
@@ -440,23 +505,23 @@ class Shell(BaseCLIApp):
             preferred_encoding = locale.getpreferredencoding()
         except ValueError:
             # Ignore unknown locale errors for now
-            default_locale = 'unknown'
-            preferred_encoding = 'unknown'
+            default_locale = "unknown"
+            preferred_encoding = "unknown"
 
-        if preferred_encoding and preferred_encoding.lower() != 'utf-8':
-            msg = NON_UTF8_LOCALE % (default_locale or 'unknown', preferred_encoding)
+        if preferred_encoding and preferred_encoding.lower() != "utf-8":
+            msg = NON_UTF8_LOCALE % (default_locale or "unknown", preferred_encoding)
             LOGGER.warn(msg)
 
 
 def setup_logging(argv):
-    debug = '--debug' in argv
+    debug = "--debug" in argv
 
     root = LOGGER
     root.setLevel(logging.WARNING)
 
     handler = logging.StreamHandler(sys.stderr)
     handler.setLevel(logging.WARNING)
-    formatter = logging.Formatter('%(asctime)s  %(levelname)s - %(message)s')
+    formatter = logging.Formatter("%(asctime)s  %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
 
     if not debug:
@@ -470,5 +535,5 @@ def main(argv=sys.argv[1:]):
     return Shell().run(argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

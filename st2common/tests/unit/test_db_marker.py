@@ -26,26 +26,27 @@ class DumperMarkerModelTest(DbTestCase):
     def test_dumper_marker_crud(self):
         saved = DumperMarkerModelTest._create_save_dumper_marker()
         retrieved = DumperMarker.get_by_id(saved.id)
-        self.assertEqual(saved.marker, retrieved.marker,
-                         'Same marker was not returned.')
+        self.assertEqual(
+            saved.marker, retrieved.marker, "Same marker was not returned."
+        )
         # test update
         time_now = date_utils.get_datetime_utc_now()
         retrieved.updated_at = time_now
         saved = DumperMarker.add_or_update(retrieved)
         retrieved = DumperMarker.get_by_id(saved.id)
-        self.assertEqual(retrieved.updated_at, time_now, 'Update to marker failed.')
+        self.assertEqual(retrieved.updated_at, time_now, "Update to marker failed.")
         # cleanup
         DumperMarkerModelTest._delete([retrieved])
         try:
             retrieved = DumperMarker.get_by_id(saved.id)
         except StackStormDBObjectNotFoundError:
             retrieved = None
-        self.assertIsNone(retrieved, 'managed to retrieve after failure.')
+        self.assertIsNone(retrieved, "managed to retrieve after failure.")
 
     @staticmethod
     def _create_save_dumper_marker():
         created = DumperMarkerDB()
-        created.marker = '2015-06-11T00:35:15.260439Z'
+        created.marker = "2015-06-11T00:35:15.260439Z"
         created.updated_at = date_utils.get_datetime_utc_now()
         return DumperMarker.add_or_update(created)
 

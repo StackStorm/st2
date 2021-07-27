@@ -16,10 +16,7 @@
 from __future__ import absolute_import
 import os
 
-__all__ = [
-    'basename',
-    'dirname'
-]
+__all__ = ["basename", "dirname"]
 
 
 def basename(path):

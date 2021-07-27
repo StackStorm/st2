@@ -24,23 +24,34 @@ from st2common.script_setup import setup as common_setup
 from st2common.util.pack_management import download_pack
 from st2common.util.pack_management import get_and_set_proxy_config
 
-__all__ = [
-    'main'
-]
+__all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
 
 
 def _register_cli_opts():
     cli_opts = [
-        cfg.MultiStrOpt('pack', default=None, required=True, positional=True,
-                        help='Name of the pack to install (download).'),
-        cfg.BoolOpt('verify-ssl', default=True,
-                   help=('Verify SSL certificate of the Git repo from which the pack is '
-                         'installed.')),
-        cfg.BoolOpt('force', default=False,
-                    help='True to force pack download and ignore download '
-                         'lock file if it exists.'),
+        cfg.MultiStrOpt(
+            "pack",
+            default=None,
+            required=True,
+            positional=True,
+            help="Name of the pack to install (download).",
+        ),
+        cfg.BoolOpt(
+            "verify-ssl",
+            default=True,
+            help=(
+                "Verify SSL certificate of the Git repo from which the pack is "
+                "installed."
+            ),
+        ),
+        cfg.BoolOpt(
+            "force",
+            default=False,
+            help="True to force pack download and ignore download "
+            "lock file if it exists.",
+        ),
     ]
     do_register_cli_opts(cli_opts)
 
@@ -49,8 +60,12 @@ def main(argv):
     _register_cli_opts()
 
     # Parse CLI args, set up logging
-    common_setup(config=config, setup_db=False, register_mq_exchanges=False,
-                 register_internal_trigger_types=False)
+    common_setup(
+        config=config,
+        setup_db=False,
+        register_mq_exchanges=False,
+        register_internal_trigger_types=False,
+    )
 
     packs = cfg.CONF.pack
     verify_ssl = cfg.CONF.verify_ssl
@@ -60,8 +75,13 @@ def main(argv):
 
     for pack in packs:
         LOG.info('Installing pack "%s"' % (pack))
-        result = download_pack(pack=pack, verify_ssl=verify_ssl, force=force,
-                               proxy_config=proxy_config, force_permissions=True)
+        result = download_pack(
+            pack=pack,
+            verify_ssl=verify_ssl,
+            force=force,
+            proxy_config=proxy_config,
+            force_permissions=True,
+        )
 
         # Raw pack name excluding the version
         pack_name = result[1]

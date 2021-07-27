@@ -29,7 +29,7 @@ PACK_METADATA = {
         "keywords": ["some", "search", "another", "terms"],
         "email": "info@stackstorm.com",
         "description": "st2 pack to test package management pipeline",
-        "python_versions": ["2","3"],
+        "python_versions": ["2", "3"],
     },
     # Python 3
     "py3": {
@@ -72,9 +72,10 @@ PACK_METADATA = {
         "keywords": ["some", "special", "terms"],
         "email": "info@stackstorm.com",
         "description": "another st2 pack to test package management pipeline",
-        "python_versions": ["2"]
-    }
+        "python_versions": ["2"],
+    },
 }
+
 
 def mock_get_pack_basepath(pack):
     """
@@ -94,8 +95,8 @@ def mock_get_pack_metadata(pack_dir):
     return metadata
 
 
-@mock.patch('pack_mgmt.get_pack_warnings.get_pack_base_path', mock_get_pack_basepath)
-@mock.patch('pack_mgmt.get_pack_warnings.get_pack_metadata', mock_get_pack_metadata)
+@mock.patch("pack_mgmt.get_pack_warnings.get_pack_base_path", mock_get_pack_basepath)
+@mock.patch("pack_mgmt.get_pack_warnings.get_pack_metadata", mock_get_pack_metadata)
 class GetPackWarningsTestCase(BaseActionTestCase):
     action_cls = GetPackWarnings
 
@@ -107,15 +108,15 @@ class GetPackWarningsTestCase(BaseActionTestCase):
         packs_status = {"py3": "Success."}
 
         result = action.run(packs_status=packs_status)
-        self.assertEqual(result['warning_list'], [])
+        self.assertEqual(result["warning_list"], [])
 
     def test_run_get_pack_warnings_py2_pack(self):
         action = self.get_action_instance()
         packs_status = {"py2": "Success."}
 
         result = action.run(packs_status=packs_status)
-        self.assertEqual(len(result['warning_list']), 1)
-        warning = result['warning_list'][0]
+        self.assertEqual(len(result["warning_list"]), 1)
+        warning = result["warning_list"][0]
         self.assertTrue("DEPRECATION WARNING" in warning)
         self.assertTrue("Pack py2 only supports Python 2" in warning)
 
@@ -124,28 +125,32 @@ class GetPackWarningsTestCase(BaseActionTestCase):
         packs_status = {"py23": "Success."}
 
         result = action.run(packs_status=packs_status)
-        self.assertEqual(result['warning_list'], [])
+        self.assertEqual(result["warning_list"], [])
 
     def test_run_get_pack_warnings_pynone_pack(self):
         action = self.get_action_instance()
         packs_status = {"pynone": "Success."}
 
         result = action.run(packs_status=packs_status)
-        self.assertEqual(result['warning_list'], [])
+        self.assertEqual(result["warning_list"], [])
 
     def test_run_get_pack_warnings_multiple_pack(self):
         action = self.get_action_instance()
-        packs_status = {"py2": "Success.",
-                        "py23": "Success.",
-                        "py22": "Success."}
+        packs_status = {"py2": "Success.", "py23": "Success.", "py22": "Success."}
 
         result = action.run(packs_status=packs_status)
-        self.assertEqual(len(result['warning_list']), 2)
-        warning0 = result['warning_list'][0]
-        warning1 = result['warning_list'][1]
+        self.assertEqual(len(result["warning_list"]), 2)
+        warning0 = result["warning_list"][0]
+        warning1 = result["warning_list"][1]
         self.assertTrue("DEPRECATION WARNING" in warning0)
         self.assertTrue("DEPRECATION WARNING" in warning1)
-        self.assertTrue(("Pack py2 only supports Python 2" in warning0 and
-                         "Pack py22 only supports Python 2" in warning1) or 
-                         ("Pack py22 only supports Python 2" in warning0 and
-                         "Pack py2 only supports Python 2" in warning1))
+        self.assertTrue(
+            (
+                "Pack py2 only supports Python 2" in warning0
+                and "Pack py22 only supports Python 2" in warning1
+            )
+            or (
+                "Pack py22 only supports Python 2" in warning0
+                and "Pack py2 only supports Python 2" in warning1
+            )
+        )

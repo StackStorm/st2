@@ -20,6 +20,7 @@ import mock
 import eventlet
 
 from st2tests import config as test_config
+
 test_config.parse_args()
 
 import st2common
@@ -45,31 +46,28 @@ from st2common.exceptions import db as db_exc
 
 
 LIVE_ACTION = {
-    'parameters': {
-        'cmd': 'echo ":dat_face:"',
+    "parameters": {
+        "cmd": 'echo ":dat_face:"',
     },
-    'action': 'core.local',
-    'status': 'requested'
+    "action": "core.local",
+    "status": "requested",
 }
 
-PACK = 'generic'
+PACK = "generic"
 TEST_FIXTURES = {
-    'actions': [
-        'action1.yaml',
-        'action2.yaml'
-    ],
-    'policies': [
-        'policy_3.yaml',
-        'policy_7.yaml'
-    ]
+    "actions": ["action1.yaml", "action2.yaml"],
+    "policies": ["policy_3.yaml", "policy_7.yaml"],
 }
 
 
 @mock.patch.object(
-    LiveActionPublisher, 'publish_state',
-    mock.MagicMock(side_effect=MockLiveActionPublisherSchedulingQueueOnly.publish_state))
+    LiveActionPublisher,
+    "publish_state",
+    mock.MagicMock(
+        side_effect=MockLiveActionPublisherSchedulingQueueOnly.publish_state
+    ),
+)
 class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         ExecutionDbTestCase.setUpClass()
@@ -81,18 +79,21 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         register_policy_types(st2common)
 
         loader = FixturesLoader()
-        loader.save_fixtures_to_db(fixtures_pack=PACK,
-                                   fixtures_dict=TEST_FIXTURES)
+        loader.save_fixtures_to_db(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
     def setUp(self):
         super(ActionExecutionSchedulingQueueItemDBTest, self).setUp()
         self.scheduler = scheduling.get_scheduler_entrypoint()
         self.scheduling_queue = scheduling_queue.get_handler()
 
-    def _create_liveaction_db(self, status=action_constants.LIVEACTION_STATUS_REQUESTED):
-        action_ref = 'wolfpack.action-1'
-        parameters = {'actionstr': 'fu'}
-        liveaction_db = LiveActionDB(action=action_ref, parameters=parameters, status=status)
+    def _create_liveaction_db(
+        self, status=action_constants.LIVEACTION_STATUS_REQUESTED
+    ):
+        action_ref = "wolfpack.action-1"
+        parameters = {"actionstr": "fu"}
+        liveaction_db = LiveActionDB(
+            action=action_ref, parameters=parameters, status=status
+        )
 
         liveaction_db = LiveAction.add_or_update(liveaction_db)
         execution_service.create_execution_object(liveaction_db, publish=False)
@@ -108,7 +109,9 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
             delay,
         )
 
-        delay_date = date.append_milliseconds_to_time(liveaction_db.start_timestamp, delay)
+        delay_date = date.append_milliseconds_to_time(
+            liveaction_db.start_timestamp, delay
+        )
 
         self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueItemDB)
         self.assertEqual(schedule_q_db.scheduled_start_timestamp, delay_date)
@@ -119,18 +122,20 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         self.reset()
 
         schedule_q_dbs = []
-        delays = [2000, 5000, 4000]
+        delays = [500, 1000, 800]
         expected_order = [0, 2, 1]
         test_cases = []
 
         for delay in delays:
             liveaction_db = self._create_liveaction_db()
-            delayed_start = date.append_milliseconds_to_time(liveaction_db.start_timestamp, delay)
+            delayed_start = date.append_milliseconds_to_time(
+                liveaction_db.start_timestamp, delay
+            )
 
             test_case = {
-                'liveaction': liveaction_db,
-                'delay': delay,
-                'delayed_start': delayed_start
+                "liveaction": liveaction_db,
+                "delay": delay,
+                "delayed_start": delayed_start,
             }
 
             test_cases.append(test_case)
@@ -139,35 +144,37 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
             schedule_q_dbs.append(
                 ActionExecutionSchedulingQueue.add_or_update(
                     self.scheduler._create_execution_queue_item_db_from_liveaction(
-                        test_case['liveaction'],
-                        test_case['delay'],
+                        test_case["liveaction"],
+                        test_case["delay"],
                     )
                 )
             )
 
         # Wait maximum delay seconds so the query works as expected
-        eventlet.sleep(3.2)
+        eventlet.sleep(1.0)
 
         for index in expected_order:
             test_case = test_cases[index]
 
             date_mock = mock.MagicMock()
-            date_mock.get_datetime_utc_now.return_value = test_case['delayed_start']
+            date_mock.get_datetime_utc_now.return_value = test_case["delayed_start"]
             date_mock.append_milliseconds_to_time = date.append_milliseconds_to_time
 
-            with mock.patch('st2actions.scheduler.handler.date', date_mock):
+            with mock.patch("st2actions.scheduler.handler.date", date_mock):
                 schedule_q_db = self.scheduling_queue._get_next_execution()
                 ActionExecutionSchedulingQueue.delete(schedule_q_db)
 
             self.assertIsInstance(schedule_q_db, ActionExecutionSchedulingQueueItemDB)
-            self.assertEqual(schedule_q_db.delay, test_case['delay'])
-            self.assertEqual(schedule_q_db.liveaction_id, str(test_case['liveaction'].id))
+            self.assertEqual(schedule_q_db.delay, test_case["delay"])
+            self.assertEqual(
+                schedule_q_db.liveaction_id, str(test_case["liveaction"].id)
+            )
 
             # NOTE: We can't directly assert on the timestamp due to the delays on the code and
             # timing variance
             scheduled_start_timestamp = schedule_q_db.scheduled_start_timestamp
-            test_case_start_timestamp = test_case['delayed_start']
-            start_timestamp_diff = (scheduled_start_timestamp - test_case_start_timestamp)
+            test_case_start_timestamp = test_case["delayed_start"]
+            start_timestamp_diff = scheduled_start_timestamp - test_case_start_timestamp
             self.assertTrue(start_timestamp_diff <= datetime.timedelta(seconds=1))
 
     def test_next_executions_empty(self):
@@ -227,9 +234,11 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         schedule_q_db = self.scheduling_queue._get_next_execution()
         self.assertIsNotNone(schedule_q_db)
 
-    @mock.patch('st2actions.scheduler.handler.action_service')
-    @mock.patch('st2actions.scheduler.handler.ActionExecutionSchedulingQueue.delete')
-    def test_processing_when_task_completed(self, mock_execution_queue_delete, mock_action_service):
+    @mock.patch("st2actions.scheduler.handler.action_service")
+    @mock.patch("st2actions.scheduler.handler.ActionExecutionSchedulingQueue.delete")
+    def test_processing_when_task_completed(
+        self, mock_execution_queue_delete, mock_action_service
+    ):
         self.reset()
 
         liveaction_db = self._create_liveaction_db()
@@ -245,7 +254,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         mock_execution_queue_delete.assert_called_once()
         ActionExecutionSchedulingQueue.delete(schedule_q_db)
 
-    @mock.patch('st2actions.scheduler.handler.LOG')
+    @mock.patch("st2actions.scheduler.handler.LOG")
     def test_failed_next_item(self, mocked_logger):
         self.reset()
 
@@ -258,15 +267,17 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         schedule_q_db = ActionExecutionSchedulingQueue.add_or_update(schedule_q_db)
 
         with mock.patch(
-            'st2actions.scheduler.handler.ActionExecutionSchedulingQueue.add_or_update',
-            side_effect=db_exc.StackStormDBObjectWriteConflictError(schedule_q_db)
+            "st2actions.scheduler.handler.ActionExecutionSchedulingQueue.add_or_update",
+            side_effect=db_exc.StackStormDBObjectWriteConflictError(schedule_q_db),
         ):
             schedule_q_db = self.scheduling_queue._get_next_execution()
             self.assertIsNone(schedule_q_db)
 
         self.assertEqual(mocked_logger.info.call_count, 2)
         call_args = mocked_logger.info.call_args_list[1][0]
-        self.assertEqual(r'[%s] Item "%s" is already handled by another scheduler.', call_args[0])
+        self.assertEqual(
+            r'[%s] Item "%s" is already handled by another scheduler.', call_args[0]
+        )
 
         schedule_q_db = self.scheduling_queue._get_next_execution()
         self.assertIsNotNone(schedule_q_db)
@@ -288,33 +299,39 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
         # Manually update the liveaction to policy-delayed status.
         # Using action_service.update_status will throw an exception on the
         # deprecated action_constants.LIVEACTION_STATUS_POLICY_DELAYED.
-        liveaction_db.status = 'policy-delayed'
+        liveaction_db.status = "policy-delayed"
         liveaction_db = LiveAction.add_or_update(liveaction_db)
         execution_db = execution_service.update_execution(liveaction_db)
 
         # Check that the execution status is set to policy-delayed.
         liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
-        self.assertEqual(liveaction_db.status, 'policy-delayed')
+        self.assertEqual(liveaction_db.status, "policy-delayed")
 
         execution_db = ActionExecution.get_by_id(str(execution_db.id))
-        self.assertEqual(execution_db.status, 'policy-delayed')
+        self.assertEqual(execution_db.status, "policy-delayed")
 
         # Run the clean up logic.
         self.scheduling_queue._cleanup_policy_delayed()
 
         # Check that the execution status is reset to requested.
         liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
-        self.assertEqual(liveaction_db.status, action_constants.LIVEACTION_STATUS_REQUESTED)
+        self.assertEqual(
+            liveaction_db.status, action_constants.LIVEACTION_STATUS_REQUESTED
+        )
 
         execution_db = ActionExecution.get_by_id(str(execution_db.id))
-        self.assertEqual(execution_db.status, action_constants.LIVEACTION_STATUS_REQUESTED)
+        self.assertEqual(
+            execution_db.status, action_constants.LIVEACTION_STATUS_REQUESTED
+        )
 
         # The old entry should have been deleted. Since the execution is
         # reset to requested, there should be a new scheduling entry.
         new_schedule_q_db = self.scheduling_queue._get_next_execution()
         self.assertIsNotNone(new_schedule_q_db)
         self.assertNotEqual(str(schedule_q_db.id), str(new_schedule_q_db.id))
-        self.assertEqual(schedule_q_db.action_execution_id, new_schedule_q_db.action_execution_id)
+        self.assertEqual(
+            schedule_q_db.action_execution_id, new_schedule_q_db.action_execution_id
+        )
         self.assertEqual(schedule_q_db.liveaction_id, new_schedule_q_db.liveaction_id)
 
     # TODO: Remove this test case for populating action_execution_id in v3.2.

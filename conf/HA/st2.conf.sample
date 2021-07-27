@@ -79,3 +79,7 @@ use_paramiko_ssh_runner = True
 
 [database]
 host = st2-multi-node-controller
+
+[coordination]
+# url = kazoo://st2-multi-node-controller
+url = redis://st2-multi-node-controller

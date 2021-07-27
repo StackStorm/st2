@@ -20,7 +20,6 @@ import st2tests.config as tests_config
 
 
 class FunctionalTest(DbTestCase):
-
     @classmethod
     def setUpClass(cls, **kwargs):
         super(FunctionalTest, cls).setUpClass()

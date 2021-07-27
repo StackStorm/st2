@@ -30,28 +30,26 @@ from st2common.util.green.shell import run_command
 from st2common.bootstrap.sensorsregistrar import register_sensors
 from st2tests.base import IntegrationTestCase
 
-__all__ = [
-    'SensorContainerTestCase'
-]
+__all__ = ["SensorContainerTestCase"]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
+ST2_CONFIG_PATH = os.path.join(BASE_DIR, "../../../conf/st2.tests.conf")
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
 
 PYTHON_BINARY = sys.executable
 
-BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2sensorcontainer')
+BINARY = os.path.join(BASE_DIR, "../../../st2reactor/bin/st2sensorcontainer")
 BINARY = os.path.abspath(BINARY)
 
-PACKS_BASE_PATH = os.path.abspath(os.path.join(BASE_DIR, '../../../contrib'))
+PACKS_BASE_PATH = os.path.abspath(os.path.join(BASE_DIR, "../../../contrib"))
 
 DEFAULT_CMD = [
     PYTHON_BINARY,
     BINARY,
-    '--config-file',
+    "--config-file",
     ST2_CONFIG_PATH,
-    '--sensor-ref=examples.SamplePollingSensor'
+    "--sensor-ref=examples.SamplePollingSensor",
 ]
 
 
@@ -69,11 +67,24 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         st2tests.config.parse_args()
 
-        username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
-        password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
+        username = (
+            cfg.CONF.database.username
+            if hasattr(cfg.CONF.database, "username")
+            else None
+        )
+        password = (
+            cfg.CONF.database.password
+            if hasattr(cfg.CONF.database, "password")
+            else None
+        )
         cls.db_connection = db_setup(
-            cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-            username=username, password=password, ensure_indexes=False)
+            cfg.CONF.database.db_name,
+            cfg.CONF.database.host,
+            cfg.CONF.database.port,
+            username=username,
+            password=password,
+            ensure_indexes=False,
+        )
 
         # NOTE: We need to perform this patching because test fixtures are located outside of the
         # packs base paths directory. This will never happen outside the context of test fixtures.
@@ -83,18 +94,24 @@ class SensorContainerTestCase(IntegrationTestCase):
         register_sensors(packs_base_paths=[PACKS_BASE_PATH], use_pack_cache=False)
 
         # Create virtualenv for examples pack
-        virtualenv_path = '/tmp/virtualenvs/examples'
+        virtualenv_path = "/tmp/virtualenvs/examples"
 
-        run_command(cmd=['rm', '-rf', virtualenv_path])
+        run_command(cmd=["rm", "-rf", virtualenv_path])
 
-        cmd = ['virtualenv', '--system-site-packages', '--python', PYTHON_BINARY, virtualenv_path]
+        cmd = [
+            "virtualenv",
+            "--system-site-packages",
+            "--python",
+            PYTHON_BINARY,
+            virtualenv_path,
+        ]
         run_command(cmd=cmd)
 
     def test_child_processes_are_killed_on_sigint(self):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        concurrency.sleep(5)
+        concurrency.sleep(7)
 
         # Assert process has started and is running
         self.assertProcessIsRunning(process=process)
@@ -122,7 +139,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        concurrency.sleep(3)
+        concurrency.sleep(5)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -135,7 +152,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGTERM causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        concurrency.sleep(PROCESS_EXIT_TIMEOUT + 5)
+        concurrency.sleep(PROCESS_EXIT_TIMEOUT + 8)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -147,7 +164,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        concurrency.sleep(4)
+        concurrency.sleep(5)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -169,36 +186,54 @@ class SensorContainerTestCase(IntegrationTestCase):
 
     def test_single_sensor_mode(self):
         # 1. --sensor-ref not provided
-        cmd = [PYTHON_BINARY, BINARY, '--config-file', ST2_CONFIG_PATH, '--single-sensor-mode']
+        cmd = [
+            PYTHON_BINARY,
+            BINARY,
+            "--config-file",
+            ST2_CONFIG_PATH,
+            "--single-sensor-mode",
+        ]
 
         process = self._start_sensor_container(cmd=cmd)
         pp = psutil.Process(process.pid)
 
         # Give it some time to start up
-        concurrency.sleep(4)
+        concurrency.sleep(5)
 
         stdout = process.stdout.read()
-        self.assertTrue((b'--sensor-ref argument must be provided when running in single sensor '
-                         b'mode') in stdout)
+        self.assertTrue(
+            (
+                b"--sensor-ref argument must be provided when running in single sensor "
+                b"mode"
+            )
+            in stdout
+        )
         self.assertProcessExited(proc=pp)
         self.remove_process(process=process)
 
         # 2. sensor ref provided
-        cmd = [BINARY, '--config-file', ST2_CONFIG_PATH, '--single-sensor-mode',
-               '--sensor-ref=examples.SampleSensorExit']
+        cmd = [
+            BINARY,
+            "--config-file",
+            ST2_CONFIG_PATH,
+            "--single-sensor-mode",
+            "--sensor-ref=examples.SampleSensorExit",
+        ]
 
         process = self._start_sensor_container(cmd=cmd)
         pp = psutil.Process(process.pid)
 
         # Give it some time to start up
-        concurrency.sleep(8)
+        concurrency.sleep(1)
 
         # Container should exit and not respawn a sensor in single sensor mode
         stdout = process.stdout.read()
 
-        self.assertTrue(b'Process for sensor examples.SampleSensorExit has exited with code 110')
-        self.assertTrue(b'Not respawning a sensor since running in single sensor mode')
-        self.assertTrue(b'Process container quit with exit_code 110.')
+        self.assertTrue(
+            b"Process for sensor examples.SampleSensorExit has exited with code 110"
+        )
+        self.assertTrue(b"Not respawning a sensor since running in single sensor mode")
+        self.assertTrue(b"Process container quit with exit_code 110.")
 
         concurrency.sleep(2)
         self.assertProcessExited(proc=pp)
@@ -207,7 +242,13 @@ class SensorContainerTestCase(IntegrationTestCase):
 
     def _start_sensor_container(self, cmd=DEFAULT_CMD):
         subprocess = concurrency.get_subprocess_module()
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                   shell=False, preexec_fn=os.setsid)
+        print("Using command: %s" % (" ".join(cmd)))
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=False,
+            preexec_fn=os.setsid,
+        )
         self.add_process(process=process)
         return process

@@ -19,9 +19,7 @@ from st2common import transport
 from st2common.models.db.sensor import sensor_type_access
 from st2common.persistence.base import ContentPackResource
 
-__all__ = [
-    'SensorType'
-]
+__all__ = ["SensorType"]
 
 
 class SensorType(ContentPackResource):

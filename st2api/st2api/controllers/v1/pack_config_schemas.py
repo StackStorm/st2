@@ -23,9 +23,7 @@ from st2common.persistence.pack import ConfigSchema
 
 http_client = six.moves.http_client
 
-__all__ = [
-    'PackConfigSchemasController'
-]
+__all__ = ["PackConfigSchemasController"]
 
 
 class PackConfigSchemasController(ResourceController):
@@ -40,7 +38,9 @@ class PackConfigSchemasController(ResourceController):
         # this case, RBAC is checked on the parent PackDB object
         self.get_one_db_method = packs_service.get_pack_by_ref
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
+    def get_all(
+        self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters
+    ):
         """
         Retrieve config schema for all the packs.
 
@@ -48,11 +48,13 @@ class PackConfigSchemasController(ResourceController):
             GET /config_schema/
         """
 
-        return super(PackConfigSchemasController, self)._get_all(sort=sort,
-                                                                 offset=offset,
-                                                                 limit=limit,
-                                                                 raw_filters=raw_filters,
-                                                                 requester_user=requester_user)
+        return super(PackConfigSchemasController, self)._get_all(
+            sort=sort,
+            offset=offset,
+            limit=limit,
+            raw_filters=raw_filters,
+            requester_user=requester_user,
+        )
 
     def get_one(self, pack_ref, requester_user):
         """
@@ -61,7 +63,9 @@ class PackConfigSchemasController(ResourceController):
         Handles requests:
             GET /config_schema/<pack_ref>
         """
-        packs_controller._get_one_by_ref_or_id(ref_or_id=pack_ref, requester_user=requester_user)
+        packs_controller._get_one_by_ref_or_id(
+            ref_or_id=pack_ref, requester_user=requester_user
+        )
 
         return self._get_one_by_pack_ref(pack_ref=pack_ref)
 

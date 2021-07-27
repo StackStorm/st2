@@ -18,5 +18,5 @@ import sys
 
 from st2common.cmd.purge_trigger_instances import main
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

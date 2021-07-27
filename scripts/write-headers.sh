@@ -13,11 +13,10 @@ HEADER="# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY\\
 "
 
 if [[ $(uname) == "Linux" ]]; then
-	sed -i -e "s|^\(# -\*- .*\)$|\1\\n$HEADER|; /^# \/\//d" $* || exit -1
+	sed -i -e "s|^\(# -\*- .*\)$|\1\\n$HEADER|; /^# \/\//d" "$@" || exit 2
 elif [[ $(uname) == "Darwin" ]]; then
-	sed -i '' -e "s|^\(# -\*- .*\)$|\1\\n$HEADER|; /^# \/\//d" $* || exit -1
+	sed -i '' -e "s|^\(# -\*- .*\)$|\1\\n$HEADER|; /^# \/\//d" "$@" || exit 2
 else
 	echo >&2 "Unknown OS"
-	exit -1
+	exit 2
 fi
-

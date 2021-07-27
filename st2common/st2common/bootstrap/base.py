@@ -32,9 +32,7 @@ from st2common.util.pack import get_pack_metadata
 from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
-__all__ = [
-    'ResourceRegistrar'
-]
+__all__ = ["ResourceRegistrar"]
 
 LOG = logging.getLogger(__name__)
 
@@ -44,16 +42,15 @@ LOG = logging.getLogger(__name__)
 # a long running process.
 REGISTERED_PACKS_CACHE = {}
 
-EXCLUDE_FILE_PATTERNS = [
-    '*.pyc',
-    '.git/*'
-]
+EXCLUDE_FILE_PATTERNS = ["*.pyc", ".git/*"]
 
 
 class ResourceRegistrar(object):
     ALLOWED_EXTENSIONS = []
 
-    def __init__(self, use_pack_cache=True, use_runners_cache=False, fail_on_failure=False):
+    def __init__(
+        self, use_pack_cache=True, use_runners_cache=False, fail_on_failure=False
+    ):
         """
         :param use_pack_cache: True to cache which packs have been registered in memory and making
                                 sure packs are only registered once.
@@ -81,10 +78,10 @@ class ResourceRegistrar(object):
         for ext in self.ALLOWED_EXTENSIONS:
             resources_glob = resources_dir
 
-            if resources_dir.endswith('/'):
+            if resources_dir.endswith("/"):
                 resources_glob = resources_dir + ext
             else:
-                resources_glob = resources_dir + '/*' + ext
+                resources_glob = resources_dir + "/*" + ext
 
             resource_files = glob.glob(resources_glob)
             resources.extend(resource_files)
@@ -121,7 +118,7 @@ class ResourceRegistrar(object):
             # This pack has already been registered during this register content run
             return
 
-        LOG.debug('Registering pack: %s' % (pack_name))
+        LOG.debug("Registering pack: %s" % (pack_name))
         REGISTERED_PACKS_CACHE[pack_name] = True
 
         try:
@@ -148,19 +145,26 @@ class ResourceRegistrar(object):
 
         # Display a warning if pack contains deprecated config.yaml file. Support for those files
         # will be fully removed in v2.4.0.
-        config_path = os.path.join(pack_dir, 'config.yaml')
+        config_path = os.path.join(pack_dir, "config.yaml")
         if os.path.isfile(config_path):
-            LOG.error('Pack "%s" contains a deprecated config.yaml file (%s). '
-                      'Support for "config.yaml" files has been deprecated in StackStorm v1.6.0 '
-                      'in favor of config.schema.yaml config schema files and config files in '
-                      '/opt/stackstorm/configs/ directory. Support for config.yaml files has '
-                      'been removed in the release (v2.4.0) so please migrate. For more '
-                      'information please refer to %s ' % (pack_db.name, config_path,
-                      'https://docs.stackstorm.com/reference/pack_configs.html'))
+            LOG.error(
+                'Pack "%s" contains a deprecated config.yaml file (%s). '
+                'Support for "config.yaml" files has been deprecated in StackStorm v1.6.0 '
+                "in favor of config.schema.yaml config schema files and config files in "
+                "/opt/stackstorm/configs/ directory. Support for config.yaml files has "
+                "been removed in the release (v2.4.0) so please migrate. For more "
+                "information please refer to %s "
+                % (
+                    pack_db.name,
+                    config_path,
+                    "https://docs.stackstorm.com/reference/pack_configs.html",
+                )
+            )
 
         # 2. Register corresponding pack config schema
-        config_schema_db = self._register_pack_config_schema_db(pack_name=pack_name,
-                                                                pack_dir=pack_dir)
+        config_schema_db = self._register_pack_config_schema_db(
+            pack_name=pack_name, pack_dir=pack_dir
+        )
 
         return pack_db, config_schema_db
 
@@ -173,25 +177,28 @@ class ResourceRegistrar(object):
         # 2hich are in sub-directories)
         # 2. If attribute is not available, but pack name is and pack name meets the valid name
         # criteria, we use that
-        content['ref'] = get_pack_ref_from_metadata(metadata=content,
-                                                    pack_directory_name=pack_name)
+        content["ref"] = get_pack_ref_from_metadata(
+            metadata=content, pack_directory_name=pack_name
+        )
 
         # Include a list of pack files
-        pack_file_list = get_file_list(directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS)
-        content['files'] = pack_file_list
-        content['path'] = pack_dir
+        pack_file_list = get_file_list(
+            directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS
+        )
+        content["files"] = pack_file_list
+        content["path"] = pack_dir
 
         pack_api = PackAPI(**content)
         pack_api.validate()
         pack_db = PackAPI.to_model(pack_api)
 
         try:
-            pack_db.id = Pack.get_by_ref(content['ref']).id
+            pack_db.id = Pack.get_by_ref(content["ref"]).id
         except StackStormDBObjectNotFoundError:
-            LOG.debug('Pack %s not found. Creating new one.', pack_name)
+            LOG.debug("Pack %s not found. Creating new one.", pack_name)
 
         pack_db = Pack.add_or_update(pack_db)
-        LOG.debug('Pack %s registered.' % (pack_name))
+        LOG.debug("Pack %s registered." % (pack_name))
         return pack_db
 
     def _register_pack_config_schema_db(self, pack_name, pack_dir):
@@ -204,11 +211,13 @@ class ResourceRegistrar(object):
         values = self._meta_loader.load(config_schema_path)
 
         if not values:
-            raise ValueError('Config schema "%s" is empty and invalid.' % (config_schema_path))
+            raise ValueError(
+                'Config schema "%s" is empty and invalid.' % (config_schema_path)
+            )
 
         content = {}
-        content['pack'] = pack_name
-        content['attributes'] = values
+        content["pack"] = pack_name
+        content["attributes"] = values
 
         config_schema_api = ConfigSchemaAPI(**content)
         config_schema_api = config_schema_api.validate()
@@ -217,8 +226,10 @@ class ResourceRegistrar(object):
         try:
             config_schema_db.id = ConfigSchema.get_by_pack(pack_name).id
         except StackStormDBObjectNotFoundError:
-            LOG.debug('Config schema for pack %s not found. Creating new one.', pack_name)
+            LOG.debug(
+                "Config schema for pack %s not found. Creating new one.", pack_name
+            )
 
         config_schema_db = ConfigSchema.add_or_update(config_schema_db)
-        LOG.debug('Config schema for pack %s registered.' % (pack_name))
+        LOG.debug("Config schema for pack %s registered." % (pack_name))
         return config_schema_db

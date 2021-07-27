@@ -16,12 +16,6 @@
 from __future__ import absolute_import
 from st2common.persistence.rule import Rule
 from st2common.persistence.sensor import SensorType
-from st2common.persistence.trigger import (Trigger, TriggerInstance, TriggerType)
+from st2common.persistence.trigger import Trigger, TriggerInstance, TriggerType
 
-__all__ = [
-    'Rule',
-    'SensorType',
-    'Trigger',
-    'TriggerInstance',
-    'TriggerType'
-]
+__all__ = ["Rule", "SensorType", "Trigger", "TriggerInstance", "TriggerType"]

@@ -24,34 +24,27 @@ from st2common.util import date as date_utils
 from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_SUCCEEDED
 from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
 
-__all__ = [
-    'RuleReferenceSpecDB',
-    'RuleEnforcementDB'
-]
+__all__ = ["RuleReferenceSpecDB", "RuleEnforcementDB"]
 
 
 class RuleReferenceSpecDB(me.EmbeddedDocument):
-    ref = me.StringField(unique=False,
-                         help_text='Reference to rule.',
-                         required=True)
-    id = me.StringField(required=False,
-                        help_text='Rule ID.')
-    uid = me.StringField(required=True,
-                         help_text='Rule UID.')
+    ref = me.StringField(unique=False, help_text="Reference to rule.", required=True)
+    id = me.StringField(required=False, help_text="Rule ID.")
+    uid = me.StringField(required=True, help_text="Rule UID.")
 
     def __str__(self):
         result = []
-        result.append('RuleReferenceSpecDB@')
+        result.append("RuleReferenceSpecDB@")
         result.append(str(id(self)))
         result.append('(ref="%s", ' % self.ref)
         result.append('id="%s", ' % self.id)
         result.append('uid="%s")' % self.uid)
 
-        return ''.join(result)
+        return "".join(result)
 
 
 class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
-    UID_FIELDS = ['id']
+    UID_FIELDS = ["id"]
 
     trigger_instance_id = me.StringField(required=True)
     execution_id = me.StringField(required=False)
@@ -59,31 +52,34 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     rule = me.EmbeddedDocumentField(RuleReferenceSpecDB, required=True)
     enforced_at = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
-        help_text='The timestamp when the rule enforcement happened.')
+        help_text="The timestamp when the rule enforcement happened.",
+    )
     status = me.StringField(
         required=True,
         default=RULE_ENFORCEMENT_STATUS_SUCCEEDED,
-        help_text='Rule enforcement status.')
+        help_text="Rule enforcement status.",
+    )
 
     meta = {
-        'indexes': [
-            {'fields': ['trigger_instance_id']},
-            {'fields': ['execution_id']},
-            {'fields': ['rule.id']},
-            {'fields': ['rule.ref']},
-            {'fields': ['enforced_at']},
-            {'fields': ['-enforced_at']},
-            {'fields': ['-enforced_at', 'rule.ref']},
-            {'fields': ['status']},
-        ] + stormbase.TagsMixin.get_indexes()
+        "indexes": [
+            {"fields": ["trigger_instance_id"]},
+            {"fields": ["execution_id"]},
+            {"fields": ["rule.id"]},
+            {"fields": ["rule.ref"]},
+            {"fields": ["enforced_at"]},
+            {"fields": ["-enforced_at"]},
+            {"fields": ["-enforced_at", "rule.ref"]},
+            {"fields": ["status"]},
+        ]
+        + stormbase.TagsMixin.get_indexes()
     }
 
     def __init__(self, *args, **values):
         super(RuleEnforcementDB, self).__init__(*args, **values)
 
         # Set status to succeeded for old / existing RuleEnforcementDB which predate status field
-        status = getattr(self, 'status', None)
-        failure_reason = getattr(self, 'failure_reason', None)
+        status = getattr(self, "status", None)
+        failure_reason = getattr(self, "failure_reason", None)
 
         if status in [None, RULE_ENFORCEMENT_STATUS_SUCCEEDED] and failure_reason:
             self.status = RULE_ENFORCEMENT_STATUS_FAILED
@@ -92,8 +88,8 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     # with a consistent get_uid interface.
     def get_uid(self):
         # TODO Construct uid from non id field:
-        uid = [self.RESOURCE_TYPE, str(self.id)]    # pylint: disable=E1101
-        return ':'.join(uid)
+        uid = [self.RESOURCE_TYPE, str(self.id)]  # pylint: disable=E1101
+        return ":".join(uid)
 
 
 rule_enforcement_access = MongoDBAccess(RuleEnforcementDB)

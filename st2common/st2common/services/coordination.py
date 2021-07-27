@@ -31,19 +31,17 @@ LOG = logging.getLogger(__name__)
 COORDINATOR = None
 
 __all__ = [
-    'configured',
-
-    'get_coordinator',
-    'get_coordinator_if_set',
-    'get_member_id',
-
-    'coordinator_setup',
-    'coordinator_teardown'
+    "configured",
+    "get_coordinator",
+    "get_coordinator_if_set",
+    "get_member_id",
+    "coordinator_setup",
+    "coordinator_teardown",
 ]
 
 
 class NoOpLock(locking.Lock):
-    def __init__(self, name='noop'):
+    def __init__(self, name="noop"):
         super(NoOpLock, self).__init__(name=name)
 
     def acquire(self, blocking=True):
@@ -61,6 +59,7 @@ class NoOpAsyncResult(object):
     In most scenarios, tooz library returns an async result, a future and this
     class wrapper is here to correctly mimic tooz API and behavior.
     """
+
     def __init__(self, result=None):
         self._result = result
 
@@ -108,7 +107,7 @@ class NoOpDriver(coordination.CoordinationDriver):
 
     @classmethod
     def create_group(cls, group_id):
-        cls.groups[group_id] = {'members': {}}
+        cls.groups[group_id] = {"members": {}}
         return NoOpAsyncResult()
 
     @classmethod
@@ -116,17 +115,17 @@ class NoOpDriver(coordination.CoordinationDriver):
         return NoOpAsyncResult(result=cls.groups.keys())
 
     @classmethod
-    def join_group(cls, group_id, capabilities=''):
+    def join_group(cls, group_id, capabilities=""):
         member_id = get_member_id()
 
-        cls.groups[group_id]['members'][member_id] = {'capabilities': capabilities}
+        cls.groups[group_id]["members"][member_id] = {"capabilities": capabilities}
         return NoOpAsyncResult()
 
     @classmethod
     def leave_group(cls, group_id):
         member_id = get_member_id()
 
-        del cls.groups[group_id]['members'][member_id]
+        del cls.groups[group_id]["members"][member_id]
         return NoOpAsyncResult()
 
     @classmethod
@@ -137,15 +136,15 @@ class NoOpDriver(coordination.CoordinationDriver):
     @classmethod
     def get_members(cls, group_id):
         try:
-            member_ids = cls.groups[group_id]['members'].keys()
+            member_ids = cls.groups[group_id]["members"].keys()
         except KeyError:
-            raise GroupNotCreated('Group doesnt exist')
+            raise GroupNotCreated("Group doesnt exist")
 
         return NoOpAsyncResult(result=member_ids)
 
     @classmethod
     def get_member_capabilities(cls, group_id, member_id):
-        member_capabiliteis = cls.groups[group_id]['members'][member_id]['capabilities']
+        member_capabiliteis = cls.groups[group_id]["members"][member_id]["capabilities"]
         return NoOpAsyncResult(result=member_capabiliteis)
 
     @staticmethod
@@ -158,7 +157,7 @@ class NoOpDriver(coordination.CoordinationDriver):
 
     @staticmethod
     def get_lock(name):
-        return NoOpLock(name='noop')
+        return NoOpLock(name="noop")
 
 
 def configured():
@@ -168,10 +167,25 @@ def configured():
     :rtype: ``bool``
     """
     backend_configured = cfg.CONF.coordination.url is not None
-    mock_backend = backend_configured and (cfg.CONF.coordination.url.startswith('zake') or
-                                           cfg.CONF.coordination.url.startswith('file'))
+    mock_backend = backend_configured and (
+        cfg.CONF.coordination.url.startswith("zake")
+        or cfg.CONF.coordination.url.startswith("file")
+    )
 
     return backend_configured and not mock_backend
+
+
+def get_driver_name() -> str:
+    """
+    Return coordination driver name (aka protocol part from the URI / URL).
+    """
+    url = cfg.CONF.coordination.url
+
+    if not url:
+        return None
+
+    driver_name = url.split("://")[0]
+    return driver_name
 
 
 def coordinator_setup(start_heart=True):
@@ -189,7 +203,9 @@ def coordinator_setup(start_heart=True):
     member_id = get_member_id()
 
     if url:
-        coordinator = coordination.get_coordinator(url, member_id, lock_timeout=lock_timeout)
+        coordinator = coordination.get_coordinator(
+            url, member_id, lock_timeout=lock_timeout
+        )
     else:
         # Use a no-op backend
         # Note: We don't use tooz to obtain a reference since for this to work we would need to
@@ -217,17 +233,21 @@ def get_coordinator(start_heart=True, use_cache=True):
     global COORDINATOR
 
     if not configured():
-        LOG.warn('Coordination backend is not configured. Code paths which use coordination '
-                 'service will use best effort approach and race conditions are possible.')
+        LOG.warn(
+            "Coordination backend is not configured. Code paths which use coordination "
+            "service will use best effort approach and race conditions are possible."
+        )
 
     if not use_cache:
         return coordinator_setup(start_heart=start_heart)
 
     if not COORDINATOR:
         COORDINATOR = coordinator_setup(start_heart=start_heart)
-        LOG.debug('Initializing and caching new coordinator instance: %s' % (str(COORDINATOR)))
+        LOG.debug(
+            "Initializing and caching new coordinator instance: %s" % (str(COORDINATOR))
+        )
     else:
-        LOG.debug('Using cached coordinator instance: %s' % (str(COORDINATOR)))
+        LOG.debug("Using cached coordinator instance: %s" % (str(COORDINATOR)))
 
     return COORDINATOR
 
@@ -247,5 +267,5 @@ def get_member_id():
     :rtype: ``bytes``
     """
     proc_info = system_info.get_process_info()
-    member_id = six.b('%s_%d' % (proc_info['hostname'], proc_info['pid']))
+    member_id = six.b("%s_%d" % (proc_info["hostname"], proc_info["pid"]))
     return member_id

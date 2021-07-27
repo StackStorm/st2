@@ -16,9 +16,7 @@
 from __future__ import absolute_import
 import fnmatch
 
-__all__ = [
-    'StreamingMiddleware'
-]
+__all__ = ["StreamingMiddleware"]
 
 
 class StreamingMiddleware(object):
@@ -32,7 +30,7 @@ class StreamingMiddleware(object):
         # middleware is not important since it acts as pass-through.
 
         matches = False
-        req_path = environ.get('PATH_INFO', None)
+        req_path = environ.get("PATH_INFO", None)
 
         if not self._path_whitelist:
             matches = True
@@ -43,6 +41,6 @@ class StreamingMiddleware(object):
                     break
 
         if matches:
-            environ['eventlet.minimum_write_chunk_size'] = 0
+            environ["eventlet.minimum_write_chunk_size"] = 0
 
         return self.app(environ, start_response)

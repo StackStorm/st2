@@ -27,22 +27,20 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.bootstrap.sensorsregistrar import SensorsRegistrar
 from st2common.bootstrap.rulesregistrar import RulesRegistrar
 
-__all__ = [
-    'SensorRegistrationTestCase',
-    'RuleRegistrationTestCase'
-]
+__all__ = ["SensorRegistrationTestCase", "RuleRegistrationTestCase"]
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PACKS_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../fixtures/packs'))
+PACKS_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../fixtures/packs"))
 
 
 # NOTE: We need to perform this patching because test fixtures are located outside of the packs
 # base paths directory. This will never happen outside the context of test fixtures.
-@mock.patch('st2common.content.utils.get_pack_base_path',
-            mock.Mock(return_value=os.path.join(PACKS_DIR, 'pack_with_sensor')))
+@mock.patch(
+    "st2common.content.utils.get_pack_base_path",
+    mock.Mock(return_value=os.path.join(PACKS_DIR, "pack_with_sensor")),
+)
 class SensorRegistrationTestCase(DbTestCase):
-
-    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+    @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())
     def test_register_sensors(self):
         # Verify DB is empty at the beginning
         self.assertEqual(len(SensorType.get_all()), 0)
@@ -61,29 +59,33 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(len(trigger_type_dbs), 2)
         self.assertEqual(len(trigger_dbs), 2)
 
-        self.assertEqual(sensor_dbs[0].name, 'TestSensor')
+        self.assertEqual(sensor_dbs[0].name, "TestSensor")
         self.assertEqual(sensor_dbs[0].poll_interval, 10)
         self.assertTrue(sensor_dbs[0].enabled)
-        self.assertEqual(sensor_dbs[0].metadata_file, 'sensors/test_sensor_1.yaml')
+        self.assertEqual(sensor_dbs[0].metadata_file, "sensors/test_sensor_1.yaml")
 
-        self.assertEqual(sensor_dbs[1].name, 'TestSensorDisabled')
+        self.assertEqual(sensor_dbs[1].name, "TestSensorDisabled")
         self.assertEqual(sensor_dbs[1].poll_interval, 10)
         self.assertFalse(sensor_dbs[1].enabled)
-        self.assertEqual(sensor_dbs[1].metadata_file, 'sensors/test_sensor_2.yaml')
+        self.assertEqual(sensor_dbs[1].metadata_file, "sensors/test_sensor_2.yaml")
 
-        self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
-        self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
+        self.assertEqual(trigger_type_dbs[0].name, "trigger_type_1")
+        self.assertEqual(trigger_type_dbs[0].pack, "pack_with_sensor")
         self.assertEqual(len(trigger_type_dbs[0].tags), 0)
-        self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
-        self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
+        self.assertEqual(trigger_type_dbs[1].name, "trigger_type_2")
+        self.assertEqual(trigger_type_dbs[1].pack, "pack_with_sensor")
         self.assertEqual(len(trigger_type_dbs[1].tags), 2)
-        self.assertEqual(trigger_type_dbs[1].tags[0].name, 'tag1name')
-        self.assertEqual(trigger_type_dbs[1].tags[0].value, 'tag1 value')
+        self.assertEqual(trigger_type_dbs[1].tags[0].name, "tag1name")
+        self.assertEqual(trigger_type_dbs[1].tags[0].value, "tag1 value")
 
         # Triggered which are registered via sensors have metadata_file pointing to the sensor
         # definition file
-        self.assertEqual(trigger_type_dbs[0].metadata_file, 'sensors/test_sensor_1.yaml')
-        self.assertEqual(trigger_type_dbs[1].metadata_file, 'sensors/test_sensor_1.yaml')
+        self.assertEqual(
+            trigger_type_dbs[0].metadata_file, "sensors/test_sensor_1.yaml"
+        )
+        self.assertEqual(
+            trigger_type_dbs[1].metadata_file, "sensors/test_sensor_1.yaml"
+        )
 
         # Verify second call to registration doesn't create a duplicate objects
         registrar.register_from_packs(base_dirs=[PACKS_DIR])
@@ -96,13 +98,13 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(len(trigger_type_dbs), 2)
         self.assertEqual(len(trigger_dbs), 2)
 
-        self.assertEqual(sensor_dbs[0].name, 'TestSensor')
+        self.assertEqual(sensor_dbs[0].name, "TestSensor")
         self.assertEqual(sensor_dbs[0].poll_interval, 10)
 
-        self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
-        self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
-        self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
-        self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
+        self.assertEqual(trigger_type_dbs[0].name, "trigger_type_1")
+        self.assertEqual(trigger_type_dbs[0].pack, "pack_with_sensor")
+        self.assertEqual(trigger_type_dbs[1].name, "trigger_type_2")
+        self.assertEqual(trigger_type_dbs[1].pack, "pack_with_sensor")
 
         # Verify sensor and trigger data is updated on registration
         original_load = registrar._meta_loader.load
@@ -110,9 +112,10 @@ class SensorRegistrationTestCase(DbTestCase):
         def mock_load(*args, **kwargs):
             # Update poll_interval and trigger_type_2 description
             data = original_load(*args, **kwargs)
-            data['poll_interval'] = 50
-            data['trigger_types'][1]['description'] = 'test 2'
+            data["poll_interval"] = 50
+            data["trigger_types"][1]["description"] = "test 2"
             return data
+
         registrar._meta_loader.load = mock_load
 
         registrar.register_from_packs(base_dirs=[PACKS_DIR])
@@ -125,20 +128,22 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(len(trigger_type_dbs), 2)
         self.assertEqual(len(trigger_dbs), 2)
 
-        self.assertEqual(sensor_dbs[0].name, 'TestSensor')
+        self.assertEqual(sensor_dbs[0].name, "TestSensor")
         self.assertEqual(sensor_dbs[0].poll_interval, 50)
 
-        self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
-        self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
-        self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
-        self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
-        self.assertEqual(trigger_type_dbs[1].description, 'test 2')
+        self.assertEqual(trigger_type_dbs[0].name, "trigger_type_1")
+        self.assertEqual(trigger_type_dbs[0].pack, "pack_with_sensor")
+        self.assertEqual(trigger_type_dbs[1].name, "trigger_type_2")
+        self.assertEqual(trigger_type_dbs[1].pack, "pack_with_sensor")
+        self.assertEqual(trigger_type_dbs[1].description, "test 2")
 
 
 # NOTE: We need to perform this patching because test fixtures are located outside of the packs
 # base paths directory. This will never happen outside the context of test fixtures.
-@mock.patch('st2common.content.utils.get_pack_base_path',
-            mock.Mock(return_value=os.path.join(PACKS_DIR, 'pack_with_rules')))
+@mock.patch(
+    "st2common.content.utils.get_pack_base_path",
+    mock.Mock(return_value=os.path.join(PACKS_DIR, "pack_with_rules")),
+)
 class RuleRegistrationTestCase(DbTestCase):
     def test_register_rules(self):
         # Verify DB is empty at the beginning
@@ -154,8 +159,8 @@ class RuleRegistrationTestCase(DbTestCase):
         self.assertEqual(len(rule_dbs), 2)
         self.assertEqual(len(trigger_dbs), 1)
 
-        self.assertEqual(rule_dbs[0].name, 'sample.with_the_same_timer')
-        self.assertEqual(rule_dbs[1].name, 'sample.with_timer')
+        self.assertEqual(rule_dbs[0].name, "sample.with_the_same_timer")
+        self.assertEqual(rule_dbs[1].name, "sample.with_timer")
         self.assertIsNotNone(trigger_dbs[0].name)
 
         # Verify second register call updates existing models
