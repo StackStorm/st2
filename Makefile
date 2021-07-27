@@ -392,7 +392,7 @@ black: requirements .black-check
 	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml pylint_plugins/*.py || exit 1;
 
 # Black task which reformats the code using black
-.PHONY: black-format
+.PHONY: black
 black: requirements .black-format
 
 .PHONY: .black-format
