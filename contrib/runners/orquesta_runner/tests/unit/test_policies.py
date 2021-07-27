@@ -144,11 +144,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
             workflow_execution=str(wf_ex_db.id)
         )[0]
         t1_lv_ac_db = lv_db_access.LiveAction.query(task_execution=str(t1_ex_db.id))[0]
+        self.assertEqual(t1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t1_ex_db.id)
         )[0]
 
-        t1_lv_ac_db = lv_db_access.LiveAction.query(task_execution=str(t1_ex_db.id))[0]
         t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t1_ex_db.id)
         )[0]
@@ -208,6 +208,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         t1_t1_lv_ac_db = lv_db_access.LiveAction.query(
             task_execution=str(t1_t1_ex_db.id)
         )[0]
+        self.assertEqual(t1_t1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         t1_t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t1_t1_ex_db.id)
         )[0]
