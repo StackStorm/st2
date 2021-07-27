@@ -19,6 +19,7 @@ from __future__ import absolute_import
 
 import os
 import os.path
+import mock
 import unittest2
 
 import st2tests
@@ -32,26 +33,161 @@ TEST_PACK_PATH = (
 
 
 class DeleteActionFilesTest(unittest2.TestCase):
-
-    entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
-    metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
-
-    # creating test entry_point file in pack
-    with open(entry_point, "w") as f:
-        f.write("# Entry point file to be removed")
-
-    # creating test metadata file in pack
-    with open(metadata_file, "w") as f:
-        f.write("# Metadata file to be removed")
-
     def test_delete_action_files_from_pack(self):
         """
         Test that the action files present in the pack and removed
         on the call of delete_action_files_from_pack function.
         """
 
-        self.assertTrue(os.path.exists(self.entry_point))
-        self.assertTrue(os.path.exists(self.metadata_file))
-        delete_action_files_from_pack(TEST_PACK, self.entry_point, self.metadata_file)
-        self.assertFalse(os.path.exists(self.entry_point))
-        self.assertFalse(os.path.exists(self.metadata_file))
+        entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
+        metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
+
+        # creating test entry_point file in dummy pack
+        with open(entry_point, "w") as f:
+            f.write("# entry point file to be removed")
+
+        # creating test metadata file in dummy pack
+        with open(metadata_file, "w") as f:
+            f.write("# metadata file to be removed")
+
+        # asserting both entry_point and metadata files exists
+        self.assertTrue(os.path.exists(entry_point))
+        self.assertTrue(os.path.exists(metadata_file))
+
+        delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
+
+        # asserting both entry_point and metadata files removed and they doesn't exists
+        self.assertFalse(os.path.exists(entry_point))
+        self.assertFalse(os.path.exists(metadata_file))
+
+    def test_entry_point_file_does_not_exists(self):
+        """
+        Tests that entry_point file doesn't exists at the path and if action delete
+        api calls delete_action_files_from_pack function, it doesn't affect
+        """
+
+        entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
+        metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
+
+        # creating only test metadata file in dummy pack
+        with open(metadata_file, "w") as f:
+            f.write("# metadata file to be removed")
+
+        # asserting entry_point file doesn't exists
+        self.assertFalse(os.path.exists(entry_point))
+
+        # asserting metadata files exists
+        self.assertTrue(os.path.exists(metadata_file))
+
+        delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
+
+        # asserting both entry_point and metadata files doesn't exists
+        self.assertFalse(os.path.exists(entry_point))
+        self.assertFalse(os.path.exists(metadata_file))
+
+    def test_metadata_file_does_not_exists(self):
+        """
+        Tests that metadata file doesn't exists at the path and if action delete
+        api calls delete_action_files_from_pack function, it doesn't affect
+        """
+
+        entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
+        metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
+
+        # creating only test entry_point file in dummy pack
+        with open(entry_point, "w") as f:
+            f.write("# entry point file to be removed")
+
+        # asserting metadata file doesn't exists
+        self.assertFalse(os.path.exists(metadata_file))
+
+        # asserting entry_point files exists
+        self.assertTrue(os.path.exists(entry_point))
+
+        delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
+
+        # asserting both entry_point and metadata files doesn't exists
+        self.assertFalse(os.path.exists(entry_point))
+        self.assertFalse(os.path.exists(metadata_file))
+
+
+class DeleteActionFilesErrorTest(unittest2.TestCase):
+    def setUp(self):
+        entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
+        metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
+
+        # creating test entry_point file in dummy pack
+        with open(entry_point, "w") as f:
+            f.write("# entry point file to be removed")
+
+        # creating test metadata file in dummy pack
+        with open(metadata_file, "w") as f:
+            f.write("# metadata file to be removed")
+
+    def tearDown(self):
+        entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
+        metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
+
+        # removing test entry_point and metadata file in dummy pack
+        os.remove(entry_point)
+        os.remove(metadata_file)
+
+    @mock.patch.object(os, "remove")
+    def test_permission_error_to_remove_resource_entry_point_file(self, remove):
+
+        entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
+        metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
+
+        remove.side_effect = PermissionError("No permission to delete file from disk")
+
+        # asserting metadata files exists
+        self.assertTrue(os.path.exists(entry_point))
+
+        # asserting delete_action_files_from_pack function raises PermissionError
+        with self.assertRaises(PermissionError):
+            delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
+
+    @mock.patch.object(os, "remove")
+    def test_permission_error_to_remove_resource_metadata_file(self, remove):
+
+        entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
+        metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
+
+        remove.side_effect = PermissionError("No permission to delete file from disk")
+
+        # asserting metadata files exists
+        self.assertTrue(os.path.exists(metadata_file))
+
+        # asserting delete_action_files_from_pack function raises PermissionError
+        with self.assertRaises(PermissionError):
+            delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
+
+    @mock.patch.object(os, "remove")
+    def test_exception_to_remove_resource_entry_point_file(self, remove):
+
+        entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
+        metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
+
+        remove.side_effect = Exception("Another exception occured")
+
+        # asserting metadata files exists
+        self.assertTrue(os.path.exists(entry_point))
+
+        # asserting delete_action_files_from_pack function raises exception
+        with self.assertRaises(Exception):
+            delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
+
+    @mock.patch.object(os, "remove")
+    def test_exception_to_remove_resource_metadata_file(self, remove):
+
+        entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
+        metadata_file = os.path.join(TEST_PACK_PATH, "actions", "test_metadata.yaml")
+
+        remove.side_effect = Exception("Another exception occured")
+
+        # asserting metadata files exists
+        self.assertTrue(os.path.exists(metadata_file))
+
+        # asserting delete_action_files_from_pack function raises exception
+        with self.assertRaises(Exception):
+            delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
