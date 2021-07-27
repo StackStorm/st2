@@ -25,8 +25,8 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.content.utils import get_pack_base_path
+from st2common.exceptions.packs import ResourceDiskFilesRemovalError
 from st2common.persistence.pack import Pack
-from st2common.router import abort
 from st2common.util.misc import lowercase_value
 from st2common.util.jsonify import json_encode
 
@@ -43,8 +43,6 @@ EXCLUDE_FIELDS = ["repo_url", "email"]
 SEARCH_PRIORITY = ["name", "keywords"]
 
 LOG = logging.getLogger(__name__)
-
-http_client = six.moves.http_client
 
 
 def _build_index_list(index_url):
@@ -243,10 +241,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
             msg = 'No permission to delete "{0}" file from disk'.format(
                 action_entrypoint_file_path
             )
-            abort(
-                http_client.INTERNAL_SERVER_ERROR,
-                six.text_type(msg),
-            )
+            raise PermissionError(msg)
         except Exception as e:
             LOG.error(
                 'Unable to delete "%s" file. Exception was "%s"',
@@ -258,7 +253,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
                     action_entrypoint_file_path
                 )
             )
-            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(msg))
+            raise ResourceDiskFilesRemovalError(msg)
 
     if os.path.exists(action_metadata_file_path):
         try:
@@ -271,10 +266,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
             msg = 'No permission to delete "{0}" file from disk'.format(
                 action_metadata_file_path
             )
-            abort(
-                http_client.INTERNAL_SERVER_ERROR,
-                six.text_type(msg),
-            )
+            raise PermissionError(msg)
         except Exception as e:
             LOG.error(
                 'Unable to delete "%s" file. Exception was "%s"',
@@ -282,7 +274,9 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
                 e,
             )
             if os.path.isfile(action_metadata_file_path):
-                msg = 'Delete operation unsuccessful. "{0}" file still exists on disk'.format(
-                    action_metadata_file_path
+                msg = (
+                    'Delete operation unsuccessful. "{0}" file still exists on disk'.format(
+                        action_metadata_file_path
+                    )
                 )
-                abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(msg))
+                raise ResourceDiskFilesRemovalError(msg)
