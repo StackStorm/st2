@@ -358,10 +358,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), num_items)
 
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )
-
         status = [
             ac_ex.status == action_constants.LIVEACTION_STATUS_RUNNING
             for ac_ex in t1_ac_ex_dbs
@@ -434,10 +430,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), concurrency)
 
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )
-
         status = [
             ac_ex.status == action_constants.LIVEACTION_STATUS_RUNNING
             for ac_ex in t1_ac_ex_dbs
@@ -506,10 +498,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), num_items)
-
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )
 
         status = [
             ac_ex.status == action_constants.LIVEACTION_STATUS_RUNNING
@@ -600,10 +588,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), concurrency)
-
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )
 
         status = [
             ac_ex.status == action_constants.LIVEACTION_STATUS_RUNNING

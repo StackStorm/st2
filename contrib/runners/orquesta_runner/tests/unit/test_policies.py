@@ -149,9 +149,6 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
             task_execution=str(t1_ex_db.id)
         )[0]
 
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )[0]
         self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         notifier.get_notifier().process(t1_ac_ex_db)
         workflows.get_engine().process(t1_ac_ex_db)
