@@ -25,7 +25,7 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.content.utils import get_pack_base_path
-from st2common.exceptions.packs import ResourceDiskFilesRemovalError
+from st2common.exceptions.content import ResourceDiskFilesRemovalError
 from st2common.persistence.pack import Pack
 from st2common.util.misc import lowercase_value
 from st2common.util.jsonify import json_encode
