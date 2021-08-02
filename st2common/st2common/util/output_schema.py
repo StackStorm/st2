@@ -79,7 +79,11 @@ def mask_secret_output(ac_ex, output_value):
 def validate_output(runner_schema, action_schema, result, status, output_key):
     """Validate output of action with runner and action schema."""
 
-    if output_key == "result" and result["result"] and isinstance(result["result"], dict):
+    if (
+        output_key == "result"
+        and result["result"]
+        and isinstance(result["result"], dict)
+    ):
         params_list = result["result"].keys()
         for param in params_list:
             if (
