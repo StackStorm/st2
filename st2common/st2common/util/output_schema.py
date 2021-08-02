@@ -16,7 +16,6 @@
 import logging
 import numbers
 import sys
-
 import traceback
 import jsonschema
 
