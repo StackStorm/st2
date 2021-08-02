@@ -14,6 +14,7 @@
 # limitations under the License.
 import sys
 import logging
+import numbers
 
 import traceback
 import jsonschema
@@ -53,6 +54,57 @@ def _validate_action(action_schema, result, output_key):
 
 def validate_output(runner_schema, action_schema, result, status, output_key):
     """Validate output of action with runner and action schema."""
+
+    if output_key == "result" and result["result"]:
+        params_list = result["result"].keys()
+        for param in params_list:
+            if (
+                isinstance(result["result"][param], str)
+                and action_schema[param]["type"] == "string"
+            ):
+                continue
+            elif (
+                isinstance(result["result"][param], int)
+                and action_schema[param]["type"] == "integer"
+            ):
+                continue
+            elif (
+                isinstance(result["result"][param], bool)
+                and action_schema[param]["type"] == "boolean"
+            ):
+                continue
+            elif (
+                result["result"][param] is None
+                and action_schema[param]["type"] == "null"
+            ):
+                continue
+            elif (
+                isinstance(result["result"][param], dict)
+                and action_schema[param]["type"] == "object"
+            ):
+                continue
+            elif (
+                isinstance(result["result"][param], list)
+                and action_schema[param]["type"] == "array"
+            ):
+                continue
+            elif (
+                isinstance(result["result"][param], numbers.Number)
+                and action_schema[param]["type"] == "number"
+            ):
+                continue
+            else:
+                status = action_constants.LIVEACTION_STATUS_FAILED
+                msg = "Failed to validate action output. '{0}' is not of type '{1}' in entry point file.".format(
+                    param, action_schema[param]["type"]
+                )
+                LOG.exception("Failed to validate output. %s", msg)
+                result["exit_code"] = 1
+                result["result"] = "None"
+                result["stderr"] = msg
+                result["stdout"] = ""
+                return (result, status)
+
     try:
         LOG.debug("Validating action output: %s", result)
         LOG.debug("Output Key: %s", output_key)
