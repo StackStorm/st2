@@ -235,7 +235,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
             os.remove(action_entrypoint_file_path)
         except PermissionError:
             LOG.error(
-                'No permission to delete the "%s" file',
+                'No permission to delete "%s" file',
                 action_entrypoint_file_path,
             )
             msg = 'No permission to delete "{0}" file from disk'.format(
@@ -260,7 +260,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
             os.remove(action_metadata_file_path)
         except PermissionError:
             LOG.error(
-                'No permission to delete the "%s" file',
+                'No permission to delete "%s" file',
                 action_metadata_file_path,
             )
             msg = 'No permission to delete "{0}" file from disk'.format(
