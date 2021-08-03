@@ -732,7 +732,13 @@ class ResourceDeleteCommand(ResourceCommand):
         self.parser.add_argument(argument, metavar=metavar, help=help)
 
         self.parser.add_argument(
-            "--yes",
+            "-f",
+            action="store_true",
+            help="Auto yes flag to delete action files from disk.",
+        )
+
+        self.parser.add_argument(
+            "--force",
             action="store_true",
             help="Auto yes flag to delete action files from disk.",
         )
