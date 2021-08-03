@@ -35,7 +35,6 @@ from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
 from st2client.commands.resource import ResourceViewCommand
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
-from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
 from st2client.utils import jsutil
@@ -283,22 +282,19 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
-        if args.yes:
+        resource_delete_msg = 'Resource with id "{0}" has been successfully deleted from database and disk.'.format(
+            resource_id
+        )
+        if args.f or args.force:
             self.manager.delete(instance, **kwargs)
-            print(
-                'Resource with id "%s" has been successfully deleted from database and disk.'
-                % (resource_id)
-            )
+            print(resource_delete_msg)
         else:
             user_input = input(
                 "The resource files on disk will be deleted. Do you want to continue? (y/n): "
             )
             if user_input.lower() == "y" or user_input.lower() == "yes":
                 self.manager.delete(instance, **kwargs)
-                print(
-                    'Resource with id "%s" has been successfully deleted from db and disk.'
-                    % (resource_id)
-                )
+                print(resource_delete_msg)
             else:
                 print("Action is not deleted.")
 
@@ -309,7 +305,6 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
             self.run(args, **kwargs)
         except ResourceNotFoundError:
             self.print_not_found(resource_id)
-            raise OperationFailureException("Resource %s not found." % resource_id)
 
 
 class ActionRunCommandMixin(object):
