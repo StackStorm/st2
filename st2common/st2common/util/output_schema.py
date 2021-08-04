@@ -18,7 +18,7 @@ import sys
 import traceback
 import jsonschema
 
-from collections.abc import Collection
+from collections.abc import Mapping
 from st2common.util import schema
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -54,21 +54,39 @@ def _validate_action(action_schema, result, output_key):
 
 
 def mask_secret_output(ac_ex, output_value):
-    if not output_value or not isinstance(output_value, Collection):
+    # We only support output_schema validation when the output_value is a JSON object.
+    # Invididual keys of that object can be marked secret, but the entire output
+    # object cannot be marked as secret.
+    # FIXME: Should we support non-objects under output_key?
+    #        Changing that will require changes in one or more of:
+    #          st2common/util/schema/action_output_schema.json
+    #          st2common/util/schema/__init__.py
+    #          st2common/models/api/action.py
+
+    if not output_value or not isinstance(output_value, Mapping):
         return output_value
 
     output_key = ac_ex["runner"].get("output_key")
     output_schema = ac_ex["action"].get("output_schema")
 
+    # nothing to validate
     if not output_key or not output_schema:
         return output_value
 
+    # The schema is for the keys of an object
     if not output_value.get(output_key) or not isinstance(
-        output_value[output_key], Collection
+        output_value[output_key], Mapping
     ):
         return output_value
 
+    # malformed schema
+    if not isinstance(schema, Mapping):
+        return output_value
+
     for key, spec in output_schema.items():
+        # malformed schema spec for this property/key
+        if not isinstance(spec, Mapping):
+            continue
         if key in output_value[output_key] and spec.get("secret", False):
             output_value[output_key][key] = MASKED_ATTRIBUTE_VALUE
 

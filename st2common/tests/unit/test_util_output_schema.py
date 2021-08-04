@@ -220,9 +220,39 @@ class OutputSchemaTestCase(unittest2.TestCase):
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
-        # The output is not type of dict or list.
+        # The output is string type: not dict or list
         ac_ex_result = {"output": "foobar"}
         expected_masked_output = {"output": "foobar"}
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+        # The output is number / int type: not dict or list
+        ac_ex_result = {"output": 42}
+        expected_masked_output = {"output": 42}
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+        # The output is number / float type: not dict or list
+        ac_ex_result = {"output": 4.2}
+        expected_masked_output = {"output": 4.2}
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+        # The output is True (bool type): not dict or list
+        ac_ex_result = {"output": True}
+        expected_masked_output = {"output": True}
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+        # The output is False (bool type): not dict or list
+        ac_ex_result = {"output": False}
+        expected_masked_output = {"output": False}
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+        # The output is list type
+        ac_ex_result = {"output": ["foobar"]}
+        expected_masked_output = {"output": ["foobar"]}
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
@@ -230,4 +260,14 @@ class OutputSchemaTestCase(unittest2.TestCase):
         ac_ex_result = {"output1": None}
         expected_masked_output = {"output1": None}
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+        # Malformed schema can't be used to validate.
+        malformed_schema_ac_ex = copy.deepcopy(ac_ex)
+        malformed_schema_ac_ex["action"]["output_schema"] = {"output_1": "bool"}
+        ac_ex_result = {"output_1": "foobar"}
+        expected_masked_output = {"output_1": "foobar"}
+        masked_output = output_schema.mask_secret_output(
+            malformed_schema_ac_ex, ac_ex_result
+        )
         self.assertDictEqual(masked_output, expected_masked_output)
