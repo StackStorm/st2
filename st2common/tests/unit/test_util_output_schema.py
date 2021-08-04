@@ -104,7 +104,7 @@ ACTION_OUTPUT_SCHEMA_FOR_STRING_TYPE_VALIDATION = {
 }
 
 
-BAD_RESULT_FOR_STRING_TYPE_PARAM = {
+BAD_RESULT_FOR_STRING_TYPE_PARAMS = {
     "stdout": "",
     "stderr": "",
     "exit_code": 0,
@@ -122,7 +122,7 @@ ACTION_OUTPUT_SCHEMA_FOR_OBJECT_TYPE_VALIDATION = {
 }
 
 
-BAD_RESULT_FOR_OBJECT_TYPE_PARAM = {
+BAD_RESULT_FOR_OBJECT_TYPE_PARAMS = {
     "stdout": "",
     "stderr": "",
     "exit_code": 0,
@@ -141,7 +141,7 @@ ACTION_OUTPUT_SCHEMA_FOR_INTEGER_TYPE_VALIDATION = {
 }
 
 
-BAD_RESULT_FOR_INTEGER_TYPE_PARAM = {
+BAD_RESULT_FOR_INTEGER_TYPE_PARAMS = {
     "stdout": "",
     "stderr": "",
     "exit_code": 0,
@@ -159,7 +159,7 @@ ACTION_OUTPUT_SCHEMA_FOR_ARRAY_TYPE_VALIDATION = {
 }
 
 
-BAD_RESULT_FOR_ARRAY_TYPE_PARAM = {
+BAD_RESULT_FOR_ARRAY_TYPE_PARAMS = {
     "stdout": "",
     "stderr": "",
     "exit_code": 0,
@@ -177,7 +177,7 @@ ACTION_OUTPUT_SCHEMA_FOR_NUMBER_TYPE_VALIDATION = {
 }
 
 
-BAD_RESULT_FOR_NUMBER_TYPE_PARAM = {
+BAD_RESULT_FOR_NUMBER_TYPE_PARAMS = {
     "stdout": "",
     "stderr": "",
     "exit_code": 0,
@@ -195,7 +195,7 @@ ACTION_OUTPUT_SCHEMA_FOR_BOOLEAN_TYPE_VALIDATION = {
 }
 
 
-BAD_RESULT_FOR_BOOLEAN_TYPE_PARAM = {
+BAD_RESULT_FOR_BOOLEAN_TYPE_PARAMS = {
     "stdout": "",
     "stderr": "",
     "exit_code": 0,
@@ -213,7 +213,7 @@ ACTION_OUTPUT_SCHEMA_FOR_NULL_TYPE_VALIDATION = {
 }
 
 
-BAD_RESULT_FOR_NULL_TYPE_PARAM = {
+BAD_RESULT_FOR_NULL_TYPE_PARAMS = {
     "stdout": "",
     "stderr": "",
     "exit_code": 0,
@@ -382,7 +382,7 @@ class OutputSchemaTestCase(unittest2.TestCase):
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
             copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_STRING_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_STRING_TYPE_PARAM),
+            copy.deepcopy(BAD_RESULT_FOR_STRING_TYPE_PARAMS),
             LIVEACTION_STATUS_SUCCEEDED,
             OUTPUT_KEY,
         )
@@ -401,7 +401,7 @@ class OutputSchemaTestCase(unittest2.TestCase):
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
             copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_OBJECT_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_OBJECT_TYPE_PARAM),
+            copy.deepcopy(BAD_RESULT_FOR_OBJECT_TYPE_PARAMS),
             LIVEACTION_STATUS_SUCCEEDED,
             OUTPUT_KEY,
         )
@@ -420,7 +420,7 @@ class OutputSchemaTestCase(unittest2.TestCase):
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
             copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_INTEGER_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_INTEGER_TYPE_PARAM),
+            copy.deepcopy(BAD_RESULT_FOR_INTEGER_TYPE_PARAMS),
             LIVEACTION_STATUS_SUCCEEDED,
             OUTPUT_KEY,
         )
@@ -439,7 +439,7 @@ class OutputSchemaTestCase(unittest2.TestCase):
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
             copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_ARRAY_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_ARRAY_TYPE_PARAM),
+            copy.deepcopy(BAD_RESULT_FOR_ARRAY_TYPE_PARAMS),
             LIVEACTION_STATUS_SUCCEEDED,
             OUTPUT_KEY,
         )
@@ -458,7 +458,7 @@ class OutputSchemaTestCase(unittest2.TestCase):
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
             copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_NUMBER_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_NUMBER_TYPE_PARAM),
+            copy.deepcopy(BAD_RESULT_FOR_NUMBER_TYPE_PARAMS),
             LIVEACTION_STATUS_SUCCEEDED,
             OUTPUT_KEY,
         )
@@ -477,7 +477,7 @@ class OutputSchemaTestCase(unittest2.TestCase):
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
             copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_BOOLEAN_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_BOOLEAN_TYPE_PARAM),
+            copy.deepcopy(BAD_RESULT_FOR_BOOLEAN_TYPE_PARAMS),
             LIVEACTION_STATUS_SUCCEEDED,
             OUTPUT_KEY,
         )
@@ -496,7 +496,7 @@ class OutputSchemaTestCase(unittest2.TestCase):
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
             copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_NULL_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_NULL_TYPE_PARAM),
+            copy.deepcopy(BAD_RESULT_FOR_NULL_TYPE_PARAMS),
             LIVEACTION_STATUS_SUCCEEDED,
             OUTPUT_KEY,
         )
