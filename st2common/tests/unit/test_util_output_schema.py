@@ -220,37 +220,37 @@ class OutputSchemaTestCase(unittest2.TestCase):
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
-        # The output is string type: not dict or list
+        # The output is string type: not dict
         ac_ex_result = {"output": "foobar"}
         expected_masked_output = {"output": "foobar"}
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
-        # The output is number / int type: not dict or list
+        # The output is number / int type: not dict
         ac_ex_result = {"output": 42}
         expected_masked_output = {"output": 42}
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
-        # The output is number / float type: not dict or list
+        # The output is number / float type: not dict
         ac_ex_result = {"output": 4.2}
         expected_masked_output = {"output": 4.2}
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
-        # The output is True (bool type): not dict or list
+        # The output is True (bool type): not dict
         ac_ex_result = {"output": True}
         expected_masked_output = {"output": True}
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
-        # The output is False (bool type): not dict or list
+        # The output is False (bool type): not dict
         ac_ex_result = {"output": False}
         expected_masked_output = {"output": False}
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
-        # The output is list type
+        # The output is list type: not dict
         ac_ex_result = {"output": ["foobar"]}
         expected_masked_output = {"output": ["foobar"]}
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
