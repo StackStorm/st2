@@ -80,7 +80,7 @@ def mask_secret_output(ac_ex, output_value):
         return output_value
 
     # malformed schema
-    if not isinstance(schema, Mapping):
+    if not isinstance(output_schema, Mapping):
         return output_value
 
     for key, spec in output_schema.items():
