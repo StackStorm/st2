@@ -277,7 +277,38 @@ class ActionDisableCommand(resource.ContentPackResourceDisableCommand):
     ]
 
 
-class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
+class ActionDeleteCommand(resource.ResourceCommand):
+    pk_argument_name = "ref_or_id"
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionDeleteCommand, self).__init__(
+            resource,
+            "delete",
+            "Delete an existing %s." % resource.get_display_name().lower(),
+            *args,
+            **kwargs,
+        )
+
+        argument = self.pk_argument_name
+        metavar = self._get_metavar_for_argument(argument=self.pk_argument_name)
+        help = self._get_help_for_argument(
+            resource=resource, argument=self.pk_argument_name
+        )
+
+        self.parser.add_argument(argument, metavar=metavar, help=help)
+
+        self.parser.add_argument(
+            "-f",
+            action="store_true",
+            help="Auto yes flag to delete action files from disk.",
+        )
+
+        self.parser.add_argument(
+            "--force",
+            action="store_true",
+            help="Auto yes flag to delete action files from disk.",
+        )
+
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
