@@ -731,18 +731,6 @@ class ResourceDeleteCommand(ResourceCommand):
 
         self.parser.add_argument(argument, metavar=metavar, help=help)
 
-        self.parser.add_argument(
-            "-f",
-            action="store_true",
-            help="Auto yes flag to delete action files from disk.",
-        )
-
-        self.parser.add_argument(
-            "--force",
-            action="store_true",
-            help="Auto yes flag to delete action files from disk.",
-        )
-
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
