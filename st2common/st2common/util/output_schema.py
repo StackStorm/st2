@@ -54,10 +54,7 @@ def _validate_action(action_schema, result, output_key):
 
 
 def mask_secret_output(ac_ex, output_value):
-    if not output_value:
-        return output_value
-
-    if not isinstance(output_value, dict) and not isinstance(output_value, list):
+    if not output_value or not isinstance(output_value, Collection):
         return output_value
 
     output_key = ac_ex["runner"].get("output_key")
@@ -66,13 +63,14 @@ def mask_secret_output(ac_ex, output_value):
     if not output_key or not output_schema:
         return output_value
 
-    if not output_value.get(output_key):
+    if not output_value.get(output_key) or not isinstance(
+        output_value[output_key], Collection
+    ):
         return output_value
 
     for key, spec in output_schema.items():
-        if isinstance(output_value[output_key], Collection):
-            if key in output_value[output_key] and spec.get("secret", False):
-                output_value[output_key][key] = MASKED_ATTRIBUTE_VALUE
+        if key in output_value[output_key] and spec.get("secret", False):
+            output_value[output_key][key] = MASKED_ATTRIBUTE_VALUE
 
     return output_value
 
