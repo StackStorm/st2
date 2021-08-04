@@ -21,6 +21,7 @@ import jsonschema
 
 from st2common.util import schema
 from st2common.constants import action as action_constants
+from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 
@@ -92,8 +93,23 @@ def validate_output(runner_schema, action_schema, result, status, output_key):
             ):
                 continue
             elif (
+                isinstance(result["result"][param], dict)
+                and action_schema[param]["type"] == "object"
+            ):
+                continue
+            elif (
+                isinstance(result["result"][param], list)
+                and action_schema[param]["type"] == "array"
+            ):
+                continue
+            elif (
                 isinstance(result["result"][param], int)
                 and action_schema[param]["type"] == "integer"
+            ):
+                continue
+            elif (
+                isinstance(result["result"][param], numbers.Number)
+                and action_schema[param]["type"] == "number"
             ):
                 continue
             elif (
@@ -106,28 +122,13 @@ def validate_output(runner_schema, action_schema, result, status, output_key):
                 and action_schema[param]["type"] == "null"
             ):
                 continue
-            elif (
-                isinstance(result["result"][param], dict)
-                and action_schema[param]["type"] == "object"
-            ):
-                continue
-            elif (
-                isinstance(result["result"][param], list)
-                and action_schema[param]["type"] == "array"
-            ):
-                continue
-            elif (
-                isinstance(result["result"][param], numbers.Number)
-                and action_schema[param]["type"] == "number"
-            ):
-                continue
             else:
                 status = action_constants.LIVEACTION_STATUS_FAILED
                 msg = "Failed to validate action output. '{0}' is not of type '{1}' in entry point file.".format(
                     param, action_schema[param]["type"]
                 )
                 LOG.exception("Failed to validate output. %s", msg)
-                result["exit_code"] = 1
+                result["exit_code"] = FAILURE_EXIT_CODE
                 result["result"] = "None"
                 result["stderr"] = msg
                 result["stdout"] = ""
