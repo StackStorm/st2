@@ -226,6 +226,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
     Prepares the path for entry_point file and metadata file of action and
     deletes them from disk.
     """
+
     pack_base_path = get_pack_base_path(pack_name=pack_name)
     action_entrypoint_file_path = os.path.join(pack_base_path, "actions", entry_point)
     action_metadata_file_path = os.path.join(pack_base_path, metadata_file)
