@@ -277,7 +277,7 @@ class ActionDisableCommand(resource.ContentPackResourceDisableCommand):
     ]
 
 
-class ActionDeleteCommand(resource.ResourceDeleteCommand):
+class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
     def __init__(self, resource, *args, **kwargs):
         super(ActionDeleteCommand, self).__init__(resource, *args, **kwargs)
 
