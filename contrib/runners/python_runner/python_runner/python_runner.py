@@ -55,6 +55,7 @@ from st2common.services.action import store_execution_output_data
 from st2common.runners.utils import make_read_and_store_stream_func
 from st2common.util.jsonify import json_decode
 from st2common.util.jsonify import json_encode
+import st2common.config as common_config
 
 from python_runner import python_action_wrapper
 
@@ -80,6 +81,17 @@ BLACKLISTED_ENV_VARS = [
 BASE_DIR = os.path.dirname(os.path.abspath(python_action_wrapper.__file__))
 WRAPPER_SCRIPT_NAME = "python_action_wrapper.py"
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
+
+action_performance_opts = [
+    cfg.IntOpt(
+        'action_max_memory_mb', default=0,
+        help='Action maximum allowable memory (in MB) - 0 is unlimited'),
+    cfg.IntOpt(
+        'action_max_output_size_mb', default=0,
+        help='Action maximum allowable output size (in MB) - 0 is unlimited'),
+    ]
+
+common_config.do_register_opts(action_performance_opts, 'performance', True)
 
 
 class PythonRunner(GitWorktreeActionRunner):
@@ -179,6 +191,8 @@ class PythonRunner(GitWorktreeActionRunner):
             "--file-path=%s" % (self.entry_point),
             "--user=%s" % (user),
             "--parent-args=%s" % (parent_args),
+            '--max-memory=%s' % cfg.CONF.performance.action_max_memory_mb,
+            '--max-output-size=%s' % cfg.CONF.performance.action_max_output_size_mb,
         ]
 
         subprocess = concurrency.get_subprocess_module()
