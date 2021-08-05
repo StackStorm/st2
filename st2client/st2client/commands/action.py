@@ -277,25 +277,9 @@ class ActionDisableCommand(resource.ContentPackResourceDisableCommand):
     ]
 
 
-class ActionDeleteCommand(resource.ResourceCommand):
-    pk_argument_name = "ref_or_id"
-
+class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(ActionDeleteCommand, self).__init__(
-            resource,
-            "delete",
-            "Delete an existing %s." % resource.get_display_name().lower(),
-            *args,
-            **kwargs,
-        )
-
-        argument = self.pk_argument_name
-        metavar = self._get_metavar_for_argument(argument=self.pk_argument_name)
-        help = self._get_help_for_argument(
-            resource=resource, argument=self.pk_argument_name
-        )
-
-        self.parser.add_argument(argument, metavar=metavar, help=help)
+        super(ActionDeleteCommand, self).__init__(resource, *args, **kwargs)
 
         self.parser.add_argument(
             "-f",
