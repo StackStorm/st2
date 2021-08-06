@@ -88,9 +88,16 @@ def _get_masked_value(spec, value):
             unhandled_keys = set(value.keys())
 
         pattern_properties_schema = spec.get("patternProperties")
-        if pattern_properties_schema and isinstance(pattern_properties_schema, Mapping):
+        if (
+            unhandled_keys
+            and pattern_properties_schema
+            and isinstance(pattern_properties_schema, Mapping)
+        ):
             # patternProperties is not malformed
             for key_pattern, pattern_property_spec in pattern_properties_schema:
+                if not unhandled_keys:
+                    # nothing to check, don't compile the next pattern
+                    break
                 key_re = re.compile(key_pattern)
                 for key in list(unhandled_keys):
                     if key_re.search(key):
@@ -100,8 +107,10 @@ def _get_masked_value(spec, value):
                         unhandled_keys.remove(key)
 
         additional_properties_schema = spec.get("additionalProperties")
-        if additional_properties_schema and isinstance(
-            additional_properties_schema, Mapping
+        if (
+            unhandled_keys
+            and additional_properties_schema
+            and isinstance(additional_properties_schema, Mapping)
         ):
             # additionalProperties is a schema, not a boolean, and not malformed
             for key in unhandled_keys:
