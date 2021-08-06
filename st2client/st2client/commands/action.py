@@ -283,13 +283,9 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
 
         self.parser.add_argument(
             "-f",
-            action="store_true",
-            help="Auto yes flag to delete action files from disk.",
-        )
-
-        self.parser.add_argument(
             "--force",
             action="store_true",
+            dest="force",
             help="Auto yes flag to delete action files from disk.",
         )
 
@@ -300,7 +296,7 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
         resource_delete_msg = 'Resource with id "{0}" has been successfully deleted from database and disk.'.format(
             resource_id
         )
-        if args.f or args.force:
+        if args.force:
             self.manager.delete(instance, **kwargs)
             print(resource_delete_msg)
         else:
