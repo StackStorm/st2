@@ -144,9 +144,13 @@ class ContentPackConfigLoader(object):
 
         :rtype: ``list``
         """
-        items_schema = object_schema.get("items", [])
-        if isinstance(items_schema, dict):
-            items_schema = [items_schema] * items_count
+        items_schema = []
+        object_items_schema = object_schema.get("items", [])
+        if isinstance(object_items_schema, dict):
+            items_schema.extend([object_items_schema] * items_count)
+        else:
+            items_schema.extend(object_items_schema)
+
         items_schema_count = len(items_schema)
         if items_schema_count >= items_count:
             # no additional items to account for.
