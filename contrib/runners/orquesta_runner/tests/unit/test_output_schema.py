@@ -197,9 +197,12 @@ class OrquestaRunnerTest(RunnerTestCase, st2tests.ExecutionDbTestCase):
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
 
         expected_result = {
-            "error": "Additional properties are not allowed",
-            "message": "Error validating output. See error output for more details.",
+            "stdout": "",
+            "stderr": "Additional properties are not allowed",
+            "exit_code": 1,
+            "result": "None",
         }
 
-        self.assertIn(expected_result["error"], ac_ex_db.result["error"])
-        self.assertEqual(expected_result["message"], ac_ex_db.result["message"])
+        self.assertIn(expected_result["stderr"], ac_ex_db.result["stderr"])
+        self.assertEqual(expected_result["result"], ac_ex_db.result["result"])
+        self.assertEqual(expected_result["exit_code"], ac_ex_db.result["exit_code"])
