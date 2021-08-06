@@ -305,9 +305,10 @@ class OutputSchemaTestCase(unittest2.TestCase):
 
     def test_validation_of_output_schema_for_string_type_params(self):
         """
-        Testing that output schema validation error occurs if a parameter is of type string
+        Tests that output schema validation error occurs if a parameter is of type string
         and entry point file has same parameter other than string equivalent type.
         """
+
         OUTPUT_KEY = "result"
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
@@ -332,6 +333,11 @@ class OutputSchemaTestCase(unittest2.TestCase):
         self.assertEqual(status, expected_status)
 
     def test_validation_of_output_schema_for_object_type_params(self):
+        """
+        Tests that output schema validation error occurs if a parameter is of type object
+        and entry point file has same parameter other than object equivalent type.
+        """
+
         OUTPUT_KEY = "result"
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
@@ -355,6 +361,11 @@ class OutputSchemaTestCase(unittest2.TestCase):
         self.assertEqual(status, expected_status)
 
     def test_validation_of_output_schema_for_integer_type_params(self):
+        """
+        Tests that output schema validation error occurs if a parameter is of type integer
+        and entry point file has same parameter other than integer equivalent type.
+        """
+
         OUTPUT_KEY = "result"
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
