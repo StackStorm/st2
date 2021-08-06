@@ -27,6 +27,10 @@ from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 LOG = logging.getLogger(__name__)
 
+_JSON_BASIC_TYPES = {"boolean", "integer", "null", "number", "string"}
+_JSON_COMPLEX_TYPES = {"object", "array"}
+_JSON_TYPES = _JSON_BASIC_TYPES | _JSON_COMPLEX_TYPES
+
 
 def _validate_runner(runner_schema, result):
     LOG.debug("Validating runner output: %s", runner_schema)
@@ -46,13 +50,14 @@ def _validate_action(action_schema, result, output_key):
 
     final_result = result[output_key]
 
-    # TODO: support action output_schema for non-objects
-    #       (see also st2common/models/api/action.py)
-    action_schema = {
-        "type": "object",
-        "properties": action_schema,
-        "additionalProperties": False,
-    }
+    # FIXME: is there a better way to check if action_schema is only a partial object schema?
+    if "type" not in action_schema or action_schema["type"] not in _JSON_TYPES:
+        # we have a partial object schema with jsonschemas for the properties
+        action_schema = {
+            "type": "object",
+            "properties": action_schema,
+            "additionalProperties": False,
+        }
 
     schema.validate(final_result, action_schema, cls=schema.get_validator("custom"))
 
@@ -67,7 +72,7 @@ def _get_masked_value(spec, value):
 
     kind = spec.get("type")
 
-    if kind in ("boolean", "integer", "null", "number", "string"):
+    if kind in _JSON_BASIC_TYPES:
         # already checked for spec["secret"] above; nothing else to check.
         return value
 
@@ -168,8 +173,14 @@ def mask_secret_output(ac_ex, output_value):
     if not isinstance(output_schema, Mapping):
         return output_value
 
-    # TODO: a better way to see if only the values are valid json schemas, or the whole thing?
-    if "type" not in output_schema:
+    # FIXME: is there a better way to check if output_schema is only a partial object schema?
+    if "type" in output_schema and output_schema["type"] in _JSON_TYPES:
+        # we have a full jsonschema
+        output_value[output_key] = _get_masked_value(
+            output_schema, output_value[output_key]
+        )
+    else:
+        # we have a partial object schema with jsonschemas for the properties
         # see st2common/st2common/models/api/action.py
         # output_schema_schema = {
         #    "description": "Schema for the action's output.",
@@ -186,10 +197,6 @@ def mask_secret_output(ac_ex, output_value):
         }
         output_value[output_key] = _get_masked_value(
             implied_schema, output_value[output_key]
-        )
-    else:
-        output_value[output_key] = _get_masked_value(
-            output_schema, output_value[output_key]
         )
     return output_value
 

@@ -231,14 +231,21 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "additionalProperties": False,
                 "default": {},
             },
-            # TODO: support validation for non-object action output, possibly w/ anyOf
             "output_schema": {
                 "description": "Schema for the action's output.",
-                "type": "object",
-                # using patternProperties like this implies that output_schema defines
-                # the "properties" schema of an object where each key is a property name.
-                "patternProperties": {r"^\w+$": util_schema.get_action_output_schema()},
-                "additionalProperties": False,
+                "anyOf": [
+                    util_schema.get_action_output_schema(),
+                    {
+                        "type": "object",
+                        # using patternProperties like this implies that output_schema
+                        # defines the "properties" schema of an object where each key
+                        # is a property name.
+                        "patternProperties": {
+                            r"^\w+$": util_schema.get_action_output_schema()
+                        },
+                        "additionalProperties": False,
+                    },
+                ],
                 "default": {},
             },
             "tags": {
