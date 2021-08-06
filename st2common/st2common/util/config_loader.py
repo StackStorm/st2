@@ -255,7 +255,7 @@ class ContentPackConfigLoader(object):
         :rtype: ``dict``
         """
         schema_is_dict = isinstance(schema, dict)
-        iterator = six.iteritems(schema) if schema_is_dict else enumerate(schema)
+        iterator = schema.items() if schema_is_dict else enumerate(schema)
 
         for schema_item_key, schema_item in iterator:
             has_default_value = "default" in schema_item
