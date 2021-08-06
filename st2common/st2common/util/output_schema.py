@@ -19,7 +19,7 @@ import sys
 import traceback
 import jsonschema
 
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from st2common.util import schema
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -69,6 +69,10 @@ def _get_masked_value(spec, value):
         return value
 
     elif kind == "object":
+        if not isinstance(value, Mapping):
+            # we can't process it unless it matches the expected type
+            return value
+
         properties_schema = spec.get("properties", {})
         if properties_schema and isinstance(properties_schema, Mapping):
             # properties is not empty or malformed
@@ -103,6 +107,10 @@ def _get_masked_value(spec, value):
         return value
 
     elif kind == "array":
+        if not isinstance(value, Collection):
+            # we can't process it unless it matches the expected type
+            return value
+
         items_schema = spec.get("items", {})
         output_count = len(value)
         if isinstance(items_schema, Mapping):
