@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import logging
+import re
 import sys
 import traceback
 import jsonschema
@@ -53,15 +54,88 @@ def _validate_action(action_schema, result, output_key):
     schema.validate(final_result, action_schema, cls=schema.get_validator("custom"))
 
 
+def _get_masked_value(spec, value):
+    # malformed schema
+    if not isinstance(spec, Mapping):
+        return value
+
+    if spec.get("secret", False):
+        return MASKED_ATTRIBUTE_VALUE
+
+    kind = spec.get("type")
+
+    if kind in ("boolean", "integer", "null", "number", "string"):
+        # already checked for spec["secret"] above; nothing else to check.
+        return value
+
+    elif kind == "object":
+        properties_schema = spec.get("properties", {})
+        if properties_schema and isinstance(properties_schema, Mapping):
+            # properties is not empty or malformed
+            for key, property_spec in properties_schema.items():
+                if key in value:
+                    value[key] = _get_masked_value(property_spec, value[key])
+            unhandled_keys = set(value.keys()) - set(properties_schema.keys())
+        else:
+            # properties is empty or malformed
+            unhandled_keys = set(value.keys())
+
+        pattern_properties_schema = spec.get("patternProperties")
+        if pattern_properties_schema and isinstance(pattern_properties_schema, Mapping):
+            # patternProperties is not malformed
+            for key_pattern, pattern_property_spec in pattern_properties_schema:
+                key_re = re.compile(key_pattern)
+                for key in list(unhandled_keys):
+                    if key_re.search(key):
+                        value[key] = _get_masked_value(
+                            pattern_property_spec, value[key]
+                        )
+                        unhandled_keys.remove(key)
+
+        additional_properties_schema = spec.get("additionalProperties")
+        if additional_properties_schema and isinstance(
+            additional_properties_schema, Mapping
+        ):
+            # additionalProperties is a schema, not a boolean, and not malformed
+            for key in unhandled_keys:
+                value[key] = _get_masked_value(additional_properties_schema, value[key])
+
+        return value
+
+    elif kind == "array":
+        items_schema = spec.get("items", {})
+        output_count = len(value)
+        if isinstance(items_schema, Mapping):
+            # explicit schema for each item
+            for i, item_spec in enumerate(items_schema):
+                if i >= output_count:
+                    break
+                value[i] = _get_masked_value(item_spec, value[key])
+            handled_count = len(items_schema)
+        else:
+            for i in range(output_count):
+                value[i] = _get_masked_value(items_schema, value[key])
+            handled_count = output_count
+
+        if handled_count >= output_count:
+            return value
+
+        additional_items_schema = spec.get("additionalItems")
+        if additional_items_schema and isinstance(additional_items_schema, Mapping):
+            # additionalItems is a schema, not a boolean
+            for i in range(handled_count, output_count):
+                value[i] = _get_masked_value(additional_items_schema, value[i])
+
+        return value
+    else:
+        # "type" is not defined or is invalid: ignore it
+        return value
+
+
 def mask_secret_output(ac_ex, output_value):
     # We only support output_schema validation when the output_value is a JSON object.
     # Invididual keys of that object can be marked secret, but the entire output
     # object cannot be marked as secret.
-    # FIXME: Should we support non-objects under output_key?
-    #        Changing that will require changes in one or more of:
-    #          st2common/util/schema/action_output_schema.json
-    #          st2common/util/schema/__init__.py
-    #          st2common/models/api/action.py
 
     if not output_value or not isinstance(output_value, Mapping):
         return output_value
@@ -73,23 +147,33 @@ def mask_secret_output(ac_ex, output_value):
     if not output_key or not output_schema:
         return output_value
 
-    # The schema is for the keys of an object
-    if not output_value.get(output_key) or not isinstance(
-        output_value[output_key], Mapping
-    ):
-        return output_value
-
     # malformed schema
     if not isinstance(output_schema, Mapping):
         return output_value
 
-    for key, spec in output_schema.items():
-        # malformed schema spec for this property/key
-        if not isinstance(spec, Mapping):
-            continue
-        if key in output_value[output_key] and spec.get("secret", False):
-            output_value[output_key][key] = MASKED_ATTRIBUTE_VALUE
-
+    # TODO: a better way to see if only the values are valid json schemas, or the whole thing?
+    if "type" not in output_schema:
+        # see st2common/st2common/models/api/action.py
+        # output_schema_schema = {
+        #    "description": "Schema for the runner's/action's output.",
+        #    "type": "object",
+        #    "patternProperties": {r"^\w+$": customized_draft4_jsonschema}
+        #    "additionalProperties": False,
+        #    "default": {},
+        # }
+        # This implies the following schema (as in _validate_runner/_validate_action above)
+        implied_schema = {
+            "type": "object",
+            "properties": output_schema,
+            "additionalProperties": False,
+        }
+        output_value[output_key] = _get_masked_value(
+            implied_schema, output_value[output_key]
+        )
+    else:
+        output_value[output_key] = _get_masked_value(
+            output_schema, output_value[output_key]
+        )
     return output_value
 
 
