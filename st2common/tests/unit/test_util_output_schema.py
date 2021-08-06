@@ -152,78 +152,6 @@ BAD_RESULT_FOR_INTEGER_TYPE_PARAMS = {
     },
 }
 
-ACTION_OUTPUT_SCHEMA_FOR_ARRAY_TYPE_VALIDATION = {
-    "output_1": {"type": "array"},
-    "output_2": {"type": "array"},
-    "output_3": {"type": "array"},
-}
-
-
-BAD_RESULT_FOR_ARRAY_TYPE_PARAMS = {
-    "stdout": "",
-    "stderr": "",
-    "exit_code": 0,
-    "result": {
-        "output_1": [1, 11, 111],
-        "output_2": ["x", "y", "z"],
-        "output_3": {"a": "bar", "b": "baz"},
-    },
-}
-
-ACTION_OUTPUT_SCHEMA_FOR_NUMBER_TYPE_VALIDATION = {
-    "output_1": {"type": "number"},
-    "output_2": {"type": "number"},
-    "output_3": {"type": "number"},
-}
-
-
-BAD_RESULT_FOR_NUMBER_TYPE_PARAMS = {
-    "stdout": "",
-    "stderr": "",
-    "exit_code": 0,
-    "result": {
-        "output_1": 1 + 2j,
-        "output_2": "foo",
-        "output_3": 2.999,
-    },
-}
-
-ACTION_OUTPUT_SCHEMA_FOR_BOOLEAN_TYPE_VALIDATION = {
-    "output_1": {"type": "boolean"},
-    "output_2": {"type": "boolean"},
-    "output_3": {"type": "boolean"},
-}
-
-
-BAD_RESULT_FOR_BOOLEAN_TYPE_PARAMS = {
-    "stdout": "",
-    "stderr": "",
-    "exit_code": 0,
-    "result": {
-        "output_1": True,
-        "output_2": False,
-        "output_3": ["foo", "bar"],
-    },
-}
-
-ACTION_OUTPUT_SCHEMA_FOR_NULL_TYPE_VALIDATION = {
-    "output_1": {"type": "null"},
-    "output_2": {"type": "null"},
-    "output_3": {"type": "null"},
-}
-
-
-BAD_RESULT_FOR_NULL_TYPE_PARAMS = {
-    "stdout": "",
-    "stderr": "",
-    "exit_code": 0,
-    "result": {
-        "output_1": None,
-        "output_2": "foo",
-        "output_3": 50,
-    },
-}
-
 
 class OutputSchemaTestCase(unittest2.TestCase):
     def test_valid_schema(self):
@@ -376,6 +304,10 @@ class OutputSchemaTestCase(unittest2.TestCase):
         self.assertDictEqual(masked_output, expected_masked_output)
 
     def test_validation_of_output_schema_for_string_type_params(self):
+        """
+        Testing that output schema validation error occurs if a parameter is of type string
+        and entry point file has same parameter other than string equivalent type.
+        """
         OUTPUT_KEY = "result"
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
@@ -435,99 +367,6 @@ class OutputSchemaTestCase(unittest2.TestCase):
         expected_result = {
             "stdout": "",
             "stderr": "'foo' is not of type 'integer'\n\nFailed validating 'type' in schema['properties']['output_2']:\n    {'type': 'integer'}\n\nOn instance['output_2']:\n    'foo'",
-            "exit_code": 1,
-            "result": "None",
-        }
-
-        expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["result"], expected_result["result"])
-        self.assertEqual(result["stderr"], expected_result["stderr"])
-        self.assertEqual(result["exit_code"], expected_result["exit_code"])
-        self.assertEqual(status, expected_status)
-
-    def test_validation_of_output_schema_for_array_type_params(self):
-        OUTPUT_KEY = "result"
-        result, status = output_schema.validate_output(
-            copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
-            copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_ARRAY_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_ARRAY_TYPE_PARAMS),
-            LIVEACTION_STATUS_SUCCEEDED,
-            OUTPUT_KEY,
-        )
-
-        expected_result = {
-            "stdout": "",
-            "stderr": "{'a': 'bar', 'b': 'baz'} is not of type 'array'\n\nFailed validating 'type' in schema['properties']['output_3']:\n    {'type': 'array'}\n\nOn instance['output_3']:\n    {'a': 'bar', 'b': 'baz'}",
-            "exit_code": 1,
-            "result": "None",
-        }
-
-        expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["result"], expected_result["result"])
-        self.assertEqual(result["stderr"], expected_result["stderr"])
-        self.assertEqual(result["exit_code"], expected_result["exit_code"])
-        self.assertEqual(status, expected_status)
-
-    def test_validation_of_output_schema_for_number_type_params(self):
-        OUTPUT_KEY = "result"
-        result, status = output_schema.validate_output(
-            copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
-            copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_NUMBER_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_NUMBER_TYPE_PARAMS),
-            LIVEACTION_STATUS_SUCCEEDED,
-            OUTPUT_KEY,
-        )
-
-        expected_result = {
-            "stdout": "",
-            "stderr": "'foo' is not of type 'number'\n\nFailed validating 'type' in schema['properties']['output_2']:\n    {'type': 'number'}\n\nOn instance['output_2']:\n    'foo'",
-            "exit_code": 1,
-            "result": "None",
-        }
-
-        expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["result"], expected_result["result"])
-        self.assertEqual(result["stderr"], expected_result["stderr"])
-        self.assertEqual(result["exit_code"], expected_result["exit_code"])
-        self.assertEqual(status, expected_status)
-
-    def test_validation_of_output_schema_for_boolean_type_params(self):
-        OUTPUT_KEY = "result"
-        result, status = output_schema.validate_output(
-            copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
-            copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_BOOLEAN_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_BOOLEAN_TYPE_PARAMS),
-            LIVEACTION_STATUS_SUCCEEDED,
-            OUTPUT_KEY,
-        )
-
-        expected_result = {
-            "stdout": "",
-            "stderr": "['foo', 'bar'] is not of type 'boolean'\n\nFailed validating 'type' in schema['properties']['output_3']:\n    {'type': 'boolean'}\n\nOn instance['output_3']:\n    ['foo', 'bar']",
-            "exit_code": 1,
-            "result": "None",
-        }
-
-        expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["result"], expected_result["result"])
-        self.assertEqual(result["stderr"], expected_result["stderr"])
-        self.assertEqual(result["exit_code"], expected_result["exit_code"])
-        self.assertEqual(status, expected_status)
-
-    def test_validation_of_output_schema_for_null_type_params(self):
-        OUTPUT_KEY = "result"
-        result, status = output_schema.validate_output(
-            copy.deepcopy(RUNNER_OUTPUT_SCHEMA_FOR_VALIDATION),
-            copy.deepcopy(ACTION_OUTPUT_SCHEMA_FOR_NULL_TYPE_VALIDATION),
-            copy.deepcopy(BAD_RESULT_FOR_NULL_TYPE_PARAMS),
-            LIVEACTION_STATUS_SUCCEEDED,
-            OUTPUT_KEY,
-        )
-        print(result)
-
-        expected_result = {
-            "stdout": "",
-            "stderr": "'foo' is not of type 'null'\n\nFailed validating 'type' in schema['properties']['output_2']:\n    {'type': 'null'}\n\nOn instance['output_2']:\n    'foo'",
             "exit_code": 1,
             "result": "None",
         }
