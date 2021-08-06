@@ -248,15 +248,10 @@ class OutputSchemaTestCase(unittest2.TestCase):
         )
 
         expected_result = {
-            "error": (
-                "Additional properties are not allowed ('output' was unexpected)\n\n"
-                "Failed validating 'additionalProperties' in schema:\n    "
-                "{'additionalProperties': False,\n     'properties': {'not_a_key_you_have': "
-                "{'type': 'string'}},\n     'type': 'object'}\n\nOn instance:\n    {'output': "
-                "{'deep_output': {'deep_item_1': 'Jindal'},\n                'output_1': 'Bobby',"
-                "\n                'output_2': 5,\n                'output_3': 'shhh!'}}"
-            ),
-            "message": "Error validating output. See error output for more details.",
+            "exit_code": 1,
+            "result": "None",
+            "stderr": "Additional properties are not allowed ('output' was unexpected)\n\nFailed validating 'additionalProperties' in schema:\n    {'additionalProperties': False,\n     'properties': {'not_a_key_you_have': {'type': 'string'}},\n     'type': 'object'}\n\nOn instance:\n    {'output': {'deep_output': {'deep_item_1': 'Jindal'},\n                'output_1': 'Bobby',\n                'output_2': 5,\n                'output_3': 'shhh!'}}",
+            "stdout": "",
         }
 
         self.assertEqual(result, expected_result)
@@ -272,14 +267,17 @@ class OutputSchemaTestCase(unittest2.TestCase):
         )
 
         expected_result = {
-            "error": "Additional properties are not allowed",
-            "message": "Error validating output. See error output for more details.",
+            "exit_code": 1,
+            "result": "None",
+            "stderr": "Additional properties are not allowed",
+            "stdout": "",
         }
 
         # To avoid random failures (especially in python3) this assert cant be
         # exact since the parameters can be ordered differently per execution.
-        self.assertIn(expected_result["error"], result["error"])
-        self.assertEqual(result["message"], expected_result["message"])
+        self.assertIn(expected_result["stderr"], result["stderr"])
+        self.assertEqual(result["result"], expected_result["result"])
+        self.assertEqual(result["exit_code"], expected_result["exit_code"])
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
     def test_mask_secret_output(self):
@@ -387,13 +385,18 @@ class OutputSchemaTestCase(unittest2.TestCase):
             OUTPUT_KEY,
         )
 
-        expected_exit_code = FAILURE_EXIT_CODE
-        expected_result = "None"
-        expected_stderr = "Failed to validate action output. 'output_2' is not of type 'string' in entry point file."
+        expected_result = {
+            "stdout": "",
+            "stderr": "None is not of type 'string'\n\nFailed validating 'type' in schema['properties']['output_2']:\n    {'type': 'string'}\n\nOn instance['output_2']:\n    None",
+            "exit_code": FAILURE_EXIT_CODE,
+            "result": "None",
+        }
+
         expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["exit_code"], expected_exit_code)
-        self.assertEqual(result["result"], expected_result)
-        self.assertEqual(result["stderr"], expected_stderr)
+
+        self.assertEqual(result["result"], expected_result["result"])
+        self.assertEqual(result["stderr"], expected_result["stderr"])
+        self.assertEqual(result["exit_code"], expected_result["exit_code"])
         self.assertEqual(status, expected_status)
 
     def test_validation_of_output_schema_for_object_type_params(self):
@@ -406,13 +409,17 @@ class OutputSchemaTestCase(unittest2.TestCase):
             OUTPUT_KEY,
         )
 
-        expected_exit_code = FAILURE_EXIT_CODE
-        expected_result = "None"
-        expected_stderr = "Failed to validate action output. 'output_3' is not of type 'object' in entry point file."
+        expected_result = {
+            "stdout": "",
+            "stderr": "'foo' is not of type 'object'\n\nFailed validating 'type' in schema['properties']['output_3']:\n    {'type': 'object'}\n\nOn instance['output_3']:\n    'foo'",
+            "exit_code": 1,
+            "result": "None",
+        }
+
         expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["exit_code"], expected_exit_code)
-        self.assertEqual(result["result"], expected_result)
-        self.assertEqual(result["stderr"], expected_stderr)
+        self.assertEqual(result["result"], expected_result["result"])
+        self.assertEqual(result["stderr"], expected_result["stderr"])
+        self.assertEqual(result["exit_code"], expected_result["exit_code"])
         self.assertEqual(status, expected_status)
 
     def test_validation_of_output_schema_for_integer_type_params(self):
@@ -425,13 +432,17 @@ class OutputSchemaTestCase(unittest2.TestCase):
             OUTPUT_KEY,
         )
 
-        expected_exit_code = FAILURE_EXIT_CODE
-        expected_result = "None"
-        expected_stderr = "Failed to validate action output. 'output_2' is not of type 'integer' in entry point file."
+        expected_result = {
+            "stdout": "",
+            "stderr": "'foo' is not of type 'integer'\n\nFailed validating 'type' in schema['properties']['output_2']:\n    {'type': 'integer'}\n\nOn instance['output_2']:\n    'foo'",
+            "exit_code": 1,
+            "result": "None",
+        }
+
         expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["exit_code"], expected_exit_code)
-        self.assertEqual(result["result"], expected_result)
-        self.assertEqual(result["stderr"], expected_stderr)
+        self.assertEqual(result["result"], expected_result["result"])
+        self.assertEqual(result["stderr"], expected_result["stderr"])
+        self.assertEqual(result["exit_code"], expected_result["exit_code"])
         self.assertEqual(status, expected_status)
 
     def test_validation_of_output_schema_for_array_type_params(self):
@@ -444,13 +455,17 @@ class OutputSchemaTestCase(unittest2.TestCase):
             OUTPUT_KEY,
         )
 
-        expected_exit_code = FAILURE_EXIT_CODE
-        expected_result = "None"
-        expected_stderr = "Failed to validate action output. 'output_3' is not of type 'array' in entry point file."
+        expected_result = {
+            "stdout": "",
+            "stderr": "{'a': 'bar', 'b': 'baz'} is not of type 'array'\n\nFailed validating 'type' in schema['properties']['output_3']:\n    {'type': 'array'}\n\nOn instance['output_3']:\n    {'a': 'bar', 'b': 'baz'}",
+            "exit_code": 1,
+            "result": "None",
+        }
+
         expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["exit_code"], expected_exit_code)
-        self.assertEqual(result["result"], expected_result)
-        self.assertEqual(result["stderr"], expected_stderr)
+        self.assertEqual(result["result"], expected_result["result"])
+        self.assertEqual(result["stderr"], expected_result["stderr"])
+        self.assertEqual(result["exit_code"], expected_result["exit_code"])
         self.assertEqual(status, expected_status)
 
     def test_validation_of_output_schema_for_number_type_params(self):
@@ -463,13 +478,17 @@ class OutputSchemaTestCase(unittest2.TestCase):
             OUTPUT_KEY,
         )
 
-        expected_exit_code = FAILURE_EXIT_CODE
-        expected_result = "None"
-        expected_stderr = "Failed to validate action output. 'output_2' is not of type 'number' in entry point file."
+        expected_result = {
+            "stdout": "",
+            "stderr": "'foo' is not of type 'number'\n\nFailed validating 'type' in schema['properties']['output_2']:\n    {'type': 'number'}\n\nOn instance['output_2']:\n    'foo'",
+            "exit_code": 1,
+            "result": "None",
+        }
+
         expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["exit_code"], expected_exit_code)
-        self.assertEqual(result["result"], expected_result)
-        self.assertEqual(result["stderr"], expected_stderr)
+        self.assertEqual(result["result"], expected_result["result"])
+        self.assertEqual(result["stderr"], expected_result["stderr"])
+        self.assertEqual(result["exit_code"], expected_result["exit_code"])
         self.assertEqual(status, expected_status)
 
     def test_validation_of_output_schema_for_boolean_type_params(self):
@@ -482,13 +501,17 @@ class OutputSchemaTestCase(unittest2.TestCase):
             OUTPUT_KEY,
         )
 
-        expected_exit_code = FAILURE_EXIT_CODE
-        expected_result = "None"
-        expected_stderr = "Failed to validate action output. 'output_3' is not of type 'boolean' in entry point file."
+        expected_result = {
+            "stdout": "",
+            "stderr": "['foo', 'bar'] is not of type 'boolean'\n\nFailed validating 'type' in schema['properties']['output_3']:\n    {'type': 'boolean'}\n\nOn instance['output_3']:\n    ['foo', 'bar']",
+            "exit_code": 1,
+            "result": "None",
+        }
+
         expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["exit_code"], expected_exit_code)
-        self.assertEqual(result["result"], expected_result)
-        self.assertEqual(result["stderr"], expected_stderr)
+        self.assertEqual(result["result"], expected_result["result"])
+        self.assertEqual(result["stderr"], expected_result["stderr"])
+        self.assertEqual(result["exit_code"], expected_result["exit_code"])
         self.assertEqual(status, expected_status)
 
     def test_validation_of_output_schema_for_null_type_params(self):
@@ -500,12 +523,17 @@ class OutputSchemaTestCase(unittest2.TestCase):
             LIVEACTION_STATUS_SUCCEEDED,
             OUTPUT_KEY,
         )
+        print(result)
 
-        expected_exit_code = FAILURE_EXIT_CODE
-        expected_result = "None"
-        expected_stderr = "Failed to validate action output. 'output_2' is not of type 'null' in entry point file."
+        expected_result = {
+            "stdout": "",
+            "stderr": "'foo' is not of type 'null'\n\nFailed validating 'type' in schema['properties']['output_2']:\n    {'type': 'null'}\n\nOn instance['output_2']:\n    'foo'",
+            "exit_code": 1,
+            "result": "None",
+        }
+
         expected_status = LIVEACTION_STATUS_FAILED
-        self.assertEqual(result["exit_code"], expected_exit_code)
-        self.assertEqual(result["result"], expected_result)
-        self.assertEqual(result["stderr"], expected_stderr)
+        self.assertEqual(result["result"], expected_result["result"])
+        self.assertEqual(result["stderr"], expected_result["stderr"])
+        self.assertEqual(result["exit_code"], expected_result["exit_code"])
         self.assertEqual(status, expected_status)
