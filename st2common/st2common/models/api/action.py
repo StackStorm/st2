@@ -116,9 +116,12 @@ class RunnerTypeAPI(BaseAPI):
                 "type": "string",
                 "required": False,
             },
+            # Runners must always output json objects with action output in output_key property
             "output_schema": {
                 "description": "Schema for the runner's output.",
                 "type": "object",
+                # using patternProperties like this implies that output_schema defines
+                # the "properties" schema of an object where each key is a property name.
                 "patternProperties": {r"^\w+$": util_schema.get_action_output_schema()},
                 "additionalProperties": False,
                 "default": {},
@@ -228,9 +231,12 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "additionalProperties": False,
                 "default": {},
             },
+            # TODO: support validation for non-object action output, possibly w/ anyOf
             "output_schema": {
                 "description": "Schema for the action's output.",
                 "type": "object",
+                # using patternProperties like this implies that output_schema defines
+                # the "properties" schema of an object where each key is a property name.
                 "patternProperties": {r"^\w+$": util_schema.get_action_output_schema()},
                 "additionalProperties": False,
                 "default": {},

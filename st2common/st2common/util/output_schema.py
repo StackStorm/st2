@@ -31,6 +31,7 @@ LOG = logging.getLogger(__name__)
 def _validate_runner(runner_schema, result):
     LOG.debug("Validating runner output: %s", runner_schema)
 
+    # runner's output is always an object.
     runner_schema = {
         "type": "object",
         "properties": runner_schema,
@@ -45,6 +46,8 @@ def _validate_action(action_schema, result, output_key):
 
     final_result = result[output_key]
 
+    # TODO: support action output_schema for non-objects
+    #       (see also st2common/models/api/action.py)
     action_schema = {
         "type": "object",
         "properties": action_schema,
@@ -141,10 +144,7 @@ def _get_masked_value(spec, value):
 
 
 def mask_secret_output(ac_ex, output_value):
-    # We only support output_schema validation when the output_value is a JSON object.
-    # Invididual keys of that object can be marked secret, but the entire output
-    # object cannot be marked as secret.
-
+    # runners have to return a JSON object, with action output under a subkey.
     if not output_value or not isinstance(output_value, Mapping):
         return output_value
 
@@ -152,7 +152,7 @@ def mask_secret_output(ac_ex, output_value):
     output_schema = ac_ex["action"].get("output_schema")
 
     # nothing to validate
-    if not output_key or not output_schema:
+    if not output_key or output_key not in output_value or not output_schema:
         return output_value
 
     # malformed schema
@@ -163,13 +163,13 @@ def mask_secret_output(ac_ex, output_value):
     if "type" not in output_schema:
         # see st2common/st2common/models/api/action.py
         # output_schema_schema = {
-        #    "description": "Schema for the runner's/action's output.",
+        #    "description": "Schema for the action's output.",
         #    "type": "object",
         #    "patternProperties": {r"^\w+$": customized_draft4_jsonschema}
         #    "additionalProperties": False,
         #    "default": {},
         # }
-        # This implies the following schema (as in _validate_runner/_validate_action above)
+        # This implies the following schema (as in _validate_action above)
         implied_schema = {
             "type": "object",
             "properties": output_schema,
