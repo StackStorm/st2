@@ -243,11 +243,20 @@ class ActionsController(resource.ContentPackResourceController):
 
         try:
             Action.delete(action_db)
-            delete_action_files_from_pack(
-                pack_name=pack_name,
-                entry_point=entry_point,
-                metadata_file=metadata_file,
-            )
+            try:
+                delete_action_files_from_pack(
+                    pack_name=pack_name,
+                    entry_point=entry_point,
+                    metadata_file=metadata_file,
+                )
+            except Exception as e:
+                LOG.error(
+                    "Exception encountered during deleting resource files from disk."
+                    "Exception was %s",
+                    e,
+                )
+                abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
+                return
         except Exception as e:
             LOG.error(
                 'Database delete encountered exception during delete of id="%s". '
