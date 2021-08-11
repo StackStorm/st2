@@ -18,8 +18,8 @@ import os.path
 import stat
 import errno
 
-from mongoengine import ValidationError
 import six
+from mongoengine import ValidationError
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
@@ -243,25 +243,25 @@ class ActionsController(resource.ContentPackResourceController):
 
         try:
             Action.delete(action_db)
-            try:
-                delete_action_files_from_pack(
-                    pack_name=pack_name,
-                    entry_point=entry_point,
-                    metadata_file=metadata_file,
-                )
-            except Exception as e:
-                LOG.error(
-                    "Exception encountered during deleting resource files from disk."
-                    "Exception was %s",
-                    e,
-                )
-                abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
-                return
         except Exception as e:
             LOG.error(
                 'Database delete encountered exception during delete of id="%s". '
                 "Exception was %s",
                 action_id,
+                e,
+            )
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
+            return
+        try:
+            delete_action_files_from_pack(
+                pack_name=pack_name,
+                entry_point=entry_point,
+                metadata_file=metadata_file,
+            )
+        except Exception as e:
+            LOG.error(
+                "Exception encountered during deleting resource files from disk."
+                "Exception was %s",
                 e,
             )
             abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
