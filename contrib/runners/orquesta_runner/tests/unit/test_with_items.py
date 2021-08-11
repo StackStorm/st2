@@ -30,6 +30,7 @@ tests_config.parse_args()
 
 from tests.unit import base
 
+from local_runner import local_shell_command_runner
 from st2actions.workflows import workflows
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
@@ -58,6 +59,18 @@ PACKS = [
     TEST_PACK_PATH,
     st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
+
+RUNNER_RESULT_RUNNING = (
+    action_constants.LIVEACTION_STATUS_RUNNING,
+    {"stdout": "..."},
+    {},
+)
+
+RUNNER_RESULT_SUCCEEDED = (
+    action_constants.LIVEACTION_STATUS_SUCCEEDED,
+    {"stdout": "..."},
+    {},
+)
 
 
 @mock.patch.object(
@@ -315,6 +328,11 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(return_value=RUNNER_RESULT_RUNNING),
+    )
     def test_with_items_cancellation(self):
         num_items = 3
 
@@ -339,16 +357,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), num_items)
-
-        # Reset the action executions to running status.
-        for ac_ex in t1_ac_ex_dbs:
-            self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_RUNNING
-            )
-
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )
 
         status = [
             ac_ex.status == action_constants.LIVEACTION_STATUS_RUNNING
@@ -389,6 +397,11 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(return_value=RUNNER_RESULT_RUNNING),
+    )
     def test_with_items_concurrency_cancellation(self):
         concurrency = 2
 
@@ -416,16 +429,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), concurrency)
-
-        # Reset the action executions to running status.
-        for ac_ex in t1_ac_ex_dbs:
-            self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_RUNNING
-            )
-
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )
 
         status = [
             ac_ex.status == action_constants.LIVEACTION_STATUS_RUNNING
@@ -466,6 +469,11 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(return_value=RUNNER_RESULT_RUNNING),
+    )
     def test_with_items_pause_and_resume(self):
         num_items = 3
 
@@ -490,16 +498,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), num_items)
-
-        # Reset the action executions to running status.
-        for ac_ex in t1_ac_ex_dbs:
-            self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_RUNNING
-            )
-
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )
 
         status = [
             ac_ex.status == action_constants.LIVEACTION_STATUS_RUNNING
@@ -551,6 +549,17 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(
+            side_effect=[
+                RUNNER_RESULT_RUNNING,
+                RUNNER_RESULT_RUNNING,
+                RUNNER_RESULT_SUCCEEDED,
+            ]
+        ),
+    )
     def test_with_items_concurrency_pause_and_resume(self):
         num_items = 3
         concurrency = 2
@@ -579,16 +588,6 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
         self.assertEqual(len(t1_ac_ex_dbs), concurrency)
-
-        # Reset the action executions to running status.
-        for ac_ex in t1_ac_ex_dbs:
-            self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_RUNNING
-            )
-
-        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )
 
         status = [
             ac_ex.status == action_constants.LIVEACTION_STATUS_RUNNING
