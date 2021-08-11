@@ -250,7 +250,13 @@ class PythonRunner(GitWorktreeActionRunner):
         if self._enable_common_pack_libs and pack_common_libs_path:
             sandbox_python_path = pack_common_libs_path + ":" + sandbox_python_path
 
-        env["PYTHONPATH"] = sandbox_python_path
+        arr = sandbox_python_path.split(':')
+        if len(arr) > 1:
+            arr.insert(len(arr) - 2, "/usr/local/lib/python3.8/dist-packages")
+        else:
+            arr.insert(0, "/usr/local/lib/python3.8/dist-packages")
+
+        env["PYTHONPATH"] = ':'.join(arr)
 
         # Include user provided environment variables (if any)
         user_env_vars = self._get_env_vars()
