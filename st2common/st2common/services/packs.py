@@ -236,7 +236,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
             os.remove(action_entrypoint_file_path)
         except PermissionError:
             LOG.error(
-                'No permission to delete "%s" file',
+                'No permission to delete the "%s" file',
                 action_entrypoint_file_path,
             )
             msg = 'No permission to delete "{0}" file from disk'.format(
@@ -249,19 +249,22 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
                 action_entrypoint_file_path,
                 e,
             )
-            msg = (
-                'Delete operation unsuccessful. "{0}" file still exists on disk'.format(
-                    action_entrypoint_file_path
-                )
+            msg = 'The action file "{0}" could not be removed from disk, please check the logs or ask your StackStorm administrator to check and delete the actions files manually'.format(
+                action_entrypoint_file_path
             )
             raise ResourceDiskFilesRemovalError(msg)
+    else:
+        LOG.warning(
+            'The action entry point file "%s" does not exists on disk.',
+            action_entrypoint_file_path,
+        )
 
     if os.path.exists(action_metadata_file_path):
         try:
             os.remove(action_metadata_file_path)
         except PermissionError:
             LOG.error(
-                'No permission to delete "%s" file',
+                'No permission to delete the "%s" file',
                 action_metadata_file_path,
             )
             msg = 'No permission to delete "{0}" file from disk'.format(
@@ -270,12 +273,17 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
             raise PermissionError(msg)
         except Exception as e:
             LOG.error(
-                'Unable to delete "%s" file. Exception was "%s"',
+                'Could not delete "%s" file. Exception was "%s"',
                 action_metadata_file_path,
                 e,
             )
             if os.path.isfile(action_metadata_file_path):
-                msg = 'Delete operation unsuccessful. "{0}" file still exists on disk'.format(
+                msg = 'The action file "{0}" could not be removed from disk, please check the logs or ask your StackStorm administrator to check and delete the actions files manually'.format(
                     action_metadata_file_path
                 )
                 raise ResourceDiskFilesRemovalError(msg)
+    else:
+        LOG.warning(
+            'The action metadata file "%s" does not exists on disk.',
+            action_metadata_file_path,
+        )
