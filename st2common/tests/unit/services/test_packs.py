@@ -144,10 +144,12 @@ class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
         # asserting metadata file doesn't exist
         self.assertFalse(os.path.exists(metadata_file))
 
-        expected_msg = 'No permission to delete "/home/ashwini/stackstormst2-repo/st2/st2tests/st2tests/fixtures/packs/dummy_pack_1/actions/test_entry_point.py" file from disk'
+        expected_msg = 'No permission to delete "{0}" file from disk'.format(
+            entry_point
+        )
 
         # asserting PermissionError with message on call of delete_action_files_from_pack to delete entry_point file
-        with self.assertRaisesRegex(PermissionError, expected_msg):
+        with self.assertRaisesRegexp(PermissionError, expected_msg):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
     @mock.patch.object(os, "remove")
@@ -164,10 +166,12 @@ class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
         # asserting metadata file doesn't exist
         self.assertFalse(os.path.exists(metadata_file))
 
-        expected_msg = 'The action file "/home/ashwini/stackstormst2-repo/st2/st2tests/st2tests/fixtures/packs/dummy_pack_1/actions/test_entry_point.py" could not be removed from disk, please check the logs or ask your StackStorm administrator to check and delete the actions files manually'
+        expected_msg = 'The action file "{0}" could not be removed from disk, please check the logs or ask your StackStorm administrator to check and delete the actions files manually'.format(
+            entry_point
+        )
 
         # asserting exception with message on call of delete_action_files_from_pack to delete entry_point file
-        with self.assertRaisesRegex(Exception, expected_msg):
+        with self.assertRaisesRegexp(Exception, expected_msg):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
 
@@ -204,7 +208,9 @@ class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
         # asserting entry_point doesn't exist
         self.assertFalse(os.path.exists(entry_point))
 
-        expected_msg = 'No permission to delete "/home/ashwini/stackstormst2-repo/st2/st2tests/st2tests/fixtures/packs/dummy_pack_1/actions/test_metadata.yaml" file from disk'
+        expected_msg = 'No permission to delete "{0}" file from disk'.format(
+            metadata_file
+        )
 
         # asserting PermissionError with message on call of delete_action_files_from_pack to delete metadata file
         with self.assertRaisesRegex(PermissionError, expected_msg):
@@ -224,7 +230,9 @@ class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
         # asserting entry_point doesn't exist
         self.assertFalse(os.path.exists(entry_point))
 
-        expected_msg = 'The action file "/home/ashwini/stackstormst2-repo/st2/st2tests/st2tests/fixtures/packs/dummy_pack_1/actions/test_metadata.yaml" could not be removed from disk, please check the logs or ask your StackStorm administrator to check and delete the actions files manually'
+        expected_msg = 'The action file "{0}" could not be removed from disk, please check the logs or ask your StackStorm administrator to check and delete the actions files manually'.format(
+            metadata_file
+        )
 
         # asserting exception with message on call of delete_action_files_from_pack to delete metadata file
         with self.assertRaisesRegex(Exception, expected_msg):
