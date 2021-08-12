@@ -55,7 +55,7 @@ def _get_immutable_params(parameters):
     return [k for k, v in six.iteritems(parameters) if v.get("immutable", False)]
 
 
-def create_request(liveaction, action_db=None, runnertype_db=None):
+def create_request(liveaction, action_db=None, runnertype_db=None, validate_params=True):
     """
     Create an action execution.
 
@@ -108,13 +108,14 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
     # Validate action parameters.
     schema = util_schema.get_schema_for_action_parameters(action_db, runnertype_db)
     validator = util_schema.get_validator()
-    util_schema.validate(
-        liveaction.parameters,
-        schema,
-        validator,
-        use_default=True,
-        allow_default_none=True,
-    )
+    if validate_params:
+        util_schema.validate(
+            liveaction.parameters,
+            schema,
+            validator,
+            use_default=True,
+            allow_default_none=True,
+        )
 
     # validate that no immutable params are being overriden. Although possible to
     # ignore the override it is safer to inform the user to avoid surprises.
