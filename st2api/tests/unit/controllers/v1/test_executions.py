@@ -951,7 +951,7 @@ class ActionExecutionControllerTestCase(
                 "value": "true",
             },
         ]
-        kvps = [KeyValuePair.add_or_update(KeyValuePairDB(**x)) for x in register_items]
+        [KeyValuePair.add_or_update(KeyValuePairDB(**x)) for x in register_items]
 
         post_resp = self._do_post(
             LIVE_ACTION_DEFAULT_ENCRYPT_AND_BOOL, expect_errors=True
