@@ -150,7 +150,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             abort(http_client.BAD_REQUEST, six.text_type(e))
         except jsonschema.ValidationError as e:
             LOG.exception("Unable to execute action. Parameter validation failed.")
-            LOG.error(e, exc_info=True)
             abort(
                 http_client.BAD_REQUEST,
                 re.sub("u'([^']*)'", r"'\1'", getattr(e, "message", six.text_type(e))),
