@@ -293,22 +293,6 @@ ACTION_WITH_UNICODE_NAME = {
     "notify": {"on-complete": {"message": "Woohoo! I completed!!!"}},
 }
 
-ACTION_KV_ERRORS = {
-    "name": "st2.dummy.action_kv",
-    "description": "test description",
-    "enabled": True,
-    "pack": "wolfpack",
-    "entry_point": "/tmp/test/action1.sh",
-    "runner_type": "local-shell-script",
-    "parameters": {
-        "a": {
-            "type": "string",
-            "default": "{{ st2kv.system.test_encrypt | decrypt_kv }}",
-        },
-        "b": {"type": "boolean", "default": "{{ st2kv.system.test_bool }}"},
-    },
-}
-
 
 class ActionsControllerTestCase(
     FunctionalTest, APIControllerWithIncludeAndExcludeFilterTestCase, CleanFilesTestCase
@@ -323,12 +307,6 @@ class ActionsControllerTestCase(
     to_delete_files = [
         os.path.join(get_fixtures_packs_base_path(), "dummy_pack_1/actions/filea.txt")
     ]
-
-    def setUp(self):
-        # Delete any actions in case of previous failed runs
-        resp = self.app.get("/v1/actions")
-        for i in resp.json:
-            self.__do_delete(i["id"])
 
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
@@ -760,17 +738,6 @@ class ActionsControllerTestCase(
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(get_resp.json[0]["id"], action_id)
         self.assertEqual(get_resp.json[0]["tags"], action_tags)
-        self.__do_delete(action_id)
-
-    # @mock.patch.object(
-    #    action_validator, "validate_action", mock.MagicMock(return_value=True)
-    # )
-    def test_action_with_kv_failure(self):
-        post_resp = self.__do_post(ACTION_KV_ERRORS)
-        action_id = self.__get_action_id(post_resp)
-        get_resp = self.__do_get_one(action_id)
-        self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(self.__get_action_id(get_resp), action_id)
         self.__do_delete(action_id)
 
     # TODO: Re-enable those tests after we ensure DB is flushed in setUp
