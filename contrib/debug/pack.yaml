@@ -1,0 +1,8 @@
+name: debug
+description: Debug utilities for StackStorm
+ref: debug
+author: StackStorm Authors
+email: info@stackstorm.com
+version: "0.0.1"
+python_versions:
+  - "3"
