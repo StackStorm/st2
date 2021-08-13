@@ -624,3 +624,31 @@ class TestActionExecutionService(DbTestCase):
             child, expected_root = self._create_nested_executions(depth=i)
             actual_root = action_service.get_root_liveaction(child)
             self.assertEqual(expected_root["id"], actual_root["id"])
+
+    def test_req_invalid_parameters(self):
+        parameters = {"hosts": "127.0.0.1", "cmd": "uname -a", "arg_default_value": 123}
+        liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, action_service.request, liveaction
+        )
+
+    def test_invalid_json_request_validate(self):
+        parameters = {"hosts": "127.0.0.1", "cmd": "uname -a", "arg_default_value": 123}
+        liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
+
+        self.assertRaises(
+            jsonschema.ValidationError,
+            action_service.create_request,
+            liveaction,
+        )
+
+    def test_invalid_json_request_skipvalidate(self):
+        parameters = {"hosts": "127.0.0.1", "cmd": "uname -a", "arg_default_value": 123}
+        liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
+
+        self.assertRaises(
+            jsonschema.ValidationError,
+            action_service.create_request,
+            liveaction,
+            False,
+        )
