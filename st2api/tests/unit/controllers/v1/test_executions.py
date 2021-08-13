@@ -955,12 +955,14 @@ class ActionExecutionControllerTestCase(
         ]
         kvps = [KeyValuePair.add_or_update(KeyValuePairDB(**x)) for x in register_items]
 
-        post_resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT_AND_BOOL, expect_errors=True)
-        self.assertEqual(post_resp.status_int, 400)
-        self.assertEqual(post_resp.json["faultstring"],
-                         'Failed to render parameter "encrypted_param": Referenced datastore item "st2kv.system.secret" doesn\'t exist or it contains an empty string'
+        post_resp = self._do_post(
+            LIVE_ACTION_DEFAULT_ENCRYPT_AND_BOOL, expect_errors=True
         )
-
+        self.assertEqual(post_resp.status_int, 400)
+        self.assertEqual(
+            post_resp.json["faultstring"],
+            'Failed to render parameter "encrypted_param": Referenced datastore item "st2kv.system.secret" doesn\'t exist or it contains an empty string',
+        )
 
     def test_template_encrypted_params(self):
         # register datastore values which are used in this test case
@@ -2120,4 +2122,3 @@ class ActionExecutionOutputControllerTestCase(
             self.assertEqual(resp.status_int, 200)
             lines = resp.text.strip().split("\n")
             self.assertEqual(len(lines), 10)
-

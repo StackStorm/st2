@@ -55,7 +55,9 @@ def _get_immutable_params(parameters):
     return [k for k, v in six.iteritems(parameters) if v.get("immutable", False)]
 
 
-def create_request(liveaction, action_db=None, runnertype_db=None, validate_params=True):
+def create_request(
+    liveaction, action_db=None, runnertype_db=None, validate_params=True
+):
     """
     Create an action execution.
 
