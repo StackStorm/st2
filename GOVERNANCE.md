@@ -27,7 +27,7 @@ StackStorm uses a three-tiered system of Maintainer roles:
   * Receive **one vote** in the voting process.
 
 ### Maintainer Activities
-* Monitor Slack, Forums and other Communication channels with StackStorm Community (delayed response is perfectly acceptable).
+* Monitor one of: Slack, Forums, and other Communication channels with StackStorm Community (delayed response is perfectly acceptable).
 * Attend the Community meetings to discuss the project plans, roadmap and commitments.
 * Triage GitHub issues and perform pull request reviews for [StackStorm](https://github.com/stackstorm/) and [StackStorm-Exchange](https://github.com/stackstorm-exchange/) Github organizations.
   The areas of specialization listed in [OWNERS.md](OWNERS.md) can be used to help with routing
