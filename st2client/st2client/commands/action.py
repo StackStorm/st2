@@ -293,8 +293,9 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
-        resource_delete_msg = 'Resource with id "{0}" has been successfully deleted from database and disk.'.format(
-            resource_id
+        msg = (
+            'Resource with id "%s" has been successfully deleted from database and disk.'
+            % (resource_id)
         )
         user_input = ""
         if not args.force:
@@ -303,7 +304,7 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
             )
         if args.force or user_input.lower() == "y" or user_input.lower() == "yes":
             self.manager.delete(instance, **kwargs)
-            print(resource_delete_msg)
+            print(msg)
         else:
             print("Action is not deleted.")
 
