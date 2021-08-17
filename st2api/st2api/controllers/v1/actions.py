@@ -42,6 +42,7 @@ from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_pack_resource_file_abs_path
 from st2common.content.utils import get_relative_path_to_pack_file
+from st2common.services.packs import delete_action_files_from_pack
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
@@ -236,6 +237,10 @@ class ActionsController(resource.ContentPackResourceController):
             action_db,
         )
 
+        pack_name = action_db["pack"]
+        entry_point = action_db["entry_point"]
+        metadata_file = action_db["metadata_file"]
+
         try:
             Action.delete(action_db)
         except Exception as e:
@@ -243,6 +248,20 @@ class ActionsController(resource.ContentPackResourceController):
                 'Database delete encountered exception during delete of id="%s". '
                 "Exception was %s",
                 action_id,
+                e,
+            )
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
+            return
+        try:
+            delete_action_files_from_pack(
+                pack_name=pack_name,
+                entry_point=entry_point,
+                metadata_file=metadata_file,
+            )
+        except Exception as e:
+            LOG.error(
+                "Exception encountered during deleting resource files from disk."
+                "Exception was %s",
                 e,
             )
             abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
