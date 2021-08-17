@@ -55,14 +55,14 @@ class DeleteActionFilesTest(unittest2.TestCase):
 
         delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
-        # asserting both entry_point and metadata files removed and they don't exist
+        # asserting both entry_point and metadata files removed and they doesn't exist
         self.assertFalse(os.path.exists(entry_point))
         self.assertFalse(os.path.exists(metadata_file))
 
     def test_entry_point_file_does_not_exists(self):
         """
         Tests that entry_point file doesn't exists at the path and if action delete
-        api calls delete_action_files_from_pack function, it doesn't affect
+        api calls delete_action_files_from_pack function, it doesn't affect.
         """
 
         entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
@@ -87,7 +87,7 @@ class DeleteActionFilesTest(unittest2.TestCase):
     def test_metadata_file_does_not_exists(self):
         """
         Tests that metadata file doesn't exists at the path and if action delete
-        api calls delete_action_files_from_pack function, it doesn't affect
+        api calls delete_action_files_from_pack function, it doesn't affect.
         """
 
         entry_point = os.path.join(TEST_PACK_PATH, "actions", "test_entry_point.py")
@@ -100,7 +100,7 @@ class DeleteActionFilesTest(unittest2.TestCase):
         # asserting metadata file doesn't exist
         self.assertFalse(os.path.exists(metadata_file))
 
-        # asserting entry_point files exists
+        # asserting entry_point file exists
         self.assertTrue(os.path.exists(entry_point))
 
         delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
@@ -112,9 +112,9 @@ class DeleteActionFilesTest(unittest2.TestCase):
 
 class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
     """
-    Testing that exceptions are thrown by delete_action_files_from_pack function for
-    entry point file. Here only entry point file is created and metadata file doesn't
-    exist
+    Testing that exceptions are thrown by delete_action_files_from_pack function
+    for entry point file. Here only entry point file is created and metadata
+    file doesn't exist.
     """
 
     def setUp(self):
@@ -138,17 +138,16 @@ class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
 
         remove.side_effect = PermissionError("No permission to delete file from disk")
 
-        # asserting entry_point files exists
+        # asserting entry_point file exists
         self.assertTrue(os.path.exists(entry_point))
 
         # asserting metadata file doesn't exist
         self.assertFalse(os.path.exists(metadata_file))
 
-        expected_msg = 'No permission to delete "{0}" file from disk'.format(
-            entry_point
-        )
+        expected_msg = 'No permission to delete "%s" file from disk' % (entry_point)
 
-        # asserting PermissionError with message on call of delete_action_files_from_pack to delete entry_point file
+        # asserting PermissionError with message on call of delete_action_files_from_pack
+        # to delete entry_point file
         with self.assertRaisesRegexp(PermissionError, expected_msg):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
@@ -160,17 +159,20 @@ class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
 
         remove.side_effect = Exception("Another exception occured")
 
-        # asserting entry_point files exists
+        # asserting entry_point file exists
         self.assertTrue(os.path.exists(entry_point))
 
         # asserting metadata file doesn't exist
         self.assertFalse(os.path.exists(metadata_file))
 
-        expected_msg = 'The action file "{0}" could not be removed from disk, please check the logs or ask your StackStorm administrator to check and delete the actions files manually'.format(
-            entry_point
+        expected_msg = (
+            'The action file "%s" could not be removed from disk, please '
+            "check the logs or ask your StackStorm administrator to check "
+            "and delete the actions files manually" % (entry_point)
         )
 
-        # asserting exception with message on call of delete_action_files_from_pack to delete entry_point file
+        # asserting exception with message on call of delete_action_files_from_pack
+        # to delete entry_point file
         with self.assertRaisesRegexp(Exception, expected_msg):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
@@ -178,7 +180,7 @@ class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
 class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
     """
     Testing that exceptions are thrown by delete_action_files_from_pack function for
-    metadata file. Here only metadata file is created and metadata file doesn't exist
+    metadata file. Here only metadata file is created and metadata file doesn't exist.
     """
 
     def setUp(self):
@@ -202,18 +204,17 @@ class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
 
         remove.side_effect = PermissionError("No permission to delete file from disk")
 
-        # asserting metadata files exists
+        # asserting metadata file exists
         self.assertTrue(os.path.exists(metadata_file))
 
-        # asserting entry_point doesn't exist
+        # asserting entry_point file doesn't exist
         self.assertFalse(os.path.exists(entry_point))
 
-        expected_msg = 'No permission to delete "{0}" file from disk'.format(
-            metadata_file
-        )
+        expected_msg = 'No permission to delete "%s" file from disk' % (metadata_file)
 
-        # asserting PermissionError with message on call of delete_action_files_from_pack to delete metadata file
-        with self.assertRaisesRegex(PermissionError, expected_msg):
+        # asserting PermissionError with message on call of delete_action_files_from_pack
+        # to delete metadata file
+        with self.assertRaisesRegexp(PermissionError, expected_msg):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
     @mock.patch.object(os, "remove")
@@ -224,16 +225,19 @@ class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
 
         remove.side_effect = Exception("Another exception occured")
 
-        # asserting metadata files exists
+        # asserting metadata file exists
         self.assertTrue(os.path.exists(metadata_file))
 
-        # asserting entry_point doesn't exist
+        # asserting entry_point file doesn't exist
         self.assertFalse(os.path.exists(entry_point))
 
-        expected_msg = 'The action file "{0}" could not be removed from disk, please check the logs or ask your StackStorm administrator to check and delete the actions files manually'.format(
-            metadata_file
+        expected_msg = (
+            'The action file "%s" could not be removed from disk, please '
+            "check the logs or ask your StackStorm administrator to check "
+            "and delete the actions files manually" % (metadata_file)
         )
 
-        # asserting exception with message on call of delete_action_files_from_pack to delete metadata file
-        with self.assertRaisesRegex(Exception, expected_msg):
+        # asserting exception with message on call of delete_action_files_from_pack
+        # to delete metadata file
+        with self.assertRaisesRegexp(Exception, expected_msg):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
