@@ -231,7 +231,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
     action_entrypoint_file_path = os.path.join(pack_base_path, "actions", entry_point)
     action_metadata_file_path = os.path.join(pack_base_path, metadata_file)
 
-    if os.path.exists(action_entrypoint_file_path):
+    if os.path.isfile(action_entrypoint_file_path):
         try:
             os.remove(action_entrypoint_file_path)
         except PermissionError:
@@ -239,7 +239,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
                 'No permission to delete the "%s" file',
                 action_entrypoint_file_path,
             )
-            msg = 'No permission to delete "{0}" file from disk'.format(
+            msg = 'No permission to delete "%s" file from disk' % (
                 action_entrypoint_file_path
             )
             raise PermissionError(msg)
@@ -249,8 +249,10 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
                 action_entrypoint_file_path,
                 e,
             )
-            msg = 'The action file "{0}" could not be removed from disk, please check the logs or ask your StackStorm administrator to check and delete the actions files manually'.format(
-                action_entrypoint_file_path
+            msg = (
+                'The action file "%s" could not be removed from disk, please '
+                "check the logs or ask your StackStorm administrator to check "
+                "and delete the actions files manually" % (action_entrypoint_file_path)
             )
             raise ResourceDiskFilesRemovalError(msg)
     else:
@@ -259,7 +261,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
             action_entrypoint_file_path,
         )
 
-    if os.path.exists(action_metadata_file_path):
+    if os.path.isfile(action_metadata_file_path):
         try:
             os.remove(action_metadata_file_path)
         except PermissionError:
@@ -267,7 +269,7 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
                 'No permission to delete the "%s" file',
                 action_metadata_file_path,
             )
-            msg = 'No permission to delete "{0}" file from disk'.format(
+            msg = 'No permission to delete "%s" file from disk' % (
                 action_metadata_file_path
             )
             raise PermissionError(msg)
@@ -277,11 +279,12 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
                 action_metadata_file_path,
                 e,
             )
-            if os.path.isfile(action_metadata_file_path):
-                msg = 'The action file "{0}" could not be removed from disk, please check the logs or ask your StackStorm administrator to check and delete the actions files manually'.format(
-                    action_metadata_file_path
-                )
-                raise ResourceDiskFilesRemovalError(msg)
+            msg = (
+                'The action file "%s" could not be removed from disk, please '
+                "check the logs or ask your StackStorm administrator to check "
+                "and delete the actions files manually" % (action_metadata_file_path)
+            )
+            raise ResourceDiskFilesRemovalError(msg)
     else:
         LOG.warning(
             'The action metadata file "%s" does not exists on disk.',
