@@ -21,7 +21,7 @@ __all__ = ["InjectTriggerAction"]
 
 
 class InjectTriggerAction(Action):
-    def run(self, trigger, payload=None, trace_tag=None):
+    def run(self, trigger=None, trigger_name=None, payload=None, trace_tag=None):
         payload = payload or {}
 
         datastore_service = self.action_service.datastore_service
@@ -32,6 +32,11 @@ class InjectTriggerAction(Action):
         # results in a TriggerInstanceDB database object creation or not. The object is created
         # inside rulesengine service and could fail due to the user providing an invalid trigger
         # reference or similar.
+        if trigger and trigger_name:
+            self.logger.error('Parameters `trigger` and `trigger_name` are mutually exclusive.')
+            raise Exception
+
+        trigger = trigger if trigger else trigger_name
         self.logger.debug(
             'Injecting trigger "%s" with payload="%s"' % (trigger, str(payload))
         )
