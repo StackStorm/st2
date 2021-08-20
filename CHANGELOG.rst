@@ -29,6 +29,10 @@ Changed
 
   Contributed by @ericreeves.
 
+* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `hello` #5302
+
+  Contributed by @lukepatrick
+
 3.5.0 - June 23, 2021
 ---------------------
 
