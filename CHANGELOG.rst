@@ -29,7 +29,7 @@ Changed
 
   Contributed by @ericreeves.
 
-* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `hello` #5302
+* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `ping` #5302, #5341
 
   Contributed by @lukepatrick
 
