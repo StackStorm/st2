@@ -158,6 +158,7 @@ class ActionsQueueConsumer(QueueConsumer):
         self._actions_dispatcher.shutdown()
         self.should_stop = True
 
+
 class VariableMessageQueueConsumer(QueueConsumer):
     """
     Used by ``VariableMessageHandler`` to processes multiple message types.
