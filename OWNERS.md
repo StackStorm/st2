@@ -33,7 +33,7 @@ Have deep platform knowledge & experience and demonstrate technical leadership a
 Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/maintainers) provide significant and reliable value to the project helping it grow and improve through development and maintenance. See [Maintainer Responsibilities](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#maintainer-responsibilities) for more info.
 * Amanda McGuinness ([@amanda11](https://github.com/amanda11)) <<amanda.mcguinness@ammeonsolutions.com>>
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, StackStorm Exchange, Documentation.
-* Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ <<>>
+* Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ <<cognifloyd@gmail.com>>
   - StackStorm Exchange, Kubernetes, ChatOps, Core, Ansible, Discussions.
 * JP Bourget ([@punkrokk](https://github.com/punkrokk)) <<jp.bourget@gmail.com>>
   - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCI.
