@@ -45,6 +45,7 @@ setup(
         "automation platform."
     ),
     long_description=readme,
+    long_description_content_type="text/x-rst",
     author="StackStorm",
     author_email="info@stackstorm.com",
     url="https://stackstorm.com/",
