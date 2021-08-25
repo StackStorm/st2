@@ -35,7 +35,7 @@ Changed
 
 * Actionrunner worker shutdown should stop Kombu consumer thread. #5338
 
-  Contributed by @khushboobhatia01 
+  Contributed by @khushboobhatia01
 
 3.5.0 - June 23, 2021
 ---------------------
