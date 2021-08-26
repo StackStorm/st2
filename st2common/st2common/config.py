@@ -477,6 +477,13 @@ def register_opts(ignore_errors=False):
                 "that size"
             ),
         ),
+        cfg.IntOpt(
+            "abandon_wait_period",
+            default=0,
+            help=(
+                "Wait period in seconds after which actionrunner starts abandoning incomplete executions during shutdown."
+            ),
+        ),
     ]
 
     do_register_opts(

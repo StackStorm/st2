@@ -17,6 +17,8 @@ from __future__ import absolute_import
 import sys
 import traceback
 
+from oslo_config import cfg
+
 from st2actions.container.base import RunnerContainer
 from st2common import log as logging
 from st2common.constants import action as action_constants
@@ -30,6 +32,7 @@ from st2common.transport.consumers import MessageHandler
 from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
+from st2common.util import concurrency
 from st2common.util import system_info
 from st2common.transport import queues
 
@@ -134,6 +137,13 @@ class ActionExecutionDispatcher(MessageHandler):
 
     def shutdown(self):
         super(ActionExecutionDispatcher, self).shutdown()
+        abandon_wait_period = cfg.CONF.actionrunner.abandon_wait_period
+        LOG.debug(
+            "Sleeping for %s seconds before starting to abandon incomplete executions.",
+            abandon_wait_period,
+        )
+        concurrency.sleep(abandon_wait_period)
+
         # Abandon running executions if incomplete
         while self._running_liveactions:
             liveaction_id = self._running_liveactions.pop()
