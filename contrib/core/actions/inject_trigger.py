@@ -32,9 +32,14 @@ class InjectTriggerAction(Action):
         # results in a TriggerInstanceDB database object creation or not. The object is created
         # inside rulesengine service and could fail due to the user providing an invalid trigger
         # reference or similar.
+
+        # Raise an error if both trigger and trigger_name are specified
         if trigger and trigger_name:
-            self.logger.error('Parameters `trigger` and `trigger_name` are mutually exclusive.')
-            raise Exception
+            raise ValueError('Parameters `trigger` and `trigger_name` are mutually exclusive.')
+
+        # Raise an error if neither trigger nor trigger_name are specified
+        if not trigger and not trigger_name:
+            raise ValueError('You must include either the `trigger_name` or `trigger` parameter.')
 
         trigger = trigger if trigger else trigger_name
         self.logger.debug(
