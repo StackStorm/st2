@@ -22,6 +22,7 @@ import requests
 import six
 from six.moves import range
 from oslo_config import cfg
+import yaml
 
 from st2common import log as logging
 from st2common.content.utils import get_pack_base_path
@@ -290,3 +291,95 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
             'The action metadata file "%s" does not exists on disk.',
             action_metadata_file_path,
         )
+
+
+def clone_content_to_destination_file(source_file, destination_file):
+    try:
+        with open(source_file, "r") as sf:
+            with open(destination_file, "w") as df:
+                for line in sf:
+                    df.write(line)
+    except PermissionError:
+        LOG.error(
+            'No write permission for "%s" file',
+            destination_file,
+        )
+        msg = 'No permission to write in "%s" file' % (destination_file)
+        raise PermissionError(msg)
+    except FileNotFoundError:
+        LOG.error('No "workflows" directory at path: "%s"', destination_file)
+        msg = 'Please make sure "workflows" directory present at path: "%s"' % (
+            destination_file
+        )
+        raise FileNotFoundError(msg)
+    except Exception as e:
+        LOG.error(
+            'Could not copy to "%s" file. Exception was "%s"',
+            destination_file,
+            e,
+        )
+        msg = (
+            'Could not copy to "%s" file, please check the logs '
+            "or ask your StackStorm administrator to check and clone "
+            "the actions files manually" % (destination_file)
+        )
+        raise Exception(msg)
+
+
+def clone_action(
+    source_pack_base_path,
+    source_metadata_file,
+    source_entry_point,
+    dest_pack_base_path,
+    dest_pack,
+    dest_action,
+):
+    """
+    Prepares the path for entry point and metadata files for source and destination.
+    Clones the content from source action files to destination action files.
+    """
+
+    source_metadata_file_path = os.path.join(
+        source_pack_base_path, source_metadata_file
+    )
+    dest_metadata_file_name = "%s.yaml" % (dest_action)
+    dest_metadata_file_path = os.path.join(
+        dest_pack_base_path, "actions", dest_metadata_file_name
+    )
+
+    if source_entry_point:
+        source_entry_point_file_path = os.path.join(
+            source_pack_base_path, "actions", source_entry_point
+        )
+        if str(source_entry_point).endswith("py"):
+            dest_entry_point_file_name = "%s.py" % (dest_action)
+        elif str(source_entry_point).startswith("workflows"):
+            dest_entry_point_file_name = "workflows/%s.yaml" % (dest_action)
+        else:
+            dest_entry_point_file_name = dest_action
+
+        dest_entrypoint_file_path = os.path.join(
+            dest_pack_base_path, "actions", dest_entry_point_file_name
+        )
+        clone_content_to_destination_file(
+            source_file=source_entry_point_file_path,
+            destination_file=dest_entrypoint_file_path,
+        )
+
+    else:
+        dest_entry_point_file_name = ""
+
+    clone_content_to_destination_file(
+        source_file=source_metadata_file_path, destination_file=dest_metadata_file_path
+    )
+
+    with open(dest_metadata_file_path) as df:
+        doc = yaml.load(df, Loader=yaml.FullLoader)
+
+    doc["name"] = dest_action
+    if "pack" in doc:
+        doc["pack"] = dest_pack
+    doc["entry_point"] = dest_entry_point_file_name
+
+    with open(dest_metadata_file_path, "w") as df:
+        yaml.dump(doc, df, default_flow_style=False, sort_keys=False)

@@ -377,6 +377,31 @@ class ResourceManager(object):
         return True
 
     @add_auth_token_to_kwargs_from_env
+    def clone(
+        self,
+        instance,
+        source_pack,
+        source_action,
+        dest_pack,
+        dest_action,
+        overwrite,
+        **kwargs,
+    ):
+        url = "/%s/%s/%s/%s/%s?overwrite=%s" % (
+            self.resource.get_url_path_name(),
+            source_pack,
+            source_action,
+            dest_pack,
+            dest_action,
+            overwrite,
+        )
+        response = self.client.post(url, instance.serialize(), **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+        instance = self.resource.deserialize(parse_api_response(response))
+        return instance
+
+    @add_auth_token_to_kwargs_from_env
     def delete_by_id(self, instance_id, **kwargs):
         url = "/%s/%s" % (self.resource.get_url_path_name(), instance_id)
         response = self.client.delete(url, **kwargs)

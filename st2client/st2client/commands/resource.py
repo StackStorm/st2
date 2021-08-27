@@ -102,6 +102,7 @@ class ResourceBranch(commands.Branch):
             "delete": ResourceDeleteCommand,
             "enable": ResourceEnableCommand,
             "disable": ResourceDisableCommand,
+            "clone": ResourceCloneCommand,
         }
         for cmd, cmd_class in cmd_map.items():
             if cmd not in commands:
@@ -116,6 +117,7 @@ class ResourceBranch(commands.Branch):
             self.commands["create"] = commands["create"](*args)
             self.commands["update"] = commands["update"](*args)
             self.commands["delete"] = commands["delete"](*args)
+            self.commands["clone"] = commands["clone"](*args)
 
         if has_disable:
             self.commands["enable"] = commands["enable"](*args)
@@ -756,6 +758,99 @@ class ContentPackResourceDeleteCommand(ResourceDeleteCommand):
     """
 
     pk_argument_name = "ref_or_id"
+
+
+class ResourceCloneCommand(ResourceCommand):
+    pk_source_pack = "source_pack"
+    pk_source_action = "source_action"
+    pk_dest_pack = "destination_pack"
+    pk_dest_action = "destination_action"
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceCloneCommand, self).__init__(
+            resource,
+            "clone",
+            "Clone a new %s." % resource.get_display_name().lower(),
+            *args,
+            **kwargs,
+        )
+
+        pk_list = [
+            self.pk_source_pack,
+            self.pk_source_action,
+            self.pk_dest_pack,
+            self.pk_dest_action,
+        ]
+
+        for var in pk_list:
+            metavar = self._get_metavar_for_argument(argument=var)
+            helparg = self._get_help_for_argument(resource=resource, argument=var)
+            self.parser.add_argument(var, metavar=metavar, help=helparg)
+
+        self.parser.add_argument(
+            "-f",
+            "--force",
+            action="store_true",
+            dest="force",
+            help="Auto yes flag to overwrite action files on disk if destination exists.",
+        )
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        source_pack = getattr(args, self.pk_source_pack, None)
+        source_action = getattr(args, self.pk_source_action, None)
+        dest_pack = getattr(args, self.pk_dest_pack, None)
+        dest_action = getattr(args, self.pk_dest_action, None)
+        source_ref = "%s.%s" % (source_pack, source_action)
+        instance = self.get_resource(source_ref, **kwargs)
+        msg = 'Action with name "%s" has been successfully cloned in "%s" pack.' % (
+            dest_action,
+            dest_pack,
+        )
+
+        dest_ref = "%s.%s" % (dest_pack, dest_action)
+        try:
+            dest_instance = self.get_resource(dest_ref, **kwargs)
+        except ResourceNotFoundError:
+            dest_instance = None
+
+        if dest_instance:
+            user_input = ""
+            if not args.force:
+                user_input = input(
+                    "The destination action already exists. Do you want to overwrite? (y/n): "
+                )
+            if args.force or user_input.lower() == "y" or user_input.lower() == "yes":
+                self.manager.clone(
+                    instance,
+                    source_pack,
+                    source_action,
+                    dest_pack,
+                    dest_action,
+                    overwrite=True,
+                    **kwargs,
+                )
+                print(msg)
+            else:
+                print("Action is not cloned.")
+        else:
+            self.manager.clone(
+                instance,
+                source_pack,
+                source_action,
+                dest_pack,
+                dest_action,
+                overwrite=False,
+                **kwargs,
+            )
+            print(msg)
+
+    def run_and_print(self, args, **kwargs):
+        resource_id = getattr(args, self.pk_source_pack)
+        try:
+            self.run(args, **kwargs)
+        except ResourceNotFoundError:
+            self.print_not_found(resource_id)
 
 
 def load_meta_file(file_path):
