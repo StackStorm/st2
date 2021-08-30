@@ -35,6 +35,8 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, StackStorm Exchange, Documentation.
 * AJ Jonen ([@guzzijones](https://github.com/guzzijones)), _Cypherint_ <<aaron.jonen@cypherint.com>>
   - Workflows, st2 Core Performance, Releases.
+* Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ <<cognifloyd@gmail.com>>
+  - StackStorm Exchange, Kubernetes, ChatOps, Core, Ansible, Discussions.
 * JP Bourget ([@punkrokk](https://github.com/punkrokk)) <<jp.bourget@gmail.com>>
   - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCI.
 * Marcel Weinberg ([@winem](https://github.com/winem)), _CoreMedia_ <<mweinberg-os@email.de>>
@@ -52,8 +54,6 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Carlos ([@nzlosh](https://github.com/nzlosh)) - Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
-* Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ - StackStorm Exchange, ChatOps, Core, Discussions.
-* Marcel Weinberg ([@winem](https://github.com/winem)) - Community, Docker, Core.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
