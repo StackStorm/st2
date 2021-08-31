@@ -15,7 +15,7 @@
 
 from __future__ import absolute_import
 
-from st2client.models import Sensor
+from st2client.models.reactor import Sensor
 from st2client.commands import resource
 
 
