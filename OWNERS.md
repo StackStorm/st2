@@ -17,6 +17,8 @@ Responsible for Project Strategy, External Relations, Organizational aspects, Pa
 ###### 2 vote points
 Senior [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/maintainers) are part of Technical Steering Committee.
 Have deep platform knowledge & experience and demonstrate technical leadership as well as driving the project forward.
+* Amanda McGuinness ([@amanda11](https://github.com/amanda11)), _Ammeon Solutions_ <<amanda.mcguinness@ammeonsolutions.com>>
+  - Ansible, Core, deb/rpm packages, CI/CD, Deployments, Release Engineering, Infrastructure, Documentation.
 * blag ([@blag](https://github.com/blag)) <<blag@users.noreply.github.com>>
   - ChatOps, StackStorm Exchange, Community, Documentation, CI/CD.
 * Eugen Cusmaunsa ([@armab](https://github.com/armab)) <<armab@stackstorm.com>>
@@ -31,8 +33,6 @@ Have deep platform knowledge & experience and demonstrate technical leadership a
 # Maintainers *
 ###### 1 vote points
 Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/maintainers) provide significant and reliable value to the project helping it grow and improve through development and maintenance. See [Maintainer Responsibilities](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#maintainer-responsibilities) for more info.
-* Amanda McGuinness ([@amanda11](https://github.com/amanda11)) <<amanda.mcguinness@ammeonsolutions.com>>
-  - Ansible, Core, deb/rpm packages, CI/CD, Deployments, StackStorm Exchange, Documentation.
 * AJ Jonen ([@guzzijones](https://github.com/guzzijones)), _Cypherint_ <<aaron.jonen@cypherint.com>>
   - Workflows, st2 Core Performance, Releases.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) <<nzlosh@yahoo.com>>
@@ -43,7 +43,7 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCI.
 * Marcel Weinberg ([@winem](https://github.com/winem)), _CoreMedia_ <<mweinberg-os@email.de>>
   - Systems, Core, CI/CD, Docker, Community.
-* Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)) <<mick@bitovi.com>>
+* Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)), _Bitovi_ <<mick@bitovi.com>>
   - Systems, ST2 Exchange. [Case Study](https://stackstorm.com/case-study-bitovi/).
 
 --------
