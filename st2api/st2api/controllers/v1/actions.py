@@ -264,6 +264,9 @@ class ActionsController(resource.ContentPackResourceController):
                 "Exception was %s",
                 e,
             )
+            action = ActionAPI.from_model(action_db)
+            action_db = ActionAPI.to_model(action)
+            Action.add_or_update(action_db)
             abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
