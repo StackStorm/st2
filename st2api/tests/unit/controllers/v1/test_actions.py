@@ -626,6 +626,23 @@ class ActionsControllerTestCase(
         del_resp = self.__do_delete(self.__get_action_id(post_resp))
         self.assertEqual(del_resp.status_int, 204)
 
+    @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_delete_exception_to_remove_action_files(
+        self, mock_delete_action_files_from_pack
+    ):
+        msg = "No permission to delete action files from disk"
+        mock_delete_action_files_from_pack.side_effect = PermissionError(msg)
+        post_resp = self.__do_post(ACTION_1)
+        with mock.patch("st2api.controllers.v1.actions.Action.add_or_update"):
+            del_resp = self.__do_delete(
+                self.__get_action_id(post_resp), expect_errors=True
+            )
+            self.assertEqual(del_resp.status_int, 500)
+            self.assertEqual(del_resp.json["faultstring"], msg)
+
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
