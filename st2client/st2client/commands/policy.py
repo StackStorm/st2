@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import logging
 
-from st2client import models
+from st2client.models.policy import Policy, PolicyType
 from st2client.commands import resource
 
 
@@ -27,7 +27,7 @@ LOG = logging.getLogger(__name__)
 class PolicyTypeBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(PolicyTypeBranch, self).__init__(
-            models.PolicyType,
+            PolicyType,
             description,
             app,
             subparsers,
@@ -72,7 +72,7 @@ class PolicyTypeGetCommand(resource.ResourceGetCommand):
 class PolicyBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(PolicyBranch, self).__init__(
-            models.Policy,
+            Policy,
             description,
             app,
             subparsers,
