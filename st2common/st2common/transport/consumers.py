@@ -156,6 +156,7 @@ class ActionsQueueConsumer(QueueConsumer):
     def shutdown(self):
         self._workflows_dispatcher.shutdown()
         self._actions_dispatcher.shutdown()
+        self.should_stop = True
 
 
 class VariableMessageQueueConsumer(QueueConsumer):

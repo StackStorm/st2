@@ -7,6 +7,15 @@ in development
 Changed
 ~~~~~~~
 
+* Modified action delete api. Action delete api removes related action/workflow files on disk
+  along with de-registering them from database. Prompts on CLI for user permission before
+  removing disk files.
+
+  ``-f`` and ``--force`` arguments added for action delete CLI command as auto yes flag and
+  will delete related files on disk without prompting for user permission. #5304
+
+  Contributed by @mahesh-orch.
+
 * Removed --python3 deprecated flag from st2client. #5305
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
@@ -19,12 +28,21 @@ Changed
 * Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
 
   Contributed by @ericreeves.
+  
+* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `ping` #5302, #5341
+
+  Contributed by @lukepatrick
+
+* Actionrunner worker shutdown should stop Kombu consumer thread. #5338
+
+  Contributed by @khushboobhatia01
 
 Fixed
 ~~~~~
 
 * Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
   Contributed by @amanda11, Ammeon Solutions
+
 
 
 3.5.0 - June 23, 2021

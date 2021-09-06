@@ -19,7 +19,7 @@ from datetime import timedelta
 from oslo_config import cfg
 
 from st2client.client import Client
-from st2client.models import KeyValuePair
+from st2client.models.keyvalue import KeyValuePair
 from st2common.util.api import get_full_public_api_url
 from st2common.util.date import get_datetime_utc_now
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR, SYSTEM_SCOPE
