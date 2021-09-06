@@ -629,8 +629,9 @@ class TestActionExecutionService(DbTestCase):
         parameters = {"hosts": "127.0.0.1", "cmd": "uname -a", "arg_default_value": 123}
         liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
 
-        self.assertRaises(
+        self.assertRaisesRegexp(
             jsonschema.ValidationError,
+            "123 is not of type 'string'",
             action_service.create_request,
             liveaction,
         )
@@ -639,9 +640,7 @@ class TestActionExecutionService(DbTestCase):
         parameters = {"hosts": "127.0.0.1", "cmd": "uname -a", "arg_default_value": 123}
         liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
 
-        self.assertRaises(
-            jsonschema.ValidationError,
-            action_service.create_request,
-            liveaction,
-            False,
-        )
+        # Validate that if skip validation that no exception raised
+        (action, execution) = action_service.create_request(liveaction, validate_params = False)
+        self.assertTrue(action)
+        self.assertTrue(execution)

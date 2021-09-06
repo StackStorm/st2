@@ -68,6 +68,9 @@ def create_request(
     :param runnertype_db: Runner model to operate one. If not provided, one is retrieved from the
                           database using values from "liveaction".
     :type runnertype_db: :class:`RunnerTypeDB`
+    :param validate_params: Whether to validate parameters against schema. Default to True, but
+                          set to False when raising a request to report an error.
+    :type validate_params: ``bool``
 
     :return: (liveaction, execution)
     :rtype: tuple
