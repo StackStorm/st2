@@ -14,17 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import random
-import eventlet
 
-from kombu import Exchange
-from kombu import Queue
 from unittest2 import TestCase
 from mock import Mock
 
 from st2common.transport.consumers import ActionsQueueConsumer
-from st2common.transport.publishers import PoolPublisher
-from st2common.transport import utils as transport_utils
 from st2common.models.db.liveaction import LiveActionDB
 
 from st2tests import config as test_config
@@ -35,9 +29,6 @@ __all__ = ["ActionsQueueConsumerTestCase"]
 
 
 class ActionsQueueConsumerTestCase(TestCase):
-    message_count = 0
-    message_type = LiveActionDB
-
     def test_process_right_dispatcher_is_used(self):
         handler = Mock()
         handler.message_type = LiveActionDB
@@ -68,38 +59,3 @@ class ActionsQueueConsumerTestCase(TestCase):
 
         self.assertEqual(consumer._workflows_dispatcher.dispatch.call_count, 1)
         self.assertEqual(consumer._actions_dispatcher.dispatch.call_count, 0)
-
-    def test_stop_consumption_on_shutdown(self):
-        exchange = Exchange("st2.execution.test", type="topic")
-        queue_name = "test-" + str(random.randint(1, 10000))
-        queue = Queue(
-            name=queue_name, exchange=exchange, routing_key="#", auto_delete=True
-        )
-        publisher = PoolPublisher()
-        with transport_utils.get_connection() as connection:
-            connection.connect()
-            watcher = ActionsQueueConsumer(
-                connection=connection, queues=queue, handler=self
-            )
-            watcher_thread = eventlet.greenthread.spawn(watcher.run)
-
-        # Give it some time to start up since we are publishing on a new queue
-        eventlet.sleep(0.5)
-        body = LiveActionDB(
-            status="scheduled", action="core.local", action_is_workflow=False
-        )
-        publisher.publish(payload=body, exchange=exchange)
-        eventlet.sleep(0.2)
-        self.assertEqual(self.message_count, 1)
-        body = LiveActionDB(
-            status="scheduled", action="core.local", action_is_workflow=True
-        )
-        watcher.shutdown()
-        eventlet.sleep(1)
-        publisher.publish(payload=body, exchange=exchange)
-        # Second published message won't be consumed.
-        self.assertEqual(self.message_count, 1)
-        watcher_thread.kill()
-
-    def process(self, liveaction):
-        self.message_count = self.message_count + 1
