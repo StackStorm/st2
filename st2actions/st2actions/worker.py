@@ -138,11 +138,12 @@ class ActionExecutionDispatcher(MessageHandler):
     def shutdown(self):
         super(ActionExecutionDispatcher, self).shutdown()
         abandon_wait_period = cfg.CONF.actionrunner.abandon_wait_period
-        LOG.debug(
-            "Sleeping for %s seconds before starting to abandon incomplete executions.",
-            abandon_wait_period,
-        )
-        concurrency.sleep(abandon_wait_period)
+        if abandon_wait_period:
+            LOG.debug(
+                "Sleeping for %s seconds before starting to abandon incomplete executions.",
+                abandon_wait_period,
+            )
+            concurrency.sleep(abandon_wait_period)
 
         # Abandon running executions if incomplete
         while self._running_liveactions:

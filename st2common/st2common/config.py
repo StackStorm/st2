@@ -482,6 +482,7 @@ def register_opts(ignore_errors=False):
             default=0,
             help=(
                 "Wait period in seconds after which actionrunner starts abandoning incomplete executions during shutdown."
+                "Default value of 0 means that no wait is performed and executions are abandoned immediately (same as the default behavior in StackStorm <= 3.5.0)."
             ),
         ),
     ]
