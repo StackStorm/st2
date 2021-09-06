@@ -258,9 +258,17 @@ class ActionsController(resource.ContentPackResourceController):
                 entry_point=entry_point,
                 metadata_file=metadata_file,
             )
+
+        except PermissionError as e:
+            LOG.error("No permission to delete resource files from disk.")
+            action_db.id = None
+            Action.add_or_update(action_db)
+            abort(http_client.FORBIDDEN, six.text_type(e))
+            return
+
         except Exception as e:
             LOG.error(
-                "Exception encountered during deleting resource files from disk."
+                "Exception encountered during deleting resource files from disk. "
                 "Exception was %s",
                 e,
             )

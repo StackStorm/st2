@@ -626,22 +626,57 @@ class ActionsControllerTestCase(
         del_resp = self.__do_delete(self.__get_action_id(post_resp))
         self.assertEqual(del_resp.status_int, 204)
 
-    @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
-    def test_delete_exception_to_remove_action_files(
-        self, mock_delete_action_files_from_pack
-    ):
-        msg = "No permission to delete action files from disk"
-        mock_delete_action_files_from_pack.side_effect = PermissionError(msg)
+    def test_delete_permission_error_and_action_reregistered_to_database(self):
         post_resp = self.__do_post(ACTION_1)
-        with mock.patch("st2api.controllers.v1.actions.Action.add_or_update"):
+
+        with mock.patch(
+            "st2api.controllers.v1.actions.delete_action_files_from_pack"
+        ) as mock_remove_files:
+            msg = "No permission to delete action files from disk"
+            mock_remove_files.side_effect = PermissionError(msg)
+            del_resp = self.__do_delete(
+                self.__get_action_id(post_resp), expect_errors=True
+            )
+            self.assertEqual(del_resp.status_int, 403)
+            self.assertEqual(del_resp.json["faultstring"], msg)
+
+        # retrieving reregistered action
+        get_resp = self.__do_get_actions_by_url_parameter("name", ACTION_1["name"])
+        expected_uid = post_resp.json["uid"]
+        actual_uid = get_resp.json[0]["uid"]
+        self.assertEqual(actual_uid, expected_uid)
+        action_id = get_resp.json[0]["id"]
+        del_resp = self.__do_delete(action_id)
+        self.assertEqual(del_resp.status_int, 204)
+
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_delete_exception_and_action_reregistered_to_database(self):
+        post_resp = self.__do_post(ACTION_1)
+
+        with mock.patch(
+            "st2api.controllers.v1.actions.delete_action_files_from_pack"
+        ) as mock_remove_files:
+            msg = "Exception encountered during removing files from disk"
+            mock_remove_files.side_effect = Exception(msg)
             del_resp = self.__do_delete(
                 self.__get_action_id(post_resp), expect_errors=True
             )
             self.assertEqual(del_resp.status_int, 500)
             self.assertEqual(del_resp.json["faultstring"], msg)
+
+        # retrieving reregistered action
+        get_resp = self.__do_get_actions_by_url_parameter("name", ACTION_1["name"])
+        expected_uid = post_resp.json["uid"]
+        actual_uid = get_resp.json[0]["uid"]
+        self.assertEqual(actual_uid, expected_uid)
+        action_id = get_resp.json[0]["id"]
+        del_resp = self.__do_delete(action_id)
+        self.assertEqual(del_resp.status_int, 204)
 
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
