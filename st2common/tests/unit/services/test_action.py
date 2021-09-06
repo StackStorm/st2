@@ -641,6 +641,8 @@ class TestActionExecutionService(DbTestCase):
         liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
 
         # Validate that if skip validation that no exception raised
-        (action, execution) = action_service.create_request(liveaction, validate_params = False)
+        (action, execution) = action_service.create_request(
+            liveaction, validate_params=False
+        )
         self.assertTrue(action)
         self.assertTrue(execution)
