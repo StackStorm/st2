@@ -176,32 +176,31 @@ class WorkerTestCase(DbTestCase):
         # action to wait for this file to be deleted. This allows this test to run the action
         # over a separate thread, run the shutdown sequence on the main thread, and then let
         # the local runner to exit gracefully and allow _run_action to finish execution.
-        fp = tempfile.NamedTemporaryFile()
-        temp_file = fp.name
-        self.assertIsNotNone(temp_file)
-        self.assertTrue(os.path.isfile(temp_file))
+        with tempfile.NamedTemporaryFile() as fp:
+            temp_file = fp.name
+            self.assertIsNotNone(temp_file)
+            self.assertTrue(os.path.isfile(temp_file))
 
-        # Launch the action execution in a separate thread.
-        params = {"cmd": "while [ -e '%s' ]; do sleep 0.1; done" % temp_file}
-        liveaction_db = self._get_liveaction_model(
-            WorkerTestCase.local_action_db, params
-        )
-        liveaction_db = LiveAction.add_or_update(liveaction_db)
-        executions.create_execution_object(liveaction_db)
-        runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
+            # Launch the action execution in a separate thread.
+            params = {"cmd": "while [ -e '%s' ]; do sleep 0.1; done" % temp_file}
+            liveaction_db = self._get_liveaction_model(
+                WorkerTestCase.local_action_db, params
+            )
+            liveaction_db = LiveAction.add_or_update(liveaction_db)
+            executions.create_execution_object(liveaction_db)
+            runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
 
-        # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
-        for i in range(0, int(10 / 0.1)):
-            eventlet.sleep(0.1)
-            if len(action_worker._running_liveactions) > 0:
-                break
+            # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
+            for i in range(0, int(10 / 0.1)):
+                eventlet.sleep(0.1)
+                if len(action_worker._running_liveactions) > 0:
+                    break
 
-        self.assertEqual(len(action_worker._running_liveactions), 1)
+            self.assertEqual(len(action_worker._running_liveactions), 1)
 
-        # Shutdown the worker asynchronously.
-        shutdown_thread = eventlet.spawn(action_worker.shutdown)
+            # Shutdown the worker asynchronously.
+            shutdown_thread = eventlet.spawn(action_worker.shutdown)
 
-        fp.close()
         # Make sure the temporary file has been deleted.
         self.assertFalse(os.path.isfile(temp_file))
 
@@ -224,3 +223,4 @@ class WorkerTestCase(DbTestCase):
         # _run_action but will not result in KeyError because the discard method is used to
         # to remove the liveaction from _running_liveactions.
         runner_thread.wait()
+        shutdown_thread.kill()
