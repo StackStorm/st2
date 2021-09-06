@@ -28,7 +28,7 @@ Changed
 * Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
 
   Contributed by @ericreeves.
-  
+
 * update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `ping` #5302, #5341
 
   Contributed by @lukepatrick
