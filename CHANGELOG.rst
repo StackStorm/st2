@@ -39,7 +39,7 @@ Changed
 
 * Add new ``abandon_wait_period`` config option which will wait for grace period seconds after
   which actionrunner starts abandoning incomplete executions during shutdown.
-  
+ 
   Defaults to 0 which means no wait is performed and executions are abandoned immediately (same as the default behavior in StackStorm <= 3.5.0).
 
   Set this config if you want short running executions to complete before actionrunner starts abandoning them.
