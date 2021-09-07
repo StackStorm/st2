@@ -8,6 +8,8 @@ emit_when = succeeded,failed,timeout,canceled,abandoned # comma separated list a
 enable = True
 
 [actionrunner]
+# Wait period in seconds after which actionrunner starts abandoning incomplete executions during shutdown.Default value of 0 means that no wait is performed and executions are abandoned immediately (same as the default behavior in StackStorm <= 3.5.0).
+abandon_wait_period = 0
 # Internal pool size for dispatcher used by regular actions.
 actions_pool_size = 60
 # location of the logging.conf file
@@ -28,8 +30,6 @@ virtualenv_binary = /usr/bin/virtualenv
 virtualenv_opts = --system-site-packages # comma separated list allowed here.
 # Internal pool size for dispatcher used by workflow actions.
 workflows_pool_size = 40
-# Wait period in seconds after which actionrunner starts abandoning incomplete executions during shutdown. Default value of 0 means that no wait is performed and executions are abandoned immediately (same as the default behavior in StackStorm <= 3.5.0).
-abandon_wait_period =
 
 [api]
 # List of origins allowed for api, auth and stream
