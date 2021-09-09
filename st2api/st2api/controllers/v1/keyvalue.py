@@ -62,9 +62,7 @@ class KeyValuePairController(ResourceController):
         self._coordinator = coordination.get_coordinator()
         self.get_one_db_method = self._get_by_name
 
-    def get_one(
-        self, name, requester_user, scope=None, user=None, decrypt=False
-    ):
+    def get_one(self, name, requester_user, scope=None, user=None, decrypt=False):
         """
         List key by name.
 
@@ -107,9 +105,7 @@ class KeyValuePairController(ResourceController):
 
         if is_admin and user_query_param_filter:
             # Retrieve values scoped to the provided user
-            user_scope_prefix = get_key_reference(
-                name=name, scope=scope, user=user
-            )
+            user_scope_prefix = get_key_reference(name=name, scope=scope, user=user)
         else:
             # RBAC not enabled or user is not an admin, retrieve user scoped values for the
             # current user
