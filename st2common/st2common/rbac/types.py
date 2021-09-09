@@ -104,6 +104,7 @@ class PermissionType(Enum):
     RULE_ENFORCEMENT_LIST = "rule_enforcement_list"
     RULE_ENFORCEMENT_VIEW = "rule_enforcement_view"
 
+    # KeyValuePair for RBAC
     KEY_VALUE_VIEW = "key_value_pair_view"
     KEY_VALUE_SET = "key_value_pair_set"
     KEY_VALUE_DELETE = "key_value_pair_delete"
