@@ -38,6 +38,8 @@ from st2common.exceptions.rbac import AccessDeniedError
 from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
+from st2common.rbac.types import PermissionType
+from st2common.models.db.keyvalue import KeyValuePairDB
 
 http_client = six.moves.http_client
 
@@ -61,7 +63,7 @@ class KeyValuePairController(ResourceController):
         self.get_one_db_method = self._get_by_name
 
     def get_one(
-        self, name, requester_user, scope=FULL_SYSTEM_SCOPE, user=None, decrypt=False
+        self, name, requester_user, scope=None, user=None, decrypt=False
     ):
         """
         List key by name.
@@ -106,7 +108,7 @@ class KeyValuePairController(ResourceController):
         if is_admin and user_query_param_filter:
             # Retrieve values scoped to the provided user
             user_scope_prefix = get_key_reference(
-                name=name, scope=USER_SCOPE, user=user
+                name=name, scope=scope, user=user
             )
         else:
             # RBAC not enabled or user is not an admin, retrieve user scoped values for the
@@ -122,6 +124,13 @@ class KeyValuePairController(ResourceController):
         else:
             raise ValueError("Invalid scope: %s" % (scope))
 
+        permission_type = PermissionType.KEY_VALUE_VIEW
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=KeyValuePairDB(scope=scope, name=user_scope_prefix),
+            permission_type=permission_type,
+        )
+
         from_model_kwargs = {"mask_secrets": not decrypt}
         kvp_api = self._get_one_by_scope_and_name(
             name=key_ref, scope=scope, from_model_kwargs=from_model_kwargs
@@ -133,7 +142,7 @@ class KeyValuePairController(ResourceController):
         self,
         requester_user,
         prefix=None,
-        scope=FULL_SYSTEM_SCOPE,
+        scope=None,
         user=None,
         decrypt=False,
         sort=None,
@@ -202,6 +211,13 @@ class KeyValuePairController(ResourceController):
             user_scope_prefix = get_key_reference(
                 name=prefix or "", scope=USER_SCOPE, user=current_user
             )
+
+        permission_type = PermissionType.KEY_VALUE_LIST
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=KeyValuePairDB(scope=scope, name=user_scope_prefix),
+            permission_type=permission_type,
+        )
 
         if scope == ALL_SCOPE:
             # Special case for ALL_SCOPE
@@ -276,7 +292,7 @@ class KeyValuePairController(ResourceController):
 
         return kvp_apis
 
-    def put(self, kvp, name, requester_user, scope=FULL_SYSTEM_SCOPE):
+    def put(self, kvp, name, requester_user, scope=None):
         """
         Create a new entry or update an existing one.
         """
@@ -307,6 +323,13 @@ class KeyValuePairController(ResourceController):
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
         LOG.debug("PUT scope: %s, name: %s", scope, name)
+
+        permission_type = PermissionType.KEY_VALUE_SET
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=KeyValuePairDB(scope=scope, name=key_ref),
+            permission_type=permission_type,
+        )
         # TODO: Custom permission check since the key doesn't need to exist here
 
         # Note: We use lock to avoid a race
@@ -351,7 +374,7 @@ class KeyValuePairController(ResourceController):
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         return kvp_api
 
-    def delete(self, name, requester_user, scope=FULL_SYSTEM_SCOPE, user=None):
+    def delete(self, name, requester_user, scope=None, user=None):
         """
         Delete the key value pair.
 
@@ -377,6 +400,13 @@ class KeyValuePairController(ResourceController):
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
+
+        permission_type = PermissionType.KEY_VALUE_DELETE
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=KeyValuePairDB(scope=scope, name=key_ref),
+            permission_type=permission_type,
+        )
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
