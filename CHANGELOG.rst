@@ -37,6 +37,14 @@ Changed
 
   Contributed by @khushboobhatia01
 
+Fixed
+~~~~~
+
+* Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
+  Contributed by @amanda11, Ammeon Solutions
+
+
+
 3.5.0 - June 23, 2021
 ---------------------
 
