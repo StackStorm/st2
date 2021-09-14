@@ -379,23 +379,23 @@ class ResourceManager(object):
     @add_auth_token_to_kwargs_from_env
     def clone(
         self,
-        instance,
-        source_pack,
-        source_action,
+        source_ref,
         dest_pack,
         dest_action,
         overwrite,
         **kwargs,
     ):
-        url = "/%s/%s/%s/%s/%s?overwrite=%s" % (
+        url = "/%s/%s/clone/?overwrite=%s" % (
             self.resource.get_url_path_name(),
-            source_pack,
-            source_action,
-            dest_pack,
-            dest_action,
+            source_ref,
             overwrite,
         )
-        response = self.client.post(url, instance.serialize(), **kwargs)
+        payload = {
+            "dest_pack": dest_pack,
+            "dest_action": dest_action,
+            "overwrite": overwrite,
+        }
+        response = self.client.post(url, payload, **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
         instance = self.resource.deserialize(parse_api_response(response))

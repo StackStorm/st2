@@ -268,13 +268,15 @@ class CloneActionsTest(unittest2.TestCase):
             if os.path.isfile(os.path.join(action_files_path, file)):
                 os.remove(os.path.join(action_files_path, file))
         for file in os.listdir(workflow_files_path):
-            os.remove(os.path.join(workflow_files_path, file))
+            if os.path.isfile(os.path.join(workflow_files_path, file)):
+                os.remove(os.path.join(workflow_files_path, file))
 
     def test_clone_action_with_python_script_runner(self):
         clone_action(
             TEST_SOURCE_PACK_PATH,
             "actions/inject_trigger.yaml",
             "inject_trigger.py",
+            "python-script",
             TEST_DEST_PACK_PATH,
             TEST_DEST_PACK,
             "action_1",
@@ -293,6 +295,7 @@ class CloneActionsTest(unittest2.TestCase):
             TEST_SOURCE_PACK_PATH,
             "actions/sendmail.yaml",
             "send_mail/send_mail",
+            "local-shell-script",
             TEST_DEST_PACK_PATH,
             TEST_DEST_PACK,
             "action_2",
@@ -311,6 +314,7 @@ class CloneActionsTest(unittest2.TestCase):
             TEST_SOURCE_PACK_PATH,
             "actions/echo.yaml",
             "",
+            "local-shell-cmd",
             TEST_DEST_PACK_PATH,
             TEST_DEST_PACK,
             "action_3",
@@ -325,6 +329,7 @@ class CloneActionsTest(unittest2.TestCase):
             TEST_SOURCE_WORKFLOW_PACK_PATH,
             "actions/data-flow.yaml",
             "workflows/data-flow.yaml",
+            "orquesta",
             TEST_DEST_PACK_PATH,
             TEST_DEST_PACK,
             "workflow_1",
@@ -338,9 +343,9 @@ class CloneActionsTest(unittest2.TestCase):
         self.assertTrue(os.path.exists(cloned_workflow_metadata_file_path))
         self.assertTrue(os.path.exists(cloned_workflow_entry_point_file_path))
 
-    @mock.patch("builtins.open", create=True)
-    def test_permission_error_to_write_in_destination_file(self, mock_open):
-        mock_open.side_effect = PermissionError("No permission to write in file")
+    @mock.patch("shutil.copy")
+    def test_permission_error_to_write_in_destination_file(self, mock_copy):
+        mock_copy.side_effect = PermissionError("No permission to write in file")
         cloned_action_entry_point_file_path = os.path.join(
             TEST_DEST_PACK_PATH, "actions", "action_4.py"
         )
@@ -353,19 +358,20 @@ class CloneActionsTest(unittest2.TestCase):
                 TEST_SOURCE_PACK_PATH,
                 "actions/inject_trigger.yaml",
                 "inject_trigger.py",
+                "python-script",
                 TEST_DEST_PACK_PATH,
                 TEST_DEST_PACK,
                 "action_4",
             )
 
-    @mock.patch("builtins.open", create=True)
-    def test_file_not_found_error_for_destination_file(self, mock_open):
-        mock_open.side_effect = FileNotFoundError("No such file or directory")
+    @mock.patch("shutil.copy")
+    def test_file_not_found_error_for_destination_file(self, mock_copy):
+        mock_copy.side_effect = FileNotFoundError("No such file or directory")
         cloned_action_entry_point_file_path = os.path.join(
             TEST_DEST_PACK_PATH, "actions", "action_5.py"
         )
         expected_msg = (
-            'Please make sure "workflows" directory present at path: "%s"'
+            "Please make sure 'workflows' directory present in path: '%s'"
             % (cloned_action_entry_point_file_path)
         )
 
@@ -374,14 +380,15 @@ class CloneActionsTest(unittest2.TestCase):
                 TEST_SOURCE_PACK_PATH,
                 "actions/inject_trigger.yaml",
                 "inject_trigger.py",
+                "python-script",
                 TEST_DEST_PACK_PATH,
                 TEST_DEST_PACK,
                 "action_5",
             )
 
-    @mock.patch("builtins.open", create=True)
-    def test_exceptions_to_write_in_destination_file(self, mock_open):
-        mock_open.side_effect = Exception(
+    @mock.patch("shutil.copy")
+    def test_exceptions_to_write_in_destination_file(self, mock_copy):
+        mock_copy.side_effect = Exception(
             "Exception encoutntered during writing in destination action file"
         )
         cloned_action_metadata_file_path = os.path.join(
@@ -398,6 +405,7 @@ class CloneActionsTest(unittest2.TestCase):
                 TEST_SOURCE_PACK_PATH,
                 "actions/echo.yaml",
                 "",
+                "local-shell-cmd",
                 TEST_DEST_PACK_PATH,
                 TEST_DEST_PACK,
                 "action_6",

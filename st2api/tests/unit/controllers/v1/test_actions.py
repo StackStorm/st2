@@ -262,6 +262,40 @@ ACTION_15 = {
     },
 }
 
+ACTION_16 = {
+    "name": "st2.dummy.source_action",
+    "description": "test description",
+    "enabled": True,
+    "pack": "sourcepack",
+    "entry_point": "/tmp/test/source_action.sh",
+    "runner_type": "local-shell-script",
+    "parameters": {
+        "x": {"type": "string", "default": "A1"},
+        "y": {"type": "string", "default": "B1"},
+    },
+    "tags": [
+        {"name": "tag1", "value": "dont-care1"},
+        {"name": "tag2", "value": "dont-care2"},
+    ],
+}
+
+ACTION_17 = {
+    "name": "st2.dummy.clone_action",
+    "description": "test description",
+    "enabled": True,
+    "pack": "clonepack",
+    "entry_point": "/tmp/test/clone_action.sh",
+    "runner_type": "local-shell-script",
+    "parameters": {
+        "x": {"type": "string", "default": "A1"},
+        "y": {"type": "string", "default": "B1"},
+    },
+    "tags": [
+        {"name": "tag1", "value": "dont-care1"},
+        {"name": "tag2", "value": "dont-care2"},
+    ],
+}
+
 ACTION_WITH_NOTIFY = {
     "name": "st2.dummy.action_notify_test",
     "description": "test description",
@@ -757,6 +791,168 @@ class ActionsControllerTestCase(
         del_resp = self.__do_delete(action_id, expect_errors=True)
         self.assertEqual(del_resp.status_int, 400)
 
+    @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
+    @mock.patch("st2api.controllers.v1.actions.clone_action")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_clone(self, mock_clone_action):
+        source_post_resp = self.__do_post(ACTION_16)
+        self.assertEqual(source_post_resp.status_int, 201)
+        dest_post_resp = self.__do_post(ACTION_17)
+        self.assertEqual(dest_post_resp.status_int, 201)
+        dest_data_body = {
+            "dest_pack": ACTION_17["pack"],
+            "dest_action": "clone_action_2",
+        }
+        source_ref_or_id = "%s.%s" % (ACTION_16["pack"], ACTION_16["name"])
+        clone_resp = self.__do_clone(dest_data_body, source_ref_or_id)
+        self.assertEqual(clone_resp.status_int, 201)
+        self.__do_delete(self.__get_action_id(source_post_resp))
+        self.__do_delete(self.__get_action_id(dest_post_resp))
+        self.__do_delete(self.__get_action_id(clone_resp))
+
+    @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
+    @mock.patch("st2api.controllers.v1.actions.clone_action")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_clone_overwrite(self, mock_clone_action):
+        source_post_resp = self.__do_post(ACTION_16)
+        self.assertEqual(source_post_resp.status_int, 201)
+        dest_post_resp = self.__do_post(ACTION_17)
+        self.assertEqual(dest_post_resp.status_int, 201)
+        dest_data_body = {
+            "dest_pack": ACTION_17["pack"],
+            "dest_action": ACTION_17["name"],
+            "overwrite": True,
+        }
+        source_ref_or_id = "%s.%s" % (ACTION_16["pack"], ACTION_16["name"])
+        clone_resp = self.__do_clone(dest_data_body, source_ref_or_id)
+        self.assertEqual(clone_resp.status_int, 201)
+        self.__do_delete(self.__get_action_id(source_post_resp))
+        self.__do_delete(self.__get_action_id(clone_resp))
+
+    @mock.patch("st2api.controllers.v1.actions.clone_action")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_clone_source_does_not_exist(self, mock_clone_action):
+        dest_data_body = {
+            "dest_pack": ACTION_17["pack"],
+            "dest_action": ACTION_17["name"],
+        }
+        source_ref_or_id = "%s.%s" % (ACTION_16["pack"], ACTION_16["name"])
+        clone_resp = self.__do_clone(
+            dest_data_body,
+            source_ref_or_id,
+            expect_errors=True,
+        )
+        self.assertEqual(clone_resp.status_int, 404)
+        msg = 'Resource with a reference or id "%s" not found' % source_ref_or_id
+        self.assertEqual(clone_resp.json["faultstring"], msg)
+
+    @mock.patch("st2api.controllers.v1.actions.clone_action")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_clone_destination_pack_does_not_exist(self, mock_clone_action):
+        source_post_resp = self.__do_post(ACTION_16)
+        dest_data_body = {
+            "dest_pack": ACTION_17["pack"],
+            "dest_action": ACTION_17["name"],
+        }
+        source_ref_or_id = "%s.%s" % (ACTION_16["pack"], ACTION_16["name"])
+        clone_resp = self.__do_clone(
+            dest_data_body,
+            source_ref_or_id,
+            expect_errors=True,
+        )
+        self.assertEqual(clone_resp.status_int, 400)
+        msg = "Destination pack '%s' doesn't exist" % ACTION_17["pack"]
+        self.assertEqual(clone_resp.json["faultstring"], msg)
+        self.__do_delete(self.__get_action_id(source_post_resp))
+
+    @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
+    @mock.patch("st2api.controllers.v1.actions.clone_action")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_clone_destination_already_exist(self, mock_clone_action):
+        source_post_resp = self.__do_post(ACTION_16)
+        dest_post_resp = self.__do_post(ACTION_17)
+        dest_data_body = {
+            "dest_pack": ACTION_17["pack"],
+            "dest_action": ACTION_17["name"],
+        }
+        source_ref_or_id = "%s.%s" % (ACTION_16["pack"], ACTION_16["name"])
+        clone_resp = self.__do_clone(
+            dest_data_body,
+            source_ref_or_id,
+            expect_errors=True,
+        )
+        self.assertEqual(clone_resp.status_int, 400)
+        msg = "The requested destination action already exists"
+        self.assertEqual(clone_resp.json["faultstring"], msg)
+        self.__do_delete(self.__get_action_id(source_post_resp))
+        self.__do_delete(self.__get_action_id(dest_post_resp))
+
+    @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
+    @mock.patch("st2api.controllers.v1.actions.clone_action")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_clone_exception(self, mock_clone_action):
+        msg = "Exception encountered during cloning action."
+        mock_clone_action.side_effect = Exception(msg)
+        source_post_resp = self.__do_post(ACTION_16)
+        dest_post_resp = self.__do_post(ACTION_17)
+        dest_data_body = {
+            "dest_pack": ACTION_17["pack"],
+            "dest_action": "clone_action_3",
+        }
+        source_ref_or_id = "%s.%s" % (ACTION_16["pack"], ACTION_16["name"])
+        clone_resp = self.__do_clone(
+            dest_data_body,
+            source_ref_or_id,
+            expect_errors=True,
+        )
+        self.assertEqual(clone_resp.status_int, 500)
+        self.assertEqual(clone_resp.json["faultstring"], msg)
+        self.__do_delete(self.__get_action_id(source_post_resp))
+        self.__do_delete(self.__get_action_id(dest_post_resp))
+
+    @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
+    @mock.patch("st2api.controllers.v1.actions.clone_action_db")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_clone_overwrite_exception_cloning_db_action_reregistered(
+        self, mock_clone_action_db
+    ):
+        msg = "Exception encountered during overwriting resource."
+        mock_clone_action_db.side_effect = Exception(msg)
+        source_post_resp = self.__do_post(ACTION_16)
+        self.__do_post(ACTION_17)
+        dest_data_body = {
+            "dest_pack": ACTION_17["pack"],
+            "dest_action": ACTION_17["name"],
+            "overwrite": True,
+        }
+        source_ref_or_id = "%s.%s" % (ACTION_16["pack"], ACTION_16["name"])
+        clone_resp = self.__do_clone(
+            dest_data_body,
+            source_ref_or_id,
+            expect_errors=True,
+        )
+        self.assertEqual(clone_resp.status_int, 500)
+        self.assertEqual(clone_resp.json["faultstring"], msg)
+        get_resp = self.__do_get_actions_by_url_parameter("name", ACTION_17["name"])
+        action_id = get_resp.json[0]["id"]
+        self.__do_delete(action_id)
+
+        self.__do_delete(self.__get_action_id(source_post_resp))
+
     def _insert_mock_models(self):
         action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
         action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
@@ -801,4 +997,16 @@ class ActionsControllerTestCase(
     def __do_delete(self, action_id, expect_errors=False):
         return self.app.delete(
             "/v1/actions/%s" % action_id, expect_errors=expect_errors
+        )
+
+    def __do_clone(
+        self,
+        dest_data,
+        ref_or_id,
+        expect_errors=False,
+    ):
+        return self.app.post_json(
+            "/v1/actions/%s/clone" % (ref_or_id),
+            dest_data,
+            expect_errors=expect_errors,
         )

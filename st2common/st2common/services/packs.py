@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import copy
 import itertools
 
 import os
@@ -22,6 +23,7 @@ import requests
 import six
 from six.moves import range
 from oslo_config import cfg
+import shutil
 import yaml
 
 from st2common import log as logging
@@ -293,12 +295,9 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
         )
 
 
-def clone_content_to_destination_file(source_file, destination_file):
+def _clone_content_to_destination_file(source_file, destination_file):
     try:
-        with open(source_file, "r") as sf:
-            with open(destination_file, "w") as df:
-                for line in sf:
-                    df.write(line)
+        shutil.copy(src=source_file, dst=destination_file)
     except PermissionError:
         LOG.error(
             'No write permission for "%s" file',
@@ -308,7 +307,7 @@ def clone_content_to_destination_file(source_file, destination_file):
         raise PermissionError(msg)
     except FileNotFoundError:
         LOG.error('No "workflows" directory at path: "%s"', destination_file)
-        msg = 'Please make sure "workflows" directory present at path: "%s"' % (
+        msg = "Please make sure 'workflows' directory present in path: '%s'" % (
             destination_file
         )
         raise FileNotFoundError(msg)
@@ -330,6 +329,7 @@ def clone_action(
     source_pack_base_path,
     source_metadata_file,
     source_entry_point,
+    source_runner_type,
     dest_pack_base_path,
     dest_pack,
     dest_action,
@@ -351,9 +351,9 @@ def clone_action(
         source_entry_point_file_path = os.path.join(
             source_pack_base_path, "actions", source_entry_point
         )
-        if str(source_entry_point).endswith("py"):
+        if source_runner_type == "python-script":
             dest_entry_point_file_name = "%s.py" % (dest_action)
-        elif str(source_entry_point).startswith("workflows"):
+        elif source_runner_type == "orquesta":
             dest_entry_point_file_name = "workflows/%s.yaml" % (dest_action)
         else:
             dest_entry_point_file_name = dest_action
@@ -361,7 +361,7 @@ def clone_action(
         dest_entrypoint_file_path = os.path.join(
             dest_pack_base_path, "actions", dest_entry_point_file_name
         )
-        clone_content_to_destination_file(
+        _clone_content_to_destination_file(
             source_file=source_entry_point_file_path,
             destination_file=dest_entrypoint_file_path,
         )
@@ -369,7 +369,7 @@ def clone_action(
     else:
         dest_entry_point_file_name = ""
 
-    clone_content_to_destination_file(
+    _clone_content_to_destination_file(
         source_file=source_metadata_file_path, destination_file=dest_metadata_file_path
     )
 
@@ -383,3 +383,61 @@ def clone_action(
 
     with open(dest_metadata_file_path, "w") as df:
         yaml.dump(doc, df, default_flow_style=False, sort_keys=False)
+
+
+def clone_action_db(source_action_db, dest_pack, dest_action):
+    dest_action_db = copy.deepcopy(source_action_db)
+    source_runner_type = source_action_db["runner_type"]["name"]
+    if source_runner_type == "python-script":
+        dest_entry_point_file_name = "%s.py" % (dest_action)
+    elif source_runner_type == "orquesta":
+        dest_entry_point_file_name = "workflows/%s.yaml" % (dest_action)
+    elif source_runner_type == "local-shell-script":
+        dest_entry_point_file_name = dest_action
+    else:
+        dest_entry_point_file_name = ""
+    dest_action_db["entry_point"] = dest_entry_point_file_name
+    dest_action_db["metadata_file"] = "actions/%s.yaml" % (dest_action)
+    dest_action_db["name"] = dest_action
+    dest_ref = ".".join([dest_pack, dest_action])
+    dest_action_db["ref"] = dest_ref
+    dest_action_db["uid"] = "action:%s:%s" % (dest_pack, dest_action)
+    if "pack" in dest_action_db:
+        dest_action_db["pack"] = dest_pack
+    dest_action_db["id"] = None
+    return dest_action_db
+
+
+def remove_unnecessary_files_from_pack(dest_pack_base_path, dest_entry_point_file):
+    """
+    While cloning an action, in case of overwrite destination the source runner
+    type is different than the destination runner type then after cloning operation,
+    unnecessary entry point file need to be removed from destination pack.
+    """
+    dest_entrypoint_file_path = os.path.join(
+        dest_pack_base_path, "actions", dest_entry_point_file
+    )
+    if os.path.isfile(dest_entrypoint_file_path):
+        try:
+            os.remove(dest_entrypoint_file_path)
+        except PermissionError:
+            LOG.error(
+                'No permission to delete unnecessary "%s" file',
+                dest_entrypoint_file_path,
+            )
+            msg = 'No permission to delete unnecessary "%s" file from disk' % (
+                dest_entrypoint_file_path
+            )
+            raise PermissionError(msg)
+        except Exception as e:
+            LOG.error(
+                'Could not delete unnecessary "%s" file. Exception was "%s"',
+                dest_entrypoint_file_path,
+                e,
+            )
+            msg = (
+                'The unnecessary action file "%s" could not be removed from disk, '
+                "please check the logs or ask your StackStorm administrator to check "
+                "and delete the actions files manually" % (dest_entrypoint_file_path)
+            )
+            raise Exception(msg)

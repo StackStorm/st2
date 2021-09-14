@@ -28,7 +28,6 @@ from mongoengine import ValidationError
 from st2api.controllers import resource
 from st2api.controllers.v1.action_views import ActionViewsController
 from st2common import log as logging
-from st2common.bootstrap.actionsregistrar import register_actions
 from st2common.constants.triggers import ACTION_FILE_WRITTEN_TRIGGER
 from st2common.exceptions.action import InvalidActionParameterException
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -46,6 +45,8 @@ from st2common.content.utils import get_pack_resource_file_abs_path
 from st2common.content.utils import get_relative_path_to_pack_file
 from st2common.services.packs import delete_action_files_from_pack
 from st2common.services.packs import clone_action
+from st2common.services.packs import clone_action_db
+from st2common.services.packs import remove_unnecessary_files_from_pack
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
@@ -274,28 +275,19 @@ class ActionsController(resource.ContentPackResourceController):
         LOG.audit("Action deleted. Action.id=%s" % (action_db.id), extra=extra)
         return Response(status=http_client.NO_CONTENT)
 
-    def clone(
-        self,
-        source_pack,
-        source_action,
-        dest_pack,
-        dest_action,
-        requester_user,
-        overwrite=False,
-    ):
+    def clone(self, dest_data, ref_or_id, requester_user):
         """
-        Clone an action.
+        Clone an action from source pack to destination pack.
         Handles requests:
-            POST /actions/{sorce_pack}/{source_action}/{dest_pack}/{dest_action}
+            POST /actions/{ref_or_id}/clone
         """
 
-        source_ref = "%s.%s" % (source_pack, source_action)
-        source_action_db = self._get_by_ref(resource_ref=source_ref)
-        msg = "The requested source for cloning operation doesn't exists"
+        source_action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         if not source_action_db:
+            msg = "The requested source for cloning operation doesn't exists"
             abort(http_client.BAD_REQUEST, six.text_type(msg))
 
-        permission_type = PermissionType.ACTION_CREATE
+        permission_type = PermissionType.ACTION_VIEW
         rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_has_resource_db_permission(
             user_db=requester_user,
@@ -305,54 +297,109 @@ class ActionsController(resource.ContentPackResourceController):
 
         LOG.debug(
             "POST /actions/ lookup with ref=%s found object: %s",
-            source_ref,
+            ref_or_id,
             source_action_db,
         )
 
         source_pack = source_action_db["pack"]
         source_entry_point = source_action_db["entry_point"]
+        source_runner_type = source_action_db["runner_type"]["name"]
         source_metadata_file = source_action_db["metadata_file"]
         source_pack_base_path = get_pack_base_path(pack_name=source_pack)
-        dest_pack_base_path = get_pack_base_path(pack_name=dest_pack)
+        dest_pack_base_path = get_pack_base_path(pack_name=dest_data.dest_pack)
         if not os.path.isdir(dest_pack_base_path):
-            raise ValueError('Destination pack "%s" doesn\'t exist' % (dest_pack))
+            raise ValueError(
+                "Destination pack '%s' doesn't exist" % (dest_data.dest_pack)
+            )
 
-        dest_ref = "%s.%s" % (dest_pack, dest_action)
+        dest_ref = ".".join([dest_data.dest_pack, dest_data.dest_action])
         dest_action_db = self._get_by_ref(resource_ref=dest_ref)
 
         try:
-            validate_not_part_of_system_pack_by_name(dest_pack)
+            validate_not_part_of_system_pack_by_name(dest_data.dest_pack)
         except ValueValidationException as e:
             abort(http_client.BAD_REQUEST, six.text_type(e))
 
         if dest_action_db:
-            if overwrite:
-                pass
-            else:
+            permission_type = PermissionType.ACTION_CREATE
+            rbac_utils = get_rbac_backend().get_utils_class()
+            rbac_utils.assert_user_has_resource_api_permission(
+                user_db=requester_user,
+                resource_api=dest_action_db,
+                permission_type=permission_type,
+            )
+            if not dest_data.overwrite:
                 msg = "The requested destination action already exists"
                 abort(http_client.BAD_REQUEST, six.text_type(msg))
+            else:
+                try:
+                    Action.delete(dest_action_db)
+                except Exception as e:
+                    abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
+
+                try:
+                    cloned_dest_action_db = clone_action_db(
+                        source_action_db=source_action_db,
+                        dest_pack=dest_data.dest_pack,
+                        dest_action=dest_data.dest_action,
+                    )
+                    dest_runner_type = dest_action_db["runner_type"]["name"]
+                    dest_entry_point_file = dest_action_db["entry_point"]
+                    if source_runner_type != dest_runner_type:
+                        remove_unnecessary_files_from_pack(
+                            dest_pack_base_path, dest_entry_point_file
+                        )
+                except Exception as e:
+                    LOG.error(
+                        "Exception encountered during overwriting resource. "
+                        "Exception was %s",
+                        e,
+                    )
+                    dest_action_db.id = None
+                    Action.add_or_update(dest_action_db)
+                    abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
+        else:
+            cloned_dest_action_db = clone_action_db(
+                source_action_db=source_action_db,
+                dest_pack=dest_data.dest_pack,
+                dest_action=dest_data.dest_action,
+            )
+
+            permission_type = PermissionType.ACTION_CREATE
+            rbac_utils = get_rbac_backend().get_utils_class()
+            rbac_utils.assert_user_has_resource_api_permission(
+                user_db=requester_user,
+                resource_api=cloned_dest_action_db,
+                permission_type=permission_type,
+            )
+
         try:
             clone_action(
                 source_pack_base_path=source_pack_base_path,
                 source_metadata_file=source_metadata_file,
                 source_entry_point=source_entry_point,
+                source_runner_type=source_runner_type,
                 dest_pack_base_path=dest_pack_base_path,
-                dest_pack=dest_pack,
-                dest_action=dest_action,
+                dest_pack=dest_data.dest_pack,
+                dest_action=dest_data.dest_action,
             )
-            register_actions(pack_dir=dest_pack_base_path)
         except Exception as e:
             LOG.error(
-                "Exception encountered during cloning resource." "Exception was %s",
+                "Exception encountered during cloning action. Exception was %s",
                 e,
             )
             abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
-            return
 
-        dest_action_db = self._get_by_ref(resource_ref=dest_ref)
-        extra = {"cloned_acion_db": dest_action_db}
-        LOG.audit("Action cloned. Action.id=%s" % (dest_action_db.id), extra=extra)
-        cloned_action_api = ActionAPI.from_model(dest_action_db)
+        try:
+            cloned_dest_action_db = Action.add_or_update(cloned_dest_action_db)
+        except Exception as e:
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
+
+        extra = {"cloned_acion_db": cloned_dest_action_db}
+        LOG.audit(
+            "Action cloned. Action.id=%s" % (cloned_dest_action_db.id), extra=extra
+        )
+        cloned_action_api = ActionAPI.from_model(cloned_dest_action_db)
 
         return Response(json=cloned_action_api, status=http_client.CREATED)
 
