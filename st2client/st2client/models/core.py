@@ -385,11 +385,7 @@ class ResourceManager(object):
         overwrite,
         **kwargs,
     ):
-        url = "/%s/%s/clone/?overwrite=%s" % (
-            self.resource.get_url_path_name(),
-            source_ref,
-            overwrite,
-        )
+        url = "/%s/%s/clone" % (self.resource.get_url_path_name(), source_ref)
         payload = {
             "dest_pack": dest_pack,
             "dest_action": dest_action,

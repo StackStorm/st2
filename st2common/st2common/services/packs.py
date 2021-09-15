@@ -406,38 +406,3 @@ def clone_action_db(source_action_db, dest_pack, dest_action):
         dest_action_db["pack"] = dest_pack
     dest_action_db["id"] = None
     return dest_action_db
-
-
-def remove_unnecessary_files_from_pack(dest_pack_base_path, dest_entry_point_file):
-    """
-    While cloning an action, in case of overwrite destination the source runner
-    type is different than the destination runner type then after cloning operation,
-    unnecessary entry point file need to be removed from destination pack.
-    """
-    dest_entrypoint_file_path = os.path.join(
-        dest_pack_base_path, "actions", dest_entry_point_file
-    )
-    if os.path.isfile(dest_entrypoint_file_path):
-        try:
-            os.remove(dest_entrypoint_file_path)
-        except PermissionError:
-            LOG.error(
-                'No permission to delete unnecessary "%s" file',
-                dest_entrypoint_file_path,
-            )
-            msg = 'No permission to delete unnecessary "%s" file from disk' % (
-                dest_entrypoint_file_path
-            )
-            raise PermissionError(msg)
-        except Exception as e:
-            LOG.error(
-                'Could not delete unnecessary "%s" file. Exception was "%s"',
-                dest_entrypoint_file_path,
-                e,
-            )
-            msg = (
-                'The unnecessary action file "%s" could not be removed from disk, '
-                "please check the logs or ask your StackStorm administrator to check "
-                "and delete the actions files manually" % (dest_entrypoint_file_path)
-            )
-            raise Exception(msg)

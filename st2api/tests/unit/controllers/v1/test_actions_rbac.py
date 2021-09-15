@@ -143,10 +143,17 @@ class ActionControllerRBACTestCase(
             permission_types=[PermissionType.ACTION_CREATE],
         )
         grant_db_create = PermissionGrant.add_or_update(grant_db_create)
+        grant_db_delete = PermissionGrantDB(
+            resource_uid="pack:clonepack",
+            resource_type=ResourceType.PACK,
+            permission_types=[PermissionType.ACTION_DELETE],
+        )
+        grant_db_delete = PermissionGrant.add_or_update(grant_db_delete)
         permission_grants = [
             str(grant_db.id),
             str(grant_db_view.id),
             str(grant_db_create.id),
+            str(grant_db_delete.id),
         ]
         role_1_db = RoleDB(name="action_clone", permission_grants=permission_grants)
         role_1_db = Role.add_or_update(role_1_db)
@@ -174,7 +181,13 @@ class ActionControllerRBACTestCase(
             permission_types=[PermissionType.ACTION_VIEW],
         )
         grant_db = PermissionGrant.add_or_update(grant_db)
-        permission_grants = [str(grant_db.id)]
+        grant_db_delete = PermissionGrantDB(
+            resource_uid="pack:clonepack",
+            resource_type=ResourceType.PACK,
+            permission_types=[PermissionType.ACTION_DELETE],
+        )
+        grant_db_delete = PermissionGrant.add_or_update(grant_db_delete)
+        permission_grants = [str(grant_db.id), str(grant_db_delete.id)]
         role_1_db = RoleDB(
             name="no_create_permission", permission_grants=permission_grants
         )
@@ -186,6 +199,41 @@ class ActionControllerRBACTestCase(
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
             role=self.roles["no_create_permission"].name,
+            source="assignments/%s.yaml" % user_db.name,
+        )
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        # creating `no_delete_permission` user with action_view permission on source action,
+        # action_create on destination pack but no create_delete permission on destination pack
+        user_2_db = UserDB(name="no_delete_permission")
+        user_2_db = User.add_or_update(user_2_db)
+        self.users["no_delete_permission"] = user_2_db
+
+        # roles of no_delete_permission user
+        grant_db_view = PermissionGrantDB(
+            resource_uid="pack:examples",
+            resource_type=ResourceType.PACK,
+            permission_types=[PermissionType.ACTION_VIEW],
+        )
+        grant_db_view = PermissionGrant.add_or_update(grant_db_view)
+        grant_db_create = PermissionGrantDB(
+            resource_uid="pack:clonepack",
+            resource_type=ResourceType.PACK,
+            permission_types=[PermissionType.ACTION_CREATE],
+        )
+        grant_db_create = PermissionGrant.add_or_update(grant_db_create)
+        permission_grants = [str(grant_db_view.id), str(grant_db_create.id)]
+        role_1_db = RoleDB(
+            name="no_delete_permission", permission_grants=permission_grants
+        )
+        role_1_db = Role.add_or_update(role_1_db)
+        self.roles["no_delete_permission"] = role_1_db
+
+        # role assignments for no_delete_permission user
+        user_db = self.users["no_delete_permission"]
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name,
+            role=self.roles["no_delete_permission"].name,
             source="assignments/%s.yaml" % user_db.name,
         )
         UserRoleAssignment.add_or_update(role_assignment_db)
@@ -274,14 +322,14 @@ class ActionControllerRBACTestCase(
             'User "no_create_permission" doesn\'t have required permission "action_create" '
             'on resource "action:clonepack:clone_action_4"'
         )
-        self.assertEqual(clone_resp.status_code, http_client.FORBIDDEN)
+        self.assertEqual(clone_resp.status_code, http_client.UNAUTHORIZED)
         self.assertEqual(clone_resp.json["faultstring"], expected_msg)
 
     @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
-    def test_clone_overwrite_action_no_destination_action_create_permission(self):
+    def test_clone_overwrite_no_destination_action_create_permission(self):
         user_db = self.users["action_clone"]
         self.use_user(user_db)
         self.__do_post(ACTION_2)
@@ -301,7 +349,34 @@ class ActionControllerRBACTestCase(
             'User "no_create_permission" doesn\'t have required permission "action_create" '
             'on resource "action:clonepack:ma.dummy.clone_action"'
         )
-        self.assertEqual(clone_resp.status_code, http_client.FORBIDDEN)
+        self.assertEqual(clone_resp.status_code, http_client.UNAUTHORIZED)
+        self.assertEqual(clone_resp.json["faultstring"], expected_msg)
+
+    @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_clone_overwrite_no_destination_action_delete_permission(self):
+        user_db = self.users["action_clone"]
+        self.use_user(user_db)
+        self.__do_post(ACTION_2)
+        self.__do_post(ACTION_3)
+        user_db = self.users["no_delete_permission"]
+        self.use_user(user_db)
+        dest_data_body = {
+            "dest_pack": ACTION_3["pack"],
+            "dest_action": ACTION_3["name"],
+            "overwrite": True,
+        }
+        source_ref_or_id = "%s.%s" % (ACTION_2["pack"], ACTION_2["name"])
+        clone_resp = self.__do_clone(
+            dest_data_body, source_ref_or_id, expect_errors=True
+        )
+        expected_msg = (
+            'User "no_delete_permission" doesn\'t have required permission "action_delete" '
+            'on resource "action:clonepack:ma.dummy.clone_action"'
+        )
+        self.assertEqual(clone_resp.status_code, http_client.UNAUTHORIZED)
         self.assertEqual(clone_resp.json["faultstring"], expected_msg)
 
     def _insert_mock_models(self):

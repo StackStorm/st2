@@ -947,9 +947,6 @@ class ActionsControllerTestCase(
         )
         self.assertEqual(clone_resp.status_int, 500)
         self.assertEqual(clone_resp.json["faultstring"], msg)
-        get_resp = self.__do_get_actions_by_url_parameter("name", ACTION_17["name"])
-        action_id = get_resp.json[0]["id"]
-        self.__do_delete(action_id)
 
         self.__do_delete(self.__get_action_id(source_post_resp))
 
