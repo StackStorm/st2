@@ -30,7 +30,7 @@ from os.path import join as pjoin
 
 from six.moves import range
 
-from st2client import models
+from st2client.models.action import Action, Execution
 from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
 from st2client.commands.resource import ResourceViewCommand
@@ -198,7 +198,7 @@ def format_execution_status(instance):
 class ActionBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionBranch, self).__init__(
-            models.Action,
+            Action,
             description,
             app,
             subparsers,
@@ -1169,7 +1169,7 @@ class ActionRunCommandMixin(object):
             task_name_key = "context.orquesta.task_name"
         # Use Execution as the object so that the formatter lookup does not change.
         # AKA HACK!
-        return models.action.Execution(
+        return Execution(
             **{
                 "id": task.id,
                 "status": task.status,
@@ -1327,7 +1327,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
             action=action, runner=runner, args=args
         )
 
-        execution = models.Execution()
+        execution = Execution()
         execution.action = action_ref
         execution.parameters = action_parameters
         execution.user = args.user
@@ -1354,7 +1354,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
 class ActionExecutionBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            models.Execution,
+            Execution,
             description,
             app,
             subparsers,
