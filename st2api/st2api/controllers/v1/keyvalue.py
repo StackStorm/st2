@@ -103,6 +103,9 @@ class KeyValuePairController(ResourceController):
         # Additional guard to ensure there is no information leakage across users
         is_admin = rbac_utils.user_is_admin(user_db=requester_user)
 
+        if scope == USER_SCOPE:
+            raise ValueError("Invalid scope: %s" % (scope))
+
         if is_admin and user_query_param_filter:
             # Retrieve values scoped to the provided user
             user_scope_prefix = get_key_reference(name=name, scope=scope, user=user)
@@ -199,7 +202,7 @@ class KeyValuePairController(ResourceController):
         if is_admin and user_query_param_filter:
             # Retrieve values scoped to the provided user
             user_scope_prefix = get_key_reference(
-                name=prefix or "", scope=USER_SCOPE, user=user
+                name=prefix or "", scope=scope, user=user
             )
         else:
             # RBAC not enabled or user is not an admin, retrieve user scoped values for the
@@ -208,10 +211,19 @@ class KeyValuePairController(ResourceController):
                 name=prefix or "", scope=USER_SCOPE, user=current_user
             )
 
+        if scope == FULL_USER_SCOPE:
+            key_ref = user_scope_prefix
+        elif scope == FULL_SYSTEM_SCOPE:
+            key_ref = get_key_reference(scope=FULL_SYSTEM_SCOPE, name=prefix, user=user)
+        elif scope == ALL_SCOPE:
+            key_ref = user_scope_prefix
+        else:
+            raise ValueError("Invalid scope: %s" % (scope))
+
         permission_type = PermissionType.KEY_VALUE_LIST
         rbac_utils.assert_user_has_resource_db_permission(
             user_db=requester_user,
-            resource_db=KeyValuePairDB(scope=scope, name=user_scope_prefix),
+            resource_db=KeyValuePairDB(scope=scope, name=key_ref),
             permission_type=permission_type,
         )
 
