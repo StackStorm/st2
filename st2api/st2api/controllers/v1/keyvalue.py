@@ -89,7 +89,6 @@ class KeyValuePairController(ResourceController):
         )
 
         user_query_param_filter = bool(user)
-
         current_user = requester_user.name
         user = user or requester_user.name
 
