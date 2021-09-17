@@ -198,6 +198,26 @@ ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAMS = {
         "non_secret_param_2": {"type": "string", "required": True},
     },
 }
+ACTION_DEFAULT_ENCRYPT_AND_BOOL = {
+    "name": "st2.dummy.default_encrypted_and_bool",
+    "description": "An action that uses a jinja template with decrypt_kv filter "
+    "in default parameter",
+    "enabled": True,
+    "pack": "starterpack",
+    "runner_type": "local-shell-cmd",
+    "parameters": {
+        "encrypted_param": {
+            "type": "string",
+            "default": "{{ st2kv.system.secret | decrypt_kv }}",
+            "secret": True,
+        },
+        "bool_param": {
+            "type": "boolean",
+            "default": "{{ st2kv.system.test_bool }}",
+        },
+    },
+}
+
 
 LIVE_ACTION_1 = {
     "action": "sixpack.st2.dummy.action1",
@@ -298,6 +318,9 @@ LIVE_ACTION_DEFAULT_TEMPLATE = {
 LIVE_ACTION_DEFAULT_ENCRYPT = {
     "action": "starterpack.st2.dummy.default_encrypted_value",
 }
+LIVE_ACTION_DEFAULT_ENCRYPT_AND_BOOL = {
+    "action": "starterpack.st2.dummy.default_encrypted_and_bool",
+}
 LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM = {
     "action": "starterpack.st2.dummy.default_encrypted_value_secret_param",
 }
@@ -359,6 +382,10 @@ class ActionExecutionControllerTestCase(
         post_resp = cls.app.post_json("/v1/actions", cls.action_decrypt)
         cls.action_decrypt["id"] = post_resp.json["id"]
 
+        cls.action_decrypt_and_bool = copy.deepcopy(ACTION_DEFAULT_ENCRYPT_AND_BOOL)
+        post_resp = cls.app.post_json("/v1/actions", cls.action_decrypt_and_bool)
+        cls.action_decrypt_and_bool["id"] = post_resp.json["id"]
+
         cls.action_decrypt_secret_param = copy.deepcopy(
             ACTION_DEFAULT_ENCRYPT_SECRET_PARAMS
         )
@@ -390,6 +417,8 @@ class ActionExecutionControllerTestCase(
         cls.app.delete("/v1/actions/%s" % cls.action_inquiry["id"])
         cls.app.delete("/v1/actions/%s" % cls.action_template["id"])
         cls.app.delete("/v1/actions/%s" % cls.action_decrypt["id"])
+        cls.app.delete("/v1/actions/%s" % cls.action_decrypt_secret_param["id"])
+        cls.app.delete("/v1/actions/%s" % cls.action_decrypt_and_bool["id"])
         cls.app.delete(
             "/v1/actions/%s" % cls.action_with_output_schema_secret_param["id"]
         )
@@ -912,6 +941,26 @@ class ActionExecutionControllerTestCase(
         # Assert that the template in the parameter default value
         # was not rendered, and the provided parameter was used
         self.assertEqual(post_resp.json["parameters"]["intparam"], live_int_param)
+
+    def test_template_encrypted_and_bool(self):
+        # register datastore values which are used in this test case
+        KeyValuePairAPI._setup_crypto()
+        register_items = [
+            {
+                "name": "test_bool",
+                "value": "true",
+            },
+        ]
+        [KeyValuePair.add_or_update(KeyValuePairDB(**x)) for x in register_items]
+
+        post_resp = self._do_post(
+            LIVE_ACTION_DEFAULT_ENCRYPT_AND_BOOL, expect_errors=True
+        )
+        self.assertEqual(post_resp.status_int, 400)
+        self.assertEqual(
+            post_resp.json["faultstring"],
+            'Failed to render parameter "encrypted_param": Referenced datastore item "st2kv.system.secret" doesn\'t exist or it contains an empty string',
+        )
 
     def test_template_encrypted_params(self):
         # register datastore values which are used in this test case
