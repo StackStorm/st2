@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 from st2client.commands import resource
 from st2client.formatters import table
-from st2client.models import Webhook
+from st2client.models.webhook import Webhook
 
 
 class WebhookBranch(resource.ResourceBranch):

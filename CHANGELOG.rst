@@ -29,9 +29,21 @@ Changed
 
   Contributed by @ericreeves.
 
-* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `hello` #5302
+* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `ping` #5302, #5341
 
   Contributed by @lukepatrick
+
+* Actionrunner worker shutdown should stop Kombu consumer thread. #5338
+
+  Contributed by @khushboobhatia01
+
+Fixed
+~~~~~
+
+* Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
+  Contributed by @amanda11, Ammeon Solutions
+
+
 
 3.5.0 - June 23, 2021
 ---------------------
