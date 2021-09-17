@@ -103,12 +103,12 @@ class KeyValuePairController(ResourceController):
         # Additional guard to ensure there is no information leakage across users
         is_admin = rbac_utils.user_is_admin(user_db=requester_user)
 
-        if scope == USER_SCOPE:
-            raise ValueError("Invalid scope: %s" % (scope))
-
         if is_admin and user_query_param_filter:
-            # Retrieve values scoped to the provided user
-            user_scope_prefix = get_key_reference(name=name, scope=scope, user=user)
+            if scope == USER_SCOPE:
+                raise ValueError("Invalid scope: %s" % (scope))
+            else:
+                # Retrieve values scoped to the provided user
+                user_scope_prefix = get_key_reference(name=name, scope=scope, user=user)
         else:
             # RBAC not enabled or user is not an admin, retrieve user scoped values for the
             # current user
