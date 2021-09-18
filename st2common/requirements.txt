@@ -12,7 +12,7 @@ cryptography==3.4.7
 dnspython>=1.16.0,<2.0.0
 eventlet==0.30.2
 flex==6.14.1
-git+https://github.com/StackStorm/orquesta.git@219f00d#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@219f00db5192321af9d29b4c51ec748846ab90c6#egg=orquesta
 git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backend
 gitdb==4.0.2
 gitpython==3.1.15
