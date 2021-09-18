@@ -156,8 +156,8 @@ def _process_defaults(G, schemas):
     """
     for schema in schemas:
         for name, value in six.iteritems(schema):
-            absent = name not in G.node
-            is_none = G.node.get(name, {}).get("value") is None
+            absent = name not in G.nodes
+            is_none = G.nodes.get(name, {}).get("value") is None
             immutable = value.get("immutable", False)
             if absent or is_none or immutable:
                 _process(G, name, value.get("default"))
@@ -167,8 +167,8 @@ def _validate(G):
     """
     Validates dependency graph to ensure it has no missing or cyclic dependencies
     """
-    for name in G.nodes():
-        if "value" not in G.node[name] and "template" not in G.node[name]:
+    for name in G.nodes:
+        if "value" not in G.nodes[name] and "template" not in G.nodes[name]:
             msg = 'Dependency unsatisfied in variable "%s"' % name
             raise ParamException(msg)
 
@@ -232,7 +232,7 @@ def _resolve_dependencies(G):
     """
     context = {}
     for name in nx.topological_sort(G):
-        node = G.node[name]
+        node = G.nodes[name]
         try:
             context[name] = _render(node, context)
 
