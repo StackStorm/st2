@@ -37,6 +37,10 @@ Changed
 
   Contributed by @khushboobhatia01
 
+* Move to using Jinja sandboxed environment #5359
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
 Fixed
 ~~~~~
 
