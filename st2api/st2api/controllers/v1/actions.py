@@ -206,7 +206,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         return action_api
 
-    def delete(self, files_remove_request, ref_or_id, requester_user):
+    def delete(self, options, ref_or_id, requester_user):
         """
         Delete an action.
 
@@ -240,7 +240,6 @@ class ActionsController(resource.ContentPackResourceController):
         pack_name = action_db["pack"]
         entry_point = action_db["entry_point"]
         metadata_file = action_db["metadata_file"]
-        remove_files = files_remove_request.remove_files
 
         try:
             Action.delete(action_db)
@@ -254,7 +253,7 @@ class ActionsController(resource.ContentPackResourceController):
             abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
 
-        if remove_files:
+        if options.remove_files:
             try:
                 delete_action_files_from_pack(
                     pack_name=pack_name,
