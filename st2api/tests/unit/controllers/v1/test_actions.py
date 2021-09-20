@@ -618,13 +618,52 @@ class ActionsControllerTestCase(
         post_resp = self.__do_post(ACTION_15)
         self.assertEqual(post_resp.status_int, 201)
 
+    @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
-    def test_delete(self):
+    def test_delete(self, mock_remove_files):
         post_resp = self.__do_post(ACTION_1)
-        del_resp = self.__do_delete(self.__get_action_id(post_resp))
+        action_id = self.__get_action_id(post_resp)
+        del_resp = self.__do_delete(action_id)
         self.assertEqual(del_resp.status_int, 204)
+        mock_remove_files.assert_not_called()
+        get_resp = self.__do_get_one(action_id, expect_errors=True)
+        expected_msg = 'Resource with a reference or id "%s" not found' % action_id
+        actual_msg = get_resp.json["faultstring"]
+        self.assertEqual(actual_msg, expected_msg)
+
+    @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_delete_remove_files_false(self, mock_remove_files):
+        post_resp = self.__do_post(ACTION_1)
+        action_id = self.__get_action_id(post_resp)
+        payload = {"remove_files": False}
+        del_resp = self.__do_delete_action_with_files(payload, action_id)
+        self.assertEqual(del_resp.status_int, 204)
+        mock_remove_files.assert_not_called()
+        get_resp = self.__do_get_one(action_id, expect_errors=True)
+        expected_msg = 'Resource with a reference or id "%s" not found' % action_id
+        actual_msg = get_resp.json["faultstring"]
+        self.assertEqual(actual_msg, expected_msg)
+
+    @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_delete_remove_files_true(self, mock_remove_files):
+        post_resp = self.__do_post(ACTION_1)
+        action_id = self.__get_action_id(post_resp)
+        payload = {"remove_files": True}
+        del_resp = self.__do_delete_action_with_files(payload, action_id)
+        self.assertEqual(del_resp.status_int, 204)
+        self.assertTrue(mock_remove_files.called)
+        get_resp = self.__do_get_one(action_id, expect_errors=True)
+        expected_msg = 'Resource with a reference or id "%s" not found' % action_id
+        actual_msg = get_resp.json["faultstring"]
+        self.assertEqual(actual_msg, expected_msg)
 
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
@@ -857,11 +896,9 @@ class ActionsControllerTestCase(
             "/v1/actions/%s" % action_id, expect_errors=expect_errors
         )
 
-    def __do_delete_action_with_files(
-        self, files_remove_request, action_id, expect_errors=False
-    ):
+    def __do_delete_action_with_files(self, options, action_id, expect_errors=False):
         return self.app.delete_json(
             "/v1/actions/%s" % action_id,
-            files_remove_request,
+            options,
             expect_errors=expect_errors,
         )
