@@ -286,6 +286,7 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
             "--remove-files",
             action="store_true",
             dest="remove_files",
+            default=False,
             help="Remove action files from disk.",
         )
 
@@ -293,11 +294,7 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
-        if args.remove_files:
-            remove_files = True
-        else:
-            remove_files = False
-
+        remove_files = args.remove_files
         self.manager.delete_action(instance, remove_files, **kwargs)
         print('Resource with id "%s" has been successfully deleted.' % (resource_id))
 
