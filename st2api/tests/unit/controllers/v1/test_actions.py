@@ -628,6 +628,7 @@ class ActionsControllerTestCase(
         del_resp = self.__do_delete(action_id)
         self.assertEqual(del_resp.status_int, 204)
         mock_remove_files.assert_not_called()
+        # asserting ACTION_1 database entry has removed
         get_resp = self.__do_get_one(action_id, expect_errors=True)
         expected_msg = 'Resource with a reference or id "%s" not found' % action_id
         actual_msg = get_resp.json["faultstring"]
