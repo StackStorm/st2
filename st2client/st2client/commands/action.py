@@ -282,7 +282,7 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
         super(ActionDeleteCommand, self).__init__(resource, *args, **kwargs)
 
         self.parser.add_argument(
-            "-rf",
+            "-r",
             "--remove-files",
             action="store_true",
             dest="remove_files",
