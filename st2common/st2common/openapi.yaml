@@ -5397,7 +5397,7 @@ definitions:
     properties:
       remove_files:
         type: boolean
-        description: Force delete action files from disk
+        description: Flag to delete action files from disk
         default: false
     additionalProperties: false
   TokenRequest:
