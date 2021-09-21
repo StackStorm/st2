@@ -44,6 +44,7 @@ class QueueConsumer(ConsumerMixin):
 
     def shutdown(self):
         self._dispatcher.shutdown()
+        self.should_stop = True
 
     def get_consumers(self, Consumer, channel):
         consumer = Consumer(

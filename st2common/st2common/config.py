@@ -743,6 +743,11 @@ def register_opts(ignore_errors=False):
             "orphaned and cancelled by the garbage collector. A value of zero means the "
             "feature is disabled. This is disabled by default.",
         ),
+        cfg.IntOpt(
+            "request_shutdown_time",
+            default=0,
+            help="How much time to give to the request in progress to finish in seconds before killing workflow engine.",
+        ),
     ]
 
     do_register_opts(

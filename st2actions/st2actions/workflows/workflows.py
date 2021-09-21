@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 from orquesta import statuses
+from oslo_config import cfg
 
 from st2common.constants import action as ac_const
 from st2common import log as logging
@@ -29,6 +30,7 @@ from st2common.services import workflows as wf_svc
 from st2common.transport import consumers
 from st2common.transport import queues
 from st2common.transport import utils as txpt_utils
+from st2common.util import concurrency
 
 
 LOG = logging.getLogger(__name__)
@@ -85,6 +87,16 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             # the database and fail the workflow execution gracefully. In this case,
             # the garbage collector will find and cancel these workflow executions.
             self.fail_workflow_execution(message, e)
+
+    def shutdown(self):
+        super(WorkflowExecutionHandler, self).shutdown()
+        engine_request_shutdown_time = cfg.CONF.workflow_engine.request_shutdown_time
+        if engine_request_shutdown_time:
+            LOG.info(
+                "Sleeping for %s seconds before engine shutdown...",
+                engine_request_shutdown_time,
+            )
+            concurrency.sleep(engine_request_shutdown_time)
 
     def fail_workflow_execution(self, message, exception):
         # Prepare attributes based on message type.

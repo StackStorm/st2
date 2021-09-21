@@ -345,6 +345,8 @@ webui_base_url = https://localhost
 gc_max_idle_sec = 0
 # Location of the logging configuration file.
 logging = /etc/st2/logging.workflowengine.conf
+# How much time to give to the request in progress to finish in seconds before killing workflow engine.
+request_shutdown_time = 0
 # Max jitter interval to smooth out retries.
 retry_max_jitter_msec = 1000
 # Max time to stop retrying.
