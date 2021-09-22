@@ -105,9 +105,11 @@ class PermissionType(Enum):
     RULE_ENFORCEMENT_VIEW = "rule_enforcement_view"
 
     # TODO - Maybe "datastore_item" / key_value_item ?
+    KEY_VALUE_LIST = "key_value_pair_list"
     KEY_VALUE_VIEW = "key_value_pair_view"
     KEY_VALUE_SET = "key_value_pair_set"
     KEY_VALUE_DELETE = "key_value_pair_delete"
+    KEY_VALUE_ALL = "key_value_pair_all"
 
     WEBHOOK_LIST = "webhook_list"
     WEBHOOK_VIEW = "webhook_view"
