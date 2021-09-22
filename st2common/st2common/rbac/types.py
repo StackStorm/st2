@@ -367,9 +367,11 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.EXECUTION_VIEWS_FILTERS_LIST,
     ],
     ResourceType.KEY_VALUE_PAIR: [
+        PermissionType.KEY_VALUE_LIST,
         PermissionType.KEY_VALUE_VIEW,
         PermissionType.KEY_VALUE_SET,
         PermissionType.KEY_VALUE_DELETE,
+        PermissionType.KEY_VALUE_ALL,
     ],
     ResourceType.WEBHOOK: [
         PermissionType.WEBHOOK_LIST,
@@ -595,9 +597,13 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.API_KEY_ALL: (
         "Ability to perform all the supported operations on an API Key."
     ),
+    PermissionType.KEY_VALUE_LIST: ("Ability to list (view all) Key-Value Pairs."),
     PermissionType.KEY_VALUE_VIEW: ("Ability to view Key-Value Pairs."),
     PermissionType.KEY_VALUE_SET: ("Ability to set a Key-Value Pair."),
     PermissionType.KEY_VALUE_DELETE: ("Ability to delete an existing Key-Value Pair."),
+    PermissionType.KEY_VALUE_ALL: (
+        "Ability to perform all the support operations on a Key-Value Pair."
+    ),
     PermissionType.TRACE_LIST: ("Ability to list (view all) traces."),
     PermissionType.TRACE_VIEW: ("Ability to view a trace."),
     PermissionType.TRACE_ALL: (
