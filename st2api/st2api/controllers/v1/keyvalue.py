@@ -122,12 +122,13 @@ class KeyValuePairController(ResourceController):
         else:
             raise ValueError("Invalid scope: %s" % (scope))
 
-        permission_type = PermissionType.KEY_VALUE_VIEW
-        rbac_utils.assert_user_has_resource_db_permission(
-            user_db=requester_user,
-            resource_db=KeyValuePairDB(scope=scope, name=user_scope_prefix),
-            permission_type=permission_type,
-        )
+        if scope == FULL_SYSTEM_SCOPE:
+            permission_type = PermissionType.KEY_VALUE_VIEW
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope=scope, name=user_scope_prefix),
+                permission_type=permission_type,
+            )
 
         from_model_kwargs = {"mask_secrets": not decrypt}
         kvp_api = self._get_one_by_scope_and_name(
@@ -219,12 +220,13 @@ class KeyValuePairController(ResourceController):
         else:
             raise ValueError("Invalid scope: %s" % (scope))
 
-        permission_type = PermissionType.KEY_VALUE_LIST
-        rbac_utils.assert_user_has_resource_db_permission(
-            user_db=requester_user,
-            resource_db=KeyValuePairDB(scope=scope, name=key_ref),
-            permission_type=permission_type,
-        )
+        if scope == FULL_SYSTEM_SCOPE:
+            permission_type = PermissionType.KEY_VALUE_LIST
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope=scope, name=key_ref),
+                permission_type=permission_type,
+            )
 
         if scope == ALL_SCOPE:
             # Special case for ALL_SCOPE
@@ -331,12 +333,14 @@ class KeyValuePairController(ResourceController):
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
         LOG.debug("PUT scope: %s, name: %s", scope, name)
 
-        permission_type = PermissionType.KEY_VALUE_SET
-        rbac_utils.assert_user_has_resource_db_permission(
-            user_db=requester_user,
-            resource_db=KeyValuePairDB(scope=scope, name=key_ref),
-            permission_type=permission_type,
-        )
+        if scope == FULL_SYSTEM_SCOPE:
+            permission_type = PermissionType.KEY_VALUE_SET
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope=scope, name=key_ref),
+                permission_type=permission_type,
+            )
+
         # TODO: Custom permission check since the key doesn't need to exist here
 
         # Note: We use lock to avoid a race
@@ -408,12 +412,13 @@ class KeyValuePairController(ResourceController):
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
-        permission_type = PermissionType.KEY_VALUE_DELETE
-        rbac_utils.assert_user_has_resource_db_permission(
-            user_db=requester_user,
-            resource_db=KeyValuePairDB(scope=scope, name=key_ref),
-            permission_type=permission_type,
-        )
+        if scope == FULL_SYSTEM_SCOPE:
+            permission_type = PermissionType.KEY_VALUE_DELETE
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope=scope, name=key_ref),
+                permission_type=permission_type,
+            )
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
