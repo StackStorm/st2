@@ -602,7 +602,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.KEY_VALUE_SET: ("Ability to set a Key-Value Pair."),
     PermissionType.KEY_VALUE_DELETE: ("Ability to delete an existing Key-Value Pair."),
     PermissionType.KEY_VALUE_ALL: (
-        "Ability to perform all the support operations on a Key-Value Pair."
+        "Ability to perform all the supported operations on a Key-Value Pair."
     ),
     PermissionType.TRACE_LIST: ("Ability to list (view all) traces."),
     PermissionType.TRACE_VIEW: ("Ability to view a trace."),
