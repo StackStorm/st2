@@ -122,7 +122,7 @@ class KeyValuePairController(ResourceController):
         else:
             raise ValueError("Invalid scope: %s" % (scope))
 
-        if scope == FULL_SYSTEM_SCOPE:
+        if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
             permission_type = PermissionType.KEY_VALUE_VIEW
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
@@ -220,7 +220,7 @@ class KeyValuePairController(ResourceController):
         else:
             raise ValueError("Invalid scope: %s" % (scope))
 
-        if scope == FULL_SYSTEM_SCOPE:
+        if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
             permission_type = PermissionType.KEY_VALUE_LIST
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
@@ -333,7 +333,7 @@ class KeyValuePairController(ResourceController):
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
         LOG.debug("PUT scope: %s, name: %s", scope, name)
 
-        if scope == FULL_SYSTEM_SCOPE:
+        if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
             permission_type = PermissionType.KEY_VALUE_SET
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
@@ -412,7 +412,7 @@ class KeyValuePairController(ResourceController):
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
-        if scope == FULL_SYSTEM_SCOPE:
+        if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
             permission_type = PermissionType.KEY_VALUE_DELETE
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
