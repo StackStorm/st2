@@ -600,7 +600,9 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.KEY_VALUE_PAIR_LIST: ("Ability to list (view all) Key-Value Pairs."),
     PermissionType.KEY_VALUE_PAIR_VIEW: ("Ability to view Key-Value Pairs."),
     PermissionType.KEY_VALUE_PAIR_SET: ("Ability to set a Key-Value Pair."),
-    PermissionType.KEY_VALUE_PAIR_DELETE: ("Ability to delete an existing Key-Value Pair."),
+    PermissionType.KEY_VALUE_PAIR_DELETE: (
+        "Ability to delete an existing Key-Value Pair."
+    ),
     PermissionType.KEY_VALUE_PAIR_ALL: (
         "Ability to perform all the supported operations on a Key-Value Pair."
     ),

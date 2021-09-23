@@ -289,7 +289,9 @@ class RBACPermissionTypeTestCase(TestCase):
             PermissionType.KEY_VALUE_PAIR_SET,
         )
         self.assertEqual(
-            PermissionType.get_permission_type(resource_type=t, permission_name="delete"),
+            PermissionType.get_permission_type(
+                resource_type=t, permission_name="delete"
+            ),
             PermissionType.KEY_VALUE_PAIR_DELETE,
         )
         self.assertEqual(
@@ -325,16 +327,19 @@ class RBACPermissionTypeTestCase(TestCase):
         )
 
         self.assertEqual(
-            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_LIST), "list"
+            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_LIST),
+            "list",
         )
         self.assertEqual(
-            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_VIEW), "view"
+            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_VIEW),
+            "view",
         )
         self.assertEqual(
             PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_SET), "set"
         )
         self.assertEqual(
-            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_DELETE), "delete"
+            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_DELETE),
+            "delete",
         )
         self.assertEqual(
             PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_ALL), "all"
