@@ -605,8 +605,6 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.KEY_VALUE_LIST: ("Ability to view list of existing Key-Value Pair."),
     PermissionType.KEY_VALUE_ALL: (
         "Ability to perform all the supported operations on Key-Value Pair."
-    PermissionType.KEY_VALUE_ALL: (
-        "Ability to perform all the supported operations on a Key-Value Pair."
     ),
     PermissionType.TRACE_LIST: ("Ability to list (view all) traces."),
     PermissionType.TRACE_VIEW: ("Ability to view a trace."),
