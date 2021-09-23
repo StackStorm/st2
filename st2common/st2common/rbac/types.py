@@ -105,11 +105,11 @@ class PermissionType(Enum):
     RULE_ENFORCEMENT_VIEW = "rule_enforcement_view"
 
     # TODO - Maybe "datastore_item" / key_value_item ?
-    KEY_VALUE_LIST = "key_value_pair_list"
-    KEY_VALUE_VIEW = "key_value_pair_view"
-    KEY_VALUE_SET = "key_value_pair_set"
-    KEY_VALUE_DELETE = "key_value_pair_delete"
-    KEY_VALUE_ALL = "key_value_pair_all"
+    KEY_VALUE_PAIR_LIST = "key_value_pair_list"
+    KEY_VALUE_PAIR_VIEW = "key_value_pair_view"
+    KEY_VALUE_PAIR_SET = "key_value_pair_set"
+    KEY_VALUE_PAIR_DELETE = "key_value_pair_delete"
+    KEY_VALUE_PAIR_ALL = "key_value_pair_all"
 
     WEBHOOK_LIST = "webhook_list"
     WEBHOOK_VIEW = "webhook_view"
@@ -367,11 +367,11 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.EXECUTION_VIEWS_FILTERS_LIST,
     ],
     ResourceType.KEY_VALUE_PAIR: [
-        PermissionType.KEY_VALUE_LIST,
-        PermissionType.KEY_VALUE_VIEW,
-        PermissionType.KEY_VALUE_SET,
-        PermissionType.KEY_VALUE_DELETE,
-        PermissionType.KEY_VALUE_ALL,
+        PermissionType.KEY_VALUE_PAIR_LIST,
+        PermissionType.KEY_VALUE_PAIR_VIEW,
+        PermissionType.KEY_VALUE_PAIR_SET,
+        PermissionType.KEY_VALUE_PAIR_DELETE,
+        PermissionType.KEY_VALUE_PAIR_ALL,
     ],
     ResourceType.WEBHOOK: [
         PermissionType.WEBHOOK_LIST,
@@ -597,11 +597,11 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.API_KEY_ALL: (
         "Ability to perform all the supported operations on an API Key."
     ),
-    PermissionType.KEY_VALUE_LIST: ("Ability to list (view all) Key-Value Pairs."),
-    PermissionType.KEY_VALUE_VIEW: ("Ability to view Key-Value Pairs."),
-    PermissionType.KEY_VALUE_SET: ("Ability to set a Key-Value Pair."),
-    PermissionType.KEY_VALUE_DELETE: ("Ability to delete an existing Key-Value Pair."),
-    PermissionType.KEY_VALUE_ALL: (
+    PermissionType.KEY_VALUE_PAIR_LIST: ("Ability to list (view all) Key-Value Pairs."),
+    PermissionType.KEY_VALUE_PAIR_VIEW: ("Ability to view Key-Value Pairs."),
+    PermissionType.KEY_VALUE_PAIR_SET: ("Ability to set a Key-Value Pair."),
+    PermissionType.KEY_VALUE_PAIR_DELETE: ("Ability to delete an existing Key-Value Pair."),
+    PermissionType.KEY_VALUE_PAIR_ALL: (
         "Ability to perform all the supported operations on a Key-Value Pair."
     ),
     PermissionType.TRACE_LIST: ("Ability to list (view all) traces."),
