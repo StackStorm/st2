@@ -124,10 +124,10 @@ class KeyValuePairController(ResourceController):
             raise ValueError("Invalid scope: %s" % (scope))
 
         if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
-            permission_type = PermissionType.KEY_VALUE_VIEW
+            permission_type = PermissionType.KEY_VALUE_PAIR_VIEW
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
-                resource_db=KeyValuePairDB(scope=scope, name=user_scope_prefix),
+                resource_db=KeyValuePairDB(scope=scope, name=key_ref),
                 permission_type=permission_type,
             )
 
@@ -222,7 +222,7 @@ class KeyValuePairController(ResourceController):
             raise ValueError("Invalid scope: %s" % (scope))
 
         if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
-            permission_type = PermissionType.KEY_VALUE_LIST
+            permission_type = PermissionType.KEY_VALUE_PAIR_LIST
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
                 resource_db=KeyValuePairDB(scope=scope, name=key_ref),
@@ -304,15 +304,15 @@ class KeyValuePairController(ResourceController):
                         requester_user=requester_user,
                     )
                     kvp_apis.extend(kvp_system_apis.json)
-
-            kvp_apis = super(KeyValuePairController, self)._get_all(
-                from_model_kwargs=from_model_kwargs,
-                sort=sort,
-                offset=offset,
-                limit=limit,
-                raw_filters=raw_filters,
-                requester_user=requester_user,
-            )
+            else:
+                kvp_apis = super(KeyValuePairController, self)._get_all(
+                    from_model_kwargs=from_model_kwargs,
+                    sort=sort,
+                    offset=offset,
+                    limit=limit,
+                    raw_filters=raw_filters,
+                    requester_user=requester_user,
+                )
         else:
             raise ValueError("Invalid scope: %s" % (scope))
 
@@ -351,7 +351,7 @@ class KeyValuePairController(ResourceController):
         LOG.debug("PUT scope: %s, name: %s", scope, name)
 
         if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
-            permission_type = PermissionType.KEY_VALUE_SET
+            permission_type = PermissionType.KEY_VALUE_PAIR_SET
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
                 resource_db=KeyValuePairDB(scope=scope, name=key_ref),
@@ -430,7 +430,7 @@ class KeyValuePairController(ResourceController):
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
         if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
-            permission_type = PermissionType.KEY_VALUE_DELETE
+            permission_type = PermissionType.KEY_VALUE_PAIR_DELETE
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
                 resource_db=KeyValuePairDB(scope=scope, name=key_ref),
