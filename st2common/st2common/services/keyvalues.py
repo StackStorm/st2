@@ -256,3 +256,26 @@ def get_key_reference(scope, name, user=None):
         raise InvalidScopeException(
             'Scope "%s" is not valid. Allowed scopes are %s.' % (scope, ALLOWED_SCOPES)
         )
+
+
+def get_all_system_kvps_for_logged_in_user(user):
+    """
+    Retrieve all the permission grants for a particular user.
+    The result will return the key list
+
+    :rtype: ``list``
+    """
+    role_names = UserRoleAssignment.query(user=user).only("role").scalar("role")
+    permission_grant_ids = Role.query(name__in=role_names).scalar("permission_grants")
+    permission_grant_ids = sum(permission_grant_ids, [])
+
+    permission_grants_filters = {}
+    permission_grants_filters["id__in"] = permission_grant_ids
+    uid = PermissionGrant.query(id__in=permission_grant_ids).scalar("resource_uid")
+    key_list = []
+    for u in uid:
+        key_name = u.split(":")
+        if len(key_name[2]) > 0 and key_name[2] not in key_list:
+            key_list.append(key_name[2])
+
+    return key_list
