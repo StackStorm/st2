@@ -26,6 +26,9 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.models.system.keyvalue import UserKeyReference
 from st2common.persistence.keyvalue import KeyValuePair
+from st2common.persistence.rbac import UserRoleAssignment
+from st2common.persistence.rbac import Role
+from st2common.persistence.rbac import PermissionGrant
 
 __all__ = [
     "get_kvp_for_name",
