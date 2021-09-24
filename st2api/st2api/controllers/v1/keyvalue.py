@@ -288,6 +288,22 @@ class KeyValuePairController(ResourceController):
             if "scope" not in raw_filters:
                 raise KeyError("The key scope is not found in raw_filters.")
 
+            key_list = get_all_system_kvps_for_logged_in_user(user)
+            if len(key_list) > 0:
+                kvp_apis = []
+                for key in key_list:
+                    raw_filters["prefix"] = key
+
+                    kvp_system_apis = super(KeyValuePairController, self)._get_all(
+                        from_model_kwargs=from_model_kwargs,
+                        sort=sort,
+                        offset=offset,
+                        limit=limit,
+                        raw_filters=raw_filters,
+                        requester_user=requester_user,
+                    )
+                    kvp_apis.extend(kvp_system_apis.json)
+
             kvp_apis = super(KeyValuePairController, self)._get_all(
                 from_model_kwargs=from_model_kwargs,
                 sort=sort,
