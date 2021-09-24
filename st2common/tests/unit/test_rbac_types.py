@@ -179,16 +179,7 @@ class RBACPermissionTypeTestCase(TestCase):
         self.assertEqual(
             PermissionType.get_resource_type(PermissionType.KEY_VALUE_PAIR_ALL),
             SystemType.KEY_VALUE_PAIR,
-        )
-        self.assertEqual(
-            PermissionType.get_resource_type(PermissionType.KEY_VALUE_LIST),
-            SystemType.KEY_VALUE_PAIR,
-        )
-        self.assertEqual(
-            PermissionType.get_resource_type(PermissionType.KEY_VALUE_ALL),
-            SystemType.KEY_VALUE_PAIR,
-        )
-
+        )        
         self.assertEqual(
             PermissionType.get_resource_type(PermissionType.WEBHOOK_CREATE),
             SystemType.WEBHOOK,
