@@ -40,6 +40,7 @@ from st2common.router import abort
 from st2common.router import Response
 from st2common.rbac.types import PermissionType
 from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.services.keyvalues import get_all_system_kvps_for_logged_in_user
 
 http_client = six.moves.http_client
 
