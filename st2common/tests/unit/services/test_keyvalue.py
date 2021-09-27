@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 import unittest2
+import mock
 
 from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
@@ -42,7 +43,6 @@ class KeyValueServicesTest(unittest2.TestCase):
         self.assertRaises(
             InvalidScopeException, get_key_reference, scope="sketchy", name="foo"
         )
-
 
     @mock.patch("st2common.services.keyvalues.get_uids")
     def test_get_all_system_kvps_for_user(self, mock_get_uids):
