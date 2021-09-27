@@ -279,6 +279,7 @@ def get_all_system_kvps_for_logged_in_user(user):
     :rtype: ``list``
     """
 
+    uid = get_uids(user)
     key_list = []
     for u in uid:
         key_name = u.split(":")
