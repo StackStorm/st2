@@ -310,6 +310,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         )
         self.assertEqual(put_resp_2.status_int, 200)
         resp = self.app.get("/v1/keys?scope=system")
+        # asserting the system scope kvps in the response
         self.assertEqual(resp.json[0]["name"], "system1")
         self.assertEqual(resp.json[0]["scope"], "st2kv.system")
         self.assertEqual(resp.json[0]["value"], "val1")
@@ -317,7 +318,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json[1]["scope"], "st2kv.system")
         self.assertEqual(resp.json[1]["value"], "val4")
         self.__do_delete(self.__get_kvp_id(put_resp_1))
-        self.__do_delete(self.__get_kvp_id(put_resp_2))   
+        self.__do_delete(self.__get_kvp_id(put_resp_2))
 
     def test_get_all_user_query_param_can_only_be_used_with_rbac(self):
         resp = self.app.get("/v1/keys?user=foousera", expect_errors=True)
