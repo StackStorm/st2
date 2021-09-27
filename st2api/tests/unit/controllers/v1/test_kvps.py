@@ -15,6 +15,8 @@
 
 import copy
 
+import mock
+
 from st2tests.api import FunctionalTest
 
 from st2common.models.db.auth import UserDB
