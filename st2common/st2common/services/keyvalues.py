@@ -261,6 +261,16 @@ def get_key_reference(scope, name, user=None):
         )
 
 
+def get_uids(user):
+    role_names = UserRoleAssignment.query(user=user).only("role").scalar("role")
+    permission_grant_ids = Role.query(name__in=role_names).scalar("permission_grants")
+    permission_grant_ids = sum(permission_grant_ids, [])
+    permission_grants_filters = {}
+    permission_grants_filters["id__in"] = permission_grant_ids
+    uid = PermissionGrant.query(id__in=permission_grant_ids).scalar("resource_uid")
+    return uid
+
+
 def get_all_system_kvps_for_logged_in_user(user):
     """
     Retrieve all the permission grants for a particular user.
@@ -268,13 +278,7 @@ def get_all_system_kvps_for_logged_in_user(user):
 
     :rtype: ``list``
     """
-    role_names = UserRoleAssignment.query(user=user).only("role").scalar("role")
-    permission_grant_ids = Role.query(name__in=role_names).scalar("permission_grants")
-    permission_grant_ids = sum(permission_grant_ids, [])
 
-    permission_grants_filters = {}
-    permission_grants_filters["id__in"] = permission_grant_ids
-    uid = PermissionGrant.query(id__in=permission_grant_ids).scalar("resource_uid")
     key_list = []
     for u in uid:
         key_name = u.split(":")
