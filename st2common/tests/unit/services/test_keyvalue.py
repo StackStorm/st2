@@ -19,6 +19,7 @@ import unittest2
 from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.services.keyvalues import get_key_reference
+from st2common.services.keyvalues import get_all_system_kvps_for_logged_in_user
 
 
 class KeyValueServicesTest(unittest2.TestCase):
@@ -41,3 +42,15 @@ class KeyValueServicesTest(unittest2.TestCase):
         self.assertRaises(
             InvalidScopeException, get_key_reference, scope="sketchy", name="foo"
         )
+
+
+    @mock.patch("st2common.services.keyvalues.get_uids")
+    def test_get_all_system_kvps_for_user(self, mock_get_uids):
+        mock_get_uids.return_value = [
+            "key_value_pair:st2kv.system:key2",
+            "key_value_pair:st2kv.system:",
+            "key_value_pair:st2kv.system:key4",
+            "key_value_pair:st2kv.system:key2",
+        ]
+        key_list = get_all_system_kvps_for_logged_in_user(user="stanley")
+        self.assertEqual(key_list, ["key2", "key4"])
