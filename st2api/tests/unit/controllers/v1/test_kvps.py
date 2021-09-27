@@ -296,6 +296,29 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.__do_delete("user3?scope=user")
         self.__do_delete("userkey?scope=user")
 
+    @mock.patch("st2api.controllers.v1.keyvalue.get_all_system_kvps_for_logged_in_user")
+    def test_get_all_user_system_scoped_kvps(self, mock_system_scoped_kvps):
+        mock_system_scoped_kvps.return_value = ["system1", "key4"]
+        user_db_1 = UserDB(name="user1")
+        self.use_user(user_db_1)
+        put_resp_1 = self.__do_put(
+            "system1", {"name": "system1", "value": "val1", "scope": "st2kv.system"}
+        )
+        self.assertEqual(put_resp_1.status_int, 200)
+        put_resp_2 = self.__do_put(
+            "key4", {"name": "key4", "value": "val4", "scope": "st2kv.system"}
+        )
+        self.assertEqual(put_resp_2.status_int, 200)
+        resp = self.app.get("/v1/keys?scope=system")
+        self.assertEqual(resp.json[0]["name"], "system1")
+        self.assertEqual(resp.json[0]["scope"], "st2kv.system")
+        self.assertEqual(resp.json[0]["value"], "val1")
+        self.assertEqual(resp.json[1]["name"], "key4")
+        self.assertEqual(resp.json[1]["scope"], "st2kv.system")
+        self.assertEqual(resp.json[1]["value"], "val4")
+        self.__do_delete(self.__get_kvp_id(put_resp_1))
+        self.__do_delete(self.__get_kvp_id(put_resp_2))   
+
     def test_get_all_user_query_param_can_only_be_used_with_rbac(self):
         resp = self.app.get("/v1/keys?user=foousera", expect_errors=True)
 
