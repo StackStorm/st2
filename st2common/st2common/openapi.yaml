@@ -413,6 +413,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+        - name: options
+          in: body
+          description: Flag to remove action files from disk
+          schema:
+            $ref: '#/definitions/ActionDeleteRequest'
       x-parameters:
         - name: user
           in: context
@@ -1560,7 +1565,7 @@ paths:
   /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
-      x-permissions: 
+      x-permissions: key_value_pair_list
       description: Returns a list of all key value pairs.
       parameters:
         - name: prefix
@@ -4719,6 +4724,9 @@ definitions:
     allOf:
       - $ref: '#/definitions/Action'
       - $ref: '#/definitions/DataFilesSubSchema'
+  ActionDeleteRequest:
+    allOf:
+      - $ref: '#/definitions/ActionDeleteSchema'
   ActionCloneRequest:
     allOf:
       - $ref: '#/definitions/ActionCloneSchema'
@@ -5438,6 +5446,14 @@ definitions:
         description: Channels to post notifications to.
         items:
           type: string
+    additionalProperties: false
+  ActionDeleteSchema:
+    type: object
+    properties:
+      remove_files:
+        type: boolean
+        description: Flag to delete action files from disk
+        default: false
     additionalProperties: false
   TokenRequest:
     type: object

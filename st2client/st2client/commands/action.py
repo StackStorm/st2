@@ -283,31 +283,21 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
         super(ActionDeleteCommand, self).__init__(resource, *args, **kwargs)
 
         self.parser.add_argument(
-            "-f",
-            "--force",
+            "-r",
+            "--remove-files",
             action="store_true",
-            dest="force",
-            help="Auto yes flag to delete action files from disk.",
+            dest="remove_files",
+            default=False,
+            help="Remove action files from disk.",
         )
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
-        msg = (
-            'Resource with id "%s" has been successfully deleted from database and disk.'
-            % (resource_id)
-        )
-        user_input = ""
-        if not args.force:
-            user_input = input(
-                "The resource files on disk will be deleted. Do you want to continue? (y/n): "
-            )
-        if args.force or user_input.lower() == "y" or user_input.lower() == "yes":
-            self.manager.delete(instance, **kwargs)
-            print(msg)
-        else:
-            print("Action is not deleted.")
+        remove_files = args.remove_files
+        self.manager.delete_action(instance, remove_files, **kwargs)
+        print('Resource with id "%s" has been successfully deleted.' % (resource_id))
 
     def run_and_print(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name)

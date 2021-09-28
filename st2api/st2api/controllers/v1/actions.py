@@ -210,7 +210,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         return action_api
 
-    def delete(self, ref_or_id, requester_user):
+    def delete(self, options, ref_or_id, requester_user):
         """
         Delete an action.
 
@@ -256,30 +256,30 @@ class ActionsController(resource.ContentPackResourceController):
             )
             abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
             return
-        try:
-            delete_action_files_from_pack(
-                pack_name=pack_name,
-                entry_point=entry_point,
-                metadata_file=metadata_file,
-            )
 
-        except PermissionError as e:
-            LOG.error("No permission to delete resource files from disk.")
-            action_db.id = None
-            Action.add_or_update(action_db)
-            abort(http_client.FORBIDDEN, six.text_type(e))
-            return
-
-        except Exception as e:
-            LOG.error(
-                "Exception encountered during deleting resource files from disk. "
-                "Exception was %s",
-                e,
-            )
-            action_db.id = None
-            Action.add_or_update(action_db)
-            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
-            return
+        if options.remove_files:
+            try:
+                delete_action_files_from_pack(
+                    pack_name=pack_name,
+                    entry_point=entry_point,
+                    metadata_file=metadata_file,
+                )
+            except PermissionError as e:
+                LOG.error("No permission to delete resource files from disk.")
+                action_db.id = None
+                Action.add_or_update(action_db)
+                abort(http_client.FORBIDDEN, six.text_type(e))
+                return
+            except Exception as e:
+                LOG.error(
+                    "Exception encountered during deleting resource files from disk. "
+                    "Exception was %s",
+                    e,
+                )
+                action_db.id = None
+                Action.add_or_update(action_db)
+                abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
+                return
 
         extra = {"action_db": action_db}
         LOG.audit("Action deleted. Action.id=%s" % (action_db.id), extra=extra)
