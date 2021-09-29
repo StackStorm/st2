@@ -296,7 +296,7 @@ class ActionControllerRBACTestCase(
             'User "no_permissions" doesn\'t have required permission "action_view" '
             'on resource "action:examples:ma.dummy.action"'
         )
-        self.assertEqual(clone_resp.status_code, http_client.FORBIDDEN)
+        self.assertEqual(clone_resp.status_code, http_client.UNAUTHORIZED)
         self.assertEqual(clone_resp.json["faultstring"], expected_msg)
 
     @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
