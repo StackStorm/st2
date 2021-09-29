@@ -346,11 +346,11 @@ class CloneActionsTest(unittest2.TestCase):
     @mock.patch("shutil.copy")
     def test_permission_error_to_write_in_destination_file(self, mock_copy):
         mock_copy.side_effect = PermissionError("No permission to write in file")
-        cloned_action_entry_point_file_path = os.path.join(
-            TEST_DEST_PACK_PATH, "actions", "action_4.py"
+        cloned_action_metadata_file_path = os.path.join(
+            TEST_DEST_PACK_PATH, "actions", "action_4.yaml"
         )
         expected_msg = 'No permission to write in "%s" file' % (
-            cloned_action_entry_point_file_path
+            cloned_action_metadata_file_path
         )
 
         with self.assertRaisesRegexp(PermissionError, expected_msg):
@@ -365,26 +365,27 @@ class CloneActionsTest(unittest2.TestCase):
             )
 
     @mock.patch("shutil.copy")
-    def test_file_not_found_error_for_destination_file(self, mock_copy):
-        mock_copy.side_effect = FileNotFoundError("No such file or directory")
-        cloned_action_entry_point_file_path = os.path.join(
-            TEST_DEST_PACK_PATH, "actions", "action_5.py"
+    def test_workflows_directory_created_if_does_not_exist(self, mock_copy):
+        action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
+        workflow_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions", "workflows")
+        for file in os.listdir(workflow_files_path):
+            if os.path.isfile(os.path.join(workflow_files_path, file)):
+                os.remove(os.path.join(workflow_files_path, file))
+        # removing workflows directory and asserting it doesn't exist
+        os.rmdir(workflow_files_path)
+        self.assertFalse(os.path.exists(workflow_files_path))
+        self.assertTrue(os.path.exists(action_files_path))
+        clone_action(
+            TEST_SOURCE_WORKFLOW_PACK_PATH,
+            "actions/data-flow.yaml",
+            "workflows/data-flow.yaml",
+            "orquesta",
+            TEST_DEST_PACK_PATH,
+            TEST_DEST_PACK,
+            "workflow_1",
         )
-        expected_msg = (
-            "Please make sure 'workflows' directory present in path: '%s'"
-            % (cloned_action_entry_point_file_path)
-        )
-
-        with self.assertRaisesRegexp(FileNotFoundError, expected_msg):
-            clone_action(
-                TEST_SOURCE_PACK_PATH,
-                "actions/inject_trigger.yaml",
-                "inject_trigger.py",
-                "python-script",
-                TEST_DEST_PACK_PATH,
-                TEST_DEST_PACK,
-                "action_5",
-            )
+        # workflows directory created and asserting it exists
+        self.assertTrue(os.path.exists(workflow_files_path))
 
     @mock.patch("shutil.copy")
     def test_exceptions_to_write_in_destination_file(self, mock_copy):
