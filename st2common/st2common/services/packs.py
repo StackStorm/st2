@@ -305,12 +305,6 @@ def _clone_content_to_destination_file(source_file, destination_file):
         )
         msg = 'No permission to write in "%s" file' % (destination_file)
         raise PermissionError(msg)
-    except FileNotFoundError:
-        LOG.error('No "workflows" directory at path: "%s"', destination_file)
-        msg = "Please make sure 'workflows' directory present in path: '%s'" % (
-            destination_file
-        )
-        raise FileNotFoundError(msg)
     except Exception as e:
         LOG.error(
             'Could not copy to "%s" file. Exception was "%s"',
@@ -346,18 +340,24 @@ def clone_action(
     dest_metadata_file_path = os.path.join(
         dest_pack_base_path, "actions", dest_metadata_file_name
     )
+    _clone_content_to_destination_file(
+        source_file=source_metadata_file_path, destination_file=dest_metadata_file_path
+    )
 
     if source_entry_point:
+        if source_runner_type in ["orquesta", "action-chain"]:
+            dest_entry_point_file_name = "workflows/%s.yaml" % (dest_action)
+            # creating workflows directory if doesn't exist
+            wf_dir_path = os.path.join(dest_pack_base_path, "actions", "workflows")
+            if not os.path.isdir(wf_dir_path):
+                os.mkdir(path=wf_dir_path)
+        else:
+            old_ext = os.path.splitext(source_entry_point)[1]
+            dest_entry_point_file_name = dest_action + old_ext
+
         source_entry_point_file_path = os.path.join(
             source_pack_base_path, "actions", source_entry_point
         )
-        if source_runner_type == "python-script":
-            dest_entry_point_file_name = "%s.py" % (dest_action)
-        elif source_runner_type == "orquesta":
-            dest_entry_point_file_name = "workflows/%s.yaml" % (dest_action)
-        else:
-            dest_entry_point_file_name = dest_action
-
         dest_entrypoint_file_path = os.path.join(
             dest_pack_base_path, "actions", dest_entry_point_file_name
         )
@@ -365,13 +365,8 @@ def clone_action(
             source_file=source_entry_point_file_path,
             destination_file=dest_entrypoint_file_path,
         )
-
     else:
         dest_entry_point_file_name = ""
-
-    _clone_content_to_destination_file(
-        source_file=source_metadata_file_path, destination_file=dest_metadata_file_path
-    )
 
     with open(dest_metadata_file_path) as df:
         doc = yaml.load(df, Loader=yaml.FullLoader)
@@ -388,12 +383,12 @@ def clone_action(
 def clone_action_db(source_action_db, dest_pack, dest_action):
     dest_action_db = copy.deepcopy(source_action_db)
     source_runner_type = source_action_db["runner_type"]["name"]
-    if source_runner_type == "python-script":
-        dest_entry_point_file_name = "%s.py" % (dest_action)
-    elif source_runner_type == "orquesta":
-        dest_entry_point_file_name = "workflows/%s.yaml" % (dest_action)
-    elif source_runner_type == "local-shell-script":
-        dest_entry_point_file_name = dest_action
+    if source_action_db["entry_point"]:
+        if source_runner_type in ["orquesta", "action-chain"]:
+            dest_entry_point_file_name = "workflows/%s.yaml" % (dest_action)
+        else:
+            old_ext = os.path.splitext(source_action_db["entry_point"])[1]
+            dest_entry_point_file_name = dest_action + old_ext
     else:
         dest_entry_point_file_name = ""
     dest_action_db["entry_point"] = dest_entry_point_file_name
@@ -405,4 +400,5 @@ def clone_action_db(source_action_db, dest_pack, dest_action):
     if "pack" in dest_action_db:
         dest_action_db["pack"] = dest_pack
     dest_action_db["id"] = None
+
     return dest_action_db
