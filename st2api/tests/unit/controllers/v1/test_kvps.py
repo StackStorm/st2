@@ -18,8 +18,17 @@ import copy
 import mock
 
 from st2tests.api import FunctionalTest
-
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
+from st2common.persistence.auth import User
 from st2common.models.db.auth import UserDB
+from st2common.models.db.rbac import UserRoleAssignmentDB
+from st2common.models.db.rbac import PermissionGrantDB
+from st2common.rbac.types import PermissionType
+from st2common.rbac.types import ResourceType
+from st2common.persistence.rbac import UserRoleAssignment
+from st2common.persistence.rbac import PermissionGrant
+from st2common.persistence.rbac import Role
+from st2common.models.db.rbac import RoleDB
 
 from six.moves import http_client
 
