@@ -300,11 +300,100 @@ class KeyValuePairControllerTestCase(FunctionalTest):
 
     @mock.patch("st2api.controllers.v1.keyvalue.get_all_system_kvp_names_for_user")
     def test_get_all_user_system_scoped_kvps(self, mock_system_scoped_kvps):
-        mock_system_scoped_kvps.return_value = ["system1", "key4"]
-        user_db_1 = UserDB(name="user1")
-        self.use_user(user_db_1)
+        kvp_1_uid = "%s:%s:system1" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
+        kvp_2_uid = "%s:%s:key4" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
+        kvp_3_uid = "%s:%s:echo" % (ResourceType.ACTION, "core")
+        kvp_4_uid = "%s:%s:new_action" % (ResourceType.ACTION, "dummy")
+        kvp_5_uid = "%s:%s:key9" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
+        kvp_6_uid = "%s:%s:key27" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
+
+        # Setup user, grant, role, and assignment records
+        user_1_db = UserDB(name="system_key1_user")
+        user_1_db = User.add_or_update(user_1_db)
+
+        user_2_db = UserDB(name="system_key2_user")
+        user_2_db = User.add_or_update(user_2_db)
+
+        # role assignment
+        grant_db = PermissionGrantDB(
+            resource_uid=kvp_1_uid,
+            resource_type=ResourceType.KEY_VALUE_PAIR,
+            permission_types=[PermissionType.KEY_VALUE_PAIR_LIST],
+        )
+        grant_db = PermissionGrant.add_or_update(grant_db)
+        grant_1_db = PermissionGrantDB(
+            resource_uid=kvp_2_uid,
+            resource_type=ResourceType.KEY_VALUE_PAIR,
+            permission_types=[PermissionType.KEY_VALUE_PAIR_VIEW],
+        )
+        grant_1_db = PermissionGrant.add_or_update(grant_1_db)
+        grant_2_db = PermissionGrantDB(
+            resource_uid=kvp_3_uid,
+            resource_type=ResourceType.ACTION,
+            permission_types=[PermissionType.ACTION_VIEW],
+        )
+        grant_2_db = PermissionGrant.add_or_update(grant_2_db)
+        grant_3_db = PermissionGrantDB(
+            resource_uid=kvp_4_uid,
+            resource_type=ResourceType.ACTION,
+            permission_types=[PermissionType.ACTION_LIST],
+        )
+        grant_3_db = PermissionGrant.add_or_update(grant_3_db)
+
+        grant_4_db = PermissionGrantDB(
+            resource_uid=kvp_5_uid,
+            resource_type=ResourceType.KEY_VALUE_PAIR,
+            permission_types=[PermissionType.KEY_VALUE_PAIR_SET],
+        )
+        grant_4_db = PermissionGrant.add_or_update(grant_4_db)
+
+        grant_5_db = PermissionGrantDB(
+            resource_uid=kvp_6_uid,
+            resource_type=ResourceType.KEY_VALUE_PAIR,
+            permission_types=[PermissionType.KEY_VALUE_PAIR_DELETE],
+        )
+        grant_5_db = PermissionGrant.add_or_update(grant_5_db)
+
+        # User1
+        role_db = RoleDB(
+            name="custom_role_system_role1_grant",
+            permission_grants=[
+                str(grant_db.id),
+                str(grant_1_db.id),
+                str(grant_2_db.id),
+            ],
+        )
+        role_db = Role.add_or_update(role_db)
+
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_1_db.name,
+            role=role_db.name,
+            source="assignments/%s.yaml" % user_1_db.name,
+        )
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        # User2
+        role_db = RoleDB(
+            name="custom_role_system_role2_grant",
+            permission_grants=[
+                str(grant_3_db.id),
+                str(grant_4_db.id),
+                str(grant_5_db.id),
+            ],
+        )
+        role_db = Role.add_or_update(role_db)
+
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_2_db.name,
+            role=role_db.name,
+            source="assignments/%s.yaml" % user_2_db.name,
+        )
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        mock_system_scoped_kvps.return_value = ["system1", "key4", "key9", "key27"]
+        self.use_user(user_1_db)
         put_resp_1 = self.__do_put(
-            "system1", {"name": "system1", "value": "val1", "scope": "st2kv.system"}
+            "system1", {"name": "system1", "value": "val2", "scope": "st2kv.system"}
         )
         self.assertEqual(put_resp_1.status_int, 200)
         put_resp_2 = self.__do_put(
@@ -315,12 +404,35 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         # asserting the system scope kvps in the response
         self.assertEqual(resp.json[0]["name"], "system1")
         self.assertEqual(resp.json[0]["scope"], "st2kv.system")
-        self.assertEqual(resp.json[0]["value"], "val1")
+        self.assertEqual(resp.json[0]["value"], "val2")
         self.assertEqual(resp.json[1]["name"], "key4")
         self.assertEqual(resp.json[1]["scope"], "st2kv.system")
         self.assertEqual(resp.json[1]["value"], "val4")
+
         self.__do_delete(self.__get_kvp_id(put_resp_1))
         self.__do_delete(self.__get_kvp_id(put_resp_2))
+
+        self.use_user(user_2_db)
+        put_resp_3 = self.__do_put(
+            "key9", {"name": "key9", "value": "val9", "scope": "st2kv.system"}
+        )
+        self.assertEqual(put_resp_3.status_int, 200)
+        put_resp_4 = self.__do_put(
+            "key27", {"name": "key27", "value": "val27", "scope": "st2kv.system"}
+        )
+        self.assertEqual(put_resp_4.status_int, 200)
+
+        resp = self.app.get("/v1/keys?scope=system")
+        # asserting the system scope kvps in the response
+        self.assertEqual(resp.json[0]["name"], "key9")
+        self.assertEqual(resp.json[0]["scope"], "st2kv.system")
+        self.assertEqual(resp.json[0]["value"], "val9")
+        self.assertEqual(resp.json[1]["name"], "key27")
+        self.assertEqual(resp.json[1]["scope"], "st2kv.system")
+        self.assertEqual(resp.json[1]["value"], "val27")
+
+        self.__do_delete(self.__get_kvp_id(put_resp_3))
+        self.__do_delete(self.__get_kvp_id(put_resp_4))
 
     def test_get_all_user_query_param_can_only_be_used_with_rbac(self):
         resp = self.app.get("/v1/keys?user=foousera", expect_errors=True)
