@@ -298,7 +298,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.__do_delete("user3?scope=user")
         self.__do_delete("userkey?scope=user")
 
-    @mock.patch("st2api.controllers.v1.keyvalue.get_all_system_kvps_for_logged_in_user")
+    @mock.patch("st2api.controllers.v1.keyvalue.get_all_system_kvp_names_for_user")
     def test_get_all_user_system_scoped_kvps(self, mock_system_scoped_kvps):
         mock_system_scoped_kvps.return_value = ["system1", "key4"]
         user_db_1 = UserDB(name="user1")

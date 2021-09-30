@@ -40,7 +40,7 @@ from st2common.router import abort
 from st2common.router import Response
 from st2common.rbac.types import PermissionType
 from st2common.models.db.keyvalue import KeyValuePairDB
-from st2common.services.keyvalues import get_all_system_kvps_for_logged_in_user
+from st2common.services.keyvalues import get_all_system_kvp_names_for_user
 
 http_client = six.moves.http_client
 
@@ -169,8 +169,8 @@ class KeyValuePairController(ResourceController):
 
         scope = get_datastore_full_scope(scope)
 
-        # "all" scope can only be used by the admins (on RBAC installations)
-        self._validate_all_scope(scope=scope, requester_user=requester_user)
+        if scope not in [ALL_SCOPE] + ALLOWED_SCOPES:
+            raise ValueError("Invalid scope: %s" % (scope))
 
         # User needs to be either admin or requesting items for themselves
         self._validate_decrypt_query_parameter(
@@ -200,112 +200,54 @@ class KeyValuePairController(ResourceController):
         # to avoid information leakage (aka user1 retrieves items for user2)
         is_admin = rbac_utils.user_is_admin(user_db=requester_user)
 
-        if is_admin and user_query_param_filter:
-            # Retrieve values scoped to the provided user
-            user_scope_prefix = get_key_reference(
-                name=prefix or "", scope=scope, user=user
-            )
-        else:
-            # RBAC not enabled or user is not an admin, retrieve user scoped values for the
-            # current user
-            user_scope_prefix = get_key_reference(
-                name=prefix or "", scope=USER_SCOPE, user=current_user
-            )
-
-        if scope == FULL_USER_SCOPE:
-            key_ref = user_scope_prefix
-        elif scope == FULL_SYSTEM_SCOPE:
-            key_ref = get_key_reference(scope=FULL_SYSTEM_SCOPE, name=prefix, user=user)
-        elif scope == ALL_SCOPE:
-            key_ref = user_scope_prefix
-        else:
-            raise ValueError("Invalid scope: %s" % (scope))
-
-        if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
-            permission_type = PermissionType.KEY_VALUE_PAIR_LIST
+        # Check that an admin user has permission to all system scoped items.
+        if is_admin and scope in [ALL_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
-                resource_db=KeyValuePairDB(scope=scope, name=key_ref),
-                permission_type=permission_type,
+                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
+                permission_type=PermissionType.KEY_VALUE_PAIR_LIST,
             )
 
-        if scope == ALL_SCOPE:
-            # Special case for ALL_SCOPE
-            # 1. Retrieve system scoped values
-            raw_filters["scope"] = FULL_SYSTEM_SCOPE
-            raw_filters["prefix"] = prefix
-
-            kvp_apis_system = super(KeyValuePairController, self)._get_all(
-                from_model_kwargs=from_model_kwargs,
-                sort=sort,
-                offset=offset,
-                limit=limit,
-                raw_filters=raw_filters,
-                requester_user=requester_user,
+        if is_admin and user_query_param_filter:
+            # Check that the user has permission to the user scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
+                permission_type=PermissionType.KEY_VALUE_PAIR_LIST,
             )
 
-            # 2. Retrieve user scoped items for current user or for all the users (depending if the
-            # authenticated user is admin and if ?user is provided)
-            raw_filters["scope"] = FULL_USER_SCOPE
-
-            if cfg.CONF.rbac.enable and is_admin and not user_query_param_filter:
-                # Admin user retrieving user-scoped items for all the users
-                raw_filters["prefix"] = prefix or ""
-            else:
-                raw_filters["prefix"] = user_scope_prefix
-
-            kvp_apis_user = super(KeyValuePairController, self)._get_all(
-                from_model_kwargs=from_model_kwargs,
-                sort=sort,
-                offset=offset,
-                limit=limit,
-                raw_filters=raw_filters,
-                requester_user=requester_user,
+            # Retrieve values scoped to the provided user
+            user_scope_prefix = get_key_reference(
+                name=prefix or "", scope=FULL_USER_SCOPE, user=user
+            )
+        else:
+            # Check that the user has permission to the his/her own user scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, current_user)),
+                permission_type=PermissionType.KEY_VALUE_PAIR_LIST,
             )
 
-            # Combine the result
-            kvp_apis = []
-            kvp_apis.extend(kvp_apis_system.json or [])
-            kvp_apis.extend(kvp_apis_user.json or [])
-        elif scope in [USER_SCOPE, FULL_USER_SCOPE]:
-            # Make sure we only returned values scoped to current user
-            prefix = get_key_reference(name=prefix or "", scope=scope, user=user)
-            raw_filters["prefix"] = user_scope_prefix
-
-            if "scope" not in raw_filters:
-                raise KeyError("The key scope is not found in raw_filters.")
-
-            kvp_apis = super(KeyValuePairController, self)._get_all(
-                from_model_kwargs=from_model_kwargs,
-                sort=sort,
-                offset=offset,
-                limit=limit,
-                raw_filters=raw_filters,
-                requester_user=requester_user,
+            # RBAC not enabled or user is not an admin, retrieve user scoped items
+            # for the current user.
+            user_scope_prefix = get_key_reference(
+                name=prefix or "", scope=FULL_USER_SCOPE, user=current_user
             )
-        elif scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
-            raw_filters["prefix"] = prefix
 
-            if "scope" not in raw_filters:
-                raise KeyError("The key scope is not found in raw_filters.")
+        # Special cases for ALL_SCOPE
+        # 1. If user is an admin, then retrieves all system scoped items else only
+        #    specific system scoped items that the user is granted permission to.
+        # 2. Retrieves all the user scoped items that the current user owns.
+        kvp_apis_system = []
+        kvp_apis_user = []
 
-            key_list = get_all_system_kvps_for_logged_in_user(user)
-            if len(key_list) > 0:
-                kvp_apis = []
-                for key in key_list:
-                    raw_filters["prefix"] = key
+        if scope in [ALL_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+            # If user is an admin, then retrieve all system scoped items
+            if is_admin:
+                raw_filters["scope"] = FULL_SYSTEM_SCOPE
+                raw_filters["prefix"] = prefix
 
-                    kvp_system_apis = super(KeyValuePairController, self)._get_all(
-                        from_model_kwargs=from_model_kwargs,
-                        sort=sort,
-                        offset=offset,
-                        limit=limit,
-                        raw_filters=raw_filters,
-                        requester_user=requester_user,
-                    )
-                    kvp_apis.extend(kvp_system_apis.json)
-            else:
-                kvp_apis = super(KeyValuePairController, self)._get_all(
+                items = self._get_all(
                     from_model_kwargs=from_model_kwargs,
                     sort=sort,
                     offset=offset,
@@ -313,10 +255,40 @@ class KeyValuePairController(ResourceController):
                     raw_filters=raw_filters,
                     requester_user=requester_user,
                 )
-        else:
-            raise ValueError("Invalid scope: %s" % (scope))
 
-        return kvp_apis
+                kvp_apis_system.extend(items.json or [])
+            else:
+                # Otherwise if user is not an admin, then get the list of
+                # system scoped items that user is granted permission to.
+                for key in get_all_system_kvp_names_for_user(current_user):
+                    try:
+                        item = self._get_one_by_scope_and_name(
+                            from_model_kwargs=from_model_kwargs,
+                            scope=FULL_SYSTEM_SCOPE,
+                            name=key,
+                        )
+
+                        kvp_apis_system.append(item)
+                    except Exception as e:
+                        LOG.error("Unable to get key %s: %s", key, str(e))
+
+        if scope in [ALL_SCOPE, USER_SCOPE, FULL_USER_SCOPE]:
+            # Retrieves all the user scoped items that the current user owns.
+            raw_filters["scope"] = FULL_USER_SCOPE
+            raw_filters["prefix"] = user_scope_prefix
+
+            items = self._get_all(
+                from_model_kwargs=from_model_kwargs,
+                sort=sort,
+                offset=offset,
+                limit=limit,
+                raw_filters=raw_filters,
+                requester_user=requester_user,
+            )
+
+            kvp_apis_user.extend(items.json)
+
+        return kvp_apis_system + kvp_apis_user
 
     def put(self, kvp, name, requester_user, scope=None):
         """
@@ -478,19 +450,6 @@ class KeyValuePairController(ResourceController):
         """
         lock_name = six.b("kvp-crud-%s.%s" % (scope, name))
         return lock_name
-
-    def _validate_all_scope(self, scope, requester_user):
-        """
-        Validate that "all" scope can only be provided by admins on RBAC installations.
-        """
-        scope = get_datastore_full_scope(scope)
-        is_all_scope = scope == ALL_SCOPE
-        rbac_utils = get_rbac_backend().get_utils_class()
-        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
-
-        if is_all_scope and not is_admin:
-            msg = '"all" scope requires administrator access'
-            raise AccessDeniedError(message=msg, user_db=requester_user)
 
     def _validate_decrypt_query_parameter(self, decrypt, scope, requester_user):
         """

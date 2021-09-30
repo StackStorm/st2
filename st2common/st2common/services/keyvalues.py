@@ -271,7 +271,7 @@ def get_uids(user):
     return uid
 
 
-def get_all_system_kvps_for_logged_in_user(user):
+def get_all_system_kvp_names_for_user(user):
     """
     Retrieve all the permission grants for a particular user.
     The result will return the key list
