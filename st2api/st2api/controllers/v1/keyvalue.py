@@ -248,38 +248,16 @@ class KeyValuePairController(ResourceController):
                 permission_type=PermissionType.KEY_VALUE_PAIR_LIST,
             )
 
-        if is_admin and user_query_param_filter:
-            # Check that the user has permission to the user scoped items.
+        # Check that user has permission to user scoped items for provided user or current user.
+        if user and scope in [ALL_SCOPE, USER_SCOPE, FULL_USER_SCOPE]:
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
                 resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
                 permission_type=PermissionType.KEY_VALUE_PAIR_LIST,
             )
-            # Retrieve values scoped to the provided user
-            user_scope_prefix = get_key_reference(
-                name=prefix or "", scope=FULL_USER_SCOPE, user=user
-            )
-        elif user and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
-            # Check that the user has permission to the system scoped items.
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
-                permission_type=PermissionType.KEY_VALUE_PAIR_LIST,
-            )
-        else:
-            # Check that the user has permission to the his/her own user scoped items.
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(
-                    scope="%s:%s" % (FULL_USER_SCOPE, current_user)
-                ),
-                permission_type=PermissionType.KEY_VALUE_PAIR_LIST,
-            )
-            # RBAC not enabled or user is not an admin, retrieve user scoped items
-            # for the current user.
-            user_scope_prefix = get_key_reference(
-                name=prefix or "", scope=FULL_USER_SCOPE, user=current_user
-            )
+
+        # Set user scope prefix for the provided user (or current user if user not provided)
+        user_scope_prefix = get_key_reference(name=prefix or "", scope=FULL_USER_SCOPE, user=user)
 
         # Special cases for ALL_SCOPE
         # 1. If user is an admin, then retrieves all system scoped items else only
@@ -290,21 +268,21 @@ class KeyValuePairController(ResourceController):
 
         if scope in [ALL_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
             # If user is an admin, then retrieve all system scoped items
-            raw_filters["scope"] = FULL_SYSTEM_SCOPE
-            raw_filters["prefix"] = prefix
+            if is_admin:
+                raw_filters["scope"] = FULL_SYSTEM_SCOPE
+                raw_filters["prefix"] = prefix
 
-            items = self._get_all(
-                from_model_kwargs=from_model_kwargs,
-                sort=sort,
-                offset=offset,
-                limit=limit,
-                raw_filters=raw_filters,
-                requester_user=requester_user,
-            )
-            kvp_apis_system.extend(items.json or [])
+                items = self._get_all(
+                    from_model_kwargs=from_model_kwargs,
+                    sort=sort,
+                    offset=offset,
+                    limit=limit,
+                    raw_filters=raw_filters,
+                    requester_user=requester_user,
+                )
 
-            if len(get_all_system_kvp_names_for_user(current_user)) > 0:
-                kvp_apis_system = []
+                kvp_apis_system.extend(items.json or [])
+            else:
                 # Otherwise if user is not an admin, then get the list of
                 # system scoped items that user is granted permission to.
                 for key in get_all_system_kvp_names_for_user(current_user):
@@ -314,6 +292,7 @@ class KeyValuePairController(ResourceController):
                             scope=FULL_SYSTEM_SCOPE,
                             name=key,
                         )
+
                         kvp_apis_system.append(item)
                     except Exception as e:
                         LOG.error("Unable to get key %s: %s", key, str(e))
