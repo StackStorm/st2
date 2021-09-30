@@ -29,6 +29,7 @@ from st2common.persistence.keyvalue import KeyValuePair
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import PermissionGrant
+from st2common.constants.types import ResourceType
 
 __all__ = [
     "get_kvp_for_name",
@@ -267,7 +268,8 @@ def get_uids(user):
     permission_grant_ids = sum(permission_grant_ids, [])
     permission_grants_filters = {}
     permission_grants_filters["id__in"] = permission_grant_ids
-    uid = PermissionGrant.query(id__in=permission_grant_ids).scalar("resource_uid")
+    permission_grants_filters["resource_type"] = ResourceType.KEY_VALUE_PAIR
+    uid = PermissionGrant.query(id__in=permission_grant_ids, resource_type=ResourceType.KEY_VALUE_PAIR).scalar("resource_uid")
     return uid
 
 
