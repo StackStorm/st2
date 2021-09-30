@@ -103,17 +103,46 @@ class KeyValuePairController(ResourceController):
         # Additional guard to ensure there is no information leakage across users
         is_admin = rbac_utils.user_is_admin(user_db=requester_user)
 
+        # Check that an admin user has permission to all system scoped items.
+        if is_admin and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
+                permission_type=PermissionType.KEY_VALUE_PAIR_VIEW,
+            )
+
         if is_admin and user_query_param_filter:
-            if scope == USER_SCOPE:
-                raise ValueError("Invalid scope: %s" % (scope))
-            else:
-                # Retrieve values scoped to the provided user
-                user_scope_prefix = get_key_reference(name=name, scope=scope, user=user)
+            # Retrieve values scoped to the provided user
+            user_scope_prefix = get_key_reference(name=name, scope=scope, user=user)
+
+            # Check that the user has permission to the user scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
+                permission_type=PermissionType.KEY_VALUE_PAIR_VIEW,
+            )
+        elif user and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+            # Check that the user has permission to the system scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
+                permission_type=PermissionType.KEY_VALUE_PAIR_VIEW,
+            )
         else:
-            # RBAC not enabled or user is not an admin, retrieve user scoped values for the
-            # current user
+            # RBAC not enabled or user is not an admin, retrieve user scoped items
+            # for the current user.
             user_scope_prefix = get_key_reference(
                 name=name, scope=USER_SCOPE, user=current_user
+            )
+
+            # Check that the user has permission to his/her own user scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(
+                    scope="%s:%s" % (FULL_USER_SCOPE, current_user)
+                ),
+                permission_type=PermissionType.KEY_VALUE_PAIR_VIEW,
             )
 
         if scope == FULL_USER_SCOPE:
@@ -123,18 +152,29 @@ class KeyValuePairController(ResourceController):
         else:
             raise ValueError("Invalid scope: %s" % (scope))
 
-        if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
-            permission_type = PermissionType.KEY_VALUE_PAIR_VIEW
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope=scope, name=key_ref),
-                permission_type=permission_type,
-            )
+        kvp_api = []
 
         from_model_kwargs = {"mask_secrets": not decrypt}
-        kvp_api = self._get_one_by_scope_and_name(
-            name=key_ref, scope=scope, from_model_kwargs=from_model_kwargs
-        )
+        if scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+            kvp_api = self._get_one_by_scope_and_name(
+                name=key_ref, scope=scope, from_model_kwargs=from_model_kwargs
+            )
+            if len(get_all_system_kvp_names_for_user(current_user)) > 0:
+                for key in get_all_system_kvp_names_for_user(current_user):
+                    try:
+                        if key == name:
+                            kvp_api = self._get_one_by_scope_and_name(
+                                from_model_kwargs=from_model_kwargs,
+                                scope=FULL_SYSTEM_SCOPE,
+                                name=key,
+                            )
+                    except Exception as e:
+                        LOG.error("Unable to get key %s: %s", key, str(e))
+
+        if scope in [USER_SCOPE, FULL_USER_SCOPE]:
+            kvp_api = self._get_one_by_scope_and_name(
+                name=key_ref, scope=scope, from_model_kwargs=from_model_kwargs
+            )
 
         return kvp_api
 
@@ -215,19 +255,26 @@ class KeyValuePairController(ResourceController):
                 resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
                 permission_type=PermissionType.KEY_VALUE_PAIR_LIST,
             )
-
             # Retrieve values scoped to the provided user
             user_scope_prefix = get_key_reference(
                 name=prefix or "", scope=FULL_USER_SCOPE, user=user
+            )
+        elif user and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+            # Check that the user has permission to the system scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
+                permission_type=PermissionType.KEY_VALUE_PAIR_LIST,
             )
         else:
             # Check that the user has permission to the his/her own user scoped items.
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
-                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, current_user)),
+                resource_db=KeyValuePairDB(
+                    scope="%s:%s" % (FULL_USER_SCOPE, current_user)
+                ),
                 permission_type=PermissionType.KEY_VALUE_PAIR_LIST,
             )
-
             # RBAC not enabled or user is not an admin, retrieve user scoped items
             # for the current user.
             user_scope_prefix = get_key_reference(
@@ -243,21 +290,21 @@ class KeyValuePairController(ResourceController):
 
         if scope in [ALL_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
             # If user is an admin, then retrieve all system scoped items
-            if is_admin:
-                raw_filters["scope"] = FULL_SYSTEM_SCOPE
-                raw_filters["prefix"] = prefix
+            raw_filters["scope"] = FULL_SYSTEM_SCOPE
+            raw_filters["prefix"] = prefix
 
-                items = self._get_all(
-                    from_model_kwargs=from_model_kwargs,
-                    sort=sort,
-                    offset=offset,
-                    limit=limit,
-                    raw_filters=raw_filters,
-                    requester_user=requester_user,
-                )
+            items = self._get_all(
+                from_model_kwargs=from_model_kwargs,
+                sort=sort,
+                offset=offset,
+                limit=limit,
+                raw_filters=raw_filters,
+                requester_user=requester_user,
+            )
+            kvp_apis_system.extend(items.json or [])
 
-                kvp_apis_system.extend(items.json or [])
-            else:
+            if len(get_all_system_kvp_names_for_user(current_user)) > 0:
+                kvp_apis_system = []
                 # Otherwise if user is not an admin, then get the list of
                 # system scoped items that user is granted permission to.
                 for key in get_all_system_kvp_names_for_user(current_user):
@@ -267,7 +314,6 @@ class KeyValuePairController(ResourceController):
                             scope=FULL_SYSTEM_SCOPE,
                             name=key,
                         )
-
                         kvp_apis_system.append(item)
                     except Exception as e:
                         LOG.error("Unable to get key %s: %s", key, str(e))
@@ -305,12 +351,52 @@ class KeyValuePairController(ResourceController):
         self._validate_scope(scope=scope)
 
         user = getattr(kvp, "user", requester_user.name) or requester_user.name
+        user_query_param_filter = bool(user)
 
         # Validate that the authenticated user is admin if user query param is provided
         rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(
             user_db=requester_user, user=user, require_rbac=True
         )
+
+        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+        # Check that an admin user has permission to all system scoped items.
+        if is_admin and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
+                permission_type=PermissionType.KEY_VALUE_PAIR_SET,
+            )
+
+        if is_admin and user_query_param_filter:
+
+            # Check that the user has permission to the user scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
+                permission_type=PermissionType.KEY_VALUE_PAIR_SET,
+            )
+        elif user and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+            # Check that the user has permission to the system scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
+                permission_type=PermissionType.KEY_VALUE_PAIR_SET,
+            )
+        else:
+            # Check that the user has permission to his/her own user scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
+                permission_type=PermissionType.KEY_VALUE_PAIR_SET,
+            )
+            # RBAC not enabled or user is not an admin, retrieve user scoped items
+            # for the current user.
+            user_scope_prefix = get_key_reference(
+                name=name, scope=USER_SCOPE, user=user
+            )
+            LOG.debug("User Scope %s" % user_scope_prefix)
 
         # Validate that encrypted option can only be used by admins
         encrypted = getattr(kvp, "encrypted", False)
@@ -321,14 +407,6 @@ class KeyValuePairController(ResourceController):
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
         LOG.debug("PUT scope: %s, name: %s", scope, name)
-
-        if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
-            permission_type = PermissionType.KEY_VALUE_PAIR_SET
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope=scope, name=key_ref),
-                permission_type=permission_type,
-            )
 
         # TODO: Custom permission check since the key doesn't need to exist here
 
@@ -355,7 +433,20 @@ class KeyValuePairController(ResourceController):
                 if existing_kvp_api:
                     kvp_db.id = existing_kvp_api.id
 
-                kvp_db = KeyValuePair.add_or_update(kvp_db)
+                if scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+                    if is_admin:
+                        kvp_db = KeyValuePair.add_or_update(kvp_db)
+                    else:
+                        for key in get_all_system_kvp_names_for_user(user):
+                            try:
+                                if key == name:
+                                    kvp_db = KeyValuePair.add_or_update(kvp_db)
+                            except Exception as e:
+                                LOG.error("Unable to get key %s: %s", key, str(e))
+
+                if scope in [USER_SCOPE, FULL_USER_SCOPE]:
+                    kvp_db = KeyValuePair.add_or_update(kvp_db)
+
             except (ValidationError, ValueError) as e:
                 LOG.exception("Validation failed for key value data=%s", kvp)
                 abort(http_client.BAD_REQUEST, six.text_type(e))
@@ -391,6 +482,7 @@ class KeyValuePairController(ResourceController):
         self._validate_scope(scope=scope)
 
         user = user or requester_user.name
+        user_query_param_filter = bool(user)
 
         # Validate that the authenticated user is admin if user query param is provided
         rbac_utils = get_rbac_backend().get_utils_class()
@@ -398,16 +490,51 @@ class KeyValuePairController(ResourceController):
             user_db=requester_user, user=user, require_rbac=True
         )
 
-        key_ref = get_key_reference(scope=scope, name=name, user=user)
-        lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
+        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+        # Check that an admin user has permission to all system scoped items.
+        if is_admin and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
 
-        if (user and scope == FULL_SYSTEM_SCOPE) or (scope == FULL_SYSTEM_SCOPE):
-            permission_type = PermissionType.KEY_VALUE_PAIR_DELETE
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
-                resource_db=KeyValuePairDB(scope=scope, name=key_ref),
-                permission_type=permission_type,
+                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
+                permission_type=PermissionType.KEY_VALUE_PAIR_DELETE,
             )
+
+        if is_admin and user_query_param_filter:
+            # Retrieve values scoped to the provided user
+            user_scope_prefix = get_key_reference(name=name, scope=scope, user=user)
+
+            # Check that the user has permission to the user scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
+                permission_type=PermissionType.KEY_VALUE_PAIR_DELETE,
+            )
+            LOG.debug("User Scope %s" % user_scope_prefix)
+        elif user and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+            # Check that the user has permission to the system scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
+                permission_type=PermissionType.KEY_VALUE_PAIR_DELETE,
+            )
+        else:
+            # Check that the user has permission to his/her own user scoped items.
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
+                permission_type=PermissionType.KEY_VALUE_PAIR_DELETE,
+            )
+
+            # RBAC not enabled or user is not an admin, retrieve user scoped items
+            # for the current user.
+            user_scope_prefix = get_key_reference(
+                name=name, scope=USER_SCOPE, user=user
+            )
+            LOG.debug("User Scope %s" % user_scope_prefix)
+
+        key_ref = get_key_reference(scope=scope, name=name, user=user)
+        lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
@@ -426,7 +553,19 @@ class KeyValuePairController(ResourceController):
             )
 
             try:
-                KeyValuePair.delete(kvp_db)
+                if scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+                    if is_admin:
+                        KeyValuePair.delete(kvp_db)
+                    else:
+                        for key in get_all_system_kvp_names_for_user(user):
+                            try:
+                                if key == name:
+                                    KeyValuePair.delete(kvp_db)
+                            except Exception as e:
+                                LOG.error("Unable to get key %s: %s", key, str(e))
+
+                if scope in [USER_SCOPE, FULL_USER_SCOPE]:
+                    KeyValuePair.delete(kvp_db)
             except Exception as e:
                 LOG.exception(
                     "Database delete encountered exception during "
