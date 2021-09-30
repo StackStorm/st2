@@ -161,15 +161,23 @@ class RBACPermissionTypeTestCase(TestCase):
         )
 
         self.assertEqual(
-            PermissionType.get_resource_type(PermissionType.KEY_VALUE_VIEW),
+            PermissionType.get_resource_type(PermissionType.KEY_VALUE_PAIR_LIST),
             SystemType.KEY_VALUE_PAIR,
         )
         self.assertEqual(
-            PermissionType.get_resource_type(PermissionType.KEY_VALUE_SET),
+            PermissionType.get_resource_type(PermissionType.KEY_VALUE_PAIR_VIEW),
             SystemType.KEY_VALUE_PAIR,
         )
         self.assertEqual(
-            PermissionType.get_resource_type(PermissionType.KEY_VALUE_DELETE),
+            PermissionType.get_resource_type(PermissionType.KEY_VALUE_PAIR_SET),
+            SystemType.KEY_VALUE_PAIR,
+        )
+        self.assertEqual(
+            PermissionType.get_resource_type(PermissionType.KEY_VALUE_PAIR_DELETE),
+            SystemType.KEY_VALUE_PAIR,
+        )
+        self.assertEqual(
+            PermissionType.get_resource_type(PermissionType.KEY_VALUE_PAIR_ALL),
             SystemType.KEY_VALUE_PAIR,
         )
 
@@ -267,6 +275,30 @@ class RBACPermissionTypeTestCase(TestCase):
             PermissionType.RULE_ENFORCEMENT_VIEW,
         )
 
+        t = ResourceType.KEY_VALUE_PAIR
+        self.assertEqual(
+            PermissionType.get_permission_type(resource_type=t, permission_name="list"),
+            PermissionType.KEY_VALUE_PAIR_LIST,
+        )
+        self.assertEqual(
+            PermissionType.get_permission_type(resource_type=t, permission_name="view"),
+            PermissionType.KEY_VALUE_PAIR_VIEW,
+        )
+        self.assertEqual(
+            PermissionType.get_permission_type(resource_type=t, permission_name="set"),
+            PermissionType.KEY_VALUE_PAIR_SET,
+        )
+        self.assertEqual(
+            PermissionType.get_permission_type(
+                resource_type=t, permission_name="delete"
+            ),
+            PermissionType.KEY_VALUE_PAIR_DELETE,
+        )
+        self.assertEqual(
+            PermissionType.get_permission_type(resource_type=t, permission_name="all"),
+            PermissionType.KEY_VALUE_PAIR_ALL,
+        )
+
     def test_get_permission_name(self):
         self.assertEqual(
             PermissionType.get_permission_name(PermissionType.ACTION_LIST), "list"
@@ -292,4 +324,23 @@ class RBACPermissionTypeTestCase(TestCase):
         self.assertEqual(
             PermissionType.get_permission_name(PermissionType.RULE_ENFORCEMENT_LIST),
             "list",
+        )
+
+        self.assertEqual(
+            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_LIST),
+            "list",
+        )
+        self.assertEqual(
+            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_VIEW),
+            "view",
+        )
+        self.assertEqual(
+            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_SET), "set"
+        )
+        self.assertEqual(
+            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_DELETE),
+            "delete",
+        )
+        self.assertEqual(
+            PermissionType.get_permission_name(PermissionType.KEY_VALUE_PAIR_ALL), "all"
         )

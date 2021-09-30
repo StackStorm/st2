@@ -7,12 +7,16 @@ in development
 Changed
 ~~~~~~~
 
-* Modified action delete api. Action delete api removes related action/workflow files on disk
-  along with de-registering them from database. Prompts on CLI for user permission before
-  removing disk files.
+* Modified action delete API to delete action files from disk along with backward compatibility.
 
-  ``-f`` and ``--force`` arguments added for action delete CLI command as auto yes flag and
-  will delete related files on disk without prompting for user permission. #5304
+  From CLI ``st2 action delete <pack>.<action>`` will delete only action database entry.
+  From CLI ``st2 action delete --remove-files <pack>.<action>`` or ``st2 action delete -r <pack>.<action>``
+  will delete action database entry along with files from disk.
+
+  API action DELETE method with ``{"remove_files": true}`` argument in json body will remove database
+  entry of action along with files from disk.
+  API action DELETE method with ``{"remove_files": false}`` or no additional argument in json body will remove
+  only action database entry. #5304, #5351, #5360
 
   Contributed by @mahesh-orch.
 
@@ -36,6 +40,10 @@ Changed
 * Actionrunner worker shutdown should stop Kombu consumer thread. #5338
 
   Contributed by @khushboobhatia01
+
+* Move to using Jinja sandboxed environment #5359
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
 Fixed
 ~~~~~
