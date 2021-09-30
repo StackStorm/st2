@@ -91,7 +91,12 @@ class KeyValueServicesTest(FunctionalTest):
 
         role_db = RoleDB(
             name="custom_role_system_keys_grant",
-            permission_grants=[str(grant_db.id), str(grant_1_db.id), str(grant_2_db.id), str(grant_3_db.id)],
+            permission_grants=[
+                str(grant_db.id),
+                str(grant_1_db.id),
+                str(grant_2_db.id),
+                str(grant_3_db.id),
+            ],
         )
         role_db = Role.add_or_update(role_db)
 
