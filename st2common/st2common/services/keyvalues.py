@@ -269,7 +269,9 @@ def get_uids(user):
     permission_grants_filters = {}
     permission_grants_filters["id__in"] = permission_grant_ids
     permission_grants_filters["resource_type"] = ResourceType.KEY_VALUE_PAIR
-    uid = PermissionGrant.query(id__in=permission_grant_ids, resource_type=ResourceType.KEY_VALUE_PAIR).scalar("resource_uid")
+    uid = PermissionGrant.query(
+        id__in=permission_grant_ids, resource_type=ResourceType.KEY_VALUE_PAIR
+    ).scalar("resource_uid")
     return uid
 
 
