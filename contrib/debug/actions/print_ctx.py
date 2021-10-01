@@ -1,5 +1,6 @@
+#!/usr/bin/python
+
 # Copyright 2020 The StackStorm Authors.
-# Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,17 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from st2common.exceptions import StackStormBaseException
+import os
+import sys
+
+try:
+    from st2common.runners.base_action import Action
+except ImportError:
+    Action = object
 
 
-class UnsupportedMetaException(StackStormBaseException):
-    pass
+class PrintCtxAction(Action):
+    def run(self, ctx=None, *args, **kwargs):
+        print(ctx)
 
 
-class ParseException(ValueError):
-    pass
-
-
-class ResourceDiskFilesRemovalError(StackStormBaseException):
-    pass
+if __name__ == "__main__":
+    pca = PrintCtxAction()
+    pca.run({"Hello": "World", "Foo": "Bar"})

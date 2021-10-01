@@ -30,7 +30,7 @@ from os.path import join as pjoin
 
 from six.moves import range
 
-from st2client import models
+from st2client.models.action import Action, Execution
 from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
 from st2client.commands.resource import ResourceViewCommand
@@ -198,7 +198,7 @@ def format_execution_status(instance):
 class ActionBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionBranch, self).__init__(
-            models.Action,
+            Action,
             description,
             app,
             subparsers,
@@ -278,7 +278,33 @@ class ActionDisableCommand(resource.ContentPackResourceDisableCommand):
 
 
 class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
-    pass
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionDeleteCommand, self).__init__(resource, *args, **kwargs)
+
+        self.parser.add_argument(
+            "-r",
+            "--remove-files",
+            action="store_true",
+            dest="remove_files",
+            default=False,
+            help="Remove action files from disk.",
+        )
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        resource_id = getattr(args, self.pk_argument_name, None)
+        instance = self.get_resource(resource_id, **kwargs)
+        remove_files = args.remove_files
+        self.manager.delete_action(instance, remove_files, **kwargs)
+        print('Resource with id "%s" has been successfully deleted.' % (resource_id))
+
+    def run_and_print(self, args, **kwargs):
+        resource_id = getattr(args, self.pk_argument_name)
+
+        try:
+            self.run(args, **kwargs)
+        except ResourceNotFoundError:
+            self.print_not_found(resource_id)
 
 
 class ActionRunCommandMixin(object):
@@ -1046,7 +1072,7 @@ class ActionRunCommandMixin(object):
             task_name_key = "context.orquesta.task_name"
         # Use Execution as the object so that the formatter lookup does not change.
         # AKA HACK!
-        return models.action.Execution(
+        return Execution(
             **{
                 "id": task.id,
                 "status": task.status,
@@ -1204,7 +1230,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
             action=action, runner=runner, args=args
         )
 
-        execution = models.Execution()
+        execution = Execution()
         execution.action = action_ref
         execution.parameters = action_parameters
         execution.user = args.user
@@ -1231,7 +1257,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
 class ActionExecutionBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            models.Execution,
+            Execution,
             description,
             app,
             subparsers,

@@ -15,7 +15,7 @@
 
 from __future__ import absolute_import
 
-from st2client.models import Timer
+from st2client.models.timer import Timer
 from st2client.commands import resource
 
 
