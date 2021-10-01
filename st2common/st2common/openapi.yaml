@@ -1530,7 +1530,7 @@ paths:
   /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
-      x-permissions: 
+      x-permissions: key_value_pair_list
       description: Returns a list of all key value pairs.
       parameters:
         - name: prefix
