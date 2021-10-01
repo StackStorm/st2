@@ -410,13 +410,15 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         )
         self.assertEqual(put_resp_2.status_int, 200)
         resp = self.app.get("/v1/keys?scope=system")
+        result = sorted(resp.json, key=lambda k: k["name"])
+
         # asserting the system scope kvps in the response
-        self.assertEqual(resp.json[0]["name"], "system1")
-        self.assertEqual(resp.json[0]["scope"], "st2kv.system")
-        self.assertEqual(resp.json[0]["value"], "val2")
-        self.assertEqual(resp.json[1]["name"], "key4")
-        self.assertEqual(resp.json[1]["scope"], "st2kv.system")
-        self.assertEqual(resp.json[1]["value"], "val4")
+        self.assertEqual(result[0]["name"], "key4")
+        self.assertEqual(result[0]["scope"], "st2kv.system")
+        self.assertEqual(result[0]["value"], "val4")
+        self.assertEqual(result[1]["name"], "system1")
+        self.assertEqual(result[1]["scope"], "st2kv.system")
+        self.assertEqual(result[1]["value"], "val2")
 
         self.__do_delete(self.__get_kvp_id(put_resp_1))
         self.__do_delete(self.__get_kvp_id(put_resp_2))
@@ -432,13 +434,15 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(put_resp_4.status_int, 200)
 
         resp = self.app.get("/v1/keys?scope=system")
+        result = sorted(resp.json, key=lambda k: k["name"])
+
         # asserting the system scope kvps in the response
-        self.assertEqual(resp.json[0]["name"], "key9")
-        self.assertEqual(resp.json[0]["scope"], "st2kv.system")
-        self.assertEqual(resp.json[0]["value"], "val9")
-        self.assertEqual(resp.json[1]["name"], "key27")
-        self.assertEqual(resp.json[1]["scope"], "st2kv.system")
-        self.assertEqual(resp.json[1]["value"], "val27")
+        self.assertEqual(result[0]["name"], "key27")
+        self.assertEqual(result[0]["scope"], "st2kv.system")
+        self.assertEqual(result[0]["value"], "val27")
+        self.assertEqual(result[1]["name"], "key9")
+        self.assertEqual(result[1]["scope"], "st2kv.system")
+        self.assertEqual(result[1]["value"], "val9")
 
         self.__do_delete(self.__get_kvp_id(put_resp_3))
         self.__do_delete(self.__get_kvp_id(put_resp_4))
