@@ -22,8 +22,8 @@ jsonschema==2.6.0
 kombu==5.0.2
 lockfile==0.12.2
 mongoengine==0.23.0
-#Update networkx to match orquesta
-networkx>=2.5.1,<3.0
+# networkx v2.6 does not support Python3.6.  Update networkx to match orquesta
+networkx>=2.5.1,<2.6
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
