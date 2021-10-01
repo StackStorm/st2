@@ -15,7 +15,7 @@
 
 from __future__ import absolute_import
 
-from st2client import models
+from st2client.models.reactor import Rule
 from st2client.commands import resource
 from st2client.formatters import table
 
@@ -23,7 +23,7 @@ from st2client.formatters import table
 class RuleBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(RuleBranch, self).__init__(
-            models.Rule,
+            Rule,
             description,
             app,
             subparsers,

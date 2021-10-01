@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 from st2client.commands import resource
 from st2client.formatters import table
-from st2client.models import TriggerInstance
+from st2client.models.reactor import TriggerInstance
 from st2client.utils.date import format_isodate_for_user_timezone
 
 

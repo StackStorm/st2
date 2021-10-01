@@ -23,3 +23,7 @@ class UnsupportedMetaException(StackStormBaseException):
 
 class ParseException(ValueError):
     pass
+
+
+class ResourceDiskFilesRemovalError(StackStormBaseException):
+    pass

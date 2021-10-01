@@ -199,8 +199,9 @@ def _db_connect(
     # successfully established.
     # See http://api.mongodb.com/python/current/api/pymongo/mongo_client.html for details
     try:
-        # The ismaster command is cheap and does not require auth
-        connection.admin.command("ismaster")
+        # The ping command is cheap and does not require auth
+        # https://www.mongodb.com/community/forums/t/how-to-use-the-new-hello-interface-for-availability/116748/
+        connection.admin.command("ping")
     except (ConnectionFailure, ServerSelectionTimeoutError) as e:
         # NOTE: ServerSelectionTimeoutError can also be thrown if SSLHandShake fails in the server
         # Sadly the client doesn't include more information about the error so in such scenarios
