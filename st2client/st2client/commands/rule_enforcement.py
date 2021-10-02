@@ -15,7 +15,7 @@
 
 from __future__ import absolute_import
 
-from st2client import models
+from st2client.models.reactor import RuleEnforcement
 from st2client.commands import resource
 from st2client.formatters import table
 from st2client.utils.date import format_isodate_for_user_timezone
@@ -24,7 +24,7 @@ from st2client.utils.date import format_isodate_for_user_timezone
 class RuleEnforcementBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(RuleEnforcementBranch, self).__init__(
-            models.RuleEnforcement,
+            RuleEnforcement,
             description,
             app,
             subparsers,
