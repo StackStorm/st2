@@ -386,7 +386,7 @@ def register_opts(ignore_errors=False):
             choices=["strict", "lax", "none", "None"],
             help="SameSite attribute value for the "
             "auth-token cookie we set on successful authentication from st2web. If you "
-            "don't have a specific reason (e.g. supporting old browsers) you are recommended to "
+            "don't have a specific reason (e.g. supporting old browsers) we recommend you "
             "set this value to strict.",
         ),
     ]
