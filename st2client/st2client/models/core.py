@@ -702,8 +702,6 @@ class StreamManager(ResourceManager):
             basic_auth=basic_auth,
         )
         self._url = httpclient.get_url_without_trailing_slash(endpoint) + "/stream"
-        self.debug = debug
-        self.cacert = cacert
 
     @add_auth_token_to_kwargs_from_env
     def listen(self, events=None, **kwargs):
