@@ -129,7 +129,7 @@ Added
   and when working with executions with large textual results. #5241
 
   Contributed by @Kami.
-  
+
   * Add new ``--enable-profiler`` flag to all the servies. This flag enables cProfiler based profiler
   for the service in question and  dumps the profiling data to a file on process
   exit.
