@@ -12,7 +12,7 @@ mongoengine
 networkx
 # used by networkx
 decorator
-git+https://github.com/StackStorm/orquesta.git@219f00db5192321af9d29b4c51ec748846ab90c6#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@c971b94d5c3dc065ee18386bdf3609a3d2de4a2c#egg=orquesta
 git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backend
 oslo.config
 paramiko
