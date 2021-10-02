@@ -19,6 +19,37 @@ in "schema" class attribute.
 
 Those classes dyamically assign attributes defined in the schema on the class inside the
 constructor.
+
+Pylint uses static analysis on the python files it lints. This means that it does not
+import any of the code using standard python libraries. Instead, it parses them into an
+AST using the astroid library. Thus, it is safe to run Pylint on code that would
+have import time side-effects without triggering those effects. When parsing a single file,
+Pylint can parse the direct dependencies of that file without following the entire
+import chain, which might include significant transient dependencies in 3rd party libraries.
+
+Since pylint is using an AST instead of importing the code, it cannot know about the dynamic
+attributes that get added to our API model classes. Plus, the schema itself is often
+constructed by including copies of common sub schemas. So, the attributes are dynamic AND
+the schemas that define those attributes are also dynamic.
+
+So, in this plugin we have to do a bit of work to:
+
+  1) extract the "schema =" assignment,
+  2) parse the assigned value to find any other variables used in the schema object,
+  3) extract the assignments for those other variables, and
+  4) construct a final dictionary AST node that includes all the attributes that
+     Pylint needs to know about on our model classes.
+
+At this point, we have the schema, so then we:
+
+  5) iterate over the schema properties,
+  6) parse each property's value to find any other referenced variables,
+  7) extract the assignments for those referenced variables,
+  8) inspect the types of those properties (str, int, list, etc), and
+  9) add new attribute AST nodes (of the appropriate type) to the class AST node.
+
+Now, we return because Pylint can finally understand our API model objects without
+importing them.
 """
 
 import astroid
@@ -34,8 +65,17 @@ CLASS_NAME_BLACKLIST = ["ExecutionSpecificationAPI"]
 def register(linter):
     pass
 
+# ######################################### #
+# Extra Astroid AST introspection functions #
+# ######################################### #
 
 def infer_copy_deepcopy(call_node):
+    """
+    Look for a call_node (ie a function call) like this:
+    schema = copy.deepcopy(...)
+             ^^^^^^^^^^^^^
+    Ignore any function calls that are not copy.deepcopy().
+    """
     if not (
         isinstance(call_node, nodes.Call)
         and call_node.func.as_string() == "copy.deepcopy"
@@ -43,8 +83,17 @@ def infer_copy_deepcopy(call_node):
         return
     return next(call_node.args[0].infer())
 
+# ################################### #
 
 def transform(cls):
+    """
+    pylint calls this function on each class definition it discovers.
+    cls is an Astroid AST representation of that class.
+
+    Our purpose here is to extract the schema dict from API model classes
+    so that we can inform pylint about all of the attributes on those models.
+    """
+
     if cls.name in CLASS_NAME_BLACKLIST:
         return
 
