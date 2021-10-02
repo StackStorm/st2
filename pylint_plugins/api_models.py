@@ -65,9 +65,11 @@ CLASS_NAME_BLACKLIST = ["ExecutionSpecificationAPI"]
 def register(linter):
     pass
 
+
 # ######################################### #
 # Extra Astroid AST introspection functions #
 # ######################################### #
+
 
 def infer_copy_deepcopy(call_node):
     """
@@ -83,7 +85,9 @@ def infer_copy_deepcopy(call_node):
         return
     return next(call_node.args[0].infer())
 
+
 # ################################### #
+
 
 def transform(cls):
     """
@@ -104,13 +108,20 @@ def transform(cls):
 
     # This is a class which defines attributes in "schema" variable using json schema.
     # Those attributes are then assigned during run time inside the constructor
+
+    # Get the value node for the "schema =" assignment
     schema_dict_node = next(cls.igetattr("schema"))
 
     extra_schema_properties = {}
 
+    # If the "schema =" assignment's value node is not a simple type (like a dictionary),
+    # then pylint cannot infer exactly what it does. Most of the time, this is actually
+    # a function call to copy the schema from another class. So, let's find the dictionary.
     if schema_dict_node is astroid.Uninferable:
+        # the assignment probably looks like this:
         # schema = copy.deepcopy(ActionAPI.schema)
 
+        # so far we only have the value, but we need the actual assignment
         assigns = [n for n in cls.get_children() if isinstance(n, nodes.Assign)]
         schema_assign_name_node = cls.local_attr("schema")[0]
         schema_assign_node = next(
@@ -123,9 +134,15 @@ def transform(cls):
         # We only care about "schema = copy.deepcopy(...)"
         schema_dict_node = infer_copy_deepcopy(schema_assign_node.value)
         if not schema_dict_node:
+            # This is not an API model class, as it doesn't have
+            # something we can resolve to a dictionary.
             return
 
+        # OK, now we need to look for any properties that dynamically modify
+        # the dictionary that was just copied from somewhere else.
+        # See the note below for why we only care about "properties" here.
         for assign_node in assigns:
+            # we're looking for assignments like this:
             # schema["properties"]["ttl"] = {...}
             target = assign_node.targets[0]
             try:
@@ -152,6 +169,8 @@ def transform(cls):
         # Not a class we are interested in (like BaseAPI)
         return
 
+    # We only care about "properties" in the schema because that's the only part of the schema
+    # that gets translated into dynamic attributes on the model API class.
     properties_dict_node = None
     for key_node, value_node in schema_dict_node.items:
         if key_node.value == "properties":
@@ -162,12 +181,18 @@ def transform(cls):
         # Not a class we can do anything with
         return
 
+    # Hooray! We have the schema properties dict now, so we can start processing
+    # each property and add an attribute for each one to the API model class node.
     for property_name_node, property_data_node in properties_dict_node.items + list(
         extra_schema_properties.items()
     ):
         property_name = property_name_node.value.replace(
             "-", "_"
         )  # Note: We do the same in Python code
+
+        # Despite the processing above to extract the schema properties dictionary
+        # each property in the dictionary might also reference other variables,
+        # so we still need to resolve these to figure out each property's type.
 
         # an indirect reference to copy.deepcopy() as in:
         #   REQUIRED_ATTR_SCHEMAS = {"action": copy.deepcopy(ActionAPI.schema)}
@@ -199,6 +224,7 @@ def transform(cls):
 
         property_type_node = None
         if isinstance(property_data_node, nodes.Dict):
+            # We have a property schema, but we only care about the property's type.
             for property_key_node, property_value_node in property_data_node.items:
                 if property_key_node.value == "type":
                     property_type_node = next(property_value_node.infer())
@@ -207,9 +233,11 @@ def transform(cls):
         if property_type_node is None and isinstance(
             property_data_node, nodes.Attribute
         ):
-            # reference schema from another file
+            # reference schema from another file like this:
             #   from ... import TriggerAPI
             #   schema = {"properties": {"trigger": TriggerAPI.schema}}
+            # We only pull a schema from another file when it is an "object" (a dict).
+            # So, we do not need to do any difficult cross-file processing.
             property_type = "object"
         elif property_type_node is None:
             property_type = None
@@ -221,7 +249,14 @@ def transform(cls):
                 0
             ].value  # elts has "elements" in the list/tuple
         else:
+            # We should only hit this if someone has used a different approach
+            # for dynamically constructing the property's schema.
+            # Expose the AST at this point to facilitate handling that approach.
             raise Exception(property_type_node.repr_tree())
+
+        # Hooray! We've got a property's name at this point.
+        # And we have the property's type, if that type was defined in the schema.
+        # Now, we can construct the AST node that we'll add to the API model class.
 
         if property_type == "object":
             node = nodes.Dict()
@@ -241,7 +276,11 @@ def transform(cls):
             # Unknown type
             node = astroid.ClassDef(property_name, None)
 
+        # Finally, add the property node as an attribute on the class.
         cls.locals[property_name] = [node]
+
+    # Now, pylint should be aware of all of the properties that get dynamically
+    # added as attributes on the API model class.
 
 
 MANAGER.register_transform(astroid.ClassDef, transform)
