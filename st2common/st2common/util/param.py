@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import json
+
 import re
 import six
 import networkx as nx
@@ -37,6 +37,8 @@ from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
 from st2common.util.casts import get_cast
 from st2common.util.compat import to_unicode
 from st2common.util import jinja as jinja_utils
+from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import json_decode
 
 
 LOG = logging.getLogger(__name__)
@@ -154,8 +156,8 @@ def _process_defaults(G, schemas):
     """
     for schema in schemas:
         for name, value in six.iteritems(schema):
-            absent = name not in G.node
-            is_none = G.node.get(name, {}).get("value") is None
+            absent = name not in G.nodes
+            is_none = G.nodes.get(name, {}).get("value") is None
             immutable = value.get("immutable", False)
             if absent or is_none or immutable:
                 _process(G, name, value.get("default"))
@@ -165,8 +167,8 @@ def _validate(G):
     """
     Validates dependency graph to ensure it has no missing or cyclic dependencies
     """
-    for name in G.nodes():
-        if "value" not in G.node[name] and "template" not in G.node[name]:
+    for name in G.nodes:
+        if "value" not in G.nodes[name] and "template" not in G.nodes[name]:
             msg = 'Dependency unsatisfied in variable "%s"' % name
             raise ParamException(msg)
 
@@ -198,7 +200,7 @@ def _render(node, render_context):
         complex_type = False
 
         if isinstance(node["template"], list) or isinstance(node["template"], dict):
-            node["template"] = json.dumps(node["template"])
+            node["template"] = json_encode(node["template"])
 
             # Finds occurrences of "{{variable}}" and adds `to_complex` filter
             # so types are honored. If it doesn't follow that syntax then it's
@@ -216,7 +218,7 @@ def _render(node, render_context):
         LOG.debug("Render complete: %s", result)
 
         if complex_type:
-            result = json.loads(result)
+            result = json_decode(result)
             LOG.debug("Complex Type Rendered: %s", result)
 
         return result
@@ -230,7 +232,7 @@ def _resolve_dependencies(G):
     """
     context = {}
     for name in nx.topological_sort(G):
-        node = G.node[name]
+        node = G.nodes[name]
         try:
             context[name] = _render(node, context)
 

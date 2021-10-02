@@ -17,6 +17,7 @@
 import os
 import os.path
 import copy
+import urllib
 
 try:
     import simplejson as json
@@ -263,6 +264,22 @@ ACTION_15 = {
 
 ACTION_WITH_NOTIFY = {
     "name": "st2.dummy.action_notify_test",
+    "description": "test description",
+    "enabled": True,
+    "pack": "dummy_pack_1",
+    "entry_point": "/tmp/test/action1.sh",
+    "runner_type": "local-shell-script",
+    "parameters": {
+        "a": {"type": "string", "default": "A1"},
+        "b": {"type": "string", "default": "B1"},
+        "sudo": {"default": True, "immutable": True},
+    },
+    "notify": {"on-complete": {"message": "Woohoo! I completed!!!"}},
+}
+
+
+ACTION_WITH_UNICODE_NAME = {
+    "name": "st2.dummy.action_unicode_我爱狗",
     "description": "test description",
     "enabled": True,
     "pack": "dummy_pack_1",
@@ -601,12 +618,107 @@ class ActionsControllerTestCase(
         post_resp = self.__do_post(ACTION_15)
         self.assertEqual(post_resp.status_int, 201)
 
+    @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
-    def test_delete(self):
+    def test_delete(self, mock_remove_files):
         post_resp = self.__do_post(ACTION_1)
-        del_resp = self.__do_delete(self.__get_action_id(post_resp))
+        action_id = self.__get_action_id(post_resp)
+        del_resp = self.__do_delete(action_id)
+        self.assertEqual(del_resp.status_int, 204)
+        mock_remove_files.assert_not_called()
+
+        # asserting ACTION_1 database entry has removed
+        get_resp = self.__do_get_one(action_id, expect_errors=True)
+        expected_msg = 'Resource with a reference or id "%s" not found' % action_id
+        actual_msg = get_resp.json["faultstring"]
+        self.assertEqual(actual_msg, expected_msg)
+
+    @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_delete_remove_files_false(self, mock_remove_files):
+        post_resp = self.__do_post(ACTION_1)
+        action_id = self.__get_action_id(post_resp)
+        payload = {"remove_files": False}
+        del_resp = self.__do_delete_action_with_files(payload, action_id)
+        self.assertEqual(del_resp.status_int, 204)
+        mock_remove_files.assert_not_called()
+        get_resp = self.__do_get_one(action_id, expect_errors=True)
+        expected_msg = 'Resource with a reference or id "%s" not found' % action_id
+        actual_msg = get_resp.json["faultstring"]
+        self.assertEqual(actual_msg, expected_msg)
+
+    @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_delete_remove_files_true(self, mock_remove_files):
+        post_resp = self.__do_post(ACTION_1)
+        action_id = self.__get_action_id(post_resp)
+        payload = {"remove_files": True}
+        del_resp = self.__do_delete_action_with_files(payload, action_id)
+        self.assertEqual(del_resp.status_int, 204)
+        self.assertTrue(mock_remove_files.called)
+        get_resp = self.__do_get_one(action_id, expect_errors=True)
+        expected_msg = 'Resource with a reference or id "%s" not found' % action_id
+        actual_msg = get_resp.json["faultstring"]
+        self.assertEqual(actual_msg, expected_msg)
+
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_delete_permission_error_and_action_reregistered_to_database(self):
+        post_resp = self.__do_post(ACTION_1)
+
+        with mock.patch(
+            "st2api.controllers.v1.actions.delete_action_files_from_pack"
+        ) as mock_remove_files:
+            msg = "No permission to delete action files from disk"
+            mock_remove_files.side_effect = PermissionError(msg)
+            payload = {"remove_files": True}
+            del_resp = self.__do_delete_action_with_files(
+                payload, self.__get_action_id(post_resp), expect_errors=True
+            )
+            self.assertEqual(del_resp.status_int, 403)
+            self.assertEqual(del_resp.json["faultstring"], msg)
+
+        # retrieving reregistered action
+        get_resp = self.__do_get_actions_by_url_parameter("name", ACTION_1["name"])
+        expected_uid = post_resp.json["uid"]
+        actual_uid = get_resp.json[0]["uid"]
+        self.assertEqual(actual_uid, expected_uid)
+        action_id = get_resp.json[0]["id"]
+        del_resp = self.__do_delete(action_id)
+        self.assertEqual(del_resp.status_int, 204)
+
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_delete_exception_and_action_reregistered_to_database(self):
+        post_resp = self.__do_post(ACTION_1)
+
+        with mock.patch(
+            "st2api.controllers.v1.actions.delete_action_files_from_pack"
+        ) as mock_remove_files:
+            msg = "Exception encountered during removing files from disk"
+            mock_remove_files.side_effect = Exception(msg)
+            payload = {"remove_files": True}
+            del_resp = self.__do_delete_action_with_files(
+                payload, self.__get_action_id(post_resp), expect_errors=True
+            )
+            self.assertEqual(del_resp.status_int, 500)
+            self.assertEqual(del_resp.json["faultstring"], msg)
+
+        # retrieving reregistered action
+        get_resp = self.__do_get_actions_by_url_parameter("name", ACTION_1["name"])
+        expected_uid = post_resp.json["uid"]
+        actual_uid = get_resp.json[0]["uid"]
+        self.assertEqual(actual_uid, expected_uid)
+        action_id = get_resp.json[0]["id"]
+        del_resp = self.__do_delete(action_id)
         self.assertEqual(del_resp.status_int, 204)
 
     @mock.patch.object(
@@ -638,6 +750,48 @@ class ActionsControllerTestCase(
         # Validate that notify section has vanished
         get_resp = self.__do_get_one(action_id)
         self.assertEqual(get_resp.json["notify"], {})
+        self.__do_delete(action_id)
+
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_action_with_unicode_name_create(self):
+        post_resp = self.__do_post(ACTION_WITH_UNICODE_NAME)
+        action_id = self.__get_action_id(post_resp)
+        get_resp = self.__do_get_one(action_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_action_id(get_resp), action_id)
+        self.assertEqual(get_resp.json["name"], "st2.dummy.action_unicode_我爱狗")
+        self.assertEqual(
+            get_resp.json["ref"], "dummy_pack_1.st2.dummy.action_unicode_我爱狗"
+        )
+        self.assertEqual(
+            get_resp.json["uid"], "action:dummy_pack_1:st2.dummy.action_unicode_我爱狗"
+        )
+
+        get_resp = self.__do_get_one("dummy_pack_1.st2.dummy.action_unicode_我爱狗")
+        self.assertEqual(get_resp.json["name"], "st2.dummy.action_unicode_我爱狗")
+        self.assertEqual(
+            get_resp.json["ref"], "dummy_pack_1.st2.dummy.action_unicode_我爱狗"
+        )
+        self.assertEqual(
+            get_resp.json["uid"], "action:dummy_pack_1:st2.dummy.action_unicode_我爱狗"
+        )
+
+        # Now retrieve the action using the ref and ensure it works correctly
+        # NOTE: We need to use urlquoted value when retrieving the item since that's how all the
+        # http clients work - non ascii characters get escaped / quoted. Passing in unquoted
+        # value will result in exception (as expected).
+        ref_quoted = urllib.parse.quote("dummy_pack_1.st2.dummy.action_unicode_我爱狗")
+        get_resp = self.__do_get_one(ref_quoted)
+        self.assertEqual(get_resp.json["name"], "st2.dummy.action_unicode_我爱狗")
+        self.assertEqual(
+            get_resp.json["ref"], "dummy_pack_1.st2.dummy.action_unicode_我爱狗"
+        )
+        self.assertEqual(
+            get_resp.json["uid"], "action:dummy_pack_1:st2.dummy.action_unicode_我爱狗"
+        )
+
         self.__do_delete(action_id)
 
     @mock.patch.object(
@@ -742,4 +896,11 @@ class ActionsControllerTestCase(
     def __do_delete(self, action_id, expect_errors=False):
         return self.app.delete(
             "/v1/actions/%s" % action_id, expect_errors=expect_errors
+        )
+
+    def __do_delete_action_with_files(self, options, action_id, expect_errors=False):
+        return self.app.delete_json(
+            "/v1/actions/%s" % action_id,
+            options,
+            expect_errors=expect_errors,
         )

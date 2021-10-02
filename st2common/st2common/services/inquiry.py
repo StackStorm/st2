@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import copy
 import six
 
 from oslo_config import cfg
@@ -34,6 +33,7 @@ from st2common.util import action_db as action_utils
 from st2common.util import date as date_utils
 from st2common.util import schema as schema_utils
 from st2common.util import system_info as sys_info_utils
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 
 LOG = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ def check_inquiry(inquiry):
 def check_permission(inquiry, requester):
     # Normalize user object.
     user_db = (
-        auth_db_models.UserDB(requester)
+        auth_db_models.UserDB(name=requester)
         if isinstance(requester, six.string_types)
         else requester
     )
@@ -154,7 +154,7 @@ def respond(inquiry, response, requester=None):
     # Succeed the liveaction and update result with the inquiry response.
     LOG.debug('Updating response for inquiry "%s".' % str(inquiry.id))
 
-    result = copy.deepcopy(inquiry.result)
+    result = fast_deepcopy_dict(inquiry.result)
     result["response"] = response
 
     liveaction_db = action_utils.update_liveaction_status(

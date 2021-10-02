@@ -21,12 +21,12 @@ import bson
 import six
 import mongoengine as me
 from oslo_config import cfg
-import json
 
 from st2common.util import mongoescape
 from st2common.models.base import DictSerializableClassMixin
 from st2common.models.system.common import ResourceReference
 from st2common.constants.types import ResourceType
+from st2common.util.jsonify import json_decode
 
 __all__ = [
     "StormFoundationDB",
@@ -41,6 +41,8 @@ __all__ = [
 ]
 
 JSON_UNFRIENDLY_TYPES = (datetime.datetime, bson.ObjectId)
+
+DICT_FIELD_NOT_SET_MARKER = "dict-field-not-set"
 
 
 class StormFoundationDB(me.Document, DictSerializableClassMixin):
@@ -103,7 +105,7 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
             if isinstance(v, JSON_UNFRIENDLY_TYPES):
                 v = str(v)
             elif isinstance(v, me.EmbeddedDocument):
-                v = json.loads(v.to_json())
+                v = json_decode(v.to_json())
 
             serializable_dict[k] = v
 

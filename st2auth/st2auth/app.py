@@ -41,7 +41,7 @@ def setup_app(config=None):
     is_gunicorn = config.get("is_gunicorn", False)
     if is_gunicorn:
         # NOTE: We only want to perform this logic in the WSGI worker
-        st2auth_config.register_opts()
+        st2auth_config.register_opts(ignore_errors=True)
         capabilities = {
             "name": "auth",
             "listen_host": cfg.CONF.auth.host,

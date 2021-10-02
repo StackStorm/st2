@@ -14,23 +14,28 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import itertools
-import json
 
+import itertools
+
+import os
 import requests
 import six
+from six.moves import range
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.content.utils import get_pack_base_path
+from st2common.exceptions.content import ResourceDiskFilesRemovalError
 from st2common.persistence.pack import Pack
 from st2common.util.misc import lowercase_value
-from six.moves import range
+from st2common.util.jsonify import json_encode
 
 __all__ = [
     "get_pack_by_ref",
     "fetch_pack_index",
     "get_pack_from_index",
     "search_pack_index",
+    "delete_action_files_from_pack",
 ]
 
 EXCLUDE_FIELDS = ["repo_url", "email"]
@@ -112,7 +117,9 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
             index_status["message"] = 'Index object is missing "packs" attribute.'
 
         if index_status["error"]:
-            logger.error("Index parsing error: %s" % json.dumps(index_status, indent=4))
+            logger.error(
+                "Index parsing error: %s" % json_encode(index_status, indent=4)
+            )
         else:
             # TODO: Notify on a duplicate pack aka pack being overwritten from a different index
             packs_data = index_json["packs"]
@@ -156,7 +163,7 @@ def fetch_pack_index(index_url=None, logger=None, allow_empty=False, proxy_confi
             % (
                 ("index" if len(index_urls) == 1 else "indexes"),
                 ", ".join(index_urls),
-                json.dumps(status, indent=4),
+                json_encode(status, indent=4),
             )
         )
     return (index, status)
@@ -212,3 +219,74 @@ def search_pack_index(
                 break
 
     return list(itertools.chain.from_iterable(matches))
+
+
+def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
+    """
+    Prepares the path for entry_point file and metadata file of action and
+    deletes them from disk.
+    """
+
+    pack_base_path = get_pack_base_path(pack_name=pack_name)
+    action_entrypoint_file_path = os.path.join(pack_base_path, "actions", entry_point)
+    action_metadata_file_path = os.path.join(pack_base_path, metadata_file)
+
+    if os.path.isfile(action_entrypoint_file_path):
+        try:
+            os.remove(action_entrypoint_file_path)
+        except PermissionError:
+            LOG.error(
+                'No permission to delete the "%s" file',
+                action_entrypoint_file_path,
+            )
+            msg = 'No permission to delete "%s" file from disk' % (
+                action_entrypoint_file_path
+            )
+            raise PermissionError(msg)
+        except Exception as e:
+            LOG.error(
+                'Unable to delete "%s" file. Exception was "%s"',
+                action_entrypoint_file_path,
+                e,
+            )
+            msg = (
+                'The action file "%s" could not be removed from disk, please '
+                "check the logs or ask your StackStorm administrator to check "
+                "and delete the actions files manually" % (action_entrypoint_file_path)
+            )
+            raise ResourceDiskFilesRemovalError(msg)
+    else:
+        LOG.warning(
+            'The action entry point file "%s" does not exists on disk.',
+            action_entrypoint_file_path,
+        )
+
+    if os.path.isfile(action_metadata_file_path):
+        try:
+            os.remove(action_metadata_file_path)
+        except PermissionError:
+            LOG.error(
+                'No permission to delete the "%s" file',
+                action_metadata_file_path,
+            )
+            msg = 'No permission to delete "%s" file from disk' % (
+                action_metadata_file_path
+            )
+            raise PermissionError(msg)
+        except Exception as e:
+            LOG.error(
+                'Could not delete "%s" file. Exception was "%s"',
+                action_metadata_file_path,
+                e,
+            )
+            msg = (
+                'The action file "%s" could not be removed from disk, please '
+                "check the logs or ask your StackStorm administrator to check "
+                "and delete the actions files manually" % (action_metadata_file_path)
+            )
+            raise ResourceDiskFilesRemovalError(msg)
+    else:
+        LOG.warning(
+            'The action metadata file "%s" does not exists on disk.',
+            action_metadata_file_path,
+        )

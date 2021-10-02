@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 
 import six
@@ -27,6 +28,7 @@ from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInst
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common import log as logging
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = ["ActionExecutionAPI", "ActionExecutionOutputAPI"]
 
@@ -112,6 +114,7 @@ class ActionExecutionAPI(BaseAPI):
                     {"type": "string"},
                 ]
             },
+            "result_size": {"type": "integer"},
             "parent": {"type": "string"},
             "children": {
                 "type": "array",
@@ -142,10 +145,16 @@ class ActionExecutionAPI(BaseAPI):
         },
         "additionalProperties": False,
     }
+    skip_unescape_field_names = [
+        "result",
+    ]
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
+
+        doc["result"] = ActionExecutionDB.result.parse_field_value(doc["result"])
+
         start_timestamp = model.start_timestamp
         start_timestamp_iso = isotime.format(start_timestamp, offset=False)
         doc["start_timestamp"] = start_timestamp_iso
@@ -169,7 +178,7 @@ class ActionExecutionAPI(BaseAPI):
             if not getattr(instance, attr, None):
                 continue
 
-            default = copy.deepcopy(meta.get("default", None))
+            default = fast_deepcopy_dict(meta.get("default", None))
             value = getattr(instance, attr, default)
 
             # pylint: disable=no-member

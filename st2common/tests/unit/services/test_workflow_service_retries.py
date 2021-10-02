@@ -15,6 +15,11 @@
 
 from __future__ import absolute_import
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
+
 import mock
 import mongoengine
 import os
@@ -196,8 +201,8 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         "update_task_state",
         mock.MagicMock(
             side_effect=[
-                mongoengine.connection.MongoEngineConnectionError(),
-                mongoengine.connection.MongoEngineConnectionError(),
+                mongoengine.connection.ConnectionFailure(),
+                mongoengine.connection.ConnectionFailure(),
                 None,
             ]
         ),
@@ -227,7 +232,7 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
     @mock.patch.object(
         wf_svc,
         "update_task_state",
-        mock.MagicMock(side_effect=mongoengine.connection.MongoEngineConnectionError()),
+        mock.MagicMock(side_effect=mongoengine.connection.ConnectionFailure()),
     )
     def test_retries_exhausted_from_database_connection_error(self):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
@@ -248,7 +253,7 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
 
         # The connection error should raise if retries are exhaused.
         self.assertRaises(
-            mongoengine.connection.MongoEngineConnectionError,
+            mongoengine.connection.ConnectionFailure,
             wf_svc.handle_action_execution_completion,
             tk1_ac_ex_db,
         )

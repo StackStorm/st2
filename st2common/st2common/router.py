@@ -15,11 +15,11 @@
 
 from __future__ import absolute_import
 
-import copy
 import functools
 import re
 import six
 import sys
+import copy
 import traceback
 
 from flex.core import validate
@@ -28,8 +28,8 @@ from oslo_config import cfg
 import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 import webob
-from webob import cookies, exc, Request
-from webob.compat import url_unquote
+from webob import cookies, exc
+from six.moves import urllib
 
 from st2common.exceptions import rbac as rbac_exc
 from st2common.exceptions import auth as auth_exc
@@ -39,8 +39,10 @@ from st2common.persistence.auth import User
 from st2common.rbac.backends import get_rbac_backend
 from st2common.util import date as date_utils
 from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import json_decode
 from st2common.util.jsonify import get_json_type_for_python_value
 from st2common.util.http import parse_content_type_header
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = [
     "Router",
@@ -143,7 +145,29 @@ class NotFoundException(Exception):
     pass
 
 
+class Request(webob.Request):
+    """
+    Custom Request implementation which uses our custom and faster json serializer and deserializer.
+    """
+
+    def _json_body__get(self):
+        return json_decode(self.body.decode(self.charset))
+
+    def _json_body__set(self, value):
+        self.body = json_encode(value).encode("utf-8")
+
+    def _json_body__del(self):
+        return super(Request, self)._json_body__del()
+
+    json = json_body = property(_json_body__get, _json_body__set, _json_body__del)
+
+
 class Response(webob.Response):
+    """
+    Custom Response implementation which uses our custom and faster json serializer and
+    deserializer.
+    """
+
     def __init__(
         self,
         body=None,
@@ -164,7 +188,8 @@ class Response(webob.Response):
                 json_body = kwargs.pop("json_body")
             else:
                 json_body = kwargs.pop("json")
-            body = json_encode(json_body).encode("UTF-8")
+
+            body = json_encode(json_body).encode("utf-8")
 
             if content_type is None:
                 content_type = "application/json"
@@ -174,10 +199,10 @@ class Response(webob.Response):
         )
 
     def _json_body__get(self):
-        return super(Response, self)._json_body__get()
+        return json_decode(self.body.decode(self.charset or "utf-8"))
 
     def _json_body__set(self, value):
-        self.body = json_encode(value).encode("UTF-8")
+        self.body = json_encode(value).encode("utf-8")
 
     def _json_body__del(self):
         return super(Response, self)._json_body__del()
@@ -208,7 +233,7 @@ class Router(object):
         self.spec = spec
         self.spec_resolver = jsonschema.RefResolver("", self.spec)
 
-        validate(copy.deepcopy(self.spec))
+        validate(fast_deepcopy_dict(self.spec))
 
         for filter in transforms:
             for (path, methods) in six.iteritems(spec["paths"]):
@@ -239,7 +264,31 @@ class Router(object):
             )
 
     def match(self, req):
-        path = url_unquote(req.path)
+        # NOTE: webob.url_unquote doesn't work correctly under Python 3 when paths contain non-ascii
+        # characters. That method supposed to handle Python 2 and Python 3 compatibility, but it
+        # doesn't work correctly under Python 3.
+        try:
+            path = urllib.parse.unquote(req.path)
+        except Exception as e:
+            # This exception being thrown indicates that the URL / path contains bad or incorrectly
+            # URL escaped characters. Instead of returning this stack track + 500 error to the
+            # user we return a friendly and more correct exception
+            # NOTE: We should not access or log req.path here since it's a property which results
+            # in exception and if we try to log it, it will fail.
+            try:
+                path = req.environ["PATH_INFO"]
+            except Exception:
+                path = "unknown"
+
+            LOG.error('Failed to parse request URL / path "%s": %s' % (path, str(e)))
+
+            abort(
+                400,
+                'Failed to parse request path "%s". URL likely contains invalid or incorrectly '
+                "URL encoded values." % (path),
+            )
+            return
+
         LOG.debug("Match path: %s", path)
 
         if len(path) > 1 and path.endswith("/"):
@@ -637,11 +686,16 @@ class Router(object):
             response_spec_name = str(resp.status_code)
 
         response_spec = response_spec or default_response_spec
+        response_spec = response_spec or {}
+        validate_response = response_spec.get("schema", {}).get(
+            "validate_response", True
+        )
 
         if (
             response_spec
             and "schema" in response_spec
             and not has_include_or_exclude_attributes
+            and validate_response
         ):
             # NOTE: We don't perform response validation when include or exclude attributes are
             # provided because this means partial response which likely won't pass the validation

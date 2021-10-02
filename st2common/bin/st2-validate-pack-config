@@ -17,5 +17,5 @@
 import sys
 from st2common.cmd.validate_config import main
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

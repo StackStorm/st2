@@ -41,6 +41,7 @@ CONFIGS = [
 ]
 
 SKIP_GROUPS = ["api_pecan", "rbac", "results_tracker"]
+SKIP_OPTIONS = []
 
 # We group auth options together to make it a bit more clear what applies where
 AUTH_OPTIONS = {
@@ -152,6 +153,9 @@ def _print_options(opt_group, options):
     for opt in sorted(options, key=lambda x: x["opt"].name):
         opt = opt["opt"]
 
+        if opt.name in SKIP_OPTIONS:
+            continue
+
         # Special case for options which could change during this script run
         static_option_value = STATIC_OPTION_VALUES.get(opt_group.name, {}).get(
             opt.name, None
@@ -178,7 +182,7 @@ def main(args):
     opt_groups = {}
     for config in CONFIGS:
         mod = _import_config(config)
-        mod.register_opts()
+        mod.register_opts(ignore_errors=True)
         _read_current_config(opt_groups)
         _clear_config()
     _read_groups(opt_groups)

@@ -42,7 +42,6 @@ __all__ = [
 def get_sandbox_python_binary_path(pack=None):
     """
     Return path to the Python binary for the provided pack.
-
     :param pack: Pack name.
     :type pack: ``str``
     """
@@ -61,10 +60,8 @@ def get_sandbox_python_binary_path(pack=None):
 def get_sandbox_path(virtualenv_path):
     """
     Return PATH environment variable value for the sandboxed environment.
-
     This function makes sure that virtualenv/bin directory is in the path and has precedence over
     the global PATH values.
-
     Note: This function needs to be called from the parent process (one which is spawning a
     sandboxed process).
     """
@@ -89,16 +86,12 @@ def get_sandbox_path(virtualenv_path):
 def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=True):
     """
     Return PYTHONPATH environment variable value for the new sandboxed environment.
-
     This function takes into account if the current (parent) process is running under virtualenv
     and other things like that.
-
     Note: This function needs to be called from the parent process (one which is spawning a
     sandboxed process).
-
     :param inherit_from_parent: True to inheir PYTHONPATH from the current process.
     :type inherit_from_parent: ``str``
-
     :param inherit_parent_virtualenv: True to inherit virtualenv path if the current process is
                                       running inside virtual environment.
     :type inherit_parent_virtualenv: ``str``
@@ -117,7 +110,10 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
         site_packages_dir = get_python_lib()
 
         sys_prefix = os.path.abspath(sys.prefix)
-        assert sys_prefix in site_packages_dir
+        if sys_prefix not in site_packages_dir:
+            raise ValueError(
+                f'The file with "{sys_prefix}" is not found in "{site_packages_dir}".'
+            )
 
         sandbox_python_path.append(site_packages_dir)
 
@@ -131,7 +127,6 @@ def get_sandbox_python_path_for_python_action(
 ):
     """
     Return sandbox PYTHONPATH for a particular Python runner action.
-
     Same as get_sandbox_python_path() function, but it's intended to be used for Python runner
     actions.
     """

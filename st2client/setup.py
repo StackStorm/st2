@@ -45,6 +45,7 @@ setup(
         "automation platform."
     ),
     long_description=readme,
+    long_description_content_type="text/x-rst",
     author="StackStorm",
     author_email="info@stackstorm.com",
     url="https://stackstorm.com/",
@@ -56,8 +57,8 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
     ],
     install_requires=install_reqs,
     dependency_links=dep_links,

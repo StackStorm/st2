@@ -551,18 +551,28 @@ class IntegrationTestCase(TestCase):
 
     processes = {}
 
+    def setUp(self):
+        super(IntegrationTestCase, self).setUp()
+        self._stop_running_processes()
+
     def tearDown(self):
         super(IntegrationTestCase, self).tearDown()
+        self._stop_running_processes()
 
+    def _stop_running_processes(self):
         # Make sure we kill all the processes on teardown so they don't linger around if an
         # exception was thrown.
-        for pid, process in self.processes.items():
+        pids = list(self.processes.keys())
+        for pid in pids:
+            process = self.processes[pid]
 
             try:
                 process.kill()
             except OSError:
                 # Process already exited or similar
                 pass
+
+            del self.processes[pid]
 
             if self.print_stdout_stderr_on_teardown:
                 try:
@@ -575,6 +585,7 @@ class IntegrationTestCase(TestCase):
                 except:
                     stderr = None
 
+                print("Stopping process with pid %s" % (process.id))
                 print('Process "%s"' % (process.pid))
                 print("Stdout: %s" % (stdout))
                 print("Stderr: %s" % (stderr))

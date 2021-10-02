@@ -13,7 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import webob
 from oslo_config import cfg
+from webob.request import Request
+
+from st2common.router import Router
+
 from st2tests.api import FunctionalTest
 
 
@@ -95,3 +100,16 @@ class TestBase(FunctionalTest):
             "/v1/executions/577f775b0640fd1451f2030b/re_run/a/b", expect_errors=True
         )
         self.assertEqual(resp.status_int, 404)
+
+    def test_router_invalid_url_path_friendly_error(self):
+        # NOTE: We intentionally don't use sp.app.get here since that goes through the webtest
+        # layer which manipulates the path which means we won't be testing what we actually want
+        # to test (an edge case). To test the edge case correctly, we need to manually call router
+        # with specifically crafted data.
+        router = Router()
+        request = Request(environ={"PATH_INFO": "/v1/rules/好的".encode("utf-8")})
+
+        expected_msg = "URL likely contains invalid or incorrectly URL encoded values"
+        self.assertRaisesRegexp(
+            webob.exc.HTTPBadRequest, expected_msg, router.match, request
+        )

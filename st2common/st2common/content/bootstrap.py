@@ -252,7 +252,9 @@ def register_actions():
         LOG.info("=========================================================")
         with Timer(key="st2.register.actions"):
             registered_count = actions_registrar.register_actions(
-                pack_dir=pack_dir, fail_on_failure=fail_on_failure
+                pack_dir=pack_dir,
+                fail_on_failure=fail_on_failure,
+                use_runners_cache=True,
             )
     except Exception as e:
         exc_info = not fail_on_failure
@@ -435,6 +437,7 @@ def setup(argv):
         setup_db=True,
         register_mq_exchanges=True,
         register_internal_trigger_types=True,
+        ignore_register_config_opts_errors=True,
     )
 
 

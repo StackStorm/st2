@@ -58,10 +58,12 @@ setup(
         "bin/st2-generate-symmetric-crypto-key",
         "bin/st2-self-check",
         "bin/st2-track-result",
+        "bin/st2-validate-pack",
         "bin/st2-validate-pack-config",
         "bin/st2-pack-install",
         "bin/st2-pack-download",
         "bin/st2-pack-setup-virtualenv",
+        "bin/migrations/v3.5/st2-migrate-db-dict-field-values",
     ],
     entry_points={
         "st2common.metrics.driver": [

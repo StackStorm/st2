@@ -348,3 +348,74 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(notifier.Notifier._post_notify_triggers.called)
         notifier.Notifier._post_notify_triggers.reset_mock()
+
+    def test_notify_task_list_for_task_with_notify(self):
+        wf_meta = base.get_wf_fixture_meta_data(
+            TEST_PACK_PATH, "subworkflow-with-notify-task.yaml"
+        )
+        lv_ac_db = lv_db_models.LiveActionDB(
+            action=wf_meta["name"], parameters={"notify": ["task2"]}
+        )
+        lv_ac_db.notify = notify_api_models.NotificationsHelper.to_model(MOCK_NOTIFY)
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+
+        # Assert action execution is running.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        # Assert task1 notify is not set.
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk1_ex_db.id)
+        )[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        self.assertIsNone(tk1_lv_ac_db.notify)
+        # Assert task2 notify is set.
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task2"}
+        tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk2_ex_db.id)
+        )[0]
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction["id"])
+        notify = notify_api_models.NotificationsHelper.from_model(
+            notify_model=tk2_lv_ac_db.notify
+        )
+        self.assertEqual(notify, MOCK_NOTIFY)
+
+    def test_no_notify_for_task_with_notify(self):
+        wf_meta = base.get_wf_fixture_meta_data(
+            TEST_PACK_PATH, "subworkflow-with-notify-task.yaml"
+        )
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+
+        # Assert action execution is running.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        # Assert task1 notify is not set.
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
+        tk1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk1_ex_db.id)
+        )[0]
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        self.assertIsNone(tk1_lv_ac_db.notify)
+
+        # Assert task2 notify is not set.
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task2"}
+        tk2_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        tk2_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(tk2_ex_db.id)
+        )[0]
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction["id"])
+        self.assertIsNone(tk2_lv_ac_db.notify)

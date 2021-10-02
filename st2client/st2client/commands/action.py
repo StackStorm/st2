@@ -30,7 +30,7 @@ from os.path import join as pjoin
 
 from six.moves import range
 
-from st2client import models
+from st2client.models.action import Action, Execution
 from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
 from st2client.commands.resource import ResourceViewCommand
@@ -107,6 +107,27 @@ def format_parameters(value):
     return value
 
 
+def format_log_items(value):
+    if not value:
+        return value
+
+    if not isinstance(value, dict):
+        # Already formatted or similar
+        return value
+
+    result = []
+    for item in value:
+        if not isinstance(item, dict):
+            # We could end up here if user runs newer versions of the client against old st2
+            # instance. We simply ignore those errors.
+            continue
+
+        item["timestamp"] = format_isodate_for_user_timezone(item["timestamp"])
+        result.append(item)
+
+    return result
+
+
 # String for indenting etc.
 WF_PREFIX = "+ "
 NON_WF_PREFIX = "  "
@@ -168,7 +189,6 @@ def format_execution_status(instance):
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         end_timestamp = parse_isotime(end_timestamp)
         end_timestamp = calendar.timegm(end_timestamp.timetuple())
-
         elapsed_seconds = end_timestamp - start_timestamp
         instance.status = "%s (%ss elapsed)" % (instance.status, elapsed_seconds)
 
@@ -178,7 +198,7 @@ def format_execution_status(instance):
 class ActionBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionBranch, self).__init__(
-            models.Action,
+            Action,
             description,
             app,
             subparsers,
@@ -258,7 +278,33 @@ class ActionDisableCommand(resource.ContentPackResourceDisableCommand):
 
 
 class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
-    pass
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionDeleteCommand, self).__init__(resource, *args, **kwargs)
+
+        self.parser.add_argument(
+            "-r",
+            "--remove-files",
+            action="store_true",
+            dest="remove_files",
+            default=False,
+            help="Remove action files from disk.",
+        )
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        resource_id = getattr(args, self.pk_argument_name, None)
+        instance = self.get_resource(resource_id, **kwargs)
+        remove_files = args.remove_files
+        self.manager.delete_action(instance, remove_files, **kwargs)
+        print('Resource with id "%s" has been successfully deleted.' % (resource_id))
+
+    def run_and_print(self, args, **kwargs):
+        resource_id = getattr(args, self.pk_argument_name)
+
+        try:
+            self.run(args, **kwargs)
+        except ResourceNotFoundError:
+            self.print_not_found(resource_id)
 
 
 class ActionRunCommandMixin(object):
@@ -291,6 +337,7 @@ class ActionRunCommandMixin(object):
         "end_timestamp": format_isodate_for_user_timezone,
         "parameters": format_parameters,
         "status": format_status,
+        "log": format_log_items,
     }
 
     poll_interval = 2  # how often to poll for execution completion when using sync mode
@@ -482,6 +529,7 @@ class ActionRunCommandMixin(object):
                 "status",
                 "start_timestamp",
                 "end_timestamp",
+                "log",
             ]
         }
         options["json"] = args.json
@@ -1024,7 +1072,7 @@ class ActionRunCommandMixin(object):
             task_name_key = "context.orquesta.task_name"
         # Use Execution as the object so that the formatter lookup does not change.
         # AKA HACK!
-        return models.action.Execution(
+        return Execution(
             **{
                 "id": task.id,
                 "status": task.status,
@@ -1182,7 +1230,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
             action=action, runner=runner, args=args
         )
 
-        execution = models.Execution()
+        execution = Execution()
         execution.action = action_ref
         execution.parameters = action_parameters
         execution.user = args.user
@@ -1209,7 +1257,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
 class ActionExecutionBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionExecutionBranch, self).__init__(
-            models.Execution,
+            Execution,
             description,
             app,
             subparsers,
@@ -1441,6 +1489,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
         "status",
         "start_timestamp",
         "end_timestamp",
+        "log",
         "result",
     ]
     include_attributes = [
@@ -1448,7 +1497,9 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
         "action.runner_type",
         "start_timestamp",
         "end_timestamp",
+        "log",
     ]
+    pk_argument_name = "id"
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionGetCommand, self).__init__(
@@ -1460,7 +1511,17 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
         )
 
         self.parser.add_argument(
-            "id", help=("ID of the %s." % resource.get_display_name().lower())
+            "id",
+            nargs="+",
+            help=("ID of the %s." % resource.get_display_name().lower()),
+        )
+        self.parser.add_argument(
+            "-x",
+            "--exclude-result",
+            dest="exclude_result",
+            action="store_true",
+            default=False,
+            help=("Don't retrieve and display the result field"),
         )
 
         self._add_common_options()
@@ -1475,21 +1536,24 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
             include_attributes = ",".join(include_attributes)
             kwargs["params"] = {"include_attributes": include_attributes}
 
-        execution = self.get_resource_by_id(id=args.id, **kwargs)
-        return execution
+        if args.exclude_result:
+            kwargs["params"] = {"exclude_attributes": "result"}
+
+        resource_ids = getattr(args, self.pk_argument_name, None)
+        resources = self._get_multiple_resources(
+            resource_ids=resource_ids, kwargs=kwargs
+        )
+        return resources
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
-        try:
-            execution = self.run(args, **kwargs)
+        executions = self.run(args, **kwargs)
 
+        for execution in executions:
             if not args.json and not args.yaml:
                 # Include elapsed time for running executions
                 execution = format_execution_status(execution)
-        except resource.ResourceNotFoundError:
-            self.print_not_found(args.id)
-            raise ResourceNotFoundError("Execution with id %s not found." % (args.id))
-        return self._print_execution_details(execution=execution, args=args, **kwargs)
+            self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
 class ActionExecutionCancelCommand(resource.ResourceCommand):

@@ -1,0 +1,37 @@
+version: 1.0
+
+description: A basic workflow which passes large data around.
+
+input:
+  - file_path
+  - b1: <% ctx().file_path %>
+
+vars:
+  - a2: <% ctx().b1 %>
+  - b2: <% ctx().a2 %>
+
+output:
+  - a5: <% ctx().b4 %>
+  - b5: <% ctx().a5 %>
+
+tasks:
+  task1:
+    action: core.echo
+    input:
+      message: <% ctx().b2 %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - a3: <% result().stdout %>
+          - b3: <% ctx().a3 %>
+        do: task2
+  task2:
+    action: examples.load_and_print_fixture
+    input:
+      file_path: <% ctx().file_path %>
+    next:
+      - when: <% succeeded() %>
+        publish: a4=<% result().result %> b4=<% ctx().a4 %>
+        do: task3
+  task3:
+    action: core.noop

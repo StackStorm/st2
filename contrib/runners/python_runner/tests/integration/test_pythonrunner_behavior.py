@@ -21,6 +21,10 @@ import os
 import mock
 import tempfile
 
+from st2common.util.monkey_patch import use_select_poll_workaround
+
+use_select_poll_workaround()
+
 from oslo_config import cfg
 
 from python_runner import python_runner
@@ -40,6 +44,12 @@ WRAPPER_SCRIPT_PATH = os.path.abspath(WRAPPER_SCRIPT_PATH)
 
 
 class PythonRunnerBehaviorTestCase(CleanFilesTestCase, CleanDbTestCase):
+
+    # If you need these logs, then you probably also want to uncomment
+    # extra debug log messages in st2common/st2common/util/virtualenvs.py
+    # and pass --logging-level=DEBUG to nosetests
+    # DISPLAY_LOG_MESSAGES = True
+
     def setUp(self):
         super(PythonRunnerBehaviorTestCase, self).setUp()
         config.parse_args()
@@ -74,6 +84,15 @@ class PythonRunnerBehaviorTestCase(CleanFilesTestCase, CleanDbTestCase):
         (_, output, _) = self._run_action(
             pack_name, "get_library_path.py", {"module": "six"}
         )
+        # FIXME: This test fails if system site-packages has six because
+        # it won't get installed in the virtualenv (w/ --system-site-packages)
+        # system site-packages is never from a virtualenv.
+        # Travis has python installed in /opt/python/3.6.7
+        # with a no-system-site-packages virtualenv at /home/travis/virtualenv/python3.6.7
+        # GitHub Actions python is in /opt/hostedtoolcache/Python/3.6.13/x64/
+        # But ther isn't a virtualenv, so when we pip installed `virtualenv`,
+        # (which depends on, and therefore installs `six`)
+        # we installed it in system-site-packages not an intermediate virtualenv
         self.assertEqual(output["result"].find(self.virtualenvs_path), 0)
 
         # Conversely, this expects that 'mock' module file-path is not under sandbox library,

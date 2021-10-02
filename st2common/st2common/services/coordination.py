@@ -175,6 +175,19 @@ def configured():
     return backend_configured and not mock_backend
 
 
+def get_driver_name() -> str:
+    """
+    Return coordination driver name (aka protocol part from the URI / URL).
+    """
+    url = cfg.CONF.coordination.url
+
+    if not url:
+        return None
+
+    driver_name = url.split("://")[0]
+    return driver_name
+
+
 def coordinator_setup(start_heart=True):
     """
     Sets up the client for the coordination service.

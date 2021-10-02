@@ -35,7 +35,6 @@ instead of SHA1, etc.).
 from __future__ import absolute_import
 
 import os
-import json
 import binascii
 import base64
 
@@ -49,6 +48,9 @@ from cryptography.hazmat.primitives.ciphers import modes
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import hmac
 from cryptography.hazmat.backends import default_backend
+
+from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import json_decode
 
 __all__ = [
     "KEYCZAR_HEADER_SIZE",
@@ -75,7 +77,11 @@ MINIMUM_AES_KEY_SIZE = 128
 
 DEFAULT_AES_KEY_SIZE = 256
 
-assert DEFAULT_AES_KEY_SIZE >= MINIMUM_AES_KEY_SIZE
+if DEFAULT_AES_KEY_SIZE < MINIMUM_AES_KEY_SIZE:
+    raise ValueError(
+        'AES key size "%s" is smaller than minimun key size "%s".'
+        % (DEFAULT_AES_KEY_SIZE, MINIMUM_AES_KEY_SIZE)
+    )
 
 
 class AESKey(object):
@@ -154,7 +160,7 @@ class AESKey(object):
             "mode": self.mode.upper(),
             "size": int(self.size),
         }
-        return json.dumps(data)
+        return json_encode(data)
 
     def __repr__(self):
         return "<AESKey hmac_key_size=%s,mode=%s,size=%s>" % (
@@ -176,7 +182,7 @@ def read_crypto_key(key_path):
     with open(key_path, "r") as fp:
         content = fp.read()
 
-    content = json.loads(content)
+    content = json_decode(content)
 
     try:
         aes_key = AESKey(
@@ -219,18 +225,24 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     NOTE: Header itself is unused, but it's added so the format is compatible with keyczar format.
 
     """
-    assert isinstance(
-        encrypt_key, AESKey
-    ), "encrypt_key needs to be AESKey class instance"
-    assert isinstance(
-        plaintext, (six.text_type, six.string_types, six.binary_type)
-    ), "plaintext needs to either be a string/unicode or bytes"
+    if not isinstance(encrypt_key, AESKey):
+        raise TypeError(
+            "Encrypted key needs to be an AESkey class instance"
+            f" (was {type(encrypt_key)})."
+        )
+    if not isinstance(plaintext, (six.text_type, six.string_types, six.binary_type)):
+        raise TypeError(
+            "Plaintext needs to either be a string/unicode or bytes"
+            f" (was {type(plaintext)})."
+        )
 
     aes_key_bytes = encrypt_key.aes_key_bytes
     hmac_key_bytes = encrypt_key.hmac_key_bytes
 
-    assert isinstance(aes_key_bytes, six.binary_type)
-    assert isinstance(hmac_key_bytes, six.binary_type)
+    if not isinstance(aes_key_bytes, six.binary_type):
+        raise TypeError(f"AESKey is not bytes (it is {type(aes_key_bytes)}).")
+    if not isinstance(hmac_key_bytes, six.binary_type):
+        raise TypeError(f"HMACKey is not bytes (it is {type(hmac_key_bytes)}).")
 
     if isinstance(plaintext, (six.text_type, six.string_types)):
         # Convert data to bytes
@@ -279,18 +291,23 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
 
     NOTE 2: This function is loosely based on keyczar AESKey.Decrypt() (Apache 2.0 license).
     """
-    assert isinstance(
-        decrypt_key, AESKey
-    ), "decrypt_key needs to be AESKey class instance"
-    assert isinstance(
-        ciphertext, (six.text_type, six.string_types, six.binary_type)
-    ), "ciphertext needs to either be a string/unicode or bytes"
-
+    if not isinstance(decrypt_key, AESKey):
+        raise TypeError(
+            "Decrypted key needs to be an AESKey class instance"
+            f" (was {type(decrypt_key)})."
+        )
+    if not isinstance(ciphertext, (six.text_type, six.string_types, six.binary_type)):
+        raise TypeError(
+            "Ciphertext needs to either be a string/unicode or bytes"
+            f" (was {type(ciphertext)})."
+        )
     aes_key_bytes = decrypt_key.aes_key_bytes
     hmac_key_bytes = decrypt_key.hmac_key_bytes
 
-    assert isinstance(aes_key_bytes, six.binary_type)
-    assert isinstance(hmac_key_bytes, six.binary_type)
+    if not isinstance(aes_key_bytes, six.binary_type):
+        raise TypeError(f"AESKey is not bytes (it is {type(aes_key_bytes)}).")
+    if not isinstance(hmac_key_bytes, six.binary_type):
+        raise TypeError(f"HMACKey is not bytes (it is {type(hmac_key_bytes)}).")
 
     # Convert from hex notation ASCII string to bytes
     ciphertext = binascii.unhexlify(ciphertext)

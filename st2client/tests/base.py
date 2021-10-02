@@ -45,6 +45,7 @@ class FakeResource(models.Resource):
 class FakeResponse(object):
     def __init__(self, text, status_code, reason, *args):
         self.text = text
+        self.content = text
         self.status_code = status_code
         self.reason = reason
         if args:
@@ -124,7 +125,7 @@ class BaseCLITestCase(unittest2.TestCase):
 
             print("")
             print("Captured stdout: %s" % (stdout))
-            print("Captured stdoerr: %s" % (stderr))
+            print("Captured stderr: %s" % (stderr))
             print("")
 
     def _reset_output_streams(self):

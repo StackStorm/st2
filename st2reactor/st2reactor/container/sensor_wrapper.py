@@ -52,6 +52,9 @@ from st2reactor.sensor import config
 from st2common.services.datastore import SensorDatastoreService
 from st2common.util.monkey_patch import use_select_poll_workaround
 
+
+LOG = logging.getLogger(__name__)
+
 __all__ = ["SensorWrapper", "SensorService"]
 
 use_select_poll_workaround(nose_only=False)
@@ -166,6 +169,7 @@ class SensorWrapper(object):
         trigger_types,
         poll_interval=None,
         parent_args=None,
+        db_ensure_indexes=True,
     ):
         """
         :param pack: Name of the pack this sensor belongs to.
@@ -186,6 +190,9 @@ class SensorWrapper(object):
 
         :param parent_args: Command line arguments passed to the parent process.
         :type parse_args: ``list``
+
+        :param db_ensure_indexes: True to ensure indexes. This should really only be set to False
+                                  in tests to speed things up.
         """
         self._pack = pack
         self._file_path = file_path
@@ -199,7 +206,10 @@ class SensorWrapper(object):
         try:
             config.parse_args(args=self._parent_args)
         except Exception:
-            pass
+            LOG.exception(
+                "Failed to parse config using parent args "
+                '(parent_args=%s): "%s".' % (str(self._parent_args))
+            )
 
         # 2. Establish DB connection
         username = (
@@ -218,6 +228,7 @@ class SensorWrapper(object):
             cfg.CONF.database.port,
             username=username,
             password=password,
+            ensure_indexes=db_ensure_indexes,
             ssl=cfg.CONF.database.ssl,
             ssl_keyfile=cfg.CONF.database.ssl_keyfile,
             ssl_certfile=cfg.CONF.database.ssl_certfile,
@@ -420,7 +431,12 @@ if __name__ == "__main__":
     trigger_types = args.trigger_type_refs
     trigger_types = trigger_types.split(",") if trigger_types else []
     parent_args = json.loads(args.parent_args) if args.parent_args else []
-    assert isinstance(parent_args, list)
+
+    if not isinstance(parent_args, list):
+        raise TypeError(
+            "Command line arguments passed to the parent process must be a list"
+            f" (was {type(parent_args)})."
+        )
 
     obj = SensorWrapper(
         pack=args.pack,

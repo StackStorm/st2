@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import json
 import re
 
 import six
@@ -27,6 +26,7 @@ from st2common.constants.rules import MATCH_CRITERIA
 from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
 from st2common.persistence.rule_enforcement import RuleEnforcement
+from st2common.util.jsonify import json_decode
 
 from st2common.util.payload import PayloadLookup
 from st2common.util.templating import render_template_with_system_context
@@ -227,7 +227,7 @@ class RuleFilter(object):
                 criteria_rendered = render_template_with_system_context(
                     value=complex_criteria_pattern, context=criteria_context
                 )
-                criteria_rendered = json.loads(criteria_rendered)
+                criteria_rendered = json_decode(criteria_rendered)
                 to_complex = True
             except ValueError as error:
                 LOG.debug("Criteria pattern not valid JSON: %s", error)

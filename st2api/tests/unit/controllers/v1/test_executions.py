@@ -45,6 +45,7 @@ from st2common.util import action_db as action_db_util
 from st2common.util import crypto as crypto_utils
 from st2common.util import date as date_utils
 from st2common.util import isotime
+from st2common.util.jsonify import json_encode
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 import st2common.validators.api.action as action_validator
 from st2tests.api import BaseActionExecutionControllerTestCase
@@ -170,6 +171,54 @@ ACTION_DEFAULT_ENCRYPT_SECRET_PARAMS = {
     },
 }
 
+ACTION_WITH_OUTPUT_SCHEMA_WITH_SECRET_PARAMS = {
+    "name": "st2.dummy.action_with_output_schema_secret_param",
+    "description": "An action that contains output_schema with secret parameters",
+    "enabled": True,
+    "entry_point": "/tmp/test/action_with_output_schema_secret_param.py",
+    "pack": "starterpack",
+    "runner_type": "python-script",
+    "parameters": {},
+    "output_schema": {
+        "secret_param_1": {"type": "string", "required": True, "secret": True},
+        "secret_param_2": {"type": "string", "required": True, "secret": True},
+    },
+}
+
+ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAMS = {
+    "name": "st2.dummy.action_with_output_schema_without_secret_params",
+    "description": "An action that contains output_schema without secret parameters",
+    "enabled": True,
+    "entry_point": "/tmp/test/action_with_output_schema_without_secret_params.py",
+    "pack": "starterpack",
+    "runner_type": "python-script",
+    "parameters": {},
+    "output_schema": {
+        "non_secret_param_1": {"type": "string", "required": True},
+        "non_secret_param_2": {"type": "string", "required": True},
+    },
+}
+ACTION_DEFAULT_ENCRYPT_AND_BOOL = {
+    "name": "st2.dummy.default_encrypted_and_bool",
+    "description": "An action that uses a jinja template with decrypt_kv filter "
+    "in default parameter",
+    "enabled": True,
+    "pack": "starterpack",
+    "runner_type": "local-shell-cmd",
+    "parameters": {
+        "encrypted_param": {
+            "type": "string",
+            "default": "{{ st2kv.system.secret | decrypt_kv }}",
+            "secret": True,
+        },
+        "bool_param": {
+            "type": "boolean",
+            "default": "{{ st2kv.system.test_bool }}",
+        },
+    },
+}
+
+
 LIVE_ACTION_1 = {
     "action": "sixpack.st2.dummy.action1",
     "parameters": {
@@ -251,6 +300,16 @@ LIVE_ACTION_WITH_SECRET_PARAM = {
     "action": "sixpack.st2.dummy.action1",
 }
 
+LIVE_ACTION_WITH_OUTPUT_SCHEMA_SECRET_PARAM = {
+    "parameters": {},
+    "action": "starterpack.st2.dummy.action_with_output_schema_secret_param",
+}
+
+LIVE_ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAM = {
+    "parameters": {},
+    "action": "starterpack.st2.dummy.action_with_output_schema_without_secret_params",
+}
+
 # Do not add parameters to this. There are tests that will test first without params,
 # then make a copy with params.
 LIVE_ACTION_DEFAULT_TEMPLATE = {
@@ -258,6 +317,9 @@ LIVE_ACTION_DEFAULT_TEMPLATE = {
 }
 LIVE_ACTION_DEFAULT_ENCRYPT = {
     "action": "starterpack.st2.dummy.default_encrypted_value",
+}
+LIVE_ACTION_DEFAULT_ENCRYPT_AND_BOOL = {
+    "action": "starterpack.st2.dummy.default_encrypted_and_bool",
 }
 LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM = {
     "action": "starterpack.st2.dummy.default_encrypted_value_secret_param",
@@ -320,11 +382,31 @@ class ActionExecutionControllerTestCase(
         post_resp = cls.app.post_json("/v1/actions", cls.action_decrypt)
         cls.action_decrypt["id"] = post_resp.json["id"]
 
+        cls.action_decrypt_and_bool = copy.deepcopy(ACTION_DEFAULT_ENCRYPT_AND_BOOL)
+        post_resp = cls.app.post_json("/v1/actions", cls.action_decrypt_and_bool)
+        cls.action_decrypt_and_bool["id"] = post_resp.json["id"]
+
         cls.action_decrypt_secret_param = copy.deepcopy(
             ACTION_DEFAULT_ENCRYPT_SECRET_PARAMS
         )
         post_resp = cls.app.post_json("/v1/actions", cls.action_decrypt_secret_param)
         cls.action_decrypt_secret_param["id"] = post_resp.json["id"]
+
+        cls.action_with_output_schema_secret_param = copy.deepcopy(
+            ACTION_WITH_OUTPUT_SCHEMA_WITH_SECRET_PARAMS
+        )
+        post_resp = cls.app.post_json(
+            "/v1/actions", cls.action_with_output_schema_secret_param
+        )
+        cls.action_with_output_schema_secret_param["id"] = post_resp.json["id"]
+
+        cls.action_with_output_schema_without_secret_params = copy.deepcopy(
+            ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAMS
+        )
+        post_resp = cls.app.post_json(
+            "/v1/actions", cls.action_with_output_schema_without_secret_params
+        )
+        cls.action_with_output_schema_without_secret_params["id"] = post_resp.json["id"]
 
     @classmethod
     def tearDownClass(cls):
@@ -335,6 +417,14 @@ class ActionExecutionControllerTestCase(
         cls.app.delete("/v1/actions/%s" % cls.action_inquiry["id"])
         cls.app.delete("/v1/actions/%s" % cls.action_template["id"])
         cls.app.delete("/v1/actions/%s" % cls.action_decrypt["id"])
+        cls.app.delete("/v1/actions/%s" % cls.action_decrypt_secret_param["id"])
+        cls.app.delete("/v1/actions/%s" % cls.action_decrypt_and_bool["id"])
+        cls.app.delete(
+            "/v1/actions/%s" % cls.action_with_output_schema_secret_param["id"]
+        )
+        cls.app.delete(
+            "/v1/actions/%s" % cls.action_with_output_schema_without_secret_params["id"]
+        )
         super(BaseActionExecutionControllerTestCase, cls).tearDownClass()
 
     def test_get_one(self):
@@ -349,6 +439,103 @@ class ActionExecutionControllerTestCase(
 
         get_resp = self._do_get_one("last")
         self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+    def test_get_one_max_result_size_query_parameter(self):
+        data = copy.deepcopy(LIVE_ACTION_1)
+        post_resp = self._do_post(LIVE_ACTION_1)
+
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+
+        # Update it with the result (this populates result and result size attributes)
+        data = {
+            "result": {"fooo": "a" * 1000},
+            "status": "succeeded",
+        }
+        actual_result_size = len(json_encode(data["result"]))
+
+        # NOTE: In real-life result_size is populdated in update_execution() method which is
+        # called in the end with the actual result
+        put_resp = self._do_put(actionexecution_id, data)
+        self.assertEqual(put_resp.json["result_size"], actual_result_size)
+        self.assertEqual(put_resp.json["result"], data["result"])
+
+        # 1. ?max_result_size query filter not provided
+        get_resp = self._do_get_one(actionexecution_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result"], data["result"])
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        # 2. ?max_result_size > actual result size
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=%s" % (actual_result_size + 1)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertEqual(get_resp.json["result"], data["result"])
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        # 3. ?max_result_size < actual result size - result field should not be returned
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=%s" % (actual_result_size - 1)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertTrue("result" not in get_resp.json)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        # 4. ?max_result_size < actual result size and ?include_attributes=result - result field
+        # should not be returned
+        get_resp = self._do_get_one(
+            actionexecution_id
+            + "?include_attributes=result,result_size&max_result_size=%s"
+            % (actual_result_size - 1)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertTrue("result" not in get_resp.json)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        # 5. ?max_result_size > actual result size and ?exclude_attributes=result - result field
+        # should not be returned
+        get_resp = self._do_get_one(
+            actionexecution_id
+            + "?include_attributes=result_size&exclude_attriubtes=result&max_result_size=%s"
+            % (actual_result_size - 1)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertTrue("result" not in get_resp.json)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        # 6. max_result_size is not a positive number
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=-100", expect_errors=True
+        )
+        self.assertEqual(get_resp.status_int, 400)
+        self.assertEqual(
+            get_resp.json["faultstring"], "max_result_size must be a positive number"
+        )
+
+        # 7. max_result_size is > max possible value
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=%s" % ((14 * 1024 * 1024) + 1),
+            expect_errors=True,
+        )
+        self.assertEqual(get_resp.status_int, 400)
+        self.assertEqual(
+            get_resp.json["faultstring"],
+            "max_result_size query parameter must be smaller than 14 MB",
+        )
+
+        # 8. ?max_result_size == actual result size - result should be returned
+        get_resp = self._do_get_one(
+            actionexecution_id + "?max_result_size=%s" % (actual_result_size)
+        )
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json["result_size"], actual_result_size)
+        self.assertEqual(get_resp.json["result"], data["result"])
         self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
 
     def test_get_all_id_query_param_filtering_success(self):
@@ -754,6 +941,26 @@ class ActionExecutionControllerTestCase(
         # Assert that the template in the parameter default value
         # was not rendered, and the provided parameter was used
         self.assertEqual(post_resp.json["parameters"]["intparam"], live_int_param)
+
+    def test_template_encrypted_and_bool(self):
+        # register datastore values which are used in this test case
+        KeyValuePairAPI._setup_crypto()
+        register_items = [
+            {
+                "name": "test_bool",
+                "value": "true",
+            },
+        ]
+        [KeyValuePair.add_or_update(KeyValuePairDB(**x)) for x in register_items]
+
+        post_resp = self._do_post(
+            LIVE_ACTION_DEFAULT_ENCRYPT_AND_BOOL, expect_errors=True
+        )
+        self.assertEqual(post_resp.status_int, 400)
+        self.assertEqual(
+            post_resp.json["faultstring"],
+            'Failed to render parameter "encrypted_param": Referenced datastore item "st2kv.system.secret" doesn\'t exist or it contains an empty string',
+        )
 
     def test_template_encrypted_params(self):
         # register datastore values which are used in this test case
@@ -1395,6 +1602,101 @@ class ActionExecutionControllerTestCase(
         resp = json.loads(get_resp.body)
         self.assertEqual(resp["result"]["response"]["secondfactor"], "supersecretvalue")
 
+    def test_get_raw_result(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+        get_resp = self._do_get_one(actionexecution_id)
+
+        execution_id = self._get_actionexecution_id(get_resp)
+        updates = {
+            "status": "succeeded",
+            "result": {"stdout": "foobar", "stderr": "barfoo"},
+        }
+        put_resp = self._do_put(execution_id, updates)
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json["status"], "succeeded")
+        self.assertDictEqual(
+            put_resp.json["result"], {"stdout": "foobar", "stderr": "barfoo"}
+        )
+        self.assertEqual(
+            put_resp.json["result_size"], len('{"stdout":"foobar","stderr":"barfoo"}')
+        )
+
+        # 1. download=False, compress=False, pretty_format=False
+        get_resp = self.app.get("/v1/executions/%s/result" % (execution_id))
+        self.assertEqual(get_resp.headers["Content-Type"], "text/json")
+        self.assertEqual(get_resp.body, b'{"stdout":"foobar","stderr":"barfoo"}')
+
+        # 2. download=False, compress=False, pretty_format=True
+        get_resp = self.app.get(
+            "/v1/executions/%s/result?pretty_format=1" % (execution_id)
+        )
+        expected_result = b"""
+{
+  "stdout": "foobar",
+  "stderr": "barfoo"
+}""".strip()
+        self.assertEqual(get_resp.headers["Content-Type"], "text/json")
+        self.assertEqual(get_resp.body, expected_result)
+
+        # 3. download=False, compress=True, pretty_format=False
+        # NOTE: webtest auto decompresses the result
+        get_resp = self.app.get("/v1/executions/%s/result?compress=1" % (execution_id))
+        self.assertEqual(get_resp.headers["Content-Type"], "application/x-gzip")
+        self.assertEqual(get_resp.body, b'{"stdout":"foobar","stderr":"barfoo"}')
+
+        # 4. download=True, compress=False, pretty_format=False
+        get_resp = self.app.get("/v1/executions/%s/result?download=1" % (execution_id))
+        self.assertEqual(get_resp.headers["Content-Type"], "text/json")
+        self.assertEqual(
+            get_resp.headers["Content-Disposition"],
+            "attachment; filename=execution_%s_result.json" % (execution_id),
+        )
+        self.assertEqual(get_resp.body, b'{"stdout":"foobar","stderr":"barfoo"}')
+
+        # 5. download=True, compress=False, pretty_format=True
+        get_resp = self.app.get(
+            "/v1/executions/%s/result?download=1&pretty_format=1" % (execution_id)
+        )
+        expected_result = b"""
+{
+  "stdout": "foobar",
+  "stderr": "barfoo"
+}""".strip()
+
+        self.assertEqual(get_resp.headers["Content-Type"], "text/json")
+        self.assertEqual(
+            get_resp.headers["Content-Disposition"],
+            "attachment; filename=execution_%s_result.json" % (execution_id),
+        )
+        self.assertEqual(get_resp.body, expected_result)
+
+        # 5. download=True, compress=True, pretty_format=True
+        get_resp = self.app.get(
+            "/v1/executions/%s/result?download=1&compress=1&pretty_format=1"
+            % (execution_id)
+        )
+        expected_result = b"""
+{
+  "stdout": "foobar",
+  "stderr": "barfoo"
+}""".strip()
+
+        self.assertEqual(get_resp.headers["Content-Type"], "application/x-gzip")
+        self.assertEqual(
+            get_resp.headers["Content-Disposition"],
+            "attachment; filename=execution_%s_result.json.gz" % (execution_id),
+        )
+        self.assertEqual(get_resp.body, expected_result)
+
+    def test_get_include_attributes_overlapping_values(self):
+        resp = self.app.get(
+            "/v1/actionexecutions?include_attributes=context,context.user,action"
+        )
+        self.assertIn("context", resp.json[0])
+        self.assertIn("action", resp.json[0])
+        self.assertNotIn("parameters", resp.json[0])
+
     def test_get_include_attributes_and_secret_parameters(self):
         # Verify that secret parameters are correctly masked when using ?include_attributes filter
         self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)
@@ -1452,6 +1754,8 @@ class ActionExecutionControllerTestCase(
             )
 
     def test_get_single_attribute_success(self):
+        self._do_post(LIVE_ACTION_WITH_SECRET_PARAM)
+
         exec_id = self.app.get("/v1/actionexecutions?limit=1").json[0]["id"]
 
         resp = self.app.get("/v1/executions/%s/attribute/status" % (exec_id))
@@ -1460,11 +1764,11 @@ class ActionExecutionControllerTestCase(
 
         resp = self.app.get("/v1/executions/%s/attribute/result" % (exec_id))
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, None)
+        self.assertEqual(resp.json, {})
 
         resp = self.app.get("/v1/executions/%s/attribute/trigger_instance" % (exec_id))
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, None)
+        self.assertEqual(resp.json, {})
 
         data = {}
         data["status"] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -1590,6 +1894,80 @@ class ActionExecutionControllerTestCase(
                 "Invalid or unsupported exclude attribute specified:"
                 in resp.json["faultstring"]
             )
+
+    def test_get_one_with_masked_secrets_in_output_schema(self):
+        """
+        Test that the parameters marked secret as true in output schema are masked in
+        GET API of action execution.
+        """
+
+        post_resp = self._do_post(LIVE_ACTION_WITH_OUTPUT_SCHEMA_SECRET_PARAM)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+
+        updates = {
+            "status": "succeeded",
+            "result": {
+                "exit_code": 0,
+                "stderr": "",
+                "stdout": "",
+                "result": {
+                    "secret_param_1": "foo",
+                    "secret_param_2": "bar",
+                },
+            },
+        }
+
+        put_resp = self._do_put(actionexecution_id, updates)
+        self.assertEqual(put_resp.status_int, 200)
+        get_resp = self._do_get_one(actionexecution_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        expected_result_in_get_resp = {
+            "secret_param_1": MASKED_ATTRIBUTE_VALUE,
+            "secret_param_2": MASKED_ATTRIBUTE_VALUE,
+        }
+
+        self.assertDictEqual(
+            get_resp.json["result"]["result"], expected_result_in_get_resp
+        )
+
+    def test_get_one_without_masked_secrets_in_output_schema(self):
+        """
+        Test that the parameters not marked secret as true in output schema are not masked
+        in GET API of action execution.
+        """
+
+        post_resp = self._do_post(LIVE_ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAM)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+
+        updates = {
+            "status": "succeeded",
+            "result": {
+                "exit_code": 0,
+                "stderr": "",
+                "stdout": "",
+                "result": {
+                    "non_secret_param_1": "abc",
+                    "non_secret_param_2": "xyz",
+                },
+            },
+        }
+
+        put_resp = self._do_put(actionexecution_id, updates)
+        self.assertEqual(put_resp.status_int, 200)
+        get_resp = self._do_get_one(actionexecution_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        expected_result_in_get_resp = {
+            "non_secret_param_1": "abc",
+            "non_secret_param_2": "xyz",
+        }
+
+        self.assertDictEqual(
+            get_resp.json["result"]["result"], expected_result_in_get_resp
+        )
 
     def _insert_mock_models(self):
         execution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))

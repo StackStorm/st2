@@ -291,7 +291,12 @@ class GitWorktreeActionRunner(ActionRunner):
                 worktree_path=self.git_worktree_path,
             )
 
-            assert entry_point.startswith(self.git_worktree_path)
+            if not entry_point.startswith(self.git_worktree_path):
+                raise ValueError(
+                    f"The entry point value {self.entry_point}"
+                    " does not start with the git worktree path"
+                    f"{self.git_worktree_path}."
+                )
 
             self.entry_point = entry_point
 
@@ -388,8 +393,14 @@ class GitWorktreeActionRunner(ActionRunner):
         :rtype: ``bool``
         """
         # Safety check to make sure we don't remove something outside /tmp
-        assert worktree_path.startswith("/tmp")
-        assert worktree_path.startswith("/tmp/%s" % (self.WORKTREE_DIRECTORY_PREFIX))
+        if not worktree_path.startswith("/tmp"):
+            raise ValueError(
+                f"The worktree path is not within /tmp (was {type(worktree_path)})."
+            )
+        if not worktree_path.startswith("/tmp/%s" % (self.WORKTREE_DIRECTORY_PREFIX)):
+            raise ValueError(
+                f"The worktree path is not within /tmp/ (was {type(worktree_path)})."
+            )
 
         if self._debug:
             LOG.debug(
@@ -404,8 +415,9 @@ class GitWorktreeActionRunner(ActionRunner):
 
             try:
                 shutil.rmtree(worktree_path, ignore_errors=True)
-            except:
-                pass
+            except Exception:
+                msg = "Unable to remove / cleanup the provided git worktree directory."
+                LOG.exception(msg)
 
         return True
 

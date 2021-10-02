@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 from mongoengine import ValidationError
 import six
 
@@ -31,6 +29,7 @@ from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import isotime
 from st2common.validators.api.misc import validate_not_part_of_system_pack
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 http_client = six.moves.http_client
 
@@ -115,6 +114,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
         try:
             triggertype_db = TriggerTypeAPI.to_model(triggertype)
+
             if (
                 triggertype.id is not None
                 and len(triggertype.id) > 0
@@ -376,7 +376,11 @@ class TriggerInstanceResendController(
 
         def validate(self):
             if self.payload:
-                assert isinstance(self.payload, dict)
+                if not isinstance(self.payload, dict):
+                    raise TypeError(
+                        "The payload has a value that is not a dictionary"
+                        f" (was {type(self.payload)})."
+                    )
 
             return True
 
@@ -394,7 +398,7 @@ class TriggerInstanceResendController(
             id=trigger_instance_id, permission_type=None, requester_user=None
         )
 
-        new_payload = copy.deepcopy(existing_trigger_instance.payload)
+        new_payload = fast_deepcopy_dict(existing_trigger_instance.payload)
         new_payload["__context"] = {"original_id": trigger_instance_id}
 
         try:

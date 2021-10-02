@@ -299,16 +299,23 @@ class ResourceController(object):
         exclude_fields=None,
         include_fields=None,
         from_model_kwargs=None,
+        get_by_id_kwargs=None,
     ):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         :param include_fields: A list of object fields to include.
         :type include_fields: ``list``
+        :param get_by_id_kwargs: Additional keyword arguments which are passed to the
+                                 "_get_by_id()" method.
+        :type get_by_id_kwargs: ``dict`` or ``None``
         """
 
         instance = self._get_by_id(
-            resource_id=id, exclude_fields=exclude_fields, include_fields=include_fields
+            resource_id=id,
+            exclude_fields=exclude_fields,
+            include_fields=include_fields,
+            **get_by_id_kwargs or {},
         )
 
         if permission_type:
@@ -520,6 +527,23 @@ class ResourceController(object):
 
             result.append(field)
         result = list(set(result))
+
+        # Special case to correctly handle "overlapping" include fields.
+        # If we see something like foo, bar, baz, bar.foo we simply remove bar.foo and retrieve
+        # complete "bar" field.
+        # That's for backward compatibility with MongoDB < 4.4 which automatically handles this
+        # conversion on the server side. MongoDB 4.4 doesn't automatically handle this conversion
+        # anymore and throws an exception.
+        # See https://github.com/StackStorm/st2/pull/5177#issuecomment-825200761 for details
+        for field in result:
+            if "." not in field:
+                continue
+
+            partial_field = field.split(".")[0]
+            if partial_field in result:
+                # parent field is already included in the result, remove this unncessary
+                # child field filtering
+                result.remove(field)
 
         return result
 

@@ -35,7 +35,7 @@ from st2common.runners import base as runners
 from st2common.services import action as ac_svc
 from st2common.services import workflows as wf_svc
 from st2common.util import api as api_util
-from st2common.util import ujson
+from st2common.util import deep_copy
 
 __all__ = ["OrquestaRunner", "get_runner", "get_metadata"]
 
@@ -59,7 +59,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
         )
 
     def _construct_context(self, wf_ex):
-        ctx = ujson.fast_deepcopy(self.context)
+        ctx = deep_copy.fast_deepcopy_dict(self.context)
         ctx["workflow_execution"] = str(wf_ex.id)
 
         return ctx

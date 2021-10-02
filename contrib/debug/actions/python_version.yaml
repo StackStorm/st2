@@ -1,0 +1,7 @@
+---
+name: python_version
+description: Returns the version of Python
+pack: debug
+runner_type: python-script
+entry_point: python_version.py
+enabled: true
