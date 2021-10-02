@@ -97,6 +97,8 @@ class KeyValuePairController(ResourceController):
         key_ref = name
         if scope in [USER_SCOPE, FULL_USER_SCOPE]:
             # Set user scope prefix for the provided user (or current user if user not provided)
+            # NOTE: It's very important raw_filters['prefix'] is set when requesting user scoped
+            # items to avoid information leakage (aka user1 retrieves items for user2)
             key_ref = get_key_reference(name=name, scope=FULL_USER_SCOPE, user=user)
 
         # Setup a kvp database object used for verifying permission
@@ -179,13 +181,11 @@ class KeyValuePairController(ResourceController):
             self._validate_scope(scope=scope)
             raw_filters["scope"] = scope
 
-        # Set prefix which will be used for user-scoped items.
-        # NOTE: It's very important raw_filters['prefix'] is set when requesting user scoped items
-        # to avoid information leakage (aka user1 retrieves items for user2)
-        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+        # Check if user is granted one of the system roles.
+        has_system_role = rbac_utils.user_has_system_role(user_db=requester_user)
 
         # Check that an admin user has permission to all system scoped items.
-        if is_admin and scope in [ALL_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+        if has_system_role and scope in [ALL_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
             rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
                 resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
@@ -201,6 +201,8 @@ class KeyValuePairController(ResourceController):
             )
 
         # Set user scope prefix for the provided user (or current user if user not provided)
+        # NOTE: It's very important raw_filters['prefix'] is set when requesting user scoped
+        # items to avoid information leakage (aka user1 retrieves items for user2)
         user_scope_prefix = get_key_reference(
             name=prefix or "", scope=FULL_USER_SCOPE, user=user
         )
@@ -213,8 +215,8 @@ class KeyValuePairController(ResourceController):
         kvp_apis_user = []
 
         if scope in [ALL_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
-            # If user is an admin, then retrieve all system scoped items
-            if is_admin:
+            # If user has system role, then retrieve all system scoped items
+            if has_system_role:
                 raw_filters["scope"] = FULL_SYSTEM_SCOPE
                 raw_filters["prefix"] = prefix
 
