@@ -125,9 +125,7 @@ def transform(cls):
         assigns = [n for n in cls.get_children() if isinstance(n, nodes.Assign)]
         schema_assign_name_node = cls.local_attr("schema")[0]
         schema_assign_node = next(
-            assign
-            for assign in assigns
-            if assign.targets[0] == schema_assign_name_node
+            assign for assign in assigns if assign.targets[0] == schema_assign_name_node
         )
         assigns.remove(schema_assign_node)
 
