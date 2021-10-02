@@ -29,6 +29,7 @@ tests_config.parse_args()
 
 from tests.unit import base
 
+from local_runner import local_shell_command_runner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as ac_const
@@ -58,6 +59,12 @@ PACKS = [
     TEST_PACK_PATH,
     st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
+
+RUNNER_RESULT_FAILED = (
+    ac_const.LIVEACTION_STATUS_FAILED,
+    {"127.0.0.1": {"hostname": "foobar"}},
+    {},
+)
 
 
 @mock.patch.object(
@@ -954,6 +961,11 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
     @mock.patch.object(
         runners_utils, "invoke_post_run", mock.MagicMock(return_value=None)
     )
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED]),
+    )
     def test_include_result_to_error_log(self):
         username = "stanley"
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
@@ -981,24 +993,11 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         )[0]
         tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
         self.assertEqual(tk1_lv_ac_db.context.get("user"), username)
-        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
 
-        # Manually override and fail the action execution and write some result.
         # Action execution result can contain dotted notation so ensure this is tested.
         result = {"127.0.0.1": {"hostname": "foobar"}}
 
-        ac_svc.update_status(
-            tk1_lv_ac_db,
-            ac_const.LIVEACTION_STATUS_FAILED,
-            result=result,
-            publish=False,
-        )
-
-        tk1_ac_ex_db = ex_db_access.ActionExecution.query(
-            task_execution=str(tk1_ex_db.id)
-        )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
-        self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(tk1_lv_ac_db.result, result)
 
         # Manually handle action execution completion.

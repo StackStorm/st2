@@ -27,7 +27,7 @@ from six.moves import http_client
 
 from st2client.base import BaseCLIApp
 from st2client import config_parser
-from st2client import models
+from st2client.models.auth import ApiKey
 from st2client.commands import resource
 from st2client.commands.noop import NoopCommand
 from st2client.exceptions.operations import OperationFailureException
@@ -278,7 +278,7 @@ class WhoamiCommand(resource.ResourceCommand):
 class ApiKeyBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ApiKeyBranch, self).__init__(
-            models.ApiKey,
+            ApiKey,
             description,
             app,
             subparsers,

@@ -66,7 +66,7 @@ StackStorm plugs into the environment via an extensible set of adapters: sensors
 
 * **Packs** are the units of content deployment. They simplify the management and sharing of StackStorm pluggable content by grouping integrations (triggers and actions) and automations (rules and workflows). A growing number of packs is available on the StackStorm Exchange. Users can create their own packs,  share them on GitHub, or submit them to the StackStorm Exchange organization.
 
-* **Audit trail** is the historical list of action executions, manual or automated, and is recorded and stored with full details of triggering context and execution results. It is is also captured in audit logs for integrating with external logging and analytical tools: LogStash, Splunk, statsd, or syslog.
+* **Audit trail** is the historical list of action executions, manual or automated, and is recorded and stored with full details of triggering context and execution results. It is also captured in audit logs for integrating with external logging and analytical tools: LogStash, Splunk, statsd, or syslog.
 
 StackStorm is a service with modular architecture. It is comprised of loosely coupled microservice components that communicate over a message bus, and scales horizontally to deliver automation at scale. StackStorm has a full REST API, CLI client, and web UI for admins and users to operate it locally or remotely, as well as Python client bindings for developer convenience.
 
@@ -74,7 +74,7 @@ StackStorm is an established project and remains actively developed by a broad c
 
 ## Documentation
 
-Additional documentation, including installation proceduces, action/rule/workflow authoring, and how to setup and use triggers/sensors can be found at [https://docs.stackstorm.com](https://docs.stackstorm.com).
+Additional documentation, including installation procedures, action/rule/workflow authoring, and how to setup and use triggers/sensors can be found at [https://docs.stackstorm.com](https://docs.stackstorm.com).
 
 ## Hacking / Contributing
 

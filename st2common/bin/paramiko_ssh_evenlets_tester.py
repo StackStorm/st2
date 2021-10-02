@@ -25,12 +25,14 @@ import argparse
 import os
 import pprint
 
-from st2common.ssh.parallel_ssh import ParallelSSHClient
+from st2common.runners.parallel_ssh import ParallelSSHClient
 
 
 def main(user, pkey, password, hosts_str, cmd, file_path, dir_path, delete_dir):
     hosts = hosts_str.split(",")
-    client = ParallelSSHClient(user=user, pkey=pkey, password=password, hosts=hosts)
+    client = ParallelSSHClient(
+        user=user, pkey_file=pkey, password=password, hosts=hosts
+    )
     pp = pprint.PrettyPrinter(indent=4)
 
     if file_path:
