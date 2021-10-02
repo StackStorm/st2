@@ -1,0 +1,7 @@
+---
+name: pythonpath
+description: Prints out the PYTHONPATH
+pack: debug
+runner_type: python-script
+entry_point: pythonpath.py
+enabled: true

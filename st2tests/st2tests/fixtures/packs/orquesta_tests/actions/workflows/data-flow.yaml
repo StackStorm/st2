@@ -11,8 +11,10 @@ vars:
   - b2: <% ctx().a2 %>
 
 output:
-  - a5: <% ctx().b4 %>
-  - b5: <% ctx().a5 %>
+  - a6: <% ctx().a4 %>
+  - b6: <% ctx().a6 %>
+  - a7: <% ctx().a5 %>
+  - b7: <% ctx().a7 %>
 
 tasks:
   task1:
@@ -32,4 +34,10 @@ tasks:
         publish: a4=<% result().stdout %> b4=<% ctx().a4 %>
         do: task3
   task3:
+    action: orquesta_tests.py_secret_output k1=<% ctx().b4 %>
+    next:
+      - when: <% succeeded() %>
+        publish: a5=<% result().result.k2 %>
+        do: task4
+  task4:
     action: core.noop
