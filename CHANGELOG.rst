@@ -45,6 +45,10 @@ Changed
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
+* Pinned python module `networkx` to versions between 2.5.1(included) and 2.6(excluded) because Python v3.6 support was dropped in v2.6.  #5376
+
+  Contributed by @nzlosh
+
 Fixed
 ~~~~~
 
