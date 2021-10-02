@@ -5,4 +5,4 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-git+https://github.com/StackStorm/orquesta.git@219f00db5192321af9d29b4c51ec748846ab90c6#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@c971b94d5c3dc065ee18386bdf3609a3d2de4a2c#egg=orquesta
