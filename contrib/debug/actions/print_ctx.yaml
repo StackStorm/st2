@@ -1,0 +1,20 @@
+---
+name: print_ctx
+description: |
+  Prints the entire ctx() of a workflow task to stdout. Use like this:
+
+  tasks:
+    ...
+    print_context:
+      action: debug.print_ctx
+      input:
+        ctx: <% ctx() %>  # or {{ ctx() }}
+
+pack: debug
+runner_type: python-script
+entry_point: print_ctx.py
+enabled: true
+parameters:
+  ctx:
+    required: true
+    type: object

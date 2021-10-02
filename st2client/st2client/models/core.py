@@ -377,6 +377,21 @@ class ResourceManager(object):
         return True
 
     @add_auth_token_to_kwargs_from_env
+    def delete_action(self, instance, remove_files, **kwargs):
+        url = "/%s/%s" % (self.resource.get_url_path_name(), instance.id)
+        payload = {"remove_files": remove_files}
+        response = self.client.delete(url, data=orjson.dumps(payload), **kwargs)
+        if response.status_code not in [
+            http_client.OK,
+            http_client.NO_CONTENT,
+            http_client.NOT_FOUND,
+        ]:
+            self.handle_error(response)
+            return False
+
+        return True
+
+    @add_auth_token_to_kwargs_from_env
     def delete_by_id(self, instance_id, **kwargs):
         url = "/%s/%s" % (self.resource.get_url_path_name(), instance_id)
         response = self.client.delete(url, **kwargs)
