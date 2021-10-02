@@ -73,6 +73,16 @@ ModelJsonDictFieldAccess = MongoDBAccess(ModelWithJSONDictFieldDB)
 
 
 class JSONDictFieldTestCase(unittest2.TestCase):
+    def test_set_to_mongo(self):
+        field = JSONDictField(use_header=False)
+        result = field.to_mongo({"test": {1, 2}})
+        self.assertTrue(isinstance(result, bytes))
+
+    def test_header_set_to_mongo(self):
+        field = JSONDictField(use_header=True)
+        result = field.to_mongo({"test": {1, 2}})
+        self.assertTrue(isinstance(result, bytes))
+
     def test_to_mongo(self):
         field = JSONDictField(use_header=False)
         result = field.to_mongo(MOCK_DATA_DICT)
@@ -95,6 +105,16 @@ class JSONDictFieldTestCase(unittest2.TestCase):
         result_to_python = field.to_python(result_to_mongo)
 
         self.assertEqual(result_to_python, MOCK_DATA_DICT)
+
+        # sets get serialized to a list
+        input_dict = {"a": 1, "set": {1, 2, 3, 4, 4, 4, 5, 5}}
+        result = {"a": 1, "set": [1, 2, 3, 4, 5]}
+
+        field = JSONDictField(use_header=False)
+        result_to_mongo = field.to_mongo(input_dict)
+        result_to_python = field.to_python(result_to_mongo)
+
+        self.assertEqual(result_to_python, result)
 
     def test_parse_field_value(self):
         # 1. Value not provided, should use default one

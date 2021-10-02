@@ -36,10 +36,6 @@ class ConcurrencyApplicator(BaseConcurrencyApplicator):
             action=action,
         )
 
-    def _get_lock_uid(self, target):
-        values = {"policy_type": self._policy_type, "action": target.action}
-        return self._get_lock_name(values=values)
-
     def _apply_before(self, target):
         # Get the count of scheduled instances of the action.
         scheduled = action_access.LiveAction.count(

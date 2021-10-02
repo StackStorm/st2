@@ -116,7 +116,7 @@ jobs:
       - image: circleci/python:3.6
     working_directory: ~/st2
     environment:
-      - DISTROS: "xenial bionic el7 el8"
+      - DISTROS: "bionic focal el7 el8"
       - ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
       - ST2_PACKAGES: "st2"
       - ST2_CHECKOUT: 0
@@ -232,7 +232,7 @@ jobs:
       - image: circleci/ruby:2.4
     working_directory: /tmp/deploy
     environment:
-      - DISTROS: "xenial bionic el7 el8"
+      - DISTROS: "bionic focal el7 el8"
     steps:
       - attach_workspace:
           at: .

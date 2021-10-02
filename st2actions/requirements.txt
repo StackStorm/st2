@@ -9,7 +9,7 @@ apscheduler==3.7.0
 chardet<3.1.0
 eventlet==0.30.2
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
-gitpython==2.1.15
+gitpython==3.1.15
 jinja2==2.11.3
 kombu==5.0.2
 lockfile==0.12.2

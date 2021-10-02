@@ -4,6 +4,58 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* Modified action delete API to delete action files from disk along with backward compatibility.
+
+  From CLI ``st2 action delete <pack>.<action>`` will delete only action database entry.
+  From CLI ``st2 action delete --remove-files <pack>.<action>`` or ``st2 action delete -r <pack>.<action>``
+  will delete action database entry along with files from disk.
+
+  API action DELETE method with ``{"remove_files": true}`` argument in json body will remove database
+  entry of action along with files from disk.
+  API action DELETE method with ``{"remove_files": false}`` or no additional argument in json body will remove
+  only action database entry. #5304, #5351, #5360
+
+  Contributed by @mahesh-orch.
+
+* Removed --python3 deprecated flag from st2client. #5305
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+  Contributed by @blag.
+* Fixed ``__init__.py`` files to use double quotes to better align with black linting #5299
+
+  Contributed by @blag.
+
+* Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
+
+  Contributed by @ericreeves.
+
+* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `ping` #5302, #5341
+
+  Contributed by @lukepatrick
+
+* Actionrunner worker shutdown should stop Kombu consumer thread. #5338
+
+  Contributed by @khushboobhatia01
+
+* Move to using Jinja sandboxed environment #5359
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+Fixed
+~~~~~
+
+* Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
+  Contributed by @amanda11, Ammeon Solutions
+
+
+
+3.5.0 - June 23, 2021
+---------------------
+
 Added
 ~~~~~
 
@@ -78,6 +130,11 @@ Added
 
   Contributed by @Kami.
 
+* Mask secrets in output of an action execution in the API if the action has an output schema
+  defined and one or more output parameters are marked as secret. #5250
+
+  Contributed by @mahesh-orch.
+
 Changed
 ~~~~~~~
 
@@ -87,8 +144,11 @@ Changed
   Contributed by @Kami.
 
 * Default nginx config (``conf/nginx/st2.conf``) which is used by the installer and Docker
-  images has been updated to only support TLS v1.2 (support for TLS v1.0 and v1.1 has been
-  removed). #5183
+  images has been updated to only support TLS v1.2 and TLS v1.3 (support for TLS v1.0 and v1.1
+  has been removed).
+
+  Keep in mind that TLS v1.3 will only be used when nginx is running on more recent distros
+  where nginx is compiled against OpenSSL v1.1.1 which supports TLS 1.3. #5183 #5216
 
   Contributed by @Kami and @shital.
 
@@ -167,7 +227,11 @@ Changed
   triggers with larger payloads.
 
   This should address a long standing issue where StackStorm was reported to be slow and CPU
-  inefficient with handling large executions. (improvement) #4846
+  inefficient with handling large executions.
+
+  If you want to migrate existing database objects to utilize the new type, you can use
+  ``st2common/bin/migrations/v3.5/st2-migrate-db-dict-field-values`` migration
+  script. (improvement) #4846
 
   Contributed by @Kami.
 
@@ -237,6 +301,19 @@ Changed
 * Monkey patch on st2stream earlier in flow #5240
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Support % in CLI arguments by reading the ConfigParser() arguments with raw=True.
+
+  This removes support for '%' interpolations on the configuration arguments.
+
+  See https://docs.python.org/3.8/library/configparser.html#configparser.ConfigParser.get for
+  further details. #5253
+
+  Contributed by @winem.
+
+* Remove duplicate host header in the nginx config for the auth endpoint.
+
+* Update orquesta to v1.4.0.
 
 Improvements
 ~~~~~~~~~~~~
@@ -358,6 +435,8 @@ Fixed
   correctly for workflow (orquesta, action chain) actions. #5221 #5227
 
   Contributed by @khushboobhatia01.
+
+* Clean up to remove unused methods in the action execution concurrency policies. #5268
 
 3.4.1 - March 14, 2021
 ----------------------
