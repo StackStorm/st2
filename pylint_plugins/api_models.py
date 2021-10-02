@@ -66,11 +66,6 @@ def register(linter):
     pass
 
 
-# ######################################### #
-# Extra Astroid AST introspection functions #
-# ######################################### #
-
-
 def infer_copy_deepcopy(call_node):
     """
     Look for a call_node (ie a function call) like this:
@@ -84,9 +79,6 @@ def infer_copy_deepcopy(call_node):
     ):
         return
     return next(call_node.args[0].infer())
-
-
-# ################################### #
 
 
 def transform(cls):
