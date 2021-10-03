@@ -314,9 +314,13 @@ class KeyValuePairController(ResourceController):
         )
 
         # Acquire a lock to avoid race condition between concurrent API calls
-        with self._coordinator.get_lock(self._get_lock_name_for_key(name=key_ref, scope=scope)):
+        with self._coordinator.get_lock(
+            self._get_lock_name_for_key(name=key_ref, scope=scope)
+        ):
             try:
-                existing_kvp_api = self._get_one_by_scope_and_name(scope=scope, name=key_ref)
+                existing_kvp_api = self._get_one_by_scope_and_name(
+                    scope=scope, name=key_ref
+                )
             except StackStormDBObjectNotFoundError:
                 existing_kvp_api = None
 
