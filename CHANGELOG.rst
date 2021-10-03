@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+
 Changed
 ~~~~~~~
 
