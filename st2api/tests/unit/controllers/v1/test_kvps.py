@@ -14,25 +14,24 @@
 # limitations under the License.
 
 import copy
-
 import mock
+import uuid
+
+from oslo_config import cfg
 
 from st2tests.api import FunctionalTest
-from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
+from st2common.constants.keyvalue import ALL_SCOPE, FULL_SYSTEM_SCOPE, FULL_USER_SCOPE
 from st2common.persistence.auth import User
 from st2common.models.db.auth import UserDB
-from st2common.models.db.rbac import UserRoleAssignmentDB
-from st2common.models.db.rbac import PermissionGrantDB
-from st2common.rbac.types import PermissionType
-from st2common.rbac.types import ResourceType
-from st2common.persistence.rbac import UserRoleAssignment
-from st2common.persistence.rbac import PermissionGrant
-from st2common.persistence.rbac import Role
-from st2common.models.db.rbac import RoleDB
+from st2common.rbac.backends.noop import NoOpRBACUtils
 
 from six.moves import http_client
 
-__all__ = ["KeyValuePairControllerTestCase"]
+__all__ = [
+    "KeyValuePairControllerTestCase",
+    "KeyValuePairControllerBaseTestCase",
+    "KeyValuePairControllerRBACTestCase",
+]
 
 KVP = {"name": "keystone_endpoint", "value": "http://127.0.0.1:5000/v3"}
 
@@ -85,18 +84,35 @@ ENCRYPTED_KVP_SECRET_FALSE = {
 }
 
 
-class KeyValuePairControllerTestCase(FunctionalTest):
+class KeyValuePairControllerBaseTestCase(FunctionalTest):
+    @staticmethod
+    def _get_kvp_id(resp):
+        return resp.json["name"]
+
+    def _do_get_one(self, kvp_id, expect_errors=False):
+        return self.app.get("/v1/keys/%s" % kvp_id, expect_errors=expect_errors)
+
+    def _do_put(self, kvp_id, kvp, expect_errors=False):
+        return self.app.put_json(
+            "/v1/keys/%s" % kvp_id, kvp, expect_errors=expect_errors
+        )
+
+    def _do_delete(self, kvp_id, expect_errors=False):
+        return self.app.delete("/v1/keys/%s" % kvp_id, expect_errors=expect_errors)
+
+
+class KeyValuePairControllerTestCase(KeyValuePairControllerBaseTestCase):
     def test_get_all(self):
         resp = self.app.get("/v1/keys")
         self.assertEqual(resp.status_int, 200)
 
     def test_get_one(self):
-        put_resp = self.__do_put("key1", KVP)
-        kvp_id = self.__get_kvp_id(put_resp)
-        get_resp = self.__do_get_one(kvp_id)
+        put_resp = self._do_put("key1", KVP)
+        kvp_id = self._get_kvp_id(put_resp)
+        get_resp = self._do_get_one(kvp_id)
         self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(self.__get_kvp_id(get_resp), kvp_id)
-        self.__do_delete(kvp_id)
+        self.assertEqual(self._get_kvp_id(get_resp), kvp_id)
+        self._do_delete(kvp_id)
 
     def test_get_all_all_scope(self):
         # Test which cases various scenarios which ensure non-admin users can't read / view keys
@@ -107,14 +123,14 @@ class KeyValuePairControllerTestCase(FunctionalTest):
 
         # Insert some mock data
         # System scoped keys
-        put_resp = self.__do_put(
+        put_resp = self._do_put(
             "system1", {"name": "system1", "value": "val1", "scope": "st2kv.system"}
         )
         self.assertEqual(put_resp.status_int, 200)
         self.assertEqual(put_resp.json["name"], "system1")
         self.assertEqual(put_resp.json["scope"], "st2kv.system")
 
-        put_resp = self.__do_put(
+        put_resp = self._do_put(
             "system2", {"name": "system2", "value": "val2", "scope": "st2kv.system"}
         )
         self.assertEqual(put_resp.status_int, 200)
@@ -124,7 +140,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         # user1 scoped keys
         self.use_user(user_db_1)
 
-        put_resp = self.__do_put(
+        put_resp = self._do_put(
             "user1", {"name": "user1", "value": "user1", "scope": "st2kv.user"}
         )
         self.assertEqual(put_resp.status_int, 200)
@@ -132,7 +148,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(put_resp.json["scope"], "st2kv.user")
         self.assertEqual(put_resp.json["value"], "user1")
 
-        put_resp = self.__do_put(
+        put_resp = self._do_put(
             "userkey", {"name": "userkey", "value": "user1", "scope": "st2kv.user"}
         )
         self.assertEqual(put_resp.status_int, 200)
@@ -143,7 +159,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         # user2 scoped keys
         self.use_user(user_db_2)
 
-        put_resp = self.__do_put(
+        put_resp = self._do_put(
             "user2", {"name": "user2", "value": "user2", "scope": "st2kv.user"}
         )
         self.assertEqual(put_resp.status_int, 200)
@@ -151,7 +167,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(put_resp.json["scope"], "st2kv.user")
         self.assertEqual(put_resp.json["value"], "user2")
 
-        put_resp = self.__do_put(
+        put_resp = self._do_put(
             "userkey", {"name": "userkey", "value": "user2", "scope": "st2kv.user"}
         )
         self.assertEqual(put_resp.status_int, 200)
@@ -162,7 +178,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         # user3 scoped keys
         self.use_user(user_db_3)
 
-        put_resp = self.__do_put(
+        put_resp = self._do_put(
             "user3", {"name": "user3", "value": "user3", "scope": "st2kv.user"}
         )
         self.assertEqual(put_resp.status_int, 200)
@@ -170,7 +186,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(put_resp.json["scope"], "st2kv.user")
         self.assertEqual(put_resp.json["value"], "user3")
 
-        put_resp = self.__do_put(
+        put_resp = self._do_put(
             "userkey", {"name": "userkey", "value": "user3", "scope": "st2kv.user"}
         )
         self.assertEqual(put_resp.status_int, 200)
@@ -292,160 +308,20 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json[1]["user"], "user3")
 
         # Clean up
-        self.__do_delete("system1")
-        self.__do_delete("system2")
+        self._do_delete("system1")
+        self._do_delete("system2")
 
         self.use_user(user_db_1)
-        self.__do_delete("user1?scope=user")
-        self.__do_delete("userkey?scope=user")
+        self._do_delete("user1?scope=user")
+        self._do_delete("userkey?scope=user")
 
         self.use_user(user_db_2)
-        self.__do_delete("user2?scope=user")
-        self.__do_delete("userkey?scope=user")
+        self._do_delete("user2?scope=user")
+        self._do_delete("userkey?scope=user")
 
         self.use_user(user_db_3)
-        self.__do_delete("user3?scope=user")
-        self.__do_delete("userkey?scope=user")
-
-    @mock.patch("st2api.controllers.v1.keyvalue.get_all_system_kvp_names_for_user")
-    def test_get_all_user_system_scoped_kvps(self, mock_system_scoped_kvps):
-        kvp_1_uid = "%s:%s:system1" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
-        kvp_2_uid = "%s:%s:key4" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
-        kvp_3_uid = "%s:%s:echo" % (ResourceType.ACTION, "core")
-        kvp_4_uid = "%s:%s:new_action" % (ResourceType.ACTION, "dummy")
-        kvp_5_uid = "%s:%s:key9" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
-        kvp_6_uid = "%s:%s:key27" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
-
-        # Setup user, grant, role, and assignment records
-        user_1_db = UserDB(name="system_key1_user")
-        user_1_db = User.add_or_update(user_1_db)
-
-        user_2_db = UserDB(name="system_key2_user")
-        user_2_db = User.add_or_update(user_2_db)
-
-        # role assignment
-        grant_db = PermissionGrantDB(
-            resource_uid=kvp_1_uid,
-            resource_type=ResourceType.KEY_VALUE_PAIR,
-            permission_types=[PermissionType.KEY_VALUE_PAIR_LIST],
-        )
-        grant_db = PermissionGrant.add_or_update(grant_db)
-        grant_1_db = PermissionGrantDB(
-            resource_uid=kvp_2_uid,
-            resource_type=ResourceType.KEY_VALUE_PAIR,
-            permission_types=[PermissionType.KEY_VALUE_PAIR_VIEW],
-        )
-        grant_1_db = PermissionGrant.add_or_update(grant_1_db)
-        grant_2_db = PermissionGrantDB(
-            resource_uid=kvp_3_uid,
-            resource_type=ResourceType.ACTION,
-            permission_types=[PermissionType.ACTION_VIEW],
-        )
-        grant_2_db = PermissionGrant.add_or_update(grant_2_db)
-        grant_3_db = PermissionGrantDB(
-            resource_uid=kvp_4_uid,
-            resource_type=ResourceType.ACTION,
-            permission_types=[PermissionType.ACTION_LIST],
-        )
-        grant_3_db = PermissionGrant.add_or_update(grant_3_db)
-
-        grant_4_db = PermissionGrantDB(
-            resource_uid=kvp_5_uid,
-            resource_type=ResourceType.KEY_VALUE_PAIR,
-            permission_types=[PermissionType.KEY_VALUE_PAIR_SET],
-        )
-        grant_4_db = PermissionGrant.add_or_update(grant_4_db)
-
-        grant_5_db = PermissionGrantDB(
-            resource_uid=kvp_6_uid,
-            resource_type=ResourceType.KEY_VALUE_PAIR,
-            permission_types=[PermissionType.KEY_VALUE_PAIR_DELETE],
-        )
-        grant_5_db = PermissionGrant.add_or_update(grant_5_db)
-
-        # User1
-        role_db = RoleDB(
-            name="custom_role_system_role1_grant",
-            permission_grants=[
-                str(grant_db.id),
-                str(grant_1_db.id),
-                str(grant_2_db.id),
-            ],
-        )
-        role_db = Role.add_or_update(role_db)
-
-        role_assignment_db = UserRoleAssignmentDB(
-            user=user_1_db.name,
-            role=role_db.name,
-            source="assignments/%s.yaml" % user_1_db.name,
-        )
-        UserRoleAssignment.add_or_update(role_assignment_db)
-
-        # User2
-        role_db = RoleDB(
-            name="custom_role_system_role2_grant",
-            permission_grants=[
-                str(grant_3_db.id),
-                str(grant_4_db.id),
-                str(grant_5_db.id),
-            ],
-        )
-        role_db = Role.add_or_update(role_db)
-
-        role_assignment_db = UserRoleAssignmentDB(
-            user=user_2_db.name,
-            role=role_db.name,
-            source="assignments/%s.yaml" % user_2_db.name,
-        )
-        UserRoleAssignment.add_or_update(role_assignment_db)
-
-        mock_system_scoped_kvps.return_value = ["system1", "key4", "key9", "key27"]
-        self.use_user(user_1_db)
-        put_resp_1 = self.__do_put(
-            "system1", {"name": "system1", "value": "val2", "scope": "st2kv.system"}
-        )
-        self.assertEqual(put_resp_1.status_int, 200)
-        put_resp_2 = self.__do_put(
-            "key4", {"name": "key4", "value": "val4", "scope": "st2kv.system"}
-        )
-        self.assertEqual(put_resp_2.status_int, 200)
-        resp = self.app.get("/v1/keys?scope=system")
-        result = sorted(resp.json, key=lambda k: k["name"])
-
-        # asserting the system scope kvps in the response
-        self.assertEqual(result[0]["name"], "key4")
-        self.assertEqual(result[0]["scope"], "st2kv.system")
-        self.assertEqual(result[0]["value"], "val4")
-        self.assertEqual(result[1]["name"], "system1")
-        self.assertEqual(result[1]["scope"], "st2kv.system")
-        self.assertEqual(result[1]["value"], "val2")
-
-        self.__do_delete(self.__get_kvp_id(put_resp_1))
-        self.__do_delete(self.__get_kvp_id(put_resp_2))
-
-        self.use_user(user_2_db)
-        put_resp_3 = self.__do_put(
-            "key9", {"name": "key9", "value": "val9", "scope": "st2kv.system"}
-        )
-        self.assertEqual(put_resp_3.status_int, 200)
-        put_resp_4 = self.__do_put(
-            "key27", {"name": "key27", "value": "val27", "scope": "st2kv.system"}
-        )
-        self.assertEqual(put_resp_4.status_int, 200)
-
-        resp = self.app.get("/v1/keys?scope=system")
-        result = sorted(resp.json, key=lambda k: k["name"])
-
-        # asserting the system scope kvps in the response
-        self.assertEqual(result[0]["name"], "key27")
-        self.assertEqual(result[0]["scope"], "st2kv.system")
-        self.assertEqual(result[0]["value"], "val27")
-        self.assertEqual(result[1]["name"], "key9")
-        self.assertEqual(result[1]["scope"], "st2kv.system")
-        self.assertEqual(result[1]["value"], "val9")
-
-        self.__do_delete(self.__get_kvp_id(put_resp_3))
-        self.__do_delete(self.__get_kvp_id(put_resp_4))
+        self._do_delete("user3?scope=user")
+        self._do_delete("userkey?scope=user")
 
     def test_get_all_user_query_param_can_only_be_used_with_rbac(self):
         resp = self.app.get("/v1/keys?user=foousera", expect_errors=True)
@@ -468,8 +344,8 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json["faultstring"], expected_error)
 
     def test_get_all_prefix_filtering(self):
-        put_resp1 = self.__do_put(KVP["name"], KVP)
-        put_resp2 = self.__do_put(KVP_2["name"], KVP_2)
+        put_resp1 = self._do_put(KVP["name"], KVP)
+        put_resp2 = self._do_put(KVP_2["name"], KVP_2)
         self.assertEqual(put_resp1.status_int, 200)
         self.assertEqual(put_resp2.status_int, 200)
 
@@ -485,20 +361,20 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         resp = self.app.get("/v1/keys?prefix=keystone_endpoint")
         self.assertEqual(len(resp.json), 1)
 
-        self.__do_delete(self.__get_kvp_id(put_resp1))
-        self.__do_delete(self.__get_kvp_id(put_resp2))
+        self._do_delete(self._get_kvp_id(put_resp1))
+        self._do_delete(self._get_kvp_id(put_resp2))
 
     def test_get_one_fail(self):
         resp = self.app.get("/v1/keys/1", expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
     def test_put(self):
-        put_resp = self.__do_put("key1", KVP)
+        put_resp = self._do_put("key1", KVP)
         update_input = put_resp.json
         update_input["value"] = "http://127.0.0.1:35357/v3"
-        put_resp = self.__do_put(self.__get_kvp_id(put_resp), update_input)
+        put_resp = self._do_put(self._get_kvp_id(put_resp), update_input)
         self.assertEqual(put_resp.status_int, 200)
-        self.__do_delete(self.__get_kvp_id(put_resp))
+        self._do_delete(self._get_kvp_id(put_resp))
 
     def test_put_with_scope(self):
         self.app.put_json("/v1/keys/%s" % "keystone_endpoint", KVP, expect_errors=False)
@@ -510,13 +386,13 @@ class KeyValuePairControllerTestCase(FunctionalTest):
 
         get_resp_1 = self.app.get("/v1/keys/keystone_endpoint")
         self.assertTrue(get_resp_1.status_int, 200)
-        self.assertEqual(self.__get_kvp_id(get_resp_1), "keystone_endpoint")
+        self.assertEqual(self._get_kvp_id(get_resp_1), "keystone_endpoint")
         get_resp_2 = self.app.get("/v1/keys/keystone_version?scope=st2kv.system")
         self.assertTrue(get_resp_2.status_int, 200)
-        self.assertEqual(self.__get_kvp_id(get_resp_2), "keystone_version")
+        self.assertEqual(self._get_kvp_id(get_resp_2), "keystone_version")
         get_resp_3 = self.app.get("/v1/keys/keystone_version")
         self.assertTrue(get_resp_3.status_int, 200)
-        self.assertEqual(self.__get_kvp_id(get_resp_3), "keystone_version")
+        self.assertEqual(self._get_kvp_id(get_resp_3), "keystone_version")
         self.app.delete("/v1/keys/keystone_endpoint?scope=st2kv.system")
         self.app.delete("/v1/keys/keystone_version?scope=st2kv.system")
 
@@ -613,47 +489,47 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.app.delete("/v1/keys/customer_ssn?scope=st2kv.user")
 
     def test_put_with_ttl(self):
-        put_resp = self.__do_put("key_with_ttl", KVP_WITH_TTL)
+        put_resp = self._do_put("key_with_ttl", KVP_WITH_TTL)
         self.assertEqual(put_resp.status_int, 200)
         get_resp = self.app.get("/v1/keys")
         self.assertTrue(get_resp.json[0]["expire_timestamp"])
-        self.__do_delete(self.__get_kvp_id(put_resp))
+        self._do_delete(self._get_kvp_id(put_resp))
 
     def test_put_secret(self):
-        put_resp = self.__do_put("secret_key1", SECRET_KVP)
-        kvp_id = self.__get_kvp_id(put_resp)
-        get_resp = self.__do_get_one(kvp_id)
+        put_resp = self._do_put("secret_key1", SECRET_KVP)
+        kvp_id = self._get_kvp_id(put_resp)
+        get_resp = self._do_get_one(kvp_id)
         self.assertTrue(get_resp.json["encrypted"])
         crypto_val = get_resp.json["value"]
         self.assertNotEqual(SECRET_KVP["value"], crypto_val)
-        self.__do_delete(self.__get_kvp_id(put_resp))
+        self._do_delete(self._get_kvp_id(put_resp))
 
     def test_get_one_secret_no_decrypt(self):
-        put_resp = self.__do_put("secret_key1", SECRET_KVP)
-        kvp_id = self.__get_kvp_id(put_resp)
+        put_resp = self._do_put("secret_key1", SECRET_KVP)
+        kvp_id = self._get_kvp_id(put_resp)
         get_resp = self.app.get("/v1/keys/secret_key1")
         self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(self.__get_kvp_id(get_resp), kvp_id)
+        self.assertEqual(self._get_kvp_id(get_resp), kvp_id)
         self.assertTrue(get_resp.json["secret"])
         self.assertTrue(get_resp.json["encrypted"])
-        self.__do_delete(kvp_id)
+        self._do_delete(kvp_id)
 
     def test_get_one_secret_decrypt(self):
-        put_resp = self.__do_put("secret_key1", SECRET_KVP)
-        kvp_id = self.__get_kvp_id(put_resp)
+        put_resp = self._do_put("secret_key1", SECRET_KVP)
+        kvp_id = self._get_kvp_id(put_resp)
         get_resp = self.app.get("/v1/keys/secret_key1?decrypt=true")
         self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(self.__get_kvp_id(get_resp), kvp_id)
+        self.assertEqual(self._get_kvp_id(get_resp), kvp_id)
         self.assertTrue(get_resp.json["secret"])
         self.assertFalse(get_resp.json["encrypted"])
         self.assertEqual(get_resp.json["value"], SECRET_KVP["value"])
-        self.__do_delete(kvp_id)
+        self._do_delete(kvp_id)
 
     def test_get_all_decrypt(self):
-        put_resp = self.__do_put("secret_key1", SECRET_KVP)
-        kvp_id_1 = self.__get_kvp_id(put_resp)
-        put_resp = self.__do_put("key1", KVP)
-        kvp_id_2 = self.__get_kvp_id(put_resp)
+        put_resp = self._do_put("secret_key1", SECRET_KVP)
+        kvp_id_1 = self._get_kvp_id(put_resp)
+        put_resp = self._do_put("key1", KVP)
+        kvp_id_2 = self._get_kvp_id(put_resp)
         kvps = {"key1": KVP, "secret_key1": SECRET_KVP}
         stored_kvps = self.app.get("/v1/keys?decrypt=true").json
         self.assertTrue(len(stored_kvps), 2)
@@ -662,13 +538,13 @@ class KeyValuePairControllerTestCase(FunctionalTest):
             exp_kvp = kvps.get(stored_kvp["name"])
             self.assertIsNotNone(exp_kvp)
             self.assertEqual(exp_kvp["value"], stored_kvp["value"])
-        self.__do_delete(kvp_id_1)
-        self.__do_delete(kvp_id_2)
+        self._do_delete(kvp_id_1)
+        self._do_delete(kvp_id_2)
 
     def test_put_encrypted_value(self):
         # 1. encrypted=True, secret=True
-        put_resp = self.__do_put("secret_key1", ENCRYPTED_KVP)
-        kvp_id = self.__get_kvp_id(put_resp)
+        put_resp = self._do_put("secret_key1", ENCRYPTED_KVP)
+        kvp_id = self._get_kvp_id(put_resp)
 
         # Verify there is no secrets leakage
         self.assertEqual(put_resp.status_code, 200)
@@ -680,7 +556,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertTrue(put_resp.json["value"] != "S3cret!Value")
         self.assertTrue(len(put_resp.json["value"]) > len("S3cret!Value") * 2)
 
-        get_resp = self.__do_get_one(kvp_id + "?decrypt=True")
+        get_resp = self._do_get_one(kvp_id + "?decrypt=True")
         self.assertEqual(put_resp.json["name"], "secret_key1")
         self.assertEqual(put_resp.json["scope"], "st2kv.system")
         self.assertEqual(put_resp.json["encrypted"], True)
@@ -688,15 +564,15 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(put_resp.json["value"], ENCRYPTED_KVP["value"])
 
         # Verify data integrity post decryption
-        get_resp = self.__do_get_one(kvp_id + "?decrypt=True")
+        get_resp = self._do_get_one(kvp_id + "?decrypt=True")
         self.assertFalse(get_resp.json["encrypted"])
         self.assertEqual(get_resp.json["value"], "S3cret!Value")
-        self.__do_delete(self.__get_kvp_id(put_resp))
+        self._do_delete(self._get_kvp_id(put_resp))
 
         # 2. encrypted=True, secret=False
         # encrypted should always imply secret=True
-        put_resp = self.__do_put("secret_key2", ENCRYPTED_KVP_SECRET_FALSE)
-        kvp_id = self.__get_kvp_id(put_resp)
+        put_resp = self._do_put("secret_key2", ENCRYPTED_KVP_SECRET_FALSE)
+        kvp_id = self._get_kvp_id(put_resp)
 
         # Verify there is no secrets leakage
         self.assertEqual(put_resp.status_code, 200)
@@ -708,7 +584,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertTrue(put_resp.json["value"] != "S3cret!Value")
         self.assertTrue(len(put_resp.json["value"]) > len("S3cret!Value") * 2)
 
-        get_resp = self.__do_get_one(kvp_id + "?decrypt=True")
+        get_resp = self._do_get_one(kvp_id + "?decrypt=True")
         self.assertEqual(put_resp.json["name"], "secret_key2")
         self.assertEqual(put_resp.json["scope"], "st2kv.system")
         self.assertEqual(put_resp.json["encrypted"], True)
@@ -716,15 +592,15 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertEqual(put_resp.json["value"], ENCRYPTED_KVP["value"])
 
         # Verify data integrity post decryption
-        get_resp = self.__do_get_one(kvp_id + "?decrypt=True")
+        get_resp = self._do_get_one(kvp_id + "?decrypt=True")
         self.assertFalse(get_resp.json["encrypted"])
         self.assertEqual(get_resp.json["value"], "S3cret!Value")
-        self.__do_delete(self.__get_kvp_id(put_resp))
+        self._do_delete(self._get_kvp_id(put_resp))
 
     def test_put_encrypted_value_integrity_check_failed(self):
         data = copy.deepcopy(ENCRYPTED_KVP)
         data["value"] = "corrupted"
-        put_resp = self.__do_put("secret_key1", data, expect_errors=True)
+        put_resp = self._do_put("secret_key1", data, expect_errors=True)
         self.assertEqual(put_resp.status_code, 400)
 
         expected_error = (
@@ -735,7 +611,7 @@ class KeyValuePairControllerTestCase(FunctionalTest):
 
         data = copy.deepcopy(ENCRYPTED_KVP)
         data["value"] = str(data["value"][:-2])
-        put_resp = self.__do_put("secret_key1", data, expect_errors=True)
+        put_resp = self._do_put("secret_key1", data, expect_errors=True)
         self.assertEqual(put_resp.status_code, 400)
 
         expected_error = (
@@ -745,30 +621,176 @@ class KeyValuePairControllerTestCase(FunctionalTest):
         self.assertIn(expected_error, put_resp.json["faultstring"])
 
     def test_put_delete(self):
-        put_resp = self.__do_put("key1", KVP)
+        put_resp = self._do_put("key1", KVP)
         self.assertEqual(put_resp.status_int, 200)
-        self.__do_delete(self.__get_kvp_id(put_resp))
+        self._do_delete(self._get_kvp_id(put_resp))
 
     def test_delete(self):
-        put_resp = self.__do_put("key1", KVP)
-        del_resp = self.__do_delete(self.__get_kvp_id(put_resp))
+        put_resp = self._do_put("key1", KVP)
+        del_resp = self._do_delete(self._get_kvp_id(put_resp))
         self.assertEqual(del_resp.status_int, 204)
 
     def test_delete_fail(self):
-        resp = self.__do_delete("inexistentkey", expect_errors=True)
+        resp = self._do_delete("inexistentkey", expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
     @staticmethod
-    def __get_kvp_id(resp):
+    def _get_kvp_id(resp):
         return resp.json["name"]
 
-    def __do_get_one(self, kvp_id, expect_errors=False):
+    def _do_get_one(self, kvp_id, expect_errors=False):
         return self.app.get("/v1/keys/%s" % kvp_id, expect_errors=expect_errors)
 
-    def __do_put(self, kvp_id, kvp, expect_errors=False):
+    def _do_put(self, kvp_id, kvp, expect_errors=False):
         return self.app.put_json(
             "/v1/keys/%s" % kvp_id, kvp, expect_errors=expect_errors
         )
 
-    def __do_delete(self, kvp_id, expect_errors=False):
+    def _do_delete(self, kvp_id, expect_errors=False):
         return self.app.delete("/v1/keys/%s" % kvp_id, expect_errors=expect_errors)
+
+
+class KeyValuePairControllerRBACTestCase(KeyValuePairControllerBaseTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(KeyValuePairControllerRBACTestCase, cls).setUpClass()
+        cfg.CONF.set_override(group="rbac", name="enable", override=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        cfg.CONF.set_override(group="rbac", name="enable", override=False)
+        super(KeyValuePairControllerRBACTestCase, cls).tearDownClass()
+
+    @mock.patch.object(
+        NoOpRBACUtils, "user_has_system_role", mock.MagicMock(return_value=True)
+    )
+    @mock.patch("st2api.controllers.v1.keyvalue.get_all_system_kvp_names_for_user")
+    def test_get_all_all_scope_admin(self, mock_get_system_kvp_names):
+        # Define users
+        user_1_db = UserDB(name="user-" + uuid.uuid4().hex)
+        user_1_db = User.add_or_update(user_1_db)
+        user_2_db = UserDB(name="user-" + uuid.uuid4().hex)
+        user_2_db = User.add_or_update(user_2_db)
+
+        # Insert system scoped kvps
+        for i in range(1, 3):
+            k, v = "s11" + str(i), "v11" + str(i)
+            put_resp = self._do_put(
+                k, {"name": k, "value": v, "scope": FULL_SYSTEM_SCOPE}
+            )
+            self.assertEqual(put_resp.status_int, 200)
+
+        # Insert user scoped kvps
+        self.use_user(user_1_db)
+        k, v = "a111", "v12345"
+        put_resp = self._do_put(k, {"name": k, "value": v, "scope": FULL_USER_SCOPE})
+        self.assertEqual(put_resp.status_int, 200)
+        self.use_user(user_2_db)
+        k, v = "u111", "v23456"
+        put_resp = self._do_put(k, {"name": k, "value": v, "scope": FULL_USER_SCOPE})
+        self.assertEqual(put_resp.status_int, 200)
+
+        # Assert user1 permissions
+        self.use_user(user_1_db)
+
+        resp = self.app.get("/v1/keys", {"scope": ALL_SCOPE})
+        self.assertEqual(len(resp.json), 3)
+        self.assertListEqual(
+            sorted([i["name"] for i in resp.json]), ["a111", "s111", "s112"]
+        )
+        self.assertFalse(mock_get_system_kvp_names.called)
+
+        resp = self.app.get("/v1/keys", {"scope": FULL_SYSTEM_SCOPE})
+        self.assertEqual(len(resp.json), 2)
+        self.assertListEqual(sorted([i["name"] for i in resp.json]), ["s111", "s112"])
+        self.assertFalse(mock_get_system_kvp_names.called)
+
+        resp = self.app.get("/v1/keys", {"scope": FULL_USER_SCOPE})
+        self.assertEqual(len(resp.json), 1)
+        self.assertListEqual(sorted([i["name"] for i in resp.json]), ["a111"])
+        self.assertFalse(mock_get_system_kvp_names.called)
+
+        resp = self.app.get("/v1/keys", {"user": user_2_db.name})
+        self.assertEqual(len(resp.json), 1)
+        self.assertListEqual(sorted([i["name"] for i in resp.json]), ["u111"])
+        self.assertFalse(mock_get_system_kvp_names.called)
+
+    @mock.patch.object(
+        NoOpRBACUtils, "user_has_system_role", mock.MagicMock(return_value=False)
+    )
+    @mock.patch("st2api.controllers.v1.keyvalue.get_all_system_kvp_names_for_user")
+    def test_get_all_all_scope_nonadmin(self, mock_get_system_kvp_names):
+        # Define users
+        user_1_db = UserDB(name="user-" + uuid.uuid4().hex)
+        user_1_db = User.add_or_update(user_1_db)
+        user_2_db = UserDB(name="user-" + uuid.uuid4().hex)
+        user_2_db = User.add_or_update(user_2_db)
+
+        # Insert system scoped kvps
+        # s121-s122 assigned to user1
+        # s123-s124 assigned to user2
+        # s125-s126 not explicitly assigned
+        for i in range(1, 7):
+            k, v = "s12" + str(i), "v12" + str(i)
+            put_resp = self._do_put(
+                k, {"name": k, "value": v, "scope": FULL_SYSTEM_SCOPE}
+            )
+            self.assertEqual(put_resp.status_int, 200)
+
+        # Insert user scoped kvps
+        self.use_user(user_1_db)
+        k, v = "u121", "v12345"
+        put_resp = self._do_put(k, {"name": k, "value": v, "scope": FULL_USER_SCOPE})
+        self.assertEqual(put_resp.status_int, 200)
+        self.use_user(user_2_db)
+        k, v = "u122", "v23456"
+        put_resp = self._do_put(k, {"name": k, "value": v, "scope": FULL_USER_SCOPE})
+        self.assertEqual(put_resp.status_int, 200)
+
+        # Assert user1 permissions
+        self.use_user(user_1_db)
+        mock_get_system_kvp_names.return_value = ["s121", "s122"]
+
+        resp = self.app.get("/v1/keys", {"scope": ALL_SCOPE})
+        self.assertEqual(len(resp.json), 3)
+        self.assertListEqual(
+            sorted([i["name"] for i in resp.json]), ["s121", "s122", "u121"]
+        )
+        self.assertTrue(mock_get_system_kvp_names.called)
+        mock_get_system_kvp_names.reset_mock()
+
+        resp = self.app.get("/v1/keys", {"scope": FULL_SYSTEM_SCOPE})
+        self.assertEqual(len(resp.json), 2)
+        self.assertListEqual(sorted([i["name"] for i in resp.json]), ["s121", "s122"])
+        self.assertTrue(mock_get_system_kvp_names.called)
+        mock_get_system_kvp_names.reset_mock()
+
+        resp = self.app.get("/v1/keys", {"scope": FULL_USER_SCOPE})
+        self.assertEqual(len(resp.json), 1)
+        self.assertListEqual(sorted([i["name"] for i in resp.json]), ["u121"])
+        self.assertFalse(mock_get_system_kvp_names.called)
+        mock_get_system_kvp_names.reset_mock()
+
+        # Assert user2 permissions
+        self.use_user(user_2_db)
+        mock_get_system_kvp_names.return_value = ["s123", "s124"]
+
+        resp = self.app.get("/v1/keys", {"scope": ALL_SCOPE})
+        self.assertEqual(len(resp.json), 3)
+        self.assertListEqual(
+            sorted([i["name"] for i in resp.json]), ["s123", "s124", "u122"]
+        )
+        self.assertTrue(mock_get_system_kvp_names.called)
+        mock_get_system_kvp_names.reset_mock()
+
+        resp = self.app.get("/v1/keys", {"scope": FULL_SYSTEM_SCOPE})
+        self.assertEqual(len(resp.json), 2)
+        self.assertListEqual(sorted([i["name"] for i in resp.json]), ["s123", "s124"])
+        self.assertTrue(mock_get_system_kvp_names.called)
+        mock_get_system_kvp_names.reset_mock()
+
+        resp = self.app.get("/v1/keys", {"scope": FULL_USER_SCOPE})
+        self.assertEqual(len(resp.json), 1)
+        self.assertListEqual(sorted([i["name"] for i in resp.json]), ["u122"])
+        self.assertFalse(mock_get_system_kvp_names.called)
+        mock_get_system_kvp_names.reset_mock()
