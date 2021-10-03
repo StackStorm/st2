@@ -1,4 +1,5 @@
-# Remeber to list implicit packages here, otherwise version won't be fixated!
+# Remember to list implicit packages here, otherwise version won't be fixated!
+importlib-metadata
 argcomplete
 prettytable
 pytz
@@ -12,5 +13,6 @@ sseclient-py
 python-editor
 prompt-toolkit
 cryptography
-more-itertools==5.0.0
-zipp>=0.5,<=1.0.0
+orjson
+# needed by requests
+chardet

@@ -23,23 +23,22 @@ from winrm_runner.winrm_base import WinRmBaseRunner
 
 
 class WinRmCommandRunnerTestCase(RunnerTestCase):
-
     def setUp(self):
         super(WinRmCommandRunnerTestCase, self).setUpClass()
         self._runner = winrm_command_runner.get_runner()
 
     def test_init(self):
-        runner = winrm_command_runner.WinRmCommandRunner('abcdef')
+        runner = winrm_command_runner.WinRmCommandRunner("abcdef")
         self.assertIsInstance(runner, WinRmBaseRunner)
         self.assertIsInstance(runner, ActionRunner)
-        self.assertEqual(runner.runner_id, 'abcdef')
+        self.assertEqual(runner.runner_id, "abcdef")
 
-    @mock.patch('winrm_runner.winrm_command_runner.WinRmCommandRunner.run_cmd')
+    @mock.patch("winrm_runner.winrm_command_runner.WinRmCommandRunner.run_cmd")
     def test_run(self, mock_run_cmd):
-        mock_run_cmd.return_value = 'expected'
+        mock_run_cmd.return_value = "expected"
 
-        self._runner.runner_parameters = {'cmd': 'ipconfig /all'}
+        self._runner.runner_parameters = {"cmd": "ipconfig /all"}
         result = self._runner.run({})
 
-        self.assertEqual(result, 'expected')
-        mock_run_cmd.assert_called_with('ipconfig /all')
+        self.assertEqual(result, "expected")
+        mock_run_cmd.assert_called_with("ipconfig /all")

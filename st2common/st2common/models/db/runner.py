@@ -22,13 +22,13 @@ from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
 
 __all__ = [
-    'RunnerTypeDB',
+    "RunnerTypeDB",
 ]
 
 
 LOG = logging.getLogger(__name__)
 
-PACK_SEPARATOR = '.'
+PACK_SEPARATOR = "."
 
 
 class RunnerTypeDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
@@ -46,31 +46,37 @@ class RunnerTypeDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     """
 
     RESOURCE_TYPE = ResourceType.RUNNER_TYPE
-    UID_FIELDS = ['name']
+    UID_FIELDS = ["name"]
 
     enabled = me.BooleanField(
-        required=True, default=True,
-        help_text='A flag indicating whether the runner for this type is enabled.')
+        required=True,
+        default=True,
+        help_text="A flag indicating whether the runner for this type is enabled.",
+    )
     runner_package = me.StringField(
         required=False,
-        help_text=('The python package that implements the action runner for this type. If'
-                   'not provided it assumes package name equals module name.'))
+        help_text=(
+            "The python package that implements the action runner for this type. If"
+            "not provided it assumes package name equals module name."
+        ),
+    )
     runner_module = me.StringField(
         required=True,
-        help_text='The python module that implements the action runner for this type.')
+        help_text="The python module that implements the action runner for this type.",
+    )
     runner_parameters = me.DictField(
-        help_text='The specification for parameters for the action runner.')
+        help_text="The specification for parameters for the action runner."
+    )
     output_key = me.StringField(
-        help_text='Default key to expect results to be published to.')
-    output_schema = me.DictField(
-        help_text='The schema for runner output.')
+        help_text="Default key to expect results to be published to."
+    )
+    output_schema = me.DictField(help_text="The schema for runner output.")
     query_module = me.StringField(
         required=False,
-        help_text='The python module that implements the query module for this runner.')
+        help_text="The python module that implements the query module for this runner.",
+    )
 
-    meta = {
-        'indexes': stormbase.UIDFieldMixin.get_indexes()
-    }
+    meta = {"indexes": stormbase.UIDFieldMixin.get_indexes()}
 
     def __init__(self, *args, **values):
         super(RunnerTypeDB, self).__init__(*args, **values)

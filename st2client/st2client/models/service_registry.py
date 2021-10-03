@@ -17,32 +17,27 @@ from __future__ import absolute_import
 
 from st2client.models import core
 
-__all__ = [
-    'ServiceRegistry',
-
-    'ServiceRegistryGroup',
-    'ServiceRegistryMember'
-]
+__all__ = ["ServiceRegistry", "ServiceRegistryGroup", "ServiceRegistryMember"]
 
 
 class ServiceRegistry(core.Resource):
-    _alias = 'service-registry'
-    _display_name = 'Service Registry'
-    _plural = 'Service Registry'
-    _plural_display_name = 'Service Registry'
+    _alias = "service-registry"
+    _display_name = "Service Registry"
+    _plural = "Service Registry"
+    _plural_display_name = "Service Registry"
 
 
 class ServiceRegistryGroup(core.Resource):
-    _alias = 'group'
-    _display_name = 'Group'
-    _plural = 'Groups'
-    _plural_display_name = 'Groups'
-    _repr_attributes = ['group_id']
+    _alias = "group"
+    _display_name = "Group"
+    _plural = "Groups"
+    _plural_display_name = "Groups"
+    _repr_attributes = ["group_id"]
 
 
 class ServiceRegistryMember(core.Resource):
-    _alias = 'member'
-    _display_name = 'Group Member'
-    _plural = 'Group Members'
-    _plural_display_name = 'Group Members'
-    _repr_attributes = ['group_id', 'member_id']
+    _alias = "member"
+    _display_name = "Group Member"
+    _plural = "Group Members"
+    _plural_display_name = "Group Members"
+    _repr_attributes = ["group_id", "member_id"]

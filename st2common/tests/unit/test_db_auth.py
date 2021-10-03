@@ -26,44 +26,35 @@ from st2tests import DbTestCase
 from tests.unit.base import BaseDBModelCRUDTestCase
 
 
-__all__ = [
-    'UserDBModelCRUDTestCase'
-]
+__all__ = ["UserDBModelCRUDTestCase"]
 
 
 class UserDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = UserDB
     persistance_class = User
     model_class_kwargs = {
-        'name': 'pony',
-        'is_service': False,
-        'nicknames': {
-            'pony1': 'ponyA'
-        }
+        "name": "pony",
+        "is_service": False,
+        "nicknames": {"pony1": "ponyA"},
     }
-    update_attribute_name = 'name'
+    update_attribute_name = "name"
 
 
 class TokenDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = TokenDB
     persistance_class = Token
     model_class_kwargs = {
-        'user': 'pony',
-        'token': 'token-token-token-token',
-        'expiry': get_datetime_utc_now(),
-        'metadata': {
-            'service': 'action-runner'
-        }
+        "user": "pony",
+        "token": "token-token-token-token",
+        "expiry": get_datetime_utc_now(),
+        "metadata": {"service": "action-runner"},
     }
-    skip_check_attribute_names = ['expiry']
-    update_attribute_name = 'user'
+    skip_check_attribute_names = ["expiry"]
+    update_attribute_name = "user"
 
 
 class ApiKeyDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = ApiKeyDB
     persistance_class = ApiKey
-    model_class_kwargs = {
-        'user': 'pony',
-        'key_hash': 'token-token-token-token'
-    }
-    update_attribute_name = 'user'
+    model_class_kwargs = {"user": "pony", "key_hash": "token-token-token-token"}
+    update_attribute_name = "user"

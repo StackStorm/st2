@@ -19,27 +19,31 @@ import unittest2
 
 from st2common.util.payload import PayloadLookup
 
-__all__ = [
-    'PayloadLookupTestCase'
-]
+__all__ = ["PayloadLookupTestCase"]
 
 
 class PayloadLookupTestCase(unittest2.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.payload = PayloadLookup({
-            'pikachu': "Has no ears",
-            'charmander': "Plays with fire",
-        })
+        cls.payload = PayloadLookup(
+            {
+                "pikachu": "Has no ears",
+                "charmander": "Plays with fire",
+            }
+        )
         super(PayloadLookupTestCase, cls).setUpClass()
 
     def test_get_key(self):
-        self.assertEqual(self.payload.get_value('trigger.pikachu'), ["Has no ears"])
-        self.assertEqual(self.payload.get_value('trigger.charmander'), ["Plays with fire"])
+        self.assertEqual(self.payload.get_value("trigger.pikachu"), ["Has no ears"])
+        self.assertEqual(
+            self.payload.get_value("trigger.charmander"), ["Plays with fire"]
+        )
 
     def test_explicitly_get_multiple_keys(self):
-        self.assertEqual(self.payload.get_value('trigger.pikachu[*]'), ["Has no ears"])
-        self.assertEqual(self.payload.get_value('trigger.charmander[*]'), ["Plays with fire"])
+        self.assertEqual(self.payload.get_value("trigger.pikachu[*]"), ["Has no ears"])
+        self.assertEqual(
+            self.payload.get_value("trigger.charmander[*]"), ["Plays with fire"]
+        )
 
     def test_get_nonexistent_key(self):
-        self.assertIsNone(self.payload.get_value('trigger.squirtle'))
+        self.assertIsNone(self.payload.get_value("trigger.squirtle"))

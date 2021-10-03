@@ -23,7 +23,11 @@ import json
 
 import six
 import webtest
+import webob.compat
+import webob.request
 import mock
+
+from six.moves import urllib
 
 from oslo_config import cfg
 
@@ -34,19 +38,19 @@ from st2tests.base import CleanDbTestCase
 from st2tests import config as tests_config
 
 __all__ = [
-    'BaseFunctionalTest',
-
-    'FunctionalTest',
-    'APIControllerWithIncludeAndExcludeFilterTestCase',
-    'BaseInquiryControllerTestCase',
-
-    'FakeResponse',
-    'TestApp'
+    "BaseFunctionalTest",
+    "FunctionalTest",
+    "APIControllerWithIncludeAndExcludeFilterTestCase",
+    "BaseInquiryControllerTestCase",
+    "FakeResponse",
+    "TestApp",
 ]
 
 
-SUPER_SECRET_PARAMETER = 'SUPER_SECRET_PARAMETER_THAT_SHOULD_NEVER_APPEAR_IN_RESPONSES_OR_LOGS'
-ANOTHER_SUPER_SECRET_PARAMETER = 'ANOTHER_SUPER_SECRET_PARAMETER_TO_TEST_OVERRIDING'
+SUPER_SECRET_PARAMETER = (
+    "SUPER_SECRET_PARAMETER_THAT_SHOULD_NEVER_APPEAR_IN_RESPONSES_OR_LOGS"
+)
+ANOTHER_SUPER_SECRET_PARAMETER = "ANOTHER_SUPER_SECRET_PARAMETER_TO_TEST_OVERRIDING"
 
 
 class ResponseValidationError(ValueError):
@@ -57,36 +61,60 @@ class ResponseLeakError(ValueError):
     pass
 
 
+# NOTE: This is not ideal, but we need to patch those functions so it works correctly for the
+# tests.
+# The problem is that for the unit based api tests we utilize webtest which has the same bug as
+# webob when handling unicode characters in the path names and the actual unit test API code doesn't
+# follow exactly the same code path as actual production code which doesn't utilize webtest
+# In short, that's why important we also have end to end tests for API endpoints!
+webob.request.url_unquote = urllib.parse.unquote
+webob.compat.url_unquote = urllib.parse.unquote
+
+
+def bytes_(s, encoding="utf-8", errors="strict"):
+    if isinstance(s, six.text_type):
+        return s.encode("utf-8", errors)
+
+
+webob.compat.bytes_ = bytes_
+webob.request.bytes_ = bytes_
+
+
 class TestApp(webtest.TestApp):
     def do_request(self, req, **kwargs):
         self.cookiejar.clear()
 
-        if req.environ['REQUEST_METHOD'] != 'OPTIONS':
+        if req.environ["REQUEST_METHOD"] != "OPTIONS":
             # Making sure endpoint handles OPTIONS method properly
-            self.options(req.environ['PATH_INFO'])
+            self.options(req.environ["PATH_INFO"])
 
         res = super(TestApp, self).do_request(req, **kwargs)
 
-        if res.headers.get('Warning', None):
-            raise ResponseValidationError('Endpoint produced invalid response. Make sure the '
-                                          'response matches OpenAPI scheme for the endpoint.')
+        if res.headers.get("Warning", None):
+            raise ResponseValidationError(
+                "Endpoint produced invalid response. Make sure the "
+                "response matches OpenAPI scheme for the endpoint."
+            )
 
-        if not kwargs.get('expect_errors', None):
+        if not kwargs.get("expect_errors", None):
             try:
                 body = res.body
             except AssertionError as e:
-                if 'Iterator read after closed' in six.text_type(e):
-                    body = b''
+                if "Iterator read after closed" in six.text_type(e):
+                    body = b""
                 else:
                     raise e
 
-            if six.b(SUPER_SECRET_PARAMETER) in body or \
-                    six.b(ANOTHER_SUPER_SECRET_PARAMETER) in body:
-                raise ResponseLeakError('Endpoint response contains secret parameter. '
-                                        'Find the leak.')
+            if (
+                six.b(SUPER_SECRET_PARAMETER) in body
+                or six.b(ANOTHER_SUPER_SECRET_PARAMETER) in body
+            ):
+                raise ResponseLeakError(
+                    "Endpoint response contains secret parameter. " "Find the leak."
+                )
 
-        if 'Access-Control-Allow-Origin' not in res.headers:
-            raise ResponseValidationError('Response missing a required CORS header')
+        if "Access-Control-Allow-Origin" not in res.headers:
+            raise ResponseValidationError("Response missing a required CORS header")
 
         return res
 
@@ -113,19 +141,19 @@ class BaseFunctionalTest(DbTestCase):
         super(BaseFunctionalTest, self).tearDown()
 
         # Reset mock context for API requests
-        if getattr(self, 'request_context_mock', None):
+        if getattr(self, "request_context_mock", None):
             self.request_context_mock.stop()
 
-            if hasattr(Router, 'mock_context'):
-                del(Router.mock_context)
+            if hasattr(Router, "mock_context"):
+                del Router.mock_context
 
     @classmethod
     def _do_setUpClass(cls):
         tests_config.parse_args()
 
-        cfg.CONF.set_default('enable', cls.enable_auth, group='auth')
+        cfg.CONF.set_default("enable", cls.enable_auth, group="auth")
 
-        cfg.CONF.set_override(name='enable', override=False, group='rbac')
+        cfg.CONF.set_override(name="enable", override=False, group="rbac")
 
         # TODO(manas) : register action types here for now. RunnerType registration can be moved
         # to posting to /runnertypes but that implies implementing POST.
@@ -142,11 +170,8 @@ class BaseFunctionalTest(DbTestCase):
             raise ValueError('"user_db" is mandatory')
 
         mock_context = {
-            'user': user_db,
-            'auth_info': {
-                'method': 'authentication token',
-                'location': 'header'
-            }
+            "user": user_db,
+            "auth_info": {"method": "authentication token", "location": "header"},
         }
         self.request_context_mock = mock.PropertyMock(return_value=mock_context)
         Router.mock_context = self.request_context_mock
@@ -184,40 +209,48 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
     # True if those tests are running with rbac enabled
     rbac_enabled = False
 
-    def test_get_all_exclude_attributes_and_include_attributes_are_mutually_exclusive(self):
+    def test_get_all_exclude_attributes_and_include_attributes_are_mutually_exclusive(
+        self,
+    ):
         if self.rbac_enabled:
-            self.use_user(self.users['admin'])
+            self.use_user(self.users["admin"])
 
-        url = self.get_all_path + '?include_attributes=id&exclude_attributes=id'
+        url = self.get_all_path + "?include_attributes=id&exclude_attributes=id"
         resp = self.app.get(url, expect_errors=True)
         self.assertEqual(resp.status_int, 400)
-        expected_msg = ('exclude.*? and include.*? arguments are mutually exclusive. '
-                        'You need to provide either one or another, but not both.')
-        self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
+        expected_msg = (
+            "exclude.*? and include.*? arguments are mutually exclusive. "
+            "You need to provide either one or another, but not both."
+        )
+        self.assertRegexpMatches(resp.json["faultstring"], expected_msg)
 
     def test_get_all_invalid_exclude_and_include_parameter(self):
         if self.rbac_enabled:
-            self.use_user(self.users['admin'])
+            self.use_user(self.users["admin"])
 
         # 1. Invalid exclude_attributes field
-        url = self.get_all_path + '?exclude_attributes=invalid_field'
+        url = self.get_all_path + "?exclude_attributes=invalid_field"
         resp = self.app.get(url, expect_errors=True)
 
-        expected_msg = ('Invalid or unsupported exclude attribute specified: .*invalid_field.*')
+        expected_msg = (
+            "Invalid or unsupported exclude attribute specified: .*invalid_field.*"
+        )
         self.assertEqual(resp.status_int, 400)
-        self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
+        self.assertRegexpMatches(resp.json["faultstring"], expected_msg)
 
         # 2. Invalid include_attributes field
-        url = self.get_all_path + '?include_attributes=invalid_field'
+        url = self.get_all_path + "?include_attributes=invalid_field"
         resp = self.app.get(url, expect_errors=True)
 
-        expected_msg = ('Invalid or unsupported include attribute specified: .*invalid_field.*')
+        expected_msg = (
+            "Invalid or unsupported include attribute specified: .*invalid_field.*"
+        )
         self.assertEqual(resp.status_int, 400)
-        self.assertRegexpMatches(resp.json['faultstring'], expected_msg)
+        self.assertRegexpMatches(resp.json["faultstring"], expected_msg)
 
     def test_get_all_include_attributes_filter(self):
         if self.rbac_enabled:
-            self.use_user(self.users['admin'])
+            self.use_user(self.users["admin"])
 
         mandatory_include_fields = self.controller_cls.mandatory_include_fields_response
 
@@ -226,8 +259,10 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         object_ids = self._insert_mock_models()
 
         # Valid include attribute  - mandatory field which should always be included
-        resp = self.app.get('%s?include_attributes=%s' % (self.get_all_path,
-                                                          mandatory_include_fields[0]))
+        resp = self.app.get(
+            "%s?include_attributes=%s"
+            % (self.get_all_path, mandatory_include_fields[0])
+        )
 
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) >= 1)
@@ -245,7 +280,9 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
         include_field = self.include_attribute_field_name
         assert include_field not in mandatory_include_fields
 
-        resp = self.app.get('%s?include_attributes=%s' % (self.get_all_path, include_field))
+        resp = self.app.get(
+            "%s?include_attributes=%s" % (self.get_all_path, include_field)
+        )
 
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) >= 1)
@@ -263,7 +300,7 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
 
     def test_get_all_exclude_attributes_filter(self):
         if self.rbac_enabled:
-            self.use_user(self.users['admin'])
+            self.use_user(self.users["admin"])
 
         # Create any resources needed by those tests (if not already created inside setUp /
         # setUpClass)
@@ -285,8 +322,9 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
 
         # 2. Verify attribute is excluded when filter is provided
         exclude_attribute = self.exclude_attribute_field_name
-        resp = self.app.get('%s?exclude_attributes=%s' % (self.get_all_path,
-                                                          exclude_attribute))
+        resp = self.app.get(
+            "%s?exclude_attributes=%s" % (self.get_all_path, exclude_attribute)
+        )
 
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) >= 1)
@@ -300,8 +338,8 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
 
     def assertResponseObjectContainsField(self, resp_item, field):
         # Handle "." and nested fields
-        if '.' in field:
-            split = field.split('.')
+        if "." in field:
+            split = field.split(".")
 
             for index, field_part in enumerate(split):
                 self.assertIn(field_part, resp_item)
@@ -336,7 +374,6 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
 
 
 class FakeResponse(object):
-
     def __init__(self, text, status_code, reason):
         self.text = text
         self.status_code = status_code
@@ -354,24 +391,27 @@ class BaseActionExecutionControllerTestCase(object):
 
     @staticmethod
     def _get_actionexecution_id(resp):
-        return resp.json['id']
+        return resp.json["id"]
 
     @staticmethod
     def _get_liveaction_id(resp):
-        return resp.json['liveaction']['id']
+        return resp.json["liveaction"]["id"]
 
     def _do_get_one(self, actionexecution_id, *args, **kwargs):
-        return self.app.get('/v1/executions/%s' % actionexecution_id, *args, **kwargs)
+        return self.app.get("/v1/executions/%s" % actionexecution_id, *args, **kwargs)
 
     def _do_post(self, liveaction, *args, **kwargs):
-        return self.app.post_json('/v1/executions', liveaction, *args, **kwargs)
+        return self.app.post_json("/v1/executions", liveaction, *args, **kwargs)
 
     def _do_delete(self, actionexecution_id, expect_errors=False):
-        return self.app.delete('/v1/executions/%s' % actionexecution_id,
-                               expect_errors=expect_errors)
+        return self.app.delete(
+            "/v1/executions/%s" % actionexecution_id, expect_errors=expect_errors
+        )
 
     def _do_put(self, actionexecution_id, updates, *args, **kwargs):
-        return self.app.put_json('/v1/executions/%s' % actionexecution_id, updates, *args, **kwargs)
+        return self.app.put_json(
+            "/v1/executions/%s" % actionexecution_id, updates, *args, **kwargs
+        )
 
 
 class BaseInquiryControllerTestCase(BaseFunctionalTest, CleanDbTestCase):
@@ -380,6 +420,7 @@ class BaseInquiryControllerTestCase(BaseFunctionalTest, CleanDbTestCase):
 
     Inherits from CleanDbTestCase to preserve atomicity between tests
     """
+
     from st2api import app
 
     enable_auth = False
@@ -387,26 +428,27 @@ class BaseInquiryControllerTestCase(BaseFunctionalTest, CleanDbTestCase):
 
     @staticmethod
     def _get_inquiry_id(resp):
-        return resp.json['id']
+        return resp.json["id"]
 
     def _do_get_execution(self, actionexecution_id, *args, **kwargs):
-        return self.app.get('/v1/executions/%s' % actionexecution_id, *args, **kwargs)
+        return self.app.get("/v1/executions/%s" % actionexecution_id, *args, **kwargs)
 
     def _do_get_one(self, inquiry_id, *args, **kwargs):
-        return self.app.get('/v1/inquiries/%s' % inquiry_id, *args, **kwargs)
+        return self.app.get("/v1/inquiries/%s" % inquiry_id, *args, **kwargs)
 
     def _do_get_all(self, limit=50, *args, **kwargs):
-        return self.app.get('/v1/inquiries/?limit=%s' % limit, *args, **kwargs)
+        return self.app.get("/v1/inquiries/?limit=%s" % limit, *args, **kwargs)
 
     def _do_respond(self, inquiry_id, response, *args, **kwargs):
-        payload = {
-            "id": inquiry_id,
-            "response": response
-        }
-        return self.app.put_json('/v1/inquiries/%s' % inquiry_id, payload, *args, **kwargs)
+        payload = {"id": inquiry_id, "response": response}
+        return self.app.put_json(
+            "/v1/inquiries/%s" % inquiry_id, payload, *args, **kwargs
+        )
 
-    def _do_create_inquiry(self, liveaction, result, status='pending', *args, **kwargs):
-        post_resp = self.app.post_json('/v1/executions', liveaction, *args, **kwargs)
+    def _do_create_inquiry(self, liveaction, result, status="pending", *args, **kwargs):
+        post_resp = self.app.post_json("/v1/executions", liveaction, *args, **kwargs)
         inquiry_id = self._get_inquiry_id(post_resp)
-        updates = {'status': status, 'result': result}
-        return self.app.put_json('/v1/executions/%s' % inquiry_id, updates, *args, **kwargs)
+        updates = {"status": status, "result": result}
+        return self.app.put_json(
+            "/v1/executions/%s" % inquiry_id, updates, *args, **kwargs
+        )

@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import logging
 import socket
 import json
-import copy
 import traceback
 
 import six
@@ -26,10 +25,11 @@ from oslo_config import cfg
 
 from st2common.constants.secrets import MASKED_ATTRIBUTES_BLACKLIST
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 __all__ = [
-    'ConsoleLogFormatter',
-    'GelfLogFormatter',
+    "ConsoleLogFormatter",
+    "GelfLogFormatter",
 ]
 
 SIMPLE_TYPES = (int, float) + six.string_types
@@ -37,16 +37,16 @@ NON_OBJECT_TYPES = SIMPLE_TYPES + (list, dict) + six.string_types
 
 # GELF logger specific constants
 HOSTNAME = socket.gethostname()
-GELF_SPEC_VERSION = '1.1'
+GELF_SPEC_VERSION = "1.1"
 
 COMMON_ATTRIBUTE_NAMES = [
-    'name',
-    'process',
-    'processName',
-    'module',
-    'filename',
-    'funcName',
-    'lineno'
+    "name",
+    "process",
+    "processName",
+    "module",
+    "filename",
+    "funcName",
+    "lineno",
 ]
 
 
@@ -60,9 +60,9 @@ def serialize_object(obj):
     :rtype: ``str``
     """
     # Try to serialize the object
-    if getattr(obj, 'to_dict', None):
+    if getattr(obj, "to_dict", None):
         value = obj.to_dict()
-    elif getattr(obj, 'to_serializable_dict', None):
+    elif getattr(obj, "to_serializable_dict", None):
         value = obj.to_serializable_dict(mask_secrets=True)
     else:
         value = repr(obj)
@@ -77,7 +77,9 @@ def process_attribute_value(key, value):
     if not cfg.CONF.log.mask_secrets:
         return value
 
-    blacklisted_attribute_names = MASKED_ATTRIBUTES_BLACKLIST + cfg.CONF.log.mask_secrets_blacklist
+    blacklisted_attribute_names = (
+        MASKED_ATTRIBUTES_BLACKLIST + cfg.CONF.log.mask_secrets_blacklist
+    )
 
     # NOTE: This can be expensive when processing large dicts or objects
     if isinstance(value, SIMPLE_TYPES):
@@ -85,7 +87,7 @@ def process_attribute_value(key, value):
             value = MASKED_ATTRIBUTE_VALUE
     elif isinstance(value, dict):
         # Note: We don't want to modify the original value
-        value = copy.deepcopy(value)
+        value = fast_deepcopy_dict(value)
 
         for dict_key, dict_value in six.iteritems(value):
             value[dict_key] = process_attribute_value(key=dict_key, value=dict_value)
@@ -121,11 +123,16 @@ class BaseExtraLogFormatter(logging.Formatter):
     dictionary need to be prefixed with a slash ('_').
     """
 
-    PREFIX = '_'  # Prefix for user provided attributes in the extra dict
+    PREFIX = "_"  # Prefix for user provided attributes in the extra dict
 
     def _get_extra_attributes(self, record):
-        attributes = dict([(k, v) for k, v in six.iteritems(record.__dict__)
-                           if k.startswith(self.PREFIX)])
+        attributes = dict(
+            [
+                (k, v)
+                for k, v in six.iteritems(record.__dict__)
+                if k.startswith(self.PREFIX)
+            ]
+        )
         return attributes
 
     def _get_common_extra_attributes(self, record):
@@ -182,17 +189,17 @@ class ConsoleLogFormatter(BaseExtraLogFormatter):
         msg = super(ConsoleLogFormatter, self).format(record)
 
         if attributes:
-            msg = '%s (%s)' % (msg, attributes)
+            msg = "%s (%s)" % (msg, attributes)
 
         return msg
 
     def _dict_to_str(self, attributes):
         result = []
         for key, value in six.iteritems(attributes):
-            item = '%s=%s' % (key[1:], repr(value))
+            item = "%s=%s" % (key[1:], repr(value))
             result.append(item)
 
-        result = ','.join(result)
+        result = ",".join(result)
         return result
 
 
@@ -245,30 +252,32 @@ class GelfLogFormatter(BaseExtraLogFormatter):
         exc_info = record.exc_info
         time_now_float = record.created
         time_now_sec = int(time_now_float)
-        level = self.PYTHON_TO_GELF_LEVEL_MAP.get(record.levelno, self.DEFAULT_LOG_LEVEL)
+        level = self.PYTHON_TO_GELF_LEVEL_MAP.get(
+            record.levelno, self.DEFAULT_LOG_LEVEL
+        )
 
         common_attributes = self._get_common_extra_attributes(record=record)
         full_msg = super(GelfLogFormatter, self).format(record)
 
         data = {
-            'version': GELF_SPEC_VERSION,
-            'host': HOSTNAME,
-            'short_message': msg,
-            'full_message': full_msg,
-            'timestamp': time_now_sec,
-            'timestamp_f': time_now_float,
-            'level': level
+            "version": GELF_SPEC_VERSION,
+            "host": HOSTNAME,
+            "short_message": msg,
+            "full_message": full_msg,
+            "timestamp": time_now_sec,
+            "timestamp_f": time_now_float,
+            "level": level,
         }
 
         if exc_info:
             # Include exception information
             exc_type, exc_value, exc_tb = exc_info
-            tb_str = ''.join(traceback.format_tb(exc_tb))
-            data['_exception'] = six.text_type(exc_value)
-            data['_traceback'] = tb_str
+            tb_str = "".join(traceback.format_tb(exc_tb))
+            data["_exception"] = six.text_type(exc_value)
+            data["_traceback"] = tb_str
 
         # Include common Python log record attributes
-        data['_python'] = common_attributes
+        data["_python"] = common_attributes
 
         # Include user extra attributes
         data.update(attributes)

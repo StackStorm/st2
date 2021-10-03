@@ -1,6 +1,5 @@
 *.py[cod]
 *.sqlite
-*.swp
 *.log
 .stamp*
 
@@ -32,6 +31,8 @@ virtualenv-components-osx
 
 # generated travis conf
 conf/st2.travis.conf
+# generated GitHub Actions conf
+conf/st2.githubactions.conf
 
 # Installer logs
 pip-log.txt
@@ -47,6 +48,7 @@ coverage*.xml
 .tox
 nosetests.xml
 htmlcov
+benchmark_histograms/
 
 # Mr Developer
 .idea
@@ -59,3 +61,5 @@ htmlcov
 # Editor Saves
 *~
 \#*\#
+[._]*.sw[a-p]
+[._]sw[a-p]

@@ -27,15 +27,18 @@ BLOCKED_PACKS = frozenset(SYSTEM_PACK_NAMES)
 
 class UninstallPackAction(Action):
     def __init__(self, config=None, action_service=None):
-        super(UninstallPackAction, self).__init__(config=config, action_service=action_service)
-        self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
-                                                   'virtualenvs/')
+        super(UninstallPackAction, self).__init__(
+            config=config, action_service=action_service
+        )
+        self._base_virtualenvs_path = os.path.join(
+            cfg.CONF.system.base_path, "virtualenvs/"
+        )
 
     def run(self, packs, abs_repo_base, delete_env=True):
         intersection = BLOCKED_PACKS & frozenset(packs)
         if len(intersection) > 0:
-            names = ', '.join(list(intersection))
-            raise ValueError('Uninstall includes an uninstallable pack - %s.' % (names))
+            names = ", ".join(list(intersection))
+            raise ValueError("Uninstall includes an uninstallable pack - %s." % (names))
 
         # 1. Delete pack content
         for fp in os.listdir(abs_repo_base):
@@ -51,6 +54,8 @@ class UninstallPackAction(Action):
                 virtualenv_path = os.path.join(self._base_virtualenvs_path, pack_name)
 
                 if os.path.isdir(virtualenv_path):
-                    self.logger.debug('Deleting virtualenv "%s" for pack "%s"' %
-                                      (virtualenv_path, pack_name))
+                    self.logger.debug(
+                        'Deleting virtualenv "%s" for pack "%s"'
+                        % (virtualenv_path, pack_name)
+                    )
                     shutil.rmtree(virtualenv_path)

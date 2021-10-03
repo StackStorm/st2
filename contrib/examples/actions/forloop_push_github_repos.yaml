@@ -5,7 +5,7 @@ description: "Action to push the data to an external service"
 enabled: true
 entry_point: "pythonactions/forloop_push_github_repos.py"
 parameters:
-  data_to_push: 
+  data_to_push:
     type: "object"
     description: "Dictonary of the data to be pushed"
     required: true

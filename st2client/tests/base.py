@@ -27,28 +27,25 @@ from st2client import models
 
 LOG = logging.getLogger(__name__)
 
-FAKE_ENDPOINT = 'http://127.0.0.1:8268'
+FAKE_ENDPOINT = "http://127.0.0.1:8268"
 
 RESOURCES = [
     {
         "id": "123",
         "name": "abc",
     },
-    {
-        "id": "456",
-        "name": "def"
-    }
+    {"id": "456", "name": "def"},
 ]
 
 
 class FakeResource(models.Resource):
-    _plural = 'FakeResources'
+    _plural = "FakeResources"
 
 
 class FakeResponse(object):
-
     def __init__(self, text, status_code, reason, *args):
         self.text = text
+        self.content = text
         self.status_code = status_code
         self.reason = reason
         if args:
@@ -64,8 +61,7 @@ class FakeResponse(object):
 class FakeClient(object):
     def __init__(self):
         self.managers = {
-            'FakeResource': models.ResourceManager(FakeResource,
-                                                   FAKE_ENDPOINT)
+            "FakeResource": models.ResourceManager(FakeResource, FAKE_ENDPOINT)
         }
 
 
@@ -75,23 +71,32 @@ class FakeApp(object):
 
 
 class BaseCLITestCase(unittest2.TestCase):
-    capture_output = True  # if True, stdout and stderr are saved to self.stdout and self.stderr
+    capture_output = (
+        True  # if True, stdout and stderr are saved to self.stdout and self.stderr
+    )
 
     stdout = six.moves.StringIO()
     stderr = six.moves.StringIO()
 
-    DEFAULT_SKIP_CONFIG = '1'
+    DEFAULT_SKIP_CONFIG = "1"
 
     def setUp(self):
         super(BaseCLITestCase, self).setUp()
 
         # Setup environment
-        for var in ['ST2_BASE_URL', 'ST2_AUTH_URL', 'ST2_API_URL', 'ST2_STREAM_URL',
-                    'ST2_AUTH_TOKEN', 'ST2_CONFIG_FILE', 'ST2_API_KEY']:
+        for var in [
+            "ST2_BASE_URL",
+            "ST2_AUTH_URL",
+            "ST2_API_URL",
+            "ST2_STREAM_URL",
+            "ST2_AUTH_TOKEN",
+            "ST2_CONFIG_FILE",
+            "ST2_API_KEY",
+        ]:
             if var in os.environ:
                 del os.environ[var]
 
-        os.environ['ST2_CLI_SKIP_CONFIG'] = self.DEFAULT_SKIP_CONFIG
+        os.environ["ST2_CLI_SKIP_CONFIG"] = self.DEFAULT_SKIP_CONFIG
 
         if self.capture_output:
             # Make sure we reset it for each test class instance
@@ -109,6 +114,20 @@ class BaseCLITestCase(unittest2.TestCase):
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
 
+        # On failure, we also print values of accumulated stdout and stderr
+        # to make troubleshooting easier
+        # TODO: nosetests specific make sure to update when / if switching to pytest
+        errors = getattr(self.__dict__.get("_outcome", None), "errors", [])
+
+        if len(errors) >= 1:
+            stdout = self.stdout.getvalue()
+            stderr = self.stderr.getvalue()
+
+            print("")
+            print("Captured stdout: %s" % (stdout))
+            print("Captured stderr: %s" % (stderr))
+            print("")
+
     def _reset_output_streams(self):
         """
         Reset / clear stdout and stderr stream.
@@ -120,5 +139,5 @@ class BaseCLITestCase(unittest2.TestCase):
         self.stderr.truncate()
 
         # Verify it has been reset correctly
-        self.assertEqual(self.stdout.getvalue(), '')
-        self.assertEqual(self.stderr.getvalue(), '')
+        self.assertEqual(self.stdout.getvalue(), "")
+        self.assertEqual(self.stderr.getvalue(), "")

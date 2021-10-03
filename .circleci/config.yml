@@ -43,8 +43,8 @@ jobs:
   # Run st2 Integration tests
   integration:
     docker:
-      - image: circleci/python:2.7
-      - image: mongo:3.4
+      - image: circleci/python:3.6
+      - image: mongo:4.0
       - image: rabbitmq:3
     working_directory: ~/st2
     steps:
@@ -57,8 +57,8 @@ jobs:
           name: Install Mongo Shell
           command: |
             set -x
-            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-            echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
+            echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/4.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
             sudo apt-get -qq -y update
             sudo apt-get -qq -y install mongodb-org-shell
       - run:
@@ -79,8 +79,8 @@ jobs:
   # Run st2 Lint Checks
   lint:
     docker:
-      - image: circleci/python:2.7
-      - image: mongo:3.4
+      - image: circleci/python:3.6
+      - image: mongo:4.0
       - image: rabbitmq:3
     working_directory: ~/st2
     steps:
@@ -113,10 +113,10 @@ jobs:
     resource_class: large
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/python:2.7
+      - image: circleci/python:3.6
     working_directory: ~/st2
     environment:
-      - DISTROS: "xenial bionic el7 el8"
+      - DISTROS: "bionic focal el7 el8"
       - ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
       - ST2_PACKAGES: "st2"
       - ST2_CHECKOUT: 0
@@ -232,7 +232,7 @@ jobs:
       - image: circleci/ruby:2.4
     working_directory: /tmp/deploy
     environment:
-      - DISTROS: "xenial bionic el7 el8"
+      - DISTROS: "bionic focal el7 el8"
     steps:
       - attach_workspace:
           at: .
@@ -276,4 +276,4 @@ experimental:
 
 notify:
   webhooks:
-    - url: https://ci-webhooks.stackstorm.net/webhooks/build/events
+    - url: https://ci-webhooks.stackstorm.com/webhooks/build/events

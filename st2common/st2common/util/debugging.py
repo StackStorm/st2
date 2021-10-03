@@ -25,11 +25,7 @@ import logging as stdlib_logging
 
 from st2common.logging.misc import set_log_level_for_all_loggers
 
-__all__ = [
-    'enable_debugging',
-    'disable_debugging',
-    'is_enabled'
-]
+__all__ = ["enable_debugging", "disable_debugging", "is_enabled"]
 
 ENABLE_DEBUGGING = False
 

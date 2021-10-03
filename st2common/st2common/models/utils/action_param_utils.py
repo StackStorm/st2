@@ -20,7 +20,7 @@ import six
 from st2common import log as logging
 from st2common.util import action_db as action_db_util
 from st2common.util.casts import get_cast
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 
 LOG = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ def _merge_param_meta_values(action_meta=None, runner_meta=None):
     merged_meta = {}
 
     # ?? Runner immutable param's meta shouldn't be allowed to be modified by action whatsoever.
-    if runner_meta and runner_meta.get('immutable', False):
+    if runner_meta and runner_meta.get("immutable", False):
         merged_meta = runner_meta
 
     for key in all_keys:
@@ -42,8 +42,10 @@ def _merge_param_meta_values(action_meta=None, runner_meta=None):
         elif key in runner_meta_keys and key not in action_meta_keys:
             merged_meta[key] = runner_meta[key]
         else:
-            if key in ['immutable']:
-                merged_meta[key] = runner_meta.get(key, False) or action_meta.get(key, False)
+            if key in ["immutable"]:
+                merged_meta[key] = runner_meta.get(key, False) or action_meta.get(
+                    key, False
+                )
             else:
                 merged_meta[key] = action_meta.get(key)
     return merged_meta
@@ -51,12 +53,14 @@ def _merge_param_meta_values(action_meta=None, runner_meta=None):
 
 def get_params_view(action_db=None, runner_db=None, merged_only=False):
     if runner_db:
-        runner_params = fast_deepcopy(getattr(runner_db, 'runner_parameters', {})) or {}
+        runner_params = (
+            fast_deepcopy_dict(getattr(runner_db, "runner_parameters", {})) or {}
+        )
     else:
         runner_params = {}
 
     if action_db:
-        action_params = fast_deepcopy(getattr(action_db, 'parameters', {})) or {}
+        action_params = fast_deepcopy_dict(getattr(action_db, "parameters", {})) or {}
     else:
         action_params = {}
 
@@ -64,19 +68,22 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
 
     merged_params = {}
     for param in parameters:
-        merged_params[param] = _merge_param_meta_values(action_meta=action_params.get(param),
-                                                        runner_meta=runner_params.get(param))
+        merged_params[param] = _merge_param_meta_values(
+            action_meta=action_params.get(param), runner_meta=runner_params.get(param)
+        )
 
     if merged_only:
         return merged_params
 
     def is_required(param_meta):
-        return param_meta.get('required', False)
+        return param_meta.get("required", False)
 
     def is_immutable(param_meta):
-        return param_meta.get('immutable', False)
+        return param_meta.get("immutable", False)
 
-    immutable = {param for param in parameters if is_immutable(merged_params.get(param))}
+    immutable = {
+        param for param in parameters if is_immutable(merged_params.get(param))
+    }
     required = {param for param in parameters if is_required(merged_params.get(param))}
     required = required - immutable
     optional = parameters - required - immutable
@@ -89,8 +96,7 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
 
 
 def cast_params(action_ref, params, cast_overrides=None):
-    """
-    """
+    """"""
     params = params or {}
     action_db = action_db_util.get_action_by_ref(action_ref)
 
@@ -98,7 +104,7 @@ def cast_params(action_ref, params, cast_overrides=None):
         raise ValueError('Action with ref "%s" doesn\'t exist' % (action_ref))
 
     action_parameters_schema = action_db.parameters
-    runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type['name'])
+    runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type["name"])
     runner_parameters_schema = runnertype_db.runner_parameters
     # combine into 1 list of parameter schemas
     parameters_schema = {}
@@ -110,29 +116,37 @@ def cast_params(action_ref, params, cast_overrides=None):
     for k, v in six.iteritems(params):
         parameter_schema = parameters_schema.get(k, None)
         if not parameter_schema:
-            LOG.debug('Will skip cast of param[name: %s, value: %s]. No schema.', k, v)
+            LOG.debug("Will skip cast of param[name: %s, value: %s]. No schema.", k, v)
             continue
-        parameter_type = parameter_schema.get('type', None)
+        parameter_type = parameter_schema.get("type", None)
         if not parameter_type:
-            LOG.debug('Will skip cast of param[name: %s, value: %s]. No type.', k, v)
+            LOG.debug("Will skip cast of param[name: %s, value: %s]. No type.", k, v)
             continue
         # Pick up cast from teh override and then from the system suppied ones.
         cast = cast_overrides.get(parameter_type, None) if cast_overrides else None
         if not cast:
             cast = get_cast(cast_type=parameter_type)
         if not cast:
-            LOG.debug('Will skip cast of param[name: %s, value: %s]. No cast for %s.', k, v,
-                      parameter_type)
+            LOG.debug(
+                "Will skip cast of param[name: %s, value: %s]. No cast for %s.",
+                k,
+                v,
+                parameter_type,
+            )
             continue
-        LOG.debug('Casting param: %s of type %s to type: %s', v, type(v), parameter_type)
+        LOG.debug(
+            "Casting param: %s of type %s to type: %s", v, type(v), parameter_type
+        )
 
         try:
             params[k] = cast(v)
         except Exception as e:
             v_type = type(v).__name__
-            msg = ('Failed to cast value "%s" (type: %s) for parameter "%s" of type "%s": %s. '
-                   'Perhaps the value is of an invalid type?' %
-                   (v, v_type, k, parameter_type, six.text_type(e)))
+            msg = (
+                'Failed to cast value "%s" (type: %s) for parameter "%s" of type "%s": %s. '
+                "Perhaps the value is of an invalid type?"
+                % (v, v_type, k, parameter_type, six.text_type(e))
+            )
             raise ValueError(msg)
 
     return params
@@ -145,8 +159,13 @@ def validate_action_parameters(action_ref, inputs):
     parameters = action_db_util.get_action_parameters_specs(action_ref)
 
     # Check required parameters that have no default defined.
-    required = set([param for param, meta in six.iteritems(parameters)
-                    if meta.get('required', False) and 'default' not in meta])
+    required = set(
+        [
+            param
+            for param, meta in six.iteritems(parameters)
+            if meta.get("required", False) and "default" not in meta
+        ]
+    )
 
     requires = sorted(required.difference(input_set))
 

@@ -32,7 +32,7 @@ from winrm import Session, Response
 from winrm.exceptions import WinRMOperationTimeoutError
 
 __all__ = [
-    'WinRmBaseRunner',
+    "WinRmBaseRunner",
 ]
 
 LOG = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ RUNNER_TRANSPORT = "transport"
 RUNNER_USERNAME = "username"
 RUNNER_VERIFY_SSL = "verify_ssl_cert"
 
-WINRM_DEFAULT_TMP_DIR_PS = '[System.IO.Path]::GetTempPath()'
+WINRM_DEFAULT_TMP_DIR_PS = "[System.IO.Path]::GetTempPath()"
 # maximum cmdline length for systems >= Windows XP
 # https://support.microsoft.com/en-us/help/830473/command-prompt-cmd-exe-command-line-string-limitation
 WINRM_MAX_CMD_LENGTH = 8191
@@ -76,28 +76,28 @@ RESULT_KEYS_TO_TRANSFORM = ["stdout", "stderr"]
 # Compiled list from the following sources:
 # https://ss64.com/ps/syntax-esc.html
 # https://www.techotopia.com/index.php/Windows_PowerShell_1.0_String_Quoting_and_Escape_Sequences#PowerShell_Special_Escape_Sequences
-PS_ESCAPE_SEQUENCES = {'\n': '`n',
-                       '\r': '`r',
-                       '\t': '`t',
-                       '\a': '`a',
-                       '\b': '`b',
-                       '\f': '`f',
-                       '\v': '`v',
-                       '"': '`"',
-                       '\'': '`\'',
-                       '`': '``',
-                       '\0': '`0',
-                       '$': '`$'}
+PS_ESCAPE_SEQUENCES = {
+    "\n": "`n",
+    "\r": "`r",
+    "\t": "`t",
+    "\a": "`a",
+    "\b": "`b",
+    "\f": "`f",
+    "\v": "`v",
+    '"': '`"',
+    "'": "`'",
+    "`": "``",
+    "\0": "`0",
+    "$": "`$",
+}
 
 
 class WinRmRunnerTimoutError(Exception):
-
     def __init__(self, response):
         self.response = response
 
 
 class WinRmBaseRunner(ActionRunner):
-
     def pre_run(self):
         super(WinRmBaseRunner, self).pre_run()
 
@@ -107,12 +107,16 @@ class WinRmBaseRunner(ActionRunner):
         self._username = self.runner_parameters[RUNNER_USERNAME]
         self._password = self.runner_parameters[RUNNER_PASSWORD]
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, DEFAULT_TIMEOUT)
-        self._read_timeout = self._timeout + 1  # read_timeout must be > operation_timeout
+        self._read_timeout = (
+            self._timeout + 1
+        )  # read_timeout must be > operation_timeout
 
         # default to https port 5986 over ntlm
         self._port = self.runner_parameters.get(RUNNER_PORT, DEFAULT_PORT)
         self._scheme = self.runner_parameters.get(RUNNER_SCHEME, DEFAULT_SCHEME)
-        self._transport = self.runner_parameters.get(RUNNER_TRANSPORT, DEFAULT_TRANSPORT)
+        self._transport = self.runner_parameters.get(
+            RUNNER_TRANSPORT, DEFAULT_TRANSPORT
+        )
 
         # if connecting to the HTTP port then we must use "http" as the scheme
         # in the URL
@@ -120,10 +124,14 @@ class WinRmBaseRunner(ActionRunner):
             self._scheme = "http"
 
         # construct the URL for connecting to WinRM on the host
-        self._winrm_url = "{}://{}:{}/wsman".format(self._scheme, self._host, self._port)
+        self._winrm_url = "{}://{}:{}/wsman".format(
+            self._scheme, self._host, self._port
+        )
 
         # default to verifying SSL certs
-        self._verify_ssl = self.runner_parameters.get(RUNNER_VERIFY_SSL, DEFAULT_VERIFY_SSL)
+        self._verify_ssl = self.runner_parameters.get(
+            RUNNER_VERIFY_SSL, DEFAULT_VERIFY_SSL
+        )
         self._server_cert_validation = "validate" if self._verify_ssl else "ignore"
 
         # additional parameters
@@ -136,12 +144,14 @@ class WinRmBaseRunner(ActionRunner):
         # cache session (only create if it doesn't exist yet)
         if not self._session:
             LOG.debug("Connecting via WinRM to url: {}".format(self._winrm_url))
-            self._session = Session(self._winrm_url,
-                                    auth=(self._username, self._password),
-                                    transport=self._transport,
-                                    server_cert_validation=self._server_cert_validation,
-                                    operation_timeout_sec=self._timeout,
-                                    read_timeout_sec=self._read_timeout)
+            self._session = Session(
+                self._winrm_url,
+                auth=(self._username, self._password),
+                transport=self._transport,
+                server_cert_validation=self._server_cert_validation,
+                operation_timeout_sec=self._timeout,
+                read_timeout_sec=self._read_timeout,
+            )
         return self._session
 
     def _winrm_get_command_output(self, protocol, shell_id, command_id):
@@ -154,37 +164,46 @@ class WinRmBaseRunner(ActionRunner):
         while not command_done:
             # check if we need to timeout (StackStorm custom)
             current_time = time.time()
-            elapsed_time = (current_time - start_time)
+            elapsed_time = current_time - start_time
             if self._timeout and (elapsed_time > self._timeout):
-                raise WinRmRunnerTimoutError(Response((b''.join(stdout_buffer),
-                                                       b''.join(stderr_buffer),
-                                                       WINRM_TIMEOUT_EXIT_CODE)))
+                raise WinRmRunnerTimoutError(
+                    Response(
+                        (
+                            b"".join(stdout_buffer),
+                            b"".join(stderr_buffer),
+                            WINRM_TIMEOUT_EXIT_CODE,
+                        )
+                    )
+                )
             # end stackstorm custom
 
             try:
-                stdout, stderr, return_code, command_done = \
-                    protocol._raw_get_command_output(shell_id, command_id)
+                (
+                    stdout,
+                    stderr,
+                    return_code,
+                    command_done,
+                ) = protocol._raw_get_command_output(shell_id, command_id)
                 stdout_buffer.append(stdout)
                 stderr_buffer.append(stderr)
             except WinRMOperationTimeoutError:
                 # this is an expected error when waiting for a long-running process,
                 # just silently retry
                 pass
-        return b''.join(stdout_buffer), b''.join(stderr_buffer), return_code
+        return b"".join(stdout_buffer), b"".join(stderr_buffer), return_code
 
     def _winrm_run_cmd(self, session, command, args=(), env=None, cwd=None):
         # NOTE: this is copied from pywinrm because it doesn't support
         # passing env and working_directory from the Session.run_cmd.
         # It also doesn't support timeouts. All of these things have been
         # added
-        shell_id = session.protocol.open_shell(env_vars=env,
-                                               working_directory=cwd)
+        shell_id = session.protocol.open_shell(env_vars=env, working_directory=cwd)
         command_id = session.protocol.run_command(shell_id, command, args)
         # try/catch is for custom timeout handing (StackStorm custom)
         try:
-            rs = Response(self._winrm_get_command_output(session.protocol,
-                                                         shell_id,
-                                                         command_id))
+            rs = Response(
+                self._winrm_get_command_output(session.protocol, shell_id, command_id)
+            )
             rs.timeout = False
         except WinRmRunnerTimoutError as e:
             rs = e.response
@@ -195,37 +214,30 @@ class WinRmBaseRunner(ActionRunner):
         return rs
 
     def _winrm_encode(self, script):
-        return b64encode(script.encode('utf_16_le')).decode('ascii')
+        return b64encode(script.encode("utf_16_le")).decode("ascii")
 
     def _winrm_ps_cmd(self, encoded_ps):
-        return 'powershell -encodedcommand {0}'.format(encoded_ps)
+        return "powershell -encodedcommand {0}".format(encoded_ps)
 
     def _winrm_run_ps(self, session, script, env=None, cwd=None, is_b64=False):
         # NOTE: this is copied from pywinrm because it doesn't support
         # passing env and working_directory from the Session.run_ps
 
         # encode the script in UTF only if it isn't passed in encoded
-        LOG.debug('_winrm_run_ps() - script size = {}'.format(len(script)))
+        LOG.debug("_winrm_run_ps() - script size = {}".format(len(script)))
         encoded_ps = script if is_b64 else self._winrm_encode(script)
         ps_cmd = self._winrm_ps_cmd(encoded_ps)
-        LOG.debug('_winrm_run_ps() - ps cmd size = {}'.format(len(ps_cmd)))
-        rs = self._winrm_run_cmd(session,
-                                 ps_cmd,
-                                 env=env,
-                                 cwd=cwd)
+        LOG.debug("_winrm_run_ps() - ps cmd size = {}".format(len(ps_cmd)))
+        rs = self._winrm_run_cmd(session, ps_cmd, env=env, cwd=cwd)
         if len(rs.std_err):
             # if there was an error message, clean it it up and make it human
             # readable
-            if isinstance(rs.std_err, bytes):
-                # decode bytes into utf-8 because of a bug in pywinrm
-                # real fix is here: https://github.com/diyan/pywinrm/pull/222/files
-                rs.std_err = rs.std_err.decode('utf-8')
             rs.std_err = session._clean_error_msg(rs.std_err)
         return rs
 
     def _translate_response(self, response):
         # check exit status for errors
-        succeeded = (response.status_code == exit_code_constants.SUCCESS_EXIT_CODE)
+        succeeded = response.status_code == exit_code_constants.SUCCESS_EXIT_CODE
         status = action_constants.LIVEACTION_STATUS_SUCCEEDED
         status_code = response.status_code
         if response.timeout:
@@ -236,39 +248,46 @@ class WinRmBaseRunner(ActionRunner):
 
         # create result
         result = {
-            'failed': not succeeded,
-            'succeeded': succeeded,
-            'return_code': status_code,
-            'stdout': response.std_out,
-            'stderr': response.std_err
+            "failed": not succeeded,
+            "succeeded": succeeded,
+            "return_code": status_code,
+            "stdout": response.std_out,
+            "stderr": response.std_err,
         }
 
         # Ensure stdout and stderr is always a string
-        if isinstance(result['stdout'], six.binary_type):
-            result['stdout'] = result['stdout'].decode('utf-8')
+        if isinstance(result["stdout"], six.binary_type):
+            result["stdout"] = result["stdout"].decode("utf-8")
 
-        if isinstance(result['stderr'], six.binary_type):
-            result['stderr'] = result['stderr'].decode('utf-8')
+        if isinstance(result["stderr"], six.binary_type):
+            result["stderr"] = result["stderr"].decode("utf-8")
 
         # automatically convert result stdout/stderr from JSON strings to
         # objects so they can be used natively
         return (status, jsonify.json_loads(result, RESULT_KEYS_TO_TRANSFORM), None)
 
     def _make_tmp_dir(self, parent):
-        LOG.debug("Creating temporary directory for WinRM script in parent: {}".format(parent))
+        LOG.debug(
+            "Creating temporary directory for WinRM script in parent: {}".format(parent)
+        )
         ps = """$parent = {parent}
 $name = [System.IO.Path]::GetRandomFileName()
 $path = Join-Path $parent $name
 New-Item -ItemType Directory -Path $path | Out-Null
-$path""".format(parent=parent)
-        result = self._run_ps_or_raise(ps, ("Unable to make temporary directory for"
-                                            " powershell script"))
+$path""".format(
+            parent=parent
+        )
+        result = self._run_ps_or_raise(
+            ps, ("Unable to make temporary directory for" " powershell script")
+        )
         # strip to remove trailing newline and whitespace (if any)
-        return result['stdout'].strip()
+        return result["stdout"].strip()
 
     def _rm_dir(self, directory):
         ps = 'Remove-Item -Force -Recurse -Path "{}"'.format(directory)
-        self._run_ps_or_raise(ps, "Unable to remove temporary directory for powershell script")
+        self._run_ps_or_raise(
+            ps, "Unable to remove temporary directory for powershell script"
+        )
 
     def _upload(self, src_path_or_data, dst_path):
         src_data = None
@@ -276,7 +295,7 @@ $path""".format(parent=parent)
         # if this is a path, then read the data from the path
         if os.path.exists(src_path_or_data):
             LOG.debug("WinRM uploading local file: {}".format(src_path_or_data))
-            with open(src_path_or_data, 'r') as src_file:
+            with open(src_path_or_data, "r") as src_file:
                 src_data = src_file.read()
         else:
             LOG.debug("WinRM uploading data from a string")
@@ -285,14 +304,19 @@ $path""".format(parent=parent)
         # upload the data in chunks such that each chunk doesn't exceed the
         # max command size of the windows command line
         for i in range(0, len(src_data), WINRM_UPLOAD_CHUNK_SIZE_BYTES):
-            LOG.debug("WinRM uploading data bytes: {}-{}".
-                      format(i, (i + WINRM_UPLOAD_CHUNK_SIZE_BYTES)))
-            self._upload_chunk(dst_path, src_data[i:(i + WINRM_UPLOAD_CHUNK_SIZE_BYTES)])
+            LOG.debug(
+                "WinRM uploading data bytes: {}-{}".format(
+                    i, (i + WINRM_UPLOAD_CHUNK_SIZE_BYTES)
+                )
+            )
+            self._upload_chunk(
+                dst_path, src_data[i : (i + WINRM_UPLOAD_CHUNK_SIZE_BYTES)]
+            )
 
     def _upload_chunk(self, dst_path, src_data):
         # adapted from https://github.com/diyan/pywinrm/issues/18
         if not isinstance(src_data, six.binary_type):
-            src_data = src_data.encode('utf-8')
+            src_data = src_data.encode("utf-8")
 
         ps = """$filePath = "{dst_path}"
 $s = @"
@@ -300,10 +324,11 @@ $s = @"
 "@
 $data = [System.Convert]::FromBase64String($s)
 Add-Content -value $data -encoding byte -path $filePath
-""".format(dst_path=dst_path,
-           b64_data=base64.b64encode(src_data).decode('utf-8'))
+""".format(
+            dst_path=dst_path, b64_data=base64.b64encode(src_data).decode("utf-8")
+        )
 
-        LOG.debug('WinRM uploading chunk, size = {}'.format(len(ps)))
+        LOG.debug("WinRM uploading chunk, size = {}".format(len(ps)))
         self._run_ps_or_raise(ps, "Failed to upload chunk of powershell script")
 
     @contextmanager
@@ -335,7 +360,7 @@ Add-Content -value $data -encoding byte -path $filePath
     def run_ps(self, script, params=None):
         # temporary directory for the powershell script
         if params:
-            powershell = '& {%s} %s' % (script, params)
+            powershell = "& {%s} %s" % (script, params)
         else:
             powershell = script
         encoded_ps = self._winrm_encode(powershell)
@@ -346,9 +371,12 @@ Add-Content -value $data -encoding byte -path $filePath
         # else we need to upload the script to a temporary file and execute it,
         # then remove the temporary file
         if len(ps_cmd) <= WINRM_MAX_CMD_LENGTH:
-            LOG.info(("WinRM powershell command size {} is > {}, the max size of a"
-                      " powershell command. Converting to a script execution.")
-                     .format(WINRM_MAX_CMD_LENGTH, len(ps_cmd)))
+            LOG.info(
+                (
+                    "WinRM powershell command size {} is > {}, the max size of a"
+                    " powershell command. Converting to a script execution."
+                ).format(WINRM_MAX_CMD_LENGTH, len(ps_cmd))
+            )
             return self._run_ps(encoded_ps, is_b64=True)
         else:
             return self._run_ps_script(script, params)
@@ -360,8 +388,9 @@ Add-Content -value $data -encoding byte -path $filePath
         # connect
         session = self._get_session()
         # execute
-        response = self._winrm_run_ps(session, powershell, env=self._env, cwd=self._cwd,
-                                      is_b64=is_b64)
+        response = self._winrm_run_ps(
+            session, powershell, env=self._env, cwd=self._cwd, is_b64=is_b64
+        )
         # create triplet from WinRM response
         return self._translate_response(response)
 
@@ -383,12 +412,12 @@ Add-Content -value $data -encoding byte -path $filePath
         response = self._run_ps(ps)
         # response is a tuple: (status, result, None)
         result = response[1]
-        if result['failed']:
-            raise RuntimeError(("{}:\n"
-                                "stdout = {}\n\n"
-                                "stderr = {}").format(error_msg,
-                                                      result['stdout'],
-                                                      result['stderr']))
+        if result["failed"]:
+            raise RuntimeError(
+                ("{}:\n" "stdout = {}\n\n" "stderr = {}").format(
+                    error_msg, result["stdout"], result["stderr"]
+                )
+            )
         return result
 
     def _multireplace(self, string, replacements):
@@ -407,7 +436,7 @@ Add-Content -value $data -encoding byte -path $filePath
         substrs = sorted(replacements, key=len, reverse=True)
 
         # Create a big OR regex that matches any of the substrings to replace
-        regexp = re.compile('|'.join([re.escape(s) for s in substrs]))
+        regexp = re.compile("|".join([re.escape(s) for s in substrs]))
 
         # For each match, look up the new string in the replacements
         return regexp.sub(lambda match: replacements[match.group(0)], string)
@@ -426,8 +455,12 @@ Add-Content -value $data -encoding byte -path $filePath
             ps_str += ")"
         elif isinstance(param, dict):
             ps_str = "@{"
-            ps_str += "; ".join([(self._param_to_ps(k) + ' = ' + self._param_to_ps(v))
-                                 for k, v in six.iteritems(param)])
+            ps_str += "; ".join(
+                [
+                    (self._param_to_ps(k) + " = " + self._param_to_ps(v))
+                    for k, v in six.iteritems(param)
+                ]
+            )
             ps_str += "}"
         else:
             ps_str = str(param)
@@ -446,12 +479,15 @@ Add-Content -value $data -encoding byte -path $filePath
 
     def create_ps_params_string(self, positional_args, named_args):
         # convert the script parameters into powershell strings
-        positional_args, named_args = self._transform_params_to_ps(positional_args,
-                                                                   named_args)
+        positional_args, named_args = self._transform_params_to_ps(
+            positional_args, named_args
+        )
         # concatenate them into a long string
         ps_params_str = ""
         if named_args:
-            ps_params_str += " " .join([(k + " " + v) for k, v in six.iteritems(named_args)])
+            ps_params_str += " ".join(
+                [(k + " " + v) for k, v in six.iteritems(named_args)]
+            )
             ps_params_str += " "
         if positional_args:
             ps_params_str += " ".join(positional_args)

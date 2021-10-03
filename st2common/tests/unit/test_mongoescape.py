@@ -21,68 +21,70 @@ from st2common.util import mongoescape
 
 class TestMongoEscape(unittest.TestCase):
     def test_unnested(self):
-        field = {'k1.k1.k1': 'v1', 'k2$': 'v2', '$k3.': 'v3'}
+        field = {"k1.k1.k1": "v1", "k2$": "v2", "$k3.": "v3"}
         escaped = mongoescape.escape_chars(field)
-        self.assertEqual(escaped, {u'k1\uff0ek1\uff0ek1': 'v1',
-                                   u'k2\uff04': 'v2',
-                                   u'\uff04k3\uff0e': 'v3'}, 'Escaping failed.')
+        self.assertEqual(
+            escaped,
+            {"k1\uff0ek1\uff0ek1": "v1", "k2\uff04": "v2", "\uff04k3\uff0e": "v3"},
+            "Escaping failed.",
+        )
         unescaped = mongoescape.unescape_chars(escaped)
-        self.assertEqual(unescaped, field, 'Unescaping failed.')
+        self.assertEqual(unescaped, field, "Unescaping failed.")
 
     def test_nested(self):
-        nested_field = {'nk1.nk1.nk1': 'v1', 'nk2$': 'v2', '$nk3.': 'v3'}
-        field = {'k1.k1.k1': nested_field, 'k2$': 'v2', '$k3.': 'v3'}
+        nested_field = {"nk1.nk1.nk1": "v1", "nk2$": "v2", "$nk3.": "v3"}
+        field = {"k1.k1.k1": nested_field, "k2$": "v2", "$k3.": "v3"}
         escaped = mongoescape.escape_chars(field)
-        self.assertEqual(escaped, {u'k1\uff0ek1\uff0ek1': {u'\uff04nk3\uff0e': 'v3',
-                                                           u'nk1\uff0enk1\uff0enk1': 'v1',
-                                                           u'nk2\uff04': 'v2'},
-                                   u'k2\uff04': 'v2',
-                                   u'\uff04k3\uff0e': 'v3'}, 'un-escaping failed.')
+        self.assertEqual(
+            escaped,
+            {
+                "k1\uff0ek1\uff0ek1": {
+                    "\uff04nk3\uff0e": "v3",
+                    "nk1\uff0enk1\uff0enk1": "v1",
+                    "nk2\uff04": "v2",
+                },
+                "k2\uff04": "v2",
+                "\uff04k3\uff0e": "v3",
+            },
+            "un-escaping failed.",
+        )
         unescaped = mongoescape.unescape_chars(escaped)
-        self.assertEqual(unescaped, field, 'Unescaping failed.')
+        self.assertEqual(unescaped, field, "Unescaping failed.")
 
     def test_unescaping_of_rule_criteria(self):
         # Verify that dot escaped in rule criteria is correctly escaped.
         # Note: In the past we used different character to escape dot in the
         # rule criteria.
-        escaped = {
-            u'k1\u2024k1\u2024k1': 'v1',
-            u'k2$': 'v2',
-            u'$k3\u2024': 'v3'
-        }
-        unescaped = {
-            'k1.k1.k1': 'v1',
-            'k2$': 'v2',
-            '$k3.': 'v3'
-        }
+        escaped = {"k1\u2024k1\u2024k1": "v1", "k2$": "v2", "$k3\u2024": "v3"}
+        unescaped = {"k1.k1.k1": "v1", "k2$": "v2", "$k3.": "v3"}
 
         result = mongoescape.unescape_chars(escaped)
         self.assertEqual(result, unescaped)
 
     def test_original_value(self):
-        field = {'k1.k2.k3': 'v1'}
+        field = {"k1.k2.k3": "v1"}
 
         escaped = mongoescape.escape_chars(field)
-        self.assertIn('k1.k2.k3', list(field.keys()))
-        self.assertIn(u'k1\uff0ek2\uff0ek3', list(escaped.keys()))
+        self.assertIn("k1.k2.k3", list(field.keys()))
+        self.assertIn("k1\uff0ek2\uff0ek3", list(escaped.keys()))
 
         unescaped = mongoescape.unescape_chars(escaped)
-        self.assertIn('k1.k2.k3', list(unescaped.keys()))
-        self.assertIn(u'k1\uff0ek2\uff0ek3', list(escaped.keys()))
+        self.assertIn("k1.k2.k3", list(unescaped.keys()))
+        self.assertIn("k1\uff0ek2\uff0ek3", list(escaped.keys()))
 
     def test_complex(self):
         field = {
-            'k1.k2': [{'l1.l2': '123'}, {'l3.l4': '456'}],
-            'k3': [{'l5.l6': '789'}],
-            'k4.k5': [1, 2, 3],
-            'k6': ['a', 'b']
+            "k1.k2": [{"l1.l2": "123"}, {"l3.l4": "456"}],
+            "k3": [{"l5.l6": "789"}],
+            "k4.k5": [1, 2, 3],
+            "k6": ["a", "b"],
         }
 
         expected = {
-            u'k1\uff0ek2': [{u'l1\uff0el2': '123'}, {u'l3\uff0el4': '456'}],
-            'k3': [{u'l5\uff0el6': '789'}],
-            u'k4\uff0ek5': [1, 2, 3],
-            'k6': ['a', 'b']
+            "k1\uff0ek2": [{"l1\uff0el2": "123"}, {"l3\uff0el4": "456"}],
+            "k3": [{"l5\uff0el6": "789"}],
+            "k4\uff0ek5": [1, 2, 3],
+            "k6": ["a", "b"],
         }
 
         escaped = mongoescape.escape_chars(field)
@@ -93,17 +95,17 @@ class TestMongoEscape(unittest.TestCase):
 
     def test_complex_list(self):
         field = [
-            {'k1.k2': [{'l1.l2': '123'}, {'l3.l4': '456'}]},
-            {'k3': [{'l5.l6': '789'}]},
-            {'k4.k5': [1, 2, 3]},
-            {'k6': ['a', 'b']}
+            {"k1.k2": [{"l1.l2": "123"}, {"l3.l4": "456"}]},
+            {"k3": [{"l5.l6": "789"}]},
+            {"k4.k5": [1, 2, 3]},
+            {"k6": ["a", "b"]},
         ]
 
         expected = [
-            {u'k1\uff0ek2': [{u'l1\uff0el2': '123'}, {u'l3\uff0el4': '456'}]},
-            {'k3': [{u'l5\uff0el6': '789'}]},
-            {u'k4\uff0ek5': [1, 2, 3]},
-            {'k6': ['a', 'b']}
+            {"k1\uff0ek2": [{"l1\uff0el2": "123"}, {"l3\uff0el4": "456"}]},
+            {"k3": [{"l5\uff0el6": "789"}]},
+            {"k4\uff0ek5": [1, 2, 3]},
+            {"k6": ["a", "b"]},
         ]
 
         escaped = mongoescape.escape_chars(field)
