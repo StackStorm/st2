@@ -351,11 +351,11 @@ class KeyValuePairController(ResourceController):
                 LOG.exception(six.text_type(e))
                 abort(http_client.BAD_REQUEST, six.text_type(e))
                 return
-        extra = {"kvp_db": kvp_db}
-        LOG.audit("KeyValuePair updated. KeyValuePair.id=%s" % (kvp_db.id), extra=extra)
 
-        kvp_api = KeyValuePairAPI.from_model(kvp_db)
-        return kvp_api
+        extra["kvp_db"] = kvp_db
+        LOG.audit("PUT /v1/keys/%s succeeded id=%s", name, kvp_db.id, extra=extra)
+
+        return KeyValuePairAPI.from_model(kvp_db)
 
     def delete(self, name, requester_user, scope=None, user=None):
         """
@@ -364,7 +364,8 @@ class KeyValuePairController(ResourceController):
         Handles requests:
             DELETE /keys/1
         """
-        if not scope:
+        if not scope or scope == ALL_SCOPE:
+            # Default to system scope
             scope = FULL_SYSTEM_SCOPE
 
         if not requester_user:
@@ -374,90 +375,52 @@ class KeyValuePairController(ResourceController):
         self._validate_scope(scope=scope)
 
         user = user or requester_user.name
-        user_query_param_filter = bool(user)
+
+        rbac_utils = get_rbac_backend().get_utils_class()
 
         # Validate that the authenticated user is admin if user query param is provided
-        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(
             user_db=requester_user, user=user, require_rbac=True
         )
 
-        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
-        # Check that an admin user has permission to all system scoped items.
-        if is_admin and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
-
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
-                permission_type=PermissionType.KEY_VALUE_PAIR_DELETE,
-            )
-
-        if is_admin and user_query_param_filter:
-            # Retrieve values scoped to the provided user
-            user_scope_prefix = get_key_reference(name=name, scope=scope, user=user)
-
-            # Check that the user has permission to the user scoped items.
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
-                permission_type=PermissionType.KEY_VALUE_PAIR_DELETE,
-            )
-            LOG.debug("User Scope %s" % user_scope_prefix)
-        elif user and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
-            # Check that the user has permission to the system scoped items.
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
-                permission_type=PermissionType.KEY_VALUE_PAIR_DELETE,
-            )
-        else:
-            # Check that the user has permission to his/her own user scoped items.
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
-                permission_type=PermissionType.KEY_VALUE_PAIR_DELETE,
-            )
-
-            # RBAC not enabled or user is not an admin, retrieve user scoped items
-            # for the current user.
-            user_scope_prefix = get_key_reference(
-                name=name, scope=USER_SCOPE, user=user
-            )
-            LOG.debug("User Scope %s" % user_scope_prefix)
-
+        # Set key reference for system or user scope
         key_ref = get_key_reference(scope=scope, name=name, user=user)
-        lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
+        extra = {"scope": scope, "name": name, "user": user, "key_ref": key_ref}
+        LOG.debug("DELETE /v1/keys/%s", name, extra=extra)
 
-        # Note: We use lock to avoid a race
-        with self._coordinator.get_lock(lock_name):
+        # Setup a kvp database object used for verifying permission
+        kvp_db = KeyValuePairDB(
+            uid="%s:%s:%s" % (ResourceType.KEY_VALUE_PAIR, scope, key_ref),
+            scope=scope,
+            name=key_ref,
+        )
+
+        # Check that user has permission to the key value pair.
+        # If RBAC is enabled, this check will verify if user has system role with all access.
+        # If RBAC is enabled, this check guards against a user accessing another user's kvp.
+        # If RBAC is enabled, user needs to be explicitly granted permission to delete a system kvp.
+        # The check is sufficient to allow decryption of the system kvp.
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=kvp_db,
+            permission_type=PermissionType.KEY_VALUE_PAIR_DELETE,
+        )
+
+        # Acquire a lock to avoid race condition between concurrent API calls
+        with self._coordinator.get_lock(
+            self._get_lock_name_for_key(name=key_ref, scope=scope)
+        ):
             from_model_kwargs = {"mask_secrets": True}
             kvp_api = self._get_one_by_scope_and_name(
                 name=key_ref, scope=scope, from_model_kwargs=from_model_kwargs
             )
-
             kvp_db = KeyValuePairAPI.to_model(kvp_api)
 
-            LOG.debug(
-                "DELETE /keys/ lookup with scope=%s name=%s found object: %s",
-                scope,
-                name,
-                kvp_db,
-            )
+            extra["kvp_db"] = kvp_db
+            LOG.debug("DELETE /v1/keys/%s", name, extra=extra)
 
             try:
-                if scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
-                    if is_admin:
-                        KeyValuePair.delete(kvp_db)
-                    else:
-                        for key in get_all_system_kvp_names_for_user(user):
-                            try:
-                                if key == name:
-                                    KeyValuePair.delete(kvp_db)
-                            except Exception as e:
-                                LOG.error("Unable to get key %s: %s", key, str(e))
-
-                if scope in [USER_SCOPE, FULL_USER_SCOPE]:
-                    KeyValuePair.delete(kvp_db)
+                KeyValuePair.delete(kvp_db)
             except Exception as e:
                 LOG.exception(
                     "Database delete encountered exception during "
@@ -467,8 +430,7 @@ class KeyValuePairController(ResourceController):
                 abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
                 return
 
-        extra = {"kvp_db": kvp_db}
-        LOG.audit("KeyValuePair deleted. KeyValuePair.id=%s" % (kvp_db.id), extra=extra)
+        LOG.audit("DELETE /v1/keys/%s succeeded id=%s", name, kvp_db.id, extra=extra)
 
         return Response(status=http_client.NO_CONTENT)
 
