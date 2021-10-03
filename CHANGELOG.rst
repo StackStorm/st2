@@ -50,6 +50,11 @@ Changed
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
+* Pinned python module `networkx` to versions between 2.5.1(included) and 2.6(excluded) because Python v3.6 support was dropped in v2.6.
+  Also pinned `decorator==4.4.2` (dependency of `networkx<2.6`) to work around missing python 3.8 classifiers on `decorator`'s wheel. #5376
+
+  Contributed by @nzlosh
+
 Fixed
 ~~~~~
 
