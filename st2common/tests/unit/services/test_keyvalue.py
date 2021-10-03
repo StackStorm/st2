@@ -16,7 +16,8 @@
 from __future__ import absolute_import
 from st2tests.api import FunctionalTest
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, FULL_SYSTEM_SCOPE
+from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
+from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.services.keyvalues import get_key_reference
 from st2common.services.keyvalues import get_all_system_kvp_names_for_user
@@ -54,58 +55,112 @@ class KeyValueServicesTest(FunctionalTest):
         )
 
     def test_get_all_system_kvp_names_for_user(self):
-        kvp_1_uid = "%s:%s:key2" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
-        kvp_2_uid = "%s:%s:key4" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
-        kvp_3_uid = "%s:%s:echo" % (ResourceType.ACTION, "core")
-        kvp_4_uid = "%s:%s:new_action" % (ResourceType.ACTION, "dummy")
+        user1, user2 = "user1", "user2"
+        kvp_1_uid = "%s:%s:s101" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
+        kvp_2_uid = "%s:%s:s102" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
+        kvp_3_uid = "%s:%s:%s:u101" % (
+            ResourceType.KEY_VALUE_PAIR,
+            FULL_USER_SCOPE,
+            user1,
+        )
+        kvp_4_uid = "%s:%s:echo" % (ResourceType.ACTION, "core")
+        kvp_5_uid = "%s:%s:new_action" % (ResourceType.ACTION, "dummy")
+        kvp_6_uid = "%s:%s:s103" % (ResourceType.KEY_VALUE_PAIR, FULL_SYSTEM_SCOPE)
 
-        # Setup user, grant, role, and assignment records
-        user_db = UserDB(name="system_key1_user")
-        user_db = User.add_or_update(user_db)
+        # Setup user1, grant, role, and assignment records
+        user_1_db = UserDB(name=user1)
+        user_1_db = User.add_or_update(user_1_db)
 
-        # role assignment
-        grant_db = PermissionGrantDB(
+        grant_1_db = PermissionGrantDB(
             resource_uid=kvp_1_uid,
             resource_type=ResourceType.KEY_VALUE_PAIR,
             permission_types=[PermissionType.KEY_VALUE_PAIR_LIST],
         )
-        grant_db = PermissionGrant.add_or_update(grant_db)
-        grant_1_db = PermissionGrantDB(
+        grant_1_db = PermissionGrant.add_or_update(grant_1_db)
+
+        grant_2_db = PermissionGrantDB(
             resource_uid=kvp_2_uid,
             resource_type=ResourceType.KEY_VALUE_PAIR,
             permission_types=[PermissionType.KEY_VALUE_PAIR_VIEW],
         )
-        grant_1_db = PermissionGrant.add_or_update(grant_1_db)
-        grant_2_db = PermissionGrantDB(
-            resource_uid=kvp_3_uid,
-            resource_type=ResourceType.ACTION,
-            permission_types=[PermissionType.ACTION_VIEW],
-        )
         grant_2_db = PermissionGrant.add_or_update(grant_2_db)
+
         grant_3_db = PermissionGrantDB(
-            resource_uid=kvp_4_uid,
-            resource_type=ResourceType.ACTION,
-            permission_types=[PermissionType.ACTION_LIST],
+            resource_uid=kvp_3_uid,
+            resource_type=ResourceType.KEY_VALUE_PAIR,
+            permission_types=[PermissionType.KEY_VALUE_PAIR_ALL],
         )
         grant_3_db = PermissionGrant.add_or_update(grant_3_db)
 
-        role_db = RoleDB(
-            name="custom_role_system_keys_grant",
+        grant_4_db = PermissionGrantDB(
+            resource_uid=kvp_4_uid,
+            resource_type=ResourceType.ACTION,
+            permission_types=[PermissionType.ACTION_VIEW],
+        )
+        grant_4_db = PermissionGrant.add_or_update(grant_4_db)
+
+        grant_5_db = PermissionGrantDB(
+            resource_uid=kvp_5_uid,
+            resource_type=ResourceType.ACTION,
+            permission_types=[PermissionType.ACTION_LIST],
+        )
+        grant_5_db = PermissionGrant.add_or_update(grant_5_db)
+
+        role_1_db = RoleDB(
+            name="user1_custom_role_grant",
             permission_grants=[
-                str(grant_db.id),
                 str(grant_1_db.id),
                 str(grant_2_db.id),
                 str(grant_3_db.id),
+                str(grant_4_db.id),
             ],
         )
-        role_db = Role.add_or_update(role_db)
+        role_1_db = Role.add_or_update(role_1_db)
 
-        role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role=role_db.name,
-            source="assignments/%s.yaml" % user_db.name,
+        role_1_assignment_db = UserRoleAssignmentDB(
+            user=user_1_db.name,
+            role=role_1_db.name,
+            source="assignments/%s.yaml" % user_1_db.name,
         )
-        UserRoleAssignment.add_or_update(role_assignment_db)
+        UserRoleAssignment.add_or_update(role_1_assignment_db)
 
-        key_list = get_all_system_kvp_names_for_user(user=user_db.name)
-        self.assertEqual(key_list, ["key2", "key4"])
+        # Setup user2, grant, role, and assignment records
+        user_2_db = UserDB(name=user2)
+        user_2_db = User.add_or_update(user_2_db)
+
+        grant_6_db = PermissionGrantDB(
+            resource_uid=kvp_6_uid,
+            resource_type=ResourceType.KEY_VALUE_PAIR,
+            permission_types=[PermissionType.KEY_VALUE_PAIR_ALL],
+        )
+        grant_6_db = PermissionGrant.add_or_update(grant_6_db)
+
+        role_2_db = RoleDB(
+            name="user2_custom_role_grant",
+            permission_grants=[
+                str(grant_5_db.id),
+                str(grant_6_db.id),
+            ],
+        )
+        role_2_db = Role.add_or_update(role_2_db)
+
+        role_2_assignment_db = UserRoleAssignmentDB(
+            user=user_2_db.name,
+            role=role_2_db.name,
+            source="assignments/%s.yaml" % user_2_db.name,
+        )
+        UserRoleAssignment.add_or_update(role_2_assignment_db)
+
+        # Assert result of get_all_system_kvp_names_for_user for user1
+        # The uids for non key value pair resource type should not be included in the result.
+        # The user scoped key should not be included in the result.
+        actual_result = get_all_system_kvp_names_for_user(user=user_1_db.name)
+        expected_result = ["s101", "s102"]
+        self.assertListEqual(actual_result, expected_result)
+
+        # Assert result of get_all_system_kvp_names_for_user for user2
+        # The uids for non key value pair resource type should not be included in the result.
+        # The user scoped key should not be included in the result.
+        actual_result = get_all_system_kvp_names_for_user(user=user_2_db.name)
+        expected_result = ["s103"]
+        self.assertListEqual(actual_result, expected_result)

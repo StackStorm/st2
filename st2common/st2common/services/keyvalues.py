@@ -21,7 +21,7 @@ from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE
 from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
 from st2common.constants.keyvalue import ALLOWED_SCOPES
-from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
+from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR, USER_SEPARATOR
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.models.system.keyvalue import UserKeyReference
@@ -262,17 +262,14 @@ def get_key_reference(scope, name, user=None):
         )
 
 
-def get_uids(user):
+def get_key_uids_for_user(user):
     role_names = UserRoleAssignment.query(user=user).only("role").scalar("role")
     permission_grant_ids = Role.query(name__in=role_names).scalar("permission_grants")
     permission_grant_ids = sum(permission_grant_ids, [])
     permission_grants_filters = {}
     permission_grants_filters["id__in"] = permission_grant_ids
     permission_grants_filters["resource_type"] = ResourceType.KEY_VALUE_PAIR
-    uid = PermissionGrant.query(
-        id__in=permission_grant_ids, resource_type=ResourceType.KEY_VALUE_PAIR
-    ).scalar("resource_uid")
-    return uid
+    return PermissionGrant.query(**permission_grants_filters).scalar("resource_uid")
 
 
 def get_all_system_kvp_names_for_user(user):
@@ -282,12 +279,20 @@ def get_all_system_kvp_names_for_user(user):
 
     :rtype: ``list``
     """
-
-    uid = get_uids(user)
     key_list = []
-    for u in uid:
-        key_name = u.split(":")
-        if len(key_name[2]) > 0 and key_name[2] not in key_list:
-            key_list.append(key_name[2])
 
-    return key_list
+    for uid in get_key_uids_for_user(user):
+        pfx = "%s%s%s" % (
+            ResourceType.KEY_VALUE_PAIR,
+            DATASTORE_KEY_SEPARATOR,
+            FULL_SYSTEM_SCOPE,
+        )
+        if not uid.startswith(pfx):
+            continue
+
+        key_name = uid.split(DATASTORE_KEY_SEPARATOR)[2:]
+
+        if key_name and key_name not in key_list:
+            key_list.append(USER_SEPARATOR.join(key_name))
+
+    return sorted(key_list)
