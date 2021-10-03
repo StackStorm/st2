@@ -94,12 +94,9 @@ class KeyValuePairController(ResourceController):
         )
 
         # Set key reference for system or user scope
-        key_ref = name
-        if scope in [USER_SCOPE, FULL_USER_SCOPE]:
-            # Set user scope prefix for the provided user (or current user if user not provided)
-            # NOTE: It's very important raw_filters['prefix'] is set when requesting user scoped
-            # items to avoid information leakage (aka user1 retrieves items for user2)
-            key_ref = get_key_reference(name=name, scope=FULL_USER_SCOPE, user=user)
+        key_ref = get_key_reference(scope=scope, name=name, user=user)
+        extra = {"scope": scope, "name": name, "user": user, "key_ref": key_ref}
+        LOG.debug("GET /v1/keys/%s", name, extra=extra)
 
         # Setup a kvp database object used for verifying permission
         kvp_db = KeyValuePairDB(
@@ -267,7 +264,8 @@ class KeyValuePairController(ResourceController):
         """
         Create a new entry or update an existing one.
         """
-        if not scope:
+        if not scope or scope == ALL_SCOPE:
+            # Default to system scope
             scope = FULL_SYSTEM_SCOPE
 
         if not requester_user:
@@ -278,71 +276,47 @@ class KeyValuePairController(ResourceController):
         self._validate_scope(scope=scope)
 
         user = getattr(kvp, "user", requester_user.name) or requester_user.name
-        user_query_param_filter = bool(user)
+
+        rbac_utils = get_rbac_backend().get_utils_class()
 
         # Validate that the authenticated user is admin if user query param is provided
-        rbac_utils = get_rbac_backend().get_utils_class()
         rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(
             user_db=requester_user, user=user, require_rbac=True
         )
 
-        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
-        # Check that an admin user has permission to all system scoped items.
-        if is_admin and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+        # Set key reference for system or user scope
+        key_ref = get_key_reference(scope=scope, name=name, user=user)
+        extra = {"scope": scope, "name": name, "user": user, "key_ref": key_ref}
+        LOG.debug("PUT /v1/keys/%s", name, extra=extra)
 
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
-                permission_type=PermissionType.KEY_VALUE_PAIR_SET,
-            )
+        # Setup a kvp database object used for verifying permission
+        kvp_db = KeyValuePairDB(
+            uid="%s:%s:%s" % (ResourceType.KEY_VALUE_PAIR, scope, key_ref),
+            scope=scope,
+            name=key_ref,
+        )
 
-        if is_admin and user_query_param_filter:
+        # Check that user has permission to the key value pair.
+        # If RBAC is enabled, this check will verify if user has system role with all access.
+        # If RBAC is enabled, this check guards against a user accessing another user's kvp.
+        # If RBAC is enabled, user needs to be explicitly granted permission to set a system kvp.
+        # The check is sufficient to allow decryption of the system kvp.
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=kvp_db,
+            permission_type=PermissionType.KEY_VALUE_PAIR_SET,
+        )
 
-            # Check that the user has permission to the user scoped items.
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
-                permission_type=PermissionType.KEY_VALUE_PAIR_SET,
-            )
-        elif user and scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
-            # Check that the user has permission to the system scoped items.
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope=FULL_SYSTEM_SCOPE),
-                permission_type=PermissionType.KEY_VALUE_PAIR_SET,
-            )
-        else:
-            # Check that the user has permission to his/her own user scoped items.
-            rbac_utils.assert_user_has_resource_db_permission(
-                user_db=requester_user,
-                resource_db=KeyValuePairDB(scope="%s:%s" % (FULL_USER_SCOPE, user)),
-                permission_type=PermissionType.KEY_VALUE_PAIR_SET,
-            )
-            # RBAC not enabled or user is not an admin, retrieve user scoped items
-            # for the current user.
-            user_scope_prefix = get_key_reference(
-                name=name, scope=USER_SCOPE, user=user
-            )
-            LOG.debug("User Scope %s" % user_scope_prefix)
-
-        # Validate that encrypted option can only be used by admins
+        # Validate that the pre-encrypted option can only be used by admins
         encrypted = getattr(kvp, "encrypted", False)
         self._validate_encrypted_query_parameter(
             encrypted=encrypted, scope=scope, requester_user=requester_user
         )
 
-        key_ref = get_key_reference(scope=scope, name=name, user=user)
-        lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
-        LOG.debug("PUT scope: %s, name: %s", scope, name)
-
-        # TODO: Custom permission check since the key doesn't need to exist here
-
-        # Note: We use lock to avoid a race
-        with self._coordinator.get_lock(lock_name):
+        # Acquire a lock to avoid race condition between concurrent API calls
+        with self._coordinator.get_lock(self._get_lock_name_for_key(name=key_ref, scope=scope)):
             try:
-                existing_kvp_api = self._get_one_by_scope_and_name(
-                    scope=scope, name=key_ref
-                )
+                existing_kvp_api = self._get_one_by_scope_and_name(scope=scope, name=key_ref)
             except StackStormDBObjectNotFoundError:
                 existing_kvp_api = None
 
@@ -360,20 +334,7 @@ class KeyValuePairController(ResourceController):
                 if existing_kvp_api:
                     kvp_db.id = existing_kvp_api.id
 
-                if scope in [SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
-                    if is_admin:
-                        kvp_db = KeyValuePair.add_or_update(kvp_db)
-                    else:
-                        for key in get_all_system_kvp_names_for_user(user):
-                            try:
-                                if key == name:
-                                    kvp_db = KeyValuePair.add_or_update(kvp_db)
-                            except Exception as e:
-                                LOG.error("Unable to get key %s: %s", key, str(e))
-
-                if scope in [USER_SCOPE, FULL_USER_SCOPE]:
-                    kvp_db = KeyValuePair.add_or_update(kvp_db)
-
+                kvp_db = KeyValuePair.add_or_update(kvp_db)
             except (ValidationError, ValueError) as e:
                 LOG.exception("Validation failed for key value data=%s", kvp)
                 abort(http_client.BAD_REQUEST, six.text_type(e))
