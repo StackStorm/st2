@@ -348,6 +348,8 @@ class ActionCloneCommand(resource.ContentPackResourceCloneCommand):
         except ResourceNotFoundError:
             dest_instance = None
 
+        overwrite = False
+
         if dest_instance:
             user_input = ""
             if not args.force:
@@ -355,24 +357,18 @@ class ActionCloneCommand(resource.ContentPackResourceCloneCommand):
                     "The destination action already exists. Do you want to overwrite? (y/n): "
                 )
             if args.force or user_input.lower() == "y" or user_input.lower() == "yes":
-                return self.manager.clone(
-                    source_ref,
-                    dest_pack,
-                    dest_action,
-                    overwrite=True,
-                    **kwargs,
-                )
+                overwrite = True
             else:
                 print("Action is not cloned.")
                 return
-        else:
-            return self.manager.clone(
-                source_ref,
-                dest_pack,
-                dest_action,
-                overwrite=False,
-                **kwargs,
-            )
+
+        return self.manager.clone(
+            source_ref,
+            dest_pack,
+            dest_action,
+            overwrite=overwrite,
+            **kwargs,
+        )
 
     def run_and_print(self, args, **kwargs):
         try:
