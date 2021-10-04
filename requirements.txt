@@ -17,7 +17,7 @@ dnspython>=1.16.0,<2.0.0
 eventlet==0.30.2
 flex==6.14.1
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
-git+https://github.com/StackStorm/orquesta.git@c971b94d5c3dc065ee18386bdf3609a3d2de4a2c#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@v1.5.0#egg=orquesta
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
 git+https://github.com/StackStorm/st2-auth-ldap.git@master#egg=st2-auth-ldap
 git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backend
