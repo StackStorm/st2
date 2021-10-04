@@ -24,7 +24,6 @@ import abc
 import six
 import json
 import logging
-import traceback
 
 from functools import wraps
 
@@ -198,10 +197,12 @@ class ResourceCommand(commands.Command):
         try:
             instance = self.manager.get_by_id(pk, **kwargs)
         except Exception as e:
-            traceback.print_exc()
+            # traceback.print_exc()
             # Hack for "Unauthorized" exceptions, we do want to propagate those
             response = getattr(e, "response", None)
             status_code = getattr(response, "status_code", None)
+            if status_code and status_code == http_client.FORBIDDEN:
+                raise e
             if status_code and status_code == http_client.UNAUTHORIZED:
                 raise e
 
