@@ -16,6 +16,7 @@
 
 COMPONENTS="st2actionrunner st2api st2stream st2auth st2garbagecollector st2notifier st2rulesengine st2sensorcontainer st2chatops st2timersengine st2workflowengine st2scheduler"
 ST2_CONF="/etc/st2/st2.conf"
+SYSTEMD_RELOADED=""
 
 # Ensure global environment is sourced if exists
 # Does not happen consistently with all OSes we support.
@@ -108,6 +109,11 @@ function service_manager() {
   local svcname=$1 action=$2
   if [ -d /run/systemd/system ]; then
     # systemd is running
+    if [ -z $SYSTEMD_RELOADED ]; then
+      #Reload systemd to regenerate socket files from st2.conf
+      systemctl daemon-reload
+      SYSTEMD_RELOADED="yes"
+    fi
     systemctl $action $svcname
   elif [ $(cat /proc/1/comm) = init ] && (/sbin/initctl version 2>/dev/null | grep -q upstart) &&
           [ -f /etc/init/${svcname}.conf ]; then
