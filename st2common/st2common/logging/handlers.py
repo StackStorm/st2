@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -24,26 +24,29 @@ from oslo_config import cfg
 from st2common.util import date as date_utils
 
 __all__ = [
-    'FormatNamedFileHandler',
-    'ConfigurableSyslogHandler',
+    "FormatNamedFileHandler",
+    "ConfigurableSyslogHandler",
 ]
 
 
 class FormatNamedFileHandler(logging.handlers.RotatingFileHandler):
-    def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=False):
+    def __init__(
+        self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None, delay=False
+    ):
         # We add aditional values to the context which can be used in the log filename
         timestamp = int(time.time())
-        isotime_str = str(date_utils.get_datetime_utc_now()).replace(' ', '_')
+        isotime_str = str(date_utils.get_datetime_utc_now()).replace(" ", "_")
         pid = os.getpid()
-        format_values = {
-            'timestamp': timestamp,
-            'ts': isotime_str,
-            'pid': pid
-        }
+        format_values = {"timestamp": timestamp, "ts": isotime_str, "pid": pid}
         filename = filename.format(**format_values)
-        super(FormatNamedFileHandler, self).__init__(filename, mode=mode, maxBytes=maxBytes,
-                                                     backupCount=backupCount, encoding=encoding,
-                                                     delay=delay)
+        super(FormatNamedFileHandler, self).__init__(
+            filename,
+            mode=mode,
+            maxBytes=maxBytes,
+            backupCount=backupCount,
+            encoding=encoding,
+            delay=delay,
+        )
 
 
 class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
@@ -55,12 +58,12 @@ class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
         if not socktype:
             protocol = cfg.CONF.syslog.protocol.lower()
 
-            if protocol == 'udp':
+            if protocol == "udp":
                 socktype = socket.SOCK_DGRAM
-            elif protocol == 'tcp':
+            elif protocol == "tcp":
                 socktype = socket.SOCK_STREAM
             else:
-                raise ValueError('Unsupported protocol: %s' % (protocol))
+                raise ValueError("Unsupported protocol: %s" % (protocol))
 
         if socktype:
             super(ConfigurableSyslogHandler, self).__init__(address, facility, socktype)

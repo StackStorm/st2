@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.trigger import TriggerTypeAPI
 from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.utils import sensor_type_utils
 
@@ -22,48 +23,38 @@ from st2common.models.utils import sensor_type_utils
 class SensorTypeAPI(BaseAPI):
     model = SensorTypeDB
     schema = {
-        'type': 'object',
-        'properties': {
-            'id': {
-                'type': 'string',
-                'default': None
+        "type": "object",
+        "properties": {
+            "id": {"type": "string", "default": None},
+            "ref": {"type": "string"},
+            "uid": {"type": "string"},
+            "class_name": {"type": "string", "required": True},
+            "pack": {"type": "string"},
+            "description": {"type": "string"},
+            "artifact_uri": {
+                "type": "string",
             },
-            'ref': {
-                'type': 'string'
+            "entry_point": {
+                "type": "string",
             },
-            'uid': {
-                'type': 'string'
+            "enabled": {
+                "description": "Enable or disable the sensor.",
+                "type": "boolean",
+                "default": True,
             },
-            'name': {
-                'type': 'string',
-                'required': True
+            "trigger_types": {
+                "type": "array",
+                "items": TriggerTypeAPI.schema,
+                "default": [],
             },
-            'pack': {
-                'type': 'string'
+            "poll_interval": {"type": "number"},
+            "metadata_file": {
+                "description": "Path to the metadata file relative to the pack directory.",
+                "type": "string",
+                "default": "",
             },
-            'description': {
-                'type': 'string'
-            },
-            'artifact_uri': {
-                'type': 'string',
-            },
-            'entry_point': {
-                'type': 'string',
-            },
-            'enabled': {
-                'description': 'Enable or disable the sensor.',
-                'type': 'boolean',
-                'default': True
-            },
-            'trigger_types': {
-                'type': 'array',
-                'default': []
-            },
-            'poll_interval': {
-                'type': 'number'
-            }
         },
-        'additionalProperties': False
+        "additionalProperties": False,
     }
 
     @classmethod

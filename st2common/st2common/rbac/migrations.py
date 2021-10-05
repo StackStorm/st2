@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -23,11 +23,7 @@ from st2common.exceptions.db import StackStormDBObjectConflictError
 
 LOG = logging.getLogger(__name__)
 
-__all__ = [
-    'run_all',
-
-    'insert_system_roles'
-]
+__all__ = ["run_all", "insert_system_roles"]
 
 
 def run_all():
@@ -40,7 +36,7 @@ def insert_system_roles():
     """
     system_roles = SystemRole.get_valid_values()
 
-    LOG.debug('Inserting system roles (%s)' % (str(system_roles)))
+    LOG.debug("Inserting system roles (%s)" % (str(system_roles)))
 
     for role_name in system_roles:
         description = role_name

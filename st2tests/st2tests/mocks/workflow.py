@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import six
 import eventlet
 import traceback
 
@@ -22,13 +23,10 @@ from st2actions.workflows import workflows
 from st2common.models.db import workflow as wf_ex_db
 
 
-__all__ = [
-    'MockWorkflowExecutionPublisher'
-]
+__all__ = ["MockWorkflowExecutionPublisher"]
 
 
 class MockWorkflowExecutionPublisher(object):
-
     @classmethod
     def publish_create(cls, payload):
         try:
@@ -77,6 +75,6 @@ class MockWorkflowExecutionPublisherNonBlocking(object):
             try:
                 thread.wait()
             except Exception as e:
-                print(str(e))
+                print(six.text_type(e))
             finally:
                 cls.threads.remove(thread)

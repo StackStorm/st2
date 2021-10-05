@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,8 +19,8 @@ from st2client.models import core
 
 
 class Pack(core.Resource):
-    _display_name = 'Pack'
-    _plural = 'Packs'
-    _plural_display_name = 'Packs'
-    _url_path = 'packs'
-    _repr_attributes = ['name', 'description', 'version', 'author']
+    _display_name = "Pack"
+    _plural = "Packs"
+    _plural_display_name = "Packs"
+    _url_path = "packs"
+    _repr_attributes = ["name", "description", "version", "author"]

@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,7 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
+
+import six
 
 from st2common.content.loader import ContentPackLoader
 from st2common.content.loader import MetaLoader
@@ -22,13 +25,13 @@ from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.exceptions.content import ParseException
 from st2common.bootstrap.aliasesregistrar import AliasesRegistrar
-from st2common.models.utils.action_alias_utils import extract_parameters_for_action_alias_db
+from st2common.models.utils.action_alias_utils import (
+    extract_parameters_for_action_alias_db,
+)
 from st2common.models.utils.action_alias_utils import extract_parameters
 from st2tests.pack_resource import BasePackResourceTestCase
 
-__all__ = [
-    'BaseActionAliasTestCase'
-]
+__all__ = ["BaseActionAliasTestCase"]
 
 
 class BaseActionAliasTestCase(BasePackResourceTestCase):
@@ -45,7 +48,9 @@ class BaseActionAliasTestCase(BasePackResourceTestCase):
         if not self.action_alias_name:
             raise ValueError('"action_alias_name" class attribute needs to be provided')
 
-        self.action_alias_db = self._get_action_alias_db_by_name(name=self.action_alias_name)
+        self.action_alias_db = self._get_action_alias_db_by_name(
+            name=self.action_alias_name
+        )
 
     def assertCommandMatchesExactlyOneFormatString(self, format_strings, command):
         """
@@ -55,19 +60,22 @@ class BaseActionAliasTestCase(BasePackResourceTestCase):
 
         for format_string in format_strings:
             try:
-                extract_parameters(format_str=format_string,
-                                   param_stream=command)
+                extract_parameters(format_str=format_string, param_stream=command)
             except ParseException:
                 continue
 
             matched_format_strings.append(format_string)
 
         if len(matched_format_strings) == 0:
-            msg = ('Command "%s" didn\'t match any of the provided format strings' % (command))
+            msg = 'Command "%s" didn\'t match any of the provided format strings' % (
+                command
+            )
             raise AssertionError(msg)
         elif len(matched_format_strings) > 1:
-            msg = ('Command "%s" matched multiple format strings: %s' %
-                   (command, ', '.join(matched_format_strings)))
+            msg = 'Command "%s" matched multiple format strings: %s' % (
+                command,
+                ", ".join(matched_format_strings),
+            )
             raise AssertionError(msg)
 
     def assertExtractedParametersMatch(self, format_string, command, parameters):
@@ -80,17 +88,20 @@ class BaseActionAliasTestCase(BasePackResourceTestCase):
         extracted_params = extract_parameters_for_action_alias_db(
             action_alias_db=self.action_alias_db,
             format_str=format_string,
-            param_stream=command)
+            param_stream=command,
+        )
 
         if extracted_params != parameters:
-            msg = ('Extracted parameters from command string "%s" against format string "%s"'
-                   ' didn\'t match the provided parameters: ' % (command, format_string))
+            msg = (
+                'Extracted parameters from command string "%s" against format string "%s"'
+                " didn't match the provided parameters: " % (command, format_string)
+            )
 
             # Note: We intercept the exception so we can can include diff for the dictionaries
             try:
                 self.assertEqual(extracted_params, parameters)
             except AssertionError as e:
-                msg += str(e)
+                msg += six.text_type(e)
 
             raise AssertionError(msg)
 
@@ -114,12 +125,14 @@ class BaseActionAliasTestCase(BasePackResourceTestCase):
         pack_loader = ContentPackLoader()
         registrar = AliasesRegistrar(use_pack_cache=False)
 
-        aliases_path = pack_loader.get_content_from_pack(pack_dir=base_pack_path,
-                                                         content_type='aliases')
+        aliases_path = pack_loader.get_content_from_pack(
+            pack_dir=base_pack_path, content_type="aliases"
+        )
         aliases = registrar._get_aliases_from_pack(aliases_dir=aliases_path)
         for alias_path in aliases:
-            action_alias_db = registrar._get_action_alias_db(pack=pack,
-                                                             action_alias=alias_path)
+            action_alias_db = registrar._get_action_alias_db(
+                pack=pack, action_alias=alias_path, ignore_metadata_file_error=True
+            )
 
             if action_alias_db.name == name:
                 return action_alias_db

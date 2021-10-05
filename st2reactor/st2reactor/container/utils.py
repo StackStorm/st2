@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -22,10 +22,12 @@ from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.persistence.trigger import TriggerInstance
 from st2common.services.triggers import get_trigger_db_by_ref_or_dict
 
-LOG = logging.getLogger('st2reactor.sensor.container_utils')
+LOG = logging.getLogger("st2reactor.sensor.container_utils")
 
 
-def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigger=False):
+def create_trigger_instance(
+    trigger, payload, occurrence_time, raise_on_no_trigger=False
+):
     """
     This creates a trigger instance object given trigger and payload.
     Trigger can be just a string reference (pack.name) or a ``dict`` containing 'id' or
@@ -40,9 +42,9 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
     trigger_db = get_trigger_db_by_ref_or_dict(trigger=trigger)
 
     if not trigger_db:
-        LOG.debug('No trigger in db for %s', trigger)
+        LOG.debug("No trigger in db for %s", trigger)
         if raise_on_no_trigger:
-            raise StackStormDBObjectNotFoundError('Trigger not found for %s', trigger)
+            raise StackStormDBObjectNotFoundError("Trigger not found for %s" % trigger)
         return None
 
     trigger_ref = trigger_db.get_reference().ref

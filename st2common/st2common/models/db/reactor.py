@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,18 +14,17 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from st2common.models.db.rule import (ActionExecutionSpecDB, RuleDB)
+from st2common.models.db.rule import ActionExecutionSpecDB, RuleDB
 from st2common.models.db.sensor import SensorTypeDB
-from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB, TriggerInstanceDB)
+from st2common.models.db.trigger import TriggerDB, TriggerTypeDB, TriggerInstanceDB
 
 __all__ = [
-    'ActionExecutionSpecDB',
-    'RuleDB',
-    'SensorTypeDB',
-    'TriggerTypeDB',
-    'TriggerDB',
-    'TriggerInstanceDB'
+    "ActionExecutionSpecDB",
+    "RuleDB",
+    "SensorTypeDB",
+    "TriggerTypeDB",
+    "TriggerDB",
+    "TriggerInstanceDB",
 ]
 
-MODELS = [RuleDB, SensorTypeDB, TriggerDB, TriggerInstanceDB,
-          TriggerTypeDB]
+MODELS = [RuleDB, SensorTypeDB, TriggerDB, TriggerInstanceDB, TriggerTypeDB]

@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,9 +19,7 @@ import six
 
 from st2auth.backends.constants import AuthBackendCapability
 
-__all__ = [
-    'BaseAuthenticationBackend'
-]
+__all__ = ["BaseAuthenticationBackend"]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -31,9 +29,7 @@ class BaseAuthenticationBackend(object):
     """
 
     # Capabilities offered by the auth backend
-    CAPABILITIES = (
-        AuthBackendCapability.CAN_AUTHENTICATE_USER
-    )
+    CAPABILITIES = AuthBackendCapability.CAN_AUTHENTICATE_USER
 
     @abc.abstractmethod
     def authenticate(self, username, password):
@@ -47,7 +43,7 @@ class BaseAuthenticationBackend(object):
 
         :rtype: ``dict``
         """
-        raise NotImplementedError('get_user() not implemented for this backend')
+        raise NotImplementedError("get_user() not implemented for this backend")
 
     def get_user_groups(self, username):
         """
@@ -57,4 +53,4 @@ class BaseAuthenticationBackend(object):
 
         :rtype: ``list`` of ``str``
         """
-        raise NotImplementedError('get_groups() not implemented for this backend')
+        raise NotImplementedError("get_groups() not implemented for this backend")

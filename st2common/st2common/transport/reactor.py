@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,29 +20,26 @@ from st2common import log as logging
 from st2common.constants.trace import TRACE_CONTEXT
 from st2common.models.api.trace import TraceContext
 from st2common.transport import publishers
-from st2common.transport import utils as transport_utils
 
 __all__ = [
-    'TriggerCUDPublisher',
-    'TriggerInstancePublisher',
-
-    'TriggerDispatcher',
-
-    'get_sensor_cud_queue',
-    'get_trigger_cud_queue',
-    'get_trigger_instances_queue'
+    "TriggerCUDPublisher",
+    "TriggerInstancePublisher",
+    "TriggerDispatcher",
+    "get_sensor_cud_queue",
+    "get_trigger_cud_queue",
+    "get_trigger_instances_queue",
 ]
 
 LOG = logging.getLogger(__name__)
 
 # Exchange for Trigger CUD events
-TRIGGER_CUD_XCHG = Exchange('st2.trigger', type='topic')
+TRIGGER_CUD_XCHG = Exchange("st2.trigger", type="topic")
 
 # Exchange for TriggerInstance events
-TRIGGER_INSTANCE_XCHG = Exchange('st2.trigger_instances_dispatch', type='topic')
+TRIGGER_INSTANCE_XCHG = Exchange("st2.trigger_instances_dispatch", type="topic")
 
 # Exchane for Sensor CUD events
-SENSOR_CUD_XCHG = Exchange('st2.sensor', type='topic')
+SENSOR_CUD_XCHG = Exchange("st2.sensor", type="topic")
 
 
 class SensorCUDPublisher(publishers.CUDPublisher):
@@ -50,8 +47,8 @@ class SensorCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, urls):
-        super(SensorCUDPublisher, self).__init__(urls, SENSOR_CUD_XCHG)
+    def __init__(self):
+        super(SensorCUDPublisher, self).__init__(exchange=SENSOR_CUD_XCHG)
 
 
 class TriggerCUDPublisher(publishers.CUDPublisher):
@@ -59,13 +56,13 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, urls):
-        super(TriggerCUDPublisher, self).__init__(urls, TRIGGER_CUD_XCHG)
+    def __init__(self):
+        super(TriggerCUDPublisher, self).__init__(exchange=TRIGGER_CUD_XCHG)
 
 
 class TriggerInstancePublisher(object):
-    def __init__(self, urls):
-        self._publisher = publishers.PoolPublisher(urls=urls)
+    def __init__(self):
+        self._publisher = publishers.PoolPublisher()
 
     def publish_trigger(self, payload=None, routing_key=None):
         # TODO: We should use trigger reference as a routing key
@@ -78,7 +75,7 @@ class TriggerDispatcher(object):
     """
 
     def __init__(self, logger=LOG):
-        self._publisher = TriggerInstancePublisher(urls=transport_utils.get_messaging_urls())
+        self._publisher = TriggerInstancePublisher()
         self._logger = logger
 
     def dispatch(self, trigger, payload=None, trace_context=None):
@@ -94,17 +91,23 @@ class TriggerDispatcher(object):
         :param trace_context: Trace context to associate with Trigger.
         :type trace_context: ``TraceContext``
         """
-        assert isinstance(payload, (type(None), dict))
-        assert isinstance(trace_context, (type(None), TraceContext))
+        if payload and not isinstance(payload, dict):
+            raise TypeError(
+                f"The payload has a value that is not a dictionary"
+                f" (was {type(payload)})."
+            )
+        if trace_context and not isinstance(trace_context, TraceContext):
+            raise TypeError(
+                f"The trace context has a value that is not of type TraceContext"
+                f" (was {type(trace_context)})."
+            )
 
-        payload = {
-            'trigger': trigger,
-            'payload': payload,
-            TRACE_CONTEXT: trace_context
-        }
-        routing_key = 'trigger_instance'
+        payload = {"trigger": trigger, "payload": payload, TRACE_CONTEXT: trace_context}
+        routing_key = "trigger_instance"
 
-        self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
+        self._logger.debug(
+            "Dispatching trigger (trigger=%s,payload=%s)", trigger, payload
+        )
         self._publisher.publish_trigger(payload=payload, routing_key=routing_key)
 
 

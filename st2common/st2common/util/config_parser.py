@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -21,10 +21,7 @@ import io
 
 from st2common.content import utils
 
-__all__ = [
-    'ContentPackConfigParser',
-    'ContentPackConfig'
-]
+__all__ = ["ContentPackConfigParser", "ContentPackConfig"]
 
 
 class ContentPackConfigParser(object):
@@ -32,8 +29,8 @@ class ContentPackConfigParser(object):
     Class responsible for obtaining and parsing content pack configs.
     """
 
-    GLOBAL_CONFIG_NAME = 'config.yaml'
-    LOCAL_CONFIG_SUFFIX = '_config.yaml'
+    GLOBAL_CONFIG_NAME = "config.yaml"
+    LOCAL_CONFIG_SUFFIX = "_config.yaml"
 
     def __init__(self, pack_name):
         self.pack_name = pack_name
@@ -85,8 +82,7 @@ class ContentPackConfigParser(object):
         if not self.pack_path:
             return None
 
-        global_config_path = os.path.join(self.pack_path,
-                                          self.GLOBAL_CONFIG_NAME)
+        global_config_path = os.path.join(self.pack_path, self.GLOBAL_CONFIG_NAME)
         return global_config_path
 
     @classmethod
@@ -95,7 +91,7 @@ class ContentPackConfigParser(object):
             return None
 
         if os.path.exists(config_path) and os.path.isfile(config_path):
-            with io.open(config_path, 'r', encoding='utf8') as fp:
+            with io.open(config_path, "r", encoding="utf8") as fp:
                 config = yaml.safe_load(fp.read())
 
             return ContentPackConfig(file_path=config_path, config=config)

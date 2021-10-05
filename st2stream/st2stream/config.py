@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -32,39 +32,42 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def parse_args(args=None):
-    cfg.CONF(args=args, version=VERSION_STRING,
-             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
+    cfg.CONF(
+        args=args,
+        version=VERSION_STRING,
+        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+    )
 
 
-def register_opts():
-    _register_common_opts()
-    _register_app_opts()
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_app_opts(ignore_errors=ignore_errors)
 
 
-def _register_common_opts():
-    common_config.register_opts()
+def _register_common_opts(ignore_errors=False):
+    common_config.register_opts(ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
     return cfg.CONF.stream.logging
 
 
-def _register_app_opts():
+def _register_app_opts(ignore_errors=False):
     # Note "allow_origin", "mask_secrets", "heartbeat" options are registered as part of st2common
     # config since they are also used outside st2stream
     api_opts = [
         cfg.StrOpt(
-            'host', default='127.0.0.1',
-            help='StackStorm stream API server host'),
-        cfg.IntOpt(
-            'port', default=9102,
-            help='StackStorm API stream, server port'),
-        cfg.BoolOpt(
-            'debug', default=False,
-            help='Specify to enable debug mode.'),
+            "host", default="127.0.0.1", help="StackStorm stream API server host"
+        ),
+        cfg.IntOpt("port", default=9102, help="StackStorm API stream, server port"),
+        cfg.BoolOpt("debug", default=False, help="Specify to enable debug mode."),
         cfg.StrOpt(
-            'logging', default='/etc/st2/logging.stream.conf',
-            help='location of the logging.conf file')
+            "logging",
+            default="/etc/st2/logging.stream.conf",
+            help="location of the logging.conf file",
+        ),
     ]
 
-    CONF.register_opts(api_opts, group='stream')
+    common_config.do_register_opts(
+        api_opts, group="stream", ignore_errors=ignore_errors
+    )

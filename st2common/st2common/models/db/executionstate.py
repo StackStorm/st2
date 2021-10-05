@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -21,33 +21,32 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 
 __all__ = [
-    'ActionExecutionStateDB',
+    "ActionExecutionStateDB",
 ]
 
 
 LOG = logging.getLogger(__name__)
 
-PACK_SEPARATOR = '.'
+PACK_SEPARATOR = "."
 
 
 class ActionExecutionStateDB(stormbase.StormFoundationDB):
     """
-        Database entity that represents the state of Action execution.
+    Database entity that represents the state of Action execution.
     """
+
     execution_id = me.ObjectIdField(
-        required=True,
-        unique=True,
-        help_text='liveaction ID.')
+        required=True, unique=True, help_text="liveaction ID."
+    )
     query_module = me.StringField(
-        required=True,
-        help_text='Reference to the runner model.')
+        required=True, help_text="Reference to the runner model."
+    )
     query_context = me.DictField(
         required=True,
-        help_text='Context about the action execution that is needed for results query.')
+        help_text="Context about the action execution that is needed for results query.",
+    )
 
-    meta = {
-        'indexes': ['query_module']
-    }
+    meta = {"indexes": ["query_module"]}
 
 
 # specialized access objects

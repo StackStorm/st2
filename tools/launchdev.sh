@@ -1,36 +1,40 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6] [-m]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-s scheduler_count] [-w workflow_engine_count] [-g] [-x] [-c] [-6] [-m]" >&2
 }
 
 subcommand=$1; shift
 runner_count=1
+scheduler_count=1
+workflow_engine_count=1
 use_gunicorn=true
-copy_examples=false
+copy_test_packs=false
 load_content=true
 use_ipv6=false
-include_mistral=false
 
-while getopts ":r:gxcu6m" o; do
+while getopts ":r:s:w:gxcu6" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
+            ;;
+        s)
+            scheduler_count=${OPTARG}
+            ;;
+        w)
+            workflow_engine_count=${OPTARG}
             ;;
         g)
             use_gunicorn=false
             ;;
         x)
-            copy_examples=true
+            copy_test_packs=true
             ;;
         c)
             load_content=false
             ;;
         6)
             use_ipv6=true
-            ;;
-        m)
-            include_mistral=true
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -51,6 +55,7 @@ function init(){
     CURRENT_DIR=`pwd`
     CURRENT_USER=`whoami`
     CURRENT_USER_GROUP=`id -gn`
+    echo "Current user:group = ${CURRENT_USER}:${CURRENT_USER_GROUP}"
 
     if [[ (${COMMAND_PATH} == /*) ]] ;
     then
@@ -59,7 +64,8 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
-    VIRTUALENV=${VIRTUALENV:-${ST2_REPO}/virtualenv}
+    VIRTUALENV=${VIRTUALENV_DIR:-${ST2_REPO}/virtualenv}
+    VIRTUALENV=$(readlink -f ${VIRTUALENV})
     PY=${VIRTUALENV}/bin/python
     PYTHON_VERSION=$(${PY} --version 2>&1)
 
@@ -69,6 +75,8 @@ function init(){
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
+
+    ST2_CONF=$(readlink -f ${ST2_CONF})
     echo "Using st2 config file: $ST2_CONF"
 
     if [ ! -f "$ST2_CONF" ]; then
@@ -76,66 +84,6 @@ function init(){
         exit 1
     fi
 
-    # Optionally, initialize mistral
-    if [ "${include_mistral}" = true ]; then
-        init_mistral
-    fi
-}
-
-function init_mistral(){
-
-    echo "Initializing Mistral..."
-
-    # Both the mistral and st2mistral repos must be present alongside the st2 repo
-    MISTRAL_REPO="${ST2_REPO}/../mistral"
-    ST2MISTRAL_REPO="${ST2_REPO}/../st2mistral"
-
-    if [ ! -d "$MISTRAL_REPO" ] || [ ! -d "$ST2MISTRAL_REPO" ] ; then
-        echo "You specified the Mistral option, but either the mistral or st2mistral directories were not found."
-        echo "Please place a clone of both mistral and st2mistral repositories alongside the st2 repository."
-        exit 1
-    fi
-
-    if [ -z "$MISTRAL_CONF" ]; then
-        MISTRAL_CONF=${ST2_REPO}/conf/mistral.dev/mistral.dev.conf
-    fi
-    echo "Using mistral config file: $MISTRAL_CONF"
-
-    if [ ! -f "$MISTRAL_CONF" ]; then
-        echo "Config file $MISTRAL_CONF does not exist."
-        exit 1
-    fi
-
-    # Create mistral virtualenv if doesn't exist
-    if [[ ! -d "${MISTRAL_REPO}/.venv" ]]; then
-        virtualenv ${MISTRAL_REPO}/.venv > /dev/null
-    fi
-
-    # Install Mistral and st2 plugins
-    echo "Installing mistral, st2mistral, and all dependencies..."
-    source "${MISTRAL_REPO}/.venv/bin/activate"
-    cd "${MISTRAL_REPO}"
-
-    # There's something funky going on with installation of Babel in mistral/requirements.txt
-    # I noticed that the install script in mistral_dev is doing some replacements for Babel to set
-    # the version but installation of Babel still fails for me even with that code. Only
-    # thing I've managed to get working is manually installing pytz myself here.
-    pip install pytz
-
-    pip install -r requirements.txt > /dev/null
-    python setup.py install > /dev/null
-    cd "${ST2MISTRAL_REPO}"
-    pip install -r requirements.txt > /dev/null
-    python setup.py install > /dev/null
-    deactivate
-
-    MISTRAL_DB_COUNT=$(PGUSER=mistral PGPASSWORD=StackStorm PGDATABASE=mistral PGHOST=127.0.0.1 PGPORT=5432 psql mistral -c "select count(*) from action_definitions_v2" | grep -oP '\d{4}')
-    if [ ! $? -eq 0 ]; then
-        MISTRAL_DB_COUNT=0
-    fi
-    if [ "$MISTRAL_DB_COUNT" -lt 1200 ] ; then
-      setup_mistral_db
-    fi
 }
 
 function exportsdir(){
@@ -201,9 +149,22 @@ function st2start(){
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
 
-    if [ "$copy_examples" = true ]; then
-        echo "Copying examples from ./contrib/examples to $PACKS_BASE_DIR"
+    if [ "$copy_test_packs" = true ]; then
+        echo "Copying test packs examples and fixtures to $PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
+        # Clone st2tests in /tmp directory.
+        pushd /tmp
+        echo Cloning https://github.com/StackStorm/st2tests.git
+        # -q = no progress reporting (better for CI). Errors will still print.
+        git clone -q https://github.com/StackStorm/st2tests.git
+        ret=$?
+        if [ ${ret} -eq 0 ]; then
+            cp -Rp ./st2tests/packs/fixtures $PACKS_BASE_DIR
+            rm -R st2tests/
+        else
+            echo "Failed to clone st2tests repo"
+        fi
+        popd
     fi
 
     # activate virtualenv to set PYTHONPATH
@@ -217,21 +178,18 @@ function st2start(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
     fi
 
-    screen -ls | grep mistral &> /dev/null
-    if [ $? == 0 ]; then
-        echo 'Killing existing mistral screen sessions...'
-        screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs kill
-    fi
+    # NOTE: We can't rely on latest version of screen with "-Logfile path"
+    # option so we need to use screen config file per screen window
 
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-api ${VIRTUALENV}/bin/gunicorn \
+        screen -L -c tools/screen-configs/st2api.conf -d -m -S st2-api ${VIRTUALENV}/bin/gunicorn \
             st2api.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
     else
-        screen -d -m -S st2-api ${VIRTUALENV}/bin/python \
+        screen -L -c tools/screen-configs/st2api.conf -d -m -S st2-api ${VIRTUALENV}/bin/python \
             ./st2api/bin/st2api \
             --config-file $ST2_CONF
     fi
@@ -240,72 +198,80 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-stream'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-stream ${VIRTUALENV}/bin/gunicorn \
+        screen -L -c tools/screen-configs/st2stream.conf -d -m -S st2-stream ${VIRTUALENV}/bin/gunicorn \
             st2stream.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
     else
-        screen -d -m -S st2-stream ${VIRTUALENV}/bin/python \
+        screen -L -c tools/screen-configs/st2stream.conf -d -m -S st2-stream ${VIRTUALENV}/bin/python \
             ./st2stream/bin/st2stream \
             --config-file $ST2_CONF
     fi
 
     # Run the workflow engine server
-    echo 'Starting screen session st2-workflow'
-    screen -d -m -S st2-workflow ${VIRTUALENV}/bin/python \
-        ./st2actions/bin/st2workflowengine \
-        --config-file $ST2_CONF
+    echo 'Starting screen session st2-workflow(s)'
+    WORKFLOW_ENGINE_SCREENS=()
+    for i in $(seq 1 $workflow_engine_count)
+    do
+        WORKFLOW_ENGINE_NAME=st2-workflow-$i
+        WORKFLOW_ENGINE_SCREENS+=($WORKFLOW_ENGINE_NAME)
+        echo '  starting '$WORKFLOW_ENGINE_NAME'...'
+        screen -L -c tools/screen-configs/st2workflowengine.conf -d -m -S $WORKFLOW_ENGINE_NAME ${VIRTUALENV}/bin/python \
+            ./st2actions/bin/st2workflowengine \
+            --config-file $ST2_CONF
+    done
 
     # Start a screen for every runner
-    echo 'Starting screen sessions for st2-actionrunner(s)...'
+    echo 'Starting screen sessions for st2-actionrunner(s)'
     RUNNER_SCREENS=()
     for i in $(seq 1 $runner_count)
     do
         RUNNER_NAME=st2-actionrunner-$i
         RUNNER_SCREENS+=($RUNNER_NAME)
         echo '  starting '$RUNNER_NAME'...'
-        screen -d -m -S $RUNNER_NAME ${VIRTUALENV}/bin/python \
+        screen -L -c tools/screen-configs/st2actionrunner.conf -d -m -S $RUNNER_NAME ${VIRTUALENV}/bin/python \
             ./st2actions/bin/st2actionrunner \
             --config-file $ST2_CONF
     done
 
     # Run the garbage collector service
     echo 'Starting screen session st2-garbagecollector'
-    screen -d -m -S st2-garbagecollector ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2garbagecollector.conf -d -m -S st2-garbagecollector ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2garbagecollector \
         --config-file $ST2_CONF
 
     # Run the scheduler server
-    echo 'Starting screen session st2-scheduler'
-    screen -d -m -S st2-scheduler ${VIRTUALENV}/bin/python \
-        ./st2actions/bin/st2scheduler \
-        --config-file $ST2_CONF
+    echo 'Starting screen session st2-scheduler(s)'
+    SCHEDULER_SCREENS=()
+    for i in $(seq 1 $scheduler_count)
+    do
+        SCHEDULER_NAME=st2-scheduler-$i
+        SCHEDULER_SCREENS+=($SCHEDULER_NAME)
+        echo '  starting '$SCHEDULER_NAME'...'
+        screen -L -c tools/screen-configs/st2scheduler.conf -d -m -S $SCHEDULER_NAME ${VIRTUALENV}/bin/python \
+            ./st2actions/bin/st2scheduler \
+            --config-file $ST2_CONF
+    done
 
     # Run the sensor container server
     echo 'Starting screen session st2-sensorcontainer'
-    screen -d -m -S st2-sensorcontainer ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2sensorcontainer.conf -d -m -S st2-sensorcontainer ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2sensorcontainer \
         --config-file $ST2_CONF
 
     # Run the rules engine server
     echo 'Starting screen session st2-rulesengine...'
-    screen -d -m -S st2-rulesengine ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2rulesengine.conf -d -m -S st2-rulesengine ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2rulesengine \
         --config-file $ST2_CONF
 
     # Run the timer engine server
     echo 'Starting screen session st2-timersengine...'
-    screen -d -m -S st2-timersengine ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2timersengine.conf -d -m -S st2-timersengine ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2timersengine \
-        --config-file $ST2_CONF
-
-    # Run the results tracker
-    echo 'Starting screen session st2-resultstracker...'
-    screen -d -m -S st2-resultstracker ${VIRTUALENV}/bin/python \
-        ./st2actions/bin/st2resultstracker \
         --config-file $ST2_CONF
 
     # Run the actions notifier
     echo 'Starting screen session st2-notifier...'
-    screen -d -m -S st2-notifier ${VIRTUALENV}/bin/python \
+    screen -L -c tools/screen-configs/st2notifier.conf -d -m -S st2-notifier ${VIRTUALENV}/bin/python \
         ./st2actions/bin/st2notifier \
         --config-file $ST2_CONF
 
@@ -314,10 +280,10 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-auth ${VIRTUALENV}/bin/gunicorn \
+        screen -L -c tools/screen-configs/st2auth.conf -d -m -S st2-auth ${VIRTUALENV}/bin/gunicorn \
             st2auth.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
     else
-        screen -d -m -S st2-auth ${VIRTUALENV}/bin/python \
+        screen -L -c tools/screen-configs/st2auth.conf -d -m -S st2-auth ${VIRTUALENV}/bin/python \
             ./st2auth/bin/st2auth \
             --config-file $ST2_CONF
     fi
@@ -328,51 +294,24 @@ function st2start(){
         sudo mkdir -p $EXPORTS_DIR
         sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $EXPORTS_DIR
         echo 'Starting screen session st2-exporter...'
-        screen -d -m -S st2-exporter ${VIRTUALENV}/bin/python \
+        screen -L -d -m -S st2-exporter ${VIRTUALENV}/bin/python \
             ./st2exporter/bin/st2exporter \
             --config-file $ST2_CONF
-    fi
-
-    if [ "${include_mistral}" = true ]; then
-
-        LOGDIR=${ST2_REPO}/logs
-
-        # Run mistral-server
-        echo 'Starting screen session mistral-server...'
-        screen -d -m -S mistral-server ${MISTRAL_REPO}/.venv/bin/python \
-            ${MISTRAL_REPO}/.venv/bin/mistral-server \
-            --server engine,executor \
-            --config-file $MISTRAL_CONF \
-            --log-file "$LOGDIR/mistral-server.log"
-
-        # Run mistral-api
-        echo 'Starting screen session mistral-api...'
-        screen -d -m -S mistral-api ${MISTRAL_REPO}/.venv/bin/python \
-            ${MISTRAL_REPO}/.venv/bin/mistral-server \
-            --server api \
-            --config-file $MISTRAL_CONF \
-            --log-file "$LOGDIR/mistral-api.log"
     fi
 
     # Check whether screen sessions are started
     SCREENS=(
         "st2-api"
-        "st2-workflow"
+        "${WORKFLOW_ENGINE_SCREENS[@]}"
+        "${SCHEDULER_SCREENS[@]}"
         "${RUNNER_SCREENS[@]}"
         "st2-sensorcontainer"
         "st2-rulesengine"
-        "st2-resultstracker"
         "st2-notifier"
         "st2-auth"
         "st2-timersengine"
-        "st2-scheduler"
         "st2-garbagecollector"
     )
-
-    if [ "${include_mistral}" = true ]; then
-        SCREENS+=("mistral-server")
-        SCREENS+=("mistral-api")
-    fi
 
     echo
     for s in "${SCREENS[@]}"
@@ -391,6 +330,16 @@ function st2start(){
             --config-file $ST2_CONF --register-all
     fi
 
+    if [ "$copy_test_packs" = true ]; then
+        st2 run packs.setup_virtualenv packs=fixtures
+        if [ $? != 0 ]; then
+            echo "Warning: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
+        fi
+    fi
+
+    # Print default creds to the screen
+    echo "The default creds are testu:testp"
+
     # List screen sessions
     screen -ls || exit 0
 }
@@ -402,14 +351,8 @@ function st2stop(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
     fi
 
-    screen -ls | grep mistral &> /dev/null
-    if [ $? == 0 ]; then
-        echo 'Killing existing mistral screen sessions...'
-        screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -9 -P
-    fi
-
     if [ "${use_gunicorn}" = true ]; then
-        pids=`ps -ef | grep "wsgi:application" | awk '{print $2}'`
+        pids=`ps -ef | grep "wsgi:application" | grep -v "grep" | awk '{print $2}'`
         if [ -n "$pids" ]; then
             echo "Killing gunicorn processes"
             # true ensures that any failure to kill a process which does not exist will not lead
@@ -439,29 +382,8 @@ function st2clean(){
         rm -rf ${EXPORTS_DIR}
     fi
 
-    setup_mistral_db
 }
 
-function setup_mistral_db(){
-    # Ensure services are stopped, so DB script will work
-    st2stop
-
-    if [ -f /etc/lsb-release ]; then
-        DISTRO="ubuntu"
-    else
-        DISTRO="fedora"
-    fi
-
-    ${ST2_REPO}/tools/setup_mistral_db.sh \
-        "${MISTRAL_REPO}" \
-        "${MISTRAL_CONF}" \
-        "${DISTRO}" \
-        postgresql \
-        mistral \
-        mistral \
-        StackStorm \
-        StackStorm
-}
 
 case ${subcommand} in
 start)

@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,13 +17,13 @@
 Plugin which tells Pylint how to handle mongoengine document classes.
 """
 
+import astroid
+
 from astroid import MANAGER
 from astroid import nodes
-from astroid import scoped_nodes
 
 # A list of class names for which we want to skip the checks
-CLASS_NAME_BLACKLIST = [
-]
+CLASS_NAME_BLACKLIST = []
 
 
 def register(linter):
@@ -34,16 +34,16 @@ def transform(cls):
     if cls.name in CLASS_NAME_BLACKLIST:
         return
 
-    if cls.name == 'StormFoundationDB':
+    if cls.name == "StormFoundationDB":
         # _fields get added automagically by mongoengine
-        if '_fields' not in cls.locals:
-            cls.locals['_fields'] = [nodes.Dict()]
+        if "_fields" not in cls.locals:
+            cls.locals["_fields"] = [nodes.Dict()]
 
-    if cls.name.endswith('DB'):
+    if cls.name.endswith("DB"):
         # mongoengine explicitly declared "id" field on each class so we teach pylint about that
-        property_name = 'id'
-        node = scoped_nodes.Class(property_name, None)
+        property_name = "id"
+        node = astroid.ClassDef(property_name, None)
         cls.locals[property_name] = [node]
 
 
-MANAGER.register_transform(scoped_nodes.Class, transform)
+MANAGER.register_transform(astroid.ClassDef, transform)

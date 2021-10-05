@@ -1,0 +1,24 @@
+version: 1.0
+
+description: A sample workflow used to test the rerun feature.
+
+input:
+  - tempfile
+
+tasks:
+  task1:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        do: task2
+
+  task2:
+    action: core.local
+    input:
+      cmd: "exit `cat <% ctx().tempfile %>`"
+    next:
+      - when: <% succeeded() %>
+        do: task3
+
+  task3:
+    action: core.noop

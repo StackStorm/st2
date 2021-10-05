@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,14 +15,15 @@
 # pylint: disable=assignment-from-none
 
 from __future__ import absolute_import
-import eventlet
+
+import six
 from kombu.mixins import ConsumerMixin
-from kombu import Connection
 
 from st2common import log as logging
 from st2common.persistence.trigger import Trigger
 from st2common.transport import reactor, publishers
 from st2common.transport import utils as transport_utils
+from st2common.util import concurrency
 import st2common.util.queues as queue_utils
 
 LOG = logging.getLogger(__name__)
@@ -32,8 +33,15 @@ class TriggerWatcher(ConsumerMixin):
 
     sleep_interval = 0  # sleep to co-operatively yield after processing each message
 
-    def __init__(self, create_handler, update_handler, delete_handler,
-                 trigger_types=None, queue_suffix=None, exclusive=False):
+    def __init__(
+        self,
+        create_handler,
+        update_handler,
+        delete_handler,
+        trigger_types=None,
+        queue_suffix=None,
+        exclusive=False,
+    ):
         """
         :param create_handler: Function which is called on TriggerDB create event.
         :type create_handler: ``callable``
@@ -68,57 +76,67 @@ class TriggerWatcher(ConsumerMixin):
         self._handlers = {
             publishers.CREATE_RK: create_handler,
             publishers.UPDATE_RK: update_handler,
-            publishers.DELETE_RK: delete_handler
+            publishers.DELETE_RK: delete_handler,
         }
 
     def get_consumers(self, Consumer, channel):
-        return [Consumer(queues=[self._trigger_watch_q],
-                         accept=['pickle'],
-                         callbacks=[self.process_task])]
+        return [
+            Consumer(
+                queues=[self._trigger_watch_q],
+                accept=["pickle"],
+                callbacks=[self.process_task],
+            )
+        ]
 
     def process_task(self, body, message):
-        LOG.debug('process_task')
-        LOG.debug('     body: %s', body)
-        LOG.debug('     message.properties: %s', message.properties)
-        LOG.debug('     message.delivery_info: %s', message.delivery_info)
+        LOG.debug("process_task")
+        LOG.debug("     body: %s", body)
+        LOG.debug("     message.properties: %s", message.properties)
+        LOG.debug("     message.delivery_info: %s", message.delivery_info)
 
-        routing_key = message.delivery_info.get('routing_key', '')
+        routing_key = message.delivery_info.get("routing_key", "")
         handler = self._handlers.get(routing_key, None)
 
         try:
             if not handler:
-                LOG.debug('Skipping message %s as no handler was found.', message)
+                LOG.debug("Skipping message %s as no handler was found.", message)
                 return
 
-            trigger_type = getattr(body, 'type', None)
+            trigger_type = getattr(body, "type", None)
             if self._trigger_types and trigger_type not in self._trigger_types:
-                LOG.debug('Skipping message %s since trigger_type doesn\'t match (type=%s)',
-                          message, trigger_type)
+                LOG.debug(
+                    "Skipping message %s since trigger_type doesn't match (type=%s)",
+                    message,
+                    trigger_type,
+                )
                 return
 
             try:
                 handler(body)
             except Exception as e:
-                LOG.exception('Handling failed. Message body: %s. Exception: %s',
-                              body, e.message)
+                LOG.exception(
+                    "Handling failed. Message body: %s. Exception: %s",
+                    body,
+                    six.text_type(e),
+                )
         finally:
             message.ack()
 
-        eventlet.sleep(self.sleep_interval)
+        concurrency.sleep(self.sleep_interval)
 
     def start(self):
         try:
-            self.connection = Connection(transport_utils.get_messaging_urls())
-            self._updates_thread = eventlet.spawn(self.run)
-            self._load_thread = eventlet.spawn(self._load_triggers_from_db)
+            self.connection = transport_utils.get_connection()
+            self._updates_thread = concurrency.spawn(self.run)
+            self._load_thread = concurrency.spawn(self._load_triggers_from_db)
         except:
-            LOG.exception('Failed to start watcher.')
+            LOG.exception("Failed to start watcher.")
             self.connection.release()
 
     def stop(self):
         try:
-            self._updates_thread = eventlet.kill(self._updates_thread)
-            self._load_thread = eventlet.kill(self._load_thread)
+            self._updates_thread = concurrency.kill(self._updates_thread)
+            self._load_thread = concurrency.kill(self._load_thread)
         finally:
             self.connection.release()
 
@@ -127,24 +145,28 @@ class TriggerWatcher(ConsumerMixin):
     # waiting for a message on the queue.
 
     def on_consume_end(self, connection, channel):
-        super(TriggerWatcher, self).on_consume_end(connection=connection,
-                                                   channel=channel)
-        eventlet.sleep(seconds=self.sleep_interval)
+        super(TriggerWatcher, self).on_consume_end(
+            connection=connection, channel=channel
+        )
+        concurrency.sleep(seconds=self.sleep_interval)
 
     def on_iteration(self):
         super(TriggerWatcher, self).on_iteration()
-        eventlet.sleep(seconds=self.sleep_interval)
+        concurrency.sleep(seconds=self.sleep_interval)
 
     def _load_triggers_from_db(self):
         for trigger_type in self._trigger_types:
             for trigger in Trigger.query(type=trigger_type):
-                LOG.debug('Found existing trigger: %s in db.' % trigger)
+                LOG.debug("Found existing trigger: %s in db." % trigger)
                 self._handlers[publishers.CREATE_RK](trigger)
 
     @staticmethod
     def _get_queue(queue_suffix, exclusive):
-        queue_name = queue_utils.get_queue_name(queue_name_base='st2.trigger.watch',
-                                                queue_name_suffix=queue_suffix,
-                                                add_random_uuid_to_suffix=True
-                                                )
-        return reactor.get_trigger_cud_queue(queue_name, routing_key='#', exclusive=exclusive)
+        queue_name = queue_utils.get_queue_name(
+            queue_name_base="st2.trigger.watch",
+            queue_name_suffix=queue_suffix,
+            add_random_uuid_to_suffix=True,
+        )
+        return reactor.get_trigger_cud_queue(
+            queue_name, routing_key="#", exclusive=exclusive
+        )

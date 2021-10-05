@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -30,13 +30,12 @@ LOG = logging.getLogger(__name__)
 
 
 class WorkflowInspectionController(object):
-
     def mock_st2_ctx(self):
         st2_ctx = {
-            'st2': {
-                'api_url': api_utils.get_full_public_api_url(),
-                'action_execution_id': uuid.uuid4().hex,
-                'user': cfg.CONF.system_user.user
+            "st2": {
+                "api_url": api_utils.get_full_public_api_url(),
+                "action_execution_id": uuid.uuid4().hex,
+                "user": cfg.CONF.system_user.user,
             }
         }
 
@@ -44,7 +43,7 @@ class WorkflowInspectionController(object):
 
     def post(self, wf_def):
         # Load workflow definition into workflow spec model.
-        spec_module = specs_loader.get_spec_module('native')
+        spec_module = specs_loader.get_spec_module("native")
         wf_spec = spec_module.instantiate(wf_def)
 
         # Mock the st2 context that is typically passed to the workflow engine.

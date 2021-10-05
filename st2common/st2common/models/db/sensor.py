@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,13 +20,12 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
 
-__all__ = [
-    'SensorTypeDB'
-]
+__all__ = ["SensorTypeDB"]
 
 
-class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
-                   stormbase.UIDFieldMixin):
+class SensorTypeDB(
+    stormbase.StormBaseDB, stormbase.ContentPackResourceMixin, stormbase.UIDFieldMixin
+):
     """
     Description of a specific type of a sensor (think of it as a sensor
     template).
@@ -40,24 +39,29 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
     """
 
     RESOURCE_TYPE = ResourceType.SENSOR_TYPE
-    UID_FIELDS = ['pack', 'name']
+    UID_FIELDS = ["pack", "name"]
 
     name = me.StringField(required=True)
     ref = me.StringField(required=True)
-    pack = me.StringField(required=True, unique_with='name')
+    pack = me.StringField(required=True, unique_with="name")
     artifact_uri = me.StringField()
     entry_point = me.StringField()
     trigger_types = me.ListField(field=me.StringField())
     poll_interval = me.IntField()
-    enabled = me.BooleanField(default=True,
-                              help_text=u'Flag indicating whether the sensor is enabled.')
+    enabled = me.BooleanField(
+        default=True, help_text="Flag indicating whether the sensor is enabled."
+    )
 
     meta = {
-        'indexes': [
-            {'fields': ['name']},
-            {'fields': ['enabled']},
-            {'fields': ['trigger_types']},
-        ] + stormbase.UIDFieldMixin.get_indexes()
+        "indexes": [
+            {"fields": ["name"]},
+            {"fields": ["enabled"]},
+            {"fields": ["trigger_types"]},
+        ]
+        + (
+            stormbase.ContentPackResourceMixin.get_indexes()
+            + stormbase.UIDFieldMixin.get_indexes()
+        )
     }
 
     def __init__(self, *args, **values):

@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,16 +17,21 @@ from __future__ import absolute_import
 
 from st2client.models import core
 
-__all__ = [
-    'ActionAliasExecution'
-]
+__all__ = ["ActionAliasExecution"]
 
 
 class ActionAliasExecution(core.Resource):
-    _alias = 'Action-Alias-Execution'
-    _display_name = 'ActionAlias Execution'
-    _plural = 'ActionAliasExecutions'
-    _plural_display_name = 'Runners'
-    _url_path = 'aliasexecution'
-    _repr_attributes = ['name', 'format', 'command', 'user', 'source_channel',
-                        'notification_channel', 'notification_route']
+    _alias = "Action-Alias-Execution"
+    _display_name = "ActionAlias Execution"
+    _plural = "ActionAliasExecutions"
+    _plural_display_name = "Runners"
+    _url_path = "aliasexecution"
+    _repr_attributes = [
+        "name",
+        "format",
+        "command",
+        "user",
+        "source_channel",
+        "notification_channel",
+        "notification_route",
+    ]

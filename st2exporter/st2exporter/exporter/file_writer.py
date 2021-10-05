@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -18,15 +18,11 @@ import os
 import abc
 import six
 
-__all__ = [
-    'FileWriter',
-    'TextFileWriter'
-]
+__all__ = ["FileWriter", "TextFileWriter"]
 
 
 @six.add_metaclass(abc.ABCMeta)
 class FileWriter(object):
-
     @abc.abstractmethod
     def write(self, data, file_path, replace=False):
         """
@@ -40,13 +36,13 @@ class TextFileWriter(FileWriter):
 
     def write_text(self, text_data, file_path, replace=False, compressed=False):
         if compressed:
-            return Exception('Compression not supported.')
+            return Exception("Compression not supported.")
 
         self.write(text_data, file_path, replace=replace)
 
     def write(self, data, file_path, replace=False):
         if os.path.exists(file_path) and not replace:
-            raise Exception('File %s already exists.' % file_path)
+            raise Exception("File %s already exists." % file_path)
 
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write(data)

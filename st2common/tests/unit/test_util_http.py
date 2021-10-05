@@ -1,3 +1,9 @@
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -13,24 +19,22 @@ import unittest2
 from st2common.util.http import parse_content_type_header
 from six.moves import zip
 
-__all__ = [
-    'HTTPUtilTestCase'
-]
+__all__ = ["HTTPUtilTestCase"]
 
 
 class HTTPUtilTestCase(unittest2.TestCase):
     def test_parse_content_type_header(self):
         values = [
-            'application/json',
-            'foo/bar',
-            'application/json; charset=utf-8',
-            'application/json; charset=utf-8; foo=bar',
+            "application/json",
+            "foo/bar",
+            "application/json; charset=utf-8",
+            "application/json; charset=utf-8; foo=bar",
         ]
         expected_results = [
-            ('application/json', {}),
-            ('foo/bar', {}),
-            ('application/json', {'charset': 'utf-8'}),
-            ('application/json', {'charset': 'utf-8', 'foo': 'bar'})
+            ("application/json", {}),
+            ("foo/bar", {}),
+            ("application/json", {"charset": "utf-8"}),
+            ("application/json", {"charset": "utf-8", "foo": "bar"}),
         ]
 
         for value, expected_result in zip(values, expected_results):

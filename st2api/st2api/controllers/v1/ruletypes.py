@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -28,8 +28,8 @@ LOG = logging.getLogger(__name__)
 
 class RuleTypesController(object):
     """
-        Implements the RESTful web endpoint that handles
-        the lifecycle of a RuleType in the system.
+    Implements the RESTful web endpoint that handles
+    the lifecycle of a RuleType in the system.
     """
 
     @staticmethod
@@ -46,15 +46,17 @@ class RuleTypesController(object):
         try:
             return [RuleType.get_by_name(name)]
         except ValueError as e:
-            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
+            LOG.debug(
+                'Database lookup for name="%s" resulted in exception : %s.', name, e
+            )
             return []
 
     def get_one(self, id):
         """
-            List RuleType objects by id.
+        List RuleType objects by id.
 
-            Handle:
-                GET /ruletypes/1
+        Handle:
+            GET /ruletypes/1
         """
         ruletype_db = RuleTypesController.__get_by_id(id)
         ruletype_api = RuleTypeAPI.from_model(ruletype_db)
@@ -62,14 +64,15 @@ class RuleTypesController(object):
 
     def get_all(self):
         """
-            List all RuleType objects.
+        List all RuleType objects.
 
-            Handles requests:
-                GET /ruletypes/
+        Handles requests:
+            GET /ruletypes/
         """
         ruletype_dbs = RuleType.get_all()
-        ruletype_apis = [RuleTypeAPI.from_model(runnertype_db)
-                         for runnertype_db in ruletype_dbs]
+        ruletype_apis = [
+            RuleTypeAPI.from_model(runnertype_db) for runnertype_db in ruletype_dbs
+        ]
         return ruletype_apis
 
 

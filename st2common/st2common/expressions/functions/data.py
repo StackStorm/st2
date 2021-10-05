@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,62 +17,66 @@ from __future__ import absolute_import
 
 import json
 import jsonpath_rw
-import mongoengine
 import six
-import yaml
+import orjson
+
+from st2common.util import db as db_util
+from st2common.constants.meta import yaml_safe_load
+from st2common.constants.meta import yaml_safe_dump
 
 
 __all__ = [
-    'from_json_string',
-    'from_yaml_string',
-    'json_escape',
-    'jsonpath_query',
-    'to_complex',
-    'to_json_string',
-    'to_yaml_string',
+    "from_json_string",
+    "from_yaml_string",
+    "json_escape",
+    "jsonpath_query",
+    "to_complex",
+    "to_json_string",
+    "to_yaml_string",
 ]
 
 
 def from_json_string(value):
-    return json.loads(six.text_type(value))
+    return orjson.loads(six.text_type(value))
 
 
 def from_yaml_string(value):
-    return yaml.safe_load(six.text_type(value))
+    return yaml_safe_load(six.text_type(value))
 
 
-def to_json_string(value, indent=None, sort_keys=False, separators=(',', ': ')):
+def to_json_string(value, indent=None, sort_keys=False, separators=(",", ": ")):
+    value = db_util.mongodb_to_python_types(value)
+
     options = {}
 
     if indent is not None:
-        options['indent'] = indent
+        options["indent"] = indent
 
     if sort_keys is not None:
-        options['sort_keys'] = sort_keys
+        options["sort_keys"] = sort_keys
 
     if separators is not None:
-        options['separators'] = separators
+        options["separators"] = separators
 
     return json.dumps(value, **options)
 
 
 def to_yaml_string(value, indent=None, allow_unicode=True):
-    if isinstance(value, mongoengine.base.datastructures.BaseDict):
-        value = dict(value)
+    value = db_util.mongodb_to_python_types(value)
 
-    options = {'default_flow_style': False}
+    options = {"default_flow_style": False}
 
     if indent is not None:
-        options['indent'] = indent
+        options["indent"] = indent
 
     if allow_unicode is not None:
-        options['allow_unicode'] = allow_unicode
+        options["allow_unicode"] = allow_unicode
 
-    return yaml.safe_dump(value, **options)
+    return yaml_safe_dump(value, **options)
 
 
 def json_escape(value):
-    """ Adds escape sequences to problematic characters in the string
+    """Adds escape sequences to problematic characters in the string
     This filter simply passes the value to json.dumps
     as a convenient way of escaping characters in it
     However, before returning, we want to strip the double
@@ -105,3 +109,11 @@ def jsonpath_query(value, query):
 
 def to_complex(value):
     return json.dumps(value)
+
+
+# Magic string to which None type is serialized when using use_none filter
+NONE_MAGIC_VALUE = "%*****__%NONE%__*****%"
+
+
+def use_none(value):
+    return NONE_MAGIC_VALUE if value is None else value

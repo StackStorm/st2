@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -21,11 +21,10 @@ from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.models.db.liveaction import LiveActionDB
 
 from st2tests import config as test_config
+
 test_config.parse_args()
 
-__all__ = [
-    'ActionsQueueConsumerTestCase'
-]
+__all__ = ["ActionsQueueConsumerTestCase"]
 
 
 class ActionsQueueConsumerTestCase(TestCase):
@@ -38,7 +37,9 @@ class ActionsQueueConsumerTestCase(TestCase):
         consumer._workflows_dispatcher = Mock()
         consumer._actions_dispatcher = Mock()
 
-        body = LiveActionDB(status='scheduled', action='core.local', action_is_workflow=False)
+        body = LiveActionDB(
+            status="scheduled", action="core.local", action_is_workflow=False
+        )
         message = Mock()
         consumer.process(body=body, message=message)
 
@@ -49,7 +50,9 @@ class ActionsQueueConsumerTestCase(TestCase):
         consumer._workflows_dispatcher = Mock()
         consumer._actions_dispatcher = Mock()
 
-        body = LiveActionDB(status='scheduled', action='core.local', action_is_workflow=True)
+        body = LiveActionDB(
+            status="scheduled", action="core.local", action_is_workflow=True
+        )
         message = Mock()
         consumer.process(body=body, message=message)
 

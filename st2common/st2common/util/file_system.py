@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -26,10 +26,7 @@ import fnmatch
 
 import six
 
-__all__ = [
-    'get_file_list',
-    'recursive_chown'
-]
+__all__ = ["get_file_list", "recursive_chown"]
 
 
 def get_file_list(directory, exclude_patterns=None):
@@ -48,9 +45,9 @@ def get_file_list(directory, exclude_patterns=None):
     :rtype: ``list``
     """
     result = []
-    if not directory.endswith('/'):
+    if not directory.endswith("/"):
         # Make sure trailing slash is present
-        directory = directory + '/'
+        directory = directory + "/"
 
     def include_file(file_path):
         if not exclude_patterns:
@@ -63,7 +60,7 @@ def get_file_list(directory, exclude_patterns=None):
         return True
 
     for (dirpath, dirnames, filenames) in os.walk(directory):
-        base_path = dirpath.replace(directory, '')
+        base_path = dirpath.replace(directory, "")
 
         for filename in filenames:
             if base_path:

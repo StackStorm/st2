@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -22,9 +22,7 @@ from st2common.persistence.trigger import TriggerType
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import get_fixtures_packs_base_path
 
-__all__ = [
-    'TriggersRegistrarTestCase'
-]
+__all__ = ["TriggersRegistrarTestCase"]
 
 
 class TriggersRegistrarTestCase(CleanDbTestCase):
@@ -44,7 +42,7 @@ class TriggersRegistrarTestCase(CleanDbTestCase):
 
     def test_register_triggers_from_pack(self):
         base_path = get_fixtures_packs_base_path()
-        pack_dir = os.path.join(base_path, 'dummy_pack_1')
+        pack_dir = os.path.join(base_path, "dummy_pack_1")
 
         trigger_type_dbs = TriggerType.get_all()
         self.assertEqual(len(trigger_type_dbs), 0)
@@ -58,12 +56,12 @@ class TriggersRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(len(trigger_type_dbs), 2)
         self.assertEqual(len(trigger_dbs), 2)
 
-        self.assertEqual(trigger_type_dbs[0].name, 'event_handler')
-        self.assertEqual(trigger_type_dbs[0].pack, 'dummy_pack_1')
-        self.assertEqual(trigger_dbs[0].name, 'event_handler')
-        self.assertEqual(trigger_dbs[0].pack, 'dummy_pack_1')
-        self.assertEqual(trigger_dbs[0].type, 'dummy_pack_1.event_handler')
+        self.assertEqual(trigger_type_dbs[0].name, "event_handler")
+        self.assertEqual(trigger_type_dbs[0].pack, "dummy_pack_1")
+        self.assertEqual(trigger_dbs[0].name, "event_handler")
+        self.assertEqual(trigger_dbs[0].pack, "dummy_pack_1")
+        self.assertEqual(trigger_dbs[0].type, "dummy_pack_1.event_handler")
 
-        self.assertEqual(trigger_type_dbs[1].name, 'head_sha_monitor')
-        self.assertEqual(trigger_type_dbs[1].pack, 'dummy_pack_1')
-        self.assertEqual(trigger_type_dbs[1].payload_schema['type'], 'object')
+        self.assertEqual(trigger_type_dbs[1].name, "head_sha_monitor")
+        self.assertEqual(trigger_type_dbs[1].pack, "dummy_pack_1")
+        self.assertEqual(trigger_type_dbs[1].payload_schema["type"], "object")

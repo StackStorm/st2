@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -22,10 +22,7 @@ from st2common.persistence.rule import Rule
 
 LOG = logging.getLogger(__name__)
 
-__all__ = [
-    'get_rules_given_trigger',
-    'get_rules_with_trigger_ref'
-]
+__all__ = ["get_rules_given_trigger", "get_rules_with_trigger_ref"]
 
 
 def get_rules_given_trigger(trigger):
@@ -34,13 +31,15 @@ def get_rules_given_trigger(trigger):
         return get_rules_with_trigger_ref(trigger_ref=trigger)
 
     if isinstance(trigger, dict):
-        trigger_ref = trigger.get('ref', None)
+        trigger_ref = trigger.get("ref", None)
         if trigger_ref:
             return get_rules_with_trigger_ref(trigger_ref=trigger_ref)
         else:
-            raise ValueError('Trigger dict %s is missing ``ref``.' % trigger)
+            raise ValueError("Trigger dict %s is missing ``ref``." % trigger)
 
-    raise ValueError('Unknown type %s for trigger. Cannot do rule lookups.' % type(trigger))
+    raise ValueError(
+        "Unknown type %s for trigger. Cannot do rule lookups." % type(trigger)
+    )
 
 
 def get_rules_with_trigger_ref(trigger_ref=None, enabled=True):
@@ -56,5 +55,5 @@ def get_rules_with_trigger_ref(trigger_ref=None, enabled=True):
     if not trigger_ref:
         return None
 
-    LOG.debug('Querying rules with trigger %s', trigger_ref)
+    LOG.debug("Querying rules with trigger %s", trigger_ref)
     return Rule.query(trigger=trigger_ref, enabled=enabled)

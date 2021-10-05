@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,12 +14,18 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common import log as logging
 from st2common import transport
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.db.trigger import triggertype_access, trigger_access, triggerinstance_access
-from st2common.persistence.base import (Access, ContentPackResource)
-from st2common.transport import utils as transport_utils
+from st2common.models.db.trigger import (
+    triggertype_access,
+    trigger_access,
+    triggerinstance_access,
+)
+from st2common.persistence.base import Access, ContentPackResource
+
+__all__ = ["TriggerType", "Trigger", "TriggerInstance"]
 
 LOG = logging.getLogger(__name__)
 
@@ -43,8 +49,7 @@ class Trigger(ContentPackResource):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.reactor.TriggerCUDPublisher(
-                urls=transport_utils.get_messaging_urls())
+            cls.publisher = transport.reactor.TriggerCUDPublisher()
         return cls.publisher
 
     @classmethod
@@ -52,7 +57,7 @@ class Trigger(ContentPackResource):
         # Found in the innards of mongoengine.
         # e.g. {'pk': ObjectId('5609e91832ed356d04a93cc0')}
         delete_query = model_object._object_key
-        delete_query['ref_count__lte'] = 0
+        delete_query["ref_count__lte"] = 0
         cls._get_impl().delete_by_query(**delete_query)
 
         # Since delete_by_query cannot tell if teh delete actually happened check with a get call
@@ -68,14 +73,14 @@ class Trigger(ContentPackResource):
             try:
                 cls.publish_delete(model_object)
             except Exception:
-                LOG.exception('Publish failed.')
+                LOG.exception("Publish failed.")
 
         # Dispatch trigger
         if confirmed_delete and dispatch_trigger:
             try:
                 cls.dispatch_delete_trigger(model_object)
             except Exception:
-                LOG.exception('Trigger dispatch failed.')
+                LOG.exception("Trigger dispatch failed.")
 
         return model_object
 

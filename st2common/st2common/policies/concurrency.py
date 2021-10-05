@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -18,24 +18,23 @@ from st2common.constants import action as action_constants
 from st2common.policies import base
 from st2common.services import coordination
 
-__all__ = [
-    'BaseConcurrencyApplicator'
-]
+__all__ = ["BaseConcurrencyApplicator"]
 
 
 class BaseConcurrencyApplicator(base.ResourcePolicyApplicator):
-    def __init__(self, policy_ref, policy_type, threshold=0, action='delay'):
-        super(BaseConcurrencyApplicator, self).__init__(policy_ref=policy_ref,
-                                                        policy_type=policy_type)
+    def __init__(self, policy_ref, policy_type, threshold=0, action="delay"):
+        super(BaseConcurrencyApplicator, self).__init__(
+            policy_ref=policy_ref, policy_type=policy_type
+        )
         self.threshold = threshold
         self.policy_action = action
 
-        self.coordinator = coordination.get_coordinator()
+        self.coordinator = coordination.get_coordinator(start_heart=True)
 
     def _get_status_for_policy_action(self, action):
-        if action == 'delay':
+        if action == "delay":
             status = action_constants.LIVEACTION_STATUS_DELAYED
-        elif action == 'cancel':
+        elif action == "cancel":
             status = action_constants.LIVEACTION_STATUS_CANCELING
 
         return status

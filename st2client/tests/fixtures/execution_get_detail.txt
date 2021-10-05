@@ -10,6 +10,7 @@
 | status          | succeeded (1s elapsed)                                       |
 | start_timestamp | Tue, 02 Dec 2014 19:56:06 UTC                                |
 | end_timestamp   | Tue, 02 Dec 2014 19:56:07 UTC                                |
+| log             |                                                              |
 | result          | {                                                            |
 |                 |     "localhost": {                                           |
 |                 |         "failed": false,                                     |
@@ -27,9 +28,5 @@
 |                 | 1998ms                                                       |
 |                 | rtt min/avg/max/mdev = 0.015/0.023/0.030/0.006 ms"           |
 |                 |     }                                                        |
-|                 | }                                                            |
-| liveaction      | {                                                            |
-|                 |     "callback": {},                                          |
-|                 |     "id": "1"                                                |
 |                 | }                                                            |
 +-----------------+--------------------------------------------------------------+

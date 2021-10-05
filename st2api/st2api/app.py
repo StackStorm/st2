@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -25,7 +25,6 @@ from st2common.middleware.logging import LoggingMiddleware
 from st2common.middleware.instrumentation import RequestInstrumentationMiddleware
 from st2common.middleware.instrumentation import ResponseInstrumentationMiddleware
 from st2common.router import Router
-from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
@@ -34,51 +33,63 @@ from st2api.validation import validate_rbac_is_correctly_configured
 LOG = logging.getLogger(__name__)
 
 
-def setup_app(config={}):
-    LOG.info('Creating st2api: %s as OpenAPI app.', VERSION_STRING)
+def setup_app(config=None):
+    config = config or {}
 
-    is_gunicorn = config.get('is_gunicorn', False)
+    LOG.info("Creating st2api: %s as OpenAPI app.", VERSION_STRING)
+
+    is_gunicorn = config.get("is_gunicorn", False)
     if is_gunicorn:
-        # Note: We need to perform monkey patching in the worker. If we do it in
-        # the master process (gunicorn_config.py), it breaks tons of things
-        # including shutdown
-        monkey_patch()
+        # NOTE: We only want to perform this logic in the WSGI worker
+        st2api_config.register_opts(ignore_errors=True)
+        capabilities = {
+            "name": "api",
+            "listen_host": cfg.CONF.api.host,
+            "listen_port": cfg.CONF.api.port,
+            "type": "active",
+        }
 
-        st2api_config.register_opts()
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
-        common_setup(service='api', config=st2api_config, setup_db=True,
-                     register_mq_exchanges=True,
-                     register_signal_handlers=True,
-                     register_internal_trigger_types=True,
-                     run_migrations=True,
-                     config_args=config.get('config_args', None))
+        common_setup(
+            service="api",
+            config=st2api_config,
+            setup_db=True,
+            register_mq_exchanges=True,
+            register_signal_handlers=True,
+            register_internal_trigger_types=True,
+            run_migrations=True,
+            service_registry=True,
+            capabilities=capabilities,
+            config_args=config.get("config_args", None),
+        )
 
     # Additional pre-run time checks
     validate_rbac_is_correctly_configured()
 
-    router = Router(debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable,
-                    is_gunicorn=is_gunicorn)
+    router = Router(
+        debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable, is_gunicorn=is_gunicorn
+    )
 
-    spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
+    spec = spec_loader.load_spec("st2common", "openapi.yaml.j2")
     transforms = {
-        '^/api/v1/$': ['/v1'],
-        '^/api/v1/': ['/', '/v1/'],
-        '^/api/v1/executions': ['/actionexecutions', '/v1/actionexecutions'],
-        '^/api/exp/': ['/exp/']
+        "^/api/v1/$": ["/v1"],
+        "^/api/v1/": ["/", "/v1/"],
+        "^/api/v1/executions": ["/actionexecutions", "/v1/actionexecutions"],
+        "^/api/exp/": ["/exp/"],
     }
     router.add_spec(spec, transforms=transforms)
 
     app = router.as_wsgi
 
     # Order is important. Check middleware for detailed explanation.
-    app = StreamingMiddleware(app, path_whitelist=['/v1/executions/*/output*'])
+    app = StreamingMiddleware(app, path_whitelist=["/v1/executions/*/output*"])
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)
-    app = ResponseInstrumentationMiddleware(app, router, service_name='api')
+    app = ResponseInstrumentationMiddleware(app, router, service_name="api")
     app = RequestIDMiddleware(app)
-    app = RequestInstrumentationMiddleware(app, router, service_name='api')
+    app = RequestInstrumentationMiddleware(app, router, service_name="api")
 
     return app

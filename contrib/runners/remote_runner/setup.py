@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -26,32 +26,34 @@ from dist_utils import apply_vagrant_workaround
 from remote_runner import __version__
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
+REQUIREMENTS_FILE = os.path.join(BASE_DIR, "requirements.txt")
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
 apply_vagrant_workaround()
 setup(
-    name='stackstorm-runner-remote',
+    name="stackstorm-runner-remote",
     version=__version__,
-    description=('Remote SSH shell command and script action runner for StackStorm event-driven '
-                 'automation platform'),
-    author='StackStorm',
-    author_email='info@stackstorm.com',
-    license='Apache License (2.0)',
-    url='https://stackstorm.com/',
+    description=(
+        "Remote SSH shell command and script action runner for StackStorm event-driven "
+        "automation platform"
+    ),
+    author="StackStorm",
+    author_email="info@stackstorm.com",
+    license="Apache License (2.0)",
+    url="https://stackstorm.com/",
     install_requires=install_reqs,
     dependency_links=dep_links,
-    test_suite='tests',
+    test_suite="tests",
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['setuptools', 'tests']),
-    package_data={'remote_runner': ['runner.yaml']},
+    packages=find_packages(exclude=["setuptools", "tests"]),
+    package_data={"remote_runner": ["runner.yaml"]},
     scripts=[],
     entry_points={
-        'st2common.runners.runner': [
-            'remote-shell-cmd = remote_runner.remote_command_runner',
-            'remote-shell-script = remote_runner.remote_script_runner',
+        "st2common.runners.runner": [
+            "remote-shell-cmd = remote_runner.remote_command_runner",
+            "remote-shell-script = remote_runner.remote_script_runner",
         ],
-    }
+    },
 )

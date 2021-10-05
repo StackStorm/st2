@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,22 +14,24 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from st2common import log as logging
 
+from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE
 from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
 from st2common.constants.keyvalue import ALLOWED_SCOPES
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.models.system.keyvalue import UserKeyReference
 from st2common.persistence.keyvalue import KeyValuePair
 
 __all__ = [
-    'get_kvp_for_name',
-    'get_values_for_names',
-
-    'KeyValueLookup',
-    'UserKeyValueLookup'
+    "get_kvp_for_name",
+    "get_values_for_names",
+    "KeyValueLookup",
+    "UserKeyValueLookup",
 ]
 
 LOG = logging.getLogger(__name__)
@@ -66,9 +68,39 @@ def get_values_for_names(names, default_value=None):
     return result
 
 
-class KeyValueLookup(object):
+class BaseKeyValueLookup(object):
 
-    def __init__(self, prefix=None, key_prefix=None, cache=None, scope=FULL_SYSTEM_SCOPE):
+    scope = None
+    _key_prefix = None
+
+    def get_key_name(self):
+        """
+        Function which returns an original key name.
+
+        :rtype: ``str``
+        """
+        key_name_parts = [DATASTORE_PARENT_SCOPE, self.scope]
+        key_name = self._key_prefix.split(":", 1)
+
+        if len(key_name) == 1:
+            key_name = key_name[0]
+        elif len(key_name) >= 2:
+            key_name = key_name[1]
+        else:
+            key_name = ""
+
+        key_name_parts.append(key_name)
+        key_name = ".".join(key_name_parts)
+        return key_name
+
+
+class KeyValueLookup(BaseKeyValueLookup):
+
+    scope = SYSTEM_SCOPE
+
+    def __init__(
+        self, prefix=None, key_prefix=None, cache=None, scope=FULL_SYSTEM_SCOPE
+    ):
         if not scope:
             scope = FULL_SYSTEM_SCOPE
 
@@ -76,7 +108,7 @@ class KeyValueLookup(object):
             scope = FULL_SYSTEM_SCOPE
 
         self._prefix = prefix
-        self._key_prefix = key_prefix or ''
+        self._key_prefix = key_prefix or ""
         self._value_cache = cache or {}
         self._scope = scope
 
@@ -98,7 +130,7 @@ class KeyValueLookup(object):
     def _get(self, name):
         # get the value for this key and save in value_cache
         if self._key_prefix:
-            key = '%s.%s' % (self._key_prefix, name)
+            key = "%s.%s" % (self._key_prefix, name)
         else:
             key = name
 
@@ -113,21 +145,34 @@ class KeyValueLookup(object):
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
         # calls. Saving the value in cache avoids extra DB calls.
-        return KeyValueLookup(prefix=self._prefix, key_prefix=key, cache=self._value_cache,
-                              scope=self._scope)
+        return KeyValueLookup(
+            prefix=self._prefix,
+            key_prefix=key,
+            cache=self._value_cache,
+            scope=self._scope,
+        )
 
     def _get_kv(self, key):
         scope = self._scope
-        LOG.debug('Lookup system kv: scope: %s and key: %s', scope, key)
-        kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+        LOG.debug("Lookup system kv: scope: %s and key: %s", scope, key)
+
+        try:
+            kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+        except StackStormDBObjectNotFoundError:
+            kvp = None
+
         if kvp:
-            LOG.debug('Got value %s from datastore.', kvp.value)
-        return kvp.value if kvp else ''
+            LOG.debug("Got value %s from datastore.", kvp.value)
+        return kvp.value if kvp else ""
 
 
-class UserKeyValueLookup(object):
+class UserKeyValueLookup(BaseKeyValueLookup):
 
-    def __init__(self, user, prefix=None, key_prefix=None, cache=None, scope=FULL_USER_SCOPE):
+    scope = USER_SCOPE
+
+    def __init__(
+        self, user, prefix=None, key_prefix=None, cache=None, scope=FULL_USER_SCOPE
+    ):
         if not scope:
             scope = FULL_USER_SCOPE
 
@@ -135,7 +180,7 @@ class UserKeyValueLookup(object):
             scope = FULL_USER_SCOPE
 
         self._prefix = prefix
-        self._key_prefix = key_prefix or ''
+        self._key_prefix = key_prefix or ""
         self._value_cache = cache or {}
         self._user = user
         self._scope = scope
@@ -152,7 +197,7 @@ class UserKeyValueLookup(object):
     def _get(self, name):
         # get the value for this key and save in value_cache
         if self._key_prefix:
-            key = '%s.%s' % (self._key_prefix, name)
+            key = "%s.%s" % (self._key_prefix, name)
         else:
             key = UserKeyReference(name=name, user=self._user).ref
 
@@ -167,13 +212,23 @@ class UserKeyValueLookup(object):
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
         # calls. Saving the value in cache avoids extra DB calls.
-        return UserKeyValueLookup(prefix=self._prefix, user=self._user, key_prefix=key,
-                                  cache=self._value_cache, scope=self._scope)
+        return UserKeyValueLookup(
+            prefix=self._prefix,
+            user=self._user,
+            key_prefix=key,
+            cache=self._value_cache,
+            scope=self._scope,
+        )
 
     def _get_kv(self, key):
         scope = self._scope
-        kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
-        return kvp.value if kvp else ''
+
+        try:
+            kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+        except StackStormDBObjectNotFoundError:
+            kvp = None
+
+        return kvp.value if kvp else ""
 
 
 def get_key_reference(scope, name, user=None):
@@ -189,12 +244,15 @@ def get_key_reference(scope, name, user=None):
 
     :rtype: ``str``
     """
-    if (scope == SYSTEM_SCOPE or scope == FULL_SYSTEM_SCOPE):
+    if scope == SYSTEM_SCOPE or scope == FULL_SYSTEM_SCOPE:
         return name
-    elif (scope == USER_SCOPE or scope == FULL_USER_SCOPE):
+    elif scope == USER_SCOPE or scope == FULL_USER_SCOPE:
         if not user:
-            raise InvalidUserException('A valid user must be specified for user key ref.')
+            raise InvalidUserException(
+                "A valid user must be specified for user key ref."
+            )
         return UserKeyReference(name=name, user=user).ref
     else:
-        raise InvalidScopeException('Scope "%s" is not valid. Allowed scopes are %s.' %
-                                    (scope, ALLOWED_SCOPES))
+        raise InvalidScopeException(
+            'Scope "%s" is not valid. Allowed scopes are %s.' % (scope, ALLOWED_SCOPES)
+        )

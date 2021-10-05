@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -26,44 +26,35 @@ from st2tests import DbTestCase
 from tests.unit.base import BaseDBModelCRUDTestCase
 
 
-__all__ = [
-    'UserDBModelCRUDTestCase'
-]
+__all__ = ["UserDBModelCRUDTestCase"]
 
 
 class UserDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = UserDB
     persistance_class = User
     model_class_kwargs = {
-        'name': 'pony',
-        'is_service': False,
-        'nicknames': {
-            'pony1': 'ponyA'
-        }
+        "name": "pony",
+        "is_service": False,
+        "nicknames": {"pony1": "ponyA"},
     }
-    update_attribute_name = 'name'
+    update_attribute_name = "name"
 
 
 class TokenDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = TokenDB
     persistance_class = Token
     model_class_kwargs = {
-        'user': 'pony',
-        'token': 'token-token-token-token',
-        'expiry': get_datetime_utc_now(),
-        'metadata': {
-            'service': 'action-runner'
-        }
+        "user": "pony",
+        "token": "token-token-token-token",
+        "expiry": get_datetime_utc_now(),
+        "metadata": {"service": "action-runner"},
     }
-    skip_check_attribute_names = ['expiry']
-    update_attribute_name = 'user'
+    skip_check_attribute_names = ["expiry"]
+    update_attribute_name = "user"
 
 
 class ApiKeyDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = ApiKeyDB
     persistance_class = ApiKey
-    model_class_kwargs = {
-        'user': 'pony',
-        'key_hash': 'token-token-token-token'
-    }
-    update_attribute_name = 'user'
+    model_class_kwargs = {"user": "pony", "key_hash": "token-token-token-token"}
+    update_attribute_name = "user"

@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,6 +19,7 @@
 from __future__ import absolute_import
 
 from st2common.util.monkey_patch import monkey_patch
+
 monkey_patch()
 
 import os
@@ -32,48 +33,48 @@ from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 
-__all__ = [
-    'main'
-]
+__all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
 
 
 def setup_sigterm_handler():
+    def sigterm_handler(signum=None, frame=None):
+        # This will cause SystemExit to be throw and allow for component cleanup.
+        sys.exit(0)
 
-        def sigterm_handler(signum=None, frame=None):
-            # This will cause SystemExit to be throw and allow for component cleanup.
-            sys.exit(0)
-
-        # Register a SIGTERM signal handler which calls sys.exit which causes SystemExit to
-        # be thrown. We catch SystemExit and handle cleanup there.
-        signal.signal(signal.SIGTERM, sigterm_handler)
+    # Register a SIGTERM signal handler which calls sys.exit which causes SystemExit to
+    # be thrown. We catch SystemExit and handle cleanup there.
+    signal.signal(signal.SIGTERM, sigterm_handler)
 
 
 def setup():
+    capabilities = {"name": "workflowengine", "type": "passive"}
     common_setup(
-        service='workflow_engine',
+        service="workflow_engine",
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
-        register_signal_handlers=True
+        register_signal_handlers=True,
+        service_registry=True,
+        capabilities=capabilities,
     )
 
     setup_sigterm_handler()
 
 
 def run_server():
-    LOG.info('(PID=%s) Workflow engine started.', os.getpid())
+    LOG.info("(PID=%s) Workflow engine started.", os.getpid())
 
     engine = workflows.get_engine()
 
     try:
         engine.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
-        LOG.info('(PID=%s) Workflow engine stopped.', os.getpid())
+        LOG.info("(PID=%s) Workflow engine stopped.", os.getpid())
         engine.shutdown()
     except:
-        LOG.exception('(PID=%s) Workflow engine unexpectedly stopped.', os.getpid())
+        LOG.exception("(PID=%s) Workflow engine unexpectedly stopped.", os.getpid())
         return 1
 
     return 0
@@ -91,7 +92,7 @@ def main():
         sys.exit(exit_code)
     except Exception:
         traceback.print_exc()
-        LOG.exception('(PID=%s) Workflow engine quit due to exception.', os.getpid())
+        LOG.exception("(PID=%s) Workflow engine quit due to exception.", os.getpid())
         return 1
     finally:
         teardown()

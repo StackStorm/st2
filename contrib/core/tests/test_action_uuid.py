@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -28,13 +28,13 @@ class GenerateUUIDActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
 
         # accepts uuid1 as a type
-        result = action.run(uuid_type='uuid1')
+        result = action.run(uuid_type="uuid1")
         self.assertTrue(result)
 
         # accepts uuid4 as a type
-        result = action.run(uuid_type='uuid4')
+        result = action.run(uuid_type="uuid4")
         self.assertTrue(result)
 
         # fails on incorrect type
         with self.assertRaises(ValueError):
-            result = action.run(uuid_type='foobar')
+            result = action.run(uuid_type="foobar")

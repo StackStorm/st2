@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import traceback
 
+import six
 from mongoengine import ValidationError
 
 from st2common.exceptions import db as db_exceptions
@@ -48,59 +50,65 @@ class ErrorHandlingMiddleware(object):
             except NotFoundException:
                 raise exc.HTTPNotFound()
         except Exception as e:
-            status = getattr(e, 'code', exc.HTTPInternalServerError.code)
+            status = getattr(e, "code", exc.HTTPInternalServerError.code)
 
-            if hasattr(e, 'detail') and not getattr(e, 'comment'):
-                setattr(e, 'comment', getattr(e, 'detail'))
+            if hasattr(e, "detail") and not getattr(e, "comment"):
+                setattr(e, "comment", getattr(e, "detail"))
 
-            if hasattr(e, 'body') and isinstance(getattr(e, 'body', None), dict):
-                body = getattr(e, 'body', None)
+            if hasattr(e, "body") and isinstance(getattr(e, "body", None), dict):
+                body = getattr(e, "body", None)
             else:
                 body = {}
 
             if isinstance(e, exc.HTTPException):
                 status_code = status
-                message = str(e)
+                message = six.text_type(e)
             elif isinstance(e, db_exceptions.StackStormDBObjectNotFoundError):
                 status_code = exc.HTTPNotFound.code
-                message = str(e)
+                message = six.text_type(e)
             elif isinstance(e, db_exceptions.StackStormDBObjectConflictError):
                 status_code = exc.HTTPConflict.code
-                message = str(e)
-                body['conflict-id'] = getattr(e, 'conflict_id', None)
+                message = six.text_type(e)
+                body["conflict-id"] = getattr(e, "conflict_id", None)
             elif isinstance(e, rbac_exceptions.AccessDeniedError):
                 status_code = exc.HTTPForbidden.code
-                message = str(e)
+                message = six.text_type(e)
             elif isinstance(e, (ValueValidationException, ValueError, ValidationError)):
                 status_code = exc.HTTPBadRequest.code
-                message = getattr(e, 'message', str(e))
+                message = getattr(e, "message", six.text_type(e))
             else:
                 status_code = exc.HTTPInternalServerError.code
-                message = 'Internal Server Error'
+                message = "Internal Server Error"
 
             # Log the error
             is_internal_server_error = status_code == exc.HTTPInternalServerError.code
-            error_msg = getattr(e, 'comment', str(e))
+            error_msg = getattr(e, "comment", six.text_type(e))
             extra = {
-                'exception_class': e.__class__.__name__,
-                'exception_message': str(e),
-                'exception_data': e.__dict__
+                "exception_class": e.__class__.__name__,
+                "exception_message": six.text_type(e),
+                "exception_data": e.__dict__,
             }
 
             if is_internal_server_error:
-                LOG.exception('API call failed: %s', error_msg, extra=extra)
+                LOG.exception("API call failed: %s", error_msg, extra=extra)
             else:
-                LOG.debug('API call failed: %s', error_msg, extra=extra)
+                LOG.debug("API call failed: %s", error_msg, extra=extra)
 
                 if is_debugging_enabled():
                     LOG.debug(traceback.format_exc())
 
-            body['faultstring'] = message
+            body["faultstring"] = message
 
             response_body = json_encode(body)
+
             headers = {
-                'Content-Type': 'application/json',
-                'Content-Length': str(len(response_body))
+                "Content-Type": "application/json",
+                # NOTE: We need to use the length of the byte string here otherwise it won't
+                # work correctly when returning an unicode response - here we would measure number
+                # of characters instead of actual byte length.
+                # Another option would also be to not set it here and let webob set it when sending
+                # the response.
+                "Content-Length": str(len(response_body.encode("utf-8"))),
             }
 
             resp = Response(response_body, status=status_code, headers=headers)

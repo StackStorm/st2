@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,25 +14,22 @@
 # limitations under the License.
 
 __all__ = [
-    'VALID_MODES',
-    'DEFAULT_MODE',
-    'DEFAULT_BACKEND',
-
-    'HEADER_ATTRIBUTE_NAME',
-    'QUERY_PARAM_ATTRIBUTE_NAME'
+    "VALID_MODES",
+    "DEFAULT_MODE",
+    "DEFAULT_BACKEND",
+    "HEADER_ATTRIBUTE_NAME",
+    "QUERY_PARAM_ATTRIBUTE_NAME",
 ]
 
-VALID_MODES = [
-    'proxy',
-    'standalone'
-]
+VALID_MODES = ["proxy", "standalone"]
 
-HEADER_ATTRIBUTE_NAME = 'X-Auth-Token'
-QUERY_PARAM_ATTRIBUTE_NAME = 'x-auth-token'
+HEADER_ATTRIBUTE_NAME = "X-Auth-Token"
+QUERY_PARAM_ATTRIBUTE_NAME = "x-auth-token"
 
-HEADER_API_KEY_ATTRIBUTE_NAME = 'St2-Api-Key'
-QUERY_PARAM_API_KEY_ATTRIBUTE_NAME = 'st2-api-key'
+HEADER_API_KEY_ATTRIBUTE_NAME = "St2-Api-Key"
+QUERY_PARAM_API_KEY_ATTRIBUTE_NAME = "st2-api-key"
 
-DEFAULT_MODE = 'standalone'
+DEFAULT_MODE = "standalone"
 
-DEFAULT_BACKEND = 'flat_file'
+DEFAULT_BACKEND = "flat_file"
+DEFAULT_SSO_BACKEND = "noop"

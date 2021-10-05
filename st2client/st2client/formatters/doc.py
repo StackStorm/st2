@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -18,15 +18,13 @@ from __future__ import absolute_import
 import json
 import logging
 
+import orjson
 import yaml
 
 from st2client import formatters
 from st2client.utils import jsutil
 
-__all__ = [
-    'JsonFormatter',
-    'YAMLFormatter'
-]
+__all__ = ["JsonFormatter", "YAMLFormatter"]
 
 LOG = logging.getLogger(__name__)
 
@@ -34,25 +32,34 @@ LOG = logging.getLogger(__name__)
 class BaseFormatter(formatters.Formatter):
     @classmethod
     def format(self, subject, *args, **kwargs):
-        attributes = kwargs.get('attributes', None)
+        attributes = kwargs.get("attributes", None)
         if type(subject) is str:
-            subject = json.loads(subject)
-        elif not isinstance(subject, (list, tuple)) and not hasattr(subject, '__iter__'):
+            subject = orjson.loads(subject)
+        elif not isinstance(subject, (list, tuple)) and not hasattr(
+            subject, "__iter__"
+        ):
             doc = subject if isinstance(subject, dict) else subject.__dict__
-            keys = list(doc.keys()) if not attributes or 'all' in attributes else attributes
+            keys = (
+                list(doc.keys())
+                if not attributes or "all" in attributes
+                else attributes
+            )
             docs = jsutil.get_kvps(doc, keys)
         else:
             docs = []
             for item in subject:
                 doc = item if isinstance(item, dict) else item.__dict__
-                keys = list(doc.keys()) if not attributes or 'all' in attributes else attributes
+                keys = (
+                    list(doc.keys())
+                    if not attributes or "all" in attributes
+                    else attributes
+                )
                 docs.append(jsutil.get_kvps(doc, keys))
 
         return docs
 
 
 class JsonFormatter(BaseFormatter):
-
     @classmethod
     def format(self, subject, *args, **kwargs):
         docs = BaseFormatter.format(subject, *args, **kwargs)
@@ -60,7 +67,6 @@ class JsonFormatter(BaseFormatter):
 
 
 class YAMLFormatter(BaseFormatter):
-
     @classmethod
     def format(self, subject, *args, **kwargs):
         docs = BaseFormatter.format(subject, *args, **kwargs)

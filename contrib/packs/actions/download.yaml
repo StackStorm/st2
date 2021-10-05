@@ -26,3 +26,9 @@
       type: "string"
       description: "Path to a deploy key for the git repo"
       required: false
+    dependency_list:
+      type: "array"
+      description: "Dependency list that needs to be downloaded."
+      items:
+        type: "string"
+      required: false

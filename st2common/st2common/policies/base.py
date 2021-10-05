@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import abc
 import importlib
 import inspect
@@ -21,14 +22,10 @@ import six
 
 from st2common import log as logging
 from st2common.persistence import policy as policy_access
-from st2common.services import coordination
 
 LOG = logging.getLogger(__name__)
 
-__all__ = [
-    'ResourcePolicyApplicator',
-    'get_driver'
-]
+__all__ = ["ResourcePolicyApplicator", "get_driver"]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -48,10 +45,6 @@ class ResourcePolicyApplicator(object):
 
         :rtype: ``object``
         """
-        # Warn users that the coordination service is not configured
-        if not coordination.configured():
-            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
-
         return target
 
     def apply_after(self, target):
@@ -63,28 +56,7 @@ class ResourcePolicyApplicator(object):
 
         :rtype: ``object``
         """
-        # Warn users that the coordination service is not configured
-        if not coordination.configured():
-            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
-
         return target
-
-    def _get_lock_name(self, values):
-        """
-        Return a safe string which can be used as a lock name.
-
-        :param values: Dictionary with values to use in the lock name.
-        :type values: ``dict``
-
-        :rtype: ``st``
-        """
-        lock_uid = []
-
-        for key, value in six.iteritems(values):
-            lock_uid.append('%s=%s' % (key, value))
-
-        lock_uid = ','.join(lock_uid)
-        return lock_uid
 
 
 def get_driver(policy_ref, policy_type, **parameters):
@@ -97,5 +69,7 @@ def get_driver(policy_ref, policy_type, **parameters):
             # interested in
             continue
 
-        if (issubclass(obj, ResourcePolicyApplicator) and not obj.__name__.startswith('Base')):
+        if issubclass(obj, ResourcePolicyApplicator) and not obj.__name__.startswith(
+            "Base"
+        ):
             return obj(policy_ref, policy_type, **parameters)

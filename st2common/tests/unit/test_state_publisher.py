@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,6 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import kombu
 import mock
 import mongoengine as me
@@ -22,16 +27,16 @@ from st2common.models import db
 from st2common.models.db import stormbase
 from st2common.persistence import base as persistence
 from st2common.transport import publishers
-from st2common.transport import utils as transport_utils
+
 from st2tests import DbTestCase
 
 
-FAKE_STATE_MGMT_XCHG = kombu.Exchange('st2.fake.state', type='topic')
+FAKE_STATE_MGMT_XCHG = kombu.Exchange("st2.fake.state", type="topic")
 
 
 class FakeModelPublisher(publishers.StatePublisherMixin):
-    def __init__(self, url):
-        super(FakeModelPublisher, self).__init__(url, FAKE_STATE_MGMT_XCHG)
+    def __init__(self):
+        super(FakeModelPublisher, self).__init__(exchange=FAKE_STATE_MGMT_XCHG)
 
 
 class FakeModelDB(stormbase.StormBaseDB):
@@ -49,14 +54,14 @@ class FakeModel(persistence.Access):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = FakeModelPublisher(transport_utils.get_messaging_urls())
+            cls.publisher = FakeModelPublisher()
         return cls.publisher
 
     @classmethod
     def publish_state(cls, model_object):
         publisher = cls._get_publisher()
         if publisher:
-            publisher.publish_state(model_object, getattr(model_object, 'state', None))
+            publisher.publish_state(model_object, getattr(model_object, "state", None))
 
     @classmethod
     def _get_by_object(cls, object):
@@ -64,7 +69,6 @@ class FakeModel(persistence.Access):
 
 
 class StatePublisherTest(DbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(StatePublisherTest, cls).setUpClass()
@@ -74,13 +78,13 @@ class StatePublisherTest(DbTestCase):
         FakeModelDB.drop_collection()
         super(StatePublisherTest, self).tearDown()
 
-    @mock.patch.object(publishers.PoolPublisher, 'publish', mock.MagicMock())
+    @mock.patch.object(publishers.PoolPublisher, "publish", mock.MagicMock())
     def test_publish(self):
-        instance = FakeModelDB(state='faked')
+        instance = FakeModelDB(state="faked")
         self.access.publish_state(instance)
-        publishers.PoolPublisher.publish.assert_called_with(instance,
-                                                            FAKE_STATE_MGMT_XCHG,
-                                                            instance.state)
+        publishers.PoolPublisher.publish.assert_called_with(
+            instance, FAKE_STATE_MGMT_XCHG, instance.state
+        )
 
     def test_publish_unset(self):
         instance = FakeModelDB()
@@ -91,5 +95,5 @@ class StatePublisherTest(DbTestCase):
         self.assertRaises(Exception, self.access.publish_state, instance)
 
     def test_publish_empty_str(self):
-        instance = FakeModelDB(state='')
+        instance = FakeModelDB(state="")
         self.assertRaises(Exception, self.access.publish_state, instance)

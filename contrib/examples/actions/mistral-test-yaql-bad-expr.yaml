@@ -1,7 +1,0 @@
----
-name: mistral-test-yaql-bad-expr
-pack: examples
-description: A basic workflow for testing YAQL evaluation error.
-runner_type: mistral-v2
-entry_point: workflows/tests/mistral-test-yaql-bad-expr.yaml
-enabled: true

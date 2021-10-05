@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -23,12 +23,12 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 
 __all__ = [
-    'Action',
-    'ActionAlias',
-    'ActionExecution',
-    'ActionExecutionState',
-    'LiveAction',
-    'RunnerType'
+    "Action",
+    "ActionAlias",
+    "ActionExecution",
+    "ActionExecutionState",
+    "LiveAction",
+    "RunnerType",
 ]
 
 

@@ -1,2 +1,8 @@
 # Don't edit this file. It's generated automatically!
-git+https://github.com/StackStorm/orquesta.git@142a19ddabbeea6a8d9d10341ba70585114dc3b7#egg=orquesta
+# If you want to update global dependencies, modify fixed-requirements.txt
+# and then run 'make requirements' to update requirements.txt for all
+# components.
+# If you want to update depdencies for a single component, modify the
+# in-requirements.txt for that component and then run 'make requirements' to
+# update the component requirements.txt
+git+https://github.com/StackStorm/orquesta.git@v1.5.0#egg=orquesta

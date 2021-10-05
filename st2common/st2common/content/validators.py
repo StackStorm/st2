@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,20 +19,16 @@ from pkg_resources import get_distribution
 
 from st2common.constants.pack import USER_PACK_NAME_BLACKLIST
 
-__all__ = [
-    'RequirementsValidator',
-    'validate_pack_name'
-]
+__all__ = ["RequirementsValidator", "validate_pack_name"]
 
 
 class RequirementsValidator(object):
-
     @staticmethod
     def validate(requirements_file):
         if not os.path.exists(requirements_file):
-            raise Exception('Requirements file %s not found.' % requirements_file)
+            raise Exception("Requirements file %s not found." % requirements_file)
         missing = []
-        with open(requirements_file, 'r') as f:
+        with open(requirements_file, "r") as f:
             for line in f:
                 rqmnt = line.strip()
                 try:
@@ -54,10 +50,9 @@ def validate_pack_name(name):
     :rtype: ``str``
     """
     if not name:
-        raise ValueError('Content pack name cannot be empty')
+        raise ValueError("Content pack name cannot be empty")
 
     if name.lower() in USER_PACK_NAME_BLACKLIST:
-        raise ValueError('Name "%s" is blacklisted and can\'t be used' %
-                         (name.lower()))
+        raise ValueError('Name "%s" is blacklisted and can\'t be used' % (name.lower()))
 
     return name

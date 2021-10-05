@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,32 +20,43 @@ from kombu import Exchange, Queue
 from st2common.transport import publishers
 
 __all__ = [
-    'ActionExecutionPublisher',
-    'ActionExecutionOutputPublisher',
-
-    'get_queue',
-    'get_output_queue'
+    "ActionExecutionPublisher",
+    "ActionExecutionOutputPublisher",
+    "get_queue",
+    "get_output_queue",
 ]
 
-EXECUTION_XCHG = Exchange('st2.execution', type='topic')
-EXECUTION_OUTPUT_XCHG = Exchange('st2.execution.output', type='topic')
+EXECUTION_XCHG = Exchange("st2.execution", type="topic")
+EXECUTION_OUTPUT_XCHG = Exchange("st2.execution.output", type="topic")
 
 
 class ActionExecutionPublisher(publishers.CUDPublisher):
-    def __init__(self, urls):
-        super(ActionExecutionPublisher, self).__init__(urls, EXECUTION_XCHG)
+    def __init__(self):
+        super(ActionExecutionPublisher, self).__init__(exchange=EXECUTION_XCHG)
 
 
 class ActionExecutionOutputPublisher(publishers.CUDPublisher):
-    def __init__(self, urls):
-        super(ActionExecutionOutputPublisher, self).__init__(urls, EXECUTION_OUTPUT_XCHG)
+    def __init__(self):
+        super(ActionExecutionOutputPublisher, self).__init__(
+            exchange=EXECUTION_OUTPUT_XCHG
+        )
 
 
 def get_queue(name=None, routing_key=None, exclusive=False, auto_delete=False):
-    return Queue(name, EXECUTION_XCHG, routing_key=routing_key, exclusive=exclusive,
-                 auto_delete=auto_delete)
+    return Queue(
+        name,
+        EXECUTION_XCHG,
+        routing_key=routing_key,
+        exclusive=exclusive,
+        auto_delete=auto_delete,
+    )
 
 
 def get_output_queue(name=None, routing_key=None, exclusive=False, auto_delete=False):
-    return Queue(name, EXECUTION_OUTPUT_XCHG, routing_key=routing_key, exclusive=exclusive,
-                 auto_delete=auto_delete)
+    return Queue(
+        name,
+        EXECUTION_OUTPUT_XCHG,
+        routing_key=routing_key,
+        exclusive=exclusive,
+        auto_delete=auto_delete,
+    )

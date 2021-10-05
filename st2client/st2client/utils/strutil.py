@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -24,9 +24,9 @@ def unescape(s):
     This function unescapes those chars.
     """
     if isinstance(s, six.string_types):
-        s = s.replace('\\n', '\n')
-        s = s.replace('\\r', '\r')
-        s = s.replace('\\"', '\"')
+        s = s.replace("\\n", "\n")
+        s = s.replace("\\r", "\r")
+        s = s.replace('\\"', '"')
 
     return s
 
@@ -39,14 +39,14 @@ def dedupe_newlines(s):
     """
 
     if isinstance(s, six.string_types):
-        s = s.replace('\n\n', '\n')
+        s = s.replace("\n\n", "\n")
 
     return s
 
 
 def strip_carriage_returns(s):
     if isinstance(s, six.string_types):
-        s = s.replace('\\r', '')
-        s = s.replace('\r', '')
+        s = s.replace("\\r", "")
+        s = s.replace("\r", "")
 
     return s

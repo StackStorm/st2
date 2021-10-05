@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,10 +20,7 @@ from pytz import timezone as TZ
 
 from st2client.config import get_config
 
-__all__ = [
-    'parse',
-    'format_isodate'
-]
+__all__ = ["parse", "format_isodate"]
 
 
 def add_utc_tz(dt):
@@ -39,7 +36,7 @@ def format_dt(dt):
     """
     Format datetime object for human friendly representation.
     """
-    value = dt.strftime('%a, %d %b %Y %H:%M:%S %Z')
+    value = dt.strftime("%a, %d %b %Y %H:%M:%S %Z")
     return value
 
 
@@ -52,7 +49,7 @@ def format_isodate(value, timezone=None):
     :rtype: ``str``
     """
     if not value:
-        return ''
+        return ""
 
     # For some reason pylint thinks it returns a tuple but it returns a datetime object
     dt = dateutil.parser.parse(str(value))
@@ -70,6 +67,6 @@ def format_isodate_for_user_timezone(value):
     specific in the config.
     """
     config = get_config()
-    timezone = config.get('cli', {}).get('timezone', 'UTC')
+    timezone = config.get("cli", {}).get("timezone", "UTC")
     result = format_isodate(value=value, timezone=timezone)
     return result

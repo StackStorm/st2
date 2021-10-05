@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -27,16 +27,13 @@ from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 from st2common.content.utils import get_pack_file_abs_path
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
+from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
 from st2common.router import Response
 
 http_client = six.moves.http_client
 
-__all__ = [
-    'FilesController',
-    'FileController'
-]
+__all__ = ["FilesController", "FileController"]
 
 http_client = six.moves.http_client
 
@@ -46,12 +43,10 @@ BOM_LEN = len(codecs.BOM_UTF8)
 
 # Maximum file size in bytes. If the file on disk is larger then this value, we don't include it
 # in the response. This prevents DDoS / exhaustion attacks.
-MAX_FILE_SIZE = (500 * 1000)
+MAX_FILE_SIZE = 500 * 1000
 
 # File paths in the file controller for which RBAC checks are not performed
-WHITELISTED_FILE_PATHS = [
-    'icon.png'
-]
+WHITELISTED_FILE_PATHS = ["icon.png"]
 
 
 class BaseFileController(BasePacksController):
@@ -76,7 +71,7 @@ class BaseFileController(BasePacksController):
         return file_stats.st_size, file_stats.st_mtime
 
     def _get_file_content(self, file_path):
-        with codecs.open(file_path, 'rb') as fp:
+        with codecs.open(file_path, "rb") as fp:
             content = fp.read()
 
         return content
@@ -105,16 +100,19 @@ class FilesController(BaseFileController):
 
     def get_one(self, ref_or_id, requester_user):
         """
-            Outputs the content of all the files inside the pack.
+        Outputs the content of all the files inside the pack.
 
-            Handles requests:
-                GET /packs/views/files/<pack_ref_or_id>
+        Handles requests:
+            GET /packs/views/files/<pack_ref_or_id>
         """
         pack_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
-        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                          resource_db=pack_db,
-                                                          permission_type=PermissionType.PACK_VIEW)
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=pack_db,
+            permission_type=PermissionType.PACK_VIEW,
+        )
 
         if not pack_db:
             msg = 'Pack with ref_or_id "%s" does not exist' % (ref_or_id)
@@ -125,15 +123,19 @@ class FilesController(BaseFileController):
 
         result = []
         for file_path in pack_files:
-            normalized_file_path = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path)
+            normalized_file_path = get_pack_file_abs_path(
+                pack_ref=pack_ref, file_path=file_path
+            )
             if not normalized_file_path or not os.path.isfile(normalized_file_path):
                 # Ignore references to files which don't exist on disk
                 continue
 
             file_size = self._get_file_size(file_path=normalized_file_path)
             if file_size is not None and file_size > MAX_FILE_SIZE:
-                LOG.debug('Skipping file "%s" which size exceeds max file size (%s bytes)' %
-                          (normalized_file_path, MAX_FILE_SIZE))
+                LOG.debug(
+                    'Skipping file "%s" which size exceeds max file size (%s bytes)'
+                    % (normalized_file_path, MAX_FILE_SIZE)
+                )
                 continue
 
             content = self._get_file_content(file_path=normalized_file_path)
@@ -143,10 +145,7 @@ class FilesController(BaseFileController):
                 LOG.debug('Skipping binary file "%s"' % (normalized_file_path))
                 continue
 
-            item = {
-                'file_path': file_path,
-                'content': content
-            }
+            item = {"file_path": file_path, "content": content}
             result.append(item)
         return result
 
@@ -172,13 +171,19 @@ class FileController(BaseFileController):
     Controller which allows user to retrieve content of a specific file in a pack.
     """
 
-    def get_one(self, ref_or_id, file_path, requester_user, if_none_match=None,
-                if_modified_since=None):
+    def get_one(
+        self,
+        ref_or_id,
+        file_path,
+        requester_user,
+        if_none_match=None,
+        if_modified_since=None,
+    ):
         """
-            Outputs the content of a specific file in a pack.
+        Outputs the content of a specific file in a pack.
 
-            Handles requests:
-                GET /packs/views/file/<pack_ref_or_id>/<file path>
+        Handles requests:
+            GET /packs/views/file/<pack_ref_or_id>/<file path>
         """
         pack_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
@@ -187,18 +192,23 @@ class FileController(BaseFileController):
             raise StackStormDBObjectNotFoundError(msg)
 
         if not file_path:
-            raise ValueError('Missing file path')
+            raise ValueError("Missing file path")
 
         pack_ref = pack_db.ref
 
         # Note: Until list filtering is in place we don't require RBAC check for icon file
         permission_type = PermissionType.PACK_VIEW
         if file_path not in WHITELISTED_FILE_PATHS:
-            rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                              resource_db=pack_db,
-                                                              permission_type=permission_type)
+            rbac_utils = get_rbac_backend().get_utils_class()
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=pack_db,
+                permission_type=permission_type,
+            )
 
-        normalized_file_path = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path)
+        normalized_file_path = get_pack_file_abs_path(
+            pack_ref=pack_ref, file_path=file_path
+        )
         if not normalized_file_path or not os.path.isfile(normalized_file_path):
             # Ignore references to files which don't exist on disk
             raise StackStormDBObjectNotFoundError('File "%s" not found' % (file_path))
@@ -207,24 +217,28 @@ class FileController(BaseFileController):
 
         response = Response()
 
-        if not self._is_file_changed(file_mtime,
-                                     if_none_match=if_none_match,
-                                     if_modified_since=if_modified_since):
+        if not self._is_file_changed(
+            file_mtime, if_none_match=if_none_match, if_modified_since=if_modified_since
+        ):
             response.status = http_client.NOT_MODIFIED
         else:
             if file_size is not None and file_size > MAX_FILE_SIZE:
-                msg = ('File %s exceeds maximum allowed file size (%s bytes)' %
-                       (file_path, MAX_FILE_SIZE))
+                msg = "File %s exceeds maximum allowed file size (%s bytes)" % (
+                    file_path,
+                    MAX_FILE_SIZE,
+                )
                 raise ValueError(msg)
 
-            content_type = mimetypes.guess_type(normalized_file_path)[0] or \
-                'application/octet-stream'
+            content_type = (
+                mimetypes.guess_type(normalized_file_path)[0]
+                or "application/octet-stream"
+            )
 
-            response.headers['Content-Type'] = content_type
+            response.headers["Content-Type"] = content_type
             response.body = self._get_file_content(file_path=normalized_file_path)
 
-        response.headers['Last-Modified'] = format_date_time(file_mtime)
-        response.headers['ETag'] = repr(file_mtime)
+        response.headers["Last-Modified"] = format_date_time(file_mtime)
+        response.headers["ETag"] = repr(file_mtime)
 
         return response
 

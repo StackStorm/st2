@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -26,14 +26,16 @@ class Trace(Access):
         return cls.impl
 
     @classmethod
-    def push_components(cls, instance, action_executions=None, rules=None, trigger_instances=None):
+    def push_components(
+        cls, instance, action_executions=None, rules=None, trigger_instances=None
+    ):
         update_kwargs = {}
         if action_executions:
-            update_kwargs['push_all__action_executions'] = action_executions
+            update_kwargs["push_all__action_executions"] = action_executions
         if rules:
-            update_kwargs['push_all__rules'] = rules
+            update_kwargs["push_all__rules"] = rules
         if trigger_instances:
-            update_kwargs['push_all__trigger_instances'] = trigger_instances
+            update_kwargs["push_all__trigger_instances"] = trigger_instances
         if update_kwargs:
             return cls.update(instance, **update_kwargs)
         return instance

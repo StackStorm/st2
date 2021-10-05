@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,11 +20,12 @@ from st2actions.policies.concurrency import BaseConcurrencyApplicator
 
 
 class FakeConcurrencyApplicator(BaseConcurrencyApplicator):
-
     def __init__(self, policy_ref, policy_type, *args, **kwargs):
-        super(FakeConcurrencyApplicator, self).__init__(policy_ref=policy_ref,
-                                                        policy_type=policy_type,
-                                                        threshold=kwargs.get('threshold', 0))
+        super(FakeConcurrencyApplicator, self).__init__(
+            policy_ref=policy_ref,
+            policy_type=policy_type,
+            threshold=kwargs.get("threshold", 0),
+        )
 
     def get_threshold(self):
         return self.threshold
@@ -35,7 +36,8 @@ class FakeConcurrencyApplicator(BaseConcurrencyApplicator):
             target = action_utils.update_liveaction_status(
                 status=action_constants.LIVEACTION_STATUS_CANCELED,
                 liveaction_id=target.id,
-                publish=False)
+                publish=False,
+            )
 
         return target
 

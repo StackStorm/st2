@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -19,13 +19,22 @@ from st2common.runners.base_action import Action
 
 
 class PacksTransformationAction(Action):
-    def run(self, packs_status):
+    def run(self, packs_status, packs_list=None):
         """
         :param packs_status: Result from packs.download action.
         :type: packs_status: ``dict``
+
+        :param packs_list: Names of the pack in Exchange, a git repo URL or local file system.
+        :type: packs_list: ``list``
         """
+        if not packs_list:
+            packs_list = []
+
         packs = []
         for pack_name, status in six.iteritems(packs_status):
-            if 'success' in status.lower():
+            if "success" in status.lower():
                 packs.append(pack_name)
-        return packs
+
+        packs_list.extend(packs)
+
+        return packs_list

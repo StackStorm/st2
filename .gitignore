@@ -1,9 +1,6 @@
 *.py[cod]
 *.sqlite
-*.swp
 *.log
-*/requirements.txt
-!st2client/requirements.txt
 .stamp*
 
 # C extensions
@@ -28,6 +25,14 @@ virtualenv-py3
 virtualenv-osx
 virtualenv-st2client
 virtualenv-st2client-osx
+virtualenv-components
+virtualenv-components-osx
+.venv-st2devbox
+
+# generated travis conf
+conf/st2.travis.conf
+# generated GitHub Actions conf
+conf/st2.githubactions.conf
 
 # Installer logs
 pip-log.txt
@@ -43,6 +48,7 @@ coverage*.xml
 .tox
 nosetests.xml
 htmlcov
+benchmark_histograms/
 
 # Mr Developer
 .idea
@@ -55,3 +61,5 @@ htmlcov
 # Editor Saves
 *~
 \#*\#
+[._]*.sw[a-p]
+[._]sw[a-p]

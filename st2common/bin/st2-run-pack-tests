@@ -71,7 +71,8 @@ STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
 ####################
 
 function usage() {
-    echo "Usage: $0  [-c] [-j] [-t] [-v] [-x] -p <path to pack>" >&2
+    echo "Usage: $0  [-c] [-j] [-t] [-v] [-x] -p <path to pack> [-f <test file module / class / method>]" >&2
+    echo "  -f : Run a specific test file or test class method (e.g. -f test_action_download:DownloadGitRepoActionTestCase.test_run_pack_download)" >&2
     echo "  -c : Run tests with code coverage reporting enabled" >&2
     echo "  -j : Just run tests. Use previously installed dependencies" >&2
     echo "       and virtualenv, if any, for subsequent test runs." >&2
@@ -80,10 +81,13 @@ function usage() {
     echo "  -x : Do not create virtualenv for test for tests, e.g. when running in existing one." >&2
 }
 
-while getopts ":p:xjvct" o; do
+while getopts ":p:f:xjvct" o; do
     case "${o}" in
         p)
             PACK_PATH=${OPTARG}
+            ;;
+        f)
+            TEST_LOCATION=${OPTARG}
             ;;
         x)
             CREATE_VIRTUALENV=false
@@ -114,7 +118,7 @@ while getopts ":p:xjvct" o; do
 done
 
 function verbose_log() {
-    if [ ${VERBOSE} = true ]; then
+    if [ "${VERBOSE}" = true ]; then
         echo $@
     fi
 }
@@ -128,19 +132,19 @@ function activate_virtualenv() {
     fi
 }
 
-if [ ! ${PACK_PATH} ]; then
+if [ -z "${PACK_PATH}" ]; then
     # Missing required argument
     usage
     exit 2
 fi
 
 PACK_PATH=$(readlink -f ${PACK_PATH})
-if [ ! ${PACK_PATH} ]; then
+if [ -z "${PACK_PATH}" ]; then
     echo "Usage: $0 -p <pack path> [-x]"
     exit 2
 fi
 
-if [ ! -d ${PACK_PATH} ]; then
+if [ ! -d "${PACK_PATH}" ]; then
     echo "Invalid pack path: ${PACK_PATH}"
     exit 3
 fi
@@ -153,11 +157,12 @@ PACK_TESTS_PATH="${PACK_PATH}/tests/"
 
 SENSORS_PATH="${PACK_PATH}/sensors/"
 ACTIONS_PATH="${PACK_PATH}/actions/"
+ACTIONS_LIB_PATH="${PACK_PATH}/actions/lib/"
 ETC_PATH="${PACK_PATH}/etc/"
 
 # Bail early if no tests are found, this way we don't need to wait for
 # environment set up.
-if [  ! -d ${PACK_TESTS_PATH} ]; then
+if [  ! -d "${PACK_TESTS_PATH}" ]; then
     echo "Running tests for pack: ${PACK_NAME}"
     echo "No tests found."
     exit 0
@@ -193,7 +198,7 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
         activate_virtualenv
 
         # Make sure virtualenv is using latest pip version
-        ${VIRTUALENV_DIR}/bin/pip install --upgrade "pip>=9.0,<9.1"
+        ${VIRTUALENV_DIR}/bin/pip install --upgrade "pip==20.3.3"
     fi
 
     if [ ! -d "${VIRTUALENV_DIR}" ]; then
@@ -209,16 +214,16 @@ fi
 
 # Note: If we are running outside of st2, we need to add all the st2 components
 # to PYTHONPATH
-if [ ${ST2_REPO_PATH} ]; then
+if [ -n "${ST2_REPO_PATH}" ]; then
     ST2_REPO_PATH=${ST2_REPO_PATH:-/tmp/st2}
     ST2_COMPONENTS=$(find ${ST2_REPO_PATH}/* -maxdepth 0 -name "st2*" -type d)
-    ST2_RUNNERS=$(find ${ST2_REPO_PATH}/contrib/runners/* -maxdepth 0 -type d)
-    PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):$(join ":" ${ST2_RUNNERS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ETC_PATH}"
+    ST2_RUNNERS=$(find ${ST2_REPO_PATH}/contrib/runners/* -maxdepth 0 -type d 2> /dev/null)
+    PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):$(join ":" ${ST2_RUNNERS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ACTIONS_LIB_PATH}:${ETC_PATH}"
 else
     # ST2_REPO_PATH not provided, assume all the st2 component packages are
     # already in PYTHONPATH
-    ST2_RUNNERS=$(find /opt/stackstorm/runners/* -maxdepth 0 -type d)
-    PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):$(join ":" ${ST2_RUNNERS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ETC_PATH}"
+    ST2_RUNNERS=$(find /opt/stackstorm/runners/* -maxdepth 0 -type d 2> /dev/null)
+    PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):$(join ":" ${ST2_RUNNERS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ACTIONS_LIB_PATH}:${ETC_PATH}"
 fi
 
 if [ "${JUST_TESTS}" = false ]; then
@@ -251,6 +256,21 @@ if [ "${JUST_TESTS}" = false ]; then
         echo "Installing pack-specific test dependencies..."
         pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
     fi
+
+# Since we install global pack test dependencies when JUST_TESTS = false we
+# don't need to do it explicitly there.
+# However, if JUST_TESTS = true, we still need to make sure that the coverage
+# module is installed if ENABLE_COVERAGE = true, so install it explicitly.
+elif [ "${ENABLE_COVERAGE}" = true ]; then
+    for((i = 0; i < ${#PACK_TEST_PYTHON_DEPENDENCIES_NAMES[@]}; i++)); do
+        DEPENDENCY_NAME="${PACK_TEST_PYTHON_DEPENDENCIES_NAMES[$i]}"
+
+        if [ "${DEPENDENCY_NAME}" = "coverage" ]; then
+            DEPENDENCY_VERSION="${PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS[$i]}"
+
+            echo ${INSTALLED_PIP_PACKAGES} | grep "${DEPENDENCY_NAME}"  > /dev/null || pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${DEPENDENCY_NAME}${DEPENDENCY_VERSION}"
+        fi
+    done
 fi
 
 # Set PYTHONPATH, make sure it contains st2 components in PYTHONPATH
@@ -259,7 +279,7 @@ TESTS_PYTHON_PATH=()
 # 1. Add PYTHONPATH from StackStorm packages virtualenv (only applies when running on server when
 # StackStorm is installed using packages)
 if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
-    ST2_PYTHONPATH=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sys;print ':'.join([x for x in sys.path if x.strip()])")
+    ST2_PYTHONPATH=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sys;print(':'.join([x for x in sys.path if x.strip()]))")
     verbose_log "Adding entries from StackStorm virtualenv to PYTHONPATH: ${ST2_PYTHONPATH}"
 
     TESTS_PYTHON_PATH+=("${ST2_PYTHONPATH}")
@@ -269,8 +289,13 @@ fi
 TESTS_PYTHON_PATH+=("${PACK_PYTHONPATH}")
 
 # 3. Add any exist PYTHONPATH at the end
-if [ ! -z "${PYTHONPATH}" ]; then
+if [ -n "${PYTHONPATH}" ]; then
     TESTS_PYTHON_PATH+=("${PYTHONPATH}")
+fi
+
+# 4. Add in tests path if test file is provided
+if [ -n "${TEST_LOCATION}" ]; then
+    TESTS_PYTHON_PATH+=("${PACK_TESTS_PATH}")
 fi
 
 TESTS_PYTHON_PATH="$(join ":" ${TESTS_PYTHON_PATH[@]})"
@@ -282,7 +307,7 @@ verbose_log "PATH=${PATH}"
 verbose_log "Virtualenv activated=${VIRTUALENV_ACTIVATED}"
 verbose_log "Installed Python dependencies:"
 
-if [ ${VERBOSE} = true ]; then
+if [ "${VERBOSE}" = true ]; then
     pip list --format columns
 fi
 
@@ -297,7 +322,7 @@ if [ "${ENABLE_COVERAGE}" = true ]; then
 
   # Base options to enable test coverage reporting
   # --with-coverage : enables coverage reporting
-  # --cover-erase : removes old coverage reports before starting 
+  # --cover-erase : removes old coverage reports before starting
   NOSE_OPTS+=(--with-coverage --cover-erase)
 
   # Now, by default nosetests reports test coverage for every module found
@@ -325,13 +350,19 @@ fi
 pushd ${PACK_PATH} > /dev/null
 
 # Execute the tests
-nosetests ${NOSE_OPTS[@]} ${PACK_TESTS_PATH}
+if [ "${TEST_LOCATION}" ]; then
+    # Run a specific test file, class or method
+    nosetests ${NOSE_OPTS[@]} ${TEST_LOCATION}
+else
+    # Run all tests inside the pack
+    nosetests ${NOSE_OPTS[@]} ${PACK_TESTS_PATH}
+fi
 TESTS_EXIT_CODE=$?
 
 popd  > /dev/null # ${PACK_PATH}
 
 # Clean up and unset the variables
-if [ ${VIRTUALENV_ACTIVATED} = true ]; then
+if [ "${VIRTUALENV_ACTIVATED}" = true ]; then
     verbose_log "Deactivating virtualenv ${VIRTUALENVS_DIR}"
     deactivate
 fi

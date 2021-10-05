@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,9 +17,7 @@ from __future__ import absolute_import
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
 
-__all__ = [
-    'validate_not_part_of_system_pack'
-]
+__all__ = ["validate_not_part_of_system_pack"]
 
 
 def validate_not_part_of_system_pack(resource_db):
@@ -32,10 +30,10 @@ def validate_not_part_of_system_pack(resource_db):
     :param resource_db: Resource database object to check.
     :type resource_db: ``object``
     """
-    pack = getattr(resource_db, 'pack', None)
+    pack = getattr(resource_db, "pack", None)
 
     if pack == SYSTEM_PACK_NAME:
-        msg = 'Resources belonging to system level packs can\'t be manipulated'
+        msg = "Resources belonging to system level packs can't be manipulated"
         raise ValueValidationException(msg)
 
     return resource_db

@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,13 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import sys
 
+import six
 from gunicorn.workers.sync import SyncWorker
 
-__all__ = [
-    'EventletSyncWorker'
-]
+__all__ = ["EventletSyncWorker"]
 
 
 class EventletSyncWorker(SyncWorker):
@@ -40,9 +40,9 @@ class EventletSyncWorker(SyncWorker):
         try:
             return super(EventletSyncWorker, self).handle_quit(sig=sig, frame=frame)
         except AssertionError as e:
-            msg = str(e)
+            msg = six.text_type(e)
 
-            if 'do not call blocking functions from the mainloop' in msg:
+            if "do not call blocking functions from the mainloop" in msg:
                 # Workaround for "do not call blocking functions from the mainloop" issue
                 sys.exit(0)
 

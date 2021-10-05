@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -17,9 +17,7 @@ from __future__ import absolute_import
 
 from st2common.runners.base_action import Action
 
-__all__ = [
-    'InjectTriggerAction'
-]
+__all__ = ["InjectTriggerAction"]
 
 
 class InjectTriggerAction(Action):
@@ -34,8 +32,11 @@ class InjectTriggerAction(Action):
         # results in a TriggerInstanceDB database object creation or not. The object is created
         # inside rulesengine service and could fail due to the user providing an invalid trigger
         # reference or similar.
-        self.logger.debug('Injecting trigger "%s" with payload="%s"' % (trigger, str(payload)))
-        result = client.webhooks.post_generic_webhook(trigger=trigger, payload=payload,
-                                                      trace_tag=trace_tag)
+        self.logger.debug(
+            'Injecting trigger "%s" with payload="%s"' % (trigger, str(payload))
+        )
+        result = client.webhooks.post_generic_webhook(
+            trigger=trigger, payload=payload, trace_tag=trace_tag
+        )
 
         return result

@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -29,23 +29,38 @@ class SynchronizationTest(unittest2.TestCase):
     @classmethod
     def setUpClass(cls):
         super(SynchronizationTest, cls).setUpClass()
-        tests_config.parse_args()
-        cls.coordinator = coordination.get_coordinator()
+        tests_config.parse_args(coordinator_noop=False)
+        cls.coordinator = coordination.get_coordinator(use_cache=False)
 
     @classmethod
     def tearDownClass(cls):
         coordination.coordinator_teardown(cls.coordinator)
+        coordination.COORDINATOR = None
         super(SynchronizationTest, cls).tearDownClass()
 
     def test_service_configured(self):
-        cfg.CONF.set_override(name='url', override='kazoo://127.0.0.1:2181', group='coordination')
+        cfg.CONF.set_override(name="url", override=None, group="coordination")
+        self.assertEqual(coordination.get_driver_name(), None)
+
+        cfg.CONF.set_override(
+            name="url", override="kazoo://127.0.0.1:2181", group="coordination"
+        )
         self.assertTrue(coordination.configured())
+        self.assertEqual(coordination.get_driver_name(), "kazoo")
 
-        cfg.CONF.set_override(name='url', override='file:///tmp', group='coordination')
+        cfg.CONF.set_override(name="url", override="file:///tmp", group="coordination")
         self.assertFalse(coordination.configured())
+        self.assertEqual(coordination.get_driver_name(), "file")
 
-        cfg.CONF.set_override(name='url', override='zake://', group='coordination')
+        cfg.CONF.set_override(name="url", override="zake://", group="coordination")
         self.assertFalse(coordination.configured())
+        self.assertEqual(coordination.get_driver_name(), "zake")
+
+        cfg.CONF.set_override(
+            name="url", override="redis://foo:bar@127.0.0.1", group="coordination"
+        )
+        self.assertTrue(coordination.configured())
+        self.assertEqual(coordination.get_driver_name(), "redis")
 
     def test_lock(self):
         name = uuid.uuid4().hex

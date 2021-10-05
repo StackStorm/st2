@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -24,9 +24,9 @@ from st2common.services.keyvalues import KeyValueLookup
 from st2common.services.keyvalues import UserKeyValueLookup
 
 __all__ = [
-    'render_template',
-    'render_template_with_system_context',
-    'render_template_with_system_and_user_context'
+    "render_template",
+    "render_template_with_system_context",
+    "render_template_with_system_and_user_context",
 ]
 
 
@@ -40,7 +40,10 @@ def render_template(value, context=None):
     :param context: Template context.
     :type context: ``dict``
     """
-    assert isinstance(value, six.string_types)
+    if not isinstance(value, six.string_types):
+        raise TypeError(
+            f"The template value needs to be of type string (was {type(value)})."
+        )
     context = context or {}
 
     env = get_jinja_environment(allow_undefined=False)  # nosec
@@ -74,7 +77,9 @@ def render_template_with_system_context(value, context=None, prefix=None):
     return rendered
 
 
-def render_template_with_system_and_user_context(value, user, context=None, prefix=None):
+def render_template_with_system_and_user_context(
+    value, user, context=None, prefix=None
+):
     """
     Render provided template with a default system context and user context for the provided user.
 
@@ -95,7 +100,7 @@ def render_template_with_system_and_user_context(value, user, context=None, pref
     context = context or {}
     context[DATASTORE_PARENT_SCOPE] = {
         SYSTEM_SCOPE: KeyValueLookup(prefix=prefix, scope=FULL_SYSTEM_SCOPE),
-        USER_SCOPE: UserKeyValueLookup(prefix=prefix, user=user, scope=FULL_USER_SCOPE)
+        USER_SCOPE: UserKeyValueLookup(prefix=prefix, user=user, scope=FULL_USER_SCOPE),
     }
 
     rendered = render_template(value=value, context=context)

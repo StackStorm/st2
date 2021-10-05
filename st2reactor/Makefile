@@ -7,18 +7,11 @@ VER=0.4.0
 COMPONENTS := st2reactor
 
 .PHONY: rpm
-rpm: 
+rpm:
 	pushd ~ && rpmdev-setuptree && popd
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin conf $(COMPONENTS)
 	cp packaging/rpm/$(COMPONENTS).spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR) && rpmbuild --clean --rmsource -ba $(COMPONENTS).spec
-
-.PHONY: rhel-rpm
-rhel-rpm:
-	pushd ~ && rpmdev-setuptree && popd
-	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin conf $(COMPONENTS)
-	cp packaging/rpm/$(COMPONENTS)-rhel6.spec $(RPM_SPECS_DIR)/
-	cd $(RPM_SPECS_DIR) && rpmbuild --clean --rmsource -ba $(COMPONENTS)-rhel6.spec
 
 .PHONY: deb
 deb:

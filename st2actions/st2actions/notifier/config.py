@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -21,51 +21,42 @@ import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 
-common_config.register_opts()
-
 CONF = cfg.CONF
 
 
 def parse_args(args=None):
-    cfg.CONF(args=args, version=VERSION_STRING,
-             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
+    cfg.CONF(
+        args=args,
+        version=VERSION_STRING,
+        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+    )
 
 
-def register_opts():
-    _register_common_opts()
-    _register_notifier_opts()
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_notifier_opts(ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
     return cfg.CONF.notifier.logging
 
 
-def _register_common_opts():
-    common_config.register_opts()
+def _register_common_opts(ignore_errors=False):
+    common_config.register_opts(ignore_errors=ignore_errors)
 
 
-def _register_notifier_opts():
+def _register_notifier_opts(ignore_errors=False):
     notifier_opts = [
         cfg.StrOpt(
-            'logging', default='/etc/st2/logging.notifier.conf',
-            help='Location of the logging configuration file.')
+            "logging",
+            default="/etc/st2/logging.notifier.conf",
+            help="Location of the logging configuration file.",
+        )
     ]
 
-    CONF.register_opts(notifier_opts, group='notifier')
-
-    scheduler_opts = [
-        cfg.BoolOpt(
-            'enable', default=True,
-            help='Specify to enable actions rescheduler.'),
-        cfg.IntOpt(
-            'delayed_execution_recovery', default=600,
-            help='The time in seconds to wait before recovering delayed action executions.'),
-        cfg.IntOpt(
-            'rescheduling_interval', default=300,
-            help='The frequency for rescheduling action executions.')
-    ]
-
-    CONF.register_opts(scheduler_opts, group='scheduler')
+    common_config.do_register_opts(
+        notifier_opts, group="notifier", ignore_errors=ignore_errors
+    )
 
 
-register_opts()
+register_opts(ignore_errors=True)

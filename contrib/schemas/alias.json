@@ -1,0 +1,115 @@
+{
+    "title": "ActionAlias",
+    "description": "Alias for an action.",
+    "type": "object",
+    "properties": {
+        "id": {
+            "description": "The unique identifier for the action alias.",
+            "type": "string"
+        },
+        "ref": {
+            "description": "System computed user friendly reference for the alias. Provided value will be overridden by computed value.",
+            "type": "string"
+        },
+        "uid": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string",
+            "description": "Name of the action alias.",
+            "required": true
+        },
+        "pack": {
+            "description": "The content pack this actionalias belongs to.",
+            "type": "string",
+            "required": true
+        },
+        "description": {
+            "type": "string",
+            "description": "Description of the action alias.",
+            "default": null
+        },
+        "enabled": {
+            "description": "Flag indicating of action alias is enabled.",
+            "type": "boolean",
+            "default": true
+        },
+        "action_ref": {
+            "type": "string",
+            "description": "Reference to the aliased action.",
+            "required": true
+        },
+        "formats": {
+            "type": "array",
+            "items": {
+                "anyOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "display": {
+                                "type": "string"
+                            },
+                            "representation": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "description": "Possible parameter format."
+        },
+        "ack": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "extra": {
+                    "type": "object"
+                },
+                "append_url": {
+                    "type": "boolean"
+                }
+            },
+            "description": "Acknowledgement message format."
+        },
+        "result": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "extra": {
+                    "type": "object"
+                }
+            },
+            "description": "Execution message format."
+        },
+        "extra": {
+            "type": "object",
+            "description": "Extra parameters, usually adapter-specific."
+        },
+        "immutable_parameters": {
+            "type": "object",
+            "description": "Parameters to be passed to the action on every execution."
+        },
+        "metadata_file": {
+            "description": "Path to the metadata file relative to the pack directory.",
+            "type": "string",
+            "default": ""
+        }
+    },
+    "additionalProperties": false
+}

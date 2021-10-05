@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -15,13 +15,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import ast
-import json
 
 import six
 
+from st2common.expressions.functions import data
 from st2common.util.compat import to_unicode
-from st2common.util.jinja import NONE_MAGIC_VALUE
+from st2common.util.jsonify import json_decode
 
 
 def _cast_object(x):
@@ -34,7 +35,7 @@ def _cast_object(x):
 
     if isinstance(x, six.string_types):
         try:
-            return json.loads(x)
+            return json_decode(x)
         except:
             return ast.literal_eval(x)
     else:
@@ -81,7 +82,7 @@ def _cast_none(x):
     """
     Cast function which serializes special magic string value which indicate "None" to None type.
     """
-    if isinstance(x, six.string_types) and x == NONE_MAGIC_VALUE:
+    if isinstance(x, six.string_types) and x == data.NONE_MAGIC_VALUE:
         return None
 
     return x
@@ -89,12 +90,12 @@ def _cast_none(x):
 
 # These types as they appear in json schema.
 CASTS = {
-    'array': _cast_object,
-    'boolean': _cast_boolean,
-    'integer': _cast_integer,
-    'number': _cast_number,
-    'object': _cast_object,
-    'string': _cast_string
+    "array": _cast_object,
+    "boolean": _cast_boolean,
+    "integer": _cast_integer,
+    "number": _cast_number,
+    "object": _cast_object,
+    "string": _cast_string,
 }
 
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -32,9 +32,9 @@ def migrate_datastore():
 
     try:
         for kvp in key_value_items:
-            kvp_id = getattr(kvp, 'id', None)
-            secret = getattr(kvp, 'secret', False)
-            scope = getattr(kvp, 'scope', SYSTEM_SCOPE)
+            kvp_id = getattr(kvp, "id", None)
+            secret = getattr(kvp, "secret", False)
+            scope = getattr(kvp, "scope", SYSTEM_SCOPE)
 
             if scope == USER_SCOPE:
                 scope = FULL_USER_SCOPE
@@ -42,13 +42,17 @@ def migrate_datastore():
             if scope == SYSTEM_SCOPE:
                 scope = FULL_SYSTEM_SCOPE
 
-            new_kvp_db = KeyValuePairDB(id=kvp_id, name=kvp.name,
-                                        expire_timestamp=kvp.expire_timestamp,
-                                        value=kvp.value, secret=secret,
-                                        scope=scope)
+            new_kvp_db = KeyValuePairDB(
+                id=kvp_id,
+                name=kvp.name,
+                expire_timestamp=kvp.expire_timestamp,
+                value=kvp.value,
+                secret=secret,
+                scope=scope,
+            )
             KeyValuePair.add_or_update(new_kvp_db)
     except:
-        print('ERROR: Failed migrating datastore item with name: %s' % kvp.name)
+        print("ERROR: Failed migrating datastore item with name: %s" % kvp.name)
         tb.print_exc()
         raise
 
@@ -62,10 +66,10 @@ def main():
     # Migrate rules.
     try:
         migrate_datastore()
-        print('SUCCESS: Datastore items migrated successfully.')
+        print("SUCCESS: Datastore items migrated successfully.")
         exit_code = 0
     except:
-        print('ABORTED: Datastore migration aborted on first failure.')
+        print("ABORTED: Datastore migration aborted on first failure.")
         exit_code = 1
 
     # Disconnect from db.
@@ -73,5 +77,5 @@ def main():
     sys.exit(exit_code)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

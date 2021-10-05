@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -16,10 +16,7 @@
 import six
 from oslo_config import cfg
 
-__all__ = [
-    'get_full_key_name',
-    'check_key'
-]
+__all__ = ["get_full_key_name", "check_key"]
 
 
 def get_full_key_name(key):
@@ -27,14 +24,14 @@ def get_full_key_name(key):
     Return full metric key name, taking into account optional  prefix which can be specified in the
     config.
     """
-    parts = ['st2']
+    parts = ["st2"]
 
     if cfg.CONF.metrics.prefix:
         parts.append(cfg.CONF.metrics.prefix)
 
     parts.append(key)
 
-    return '.'.join(parts)
+    return ".".join(parts)
 
 
 def check_key(key):

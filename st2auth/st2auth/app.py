@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -23,46 +23,60 @@ from st2common.middleware.logging import LoggingMiddleware
 from st2common.middleware.instrumentation import RequestInstrumentationMiddleware
 from st2common.middleware.instrumentation import ResponseInstrumentationMiddleware
 from st2common.router import Router
-from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
+from st2common.util.monkey_patch import use_select_poll_workaround
 from st2auth import config as st2auth_config
 from st2auth.validation import validate_auth_backend_is_correctly_configured
 
 LOG = logging.getLogger(__name__)
 
 
-def setup_app(config={}):
-    LOG.info('Creating st2auth: %s as OpenAPI app.', VERSION_STRING)
+def setup_app(config=None):
+    config = config or {}
 
-    is_gunicorn = config.get('is_gunicorn', False)
+    LOG.info("Creating st2auth: %s as OpenAPI app.", VERSION_STRING)
+
+    is_gunicorn = config.get("is_gunicorn", False)
     if is_gunicorn:
-        # Note: We need to perform monkey patching in the worker. If we do it in
-        # the master process (gunicorn_config.py), it breaks tons of things
-        # including shutdown
-        monkey_patch()
+        # NOTE: We only want to perform this logic in the WSGI worker
+        st2auth_config.register_opts(ignore_errors=True)
+        capabilities = {
+            "name": "auth",
+            "listen_host": cfg.CONF.auth.host,
+            "listen_port": cfg.CONF.auth.port,
+            "listen_ssl": cfg.CONF.auth.use_ssl,
+            "type": "active",
+        }
 
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
-        st2auth_config.register_opts()
-        common_setup(service='auth', config=st2auth_config, setup_db=True,
-                     register_mq_exchanges=False,
-                     register_signal_handlers=True,
-                     register_internal_trigger_types=False,
-                     run_migrations=False,
-                     config_args=config.get('config_args', None))
+        common_setup(
+            service="auth",
+            config=st2auth_config,
+            setup_db=True,
+            register_mq_exchanges=False,
+            register_signal_handlers=True,
+            register_internal_trigger_types=False,
+            run_migrations=False,
+            service_registry=True,
+            capabilities=capabilities,
+            config_args=config.get("config_args", None),
+        )
+
+        # pysaml2 uses subprocess communicate which calls communicate_with_poll
+        if cfg.CONF.auth.sso and cfg.CONF.auth.sso_backend == "saml2":
+            use_select_poll_workaround(nose_only=False)
 
     # Additional pre-run time checks
     validate_auth_backend_is_correctly_configured()
 
     router = Router(debug=cfg.CONF.auth.debug, is_gunicorn=is_gunicorn)
 
-    spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
-    transforms = {
-        '^/auth/v1/': ['/', '/v1/']
-    }
+    spec = spec_loader.load_spec("st2common", "openapi.yaml.j2")
+    transforms = {"^/auth/v1/": ["/", "/v1/"]}
     router.add_spec(spec, transforms=transforms)
 
     app = router.as_wsgi
@@ -71,8 +85,8 @@ def setup_app(config={}):
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)
-    app = ResponseInstrumentationMiddleware(app, router, service_name='auth')
+    app = ResponseInstrumentationMiddleware(app, router, service_name="auth")
     app = RequestIDMiddleware(app)
-    app = RequestInstrumentationMiddleware(app, router, service_name='auth')
+    app = RequestInstrumentationMiddleware(app, router, service_name="auth")
 
     return app

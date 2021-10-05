@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -30,16 +30,20 @@ class PolicyType(Access):
     def get_by_ref(cls, ref):
         if ref:
             ref_obj = PolicyTypeReference.from_string_reference(ref=ref)
-            result = cls.query(name=ref_obj.name, resource_type=ref_obj.resource_type).first()
+            result = cls.query(
+                name=ref_obj.name, resource_type=ref_obj.resource_type
+            ).first()
             return result
         else:
             return None
 
     @classmethod
     def _get_by_object(cls, object):
-        name = getattr(object, 'name', '')
-        resource_type = getattr(object, 'resource_type', '')
-        ref = PolicyTypeReference.to_string_reference(resource_type=resource_type, name=name)
+        name = getattr(object, "name", "")
+        resource_type = getattr(object, "resource_type", "")
+        ref = PolicyTypeReference.to_string_reference(
+            resource_type=resource_type, name=name
+        )
         return cls.get_by_ref(ref)
 
 

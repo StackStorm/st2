@@ -1,32 +1,129 @@
----
-  chain:
-    -
-      name: "download pack"
-      ref: "packs.download"
-      parameters:
-        packs: "{{packs}}"
-        force: "{{force}}"
-        deploykey: "{{deploykey}}"
-      on-success: "make a prerun"
-    -
-      name: "make a prerun"
-      ref: "packs.virtualenv_prerun"
-      parameters:
-        packs_status: "{{ __results['download pack'].result }}"
-      on-success: "install pack dependencies"
-    -
-      name: "install pack dependencies"
-      ref: "packs.setup_virtualenv"
-      parameters:
-        packs: "{{ __results['make a prerun'].result }}"
-        env: "{{env}}"
-        python3: "{{python3}}"
-      on-success: "register pack"
-    -
-      name: "register pack"
-      ref: "packs.load"
-      parameters:
-        register: "{{register}}"
-        packs: "{{ __results['make a prerun'].result }}"
+version: 1.0
 
-  default: "download pack"
+description: A orquesta workflow to install packs.
+
+input:
+  - packs
+  - register
+  - env
+  - force
+  - skip_dependencies
+  - deploykey
+  - timeout
+
+vars:
+  - packs_list: null
+  - dependency_list: null
+  - conflict_list: null
+  - warning_list: null
+  - nested: 10
+  - message: ""
+
+tasks:
+  init_task:
+    action: core.noop
+    next:
+      - do: download_pack
+
+  download_pack:
+    action: packs.download
+    input:
+      packs: <% ctx().packs %>
+      force: <% ctx().force %>
+      dependency_list: <% ctx().dependency_list %>
+      deploykey: <% ctx().deploykey %>
+    next:
+      - when: <% succeeded() %>
+        do: make_a_prerun
+
+  make_a_prerun:
+    action: packs.virtualenv_prerun
+    input:
+      packs_status: <% task(download_pack).result.result %>
+      packs_list: <% ctx().packs_list %>
+    next:
+      - when: <% succeeded() and (ctx().skip_dependencies or ctx().nested = 0) %>
+        publish:
+          - packs_list: <% task(make_a_prerun).result.result %>
+        do: install_pack_requirements
+      - when: <% succeeded() and (ctx().nested > 0 and not ctx().skip_dependencies) %>
+        publish:
+          - packs_list: <% task(make_a_prerun).result.result %>
+        do: get_pack_dependencies
+
+  get_pack_dependencies:
+    action: packs.get_pack_dependencies
+    input:
+      packs_status: <% task(download_pack).result.result %>
+      nested: <% ctx().nested%>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - dependency_list: <% result().result.dependency_list %>
+          - conflict_list: <% result().result.conflict_list %>
+          - nested: <% result().result.nested %>
+        do: check_dependency_and_conflict_list
+
+  check_dependency_and_conflict_list:
+    action: core.noop
+    next:
+      - when: <% ctx().conflict_list %>
+        do: stop_installation_and_cleanup_because_conflict
+      - when: <% not ctx().conflict_list and ctx().dependency_list %>
+        do: download_pack
+      - when: <% not ctx().conflict_list and not ctx().dependency_list %>
+        do: install_pack_requirements
+
+  stop_installation_and_cleanup_because_conflict:
+    action: packs.delete
+    input:
+      packs: <% ctx().packs_list %>
+      delete_env: false
+    next:
+      - do: echo_pack_conflicts
+
+  echo_pack_conflicts:
+    action: core.noop
+    next:
+      - publish:
+          - message: >-
+              Unable to install packs due to conflicts. Review the
+              conflict_list and check the versions of corresponding installed
+              packs. You can also run the `st2 pack install` command with the
+              `--skip-dependencies` flag to skip installing dependent packs.
+        do: fail
+
+  install_pack_requirements:
+    action: packs.setup_virtualenv
+    input:
+      packs: <% ctx().packs_list %>
+      env: <% ctx().env %>
+      timeout: <% ctx().timeout %>
+    next:
+      - when: <% succeeded() %>
+        do: get_pack_warnings
+
+  get_pack_warnings:
+    action: packs.get_pack_warnings
+    input:
+      packs_status: <% task(download_pack).result.result %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - warning_list: <% result().result.warning_list %>
+        do: register_pack
+
+  register_pack:
+    action: packs.load
+    input:
+        register: <% ctx().register %>
+        packs: <% ctx().packs_list %>
+    next:
+      - publish:
+          - message: Successfully installed packs
+
+output:
+  - packs_list: <% ctx().packs_list %>
+  - message: <% ctx().message %>
+  - conflict_list: <% ctx().conflict_list %>
+  - warning_list: <% ctx().warning_list %>

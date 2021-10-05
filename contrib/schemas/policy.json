@@ -1,0 +1,72 @@
+{
+    "title": "Policy",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string",
+            "default": null
+        },
+        "uid": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string",
+            "required": true
+        },
+        "pack": {
+            "type": "string"
+        },
+        "ref": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "enabled": {
+            "type": "boolean",
+            "default": true
+        },
+        "resource_ref": {
+            "type": "string",
+            "required": true
+        },
+        "policy_type": {
+            "type": "string",
+            "required": true
+        },
+        "parameters": {
+            "type": "object",
+            "patternProperties": {
+                "^\\w+$": {
+                    "anyOf": [
+                        {
+                            "type": "array"
+                        },
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "object"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "metadata_file": {
+            "description": "Path to the metadata file relative to the pack directory.",
+            "type": "string",
+            "default": ""
+        }
+    },
+    "additionalProperties": false
+}

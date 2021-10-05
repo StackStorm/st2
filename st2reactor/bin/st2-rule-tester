@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -17,5 +17,5 @@
 
 from st2reactor.cmd import rule_tester
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     rule_tester.main()

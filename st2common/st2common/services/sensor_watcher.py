@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -18,22 +18,23 @@
 # XXX: Refactor.
 
 from __future__ import absolute_import
-import eventlet
+
+import six
 from kombu.mixins import ConsumerMixin
-from kombu import Connection
 
 from st2common import log as logging
 from st2common.transport import reactor, publishers
 from st2common.transport import utils as transport_utils
+from st2common.util import concurrency
 import st2common.util.queues as queue_utils
 
 LOG = logging.getLogger(__name__)
 
 
 class SensorWatcher(ConsumerMixin):
-
-    def __init__(self, create_handler, update_handler, delete_handler,
-                 queue_suffix=None):
+    def __init__(
+        self, create_handler, update_handler, delete_handler, queue_suffix=None
+    ):
         """
         :param create_handler: Function which is called on SensorDB create event.
         :type create_handler: ``callable``
@@ -56,50 +57,57 @@ class SensorWatcher(ConsumerMixin):
         self._handlers = {
             publishers.CREATE_RK: create_handler,
             publishers.UPDATE_RK: update_handler,
-            publishers.DELETE_RK: delete_handler
+            publishers.DELETE_RK: delete_handler,
         }
 
     def get_consumers(self, Consumer, channel):
-        consumers = [Consumer(queues=[self._sensor_watcher_q],
-                              accept=['pickle'],
-                              callbacks=[self.process_task])]
+        consumers = [
+            Consumer(
+                queues=[self._sensor_watcher_q],
+                accept=["pickle"],
+                callbacks=[self.process_task],
+            )
+        ]
         return consumers
 
     def process_task(self, body, message):
-        LOG.debug('process_task')
-        LOG.debug('     body: %s', body)
-        LOG.debug('     message.properties: %s', message.properties)
-        LOG.debug('     message.delivery_info: %s', message.delivery_info)
+        LOG.debug("process_task")
+        LOG.debug("     body: %s", body)
+        LOG.debug("     message.properties: %s", message.properties)
+        LOG.debug("     message.delivery_info: %s", message.delivery_info)
 
-        routing_key = message.delivery_info.get('routing_key', '')
+        routing_key = message.delivery_info.get("routing_key", "")
         handler = self._handlers.get(routing_key, None)
 
         try:
             if not handler:
-                LOG.info('Skipping message %s as no handler was found.', message)
+                LOG.info("Skipping message %s as no handler was found.", message)
                 return
 
             try:
                 handler(body)
             except Exception as e:
-                LOG.exception('Handling failed. Message body: %s. Exception: %s',
-                              body, e.message)
+                LOG.exception(
+                    "Handling failed. Message body: %s. Exception: %s",
+                    body,
+                    six.text_type(e),
+                )
         finally:
             message.ack()
 
     def start(self):
         try:
-            self.connection = Connection(transport_utils.get_messaging_urls())
-            self._updates_thread = eventlet.spawn(self.run)
+            self.connection = transport_utils.get_connection()
+            self._updates_thread = concurrency.spawn(self.run)
         except:
-            LOG.exception('Failed to start sensor_watcher.')
+            LOG.exception("Failed to start sensor_watcher.")
             self.connection.release()
 
     def stop(self):
-        LOG.debug('Shutting down sensor watcher.')
+        LOG.debug("Shutting down sensor watcher.")
         try:
             if self._updates_thread:
-                self._updates_thread = eventlet.kill(self._updates_thread)
+                self._updates_thread = concurrency.kill(self._updates_thread)
 
             if self.connection:
                 channel = self.connection.channel()
@@ -107,15 +115,19 @@ class SensorWatcher(ConsumerMixin):
                 try:
                     bound_sensor_watch_q.delete()
                 except:
-                    LOG.error('Unable to delete sensor watcher queue: %s', self._sensor_watcher_q)
+                    LOG.error(
+                        "Unable to delete sensor watcher queue: %s",
+                        self._sensor_watcher_q,
+                    )
         finally:
             if self.connection:
                 self.connection.release()
 
     @staticmethod
     def _get_queue(queue_suffix):
-        queue_name = queue_utils.get_queue_name(queue_name_base='st2.sensor.watch',
-                                                queue_name_suffix=queue_suffix,
-                                                add_random_uuid_to_suffix=True
-                                                )
-        return reactor.get_sensor_cud_queue(queue_name, routing_key='#')
+        queue_name = queue_utils.get_queue_name(
+            queue_name_base="st2.sensor.watch",
+            queue_name_suffix=queue_suffix,
+            add_random_uuid_to_suffix=True,
+        )
+        return reactor.get_sensor_cud_queue(queue_name, routing_key="#")

@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,17 +14,17 @@
 # limitations under the License.
 
 __all__ = [
-    'InvalidReferenceError',
-    'InvalidResourceReferenceError',
-    'ResourceReference',
+    "InvalidReferenceError",
+    "InvalidResourceReferenceError",
+    "ResourceReference",
 ]
 
-PACK_SEPARATOR = '.'
+PACK_SEPARATOR = "."
 
 
 class InvalidReferenceError(ValueError):
     def __init__(self, ref):
-        message = 'Invalid reference: %s' % (ref)
+        message = "Invalid reference: %s" % (ref)
         self.ref = ref
         self.message = message
         super(InvalidReferenceError, self).__init__(message)
@@ -32,7 +32,7 @@ class InvalidReferenceError(ValueError):
 
 class InvalidResourceReferenceError(ValueError):
     def __init__(self, ref):
-        message = 'Invalid resource reference: %s' % (ref)
+        message = "Invalid resource reference: %s" % (ref)
         self.ref = ref
         self.message = message
         super(InvalidResourceReferenceError, self).__init__(message)
@@ -42,6 +42,7 @@ class ResourceReference(object):
     """
     Class used for referring to resources which belong to a content pack.
     """
+
     def __init__(self, pack=None, name=None):
         self.pack = self.validate_pack_name(pack=pack)
         self.name = name
@@ -72,8 +73,10 @@ class ResourceReference(object):
             pack = ResourceReference.validate_pack_name(pack=pack)
             return PACK_SEPARATOR.join([pack, name])
         else:
-            raise ValueError('Both pack and name needed for building ref. pack=%s, name=%s' %
-                             (pack, name))
+            raise ValueError(
+                "Both pack and name needed for building ref. pack=%s, name=%s"
+                % (pack, name)
+            )
 
     @staticmethod
     def validate_pack_name(pack):
@@ -97,5 +100,8 @@ class ResourceReference(object):
             raise InvalidResourceReferenceError(ref=ref)
 
     def __repr__(self):
-        return ('<ResourceReference pack=%s,name=%s,ref=%s>' %
-                (self.pack, self.name, self.ref))
+        return "<ResourceReference pack=%s,name=%s,ref=%s>" % (
+            self.pack,
+            self.name,
+            self.ref,
+        )

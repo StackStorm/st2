@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,10 +20,7 @@ from st2common.fields import ComplexDateTimeField
 from st2common.models.db import stormbase
 from st2common.util import date as date_utils
 
-__all__ = [
-    'MarkerDB',
-    'DumperMarkerDB'
-]
+__all__ = ["MarkerDB", "DumperMarkerDB"]
 
 
 class MarkerDB(stormbase.StormFoundationDB):
@@ -37,20 +34,21 @@ class MarkerDB(stormbase.StormFoundationDB):
     :param updated_at: Timestamp when marker was updated.
     :type updated_at: ``datetime.datetime``
     """
+
     marker = me.StringField(required=True)
     updated_at = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
-        help_text='The timestamp when the liveaction was created.')
+        help_text="The timestamp when the liveaction was created.",
+    )
 
-    meta = {
-        'abstract': True
-    }
+    meta = {"abstract": True}
 
 
 class DumperMarkerDB(MarkerDB):
     """
     Marker model used by Dumper (in exporter).
     """
+
     pass
 
 

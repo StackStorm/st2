@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -29,6 +29,7 @@ class StackStormDBObjectConflictError(StackStormBaseException):
     """
     Exception that captures a DB object conflict error.
     """
+
     def __init__(self, message, conflict_id, model_object):
         super(StackStormDBObjectConflictError, self).__init__(message)
         self.conflict_id = conflict_id
@@ -36,7 +37,9 @@ class StackStormDBObjectConflictError(StackStormBaseException):
 
 
 class StackStormDBObjectWriteConflictError(StackStormBaseException):
-
     def __init__(self, instance):
-        msg = 'Conflict saving DB object with id "%s" and rev "%s".' % (instance.id, instance.rev)
+        msg = 'Conflict saving DB object with id "%s" and rev "%s".' % (
+            instance.id,
+            instance.rev,
+        )
         super(StackStormDBObjectWriteConflictError, self).__init__(msg)

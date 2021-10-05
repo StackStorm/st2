@@ -1,0 +1,37 @@
+version: 1.0
+
+description: A basic sequential workflow.
+
+input:
+  - name
+  - delay
+
+vars:
+  - greeting: null
+
+output:
+  - greeting: <% ctx().greeting %>
+
+tasks:
+  task1:
+    delay: <% ctx("delay") %>
+    action: core.echo message=<% ctx().name %>
+    next:
+      - when: <% succeeded() %>
+        publish: greeting=<% result().stdout %>
+        do: task2
+  task2:
+    action: core.echo
+    input:
+      message: "All your base are belong to us!"
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - greeting: <% ctx("greeting") %>, <% result().stdout %>
+        do:
+          - task3
+  task3:
+    action: core.echo message=<% ctx('greeting') %>
+    next:
+      - when: <% succeeded() %>
+        publish: greeting=<% result().stdout %>

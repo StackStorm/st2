@@ -413,6 +413,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+        - name: options
+          in: body
+          description: Flag to remove action files from disk
+          schema:
+            $ref: '#/definitions/ActionDeleteRequest'
       x-parameters:
         - name: user
           in: context
@@ -1077,10 +1082,28 @@ paths:
           description: Entity id
           type: string
           required: true
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: include_attributes
+          in: query
+          description: List of attributes to include
+          type: array
+          items:
+            type: string
+          required: false
         - name: show_secrets
           in: query
           description: Show secrets in plain text
           type: boolean
+        - name: max_result_size
+          in: query
+          type: integer
+          description: True to exclude result field from the response for executions which result field exceeds the provided size in bytes.
       x-parameters:
         - name: user
           in: context
@@ -1226,6 +1249,9 @@ paths:
               user:
                 type: string
                 default: ''
+              delay:
+                description: How long (in milliseconds) to delay the execution before scheduling.
+                type: integer
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -1329,6 +1355,50 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/executions/{id}/result:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_raw_result_controller.get
+      x-log-result: false
+      x-submit-metrics: false
+      description: |
+        Get one execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: download
+          in: query
+          description: True to force result file download instead of returning it as a response
+          type: boolean
+          default: false
+        - name: compress
+          in: query
+          description: True to compress the response body
+          type: boolean
+          default: false
+        - name: pretty_format
+          in: query
+          description: True to pretty format the result (adds some overhead)
+          type: boolean
+          default: false
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution result
+          schema:
+            type: string
+            # Response is raw text so we don't want to perform validation on it
+            validate_response: false
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /api/v1/executions/views/filters:
     get:
       operationId: st2api.controllers.v1.execution_views:filters_controller.get_all
@@ -1358,9 +1428,9 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/exp/inquiries:
+  /api/v1/inquiries:
     get:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_all
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_all
       x-permissions: inquiry_list
       description: Returns a list of all inquiries
       parameters:
@@ -1398,9 +1468,9 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/exp/inquiries/{inquiry_id}:
+  /api/v1/inquiries/{inquiry_id}:
     get:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.get_one
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_one
       description: |
         Get a specific Inquiry based on ID.
       parameters:
@@ -1424,7 +1494,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     put:
-      operationId: st2api.controllers.exp.inquiries:inquiries_controller.put
+      operationId: st2api.controllers.v1.inquiries:inquiries_controller.put
       description: |
         Respond to an Inquiry.
       parameters:
@@ -1460,7 +1530,7 @@ paths:
   /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
-      x-permissions: 
+      x-permissions: key_value_pair_list
       description: Returns a list of all key value pairs.
       parameters:
         - name: prefix
@@ -2632,6 +2702,10 @@ paths:
           in: query
           description: Enabled filter
           type: string
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -2693,6 +2767,10 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -4271,32 +4349,49 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
-  /api/exp/validation/mistral:
-    post:
-      operationId: st2api.controllers.exp.validation:mistral_validation_controller.post
-      description: |
-        Validate Mistral YAML definition.
-      parameters:
-        - name: def_yaml
-          in: body
-          description: Mistral definition
-          schema:
-            type: string
+  /api/v1/service_registry/groups:
+    get:
+      operationId: st2api.controllers.v1.service_registry:groups_controller.get_all
+      description: Retrieve available service registry groups.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
-          description: List of validation errors
+          description: List of available groups.
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/ValidationError'
-          examples:
-            application/json:
-              ref: 'core.local'
-              # and stuff
+            type: object
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/service_registry/groups/{group_id}/members:
+    get:
+      operationId: st2api.controllers.v1.service_registry:members_controller.get_one
+      description: Retrieve active / available members for a particular group.
+      parameters:
+        - name: group_id
+          in: path
+          description: Group ID.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: List of available members.
+          schema:
+            type: object
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
 
   /auth/v1/tokens:
     post:
@@ -4379,6 +4474,62 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  /auth/v1/sso:
+    get:
+      operationId: st2auth.controllers.v1.sso:sso_controller.get
+      description: Returns a flag indicating if SSO is enabled or not.
+      responses:
+        '200':
+          description: Returns a flag indicating if SSO is enabled
+          schema:
+            $ref: '#/definitions/SSOEnabledResult'
+          examples:
+            application/json:
+              enabled: false
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      security: []
+  /auth/v1/sso/request:
+    get:
+      operationId: st2auth.controllers.v1.sso:sso_request_controller.get
+      description: Redirects to the SSO Idp login page.
+      parameters:
+        - name: referer
+          in: header
+          description: set externally to indicate real source of the request
+          type: string
+      responses:
+        '307':
+          description: Temporary redirect
+      security: []
+  /auth/v1/sso/callback:
+    post:
+      operationId: st2auth.controllers.v1.sso:idp_callback_controller.post
+      description: Handle callback from the SSO Idp.
+      parameters:
+        - name: response
+          in: body
+          description: SSO response
+          schema:
+            type: object
+      responses:
+        '200':
+          description: SSO response valid
+        '401':
+          description: Invalid or missing credentials has been provided
+          schema:
+            $ref: '#/definitions/Error'
+          examples:
+            application/json:
+              faultstring: Invalid or missing credentials
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      security: []
+
   /stream/v1/stream:
     get:
       operationId: st2stream.controllers.v1.stream:stream_controller.get_all
@@ -4387,6 +4538,16 @@ paths:
       description: |
         Event stream endpoint.
       parameters:
+        - name: end_execution_id
+          in: query
+          description: execution id used to find last event in stream
+          type: string
+          required: false
+        - name: end_event
+          in: query
+          description: event to end sse stream
+          type: string
+          required: false
         - name: events
           in: query
           description: List of events to listen for. If not provided, it listens to all events.
@@ -4528,6 +4689,9 @@ definitions:
     allOf:
       - $ref: '#/definitions/Action'
       - $ref: '#/definitions/DataFilesSubSchema'
+  ActionDeleteRequest:
+    allOf:
+      - $ref: '#/definitions/ActionDeleteSchema'
   ActionParameters:
     type: object
     properties:
@@ -4674,6 +4838,9 @@ definitions:
           extra:
             type: object
             description: Extra parameters, usually adapter-specific
+          delay:
+            description: How long (in milliseconds) to delay the execution before scheduling.
+            type: integer
       execution:
         type: object
         description: Execution result
@@ -4775,6 +4942,9 @@ definitions:
 #          - type: number
 #          - type: object
 #          - type: string
+      result_size:
+        type: integer
+        default: 0
       parent:
         type: string
       children:
@@ -4794,6 +4964,9 @@ definitions:
             status:
               type: string
               enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
+      delay:
+        description: How long (in milliseconds) to delay the execution before scheduling.
+        type: integer
     required:
       - id
     additionalProperties: False
@@ -4880,6 +5053,9 @@ definitions:
       secret:
         description: Encrypt value before saving the value.
         type: boolean
+      encrypted:
+        description: Value provided is already encrypted with this instances crypto key and should be stored as-is. This is useful when migrating / loading keys from one StackStorm instance to another.
+        type: boolean
       scope:
         description: "Scope the item is under. Example: 'user'."
         type: string
@@ -4951,13 +5127,14 @@ definitions:
         type: array
         items:
           type: string
-      python3:
-        description: Use Python 3 binary for pack virtual environment.
-        type: boolean
-        default: false
       force:
         description: Force pack installation.
         type: boolean
+        default: false
+      skip_dependencies:
+        type: boolean
+        description: Set to True to skip pack dependency installations.
+        required: false
         default: false
   PacksUninstall:
     type: object
@@ -5144,6 +5321,9 @@ definitions:
           on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
           on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
         additionalProperties: False
+      delay:
+        description: How long (in milliseconds) to delay the execution before scheduling.
+        type: integer
     required:
       - action
   Webhook:
@@ -5212,6 +5392,14 @@ definitions:
         items:
           type: string
     additionalProperties: false
+  ActionDeleteSchema:
+    type: object
+    properties:
+      remove_files:
+        type: boolean
+        description: Flag to delete action files from disk
+        default: false
+    additionalProperties: false
   TokenRequest:
     type: object
     properties:
@@ -5246,6 +5434,11 @@ definitions:
     type: object
     properties:
       valid:
+        type: boolean
+  SSOEnabledResult:
+    type: object
+    properties:
+      enabled:
         type: boolean
   ApiKey:
     x-api-model: st2common.models.api.auth:ApiKeyAPI

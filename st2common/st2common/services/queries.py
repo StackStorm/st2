@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -25,13 +25,15 @@ LOG = logging.getLogger(__name__)
 
 
 def setup_query(liveaction_id, runnertype_db, query_context):
-    if not getattr(runnertype_db, 'query_module', None):
-        raise Exception('The runner "%s" does not have a query module.' % runnertype_db.name)
+    if not getattr(runnertype_db, "query_module", None):
+        raise Exception(
+            'The runner "%s" does not have a query module.' % runnertype_db.name
+        )
 
     state_db = ActionExecutionStateDB(
         execution_id=liveaction_id,
         query_module=runnertype_db.query_module,
-        query_context=query_context
+        query_context=query_context,
     )
 
     ActionExecutionState.add_or_update(state_db)

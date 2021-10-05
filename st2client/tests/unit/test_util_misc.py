@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -21,37 +21,37 @@ from st2client.utils.misc import merge_dicts
 
 class MiscUtilTestCase(unittest2.TestCase):
     def test_merge_dicts(self):
-        d1 = {'a': 1}
-        d2 = {'a': 2}
-        expected = {'a': 2}
+        d1 = {"a": 1}
+        d2 = {"a": 2}
+        expected = {"a": 2}
 
         result = merge_dicts(d1, d2)
         self.assertEqual(result, expected)
 
-        d1 = {'a': 1}
-        d2 = {'b': 1}
-        expected = {'a': 1, 'b': 1}
+        d1 = {"a": 1}
+        d2 = {"b": 1}
+        expected = {"a": 1, "b": 1}
 
         result = merge_dicts(d1, d2)
         self.assertEqual(result, expected)
 
-        d1 = {'a': 1}
-        d2 = {'a': 3, 'b': 1}
-        expected = {'a': 3, 'b': 1}
+        d1 = {"a": 1}
+        d2 = {"a": 3, "b": 1}
+        expected = {"a": 3, "b": 1}
 
         result = merge_dicts(d1, d2)
         self.assertEqual(result, expected)
 
-        d1 = {'a': 1, 'm': None}
-        d2 = {'a': None, 'b': 1, 'c': None}
-        expected = {'a': 1, 'b': 1, 'c': None, 'm': None}
+        d1 = {"a": 1, "m": None}
+        d2 = {"a": None, "b": 1, "c": None}
+        expected = {"a": 1, "b": 1, "c": None, "m": None}
 
         result = merge_dicts(d1, d2)
         self.assertEqual(result, expected)
 
-        d1 = {'a': 1, 'b': {'a': 1, 'b': 2, 'c': 3}}
-        d2 = {'b': {'b': 100}}
-        expected = {'a': 1, 'b': {'a': 1, 'b': 100, 'c': 3}}
+        d1 = {"a": 1, "b": {"a": 1, "b": 2, "c": 3}}
+        d2 = {"b": {"b": 100}}
+        expected = {"a": 1, "b": {"a": 1, "b": 100, "c": 3}}
 
         result = merge_dicts(d1, d2)
         self.assertEqual(result, expected)

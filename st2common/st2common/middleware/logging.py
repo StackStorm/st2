@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -14,15 +14,27 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import time
 import types
 import itertools
 
+from oslo_config import cfg
+
 from st2common.constants.api import REQUEST_ID_HEADER
+from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
+from st2common.constants.auth import QUERY_PARAM_API_KEY_ATTRIBUTE_NAME
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
+from st2common.constants.secrets import MASKED_ATTRIBUTES_BLACKLIST
 from st2common import log as logging
 from st2common.router import Request, NotFoundException
 
 LOG = logging.getLogger(__name__)
+
+SECRET_QUERY_PARAMS = [
+    QUERY_PARAM_ATTRIBUTE_NAME,
+    QUERY_PARAM_API_KEY_ATTRIBUTE_NAME,
+] + MASKED_ATTRIBUTES_BLACKLIST
 
 try:
     clock = time.perf_counter
@@ -46,23 +58,33 @@ class LoggingMiddleware(object):
 
         request = Request(environ)
 
+        query_params = request.GET.dict_of_lists()
+
+        # Mask secret / sensitive query params
+        secret_query_params = SECRET_QUERY_PARAMS + cfg.CONF.log.mask_secrets_blacklist
+        for param_name in secret_query_params:
+            if param_name in query_params:
+                query_params[param_name] = MASKED_ATTRIBUTE_VALUE
+
         # Log the incoming request
         values = {
-            'method': request.method,
-            'path': request.path,
-            'remote_addr': request.remote_addr,
-            'query': request.GET.dict_of_lists(),
-            'request_id': request.headers.get(REQUEST_ID_HEADER, None)
+            "method": request.method,
+            "path": request.path,
+            "remote_addr": request.remote_addr,
+            "query": query_params,
+            "request_id": request.headers.get(REQUEST_ID_HEADER, None),
         }
 
-        LOG.info('%(request_id)s - %(method)s %(path)s with query=%(query)s' %
-                 values, extra=values)
+        LOG.info(
+            "%(request_id)s - %(method)s %(path)s with query=%(query)s" % values,
+            extra=values,
+        )
 
         def custom_start_response(status, headers, exc_info=None):
-            status_code.append(int(status.split(' ')[0]))
+            status_code.append(int(status.split(" ")[0]))
 
             for name, value in headers:
-                if name.lower() == 'content-length':
+                if name.lower() == "content-length":
                     content_length.append(int(value))
                     break
 
@@ -75,32 +97,38 @@ class LoggingMiddleware(object):
         except NotFoundException:
             endpoint = {}
 
-        log_result = endpoint.get('x-log-result', True)
+        log_result = endpoint.get("x-log-result", True)
 
         if isinstance(retval, (types.GeneratorType, itertools.chain)):
             # Note: We don't log the result when return value is a generator, because this would
             # result in calling str() on the generator and as such, exhausting it
-            content_length = [float('inf')]
+            content_length = [0]
             log_result = False
 
         # Log the response
         values = {
-            'method': request.method,
-            'path': request.path,
-            'remote_addr': request.remote_addr,
-            'status': status_code[0],
-            'runtime': float("{0:.3f}".format((clock() - start_time) * 10**3)),
-            'content_length': content_length[0] if content_length else len(b''.join(retval)),
-            'request_id': request.headers.get(REQUEST_ID_HEADER, None)
+            "method": request.method,
+            "path": request.path,
+            "remote_addr": request.remote_addr,
+            "status": status_code[0],
+            "runtime": float("{0:.3f}".format((clock() - start_time) * 10 ** 3)),
+            "content_length": content_length[0]
+            if content_length
+            else len(b"".join(retval)),
+            "request_id": request.headers.get(REQUEST_ID_HEADER, None),
         }
 
-        log_msg = '%(request_id)s - %(status)s %(content_length)s %(runtime)sms' % (values)
+        log_msg = "%(request_id)s - %(status)s %(content_length)s %(runtime)sms" % (
+            values
+        )
         LOG.info(log_msg, extra=values)
 
         if log_result:
-            values['result'] = retval[0]
-            log_msg = ('%(request_id)s - %(status)s %(content_length)s %(runtime)sms\n%(result)s' %
-                      (values))
+            values["result"] = retval[0]
+            log_msg = (
+                "%(request_id)s - %(status)s %(content_length)s %(runtime)sms\n%(result)s"
+                % (values)
+            )
             LOG.debug(log_msg, extra=values)
 
         return retval

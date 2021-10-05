@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -35,9 +35,9 @@ class Branch(object):
         self.description = description
         self.app = app
         self.parent_parser = parent_parser
-        self.parser = subparsers.add_parser(self.name,
-                                            description=self.description,
-                                            help=self.description)
+        self.parser = subparsers.add_parser(
+            self.name, description=self.description, help=self.description
+        )
         self.commands = dict()
 
 
@@ -45,16 +45,19 @@ class Branch(object):
 class Command(object):
     """Represents a commandlet in the command tree."""
 
-    def __init__(self, name, description, app, subparsers,
-                 parent_parser=None, add_help=True):
+    def __init__(
+        self, name, description, app, subparsers, parent_parser=None, add_help=True
+    ):
         self.name = name
         self.description = description
         self.app = app
         self.parent_parser = parent_parser
-        self.parser = subparsers.add_parser(self.name,
-                                            description=self.description,
-                                            help=self.description,
-                                            add_help=add_help)
+        self.parser = subparsers.add_parser(
+            self.name,
+            description=self.description,
+            help=self.description,
+            add_help=add_help,
+        )
         self.parser.set_defaults(func=self.run_and_print)
 
     @abc.abstractmethod
@@ -74,8 +77,8 @@ class Command(object):
         raise NotImplementedError
 
     def format_output(self, subject, formatter, *args, **kwargs):
-        json = kwargs.get('json', False)
-        yaml = kwargs.get('yaml', False)
+        json = kwargs.get("json", False)
+        yaml = kwargs.get("yaml", False)
 
         if json:
             func = doc.JsonFormatter.format
@@ -90,4 +93,4 @@ class Command(object):
             output = self.format_output(subject, formatter, *args, **kwargs)
             print(output)
         else:
-            print('No matching items found')
+            print("No matching items found")

@@ -14,8 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-COMPONENTS="st2actionrunner st2api st2stream st2auth st2garbagecollector st2notifier st2resultstracker st2rulesengine st2sensorcontainer st2chatops st2timersengine st2workflowengine st2scheduler mistral"
+COMPONENTS="st2actionrunner st2api st2stream st2auth st2garbagecollector st2notifier st2rulesengine st2sensorcontainer st2chatops st2timersengine st2workflowengine st2scheduler"
 ST2_CONF="/etc/st2/st2.conf"
+SYSTEMD_RELOADED=""
 
 # Ensure global environment is sourced if exists
 # Does not happen consistently with all OSes we support.
@@ -39,23 +40,24 @@ function print_usage() {
     echo "Usage: st2ctl {reopen-log-files}"
     echo "positional arguments:"
     echo "  component           Name of the st2 service to reopen the log files for."
-    echo "                      ${COMPONENTS/mistral}"
+    echo "                      ${COMPONENTS}"
     echo
     echo "Usage: st2ctl {reload, clean}"
     echo "optional arguments:"
-    echo "  --register-all                Register all."
-    echo "  --register-triggers           Register all triggers."
-    echo "  --register-sensors            Register all sensors."
-    echo "  --register-rules              Register all rules."
-    echo "  --register-runners            Register all runners."
-    echo "  --register-actions            Register all actions."
-    echo "  --register-aliases            Register all aliases."
-    echo "  --register-policies           Register all policies."
-    echo "  --register-configs            Register all configuration files."
-    echo "  --register-setup-virtualenvs  Create Python virtual environments for all the registered packs."
-    echo "  --register-fail-on-failure    Exit with non-zero if some resource registration fails. Deprecated. This is now a default behavior."
-    echo "  --register-no-fail-on-failure Don't exit with non-zero if some resource registration fails."
-    echo "  --verbose                     Output additional debug and informational messages."
+    echo "  --register-all                  Register all."
+    echo "  --register-triggers             Register all triggers."
+    echo "  --register-sensors              Register all sensors."
+    echo "  --register-rules                Register all rules."
+    echo "  --register-runners              Register all runners."
+    echo "  --register-actions              Register all actions."
+    echo "  --register-aliases              Register all aliases."
+    echo "  --register-policies             Register all policies."
+    echo "  --register-configs              Register all configuration files."
+    echo "  --register-setup-virtualenvs    Create Python virtual environments for all the registered packs."
+    echo "  --register-recreate-virtualenvs (Delete and re-)create Python virtual environments for all the registered packs."
+    echo "  --register-fail-on-failure      Exit with non-zero if some resource registration fails. Deprecated. This is now a default behavior."
+    echo "  --register-no-fail-on-failure   Don't exit with non-zero if some resource registration fails."
+    echo "  --verbose                       Output additional debug and informational messages."
     echo ""
     echo "Most commands require elevated privileges."
 }
@@ -83,10 +85,18 @@ function validate_in_components() {
   fi
 }
 
+function check_python_version() {
+  PYTHON_VERSION=$(/opt/stackstorm/st2/bin/python --version 2>&1 | awk -F"[. ]" '{print $2}')
+  if [ "${PYTHON_VERSION}" = "2" ]; then
+    echo -e "\e[33mDeprecation warning: Support for python 2 will be removed in future StackStorm releases. Please ensure that all packs used are python 3 compatible. Your StackStorm installation may be upgraded from python 2 to python 3 in future platform releases. It is recommended to plan the manual migration to a python 3 native platform, e.g. Ubuntu 18.04 LTS or CentOS/RHEL 8. \e[0m\n"
+  fi
+}
+
 function st2start() {
   for COM in ${COMPONENTS}; do
     service_manager ${COM} start
   done
+  check_python_version
 }
 
 function st2stop() {
@@ -99,6 +109,11 @@ function service_manager() {
   local svcname=$1 action=$2
   if [ -d /run/systemd/system ]; then
     # systemd is running
+    if [ -z $SYSTEMD_RELOADED ]; then
+      #Reload systemd to regenerate socket files from st2.conf
+      systemctl daemon-reload
+      SYSTEMD_RELOADED="yes"
+    fi
     systemctl $action $svcname
   elif [ $(cat /proc/1/comm) = init ] && (/sbin/initctl version 2>/dev/null | grep -q upstart) &&
           [ -f /etc/init/${svcname}.conf ]; then
@@ -108,10 +123,8 @@ function service_manager() {
     /sbin/initctl $action $svcname
   elif command -v service > /dev/null 2>&1; then
     service $svcname $action
-  elif [ -x /etc/init.d/${1} ]; then
-    /etc/init.d/$svcname $action
   else
-    echo -e "\e[31mError: Unknown service manager, we ONLY support systemd, upstart and sysv! \e[0m\n"
+    echo -e "\e[31mError: Unknown service manager, we ONLY support systemd and upstart! \e[0m\n"
     exit 1
   fi
 }
@@ -120,11 +133,6 @@ function service_manager() {
 # after we implement native `service st2component reopen` (nginx example) for each component
 function reopen_component_log_files() {
   COM=${1}
-
-  if [[ "$COM" == "mistral" ]]; then
-    echo "Sorry, Mistral does not yet support gracefully reopening log files"
-    return 1
-  fi
 
   PID=`ps ax | grep -v grep | grep -v st2ctl | grep -E "(${COM}\.wsgi)|(bin/${COM})|(hubot .*${COM})" | awk '{print $1}'`
   if [[ ! -z ${PID} ]]; then
@@ -139,10 +147,10 @@ function reopen_component_log_files() {
 }
 
 function register_content() {
-  ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-runners --register-policies --register-rules --register-sensors --register-triggers --register-configs --register-setup-virtualenvs --register-fail-on-failure --register-no-fail-on-failure --verbose'
+  ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-runners --register-policies --register-rules --register-sensors --register-triggers --register-configs --register-setup-virtualenvs --register-recreate-virtualenvs --register-fail-on-failure --register-no-fail-on-failure --verbose'
   DEFAULT_REGISTER_FLAGS='--register-runners --register-actions --register-aliases --register-sensors --register-triggers --register-configs --register-rules'
 
-  SUDO_FLAGS='--register-setup-virtualenvs'
+  SUDO_FLAGS='--register-setup-virtualenvs  --register-recreate-virtualenvs'
   flags="${@}"
 
   if [ ! -z ${1} ]; then
@@ -183,7 +191,7 @@ function clean_logs() {
 
 function getpids() {
   echo "##### st2 components status #####"
-  COMPONENTS=${COMPONENTS/mistral/mistral-server mistral.api}
+  COMPONENTS=${COMPONENTS}
 
   for COM in ${COMPONENTS}; do
     PID=`ps ax | grep -v grep | grep -v st2ctl | grep -E "(${COM}\.wsgi)|(bin/${COM})|(hubot .*${COM})" | awk '{print $1}'`
@@ -220,6 +228,7 @@ case ${1} in
     must_be_root
     validate_in_components ${2}
     service_manager ${2} restart
+    check_python_version
     ;;
   reopen-log-files)
     must_be_root
@@ -232,6 +241,7 @@ case ${1} in
   reload)
     register_content ${@:2}
     exit_code=$?
+    check_python_version
     getpids
     # Note: We want to preserve st2-register-content "fail on failure" behavior
     # and propagate the correct exit code and exit with non zero on failure

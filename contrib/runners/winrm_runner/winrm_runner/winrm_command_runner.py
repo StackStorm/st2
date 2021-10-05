@@ -1,9 +1,9 @@
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -20,19 +20,14 @@ from st2common import log as logging
 from st2common.runners.base import get_metadata as get_runner_metadata
 from winrm_runner.winrm_base import WinRmBaseRunner
 
-__all__ = [
-    'WinRmCommandRunner',
-    'get_runner',
-    'get_metadata'
-]
+__all__ = ["WinRmCommandRunner", "get_runner", "get_metadata"]
 
 LOG = logging.getLogger(__name__)
 
-RUNNER_COMMAND = 'cmd'
+RUNNER_COMMAND = "cmd"
 
 
 class WinRmCommandRunner(WinRmBaseRunner):
-
     def run(self, action_parameters):
         cmd_command = self.runner_parameters[RUNNER_COMMAND]
 
@@ -45,7 +40,10 @@ def get_runner():
 
 
 def get_metadata():
-    metadata = get_runner_metadata('winrm_runner')
-    metadata = [runner for runner in metadata if
-                runner['runner_module'] == __name__.split('.')[-1]][0]
+    metadata = get_runner_metadata("winrm_runner")
+    metadata = [
+        runner
+        for runner in metadata
+        if runner["runner_module"] == __name__.split(".")[-1]
+    ][0]
     return metadata

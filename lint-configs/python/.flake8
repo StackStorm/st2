@@ -1,4 +1,25 @@
 [flake8]
 max-line-length = 100
-ignore = E128,E402,E722,W504
-exclude=*.egg/*
+# L102 - apache license header
+enable-extensions = L101,L102
+# We ignore some rules which conflict with black
+# E203 - whitespace before ':' - in direct conflict with black rule
+# W503 line break before binary operator - in direct conflict with black rule
+# E501 is line length limit
+# https://black.readthedocs.io/en/stable/the_black_code_style.html#line-length
+# We don't really need line length rule since black formatting takes care of
+# that.
+ignore = E128,E402,E722,W504,E501,E203,W503
+exclude=*.egg/*,build,dist
+
+# Configuration for flake8-copyright extension
+copyright-check = True
+copyright-min-file-size = 1
+
+# Settings for flake8-license
+license-type = apache
+
+# NOTE: This requires flake8 >= 3.0.0 to work correctly.
+# If old version is used (< 3.0.0), it will select all the errors and it wont ignore ones
+# listed above as part of ignore list
+select = E,F,W,C,L

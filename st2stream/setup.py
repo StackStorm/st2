@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# Licensed to the StackStorm, Inc ('StackStorm') under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
+# Copyright 2020 The StackStorm Authors.
+# Copyright 2019 Extreme Networks, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -22,9 +22,9 @@ from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
 from st2stream import __version__
 
-ST2_COMPONENT = 'st2stream'
+ST2_COMPONENT = "st2stream"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
+REQUIREMENTS_FILE = os.path.join(BASE_DIR, "requirements.txt")
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
@@ -32,18 +32,18 @@ apply_vagrant_workaround()
 setup(
     name=ST2_COMPONENT,
     version=__version__,
-    description='{} StackStorm event-driven automation platform component'.format(ST2_COMPONENT),
-    author='StackStorm',
-    author_email='info@stackstorm.com',
-    license='Apache License (2.0)',
-    url='https://stackstorm.com/',
+    description="{} StackStorm event-driven automation platform component".format(
+        ST2_COMPONENT
+    ),
+    author="StackStorm",
+    author_email="info@stackstorm.com",
+    license="Apache License (2.0)",
+    url="https://stackstorm.com/",
     install_requires=install_reqs,
     dependency_links=dep_links,
     test_suite=ST2_COMPONENT,
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['setuptools', 'tests']),
-    scripts=[
-        'bin/st2stream'
-    ]
+    packages=find_packages(exclude=["setuptools", "tests"]),
+    scripts=["bin/st2stream"],
 )
