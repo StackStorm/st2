@@ -71,7 +71,13 @@ class DownloadGitRepoAction(Action):
             os.environ["no_proxy"] = self.no_proxy
 
     def run(
-        self, packs, abs_repo_base, verifyssl=True, force=False, dependency_list=None, deploykey=None
+        self,
+        packs,
+        abs_repo_base,
+        verifyssl=True,
+        force=False,
+        dependency_list=None,
+        deploykey=None,
     ):
         result = {}
         pack_url = None

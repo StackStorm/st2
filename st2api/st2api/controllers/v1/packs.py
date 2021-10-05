@@ -103,8 +103,8 @@ class PackInstallController(ActionExecutionsControllerMixin):
         if pack_install_request.skip_dependencies:
             parameters["skip_dependencies"] = True
 
-        if 'deploykey' in pack_install_request.__dict__.keys():
-            parameters['deploykey'] = pack_install_request.deploykey
+        if "deploykey" in pack_install_request.__dict__.keys():
+            parameters["deploykey"] = pack_install_request.deploykey
 
         if not requester_user:
             requester_user = UserDB(name=cfg.CONF.system_user.user)

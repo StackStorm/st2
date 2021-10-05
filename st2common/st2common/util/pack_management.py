@@ -203,8 +203,8 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref="master", deploy_key=Non
 
     # Set ssh key if given a deploy key
     if deploy_key:
-        ssh_cmd = ' ssh -i %s ' % deploy_key
-        os.environ['GIT_SSH_COMMAND'] = ssh_cmd
+        ssh_cmd = " ssh -i %s " % deploy_key
+        os.environ["GIT_SSH_COMMAND"] = ssh_cmd
 
     # Clone the repo from git; we don't use shallow copying
     # because we want the user to work with the repo in the

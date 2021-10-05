@@ -266,9 +266,11 @@ class PackInstallCommand(PackAsyncCommand):
             default=False,
             help="Skip pack dependency installation.",
         )
-        self.parser.add_argument('--deploykey',
-                                 dest='deploykey',
-                                 help='Absolute path to a private repo\'s deploy key.')
+        self.parser.add_argument(
+            "--deploykey",
+            dest="deploykey",
+            help="Absolute path to a private repo's deploy key.",
+        )
 
     def run(self, args, **kwargs):
         is_structured_output = args.json or args.yaml
