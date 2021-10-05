@@ -9,7 +9,9 @@ Added
 
 * Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
 
-* Replaced the static ``.socket`` sytemd units in deb and rpm packages with a python-based generator for the
+* ``st2.conf`` is now the only place to configure ports for ``st2api``, ``st2auth``, and ``st2stream``.
+
+  We replaced the static ``.socket`` sytemd units in deb and rpm packages with a python-based generator for the
   ``st2api``, ``st2auth``, and ``st2stream`` services. The generators will get ``<ip>:<port>`` from ``st2.conf``
   to create the ``.socket`` files dynamically. #5286 and st2-packages#706
 
