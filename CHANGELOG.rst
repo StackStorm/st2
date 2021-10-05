@@ -77,6 +77,10 @@ Fixed
 * Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
   Contributed by @amanda11, Ammeon Solutions
 
+* Make ``update_executions()`` atomic by protecting the update with a coordination lock. Actions, like workflows, may have multiple
+  concurrent updates to their execution state. This makes those updates safer, which should make the execution status more reliable. #5358
+
+  Contributed by @khushboobhatia01
 
 
 3.5.0 - June 23, 2021
