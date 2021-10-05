@@ -75,6 +75,10 @@ def mask_secret_output(ac_ex, output_value):
         return output_value
 
     for key, spec in output_schema.items():
+        if not isinstance(spec, Mapping):
+            # TODO: Spec should be a jsonschema object. This will change in a future
+            #       release, so we just ignore invalid schemas for now.
+            continue
         if key in output_value[output_key] and spec.get("secret", False):
             output_value[output_key][key] = MASKED_ATTRIBUTE_VALUE
 
