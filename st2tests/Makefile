@@ -5,7 +5,7 @@ VIRTUALENV_DIR=virtualenv
 RPM_ROOT=~/rpmbuild
 RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/
-COMPONENTS := st2debug
+COMPONENTS := st2tests
 VER=0.4.0
 FLAKE8_CONFIG := $(REPO_ROOT)/lint-configs/python/.flake8
 

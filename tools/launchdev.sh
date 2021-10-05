@@ -55,6 +55,7 @@ function init(){
     CURRENT_DIR=`pwd`
     CURRENT_USER=`whoami`
     CURRENT_USER_GROUP=`id -gn`
+    echo "Current user:group = ${CURRENT_USER}:${CURRENT_USER_GROUP}"
 
     if [[ (${COMMAND_PATH} == /*) ]] ;
     then
@@ -153,7 +154,9 @@ function st2start(){
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
         # Clone st2tests in /tmp directory.
         pushd /tmp
-        git clone https://github.com/StackStorm/st2tests.git
+        echo Cloning https://github.com/StackStorm/st2tests.git
+        # -q = no progress reporting (better for CI). Errors will still print.
+        git clone -q https://github.com/StackStorm/st2tests.git
         ret=$?
         if [ ${ret} -eq 0 ]; then
             cp -Rp ./st2tests/packs/fixtures $PACKS_BASE_DIR
@@ -266,12 +269,6 @@ function st2start(){
         ./st2reactor/bin/st2timersengine \
         --config-file $ST2_CONF
 
-    # Run the results tracker
-    echo 'Starting screen session st2-resultstracker...'
-    screen -L -c tools/screen-configs/st2resultstracker.conf -d -m -S st2-resultstracker ${VIRTUALENV}/bin/python \
-        ./st2actions/bin/st2resultstracker \
-        --config-file $ST2_CONF
-
     # Run the actions notifier
     echo 'Starting screen session st2-notifier...'
     screen -L -c tools/screen-configs/st2notifier.conf -d -m -S st2-notifier ${VIRTUALENV}/bin/python \
@@ -310,7 +307,6 @@ function st2start(){
         "${RUNNER_SCREENS[@]}"
         "st2-sensorcontainer"
         "st2-rulesengine"
-        "st2-resultstracker"
         "st2-notifier"
         "st2-auth"
         "st2-timersengine"
@@ -356,7 +352,7 @@ function st2stop(){
     fi
 
     if [ "${use_gunicorn}" = true ]; then
-        pids=`ps -ef | grep "wsgi:application" | awk '{print $2}'`
+        pids=`ps -ef | grep "wsgi:application" | grep -v "grep" | awk '{print $2}'`
         if [ -n "$pids" ]; then
             echo "Killing gunicorn processes"
             # true ensures that any failure to kill a process which does not exist will not lead

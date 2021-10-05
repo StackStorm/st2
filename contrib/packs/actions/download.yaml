@@ -22,11 +22,6 @@
       description: "Set to True to force install the pack and skip StackStorm version compatibility check"
       required: false
       default: false
-    python3:
-      type: "boolean"
-      description: "True to use Python 3 binary for this pack."
-      required: false
-      default: false
     dependency_list:
       type: "array"
       description: "Dependency list that needs to be downloaded."

@@ -24,8 +24,9 @@ def _setup():
     config.parse_args()
 
     # 2. setup logging.
-    logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s',
-                        level=logging.DEBUG)
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s [-] %(message)s", level=logging.DEBUG
+    )
 
 
 def main():
@@ -34,5 +35,5 @@ def main():
 
 
 # The scripts sets up Exchanges in RabbitMQ.
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

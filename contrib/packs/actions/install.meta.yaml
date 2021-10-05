@@ -27,13 +27,14 @@
       description: "Set to True to force install the pack and skip StackStorm version compatibility check and also delete and ignore lock file if one exists."
       required: false
       default: false
-    python3:
-      type: "boolean"
-      description: "Use Python 3 binary when creating a virtualenv for this pack."
-      required: false
-      default: false
     skip_dependencies:
       type: "boolean"
       description: "Set to True to skip pack dependency installations."
       required: false
       default: false
+    timeout:
+      default: 600
+      required: false
+      description: Action timeout in seconds. Action will get killed if it doesn't finish in timeout
+      type: integer
+

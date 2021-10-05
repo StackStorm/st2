@@ -22,15 +22,11 @@ from st2common import log as logging
 from st2common.util import driver_loader
 
 
-__all__ = [
-    'get_available_backends',
-    'get_backend_instance',
-    'get_rbac_backend'
-]
+__all__ = ["get_available_backends", "get_backend_instance", "get_rbac_backend"]
 
 LOG = logging.getLogger(__name__)
 
-BACKENDS_NAMESPACE = 'st2common.rbac.backend'
+BACKENDS_NAMESPACE = "st2common.rbac.backend"
 
 # Cache which maps backed name -> backend class instance
 # NOTE: We use cache to avoid slow stevedore dynamic filesystem instrospection on every
@@ -44,7 +40,9 @@ def get_available_backends():
 
 def get_backend_instance(name, use_cache=True):
     if name not in BACKENDS_CACHE or not use_cache:
-        rbac_backend = driver_loader.get_backend_instance(namespace=BACKENDS_NAMESPACE, name=name)
+        rbac_backend = driver_loader.get_backend_instance(
+            namespace=BACKENDS_NAMESPACE, name=name
+        )
         BACKENDS_CACHE[name] = rbac_backend
 
     rbac_backend = BACKENDS_CACHE[name]

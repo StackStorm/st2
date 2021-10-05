@@ -19,9 +19,7 @@ from st2common.models.db.marker import MarkerDB
 from st2common.models.db.marker import DumperMarkerDB
 from st2common.persistence.base import Access
 
-__all__ = [
-    'Marker'
-]
+__all__ = ["Marker"]
 
 
 class Marker(Access):

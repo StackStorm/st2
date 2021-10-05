@@ -19,14 +19,9 @@ from __future__ import absolute_import
 
 from st2common.util import driver_loader
 
-__all__ = [
-    'BACKENDS_NAMESPACE',
+__all__ = ["BACKENDS_NAMESPACE", "get_available_backends", "get_backend_driver"]
 
-    'get_available_backends',
-    'get_backend_driver'
-]
-
-BACKENDS_NAMESPACE = 'st2common.runners.runner'
+BACKENDS_NAMESPACE = "st2common.runners.runner"
 
 
 def get_available_backends():

@@ -30,31 +30,31 @@ class DateUtilsTestCase(unittest2.TestCase):
         dt = datetime.datetime(2015, 10, 20, 8, 0, 0)
         dt = add_utc_tz(dt)
         result = format_dt(dt)
-        self.assertEqual(result, 'Tue, 20 Oct 2015 08:00:00 UTC')
+        self.assertEqual(result, "Tue, 20 Oct 2015 08:00:00 UTC")
 
     def test_format_isodate(self):
         # No timezone, defaults to UTC
-        value = 'Tue, 20 Oct 2015 08:00:00 UTC'
+        value = "Tue, 20 Oct 2015 08:00:00 UTC"
         result = format_isodate(value=value)
-        self.assertEqual(result, 'Tue, 20 Oct 2015 08:00:00 UTC')
+        self.assertEqual(result, "Tue, 20 Oct 2015 08:00:00 UTC")
 
         # Timezone provided
-        value = 'Tue, 20 Oct 2015 08:00:00 UTC'
-        result = format_isodate(value=value, timezone='Europe/Ljubljana')
-        self.assertEqual(result, 'Tue, 20 Oct 2015 10:00:00 CEST')
+        value = "Tue, 20 Oct 2015 08:00:00 UTC"
+        result = format_isodate(value=value, timezone="Europe/Ljubljana")
+        self.assertEqual(result, "Tue, 20 Oct 2015 10:00:00 CEST")
 
-    @mock.patch('st2client.utils.date.get_config')
+    @mock.patch("st2client.utils.date.get_config")
     def test_format_isodate_for_user_timezone(self, mock_get_config):
         # No timezone, defaults to UTC
         mock_get_config.return_value = {}
 
-        value = 'Tue, 20 Oct 2015 08:00:00 UTC'
+        value = "Tue, 20 Oct 2015 08:00:00 UTC"
         result = format_isodate_for_user_timezone(value=value)
-        self.assertEqual(result, 'Tue, 20 Oct 2015 08:00:00 UTC')
+        self.assertEqual(result, "Tue, 20 Oct 2015 08:00:00 UTC")
 
         # Timezone provided
-        mock_get_config.return_value = {'cli': {'timezone': 'Europe/Ljubljana'}}
+        mock_get_config.return_value = {"cli": {"timezone": "Europe/Ljubljana"}}
 
-        value = 'Tue, 20 Oct 2015 08:00:00 UTC'
+        value = "Tue, 20 Oct 2015 08:00:00 UTC"
         result = format_isodate_for_user_timezone(value=value)
-        self.assertEqual(result, 'Tue, 20 Oct 2015 10:00:00 CEST')
+        self.assertEqual(result, "Tue, 20 Oct 2015 10:00:00 CEST")

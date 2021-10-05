@@ -19,13 +19,13 @@ from st2common.util import loader
 
 
 def get_wf_fixture_meta_data(fixture_pack_path, wf_meta_file_name):
-    wf_meta_file_path = fixture_pack_path + '/actions/' + wf_meta_file_name
+    wf_meta_file_path = fixture_pack_path + "/actions/" + wf_meta_file_name
     wf_meta_content = loader.load_meta_file(wf_meta_file_path)
-    wf_name = wf_meta_content['pack'] + '.' + wf_meta_content['name']
+    wf_name = wf_meta_content["pack"] + "." + wf_meta_content["name"]
 
     return {
-        'file_name': wf_meta_file_name,
-        'file_path': wf_meta_file_path,
-        'content': wf_meta_content,
-        'name': wf_name
+        "file_name": wf_meta_file_name,
+        "file_path": wf_meta_file_path,
+        "content": wf_meta_content,
+        "name": wf_name,
     }

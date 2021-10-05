@@ -22,14 +22,11 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.util import driver_loader
 
-__all__ = [
-    'get_available_backends',
-    'get_backend_instance'
-]
+__all__ = ["get_available_backends", "get_backend_instance"]
 
 LOG = logging.getLogger(__name__)
 
-BACKENDS_NAMESPACE = 'st2auth.backends.backend'
+BACKENDS_NAMESPACE = "st2auth.backends.backend"
 
 
 def get_available_backends():
@@ -43,8 +40,10 @@ def get_backend_instance(name):
         try:
             kwargs = json.loads(backend_kwargs)
         except ValueError as e:
-            raise ValueError('Failed to JSON parse backend settings for backend "%s": %s' %
-                             (name, six.text_type(e)))
+            raise ValueError(
+                'Failed to JSON parse backend settings for backend "%s": %s'
+                % (name, six.text_type(e))
+            )
     else:
         kwargs = {}
 
@@ -55,9 +54,11 @@ def get_backend_instance(name):
     except Exception as e:
         tb_msg = traceback.format_exc()
         class_name = cls.__name__
-        msg = ('Failed to instantiate auth backend "%s" (class %s) with backend settings '
-               '"%s": %s' % (name, class_name, str(kwargs), six.text_type(e)))
-        msg += '\n\n' + tb_msg
+        msg = (
+            'Failed to instantiate auth backend "%s" (class %s) with backend settings '
+            '"%s": %s' % (name, class_name, str(kwargs), six.text_type(e))
+        )
+        msg += "\n\n" + tb_msg
         exc_cls = type(e)
         raise exc_cls(msg)
 

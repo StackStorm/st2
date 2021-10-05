@@ -21,7 +21,7 @@ from __future__ import absolute_import
 
 import six
 
-from st2common.util.ujson import fast_deepcopy
+from st2common.util.deep_copy import fast_deepcopy_dict
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 
@@ -65,7 +65,7 @@ def get_secret_parameters(parameters):
     """
 
     secret_parameters = {}
-    parameters_type = parameters.get('type')
+    parameters_type = parameters.get("type")
     # If the parameter itself is secret, then skip all processing below it
     # and return the type of this parameter.
     #
@@ -74,22 +74,22 @@ def get_secret_parameters(parameters):
     # **Important** that we do this check first, so in case this parameter
     # is an `object` or `array`, and the user wants the full thing
     # to be secret, that it is marked as secret.
-    if parameters.get('secret', False):
+    if parameters.get("secret", False):
         return parameters_type
 
     iterator = None
-    if parameters_type == 'object':
+    if parameters_type == "object":
         # if this is an object, then iterate over the properties within
         # the object
         # result = dict
-        iterator = six.iteritems(parameters.get('properties', {}))
-    elif parameters_type == 'array':
+        iterator = six.iteritems(parameters.get("properties", {}))
+    elif parameters_type == "array":
         # if this is an array, then iterate over the items definition as a single
         # property
         # result = list
-        iterator = enumerate([parameters.get('items', {})])
+        iterator = enumerate([parameters.get("items", {})])
         secret_parameters = []
-    elif parameters_type in ['integer', 'number', 'boolean', 'null', 'string']:
+    elif parameters_type in ["integer", "number", "boolean", "null", "string"]:
         # if this a "plain old datatype", then iterate over the properties set
         # of the data type
         # result = string (property type)
@@ -105,8 +105,8 @@ def get_secret_parameters(parameters):
         if not isinstance(options, dict):
             continue
 
-        parameter_type = options.get('type')
-        if options.get('secret', False):
+        parameter_type = options.get("type")
+        if options.get("secret", False):
             # If this parameter is secret, then add it our secret parameters
             #
             # **This causes the _full_ object / array tree to be secret
@@ -121,7 +121,7 @@ def get_secret_parameters(parameters):
                 secret_parameters[parameter] = parameter_type
             else:
                 return parameter_type
-        elif parameter_type in ['object', 'array']:
+        elif parameter_type in ["object", "array"]:
             # otherwise recursively dive into the `object`/`array` and
             # find individual parameters marked as secret
             sub_params = get_secret_parameters(options)
@@ -170,21 +170,23 @@ def mask_secret_parameters(parameters, secret_parameters, result=None):
     # all other recursive calls pass back referneces to this result object
     # so we can reuse it, saving memory and CPU cycles
     if result is None:
-        result = fast_deepcopy(parameters)
+        result = fast_deepcopy_dict(parameters)
 
     # iterate over the secret parameters
     for secret_param, secret_sub_params in iterator:
         if is_dict:
             if secret_param in result:
-                result[secret_param] = mask_secret_parameters(parameters[secret_param],
-                                                              secret_sub_params,
-                                                              result=result[secret_param])
+                result[secret_param] = mask_secret_parameters(
+                    parameters[secret_param],
+                    secret_sub_params,
+                    result=result[secret_param],
+                )
         elif is_list:
             # we're assuming lists contain the same data type for every element
             for idx, value in enumerate(result):
-                result[idx] = mask_secret_parameters(parameters[idx],
-                                                     secret_sub_params,
-                                                     result=result[idx])
+                result[idx] = mask_secret_parameters(
+                    parameters[idx], secret_sub_params, result=result[idx]
+                )
         else:
             result[secret_param] = MASKED_ATTRIBUTE_VALUE
 
@@ -202,10 +204,10 @@ def mask_inquiry_response(response, schema):
     :param schema: Inquiry response schema
     :type schema: ``dict``
     """
-    result = fast_deepcopy(response)
+    result = fast_deepcopy_dict(response)
 
-    for prop_name, prop_attrs in schema['properties'].items():
-        if prop_attrs.get('secret') is True:
+    for prop_name, prop_attrs in schema["properties"].items():
+        if prop_attrs.get("secret") is True:
             if prop_name in response:
                 result[prop_name] = MASKED_ATTRIBUTE_VALUE
 

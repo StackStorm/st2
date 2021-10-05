@@ -15,6 +15,10 @@
 
 from __future__ import absolute_import
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import kombu
 import mock
 import mongoengine as me
@@ -27,7 +31,7 @@ from st2common.transport import publishers
 from st2tests import DbTestCase
 
 
-FAKE_STATE_MGMT_XCHG = kombu.Exchange('st2.fake.state', type='topic')
+FAKE_STATE_MGMT_XCHG = kombu.Exchange("st2.fake.state", type="topic")
 
 
 class FakeModelPublisher(publishers.StatePublisherMixin):
@@ -57,7 +61,7 @@ class FakeModel(persistence.Access):
     def publish_state(cls, model_object):
         publisher = cls._get_publisher()
         if publisher:
-            publisher.publish_state(model_object, getattr(model_object, 'state', None))
+            publisher.publish_state(model_object, getattr(model_object, "state", None))
 
     @classmethod
     def _get_by_object(cls, object):
@@ -65,7 +69,6 @@ class FakeModel(persistence.Access):
 
 
 class StatePublisherTest(DbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(StatePublisherTest, cls).setUpClass()
@@ -75,13 +78,13 @@ class StatePublisherTest(DbTestCase):
         FakeModelDB.drop_collection()
         super(StatePublisherTest, self).tearDown()
 
-    @mock.patch.object(publishers.PoolPublisher, 'publish', mock.MagicMock())
+    @mock.patch.object(publishers.PoolPublisher, "publish", mock.MagicMock())
     def test_publish(self):
-        instance = FakeModelDB(state='faked')
+        instance = FakeModelDB(state="faked")
         self.access.publish_state(instance)
-        publishers.PoolPublisher.publish.assert_called_with(instance,
-                                                            FAKE_STATE_MGMT_XCHG,
-                                                            instance.state)
+        publishers.PoolPublisher.publish.assert_called_with(
+            instance, FAKE_STATE_MGMT_XCHG, instance.state
+        )
 
     def test_publish_unset(self):
         instance = FakeModelDB()
@@ -92,5 +95,5 @@ class StatePublisherTest(DbTestCase):
         self.assertRaises(Exception, self.access.publish_state, instance)
 
     def test_publish_empty_str(self):
-        instance = FakeModelDB(state='')
+        instance = FakeModelDB(state="")
         self.assertRaises(Exception, self.access.publish_state, instance)

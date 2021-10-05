@@ -23,33 +23,36 @@ from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 
 
 def parse_args(args=None):
-    cfg.CONF(args=args, version=sys_constants.VERSION_STRING,
-             default_config_files=[DEFAULT_CONFIG_FILE_PATH])
+    cfg.CONF(
+        args=args,
+        version=sys_constants.VERSION_STRING,
+        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+    )
 
 
-def register_opts():
-    _register_common_opts()
-    _register_service_opts()
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_service_opts(ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
     return cfg.CONF.workflow_engine.logging
 
 
-def _register_common_opts():
-    common_config.register_opts()
+def _register_common_opts(ignore_errors=False):
+    common_config.register_opts(ignore_errors=ignore_errors)
 
 
-def _register_service_opts():
+def _register_service_opts(ignore_errors=False):
     wf_engine_opts = [
         cfg.StrOpt(
-            'logging',
-            default='/etc/st2/logging.workflowengine.conf',
-            help='Location of the logging configuration file.'
+            "logging",
+            default="/etc/st2/logging.workflowengine.conf",
+            help="Location of the logging configuration file.",
         )
     ]
 
-    cfg.CONF.register_opts(wf_engine_opts, group='workflow_engine')
+    common_config.do_register_opts(wf_engine_opts, group="workflow_engine")
 
 
-register_opts()
+register_opts(ignore_errors=True)

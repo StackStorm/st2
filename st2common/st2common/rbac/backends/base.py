@@ -23,17 +23,16 @@ from oslo_config import cfg
 from st2common.exceptions.rbac import AccessDeniedError
 
 __all__ = [
-    'BaseRBACBackend',
-    'BaseRBACPermissionResolver',
-    'BaseRBACService',
-    'BaseRBACUtils',
-    'BaseRBACRemoteGroupToRoleSyncer'
+    "BaseRBACBackend",
+    "BaseRBACPermissionResolver",
+    "BaseRBACService",
+    "BaseRBACUtils",
+    "BaseRBACRemoteGroupToRoleSyncer",
 ]
 
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseRBACBackend(object):
-
     def get_resolver_for_resource_type(self, resource_type):
         """
         Method which returns PermissionResolver class for the provided resource type.
@@ -67,7 +66,6 @@ class BaseRBACBackend(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseRBACPermissionResolver(object):
-
     def user_has_permission(self, user_db, permission_type):
         """
         Method for checking user permissions which are not tied to a particular resource.
@@ -177,7 +175,9 @@ class BaseRBACUtils(object):
         raise NotImplementedError()
 
     @staticmethod
-    def assert_user_is_admin_if_user_query_param_is_provided(user_db, user, require_rbac=False):
+    def assert_user_is_admin_if_user_query_param_is_provided(
+        user_db, user, require_rbac=False
+    ):
         """
         Function which asserts that the request user is administator if "user" query parameter is
         provided and doesn't match the current user.
@@ -273,12 +273,12 @@ class BaseRBACUtils(object):
         """
         Retrieve UserDB object from the provided request.
         """
-        auth_context = request.context.get('auth', {})
+        auth_context = request.context.get("auth", {})
 
         if not auth_context:
             return None
 
-        user_db = auth_context.get('user', None)
+        user_db = auth_context.get("user", None)
         return user_db
 
 

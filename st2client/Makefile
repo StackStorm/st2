@@ -1,6 +1,6 @@
 # <<<< TO DEPRICATE
 SHELL := /bin/bash
-PY27 := /usr/bin/python2.7
+PY3 := /usr/bin/python3
 RPM_ROOT=~/rpmbuild
 RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/
@@ -9,8 +9,8 @@ RELEASE=1
 COMPONENTS := st2client
 
 .PHONY: rpm
-rpm: 
-	$(PY27) setup.py bdist_rpm --python=$(PY27)
+rpm:
+	$(PY3) setup.py bdist_rpm --python=$(PY3)
 	mkdir -p $(RPM_ROOT)/RPMS/noarch
 	cp dist/$(COMPONENTS)*noarch.rpm $(RPM_ROOT)/RPMS/noarch/$(COMPONENTS)-$(VER)-$(RELEASE).noarch.rpm
 	mkdir -p $(RPM_ROOT)/SRPMS
@@ -19,7 +19,7 @@ rpm:
 
 .PHONY: deb
 deb:
-	$(PY27) setup.py --command-packages=stdeb.command bdist_deb
+	$(PY3) setup.py --command-packages=stdeb.command bdist_deb
 	mkdir -p ~/debbuild
 	cp deb_dist/python-$(COMPONENTS)*-1_all.deb ~/debbuild/$(COMPONENTS)_$(VER)-$(RELEASE)_amd64.deb
 	rm -Rf dist deb_dist $(COMPONENTS)-$(VER).tar.gz $(COMPONENTS).egg-info ChangeLog AUTHORS build

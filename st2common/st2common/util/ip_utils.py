@@ -16,16 +16,12 @@
 from __future__ import absolute_import
 import re
 
-import ipaddr
+import ipaddress
 from st2common.log import logging
 
 LOG = logging.getLogger(__name__)
 
-__all__ = [
-    'is_ipv4',
-    'is_ipv6',
-    'split_host_port'
-]
+__all__ = ["is_ipv4", "is_ipv6", "split_host_port"]
 
 BRACKET_PATTERN = r"^\[.*\]"  # IPv6 bracket pattern to specify port
 COMPILED_BRACKET_PATTERN = re.compile(BRACKET_PATTERN)
@@ -44,7 +40,7 @@ def is_ipv6(ip_str):
     :rtype: ``bool``
     """
     try:
-        addr = ipaddr.IPAddress(ip_str)
+        addr = ipaddress.ip_address(ip_str)
         return addr.version == 6
     except:
         return False
@@ -60,7 +56,7 @@ def is_ipv4(ip_str):
     :rtype: ``bool``
     """
     try:
-        addr = ipaddr.IPAddress(ip_str)
+        addr = ipaddress.ip_address(ip_str)
         return addr.version == 4
     except:
         return False
@@ -91,30 +87,32 @@ def split_host_port(host_str):
     # Check if it's square bracket style.
     match = COMPILED_BRACKET_PATTERN.match(host_str)
     if match:
-        LOG.debug('Square bracket style.')
+        LOG.debug("Square bracket style.")
         # Check if square bracket style no port.
         match = COMPILED_HOST_ONLY_IN_BRACKET_PATTERN.match(host_str)
         if match:
-            hostname = match.group().strip('[]')
+            hostname = match.group().strip("[]")
             return (hostname, port)
 
-        hostname, separator, port = hostname.rpartition(':')
+        hostname, separator, port = hostname.rpartition(":")
         try:
-            LOG.debug('host_str: %s, hostname: %s port: %s' % (host_str, hostname, port))
+            LOG.debug(
+                "host_str: %s, hostname: %s port: %s" % (host_str, hostname, port)
+            )
             port = int(port)
-            hostname = hostname.strip('[]')
+            hostname = hostname.strip("[]")
             return (hostname, port)
         except:
-            raise Exception('Invalid port %s specified.' % port)
+            raise Exception("Invalid port %s specified." % port)
     else:
-        LOG.debug('Non-bracket address. host_str: %s' % host_str)
-        if ':' in host_str:
-            LOG.debug('Non-bracket with port.')
-            hostname, separator, port = hostname.rpartition(':')
+        LOG.debug("Non-bracket address. host_str: %s" % host_str)
+        if ":" in host_str:
+            LOG.debug("Non-bracket with port.")
+            hostname, separator, port = hostname.rpartition(":")
             try:
                 port = int(port)
                 return (hostname, port)
             except:
-                raise Exception('Invalid port %s specified.' % port)
+                raise Exception("Invalid port %s specified." % port)
 
     return (hostname, port)
