@@ -39,20 +39,20 @@ def parse_args(args=None):
     )
 
 
-def register_opts():
-    _register_common_opts()
-    _register_app_opts()
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_app_opts(ignore_errors=ignore_errors)
 
 
-def _register_common_opts():
-    common_config.register_opts()
+def _register_common_opts(ignore_errors=False):
+    common_config.register_opts(ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
     return cfg.CONF.stream.logging
 
 
-def _register_app_opts():
+def _register_app_opts(ignore_errors=False):
     # Note "allow_origin", "mask_secrets", "heartbeat" options are registered as part of st2common
     # config since they are also used outside st2stream
     api_opts = [
@@ -68,4 +68,6 @@ def _register_app_opts():
         ),
     ]
 
-    CONF.register_opts(api_opts, group="stream")
+    common_config.do_register_opts(
+        api_opts, group="stream", ignore_errors=ignore_errors
+    )

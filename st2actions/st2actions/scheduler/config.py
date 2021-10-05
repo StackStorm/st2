@@ -34,20 +34,20 @@ def parse_args(args=None):
     )
 
 
-def register_opts():
-    _register_common_opts()
-    _register_service_opts()
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_service_opts(ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
     return cfg.CONF.scheduler.logging
 
 
-def _register_common_opts():
-    common_config.register_opts()
+def _register_common_opts(ignore_errors=False):
+    common_config.register_opts(ignore_errors=ignore_errors)
 
 
-def _register_service_opts():
+def _register_service_opts(ignore_errors=False):
     scheduler_opts = [
         cfg.StrOpt(
             "logging",
@@ -88,10 +88,9 @@ def _register_service_opts():
         ),
     ]
 
-    cfg.CONF.register_opts(scheduler_opts, group="scheduler")
+    common_config.do_register_opts(
+        scheduler_opts, group="scheduler", ignore_errors=ignore_errors
+    )
 
 
-try:
-    register_opts()
-except cfg.DuplicateOptError:
-    LOG.exception("The scheduler configuration options are already parsed and loaded.")
+register_opts(ignore_errors=True)

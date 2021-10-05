@@ -182,7 +182,7 @@ def main(args):
     opt_groups = {}
     for config in CONFIGS:
         mod = _import_config(config)
-        mod.register_opts()
+        mod.register_opts(ignore_errors=True)
         _read_current_config(opt_groups)
         _clear_config()
     _read_groups(opt_groups)

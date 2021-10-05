@@ -2,8 +2,8 @@
 coverage==4.5.2
 pep8==1.7.1
 st2flake8==0.1.0
-astroid==2.5.2
-pylint==2.7.4
+astroid==2.5.6
+pylint==2.8.2
 pylint-plugin-utils>=0.4
 black==20.8b1
 pre-commit==2.1.0
@@ -36,11 +36,12 @@ prance==0.15.0
 # pip-tools 5.4 needs pip>=20.1
 # pip-tools 6.0 needs pip>=20.3
 pip-tools>=5.4,<6.1
-pytest==5.4.3
-pytest-benchmark==3.2.3
+pytest==6.2.3
+pytest-benchmark==3.4.1
+pytest-benchmark[histogram]==3.4.1
 # zstandard is used for micro benchmarks
 zstandard==0.15.2
 # ujson is used for micro benchmarks
-ujson==1.35
+ujson==4.0.2
 # needed by integration tests for coordination
 redis==3.5.3

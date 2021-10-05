@@ -171,6 +171,22 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         self.assertGreater(execution.log[1]["timestamp"], pre_update_timestamp)
         self.assertLess(execution.log[1]["timestamp"], post_update_timestamp)
 
+    def test_skip_execution_update(self):
+        liveaction = self.MODELS["liveactions"]["successful_liveaction.yaml"]
+        executions_util.create_execution_object(liveaction)
+        pre_update_status = liveaction.status
+        liveaction.status = "running"
+        executions_util.update_execution(liveaction)
+        execution = self._get_action_execution(
+            liveaction__id=str(liveaction.id), raise_exception=True
+        )
+        self.assertEqual(len(execution.log), 1)
+        # Check status is not updated if it's already in completed state.
+        self.assertEqual(
+            pre_update_status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
+        self.assertEqual(execution.log[0]["status"], pre_update_status)
+
     @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())
     @mock.patch.object(
         runners_utils, "invoke_post_run", mock.MagicMock(return_value=None)

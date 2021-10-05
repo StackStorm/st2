@@ -21,7 +21,7 @@ import unittest2
 
 import yaml
 
-from yaml import SafeLoader
+from yaml import SafeLoader, FullLoader
 
 try:
     from yaml import CSafeLoader
@@ -121,8 +121,8 @@ class YamlLoaderTestCase(unittest2.TestCase):
         dumped = yaml.dump(Foo)
         self.assertTrue("!!python" in dumped)
 
-        # Regular load should work, but safe wrapper should fail
-        result = yaml.load(dumped)
+        # Regular full load should work, but safe wrapper should fail
+        result = yaml.load(dumped, Loader=FullLoader)
         self.assertTrue(result)
 
         self.assertRaisesRegexp(

@@ -86,7 +86,9 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     # parameters
     mandatory_include_fields_retrieve = [
         "action.parameters",
+        "action.output_schema",
         "runner.runner_parameters",
+        "runner.output_key",
         "parameters",
         # Attributes below are mandatory for RBAC installations
         "action.pack",
@@ -217,6 +219,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 liveaction=liveaction_db,
                 action_db=action_db,
                 runnertype_db=runnertype_db,
+                validate_params=False,
             )
 
             # By this point the execution is already in the DB therefore need to mark it failed.
@@ -276,6 +279,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         )
 
         mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+
         return [
             self.model.from_model(descendant, mask_secrets=mask_secrets)
             for descendant in descendants
@@ -309,9 +313,19 @@ class ActionExecutionChildrenController(BaseActionExecutionNestedController):
         :rtype: ``list``
         """
 
+        if not requester_user:
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
+
+        from_model_kwargs = {
+            "mask_secrets": self._get_mask_secrets(
+                requester_user, show_secrets=show_secrets
+            )
+        }
+
         execution_db = self._get_one_by_id(
             id=id,
             requester_user=requester_user,
+            from_model_kwargs=from_model_kwargs,
             permission_type=PermissionType.EXECUTION_VIEW,
         )
         id = str(execution_db.id)
@@ -468,6 +482,7 @@ class ActionExecutionOutputController(
         output_format="raw",
         existing_only=False,
         requester_user=None,
+        show_secrets=False,
     ):
         # Special case for id == "last"
         if id == "last":
@@ -478,9 +493,19 @@ class ActionExecutionOutputController(
 
             id = str(execution_db.id)
 
+        if not requester_user:
+            requester_user = UserDB(name=cfg.CONF.system_user.user)
+
+        from_model_kwargs = {
+            "mask_secrets": self._get_mask_secrets(
+                requester_user, show_secrets=show_secrets
+            )
+        }
+
         execution_db = self._get_one_by_id(
             id=id,
             requester_user=requester_user,
+            from_model_kwargs=from_model_kwargs,
             permission_type=PermissionType.EXECUTION_VIEW,
         )
         execution_id = str(execution_db.id)

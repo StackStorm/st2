@@ -26,9 +26,8 @@ StackStorm uses a three-tiered system of Maintainer roles:
   * Have full member write access to [StackStorm](https://github.com/stackstorm/) and [StackStorm-Exchange](https://github.com/stackstorm-exchange) Github organizations, CI/CD, Moderator at [forum](https://forum.stackstorm.com/), [Slack](https://stackstorm.com/community-signup) and other Community platforms.
   * Receive **one vote** in the voting process.
 
-### Maintainer responsibilities
-* In general dedicate at least 1+ full day per week (summarized) on StackStorm development.
-* Monitor Slack, Forums and other Communication channels with StackStorm Community (delayed response is perfectly acceptable).
+### Maintainer Activities
+* Monitor one or more of: Slack, Forums, and other Communication channels with StackStorm Community (delayed response is perfectly acceptable).
 * Attend the Community meetings to discuss the project plans, roadmap and commitments.
 * Triage GitHub issues and perform pull request reviews for [StackStorm](https://github.com/stackstorm/) and [StackStorm-Exchange](https://github.com/stackstorm-exchange/) Github organizations.
   The areas of specialization listed in [OWNERS.md](OWNERS.md) can be used to help with routing

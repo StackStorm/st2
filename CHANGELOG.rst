@@ -7,6 +7,88 @@ in development
 Added
 ~~~~~
 
+* Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+
+Changed
+~~~~~~~
+
+* Modified action delete API to delete action files from disk along with backward compatibility.
+
+  From CLI ``st2 action delete <pack>.<action>`` will delete only action database entry.
+  From CLI ``st2 action delete --remove-files <pack>.<action>`` or ``st2 action delete -r <pack>.<action>``
+  will delete action database entry along with files from disk.
+
+  API action DELETE method with ``{"remove_files": true}`` argument in json body will remove database
+  entry of action along with files from disk.
+  API action DELETE method with ``{"remove_files": false}`` or no additional argument in json body will remove
+  only action database entry. #5304, #5351, #5360
+
+  Contributed by @mahesh-orch.
+
+* Removed --python3 deprecated flag from st2client. #5305
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+  Contributed by @blag.
+* Fixed ``__init__.py`` files to use double quotes to better align with black linting #5299
+
+  Contributed by @blag.
+
+* Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
+
+  Contributed by @ericreeves.
+
+* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `ping` #5302, #5341
+
+  Contributed by @lukepatrick
+
+* Actionrunner worker shutdown should stop Kombu consumer thread. #5338
+
+  Contributed by @khushboobhatia01
+
+* Move to using Jinja sandboxed environment #5359
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Pinned python module `networkx` to versions between 2.5.1(included) and 2.6(excluded) because Python v3.6 support was dropped in v2.6.
+  Also pinned `decorator==4.4.2` (dependency of `networkx<2.6`) to work around missing python 3.8 classifiers on `decorator`'s wheel. #5376
+
+  Contributed by @nzlosh
+
+* Add new ``--enable-profiler`` flag to all the servies. This flag enables cProfiler based profiler
+  for the service in question and  dumps the profiling data to a file on process
+  exit.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when profiling code. #5199
+
+  Contributed by @Kami.
+
+* Add new ``--enable-eventlet-blocking-detection`` flag to all the servies. This flag enables
+  eventlet long operation / blocked main loop logic which throws an exception if a particular
+  code blocks longer than a specific duration in seconds.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when debugging code. #5199
+
+Fixed
+~~~~~
+
+* Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
+  Contributed by @amanda11, Ammeon Solutions
+
+* Make ``update_executions()`` atomic by protecting the update with a coordination lock. Actions, like workflows, may have multiple
+  concurrent updates to their execution state. This makes those updates safer, which should make the execution status more reliable. #5358
+
+  Contributed by @khushboobhatia01
+
+
+3.5.0 - June 23, 2021
+---------------------
+
+Added
+~~~~~
+
 * Added web header settings for additional security hardening to nginx.conf: X-Frame-Options,
   Strict-Transport-Security, X-XSS-Protection and server-tokens. #5183
 
@@ -49,6 +131,40 @@ Added
 
   Contributed by @cognifloyd.
 
+* Add new ``database.compressors`` and ``database.zlib_compression_level`` config option which
+  specifies compression algorithms client supports for network / transport level compression
+  when talking to MongoDB.
+
+  Actual compression algorithm used will be then decided by the server and depends on the
+  algorithms which are supported by the server + client.
+
+  Possible / valid values include: zstd, zlib. Keep in mind that zstandard (zstd) is only supported
+  by MongoDB >= 4.2.
+
+  Our official Debian and RPM packages bundle ``zstandard`` dependency by default which means
+  setting this value to ``zstd`` should work out of the box as long as the server runs
+  MongoDB >= 4.2. #5177
+
+  Contributed by @Kami.
+
+* Add support for compressing the payloads which are sent over the message bus. Compression is
+  disabled by default and user can enable it by setting ``messaging.compression`` config option
+  to one of the following values: ``zstd``, ``lzma``, ``bz2``, ``gzip``.
+
+  In most cases we recommend using ``zstd`` (zstandard) since it offers best trade off between
+  compression ratio and number of CPU cycles spent for compression and compression.
+
+  How this will affect the deployment and throughput is very much user specific (workflow and
+  resources available). It may make sense to enable it when generic action trigger is enabled
+  and when working with executions with large textual results. #5241
+
+  Contributed by @Kami.
+
+* Mask secrets in output of an action execution in the API if the action has an output schema
+  defined and one or more output parameters are marked as secret. #5250
+
+  Contributed by @mahesh-orch.
+
 Changed
 ~~~~~~~
 
@@ -58,8 +174,11 @@ Changed
   Contributed by @Kami.
 
 * Default nginx config (``conf/nginx/st2.conf``) which is used by the installer and Docker
-  images has been updated to only support TLS v1.2 (support for TLS v1.0 and v1.1 has been
-  removed). #5183
+  images has been updated to only support TLS v1.2 and TLS v1.3 (support for TLS v1.0 and v1.1
+  has been removed).
+
+  Keep in mind that TLS v1.3 will only be used when nginx is running on more recent distros
+  where nginx is compiled against OpenSSL v1.1.1 which supports TLS 1.3. #5183 #5216
 
   Contributed by @Kami and @shital.
 
@@ -138,7 +257,11 @@ Changed
   triggers with larger payloads.
 
   This should address a long standing issue where StackStorm was reported to be slow and CPU
-  inefficient with handling large executions. (improvement) #4846
+  inefficient with handling large executions.
+
+  If you want to migrate existing database objects to utilize the new type, you can use
+  ``st2common/bin/migrations/v3.5/st2-migrate-db-dict-field-values`` migration
+  script. (improvement) #4846
 
   Contributed by @Kami.
 
@@ -167,9 +290,16 @@ Changed
 
 * Update various dependencies to latest stable versions (``bcrypt``, ``appscheduler``, ``pytz``,
   ``python-dateutil``, ``psutil``, ``passlib``, ``gunicorn``, ``flex``, ``cryptography``.
-  ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``). #5215
+  ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``,
+  ``pyyaml``, ``kombu``, ``amqp``, ``python-ldap``).
+
+  #5215, https://github.com/StackStorm/st2-auth-ldap/pull/94
 
   Contributed by @Kami.
+
+* Update code and dependencies so it supports Python 3.8 and Mongo DB 4.4 #5177
+
+  Contributed by @nzloshm @winem @Kami.
 
 * StackStorm Web UI (``st2web``) has been updated to not render and display execution results
   larger than 200 KB directly in the history panel in the right side bar by default anymore.
@@ -187,6 +317,33 @@ Changed
   https://github.com/StackStorm/st2web/pull/868
 
   Contributed by @Kami.
+
+* Some of the config option registration code has been refactored to ignore "option already
+  registered" errors. That was done as a work around for an occasional race in the tests and
+  also to make all of the config option registration code expose the same consistent API. #5234
+
+  Contributed by @Kami.
+
+* Update ``pyywinrm`` dependency to the latest stable version (0.4.1). #5212
+
+  Contributed by @chadpatt .
+
+* Monkey patch on st2stream earlier in flow #5240
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Support % in CLI arguments by reading the ConfigParser() arguments with raw=True.
+
+  This removes support for '%' interpolations on the configuration arguments.
+
+  See https://docs.python.org/3.8/library/configparser.html#configparser.ConfigParser.get for
+  further details. #5253
+
+  Contributed by @winem.
+
+* Remove duplicate host header in the nginx config for the auth endpoint.
+
+* Update orquesta to v1.4.0.
 
 Improvements
 ~~~~~~~~~~~~
@@ -247,6 +404,22 @@ Improvements
 
   Contributed by @cognifloyd.
 
+* Update majority of the "resource get" CLI commands (e.g. ``st2 execution get``,
+  ``st2 action get``, ``st2 rule get``, ``st2 pack get``, ``st2 apikey get``, ``st2 trace get``,
+  ``st2 key get``, ``st2 webhook get``, ``st2  timer get``, etc.) so they allow for retrieval
+  and printing of information for multiple resources using the following notation:
+  ``st2 <resource> get <id 1> <id 2> <id n>``, e.g. ``st2 action.get pack.show packs.get
+  packs.delete``
+
+  This change is fully backward compatible when retrieving only a single resource (aka single
+  id is passed to the command).
+
+  When retrieving a single source the command will throw and exit with non-zero if a resource is
+  not found, but when retrieving multiple resources, command will just print an error and
+  continue with printing the details of any other found resources. (new feature) #4912
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 
@@ -286,6 +459,14 @@ Fixed
   laying around in some command timeout scenarios. #5220
 
   Contributed by @r0m4n-z.
+
+* Fix support for skipping notifications for workflow actions. Previously if action metadata
+  specified an empty list for ``notify`` parameter value, that would be ignored / not handled
+  correctly for workflow (orquesta, action chain) actions. #5221 #5227
+
+  Contributed by @khushboobhatia01.
+
+* Clean up to remove unused methods in the action execution concurrency policies. #5268
 
 3.4.1 - March 14, 2021
 ----------------------

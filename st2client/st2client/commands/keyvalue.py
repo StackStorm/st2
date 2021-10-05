@@ -208,12 +208,16 @@ class KeyValuePairGetCommand(resource.ResourceGetCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        resource_name = getattr(args, self.pk_argument_name, None)
         decrypt = getattr(args, "decrypt", False)
         scope = getattr(args, "scope", DEFAULT_GET_SCOPE)
         kwargs["params"] = {"decrypt": str(decrypt).lower()}
         kwargs["params"]["scope"] = scope
-        return self.get_resource_by_id(id=resource_name, **kwargs)
+
+        resource_ids = getattr(args, self.pk_argument_name, None)
+        resources = self._get_multiple_resources(
+            resource_ids=resource_ids, kwargs=kwargs
+        )
+        return resources
 
 
 class KeyValuePairSetCommand(resource.ResourceCommand):
@@ -252,7 +256,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument(
             "name", metavar="name", help="Name of the key value pair."
         )
-        self.parser.add_argument("value", help="Value paired with the key.")
+        self.parser.add_argument("value", help="Value paired with the key.", nargs="?")
         self.parser.add_argument(
             "-l",
             "--ttl",
@@ -281,9 +285,13 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         instance = KeyValuePair()
         instance.id = args.name  # TODO: refactor and get rid of id
         instance.name = args.name
-        instance.value = args.value
         instance.scope = args.scope
         instance.user = args.user
+
+        if not args.value:
+            instance.value = input("Please insert value for key: ")
+        else:
+            instance.value = args.value
 
         if args.secret:
             instance.secret = args.secret

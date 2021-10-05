@@ -94,7 +94,7 @@ def get_key(key=None, user_db=None, scope=None, decrypt=False):
 
     if not user_db:
         # Use system user
-        user_db = UserDB(cfg.CONF.system_user.user)
+        user_db = UserDB(name=cfg.CONF.system_user.user)
 
     scope, key_id = _derive_scope_and_key(key=key, user=user_db.name, scope=scope)
     scope = get_datastore_full_scope(scope)

@@ -841,7 +841,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         argv = ["action", "get", "examples.test_rule_utf8_náme"]
         args = shell.parser.parse_args(args=argv)
         shell.get_client(args=args)
-        self.assertEqual(args.ref_or_id, "examples.test_rule_utf8_náme")
+        self.assertEqual(args.ref_or_id, ["examples.test_rule_utf8_náme"])
 
     def test_reencode_list_replace_surrogate_escape(self):
         value = ["a", "b", "c", "d"]

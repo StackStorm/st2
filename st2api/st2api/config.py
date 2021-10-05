@@ -39,20 +39,20 @@ def parse_args(args=None):
     )
 
 
-def register_opts():
-    _register_common_opts()
-    _register_app_opts()
+def register_opts(ignore_errors=False):
+    _register_common_opts(ignore_errors=ignore_errors)
+    _register_app_opts(ignore_errors=ignore_errors)
 
 
-def _register_common_opts():
-    common_config.register_opts()
+def _register_common_opts(ignore_errors=False):
+    common_config.register_opts(ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
     return cfg.CONF.api.logging
 
 
-def _register_app_opts():
+def _register_app_opts(ignore_errors=False):
     # Note "host", "port", "allow_origin", "mask_secrets" options are registered as part of
     # st2common config since they are also used outside st2api
     static_root = os.path.join(cfg.CONF.system.base_path, "static")
@@ -72,7 +72,9 @@ def _register_app_opts():
         cfg.DictOpt("errors", default={"__force_dict__": True}),
     ]
 
-    CONF.register_opts(pecan_opts, group="api_pecan")
+    common_config.do_register_opts(
+        pecan_opts, group="api_pecan", ignore_errors=ignore_errors
+    )
 
     logging_opts = [
         cfg.BoolOpt("debug", default=False),
@@ -89,4 +91,6 @@ def _register_app_opts():
         ),
     ]
 
-    CONF.register_opts(logging_opts, group="api")
+    common_config.do_register_opts(
+        logging_opts, group="api", ignore_errors=ignore_errors
+    )

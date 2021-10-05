@@ -26,6 +26,7 @@ import locale
 import logging as stdlib_logging
 
 import six
+import eventlet.debug
 from oslo_config import cfg
 from tooz.coordination import GroupAlreadyExist
 
@@ -45,6 +46,7 @@ from st2common.services import coordination
 from st2common.logging.misc import add_global_filters_for_all_loggers
 from st2common.constants.error_messages import PYTHON2_DEPRECATION
 from st2common.services.coordination import get_driver_name
+from st2common.util.profiler import setup_eventlet_profiler
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
@@ -121,6 +123,9 @@ def setup(
     else:
         config.parse_args()
 
+    if cfg.CONF.enable_profiler:
+        setup_eventlet_profiler(service_name="st2" + service)
+
     version = "%s.%s.%s" % (
         sys.version_info[0],
         sys.version_info[1],
@@ -136,6 +141,7 @@ def setup(
     lang_env = os.environ.get("LANG", "unknown")
     lang_env = os.environ.get("LANG", "notset")
     pythonioencoding_env = os.environ.get("PYTHONIOENCODING", "notset")
+
     try:
         language_code, encoding = locale.getdefaultlocale()
 
@@ -145,6 +151,7 @@ def setup(
             used_locale = "unable to retrieve locale"
     except Exception as e:
         used_locale = "unable to retrieve locale: %s " % (str(e))
+        encoding = "unknown"
 
     LOG.info("Using Python: %s (%s)" % (version, sys.executable))
     LOG.info(
@@ -270,6 +277,17 @@ def setup(
 
     if sys.version_info[0] == 2:
         LOG.warning(PYTHON2_DEPRECATION)
+
+    # NOTE: This must be called here at the end of the setup phase since some of the setup code and
+    # modules like jinja, stevedore, etc load files from disk on init which is slow and will be
+    # detected as blocking operation, but this is not really an issue inside the service startup /
+    # init phase.
+    if cfg.CONF.enable_eventlet_blocking_detection:
+        print("Eventlet long running / blocking operation detection logic enabled")
+        print(cfg.CONF.eventlet_blocking_detection_resolution)
+        eventlet.debug.hub_blocking_detection(
+            state=True, resolution=cfg.CONF.eventlet_blocking_detection_resolution
+        )
 
 
 def teardown():

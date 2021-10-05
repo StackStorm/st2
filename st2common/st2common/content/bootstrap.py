@@ -437,6 +437,7 @@ def setup(argv):
         setup_db=True,
         register_mq_exchanges=True,
         register_internal_trigger_types=True,
+        ignore_register_config_opts_errors=True,
     )
 
 

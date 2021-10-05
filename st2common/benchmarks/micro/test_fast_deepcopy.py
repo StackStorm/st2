@@ -1,5 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
-# Copyright 2019 Extreme Networks, Inc.
+# Copyright 2021 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +20,10 @@ different underlying implementations (copy.deepcopy, ujson, orjson).
 # TODO: Also use actual orquesta context and execution fixture files which contain real life data
 # with large text strings, different value types, etc.
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import os
 import copy
 import random
@@ -31,8 +34,7 @@ import pytest
 import ujson
 import orjson
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FIXTURES_DIR = os.path.abspath(os.path.join(BASE_DIR, "../fixtures/json"))
+from common import FIXTURES_DIR
 
 
 def generate_random_dict(keys_count=10, depth=1):
@@ -103,7 +105,7 @@ def test_fast_deepcopy_with_dict_values(
         else:
             raise ValueError("Invalid implementation: %s" % (implementation))
 
-    result = benchmark.pedantic(run_benchmark, iterations=50, rounds=50)
+    result = benchmark(run_benchmark)
     assert result == data, "Output is not the same as the input"
 
 
@@ -148,5 +150,5 @@ def test_fast_deepcopy_with_json_fixture_file(benchmark, fixture_file, implement
         else:
             raise ValueError("Invalid implementation: %s" % (implementation))
 
-    result = benchmark.pedantic(run_benchmark, iterations=5, rounds=5)
+    result = benchmark(run_benchmark)
     assert result == data, "Output is not the same as the input"
