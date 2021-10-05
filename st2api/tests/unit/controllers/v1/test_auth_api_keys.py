@@ -34,7 +34,7 @@ TEST_MODELS = {
     ]
 }
 
-# Hardcoded keys matching the fixtures. Lazy way to workound one-way hash and still use fixtures.
+# Hardcoded keys matching the fixtures. Lazy way to workaround one-way hash and still use fixtures.
 KEY1_KEY = "1234"
 KEY2_KEY = "5678"
 KEY3_KEY = "9012"

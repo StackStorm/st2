@@ -119,7 +119,7 @@ FIXTURES_PACK = "generic"
 
 TEST_MODELS = {"apikeys": ["apikey1.yaml", "apikey_disabled.yaml"]}
 
-# Hardcoded keys matching the fixtures. Lazy way to workound one-way hash and still use fixtures.
+# Hardcoded keys matching the fixtures. Lazy way to workaround one-way hash and still use fixtures.
 KEY1_KEY = "1234"
 DISABLED_KEY = "0000"
 
