@@ -197,7 +197,6 @@ class ResourceCommand(commands.Command):
         try:
             instance = self.manager.get_by_id(pk, **kwargs)
         except Exception as e:
-            # traceback.print_exc()
             # Hack for "Unauthorized" exceptions, we do want to propagate those
             response = getattr(e, "response", None)
             status_code = getattr(response, "status_code", None)
