@@ -28,11 +28,11 @@ from st2common.util import date as date_utils
 from st2common.util import hash as hash_utils
 
 __all__ = [
-    'validate_token',
-    'validate_token_and_source',
-    'generate_api_key',
-    'validate_api_key',
-    'validate_api_key_and_source'
+    "validate_token",
+    "validate_token_and_source",
+    "generate_api_key",
+    "validate_api_key",
+    "validate_api_key_and_source",
 ]
 
 LOG = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ def validate_token(token_string):
     if token.expiry <= date_utils.get_datetime_utc_now():
         # TODO: purge expired tokens
         LOG.audit('Token with id "%s" has expired.' % (token.id))
-        raise exceptions.TokenExpiredError('Token has expired.')
+        raise exceptions.TokenExpiredError("Token has expired.")
 
     LOG.audit('Token with id "%s" is validated.' % (token.id))
 
@@ -74,14 +74,14 @@ def validate_token_and_source(token_in_headers, token_in_query_params):
     :rtype: :class:`.TokenDB`
     """
     if not token_in_headers and not token_in_query_params:
-        LOG.audit('Token is not found in header or query parameters.')
-        raise exceptions.TokenNotProvidedError('Token is not provided.')
+        LOG.audit("Token is not found in header or query parameters.")
+        raise exceptions.TokenNotProvidedError("Token is not provided.")
 
     if token_in_headers:
-        LOG.audit('Token provided in headers')
+        LOG.audit("Token provided in headers")
 
     if token_in_query_params:
-        LOG.audit('Token provided in query parameters')
+        LOG.audit("Token provided in query parameters")
 
     return validate_token(token_in_headers or token_in_query_params)
 
@@ -103,7 +103,8 @@ def generate_api_key():
 
     base64_encoded = base64.b64encode(
         six.b(hashed_seed),
-        six.b(random.choice(['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD']))).rstrip(b'==')
+        six.b(random.choice(["rA", "aZ", "gQ", "hH", "hG", "aR", "DD"])),
+    ).rstrip(b"==")
     base64_encoded = base64_encoded.decode()
     return base64_encoded
 
@@ -127,7 +128,7 @@ def validate_api_key(api_key):
     api_key_db = ApiKey.get(api_key)
 
     if not api_key_db.enabled:
-        raise exceptions.ApiKeyDisabledError('API key is disabled.')
+        raise exceptions.ApiKeyDisabledError("API key is disabled.")
 
     LOG.audit('API key with id "%s" is validated.' % (api_key_db.id))
 
@@ -148,13 +149,13 @@ def validate_api_key_and_source(api_key_in_headers, api_key_query_params):
     :rtype: :class:`.ApiKeyDB`
     """
     if not api_key_in_headers and not api_key_query_params:
-        LOG.audit('API key is not found in header or query parameters.')
-        raise exceptions.ApiKeyNotProvidedError('API key is not provided.')
+        LOG.audit("API key is not found in header or query parameters.")
+        raise exceptions.ApiKeyNotProvidedError("API key is not provided.")
 
     if api_key_in_headers:
-        LOG.audit('API key provided in headers')
+        LOG.audit("API key provided in headers")
 
     if api_key_query_params:
-        LOG.audit('API key provided in query parameters')
+        LOG.audit("API key provided in query parameters")
 
     return validate_api_key(api_key_in_headers or api_key_query_params)

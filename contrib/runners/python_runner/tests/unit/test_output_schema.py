@@ -33,15 +33,16 @@ import st2tests.base as tests_base
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-PASCAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
-                                      'pythonactions/actions/pascal_row.py')
+PASCAL_ROW_ACTION_PATH = os.path.join(
+    tests_base.get_resources_path(), "packs", "pythonactions/actions/pascal_row.py"
+)
 
 MOCK_SYS = mock.Mock()
 MOCK_SYS.argv = []
 MOCK_SYS.executable = sys.executable
 
 MOCK_EXECUTION = mock.Mock()
-MOCK_EXECUTION.id = '598dbf0c0640fd54bffc688b'
+MOCK_EXECUTION.id = "598dbf0c0640fd54bffc688b"
 
 FAIL_SCHEMA = {
     "notvalid": {
@@ -50,7 +51,7 @@ FAIL_SCHEMA = {
 }
 
 
-@mock.patch('python_runner.python_runner.sys', MOCK_SYS)
+@mock.patch("python_runner.python_runner.sys", MOCK_SYS)
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
     register_pack_configs = True
@@ -61,29 +62,23 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         assert_submodules_are_checked_out()
 
     def test_adherence_to_output_schema(self):
-        config = self.loader(os.path.join(BASE_DIR, '../../runner.yaml'))
+        config = self.loader(os.path.join(BASE_DIR, "../../runner.yaml"))
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.pre_run()
-        (status, output, _) = runner.run({'row_index': 5})
-        output_schema._validate_runner(
-            config[0]['output_schema'],
-            output
-        )
+        (status, output, _) = runner.run({"row_index": 5})
+        output_schema._validate_runner(config[0]["output_schema"], output)
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertIsNotNone(output)
-        self.assertEqual(output['result'], [1, 5, 10, 10, 5, 1])
+        self.assertEqual(output["result"], [1, 5, 10, 10, 5, 1])
 
     def test_fail_incorrect_output_schema(self):
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.pre_run()
-        (status, output, _) = runner.run({'row_index': 5})
+        (status, output, _) = runner.run({"row_index": 5})
         with self.assertRaises(jsonschema.ValidationError):
-            output_schema._validate_runner(
-                FAIL_SCHEMA,
-                output
-            )
+            output_schema._validate_runner(FAIL_SCHEMA, output)
 
     def _get_mock_runner_obj(self, pack=None, sandbox=None):
         runner = python_runner.get_runner()
@@ -106,10 +101,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         Pack gets set to the system pack so the action doesn't require a separate virtualenv.
         """
         action = mock.Mock()
-        action.ref = 'dummy.action'
+        action.ref = "dummy.action"
         action.pack = SYSTEM_PACK_NAME
-        action.entry_point = 'foo.py'
-        action.runner_type = {
-            'name': 'python-script'
-        }
+        action.entry_point = "foo.py"
+        action.runner_type = {"name": "python-script"}
         return action

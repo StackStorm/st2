@@ -23,6 +23,7 @@ import st2tests
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
+
 tests_config.parse_args()
 
 from orquesta_functions import st2kv
@@ -37,14 +38,13 @@ from st2common.util import crypto
 from st2common.util import keyvalue as kvp_util
 
 
-MOCK_CTX = {'__vars': {'st2': {'user': 'stanley'}}}
-MOCK_CTX_NO_USER = {'__vars': {'st2': {}}}
+MOCK_CTX = {"__vars": {"st2": {"user": "stanley"}}}
+MOCK_CTX_NO_USER = {"__vars": {"st2": {}}}
 
 
 class DatastoreFunctionTest(unittest2.TestCase):
-
     def test_missing_user_context(self):
-        self.assertRaises(KeyError, st2kv.st2kv_, MOCK_CTX_NO_USER, 'foo')
+        self.assertRaises(KeyError, st2kv.st2kv_, MOCK_CTX_NO_USER, "foo")
 
     def test_invalid_input(self):
         self.assertRaises(TypeError, st2kv.st2kv_, None, 123)
@@ -55,35 +55,29 @@ class DatastoreFunctionTest(unittest2.TestCase):
 
 
 class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(UserScopeDatastoreFunctionTest, cls).setUpClass()
-        user = auth_db.UserDB(name='stanley')
+        user = auth_db.UserDB(name="stanley")
         user.save()
         scope = kvp_const.FULL_USER_SCOPE
         cls.kvps = {}
 
         # Plain keys
-        keys = {
-            'stanley:foo': 'bar',
-            'stanley:foo_empty': '',
-            'stanley:foo_null': None
-        }
+        keys = {"stanley:foo": "bar", "stanley:foo_empty": "", "stanley:foo_null": None}
 
         for k, v in six.iteritems(keys):
             instance = kvp_db.KeyValuePairDB(name=k, value=v, scope=scope)
             cls.kvps[k] = kvp_db_access.KeyValuePair.add_or_update(instance)
 
         # Secret key
-        keys = {
-            'stanley:fu': 'bar',
-            'stanley:fu_empty': ''
-        }
+        keys = {"stanley:fu": "bar", "stanley:fu_empty": ""}
 
         for k, v in six.iteritems(keys):
             value = crypto.symmetric_encrypt(kvp_api.KeyValuePairAPI.crypto_key, v)
-            instance = kvp_db.KeyValuePairDB(name=k, value=value, scope=scope, secret=True)
+            instance = kvp_db.KeyValuePairDB(
+                name=k, value=value, scope=scope, secret=True
+            )
             cls.kvps[k] = kvp_db_access.KeyValuePair.add_or_update(instance)
 
     @classmethod
@@ -94,9 +88,9 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         super(UserScopeDatastoreFunctionTest, cls).tearDownClass()
 
     def test_key_exists(self):
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'foo'), 'bar')
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'foo_empty'), '')
-        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, 'foo_null'))
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, "foo"), "bar")
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, "foo_empty"), "")
+        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, "foo_null"))
 
     def test_key_does_not_exist(self):
         self.assertRaisesRegexp(
@@ -104,65 +98,61 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
             'The key ".*" does not exist in the StackStorm datastore.',
             st2kv.st2kv_,
             MOCK_CTX,
-            'foobar'
+            "foobar",
         )
 
     def test_key_does_not_exist_but_return_default(self):
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'foobar', default='foosball'), 'foosball')
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'foobar', default=''), '')
-        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, 'foobar', default=None))
+        self.assertEqual(
+            st2kv.st2kv_(MOCK_CTX, "foobar", default="foosball"), "foosball"
+        )
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, "foobar", default=""), "")
+        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, "foobar", default=None))
 
     def test_key_decrypt(self):
-        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu'), 'bar')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu', decrypt=False), 'bar')
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'fu', decrypt=True), 'bar')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu_empty'), '')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'fu_empty', decrypt=False), '')
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'fu_empty', decrypt=True), '')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, "fu"), "bar")
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, "fu", decrypt=False), "bar")
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, "fu", decrypt=True), "bar")
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, "fu_empty"), "")
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, "fu_empty", decrypt=False), "")
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, "fu_empty", decrypt=True), "")
 
     @mock.patch.object(
-        kvp_util, 'get_key',
-        mock.MagicMock(side_effect=Exception('Mock failure.')))
+        kvp_util, "get_key", mock.MagicMock(side_effect=Exception("Mock failure."))
+    )
     def test_get_key_exception(self):
         self.assertRaisesRegexp(
             exc.ExpressionEvaluationException,
-            'Mock failure.',
+            "Mock failure.",
             st2kv.st2kv_,
             MOCK_CTX,
-            'foo'
+            "foo",
         )
 
 
 class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         super(SystemScopeDatastoreFunctionTest, cls).setUpClass()
-        user = auth_db.UserDB(name='stanley')
+        user = auth_db.UserDB(name="stanley")
         user.save()
         scope = kvp_const.FULL_SYSTEM_SCOPE
         cls.kvps = {}
 
         # Plain key
-        keys = {
-            'foo': 'bar',
-            'foo_empty': '',
-            'foo_null': None
-        }
+        keys = {"foo": "bar", "foo_empty": "", "foo_null": None}
 
         for k, v in six.iteritems(keys):
             instance = kvp_db.KeyValuePairDB(name=k, value=v, scope=scope)
             cls.kvps[k] = kvp_db_access.KeyValuePair.add_or_update(instance)
 
         # Secret key
-        keys = {
-            'fu': 'bar',
-            'fu_empty': ''
-        }
+        keys = {"fu": "bar", "fu_empty": ""}
 
         for k, v in six.iteritems(keys):
             value = crypto.symmetric_encrypt(kvp_api.KeyValuePairAPI.crypto_key, v)
-            instance = kvp_db.KeyValuePairDB(name=k, value=value, scope=scope, secret=True)
+            instance = kvp_db.KeyValuePairDB(
+                name=k, value=value, scope=scope, secret=True
+            )
             cls.kvps[k] = kvp_db_access.KeyValuePair.add_or_update(instance)
 
     @classmethod
@@ -173,9 +163,9 @@ class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         super(SystemScopeDatastoreFunctionTest, cls).tearDownClass()
 
     def test_key_exists(self):
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.foo'), 'bar')
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.foo_empty'), '')
-        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, 'system.foo_null'))
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, "system.foo"), "bar")
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, "system.foo_empty"), "")
+        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, "system.foo_null"))
 
     def test_key_does_not_exist(self):
         self.assertRaisesRegexp(
@@ -183,30 +173,34 @@ class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
             'The key ".*" does not exist in the StackStorm datastore.',
             st2kv.st2kv_,
             MOCK_CTX,
-            'foo'
+            "foo",
         )
 
     def test_key_does_not_exist_but_return_default(self):
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.foobar', default='foosball'), 'foosball')
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.foobar', default=''), '')
-        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, 'system.foobar', default=None))
+        self.assertEqual(
+            st2kv.st2kv_(MOCK_CTX, "system.foobar", default="foosball"), "foosball"
+        )
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, "system.foobar", default=""), "")
+        self.assertIsNone(st2kv.st2kv_(MOCK_CTX, "system.foobar", default=None))
 
     def test_key_decrypt(self):
-        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu'), 'bar')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu', decrypt=False), 'bar')
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu', decrypt=True), 'bar')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu_empty'), '')
-        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu_empty', decrypt=False), '')
-        self.assertEqual(st2kv.st2kv_(MOCK_CTX, 'system.fu_empty', decrypt=True), '')
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, "system.fu"), "bar")
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, "system.fu", decrypt=False), "bar")
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, "system.fu", decrypt=True), "bar")
+        self.assertNotEqual(st2kv.st2kv_(MOCK_CTX, "system.fu_empty"), "")
+        self.assertNotEqual(
+            st2kv.st2kv_(MOCK_CTX, "system.fu_empty", decrypt=False), ""
+        )
+        self.assertEqual(st2kv.st2kv_(MOCK_CTX, "system.fu_empty", decrypt=True), "")
 
     @mock.patch.object(
-        kvp_util, 'get_key',
-        mock.MagicMock(side_effect=Exception('Mock failure.')))
+        kvp_util, "get_key", mock.MagicMock(side_effect=Exception("Mock failure."))
+    )
     def test_get_key_exception(self):
         self.assertRaisesRegexp(
             exc.ExpressionEvaluationException,
-            'Mock failure.',
+            "Mock failure.",
             st2kv.st2kv_,
             MOCK_CTX,
-            'system.foo'
+            "system.foo",
         )

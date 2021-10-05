@@ -14,11 +14,6 @@
       type: "boolean"
       default: false
       description: "Check this option if the virtual environment already exists and if you only want to perform an update and installation of new dependencies. If you don't check this option, the virtual environment will be destroyed then re-created. If you check this and the virtual environment doesn't exist, it will create it."
-    python3:
-      type: "boolean"
-      description: "Use Python 3 binary when creating a virtualenv for this pack."
-      required: false
-      default: false
     no_download:
       type: "boolean"
       description: "Use version of pip which is already on the system instead of downloading the latest version from PyPi when creating a virtual environment."
@@ -29,3 +24,8 @@
       description: "Optional environment variables"
       required: false
       default: null
+    timeout:
+      default: 600
+      required: false
+      description: Action timeout in seconds. Action will get killed if it doesn't finish in timeout
+      type: integer

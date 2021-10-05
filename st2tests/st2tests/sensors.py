@@ -18,9 +18,7 @@ from st2tests.mocks.sensor import MockSensorWrapper
 from st2tests.mocks.sensor import MockSensorService
 from st2tests.pack_resource import BasePackResourceTestCase
 
-__all__ = [
-    'BaseSensorTestCase'
-]
+__all__ = ["BaseSensorTestCase"]
 
 
 class BaseSensorTestCase(BasePackResourceTestCase):
@@ -37,22 +35,20 @@ class BaseSensorTestCase(BasePackResourceTestCase):
         super(BaseSensorTestCase, self).setUp()
 
         class_name = self.sensor_cls.__name__
-        sensor_wrapper = MockSensorWrapper(pack='tests', class_name=class_name)
+        sensor_wrapper = MockSensorWrapper(pack="tests", class_name=class_name)
         self.sensor_service = MockSensorService(sensor_wrapper=sensor_wrapper)
 
     def get_sensor_instance(self, config=None, poll_interval=None):
         """
         Retrieve instance of the sensor class.
         """
-        kwargs = {
-            'sensor_service': self.sensor_service
-        }
+        kwargs = {"sensor_service": self.sensor_service}
 
         if config:
-            kwargs['config'] = config
+            kwargs["config"] = config
 
         if poll_interval is not None:
-            kwargs['poll_interval'] = poll_interval
+            kwargs["poll_interval"] = poll_interval
 
         instance = self.sensor_cls(**kwargs)  # pylint: disable=not-callable
         return instance
@@ -79,15 +75,15 @@ class BaseSensorTestCase(BasePackResourceTestCase):
         """
         dispatched_triggers = self.get_dispatched_triggers()
         for item in dispatched_triggers:
-            trigger_matches = (item['trigger'] == trigger)
+            trigger_matches = item["trigger"] == trigger
 
             if payload:
-                payload_matches = (item['payload'] == payload)
+                payload_matches = item["payload"] == payload
             else:
                 payload_matches = True
 
             if trace_context:
-                trace_context_matches = (item['trace_context'] == trace_context)
+                trace_context_matches = item["trace_context"] == trace_context
             else:
                 trace_context_matches = True
 

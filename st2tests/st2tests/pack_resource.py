@@ -19,9 +19,7 @@ import inspect
 
 from unittest2 import TestCase
 
-__all__ = [
-    'BasePackResourceTestCase'
-]
+__all__ = ["BasePackResourceTestCase"]
 
 
 class BasePackResourceTestCase(TestCase):
@@ -39,16 +37,16 @@ class BasePackResourceTestCase(TestCase):
         :type fixture_path: ``str``
         """
         base_pack_path = self._get_base_pack_path()
-        fixtures_path = os.path.join(base_pack_path, 'tests/fixtures/')
+        fixtures_path = os.path.join(base_pack_path, "tests/fixtures/")
         fixture_path = os.path.join(fixtures_path, fixture_path)
 
-        with open(fixture_path, 'r') as fp:
+        with open(fixture_path, "r") as fp:
             content = fp.read()
 
         return content
 
     def _get_base_pack_path(self):
         test_file_path = inspect.getfile(self.__class__)
-        base_pack_path = os.path.join(os.path.dirname(test_file_path), '..')
+        base_pack_path = os.path.join(os.path.dirname(test_file_path), "..")
         base_pack_path = os.path.abspath(base_pack_path)
         return base_pack_path

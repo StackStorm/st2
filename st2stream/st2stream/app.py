@@ -34,7 +34,6 @@ from st2common.middleware.logging import LoggingMiddleware
 from st2common.middleware.instrumentation import RequestInstrumentationMiddleware
 from st2common.middleware.instrumentation import ResponseInstrumentationMiddleware
 from st2common.router import Router
-from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
@@ -43,41 +42,40 @@ LOG = logging.getLogger(__name__)
 
 
 def setup_app(config={}):
-    LOG.info('Creating st2stream: %s as OpenAPI app.', VERSION_STRING)
+    LOG.info("Creating st2stream: %s as OpenAPI app.", VERSION_STRING)
 
-    is_gunicorn = config.get('is_gunicorn', False)
+    is_gunicorn = config.get("is_gunicorn", False)
     if is_gunicorn:
-        # Note: We need to perform monkey patching in the worker. If we do it in
-        # the master process (gunicorn_config.py), it breaks tons of things
-        # including shutdown
-        monkey_patch()
 
-        st2stream_config.register_opts()
+        st2stream_config.register_opts(ignore_errors=True)
         capabilities = {
-            'name': 'stream',
-            'listen_host': cfg.CONF.stream.host,
-            'listen_port': cfg.CONF.stream.port,
-            'type': 'active'
+            "name": "stream",
+            "listen_host": cfg.CONF.stream.host,
+            "listen_port": cfg.CONF.stream.port,
+            "type": "active",
         }
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
-        common_setup(service='stream', config=st2stream_config, setup_db=True,
-                     register_mq_exchanges=True,
-                     register_signal_handlers=True,
-                     register_internal_trigger_types=False,
-                     run_migrations=False,
-                     service_registry=True,
-                     capabilities=capabilities,
-                     config_args=config.get('config_args', None))
+        common_setup(
+            service="stream",
+            config=st2stream_config,
+            setup_db=True,
+            register_mq_exchanges=True,
+            register_signal_handlers=True,
+            register_internal_trigger_types=False,
+            run_migrations=False,
+            service_registry=True,
+            capabilities=capabilities,
+            config_args=config.get("config_args", None),
+        )
 
-    router = Router(debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable,
-                    is_gunicorn=is_gunicorn)
+    router = Router(
+        debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable, is_gunicorn=is_gunicorn
+    )
 
-    spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
-    transforms = {
-        '^/stream/v1/': ['/', '/v1/']
-    }
+    spec = spec_loader.load_spec("st2common", "openapi.yaml.j2")
+    transforms = {"^/stream/v1/": ["/", "/v1/"]}
     router.add_spec(spec, transforms=transforms)
 
     app = router.as_wsgi
@@ -87,8 +85,8 @@ def setup_app(config={}):
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)
-    app = ResponseInstrumentationMiddleware(app, router, service_name='stream')
+    app = ResponseInstrumentationMiddleware(app, router, service_name="stream")
     app = RequestIDMiddleware(app)
-    app = RequestInstrumentationMiddleware(app, router, service_name='stream')
+    app = RequestInstrumentationMiddleware(app, router, service_name="stream")
 
     return app

@@ -20,11 +20,10 @@ from st2common.metrics.base import CounterWithTimer
 from st2common.metrics.base import get_driver
 from st2common.util.date import get_datetime_utc_now
 from st2common.router import NotFoundException
+from st2common.router import Response
+from st2common.util.jsonify import json_encode
 
-__all__ = [
-    'RequestInstrumentationMiddleware',
-    'ResponseInstrumentationMiddleware'
-]
+__all__ = ["RequestInstrumentationMiddleware", "ResponseInstrumentationMiddleware"]
 
 LOG = logging.getLogger(__name__)
 
@@ -50,14 +49,25 @@ class RequestInstrumentationMiddleware(object):
             endpoint, _ = self.router.match(request)
         except NotFoundException:
             endpoint = {}
+        except Exception as e:
+            # Special case to make sure we return friendly error to the user.
+            # If we don't do that and router.match() throws an exception, we will return stack trace
+            # to the end user which is not good.
+            status_code = getattr(e, "status_code", 500)
+            headers = {"Content-Type": "application/json"}
+            body = {"faultstring": getattr(e, "detail", str(e))}
+            response_body = json_encode(body)
+            resp = Response(response_body, status=status_code, headers=headers)
+            return resp(environ, start_response)
 
         # NOTE: We don't track per request and response metrics for /v1/executions/<id> and some
         # other endpoints because this would result in a lot of unique metrics which is an
         # anti-pattern and causes unnecessary load on the metrics server.
-        submit_metrics = endpoint.get('x-submit-metrics', True)
-        operation_id = endpoint.get('operationId', None)
-        is_get_one_endpoint = bool(operation_id) and (operation_id.endswith('.get') or
-                                                      operation_id.endswith('.get_one'))
+        submit_metrics = endpoint.get("x-submit-metrics", True)
+        operation_id = endpoint.get("operationId", None)
+        is_get_one_endpoint = bool(operation_id) and (
+            operation_id.endswith(".get") or operation_id.endswith(".get_one")
+        )
 
         if is_get_one_endpoint:
             # NOTE: We don't submit metrics for any get one API endpoint since this would result
@@ -65,22 +75,22 @@ class RequestInstrumentationMiddleware(object):
             submit_metrics = False
 
         if not submit_metrics:
-            LOG.debug('Not submitting request metrics for path: %s' % (request.path))
+            LOG.debug("Not submitting request metrics for path: %s" % (request.path))
             return self.app(environ, start_response)
 
         metrics_driver = get_driver()
 
-        key = '%s.request.total' % (self._service_name)
+        key = "%s.request.total" % (self._service_name)
         metrics_driver.inc_counter(key)
 
-        key = '%s.request.method.%s' % (self._service_name, request.method)
+        key = "%s.request.method.%s" % (self._service_name, request.method)
         metrics_driver.inc_counter(key)
 
-        path = request.path.replace('/', '_')
-        key = '%s.request.path.%s' % (self._service_name, path)
+        path = request.path.replace("/", "_")
+        key = "%s.request.path.%s" % (self._service_name, path)
         metrics_driver.inc_counter(key)
 
-        if self._service_name == 'stream':
+        if self._service_name == "stream":
             # For stream service, we also record current number of open connections.
             # Due to the way stream service works, we need to utilize eventlet posthook to
             # correctly set the counter when the connection is closed / full response is returned.
@@ -88,34 +98,34 @@ class RequestInstrumentationMiddleware(object):
             # hooks for details
 
             # Increase request counter
-            key = '%s.request' % (self._service_name)
+            key = "%s.request" % (self._service_name)
             metrics_driver.inc_counter(key)
 
             # Increase "total number of connections" gauge
-            metrics_driver.inc_gauge('stream.connections', 1)
+            metrics_driver.inc_gauge("stream.connections", 1)
 
             start_time = get_datetime_utc_now()
 
             def update_metrics_hook(env):
                 # Hook which is called at the very end after all the response has been sent and
                 # connection closed
-                time_delta = (get_datetime_utc_now() - start_time)
+                time_delta = get_datetime_utc_now() - start_time
                 duration = time_delta.total_seconds()
 
                 # Send total request time
                 metrics_driver.time(key, duration)
 
                 # Decrease "current number of connections" gauge
-                metrics_driver.dec_gauge('stream.connections', 1)
+                metrics_driver.dec_gauge("stream.connections", 1)
 
             # NOTE: Some tests mock environ and there 'eventlet.posthooks' key is not available
-            if 'eventlet.posthooks' in environ:
-                environ['eventlet.posthooks'].append((update_metrics_hook, (), {}))
+            if "eventlet.posthooks" in environ:
+                environ["eventlet.posthooks"].append((update_metrics_hook, (), {}))
 
             return self.app(environ, start_response)
         else:
             # Track and time current number of processing requests
-            key = '%s.request' % (self._service_name)
+            key = "%s.request" % (self._service_name)
 
             with CounterWithTimer(key=key):
                 return self.app(environ, start_response)
@@ -138,11 +148,12 @@ class ResponseInstrumentationMiddleware(object):
     def __call__(self, environ, start_response):
         # Track and time current number of processing requests
         def custom_start_response(status, headers, exc_info=None):
-            status_code = int(status.split(' ')[0])
+            status_code = int(status.split(" ")[0])
 
             metrics_driver = get_driver()
-            metrics_driver.inc_counter('%s.response.status.%s' % (self._service_name,
-                                                                  status_code))
+            metrics_driver.inc_counter(
+                "%s.response.status.%s" % (self._service_name, status_code)
+            )
 
             return start_response(status, headers, exc_info)
 

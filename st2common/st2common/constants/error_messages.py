@@ -13,22 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'PACK_VIRTUALENV_DOESNT_EXIST',
-    'PACK_VIRTUALENV_USES_PYTHON3'
-]
+__all__ = ["PACK_VIRTUALENV_DOESNT_EXIST", "PYTHON2_DEPRECATION"]
 
-PACK_VIRTUALENV_DOESNT_EXIST = '''
+PACK_VIRTUALENV_DOESNT_EXIST = """
 The virtual environment (%(virtualenv_path)s) for pack "%(pack)s" does not exist. Normally this is
 created when you install a pack using "st2 pack install". If you installed your pack by some other
 means, you can create a new virtual environment using the command:
 "st2 run packs.setup_virtualenv packs=%(pack)s"
-'''
+"""
 
-PACK_VIRTUALENV_USES_PYTHON3 = '''
-Virtual environment (%(virtualenv_path)s) for pack "%(pack)s" is using Python 3.
-Using Python 3 virtual environments in mixed deployments is only supported for Python runner
-actions and not sensors. If you want to run this sensor, please re-recreate the
-virtual environment with python2 binary:
-"st2 run packs.setup_virtualenv packs=%(pack)s python3=false"
-'''
+PYTHON2_DEPRECATION = (
+    "DEPRECATION WARNING. Support for python 2 will be removed in future "
+    "StackStorm releases. Please ensure that all packs used are python "
+    "3 compatible. Your StackStorm installation may be upgraded from "
+    "python 2 to python 3 in future platform releases. It is recommended "
+    "to plan the manual migration to a python 3 native platform, e.g. "
+    "Ubuntu 18.04 LTS or CentOS/RHEL 8."
+)

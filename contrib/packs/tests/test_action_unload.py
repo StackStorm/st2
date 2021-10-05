@@ -20,6 +20,7 @@ import os
 from oslo_config import cfg
 
 from st2common.util.monkey_patch import use_select_poll_workaround
+
 use_select_poll_workaround()
 
 from st2common.content.bootstrap import register_content
@@ -39,11 +40,11 @@ from st2tests import fixturesloader
 
 from pack_mgmt.unload import UnregisterPackAction
 
-__all__ = [
-    'UnloadActionTestCase'
-]
+__all__ = ["UnloadActionTestCase"]
 
-PACK_PATH_1 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_1')
+PACK_PATH_1 = os.path.join(
+    fixturesloader.get_fixtures_packs_base_path(), "dummy_pack_1"
+)
 
 
 class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
@@ -64,13 +65,15 @@ class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
 
         # Register the pack with all the content
         # TODO: Don't use pack cache
-        cfg.CONF.set_override(name='all', override=True, group='register')
-        cfg.CONF.set_override(name='pack', override=PACK_PATH_1, group='register')
-        cfg.CONF.set_override(name='no_fail_on_failure', override=True, group='register')
+        cfg.CONF.set_override(name="all", override=True, group="register")
+        cfg.CONF.set_override(name="pack", override=PACK_PATH_1, group="register")
+        cfg.CONF.set_override(
+            name="no_fail_on_failure", override=True, group="register"
+        )
         register_content()
 
     def test_run(self):
-        pack = 'dummy_pack_1'
+        pack = "dummy_pack_1"
         # Verify all the resources are there
 
         pack_dbs = Pack.query(ref=pack)

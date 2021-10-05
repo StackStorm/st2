@@ -24,9 +24,9 @@ def unescape(s):
     This function unescapes those chars.
     """
     if isinstance(s, six.string_types):
-        s = s.replace('\\n', '\n')
-        s = s.replace('\\r', '\r')
-        s = s.replace('\\"', '\"')
+        s = s.replace("\\n", "\n")
+        s = s.replace("\\r", "\r")
+        s = s.replace('\\"', '"')
 
     return s
 
@@ -39,14 +39,14 @@ def dedupe_newlines(s):
     """
 
     if isinstance(s, six.string_types):
-        s = s.replace('\n\n', '\n')
+        s = s.replace("\n\n", "\n")
 
     return s
 
 
 def strip_carriage_returns(s):
     if isinstance(s, six.string_types):
-        s = s.replace('\\r', '')
-        s = s.replace('\r', '')
+        s = s.replace("\\r", "")
+        s = s.replace("\r", "")
 
     return s

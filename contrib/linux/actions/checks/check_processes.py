@@ -19,6 +19,10 @@ import os
 import sys
 import re
 import json
+import logging
+
+
+LOG = logging.getLogger(__name__)
 
 
 class CheckProcs(object):
@@ -41,8 +45,11 @@ class CheckProcs(object):
         if debug is True:
             print("Debug is on")
 
-        self.allProcs = [procs for procs in os.listdir(self.procDir) if procs.isdigit() and
-                         int(procs) != int(self.myPid)]
+        self.allProcs = [
+            procs
+            for procs in os.listdir(self.procDir)
+            if procs.isdigit() and int(procs) != int(self.myPid)
+        ]
 
     def process(self, criteria):
         for p in self.allProcs:
@@ -52,43 +59,44 @@ class CheckProcs(object):
                 cmdfh = open(self.procDir + "/" + p + "/cmdline")
                 cmd = cmdfh.readline()
                 pInfo[1] = cmd
-            except:
+            except Exception:
+                LOG.exception("Error: can't find file or read data.")
                 continue
             finally:
                 cmdfh.close()
                 fh.close()
 
-            if criteria == 'state':
+            if criteria == "state":
                 if pInfo[2] == self.state:
                     self.interestingProcs.append(pInfo)
-            elif criteria == 'name':
+            elif criteria == "name":
                 if re.search(self.name, pInfo[1]):
                     self.interestingProcs.append(pInfo)
-            elif criteria == 'pid':
+            elif criteria == "pid":
                 if pInfo[0] == self.pid:
                     self.interestingProcs.append(pInfo)
 
     def byState(self, state):
         self.state = state
-        self.process(criteria='state')
+        self.process(criteria="state")
         self.show()
 
     def byPid(self, pid):
         self.pid = pid
-        self.process(criteria='pid')
+        self.process(criteria="pid")
         self.show()
 
     def byName(self, name):
         self.name = name
-        self.process(criteria='name')
+        self.process(criteria="name")
         self.show()
 
     def run(self, foo, criteria):
-        if foo == 'state':
+        if foo == "state":
             self.byState(criteria)
-        elif foo == 'name':
+        elif foo == "name":
             self.byName(criteria)
-        elif foo == 'pid':
+        elif foo == "pid":
             self.byPid(criteria)
 
     def show(self):
@@ -99,13 +107,13 @@ class CheckProcs(object):
                 prettyOut[proc[0]] = proc[1]
 
         if self.pidlist is True:
-            pidlist = ' '.join(prettyOut.keys())
+            pidlist = " ".join(prettyOut.keys())
             sys.stderr.write(pidlist)
 
         print(json.dumps(prettyOut))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if "pidlist" in sys.argv:
         pidlist = True
     else:

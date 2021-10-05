@@ -28,25 +28,24 @@ from st2common.util.secrets import mask_secret_parameters
 class RuleTypeDB(stormbase.StormBaseDB):
     enabled = me.BooleanField(
         default=True,
-        help_text='A flag indicating whether the runner for this type is enabled.')
+        help_text="A flag indicating whether the runner for this type is enabled.",
+    )
     parameters = me.DictField(
-        help_text='The specification for parameters for the action.',
-        default={})
+        help_text="The specification for parameters for the action.", default={}
+    )
 
 
 class RuleTypeSpecDB(me.EmbeddedDocument):
-    ref = me.StringField(unique=False,
-                         help_text='Type of rule.',
-                         default='standard')
+    ref = me.StringField(unique=False, help_text="Type of rule.", default="standard")
     parameters = me.DictField(default={})
 
     def __str__(self):
         result = []
-        result.append('RuleTypeSpecDB@')
+        result.append("RuleTypeSpecDB@")
         result.append(str(id(self)))
         result.append('(ref="%s", ' % self.ref)
         result.append('parameters="%s")' % self.parameters)
-        return ''.join(result)
+        return "".join(result)
 
 
 class ActionExecutionSpecDB(me.EmbeddedDocument):
@@ -55,15 +54,19 @@ class ActionExecutionSpecDB(me.EmbeddedDocument):
 
     def __str__(self):
         result = []
-        result.append('ActionExecutionSpecDB@')
+        result.append("ActionExecutionSpecDB@")
         result.append(str(id(self)))
         result.append('(ref="%s", ' % self.ref)
         result.append('parameters="%s")' % self.parameters)
-        return ''.join(result)
+        return "".join(result)
 
 
-class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
-             stormbase.ContentPackResourceMixin, stormbase.UIDFieldMixin):
+class RuleDB(
+    stormbase.StormFoundationDB,
+    stormbase.TagsMixin,
+    stormbase.ContentPackResourceMixin,
+    stormbase.UIDFieldMixin,
+):
     """Specifies the action to invoke on the occurrence of a Trigger. It
     also includes the transformation to perform to match the impedance
     between the payload of a TriggerInstance and input of a action.
@@ -74,36 +77,39 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         status: enabled or disabled. If disabled occurrence of the trigger
         does not lead to execution of a action and vice-versa.
     """
+
     RESOURCE_TYPE = ResourceType.RULE
-    UID_FIELDS = ['pack', 'name']
+    UID_FIELDS = ["pack", "name"]
 
     name = me.StringField(required=True)
     ref = me.StringField(required=True)
     description = me.StringField()
     pack = me.StringField(
-        required=False,
-        help_text='Name of the content pack.',
-        unique_with='name')
+        required=False, help_text="Name of the content pack.", unique_with="name"
+    )
     type = me.EmbeddedDocumentField(RuleTypeSpecDB, default=RuleTypeSpecDB())
     trigger = me.StringField()
     criteria = stormbase.EscapedDictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
-    context = me.DictField(
-        default={},
-        help_text='Contextual info on the rule'
+    context = me.DictField(default={}, help_text="Contextual info on the rule")
+    enabled = me.BooleanField(
+        required=True,
+        default=True,
+        help_text="Flag indicating whether the rule is enabled.",
     )
-    enabled = me.BooleanField(required=True, default=True,
-                              help_text=u'Flag indicating whether the rule is enabled.')
 
     meta = {
-        'indexes': [
-            {'fields': ['enabled']},
-            {'fields': ['action.ref']},
-            {'fields': ['trigger']},
-            {'fields': ['context.user']},
-        ] + (stormbase.ContentPackResourceMixin.get_indexes() +
-             stormbase.TagsMixin.get_indexes() +
-             stormbase.UIDFieldMixin.get_indexes())
+        "indexes": [
+            {"fields": ["enabled"]},
+            {"fields": ["action.ref"]},
+            {"fields": ["trigger"]},
+            {"fields": ["context.user"]},
+        ]
+        + (
+            stormbase.ContentPackResourceMixin.get_indexes()
+            + stormbase.TagsMixin.get_indexes()
+            + stormbase.UIDFieldMixin.get_indexes()
+        )
     }
 
     def mask_secrets(self, value):
@@ -120,7 +126,7 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         """
         result = copy.deepcopy(value)
 
-        action_ref = result.get('action', {}).get('ref', None)
+        action_ref = result.get("action", {}).get("ref", None)
 
         if not action_ref:
             return result
@@ -131,9 +137,10 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
             return result
 
         secret_parameters = get_secret_parameters(parameters=action_db.parameters)
-        result['action']['parameters'] = mask_secret_parameters(
-            parameters=result['action']['parameters'],
-            secret_parameters=secret_parameters)
+        result["action"]["parameters"] = mask_secret_parameters(
+            parameters=result["action"]["parameters"],
+            secret_parameters=secret_parameters,
+        )
 
         return result
 
@@ -147,8 +154,9 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         :rtype: ``ActionDB``
         """
         # NOTE: We need to retrieve pack and name since that's needed for the PK
-        action_dbs = Action.query(only_fields=['pack', 'ref', 'name', 'parameters'],
-                                  ref=action_ref, limit=1)
+        action_dbs = Action.query(
+            only_fields=["pack", "ref", "name", "parameters"], ref=action_ref, limit=1
+        )
 
         if action_dbs:
             return action_dbs[0]

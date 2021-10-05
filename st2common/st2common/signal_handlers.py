@@ -26,7 +26,7 @@ import logging
 from st2common.logging.misc import reopen_log_files
 
 __all__ = [
-    'register_common_signal_handlers',
+    "register_common_signal_handlers",
 ]
 
 

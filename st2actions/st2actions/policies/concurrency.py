@@ -22,53 +22,60 @@ from st2common.policies.concurrency import BaseConcurrencyApplicator
 from st2common.services import action as action_service
 
 
-__all__ = [
-    'ConcurrencyApplicator'
-]
+__all__ = ["ConcurrencyApplicator"]
 
 LOG = logging.getLogger(__name__)
 
 
 class ConcurrencyApplicator(BaseConcurrencyApplicator):
-
-    def __init__(self, policy_ref, policy_type, threshold=0, action='delay'):
-        super(ConcurrencyApplicator, self).__init__(policy_ref=policy_ref, policy_type=policy_type,
-                                                    threshold=threshold,
-                                                    action=action)
-
-    def _get_lock_uid(self, target):
-        values = {'policy_type': self._policy_type, 'action': target.action}
-        return self._get_lock_name(values=values)
+    def __init__(self, policy_ref, policy_type, threshold=0, action="delay"):
+        super(ConcurrencyApplicator, self).__init__(
+            policy_ref=policy_ref,
+            policy_type=policy_type,
+            threshold=threshold,
+            action=action,
+        )
 
     def _apply_before(self, target):
         # Get the count of scheduled instances of the action.
         scheduled = action_access.LiveAction.count(
-            action=target.action, status=action_constants.LIVEACTION_STATUS_SCHEDULED)
+            action=target.action, status=action_constants.LIVEACTION_STATUS_SCHEDULED
+        )
 
         # Get the count of running instances of the action.
         running = action_access.LiveAction.count(
-            action=target.action, status=action_constants.LIVEACTION_STATUS_RUNNING)
+            action=target.action, status=action_constants.LIVEACTION_STATUS_RUNNING
+        )
 
         count = scheduled + running
 
         # Mark the execution as scheduled if threshold is not reached or delayed otherwise.
         if count < self.threshold:
-            LOG.debug('There are %s instances of %s in scheduled or running status. '
-                      'Threshold of %s is not reached. Action execution will be scheduled.',
-                      count, target.action, self._policy_ref)
+            LOG.debug(
+                "There are %s instances of %s in scheduled or running status. "
+                "Threshold of %s is not reached. Action execution will be scheduled.",
+                count,
+                target.action,
+                self._policy_ref,
+            )
             status = action_constants.LIVEACTION_STATUS_REQUESTED
         else:
-            action = 'delayed' if self.policy_action == 'delay' else 'canceled'
-            LOG.debug('There are %s instances of %s in scheduled or running status. '
-                      'Threshold of %s is reached. Action execution will be %s.',
-                      count, target.action, self._policy_ref, action)
+            action = "delayed" if self.policy_action == "delay" else "canceled"
+            LOG.debug(
+                "There are %s instances of %s in scheduled or running status. "
+                "Threshold of %s is reached. Action execution will be %s.",
+                count,
+                target.action,
+                self._policy_ref,
+                action,
+            )
             status = self._get_status_for_policy_action(action=self.policy_action)
 
         # Update the status in the database. Publish status for cancellation so the
         # appropriate runner can cancel the execution. Other statuses are not published
         # because they will be picked up by the worker(s) to be processed again,
         # leading to duplicate action executions.
-        publish = (status == action_constants.LIVEACTION_STATUS_CANCELING)
+        publish = status == action_constants.LIVEACTION_STATUS_CANCELING
         target = action_service.update_status(target, status, publish=publish)
 
         return target
@@ -78,13 +85,17 @@ class ConcurrencyApplicator(BaseConcurrencyApplicator):
 
         valid_states = [
             action_constants.LIVEACTION_STATUS_REQUESTED,
-            action_constants.LIVEACTION_STATUS_DELAYED
+            action_constants.LIVEACTION_STATUS_DELAYED,
         ]
 
         # Exit if target not in valid state.
         if target.status not in valid_states:
-            LOG.debug('The live action is not in a valid state therefore the policy '
-                      '"%s" cannot be applied. %s', self._policy_ref, target)
+            LOG.debug(
+                "The live action is not in a valid state therefore the policy "
+                '"%s" cannot be applied. %s',
+                self._policy_ref,
+                target,
+            )
             return target
 
         target = self._apply_before(target)

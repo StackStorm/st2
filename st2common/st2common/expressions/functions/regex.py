@@ -17,12 +17,7 @@ from __future__ import absolute_import
 import re
 import six
 
-__all__ = [
-    'regex_match',
-    'regex_replace',
-    'regex_search',
-    'regex_substring'
-]
+__all__ = ["regex_match", "regex_replace", "regex_search", "regex_substring"]
 
 
 def _get_regex_flags(ignorecase=False):

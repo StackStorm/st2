@@ -32,13 +32,7 @@ from st2common import triggers
 from st2common.logging.filters import LogLevelFilter
 from st2common.transport.bootstrap_utils import register_exchanges_with_retry
 
-__all__ = [
-    'setup',
-    'teardown',
-
-    'db_setup',
-    'db_teardown'
-]
+__all__ = ["setup", "teardown", "db_setup", "db_teardown"]
 
 LOG = logging.getLogger(__name__)
 
@@ -47,11 +41,16 @@ def register_common_cli_options():
     """
     Register common CLI options.
     """
-    cfg.CONF.register_cli_opt(cfg.BoolOpt('verbose', short='v', default=False))
+    cfg.CONF.register_cli_opt(cfg.BoolOpt("verbose", short="v", default=False))
 
 
-def setup(config, setup_db=True, register_mq_exchanges=True,
-          register_internal_trigger_types=False):
+def setup(
+    config,
+    setup_db=True,
+    register_mq_exchanges=True,
+    register_internal_trigger_types=False,
+    ignore_register_config_opts_errors=False,
+):
     """
     Common setup function.
 
@@ -69,14 +68,23 @@ def setup(config, setup_db=True, register_mq_exchanges=True,
     register_common_cli_options()
 
     # Parse args to setup config
-    config.parse_args()
+    # NOTE: This code is not the best, but it's only realistic option we have at this point.
+    # Refactoring all the code and config modules to avoid import time side affects would be a big
+    # rabbit hole. Luckily registering same options twice is not really a big deal or fatal error
+    # so we simply ignore such errors.
+    if config.__name__ == "st2common.config" and ignore_register_config_opts_errors:
+        config.parse_args(ignore_errors=True)
+    else:
+        config.parse_args()
 
     if cfg.CONF.debug:
         cfg.CONF.verbose = True
 
     # Set up logging
     log_level = stdlib_logging.DEBUG
-    stdlib_logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s', level=log_level)
+    stdlib_logging.basicConfig(
+        format="%(asctime)s %(levelname)s [-] %(message)s", level=log_level
+    )
 
     if not cfg.CONF.verbose:
         # Note: We still want to print things at the following log levels: INFO, ERROR, CRITICAL

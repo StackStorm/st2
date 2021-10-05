@@ -30,10 +30,7 @@ import st2common.content.utils as content_utils
 import st2common.util.action_db as action_utils
 import st2common.validators.api.action as action_validator
 
-__all__ = [
-    'ActionsRegistrar',
-    'register_actions'
-]
+__all__ = ["ActionsRegistrar", "register_actions"]
 
 LOG = logging.getLogger(__name__)
 
@@ -53,15 +50,18 @@ class ActionsRegistrar(ResourceRegistrar):
         self.register_packs(base_dirs=base_dirs)
 
         registered_count = 0
-        content = self._pack_loader.get_content(base_dirs=base_dirs,
-                                                content_type='actions')
+        content = self._pack_loader.get_content(
+            base_dirs=base_dirs, content_type="actions"
+        )
 
         for pack, actions_dir in six.iteritems(content):
             if not actions_dir:
-                LOG.debug('Pack %s does not contain actions.', pack)
+                LOG.debug("Pack %s does not contain actions.", pack)
                 continue
             try:
-                LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
+                LOG.debug(
+                    "Registering actions from pack %s:, dir: %s", pack, actions_dir
+                )
                 actions = self._get_actions_from_pack(actions_dir)
                 count = self._register_actions_from_pack(pack=pack, actions=actions)
                 registered_count += count
@@ -69,7 +69,9 @@ class ActionsRegistrar(ResourceRegistrar):
                 if self._fail_on_failure:
                     raise e
 
-                LOG.exception('Failed registering all actions from pack: %s', actions_dir)
+                LOG.exception(
+                    "Failed registering all actions from pack: %s", actions_dir
+                )
 
         return registered_count
 
@@ -80,10 +82,11 @@ class ActionsRegistrar(ResourceRegistrar):
         :return: Number of actions registered.
         :rtype: ``int``
         """
-        pack_dir = pack_dir[:-1] if pack_dir.endswith('/') else pack_dir
+        pack_dir = pack_dir[:-1] if pack_dir.endswith("/") else pack_dir
         _, pack = os.path.split(pack_dir)
-        actions_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
-                                                              content_type='actions')
+        actions_dir = self._pack_loader.get_content_from_pack(
+            pack_dir=pack_dir, content_type="actions"
+        )
 
         # Register pack first
         self.register_pack(pack_name=pack, pack_dir=pack_dir)
@@ -92,16 +95,18 @@ class ActionsRegistrar(ResourceRegistrar):
         if not actions_dir:
             return registered_count
 
-        LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
+        LOG.debug("Registering actions from pack %s:, dir: %s", pack, actions_dir)
 
         try:
             actions = self._get_actions_from_pack(actions_dir=actions_dir)
-            registered_count = self._register_actions_from_pack(pack=pack, actions=actions)
+            registered_count = self._register_actions_from_pack(
+                pack=pack, actions=actions
+            )
         except Exception as e:
             if self._fail_on_failure:
                 raise e
 
-            LOG.exception('Failed registering all actions from pack: %s', actions_dir)
+            LOG.exception("Failed registering all actions from pack: %s", actions_dir)
 
         return registered_count
 
@@ -109,29 +114,33 @@ class ActionsRegistrar(ResourceRegistrar):
         actions = self.get_resources_from_pack(resources_dir=actions_dir)
 
         # Exclude global actions configuration file
-        config_files = ['actions/config' + ext for ext in self.ALLOWED_EXTENSIONS]
+        config_files = ["actions/config" + ext for ext in self.ALLOWED_EXTENSIONS]
 
         for config_file in config_files:
-            actions = [file_path for file_path in actions if config_file not in file_path]
+            actions = [
+                file_path for file_path in actions if config_file not in file_path
+            ]
 
         return actions
 
     def _register_action(self, pack, action):
         content = self._meta_loader.load(action)
-        pack_field = content.get('pack', None)
+        pack_field = content.get("pack", None)
         if not pack_field:
-            content['pack'] = pack
+            content["pack"] = pack
             pack_field = pack
         if pack_field != pack:
-            raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
-                            (pack, pack_field))
+            raise Exception(
+                'Model is in pack "%s" but field "pack" is different: %s'
+                % (pack, pack_field)
+            )
 
         # Add in "metadata_file" attribute which stores path to the pack metadata file relative to
         # the pack directory
-        metadata_file = content_utils.get_relative_path_to_pack_file(pack_ref=pack,
-                                                                     file_path=action,
-                                                                     use_pack_cache=True)
-        content['metadata_file'] = metadata_file
+        metadata_file = content_utils.get_relative_path_to_pack_file(
+            pack_ref=pack, file_path=action, use_pack_cache=True
+        )
+        content["metadata_file"] = metadata_file
 
         action_api = ActionAPI(**content)
 
@@ -141,25 +150,29 @@ class ActionsRegistrar(ResourceRegistrar):
             # We throw a more user-friendly exception on invalid parameter name
             msg = six.text_type(e)
 
-            is_invalid_parameter_name = 'does not match any of the regexes: ' in msg
+            is_invalid_parameter_name = "does not match any of the regexes: " in msg
 
             if is_invalid_parameter_name:
-                match = re.search('\'(.+?)\' does not match any of the regexes', msg)
+                match = re.search("'(.+?)' does not match any of the regexes", msg)
 
                 if match:
                     parameter_name = match.groups()[0]
                 else:
-                    parameter_name = 'unknown'
+                    parameter_name = "unknown"
 
-                new_msg = ('Parameter name "%s" is invalid. Valid characters for parameter name '
-                           'are [a-zA-Z0-0_].' % (parameter_name))
-                new_msg += '\n\n' + msg
+                new_msg = (
+                    'Parameter name "%s" is invalid. Valid characters for parameter name '
+                    "are [a-zA-Z0-0_]." % (parameter_name)
+                )
+                new_msg += "\n\n" + msg
                 raise jsonschema.ValidationError(new_msg)
             raise e
 
         # Use in-memory cached RunnerTypeDB objects to reduce load on the database
         if self._use_runners_cache:
-            runner_type_db = self._runner_type_db_cache.get(action_api.runner_type, None)
+            runner_type_db = self._runner_type_db_cache.get(
+                action_api.runner_type, None
+            )
 
             if not runner_type_db:
                 runner_type_db = action_validator.get_runner_model(action_api)
@@ -170,36 +183,53 @@ class ActionsRegistrar(ResourceRegistrar):
         action_validator.validate_action(action_api, runner_type_db=runner_type_db)
         model = ActionAPI.to_model(action_api)
 
-        action_ref = ResourceReference.to_string_reference(pack=pack, name=str(content['name']))
-        existing = action_utils.get_action_by_ref(action_ref)
+        action_ref = ResourceReference.to_string_reference(
+            pack=pack, name=str(content["name"])
+        )
+        # NOTE: Here we only retrieve existing object to perform an upsert if it already exists in
+        # the database. To do that, we only need access to the "id" attribute (and ref and pack
+        # for our ActionDB abstraction). Retrieving only those fields is fast and much efficient
+        # especially for actions like aws pack ones which contain a lot of parameters.
+        existing = action_utils.get_action_by_ref(
+            action_ref, only_fields=["id", "ref", "pack"]
+        )
         if not existing:
-            LOG.debug('Action %s not found. Creating new one with: %s', action_ref, content)
+            LOG.debug(
+                "Action %s not found. Creating new one with: %s", action_ref, content
+            )
         else:
-            LOG.debug('Action %s found. Will be updated from: %s to: %s',
-                      action_ref, existing, model)
+            LOG.debug(
+                "Action %s found. Will be updated from: %s to: %s",
+                action_ref,
+                existing,
+                model,
+            )
             model.id = existing.id
 
         try:
             model = Action.add_or_update(model)
-            extra = {'action_db': model}
-            LOG.audit('Action updated. Action %s from %s.', model, action, extra=extra)
+            extra = {"action_db": model}
+            LOG.audit("Action updated. Action %s from %s.", model, action, extra=extra)
         except Exception:
-            LOG.exception('Failed to write action to db %s.', model.name)
+            LOG.exception("Failed to write action to db %s.", model.name)
             raise
 
     def _register_actions_from_pack(self, pack, actions):
         registered_count = 0
         for action in actions:
             try:
-                LOG.debug('Loading action from %s.', action)
+                LOG.debug("Loading action from %s.", action)
                 self._register_action(pack=pack, action=action)
             except Exception as e:
                 if self._fail_on_failure:
-                    msg = ('Failed to register action "%s" from pack "%s": %s' % (action, pack,
-                                                                                  six.text_type(e)))
+                    msg = 'Failed to register action "%s" from pack "%s": %s' % (
+                        action,
+                        pack,
+                        six.text_type(e),
+                    )
                     raise ValueError(msg)
 
-                LOG.exception('Unable to register action: %s', action)
+                LOG.exception("Unable to register action: %s", action)
                 continue
             else:
                 registered_count += 1
@@ -207,16 +237,28 @@ class ActionsRegistrar(ResourceRegistrar):
         return registered_count
 
 
-def register_actions(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
-                     fail_on_failure=False):
+def register_actions(
+    packs_base_paths=None,
+    pack_dir=None,
+    use_pack_cache=True,
+    use_runners_cache=False,
+    fail_on_failure=False,
+):
     if packs_base_paths:
-        assert isinstance(packs_base_paths, list)
+        if not isinstance(packs_base_paths, list):
+            raise ValueError(
+                "The pack base paths has a value that is not a list"
+                f" (was{type(packs_base_paths)})."
+            )
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()
 
-    registrar = ActionsRegistrar(use_pack_cache=use_pack_cache,
-                                 fail_on_failure=fail_on_failure)
+    registrar = ActionsRegistrar(
+        use_pack_cache=use_pack_cache,
+        use_runners_cache=use_runners_cache,
+        fail_on_failure=fail_on_failure,
+    )
 
     if pack_dir:
         result = registrar.register_from_pack(pack_dir=pack_dir)
