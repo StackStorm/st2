@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+
 Changed
 ~~~~~~~
 
@@ -44,6 +49,11 @@ Changed
 * Move to using Jinja sandboxed environment #5359
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Pinned python module `networkx` to versions between 2.5.1(included) and 2.6(excluded) because Python v3.6 support was dropped in v2.6.
+  Also pinned `decorator==4.4.2` (dependency of `networkx<2.6`) to work around missing python 3.8 classifiers on `decorator`'s wheel. #5376
+
+  Contributed by @nzlosh
 
 * Add new ``--enable-profiler`` flag to all the servies. This flag enables cProfiler based profiler
   for the service in question and  dumps the profiling data to a file on process
