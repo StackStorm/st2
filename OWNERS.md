@@ -19,8 +19,6 @@ Senior [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/mainta
 Have deep platform knowledge & experience and demonstrate technical leadership as well as driving the project forward.
 * Amanda McGuinness ([@amanda11](https://github.com/amanda11)), _Ammeon Solutions_ <<amanda.mcguinness@ammeonsolutions.com>>
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, Release Engineering, Infrastructure, Documentation.
-* blag ([@blag](https://github.com/blag)) <<blag@users.noreply.github.com>>
-  - ChatOps, StackStorm Exchange, Community, Documentation, CI/CD.
 * Eugen Cusmaunsa ([@armab](https://github.com/armab)) <<armab@stackstorm.com>>
   - Systems, Deployments, Docker, K8s, HA, Ansible, Chef, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering, Community.
 * Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
@@ -67,6 +65,8 @@ Thank you, Friends!
 * Anthony Shaw ([@tonybaloney](https://github.com/tonybaloney)) - Contribution via Ideas, Feedback, ChatOps improvements, core Architecture, Community and even [Marketing](https://news.ycombinator.com/item?id=14368748). [Case Study](https://stackstorm.com/case-study-dimension-data/).
 * Andy Moore ([@AndyMoore](https://github.com/AndyMoore)) - Community, StackStorm Exchange packs, Kubernetes.
 * Anirudh Rekhi ([@humblearner](https://github.com/humblearner)) - ex Stormer. Systems, CI/CD, DevOps, Infrastructure.
+* blag ([@blag](https://github.com/blag))
+  - ChatOps, StackStorm Exchange, Community, Documentation, CI/CD.
 * Denis Barishev ([@dennybaa](https://github.com/dennybaa)) - ex Stormer. Re-architeced StackStorm installer via deb/rpm packages, made it stable, repeatable, fixed first platform pain points.
 * Ed Medvedev ([@emedvedev](https://github.com/emedvedev)) - ex Stormer. Made WebUI slick and ChatOps awesome, discovered and implemented today's [StackStorm Exchange](https://exchange.stackstorm.org/).
 * Evan Powell ([@epowell101](https://github.com/epowell101)) - StackStorm co-founder, first CEO, Stormer forever.
