@@ -244,9 +244,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
             coordination.ToozConnectionError("foobar"),
             coordination.ToozConnectionError("foobar"),
             coordination.ToozConnectionError("foobar"),
-            coordination.ToozConnectionError("foobar"),
-            coordination_service.NoOpLock(name="noop"),
-            coordination_service.NoOpLock(name="noop"),
+            coordination.ToozConnectionError("foobar")
         ]
         self.assertRaisesRegexp(
             Exception, "Unexpected error.", workflows.get_engine().process, t1_ac_ex_db
@@ -255,6 +253,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertTrue(
             workflows.WorkflowExecutionHandler.fail_workflow_execution.called
         )
+        mock_get_lock.side_effect = coordination_service.NoOpLock(name="noop")
 
         # Since error handling failed, the workflow will have status of running.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
