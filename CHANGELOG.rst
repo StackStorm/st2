@@ -71,6 +71,9 @@ Changed
   This functionality should never be used in production, but only in development environments or
   similar when debugging code. #5199
 
+* Silence pylint about dev/debugging utility (tools/direct_queue_publisher.py) that uses pika because kombu
+  doesn't support what it does. If anyone uses that utility, they have to install pika manually. #5380
+
 Fixed
 ~~~~~
 
