@@ -53,6 +53,8 @@ case "$1" in
       # Initially set destination files owenership (only on the first install)
       [ "$upgrading" = 1 ] || set_permissions "$SET_PERMS"
       rm -f $ST2_UPGRADESTAMP
+
+      # make sure that our socket generators run
       systemctl daemon-reload
     ;;
     abort-upgrade|abort-remove|abort-deconfigure)
