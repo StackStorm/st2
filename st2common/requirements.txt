@@ -9,10 +9,11 @@ amqp==5.0.6
 apscheduler==3.7.0
 chardet<3.1.0
 cryptography==3.4.7
+decorator==4.4.2
 dnspython>=1.16.0,<2.0.0
 eventlet==0.30.2
 flex==6.14.1
-git+https://github.com/StackStorm/orquesta.git@v1.4.0#egg=orquesta
+git+https://github.com/StackStorm/orquesta.git@v1.5.0#egg=orquesta
 git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backend
 gitdb==4.0.2
 gitpython==3.1.15
@@ -23,7 +24,7 @@ jsonschema==2.6.0
 kombu==5.0.2
 lockfile==0.12.2
 mongoengine==0.23.0
-networkx==1.11
+networkx>=2.5.1,<2.6
 orjson==3.5.2
 oslo.config>=1.12.1,<1.13
 paramiko==2.7.2

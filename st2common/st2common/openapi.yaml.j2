@@ -409,6 +409,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+        - name: options
+          in: body
+          description: Flag to remove action files from disk
+          schema:
+            $ref: '#/definitions/ActionDeleteRequest'
       x-parameters:
         - name: user
           in: context
@@ -4680,6 +4685,9 @@ definitions:
     allOf:
       - $ref: '#/definitions/Action'
       - $ref: '#/definitions/DataFilesSubSchema'
+  ActionDeleteRequest:
+    allOf:
+      - $ref: '#/definitions/ActionDeleteSchema'
   ActionParameters:
     type: object
     properties:
@@ -5379,6 +5387,14 @@ definitions:
         description: Channels to post notifications to.
         items:
           type: string
+    additionalProperties: false
+  ActionDeleteSchema:
+    type: object
+    properties:
+      remove_files:
+        type: boolean
+        description: Flag to delete action files from disk
+        default: false
     additionalProperties: false
   TokenRequest:
     type: object

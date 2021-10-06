@@ -4,15 +4,24 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+
 Changed
 ~~~~~~~
 
-* Modified action delete api. Action delete api removes related action/workflow files on disk
-  along with de-registering them from database. Prompts on CLI for user permission before
-  removing disk files.
+* Modified action delete API to delete action files from disk along with backward compatibility.
 
-  ``-f`` and ``--force`` arguments added for action delete CLI command as auto yes flag and
-  will delete related files on disk without prompting for user permission. #5304
+  From CLI ``st2 action delete <pack>.<action>`` will delete only action database entry.
+  From CLI ``st2 action delete --remove-files <pack>.<action>`` or ``st2 action delete -r <pack>.<action>``
+  will delete action database entry along with files from disk.
+
+  API action DELETE method with ``{"remove_files": true}`` argument in json body will remove database
+  entry of action along with files from disk.
+  API action DELETE method with ``{"remove_files": false}`` or no additional argument in json body will remove
+  only action database entry. #5304, #5351, #5360
 
   Contributed by @mahesh-orch.
 
@@ -28,6 +37,51 @@ Changed
 * Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
 
   Contributed by @ericreeves.
+
+* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `ping` #5302, #5341
+
+  Contributed by @lukepatrick
+
+* Actionrunner worker shutdown should stop Kombu consumer thread. #5338
+
+  Contributed by @khushboobhatia01
+
+* Move to using Jinja sandboxed environment #5359
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Pinned python module `networkx` to versions between 2.5.1(included) and 2.6(excluded) because Python v3.6 support was dropped in v2.6.
+  Also pinned `decorator==4.4.2` (dependency of `networkx<2.6`) to work around missing python 3.8 classifiers on `decorator`'s wheel. #5376
+
+  Contributed by @nzlosh
+
+* Add new ``--enable-profiler`` flag to all the servies. This flag enables cProfiler based profiler
+  for the service in question and  dumps the profiling data to a file on process
+  exit.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when profiling code. #5199
+
+  Contributed by @Kami.
+
+* Add new ``--enable-eventlet-blocking-detection`` flag to all the servies. This flag enables
+  eventlet long operation / blocked main loop logic which throws an exception if a particular
+  code blocks longer than a specific duration in seconds.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when debugging code. #5199
+
+Fixed
+~~~~~
+
+* Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
+  Contributed by @amanda11, Ammeon Solutions
+
+* Make ``update_executions()`` atomic by protecting the update with a coordination lock. Actions, like workflows, may have multiple
+  concurrent updates to their execution state. This makes those updates safer, which should make the execution status more reliable. #5358
+
+  Contributed by @khushboobhatia01
+
 
 3.5.0 - June 23, 2021
 ---------------------
