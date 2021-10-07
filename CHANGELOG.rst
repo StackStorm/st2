@@ -85,6 +85,10 @@ Fixed
 
   Contributed by @khushboobhatia01
 
+* ``core.inject_trigger``: resolve ``trigger`` payload shadowing by deprecating ``trigger`` param in favor of ``trigger_name``.
+  ``trigger`` param is still available for backwards compatibility, but will be removed in a future release. #5335 and #5383
+
+  Contributed by @mjtice
 
 3.5.0 - June 23, 2021
 ---------------------
