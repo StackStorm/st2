@@ -74,6 +74,15 @@ Changed
 * Silence pylint about dev/debugging utility (tools/direct_queue_publisher.py) that uses pika because kombu
   doesn't support what it does. If anyone uses that utility, they have to install pika manually. #5380
 
+* The FileWatchSensor in the linux pack uses `watchdog` now instead of `logshipper` (`logshipper` and its requirement `pyinotify` are unmaintained).
+  The `watchdog` project is actively maintained, and has wide support for Linux, MacOS, BSD, Windows, and a polling fallback implementation.
+  Dropping `pyinotify` has a side benefit of allowing MacOS users to more easily hack on StackStorm's code, since `pyinotify` cannot install on MacOS.
+
+  The FileWatchSensor is now an excellent example of how to write a sensor following this refactor. It breaks up the code into well structured classes
+  that all have a single focus. You can also run the sensor Python script itself, which makes development and testing much easier. #5096
+
+  Contributed by @blag
+
 Fixed
 ~~~~~
 
