@@ -71,12 +71,19 @@ Changed
   This functionality should never be used in production, but only in development environments or
   similar when debugging code. #5199
 
+* Silence pylint about dev/debugging utility (tools/direct_queue_publisher.py) that uses pika because kombu
+  doesn't support what it does. If anyone uses that utility, they have to install pika manually. #5380
+
 Fixed
 ~~~~~
 
 * Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
   Contributed by @amanda11, Ammeon Solutions
 
+* Make ``update_executions()`` atomic by protecting the update with a coordination lock. Actions, like workflows, may have multiple
+  concurrent updates to their execution state. This makes those updates safer, which should make the execution status more reliable. #5358
+
+  Contributed by @khushboobhatia01
 
 
 3.5.0 - June 23, 2021

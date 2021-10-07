@@ -48,6 +48,7 @@ from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInst
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.runners import utils as runners_utils
 from st2common.metrics.base import Timer
+from st2common.services import coordination
 from six.moves import range
 
 
@@ -195,39 +196,42 @@ def update_execution(liveaction_db, publish=True, set_result_size=False):
     """
     execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
 
-    # Skip execution object update when action is already in completed state.
-    if execution.status in action_constants.LIVEACTION_COMPLETED_STATES:
-        LOG.debug(
-            "[%s] Action is already in completed state: %s. Skipping execution update to state: %s."
-            % (execution.id, execution.status, liveaction_db.status)
-        )
-        return execution
-
-    decomposed = _decompose_liveaction(liveaction_db)
-
-    kw = {}
-    for k, v in six.iteritems(decomposed):
-        kw["set__" + k] = v
-
-    if liveaction_db.status != execution.status:
-        # Note: If the status changes we store this transition in the "log" attribute of action
-        # execution
-        kw["push__log"] = _create_execution_log_entry(liveaction_db.status)
-
-    if set_result_size:
-        # Sadly with the current ORM abstraction there is no better way to achieve updating
-        # result_size and we need to serialize the value again - luckily that operation is fast.
-        # To put things into perspective - on 4 MB result dictionary it only takes 7 ms which is
-        # negligible compared to other DB operations duration (and for smaller results it takes
-        # in sub ms range).
-        with Timer(key="action.executions.calculate_result_size"):
-            result_size = len(
-                ActionExecutionDB.result._serialize_field_value(liveaction_db.result)
+    with coordination.get_coordinator().get_lock(liveaction_db.id):
+        # Skip execution object update when action is already in completed state.
+        if execution.status in action_constants.LIVEACTION_COMPLETED_STATES:
+            LOG.debug(
+                "[%s] Action is already in completed state: %s. Skipping execution update to state: %s."
+                % (execution.id, execution.status, liveaction_db.status)
             )
-            kw["set__result_size"] = result_size
+            return execution
 
-    execution = ActionExecution.update(execution, publish=publish, **kw)
-    return execution
+        decomposed = _decompose_liveaction(liveaction_db)
+
+        kw = {}
+        for k, v in six.iteritems(decomposed):
+            kw["set__" + k] = v
+
+        if liveaction_db.status != execution.status:
+            # Note: If the status changes we store this transition in the "log" attribute of action
+            # execution
+            kw["push__log"] = _create_execution_log_entry(liveaction_db.status)
+
+        if set_result_size:
+            # Sadly with the current ORM abstraction there is no better way to achieve updating
+            # result_size and we need to serialize the value again - luckily that operation is fast.
+            # To put things into perspective - on 4 MB result dictionary it only takes 7 ms which is
+            # negligible compared to other DB operations duration (and for smaller results it takes
+            # in sub ms range).
+            with Timer(key="action.executions.calculate_result_size"):
+                result_size = len(
+                    ActionExecutionDB.result._serialize_field_value(
+                        liveaction_db.result
+                    )
+                )
+                kw["set__result_size"] = result_size
+
+        execution = ActionExecution.update(execution, publish=publish, **kw)
+        return execution
 
 
 def abandon_execution_if_incomplete(liveaction_id, publish=True):
