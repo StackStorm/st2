@@ -35,11 +35,15 @@ class InjectTriggerAction(Action):
 
         # Raise an error if both trigger and trigger_name are specified
         if trigger and trigger_name:
-            raise ValueError('Parameters `trigger` and `trigger_name` are mutually exclusive.')
+            raise ValueError(
+                "Parameters `trigger` and `trigger_name` are mutually exclusive."
+            )
 
         # Raise an error if neither trigger nor trigger_name are specified
         if not trigger and not trigger_name:
-            raise ValueError('You must include either the `trigger_name` or `trigger` parameter.')
+            raise ValueError(
+                "You must include either the `trigger_name` or `trigger` parameter."
+            )
 
         trigger = trigger if trigger else trigger_name
         self.logger.debug(
