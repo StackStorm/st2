@@ -9,6 +9,12 @@ Added
 
 * Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
 
+* Added `trigger.headers_lower` to webhook trigger payload. This allows rules to match webhook triggers
+  without dealing with the case-sensitive nature of `trigger.headers`, as `triggers.headers_lower` providers
+  the same headers, but with the header name lower cased. #5038
+
+  Contributed by Rand01ph
+
 Changed
 ~~~~~~~
 
