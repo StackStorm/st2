@@ -66,7 +66,7 @@ from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_logger
 from st2client.utils.misc import reencode_list_with_surrogate_escape_sequences
 from st2client.commands.auth import TokenCreateCommand
 from st2client.commands.auth import LoginCommand
-
+from st2client.utils.profiler import setup_regular_profiler
 
 __all__ = ["Shell"]
 
@@ -532,6 +532,12 @@ def setup_logging(argv):
 
 def main(argv=sys.argv[1:]):
     setup_logging(argv)
+
+    if "--enable-profiler" in sys.argv:
+        setup_regular_profiler(service_name="st2cli")
+        sys.argv.remove("--enable-profiler")
+        argv.remove("--enable-profiler")
+
     return Shell().run(argv)
 
 
