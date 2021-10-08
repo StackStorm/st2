@@ -59,7 +59,7 @@ from astroid import nodes
 from astroid import scoped_nodes
 
 # A list of class names for which we want to skip the checks
-CLASS_NAME_BLACKLIST = ["ExecutionSpecificationAPI"]
+CLASS_NAME_SKIPLIST = ["ExecutionSpecificationAPI"]
 
 
 def register(linter):
@@ -90,7 +90,7 @@ def transform(cls):
     so that we can inform pylint about all of the attributes on those models.
     """
 
-    if cls.name in CLASS_NAME_BLACKLIST:
+    if cls.name in CLASS_NAME_SKIPLIST:
         # class looks like an API model class, but it isn't.
         return
 
