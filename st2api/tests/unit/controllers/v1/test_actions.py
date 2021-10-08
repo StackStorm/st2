@@ -882,7 +882,7 @@ class ActionsControllerTestCase(
         self.assertEqual(del_resp.status_int, 400)
 
     @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
-    @mock.patch("st2api.controllers.v1.actions.clone_action")
+    @mock.patch("st2api.controllers.v1.actions.clone_action_files")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
@@ -898,15 +898,20 @@ class ActionsControllerTestCase(
         self.assertEqual(clone_resp.status_int, 201)
         get_resp = self.__do_get_actions_by_url_parameter("name", ACTION_17["name"])
         self.assertEqual(get_resp.status_int, 200)
+        self.assertTrue(mock_clone_action.called)
         self.__do_delete(self.__get_action_id(source_post_resp))
         self.__do_delete(self.__get_action_id(clone_resp))
 
     @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
-    @mock.patch("st2api.controllers.v1.actions.clone_action")
+    @mock.patch("st2api.controllers.v1.actions.remove_temp_action_files")
+    @mock.patch("st2api.controllers.v1.actions.temp_backup_action_files")
+    @mock.patch("st2api.controllers.v1.actions.clone_action_files")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
-    def test_clone_overwrite(self, mock_clone_action):
+    def test_clone_overwrite(
+        self, mock_clone_action, mock_temp_backup, mock_clean_backup
+    ):
         source_post_resp = self.__do_post(ACTION_16)
         self.assertEqual(source_post_resp.status_int, 201)
         dest_post_resp = self.__do_post(ACTION_17)
@@ -928,14 +933,16 @@ class ActionsControllerTestCase(
         self.assertDictEqual(actual_prams_dict, expected_params_dict)
         actual_runner_type = get_resp.json[0]["runner_type"]
         self.assertNotEqual(actual_runner_type, ACTION_17["runner_type"])
+        self.assertTrue(mock_clone_action.called)
+        self.assertTrue(mock_temp_backup.called)
+        self.assertTrue(mock_clean_backup.called)
         self.__do_delete(self.__get_action_id(source_post_resp))
         self.__do_delete(self.__get_action_id(clone_resp))
 
-    @mock.patch("st2api.controllers.v1.actions.clone_action")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
-    def test_clone_source_does_not_exist(self, mock_clone_action):
+    def test_clone_source_does_not_exist(self):
         dest_data_body = {
             "dest_pack": ACTION_17["pack"],
             "dest_action": ACTION_17["name"],
@@ -950,11 +957,10 @@ class ActionsControllerTestCase(
         msg = 'Resource with a reference or id "%s" not found' % source_ref_or_id
         self.assertEqual(clone_resp.json["faultstring"], msg)
 
-    @mock.patch("st2api.controllers.v1.actions.clone_action")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
-    def test_clone_destination_pack_does_not_exist(self, mock_clone_action):
+    def test_clone_destination_pack_does_not_exist(self):
         source_post_resp = self.__do_post(ACTION_16)
         dest_data_body = {
             "dest_pack": ACTION_17["pack"],
@@ -972,11 +978,10 @@ class ActionsControllerTestCase(
         self.__do_delete(self.__get_action_id(source_post_resp))
 
     @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
-    @mock.patch("st2api.controllers.v1.actions.clone_action")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
-    def test_clone_destination_action_already_exist(self, mock_clone_action):
+    def test_clone_destination_action_already_exist(self):
         source_post_resp = self.__do_post(ACTION_16)
         dest_post_resp = self.__do_post(ACTION_17)
         dest_data_body = {
@@ -996,7 +1001,7 @@ class ActionsControllerTestCase(
         self.__do_delete(self.__get_action_id(dest_post_resp))
 
     @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
-    @mock.patch("st2api.controllers.v1.actions.clone_action")
+    @mock.patch("st2api.controllers.v1.actions.clone_action_files")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
@@ -1021,11 +1026,12 @@ class ActionsControllerTestCase(
         self.__do_delete(self.__get_action_id(dest_post_resp))
 
     @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
-    @mock.patch("st2api.controllers.v1.actions.clone_action")
+    @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
+    @mock.patch("st2api.controllers.v1.actions.clone_action_files")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
-    def test_clone_exception(self, mock_clone_action):
+    def test_clone_exception(self, mock_clone_action, mock_delete_files):
         msg = "Exception encountered during cloning action."
         mock_clone_action.side_effect = Exception(msg)
         source_post_resp = self.__do_post(ACTION_16)
@@ -1042,16 +1048,27 @@ class ActionsControllerTestCase(
         )
         self.assertEqual(clone_resp.status_int, 500)
         self.assertEqual(clone_resp.json["faultstring"], msg)
+        # asserting delete_action_files_from_pack function called i.e. cloned files are cleaned up
+        self.assertTrue(mock_delete_files.called)
         self.__do_delete(self.__get_action_id(source_post_resp))
         self.__do_delete(self.__get_action_id(dest_post_resp))
 
     @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
     @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
+    @mock.patch("st2api.controllers.v1.actions.remove_temp_action_files")
+    @mock.patch("st2api.controllers.v1.actions.restore_temp_action_files")
+    @mock.patch("st2api.controllers.v1.actions.temp_backup_action_files")
+    @mock.patch("st2api.controllers.v1.actions.clone_action_files")
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
     def test_clone_overwrite_exception_destination_recovered(
-        self, mock_clone_overwrite
+        self,
+        mock_clone_overwrite,
+        mock_backup_files,
+        mock_restore_files,
+        mock_remove_backup,
+        mock_clean_files,
     ):
         msg = "Exception encountered during overwriting action."
         mock_clone_overwrite.side_effect = Exception(msg)
@@ -1074,6 +1091,14 @@ class ActionsControllerTestCase(
         )
         self.assertEqual(dest_get_resp.status_int, 200)
         self.assertEqual(dest_get_resp.json[0]["runner_type"], ACTION_17["runner_type"])
+        # asserting temp_backup_action_files function called
+        self.assertTrue(mock_backup_files.called)
+        # asserting restore_temp_action_files called i.e. original ACTION_17 restored
+        self.assertTrue(mock_restore_files.called)
+        # asserting remove_temp_action_files function called
+        self.assertTrue(mock_remove_backup.called)
+        # asserting delete_action_files_from_pack called i.e. cloned files are cleaned up
+        self.assertTrue(mock_clean_files.called)
         self.__do_delete(self.__get_action_id(source_post_resp))
         self.__do_delete(dest_get_resp.json[0]["id"])
 
