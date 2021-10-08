@@ -91,6 +91,11 @@ Fixed
 
   Contributed by @khushboobhatia01
 
+* Fix "not iterable" error for ``output_schema`` handling. If a schema is not well-formed, we ignore it.
+  Also, if action output is anything other than a JSON object, we do not try to process it any more.
+  ``output_schema`` will change in a future release to support non-object output. #5309
+
+  Contributed by @guzzijones
 
 3.5.0 - June 23, 2021
 ---------------------
