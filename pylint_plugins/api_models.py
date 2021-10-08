@@ -81,22 +81,30 @@ def infer_copy_deepcopy(call_node):
     return next(call_node.args[0].infer())
 
 
-def transform(cls):
+def predicate(cls: nodes.ClassDef) -> bool:
     """
-    pylint calls this function on each class definition it discovers.
+    Astroid (used by pylint) calls this to see if our transform function needs to run.
+    """
+    if cls.name in CLASS_NAME_SKIPLIST:
+        # class looks like an API model class, but it isn't.
+        return False
+
+    if not cls.name.endswith("API") and "schema" not in cls.locals:
+        # class does not look like an API model class.
+        return False
+
+    return True
+
+
+def transform(cls: nodes.ClassDef):
+    """
+    Astroid (used by pylint) calls this function on each class definition it discovers.
     cls is an Astroid AST representation of that class.
 
     Our purpose here is to extract the schema dict from API model classes
     so that we can inform pylint about all of the attributes on those models.
+    We do this by injecting attributes on the class for each property in the schema.
     """
-
-    if cls.name in CLASS_NAME_SKIPLIST:
-        # class looks like an API model class, but it isn't.
-        return
-
-    if not cls.name.endswith("API") and "schema" not in cls.locals:
-        # class does not look like an API model class.
-        return
 
     # This is a class which defines attributes in "schema" variable using json schema.
     # Those attributes are then assigned during run time inside the constructor
@@ -273,4 +281,4 @@ def transform(cls):
     # added as attributes on the API model class.
 
 
-MANAGER.register_transform(astroid.ClassDef, transform)
+MANAGER.register_transform(astroid.ClassDef, transform, predicate)
