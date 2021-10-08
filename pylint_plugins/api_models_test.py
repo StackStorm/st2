@@ -1,0 +1,243 @@
+
+from collections.abc import Collection
+
+from astroid import parse, nodes
+
+# merely importing this registers it in astroid
+# so parse() will use our predicate and transform functions.
+from . import api_models
+
+
+def test_skiplist_class_gets_skipped():
+    # roughly based on st2api/st2api/controllers/v1/actionexecutions.py
+    code = """
+    class ActionExecutionReRunController(object):
+        class ExecutionSpecificationAPI(object):
+            schema = {"properties": {"action": {}}}
+    """
+
+    res = parse(code)
+
+    # this serves to document what res is
+    assert isinstance(res, nodes.Module)
+    assert isinstance(res.body, Collection)
+    assert isinstance(res.body[0], nodes.ClassDef)
+
+    class_node: nodes.ClassDef = res.body[0].body[0]
+    assert isinstance(class_node, nodes.ClassDef)
+
+    # this was a skiplisted class
+    assert class_node.name in api_models.CLASS_NAME_SKIPLIST
+
+    # only schema is present, so no other properties have been added.
+    assert len(class_node.body) == 1
+    assert "schema" in class_node.locals
+    assert "action" not in class_node.locals
+
+    assign_node: nodes.Assign = class_node.body[0]
+    assert isinstance(assign_node, nodes.Assign)
+    assert isinstance(assign_node.value, nodes.Dict)
+
+
+def test_non_api_class_gets_skipped():
+    code = """
+    class ActionExecutionReRunController(object):
+        pass
+    """
+
+    res = parse(code)
+
+    assert isinstance(res, nodes.Module)
+
+    class_node: nodes.ClassDef = res.body[0]
+    assert isinstance(class_node, nodes.ClassDef)
+
+    assert len(class_node.body) == 1
+    assert isinstance(class_node.body[0], nodes.Pass)
+
+
+def test_simple_schema():
+    code = """
+    class ActionAPI(object):
+        schema = {"properties": {"action": {}}}
+    """
+
+    res = parse(code)
+
+    assert isinstance(res, nodes.Module)
+
+    class_node: nodes.ClassDef = res.body[0]
+    assert isinstance(class_node, nodes.ClassDef)
+
+    # action property added
+    assert "schema" in class_node.locals
+    assert "action" in class_node.locals
+    assert isinstance(class_node.locals["action"][0], nodes.AssignName)
+    assert class_node.locals["action"][0].name == "action"
+
+
+def test_copied_schema():
+    code = """
+    import copy
+
+    class ActionAPI(object):
+        schema = {"properties": {"action": {}}}
+
+    class ActionCreateAPI(object):
+        schema = copy.deepcopy(ActionAPI.schema)
+        schema["properties"]["default_files"] = {}
+    """
+
+    res = parse(code)
+
+    assert isinstance(res, nodes.Module)
+
+    class1_node: nodes.ClassDef = res.body[1]
+    assert isinstance(class1_node, nodes.ClassDef)
+
+    assert "schema" in class1_node.locals
+
+    # action property added but not property from the other class
+    assert "action" in class1_node.locals
+    assert "default_files" not in class1_node.locals
+
+    class2_node: nodes.ClassDef = res.body[2]
+    assert isinstance(class2_node, nodes.ClassDef)
+
+    # action (copied) and default_files (added) properties added
+    assert "schema" in class2_node.locals
+    assert "action" in class2_node.locals
+    assert "default_files" in class2_node.locals
+
+
+def test_copied_imported_schema():
+    code = """
+    import copy
+    from st2common.models.api.action import ActionAPI
+
+    class ActionCreateAPI(object):
+        schema = copy.deepcopy(ActionAPI.schema)
+        schema["properties"]["default_files"] = {}
+    """
+
+    res = parse(code)
+
+    assert isinstance(res, nodes.Module)
+
+    class_node: nodes.ClassDef = res.body[2]
+    assert isinstance(class_node, nodes.ClassDef)
+
+    assert "schema" in class_node.locals
+
+    # check for some of the attributes copied from ActionAPI schema
+    assert "name" in class_node.locals
+    assert "description" in class_node.locals
+    assert "runner_type" in class_node.locals
+
+    # check our added property
+    assert "default_files" in class_node.locals
+
+
+def test_indirect_copied_schema():
+    code = """
+    import copy
+    from st2common.models.api.action import ActionAPI
+
+    REQUIRED_ATTR_SCHEMAS = {"action": copy.deepcopy(ActionAPI.schema)}
+
+    class ExecutionAPI(object):
+        schema = {"properties": {"action": REQUIRED_ATTR_SCHEMAS["action"]}}
+    """
+
+    res = parse(code)
+
+    assert isinstance(res, nodes.Module)
+
+    class_node: nodes.ClassDef = res.body[3]
+    assert isinstance(class_node, nodes.ClassDef)
+
+    assert "schema" in class_node.locals
+    assert "action" in class_node.locals
+
+    attribute_value_node = next(class_node.locals["action"][0].infer())
+    assert isinstance(attribute_value_node, nodes.Dict)
+
+
+def test_inlined_schema():
+    code = """
+    from st2common.models.api.trigger import TriggerAPI
+
+    class ActionExecutionAPI(object):
+        schema = {"properties": {"trigger": TriggerAPI.schema}}
+    """
+
+    res = parse(code)
+
+    assert isinstance(res, nodes.Module)
+
+    class_node: nodes.ClassDef = res.body[1]
+    assert isinstance(class_node, nodes.ClassDef)
+
+    assert "schema" in class_node.locals
+    assert "trigger" in class_node.locals
+
+    attribute_value_node = next(class_node.locals["trigger"][0].infer())
+    assert isinstance(attribute_value_node, nodes.Dict)
+
+
+def test_property_types():
+    code = """
+    class RandomAPI(object):
+        schema = {
+            "properties": {
+                "thing": {"type": "object"},
+                "things": {"type": "array"},
+                "count": {"type": "integer"},
+                "average": {"type": "number"},
+                "magic": {"type": "string"},
+                "flag": {"type": "boolean"},
+                "nothing": {"type": "null"},
+                "unknown_type": {"type": "world"},
+                "undefined_type": {},
+            }
+        }
+    """
+
+    res = parse(code)
+
+    assert isinstance(res, nodes.Module)
+
+    class_node: nodes.ClassDef = res.body[0]
+    assert isinstance(class_node, nodes.ClassDef)
+
+    assert "schema" in class_node.locals
+
+    expected = {
+        "thing": nodes.Dict,
+        "things": nodes.List,
+        "unknown_type": nodes.ClassDef,
+        "undefined_type": nodes.ClassDef,
+    }
+    for property_name, value_class in expected.items():
+        assert property_name in class_node.locals
+        attribute_value_node = next(class_node.locals[property_name][0].infer())
+        assert isinstance(attribute_value_node, value_class)
+
+    # simple types (int, str, etc) are a little different
+    expected = {
+        "count": "int",
+        "average": "float",
+        "magic": "str",
+        "flag": "bool",
+    }
+    for property_name, value_class_name in expected.items():
+        assert property_name in class_node.locals
+        attribute_value_node = next(class_node.locals[property_name][0].infer())
+        assert isinstance(attribute_value_node, nodes.ClassDef)
+        assert attribute_value_node.name == value_class_name
+
+    # and None does its own thing too
+    assert "nothing" in class_node.locals
+    attribute_value_node = next(class_node.locals["nothing"][0].infer())
+    assert isinstance(attribute_value_node, nodes.Const)
+    assert attribute_value_node.value is None
