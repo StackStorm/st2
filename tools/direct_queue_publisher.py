@@ -18,7 +18,12 @@
 from __future__ import absolute_import
 import argparse
 
-import pika
+try:
+    import pika  # pylint disable=import-error
+except ImportError:
+    raise ImportError(
+        "Pika is not installed with StackStorm. Install it manually to use this tool."
+    )
 
 
 def main(queue, payload):
