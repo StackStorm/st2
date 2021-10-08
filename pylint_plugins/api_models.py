@@ -274,8 +274,13 @@ def transform(cls: nodes.ClassDef):
             # Unknown type
             node = astroid.ClassDef(property_name, None)
 
+        # Create a "property = node" assign node
+        assign_node = nodes.Assign(parent=cls)
+        assign_name_node = nodes.AssignName(property_name, parent=assign_node)
+        assign_node.postinit(targets=[assign_name_node], value=node)
+
         # Finally, add the property node as an attribute on the class.
-        cls.locals[property_name] = [node]
+        cls.locals[property_name] = [assign_name_node]
 
     # Now, pylint should be aware of all of the properties that get dynamically
     # added as attributes on the API model class.
