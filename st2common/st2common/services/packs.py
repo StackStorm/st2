@@ -29,6 +29,7 @@ import yaml
 from st2common import log as logging
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions.content import ResourceDiskFilesRemovalError
+from st2common.models.db.stormbase import UIDFieldMixin
 from st2common.persistence.pack import Pack
 from st2common.util.misc import lowercase_value
 from st2common.util.jsonify import json_encode
@@ -319,62 +320,53 @@ def _clone_content_to_destination_file(source_file, destination_file):
         raise Exception(msg)
 
 
-def clone_action(
-    source_pack_base_path,
-    source_metadata_file,
-    source_entry_point,
-    source_runner_type,
-    dest_pack_base_path,
-    dest_pack,
-    dest_action,
-):
+def clone_action_files(source_action_db, dest_action_db, dest_pack_base_path):
     """
     Prepares the path for entry point and metadata files for source and destination.
     Clones the content from source action files to destination action files.
     """
 
+    source_pack = source_action_db["pack"]
+    source_entry_point = source_action_db["entry_point"]
+    source_metadata_file = source_action_db["metadata_file"]
+    source_pack_base_path = get_pack_base_path(pack_name=source_pack)
     source_metadata_file_path = os.path.join(
         source_pack_base_path, source_metadata_file
     )
-    dest_metadata_file_name = "%s.yaml" % (dest_action)
-    dest_metadata_file_path = os.path.join(
-        dest_pack_base_path, "actions", dest_metadata_file_name
-    )
+    dest_metadata_file_name = dest_action_db["metadata_file"]
+    dest_metadata_file_path = os.path.join(dest_pack_base_path, dest_metadata_file_name)
+
     _clone_content_to_destination_file(
         source_file=source_metadata_file_path, destination_file=dest_metadata_file_path
     )
 
-    if source_entry_point:
-        if source_runner_type in ["orquesta", "action-chain"]:
-            dest_entry_point_file_name = "workflows/%s.yaml" % (dest_action)
+    dest_entry_point = dest_action_db["entry_point"]
+    dest_runner_type = dest_action_db["runner_type"]["name"]
+
+    if dest_entry_point:
+        if dest_runner_type in ["orquesta", "action-chain"]:
             # creating workflows directory if doesn't exist
             wf_dir_path = os.path.join(dest_pack_base_path, "actions", "workflows")
             if not os.path.isdir(wf_dir_path):
                 os.mkdir(path=wf_dir_path)
-        else:
-            old_ext = os.path.splitext(source_entry_point)[1]
-            dest_entry_point_file_name = dest_action + old_ext
-
         source_entry_point_file_path = os.path.join(
             source_pack_base_path, "actions", source_entry_point
         )
         dest_entrypoint_file_path = os.path.join(
-            dest_pack_base_path, "actions", dest_entry_point_file_name
+            dest_pack_base_path, "actions", dest_entry_point
         )
         _clone_content_to_destination_file(
             source_file=source_entry_point_file_path,
             destination_file=dest_entrypoint_file_path,
         )
-    else:
-        dest_entry_point_file_name = ""
 
     with open(dest_metadata_file_path) as df:
         doc = yaml.load(df, Loader=yaml.FullLoader)
 
-    doc["name"] = dest_action
+    doc["name"] = dest_action_db["name"]
     if "pack" in doc:
-        doc["pack"] = dest_pack
-    doc["entry_point"] = dest_entry_point_file_name
+        doc["pack"] = dest_action_db["pack"]
+    doc["entry_point"] = dest_entry_point
 
     with open(dest_metadata_file_path, "w") as df:
         yaml.dump(doc, df, default_flow_style=False, sort_keys=False)
@@ -396,9 +388,85 @@ def clone_action_db(source_action_db, dest_pack, dest_action):
     dest_action_db["name"] = dest_action
     dest_ref = ".".join([dest_pack, dest_action])
     dest_action_db["ref"] = dest_ref
-    dest_action_db["uid"] = "action:%s:%s" % (dest_pack, dest_action)
+    dest_action_db["uid"] = UIDFieldMixin.UID_SEPARATOR.join(
+        ["action", dest_pack, dest_action]
+    )
     if "pack" in dest_action_db:
         dest_action_db["pack"] = dest_pack
     dest_action_db["id"] = None
 
     return dest_action_db
+
+
+def temp_backup_action_files(dest_pack_base_path, dest_metadata_file, dest_entry_point):
+    temp_dir_path = os.path.join(dest_pack_base_path, "temp_dir")
+    os.mkdir(temp_dir_path)
+    temp_metadata_file_path = os.path.join(temp_dir_path, "temp_metadata_file.yaml")
+    dest_metadata_file_path = os.path.join(dest_pack_base_path, dest_metadata_file)
+    _clone_content_to_destination_file(
+        source_file=dest_metadata_file_path, destination_file=temp_metadata_file_path
+    )
+    if dest_entry_point:
+        old_ext = os.path.splitext(dest_entry_point)[1]
+        temp_entry_point_file_name = "temp_entry_point_file" + old_ext
+        temp_entry_point_file_path = os.path.join(
+            temp_dir_path, temp_entry_point_file_name
+        )
+        dest_entry_point_file_path = os.path.join(
+            dest_pack_base_path, "actions", dest_entry_point
+        )
+        _clone_content_to_destination_file(
+            source_file=dest_entry_point_file_path,
+            destination_file=temp_entry_point_file_path,
+        )
+
+
+def restore_temp_action_files(
+    dest_pack_base_path, dest_metadata_file, dest_entry_point
+):
+    temp_dir_path = os.path.join(dest_pack_base_path, "temp_dir")
+    temp_metadata_file_path = os.path.join(temp_dir_path, "temp_metadata_file.yaml")
+    dest_metadata_file_path = os.path.join(dest_pack_base_path, dest_metadata_file)
+    _clone_content_to_destination_file(
+        source_file=temp_metadata_file_path, destination_file=dest_metadata_file_path
+    )
+    if dest_entry_point:
+        old_ext = os.path.splitext(dest_entry_point)[1]
+        temp_entry_point_file_name = "temp_entry_point_file" + old_ext
+        temp_entry_point_file_path = os.path.join(
+            temp_dir_path, temp_entry_point_file_name
+        )
+        dest_entry_point_file_path = os.path.join(
+            dest_pack_base_path, "actions", dest_entry_point
+        )
+        _clone_content_to_destination_file(
+            source_file=temp_entry_point_file_path,
+            destination_file=dest_entry_point_file_path,
+        )
+
+
+def remove_temp_action_files(dest_pack_base_path):
+    temp_dir_path = os.path.join(dest_pack_base_path, "temp_dir")
+
+    if os.path.isdir(temp_dir_path):
+        try:
+            shutil.rmtree(temp_dir_path)
+        except PermissionError:
+            LOG.error(
+                'No permission to delete the "%s" directory',
+                temp_dir_path,
+            )
+            msg = 'No permission to delete the "%s" directory' % (temp_dir_path)
+            raise PermissionError(msg)
+        except Exception as e:
+            LOG.error(
+                'Unable to delete "%s" directory. Exception was "%s"',
+                temp_dir_path,
+                e,
+            )
+            msg = (
+                'The temporary directory "%s" could not be removed from disk, please '
+                "check the logs or ask your StackStorm administrator to check "
+                "and delete the temporary directory manually" % (temp_dir_path)
+            )
+            raise Exception(msg)
