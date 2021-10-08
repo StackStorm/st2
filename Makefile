@@ -338,8 +338,8 @@ schemasgen: requirements .schemasgen
 	@echo
 
 	@echo "==========================================================="; \
-	@echo "Test our custom pylint plugins before we use them"; \
-	@echo "==========================================================="; \
+	echo "Test our custom pylint plugins before we use them"; \
+	echo "==========================================================="; \
 	. $(VIRTUALENV_DIR)/bin/activate ; pytest pylint_plugins || exit 1; \
 
 	# Lint st2 components
