@@ -30,7 +30,7 @@ LOG.debug(
     f"Systemd directories: Early='{EARLY_DIR}' Normal='{NORMAL_DIR}' Late='{LATE_DIR}'"
 )
 
-config = configparser.ConfigParser()
+config = configparser.ConfigParser(strict=False)
 config.read(ST2CFG)
 
 section = ST2SVC[3:]
