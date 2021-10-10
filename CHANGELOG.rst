@@ -256,6 +256,9 @@ Changed
 * Fixed ``__init__.py`` files to use double quotes to better align with black linting #5299
 
   Contributed by @blag.
+* Fixed ``st2client/st2client/base.py`` file to check for http_proxy and https_proxy environment variables for both lower and upper cases.
+  
+  Contributed by @S-T-A-R-L-O-R-D
 
 * Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
 
