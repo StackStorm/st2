@@ -40,7 +40,7 @@ TEST_PACK_PATH = os.path.join(
 
 TEST_SOURCE_PACK = "core"
 
-TEST_SOURCE_WORKFLOW_PACK = "examples"
+TEST_SOURCE_WORKFLOW_PACK = "orquesta_tests"
 
 TEST_DEST_PACK = "dummy_pack_23"
 TEST_DEST_PACK_PATH = os.path.join(
@@ -176,21 +176,25 @@ SOURCE_ACTION_WITH_LOCAL_SHELL_CMD_RUNNER = {
     "uid": "action:core:echo",
 }
 
-SOURCE_WORKFLOW = {
+SOURCE_WORKFLOW = SOURCE_WORKFLOW = {
     "description": "A basic workflow to demonstrate data flow options.",
     "enabled": True,
-    "entry_point": "workflows/orquesta-data-flow.yaml",
-    "id": "616413f3c05ab0a4329a22aa",
-    "metadata_file": "actions/orquesta-data-flow.yaml",
-    "name": "orquesta-data-flow",
+    "entry_point": "workflows/data-flow.yaml",
+    "metadata_file": "actions/data-flow.yaml",
+    "name": "data-flow",
     "notify": {},
-    "output_schema": {},
+    "output_schema": {
+        "a6": {"type": "string", "required": True},
+        "b6": {"type": "string", "required": True},
+        "a7": {"type": "string", "required": True},
+        "b7": {"type": "string", "required": True, "secret": "********"},
+    },
     "pack": TEST_SOURCE_WORKFLOW_PACK,
     "parameters": {"a1": {"required": True, "type": "string"}},
-    "ref": "examples.orquesta-data-flow",
+    "ref": "orquesta_tests.data-flow",
     "runner_type": {"name": "orquesta"},
     "tags": [],
-    "uid": "action:examples:orquesta-data-flow",
+    "uid": "action:orquesta_tests:data-flow",
 }
 
 
