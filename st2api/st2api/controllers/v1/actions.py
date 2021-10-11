@@ -17,6 +17,7 @@ import os
 import os.path
 import stat
 import errno
+import uuid
 
 import six
 from mongoengine import ValidationError
@@ -365,8 +366,12 @@ class ActionsController(resource.ContentPackResourceController):
                 options = GenericRequestParam(remove_files=True)
                 dest_metadata_file = dest_action_db["metadata_file"]
                 dest_entry_point = dest_action_db["entry_point"]
+                temp_sub_dir = str(uuid.uuid4())
                 temp_backup_action_files(
-                    dest_pack_base_path, dest_metadata_file, dest_entry_point
+                    dest_pack_base_path,
+                    dest_metadata_file,
+                    dest_entry_point,
+                    temp_sub_dir,
                 )
                 self.delete(options, dest_ref, requester_user)
             except ResourceAccessDeniedError as e:
@@ -385,27 +390,21 @@ class ActionsController(resource.ContentPackResourceController):
                 dest_action_db=cloned_dest_action_db,
                 dest_pack_base_path=dest_pack_base_path,
             )
-
             post_response = self.post(cloned_action_api, requester_user)
             if post_response.status_code != http_client.CREATED:
                 raise Exception("Could not add cloned action to database.")
-
+            cloned_dest_action_db["id"] = post_response.json["id"]
             extra = {"cloned_acion_db": cloned_dest_action_db}
             LOG.audit(
                 "Action cloned. Action.id=%s" % (cloned_dest_action_db.id), extra=extra
             )
             if dest_action_db:
-                remove_temp_action_files(dest_pack_base_path)
+                remove_temp_action_files(temp_sub_dir)
             return post_response
         except PermissionError as e:
             LOG.error("No permission to clone the action. Exception was %s", e)
             if dest_action_db:
-                restore_temp_action_files(
-                    dest_pack_base_path, dest_metadata_file, dest_entry_point
-                )
-                dest_action_db.id = None
-                Action.add_or_update(dest_action_db)
-                remove_temp_action_files(dest_pack_base_path)
+                self._restore_action(dest_action_db, dest_pack_base_path, temp_sub_dir)
             abort(http_client.FORBIDDEN, six.text_type(e))
         except Exception as e:
             LOG.error(
@@ -418,12 +417,7 @@ class ActionsController(resource.ContentPackResourceController):
                 metadata_file=cloned_dest_action_db["metadata_file"],
             )
             if dest_action_db:
-                restore_temp_action_files(
-                    dest_pack_base_path, dest_metadata_file, dest_entry_point
-                )
-                dest_action_db.id = None
-                Action.add_or_update(dest_action_db)
-                remove_temp_action_files(dest_pack_base_path)
+                self._restore_action(dest_action_db, dest_pack_base_path, temp_sub_dir)
             abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
     def _handle_data_files(self, pack_ref, data_files):
@@ -536,6 +530,17 @@ class ActionsController(resource.ContentPackResourceController):
                 "host_info": host_info,
             }
             self._trigger_dispatcher.dispatch(trigger=trigger, payload=payload)
+
+    def _restore_action(self, action_db, pack_base_path, temp_sub_dir):
+        restore_temp_action_files(
+            pack_base_path,
+            action_db["metadata_file"],
+            action_db["entry_point"],
+            temp_sub_dir,
+        )
+        action_db.id = None
+        Action.add_or_update(action_db)
+        remove_temp_action_files(temp_sub_dir)
 
 
 actions_controller = ActionsController()
