@@ -301,21 +301,20 @@ def _clone_content_to_destination_file(source_file, destination_file):
         shutil.copy(src=source_file, dst=destination_file)
     except PermissionError:
         LOG.error(
-            'No write permission for "%s" file',
+            'Unable to copy file to "%s" due to permission error.',
             destination_file,
         )
-        msg = 'No permission to write in "%s" file' % (destination_file)
+        msg = 'Unable to copy file to "%s".' % (destination_file)
         raise PermissionError(msg)
     except Exception as e:
         LOG.error(
-            'Could not copy to "%s" file. Exception was "%s"',
+            'Unable to copy file to "%s". Exception was "%s".',
             destination_file,
             e,
         )
         msg = (
-            'Could not copy to "%s" file, please check the logs '
-            "or ask your StackStorm administrator to check and clone "
-            "the actions files manually" % (destination_file)
+            'Unable to copy file to "%s". Please check the logs or ask your '
+            "administrator to clone the files manually." % destination_file
         )
         raise Exception(msg)
 
@@ -336,6 +335,10 @@ def clone_action_files(source_action_db, dest_action_db, dest_pack_base_path):
     dest_metadata_file_name = dest_action_db["metadata_file"]
     dest_metadata_file_path = os.path.join(dest_pack_base_path, dest_metadata_file_name)
 
+    # creating actions directory if doesn't exist
+    ac_dir_path = os.path.join(dest_pack_base_path, "actions")
+    if not os.path.isdir(ac_dir_path):
+        os.mkdir(path=ac_dir_path)
     _clone_content_to_destination_file(
         source_file=source_metadata_file_path, destination_file=dest_metadata_file_path
     )
@@ -398,22 +401,20 @@ def clone_action_db(source_action_db, dest_pack, dest_action):
     return dest_action_db
 
 
-def temp_backup_action_files(dest_pack_base_path, dest_metadata_file, dest_entry_point):
-    temp_dir_path = os.path.join(dest_pack_base_path, "temp_dir")
+def temp_backup_action_files(pack_base_path, metadata_file, entry_point, temp_sub_dir):
+    temp_dir_path = "/tmp/%s" % temp_sub_dir
     os.mkdir(temp_dir_path)
-    temp_metadata_file_path = os.path.join(temp_dir_path, "temp_metadata_file.yaml")
-    dest_metadata_file_path = os.path.join(dest_pack_base_path, dest_metadata_file)
+    os.mkdir(os.path.join(temp_dir_path, "actions"))
+    os.mkdir(os.path.join(temp_dir_path, "actions", "workflows"))
+    temp_metadata_file_path = os.path.join(temp_dir_path, metadata_file)
+    dest_metadata_file_path = os.path.join(pack_base_path, metadata_file)
     _clone_content_to_destination_file(
         source_file=dest_metadata_file_path, destination_file=temp_metadata_file_path
     )
-    if dest_entry_point:
-        old_ext = os.path.splitext(dest_entry_point)[1]
-        temp_entry_point_file_name = "temp_entry_point_file" + old_ext
-        temp_entry_point_file_path = os.path.join(
-            temp_dir_path, temp_entry_point_file_name
-        )
+    if entry_point:
+        temp_entry_point_file_path = os.path.join(temp_dir_path, "actions", entry_point)
         dest_entry_point_file_path = os.path.join(
-            dest_pack_base_path, "actions", dest_entry_point
+            pack_base_path, "actions", entry_point
         )
         _clone_content_to_destination_file(
             source_file=dest_entry_point_file_path,
@@ -421,23 +422,17 @@ def temp_backup_action_files(dest_pack_base_path, dest_metadata_file, dest_entry
         )
 
 
-def restore_temp_action_files(
-    dest_pack_base_path, dest_metadata_file, dest_entry_point
-):
-    temp_dir_path = os.path.join(dest_pack_base_path, "temp_dir")
-    temp_metadata_file_path = os.path.join(temp_dir_path, "temp_metadata_file.yaml")
-    dest_metadata_file_path = os.path.join(dest_pack_base_path, dest_metadata_file)
+def restore_temp_action_files(pack_base_path, metadata_file, entry_point, temp_sub_dir):
+    temp_dir_path = "/tmp/%s" % temp_sub_dir
+    temp_metadata_file_path = os.path.join(temp_dir_path, metadata_file)
+    dest_metadata_file_path = os.path.join(pack_base_path, metadata_file)
     _clone_content_to_destination_file(
         source_file=temp_metadata_file_path, destination_file=dest_metadata_file_path
     )
-    if dest_entry_point:
-        old_ext = os.path.splitext(dest_entry_point)[1]
-        temp_entry_point_file_name = "temp_entry_point_file" + old_ext
-        temp_entry_point_file_path = os.path.join(
-            temp_dir_path, temp_entry_point_file_name
-        )
+    if entry_point:
+        temp_entry_point_file_path = os.path.join(temp_dir_path, "actions", entry_point)
         dest_entry_point_file_path = os.path.join(
-            dest_pack_base_path, "actions", dest_entry_point
+            pack_base_path, "actions", entry_point
         )
         _clone_content_to_destination_file(
             source_file=temp_entry_point_file_path,
@@ -445,8 +440,8 @@ def restore_temp_action_files(
         )
 
 
-def remove_temp_action_files(dest_pack_base_path):
-    temp_dir_path = os.path.join(dest_pack_base_path, "temp_dir")
+def remove_temp_action_files(temp_sub_dir):
+    temp_dir_path = "/tmp/%s" % temp_sub_dir
 
     if os.path.isdir(temp_dir_path):
         try:
