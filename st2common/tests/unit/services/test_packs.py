@@ -176,7 +176,7 @@ SOURCE_ACTION_WITH_LOCAL_SHELL_CMD_RUNNER = {
     "uid": "action:core:echo",
 }
 
-SOURCE_WORKFLOW = SOURCE_WORKFLOW = {
+SOURCE_WORKFLOW = {
     "description": "A basic workflow to demonstrate data flow options.",
     "enabled": True,
     "entry_point": "workflows/data-flow.yaml",
