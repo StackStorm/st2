@@ -21,6 +21,7 @@ import os
 import mock
 import shutil
 import unittest2
+import uuid
 
 import st2tests
 
@@ -39,7 +40,7 @@ TEST_PACK_PATH = os.path.join(
 
 TEST_SOURCE_PACK = "core"
 
-TEST_SOURCE_WORKFLOW_PACK = "orquesta_tests"
+TEST_SOURCE_WORKFLOW_PACK = "examples"
 
 TEST_DEST_PACK = "dummy_pack_23"
 TEST_DEST_PACK_PATH = os.path.join(
@@ -178,22 +179,18 @@ SOURCE_ACTION_WITH_LOCAL_SHELL_CMD_RUNNER = {
 SOURCE_WORKFLOW = {
     "description": "A basic workflow to demonstrate data flow options.",
     "enabled": True,
-    "entry_point": "workflows/data-flow.yaml",
-    "metadata_file": "actions/data-flow.yaml",
-    "name": "data-flow",
+    "entry_point": "workflows/orquesta-data-flow.yaml",
+    "id": "616413f3c05ab0a4329a22aa",
+    "metadata_file": "actions/orquesta-data-flow.yaml",
+    "name": "orquesta-data-flow",
     "notify": {},
-    "output_schema": {
-        "a6": {"type": "string", "required": True},
-        "b6": {"type": "string", "required": True},
-        "a7": {"type": "string", "required": True},
-        "b7": {"type": "string", "required": True, "secret": "********"},
-    },
+    "output_schema": {},
     "pack": TEST_SOURCE_WORKFLOW_PACK,
     "parameters": {"a1": {"required": True, "type": "string"}},
-    "ref": "orquesta_tests.data-flow",
+    "ref": "examples.orquesta-data-flow",
     "runner_type": {"name": "orquesta"},
     "tags": [],
-    "uid": "action:orquesta_tests:data-flow",
+    "uid": "action:examples:orquesta-data-flow",
 }
 
 
@@ -411,9 +408,22 @@ class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
 
 class CloneActionDBAndFilesTestCase(unittest2.TestCase):
     @classmethod
+    def setUpClass(cls):
+        action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
+        workflow_files_path = os.path.join(action_files_path, "workflows")
+        if not os.path.isdir(action_files_path):
+            os.mkdir(action_files_path)
+        if not os.path.isdir(workflow_files_path):
+            os.mkdir(workflow_files_path)
+
+    @classmethod
     def tearDownClass(cls):
         action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
         workflow_files_path = os.path.join(action_files_path, "workflows")
+        if not os.path.isdir(action_files_path):
+            os.mkdir(action_files_path)
+        if not os.path.isdir(workflow_files_path):
+            os.mkdir(workflow_files_path)
         for file in os.listdir(action_files_path):
             if os.path.isfile(os.path.join(action_files_path, file)):
                 os.remove(os.path.join(action_files_path, file))
@@ -430,19 +440,7 @@ class CloneActionDBAndFilesTestCase(unittest2.TestCase):
         )
         actual_uid = CLONE_ACTION_1["uid"]
         self.assertEqual(actual_uid, exptected_uid)
-        exptected_parameters = {
-            "trigger": {
-                "type": "string",
-                "description": "Trigger reference (e.g. mypack.my_trigger).",
-                "required": True,
-            },
-            "payload": {"type": "object", "description": "Trigger payload."},
-            "trace_tag": {
-                "type": "string",
-                "description": "Optional trace tag.",
-                "required": False,
-            },
-        }
+        exptected_parameters = SOURCE_ACTION_WITH_PYTHON_SCRIPT_RUNNER["parameters"]
         actual_parameters = CLONE_ACTION_1["parameters"]
         self.assertDictEqual(actual_parameters, exptected_parameters)
 
@@ -512,16 +510,16 @@ class CloneActionDBAndFilesTestCase(unittest2.TestCase):
         cloned_action_metadata_file_path = os.path.join(
             TEST_DEST_PACK_PATH, "actions", "clone_action_4.yaml"
         )
-        expected_msg = 'No permission to write in "%s" file' % (
+        expected_msg = 'Unable to copy file to "%s".' % (
             cloned_action_metadata_file_path
         )
-        CLONE_ACTION_2 = clone_action_db(
+        CLONE_ACTION_4 = clone_action_db(
             SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_4"
         )
         with self.assertRaisesRegexp(PermissionError, expected_msg):
             clone_action_files(
                 SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER,
-                CLONE_ACTION_2,
+                CLONE_ACTION_4,
                 TEST_DEST_PACK_PATH,
             )
 
@@ -537,8 +535,8 @@ class CloneActionDBAndFilesTestCase(unittest2.TestCase):
             TEST_DEST_PACK_PATH, "actions", "clone_action_5.yaml"
         )
         expected_msg = (
-            'Could not copy to "%s" file, please check the logs or ask your '
-            "StackStorm administrator to check and clone the actions files manually"
+            'Unable to copy file to "%s". Please check the logs or ask your '
+            "administrator to clone the files manually."
             % cloned_action_metadata_file_path
         )
         with self.assertRaisesRegexp(Exception, expected_msg):
@@ -548,30 +546,41 @@ class CloneActionDBAndFilesTestCase(unittest2.TestCase):
                 TEST_DEST_PACK_PATH,
             )
 
+    def test_actions_directory_created_if_does_not_exist(self):
+        action_dir_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
+        # removing actions directory and asserting it doesn't exist
+        shutil.rmtree(action_dir_path)
+        self.assertFalse(os.path.exists(action_dir_path))
+        CLONE_ACTION_6 = clone_action_db(
+            SOURCE_ACTION_WITH_LOCAL_SHELL_CMD_RUNNER, TEST_DEST_PACK, "clone_action_6"
+        )
+        clone_action_files(
+            SOURCE_ACTION_WITH_LOCAL_SHELL_CMD_RUNNER,
+            CLONE_ACTION_6,
+            TEST_DEST_PACK_PATH,
+        )
+        # workflows directory created and asserting it exists
+        self.assertTrue(os.path.exists(action_dir_path))
+        wf_dir_path = os.path.join(action_dir_path, "workflows")
+        if not os.path.isdir(wf_dir_path):
+            os.mkdir(wf_dir_path)
+
     def test_workflows_directory_created_if_does_not_exist(self):
-        action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
-        workflow_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions", "workflows")
-        for file in os.listdir(workflow_files_path):
-            if os.path.isfile(os.path.join(workflow_files_path, file)):
-                os.remove(os.path.join(workflow_files_path, file))
+        action_dir_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
+        workflows_dir_path = os.path.join(TEST_DEST_PACK_PATH, "actions", "workflows")
         # removing workflows directory and asserting it doesn't exist
-        os.rmdir(workflow_files_path)
-        self.assertFalse(os.path.exists(workflow_files_path))
-        self.assertTrue(os.path.exists(action_files_path))
+        shutil.rmtree(workflows_dir_path)
+        self.assertFalse(os.path.exists(workflows_dir_path))
+        self.assertTrue(os.path.exists(action_dir_path))
         CLONE_WORKFLOW = clone_action_db(
             SOURCE_WORKFLOW, TEST_DEST_PACK, "clone_workflow"
         )
         clone_action_files(SOURCE_WORKFLOW, CLONE_WORKFLOW, TEST_DEST_PACK_PATH)
         # workflows directory created and asserting it exists
-        self.assertTrue(os.path.exists(workflow_files_path))
+        self.assertTrue(os.path.exists(workflows_dir_path))
 
 
 class CloneActionFilesBackupTestCase(unittest2.TestCase):
-    def setUp(self):
-        temp_dir_path = os.path.join(TEST_DEST_PACK_PATH, "temp_dir")
-        if os.path.isdir(temp_dir_path):
-            shutil.rmtree(temp_dir_path)
-
     @classmethod
     def tearDownClass(cls):
         action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
@@ -582,11 +591,8 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         for file in os.listdir(workflow_files_path):
             if os.path.isfile(os.path.join(workflow_files_path, file)):
                 os.remove(os.path.join(workflow_files_path, file))
-        temp_dir_path = os.path.join(TEST_DEST_PACK_PATH, "temp_dir")
-        if os.path.isdir(temp_dir_path):
-            shutil.rmtree(temp_dir_path)
 
-    def test_temp_backup_action_files(self):
+    def test_temp_backup_restore_remove_action_files(self):
         CLONE_ACTION_1 = clone_action_db(
             SOURCE_ACTION_WITH_PYTHON_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_1"
         )
@@ -595,32 +601,27 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         )
         dest_action_metadata_file = CLONE_ACTION_1["metadata_file"]
         dest_action_entry_point_file = CLONE_ACTION_1["entry_point"]
+        temp_sub_dir = str(uuid.uuid4())
+
+        # creating backup of dest action files at /tmp/<uuid>
         temp_backup_action_files(
-            TEST_DEST_PACK_PATH, dest_action_metadata_file, dest_action_entry_point_file
+            TEST_DEST_PACK_PATH,
+            dest_action_metadata_file,
+            dest_action_entry_point_file,
+            temp_sub_dir,
         )
-        temp_dir_path = os.path.join(TEST_DEST_PACK_PATH, "temp_dir")
-        self.assertTrue(temp_dir_path)
-        temp_metadata_file_path = os.path.join(temp_dir_path, "temp_metadata_file.yaml")
-        self.assertTrue(os.path.exists(temp_metadata_file_path))
+        temp_dir_path = "/tmp/%s" % temp_sub_dir
+        self.assertTrue(os.path.isdir(temp_dir_path))
+        temp_metadata_file_path = os.path.join(temp_dir_path, dest_action_metadata_file)
         temp_entry_point_file_path = os.path.join(
-            temp_dir_path, "temp_entry_point_file.py"
+            temp_dir_path, "actions", dest_action_entry_point_file
         )
+        # asserting backup files exists
+        self.assertTrue(os.path.exists(temp_metadata_file_path))
         self.assertTrue(os.path.exists(temp_entry_point_file_path))
 
-    def test_restore_temp_action_files(self):
-        CLONE_ACTION_2 = clone_action_db(
-            SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_2"
-        )
-        clone_action_files(
-            SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, CLONE_ACTION_2, TEST_DEST_PACK_PATH
-        )
-        dest_action_metadata_file = CLONE_ACTION_2["metadata_file"]
-        dest_action_entry_point_file = CLONE_ACTION_2["entry_point"]
-        temp_backup_action_files(
-            TEST_DEST_PACK_PATH, dest_action_metadata_file, dest_action_entry_point_file
-        )
-        dest_action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
         # removing destination action files
+        dest_action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
         for file in os.listdir(dest_action_files_path):
             if os.path.isfile(os.path.join(dest_action_files_path, file)):
                 os.remove(os.path.join(dest_action_files_path, file))
@@ -633,44 +634,30 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         # asserting destination action files doesn't exist
         self.assertFalse(os.path.isfile(dest_action_metadata_file_path))
         self.assertFalse(os.path.isfile(dest_action_entry_point_file_path))
+
         # restoring temp backed action files to destination
         restore_temp_action_files(
-            TEST_DEST_PACK_PATH, dest_action_metadata_file, dest_action_entry_point_file
+            TEST_DEST_PACK_PATH,
+            dest_action_metadata_file,
+            dest_action_entry_point_file,
+            temp_sub_dir,
         )
         # asserting action files restored at destination
         self.assertTrue(os.path.isfile(dest_action_metadata_file_path))
         self.assertTrue(os.path.isfile(dest_action_entry_point_file_path))
-
-    def test_remove_temp_action_files(self):
-        CLONE_ACTION_3 = clone_action_db(
-            SOURCE_ACTION_WITH_PYTHON_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_3"
-        )
-        clone_action_files(
-            SOURCE_ACTION_WITH_PYTHON_SCRIPT_RUNNER, CLONE_ACTION_3, TEST_DEST_PACK_PATH
-        )
-        dest_action_metadata_file = CLONE_ACTION_3["metadata_file"]
-        dest_action_entry_point_file = CLONE_ACTION_3["entry_point"]
-        temp_backup_action_files(
-            TEST_DEST_PACK_PATH, dest_action_metadata_file, dest_action_entry_point_file
-        )
-        temp_dir_path = os.path.join(TEST_DEST_PACK_PATH, "temp_dir")
-        temp_metadata_file_path = os.path.join(temp_dir_path, "temp_metadata_file.yaml")
-        temp_entry_point_file_path = os.path.join(
-            temp_dir_path, "temp_entry_point_file.py"
-        )
         # asserting temp_dir and backed action files exits
         self.assertTrue(os.path.isdir(temp_dir_path))
         self.assertTrue(os.path.exists(temp_metadata_file_path))
         self.assertTrue(os.path.exists(temp_entry_point_file_path))
+
         # removing temp_dir and backed action files
-        remove_temp_action_files(TEST_DEST_PACK_PATH)
+        remove_temp_action_files(temp_sub_dir)
         # asserting temp_dir and backed action files doesn't exit
         self.assertFalse(os.path.isdir(temp_dir_path))
         self.assertFalse(os.path.exists(temp_metadata_file_path))
         self.assertFalse(os.path.exists(temp_entry_point_file_path))
 
-    @mock.patch("shutil.rmtree")
-    def test_exception_remove_temp_action_files(self, mock_rmdir):
+    def test_exception_remove_temp_action_files(self):
         CLONE_ACTION_4 = clone_action_db(
             SOURCE_ACTION_WITH_PYTHON_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_4"
         )
@@ -679,22 +666,28 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         )
         dest_action_metadata_file = CLONE_ACTION_4["metadata_file"]
         dest_action_entry_point_file = CLONE_ACTION_4["entry_point"]
+        temp_sub_dir = str(uuid.uuid4())
         temp_backup_action_files(
-            TEST_DEST_PACK_PATH, dest_action_metadata_file, dest_action_entry_point_file
+            TEST_DEST_PACK_PATH,
+            dest_action_metadata_file,
+            dest_action_entry_point_file,
+            temp_sub_dir,
         )
-        temp_dir_path = os.path.join(TEST_DEST_PACK_PATH, "temp_dir")
+        temp_dir_path = "/tmp/%s" % temp_sub_dir
         self.assertTrue(os.path.isdir(temp_dir_path))
-        mock_rmdir.side_effect = Exception
         expected_msg = (
             'The temporary directory "%s" could not be removed from disk, please check the logs '
             "or ask your StackStorm administrator to check and delete the temporary directory "
             "manually" % temp_dir_path
         )
-        with self.assertRaisesRegexp(Exception, expected_msg):
-            remove_temp_action_files(TEST_DEST_PACK_PATH)
+        with mock.patch("shutil.rmtree") as mock_rmdir:
+            mock_rmdir.side_effect = Exception
+            with self.assertRaisesRegexp(Exception, expected_msg):
+                remove_temp_action_files(temp_sub_dir)
 
-    @mock.patch("shutil.rmtree")
-    def test_permission_error_remove_temp_action_files(self, mock_rmdir):
+        remove_temp_action_files(temp_sub_dir)
+
+    def test_permission_error_remove_temp_action_files(self):
         CLONE_ACTION_5 = clone_action_db(
             SOURCE_ACTION_WITH_PYTHON_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_5"
         )
@@ -703,12 +696,140 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         )
         dest_action_metadata_file = CLONE_ACTION_5["metadata_file"]
         dest_action_entry_point_file = CLONE_ACTION_5["entry_point"]
+        temp_sub_dir = str(uuid.uuid4())
         temp_backup_action_files(
-            TEST_DEST_PACK_PATH, dest_action_metadata_file, dest_action_entry_point_file
+            TEST_DEST_PACK_PATH,
+            dest_action_metadata_file,
+            dest_action_entry_point_file,
+            temp_sub_dir,
         )
-        temp_dir_path = os.path.join(TEST_DEST_PACK_PATH, "temp_dir")
+        temp_dir_path = "/tmp/%s" % temp_sub_dir
         self.assertTrue(os.path.isdir(temp_dir_path))
-        mock_rmdir.side_effect = PermissionError
         expected_msg = 'No permission to delete the "%s" directory' % temp_dir_path
-        with self.assertRaisesRegexp(Exception, expected_msg):
-            remove_temp_action_files(TEST_DEST_PACK_PATH)
+        with mock.patch("shutil.rmtree") as mock_rmdir:
+            mock_rmdir.side_effect = PermissionError
+            with self.assertRaisesRegexp(PermissionError, expected_msg):
+                remove_temp_action_files(temp_sub_dir)
+
+        remove_temp_action_files(temp_sub_dir)
+
+    def test_exception_temp_backup_action_files(self):
+        CLONE_ACTION_6 = clone_action_db(
+            SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_6"
+        )
+        clone_action_files(
+            SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, CLONE_ACTION_6, TEST_DEST_PACK_PATH
+        )
+        dest_action_metadata_file = CLONE_ACTION_6["metadata_file"]
+        dest_action_entry_point_file = CLONE_ACTION_6["entry_point"]
+        temp_sub_dir = str(uuid.uuid4())
+        temp_dir_path = "/tmp/%s" % temp_sub_dir
+        tmp_action_metadata_file_path = os.path.join(
+            temp_dir_path, dest_action_metadata_file
+        )
+        expected_msg = (
+            'Unable to copy file to "%s". Please check the logs or ask your '
+            "administrator to clone the files manually." % tmp_action_metadata_file_path
+        )
+        with mock.patch("shutil.copy") as mock_copy:
+            mock_copy.side_effect = Exception
+            with self.assertRaisesRegexp(Exception, expected_msg):
+                temp_backup_action_files(
+                    TEST_DEST_PACK_PATH,
+                    dest_action_metadata_file,
+                    dest_action_entry_point_file,
+                    temp_sub_dir,
+                )
+
+        remove_temp_action_files(temp_sub_dir)
+
+    def test_permission_error_temp_backup_action_files(self):
+        CLONE_ACTION_7 = clone_action_db(
+            SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_7"
+        )
+        clone_action_files(
+            SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, CLONE_ACTION_7, TEST_DEST_PACK_PATH
+        )
+        dest_action_metadata_file = CLONE_ACTION_7["metadata_file"]
+        dest_action_entry_point_file = CLONE_ACTION_7["entry_point"]
+        temp_sub_dir = str(uuid.uuid4())
+        temp_dir_path = "/tmp/%s" % temp_sub_dir
+        tmp_action_metadata_file_path = os.path.join(
+            temp_dir_path, dest_action_metadata_file
+        )
+        expected_msg = 'Unable to copy file to "%s".' % tmp_action_metadata_file_path
+        with mock.patch("shutil.copy") as mock_copy:
+            mock_copy.side_effect = PermissionError
+            with self.assertRaisesRegexp(PermissionError, expected_msg):
+                temp_backup_action_files(
+                    TEST_DEST_PACK_PATH,
+                    dest_action_metadata_file,
+                    dest_action_entry_point_file,
+                    temp_sub_dir,
+                )
+
+        remove_temp_action_files(temp_sub_dir)
+
+    def test_exception_restore_temp_action_files(self):
+        CLONE_ACTION_8 = clone_action_db(
+            SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_8"
+        )
+        clone_action_files(
+            SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, CLONE_ACTION_8, TEST_DEST_PACK_PATH
+        )
+        dest_action_metadata_file = CLONE_ACTION_8["metadata_file"]
+        dest_action_entry_point_file = CLONE_ACTION_8["entry_point"]
+        dest_action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
+        for file in os.listdir(dest_action_files_path):
+            if os.path.isfile(os.path.join(dest_action_files_path, file)):
+                os.remove(os.path.join(dest_action_files_path, file))
+        temp_sub_dir = str(uuid.uuid4())
+        dest_action_metadata_file_path = os.path.join(
+            TEST_DEST_PACK_PATH, dest_action_metadata_file
+        )
+        expected_msg = (
+            'Unable to copy file to "%s". Please check the logs or ask your '
+            "administrator to clone the files manually."
+            % dest_action_metadata_file_path
+        )
+        with mock.patch("shutil.copy") as mock_copy:
+            mock_copy.side_effect = Exception
+            with self.assertRaisesRegexp(Exception, expected_msg):
+                restore_temp_action_files(
+                    TEST_DEST_PACK_PATH,
+                    dest_action_metadata_file,
+                    dest_action_entry_point_file,
+                    temp_sub_dir,
+                )
+
+        remove_temp_action_files(temp_sub_dir)
+
+    def test_permission_error_restore_temp_action_files(self):
+        CLONE_ACTION_9 = clone_action_db(
+            SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_9"
+        )
+        clone_action_files(
+            SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, CLONE_ACTION_9, TEST_DEST_PACK_PATH
+        )
+        dest_action_metadata_file = CLONE_ACTION_9["metadata_file"]
+        dest_action_entry_point_file = CLONE_ACTION_9["entry_point"]
+        dest_action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
+        for file in os.listdir(dest_action_files_path):
+            if os.path.isfile(os.path.join(dest_action_files_path, file)):
+                os.remove(os.path.join(dest_action_files_path, file))
+        temp_sub_dir = str(uuid.uuid4())
+        dest_action_metadata_file_path = os.path.join(
+            TEST_DEST_PACK_PATH, dest_action_metadata_file
+        )
+        expected_msg = 'Unable to copy file to "%s".' % dest_action_metadata_file_path
+        with mock.patch("shutil.copy") as mock_copy:
+            mock_copy.side_effect = PermissionError
+            with self.assertRaisesRegexp(PermissionError, expected_msg):
+                restore_temp_action_files(
+                    TEST_DEST_PACK_PATH,
+                    dest_action_metadata_file,
+                    dest_action_entry_point_file,
+                    temp_sub_dir,
+                )
+
+        remove_temp_action_files(temp_sub_dir)
