@@ -1086,11 +1086,6 @@ class ActionsControllerTestCase(
             expect_errors=True,
         )
         self.assertEqual(clone_resp.status_int, 500)
-        dest_get_resp = self.__do_get_actions_by_url_parameter(
-            "name", ACTION_17["name"]
-        )
-        self.assertEqual(dest_get_resp.status_int, 200)
-        self.assertEqual(dest_get_resp.json[0]["runner_type"], ACTION_17["runner_type"])
         # asserting temp_backup_action_files function called
         self.assertTrue(mock_backup_files.called)
         # asserting restore_temp_action_files called i.e. original ACTION_17 restored
@@ -1099,6 +1094,19 @@ class ActionsControllerTestCase(
         self.assertTrue(mock_remove_backup.called)
         # asserting delete_action_files_from_pack called i.e. cloned files are cleaned up
         self.assertTrue(mock_clean_files.called)
+        # retrieving reregistered oringinal ACTION_17 from database
+        dest_get_resp = self.__do_get_actions_by_url_parameter(
+            "name", ACTION_17["name"]
+        )
+        self.assertEqual(dest_get_resp.status_int, 200)
+        expected_runner_type = ACTION_17["runner_type"]
+        actual_runner_type = dest_get_resp.json[0]["runner_type"]
+        # asserting ACTION_17 has original runner type
+        self.assertEqual(actual_runner_type, expected_runner_type)
+        expeted_parameters = ACTION_17["parameters"]
+        actual_parameters = dest_get_resp.json[0]["parameters"]
+        # asserting ACTION_17 has original parameters
+        self.assertDictEqual(actual_parameters, expeted_parameters)
         self.__do_delete(self.__get_action_id(source_post_resp))
         self.__do_delete(dest_get_resp.json[0]["id"])
 
