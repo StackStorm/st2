@@ -950,6 +950,7 @@ class ActionsControllerTestCase(
             source_ref_or_id,
             expect_errors=True,
         )
+        # clone operation failed and asserting response status code and error msg
         self.assertEqual(clone_resp.status_int, 404)
         msg = 'Resource with a reference or id "%s" not found' % source_ref_or_id
         self.assertEqual(clone_resp.json["faultstring"], msg)
