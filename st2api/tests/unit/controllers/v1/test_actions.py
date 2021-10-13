@@ -1094,7 +1094,7 @@ class ActionsControllerTestCase(
         self.assertTrue(mock_remove_backup.called)
         # asserting delete_action_files_from_pack called i.e. cloned files are cleaned up
         self.assertTrue(mock_clean_files.called)
-        # retrieving reregistered oringinal ACTION_17 from database
+        # retrieving oringinal ACTION_17 from db which is reregistered after exception
         dest_get_resp = self.__do_get_actions_by_url_parameter(
             "name", ACTION_17["name"]
         )
