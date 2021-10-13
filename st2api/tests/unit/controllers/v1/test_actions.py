@@ -925,10 +925,7 @@ class ActionsControllerTestCase(
         clone_resp = self.__do_clone(dest_data_body, source_ref_or_id)
         self.assertEqual(clone_resp.status_int, 201)
         get_resp = self.__do_get_actions_by_url_parameter("name", ACTION_17["name"])
-        expected_params_dict = {
-            "x": {"type": "string", "default": "X1"},
-            "y": {"type": "string", "default": "Y1"},
-        }
+        expected_params_dict = ACTION_16["parameters"]
         actual_prams_dict = get_resp.json[0]["parameters"]
         self.assertDictEqual(actual_prams_dict, expected_params_dict)
         actual_runner_type = get_resp.json[0]["runner_type"]
