@@ -1007,7 +1007,6 @@ class ActionsControllerTestCase(
         msg = "No permission to access the files for cloning operation"
         mock_clone_action.side_effect = PermissionError(msg)
         source_post_resp = self.__do_post(ACTION_16)
-        dest_post_resp = self.__do_post(ACTION_17)
         dest_data_body = {
             "dest_pack": ACTION_17["pack"],
             "dest_action": "clone_action_3",
@@ -1021,7 +1020,6 @@ class ActionsControllerTestCase(
         self.assertEqual(clone_resp.status_int, 403)
         self.assertEqual(clone_resp.json["faultstring"], msg)
         self.__do_delete(self.__get_action_id(source_post_resp))
-        self.__do_delete(self.__get_action_id(dest_post_resp))
 
     @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
     @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
@@ -1033,7 +1031,6 @@ class ActionsControllerTestCase(
         msg = "Exception encountered during cloning action."
         mock_clone_action.side_effect = Exception(msg)
         source_post_resp = self.__do_post(ACTION_16)
-        dest_post_resp = self.__do_post(ACTION_17)
         dest_data_body = {
             "dest_pack": ACTION_17["pack"],
             "dest_action": "clone_action_4",
@@ -1049,7 +1046,6 @@ class ActionsControllerTestCase(
         # asserting delete_action_files_from_pack function called i.e. cloned files are cleaned up
         self.assertTrue(mock_delete_files.called)
         self.__do_delete(self.__get_action_id(source_post_resp))
-        self.__do_delete(self.__get_action_id(dest_post_resp))
 
     @mock.patch.object(os.path, "isdir", mock.MagicMock(return_value=True))
     @mock.patch("st2api.controllers.v1.actions.delete_action_files_from_pack")
