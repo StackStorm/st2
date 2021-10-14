@@ -14,7 +14,11 @@
 
 from collections.abc import Collection
 
+import astroid
 from astroid import parse, nodes
+
+import pylint.checkers.typecheck
+import pylint.testutils
 
 # merely importing this registers it in astroid
 # so parse() will use our predicate and transform functions.
@@ -254,3 +258,42 @@ def test_property_types():
     attribute_value_node = next(class_node.locals["nothing"][0].infer())
     assert isinstance(attribute_value_node, nodes.Const)
     assert attribute_value_node.value is None
+
+
+class TestTypeChecker(pylint.testutils.CheckerTestCase):
+    CHECKER_CLASS = pylint.checkers.typecheck.TypeChecker
+    checker: pylint.checkers.typecheck.TypeChecker
+
+    def test_finds_no_member_on_api_model_when_property_not_in_schema(self):
+        # The "#@" tells astroid which nodes to extract
+        (
+            assign_node_present,
+            assign_node_missing,
+        ) = astroid.extract_node(
+            """
+            class TestAPI:
+                schema = {"properties": {"present": {"type": "string"}}}
+
+            def test():
+                model = TestAPI()
+                present = model.present  #@
+                missing = model.missing  #@
+            """
+        )
+
+        self.checker.visit_assign(assign_node_present)
+        self.checker.visit_assign(assign_node_missing)
+
+        # accessing a property defined in the schema
+        with self.assertNoMessages():
+            self.checker.visit_attribute(assign_node_present.value)
+
+        # accessing a property NOT defined in the schema
+        with self.assertAddsMessages(
+            pylint.testutils.Message(
+                msg_id="no-member",  # E1101
+                args=("Instance of", "TestAPI", "missing", ""),
+                node=assign_node_missing.value,
+            )
+        ):
+            self.checker.visit_attribute(assign_node_missing.value)
