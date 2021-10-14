@@ -179,9 +179,7 @@ async def inject_stevedore_entry_points_dependencies(
                 f"which maps to the Python module `{entry_point.value.module}`"
             ),
         )
-        maybe_disambiguated = explicitly_provided_deps.disambiguated_via_ignores(
-            owners.ambiguous
-        )
+        maybe_disambiguated = explicitly_provided_deps.disambiguated(owners.ambiguous)
         unambiguous_owners = owners.unambiguous or (
             (maybe_disambiguated,) if maybe_disambiguated else ()
         )
