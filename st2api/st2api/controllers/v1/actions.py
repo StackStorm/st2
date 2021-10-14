@@ -385,15 +385,15 @@ class ActionsController(resource.ContentPackResourceController):
                 abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
         try:
+            post_response = self.post(cloned_action_api, requester_user)
+            if post_response.status_code != http_client.CREATED:
+                raise Exception("Could not add cloned action to database.")
+            cloned_dest_action_db["id"] = post_response.json["id"]
             clone_action_files(
                 source_action_db=source_action_db,
                 dest_action_db=cloned_dest_action_db,
                 dest_pack_base_path=dest_pack_base_path,
             )
-            post_response = self.post(cloned_action_api, requester_user)
-            if post_response.status_code != http_client.CREATED:
-                raise Exception("Could not add cloned action to database.")
-            cloned_dest_action_db["id"] = post_response.json["id"]
             extra = {"cloned_acion_db": cloned_dest_action_db}
             LOG.audit(
                 "Action cloned. Action.id=%s" % (cloned_dest_action_db.id), extra=extra
@@ -403,6 +403,13 @@ class ActionsController(resource.ContentPackResourceController):
             return post_response
         except PermissionError as e:
             LOG.error("No permission to clone the action. Exception was %s", e)
+            delete_action_files_from_pack(
+                pack_name=cloned_dest_action_db["pack"],
+                entry_point=cloned_dest_action_db["entry_point"],
+                metadata_file=cloned_dest_action_db["metadata_file"],
+            )
+            if post_response.status_code == http_client.CREATED:
+                Action.delete(cloned_dest_action_db)
             if dest_action_db:
                 self._restore_action(dest_action_db, dest_pack_base_path, temp_sub_dir)
             abort(http_client.FORBIDDEN, six.text_type(e))
@@ -416,8 +423,11 @@ class ActionsController(resource.ContentPackResourceController):
                 entry_point=cloned_dest_action_db["entry_point"],
                 metadata_file=cloned_dest_action_db["metadata_file"],
             )
+            if post_response.status_code == http_client.CREATED:
+                Action.delete(cloned_dest_action_db)
             if dest_action_db:
                 self._restore_action(dest_action_db, dest_pack_base_path, temp_sub_dir)
+
             abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
 
     def _handle_data_files(self, pack_ref, data_files):
