@@ -176,6 +176,8 @@ SOURCE_ACTION_WITH_LOCAL_SHELL_CMD_RUNNER = {
     "uid": "action:core:echo",
 }
 
+# source workflow needed from ``/st2tests/fixtures/packs/`` path. When source workflow
+# taken from ``/opt/stackstorm/packs/`` path, related unit tests fail
 SOURCE_WORKFLOW = {
     "description": "A basic workflow to demonstrate data flow options.",
     "enabled": True,
