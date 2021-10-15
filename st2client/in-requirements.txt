@@ -12,6 +12,8 @@ six
 sseclient-py
 python-editor
 prompt-toolkit
+# mention cffi used by cryptography so we can control version
+cffi
 cryptography
 orjson
 # needed by requests
