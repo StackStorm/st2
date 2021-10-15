@@ -266,10 +266,7 @@ class TestTypeChecker(pylint.testutils.CheckerTestCase):
 
     def test_finds_no_member_on_api_model_when_property_not_in_schema(self):
         # The "#@" tells astroid which nodes to extract
-        (
-            assign_node_present,
-            assign_node_missing,
-        ) = astroid.extract_node(
+        assign_node_present, assign_node_missing = astroid.extract_node(
             """
             class TestAPI:
                 schema = {"properties": {"present": {"type": "string"}}}
