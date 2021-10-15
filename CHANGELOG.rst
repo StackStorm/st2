@@ -78,10 +78,10 @@ Changed
 
   This functionality should never be used in production, but only in development environments or
   similar when debugging code. #5199
-  
+
 * Updated Bash installer to install latest RabbitMQ version rather than out-dated version available
   in OS distributions.
-  
+
   Contributed by @amanda11, Ammeon Solutions
 
 Fixed
