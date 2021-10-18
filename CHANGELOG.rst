@@ -74,6 +74,9 @@ Changed
 * Silence pylint about dev/debugging utility (tools/direct_queue_publisher.py) that uses pika because kombu
   doesn't support what it does. If anyone uses that utility, they have to install pika manually. #5380
 
+* Fixed version of cffi as changes in 1.15.0 meant that it attempted to load libffi.so.8. #5390
+  Contributed by @amanda11, Ammeon Solutions
+
 Fixed
 ~~~~~
 
