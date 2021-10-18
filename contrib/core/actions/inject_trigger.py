@@ -42,7 +42,7 @@ class InjectTriggerAction(Action):
         # Raise an error if neither trigger nor trigger_name are specified
         if not trigger and not trigger_name:
             raise ValueError(
-                "You must include either the `trigger_name` or `trigger` parameter."
+                "You must include the `trigger_name` parameter."
             )
 
         trigger = trigger if trigger else trigger_name
