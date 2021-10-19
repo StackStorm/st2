@@ -10,6 +10,7 @@ amqp==5.0.6
 apscheduler==3.7.0
 argcomplete==1.12.2
 bcrypt==3.2.0
+cffi<1.15.0
 chardet<3.1.0
 cryptography==3.4.7
 decorator==4.4.2
