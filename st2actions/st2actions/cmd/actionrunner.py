@@ -30,6 +30,7 @@ from st2actions import worker
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import deregister_service
 
 __all__ = ["main"]
 
@@ -75,6 +76,7 @@ def _run_worker():
         errors = False
 
         try:
+            deregister_service(service="actionrunner")
             action_worker.shutdown()
         except:
             LOG.exception("Unable to shutdown worker.")

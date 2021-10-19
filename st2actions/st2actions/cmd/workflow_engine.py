@@ -32,6 +32,7 @@ from st2actions.workflows import workflows
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import deregister_service as deregister
 
 __all__ = ["main"]
 
@@ -72,6 +73,7 @@ def run_server():
         engine.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
         LOG.info("(PID=%s) Workflow engine stopped.", os.getpid())
+        deregister(service="workflow_engine")
         engine.shutdown()
     except:
         LOG.exception("(PID=%s) Workflow engine unexpectedly stopped.", os.getpid())

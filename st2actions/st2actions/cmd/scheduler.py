@@ -28,6 +28,7 @@ from st2actions.scheduler import config
 from st2common import log as logging
 from st2common.service_setup import teardown as common_teardown
 from st2common.service_setup import setup as common_setup
+from st2common.service_setup import deregister_service
 
 __all__ = ["main"]
 
@@ -101,6 +102,7 @@ def _run_scheduler():
         errors = False
 
         try:
+            deregister_service(service="scheduler")
             handler.shutdown()
             entrypoint.shutdown()
         except:
