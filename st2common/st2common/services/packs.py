@@ -412,15 +412,10 @@ def temp_backup_action_files(pack_base_path, metadata_file, entry_point, temp_su
         source_file=dest_metadata_file_path, destination_file=temp_metadata_file_path
     )
     if entry_point:
-        if os.path.split(entry_point)[0] == "":
-            temp_entry_point_file_path = os.path.join(
-                temp_dir_path, "actions", entry_point
-            )
-        else:
-            entry_point_dir = str(os.path.split(entry_point)[0])
-            entry_point_dir_path = os.path.join(actions_dir, entry_point_dir)
-            os.makedirs(entry_point_dir_path)
-            temp_entry_point_file_path = os.path.join(actions_dir, entry_point)
+        entry_point_dir = str(os.path.split(entry_point)[0])
+        if entry_point_dir != "":
+            os.makedirs(os.path.join(actions_dir, entry_point_dir))
+        temp_entry_point_file_path = os.path.join(actions_dir, entry_point)
         dest_entry_point_file_path = os.path.join(
             pack_base_path, "actions", entry_point
         )
