@@ -6,6 +6,7 @@ mongoengine
 pymongo
 oslo.config
 oslo.utils
+pyparsing
 pymongo
 six
 gunicorn
