@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run Labeler
-        if: succeess()
+        if: success()
         uses: crazy-max/ghaction-github-labeler@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
