@@ -1,3 +1,36 @@
+# ##### pull-request-size bot labels ##### #
+- color: "009900" # green
+  description: PR that changes 0-9 lines. Quick fix/merge.
+  name: size/XS
+- color: 77bb00 # yellow-green
+  description: PR that changes 10-29 lines. Very easy to review.
+  name: size/S
+- color: eebb00 # yellow
+  description: PR that changes 30-99 lines. Good size to review.
+  name: size/M
+- color: ee9900 # yellow-orange
+  description: PR that changes 100-499 lines. Requires some effort to review.
+  name: size/L
+- color: ee5500 # orange
+  description: PR that changes 500-999 lines. Consider splitting work into several ones that easier to review.
+  name: size/XL
+- color: ee0000 # red
+  description: PR that changes 1000+ lines. You should absolutely split your PR into several.
+  name: size/XXL
+
+# ##### complexity labels ##### #
+- color: bfe5bf
+  description: ""
+  name: complexity:easy
+- color: F0DA27
+  description: ""
+  name: complexity:medium
+- color: fad8c7
+  description: ""
+  name: complexity:hard
+
+# ##### etc labels ##### #
+
 - color: 006B75
   description: ""
   name: action aliases
@@ -22,15 +55,6 @@
 - color: FBCA04
   description: ""
   name: CLI
-- color: bfe5bf
-  description: ""
-  name: complexity:easy
-- color: fad8c7
-  description: ""
-  name: complexity:hard
-- color: F0DA27
-  description: ""
-  name: complexity:medium
 - color: 16bdff
   description: ""
   name: component:st2auth
@@ -166,26 +190,6 @@
 - color: 16bdff
   description: ""
   name: 'service: workflow engine'
-- color: ee9900
-  description: PR that changes 100-499 lines. Requires some effort to review.
-  name: size/L
-- color: eebb00
-  description: PR that changes 30-99 lines. Good size to review.
-  name: size/M
-- color: 77bb00
-  description: PR that changes 10-29 lines. Very easy to review.
-  name: size/S
-- color: ee5500
-  description: PR that changes 500-999 lines. Consider splitting work into several
-    ones that easier to review.
-  name: size/XL
-- color: "009900"
-  description: PR that changes 0-9 lines. Quick fix/merge.
-  name: size/XS
-- color: ee0000
-  description: PR that changes 1000+ lines. You should absolutely split your PR into
-    several.
-  name: size/XXL
 - color: FF00FF
   description: ""
   name: st2-packages
