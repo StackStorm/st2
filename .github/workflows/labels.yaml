@@ -1,4 +1,4 @@
-name: github
+name: labels
 
 on:
   push:
