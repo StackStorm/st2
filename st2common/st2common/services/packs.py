@@ -445,7 +445,6 @@ def restore_temp_action_files(pack_base_path, metadata_file, entry_point, temp_s
 
 def remove_temp_action_files(temp_sub_dir):
     temp_dir_path = "/tmp/%s" % temp_sub_dir
-
     if os.path.isdir(temp_dir_path):
         try:
             shutil.rmtree(temp_dir_path)
