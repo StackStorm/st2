@@ -1,0 +1,248 @@
+- color: 006B75
+  description: ""
+  name: action aliases
+- color: FBCA04
+  description: ""
+  name: API
+- color: FBCA04
+  description: ""
+  name: API/v2
+- color: b60205
+  description: ""
+  name: breaking change
+- color: d73a4a
+  description: ""
+  name: bug
+- color: d73a4a
+  description: ""
+  name: bug fix
+- color: 006B75
+  description: ""
+  name: chatops
+- color: FBCA04
+  description: ""
+  name: CLI
+- color: bfe5bf
+  description: ""
+  name: complexity:easy
+- color: fad8c7
+  description: ""
+  name: complexity:hard
+- color: F0DA27
+  description: ""
+  name: complexity:medium
+- color: 16bdff
+  description: ""
+  name: component:st2auth
+- color: 16bdff
+  description: ""
+  name: component:st2client
+- color: 16bdff
+  description: ""
+  name: component:st2web
+- color: 652B81
+  description: ""
+  name: database
+- color: FF0088
+  description: ""
+  name: deployment
+- color: e5b479
+  description: ""
+  name: deprecation
+- color: FF0088
+  description: ""
+  name: Docker
+- color: fef2c0
+  description: ""
+  name: documentation
+- color: cfd3d7
+  description: ""
+  name: duplicate
+- color: 84b6eb
+  description: ""
+  name: enhancement
+- color: FFFF5F
+  description: ""
+  name: external dependency
+- color: 207de5
+  description: ""
+  name: feature
+- color: 7057ff
+  description: ""
+  name: good first issue
+- color: FF0088
+  description: StackStorm in High Availability
+  name: HA
+- color: 0E8A16
+  description: ""
+  name: help wanted
+- color: 2C5B58
+  description: ""
+  name: 'infrastructure: ci/cd'
+- color: 006B75
+  description: ""
+  name: inquiries
+- color: e6e6e6
+  description: ""
+  name: invalid
+- color: FF0088
+  description: ""
+  name: K8s
+- color: BB27FC
+  description: ""
+  name: logging
+- color: 5F5F5F
+  description: ""
+  name: maintenance
+- color: BB27FC
+  description: ""
+  name: metrics
+- color: 0F0000
+  description: ""
+  name: migrations
+- color: 652B81
+  description: ""
+  name: mongodb
+- color: 652B81
+  description: ""
+  name: nginx
+- color: FF00FF
+  description: Support/issues/PRs on a specific OS
+  name: OS support
+- color: 006B75
+  description: ""
+  name: output schema
+- color: 0000ff
+  description: ""
+  name: packs
+- color: BB27FC
+  description: ""
+  name: performance
+- color: 006B75
+  description: ""
+  name: policies
+- color: bfd4f2
+  description: ""
+  name: proposal
+- color: E9F68C
+  description: ""
+  name: python3
+- color: d876e3
+  description: ""
+  name: question
+- color: 652B81
+  description: ""
+  name: rabbitmq
+- color: D93F0B
+  description: ""
+  name: RBAC
+- color: fbca04
+  description: ""
+  name: refactor
+- color: d93f0b
+  description: ""
+  name: regression
+- color: 0000ff
+  description: ""
+  name: runners
+- color: D93F0B
+  description: ""
+  name: security
+- color: 16bdff
+  description: ""
+  name: 'service: action runner'
+- color: 16bdff
+  description: ""
+  name: 'service: api'
+- color: 16bdff
+  description: ""
+  name: 'service: auth api'
+- color: 16bdff
+  description: ""
+  name: 'service: rules engine'
+- color: 16bdff
+  description: ""
+  name: 'service: scheduler'
+- color: 16bdff
+  description: ""
+  name: 'service: workflow engine'
+- color: ee9900
+  description: PR that changes 100-499 lines. Requires some effort to review.
+  name: size/L
+- color: eebb00
+  description: PR that changes 30-99 lines. Good size to review.
+  name: size/M
+- color: 77bb00
+  description: PR that changes 10-29 lines. Very easy to review.
+  name: size/S
+- color: ee5500
+  description: PR that changes 500-999 lines. Consider splitting work into several
+    ones that easier to review.
+  name: size/XL
+- color: "009900"
+  description: PR that changes 0-9 lines. Quick fix/merge.
+  name: size/XS
+- color: ee0000
+  description: PR that changes 1000+ lines. You should absolutely split your PR into
+    several.
+  name: size/XXL
+- color: FF00FF
+  description: ""
+  name: st2-packages
+- color: ffffff
+  description: ""
+  name: stale
+- color: C0C0C0
+  description: ""
+  name: status:can't reproduce
+- color: 7b5804
+  description: ""
+  name: status:need more info
+- color: E99695
+  description: ""
+  name: status:needs changes
+- color: D4C5F9
+  description: A manual tag to note PRs that are otherwise ready, but the CLA bot
+    says the CLA has not been signed.
+  name: status:needs cla
+- color: d93f0b
+  description: ""
+  name: status:needs tests
+- color: cccccc
+  description: ""
+  name: status:not an issue
+- color: cccccc
+  description: Feature, design or idea with undecided status to include in the project
+    functionality
+  name: status:on hold
+- color: fbca04
+  description: ""
+  name: status:to be verified
+- color: f7c6c7
+  description: ""
+  name: status:under discussion
+- color: d7e102
+  description: ""
+  name: tests
+- color: f58220
+  description: PR managing GOVERNANCE or other TSC documentation
+  name: TSC
+- color: f58220
+  description: Items related to Technical Steering Committee voting
+  name: TSC:voting
+- color: E9F68C
+  description: ""
+  name: unicode
+- color: bfdadc
+  description: ""
+  name: WIP
+- color: ffffff
+  description: ""
+  name: wontfix
+- color: 0052CC
+  description: ""
+  name: 'workflows: action chain'
+- color: 0052CC
+  description: ""
+  name: 'workflows: orquesta'
+
