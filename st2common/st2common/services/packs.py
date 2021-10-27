@@ -335,7 +335,7 @@ def clone_action_files(source_action_db, dest_action_db, dest_pack_base_path):
     dest_metadata_file_name = dest_action_db["metadata_file"]
     dest_metadata_file_path = os.path.join(dest_pack_base_path, dest_metadata_file_name)
 
-    # creating actions directory if doesn't exist
+    # creating actions directory in destination pack if doesn't exist
     ac_dir_path = os.path.join(dest_pack_base_path, "actions")
     if not os.path.isdir(ac_dir_path):
         os.mkdir(path=ac_dir_path)
