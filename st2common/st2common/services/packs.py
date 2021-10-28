@@ -40,6 +40,11 @@ __all__ = [
     "get_pack_from_index",
     "search_pack_index",
     "delete_action_files_from_pack",
+    "clone_action_files",
+    "clone_action_db",
+    "temp_backup_action_files",
+    "restore_temp_action_files",
+    "remove_temp_action_files",
 ]
 
 EXCLUDE_FIELDS = ["repo_url", "email"]
