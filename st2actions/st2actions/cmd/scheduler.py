@@ -33,6 +33,7 @@ from st2common.service_setup import deregister_service
 __all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
+SCHEDULER = "scheduler"
 
 
 def _setup_sigterm_handler():
@@ -48,7 +49,7 @@ def _setup_sigterm_handler():
 def _setup():
     capabilities = {"name": "scheduler", "type": "passive"}
     common_setup(
-        service="scheduler",
+        service=SCHEDULER,
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
@@ -102,7 +103,7 @@ def _run_scheduler():
         errors = False
 
         try:
-            deregister_service(service="scheduler")
+            deregister_service(service=SCHEDULER)
             handler.shutdown()
             entrypoint.shutdown()
         except:

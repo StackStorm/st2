@@ -32,12 +32,13 @@ from st2actions.notifier import notifier
 __all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
+NOTIFIER = "notifier"
 
 
 def _setup():
     capabilities = {"name": "notifier", "type": "passive"}
     common_setup(
-        service="notifier",
+        service=NOTIFIER,
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
@@ -54,7 +55,7 @@ def _run_worker():
         actions_notifier.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
         LOG.info("(PID=%s) Actions notifier stopped.", os.getpid())
-        deregister_service(service="notifier")
+        deregister_service(service=NOTIFIER)
         actions_notifier.shutdown()
     return 0
 
