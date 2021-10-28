@@ -632,6 +632,21 @@ def register_opts(ignore_errors=False):
             "eventlet library is used to support async IO. This could result in "
             "failures that do not occur under normal operation.",
         ),
+        cfg.BoolOpt(
+            "enable-profiler",
+            default=False,
+            help="Enable code profiler mode. Do not use in production.",
+        ),
+        cfg.BoolOpt(
+            "enable-eventlet-blocking-detection",
+            default=False,
+            help="Enable eventlet blocking detection logic. Do not use in production.",
+        ),
+        cfg.FloatOpt(
+            "eventlet-blocking-detection-resolution",
+            default=0.5,
+            help="Resolution in seconds for eventlet blocking detection logic.",
+        ),
     ]
 
     do_register_cli_opts(cli_opts, ignore_errors=ignore_errors)
