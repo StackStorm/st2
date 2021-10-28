@@ -10,7 +10,7 @@ eventlet==0.25.1
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/python-mistralclient.git@st2-3.2.0#egg=python-mistralclient
 gitpython==2.1.15
-jinja2==2.10.3
+jinja2==2.11.3
 kombu==4.6.6
 lockfile==0.12.2
 oslo.config<1.13,>=1.12.1
