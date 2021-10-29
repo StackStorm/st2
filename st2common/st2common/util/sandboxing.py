@@ -143,14 +143,16 @@ def get_sandbox_python_path_for_python_action(
     # system site-packages.
     if custom_python_binary and os.path.isfile(custom_python_binary):
         python_version = custom_python_binary.rsplit("/", 1)[1]
-        system_prefix_dirs = ['/usr/lib', '/usr/local/lib']
-        system_dir_names = ['site-packages', 'dist-packages']
+        system_prefix_dirs = ["/usr/lib", "/usr/local/lib"]
+        system_dir_names = ["site-packages", "dist-packages"]
         for system_prefix_dir in system_prefix_dirs:
             for system_dir_name in system_dir_names:
-                if os.path.isdir(os.path.join(system_prefix_dir, python_version, system_dir_name)):
-                    custom_py_site_pack_dir = os.path.join(system_prefix_dir,
-                                                                   python_version,
-                                                                   system_dir_name)
+                if os.path.isdir(
+                    os.path.join(system_prefix_dir, python_version, system_dir_name)
+                ):
+                    custom_py_site_pack_dir = os.path.join(
+                        system_prefix_dir, python_version, system_dir_name
+                    )
                     existing_sandbox_py_path = sandbox_python_path
                     sandbox_python_path = (
                         f"{custom_py_site_pack_dir}:{existing_sandbox_py_path}"
