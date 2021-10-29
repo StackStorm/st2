@@ -268,7 +268,7 @@ check-python-packages-nightly:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR)
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -336,6 +336,10 @@ schemasgen: requirements .schemasgen
 	@echo
 	@echo "================== pylint ===================="
 	@echo
+	@echo "==========================================================="; \
+	echo "Test our custom pylint plugins before we use them"; \
+	echo "==========================================================="; \
+	. $(VIRTUALENV_DIR)/bin/activate ; pytest pylint_plugins || exit 1
 	# Lint st2 components
 	@for component in $(COMPONENTS); do\
 		echo "==========================================================="; \
