@@ -152,7 +152,9 @@ def get_sandbox_python_path_for_python_action(
                                                                    python_version,
                                                                    system_dir_name)
                     existing_sandbox_py_path = sandbox_python_path
-                    sandbox_python_path = f"{custom_py_site_pack_dir}:{existing_sandbox_py_path}"
+                    sandbox_python_path = (
+                        f"{custom_py_site_pack_dir}:{existing_sandbox_py_path}"
+                    )
 
     if virtualenv_path and os.path.isdir(virtualenv_path):
         pack_virtualenv_lib_path = os.path.join(virtualenv_path, "lib")
