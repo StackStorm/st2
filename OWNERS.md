@@ -17,7 +17,7 @@ Responsible for Project Strategy, External Relations, Organizational aspects, Pa
 ###### 2 vote points
 Senior [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/maintainers) are part of Technical Steering Committee.
 Have deep platform knowledge & experience and demonstrate technical leadership as well as driving the project forward.
-* Amanda McGuinness ([@amanda11](https://github.com/amanda11)), _Ammeon Solutions_ <<amanda.mcguinness@ammeonsolutions.com>>
+* Amanda McGuinness ([@amanda11](https://github.com/amanda11)), _intive_ <<amanda.mcguinness@intive.com>>
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, Release Engineering, Infrastructure, Documentation.
 * Eugen Cusmaunsa ([@armab](https://github.com/armab)) <<armab@stackstorm.com>>
   - Systems, Deployments, Docker, K8s, HA, Ansible, Chef, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering, Community.
