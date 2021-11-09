@@ -6,6 +6,7 @@ This page lists active project maintainers and their areas of expertise. This ca
 * See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) about maintainers standards in front of community.
 * See [CONTRIBUTING.rst](CONTRIBUTING.rst) for general contributing guidelines.
 
+
 # Leaders ***
 ###### 3 vote points
 [@StackStorm/leaders](https://github.com/orgs/StackStorm/teams/leaders) is head of Technical Steering Committee (TSC).
