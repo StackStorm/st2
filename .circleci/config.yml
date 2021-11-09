@@ -8,7 +8,7 @@ jobs:
     # 'machine' executor runs Unit tests ~x1.5 faster, comparing to 'docker' executor
     # but the fastest is still ~x1.5-2 slower, comparing to Travis
     machine: true
-    parallelism: 4
+    parallelism: 2
     working_directory: ~/st2
     steps:
       - checkout
@@ -107,7 +107,7 @@ jobs:
 
   # Build & Test st2 packages
   packages:
-    parallelism: 4
+    parallelism: 2
     # 4CPUs & 8GB RAM CircleCI machine
     # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
