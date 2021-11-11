@@ -387,7 +387,7 @@ def register_opts(ignore_errors=False):
             help="SameSite attribute value for the "
             "auth-token cookie we set on successful authentication from st2web. If you "
             "don't have a specific reason (e.g. supporting old browsers) we recommend you "
-            "set this value to strict. Setting it to \"unset\" will default to the behavior "
+            'set this value to strict. Setting it to "unset" will default to the behavior '
             "in previous releases and not set this SameSite header value.",
         ),
     ]
