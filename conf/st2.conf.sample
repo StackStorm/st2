@@ -32,7 +32,7 @@ workflows_pool_size = 40
 [api]
 # List of origins allowed for api, auth and stream
 allow_origin = http://127.0.0.1:3000 # comma separated list allowed here.
-# SameSite attribute value for the auth-token cookie we set on successful authentication from st2web. If you don't have a specific reason (e.g. supporting old browsers) we recommend you set this value to strict.
+# SameSite attribute value for the auth-token cookie we set on successful authentication from st2web. If you don't have a specific reason (e.g. supporting old browsers) we recommend you set this value to strict. Setting it to "unset" will default to the behavior in previous releases and not set this SameSite header value.
 # Valid values: strict, lax, none, unset
 auth_cookie_same_site = lax
 # True if secure flag should be set for "auth-token" cookie which is set on successful authentication via st2web. You should only set this to False if you have a good reason to not run and access StackStorm behind https proxy.
