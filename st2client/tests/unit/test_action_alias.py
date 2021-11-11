@@ -21,7 +21,8 @@ import mock
 from tests import base
 
 from st2client import shell
-from st2client import models
+from st2client.models.core import ResourceManager
+from st2client.models.action import Execution
 from st2client.utils import httpclient
 
 MOCK_MATCH_AND_EXECUTE_RESULT_1 = {
@@ -99,9 +100,9 @@ class ActionAliasCommandTestCase(base.BaseCLITestCase):
         ),
     )
     @mock.patch.object(
-        models.ResourceManager,
+        ResourceManager,
         "get_by_id",
-        mock.MagicMock(return_value=models.Execution(**MOCK_CREATE_EXECUTION_RESULT)),
+        mock.MagicMock(return_value=Execution(**MOCK_CREATE_EXECUTION_RESULT)),
     )
     def test_test_command_success(self):
         ret = self.shell.run(["action-alias", "test", "run whoami on localhost"])
