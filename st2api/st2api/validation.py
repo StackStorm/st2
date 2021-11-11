@@ -30,10 +30,10 @@ def validate_auth_cookie_is_correctly_configured() -> bool:
     This method should be called in the api init phase so we catch any misconfiguration issues
     before startup.
     """
-    if cfg.CONF.api.auth_cookie_same_site not in ["strict", "lax", "none", "None"]:
+    if cfg.CONF.api.auth_cookie_same_site not in ["strict", "lax", "none", "unset"]:
         raise ValueError(
             'Got invalid value "%s" (type %s) for cfg.CONF.api.auth_cookie_same_site config '
-            "option. Valid values are: strict, lax, none, None."
+            "option. Valid values are: strict, lax, none, unset."
             % (
                 cfg.CONF.api.auth_cookie_same_site,
                 type(cfg.CONF.api.auth_cookie_same_site),
@@ -43,12 +43,12 @@ def validate_auth_cookie_is_correctly_configured() -> bool:
     # Now we try to make a dummy cookie to verify all the options are configured correctly. Some
     # Options are mutually exclusive - e.g. SameSite none and Secure false.
     try:
-        # NOTE: None and none don't mean the same thing - None implies not setting this attribute
+        # NOTE: none and unset don't mean the same thing - unset implies not setting this attribute
         # (backward compatibility) and none implies setting this attribute value to none
         same_site = cfg.CONF.api.auth_cookie_same_site
 
         kwargs = {}
-        if same_site != "None":
+        if same_site != "unset":
             kwargs["samesite"] = same_site
 
         cookies.make_cookie(

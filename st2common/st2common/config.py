@@ -383,11 +383,12 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "auth_cookie_same_site",
             default="lax",
-            choices=["strict", "lax", "none", "None"],
+            choices=["strict", "lax", "none", "unset"],
             help="SameSite attribute value for the "
             "auth-token cookie we set on successful authentication from st2web. If you "
             "don't have a specific reason (e.g. supporting old browsers) we recommend you "
-            "set this value to strict.",
+            "set this value to strict. Setting it to \"unset\" will default to the behavior "
+            "in previous releases and not set this SameSite header value.",
         ),
     ]
 

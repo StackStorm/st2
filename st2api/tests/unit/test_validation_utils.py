@@ -33,7 +33,7 @@ class ValidationUtilsTestCase(unittest2.TestCase):
             "strict",
             "lax",
             "none",
-            "None",
+            "unset",
         ]
 
         cfg.CONF.set_override(group="api", name="auth_cookie_secure", override=True)
@@ -52,7 +52,7 @@ class ValidationUtilsTestCase(unittest2.TestCase):
                 group="api", name="auth_cookie_same_site", override=value
             )
 
-            expected_msg = "Valid values are: strict, lax, none"
+            expected_msg = "Valid values are: strict, lax, none, unset"
             self.assertRaisesRegexp(
                 ValueError, expected_msg, validate_auth_cookie_is_correctly_configured
             )
