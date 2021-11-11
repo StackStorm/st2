@@ -20,6 +20,8 @@ import datetime
 import retrying
 import six
 
+from functools import wraps
+
 from orquesta import conducting
 from orquesta import events
 from orquesta import exceptions as orquesta_exc
@@ -49,6 +51,7 @@ from st2common.services import executions as ex_svc
 from st2common.util import action_db as action_utils
 from st2common.util import date as date_utils
 from st2common.util import param as param_utils
+from st2common.util import system_info
 
 
 LOG = logging.getLogger(__name__)
@@ -1561,3 +1564,38 @@ def identify_orphaned_workflows():
             continue
 
     return orphaned
+
+
+def add_system_info_to_action_context(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        engine_info = system_info.get_process_info()
+
+        # Argument will be of type WorkflowExecutionDB/ActionExecutionDB only.
+        if kwargs.get("wf_ex_db"):
+            ac_ex = ex_db_access.ActionExecution.get_by_id(
+                kwargs["wf_ex_db"].action_execution
+            )
+            lv_ex = lv_db_access.LiveAction.get_by_id(ac_ex.liveaction["id"])
+        elif kwargs.get("ac_ex_db"):
+            lv_ex = lv_db_access.LiveAction.get_by_id(
+                kwargs["ac_ex_db"].liveaction["id"]
+            )
+        else:
+            raise ValueError("Invalid message type")
+
+        lv_ex.context.update({"engine_info": engine_info})
+        lv_db_access.LiveAction.add_or_update(lv_ex, publish=False)
+
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            raise e
+        finally:
+            lv_ex = lv_db_access.LiveAction.get_by_id(lv_ex.id)
+            try:
+                del lv_ex.context["engine_info"]
+            except KeyError:
+                pass
+
+    return wrapper

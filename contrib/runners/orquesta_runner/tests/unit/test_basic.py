@@ -48,6 +48,7 @@ from st2common.services import workflows as wf_svc
 from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import workflow as wf_ex_xport
 from st2common.transport import publishers
+from st2common.util import system_info
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
@@ -165,6 +166,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         expected_lv_ac_ctx = {
             "workflow_execution": str(wf_ex_db.id),
             "pack": "orquesta_tests",
+            "engine_info": system_info.get_process_info(),
         }
 
         self.assertDictEqual(lv_ac_db.context, expected_lv_ac_ctx)
