@@ -7,8 +7,14 @@ entry_point: inject_trigger.py
 parameters:
   trigger:
     type: string
+    description: |
+      Trigger reference (e.g. mypack.my_trigger).
+      This parameter is superceded by `trigger_name` but left for backwards compatibility.
+    required: false
+  trigger_name:
+    type: string
     description: Trigger reference (e.g. mypack.my_trigger).
-    required: true
+    required: false
   payload:
     type: object
     description: Trigger payload.

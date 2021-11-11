@@ -7,6 +7,122 @@ in development
 Added
 ~~~~~
 
+* Add new ``st2 action-alias test <message string>`` CLI command which allows users to easily
+  test action alias matching and result formatting.
+
+  This command will first try to find a matching alias (same as ``st2 action-alias match``
+  command) and if a match is found, trigger an execution (same as ``st2 action-alias execute``
+  command) and format the execution result.
+
+  This means it uses exactly the same flow as commands on chat, but the interaction avoids
+  chat and hubot which should make testing and developing aliases easier and faster. #5143
+
+  Contributed by @Kami.
+
+3.6.0 - October 29, 2021
+------------------------
+
+Added
+~~~~~
+
+* Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+
+Changed
+~~~~~~~
+
+* Modified action delete API to delete action files from disk along with backward compatibility.
+
+  From CLI ``st2 action delete <pack>.<action>`` will delete only action database entry.
+  From CLI ``st2 action delete --remove-files <pack>.<action>`` or ``st2 action delete -r <pack>.<action>``
+  will delete action database entry along with files from disk.
+
+  API action DELETE method with ``{"remove_files": true}`` argument in json body will remove database
+  entry of action along with files from disk.
+  API action DELETE method with ``{"remove_files": false}`` or no additional argument in json body will remove
+  only action database entry. #5304, #5351, #5360
+
+  Contributed by @mahesh-orch.
+
+* Removed --python3 deprecated flag from st2client. #5305
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+  Contributed by @blag.
+* Fixed ``__init__.py`` files to use double quotes to better align with black linting #5299
+
+  Contributed by @blag.
+
+* Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
+
+  Contributed by @ericreeves.
+
+* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `ping` #5302, #5341
+
+  Contributed by @lukepatrick
+
+* Actionrunner worker shutdown should stop Kombu consumer thread. #5338
+
+  Contributed by @khushboobhatia01
+
+* Move to using Jinja sandboxed environment #5359
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Pinned python module `networkx` to versions between 2.5.1(included) and 2.6(excluded) because Python v3.6 support was dropped in v2.6.
+  Also pinned `decorator==4.4.2` (dependency of `networkx<2.6`) to work around missing python 3.8 classifiers on `decorator`'s wheel. #5376
+
+  Contributed by @nzlosh
+
+* Add new ``--enable-profiler`` flag to all the servies. This flag enables cProfiler based profiler
+  for the service in question and  dumps the profiling data to a file on process
+  exit.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when profiling code. #5199
+
+  Contributed by @Kami.
+
+* Add new ``--enable-eventlet-blocking-detection`` flag to all the servies. This flag enables
+  eventlet long operation / blocked main loop logic which throws an exception if a particular
+  code blocks longer than a specific duration in seconds.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when debugging code. #5199
+
+* Silence pylint about dev/debugging utility (tools/direct_queue_publisher.py) that uses pika because kombu
+  doesn't support what it does. If anyone uses that utility, they have to install pika manually. #5380
+
+* Fixed version of cffi as changes in 1.15.0 meant that it attempted to load libffi.so.8. #5390
+  Contributed by @amanda11, Ammeon Solutions
+
+Fixed
+~~~~~
+
+* Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
+  Contributed by @amanda11, Ammeon Solutions
+
+* Make ``update_executions()`` atomic by protecting the update with a coordination lock. Actions, like workflows, may have multiple
+  concurrent updates to their execution state. This makes those updates safer, which should make the execution status more reliable. #5358
+
+  Contributed by @khushboobhatia01
+
+* Fix "not iterable" error for ``output_schema`` handling. If a schema is not well-formed, we ignore it.
+  Also, if action output is anything other than a JSON object, we do not try to process it any more.
+  ``output_schema`` will change in a future release to support non-object output. #5309
+
+  Contributed by @guzzijones
+
+* ``core.inject_trigger``: resolve ``trigger`` payload shadowing by deprecating ``trigger`` param in favor of ``trigger_name``.
+  ``trigger`` param is still available for backwards compatibility, but will be removed in a future release. #5335 and #5383
+
+  Contributed by @mjtice
+
+3.5.0 - June 23, 2021
+---------------------
+
+Added
+~~~~~
+
 * Added web header settings for additional security hardening to nginx.conf: X-Frame-Options,
   Strict-Transport-Security, X-XSS-Protection and server-tokens. #5183
 
@@ -78,17 +194,10 @@ Added
 
   Contributed by @Kami.
 
-* Add new ``st2 action-alias test <message string>`` CLI command which allows users to easily
-  test action alias matching and result formatting.
+* Mask secrets in output of an action execution in the API if the action has an output schema
+  defined and one or more output parameters are marked as secret. #5250
 
-  This command will first try to find a matching alias (same as ``st2 action-alias match``
-  command) and if a match is found, trigger an execution (same as ``st2 action-alias execute``
-  command) and format the execution result.
-
-  This means it uses exactly the same flow as commands on chat, but the interaction avoids
-  chat and hubot which should make testing and developing aliases easier and faster. #5143
-
-  Contributed by @Kami.
+  Contributed by @mahesh-orch.
 
 Changed
 ~~~~~~~
@@ -99,8 +208,11 @@ Changed
   Contributed by @Kami.
 
 * Default nginx config (``conf/nginx/st2.conf``) which is used by the installer and Docker
-  images has been updated to only support TLS v1.2 (support for TLS v1.0 and v1.1 has been
-  removed). #5183
+  images has been updated to only support TLS v1.2 and TLS v1.3 (support for TLS v1.0 and v1.1
+  has been removed).
+
+  Keep in mind that TLS v1.3 will only be used when nginx is running on more recent distros
+  where nginx is compiled against OpenSSL v1.1.1 which supports TLS 1.3. #5183 #5216
 
   Contributed by @Kami and @shital.
 
@@ -179,7 +291,11 @@ Changed
   triggers with larger payloads.
 
   This should address a long standing issue where StackStorm was reported to be slow and CPU
-  inefficient with handling large executions. (improvement) #4846
+  inefficient with handling large executions.
+
+  If you want to migrate existing database objects to utilize the new type, you can use
+  ``st2common/bin/migrations/v3.5/st2-migrate-db-dict-field-values`` migration
+  script. (improvement) #4846
 
   Contributed by @Kami.
 
@@ -249,6 +365,19 @@ Changed
 * Monkey patch on st2stream earlier in flow #5240
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Support % in CLI arguments by reading the ConfigParser() arguments with raw=True.
+
+  This removes support for '%' interpolations on the configuration arguments.
+
+  See https://docs.python.org/3.8/library/configparser.html#configparser.ConfigParser.get for
+  further details. #5253
+
+  Contributed by @winem.
+
+* Remove duplicate host header in the nginx config for the auth endpoint.
+
+* Update orquesta to v1.4.0.
 
 Improvements
 ~~~~~~~~~~~~
@@ -370,6 +499,8 @@ Fixed
   correctly for workflow (orquesta, action chain) actions. #5221 #5227
 
   Contributed by @khushboobhatia01.
+
+* Clean up to remove unused methods in the action execution concurrency policies. #5268
 
 3.4.1 - March 14, 2021
 ----------------------

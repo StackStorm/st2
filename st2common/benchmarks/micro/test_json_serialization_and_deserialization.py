@@ -132,3 +132,47 @@ def test_json_loads(benchmark, fixture_file, implementation):
 
     result = benchmark(run_benchmark)
     assert result == content_loaded
+
+
+def default_handle_sets(obj):
+    if isinstance(obj, set):
+        return list(obj)
+    raise TypeError
+
+
+@pytest.mark.parametrize(
+    "fixture_file",
+    [
+        "rows.json",
+        "json_4mb.json",
+    ],
+    ids=[
+        "rows.json",
+        "json_4mb.json",
+    ],
+)
+@pytest.mark.parametrize(
+    "options",
+    [
+        {},
+        {"default": default_handle_sets},
+    ],
+    ids=[
+        "none",
+        "custom_default_function",
+    ],
+)
+def test_orjson_dumps(benchmark, fixture_file, options):
+    with open(os.path.join(FIXTURES_DIR, fixture_file), "r") as fp:
+        content = fp.read()
+
+    content_loaded = orjson.loads(content)
+
+    if options:
+        content_loaded["fooo_set"] = set([1, 2, 3, 3, 4, 5])
+
+    def run_benchmark():
+        return orjson.dumps(content_loaded, **options)
+
+    result = benchmark(run_benchmark)
+    assert len(result) >= 100

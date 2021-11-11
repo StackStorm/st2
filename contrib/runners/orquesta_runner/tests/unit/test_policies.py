@@ -29,6 +29,7 @@ tests_config.parse_args()
 from tests.unit import base
 
 import st2common
+from local_runner import local_shell_command_runner
 from st2actions.notifier import notifier
 from st2actions.workflows import workflows
 from st2common.bootstrap import actionsregistrar
@@ -56,6 +57,8 @@ PACKS = [
     TEST_PACK_PATH,
     st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
+
+RUNNER_RESULT_FAILED = (ac_const.LIVEACTION_STATUS_FAILED, {"stderror": "..."}, {})
 
 
 @mock.patch.object(
@@ -114,6 +117,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         for ac_ex_db in ex_db_access.ActionExecution.get_all():
             ac_ex_db.delete()
 
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED]),
+    )
     def test_retry_policy_applied_on_workflow_failure(self):
         wf_name = "sequential"
         wf_ac_ref = TEST_PACK + "." + wf_name
@@ -136,16 +144,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
             workflow_execution=str(wf_ex_db.id)
         )[0]
         t1_lv_ac_db = lv_db_access.LiveAction.query(task_execution=str(t1_ex_db.id))[0]
+        self.assertEqual(t1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t1_ex_db.id)
         )[0]
 
-        # Manually set the status to fail.
-        ac_svc.update_status(t1_lv_ac_db, ac_const.LIVEACTION_STATUS_FAILED)
-        t1_lv_ac_db = lv_db_access.LiveAction.query(task_execution=str(t1_ex_db.id))[0]
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )[0]
         self.assertEqual(t1_ac_ex_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         notifier.get_notifier().process(t1_ac_ex_db)
         workflows.get_engine().process(t1_ac_ex_db)
@@ -158,6 +161,11 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         # Ensure execution is retried.
         self.assertEqual(len(lv_db_access.LiveAction.query(action=wf_ac_ref)), 2)
 
+    @mock.patch.object(
+        local_shell_command_runner.LocalShellCommandRunner,
+        "run",
+        mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED]),
+    )
     def test_no_retry_policy_applied_on_task_failure(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "subworkflow.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
@@ -197,7 +205,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         t1_t1_lv_ac_db = lv_db_access.LiveAction.query(
             task_execution=str(t1_t1_ex_db.id)
         )[0]
-        ac_svc.update_status(t1_t1_lv_ac_db, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(t1_t1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_FAILED)
         t1_t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t1_t1_ex_db.id)
         )[0]

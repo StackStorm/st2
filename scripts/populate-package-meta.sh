@@ -11,7 +11,7 @@ touch $config
 # shellcheck disable=SC2003
 cat <<package_meta >$config
 [server]
-version = $(python -c 'execfile("../st2common/st2common/__init__.py"); print __version__')
+version = $(python3 -c 'exec(open("../st2common/st2common/__init__.py").read()); print(__version__)')
 git_sha = $(git rev-parse --short HEAD)
 circle_build_url = $ST2_CIRCLE_URL
 package_meta

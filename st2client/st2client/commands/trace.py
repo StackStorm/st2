@@ -15,7 +15,10 @@
 
 from __future__ import absolute_import
 
-from st2client.models import Resource, Trace, TriggerInstance, Rule, Execution
+from st2client.models.core import Resource
+from st2client.models.trace import Trace
+from st2client.models.reactor import TriggerInstance, Rule
+from st2client.models.action import Execution
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
 from st2client.commands import resource
