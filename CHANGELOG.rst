@@ -4,6 +4,15 @@ Changelog
 in development
 --------------
 
+
+3.6.0 - October 29, 2021
+------------------------
+
+Added
+~~~~~
+
+* Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+
 Changed
 ~~~~~~~
 
@@ -45,13 +54,54 @@ Changed
 
   Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
 
+* Pinned python module `networkx` to versions between 2.5.1(included) and 2.6(excluded) because Python v3.6 support was dropped in v2.6.
+  Also pinned `decorator==4.4.2` (dependency of `networkx<2.6`) to work around missing python 3.8 classifiers on `decorator`'s wheel. #5376
+
+  Contributed by @nzlosh
+
+* Add new ``--enable-profiler`` flag to all the servies. This flag enables cProfiler based profiler
+  for the service in question and  dumps the profiling data to a file on process
+  exit.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when profiling code. #5199
+
+  Contributed by @Kami.
+
+* Add new ``--enable-eventlet-blocking-detection`` flag to all the servies. This flag enables
+  eventlet long operation / blocked main loop logic which throws an exception if a particular
+  code blocks longer than a specific duration in seconds.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when debugging code. #5199
+
+* Silence pylint about dev/debugging utility (tools/direct_queue_publisher.py) that uses pika because kombu
+  doesn't support what it does. If anyone uses that utility, they have to install pika manually. #5380
+
+* Fixed version of cffi as changes in 1.15.0 meant that it attempted to load libffi.so.8. #5390
+  Contributed by @amanda11, Ammeon Solutions
+
 Fixed
 ~~~~~
 
 * Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
   Contributed by @amanda11, Ammeon Solutions
 
+* Make ``update_executions()`` atomic by protecting the update with a coordination lock. Actions, like workflows, may have multiple
+  concurrent updates to their execution state. This makes those updates safer, which should make the execution status more reliable. #5358
 
+  Contributed by @khushboobhatia01
+
+* Fix "not iterable" error for ``output_schema`` handling. If a schema is not well-formed, we ignore it.
+  Also, if action output is anything other than a JSON object, we do not try to process it any more.
+  ``output_schema`` will change in a future release to support non-object output. #5309
+
+  Contributed by @guzzijones
+
+* ``core.inject_trigger``: resolve ``trigger`` payload shadowing by deprecating ``trigger`` param in favor of ``trigger_name``.
+  ``trigger`` param is still available for backwards compatibility, but will be removed in a future release. #5335 and #5383
+
+  Contributed by @mjtice
 
 3.5.0 - June 23, 2021
 ---------------------
