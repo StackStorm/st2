@@ -173,8 +173,7 @@
   description: ""
   name: 'workflows: orquesta'
 
-# ##### etc labels ##### #
-
+# ##### area/code_location labels ##### #
 - color: FBCA04
   description: ""
   name: API
@@ -193,54 +192,9 @@
 - color: 16bdff
   description: ""
   name: component:st2web
-- color: 652B81
-  description: ""
-  name: database
-- color: fef2c0
-  description: ""
-  name: documentation
-- color: FFFF5F
-  description: ""
-  name: external dependency
-- color: 2C5B58
-  description: ""
-  name: 'infrastructure: ci/cd'
-- color: BB27FC
-  description: ""
-  name: logging
-- color: 5F5F5F
-  description: ""
-  name: maintenance
-- color: BB27FC
-  description: ""
-  name: metrics
-- color: 0F0000
-  description: ""
-  name: migrations
-- color: 652B81
-  description: ""
-  name: mongodb
-- color: 652B81
-  description: ""
-  name: nginx
-- color: BB27FC
-  description: ""
-  name: performance
-- color: E9F68C
-  description: ""
-  name: python3
-- color: 652B81
-  description: ""
-  name: rabbitmq
-- color: D93F0B
-  description: ""
-  name: RBAC
 - color: 0000ff
   description: ""
   name: runners
-- color: D93F0B
-  description: ""
-  name: security
 - color: 16bdff
   description: ""
   name: 'service: action runner'
@@ -259,10 +213,67 @@
 - color: 16bdff
   description: ""
   name: 'service: workflow engine'
-- color: d7e102
+
+# ##### area/python labels ##### #
+- color: E9F68C
   description: ""
-  name: tests
+  name: python3
 - color: E9F68C
   description: ""
   name: unicode
+
+# ##### area/external_services labels ##### #
+- color: 652B81
+  description: ""
+  name: database
+- color: 652B81
+  description: ""
+  name: mongodb
+- color: 652B81
+  description: ""
+  name: nginx
+- color: 652B81
+  description: ""
+  name: rabbitmq
+
+# ##### area/security labels ##### #
+- color: D93F0B
+  description: ""
+  name: RBAC
+- color: D93F0B
+  description: ""
+  name: security
+
+# ##### area/logging_and_performance labels ##### #
+- color: BB27FC
+  description: ""
+  name: logging
+- color: BB27FC
+  description: ""
+  name: metrics
+- color: BB27FC
+  description: ""
+  name: performance
+
+# ##### etc labels ##### #
+
+- color: fef2c0
+  description: ""
+  name: documentation
+- color: FFFF5F
+  description: ""
+  name: external dependency
+- color: 2C5B58
+  description: ""
+  name: 'infrastructure: ci/cd'
+- color: 5F5F5F
+  description: ""
+  name: maintenance
+- color: 0F0000
+  description: ""
+  name: migrations
+- color: d7e102
+  description: ""
+  name: tests
+
 
