@@ -47,6 +47,9 @@
 - color: d73a4a
   description: ""
   name: bug fix
+- color: e5b479
+  description: ""
+  name: deprecation
 - color: 84b6eb
   description: ""
   name: enhancement
@@ -121,20 +124,63 @@
   name: "status: potential performance implications"
   description: ""
 
-# ##### etc labels ##### #
+# ##### area/install labels ##### #
+- color: FF0088
+  description: ""
+  name: deployment
+- color: FF0088
+  description: ""
+  name: Docker
+- color: FF0088
+  description: StackStorm in High Availability
+  name: HA
+- color: 000000
+  description: ""
+  name: ansible
+- color: FF0088
+  description: ""
+  name: K8s
+- color: FF00FF
+  description: Support/issues/PRs on a specific OS
+  name: OS support
+- color: FF00FF
+  description: ""
+  name: st2-packages
 
+# ##### area/pack_resources labels ##### #
 - color: 006B75
   description: ""
   name: action aliases
+- color: 006B75
+  description: ""
+  name: chatops
+- color: 006B75
+  description: ""
+  name: inquiries
+- color: 006B75
+  description: ""
+  name: output schema
+- color: 0000ff
+  description: ""
+  name: packs
+- color: 006B75
+  description: ""
+  name: policies
+- color: 0052CC
+  description: ""
+  name: 'workflows: action chain'
+- color: 0052CC
+  description: ""
+  name: 'workflows: orquesta'
+
+# ##### etc labels ##### #
+
 - color: FBCA04
   description: ""
   name: API
 - color: FBCA04
   description: ""
   name: API/v2
-- color: 006B75
-  description: ""
-  name: chatops
 - color: FBCA04
   description: ""
   name: CLI
@@ -150,36 +196,15 @@
 - color: 652B81
   description: ""
   name: database
-- color: FF0088
-  description: ""
-  name: deployment
-- color: e5b479
-  description: ""
-  name: deprecation
-- color: FF0088
-  description: ""
-  name: Docker
 - color: fef2c0
   description: ""
   name: documentation
 - color: FFFF5F
   description: ""
   name: external dependency
-- color: FF0088
-  description: StackStorm in High Availability
-  name: HA
-- color: 000000
-  description: ""
-  name: ansible
 - color: 2C5B58
   description: ""
   name: 'infrastructure: ci/cd'
-- color: 006B75
-  description: ""
-  name: inquiries
-- color: FF0088
-  description: ""
-  name: K8s
 - color: BB27FC
   description: ""
   name: logging
@@ -198,21 +223,9 @@
 - color: 652B81
   description: ""
   name: nginx
-- color: FF00FF
-  description: Support/issues/PRs on a specific OS
-  name: OS support
-- color: 006B75
-  description: ""
-  name: output schema
-- color: 0000ff
-  description: ""
-  name: packs
 - color: BB27FC
   description: ""
   name: performance
-- color: 006B75
-  description: ""
-  name: policies
 - color: E9F68C
   description: ""
   name: python3
@@ -246,19 +259,10 @@
 - color: 16bdff
   description: ""
   name: 'service: workflow engine'
-- color: FF00FF
-  description: ""
-  name: st2-packages
 - color: d7e102
   description: ""
   name: tests
 - color: E9F68C
   description: ""
   name: unicode
-- color: 0052CC
-  description: ""
-  name: 'workflows: action chain'
-- color: 0052CC
-  description: ""
-  name: 'workflows: orquesta'
 
