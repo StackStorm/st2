@@ -19,13 +19,13 @@
   name: size/XXL
 
 # ##### complexity labels ##### #
-- color: bfe5bf
+- color: bfe5bf # green
   description: ""
   name: complexity:easy
-- color: F0DA27
+- color: F0DA27 # yellow
   description: ""
   name: complexity:medium
-- color: fad8c7
+- color: fad8c7 # red
   description: ""
   name: complexity:hard
 
@@ -41,8 +41,8 @@
 - color: b60205
   description: ""
   name: breaking change
-- color: d73a4a
-  description: ""
+- color: d73a4a # red (standard github)
+  description: Something isn't working
   name: bug
 - color: d73a4a
   description: ""
@@ -50,8 +50,8 @@
 - color: e5b479
   description: ""
   name: deprecation
-- color: 84b6eb
-  description: ""
+- color: a2eeef # teal gray (standard github)
+  description: New feature or request
   name: enhancement
 - color: 207de5
   description: ""
@@ -59,8 +59,8 @@
 - color: bfd4f2
   description: ""
   name: proposal
-- color: d876e3
-  description: ""
+- color: d876e3 # pink (standard github)
+  description: Further information is requested
   name: question
 - color: fbca04
   description: ""
@@ -70,11 +70,11 @@
   name: regression
 
 # ##### flag labels ##### #
-- color: 7057ff
-  description: ""
+- color: 7057ff # purple (standard github)
+  description: Good for newcomers
   name: good first issue
-- color: 0E8A16
-  description: ""
+- color: 008672 # teal gray (standard github)
+  description: Extra attention is needed
   name: help wanted
 - color: ffffff
   description: ""
@@ -84,14 +84,14 @@
   name: WIP
 
 # ##### status labels ##### #
-- color: cfd3d7
-  description: ""
+- color: cfd3d7 # gray (standard github)
+  description: This issue or pull request already exists
   name: duplicate # status:duplicate
-- color: e6e6e6
-  description: ""
+- color: e4e669 # yellow (standard github)
+  description: This doesn't seem right
   name: invalid # status:invalid
-- color: ffffff
-  description: ""
+- color: ffffff # white (standard github)
+  description: This will not be worked on
   name: wontfix # status:wontfix
 - color: C0C0C0
   description: ""
@@ -257,8 +257,8 @@
 
 # ##### etc labels ##### #
 
-- color: fef2c0
-  description: ""
+- color: 0075ca # blue (standard github)
+  description: Improvements or additions to documentation
   name: documentation
 - color: FFFF5F
   description: ""
