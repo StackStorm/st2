@@ -117,6 +117,9 @@
 - color: f7c6c7
   description: ""
   name: status:under discussion
+- color: 8FFCDE
+  name: "status: potential performance implications"
+  description: ""
 
 # ##### etc labels ##### #
 
@@ -165,6 +168,9 @@
 - color: FF0088
   description: StackStorm in High Availability
   name: HA
+- color: 000000
+  description: ""
+  name: ansible
 - color: 2C5B58
   description: ""
   name: 'infrastructure: ci/cd'
