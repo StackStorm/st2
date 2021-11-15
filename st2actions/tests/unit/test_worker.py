@@ -266,6 +266,8 @@ class WorkerTestCase(DbTestCase):
 
             # Shutdown the worker to trigger the abandon process.
             shutdown_thread = eventlet.spawn(action_worker.shutdown)
+            # Wait for action runner shutdown sequence to complete
+            eventlet.sleep(5)
 
         # Make sure the temporary file has been deleted.
         self.assertFalse(os.path.isfile(temp_file))
