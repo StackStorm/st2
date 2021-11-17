@@ -53,6 +53,7 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Anand Patel ([@arms11](https://github.com/arms11)), _VMware_ - Docker, Kubernetes.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
+* Khushboo Bhatia ([@khushboobhatia01](https://github.com/khushboobhatia01)), _VMware_ - Core, Orquesta.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
