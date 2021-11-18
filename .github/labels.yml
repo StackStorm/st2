@@ -142,136 +142,136 @@
 - color: 0075ca # blue (standard github)
   description: Improvements or additions to documentation
   name: documentation
-- color: FBCA04
+- color: 0075ca # blue
   description: ""
   name: API
-- color: FBCA04
+- color: 0075ca # blue
   description: ""
   name: API/v2
-- color: FBCA04
+- color: 0075ca # blue
   description: ""
   name: CLI
-- color: 16bdff
+- color: 0075ca # blue
   description: ""
   name: component:st2auth
-- color: 16bdff
+- color: 0075ca # blue
   description: ""
   name: component:st2client
-- color: 16bdff
+- color: 0075ca # blue
   description: ""
   name: component:st2web
-- color: 0F0000
+- color: 0075ca # blue
   description: ""
   name: migrations
-- color: 0000ff
+- color: 0075ca # blue
   description: ""
   name: runners
-- color: 16bdff
+- color: 0075ca # blue
   description: ""
   name: 'service: action runner'
-- color: 16bdff
+- color: 0075ca # blue
   description: ""
   name: 'service: api'
-- color: 16bdff
+- color: 0075ca # blue
   description: ""
   name: 'service: auth api'
-- color: 16bdff
+- color: 0075ca # blue
   description: ""
   name: 'service: rules engine'
-- color: 16bdff
+- color: 0075ca # blue
   description: ""
   name: 'service: scheduler'
-- color: 16bdff
+- color: 0075ca # blue
   description: ""
   name: 'service: workflow engine'
 
 # ##### area/python labels ##### #
-- color: E9F68C
+- color: 0075ca # blue
   description: ""
   name: python3
-- color: E9F68C
+- color: 0075ca # blue
   description: ""
   name: unicode
 
 # ##### area/pack_resources labels ##### #
-- color: 006B75
+- color: 003459 # blue
   description: ""
   name: action aliases
-- color: 006B75
+- color: 003459 # blue
   description: ""
   name: chatops
-- color: 006B75
+- color: 003459 # blue
   description: ""
   name: inquiries
-- color: 006B75
+- color: 003459 # blue
   description: ""
   name: output schema
-- color: 0000ff
+- color: 003459 # blue
   description: ""
   name: packs
-- color: 006B75
+- color: 003459 # blue
   description: ""
   name: policies
-- color: 0052CC
+- color: 003459 # blue
   description: ""
   name: 'workflows: action chain'
-- color: 0052CC
+- color: 003459 # blue
   description: ""
   name: 'workflows: orquesta'
 
 # ##### area/external_services labels ##### #
-- color: 652B81
+- color: 8336ff # blue
   description: ""
   name: database
-- color: 652B81
+- color: 8336ff # blue
   description: ""
   name: mongodb
-- color: 652B81
+- color: 8336ff # blue
   description: ""
   name: nginx
-- color: 652B81
+- color: 8336ff # blue
   description: ""
   name: rabbitmq
 
 # ##### area/logging_and_performance labels ##### #
-- color: BB27FC
+- color: 8336ff # purple
   description: ""
   name: logging
-- color: BB27FC
+- color: 8336ff # purple
   description: ""
   name: metrics
-- color: BB27FC
+- color: 8336ff # purple
   description: ""
   name: performance
 
 # ##### area/install labels ##### #
-- color: FF0088
+- color: 50209c # purple
   description: ""
   name: deployment
-- color: FF0088
+- color: 50209c # purple
   description: ""
   name: Docker
-- color: FF0088
+- color: 50209c # purple
   description: StackStorm in High Availability
   name: HA
-- color: 000000
+- color: 50209c # purple
   description: ""
   name: ansible
-- color: FF0088
+- color: 50209c # purple
   description: ""
   name: K8s
-- color: FF00FF
+- color: 50209c # purple
   description: Support/issues/PRs on a specific OS
   name: OS support
-- color: FF00FF
+- color: 50209c # purple
   description: ""
   name: st2-packages
 
 # ##### area/security labels ##### #
-- color: D93F0B
+- color: 63112b # red purple
   description: ""
   name: RBAC
-- color: D93F0B
+- color: 63112b # red purple
   description: ""
   name: security
 
