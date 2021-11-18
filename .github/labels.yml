@@ -50,7 +50,7 @@
 - color: e5b479
   description: ""
   name: deprecation
-- color: a2eeef # teal gray (standard github)
+- color: a2eeef # light teal (standard github)
   description: New feature or request
   name: enhancement
 - color: 207de5
@@ -73,7 +73,7 @@
 - color: 7057ff # purple (standard github)
   description: Good for newcomers
   name: good first issue
-- color: 008672 # teal gray (standard github)
+- color: 008672 # teal (standard github)
   description: Extra attention is needed
   name: help wanted
 - color: ffffff
@@ -124,56 +124,24 @@
   name: "status: potential performance implications"
   description: ""
 
-# ##### area/install labels ##### #
-- color: FF0088
+# ##### area/misc labels ##### #
+- color: FFFF5F
   description: ""
-  name: deployment
-- color: FF0088
+  name: external dependency
+- color: 2C5B58
   description: ""
-  name: Docker
-- color: FF0088
-  description: StackStorm in High Availability
-  name: HA
-- color: 000000
+  name: 'infrastructure: ci/cd'
+- color: 5F5F5F
   description: ""
-  name: ansible
-- color: FF0088
+  name: maintenance
+- color: d7e102
   description: ""
-  name: K8s
-- color: FF00FF
-  description: Support/issues/PRs on a specific OS
-  name: OS support
-- color: FF00FF
-  description: ""
-  name: st2-packages
-
-# ##### area/pack_resources labels ##### #
-- color: 006B75
-  description: ""
-  name: action aliases
-- color: 006B75
-  description: ""
-  name: chatops
-- color: 006B75
-  description: ""
-  name: inquiries
-- color: 006B75
-  description: ""
-  name: output schema
-- color: 0000ff
-  description: ""
-  name: packs
-- color: 006B75
-  description: ""
-  name: policies
-- color: 0052CC
-  description: ""
-  name: 'workflows: action chain'
-- color: 0052CC
-  description: ""
-  name: 'workflows: orquesta'
+  name: tests
 
 # ##### area/code_location labels ##### #
+- color: 0075ca # blue (standard github)
+  description: Improvements or additions to documentation
+  name: documentation
 - color: FBCA04
   description: ""
   name: API
@@ -192,6 +160,9 @@
 - color: 16bdff
   description: ""
   name: component:st2web
+- color: 0F0000
+  description: ""
+  name: migrations
 - color: 0000ff
   description: ""
   name: runners
@@ -222,6 +193,32 @@
   description: ""
   name: unicode
 
+# ##### area/pack_resources labels ##### #
+- color: 006B75
+  description: ""
+  name: action aliases
+- color: 006B75
+  description: ""
+  name: chatops
+- color: 006B75
+  description: ""
+  name: inquiries
+- color: 006B75
+  description: ""
+  name: output schema
+- color: 0000ff
+  description: ""
+  name: packs
+- color: 006B75
+  description: ""
+  name: policies
+- color: 0052CC
+  description: ""
+  name: 'workflows: action chain'
+- color: 0052CC
+  description: ""
+  name: 'workflows: orquesta'
+
 # ##### area/external_services labels ##### #
 - color: 652B81
   description: ""
@@ -236,14 +233,6 @@
   description: ""
   name: rabbitmq
 
-# ##### area/security labels ##### #
-- color: D93F0B
-  description: ""
-  name: RBAC
-- color: D93F0B
-  description: ""
-  name: security
-
 # ##### area/logging_and_performance labels ##### #
 - color: BB27FC
   description: ""
@@ -255,25 +244,34 @@
   description: ""
   name: performance
 
-# ##### etc labels ##### #
+# ##### area/install labels ##### #
+- color: FF0088
+  description: ""
+  name: deployment
+- color: FF0088
+  description: ""
+  name: Docker
+- color: FF0088
+  description: StackStorm in High Availability
+  name: HA
+- color: 000000
+  description: ""
+  name: ansible
+- color: FF0088
+  description: ""
+  name: K8s
+- color: FF00FF
+  description: Support/issues/PRs on a specific OS
+  name: OS support
+- color: FF00FF
+  description: ""
+  name: st2-packages
 
-- color: 0075ca # blue (standard github)
-  description: Improvements or additions to documentation
-  name: documentation
-- color: FFFF5F
+# ##### area/security labels ##### #
+- color: D93F0B
   description: ""
-  name: external dependency
-- color: 2C5B58
+  name: RBAC
+- color: D93F0B
   description: ""
-  name: 'infrastructure: ci/cd'
-- color: 5F5F5F
-  description: ""
-  name: maintenance
-- color: 0F0000
-  description: ""
-  name: migrations
-- color: d7e102
-  description: ""
-  name: tests
-
+  name: security
 
