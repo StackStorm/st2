@@ -137,12 +137,12 @@ def get_sandbox_python_path_for_python_action(
 
     pack_base_path = get_pack_base_path(pack_name=pack)
     virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
-    custom_python_binary = cfg.CONF.actionrunner.python_binary
+    python_binary = cfg.CONF.actionrunner.python_binary
 
     # Add the custom python's site-packages directory in front of the Python
-    # system site-packages.
-    if custom_python_binary and os.path.isfile(custom_python_binary):
-        python_version = custom_python_binary.rsplit("/", 1)[1]
+    # system site-packages if python_binary is not default.
+    if python_binary is not sys.executable and os.path.isfile(python_binary):
+        python_version = python_binary.rsplit("/", 1)[1]
         system_prefix_dirs = ["/usr/lib", "/usr/local/lib"]
         system_dir_names = ["site-packages", "dist-packages"]
         for system_prefix_dir in system_prefix_dirs:
