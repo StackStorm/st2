@@ -4,10 +4,22 @@ Changelog
 in development
 --------------
 
+
+3.6.0 - October 29, 2021
+------------------------
+
 Added
 ~~~~~
 
 * Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+
+* ``st2.conf`` is now the only place to configure ports for ``st2api``, ``st2auth``, and ``st2stream``.
+
+  We replaced the static ``.socket`` sytemd units in deb and rpm packages with a python-based generator for the
+  ``st2api``, ``st2auth``, and ``st2stream`` services. The generators will get ``<ip>:<port>`` from ``st2.conf``
+  to create the ``.socket`` files dynamically. #5286 and st2-packages#706
+
+  Contributed by @nzlosh
 
 Changed
 ~~~~~~~
@@ -75,6 +87,12 @@ Changed
   doesn't support what it does. If anyone uses that utility, they have to install pika manually. #5380
 
 * Fixed version of cffi as changes in 1.15.0 meant that it attempted to load libffi.so.8. #5390
+
+  Contributed by @amanda11, Ammeon Solutions
+
+* Updated Bash installer to install latest RabbitMQ version rather than out-dated version available
+  in OS distributions.
+
   Contributed by @amanda11, Ammeon Solutions
 
 Fixed
