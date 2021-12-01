@@ -446,3 +446,28 @@ class TestResourceManager(unittest2.TestCase):
 
         self.assertEqual(mock_requests.call_args_list[1][0], call_args)
         self.assertEqual(mock_requests.call_args_list[1][1], call_kwargs)
+
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "post",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, "OK")
+        ),
+    )
+    def test_resource_clone(self):
+        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        source_ref = "spack.saction"
+        resource = mgr.clone(source_ref, "dpack", "daction", False)
+        self.assertIsNotNone(resource)
+
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "post",
+        mock.MagicMock(
+            return_value=base.FakeResponse("", 500, "INTERNAL SERVER ERROR")
+        ),
+    )
+    def test_resource_clone_failed(self):
+        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        source_ref = "spack.saction"
+        self.assertRaises(Exception, mgr.clone, source_ref, "dpack", "daction")
