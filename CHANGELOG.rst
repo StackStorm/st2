@@ -4,6 +4,16 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fixed trigger references emitted by ``linux.file_watch.line``. #5467
+
+  Prior to this patch multiple files could be watched but the rule reference of last registered file
+  would be used for all trigger emissions causing rule enforcement to fail.  References are now tracked
+  on a per file basis and used in trigger emissions.
+
+  Contributed by @nzlosh
 
 3.6.0 - October 29, 2021
 ------------------------
