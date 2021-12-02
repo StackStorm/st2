@@ -9,7 +9,11 @@ in development
 ------------------------
 
 Added
-~~~~~
+~~~~
+
+* Added service degerestration on shutdown of a service. #5396
+ 
+  Contributed by @khushboobhatia01
 
 * Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
 
