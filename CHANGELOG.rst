@@ -28,6 +28,10 @@ Added
 Changed
 ~~~~~~~
 
+* Added cancel/pause/resume requester information to execution context. #5459
+
+  Contributed by @khushboobhatia01
+
 * Modified action delete API to delete action files from disk along with backward compatibility.
 
   From CLI ``st2 action delete <pack>.<action>`` will delete only action database entry.
