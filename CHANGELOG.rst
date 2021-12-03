@@ -11,6 +11,10 @@ in development
 Added
 ~~~~~
 
+* Added service degerestration on shutdown of a service. #5396
+
+  Contributed by @khushboobhatia01
+
 * Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
 
 * ``st2.conf`` is now the only place to configure ports for ``st2api``, ``st2auth``, and ``st2stream``.
@@ -23,6 +27,10 @@ Added
 
 Changed
 ~~~~~~~
+
+* Added cancel/pause/resume requester information to execution context. #5459
+
+  Contributed by @khushboobhatia01
 
 * Modified action delete API to delete action files from disk along with backward compatibility.
 
