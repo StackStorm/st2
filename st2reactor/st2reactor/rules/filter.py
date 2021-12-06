@@ -154,8 +154,9 @@ class RuleFilter(object):
 
             return (False, None, None)
 
+        criterion_k_hash_strip = criterion_k.split('#', 1)[0]
         try:
-            matches = payload_lookup.get_value(criterion_k)
+            matches = payload_lookup.get_value(criterion_k_hash_strip)
             # pick value if only 1 matches else will end up being an array match.
             if matches:
                 payload_value = matches[0] if len(matches) > 0 else matches
@@ -171,7 +172,7 @@ class RuleFilter(object):
         op_func = criteria_operators.get_operator(criteria_operator)
 
         try:
-            if criteria_operator == criteria_operators.SEARCH:
+            if (criteria_operator == criteria_operators.SEARCH) or (criteria_operator == criteria_operators.MULTIPLE):
                 result = op_func(
                     value=payload_value,
                     criteria_pattern=criteria_pattern,

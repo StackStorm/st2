@@ -161,6 +161,103 @@ def search(value, criteria_pattern, criteria_condition, check_function):
     return rtn
 
 
+def multiple(value, criteria_pattern, criteria_condition, check_function):
+    """
+    Allow comparison of payload items to multiple criteria using different logicial conditions.
+    Performs same function as the "search" operator and contains additional features.
+
+    value: the payload items
+    condition: one of:
+      * all2all - true if all payload items match all criteria items
+      * all2any - true if all payload items match any criteria items
+      * any2any - true if any payload items match any criteria items
+      * any2all - true if any payload items match all criteria items
+      * all - same as all2all (useful to maintain backward compatibility with search operator)
+      * any - same as any2all (useful to maintain backward compatibility with search operator)
+    pattern: a dictionary of criteria to apply to each item of the list
+
+    This operator has O(n) algorithmic complexity in terms of number of child patterns.
+    This operator has O(n) algorithmic complexity in terms of number of payload fields.
+
+    However, it has O(n_patterns * n_payloads) algorithmic complexity, where:
+      n_patterns = number of child patterns
+      n_payloads = number of fields in payload
+    It is therefore very easy to write a slow rule when using this operator.
+
+    This operator should ONLY be used when trying to match a small number of child patterns and/or
+    a small number of payload list elements.
+
+    Data from the trigger:
+
+    {
+        "fields": [
+            {
+                "field_name": "waterLevel",
+                "to_value": 45,
+            }
+        ]
+    }
+
+    And an example usage in criteria:
+
+    ---
+    criteria:
+      trigger.fields:
+        type: multiple
+        # Controls whether this criteria has to match any or all items of the list
+        condition: all2all  # all2any, any2all or any2any
+        pattern:
+          # "#" and text after are ignored. This allows dictionary keys to be unique but refer to the same field
+          # Any text can go after the hash.
+          item.field_name#1:
+            type: "greaterthan"
+            pattern: 40
+
+          item.field_name#2:
+            type: "lessthan"
+            pattern: 50
+    """
+    if isinstance(value, dict):
+        value = [value]
+    criteria_condition_list = criteria_condition.split('2', 1)
+    if (not((len(criteria_condition_list) == 1 and (criteria_condition_list[0] == 'any' or criteria_condition_list[0] == 'all')) or
+       (len(criteria_condition_list) == 2 and (criteria_condition_list[0] == 'any' or criteria_condition_list[0] == 'all') and
+       (criteria_condition_list[1] == 'any' or criteria_condition_list[1] == 'all')))):
+        raise UnrecognizedConditionError(
+            "The '%s' condition is not recognized for type multiple, 'any', 'all', 'any2any', 'any2all', 'all2any'"
+            " and 'all2all are allowed" % criteria_condition
+        )
+    payloadItemMatch = any
+    if criteria_condition_list[0] == 'all':
+        payloadItemMatch = all
+    patternMatch = all
+    if len(criteria_condition_list) == 2 and criteria_condition_list[1] == 'any':
+        patternMatch = any
+
+    rtn = payloadItemMatch(
+        [
+            # any/all payload item can match
+            patternMatch(
+                [
+                    # Match any/all patterns
+                    check_function(
+                        child_criterion_k,
+                        child_criterion_v,
+                        PayloadLookup(
+                            child_payload, prefix=TRIGGER_ITEM_PAYLOAD_PREFIX
+                        )
+                    )
+                    for child_criterion_k, child_criterion_v in six.iteritems(
+                        criteria_pattern
+                    )
+                ]
+            )
+            for child_payload in value
+        ]
+    )
+    return rtn
+
+
 def equals(value, criteria_pattern):
     if criteria_pattern is None:
         return False
@@ -412,6 +509,7 @@ INSIDE_SHORT = "in"
 NINSIDE_LONG = "ninside"
 NINSIDE_SHORT = "nin"
 SEARCH = "search"
+MULTIPLE = "multiple"
 
 # operator lookups
 operators = {
@@ -448,4 +546,5 @@ operators = {
     NINSIDE_LONG: ninside,
     NINSIDE_SHORT: ninside,
     SEARCH: search,
+    MULTIPLE: multiple
 }
