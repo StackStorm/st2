@@ -4,6 +4,13 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
+  ``timedelta.total_seconds()`` return.
+
+  Contributed by @blackstrip
 
 3.6.0 - October 29, 2021
 ------------------------
