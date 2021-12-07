@@ -11,6 +11,10 @@ in development
 Added
 ~~~~~
 
+* Use string lock name instead of object id. #5484
+
+  Contributed by @khushboobhatia01
+
 * Added service degerestration on shutdown of a service. #5396
 
   Contributed by @khushboobhatia01
