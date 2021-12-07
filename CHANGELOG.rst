@@ -4,16 +4,29 @@ Changelog
 in development
 --------------
 
-
-3.6.0 - October 29, 2021
-------------------------
-
 Added
 ~~~~~
 
 * Added service degerestration on shutdown of a service. #5396
 
   Contributed by @khushboobhatia01
+
+* Added cancel/pause/resume requester information to execution context. #5459
+
+  Contributed by @khushboobhatia01
+
+Fixed
+~~~~~
+
+* Fixed regression caused by #5358. Use string lock name instead of object ID. #5484
+
+  Contributed by @khushboobhatia01
+
+3.6.0 - October 29, 2021
+------------------------
+
+Added
+~~~~~
 
 * Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
 
@@ -27,10 +40,6 @@ Added
 
 Changed
 ~~~~~~~
-
-* Added cancel/pause/resume requester information to execution context. #5459
-
-  Contributed by @khushboobhatia01
 
 * Modified action delete API to delete action files from disk along with backward compatibility.
 
