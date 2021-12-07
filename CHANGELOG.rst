@@ -11,6 +11,10 @@ in development
 Added
 ~~~~~
 
+* Enable setting ttl for MockDatastoreServic
+ 
+  Contributed by @ytjohn
+
 * Added service degerestration on shutdown of a service. #5396
 
   Contributed by @khushboobhatia01

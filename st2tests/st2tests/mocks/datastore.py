@@ -35,7 +35,7 @@ class MockDatastoreService(BaseDatastoreService):
         self._class_name = class_name
         self._username = api_username or "admin"
         self._logger = logger
- 
+
         # Holds mock KeyValuePair objects
         # Key is a KeyValuePair name and value is the KeyValuePair object
         self._datastore_items = {}
@@ -105,7 +105,9 @@ class MockDatastoreService(BaseDatastoreService):
         instance.name = name
         instance.value = value
         if ttl:
-            self._logger.warning("MockDatastoreService is not able to expire keys based on ttl.")
+            self._logger.warning(
+                "MockDatastoreService is not able to expire keys based on ttl."
+            )
             instance.ttl = ttl
 
         self._datastore_items[name] = instance
