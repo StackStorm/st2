@@ -214,12 +214,7 @@ def request(liveaction):
 
 
 def update_status(
-    liveaction,
-    new_status,
-    result=None,
-    publish=True,
-    set_result_size=False,
-    context=None,
+    liveaction, new_status, result=None, publish=True, set_result_size=False
 ):
     if liveaction.status == new_status:
         return liveaction
@@ -231,7 +226,6 @@ def update_status(
         "status": new_status,
         "result": result,
         "publish": False,
-        "context": context,
     }
 
     if new_status in action_constants.LIVEACTION_COMPLETED_STATES:
@@ -310,10 +304,7 @@ def request_cancellation(liveaction, requester):
     else:
         status = action_constants.LIVEACTION_STATUS_CANCELED
 
-    liveaction.context["cancelled_by"] = requester
-    liveaction = update_status(
-        liveaction, status, result=result, context=liveaction.context
-    )
+    liveaction = update_status(liveaction, status, result=result)
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
@@ -355,12 +346,7 @@ def request_pause(liveaction, requester):
             % liveaction.id
         )
 
-    liveaction.context["paused_by"] = requester
-    liveaction = update_status(
-        liveaction,
-        action_constants.LIVEACTION_STATUS_PAUSING,
-        context=liveaction.context,
-    )
+    liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
@@ -404,12 +390,7 @@ def request_resume(liveaction, requester):
             'not in "paused" state.' % (liveaction.id, liveaction.status)
         )
 
-    liveaction.context["resumed_by"] = requester
-    liveaction = update_status(
-        liveaction,
-        action_constants.LIVEACTION_STATUS_RESUMING,
-        context=liveaction.context,
-    )
+    liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_RESUMING)
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
