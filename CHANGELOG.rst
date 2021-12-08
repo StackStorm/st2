@@ -22,6 +22,8 @@ Fixed
 
   Contributed by @khushboobhatia01
 
+* Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
+
 3.6.0 - October 29, 2021
 ------------------------
 
