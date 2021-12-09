@@ -11,10 +11,6 @@ Added
 
   Contributed by @khushboobhatia01
 
-* Added cancel/pause/resume requester information to execution context. #5459
-
-  Contributed by @khushboobhatia01
-
 Fixed
 ~~~~~
 
