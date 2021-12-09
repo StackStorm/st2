@@ -29,6 +29,8 @@ import six
 import eventlet.debug
 from oslo_config import cfg
 from tooz.coordination import GroupAlreadyExist
+from tooz.coordination import GroupNotCreated
+from tooz.coordination import MemberNotJoined
 
 from st2common import log as logging
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
@@ -62,6 +64,7 @@ __all__ = [
     "db_setup",
     "db_teardown",
     "register_service_in_service_registry",
+    "deregister_service",
 ]
 
 # Message which is logged if non utf-8 locale is detected on startup.
@@ -339,3 +342,22 @@ def register_service_in_service_registry(service, capabilities=None, start_heart
         % (group_id, member_id, capabilities)
     )
     return coordinator.join_group(group_id, capabilities=capabilities).get()
+
+
+def deregister_service(service, start_heart=True):
+
+    if not isinstance(service, six.binary_type):
+        group_id = service.encode("utf-8")
+    else:
+        group_id = service
+
+    coordinator = coordination.get_coordinator(start_heart=start_heart)
+
+    member_id = coordination.get_member_id()
+    LOG.debug(
+        'Leaving service registry group "%s" as member_id "%s"' % (group_id, member_id)
+    )
+    try:
+        coordinator.leave_group(group_id).get()
+    except (GroupNotCreated, MemberNotJoined):
+        pass

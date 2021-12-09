@@ -101,6 +101,7 @@ class ResourceBranch(commands.Branch):
             "delete": ResourceDeleteCommand,
             "enable": ResourceEnableCommand,
             "disable": ResourceDisableCommand,
+            "clone": ResourceCloneCommand,
         }
         for cmd, cmd_class in cmd_map.items():
             if cmd not in commands:
@@ -115,6 +116,7 @@ class ResourceBranch(commands.Branch):
             self.commands["create"] = commands["create"](*args)
             self.commands["update"] = commands["update"](*args)
             self.commands["delete"] = commands["delete"](*args)
+            self.commands["clone"] = commands["clone"](*args)
 
         if has_disable:
             self.commands["enable"] = commands["enable"](*args)
@@ -756,6 +758,28 @@ class ContentPackResourceDeleteCommand(ResourceDeleteCommand):
     """
 
     pk_argument_name = "ref_or_id"
+
+
+class ResourceCloneCommand(ResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceCloneCommand, self).__init__(
+            resource,
+            "clone",
+            "Clone a new %s." % resource.get_display_name().lower(),
+            *args,
+            **kwargs,
+        )
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        raise NotImplementedError("clone '%s' is not implemented." % args.parser)
+
+    def run_and_print(self, args, **kwargs):
+        self.run(args, **kwargs)
+
+
+class ContentPackResourceCloneCommand(ResourceCloneCommand):
+    pass
 
 
 def load_meta_file(file_path):
