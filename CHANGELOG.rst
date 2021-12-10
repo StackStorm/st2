@@ -8,7 +8,7 @@ Fixed
 ~~~~~
 
 * Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
-  ``timedelta.total_seconds()`` return.
+  ``timedelta.total_seconds()`` return. #5462
 
   Contributed by @blackstrip
 
