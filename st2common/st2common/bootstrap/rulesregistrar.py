@@ -128,6 +128,9 @@ class RulesRegistrar(ResourceRegistrar):
                 )
                 content["metadata_file"] = metadata_file
 
+                # Pass override information
+                self._override_loader.override(pack, "rules", content)
+
                 rule_api = RuleAPI(**content)
                 rule_api.validate()
                 rule_db = RuleAPI.to_model(rule_api)

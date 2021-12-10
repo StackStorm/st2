@@ -167,6 +167,9 @@ class SensorsRegistrar(ResourceRegistrar):
         )
         content["metadata_file"] = metadata_file
 
+        # Pass override information
+        self._override_loader.override(pack, "sensors", content)
+
         sensors_dir = os.path.dirname(sensor_metadata_file_path)
         sensor_file_path = os.path.join(sensors_dir, entry_point)
         artifact_uri = "file://%s" % (sensor_file_path)

@@ -20,6 +20,7 @@ import os
 from yaml.parser import ParserError
 import six
 
+from oslo_config import cfg
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.constants.meta import PARSER_FUNCS
@@ -28,7 +29,7 @@ from st2common.constants.pack import MANIFEST_FILE_NAME
 if six.PY2:
     from io import open
 
-__all__ = ["ContentPackLoader", "MetaLoader"]
+__all__ = ["ContentPackLoader", "MetaLoader", "OverrideLoader"]
 
 LOG = logging.getLogger(__name__)
 
@@ -257,6 +258,66 @@ class MetaLoader(object):
             raise ValueError(error)
 
         return result
+
+    def _load(self, parser_func, file_path):
+        with open(file_path, "r", encoding="utf-8") as fd:
+            try:
+                return parser_func(fd)
+            except ValueError:
+                LOG.exception("Failed loading content from %s.", file_path)
+                raise
+            except ParserError:
+                LOG.exception("Failed loading content from %s.", file_path)
+                raise
+
+class OverrideLoader(object):
+    """
+    Class for loading pack override data
+    """
+    ALLOWED_OVERRIDE_TYPES = [
+        "sensors",
+        "actions",
+        "rules",
+        "aliases",
+    ]
+
+    def override(self, pack_name, type, content):
+
+        """
+        Loads override content for pack, and updates content
+
+        :param pack: Name of pack
+        :type pack: ``str``
+
+        """
+
+        if type not in self.ALLOWED_OVERRIDE_TYPES:
+            LOG.warning(f"Invalid override type of {type} will be ignored for pack {pack_name}")
+        override_dir = os.path.join(cfg.CONF.system.base_path, "configs/overrides")
+        override_file = os.path.join(override_dir, f"{pack_name}.yaml")
+        if not os.path.exists(override_file):
+            # No override file for pack
+            return content
+
+        # Read override file
+        file_name, file_ext = os.path.splitext(override_file)
+        overrides = self._load(PARSER_FUNCS[file_ext], override_file)
+
+        # Apply overrides
+        if type in overrides.keys():
+            type_override = overrides[type]
+            name = content["name"]
+            if "defaults" in type_override.keys():
+                if "enabled" in type_override["defaults"]:
+                    content["enabled"] = type_override["defaults"]["enabled"]
+                    LOG.info(f'Overridden {type} {pack_name}.{name} enabled to default value of {content["enabled"]}')
+            if "exceptions" in type_override.keys():
+                if name in type_override["exceptions"]:
+                    if "enabled" in type_override["exceptions"][name]:
+                        content["enabled"] = type_override["exceptions"][name]["enabled"]
+                        LOG.info(f'Overridden {type} {pack_name}.{name} enabled to exception value of {content["enabled"]}')
+
+        return content
 
     def _load(self, parser_func, file_path):
         with open(file_path, "r", encoding="utf-8") as fd:

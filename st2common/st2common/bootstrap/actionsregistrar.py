@@ -142,6 +142,9 @@ class ActionsRegistrar(ResourceRegistrar):
         )
         content["metadata_file"] = metadata_file
 
+        # Pass override information
+        self._override_loader.override(pack, "actions", content)
+
         action_api = ActionAPI(**content)
 
         try:

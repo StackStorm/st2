@@ -144,6 +144,9 @@ class AliasesRegistrar(ResourceRegistrar):
         else:
             content["metadata_file"] = metadata_file
 
+        # Pass override information
+        self._override_loader.override(pack, "aliases", content)
+
         action_alias_api = ActionAliasAPI(**content)
         action_alias_api.validate()
         action_alias_db = ActionAliasAPI.to_model(action_alias_api)
