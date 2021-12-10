@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+from oslo_config import cfg
 import os
 
 import unittest2
@@ -31,8 +32,10 @@ except ImportError:
 from mock import Mock
 
 from st2common.content.loader import ContentPackLoader
+from st2common.content.loader import OverrideLoader
 from st2common.content.loader import LOG
 from st2common.constants.meta import yaml_safe_load
+from st2tests import config
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../resources"))
@@ -114,6 +117,118 @@ class ContentLoaderTest(unittest2.TestCase):
         )
         self.assertEqual(result, None)
 
+    def test_get_override_action_from_default(self):
+        config.parse_args()
+        cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
+        loader = OverrideLoader()
+        content = {"name":"action1","enabled": True}
+        loader.override("overpack1", "actions", content)
+        self.assertFalse(content["enabled"])
+        content = {"name":"action1","enabled": False}
+        loader.override("overpack1", "actions", content)
+        self.assertFalse(content["enabled"])
+
+    def test_get_override_action_from_exception(self):
+        config.parse_args()
+        cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
+        loader = OverrideLoader()
+        content = {"name":"action2","enabled": True}
+        loader.override("overpack1", "actions", content)
+        self.assertTrue(content["enabled"])
+        content = {"name":"action2","enabled": False}
+        loader.override("overpack1", "actions", content)
+        self.assertTrue(content["enabled"])
+
+    def test_get_override_action_from_default_no_exceptions(self):
+        config.parse_args()
+        cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
+        loader = OverrideLoader()
+        content = {"name":"action1","enabled": True}
+        loader.override("overpack4", "actions", content)
+        self.assertFalse(content["enabled"])
+        content = {"name":"action2","enabled": True}
+        loader.override("overpack4", "actions", content)
+        self.assertFalse(content["enabled"])
+
+    def test_get_override_invalid_type(self):
+        config.parse_args()
+        cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
+        loader = OverrideLoader()
+        content = {"name":"action2","enabled": True}
+        self.assertRaises(
+            ValueError,
+            loader.override,
+            pack_name="overpack1",
+            type="wrongtype",
+            content=content
+        )
+
+    def test_get_override_invalid_default_key(self):
+        config.parse_args()
+        cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
+        loader = OverrideLoader()
+        content = {"name":"action1","enabled": True}
+        self.assertRaises(
+            ValueError,
+            loader.override,
+            pack_name="overpack2",
+            type="actions",
+            content=content
+        )
+
+    def test_get_override_invalid_exceptions_key(self):
+        config.parse_args()
+        cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
+        loader = OverrideLoader()
+        content = {"name":"action1","enabled": True}
+        loader.override("overpack1", "actions", content)
+        content = {"name":"action2","enabled": True}
+        self.assertRaises(
+            ValueError,
+            loader.override,
+            pack_name="overpack3",
+            type="actions",
+            content=content
+        )
+
+class YamlLoaderTestCase(unittest2.TestCase):
+    def test_yaml_safe_load(self):
+        # Verify C version of yaml loader indeed doesn't load non-safe data
+        dumped = yaml.dump(Foo)
+        self.assertTrue("!!python" in dumped)
+
+        # Regular full load should work, but safe wrapper should fail
+        result = yaml.load(dumped, Loader=FullLoader)
+        self.assertTrue(result)
+
+        self.assertRaisesRegexp(
+            yaml.constructor.ConstructorError,
+            "could not determine a constructor",
+            yaml_safe_load,
+            dumped,
+        )
+
+        self.assertRaisesRegexp(
+            yaml.constructor.ConstructorError,
+            "could not determine a constructor",
+            yaml.load,
+            dumped,
+            Loader=SafeLoader,
+        )
+
+        if CSafeLoader:
+            self.assertRaisesRegexp(
+                yaml.constructor.ConstructorError,
+                "could not determine a constructor",
+                yaml.load,
+                dumped,
+                Loader=CSafeLoader,
+            )
+
+
+class Foo(object):
+    a = "1"
+    b = "c"
 
 class YamlLoaderTestCase(unittest2.TestCase):
     def test_yaml_safe_load(self):

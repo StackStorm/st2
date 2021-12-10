@@ -281,18 +281,26 @@ class OverrideLoader(object):
         "aliases",
     ]
 
+    ALLOWED_OVERRIDE_NAMES = [
+        "enabled",
+    ]
+
     def override(self, pack_name, type, content):
 
         """
         Loads override content for pack, and updates content
 
-        :param pack: Name of pack
-        :type pack: ``str``
+        :param pack_name: Name of pack
+        :type pack_name: ``str``
+        :param type: Type of resource loading
+        :type type: ``str``
+        :param content: Content as loaded from meta information
+        :type content: ``object``
 
         """
 
         if type not in self.ALLOWED_OVERRIDE_TYPES:
-            LOG.warning(f"Invalid override type of {type} will be ignored for pack {pack_name}")
+            raise ValueError(f"Invalid override type of {type} attempted for pack {pack_name}")
         override_dir = os.path.join(cfg.CONF.system.base_path, "configs/overrides")
         override_file = os.path.join(override_dir, f"{pack_name}.yaml")
         if not os.path.exists(override_file):
@@ -302,20 +310,25 @@ class OverrideLoader(object):
         # Read override file
         file_name, file_ext = os.path.splitext(override_file)
         overrides = self._load(PARSER_FUNCS[file_ext], override_file)
-
         # Apply overrides
         if type in overrides.keys():
             type_override = overrides[type]
             name = content["name"]
             if "defaults" in type_override.keys():
-                if "enabled" in type_override["defaults"]:
-                    content["enabled"] = type_override["defaults"]["enabled"]
-                    LOG.info(f'Overridden {type} {pack_name}.{name} enabled to default value of {content["enabled"]}')
+                for key in type_override["defaults"].keys():
+                    if key in self.ALLOWED_OVERRIDE_NAMES:
+                        content[key] = type_override["defaults"][key]
+                        LOG.info(f'Overridden {type} {pack_name}.{name} {key} to default value of {content[key]}')
+                    else:
+                        raise ValueError(f'Override attempted with invalid default key {key} in pack {pack_name}' )
             if "exceptions" in type_override.keys():
                 if name in type_override["exceptions"]:
-                    if "enabled" in type_override["exceptions"][name]:
-                        content["enabled"] = type_override["exceptions"][name]["enabled"]
-                        LOG.info(f'Overridden {type} {pack_name}.{name} enabled to exception value of {content["enabled"]}')
+                    for key in type_override["exceptions"][name].keys():
+                        if key in self.ALLOWED_OVERRIDE_NAMES:
+                            content[key] = type_override["exceptions"][name][key]
+                            LOG.info(f'Overridden {type} {pack_name}.{name} {key} to exception value of {content[key]}')
+                        else:
+                            raise ValueError(f'Override attempted with invalid exceptions key {key} in pack {pack_name}' )
 
         return content
 
