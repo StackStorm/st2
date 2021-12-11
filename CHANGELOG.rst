@@ -15,6 +15,11 @@ Fixed
 Added
 ~~~~~
 
+* Implemented RBAC functionality for existing ``KEY_VALUE_VIEW, KEY_VALUE_SET, KEY_VALUE_DELETE`` and new permission types ``KEY_VALUE_LIST, KEY_VALUE_ALL``.
+  RBAC is enabled in the ``st2.conf`` file. Access to a key value pair is checked in the KeyValuePair API controller. #5354
+
+  Contributed by @m4dcoder and @ashwini-orchestral
+
 * Added service degerestration on shutdown of a service. #5396
 
   Contributed by @khushboobhatia01
