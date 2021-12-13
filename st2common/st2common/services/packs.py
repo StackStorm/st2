@@ -83,6 +83,7 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
     if proxy_config:
         https_proxy = proxy_config.get("https_proxy", None)
         http_proxy = proxy_config.get("http_proxy", None)
+        no_proxy = proxy_config.get("no_proxy", None)
         ca_bundle_path = proxy_config.get("proxy_ca_bundle_path", None)
 
         if https_proxy:
@@ -91,6 +92,9 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
 
         if http_proxy:
             proxies_dict["http"] = http_proxy
+
+        if no_proxy:
+            proxies_dict["no"] = no_proxy
 
     for index_url in index_urls:
         index_status = {
