@@ -15,6 +15,20 @@ Fixed
 Added
 ~~~~~
 
+* Added st2 API and CLI command for actions clone operation.
+
+  API endpoint ``/api/v1/actions/{ref_or_id}/clone`` takes ``ref_or_id`` of source action.
+  Request method body takes destination pack and action name. Request method body also takes
+  optional paramater ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
+  overwritten.
+
+  CLI command ``st2 action clone <ref_or_id> <dest_pack> <dest_action>`` takes source ``ref_or_id``, destination
+  pack name and destination action name as mandatory arguments.
+  In case destionation already exists then command takes optional arugument ``-f`` or ``--force`` to overwrite
+  destination action. #5345
+
+  Contributed by @mahesh-orch.
+
 * Implemented RBAC functionality for existing ``KEY_VALUE_VIEW, KEY_VALUE_SET, KEY_VALUE_DELETE`` and new permission types ``KEY_VALUE_LIST, KEY_VALUE_ALL``.
   RBAC is enabled in the ``st2.conf`` file. Access to a key value pair is checked in the KeyValuePair API controller. #5354
 
