@@ -11,6 +11,10 @@ Added
 
   Contributed by @khushboobhatia01
 
+* Added support to override enabled parameter of resources. #5506
+
+  Contributed by Amanda McGuinness (@amanda11 Intive)
+
 Fixed
 ~~~~~
 

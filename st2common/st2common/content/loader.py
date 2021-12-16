@@ -270,6 +270,7 @@ class MetaLoader(object):
                 LOG.exception("Failed loading content from %s.", file_path)
                 raise
 
+
 class OverrideLoader(object):
     """
     Class for loading pack override data
@@ -302,7 +303,9 @@ class OverrideLoader(object):
         """
 
         if type not in self.ALLOWED_OVERRIDE_TYPES.keys():
-            raise ValueError(f"Invalid override type of {type} attempted for pack {pack_name}")
+            raise ValueError(
+                f"Invalid override type of {type} attempted for pack {pack_name}"
+            )
 
         override_dir = os.path.join(cfg.CONF.system.base_path, "configs/overrides")
         # Apply global overrides
@@ -315,7 +318,9 @@ class OverrideLoader(object):
 
         return content
 
-    def _apply_override_file(self, override_file, pack_name, type, content, global_file):
+    def _apply_override_file(
+        self, override_file, pack_name, type, content, global_file
+    ):
 
         """
         Loads override content from override file
@@ -348,9 +353,13 @@ class OverrideLoader(object):
                 for key in type_override["defaults"].keys():
                     if key in self.ALLOWED_OVERRIDE_NAMES:
                         content[key] = type_override["defaults"][key]
-                        LOG.info(f'Overridden {type} {pack_name}.{name} {key} to default value of {content[key]} from {override_file}')
+                        LOG.info(
+                            f"Overridden {type} {pack_name}.{name} {key} to default value of {content[key]} from {override_file}"
+                        )
                     else:
-                        raise ValueError(f'Override attempted with invalid default key {key} in pack {pack_name}' )
+                        raise ValueError(
+                            f"Override attempted with invalid default key {key} in pack {pack_name}"
+                        )
 
             if global_file:
                 # No exceptions required in global content file
@@ -361,9 +370,13 @@ class OverrideLoader(object):
                     for key in type_override["exceptions"][name].keys():
                         if key in self.ALLOWED_OVERRIDE_NAMES:
                             content[key] = type_override["exceptions"][name][key]
-                            LOG.info(f'Overridden {type} {pack_name}.{name} {key} to exception value of {content[key]} from {override_file}')
+                            LOG.info(
+                                f"Overridden {type} {pack_name}.{name} {key} to exception value of {content[key]} from {override_file}"
+                            )
                         else:
-                            raise ValueError(f'Override attempted with invalid exceptions key {key} in pack {pack_name}' )
+                            raise ValueError(
+                                f"Override attempted with invalid exceptions key {key} in pack {pack_name}"
+                            )
 
         return content
 

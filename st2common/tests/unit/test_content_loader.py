@@ -121,10 +121,10 @@ class ContentLoaderTest(unittest2.TestCase):
         config.parse_args()
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
-        content = {"name":"action1","enabled": True}
+        content = {"name": "action1", "enabled": True}
         loader.override("overpack1", "actions", content)
         self.assertFalse(content["enabled"])
-        content = {"name":"action1","enabled": False}
+        content = {"name": "action1", "enabled": False}
         loader.override("overpack1", "actions", content)
         self.assertFalse(content["enabled"])
 
@@ -132,10 +132,10 @@ class ContentLoaderTest(unittest2.TestCase):
         config.parse_args()
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
-        content = {"name":"action2","enabled": True}
+        content = {"name": "action2", "enabled": True}
         loader.override("overpack1", "actions", content)
         self.assertTrue(content["enabled"])
-        content = {"name":"action2","enabled": False}
+        content = {"name": "action2", "enabled": False}
         loader.override("overpack1", "actions", content)
         self.assertTrue(content["enabled"])
 
@@ -143,10 +143,10 @@ class ContentLoaderTest(unittest2.TestCase):
         config.parse_args()
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
-        content = {"name":"action1","enabled": True}
+        content = {"name": "action1", "enabled": True}
         loader.override("overpack4", "actions", content)
         self.assertFalse(content["enabled"])
-        content = {"name":"action2","enabled": True}
+        content = {"name": "action2", "enabled": True}
         loader.override("overpack4", "actions", content)
         self.assertFalse(content["enabled"])
 
@@ -154,7 +154,7 @@ class ContentLoaderTest(unittest2.TestCase):
         config.parse_args()
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
-        content = {"class_name":"sensor1","enabled": True}
+        content = {"class_name": "sensor1", "enabled": True}
         loader.override("overpack1", "sensors", content)
         self.assertFalse(content["enabled"])
 
@@ -162,7 +162,7 @@ class ContentLoaderTest(unittest2.TestCase):
         config.parse_args()
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
-        content = {"class_name":"sensor1","enabled": True}
+        content = {"class_name": "sensor1", "enabled": True}
         loader.override("overpack2", "sensors", content)
         self.assertTrue(content["enabled"])
 
@@ -170,7 +170,7 @@ class ContentLoaderTest(unittest2.TestCase):
         config.parse_args()
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
-        content = {"class_name":"sensor1","enabled": True}
+        content = {"class_name": "sensor1", "enabled": True}
         loader.override("overpack3", "sensors", content)
         self.assertTrue(content["enabled"])
 
@@ -178,42 +178,43 @@ class ContentLoaderTest(unittest2.TestCase):
         config.parse_args()
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
-        content = {"name":"action2","enabled": True}
+        content = {"name": "action2", "enabled": True}
         self.assertRaises(
             ValueError,
             loader.override,
             pack_name="overpack1",
             type="wrongtype",
-            content=content
+            content=content,
         )
 
     def test_get_override_invalid_default_key(self):
         config.parse_args()
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
-        content = {"name":"action1","enabled": True}
+        content = {"name": "action1", "enabled": True}
         self.assertRaises(
             ValueError,
             loader.override,
             pack_name="overpack2",
             type="actions",
-            content=content
+            content=content,
         )
 
     def test_get_override_invalid_exceptions_key(self):
         config.parse_args()
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
-        content = {"name":"action1","enabled": True}
+        content = {"name": "action1", "enabled": True}
         loader.override("overpack1", "actions", content)
-        content = {"name":"action2","enabled": True}
+        content = {"name": "action2", "enabled": True}
         self.assertRaises(
             ValueError,
             loader.override,
             pack_name="overpack3",
             type="actions",
-            content=content
+            content=content,
         )
+
 
 class YamlLoaderTestCase(unittest2.TestCase):
     def test_yaml_safe_load(self):
@@ -253,6 +254,7 @@ class YamlLoaderTestCase(unittest2.TestCase):
 class Foo(object):
     a = "1"
     b = "c"
+
 
 class YamlLoaderTestCase(unittest2.TestCase):
     def test_yaml_safe_load(self):
