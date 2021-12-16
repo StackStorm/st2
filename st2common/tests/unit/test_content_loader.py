@@ -150,6 +150,30 @@ class ContentLoaderTest(unittest2.TestCase):
         loader.override("overpack4", "actions", content)
         self.assertFalse(content["enabled"])
 
+    def test_get_override_action_from_global_default_no_exceptions(self):
+        config.parse_args()
+        cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
+        loader = OverrideLoader()
+        content = {"class_name":"sensor1","enabled": True}
+        loader.override("overpack1", "sensors", content)
+        self.assertFalse(content["enabled"])
+
+    def test_get_override_action_from_global_overridden_by_pack(self):
+        config.parse_args()
+        cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
+        loader = OverrideLoader()
+        content = {"class_name":"sensor1","enabled": True}
+        loader.override("overpack2", "sensors", content)
+        self.assertTrue(content["enabled"])
+
+    def test_get_override_action_from_global_overridden_by_pack_exception(self):
+        config.parse_args()
+        cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
+        loader = OverrideLoader()
+        content = {"class_name":"sensor1","enabled": True}
+        loader.override("overpack3", "sensors", content)
+        self.assertTrue(content["enabled"])
+
     def test_get_override_invalid_type(self):
         config.parse_args()
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")

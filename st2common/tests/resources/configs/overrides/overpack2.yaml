@@ -6,3 +6,6 @@ actions:
   exceptions:
     action2:
       enabled: True
+sensors:
+  defaults:
+    enabled: True

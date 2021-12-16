@@ -5,3 +5,7 @@ actions:
   exceptions:
     action2:
       rubbish: True
+sensors:
+  exceptions:
+    sensor1:
+      enabled: True

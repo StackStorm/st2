@@ -274,12 +274,14 @@ class OverrideLoader(object):
     """
     Class for loading pack override data
     """
-    ALLOWED_OVERRIDE_TYPES = [
-        "sensors",
-        "actions",
-        "rules",
-        "aliases",
-    ]
+
+    # Mapping of permitted override types to resource name
+    ALLOWED_OVERRIDE_TYPES = {
+        "sensors": "class_name",
+        "actions": "name",
+        "rules": "name",
+        "aliases": "name",
+    }
 
     ALLOWED_OVERRIDE_NAMES = [
         "enabled",
@@ -299,12 +301,40 @@ class OverrideLoader(object):
 
         """
 
-        if type not in self.ALLOWED_OVERRIDE_TYPES:
+        if type not in self.ALLOWED_OVERRIDE_TYPES.keys():
             raise ValueError(f"Invalid override type of {type} attempted for pack {pack_name}")
+
         override_dir = os.path.join(cfg.CONF.system.base_path, "configs/overrides")
+        # Apply global overrides
+        global_file = os.path.join(override_dir, "global.yaml")
+        self._apply_override_file(global_file, pack_name, type, content, True)
+
+        # Apply pack overrides
         override_file = os.path.join(override_dir, f"{pack_name}.yaml")
+        self._apply_override_file(override_file, pack_name, type, content, False)
+
+        return content
+
+    def _apply_override_file(self, override_file, pack_name, type, content, global_file):
+
+        """
+        Loads override content from override file
+
+        :param override_file: Override filename
+        :type override_file: ``str``
+        :param pack_name: Name of pack
+        :type pack_name: ``str``
+        :param type: Type of resource loading
+        :type type: ``str``
+        :param content: Content as loaded from meta information
+        :type content: ``object``
+        :param global_file: Whether global file
+        :type global_file: ``bool``
+        """
+
         if not os.path.exists(override_file):
             # No override file for pack
+            LOG.info(f"No override file {override_file} found")
             return content
 
         # Read override file
@@ -313,20 +343,25 @@ class OverrideLoader(object):
         # Apply overrides
         if type in overrides.keys():
             type_override = overrides[type]
-            name = content["name"]
+            name = content[self.ALLOWED_OVERRIDE_TYPES[type]]
             if "defaults" in type_override.keys():
                 for key in type_override["defaults"].keys():
                     if key in self.ALLOWED_OVERRIDE_NAMES:
                         content[key] = type_override["defaults"][key]
-                        LOG.info(f'Overridden {type} {pack_name}.{name} {key} to default value of {content[key]}')
+                        LOG.info(f'Overridden {type} {pack_name}.{name} {key} to default value of {content[key]} from {override_file}')
                     else:
                         raise ValueError(f'Override attempted with invalid default key {key} in pack {pack_name}' )
+
+            if global_file:
+                # No exceptions required in global content file
+                return content
+
             if "exceptions" in type_override.keys():
                 if name in type_override["exceptions"]:
                     for key in type_override["exceptions"][name].keys():
                         if key in self.ALLOWED_OVERRIDE_NAMES:
                             content[key] = type_override["exceptions"][name][key]
-                            LOG.info(f'Overridden {type} {pack_name}.{name} {key} to exception value of {content[key]}')
+                            LOG.info(f'Overridden {type} {pack_name}.{name} {key} to exception value of {content[key]} from {override_file}')
                         else:
                             raise ValueError(f'Override attempted with invalid exceptions key {key} in pack {pack_name}' )
 
