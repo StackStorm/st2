@@ -25,6 +25,10 @@ Fixed
 
 * Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
 
+* Fixed issue where pack index searches are ignoring no_proxy #5497
+
+  Contributed by @minsis
+
 3.6.0 - October 29, 2021
 ------------------------
 
