@@ -51,6 +51,18 @@ class LookupUtils(object):
             abort(http_client.NOT_FOUND, msg)
 
     @staticmethod
+    def _get_action_by_ref(ref):
+        try:
+            action_db = Action.get_by_ref(ref)
+            if not action_db:
+                raise ValueError('Referenced action "%s" doesnt exist' % (ref))
+            return action_db
+        except Exception as e:
+            msg = 'Database lookup for ref="%s" resulted in exception. %s' % (ref, e)
+            LOG.exception(msg)
+            abort(http_client.NOT_FOUND, msg)
+
+    @staticmethod
     def _get_runner_by_id(id):
         try:
             return RunnerType.get_by_id(id)
@@ -74,29 +86,37 @@ class ParametersViewController(object):
         return self._get_one(action_id, requester_user=requester_user)
 
     @staticmethod
-    def _get_one(action_id, requester_user):
-        """
-        List merged action & runner parameters by action id.
+    class ParametersViewController(object):
+        def get_one(self, action_id, requester_user):
+            return self._get_one(action_id, requester_user=requester_user)
 
-        Handle:
-            GET /actions/views/parameters/1
-        """
-        action_db = LookupUtils._get_action_by_id(action_id)
+        @staticmethod
+        def _get_one(ref_or_id, requester_user):
+            """
+            List merged action & runner parameters by action id.
 
-        permission_type = PermissionType.ACTION_VIEW
-        rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_db_permission(
-            user_db=requester_user,
-            resource_db=action_db,
-            permission_type=permission_type,
-        )
+            Handle:
+                GET /actions/views/parameters/1
+            """
+            if ResourceReference.is_resource_reference(ref_or_id):
+                action_db = LookupUtils._get_action_by_ref(ref_or_id)
+            else:
+                action_db = LookupUtils._get_action_by_id(ref_or_id)
 
-        runner_db = LookupUtils._get_runner_by_name(action_db.runner_type["name"])
-        all_params = action_param_utils.get_params_view(
-            action_db=action_db, runner_db=runner_db, merged_only=True
-        )
+            permission_type = PermissionType.ACTION_VIEW
+            rbac_utils = get_rbac_backend().get_utils_class()
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=action_db,
+                permission_type=permission_type,
+            )
 
-        return {"parameters": all_params}
+            runner_db = LookupUtils._get_runner_by_name(action_db.runner_type["name"])
+            all_params = action_param_utils.get_params_view(
+                action_db=action_db, runner_db=runner_db, merged_only=True
+            )
+
+            return {"parameters": all_params}
 
 
 class OverviewController(resource.ContentPackResourceController):
