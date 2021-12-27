@@ -428,6 +428,7 @@ jobs:
 
       # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
