@@ -20,6 +20,8 @@ pyyaml
 pymongo
 # used for optional network level compression for mongodb
 zstandard
+# mention cffi used by cryptography so we can control version
+cffi
 cryptography
 requests
 retrying

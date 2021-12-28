@@ -23,6 +23,7 @@ import mock
 from oslo_config.cfg import ConfigFilesNotFoundError
 
 from st2common import service_setup
+from st2common.services import coordination
 from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.transport.bootstrap_utils import QUEUES
 
@@ -216,3 +217,23 @@ class ServiceSetupTestCase(CleanFilesTestCase):
             run_migrations=False,
             register_runners=False,
         )
+
+    def test_deregister_service_when_service_registry_enabled(self):
+        service = "api"
+        service_setup.register_service_in_service_registry(
+            service, capabilities={"hostname": "", "pid": ""}
+        )
+        coordinator = coordination.get_coordinator(start_heart=True)
+        members = coordinator.get_members(service.encode("utf-8"))
+        self.assertEqual(len(list(members.get())), 1)
+        service_setup.deregister_service(service)
+        self.assertEqual(len(list(members.get())), 0)
+
+    def test_deregister_service_when_service_registry_disables(self):
+        service = "api"
+        try:
+            service_setup.deregister_service(service)
+        except:
+            assert False, "service_setup.deregister_service raised exception"
+
+        assert True
