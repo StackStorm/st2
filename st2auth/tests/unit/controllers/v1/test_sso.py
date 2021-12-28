@@ -140,6 +140,19 @@ class TestIdentityProviderCallbackController(FunctionalTest):
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
         "verify_response",
+        mock.MagicMock(return_value={"referer": MOCK_REFERER, "username": MOCK_USER}),
+    )
+    def test_callback_url_encoded_payload(self):
+        data = {"foo": ["bar"]}
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+        }
+        response = self.app.post(SSO_CALLBACK_V1_PATH, data, headers=headers)
+        self.assertTrue(response.status_code, http_client.OK)
+
+    @mock.patch.object(
+        sso_api_controller.SSO_BACKEND,
+        "verify_response",
         mock.MagicMock(
             side_effect=auth_exc.SSOVerificationError("Verification Failed")
         ),
@@ -151,3 +164,5 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         )
         self.assertTrue(response.status_code, http_client.UNAUTHORIZED)
         self.assertDictEqual(response.json, expected_error)
+
+

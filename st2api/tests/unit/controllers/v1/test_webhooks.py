@@ -269,10 +269,11 @@ class TestWebhooksController(FunctionalTest):
             "St2-Trace-Tag": "tag1",
         }
 
-        self.app.post("/v1/webhooks/git", data, headers=headers)
+        post_resp = self.app.post("/v1/webhooks/git", data, headers=headers)
+        self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
         self.assertEqual(
             dispatch_mock.call_args[1]["payload"]["headers"]["Content-Type"],
-            "application/x-www-form-urlencoded",
+            "application/x-www-form-urlencoded; charset=UTF-8",
         )
         self.assertEqual(dispatch_mock.call_args[1]["payload"]["body"], data)
         self.assertEqual(dispatch_mock.call_args[1]["trace_context"].trace_tag, "tag1")
