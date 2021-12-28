@@ -262,11 +262,6 @@ class TestWebhooksController(FunctionalTest):
     )
     @mock.patch("st2common.transport.reactor.TriggerDispatcher.dispatch")
     def test_form_encoded_request_body(self, dispatch_mock):
-        return
-        # TODO: Fix on deserialization on API side, body dict values being decoded as bytes
-        # instead of unicode which breakgs things. Likely issue / bug with form urlencoding
-        # parsing or perhaps in the test client when sending data
-        # Send request body as form urlencoded data
         data = {"form": ["test"]}
 
         headers = {
