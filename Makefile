@@ -258,6 +258,7 @@ check-python-packages:
 		echo "Checking component:" $$component; \
 		echo "==========================================================="; \
 		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py sdist bdist_wheel) || exit 1; \
 	done
 
 .PHONY: check-python-packages-nightly
@@ -269,6 +270,7 @@ check-python-packages-nightly:
 	@echo ""
 
 	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
+	$(VIRTUALENV_COMPONENTS_DIR)/bin/pip install wheel
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
