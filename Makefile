@@ -253,6 +253,7 @@ check-python-packages:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
+	$(VIRTUALENV_COMPONENTS_DIR)/bin/pip install wheel
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
