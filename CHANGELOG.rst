@@ -8,7 +8,7 @@ Added
 ~~~~~
 
 * Enable setting ttl for MockDatastoreService. #5468
- 
+
   Contributed by @ytjohn
 
 * Added st2 API and CLI command for actions clone operation.
