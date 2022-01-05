@@ -15,9 +15,13 @@
 
 from __future__ import absolute_import
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.exceptions.apivalidation import ValueValidationException
 
-__all__ = ["validate_not_part_of_system_pack"]
+__all__ = [
+    "validate_not_part_of_system_pack",
+    "validate_not_part_of_system_pack_by_name",
+]
 
 
 def validate_not_part_of_system_pack(resource_db):
@@ -37,3 +41,9 @@ def validate_not_part_of_system_pack(resource_db):
         raise ValueValidationException(msg)
 
     return resource_db
+
+
+def validate_not_part_of_system_pack_by_name(pack_name):
+    if pack_name in SYSTEM_PACK_NAMES:
+        msg = "Resources belonging to system level packs can't be manipulated"
+        raise ValueValidationException(msg)
