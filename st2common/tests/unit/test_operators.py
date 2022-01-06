@@ -956,10 +956,6 @@ class OperatorTest(unittest2.TestCase):
             op("2014-07-01T00:01:01.000000", "10"),
             "Passed test_timediff_lt_webui_value.",
         )
-        self.assertFalse(
-            op("2014-07-01T00:01:01.000000", "value_from_webui"),
-            "Passed test_timediff_lt with Value from WebUI as criteria_pattern.",
-        )
 
     def test_timediff_gt(self):
         op = operators.get_operator("timediff_gt")
@@ -988,10 +984,6 @@ class OperatorTest(unittest2.TestCase):
         self.assertFalse(
             op(date_utils.get_datetime_utc_now().isoformat(), "10"),
             "Passed test_timediff_gt_webui_value.",
-        )
-        self.assertFalse(
-            op("2014-07-01T00:01:01.000000", "value_from_webui"),
-            "Passed test_timediff_gt with Value from WebUI as criteria_pattern.",
         )
 
     def test_exists(self):
