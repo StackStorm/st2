@@ -18,3 +18,5 @@ cryptography
 orjson
 # needed by requests
 chardet
+# required for SOCKS proxy support (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)
+pysocks
