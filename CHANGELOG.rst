@@ -15,6 +15,10 @@ Fixed
 Added
 ~~~~~
 
+* Enable setting ttl for MockDatastoreService. #5468
+
+  Contributed by @ytjohn
+
 * Added st2 API and CLI command for actions clone operation.
 
   API endpoint ``/api/v1/actions/{ref_or_id}/clone`` takes ``ref_or_id`` of source action.
