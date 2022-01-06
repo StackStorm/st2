@@ -42,6 +42,10 @@ Added
 
   Contributed by @khushboobhatia01
 
+* Added pysocks python package for SOCKS proxy support. #5460
+
+  Contributed by @kingsleyadam
+
 Fixed
 ~~~~~
 
