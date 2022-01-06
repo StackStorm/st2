@@ -196,7 +196,7 @@ def update_execution(liveaction_db, publish=True, set_result_size=False):
     """
     execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
 
-    with coordination.get_coordinator().get_lock(str(liveaction_db.id)):
+    with coordination.get_coordinator().get_lock(str(liveaction_db.id).encode()):
         # Skip execution object update when action is already in completed state.
         if execution.status in action_constants.LIVEACTION_COMPLETED_STATES:
             LOG.debug(
