@@ -39,6 +39,10 @@ Fixed
 
 * Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
 
+* Add required dependency to support etcd3gw driver. #5528
+
+  Contributed by @khushboobhatia01
+
 3.6.0 - October 29, 2021
 ------------------------
 
