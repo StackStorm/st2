@@ -953,7 +953,8 @@ class OperatorTest(unittest2.TestCase):
     def test_timediff_lt_webui_value_fail(self):
         op = operators.get_operator("timediff_lt")
         self.assertFalse(
-            op("2014-07-01T00:01:01.000000", "10"), "Passed test_timediff_lt_webui_value."
+            op("2014-07-01T00:01:01.000000", "10"),
+            "Passed test_timediff_lt_webui_value.",
         )
         self.assertFalse(
             op("2014-07-01T00:01:01.000000", "value_from_webui"),
@@ -977,7 +978,10 @@ class OperatorTest(unittest2.TestCase):
 
     def test_timediff_gt_webui_value(self):
         op = operators.get_operator("timediff_gt")
-        self.assertTrue(op("2014-07-01T00:01:01.000000", "1"), "Failed test_timediff_gt_webui_value.")
+        self.assertTrue(
+            op("2014-07-01T00:01:01.000000", "1"),
+            "Failed test_timediff_gt_webui_value.",
+        )
 
     def test_timediff_gt_webui_value_fail(self):
         op = operators.get_operator("timediff_gt")
