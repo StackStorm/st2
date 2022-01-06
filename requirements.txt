@@ -15,6 +15,7 @@ chardet<3.1.0
 cryptography==3.4.7
 decorator==4.4.2
 dnspython>=1.16.0,<2.0.0
+etcd3gw==1.0.0
 eventlet==0.30.2
 flex==6.14.1
 git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
@@ -67,6 +68,7 @@ simplejson
 six==1.13.0
 sseclient-py==1.7
 stevedore==1.30.1
+tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
 udatetime==0.0.16
 unittest2
