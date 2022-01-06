@@ -938,7 +938,7 @@ def handle_action_execution_completion(ac_ex_db):
     task_ex_id = ac_ex_db.context["orquesta"]["task_execution_id"]
 
     # Acquire lock before write operations.
-    with coord_svc.get_coordinator(start_heart=True).get_lock(wf_ex_id):
+    with coord_svc.get_coordinator(start_heart=True).get_lock(str(wf_ex_id).encode()):
         # Get execution records for logging purposes.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
         task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
