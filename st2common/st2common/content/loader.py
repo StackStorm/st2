@@ -288,38 +288,38 @@ class OverrideLoader(object):
         "enabled",
     ]
 
-    def override(self, pack_name, type, content):
+    def override(self, pack_name, resource_type, content):
 
         """
         Loads override content for pack, and updates content
 
         :param pack_name: Name of pack
         :type pack_name: ``str``
-        :param type: Type of resource loading
+        :param resource_type: Type of resource loading
         :type type: ``str``
         :param content: Content as loaded from meta information
         :type content: ``object``
 
         """
 
-        if type not in self.ALLOWED_OVERRIDE_TYPES.keys():
+        if resource_type not in self.ALLOWED_OVERRIDE_TYPES.keys():
             raise ValueError(
-                f"Invalid override type of {type} attempted for pack {pack_name}"
+                f"Invalid override type of {resource_type} attempted for pack {pack_name}"
             )
 
-        override_dir = os.path.join(cfg.CONF.system.base_path, "configs/overrides")
+        override_dir = os.path.join(cfg.CONF.system.base_path, "overrides")
         # Apply global overrides
         global_file = os.path.join(override_dir, "global.yaml")
-        self._apply_override_file(global_file, pack_name, type, content, True)
+        self._apply_override_file(global_file, pack_name, resource_type, content, True)
 
         # Apply pack overrides
         override_file = os.path.join(override_dir, f"{pack_name}.yaml")
-        self._apply_override_file(override_file, pack_name, type, content, False)
+        self._apply_override_file(override_file, pack_name, resource_type, content, False)
 
         return content
 
     def _apply_override_file(
-        self, override_file, pack_name, type, content, global_file
+        self, override_file, pack_name, resource_type, content, global_file
     ):
 
         """
@@ -329,7 +329,7 @@ class OverrideLoader(object):
         :type override_file: ``str``
         :param pack_name: Name of pack
         :type pack_name: ``str``
-        :param type: Type of resource loading
+        :param resource_type: Type of resource loading
         :type type: ``str``
         :param content: Content as loaded from meta information
         :type content: ``object``
@@ -346,15 +346,15 @@ class OverrideLoader(object):
         file_name, file_ext = os.path.splitext(override_file)
         overrides = self._load(PARSER_FUNCS[file_ext], override_file)
         # Apply overrides
-        if type in overrides.keys():
-            type_override = overrides[type]
-            name = content[self.ALLOWED_OVERRIDE_TYPES[type]]
+        if resource_type in overrides.keys():
+            type_override = overrides[resource_type]
+            name = content[self.ALLOWED_OVERRIDE_TYPES[resource_type]]
             if "defaults" in type_override.keys():
                 for key in type_override["defaults"].keys():
                     if key in self.ALLOWED_OVERRIDE_NAMES:
                         content[key] = type_override["defaults"][key]
                         LOG.info(
-                            f"Overridden {type} {pack_name}.{name} {key} to default value of {content[key]} from {override_file}"
+                            f"Overridden {resource_type} {pack_name}.{name} {key} to default value of {content[key]} from {override_file}"
                         )
                     else:
                         raise ValueError(
@@ -371,7 +371,7 @@ class OverrideLoader(object):
                         if key in self.ALLOWED_OVERRIDE_NAMES:
                             content[key] = type_override["exceptions"][name][key]
                             LOG.info(
-                                f"Overridden {type} {pack_name}.{name} {key} to exception value of {content[key]} from {override_file}"
+                                f"Overridden {resource_type} {pack_name}.{name} {key} to exception value of {content[key]} from {override_file}"
                             )
                         else:
                             raise ValueError(

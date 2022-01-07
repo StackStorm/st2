@@ -183,7 +183,7 @@ class ContentLoaderTest(unittest2.TestCase):
             ValueError,
             loader.override,
             pack_name="overpack1",
-            type="wrongtype",
+            resource_type="wrongtype",
             content=content,
         )
 
@@ -196,7 +196,7 @@ class ContentLoaderTest(unittest2.TestCase):
             ValueError,
             loader.override,
             pack_name="overpack2",
-            type="actions",
+            resource_type="actions",
             content=content,
         )
 
@@ -211,7 +211,7 @@ class ContentLoaderTest(unittest2.TestCase):
             ValueError,
             loader.override,
             pack_name="overpack3",
-            type="actions",
+            resource_type="actions",
             content=content,
         )
 
