@@ -144,9 +144,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
     )
     def test_callback_url_encoded_payload(self):
         data = {"foo": ["bar"]}
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded",
-        }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
         response = self.app.post(SSO_CALLBACK_V1_PATH, data, headers=headers)
         self.assertTrue(response.status_code, http_client.OK)
 
@@ -164,5 +162,3 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         )
         self.assertTrue(response.status_code, http_client.UNAUTHORIZED)
         self.assertDictEqual(response.json, expected_error)
-
-
