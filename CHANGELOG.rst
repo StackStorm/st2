@@ -4,8 +4,20 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
+  ``timedelta.total_seconds()`` return. #5462
+
+  Contributed by @blackstrip
+
 Added
 ~~~~~
+
+* Enable setting ttl for MockDatastoreService. #5468
+
+  Contributed by @ytjohn
 
 * Added st2 API and CLI command for actions clone operation.
 
@@ -30,6 +42,10 @@ Added
 
   Contributed by @khushboobhatia01
 
+* Added pysocks python package for SOCKS proxy support. #5460
+
+  Contributed by @kingsleyadam
+
 Fixed
 ~~~~~
 
@@ -38,6 +54,10 @@ Fixed
   Contributed by @khushboobhatia01
 
 * Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
+
+* Use byte type lock name which is supported by all tooz drivers. #5529
+
+  Contributed by @khushboobhatia01
 
 3.6.0 - October 29, 2021
 ------------------------

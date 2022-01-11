@@ -314,7 +314,7 @@ def _timediff(diff_target, period_seconds, operator):
     # Note: date_utils.parse uses dateutil.parse which is way more flexible then strptime and
     # supports many date formats
     diff_target_utc = date_utils.parse(diff_target)
-    return operator((utc_now - diff_target_utc).total_seconds(), period_seconds)
+    return operator((utc_now - diff_target_utc).total_seconds(), float(period_seconds))
 
 
 def timediff_lt(value, criteria_pattern):
