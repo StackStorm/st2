@@ -7,6 +7,10 @@ in development
 Fixed
 ~~~~~
 
+* Fix deserialization bug for url encoded payloads. #5513
+
+  Contributed by @sravs-dev
+
 * Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
   ``timedelta.total_seconds()`` return. #5462
 
