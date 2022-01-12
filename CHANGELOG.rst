@@ -7,7 +7,7 @@ in development
 Fixed
 ~~~~~
 
-* Fix deserialization bug for url encoded payloads. #5513
+* Fix deserialization bug for url encoded payloads. #5536
 
   Contributed by @sravs-dev
 
