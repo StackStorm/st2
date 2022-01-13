@@ -503,16 +503,16 @@ def register_opts(ignore_errors=False):
     graceful_shutdown_opts = [
         cfg.BoolOpt(
             "graceful_shutdown",
-            default=False,
+            default=True,
             help="This will enable the graceful shutdown and wait for ongoing requests to complete until exit_timeout.",
         ),
         cfg.IntOpt(
-            "exit_timeout",
+            "exit_still_active_check",
             default=300,
             help="How long to wait for process (in seconds) to exit after receiving shutdown signal.",
         ),
         cfg.IntOpt(
-            "sleep_delay",
+            "still_active_check_interval",
             default=2,
             help="Time interval between subsequent queries to check running executions.",
         ),

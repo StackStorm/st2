@@ -117,6 +117,9 @@ class WorkerTestCase(DbTestCase):
             )
 
     def test_worker_shutdown(self):
+        cfg.CONF.set_override(
+            name="graceful_shutdown", override=False, group="actionrunner"
+        )
         action_worker = actions_worker.get_worker()
         temp_file = None
 
@@ -302,7 +305,9 @@ class WorkerTestCase(DbTestCase):
         cfg.CONF.set_override(
             name="graceful_shutdown", override=True, group="actionrunner"
         )
-        cfg.CONF.set_override(name="exit_timeout", override=5, group="actionrunner")
+        cfg.CONF.set_override(
+            name="exit_still_active_check", override=5, group="actionrunner"
+        )
         action_worker = actions_worker.get_worker()
         temp_file = None
 

@@ -145,8 +145,8 @@ class ActionExecutionDispatcher(MessageHandler):
             coordinator = coordination.get_coordinator()
             member_ids = []
             service = "actionrunner"
-            exit_timeout = cfg.CONF.actionrunner.exit_timeout
-            sleep_delay = cfg.CONF.actionrunner.sleep_delay
+            exit_timeout = cfg.CONF.actionrunner.exit_still_active_check
+            sleep_delay = cfg.CONF.actionrunner.still_active_check_interval
             timeout = 0
 
             while timeout < exit_timeout and self._running_liveactions:
