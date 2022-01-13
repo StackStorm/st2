@@ -46,6 +46,10 @@ Added
 
   Contributed by @kingsleyadam
 
+* Added support for multiple LDAP hosts to st2-auth-ldap. #5535, https://github.com/StackStorm/st2-auth-ldap/pull/100
+
+  Contributed by @ktyogurt
+
 Fixed
 ~~~~~
 
