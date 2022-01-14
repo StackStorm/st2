@@ -403,7 +403,7 @@ Add-Content -value $data -encoding byte -path $filePath
             # the following wraps the script (from the file) in a script block ( {} )
             # executes it, passing in the parameters built above
             # https://docs.microsoft.com/en-us/powershell/scripting/core-powershell/console/powershell.exe-command-line-help
-            ps = "& {%s}" % (tmp_script)
+            ps = tmp_script
             if params:
                 ps += " " + params
             return self._run_ps(ps)
