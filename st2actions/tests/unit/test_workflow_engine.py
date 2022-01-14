@@ -152,12 +152,8 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
-    @mock.patch.object(
-        coordination_service.NoOpDriver,
-        "get_lock",
-        mock.MagicMock(side_effect=coordination.ToozConnectionError("foobar")),
-    )
-    def test_process_error_handling(self):
+    @mock.patch.object(coordination_service.NoOpDriver, "get_lock")
+    def test_process_error_handling(self, mock_get_lock):
         expected_errors = [
             {
                 "message": "Execution failed. See result for details.",
@@ -172,6 +168,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
             },
         ]
 
+        mock_get_lock.side_effect = coordination_service.NoOpLock(name="noop")
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
@@ -190,6 +187,15 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t1_ex_db.id)
         )[0]
+        mock_get_lock.side_effect = [
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coordination_service.NoOpLock(name="noop"),
+            coordination_service.NoOpLock(name="noop"),
+        ]
         workflows.get_engine().process(t1_ac_ex_db)
 
         # Assert the task is marked as failed.
@@ -206,14 +212,14 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
     @mock.patch.object(
         coordination_service.NoOpDriver,
         "get_lock",
-        mock.MagicMock(side_effect=coordination.ToozConnectionError("foobar")),
     )
     @mock.patch.object(
         workflows.WorkflowExecutionHandler,
         "fail_workflow_execution",
         mock.MagicMock(side_effect=Exception("Unexpected error.")),
     )
-    def test_process_error_handling_has_error(self):
+    def test_process_error_handling_has_error(self, mock_get_lock):
+        mock_get_lock.side_effect = coordination_service.NoOpLock(name="noop")
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
@@ -233,6 +239,13 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
             task_execution=str(t1_ex_db.id)
         )[0]
 
+        mock_get_lock.side_effect = [
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+        ]
         self.assertRaisesRegexp(
             Exception, "Unexpected error.", workflows.get_engine().process, t1_ac_ex_db
         )
@@ -240,6 +253,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertTrue(
             workflows.WorkflowExecutionHandler.fail_workflow_execution.called
         )
+        mock_get_lock.side_effect = coordination_service.NoOpLock(name="noop")
 
         # Since error handling failed, the workflow will have status of running.
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)

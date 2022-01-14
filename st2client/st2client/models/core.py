@@ -377,6 +377,42 @@ class ResourceManager(object):
         return True
 
     @add_auth_token_to_kwargs_from_env
+    def delete_action(self, instance, remove_files, **kwargs):
+        url = "/%s/%s" % (self.resource.get_url_path_name(), instance.id)
+        payload = {"remove_files": remove_files}
+        response = self.client.delete(url, data=orjson.dumps(payload), **kwargs)
+        if response.status_code not in [
+            http_client.OK,
+            http_client.NO_CONTENT,
+            http_client.NOT_FOUND,
+        ]:
+            self.handle_error(response)
+            return False
+
+        return True
+
+    @add_auth_token_to_kwargs_from_env
+    def clone(
+        self,
+        source_ref,
+        dest_pack,
+        dest_action,
+        overwrite,
+        **kwargs,
+    ):
+        url = "/%s/%s/clone" % (self.resource.get_url_path_name(), source_ref)
+        payload = {
+            "dest_pack": dest_pack,
+            "dest_action": dest_action,
+            "overwrite": overwrite,
+        }
+        response = self.client.post(url, payload, **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+        instance = self.resource.deserialize(parse_api_response(response))
+        return instance
+
+    @add_auth_token_to_kwargs_from_env
     def delete_by_id(self, instance_id, **kwargs):
         url = "/%s/%s" % (self.resource.get_url_path_name(), instance_id)
         response = self.client.delete(url, **kwargs)

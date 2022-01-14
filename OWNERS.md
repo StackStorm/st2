@@ -17,10 +17,8 @@ Responsible for Project Strategy, External Relations, Organizational aspects, Pa
 ###### 2 vote points
 Senior [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/maintainers) are part of Technical Steering Committee.
 Have deep platform knowledge & experience and demonstrate technical leadership as well as driving the project forward.
-* Amanda McGuinness ([@amanda11](https://github.com/amanda11)), _Ammeon Solutions_ <<amanda.mcguinness@ammeonsolutions.com>>
+* Amanda McGuinness ([@amanda11](https://github.com/amanda11)), _intive_ <<amanda.mcguinness@intive.com>>
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, Release Engineering, Infrastructure, Documentation.
-* blag ([@blag](https://github.com/blag)) <<blag@users.noreply.github.com>>
-  - ChatOps, StackStorm Exchange, Community, Documentation, CI/CD.
 * Eugen Cusmaunsa ([@armab](https://github.com/armab)) <<armab@stackstorm.com>>
   - Systems, Deployments, Docker, K8s, HA, Ansible, Chef, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering, Community.
 * Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
@@ -53,8 +51,11 @@ Contributors are using and occasionally contributing back to the project, might 
 They're not part of the TSC voting process, but appreciated for their contribution, involvement and may become Maintainers in the future depending on their effort and involvement. See [How to become a Maintainer?](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#how-to-become-a-maintainer)
 [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and have permissions to help triage the Issues and review PRs.
 * Anand Patel ([@arms11](https://github.com/arms11)), _VMware_ - Docker, Kubernetes.
+* Ankur Singh ([@rush-skills](https://github.com/rush-skills)), _CERN_ - Puppet, Core, Docker, K8s.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
+* Khushboo Bhatia ([@khushboobhatia01](https://github.com/khushboobhatia01)), _VMware_ - Core, Orquesta.
+* Rick Kauffman ([@xod442](https://github.com/xod442)), _HPE_ - Community, HOWTOs, Blogs, Publications, Docker.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
@@ -67,6 +68,8 @@ Thank you, Friends!
 * Anthony Shaw ([@tonybaloney](https://github.com/tonybaloney)) - Contribution via Ideas, Feedback, ChatOps improvements, core Architecture, Community and even [Marketing](https://news.ycombinator.com/item?id=14368748). [Case Study](https://stackstorm.com/case-study-dimension-data/).
 * Andy Moore ([@AndyMoore](https://github.com/AndyMoore)) - Community, StackStorm Exchange packs, Kubernetes.
 * Anirudh Rekhi ([@humblearner](https://github.com/humblearner)) - ex Stormer. Systems, CI/CD, DevOps, Infrastructure.
+* blag ([@blag](https://github.com/blag))
+  - ChatOps, StackStorm Exchange, Community, Documentation, CI/CD.
 * Denis Barishev ([@dennybaa](https://github.com/dennybaa)) - ex Stormer. Re-architeced StackStorm installer via deb/rpm packages, made it stable, repeatable, fixed first platform pain points.
 * Ed Medvedev ([@emedvedev](https://github.com/emedvedev)) - ex Stormer. Made WebUI slick and ChatOps awesome, discovered and implemented today's [StackStorm Exchange](https://exchange.stackstorm.org/).
 * Evan Powell ([@epowell101](https://github.com/epowell101)) - StackStorm co-founder, first CEO, Stormer forever.

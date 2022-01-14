@@ -208,6 +208,7 @@ class ActionBranch(resource.ResourceBranch):
                 "get": ActionGetCommand,
                 "update": ActionUpdateCommand,
                 "delete": ActionDeleteCommand,
+                "clone": ActionCloneCommand,
             },
         )
 
@@ -282,31 +283,21 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
         super(ActionDeleteCommand, self).__init__(resource, *args, **kwargs)
 
         self.parser.add_argument(
-            "-f",
-            "--force",
+            "-r",
+            "--remove-files",
             action="store_true",
-            dest="force",
-            help="Auto yes flag to delete action files from disk.",
+            dest="remove_files",
+            default=False,
+            help="Remove action files from disk.",
         )
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
-        msg = (
-            'Resource with id "%s" has been successfully deleted from database and disk.'
-            % (resource_id)
-        )
-        user_input = ""
-        if not args.force:
-            user_input = input(
-                "The resource files on disk will be deleted. Do you want to continue? (y/n): "
-            )
-        if args.force or user_input.lower() == "y" or user_input.lower() == "yes":
-            self.manager.delete(instance, **kwargs)
-            print(msg)
-        else:
-            print("Action is not deleted.")
+        remove_files = args.remove_files
+        self.manager.delete_action(instance, remove_files, **kwargs)
+        print('Resource with id "%s" has been successfully deleted.' % (resource_id))
 
     def run_and_print(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name)
@@ -315,6 +306,88 @@ class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
             self.run(args, **kwargs)
         except ResourceNotFoundError:
             self.print_not_found(resource_id)
+
+
+class ActionCloneCommand(resource.ContentPackResourceCloneCommand):
+    source_ref = "source_ref_or_id"
+    dest_pack = "dest_pack_name"
+    dest_action = "dest_action_name"
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ActionCloneCommand, self).__init__(resource, *args, **kwargs)
+
+        args_list = [
+            self.source_ref,
+            self.dest_pack,
+            self.dest_action,
+        ]
+
+        for var in args_list:
+            metavar = self._get_metavar_for_argument(argument=var)
+            helparg = self._get_help_for_argument(resource=resource, argument=var)
+            self.parser.add_argument(var, metavar=metavar, help=helparg)
+
+        self.parser.add_argument(
+            "-f",
+            "--force",
+            action="store_true",
+            dest="force",
+            help="Overwrite action files on disk if destination exists.",
+        )
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        source_ref = getattr(args, self.source_ref, None)
+        dest_pack = getattr(args, self.dest_pack, None)
+        dest_action = getattr(args, self.dest_action, None)
+        dest_ref = "%s.%s" % (dest_pack, dest_action)
+        self.get_resource_by_ref_or_id(source_ref, **kwargs)
+
+        try:
+            dest_instance = self.get_resource(dest_ref, **kwargs)
+        except ResourceNotFoundError:
+            dest_instance = None
+
+        overwrite = False
+
+        if dest_instance:
+            user_input = ""
+            if not args.force:
+                user_input = input(
+                    "The destination action already exists. Do you want to overwrite? (y/n): "
+                )
+            if args.force or user_input.lower() == "y" or user_input.lower() == "yes":
+                overwrite = True
+            else:
+                print("Action is not cloned.")
+                return
+
+        return self.manager.clone(
+            source_ref,
+            dest_pack,
+            dest_action,
+            overwrite=overwrite,
+            **kwargs,
+        )
+
+    def run_and_print(self, args, **kwargs):
+        try:
+            instance = self.run(args, **kwargs)
+            if not instance:
+                return
+            self.print_output(
+                instance,
+                table.PropertyValueTable,
+                attributes=["all"],
+                json=args.json,
+                yaml=args.yaml,
+            )
+        except ResourceNotFoundError:
+            source_ref = getattr(args, self.source_ref, None)
+            self.print_not_found(source_ref)
+        except Exception as e:
+            message = six.text_type(e)
+            print("ERROR: %s" % (message))
 
 
 class ActionRunCommandMixin(object):

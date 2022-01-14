@@ -6,6 +6,7 @@ jinja2
 kombu
 oslo.config
 oslo.utils
+pyparsing
 requests
 six
 pyyaml

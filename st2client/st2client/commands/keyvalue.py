@@ -256,7 +256,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument(
             "name", metavar="name", help="Name of the key value pair."
         )
-        self.parser.add_argument("value", help="Value paired with the key.")
+        self.parser.add_argument("value", help="Value paired with the key.", nargs="?")
         self.parser.add_argument(
             "-l",
             "--ttl",
@@ -285,9 +285,13 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         instance = KeyValuePair()
         instance.id = args.name  # TODO: refactor and get rid of id
         instance.name = args.name
-        instance.value = args.value
         instance.scope = args.scope
         instance.user = args.user
+
+        if not args.value:
+            instance.value = input("Please insert value for key: ")
+        else:
+            instance.value = args.value
 
         if args.secret:
             instance.secret = args.secret

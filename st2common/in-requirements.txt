@@ -10,7 +10,9 @@ jsonschema
 kombu
 mongoengine
 networkx
-git+https://github.com/StackStorm/orquesta.git@219f00db5192321af9d29b4c51ec748846ab90c6#egg=orquesta
+# used by networkx
+decorator
+git+https://github.com/StackStorm/orquesta.git@v1.5.0#egg=orquesta
 git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backend
 oslo.config
 paramiko
@@ -18,6 +20,8 @@ pyyaml
 pymongo
 # used for optional network level compression for mongodb
 zstandard
+# mention cffi used by cryptography so we can control version
+cffi
 cryptography
 requests
 retrying
