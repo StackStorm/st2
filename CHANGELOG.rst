@@ -15,6 +15,12 @@ Fixed
 Added
 ~~~~~
 
+* Added st2 API get action parameters by ref. #5509
+
+  API endpoint ``/api/v1/actions/views/parameters/{action_id}`` accepts ``ref_or_id``.
+
+  Contributed by @DavidMeu
+
 * Enable setting ttl for MockDatastoreService. #5468
 
   Contributed by @ytjohn
