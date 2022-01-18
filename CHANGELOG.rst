@@ -56,6 +56,10 @@ Added
 
   Contributed by @ktyogurt
 
+* Implemented graceful shutdown for action runner. Enabled ``graceful_shutdown`` in ``st2.conf`` file. #5428
+
+  Contributed by @khushboobhatia01
+
 Fixed
 ~~~~~
 

@@ -28,6 +28,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions
+from st2common.services import coordination
 from st2common.util import date as date_utils
 from st2common.bootstrap import runnersregistrar as runners_registrar
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
@@ -116,6 +117,9 @@ class WorkerTestCase(DbTestCase):
             )
 
     def test_worker_shutdown(self):
+        cfg.CONF.set_override(
+            name="graceful_shutdown", override=False, group="actionrunner"
+        )
         action_worker = actions_worker.get_worker()
         temp_file = None
 
@@ -164,3 +168,200 @@ class WorkerTestCase(DbTestCase):
         # _run_action but will not result in KeyError because the discard method is used to
         # to remove the liveaction from _running_liveactions.
         runner_thread.wait()
+
+    @mock.patch.object(
+        coordination.NoOpDriver,
+        "get_members",
+        mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
+    )
+    def test_worker_graceful_shutdown_with_multiple_runners(self):
+        cfg.CONF.set_override(
+            name="graceful_shutdown", override=True, group="actionrunner"
+        )
+        action_worker = actions_worker.get_worker()
+        temp_file = None
+
+        # Create a temporary file that is deleted when the file is closed and then set up an
+        # action to wait for this file to be deleted. This allows this test to run the action
+        # over a separate thread, run the shutdown sequence on the main thread, and then let
+        # the local runner to exit gracefully and allow _run_action to finish execution.
+        with tempfile.NamedTemporaryFile() as fp:
+            temp_file = fp.name
+            self.assertIsNotNone(temp_file)
+            self.assertTrue(os.path.isfile(temp_file))
+
+            # Launch the action execution in a separate thread.
+            params = {"cmd": "while [ -e '%s' ]; do sleep 0.1; done" % temp_file}
+            liveaction_db = self._get_liveaction_model(
+                WorkerTestCase.local_action_db, params
+            )
+            liveaction_db = LiveAction.add_or_update(liveaction_db)
+            executions.create_execution_object(liveaction_db)
+            runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
+
+            # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
+            for i in range(0, int(10 / 0.1)):
+                eventlet.sleep(0.1)
+                if len(action_worker._running_liveactions) > 0:
+                    break
+
+            self.assertEqual(len(action_worker._running_liveactions), 1)
+
+            # Shutdown the worker to trigger the abandon process.
+            shutdown_thread = eventlet.spawn(action_worker.shutdown)
+
+        # Make sure the temporary file has been deleted.
+        self.assertFalse(os.path.isfile(temp_file))
+
+        # Wait for the worker up to 10s to remove the liveaction from _running_liveactions.
+        for i in range(0, int(10 / 0.1)):
+            eventlet.sleep(0.1)
+            if len(action_worker._running_liveactions) < 1:
+                break
+        liveaction_db = LiveAction.get_by_id(liveaction_db.id)
+
+        # Verify that _running_liveactions is empty and the liveaction is succeeded.
+        self.assertEqual(len(action_worker._running_liveactions), 0)
+        self.assertEqual(
+            liveaction_db.status,
+            action_constants.LIVEACTION_STATUS_SUCCEEDED,
+            str(liveaction_db),
+        )
+
+        # Wait for the local runner to complete. This will activate the finally block in
+        # _run_action but will not result in KeyError because the discard method is used to
+        # to remove the liveaction from _running_liveactions.
+        runner_thread.wait()
+        shutdown_thread.kill()
+
+    def test_worker_graceful_shutdown_with_single_runner(self):
+        cfg.CONF.set_override(
+            name="graceful_shutdown", override=True, group="actionrunner"
+        )
+        action_worker = actions_worker.get_worker()
+        temp_file = None
+
+        # Create a temporary file that is deleted when the file is closed and then set up an
+        # action to wait for this file to be deleted. This allows this test to run the action
+        # over a separate thread, run the shutdown sequence on the main thread, and then let
+        # the local runner to exit gracefully and allow _run_action to finish execution.
+        with tempfile.NamedTemporaryFile() as fp:
+            temp_file = fp.name
+            self.assertIsNotNone(temp_file)
+            self.assertTrue(os.path.isfile(temp_file))
+
+            # Launch the action execution in a separate thread.
+            params = {"cmd": "while [ -e '%s' ]; do sleep 0.1; done" % temp_file}
+            liveaction_db = self._get_liveaction_model(
+                WorkerTestCase.local_action_db, params
+            )
+            liveaction_db = LiveAction.add_or_update(liveaction_db)
+            executions.create_execution_object(liveaction_db)
+            runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
+
+            # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
+            for i in range(0, int(10 / 0.1)):
+                eventlet.sleep(0.1)
+                if len(action_worker._running_liveactions) > 0:
+                    break
+
+            self.assertEqual(len(action_worker._running_liveactions), 1)
+
+            # Shutdown the worker to trigger the abandon process.
+            shutdown_thread = eventlet.spawn(action_worker.shutdown)
+            # Wait for action runner shutdown sequence to complete
+            eventlet.sleep(5)
+
+        # Make sure the temporary file has been deleted.
+        self.assertFalse(os.path.isfile(temp_file))
+
+        # Wait for the worker up to 10s to remove the liveaction from _running_liveactions.
+        for i in range(0, int(10 / 0.1)):
+            eventlet.sleep(0.1)
+            if len(action_worker._running_liveactions) < 1:
+                break
+        liveaction_db = LiveAction.get_by_id(liveaction_db.id)
+
+        # Verify that _running_liveactions is empty and the liveaction is abandoned.
+        self.assertEqual(len(action_worker._running_liveactions), 0)
+        self.assertEqual(
+            liveaction_db.status,
+            action_constants.LIVEACTION_STATUS_ABANDONED,
+            str(liveaction_db),
+        )
+
+        # Wait for the local runner to complete. This will activate the finally block in
+        # _run_action but will not result in KeyError because the discard method is used to
+        # to remove the liveaction from _running_liveactions.
+        runner_thread.wait()
+        shutdown_thread.kill()
+
+    @mock.patch.object(
+        coordination.NoOpDriver,
+        "get_members",
+        mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
+    )
+    def test_worker_graceful_shutdown_exit_timeout(self):
+        cfg.CONF.set_override(
+            name="graceful_shutdown", override=True, group="actionrunner"
+        )
+        cfg.CONF.set_override(
+            name="exit_still_active_check", override=5, group="actionrunner"
+        )
+        action_worker = actions_worker.get_worker()
+        temp_file = None
+
+        # Create a temporary file that is deleted when the file is closed and then set up an
+        # action to wait for this file to be deleted. This allows this test to run the action
+        # over a separate thread, run the shutdown sequence on the main thread, and then let
+        # the local runner to exit gracefully and allow _run_action to finish execution.
+        with tempfile.NamedTemporaryFile() as fp:
+            temp_file = fp.name
+            self.assertIsNotNone(temp_file)
+            self.assertTrue(os.path.isfile(temp_file))
+
+            # Launch the action execution in a separate thread.
+            params = {"cmd": "while [ -e '%s' ]; do sleep 0.1; done" % temp_file}
+            liveaction_db = self._get_liveaction_model(
+                WorkerTestCase.local_action_db, params
+            )
+            liveaction_db = LiveAction.add_or_update(liveaction_db)
+            executions.create_execution_object(liveaction_db)
+            runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
+
+            # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
+            for i in range(0, int(10 / 0.1)):
+                eventlet.sleep(0.1)
+                if len(action_worker._running_liveactions) > 0:
+                    break
+
+            self.assertEqual(len(action_worker._running_liveactions), 1)
+
+            # Shutdown the worker to trigger the abandon process.
+            shutdown_thread = eventlet.spawn(action_worker.shutdown)
+            # Continue the excution for 5+ seconds to ensure timeout occurs.
+            eventlet.sleep(6)
+
+        # Make sure the temporary file has been deleted.
+        self.assertFalse(os.path.isfile(temp_file))
+
+        # Wait for the worker up to 10s to remove the liveaction from _running_liveactions.
+        for i in range(0, int(10 / 0.1)):
+            eventlet.sleep(0.1)
+            if len(action_worker._running_liveactions) < 1:
+                break
+        liveaction_db = LiveAction.get_by_id(liveaction_db.id)
+
+        # Verify that _running_liveactions is empty and the liveaction is abandoned.
+        self.assertEqual(len(action_worker._running_liveactions), 0)
+        self.assertEqual(
+            liveaction_db.status,
+            action_constants.LIVEACTION_STATUS_ABANDONED,
+            str(liveaction_db),
+        )
+
+        # Wait for the local runner to complete. This will activate the finally block in
+        # _run_action but will not result in KeyError because the discard method is used to
+        # to remove the liveaction from _running_liveactions.
+        runner_thread.wait()
+        shutdown_thread.kill()
