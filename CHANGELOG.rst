@@ -60,6 +60,10 @@ Added
 
   Contributed by @khushboobhatia01
 
+* Enhanced 'search' operator to allow complex criteria matching on payload items. #5482
+
+  Contributed by @erceth
+
 Fixed
 ~~~~~
 
