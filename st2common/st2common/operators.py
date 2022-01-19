@@ -58,8 +58,10 @@ def search(value, criteria_pattern, criteria_condition, check_function):
 
     value: the payload list to search
     condition: one of:
-      * any - return true if any items of the list match and false if none of them match
-      * all - return true if all items of the list match and false if any of them do not match
+      * any - return true if any payload items of the list match all criteria items
+      * all - return true if all payload items of the list match all criteria items
+      * all2any - return true if all payload items of the list match any criteria items
+      * any2any - return true if any payload items match any criteria items
     pattern: a dictionary of criteria to apply to each item of the list
 
     This operator has O(n) algorithmic complexity in terms of number of child patterns.
@@ -86,18 +88,20 @@ def search(value, criteria_pattern, criteria_condition, check_function):
         ]
     }
 
-    And an example usage in criteria:
+    Example #1
 
     ---
     criteria:
       trigger.fields:
         type: search
         # Controls whether this criteria has to match any or all items of the list
-        condition: any  # or all
+        condition: any  # or all or all2any or any2any
         pattern:
           # Here our context is each item of the list
           # All of these patterns have to match the item for the item to match
           # These are simply other operators applied to each item in the list
+          # "#" and text after are ignored.
+          # This allows dictionary keys to be unique but refer to the same field
           item.field_name:
             type: "equals"
             pattern: "Status"
@@ -105,110 +109,7 @@ def search(value, criteria_pattern, criteria_condition, check_function):
           item.to_value:
             type: "equals"
             pattern: "Approved"
-    """
-    if criteria_condition == "any":
-        # Any item of the list can match all patterns
-        rtn = any(
-            [
-                # Any payload item can match
-                all(
-                    [
-                        # Match all patterns
-                        check_function(
-                            child_criterion_k,
-                            child_criterion_v,
-                            PayloadLookup(
-                                child_payload, prefix=TRIGGER_ITEM_PAYLOAD_PREFIX
-                            ),
-                        )
-                        for child_criterion_k, child_criterion_v in six.iteritems(
-                            criteria_pattern
-                        )
-                    ]
-                )
-                for child_payload in value
-            ]
-        )
-    elif criteria_condition == "all":
-        # Every item of the list must match all patterns
-        rtn = all(
-            [
-                # All payload items must match
-                all(
-                    [
-                        # Match all patterns
-                        check_function(
-                            child_criterion_k,
-                            child_criterion_v,
-                            PayloadLookup(
-                                child_payload, prefix=TRIGGER_ITEM_PAYLOAD_PREFIX
-                            ),
-                        )
-                        for child_criterion_k, child_criterion_v in six.iteritems(
-                            criteria_pattern
-                        )
-                    ]
-                )
-                for child_payload in value
-            ]
-        )
-    else:
-        raise UnrecognizedConditionError(
-            "The '%s' search condition is not recognized, only 'any' "
-            "and 'all' are allowed" % criteria_condition
-        )
 
-    return rtn
-
-
-def multiple(value, criteria_pattern, criteria_condition, check_function):
-    """
-    Allow comparison of payload items to multiple criteria using different logicial conditions.
-    Performs same function as the "search" operator and contains additional features.
-
-    value: the payload items
-    condition: one of:
-      * all2all - true if all payload items match all criteria items
-      * all2any - true if all payload items match any criteria items
-      * any2any - true if any payload items match any criteria items
-      * any2all - true if any payload items match all criteria items
-      * all - same as all2all (useful to maintain backward compatibility with search operator)
-      * any - same as any2all (useful to maintain backward compatibility with search operator)
-    pattern: a dictionary of criteria to apply to each item of the list
-
-    This operator has O(n) algorithmic complexity in terms of number of child patterns.
-    This operator has O(n) algorithmic complexity in terms of number of payload fields.
-
-    However, it has O(n_patterns * n_payloads) algorithmic complexity, where:
-      n_patterns = number of child patterns
-      n_payloads = number of fields in payload
-    It is therefore very easy to write a slow rule when using this operator.
-
-    This operator should ONLY be used when trying to match a small number of child patterns and/or
-    a small number of payload list elements.
-
-    Data from the trigger:
-
-    {
-        "fields": [
-            {
-                "field_name": "waterLevel",
-                "to_value": 45,
-            }
-        ]
-    }
-
-    And an example usage in criteria:
-
-    ---
-    criteria:
-      trigger.fields:
-        type: multiple
-        # Controls whether this criteria has to match any or all items of the list
-        condition: all2all  # all2any, any2all or any2any
-        pattern:
-          # "#" and text after are ignored. This allows dictionary keys to be unique but refer to the same field
-          # Any text can go after the hash.
           item.field_name#1:
             type: "greaterthan"
             pattern: 40
@@ -219,20 +120,20 @@ def multiple(value, criteria_pattern, criteria_condition, check_function):
     """
     if isinstance(value, dict):
         value = [value]
-    criteria_condition_list = criteria_condition.split('2', 1)
-    if (not((len(criteria_condition_list) == 1 and (criteria_condition_list[0] == 'any' or criteria_condition_list[0] == 'all')) or
-       (len(criteria_condition_list) == 2 and (criteria_condition_list[0] == 'any' or criteria_condition_list[0] == 'all') and
-       (criteria_condition_list[1] == 'any' or criteria_condition_list[1] == 'all')))):
-        raise UnrecognizedConditionError(
-            "The '%s' condition is not recognized for type multiple, 'any', 'all', 'any2any', 'any2all', 'all2any'"
-            " and 'all2all are allowed" % criteria_condition
-        )
-    payloadItemMatch = any
-    if criteria_condition_list[0] == 'all':
-        payloadItemMatch = all
+    payloadItemMatch = all
     patternMatch = all
-    if len(criteria_condition_list) == 2 and criteria_condition_list[1] == 'any':
+    if criteria_condition == "any":
+        payloadItemMatch = any
+    elif criteria_condition == "all2any":
         patternMatch = any
+    elif criteria_condition == "any2any":
+        payloadItemMatch = any
+        patternMatch = any
+    elif criteria_condition != "all":
+        raise UnrecognizedConditionError(
+            "The '%s' condition is not recognized for type search, 'any', 'all', 'any2any'"
+            " and 'all2any' are allowed" % criteria_condition
+        )
 
     rtn = payloadItemMatch(
         [
@@ -245,7 +146,7 @@ def multiple(value, criteria_pattern, criteria_condition, check_function):
                         child_criterion_v,
                         PayloadLookup(
                             child_payload, prefix=TRIGGER_ITEM_PAYLOAD_PREFIX
-                        )
+                        ),
                     )
                     for child_criterion_k, child_criterion_v in six.iteritems(
                         criteria_pattern
@@ -509,7 +410,6 @@ INSIDE_SHORT = "in"
 NINSIDE_LONG = "ninside"
 NINSIDE_SHORT = "nin"
 SEARCH = "search"
-MULTIPLE = "multiple"
 
 # operator lookups
 operators = {
@@ -546,5 +446,4 @@ operators = {
     NINSIDE_LONG: ninside,
     NINSIDE_SHORT: ninside,
     SEARCH: search,
-    MULTIPLE: multiple
 }

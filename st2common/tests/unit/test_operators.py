@@ -564,424 +564,13 @@ class SearchOperatorTest(unittest2.TestCase):
             ],
         )
 
-
-class MultipleOperatorTest(unittest2.TestCase):
-    # First few tests are the same as search to show it can do everything search can do.
-    # The later tests show the extra stuff the multiple operator can do.
-    def test_multiple_with_weird_condition(self):
-        op = operators.get_operator("multiple")
-
-        with self.assertRaises(operators.UnrecognizedConditionError):
-            op([], [], "weird", None)
-
-    def test_multiple_any_true(self):
-        op = operators.get_operator("multiple")
-
-        called_function_args = []
-
-        def record_function_args(criterion_k, criterion_v, payload_lookup):
-            called_function_args.append(
-                {
-                    "criterion_k": criterion_k,
-                    "criterion_v": criterion_v,
-                    "payload_lookup": {
-                        "field_name": payload_lookup.get_value("item.field_name")[0],
-                        "to_value": payload_lookup.get_value("item.to_value")[0],
-                    },
-                }
-            )
-            return len(called_function_args) < 3
-
-        payload = [
-            {
-                "field_name": "Status",
-                "to_value": "Approved",
-            },
-            {
-                "field_name": "Assigned to",
-                "to_value": "Stanley",
-            },
-        ]
-
-        criteria_pattern = {
-            "item.field_name": {
-                "type": "equals",
-                "pattern": "Status",
-            },
-            "item.to_value": {
-                "type": "equals",
-                "pattern": "Approved",
-            },
-        }
-
-        result = op(payload, criteria_pattern, "any", record_function_args)
-
-        self.assertTrue(result)
-        self.assertTrue(
-            list_of_dicts_strict_equal(
-                called_function_args,
-                [
-                    # Outer loop: payload -> {'field_name': "Status", 'to_value': "Approved"}
-                    {
-                        # Inner loop: criterion -> item.field_name: {'type': "equals", 'pattern': "Status"}
-                        "criterion_k": "item.field_name",
-                        "criterion_v": {
-                            "type": "equals",
-                            "pattern": "Status",
-                        },
-                        "payload_lookup": {
-                            "field_name": "Status",
-                            "to_value": "Approved",
-                        },
-                    },
-                    {
-                        # Inner loop: criterion -> item.to_value: {'type': "equals", 'pattern': "Approved"}
-                        "criterion_k": "item.to_value",
-                        "criterion_v": {
-                            "type": "equals",
-                            "pattern": "Approved",
-                        },
-                        "payload_lookup": {
-                            "field_name": "Status",
-                            "to_value": "Approved",
-                        },
-                    },
-                    # Outer loop: payload -> {'field_name': "Assigned to", 'to_value': "Stanley"}
-                    {
-                        # Inner loop: criterion -> item.field_name: {'type': "equals", 'pattern': "Status"}
-                        "criterion_k": "item.field_name",
-                        "criterion_v": {
-                            "type": "equals",
-                            "pattern": "Status",
-                        },
-                        "payload_lookup": {
-                            "field_name": "Assigned to",
-                            "to_value": "Stanley",
-                        },
-                    },
-                    {
-                        # Inner loop: criterion -> item.to_value: {'type': "equals", 'pattern': "Approved"}
-                        "criterion_k": "item.to_value",
-                        "criterion_v": {
-                            "type": "equals",
-                            "pattern": "Approved",
-                        },
-                        "payload_lookup": {
-                            "field_name": "Assigned to",
-                            "to_value": "Stanley",
-                        },
-                    },
-                ],
-            )
-        )
-
-    def test_multiple_any_false(self):
-        op = operators.get_operator("multiple")
-
-        called_function_args = []
-
-        def record_function_args(criterion_k, criterion_v, payload_lookup):
-            called_function_args.append(
-                {
-                    "criterion_k": criterion_k,
-                    "criterion_v": criterion_v,
-                    "payload_lookup": {
-                        "field_name": payload_lookup.get_value("item.field_name")[0],
-                        "to_value": payload_lookup.get_value("item.to_value")[0],
-                    },
-                }
-            )
-            return (len(called_function_args) % 2) == 0
-
-        payload = [
-            {
-                "field_name": "Status",
-                "to_value": "Denied",
-            },
-            {
-                "field_name": "Assigned to",
-                "to_value": "Stanley",
-            },
-        ]
-
-        criteria_pattern = {
-            "item.field_name": {
-                "type": "equals",
-                "pattern": "Status",
-            },
-            "item.to_value": {
-                "type": "equals",
-                "pattern": "Approved",
-            },
-        }
-
-        result = op(payload, criteria_pattern, "any", record_function_args)
-
-        self.assertFalse(result)
-        self.assertEqual(
-            called_function_args,
-            [
-                # Outer loop: payload -> {'field_name': "Status", 'to_value': "Denied"}
-                {
-                    # Inner loop: criterion -> item.field_name: {'type': "equals", 'pattern': "Status"}
-                    "criterion_k": "item.field_name",
-                    "criterion_v": {
-                        "type": "equals",
-                        "pattern": "Status",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Status",
-                        "to_value": "Denied",
-                    },
-                },
-                {
-                    # Inner loop: criterion -> item.to_value: {'type': "equals", 'pattern': "Approved"}
-                    "criterion_k": "item.to_value",
-                    "criterion_v": {
-                        "type": "equals",
-                        "pattern": "Approved",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Status",
-                        "to_value": "Denied",
-                    },
-                },
-                # Outer loop: payload -> {'field_name': "Assigned to", 'to_value': "Stanley"}
-                {
-                    # Inner loop: criterion -> item.to_value: {'type': "equals", 'pattern': "Approved"}
-                    "criterion_k": "item.field_name",
-                    "criterion_v": {
-                        "type": "equals",
-                        "pattern": "Status",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Assigned to",
-                        "to_value": "Stanley",
-                    },
-                },
-                {
-                    # Inner loop: criterion -> item.to_value: {'type': "equals", 'pattern': "Approved"}
-                    "criterion_k": "item.to_value",
-                    "criterion_v": {
-                        "type": "equals",
-                        "pattern": "Approved",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Assigned to",
-                        "to_value": "Stanley",
-                    },
-                },
-            ],
-        )
-
-    def test_multiple_all_false(self):
-        op = operators.get_operator("multiple")
-
-        called_function_args = []
-
-        def record_function_args(criterion_k, criterion_v, payload_lookup):
-            called_function_args.append(
-                {
-                    "criterion_k": criterion_k,
-                    "criterion_v": criterion_v,
-                    "payload_lookup": {
-                        "field_name": payload_lookup.get_value("item.field_name")[0],
-                        "to_value": payload_lookup.get_value("item.to_value")[0],
-                    },
-                }
-            )
-            return (len(called_function_args) % 2) == 0
-
-        payload = [
-            {
-                "field_name": "Status",
-                "to_value": "Approved",
-            },
-            {
-                "field_name": "Assigned to",
-                "to_value": "Stanley",
-            },
-        ]
-
-        criteria_pattern = {
-            "item.field_name": {
-                "type": "equals",
-                "pattern": "Status",
-            },
-            "item.to_value": {
-                "type": "equals",
-                "pattern": "Approved",
-            },
-        }
-
-        result = op(payload, criteria_pattern, "all", record_function_args)
-
-        self.assertFalse(result)
-        self.assertEqual(
-            called_function_args,
-            [
-                # Outer loop: payload -> {'field_name': "Status", 'to_value': "Approved"}
-                {
-                    # Inner loop: item.field_name -> {'type': "equals", 'pattern': "Status"}
-                    "criterion_k": "item.field_name",
-                    "criterion_v": {
-                        "type": "equals",
-                        "pattern": "Status",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Status",
-                        "to_value": "Approved",
-                    },
-                },
-                {
-                    # Inner loop: item.to_value -> {'type': "equals", 'pattern': "Approved"}
-                    "criterion_k": "item.to_value",
-                    "criterion_v": {
-                        "type": "equals",
-                        "pattern": "Approved",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Status",
-                        "to_value": "Approved",
-                    },
-                },
-                # Outer loop: payload -> {'field_name': "Assigned to", 'to_value': "Stanley"}
-                {
-                    # Inner loop: item.field_name -> {'type': "equals", 'pattern': "Status"}
-                    "criterion_k": "item.field_name",
-                    "criterion_v": {
-                        "type": "equals",
-                        "pattern": "Status",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Assigned to",
-                        "to_value": "Stanley",
-                    },
-                },
-                {
-                    # Inner loop: item.to_value -> {'type': "equals", 'pattern': "Approved"}
-                    "criterion_k": "item.to_value",
-                    "criterion_v": {
-                        "type": "equals",
-                        "pattern": "Approved",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Assigned to",
-                        "to_value": "Stanley",
-                    },
-                },
-            ],
-        )
-
-
-    def test_multiple_all_true(self):
-        op = operators.get_operator("multiple")
-
-        called_function_args = []
-
-        def record_function_args(criterion_k, criterion_v, payload_lookup):
-            called_function_args.append(
-                {
-                    "criterion_k": criterion_k,
-                    "criterion_v": criterion_v,
-                    "payload_lookup": {
-                        "field_name": payload_lookup.get_value("item.field_name")[0],
-                        "to_value": payload_lookup.get_value("item.to_value")[0],
-                    },
-                }
-            )
-            return True
-
-        payload = [
-            {
-                "field_name": "Status",
-                "to_value": "Approved",
-            },
-            {
-                "field_name": "Signed off by",
-                "to_value": "Approved",
-            },
-        ]
-
-        criteria_pattern = {
-            "item.field_name": {
-                "type": "startswith",
-                "pattern": "S",
-            },
-            "item.to_value": {
-                "type": "equals",
-                "pattern": "Approved",
-            },
-        }
-
-        result = op(payload, criteria_pattern, "all", record_function_args)
-
-        self.assertTrue(result)
-        self.assertEqual(
-            called_function_args,
-            [
-                # Outer loop: payload -> {'field_name': "Status", 'to_value': "Approved"}
-                {
-                    # Inner loop: item.field_name -> {'type': "startswith", 'pattern': "S"}
-                    "criterion_k": "item.field_name",
-                    "criterion_v": {
-                        "type": "startswith",
-                        "pattern": "S",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Status",
-                        "to_value": "Approved",
-                    },
-                },
-                {
-                    # Inner loop: item.to_value -> {'type': "equals", 'pattern': "Approved"}
-                    "criterion_k": "item.to_value",
-                    "criterion_v": {
-                        "type": "equals",
-                        "pattern": "Approved",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Status",
-                        "to_value": "Approved",
-                    },
-                },
-                # Outer loop: payload -> {'field_name': "Signed off by", 'to_value': "Approved"}
-                {
-                    # Inner loop: item.field_name -> {'type': "startswith", 'pattern': "S"}
-                    "criterion_k": "item.field_name",
-                    "criterion_v": {
-                        "type": "startswith",
-                        "pattern": "S",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Signed off by",
-                        "to_value": "Approved",
-                    },
-                },
-                {
-                    # Inner loop: item.to_value -> {'type': "equals", 'pattern': "Approved"}
-                    "criterion_k": "item.to_value",
-                    "criterion_v": {
-                        "type": "equals",
-                        "pattern": "Approved",
-                    },
-                    "payload_lookup": {
-                        "field_name": "Signed off by",
-                        "to_value": "Approved",
-                    },
-                },
-            ],
-        )
-
-
     def _test_function(self, criterion_k, criterion_v, payload_lookup):
-        op = operators.get_operator(criterion_v['type'])
+        op = operators.get_operator(criterion_v["type"])
         return op(payload_lookup.get_value("item.to_value")[0], criterion_v["pattern"])
 
-
-    def test_multiple_any2any(self):
+    def test_search_any2any(self):
         # true if any payload items match any criteria
-        op = operators.get_operator('multiple')
+        op = operators.get_operator("search")
 
         payload = [
             {
@@ -991,7 +580,7 @@ class MultipleOperatorTest(unittest2.TestCase):
             {
                 "field_name": "waterLevel",
                 "to_value": 45,
-            }
+            },
         ]
 
         criteria_pattern = {
@@ -1008,15 +597,14 @@ class MultipleOperatorTest(unittest2.TestCase):
         result = op(payload, criteria_pattern, "any2any", self._test_function)
         self.assertTrue(result)
 
-        payload[0]['to_value'] = 44
+        payload[0]["to_value"] = 44
 
         result = op(payload, criteria_pattern, "any2any", self._test_function)
         self.assertFalse(result)
 
-
-    def test_multiple_any2all(self):
+    def test_search_any(self):
         # true if any payload items match all criteria
-        op = operators.get_operator("multiple")
+        op = operators.get_operator("search")
         payload = [
             {
                 "field_name": "waterLevel",
@@ -1040,27 +628,26 @@ class MultipleOperatorTest(unittest2.TestCase):
             "item.waterLevel#3": {
                 "type": "equals",
                 "pattern": 46,
-            }
+            },
         }
 
-        result = op(payload, criteria_pattern, "any2all", self._test_function)
+        result = op(payload, criteria_pattern, "any", self._test_function)
         self.assertFalse(result)
 
-        payload[0]['to_value'] = 46
+        payload[0]["to_value"] = 46
 
-        result = op(payload, criteria_pattern, "any2all", self._test_function)
+        result = op(payload, criteria_pattern, "any", self._test_function)
         self.assertTrue(result)
 
-        payload[0]['to_value'] = 45
-        del criteria_pattern['item.waterLevel#3']
+        payload[0]["to_value"] = 45
+        del criteria_pattern["item.waterLevel#3"]
 
-        result = op(payload, criteria_pattern, "any2all", self._test_function)
+        result = op(payload, criteria_pattern, "any", self._test_function)
         self.assertTrue(result)
-    
 
-    def test_multiple_all2any(self):
+    def test_search_all2any(self):
         # true if all payload items match any criteria
-        op = operators.get_operator("multiple")
+        op = operators.get_operator("search")
         payload = [
             {
                 "field_name": "waterLevel",
@@ -1084,21 +671,20 @@ class MultipleOperatorTest(unittest2.TestCase):
             "item.waterLevel#3": {
                 "type": "equals",
                 "pattern": 46,
-            }
+            },
         }
 
         result = op(payload, criteria_pattern, "all2any", self._test_function)
         self.assertTrue(result)
 
-        criteria_pattern['item.waterLevel#2']['type'] = 'greaterthan'
+        criteria_pattern["item.waterLevel#2"]["type"] = "greaterthan"
 
         result = op(payload, criteria_pattern, "all2any", self._test_function)
         self.assertFalse(result)
 
-
-    def test_multiple_all2all(self):
+    def test_search_all(self):
         # true if all payload items match all criteria items
-        op = operators.get_operator("multiple")
+        op = operators.get_operator("search")
         payload = [
             {
                 "field_name": "waterLevel",
@@ -1107,7 +693,7 @@ class MultipleOperatorTest(unittest2.TestCase):
             {
                 "field_name": "waterLevel",
                 "to_value": 46,
-            }
+            },
         ]
 
         criteria_pattern = {
@@ -1118,30 +704,29 @@ class MultipleOperatorTest(unittest2.TestCase):
             "item.waterLevel#2": {
                 "type": "lessthan",
                 "pattern": 50,
-            }
+            },
         }
 
-        result = op(payload, criteria_pattern, "all2all", self._test_function)
+        result = op(payload, criteria_pattern, "all", self._test_function)
         self.assertTrue(result)
 
-        payload[0]['to_value'] = 30
+        payload[0]["to_value"] = 30
 
-        result = op(payload, criteria_pattern, "all2all", self._test_function)
+        result = op(payload, criteria_pattern, "all", self._test_function)
         self.assertFalse(result)
 
-        payload[0]['to_value'] = 45
+        payload[0]["to_value"] = 45
 
-        criteria_pattern['item.waterLevel#3'] = {
+        criteria_pattern["item.waterLevel#3"] = {
             "type": "equals",
             "pattern": 46,
         }
 
-        result = op(payload, criteria_pattern, "all2all", self._test_function)
+        result = op(payload, criteria_pattern, "all", self._test_function)
         self.assertFalse(result)
 
-
-    def test_multiple_payload_dict(self):
-        op = operators.get_operator("multiple")
+    def test_search_payload_dict(self):
+        op = operators.get_operator("search")
         payload = {
             "field_name": "waterLevel",
             "to_value": 45,
@@ -1155,25 +740,25 @@ class MultipleOperatorTest(unittest2.TestCase):
             "item.waterLevel#2": {
                 "type": "lessthan",
                 "pattern": 50,
-            }
+            },
         }
 
-        result = op(payload, criteria_pattern, "all2all", self._test_function)
+        result = op(payload, criteria_pattern, "all", self._test_function)
         self.assertTrue(result)
 
-        payload['to_value'] = 30
+        payload["to_value"] = 30
 
-        result = op(payload, criteria_pattern, "all2all", self._test_function)
+        result = op(payload, criteria_pattern, "all", self._test_function)
         self.assertFalse(result)
 
-        payload['to_value'] = 45
+        payload["to_value"] = 45
 
-        criteria_pattern['item.waterLevel#3'] = {
+        criteria_pattern["item.waterLevel#3"] = {
             "type": "equals",
             "pattern": 46,
         }
 
-        result = op(payload, criteria_pattern, "all2all", self._test_function)
+        result = op(payload, criteria_pattern, "all", self._test_function)
         self.assertFalse(result)
 
 
