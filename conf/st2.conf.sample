@@ -10,6 +10,10 @@ enable = True
 [actionrunner]
 # Internal pool size for dispatcher used by regular actions.
 actions_pool_size = 60
+# How long to wait for process (in seconds) to exit after receiving shutdown signal.
+exit_still_active_check = 300
+# This will enable the graceful shutdown and wait for ongoing requests to complete until exit_timeout.
+graceful_shutdown = True
 # location of the logging.conf file
 logging = /etc/st2/logging.actionrunner.conf
 # List of pip options to be passed to "pip install" command when installing pack dependencies into pack virtual environment.
@@ -18,6 +22,8 @@ pip_opts =  # comma separated list allowed here.
 python_binary = /usr/bin/python
 # Default log level to use for Python runner actions. Can be overriden on invocation basis using "log_level" runner parameter.
 python_runner_log_level = DEBUG
+# Time interval between subsequent queries to check running executions.
+still_active_check_interval = 2
 # True to store and stream action output (stdout and stderr) in real-time.
 stream_output = True
 # Buffer size to use for real time action output streaming. 0 means unbuffered 1 means line buffered, -1 means system default, which usually means fully buffered and any other positive value means use a buffer of (approximately) that size
