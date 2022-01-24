@@ -564,6 +564,203 @@ class SearchOperatorTest(unittest2.TestCase):
             ],
         )
 
+    def _test_function(self, criterion_k, criterion_v, payload_lookup):
+        op = operators.get_operator(criterion_v["type"])
+        return op(payload_lookup.get_value("item.to_value")[0], criterion_v["pattern"])
+
+    def test_search_any2any(self):
+        # true if any payload items match any criteria
+        op = operators.get_operator("search")
+
+        payload = [
+            {
+                "field_name": "waterLevel",
+                "to_value": 30,
+            },
+            {
+                "field_name": "waterLevel",
+                "to_value": 45,
+            },
+        ]
+
+        criteria_pattern = {
+            "item.waterLevel#1": {
+                "type": "lessthan",
+                "pattern": 40,
+            },
+            "item.waterLevel#2": {
+                "type": "greaterthan",
+                "pattern": 50,
+            },
+        }
+
+        result = op(payload, criteria_pattern, "any2any", self._test_function)
+        self.assertTrue(result)
+
+        payload[0]["to_value"] = 44
+
+        result = op(payload, criteria_pattern, "any2any", self._test_function)
+        self.assertFalse(result)
+
+    def test_search_any(self):
+        # true if any payload items match all criteria
+        op = operators.get_operator("search")
+        payload = [
+            {
+                "field_name": "waterLevel",
+                "to_value": 45,
+            },
+            {
+                "field_name": "waterLevel",
+                "to_value": 20,
+            },
+        ]
+
+        criteria_pattern = {
+            "item.waterLevel#1": {
+                "type": "greaterthan",
+                "pattern": 40,
+            },
+            "item.waterLevel#2": {
+                "type": "lessthan",
+                "pattern": 50,
+            },
+            "item.waterLevel#3": {
+                "type": "equals",
+                "pattern": 46,
+            },
+        }
+
+        result = op(payload, criteria_pattern, "any", self._test_function)
+        self.assertFalse(result)
+
+        payload[0]["to_value"] = 46
+
+        result = op(payload, criteria_pattern, "any", self._test_function)
+        self.assertTrue(result)
+
+        payload[0]["to_value"] = 45
+        del criteria_pattern["item.waterLevel#3"]
+
+        result = op(payload, criteria_pattern, "any", self._test_function)
+        self.assertTrue(result)
+
+    def test_search_all2any(self):
+        # true if all payload items match any criteria
+        op = operators.get_operator("search")
+        payload = [
+            {
+                "field_name": "waterLevel",
+                "to_value": 45,
+            },
+            {
+                "field_name": "waterLevel",
+                "to_value": 20,
+            },
+        ]
+
+        criteria_pattern = {
+            "item.waterLevel#1": {
+                "type": "greaterthan",
+                "pattern": 40,
+            },
+            "item.waterLevel#2": {
+                "type": "lessthan",
+                "pattern": 50,
+            },
+            "item.waterLevel#3": {
+                "type": "equals",
+                "pattern": 46,
+            },
+        }
+
+        result = op(payload, criteria_pattern, "all2any", self._test_function)
+        self.assertTrue(result)
+
+        criteria_pattern["item.waterLevel#2"]["type"] = "greaterthan"
+
+        result = op(payload, criteria_pattern, "all2any", self._test_function)
+        self.assertFalse(result)
+
+    def test_search_all(self):
+        # true if all payload items match all criteria items
+        op = operators.get_operator("search")
+        payload = [
+            {
+                "field_name": "waterLevel",
+                "to_value": 45,
+            },
+            {
+                "field_name": "waterLevel",
+                "to_value": 46,
+            },
+        ]
+
+        criteria_pattern = {
+            "item.waterLevel#1": {
+                "type": "greaterthan",
+                "pattern": 40,
+            },
+            "item.waterLevel#2": {
+                "type": "lessthan",
+                "pattern": 50,
+            },
+        }
+
+        result = op(payload, criteria_pattern, "all", self._test_function)
+        self.assertTrue(result)
+
+        payload[0]["to_value"] = 30
+
+        result = op(payload, criteria_pattern, "all", self._test_function)
+        self.assertFalse(result)
+
+        payload[0]["to_value"] = 45
+
+        criteria_pattern["item.waterLevel#3"] = {
+            "type": "equals",
+            "pattern": 46,
+        }
+
+        result = op(payload, criteria_pattern, "all", self._test_function)
+        self.assertFalse(result)
+
+    def test_search_payload_dict(self):
+        op = operators.get_operator("search")
+        payload = {
+            "field_name": "waterLevel",
+            "to_value": 45,
+        }
+
+        criteria_pattern = {
+            "item.waterLevel#1": {
+                "type": "greaterthan",
+                "pattern": 40,
+            },
+            "item.waterLevel#2": {
+                "type": "lessthan",
+                "pattern": 50,
+            },
+        }
+
+        result = op(payload, criteria_pattern, "all", self._test_function)
+        self.assertTrue(result)
+
+        payload["to_value"] = 30
+
+        result = op(payload, criteria_pattern, "all", self._test_function)
+        self.assertFalse(result)
+
+        payload["to_value"] = 45
+
+        criteria_pattern["item.waterLevel#3"] = {
+            "type": "equals",
+            "pattern": 46,
+        }
+
+        result = op(payload, criteria_pattern, "all", self._test_function)
+        self.assertFalse(result)
+
 
 class OperatorTest(unittest2.TestCase):
     def test_matchwildcard(self):
