@@ -64,6 +64,10 @@ Added
 
   Contributed by @erceth
 
+* Added cancel/pause/resume requester information to execution context. #5554
+
+  Contributed by @khushboobhatia01
+
 Fixed
 ~~~~~
 
