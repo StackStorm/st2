@@ -60,7 +60,7 @@ class ParamsUtilsTest(DbTestCase):
         config = {}
         G = param_utils._create_graph(action_context, config)
         name = "a1"
-        value = "http://someurl?value={{a"
+        value = {"test": "http://someurl?value={{a"}
         param_utils._process(G, name, value)
         self.assertEquals(G.nodes.get(name, {}).get("value"), value)
 
