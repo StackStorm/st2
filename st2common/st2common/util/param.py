@@ -147,7 +147,7 @@ def _process(G, name, value):
             if dependencies:
                 for dependency in dependencies:
                     G.add_edge(dependency, name)
-        except exceptions.TemplateSyntaxError as e:
+        except exceptions.TemplateSyntaxError:
             G.add_node(name, value=value)
             # not jinja after all
             # is_jinga_expression only checks for {{ or {{% for speed
