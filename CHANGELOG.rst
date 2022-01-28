@@ -71,6 +71,12 @@ Added
 
   Contributed by @khushboobhatia01
 
+* Added `trigger.headers_lower` to webhook trigger payload. This allows rules to match webhook triggers
+  without dealing with the case-sensitive nature of `trigger.headers`, as `triggers.headers_lower` providers
+  the same headers, but with the header name lower cased. #5038
+
+  Contributed by @Rand01ph
+
 Fixed
 ~~~~~
 
