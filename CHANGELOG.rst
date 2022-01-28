@@ -12,6 +12,10 @@ Fixed
 
   Contributed by @blackstrip
 
+* Fix issue with pack option not working when running policy list cli #5534
+
+  Contributed by @momokuri-3
+
 Added
 ~~~~~
 
