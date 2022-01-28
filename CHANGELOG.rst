@@ -15,6 +15,9 @@ Fixed
 Added
 ~~~~~
 
+* Minor updates for RockyLinux. #5552
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
 * Added st2 API get action parameters by ref. #5509
 
   API endpoint ``/api/v1/actions/views/parameters/{action_id}`` accepts ``ref_or_id``.
