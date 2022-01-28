@@ -4,16 +4,103 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
+  ``timedelta.total_seconds()`` return. #5462
+
+  Contributed by @blackstrip
+
 Added
 ~~~~~
 
-* Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+* Minor updates for RockyLinux. #5552
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Added st2 API get action parameters by ref. #5509
+
+  API endpoint ``/api/v1/actions/views/parameters/{action_id}`` accepts ``ref_or_id``.
+
+  Contributed by @DavidMeu
+
+* Enable setting ttl for MockDatastoreService. #5468
+
+  Contributed by @ytjohn
+
+* Added st2 API and CLI command for actions clone operation.
+
+  API endpoint ``/api/v1/actions/{ref_or_id}/clone`` takes ``ref_or_id`` of source action.
+  Request method body takes destination pack and action name. Request method body also takes
+  optional paramater ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
+  overwritten.
+
+  CLI command ``st2 action clone <ref_or_id> <dest_pack> <dest_action>`` takes source ``ref_or_id``, destination
+  pack name and destination action name as mandatory arguments.
+  In case destionation already exists then command takes optional arugument ``-f`` or ``--force`` to overwrite
+  destination action. #5345
+
+  Contributed by @mahesh-orch.
+
+* Implemented RBAC functionality for existing ``KEY_VALUE_VIEW, KEY_VALUE_SET, KEY_VALUE_DELETE`` and new permission types ``KEY_VALUE_LIST, KEY_VALUE_ALL``.
+  RBAC is enabled in the ``st2.conf`` file. Access to a key value pair is checked in the KeyValuePair API controller. #5354
+
+  Contributed by @m4dcoder and @ashwini-orchestral
+
+* Added service degerestration on shutdown of a service. #5396
+
+  Contributed by @khushboobhatia01
+
+* Added pysocks python package for SOCKS proxy support. #5460
+
+  Contributed by @kingsleyadam
+
+* Added support for multiple LDAP hosts to st2-auth-ldap. #5535, https://github.com/StackStorm/st2-auth-ldap/pull/100
+
+  Contributed by @ktyogurt
+
+* Implemented graceful shutdown for action runner. Enabled ``graceful_shutdown`` in ``st2.conf`` file. #5428
+
+  Contributed by @khushboobhatia01
+
+* Enhanced 'search' operator to allow complex criteria matching on payload items. #5482
+
+  Contributed by @erceth
 
 * Added `trigger.headers_lower` to webhook trigger payload. This allows rules to match webhook triggers
   without dealing with the case-sensitive nature of `trigger.headers`, as `triggers.headers_lower` providers
   the same headers, but with the header name lower cased. #5038
 
-  Contributed by Rand01ph
+  Contributed by @Rand01ph
+
+Fixed
+~~~~~
+
+* Fixed regression caused by #5358. Use string lock name instead of object ID. #5484
+
+  Contributed by @khushboobhatia01
+
+* Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
+
+* Use byte type lock name which is supported by all tooz drivers. #5529
+
+  Contributed by @khushboobhatia01
+
+3.6.0 - October 29, 2021
+------------------------
+
+Added
+~~~~~
+
+* Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+
+* ``st2.conf`` is now the only place to configure ports for ``st2api``, ``st2auth``, and ``st2stream``.
+
+  We replaced the static ``.socket`` sytemd units in deb and rpm packages with a python-based generator for the
+  ``st2api``, ``st2auth``, and ``st2stream`` services. The generators will get ``<ip>:<port>`` from ``st2.conf``
+  to create the ``.socket`` files dynamically. #5286 and st2-packages#706
+
+  Contributed by @nzlosh
 
 Changed
 ~~~~~~~
@@ -80,6 +167,15 @@ Changed
 * Silence pylint about dev/debugging utility (tools/direct_queue_publisher.py) that uses pika because kombu
   doesn't support what it does. If anyone uses that utility, they have to install pika manually. #5380
 
+* Fixed version of cffi as changes in 1.15.0 meant that it attempted to load libffi.so.8. #5390
+
+  Contributed by @amanda11, Ammeon Solutions
+
+* Updated Bash installer to install latest RabbitMQ version rather than out-dated version available
+  in OS distributions.
+
+  Contributed by @amanda11, Ammeon Solutions
+
 Fixed
 ~~~~~
 
@@ -96,6 +192,11 @@ Fixed
   ``output_schema`` will change in a future release to support non-object output. #5309
 
   Contributed by @guzzijones
+
+* ``core.inject_trigger``: resolve ``trigger`` payload shadowing by deprecating ``trigger`` param in favor of ``trigger_name``.
+  ``trigger`` param is still available for backwards compatibility, but will be removed in a future release. #5335 and #5383
+
+  Contributed by @mjtice
 
 3.5.0 - June 23, 2021
 ---------------------
