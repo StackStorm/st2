@@ -4,10 +4,6 @@ set -e
 my_dir="$(dirname "$0")"
 source "$my_dir/buildenv_common.sh"
 
-# Add Docker version to prevent error 
-# Error response from daemon: client version 1.40 is too new. Maximum supported API version is 1.37
-DOCKER_API_VERSION=1.37
-
 distros=($DISTROS)
 DISTRO=${distros[$CIRCLE_NODE_INDEX]}
 
@@ -56,6 +52,6 @@ fi
 re="\\b$DISTRO\\b"
 [[ "$NOTESTS" =~ $re ]] && TESTING=0
 
-write_env ST2_GITURL ST2_GITREV ST2PKG_VERSION ST2PKG_RELEASE ST2_WAITFORSTART DISTRO TESTING DOCKER_API_VERSION
+write_env ST2_GITURL ST2_GITREV ST2PKG_VERSION ST2PKG_RELEASE ST2_WAITFORSTART DISTRO TESTING
 
 cat ~/.buildenv
