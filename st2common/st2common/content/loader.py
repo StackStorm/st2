@@ -339,7 +339,7 @@ class OverrideLoader(object):
 
         if not os.path.exists(override_file):
             # No override file for pack
-            LOG.info(f"No override file {override_file} found")
+            LOG.debug(f"No override file {override_file} found")
             return content
 
         # Read override file
@@ -353,7 +353,7 @@ class OverrideLoader(object):
                 for key in type_override["defaults"].keys():
                     if key in self.ALLOWED_OVERRIDE_NAMES:
                         content[key] = type_override["defaults"][key]
-                        LOG.info(
+                        LOG.debug(
                             f"Overridden {resource_type} {pack_name}.{name} {key} to default value of {content[key]} from {override_file}"
                         )
                     else:
@@ -370,7 +370,7 @@ class OverrideLoader(object):
                     for key in type_override["exceptions"][name].keys():
                         if key in self.ALLOWED_OVERRIDE_NAMES:
                             content[key] = type_override["exceptions"][name][key]
-                            LOG.info(
+                            LOG.debug(
                                 f"Overridden {resource_type} {pack_name}.{name} {key} to exception value of {content[key]} from {override_file}"
                             )
                         else:
