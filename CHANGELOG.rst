@@ -16,6 +16,10 @@ Fixed
 
   Contributed by @momokuri-3
 
+* Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
+
+  contributed by @guzzijones12
+
 Added
 ~~~~~
 
