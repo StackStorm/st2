@@ -205,6 +205,9 @@ class MessageHandler(object):
         LOG.info("Shutting down %s...", self.__class__.__name__)
         self._queue_consumer.shutdown()
 
+    def kill(self):
+        self._consumer_thread.kill(SystemExit())
+
     @abc.abstractmethod
     def process(self, message):
         pass
