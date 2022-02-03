@@ -12,22 +12,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from __future__ import absolute_import
-
-from st2tests.base import EventletTestCase
-from st2tests.base import DbTestCase
-from st2tests.base import ExecutionDbTestCase
-from st2tests.base import DbModelTestCase
-from st2tests.base import WorkflowTestCase
-
-
-__all__ = [
-    "EventletTestCase",
-    "DbTestCase",
-    "ExecutionDbTestCase",
-    "DbModelTestCase",
-    "WorkflowTestCase",
-]
-
-__version__ = "3.7dev"

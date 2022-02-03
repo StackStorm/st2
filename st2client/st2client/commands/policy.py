@@ -109,20 +109,19 @@ class PolicyListCommand(resource.ContentPackResourceListCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        if args.resource_ref or args.policy_type:
-            filters = {}
-
-            if args.resource_ref:
-                filters["resource_ref"] = args.resource_ref
-
-            if args.policy_type:
-                filters["policy_type"] = args.policy_type
-
-            filters.update(**kwargs)
-
-            return self.manager.query(**filters)
-        else:
-            return self.manager.get_all(**kwargs)
+        filters = {}
+        if args.pack:
+            filters["pack"] = args.pack
+        if args.resource_ref:
+            filters["resource_ref"] = args.resource_ref
+        if args.policy_type:
+            filters["policy_type"] = args.policy_type
+        filters.update(**kwargs)
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ",".join(include_attributes)
+            filters["params"] = {"include_attributes": include_attributes}
+        return self.manager.query(**filters)
 
 
 class PolicyGetCommand(resource.ContentPackResourceGetCommand):

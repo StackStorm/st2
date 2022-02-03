@@ -500,6 +500,28 @@ def register_opts(ignore_errors=False):
         dispatcher_pool_opts, group="actionrunner", ignore_errors=ignore_errors
     )
 
+    graceful_shutdown_opts = [
+        cfg.BoolOpt(
+            "graceful_shutdown",
+            default=True,
+            help="This will enable the graceful shutdown and wait for ongoing requests to complete until exit_timeout.",
+        ),
+        cfg.IntOpt(
+            "exit_still_active_check",
+            default=300,
+            help="How long to wait for process (in seconds) to exit after receiving shutdown signal.",
+        ),
+        cfg.IntOpt(
+            "still_active_check_interval",
+            default=2,
+            help="Time interval between subsequent queries to check running executions.",
+        ),
+    ]
+
+    do_register_opts(
+        graceful_shutdown_opts, group="actionrunner", ignore_errors=ignore_errors
+    )
+
     ssh_runner_opts = [
         cfg.StrOpt(
             "remote_dir",
