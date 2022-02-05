@@ -25,7 +25,7 @@ SYSTEMD_RELOADED=""
 # load in environment to allow override of COMPONENTS and ST2_CONF above
 # Ubuntu/Debian
 [ -r /etc/default/st2ctl ] && source /etc/default/st2ctl
-# RHEL/CentOS
+# RHEL/CentOS/Rocky
 [ -r /etc/sysconfig/st2ctl ] && source /etc/sysconfig/st2ctl
 
 
