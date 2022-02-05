@@ -103,8 +103,7 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
         # Bug  in requests doesn't bypass proxies, so we do it ourselves
         # If this issue ever gets fixed then we can remove it
         # https://github.com/psf/requests/issues/4871
-        if proxies_dict:
-            bypass_proxy = should_bypass_proxies(index_url, proxies_dict.get("no"))
+        bypass_proxy = should_bypass_proxies(index_url, proxies_dict.get("no"))
 
         index_status = {
             "url": index_url,
