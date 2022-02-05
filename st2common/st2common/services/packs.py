@@ -20,6 +20,7 @@ import itertools
 
 import os
 import requests
+from requests.utils import should_bypass_proxies
 import six
 from six.moves import range
 from oslo_config import cfg
@@ -97,6 +98,13 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
             proxies_dict["no"] = no_proxy
 
     for index_url in index_urls:
+
+        # TODO:
+        # Bug  in requests doesn't bypass proxies, so we do it ourselves
+        # If this issue ever gets fixed then we can remove it
+        # https://github.com/psf/requests/issues/4871
+        bypass_proxy = should_bypass_proxies(index_url, proxies_dict["no"])
+
         index_status = {
             "url": index_url,
             "packs": 0,
@@ -106,7 +114,11 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
         index_json = None
 
         try:
-            request = requests.get(index_url, proxies=proxies_dict, verify=verify)
+            request = requests.get(
+                index_url,
+                proxies=proxies_dict if not bypass_proxy else None,
+                verify=verify if not bypass_proxy else None
+            )
             request.raise_for_status()
             index_json = request.json()
         except ValueError as e:
