@@ -97,7 +97,7 @@ Fixed
 * Use byte type lock name which is supported by all tooz drivers. #5529
 
   Contributed by @khushboobhatia01
-  
+
 * Fixed issue where pack index searches are ignoring no_proxy #5497
 
   Contributed by @minsis
