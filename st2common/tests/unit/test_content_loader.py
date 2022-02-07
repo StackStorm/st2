@@ -122,10 +122,10 @@ class ContentLoaderTest(unittest2.TestCase):
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
         content = {"name": "action1", "enabled": True}
-        loader.override("overpack1", "actions", content)
+        self.assertTrue(loader.override("overpack1", "actions", content))
         self.assertFalse(content["enabled"])
         content = {"name": "action1", "enabled": False}
-        loader.override("overpack1", "actions", content)
+        self.assertFalse(loader.override("overpack1", "actions", content))
         self.assertFalse(content["enabled"])
 
     def test_get_override_action_from_exception(self):
@@ -133,10 +133,10 @@ class ContentLoaderTest(unittest2.TestCase):
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
         content = {"name": "action2", "enabled": True}
-        loader.override("overpack1", "actions", content)
+        self.assertFalse(loader.override("overpack1", "actions", content))
         self.assertTrue(content["enabled"])
         content = {"name": "action2", "enabled": False}
-        loader.override("overpack1", "actions", content)
+        self.assertTrue(loader.override("overpack1", "actions", content))
         self.assertTrue(content["enabled"])
 
     def test_get_override_action_from_default_no_exceptions(self):
@@ -144,10 +144,10 @@ class ContentLoaderTest(unittest2.TestCase):
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
         content = {"name": "action1", "enabled": True}
-        loader.override("overpack4", "actions", content)
+        self.assertTrue(loader.override("overpack4", "actions", content))
         self.assertFalse(content["enabled"])
         content = {"name": "action2", "enabled": True}
-        loader.override("overpack4", "actions", content)
+        self.assertTrue(loader.override("overpack4", "actions", content))
         self.assertFalse(content["enabled"])
 
     def test_get_override_action_from_global_default_no_exceptions(self):
@@ -155,7 +155,7 @@ class ContentLoaderTest(unittest2.TestCase):
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
         content = {"class_name": "sensor1", "enabled": True}
-        loader.override("overpack1", "sensors", content)
+        self.assertTrue(loader.override("overpack1", "sensors", content))
         self.assertFalse(content["enabled"])
 
     def test_get_override_action_from_global_overridden_by_pack(self):
@@ -163,7 +163,7 @@ class ContentLoaderTest(unittest2.TestCase):
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
         content = {"class_name": "sensor1", "enabled": True}
-        loader.override("overpack2", "sensors", content)
+        self.assertFalse(loader.override("overpack2", "sensors", content))
         self.assertTrue(content["enabled"])
 
     def test_get_override_action_from_global_overridden_by_pack_exception(self):
@@ -171,7 +171,7 @@ class ContentLoaderTest(unittest2.TestCase):
         cfg.CONF.set_override(name="base_path", override=RESOURCES_DIR, group="system")
         loader = OverrideLoader()
         content = {"class_name": "sensor1", "enabled": True}
-        loader.override("overpack3", "sensors", content)
+        self.assertFalse(loader.override("overpack3", "sensors", content))
         self.assertTrue(content["enabled"])
 
     def test_get_override_invalid_type(self):

@@ -288,6 +288,10 @@ class OverrideLoader(object):
         "enabled",
     ]
 
+    DEFAULT_OVERRIDE_VALUES = {
+        "enabled": True
+    }
+
     def override(self, pack_name, resource_type, content):
 
         """
@@ -299,9 +303,12 @@ class OverrideLoader(object):
         :type type: ``str``
         :param content: Content as loaded from meta information
         :type content: ``object``
+        :return: Whether data was overridden
+        :rtype: ``bool``
+ 
 
         """
-
+        orig_content = content.copy()
         if resource_type not in self.ALLOWED_OVERRIDE_TYPES.keys():
             raise ValueError(
                 f"Invalid override type of {resource_type} attempted for pack {pack_name}"
@@ -315,8 +322,18 @@ class OverrideLoader(object):
         # Apply pack overrides
         override_file = os.path.join(override_dir, f"{pack_name}.yaml")
         self._apply_override_file(override_file, pack_name, resource_type, content, False)
-
-        return content
+        if content == orig_content:
+            overridden = False
+        else:
+            # Need to account for defaults that might not have been set
+            for key in self.ALLOWED_OVERRIDE_NAMES:
+                if not key in orig_content.keys() and key in content.keys():
+                    orig_content[key] = self.DEFAULT_OVERRIDE_VALUES[key]
+            if content == orig_content:
+                overridden = False
+            else:
+                overridden = True
+        return overridden
 
     def _apply_override_file(
         self, override_file, pack_name, resource_type, content, global_file
@@ -333,14 +350,12 @@ class OverrideLoader(object):
         :type type: ``str``
         :param content: Content as loaded from meta information
         :type content: ``object``
-        :param global_file: Whether global file
-        :type global_file: ``bool``
         """
 
         if not os.path.exists(override_file):
             # No override file for pack
             LOG.debug(f"No override file {override_file} found")
-            return content
+            return
 
         # Read override file
         file_name, file_ext = os.path.splitext(override_file)
@@ -363,7 +378,7 @@ class OverrideLoader(object):
 
             if global_file:
                 # No exceptions required in global content file
-                return content
+                return
 
             if "exceptions" in type_override.keys():
                 if name in type_override["exceptions"]:
@@ -377,8 +392,6 @@ class OverrideLoader(object):
                             raise ValueError(
                                 f"Override attempted with invalid exceptions key {key} in pack {pack_name}"
                             )
-
-        return content
 
     def _load(self, parser_func, file_path):
         with open(file_path, "r", encoding="utf-8") as fd:

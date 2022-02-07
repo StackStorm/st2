@@ -48,6 +48,7 @@ class SensorsRegistrar(ResourceRegistrar):
         self.register_packs(base_dirs=base_dirs)
 
         registered_count = 0
+        overridden_count = 0
         content = self._pack_loader.get_content(
             base_dirs=base_dirs, content_type="sensors"
         )
@@ -61,8 +62,9 @@ class SensorsRegistrar(ResourceRegistrar):
                     "Registering sensors from pack %s:, dir: %s", pack, sensors_dir
                 )
                 sensors = self._get_sensors_from_pack(sensors_dir)
-                count = self._register_sensors_from_pack(pack=pack, sensors=sensors)
+                count, overridden = self._register_sensors_from_pack(pack=pack, sensors=sensors)
                 registered_count += count
+                overridden_count += overridden
             except Exception as e:
                 if self._fail_on_failure:
                     raise e
@@ -73,7 +75,7 @@ class SensorsRegistrar(ResourceRegistrar):
                     six.text_type(e),
                 )
 
-        return registered_count
+        return registered_count, overridden_count
 
     def register_from_pack(self, pack_dir):
         """
@@ -92,14 +94,15 @@ class SensorsRegistrar(ResourceRegistrar):
         self.register_pack(pack_name=pack, pack_dir=pack_dir)
 
         registered_count = 0
+        overridden_count = 0
         if not sensors_dir:
-            return registered_count
+            return registered_count, overridden_count
 
         LOG.debug("Registering sensors from pack %s:, dir: %s", pack, sensors_dir)
 
         try:
             sensors = self._get_sensors_from_pack(sensors_dir=sensors_dir)
-            registered_count = self._register_sensors_from_pack(
+            registered_count, overridden_count = self._register_sensors_from_pack(
                 pack=pack, sensors=sensors
             )
         except Exception as e:
@@ -112,16 +115,19 @@ class SensorsRegistrar(ResourceRegistrar):
                 six.text_type(e),
             )
 
-        return registered_count
+        return registered_count, overridden_count
 
     def _get_sensors_from_pack(self, sensors_dir):
         return self.get_resources_from_pack(resources_dir=sensors_dir)
 
     def _register_sensors_from_pack(self, pack, sensors):
         registered_count = 0
+        overridden_count = 0
         for sensor in sensors:
             try:
-                self._register_sensor_from_pack(pack=pack, sensor=sensor)
+                _, altered = self._register_sensor_from_pack(pack=pack, sensor=sensor)
+                if altered:
+                    overridden_count = overridden_count + 1
             except Exception as e:
                 if self._fail_on_failure:
                     msg = 'Failed to register sensor "%s" from pack "%s": %s' % (
@@ -138,7 +144,7 @@ class SensorsRegistrar(ResourceRegistrar):
                 LOG.debug('Sensor "%s" successfully registered', sensor)
                 registered_count += 1
 
-        return registered_count
+        return (registered_count, overridden_count)
 
     def _register_sensor_from_pack(self, pack, sensor):
         sensor_metadata_file_path = sensor
@@ -168,7 +174,7 @@ class SensorsRegistrar(ResourceRegistrar):
         content["metadata_file"] = metadata_file
 
         # Pass override information
-        self._override_loader.override(pack, "sensors", content)
+        altered = self._override_loader.override(pack, "sensors", content)
 
         sensors_dir = os.path.dirname(sensor_metadata_file_path)
         sensor_file_path = os.path.join(sensors_dir, entry_point)
@@ -194,7 +200,7 @@ class SensorsRegistrar(ResourceRegistrar):
         except:
             LOG.exception("Failed creating sensor model for %s", sensor)
 
-        return sensor_model
+        return sensor_model, altered
 
 
 def register_sensors(
