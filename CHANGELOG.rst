@@ -20,6 +20,14 @@ Fixed
 
   contributed by @guzzijones12
 
+* Link shutdown routine and sigterm handler to main thread #5555
+
+  Contributed by @khushboobhatia01
+
+* Change compound index for ActionExecutionDB to improve query performance #5568
+
+  Contributed by @khushboobhatia01
+
 Added
 ~~~~~
 
