@@ -37,6 +37,7 @@ routes
 flex
 webob
 jsonpath-rw
+pyOpenSSL
 python-statsd
 udatetime
 orjson

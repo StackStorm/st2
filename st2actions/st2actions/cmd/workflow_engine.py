@@ -40,10 +40,10 @@ LOG = logging.getLogger(__name__)
 WORKFLOW_ENGINE = "workflow_engine"
 
 
-def setup_sigterm_handler():
+def setup_sigterm_handler(engine):
     def sigterm_handler(signum=None, frame=None):
         # This will cause SystemExit to be throw and allow for component cleanup.
-        sys.exit(0)
+        engine.kill()
 
     # Register a SIGTERM signal handler which calls sys.exit which causes SystemExit to
     # be thrown. We catch SystemExit and handle cleanup there.
@@ -62,14 +62,12 @@ def setup():
         capabilities=capabilities,
     )
 
-    setup_sigterm_handler()
-
 
 def run_server():
     LOG.info("(PID=%s) Workflow engine started.", os.getpid())
 
     engine = workflows.get_engine()
-
+    setup_sigterm_handler(engine)
     try:
         engine.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
@@ -79,7 +77,6 @@ def run_server():
     except:
         LOG.exception("(PID=%s) Workflow engine unexpectedly stopped.", os.getpid())
         return 1
-
     return 0
 
 
