@@ -234,8 +234,8 @@ class PackRegisterController(object):
                         result[name] += res[0]
                         if res[1] != 0:
                             result[f"{name}(overridden)"] = res[1]
-                        else:
-                            result[name] += res
+                    else:
+                        result[name] += res
 
         return result
 
