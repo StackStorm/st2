@@ -41,8 +41,8 @@ class SensorsRegistrar(ResourceRegistrar):
         Discover all the packs in the provided directory and register sensors from all of the
         discovered packs.
 
-        :return: Number of sensors registered.
-        :rtype: ``int``
+        :return: Number of sensors registered, overridde
+        :rtype: ``tuple``
         """
         # Register packs first
         self.register_packs(base_dirs=base_dirs)

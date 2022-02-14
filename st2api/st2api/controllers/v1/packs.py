@@ -226,10 +226,16 @@ class PackRegisterController(object):
                             raise e
                 else:
                     packs_base_paths = content_utils.get_packs_base_paths()
-                    registered_count, overridden_count = registrar.register_from_packs(
-                        base_dirs=packs_base_paths
-                    )
-                    result[name] += registered_count
+                    res = registrar.register_from_packs(base_dirs=packs_base_paths)
+                    # Where overridding is supported return is tuple of
+                    # (registered,overridden) else its just registered
+                    # count return
+                    if isinstance(res, tuple):
+                        result[name] += res[0]
+                        if res[1] != 0:
+                            result[f"{name}(overridden)"] = res[1]
+                        else:
+                            result[name] += res
 
         return result
 
