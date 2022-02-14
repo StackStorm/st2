@@ -61,7 +61,9 @@ class AliasesRegistrar(ResourceRegistrar):
                     "Registering aliases from pack %s:, dir: %s", pack, aliases_dir
                 )
                 aliases = self._get_aliases_from_pack(aliases_dir)
-                count, overridden = self._register_aliases_from_pack(pack=pack, aliases=aliases)
+                count, overridden = self._register_aliases_from_pack(
+                    pack=pack, aliases=aliases
+                )
                 registered_count += count
                 overridden_count += overridden
             except Exception as e:

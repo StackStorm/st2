@@ -96,7 +96,9 @@ class RulesRegistrar(ResourceRegistrar):
 
         try:
             rules = self._get_rules_from_pack(rules_dir=rules_dir)
-            registered_count, overridden_count = self._register_rules_from_pack(pack=pack, rules=rules)
+            registered_count, overridden_count = self._register_rules_from_pack(
+                pack=pack, rules=rules
+            )
         except Exception as e:
             if self._fail_on_failure:
                 raise e

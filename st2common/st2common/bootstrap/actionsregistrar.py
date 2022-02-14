@@ -64,7 +64,9 @@ class ActionsRegistrar(ResourceRegistrar):
                     "Registering actions from pack %s:, dir: %s", pack, actions_dir
                 )
                 actions = self._get_actions_from_pack(actions_dir)
-                count, overridden = self._register_actions_from_pack(pack=pack, actions=actions)
+                count, overridden = self._register_actions_from_pack(
+                    pack=pack, actions=actions
+                )
                 registered_count += count
                 overridden_count += overridden
             except Exception as e:
@@ -230,7 +232,7 @@ class ActionsRegistrar(ResourceRegistrar):
                 LOG.debug("Loading action from %s.", action)
                 altered = self._register_action(pack=pack, action=action)
                 if altered:
-                     overridden_count += 1
+                    overridden_count += 1
             except Exception as e:
                 if self._fail_on_failure:
                     msg = 'Failed to register action "%s" from pack "%s": %s' % (

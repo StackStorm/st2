@@ -62,7 +62,9 @@ class SensorsRegistrar(ResourceRegistrar):
                     "Registering sensors from pack %s:, dir: %s", pack, sensors_dir
                 )
                 sensors = self._get_sensors_from_pack(sensors_dir)
-                count, overridden = self._register_sensors_from_pack(pack=pack, sensors=sensors)
+                count, overridden = self._register_sensors_from_pack(
+                    pack=pack, sensors=sensors
+                )
                 registered_count += count
                 overridden_count += overridden
             except Exception as e:

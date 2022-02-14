@@ -288,9 +288,7 @@ class OverrideLoader(object):
         "enabled",
     ]
 
-    DEFAULT_OVERRIDE_VALUES = {
-        "enabled": True
-    }
+    DEFAULT_OVERRIDE_VALUES = {"enabled": True}
 
     def override(self, pack_name, resource_type, content):
 
@@ -305,7 +303,7 @@ class OverrideLoader(object):
         :type content: ``object``
         :return: Whether data was overridden
         :rtype: ``bool``
- 
+
 
         """
         orig_content = content.copy()
@@ -321,7 +319,9 @@ class OverrideLoader(object):
 
         # Apply pack overrides
         override_file = os.path.join(override_dir, f"{pack_name}.yaml")
-        self._apply_override_file(override_file, pack_name, resource_type, content, False)
+        self._apply_override_file(
+            override_file, pack_name, resource_type, content, False
+        )
         if content == orig_content:
             overridden = False
         else:

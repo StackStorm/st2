@@ -201,9 +201,7 @@ class PackRegisterController(object):
                         pack_path = content_utils.get_pack_base_path(pack)
 
                         try:
-                            res = registrar.register_from_pack(
-                                pack_dir=pack_path
-                            )
+                            res = registrar.register_from_pack(pack_dir=pack_path)
                             # Where overridding is supported return is tuple of
                             # (registered,overridden) else its just registered
                             # count return
@@ -213,7 +211,7 @@ class PackRegisterController(object):
                                     result[f"{name}(overridden)"] = res[1]
                             else:
                                 result[name] += res
- 
+
                         except ValueError as e:
                             # Throw more user-friendly exception if requsted pack doesn't exist
                             if re.match(
