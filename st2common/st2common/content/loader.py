@@ -327,7 +327,7 @@ class OverrideLoader(object):
         else:
             # Need to account for defaults that might not have been set
             for key in self.ALLOWED_OVERRIDE_NAMES:
-                if not key in orig_content.keys() and key in content.keys():
+                if key not in orig_content.keys() and key in content.keys():
                     orig_content[key] = self.DEFAULT_OVERRIDE_VALUES[key]
             if content == orig_content:
                 overridden = False
