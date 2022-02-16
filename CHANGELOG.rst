@@ -7,6 +7,10 @@ in development
 Fixed
 ~~~~~
 
+* Fix issue of WinRM parameter passing fails for larger scripts.#5538
+
+  Contributed by @ashwini-orchestral
+
 * Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
   ``timedelta.total_seconds()`` return. #5462
 
