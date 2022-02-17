@@ -1,4 +1,4 @@
 ---
 sensors:
-    defaults:
-        enabled: false
+  defaults:
+    enabled: false

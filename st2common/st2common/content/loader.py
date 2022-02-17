@@ -303,8 +303,6 @@ class OverrideLoader(object):
         :type content: ``object``
         :return: Whether data was overridden
         :rtype: ``bool``
-
-
         """
         orig_content = content.copy()
         if resource_type not in self.ALLOWED_OVERRIDE_TYPES.keys():
@@ -361,11 +359,11 @@ class OverrideLoader(object):
         file_name, file_ext = os.path.splitext(override_file)
         overrides = self._load(PARSER_FUNCS[file_ext], override_file)
         # Apply overrides
-        if resource_type in overrides.keys():
+        if resource_type in overrides:
             type_override = overrides[resource_type]
             name = content[self.ALLOWED_OVERRIDE_TYPES[resource_type]]
-            if "defaults" in type_override.keys():
-                for key in type_override["defaults"].keys():
+            if "defaults" in type_override:
+                for key in type_override["defaults"]:
                     if key in self.ALLOWED_OVERRIDE_NAMES:
                         content[key] = type_override["defaults"][key]
                         LOG.debug(
@@ -380,9 +378,9 @@ class OverrideLoader(object):
                 # No exceptions required in global content file
                 return
 
-            if "exceptions" in type_override.keys():
+            if "exceptions" in type_override:
                 if name in type_override["exceptions"]:
-                    for key in type_override["exceptions"][name].keys():
+                    for key in type_override["exceptions"][name]:
                         if key in self.ALLOWED_OVERRIDE_NAMES:
                             content[key] = type_override["exceptions"][name][key]
                             LOG.debug(
