@@ -461,15 +461,15 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'  
-  /api/v1/actions/views/parameters/{action_id}:
+  /api/v1/actions/views/parameters/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.action_views:parameters_view_controller.get_one
       description: |
         Get parameters for an action.
       parameters:
-        - name: action_id
+        - name: ref_or_id
           in: path
-          description: Entity id
+          description: Entity reference or id
           type: string
           required: true
       x-parameters:
