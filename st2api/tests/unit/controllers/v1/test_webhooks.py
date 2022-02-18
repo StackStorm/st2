@@ -278,6 +278,22 @@ class TestWebhooksController(FunctionalTest):
         self.assertEqual(dispatch_mock.call_args[1]["payload"]["body"], data)
         self.assertEqual(dispatch_mock.call_args[1]["trace_context"].trace_tag, "tag1")
 
+    @mock.patch("st2common.transport.reactor.TriggerDispatcher.dispatch")
+    def test_form_encoded_invalid_body(self, dispatch_mock):
+        data = {"form"}
+
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "St2-Trace-Tag": "tag1",
+        }
+
+        post_resp = self.app.post("/v1/webhooks/git", data, headers=headers)
+        self.assertEqual(
+            dispatch_mock.call_args[1]["payload"]["headers"]["Content-Type"],
+            "application/x-www-form-urlencoded; charset=UTF-8",
+        )
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
     def test_unsupported_content_type(self):
         # Invalid / unsupported content type - should throw
         data = WEBHOOK_1
