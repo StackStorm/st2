@@ -11,6 +11,7 @@ ug+rw root:_packsgroup /usr/share/doc/st2/examples
 ug+rw root:_packsgroup /opt/stackstorm/virtualenvs
 755 _st2user:root      /opt/stackstorm/configs
 755 _st2user:root      /opt/stackstorm/exports
+755 _st2user:root      /opt/stackstorm/overrides
 EHD
 )
 
