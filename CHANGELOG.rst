@@ -7,7 +7,7 @@ in development
 Fixed
 ~~~~~
 
-* Fix deserialization bug for url encoded payloads. #5536
+* Fix deserialization bug in st2 API for url encoded payloads. #5536
 
   Contributed by @sravs-dev
 
