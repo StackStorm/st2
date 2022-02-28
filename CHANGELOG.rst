@@ -7,6 +7,10 @@ in development
 Fixed
 ~~~~~
 
+* Fix issue of WinRM parameter passing fails for larger scripts.#5538
+
+  Contributed by @ashwini-orchestral
+
 * Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
   ``timedelta.total_seconds()`` return. #5462
 
@@ -27,6 +31,10 @@ Fixed
 * Change compound index for ActionExecutionDB to improve query performance #5568
 
   Contributed by @khushboobhatia01
+
+* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
+
+  Contributed by Amanda McGuinness (@amanda11 intive) #5581
 
 Added
 ~~~~~
