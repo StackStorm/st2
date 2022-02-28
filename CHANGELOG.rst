@@ -12,6 +12,11 @@ Fixed
 
   Contributed by @blackstrip
 
+* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
+
+  Contributed by Amanda McGuinness (@amanda11 intive) #5581
+
+
 Added
 ~~~~~
 
