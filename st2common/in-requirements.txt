@@ -8,6 +8,8 @@ greenlet
 jinja2
 jsonschema
 kombu
+#Used by jinja2
+MarkUpSafe
 mongoengine
 networkx
 # used by networkx
