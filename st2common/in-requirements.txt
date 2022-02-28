@@ -9,7 +9,7 @@ jinja2
 jsonschema
 kombu
 #Used by jinja2
-MarkUpSafe
+MarkupSafe
 mongoengine
 networkx
 # used by networkx

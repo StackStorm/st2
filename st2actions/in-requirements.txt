@@ -5,7 +5,7 @@ eventlet
 jinja2
 kombu
 #Used by jinja2
-MarkUpSafe
+MarkupSafe
 oslo.config
 oslo.utils
 pyparsing

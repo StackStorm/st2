@@ -22,9 +22,9 @@ jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==5.0.2
 lockfile==0.12.2
-# Fix MarkUpSafe to < 2.1.0 as 2.1.0 removes soft_unicode
-# Use >=0.23 as that is required by jinja
-MarkUpSafe<2.1.0,>=0.23
+# Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
+# >=0.23 was from jinja2
+MarkupSafe<2.1.0,>=0.23
 mongoengine==0.23.0
 # networkx v2.6 does not support Python3.6.  Update networkx to match orquesta
 networkx>=2.5.1,<2.6
