@@ -127,9 +127,7 @@ jobs:
       - setup_remote_docker:
           reusable: true    # default - false
           exclusive: true   # default - true
-          # Temporary workaround for Circle CI issue
-          # https://discuss.circleci.com/t/setup-remote-docker-connection-failures/26434
-          version: 18.05.0-ce
+          version: 19.03.14
       - run:
           name: Docker version
           command: |
@@ -176,7 +174,7 @@ jobs:
             docker cp . st2-packages-vol:${ST2_GITDIR}
       - run:
           name: Pull dependent Docker Images
-          command: .circle/docker-compose2.sh pull ${DISTRO}
+          command: .circle/docker-compose2.sh pull ${DISTRO} || .circle/docker-compose2.sh pull ${DISTRO}
           working_directory: ~/st2-packages
       - run:
           name: Build the ${DISTRO} Packages
@@ -186,14 +184,6 @@ jobs:
             mkdir -p ~/st2/packages/${DISTRO}/log/
             docker cp st2-packages-vol:/root/build/. ~/st2/packages/${DISTRO}
           working_directory: ~/st2-packages
-#      # TODO: It works! (~0.5-1min speed-up) Enable CircleCI2.0 cache for pip and wheelhouse later
-#      - run:
-#          name: Build the ${DISTRO} Packages 2nd time (compare with pip/wheelhouse cached)
-#          command: |
-#            .circle/docker-compose2.sh build ${DISTRO}
-#            # Once build container finishes we can copy packages directly from it
-#            docker cp st2-packages-vol:/root/build /tmp/st2-packages
-#          working_directory: ~/st2-packages
       - run:
           name: Test the Packages
           command: .circle/docker-compose2.sh test ${DISTRO}
