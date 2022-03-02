@@ -384,6 +384,33 @@ class TestWebhooksController(FunctionalTest):
         )
         self.assertNotIn("Cookie", dispatch_mock.call_args[1]["payload"]["headers"])
 
+    @mock.patch.object(
+        TriggerInstancePublisher, "publish_trigger", mock.MagicMock(return_value=True)
+    )
+    @mock.patch.object(
+        WebhooksController, "_is_valid_hook", mock.MagicMock(return_value=True)
+    )
+    @mock.patch.object(
+        HooksHolder,
+        "get_triggers_for_hook",
+        mock.MagicMock(return_value=[DUMMY_TRIGGER_DICT]),
+    )
+    @mock.patch("st2common.transport.reactor.TriggerDispatcher.dispatch")
+    def test_st2_webhook_lower_header(self, dispatch_mock):
+        data = WEBHOOK_1
+        post_resp = self.__do_post(
+            "git", data, headers={"X-Github-Token": "customvalue"}
+        )
+        self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+        self.assertEqual(
+            dispatch_mock.call_args[1]["payload"]["headers"]["X-Github-Token"],
+            "customvalue",
+        )
+        self.assertEqual(
+            dispatch_mock.call_args[1]["payload"]["headers_lower"]["x-github-token"],
+            "customvalue",
+        )
+
     def __do_post(self, hook, webhook, expect_errors=False, headers=None):
         return self.app.post_json(
             "/v1/webhooks/" + hook,
