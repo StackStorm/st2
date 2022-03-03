@@ -7,6 +7,11 @@ in development
 Fixed
 ~~~~~
 
+
+* Fix deserialization bug in st2 API for url encoded payloads. #5536
+
+  Contributed by @sravs-dev
+
 * Fix issue of WinRM parameter passing fails for larger scripts.#5538
 
   Contributed by @ashwini-orchestral
