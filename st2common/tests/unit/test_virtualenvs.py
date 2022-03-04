@@ -378,3 +378,17 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         self.assertTrue(os.path.isdir(os.path.join(virtualenv_dir, "bin/")))
 
         return True
+
+    def test_setup_virtualenv_reserved_packname(self):
+        # Test a virtualenv update with pack which has global name
+        pack_name = "global"
+        pack_virtualenv_dir = os.path.join(self.virtualenvs_path, pack_name)
+
+        self.assertRaises(
+            ValueError,
+            setup_pack_virtualenv,
+            pack_name=pack_name,
+            update=False,
+            include_setuptools=False,
+            include_wheel=False,
+        )
