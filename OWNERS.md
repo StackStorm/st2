@@ -21,8 +21,6 @@ Have deep platform knowledge & experience and demonstrate technical leadership a
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, Release Engineering, Infrastructure, Documentation.
 * Eugen Cusmaunsa ([@armab](https://github.com/armab)) <<armab@stackstorm.com>>
   - Systems, Deployments, Docker, K8s, HA, Ansible, Chef, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering, Community.
-* Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
-  - Community, Core, Systems, Infrastructure, StackStorm Exchange, Puppet deployment. [Case Study](https://stackstorm.com/case-study-encore/).
 * Tomaz Muraus ([@kami](https://github.com/kami)) <<tomaz@stackstorm.com>>
   - Core, Performance, API, Scalability, CI/CD, Systems, Deployments, Packaging, OpenSource.
 * Winson Chan ([@m4dcoder](https://github.com/m4dcoder)) <<wcchan@stackstorm.com>>
@@ -86,5 +84,7 @@ Thank you, Friends!
 * Lakshmi Kannan ([@lakshmi-kannan](https://github.com/lakshmi-kannan)) - early Stormer. Initial Core platform architecture, scalability, reliability, Team Leadership during the project hard times.
 * Lindsay Hill ([@LindsayHill](https://github.com/LindsayHill)) - ex StackStorm product manager that made a significant impact building an ecosystem we see today.
 * Manas Kelshikar ([@manasdk](https://github.com/manasdk)) - ex Stormer. Developed (well) early core platform features.
+* Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
+  - Community, Core, Systems, Infrastructure, StackStorm Exchange, Puppet deployment. [Case Study](https://stackstorm.com/case-study-encore/).
 * Vineesh Jain ([@VineeshJain](https://github.com/VineeshJain)) - ex Stormer. Community, Tests, Core, QA.
 * Warren Van Winckel ([@warrenvw](https://github.com/warrenvw)) - ex Stormer. Docker, Kubernetes, Vagrant, Infrastructure.
