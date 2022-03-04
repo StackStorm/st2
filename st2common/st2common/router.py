@@ -494,7 +494,7 @@ class Router(object):
                         "application/x-www-form-urlencoded",
                         "multipart/form-data",
                     ]:
-                        data = urlparse.parse_qs(req.body)
+                        data = urlparse.parse_qs(six.ensure_str(req.body))
                     else:
                         raise ValueError(
                             'Unsupported Content-Type: "%s"' % (content_type)
