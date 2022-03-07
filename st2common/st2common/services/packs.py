@@ -117,7 +117,7 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
             request = requests.get(
                 index_url,
                 proxies=proxies_dict if not bypass_proxy else None,
-                verify=verify if not bypass_proxy else None,
+                verify=verify if not bypass_proxy else True,
             )
             request.raise_for_status()
             index_json = request.json()
