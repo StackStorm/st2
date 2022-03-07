@@ -7,6 +7,15 @@ in development
 Fixed
 ~~~~~
 
+
+* Fix deserialization bug in st2 API for url encoded payloads. #5536
+
+  Contributed by @sravs-dev
+
+* Fix issue of WinRM parameter passing fails for larger scripts.#5538
+
+  Contributed by @ashwini-orchestral
+
 * Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
   ``timedelta.total_seconds()`` return. #5462
 
@@ -19,6 +28,18 @@ Fixed
 * Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
 
   contributed by @guzzijones12
+
+* Link shutdown routine and sigterm handler to main thread #5555
+
+  Contributed by @khushboobhatia01
+
+* Change compound index for ActionExecutionDB to improve query performance #5568
+
+  Contributed by @khushboobhatia01
+
+* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
+
+  Contributed by Amanda McGuinness (@amanda11 intive) #5581
 
 Added
 ~~~~~
