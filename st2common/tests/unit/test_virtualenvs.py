@@ -381,7 +381,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
 
     def test_setup_virtualenv_reserved_packname(self):
         # Test a virtualenv update with pack which has global name
-        pack_name = "global"
+        pack_name = "_global"
 
         self.assertRaises(
             ValueError,

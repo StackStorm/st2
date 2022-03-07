@@ -79,9 +79,9 @@ class PackUtilsTestCase(unittest2.TestCase):
         self.assertEqual("pack1", pack_ref)
 
     def test_get_pack_ref_from_meta_ref_global(self):
-        pack_metadata = {"name": "Pack1", "ref": "global"}
+        pack_metadata = {"name": "Pack1", "ref": "_global"}
         self.assertRaises(ValueError, get_pack_ref_from_metadata, pack_metadata)
 
     def test_get_pack_ref_from_meta_name_global(self):
-        pack_metadata = {"name": "global"}
+        pack_metadata = {"name": "_global"}
         self.assertRaises(ValueError, get_pack_ref_from_metadata, pack_metadata)

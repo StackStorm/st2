@@ -312,7 +312,7 @@ class OverrideLoader(object):
 
         override_dir = os.path.join(cfg.CONF.system.base_path, "overrides")
         # Apply global overrides
-        global_file = os.path.join(override_dir, "global.yaml")
+        global_file = os.path.join(override_dir, "_global.yaml")
         self._apply_override_file(global_file, pack_name, resource_type, content, True)
 
         # Apply pack overrides

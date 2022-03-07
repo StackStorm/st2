@@ -39,7 +39,7 @@ PACK_CONFIG_CONTEXT_KV_PREFIX = "config_context"
 PACK_REF_WHITELIST_REGEX = r"^[a-z0-9_]+$"
 
 # A list of reserved pack names that cannot be used
-RESERVED_PACK_LIST = ["global"]
+RESERVED_PACK_LIST = ["_global"]
 
 # Check for a valid semver string
 PACK_VERSION_REGEX = r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$"  # noqa
