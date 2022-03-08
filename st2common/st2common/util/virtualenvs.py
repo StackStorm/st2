@@ -29,6 +29,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
+from st2common.constants.pack import RESERVED_PACK_LIST
 from st2common.util.shell import run_command
 from st2common.util.shell import quote_unix
 from st2common.util.compat import to_ascii
@@ -73,6 +74,11 @@ def setup_pack_virtualenv(
 
     if not re.match(PACK_REF_WHITELIST_REGEX, pack_name):
         raise ValueError('Invalid pack name "%s"' % (pack_name))
+
+    if pack_name in RESERVED_PACK_LIST:
+        raise ValueError(
+            f"Pack name {pack_name} is a reserved name, and cannot be used"
+        )
 
     base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path, "virtualenvs/")
     virtualenv_path = os.path.join(base_virtualenvs_path, quote_unix(pack_name))
