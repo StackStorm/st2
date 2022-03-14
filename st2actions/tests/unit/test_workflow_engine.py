@@ -271,3 +271,60 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         # Assert workflow execution is cleaned up and canceled.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
+
+    def test_workflow_engine_shutdown(self):
+        cfg.CONF.set_override(
+            name="service_registry", override=True, group="coordination"
+        )
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+
+        # Assert action execution is running.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        workflow_engine = workflows.get_engine()
+
+        # Manually add running workflow
+        workflow_engine._handling_workflows = [str(ac_ex_db.id)]
+        eventlet.spawn(workflow_engine.shutdown)
+
+        # Sleep for few seconds to ensure execution transitions to pausing.
+        eventlet.sleep(5)
+
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSING)
+
+        # Process task1.
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
+        t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
+
+        workflows.get_engine().process(t1_ac_ex_db)
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
+        self.assertEqual(
+            t1_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
+
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
+
+        workflow_engine = workflows.get_engine()
+        eventlet.sleep(workflow_engine._delay)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertTrue(
+            lv_ac_db.status
+            in [
+                action_constants.LIVEACTION_STATUS_RESUMING,
+                action_constants.LIVEACTION_STATUS_RUNNING,
+                action_constants.LIVEACTION_STATUS_SUCCEEDED,
+            ]
+        )
