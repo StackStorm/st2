@@ -101,10 +101,15 @@ if [ ${EXIT_CODE} -ne 0 ]; then
 fi
 
 echo "Copying asserts, fixtures, tests and examples packs."
-chown -R root:st2packs st2tests/packs/
-chmod -R 775 st2tests/packs/*
+if [ -n "${GITHUB_ACTIONS}" ]; then
+  cp -Rf --preserve /home/runner/work/st2/st2/contrib/examples /opt/stackstorm/packs/
+else
+  chmod -R 775 st2tests/packs/*
+  cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
+  chown -R root:st2packs st2tests/packs/
+fi
+
 cp -R --preserve st2tests/packs/* /opt/stackstorm/packs/
-cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
 
 echo "Installing asserts, fixtures, tests and examples packs."
 st2 run packs.setup_virtualenv packs=examples,tests,asserts,fixtures,webui
@@ -179,6 +184,9 @@ if [ $ERRORS -ne 0 ]; then
     echo "SELF CHECK FAILED!"
     echo "st2-self-check failed.  See above.  Also check the execution list for details."
     echo "st2 execution list"
+    if [ -n "${GITHUB_ACTIONS}" ]; then
+      exit 1
+    fi
 else
     echo "SELF CHECK SUCCEEDED!"
     echo -e "st2-self-check succeeded."
