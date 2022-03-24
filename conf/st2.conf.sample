@@ -319,7 +319,8 @@ validate_output_schema = False
 validate_trigger_parameters = True
 # True to validate payload for non-system trigger types when dispatching a trigger inside the sensor. By default, only payload for system triggers is validated.
 validate_trigger_payload = True
-
+# Audits a log message which notifies users that a key will be decrypted
+security_audit = False
 
 [system_user]
 # SSH private key for the system user.
