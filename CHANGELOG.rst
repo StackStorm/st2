@@ -43,6 +43,7 @@ Fixed
 
 Added
 ~~~~~
+* Added security_audit flag that users can specify in st2.conf, provides logs anytime a decryption of st2 keys occurs in stackstorm.
 
 * Minor updates for RockyLinux. #5552
   Contributed by Amanda McGuinness (@amanda11 intive)
@@ -128,7 +129,6 @@ Fixed
 
 Added
 ~~~~~
-
 * Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
 
 * ``st2.conf`` is now the only place to configure ports for ``st2api``, ``st2auth``, and ``st2stream``.
