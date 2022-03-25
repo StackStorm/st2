@@ -121,11 +121,6 @@ def register_opts(ignore_errors=False):
             "validate_output_schema",
             default=False,
             help="True to validate action and runner output against schema.",
-        ),
-        cfg.BoolOpt(
-            "security_audit",
-            default=False,
-            help="Audits a log message which notifies users that a key will be decrypted"
         )
     ]
 

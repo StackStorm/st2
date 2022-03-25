@@ -169,8 +169,8 @@ class ContentPackConfigLoader(object):
                 is_jinja_expression = jinja_utils.is_jinja_expression(
                     value=config_item_value
                 )
-                if "decrypt_kv" in str(config_item_value) and cfg.CONF.system.security_audit:
-                    LOG.info("User %s is decrypting the value %s from the config within pack %s", self.user, config_item_value, self.pack_name)
+                if "decrypt_kv" in str(config_item_value):
+                    LOG.audit("User %s is decrypting the value %s from the config within pack %s", self.user, config_item_value, self.pack_name)
 
                 if is_jinja_expression:
                     # Resolve / render the Jinja template expression

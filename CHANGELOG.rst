@@ -43,8 +43,6 @@ Fixed
 
 Added
 ~~~~~
-* Added security_audit flag that users can specify in st2.conf, provides logs anytime a decryption of st2 keys occurs in stackstorm.
-
 * Minor updates for RockyLinux. #5552
   Contributed by Amanda McGuinness (@amanda11 intive)
 
