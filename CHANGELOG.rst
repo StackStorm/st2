@@ -110,6 +110,35 @@ Added
 
   Contributed by Amanda McGuinness (@amanda11 Intive)
 
+* Add new ``api.auth_cookie_secure`` and ``api.auth_cookie_same_site`` config options which
+  specify values which are set for ``secure`` and ``SameSite`` attribute for the auth cookie
+  we set when authenticating via token / api key in query parameter value (e.g. via st2web).
+
+  For security reasons, ``api.auth_cookie_secure`` defaults to ``True``. This should only be
+  changed to ``False`` if you have a valid reason to not run StackStorm behind HTTPs proxy.
+
+  Default value for ``api.auth_cookie_same_site`` is ``lax``. If you want to disable this
+  functionality so it behaves the same as in the previous releases, you can set that option
+  to ``None``.
+
+  #5248
+
+  Contributed by @Kami.
+
+* Add new ``st2 action-alias test <message string>`` CLI command which allows users to easily
+  test action alias matching and result formatting.
+
+  This command will first try to find a matching alias (same as ``st2 action-alias match``
+  command) and if a match is found, trigger an execution (same as ``st2 action-alias execute``
+  command) and format the execution result.
+
+  This means it uses exactly the same flow as commands on chat, but the interaction avoids
+  chat and hubot which should make testing and developing aliases easier and faster. #5143
+
+  #5143
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 
@@ -309,21 +338,6 @@ Added
   How this will affect the deployment and throughput is very much user specific (workflow and
   resources available). It may make sense to enable it when generic action trigger is enabled
   and when working with executions with large textual results. #5241
-
-  Contributed by @Kami.
-
-* Add new ``api.auth_cookie_secure`` and ``api.auth_cookie_same_site`` config options which
-  specify values which are set for ``secure`` and ``SameSite`` attribute for the auth cookie
-  we set when authenticating via token / api key in query parameter value (e.g. via st2web).
-
-  For security reasons, ``api.auth_cookie_secure`` defaults to ``True``. This should only be
-  changed to ``False`` if you have a valid reason to not run StackStorm behind HTTPs proxy.
-
-  Default value for ``api.auth_cookie_same_site`` is ``lax``. If you want to disable this
-  functionality so it behaves the same as in the previous releases, you can set that option
-  to ``None``.
-
-  #5248
 
   Contributed by @Kami.
 
