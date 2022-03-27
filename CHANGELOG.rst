@@ -152,6 +152,10 @@ Added
 
   Contributed by @Kami.
 
+* Add new audit message when a user has decrypted a key whether manually in the container (st2 key get [] --decrypt)
+  or through a stack-storm workflow with a defined config.
+  Contributed by @dmork123
+
 Fixed
 ~~~~~
 
