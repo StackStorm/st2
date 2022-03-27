@@ -312,6 +312,21 @@ Added
 
   Contributed by @Kami.
 
+* Add new ``api.auth_cookie_secure`` and ``api.auth_cookie_same_site`` config options which
+  specify values which are set for ``secure`` and ``SameSite`` attribute for the auth cookie
+  we set when authenticating via token / api key in query parameter value (e.g. via st2web).
+
+  For security reasons, ``api.auth_cookie_secure`` defaults to ``True``. This should only be
+  changed to ``False`` if you have a valid reason to not run StackStorm behind HTTPs proxy.
+
+  Default value for ``api.auth_cookie_same_site`` is ``lax``. If you want to disable this
+  functionality so it behaves the same as in the previous releases, you can set that option
+  to ``None``.
+
+  #5248
+
+  Contributed by @Kami.
+
 * Mask secrets in output of an action execution in the API if the action has an output schema
   defined and one or more output parameters are marked as secret. #5250
 
