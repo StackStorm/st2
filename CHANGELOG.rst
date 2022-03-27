@@ -139,6 +139,19 @@ Added
 
   Contributed by @Kami.
 
+* Add new ``credentials.basic_auth = username:password`` CLI configuration option.
+
+  This argument allows client to use additional set of basic auth credentials when talking to the
+  StackStorm API endpoints (api, auth, stream) - that is, in addition to the token / api key
+  native StackStorm auth.
+
+  This allows for simple basic auth based multi factor authentication implementation for
+  installations which don't utilize SSO.
+
+  #5152
+
+  Contributed by @Kami.
+
 Fixed
 ~~~~~
 
