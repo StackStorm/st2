@@ -121,7 +121,7 @@ def register_opts(ignore_errors=False):
             "validate_output_schema",
             default=False,
             help="True to validate action and runner output against schema.",
-        )
+        ),
     ]
 
     do_register_opts(system_opts, "system", ignore_errors)
