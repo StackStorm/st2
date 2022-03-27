@@ -254,7 +254,7 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt(
             "zlib_compression_level",
             default="",
-            help="Compression level when compressors is set to zlib. Valid calues are -1 to 9. "
+            help="Compression level when compressors is set to zlib. Valid values are -1 to 9. "
             "Defaults to 6.",
         ),
     ]
@@ -321,9 +321,9 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "compression",
             default=None,
+            choices=["zstd", "lzma", "bz2", "gzip", None],
             help="Compression algorithm to use for compressing the payloads which are sent over "
-            "the message bus. Valid values include: zstd, lzma, bz2, gzip. Defaults to no "
-            "compression.",
+            "the message bus. Defaults to no compression.",
         ),
     ]
 
@@ -372,6 +372,23 @@ def register_opts(ignore_errors=False):
             "mask_secrets",
             default=True,
             help="True to mask secrets in the API responses",
+        ),
+        cfg.BoolOpt(
+            "auth_cookie_secure",
+            default=True,
+            help='True if secure flag should be set for "auth-token" cookie which is set on '
+            "successful authentication via st2web. You should only set this to False if you have "
+            "a good reason to not run and access StackStorm behind https proxy.",
+        ),
+        cfg.StrOpt(
+            "auth_cookie_same_site",
+            default="lax",
+            choices=["strict", "lax", "none", "unset"],
+            help="SameSite attribute value for the "
+            "auth-token cookie we set on successful authentication from st2web. If you "
+            "don't have a specific reason (e.g. supporting old browsers) we recommend you "
+            'set this value to strict. Setting it to "unset" will default to the behavior '
+            "in previous releases and not set this SameSite header value.",
         ),
     ]
 

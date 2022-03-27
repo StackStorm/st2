@@ -252,6 +252,14 @@ class Shell(BaseCLIApp):
         )
 
         self.parser.add_argument(
+            "--basic-auth",
+            action="store",
+            dest="basic_auth",
+            default=None,
+            help="Optional additional basic auth credentials used to authenticate",
+        )
+
+        self.parser.add_argument(
             "--config-file",
             action="store",
             dest="config_file",
