@@ -40,13 +40,14 @@ class AliasesRegistrar(ResourceRegistrar):
         Discover all the packs in the provided directory and register aliases from all of the
         discovered packs.
 
-        :return: Number of aliases registered.
-        :rtype: ``int``
+        :return: Tuple, Number of aliases registered, overridden.
+        :rtype: ``tuple``
         """
         # Register packs first
         self.register_packs(base_dirs=base_dirs)
 
         registered_count = 0
+        overridden_count = 0
         content = self._pack_loader.get_content(
             base_dirs=base_dirs, content_type="aliases"
         )
@@ -60,8 +61,11 @@ class AliasesRegistrar(ResourceRegistrar):
                     "Registering aliases from pack %s:, dir: %s", pack, aliases_dir
                 )
                 aliases = self._get_aliases_from_pack(aliases_dir)
-                count = self._register_aliases_from_pack(pack=pack, aliases=aliases)
+                count, overridden = self._register_aliases_from_pack(
+                    pack=pack, aliases=aliases
+                )
                 registered_count += count
+                overridden_count += overridden
             except Exception as e:
                 if self._fail_on_failure:
                     raise e
@@ -70,14 +74,14 @@ class AliasesRegistrar(ResourceRegistrar):
                     "Failed registering all aliases from pack: %s", aliases_dir
                 )
 
-        return registered_count
+        return registered_count, overridden_count
 
     def register_from_pack(self, pack_dir):
         """
         Register all the aliases from the provided pack.
 
-        :return: Number of aliases registered.
-        :rtype: ``int``
+        :return: Tuple, Number of aliases registered, overridden
+        :rtype: ``tuple``
         """
         pack_dir = pack_dir[:-1] if pack_dir.endswith("/") else pack_dir
         _, pack = os.path.split(pack_dir)
@@ -89,14 +93,15 @@ class AliasesRegistrar(ResourceRegistrar):
         self.register_pack(pack_name=pack, pack_dir=pack_dir)
 
         registered_count = 0
+        overridden_count = 0
         if not aliases_dir:
-            return registered_count
+            return registered_count, overridden_count
 
         LOG.debug("Registering aliases from pack %s:, dir: %s", pack, aliases_dir)
 
         try:
             aliases = self._get_aliases_from_pack(aliases_dir=aliases_dir)
-            registered_count = self._register_aliases_from_pack(
+            registered_count, overridden_count = self._register_aliases_from_pack(
                 pack=pack, aliases=aliases
             )
         except Exception as e:
@@ -104,9 +109,9 @@ class AliasesRegistrar(ResourceRegistrar):
                 raise e
 
             LOG.exception("Failed registering all aliases from pack: %s", aliases_dir)
-            return registered_count
+            return registered_count, overridden_count
 
-        return registered_count
+        return registered_count, overridden_count
 
     def _get_aliases_from_pack(self, aliases_dir):
         return self.get_resources_from_pack(resources_dir=aliases_dir)
@@ -144,14 +149,17 @@ class AliasesRegistrar(ResourceRegistrar):
         else:
             content["metadata_file"] = metadata_file
 
+        # Pass override information
+        altered = self._override_loader.override(pack, "aliases", content)
+
         action_alias_api = ActionAliasAPI(**content)
         action_alias_api.validate()
         action_alias_db = ActionAliasAPI.to_model(action_alias_api)
 
-        return action_alias_db
+        return action_alias_db, altered
 
     def _register_action_alias(self, pack, action_alias):
-        action_alias_db = self._get_action_alias_db(
+        action_alias_db, altered = self._get_action_alias_db(
             pack=pack, action_alias=action_alias
         )
 
@@ -181,14 +189,18 @@ class AliasesRegistrar(ResourceRegistrar):
         except Exception:
             LOG.exception("Failed to create action alias %s.", action_alias_db.name)
             raise
+        return altered
 
     def _register_aliases_from_pack(self, pack, aliases):
         registered_count = 0
+        overridden_count = 0
 
         for alias in aliases:
             try:
                 LOG.debug("Loading alias from %s.", alias)
-                self._register_action_alias(pack, alias)
+                altered = self._register_action_alias(pack, alias)
+                if altered:
+                    overridden_count += 1
             except Exception as e:
                 if self._fail_on_failure:
                     msg = 'Failed to register alias "%s" from pack "%s": %s' % (
@@ -203,7 +215,7 @@ class AliasesRegistrar(ResourceRegistrar):
             else:
                 registered_count += 1
 
-        return registered_count
+        return registered_count, overridden_count
 
 
 def register_aliases(

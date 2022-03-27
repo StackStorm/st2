@@ -426,15 +426,50 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/actions/views/parameters/{action_id}:
+  /api/v1/actions/{ref_or_id}/clone:
+    post:
+      operationId: st2api.controllers.v1.actions:actions_controller.clone
+      description: |
+        Clone one action.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Source action reference or id
+          type: string
+          required: true
+        - name: dest_data
+          in: body
+          description: Destination action content
+          schema:
+            $ref: '#/definitions/ActionCloneRequest'
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '201':
+          description: Single action being cloned
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'  
+  /api/v1/actions/views/parameters/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.action_views:parameters_view_controller.get_one
       description: |
         Get parameters for an action.
       parameters:
-        - name: action_id
+        - name: ref_or_id
           in: path
-          description: Entity id
+          description: Entity reference or id
           type: string
           required: true
       x-parameters:
@@ -4688,6 +4723,9 @@ definitions:
   ActionDeleteRequest:
     allOf:
       - $ref: '#/definitions/ActionDeleteSchema'
+  ActionCloneRequest:
+    allOf:
+      - $ref: '#/definitions/ActionCloneSchema'
   ActionParameters:
     type: object
     properties:
@@ -5368,6 +5406,23 @@ definitions:
           additionalProperties: False
         default: []
     # additionalProperties: false
+  ActionCloneSchema:
+    type: object
+    properties:
+      dest_pack:
+        type: string
+        description: Destination pack name for cloning
+      dest_action:
+        type: string
+        description: Destination action name for cloning
+      overwrite:
+        type: boolean
+        description: Force clone action if destination already exists
+        default: false
+    required:
+      - dest_pack
+      - dest_action
+    additionalProperties: false
   NotificationPropertySubSchema:
     type: object
     properties:
