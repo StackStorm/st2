@@ -7,6 +7,11 @@ in development
 Fixed
 ~~~~~
 
+
+* Fix deserialization bug in st2 API for url encoded payloads. #5536
+
+  Contributed by @sravs-dev
+
 * Fix issue of WinRM parameter passing fails for larger scripts.#5538
 
   Contributed by @ashwini-orchestral
@@ -100,6 +105,10 @@ Added
   the same headers, but with the header name lower cased. #5038
 
   Contributed by @Rand01ph
+
+* Added support to override enabled parameter of resources. #5506
+
+  Contributed by Amanda McGuinness (@amanda11 Intive)
 
 Fixed
 ~~~~~
