@@ -4,8 +4,11 @@ python-dateutil
 eventlet
 jinja2
 kombu
+#Used by jinja2
+MarkupSafe
 oslo.config
 oslo.utils
+pyparsing
 requests
 six
 pyyaml

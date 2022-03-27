@@ -54,6 +54,26 @@ class ParamsUtilsTest(DbTestCase):
     action_system_default_db = FIXTURES["actions"]["action_system_default.yaml"]
     runnertype_db = FIXTURES["runners"]["testrunner1.yaml"]
 
+    def test_process_jinja_exception(self):
+
+        action_context = {"api_user": "noob"}
+        config = {}
+        G = param_utils._create_graph(action_context, config)
+        name = "a1"
+        value = {"test": "http://someurl?value={{a"}
+        param_utils._process(G, name, value)
+        self.assertEquals(G.nodes.get(name, {}).get("value"), value)
+
+    def test_process_jinja_template(self):
+
+        action_context = {"api_user": "noob"}
+        config = {}
+        G = param_utils._create_graph(action_context, config)
+        name = "a1"
+        value = "http://someurl?value={{a}}"
+        param_utils._process(G, name, value)
+        self.assertEquals(G.nodes.get(name, {}).get("template"), value)
+
     def test_get_finalized_params(self):
         params = {
             "actionstr": "foo",
