@@ -145,6 +145,11 @@ class NotFoundException(Exception):
     pass
 
 
+class GenericRequestParam(object):
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+
 class Request(webob.Request):
     """
     Custom Request implementation which uses our custom and faster json serializer and deserializer.
@@ -500,7 +505,7 @@ class Router(object):
                         "application/x-www-form-urlencoded",
                         "multipart/form-data",
                     ]:
-                        data = urlparse.parse_qs(req.body)
+                        data = urlparse.parse_qs(six.ensure_str(req.body))
                     else:
                         raise ValueError(
                             'Unsupported Content-Type: "%s"' % (content_type)
@@ -529,11 +534,6 @@ class Router(object):
                 if content_type == "text/plain":
                     kw[argument_name] = data
                 else:
-
-                    class Body(object):
-                        def __init__(self, **entries):
-                            self.__dict__.update(entries)
-
                     ref = schema.get("$ref", None)
                     if ref:
                         with self.spec_resolver.resolving(ref) as resolved:
@@ -564,10 +564,10 @@ class Router(object):
                             )
                     else:
                         LOG.debug(
-                            "Missing x-api-model definition for %s, using generic Body "
+                            "Missing x-api-model definition for %s, using GenericRequestParam "
                             "model." % (endpoint["operationId"])
                         )
-                        model = Body
+                        model = GenericRequestParam
                         instance = self._get_model_instance(model_cls=model, data=data)
 
                     kw[argument_name] = instance

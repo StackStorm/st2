@@ -230,6 +230,16 @@ class BaseRBACUtils(object):
         raise NotImplementedError()
 
     @staticmethod
+    def user_has_system_role(role):
+        """
+        :param user: User object to check for.
+        :type user: :class:`UserDB`
+
+        :rtype: ``bool``
+        """
+        raise NotImplementedError()
+
+    @staticmethod
     def user_has_rule_trigger_permission(user_db, trigger):
         """
         Check that the currently logged-in has necessary permissions on the trigger used /
