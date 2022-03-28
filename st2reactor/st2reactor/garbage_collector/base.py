@@ -349,7 +349,7 @@ class GarbageCollectorService(object):
         utc_now = get_datetime_utc_now()
         timestamp = utc_now - datetime.timedelta(days=self._trace_ttl)
 
-        # Another sanity check to make sure we don't delete new executions
+        # Another sanity check to make sure we don't delete new objects
         if timestamp > (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
             raise ValueError(
                 "Calculated timestamp would violate the minimum TTL constraint"
@@ -378,7 +378,7 @@ class GarbageCollectorService(object):
         utc_now = get_datetime_utc_now()
         timestamp = utc_now - datetime.timedelta(days=self._rule_enforcement_ttl)
 
-        # Another sanity check to make sure we don't delete new executions
+        # Another sanity check to make sure we don't delete new objects
         if timestamp > (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
             raise ValueError(
                 "Calculated timestamp would violate the minimum TTL constraint"
@@ -394,7 +394,7 @@ class GarbageCollectorService(object):
             )
 
         try:
-            purge_executions(logger=LOG, timestamp=timestamp)
+            purge_rule_enforcement(logger=LOG, timestamp=timestamp)
         except Exception as e:
             LOG.exception("Failed to delete rule enforcements: %s" % (six.text_type(e)))
 

@@ -37,7 +37,7 @@ class TestPurgeTrace(CleanDbTestCase):
 
     def test_no_timestamp_doesnt_delete(self):
         now = date_utils.get_datetime_utc_now()
-        saved = TestPurgeTrace._create_save_trace(
+        TestPurgeTrace._create_save_trace(
             trace_tag="test_trace",
             action_executions=[str(bson.ObjectId()) for _ in range(4)],
             rules=[str(bson.ObjectId()) for _ in range(4)],
@@ -58,7 +58,7 @@ class TestPurgeTrace(CleanDbTestCase):
 
     def test_purge(self):
         now = date_utils.get_datetime_utc_now()
-        saved = TestPurgeTrace._create_save_trace(
+        TestPurgeTrace._create_save_trace(
             trace_tag="test_trace",
             action_executions=[str(bson.ObjectId()) for _ in range(4)],
             rules=[str(bson.ObjectId()) for _ in range(4)],
@@ -66,7 +66,7 @@ class TestPurgeTrace(CleanDbTestCase):
             start_timestamp=now - timedelta(days=20),
         )
 
-        saved = TestPurgeTrace._create_save_trace(
+        TestPurgeTrace._create_save_trace(
             trace_tag="test_trace",
             action_executions=[str(bson.ObjectId()) for _ in range(4)],
             rules=[str(bson.ObjectId()) for _ in range(4)],

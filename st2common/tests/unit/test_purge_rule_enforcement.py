@@ -37,7 +37,7 @@ class TestPurgeRuleEnforcement(CleanDbTestCase):
 
     def test_no_timestamp_doesnt_delete(self):
         now = date_utils.get_datetime_utc_now()
-        saved = TestPurgeRuleEnforcement._create_save_rule_enforcement(
+        TestPurgeRuleEnforcement._create_save_rule_enforcement(
             enforced_at=now - timedelta(days=20),
         )
 
@@ -54,11 +54,11 @@ class TestPurgeRuleEnforcement(CleanDbTestCase):
 
     def test_purge(self):
         now = date_utils.get_datetime_utc_now()
-        saved = TestPurgeRuleEnforcement._create_save_rule_enforcement(
+        TestPurgeRuleEnforcement._create_save_rule_enforcement(
             enforced_at=now - timedelta(days=20),
         )
 
-        saved = TestPurgeRuleEnforcement._create_save_rule_enforcement(
+        TestPurgeRuleEnforcement._create_save_rule_enforcement(
             enforced_at=now - timedelta(days=5),
         )
 
