@@ -181,6 +181,10 @@ purge_inquiries = False
 sleep_delay = 2
 # Trigger instances older than this value (days) will be automatically deleted.
 trigger_instances_ttl = None
+# Rule enforcement instances older than this value (days) will be automatically deleted.
+rule_enforcement_ttl = None
+# Trace instances older than this value (days) will be automatically deleted.
+trace_ttl = None
 
 [keyvalue]
 # Allow encryption of values in key value stored qualified as "secret".

@@ -41,6 +41,8 @@ from st2common.garbage_collection.executions import purge_execution_output_objec
 from st2common.garbage_collection.executions import purge_orphaned_workflow_executions
 from st2common.garbage_collection.inquiries import purge_inquiries
 from st2common.garbage_collection.trigger_instances import purge_trigger_instances
+from st2common.garbage_collection.trace import purge_trace
+from st2common.garbage_collection.rule_enforcement import purge_rule_enforcement
 
 __all__ = ["GarbageCollectorService"]
 
@@ -69,6 +71,8 @@ class GarbageCollectorService(object):
             cfg.CONF.garbagecollector.action_executions_output_ttl
         )
         self._trigger_instances_ttl = cfg.CONF.garbagecollector.trigger_instances_ttl
+        self._trace_ttl = cfg.CONF.garbagecollector.trace_ttl
+        self._rule_enforcement_ttl = cfg.CONF.garbagecollector.rule_enforcement_ttl
         self._purge_inquiries = cfg.CONF.garbagecollector.purge_inquiries
         self._workflow_execution_max_idle = cfg.CONF.workflow_engine.gc_max_idle_sec
 
@@ -153,6 +157,16 @@ class GarbageCollectorService(object):
                 )
                 % (MINIMUM_TTL_DAYS_EXECUTION_OUTPUT)
             )
+        if self._trace_ttl and self._trace_ttl < MINIMUM_TTL_DAYS:
+            raise ValueError(
+                "Minimum possible TTL for trace_ttl in days is %s" % (MINIMUM_TTL_DAYS)
+            )
+
+        if self._rule_enforcement_ttl and self._rule_enforcement_ttl < MINIMUM_TTL_DAYS:
+            raise ValueError(
+                "Minimum possible TTL for rule_enforcement_ttl in days is %s"
+                % (MINIMUM_TTL_DAYS)
+            )
 
     def _perform_garbage_collection(self):
         LOG.info("Performing garbage collection...")
@@ -194,6 +208,27 @@ class GarbageCollectorService(object):
         ):
             LOG.info(proc_message, obj_type)
             self._purge_trigger_instances()
+            concurrency.sleep(self._sleep_delay)
+        else:
+            LOG.debug(skip_message, obj_type)
+
+        obj_type = "trace"
+
+        if self._trace_ttl and self._trace_ttl >= MINIMUM_TTL_DAYS:
+            LOG.info(proc_message, obj_type)
+            self._purge_trace()
+            concurrency.sleep(self._sleep_delay)
+        else:
+            LOG.debug(skip_message, obj_type)
+
+        obj_type = "rule enforcement"
+
+        if (
+            self._rule_enforcement_ttl
+            and self._rule_enforcement_ttl >= MINIMUM_TTL_DAYS
+        ):
+            LOG.info(proc_message, obj_type)
+            self._purge_rule_enforcement()
             concurrency.sleep(self._sleep_delay)
         else:
             LOG.debug(skip_message, obj_type)
@@ -304,6 +339,64 @@ class GarbageCollectorService(object):
             purge_trigger_instances(logger=LOG, timestamp=timestamp)
         except Exception as e:
             LOG.exception("Failed to trigger instances: %s" % (six.text_type(e)))
+
+        return True
+
+    def _purge_trace(self):
+        """
+        Purge trace objects which match the criteria defined in the config.
+        """
+        utc_now = get_datetime_utc_now()
+        timestamp = utc_now - datetime.timedelta(days=self._trace_ttl)
+
+        # Another sanity check to make sure we don't delete new executions
+        if timestamp > (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
+            raise ValueError(
+                "Calculated timestamp would violate the minimum TTL constraint"
+            )
+
+        timestamp_str = isotime.format(dt=timestamp)
+        LOG.info("Deleting trace objects older than: %s" % (timestamp_str))
+
+        if timestamp >= utc_now:
+            raise ValueError(
+                f"Calculated timestamp ({timestamp}) is"
+                f" later than now in UTC ({utc_now})."
+            )
+
+        try:
+            purge_trace(logger=LOG, timestamp=timestamp)
+        except Exception as e:
+            LOG.exception("Failed to delete trace: %s" % (six.text_type(e)))
+
+        return True
+
+    def _purge_rule_enforcement(self):
+        """
+        Purge rule enforcements which match the criteria defined in the config.
+        """
+        utc_now = get_datetime_utc_now()
+        timestamp = utc_now - datetime.timedelta(days=self._rule_enforcement_ttl)
+
+        # Another sanity check to make sure we don't delete new executions
+        if timestamp > (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
+            raise ValueError(
+                "Calculated timestamp would violate the minimum TTL constraint"
+            )
+
+        timestamp_str = isotime.format(dt=timestamp)
+        LOG.info("Deleting rule enforcements older than: %s" % (timestamp_str))
+
+        if timestamp >= utc_now:
+            raise ValueError(
+                f"Calculated timestamp ({timestamp}) is"
+                f" later than now in UTC ({utc_now})."
+            )
+
+        try:
+            purge_executions(logger=LOG, timestamp=timestamp)
+        except Exception as e:
+            LOG.exception("Failed to delete rule enforcements: %s" % (six.text_type(e)))
 
         return True
 
