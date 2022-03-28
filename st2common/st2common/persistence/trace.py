@@ -51,3 +51,7 @@ class Trace(Access):
     @classmethod
     def push_trigger_instance(cls, instance, trigger_instance):
         return cls.update(instance, push__trigger_instances=trigger_instance)
+
+    @classmethod
+    def delete_by_query(cls, *args, **query):
+        return cls._get_impl().delete_by_query(*args, **query)

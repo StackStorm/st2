@@ -484,6 +484,16 @@ def _register_garbage_collector_opts():
             default=None,
             help="Trigger instances older than this value (days) will be automatically deleted.",
         ),
+        cfg.IntOpt(
+            "rule_enforcement_ttl",
+            default=None,
+            help="Rule enforcements older than this value (days) will be automatically deleted.",
+        ),
+        cfg.IntOpt(
+            "trace_ttl",
+            default=None,
+            help="Trace objects older than this value (days) will be automatically deleted.",
+        ),
     ]
 
     _register_opts(ttl_opts, group="garbagecollector")
