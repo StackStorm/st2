@@ -117,15 +117,16 @@ class RunnerTypeAPI(BaseAPI):
                 "required": False,
             },
             # Runners must always output json objects with action output in output_key property
-            "output_schema": {
-                "description": "Schema for the runner's output.",
-                "type": "object",
-                # using patternProperties like this implies that output_schema defines
-                # the "properties" schema of an object where each key is a property name.
-                "patternProperties": {r"^\w+$": util_schema.get_action_output_schema()},
-                "additionalProperties": False,
-                "default": {},
-            },
+            "output_schema": util_schema.get_action_output_schema(),
+            # "output_schema": {
+            #    "description": "Schema for the runner's output.",
+            #    "type": "object",
+            #    # using patternProperties like this implies that output_schema defines
+            #    # the "properties" schema of an object where each key is a property name.
+            #    "patternProperties": {r"^\w+$": util_schema.get_action_output_schema()},
+            #    "additionalProperties": False,
+            #    "default": {},
+            # },
         },
         "additionalProperties": False,
     }
@@ -231,23 +232,24 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "additionalProperties": False,
                 "default": {},
             },
-            "output_schema": {
-                "description": "Schema for the action's output.",
-                "anyOf": [
-                    util_schema.get_action_output_schema(),
-                    {
-                        "type": "object",
-                        # using patternProperties like this implies that output_schema
-                        # defines the "properties" schema of an object where each key
-                        # is a property name.
-                        "patternProperties": {
-                            r"^\w+$": util_schema.get_action_output_schema()
-                        },
-                        "additionalProperties": False,
-                    },
-                ],
-                "default": {},
-            },
+            "output_schema": util_schema.get_action_output_schema(),
+            # "output_schema": {
+            #    "description": "Schema for the action's output.",
+            #    "anyOf": [
+            #        util_schema.get_action_output_schema(),
+            #        {
+            #            "type": "object",
+            #            # using patternProperties like this implies that output_schema
+            #            # defines the "properties" schema of an object where each key
+            #            # is a property name.
+            #            "patternProperties": {
+            #                r"^\w+$": util_schema.get_action_output_schema()
+            #            },
+            #            "additionalProperties": False,
+            #        },
+            #    ],
+            #    "default": {},
+            # },
             "tags": {
                 "description": "User associated metadata assigned to this object.",
                 "type": "array",
