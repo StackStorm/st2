@@ -562,6 +562,21 @@ class ShellTestCase(base.BaseCLITestCase):
             shell.LOG.info.call_args_list[1][0][0], "Skipping parsing CLI config"
         )
 
+    def test_policy_list_with_pack_option(self):
+        argv = ["policy", "list", "-p", "test"]
+        mock_obj = mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(base.RESOURCES), 200, "OK")
+        )
+        with mock.patch.object(httpclient.HTTPClient, "get", mock_obj):
+            self.shell.run(argv)
+            self.assertEqual(
+                mock_obj.mock_calls[0],
+                mock.call(
+                    "/policies/?include_attributes=ref%2Cresource_ref%2C"
+                    "policy_type%2Cenabled&pack=test"
+                ),
+            )
+
 
 class CLITokenCachingTestCase(unittest2.TestCase):
     def setUp(self):

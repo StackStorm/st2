@@ -8,6 +8,8 @@ greenlet
 jinja2
 jsonschema
 kombu
+#Used by jinja2
+MarkupSafe
 mongoengine
 networkx
 # used by networkx
@@ -20,6 +22,8 @@ pyyaml
 pymongo
 # used for optional network level compression for mongodb
 zstandard
+# mention cffi used by cryptography so we can control version
+cffi
 cryptography
 requests
 retrying
@@ -35,6 +39,7 @@ routes
 flex
 webob
 jsonpath-rw
+pyOpenSSL
 python-statsd
 udatetime
 orjson

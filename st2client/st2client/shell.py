@@ -66,7 +66,7 @@ from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_logger
 from st2client.utils.misc import reencode_list_with_surrogate_escape_sequences
 from st2client.commands.auth import TokenCreateCommand
 from st2client.commands.auth import LoginCommand
-
+from st2client.utils.profiler import setup_regular_profiler
 
 __all__ = ["Shell"]
 
@@ -249,6 +249,14 @@ class Shell(BaseCLIApp):
             help="Path to the CA cert bundle for the SSL endpoints. "
             "Get ST2_CACERT from the environment variables by default. "
             "If this is not provided, then SSL cert will not be verified.",
+        )
+
+        self.parser.add_argument(
+            "--basic-auth",
+            action="store",
+            dest="basic_auth",
+            default=None,
+            help="Optional additional basic auth credentials used to authenticate",
         )
 
         self.parser.add_argument(
@@ -532,6 +540,12 @@ def setup_logging(argv):
 
 def main(argv=sys.argv[1:]):
     setup_logging(argv)
+
+    if "--enable-profiler" in sys.argv:
+        setup_regular_profiler(service_name="st2cli")
+        sys.argv.remove("--enable-profiler")
+        argv.remove("--enable-profiler")
+
     return Shell().run(argv)
 
 

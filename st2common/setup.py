@@ -53,6 +53,8 @@ setup(
         "bin/st2-register-content",
         "bin/st2-purge-executions",
         "bin/st2-purge-trigger-instances",
+        "bin/st2-purge-trace",
+        "bin/st2-purge-rule-enforcement",
         "bin/st2-run-pack-tests",
         "bin/st2ctl",
         "bin/st2-generate-symmetric-crypto-key",

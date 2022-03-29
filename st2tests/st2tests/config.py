@@ -111,6 +111,11 @@ def _override_api_opts():
         override=["http://127.0.0.1:3000", "http://dev"],
         group="api",
     )
+    CONF.set_override(
+        name="auth_cookie_secure",
+        override=False,
+        group="api",
+    )
 
 
 def _override_keyvalue_opts():
@@ -478,6 +483,16 @@ def _register_garbage_collector_opts():
             "trigger_instances_ttl",
             default=None,
             help="Trigger instances older than this value (days) will be automatically deleted.",
+        ),
+        cfg.IntOpt(
+            "rule_enforcement_ttl",
+            default=None,
+            help="Rule enforcements older than this value (days) will be automatically deleted.",
+        ),
+        cfg.IntOpt(
+            "trace_ttl",
+            default=None,
+            help="Trace objects older than this value (days) will be automatically deleted.",
         ),
     ]
 

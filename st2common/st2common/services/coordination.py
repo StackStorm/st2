@@ -21,6 +21,7 @@ from oslo_config import cfg
 from tooz import coordination
 from tooz import locking
 from tooz.coordination import GroupNotCreated
+from tooz.coordination import MemberNotJoined
 
 from st2common import log as logging
 from st2common.util import system_info
@@ -124,8 +125,15 @@ class NoOpDriver(coordination.CoordinationDriver):
     @classmethod
     def leave_group(cls, group_id):
         member_id = get_member_id()
+        try:
+            members = cls.groups[group_id]["members"]
+        except KeyError:
+            raise GroupNotCreated(group_id)
 
-        del cls.groups[group_id]["members"][member_id]
+        try:
+            del members[member_id]
+        except KeyError:
+            raise MemberNotJoined(group_id, member_id)
         return NoOpAsyncResult()
 
     @classmethod

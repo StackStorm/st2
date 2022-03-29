@@ -21,9 +21,11 @@ import mock
 from tests import base
 
 from st2client import shell
+from st2client.models.core import ResourceManager
+from st2client.models.action import Execution
 from st2client.utils import httpclient
 
-MOCK_MATCH_AND_EXECUTE_RESULT = {
+MOCK_MATCH_AND_EXECUTE_RESULT_1 = {
     "results": [
         {
             "execution": {
@@ -32,6 +34,24 @@ MOCK_MATCH_AND_EXECUTE_RESULT = {
             "actionalias": {"ref": "mock-ref"},
         }
     ]
+}
+
+MOCK_MATCH_AND_EXECUTE_RESULT_2 = {
+    "results": [
+        {
+            "execution": {"id": "mock-id-execute", "status": "succeeded"},
+            "actionalias": {"ref": "mock-ref"},
+            "liveaction": {
+                "id": "mock-id",
+            },
+        }
+    ]
+}
+
+MOCK_CREATE_EXECUTION_RESULT = {
+    "id": "mock-id-format-execution",
+    "status": "succeeded",
+    "result": {"result": {"message": "Result formatted message"}},
 }
 
 
@@ -45,11 +65,11 @@ class ActionAliasCommandTestCase(base.BaseCLITestCase):
         "post",
         mock.MagicMock(
             return_value=base.FakeResponse(
-                json.dumps(MOCK_MATCH_AND_EXECUTE_RESULT), 200, "OK"
+                json.dumps(MOCK_MATCH_AND_EXECUTE_RESULT_1), 200, "OK"
             )
         ),
     )
-    def test_match_and_execute(self):
+    def test_match_and_execute_success(self):
         ret = self.shell.run(["action-alias", "execute", "run whoami on localhost"])
         self.assertEqual(ret, 0)
 
@@ -66,3 +86,53 @@ class ActionAliasCommandTestCase(base.BaseCLITestCase):
 
         self.assertTrue("Matching Action-alias: 'mock-ref'" in mock_stdout)
         self.assertTrue("st2 execution get mock-id" in mock_stdout)
+
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "post",
+        mock.MagicMock(
+            side_effect=[
+                base.FakeResponse(
+                    json.dumps(MOCK_MATCH_AND_EXECUTE_RESULT_2), 200, "OK"
+                ),
+                base.FakeResponse(json.dumps(MOCK_CREATE_EXECUTION_RESULT), 200, "OK"),
+            ]
+        ),
+    )
+    @mock.patch.object(
+        ResourceManager,
+        "get_by_id",
+        mock.MagicMock(return_value=Execution(**MOCK_CREATE_EXECUTION_RESULT)),
+    )
+    def test_test_command_success(self):
+        ret = self.shell.run(["action-alias", "test", "run whoami on localhost"])
+        self.assertEqual(ret, 0)
+
+        expected_args = {
+            "command": "run whoami on localhost",
+            "user": "",
+            "source_channel": "cli",
+        }
+        httpclient.HTTPClient.post.assert_any_call(
+            "/aliasexecution/match_and_execute", expected_args
+        )
+
+        expected_args = {
+            "action": "chatops.format_execution_result",
+            "parameters": {"execution_id": "mock-id-execute"},
+            "user": "",
+        }
+        httpclient.HTTPClient.post.assert_any_call("/executions", expected_args)
+
+        mock_stdout = self.stdout.getvalue()
+
+        self.assertTrue(
+            "Execution (mock-id-execute) has been started, waiting for it to finish"
+            in mock_stdout
+        )
+        self.assertTrue(
+            "Execution (mock-id-format-execution) has been started, waiting for it to "
+            "finish" in mock_stdout
+        )
+        self.assertTrue("Formatted ChatOps result message" in mock_stdout)
+        self.assertTrue("Result formatted message" in mock_stdout)
