@@ -99,7 +99,6 @@ class KeyValuePairController(ResourceController):
         LOG.debug("GET /v1/keys/%s", name, extra=extra)
         LOG.audit("User %s decrypted the value %s ", user, name,
                   extra={"user": user, "scope": scope, "key_name": name, "operation": "decrypt"})
-
         # Setup a kvp database object used for verifying permission
         kvp_db = KeyValuePairDB(
             uid="%s:%s:%s" % (ResourceType.KEY_VALUE_PAIR, scope, key_ref),
