@@ -207,9 +207,23 @@ def assign_default_values(instance, schema):
         return instance
 
     properties = schema.get("properties", {})
+    dependencies = schema.get("dependencies", {})
 
     for property_name, property_data in six.iteritems(properties):
         has_default_value = "default" in property_data
+        # only populate default if dependencies are met
+        # eg: exclusiveMaximum depends on maximum which does not have a default.
+        #     so we don't want to apply exclusiveMaximum's default unless maximum.
+        if has_default_value and property_name in dependencies:
+            for required_property in dependencies[property_name]:
+                if "default" in properties.get(required_property, {}):
+                    # we depend on something that has a default. Apply this default.
+                    continue
+                if required_property not in instance:
+                    # we depend on something that does not have a default.
+                    # do not apply this default.
+                    has_default_value = False
+                    break
         default_value = property_data.get("default", None)
 
         # Assign default value on the instance so the validation doesn't fail if requires is true
