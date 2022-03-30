@@ -36,6 +36,16 @@ ACTION_RESULT = {
     }
 }
 
+ACTION_RESULT_ALT_TYPES = {
+    "boolean": {"output": True},
+    "integer": {"output": 42},
+    "null": {"output": None},
+    "number": {"output": 1.234},
+    "string": {"output": "foobar"},
+    "object": ACTION_RESULT,
+    "array": {"output": [ACTION_RESULT]},
+}
+
 RUNNER_OUTPUT_SCHEMA = {
     "type": "object",
     "properties": {
@@ -196,6 +206,28 @@ class OutputSchemaTestCase(unittest2.TestCase):
             ac_ex, copy.deepcopy(ACTION_RESULT)
         )
         self.assertDictEqual(masked_output, expected_masked_output)
+
+    def test_mask_secret_output_all_output(self):
+        ac_ex = {
+            "action": {
+                "output_schema": {
+                    "secret": True,
+                },
+            },
+            "runner": {
+                "output_key": OUTPUT_KEY,
+                "output_schema": RUNNER_OUTPUT_SCHEMA,
+            },
+        }
+
+        expected_masked_output = {"output": MASKED_ATTRIBUTE_VALUE}
+
+        for kind, action_result in ACTION_RESULT_ALT_TYPES.items():
+            ac_ex["action"]["output_schema"]["type"] = kind
+            masked_output = output_schema.mask_secret_output(
+                ac_ex, copy.deepcopy(action_result)
+            )
+            self.assertDictEqual(masked_output, expected_masked_output)
 
     def test_mask_secret_output_no_secret(self):
         ac_ex = {
