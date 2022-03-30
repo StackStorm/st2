@@ -471,7 +471,7 @@ def _register_garbage_collector_opts():
             "action_executions_ttl",
             default=None,
             help="Action executions and related objects (live actions, action output "
-            "objects) older than this value (days) will be automatically deleted. Defaults to None (disabled)",
+            "objects) older than this value (days) will be automatically deleted. Defaults to None (disabled).",
         ),
         cfg.IntOpt(
             "action_executions_output_ttl",
@@ -482,17 +482,17 @@ def _register_garbage_collector_opts():
         cfg.IntOpt(
             "trigger_instances_ttl",
             default=None,
-            help="Trigger instances older than this value (days) will be automatically deleted. Defaults to None (disabled)",
+            help="Trigger instances older than this value (days) will be automatically deleted. Defaults to None (disabled).",
         ),
         cfg.IntOpt(
             "rule_enforcements_ttl",
             default=None,
-            help="Rule enforcements older than this value (days) will be automatically deleted. Defaults to None (disabled)",
+            help="Rule enforcements older than this value (days) will be automatically deleted. Defaults to None (disabled).",
         ),
         cfg.IntOpt(
             "traces_ttl",
             default=None,
-            help="Trace objects older than this value (days) will be automatically deleted. Defaults to None (disabled)",
+            help="Trace objects older than this value (days) will be automatically deleted. Defaults to None (disabled).",
         ),
     ]
 
