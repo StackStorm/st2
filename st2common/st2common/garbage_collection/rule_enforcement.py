@@ -24,10 +24,10 @@ from mongoengine.errors import InvalidQueryError
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.util import isotime
 
-__all__ = ["purge_rule_enforcement"]
+__all__ = ["purge_rule_enforcements"]
 
 
-def purge_rule_enforcement(logger, timestamp):
+def purge_rule_enforcements(logger, timestamp):
     """
     :param timestamp: Rule enforcement instances older than this timestamp will be deleted.
     :type timestamp: ``datetime.datetime

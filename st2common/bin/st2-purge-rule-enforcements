@@ -16,7 +16,7 @@
 
 import sys
 
-from st2common.cmd.purge_rule_enforcement import main
+from st2common.cmd.purge_rule_enforcements import main
 
 if __name__ == "__main__":
     sys.exit(main())

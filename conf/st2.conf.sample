@@ -178,11 +178,11 @@ logging = /etc/st2/logging.garbagecollector.conf
 # Set to True to perform garbage collection on Inquiries (based on the TTL value per Inquiry)
 purge_inquiries = False
 # Rule enforcements older than this value (days) will be automatically deleted.
-rule_enforcement_ttl = None
+rule_enforcements_ttl = None
 # How long to wait / sleep (in seconds) between collection of different object types.
 sleep_delay = 2
 # Trace objects older than this value (days) will be automatically deleted.
-trace_ttl = None
+traces_ttl = None
 # Trigger instances older than this value (days) will be automatically deleted.
 trigger_instances_ttl = None
 
