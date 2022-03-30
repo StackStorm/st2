@@ -35,12 +35,13 @@ _JSON_TYPES = _JSON_BASIC_TYPES | _JSON_COMPLEX_TYPES
 def _validate_runner(runner_schema, result):
     LOG.debug("Validating runner output: %s", runner_schema)
 
-    # runner's output is always an object.
-    runner_schema = {
-        "type": "object",
-        "properties": runner_schema,
-        "additionalProperties": False,
-    }
+    if "type" not in runner_schema or runner_schema["type"] not in _JSON_TYPES:
+        # we have a partial object schema with jsonschemas for the properties
+        runner_schema = {
+            "type": "object",
+            "properties": runner_schema,
+            "additionalProperties": False,
+        }
 
     schema.validate(result, runner_schema, cls=schema.get_validator("custom"))
 
