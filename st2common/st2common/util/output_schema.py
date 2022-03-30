@@ -36,8 +36,14 @@ def _schema_is_valid(_schema):
     if not isinstance(_schema, Mapping):
         # malformed schema
         return False
-    if "type" not in _schema or not _schema["type"] in _JSON_TYPES:
-        # legacy partial object schema with jsonschemas for the properties
+    try:
+        schema.validate(
+            _schema,
+            schema.get_action_output_schema(),
+            cls=schema.get_validator("custom"),
+        )
+    except jsonschema.ValidationError:
+        # likely a legacy partial object schema (only defines properties)
         return False
     return True
 
@@ -168,16 +174,16 @@ def mask_secret_output(ac_ex, output_value):
     output_schema = ac_ex["action"].get("output_schema")
 
     if (
-        # no action output_schema defined
-        not output_schema
-        # malformed action output_schema
-        or not _schema_is_valid(output_schema)
         # without output_key we cannot use output_schema
-        or not output_key
+        not output_key
         # cannot access output_key if output_value is not a dict
         or not isinstance(output_value, Mapping)
         # cannot mask output if it is missing
         or output_key not in output_value
+        # no action output_schema defined
+        or not output_schema
+        # malformed action output_schema
+        or not _schema_is_valid(output_schema)
     ):
         # nothing to mask
         return output_value
