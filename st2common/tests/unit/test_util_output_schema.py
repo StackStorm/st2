@@ -67,7 +67,7 @@ ACTION_OUTPUT_SCHEMA = {
         "output_3": {"type": "string"},
         "deep_output": {
             "type": "object",
-            "parameters": {
+            "properties": {
                 "deep_item_1": {
                     "type": "string",
                 },
@@ -103,7 +103,7 @@ ACTION_OUTPUT_SCHEMA_WITH_SECRET = {
         "output_3": {"type": "string", "secret": True},
         "deep_output": {
             "type": "object",
-            "parameters": {
+            "properties": {
                 "deep_item_1": {
                     "type": "string",
                 },
