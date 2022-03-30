@@ -155,6 +155,41 @@ Added
 * Added garbage collection for rule_enforcement and trace models #5596
   Contributed by Amanda McGuinness (@amanda11 intive)
 
+Changed
+~~~~~~~
+
+* ``output_schema`` must be a full jsonschema now. If a schema is not well-formed, we ignore it.
+  Now, ``output`` can be types other than object such as list, bool, int, etc.
+  This also means that all of an action's output can be masked as a secret.
+
+  To get the same behavior, you'll need to update your output schema.
+  For example, this schema:
+
+  .. code-block:: yaml
+
+    output_schema:
+      property1:
+        type: bool
+      property2:
+        type: str
+
+  should be updated like this:
+
+  .. code-block:: yaml
+
+    output_schema:
+      type: object
+      properties:
+        property1:
+          type: bool
+        property2:
+          type: str
+      additionalProperties: false
+
+  #5319
+
+  Contributed by @cognifloyd
+
 
 Fixed
 ~~~~~
