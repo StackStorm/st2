@@ -170,10 +170,10 @@ class ContentPackConfigLoader(object):
                     value=config_item_value
                 )
                 if "decrypt_kv" in str(config_item_value):
-                    LOG.audit("User %s is decrypting the value %s from the config within pack %s", self.user,
-                              config_item_value, self.pack_name,
+                    LOG.audit("User %s is decrypting the value for key %s from the config within pack %s", self.user,
+                              config_item_key, self.pack_name,
                     extra = {"user": self.user, "key_name": config_item_key, "pack_name": self.pack_name,
-                             "config_item_value": config_item_value, "operation": "pack_config_value_decrypt"})
+                             "operation": "pack_config_value_decrypt"})
 
                 if is_jinja_expression:
                     # Resolve / render the Jinja template expression
