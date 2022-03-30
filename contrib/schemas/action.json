@@ -502,8 +502,7 @@
                     "minimum"
                 ]
             },
-            "default": {},
-            "additionalProperties": false
+            "default": {}
         },
         "tags": {
             "description": "User associated metadata assigned to this object.",

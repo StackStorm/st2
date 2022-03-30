@@ -86,7 +86,7 @@ def get_draft_schema(version="custom", additional_properties=False):
     return schema
 
 
-def get_action_output_schema(additional_properties=False, description=None):
+def get_action_output_schema(additional_properties=True, description=None):
     """
     Return a generic schema which is used for validating action output.
     """
