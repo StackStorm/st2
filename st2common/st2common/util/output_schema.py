@@ -32,16 +32,22 @@ _JSON_COMPLEX_TYPES = {"object", "array"}
 _JSON_TYPES = _JSON_BASIC_TYPES | _JSON_COMPLEX_TYPES
 
 
+def _schema_is_valid(_schema):
+    if not isinstance(_schema, Mapping):
+        # malformed schema
+        return False
+    if "type" not in _schema or not _schema["type"] in _JSON_TYPES:
+        # legacy partial object schema with jsonschemas for the properties
+        return False
+    return True
+
+
 def _validate_runner(runner_schema, result):
     LOG.debug("Validating runner output: %s", runner_schema)
 
-    if "type" not in runner_schema or runner_schema["type"] not in _JSON_TYPES:
-        # we have a partial object schema with jsonschemas for the properties
-        runner_schema = {
-            "type": "object",
-            "properties": runner_schema,
-            "additionalProperties": False,
-        }
+    if not _schema_is_valid(runner_schema):
+        LOG.warning("Ignoring invalid runner schema: %s", runner_schema)
+        return
 
     schema.validate(result, runner_schema, cls=schema.get_validator("custom"))
 
@@ -49,16 +55,11 @@ def _validate_runner(runner_schema, result):
 def _validate_action(action_schema, result, output_key):
     LOG.debug("Validating action output: %s", action_schema)
 
-    final_result = result[output_key]
+    if not _schema_is_valid(action_schema):
+        LOG.warning("Ignoring invalid action schema: %s", action_schema)
+        return
 
-    # FIXME: is there a better way to check if action_schema is only a partial object schema?
-    if "type" not in action_schema or action_schema["type"] not in _JSON_TYPES:
-        # we have a partial object schema with jsonschemas for the properties
-        action_schema = {
-            "type": "object",
-            "properties": action_schema,
-            "additionalProperties": False,
-        }
+    final_result = result[output_key]
 
     schema.validate(final_result, action_schema, cls=schema.get_validator("custom"))
 
@@ -159,46 +160,28 @@ def _get_masked_value(spec, value):
 
 
 def mask_secret_output(ac_ex, output_value):
-    # runners have to return a JSON object, with action output under a subkey.
-    if not output_value or not isinstance(output_value, Mapping):
+    if not output_value:
         return output_value
 
     output_key = ac_ex["runner"].get("output_key")
     output_schema = ac_ex["action"].get("output_schema")
 
-    # nothing to validate
-    if not output_key or output_key not in output_value or not output_schema:
+    if (
+        # no action output_schema defined
+        not output_schema
+        # malformed action output_schema
+        or not _schema_is_valid(output_schema)
+        # if the runner does not provide an output_key, we can't use output_schema.
+        or not output_key
+        # cannot access output_key on which to apply output_schema
+        or (isinstance(output_value, Mapping) and output_key not in output_value)
+    ):
+        # nothing to validate
         return output_value
 
-    # malformed schema
-    if not isinstance(output_schema, Mapping):
-        return output_value
-
-    # FIXME: is there a better way to check if output_schema is only a partial object schema?
-    if "type" in output_schema and output_schema["type"] in _JSON_TYPES:
-        # we have a full jsonschema
-        output_value[output_key] = _get_masked_value(
-            output_schema, output_value[output_key]
-        )
-    else:
-        # we have a partial object schema with jsonschemas for the properties
-        # see st2common/st2common/models/api/action.py
-        # output_schema_schema = {
-        #    "description": "Schema for the action's output.",
-        #    "type": "object",
-        #    "patternProperties": {r"^\w+$": customized_draft4_jsonschema}
-        #    "additionalProperties": False,
-        #    "default": {},
-        # }
-        # This implies the following schema (as in _validate_action above)
-        implied_schema = {
-            "type": "object",
-            "properties": output_schema,
-            "additionalProperties": False,
-        }
-        output_value[output_key] = _get_masked_value(
-            implied_schema, output_value[output_key]
-        )
+    output_value[output_key] = _get_masked_value(
+        output_schema, output_value[output_key]
+    )
     return output_value
 
 
