@@ -152,7 +152,7 @@ Added
 
   Contributed by @Kami.
 
-* Added garbage collection for rule_enforcement and trace models #5596
+* Added garbage collection for rule_enforcement and trace models #5596/5602
   Contributed by Amanda McGuinness (@amanda11 intive)
 
 
