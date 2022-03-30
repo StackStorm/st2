@@ -99,6 +99,19 @@ ACTION_OUTPUT_SCHEMA_WITH_SECRET = {
     "additionalProperties": False,
 }
 
+# Legacy schemas were implicitly a "properties" schema of an object.
+# Now, this should be ignored as a malformed schema.
+LEGACY_ACTION_OUTPUT_SCHEMA = ACTION_OUTPUT_SCHEMA_WITH_SECRET["properties"]
+
+MALFORMED_ACTION_OUTPUT_SCHEMA_1 = {"output_1": "bool"}
+MALFORMED_ACTION_OUTPUT_SCHEMA_2 = {
+    "type": "object",
+    "properties": {
+        "output_1": "bool",
+    },
+    "additionalProperties": False,
+}
+
 
 class OutputSchemaTestCase(unittest2.TestCase):
     def test_valid_schema(self):
@@ -282,12 +295,41 @@ class OutputSchemaTestCase(unittest2.TestCase):
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
-        # Malformed schema can't be used to validate.
-        malformed_schema_ac_ex = copy.deepcopy(ac_ex)
-        malformed_schema_ac_ex["action"]["output_schema"] = {"output_1": "bool"}
+    def test_mask_secret_output_noop_legacy_schema(self):
+        ac_ex = {
+            "action": {
+                "output_schema": LEGACY_ACTION_OUTPUT_SCHEMA,
+            },
+            "runner": {
+                "output_key": OUTPUT_KEY,
+                "output_schema": RUNNER_OUTPUT_SCHEMA,
+            },
+        }
         ac_ex_result = {"output_1": "foobar"}
         expected_masked_output = {"output_1": "foobar"}
-        masked_output = output_schema.mask_secret_output(
-            malformed_schema_ac_ex, ac_ex_result
-        )
+
+        # Legacy schemas should be ignored since they aren't full json schemas.
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+    def test_mask_secret_output_noop_malformed_schema(self):
+        # Malformed schemas can't be used to validate.
+        ac_ex = {
+            "action": {
+                "output_schema": {},
+            },
+            "runner": {
+                "output_key": OUTPUT_KEY,
+                "output_schema": RUNNER_OUTPUT_SCHEMA,
+            },
+        }
+        ac_ex_result = {"output_1": "foobar"}
+        expected_masked_output = {"output_1": "foobar"}
+
+        ac_ex["action"]["output_schema"] = MALFORMED_ACTION_OUTPUT_SCHEMA_1
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+        self.assertDictEqual(masked_output, expected_masked_output)
+
+        ac_ex["action"]["output_schema"] = MALFORMED_ACTION_OUTPUT_SCHEMA_2
+        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
