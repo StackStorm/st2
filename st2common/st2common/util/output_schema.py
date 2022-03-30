@@ -19,7 +19,7 @@ import sys
 import traceback
 import jsonschema
 
-from collections.abc import Collection, Mapping
+from collections.abc import Mapping, MutableMapping, MutableSequence
 from st2common.util import schema
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -78,7 +78,7 @@ def _get_masked_value(spec, value):
         return value
 
     elif kind == "object":
-        if not isinstance(value, Mapping):
+        if not isinstance(value, MutableMapping):
             # we can't process it unless it matches the expected type
             return value
 
@@ -125,7 +125,7 @@ def _get_masked_value(spec, value):
         return value
 
     elif kind == "array":
-        if not isinstance(value, Collection):
+        if not isinstance(value, MutableSequence):
             # we can't process it unless it matches the expected type
             return value
 
@@ -136,11 +136,11 @@ def _get_masked_value(spec, value):
             for i, item_spec in enumerate(items_schema):
                 if i >= output_count:
                     break
-                value[i] = _get_masked_value(item_spec, value[key])
+                value[i] = _get_masked_value(item_spec, value[i])
             handled_count = len(items_schema)
         else:
             for i in range(output_count):
-                value[i] = _get_masked_value(items_schema, value[key])
+                value[i] = _get_masked_value(items_schema, value[i])
             handled_count = output_count
 
         if handled_count >= output_count:
