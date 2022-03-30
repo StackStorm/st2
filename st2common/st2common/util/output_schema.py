@@ -164,6 +164,7 @@ def mask_secret_output(ac_ex, output_value):
         return output_value
 
     output_key = ac_ex["runner"].get("output_key")
+    # output_schema has masking info for data in output_value[output_key]
     output_schema = ac_ex["action"].get("output_schema")
 
     if (
@@ -171,12 +172,14 @@ def mask_secret_output(ac_ex, output_value):
         not output_schema
         # malformed action output_schema
         or not _schema_is_valid(output_schema)
-        # if the runner does not provide an output_key, we can't use output_schema.
+        # without output_key we cannot use output_schema
         or not output_key
-        # cannot access output_key on which to apply output_schema
-        or (isinstance(output_value, Mapping) and output_key not in output_value)
+        # cannot access output_key if output_value is not a dict
+        or not isinstance(output_value, Mapping)
+        # cannot mask output if it is missing
+        or output_key not in output_value
     ):
-        # nothing to validate
+        # nothing to mask
         return output_value
 
     output_value[output_key] = _get_masked_value(
