@@ -25,3 +25,4 @@ output_schema:
       type: string
       required: true
       secret: true
+  additionalProperties: false

@@ -20,3 +20,4 @@
         type: "object"
       tasks:
         type: "array"
+    additionalProperties: false

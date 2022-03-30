@@ -182,13 +182,10 @@ ACTION_WITH_OUTPUT_SCHEMA_WITH_SECRET_PARAMS = {
     "output_schema": {
         "type": "object",
         "properties": {
-            "secret_param_1": {
-                "type": "string", "required": True, "secret": True
-            },
-            "secret_param_2": {
-                "type": "string", "required": True, "secret": True
-            },
+            "secret_param_1": {"type": "string", "required": True, "secret": True},
+            "secret_param_2": {"type": "string", "required": True, "secret": True},
         },
+        "additionalProperties": False,
     },
 }
 
@@ -206,6 +203,7 @@ ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAMS = {
             "non_secret_param_1": {"type": "string", "required": True},
             "non_secret_param_2": {"type": "string", "required": True},
         },
+        "additionalProperties": False,
     },
 }
 ACTION_DEFAULT_ENCRYPT_AND_BOOL = {

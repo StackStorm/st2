@@ -37,46 +37,66 @@ ACTION_RESULT = {
 }
 
 RUNNER_OUTPUT_SCHEMA = {
-    "output": {"type": "object"},
-    "error": {"type": "array"},
+    "type": "object",
+    "properties": {
+        "output": {"type": "object"},
+        "error": {"type": "array"},
+    },
+    "additionalProperties": False,
 }
 
 ACTION_OUTPUT_SCHEMA = {
-    "output_1": {"type": "string"},
-    "output_2": {"type": "integer"},
-    "output_3": {"type": "string"},
-    "deep_output": {
-        "type": "object",
-        "parameters": {
-            "deep_item_1": {
-                "type": "string",
+    "type": "object",
+    "properties": {
+        "output_1": {"type": "string"},
+        "output_2": {"type": "integer"},
+        "output_3": {"type": "string"},
+        "deep_output": {
+            "type": "object",
+            "parameters": {
+                "deep_item_1": {
+                    "type": "string",
+                },
             },
         },
     },
+    "additionalProperties": False,
 }
 
 RUNNER_OUTPUT_SCHEMA_FAIL = {
-    "not_a_key_you_have": {"type": "string"},
+    "type": "object",
+    "properties": {
+        "not_a_key_you_have": {"type": "string"},
+    },
+    "additionalProperties": False,
 }
 
 ACTION_OUTPUT_SCHEMA_FAIL = {
-    "not_a_key_you_have": {"type": "string"},
+    "type": "object",
+    "properties": {
+        "not_a_key_you_have": {"type": "string"},
+    },
+    "additionalProperties": False,
 }
 
 OUTPUT_KEY = "output"
 
 ACTION_OUTPUT_SCHEMA_WITH_SECRET = {
-    "output_1": {"type": "string"},
-    "output_2": {"type": "integer"},
-    "output_3": {"type": "string", "secret": True},
-    "deep_output": {
-        "type": "object",
-        "parameters": {
-            "deep_item_1": {
-                "type": "string",
+    "type": "object",
+    "properties": {
+        "output_1": {"type": "string"},
+        "output_2": {"type": "integer"},
+        "output_3": {"type": "string", "secret": True},
+        "deep_output": {
+            "type": "object",
+            "parameters": {
+                "deep_item_1": {
+                    "type": "string",
+                },
             },
         },
     },
+    "additionalProperties": False,
 }
 
 

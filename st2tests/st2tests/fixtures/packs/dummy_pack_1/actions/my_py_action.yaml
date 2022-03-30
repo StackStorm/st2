@@ -16,3 +16,4 @@ output_schema:
       secret: true
     k3:
       type: boolean
+  additionalProperties: false

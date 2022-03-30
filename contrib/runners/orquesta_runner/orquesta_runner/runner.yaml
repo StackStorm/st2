@@ -31,3 +31,4 @@
           - type: "boolean"
           - type: "array"
           - type: "null"
+    additionalProperties: false

@@ -71,3 +71,4 @@
         type: boolean
       headers:
         type: object
+    additionalProperties: false

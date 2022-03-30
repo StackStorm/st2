@@ -24,6 +24,7 @@
       exit_code:
         type: integer
         required: true
+    additionalProperties: false
   runner_parameters:
     debug:
       description: Enable runner debug mode.

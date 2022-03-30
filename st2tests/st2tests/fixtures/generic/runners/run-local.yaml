@@ -27,3 +27,4 @@ output_schema:
       type: string
     stdout:
       type: string
+  additionalProperties: false
