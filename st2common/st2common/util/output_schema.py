@@ -32,7 +32,7 @@ _JSON_COMPLEX_TYPES = {"object", "array"}
 _JSON_TYPES = _JSON_BASIC_TYPES | _JSON_COMPLEX_TYPES
 
 
-def _schema_is_valid(_schema):
+def _output_schema_is_valid(_schema):
     if not isinstance(_schema, Mapping):
         # malformed schema
         return False
@@ -51,7 +51,7 @@ def _schema_is_valid(_schema):
 def _validate_runner(runner_schema, result):
     LOG.debug("Validating runner output: %s", runner_schema)
 
-    if not _schema_is_valid(runner_schema):
+    if not _output_schema_is_valid(runner_schema):
         LOG.warning("Ignoring invalid runner schema: %s", runner_schema)
         return
 
@@ -61,7 +61,7 @@ def _validate_runner(runner_schema, result):
 def _validate_action(action_schema, result, output_key):
     LOG.debug("Validating action output: %s", action_schema)
 
-    if not _schema_is_valid(action_schema):
+    if not _output_schema_is_valid(action_schema):
         LOG.warning("Ignoring invalid action schema: %s", action_schema)
         return
 
@@ -177,13 +177,13 @@ def mask_secret_output(ac_ex, output_value):
         # without output_key we cannot use output_schema
         not output_key
         # cannot access output_key if output_value is not a dict
-        or not isinstance(output_value, Mapping)
+        or not isinstance(output_value, MutableMapping)
         # cannot mask output if it is missing
         or output_key not in output_value
         # no action output_schema defined
         or not output_schema
         # malformed action output_schema
-        or not _schema_is_valid(output_schema)
+        or not _output_schema_is_valid(output_schema)
     ):
         # nothing to mask
         return output_value
