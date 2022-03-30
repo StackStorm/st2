@@ -37,13 +37,17 @@ ACTION_RESULT = {
 }
 
 ACTION_RESULT_ALT_TYPES = {
-    "boolean": {"output": True},
     "integer": {"output": 42},
     "null": {"output": None},
     "number": {"output": 1.234},
     "string": {"output": "foobar"},
     "object": ACTION_RESULT,
     "array": {"output": [ACTION_RESULT]},
+}
+
+ACTION_RESULT_BOOLEANS = {
+    True: {"output": True},
+    False: {"output": False},
 }
 
 RUNNER_OUTPUT_SCHEMA = {
@@ -229,6 +233,13 @@ class OutputSchemaTestCase(unittest2.TestCase):
             )
             self.assertDictEqual(masked_output, expected_masked_output)
 
+        for _, action_result in ACTION_RESULT_BOOLEANS.items():
+            ac_ex["action"]["output_schema"]["type"] = "boolean"
+            masked_output = output_schema.mask_secret_output(
+                ac_ex, copy.deepcopy(action_result)
+            )
+            self.assertDictEqual(masked_output, expected_masked_output)
+
     def test_mask_secret_output_no_secret(self):
         ac_ex = {
             "action": {
@@ -279,47 +290,15 @@ class OutputSchemaTestCase(unittest2.TestCase):
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
-        # The output is type of None.
-        ac_ex_result = {"output": None}
-        expected_masked_output = {"output": None}
-        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
-        self.assertDictEqual(masked_output, expected_masked_output)
+        # output_schema covers objects but output is not a dict/object.
+        for _, action_result in ACTION_RESULT_ALT_TYPES.items():
+            masked_output = output_schema.mask_secret_output(ac_ex, action_result)
+            self.assertDictEqual(masked_output, action_result)
 
-        # The output is string type: not dict
-        ac_ex_result = {"output": "foobar"}
-        expected_masked_output = {"output": "foobar"}
-        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
-        self.assertDictEqual(masked_output, expected_masked_output)
-
-        # The output is number / int type: not dict
-        ac_ex_result = {"output": 42}
-        expected_masked_output = {"output": 42}
-        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
-        self.assertDictEqual(masked_output, expected_masked_output)
-
-        # The output is number / float type: not dict
-        ac_ex_result = {"output": 4.2}
-        expected_masked_output = {"output": 4.2}
-        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
-        self.assertDictEqual(masked_output, expected_masked_output)
-
-        # The output is True (bool type): not dict
-        ac_ex_result = {"output": True}
-        expected_masked_output = {"output": True}
-        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
-        self.assertDictEqual(masked_output, expected_masked_output)
-
-        # The output is False (bool type): not dict
-        ac_ex_result = {"output": False}
-        expected_masked_output = {"output": False}
-        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
-        self.assertDictEqual(masked_output, expected_masked_output)
-
-        # The output is list type: not dict
-        ac_ex_result = {"output": ["foobar"]}
-        expected_masked_output = {"output": ["foobar"]}
-        masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
-        self.assertDictEqual(masked_output, expected_masked_output)
+        # output_schema covers objects but output is a bool.
+        for _, action_result in ACTION_RESULT_BOOLEANS.items():
+            masked_output = output_schema.mask_secret_output(ac_ex, action_result)
+            self.assertDictEqual(masked_output, action_result)
 
         # The output key is missing.
         ac_ex_result = {"output1": None}
