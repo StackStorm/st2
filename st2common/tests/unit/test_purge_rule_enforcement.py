@@ -17,7 +17,7 @@ from datetime import timedelta
 import bson
 
 from st2common import log as logging
-from st2common.garbage_collection.rule_enforcement import purge_rule_enforcement
+from st2common.garbage_collection.rule_enforcement import purge_rule_enforcements
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.util import date as date_utils
@@ -46,7 +46,7 @@ class TestPurgeRuleEnforcement(CleanDbTestCase):
         self.assertRaisesRegexp(
             ValueError,
             expected_msg,
-            purge_rule_enforcement,
+            purge_rule_enforcements,
             logger=LOG,
             timestamp=None,
         )
@@ -63,7 +63,7 @@ class TestPurgeRuleEnforcement(CleanDbTestCase):
         )
 
         self.assertEqual(len(RuleEnforcement.get_all()), 2)
-        purge_rule_enforcement(logger=LOG, timestamp=now - timedelta(days=10))
+        purge_rule_enforcements(logger=LOG, timestamp=now - timedelta(days=10))
         self.assertEqual(len(RuleEnforcement.get_all()), 1)
 
     @staticmethod
