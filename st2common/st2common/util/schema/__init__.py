@@ -86,13 +86,16 @@ def get_draft_schema(version="custom", additional_properties=False):
     return schema
 
 
-def get_action_output_schema(additional_properties=True):
+def get_action_output_schema(additional_properties=False, description=None):
     """
     Return a generic schema which is used for validating action output.
     """
-    return get_draft_schema(
+    schema = get_draft_schema(
         version="action_output_schema", additional_properties=additional_properties
     )
+    if description:
+        schema["description"] = f"{description} (based on {schema['description']})"
+    return schema
 
 
 def get_action_parameters_schema(additional_properties=False):

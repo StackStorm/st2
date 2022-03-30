@@ -281,7 +281,7 @@
         "output_schema": {
             "id": "http://json-schema.org/draft-04/schema#",
             "$schema": "http://json-schema.org/draft-04/schema#",
-            "description": "Core schema meta-schema",
+            "description": "Action Output Schema (based on Core schema meta-schema)",
             "definitions": {
                 "schemaArray": {
                     "type": "array",
@@ -502,7 +502,8 @@
                     "minimum"
                 ]
             },
-            "default": {}
+            "default": {},
+            "additionalProperties": false
         },
         "tags": {
             "description": "User associated metadata assigned to this object.",
