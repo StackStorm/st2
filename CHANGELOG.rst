@@ -153,8 +153,12 @@ Added
   Contributed by @Kami.
 
 * Add new audit message when a user has decrypted a key whether manually in the container (st2 key get [] --decrypt)
-  or through a stack-storm workflow with a defined config.
+  or through a workflow with a defined config. #5594
   Contributed by @dmork123
+
+* Added garbage collection for rule_enforcement and trace models #5596/5602
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
 
 Fixed
 ~~~~~
