@@ -59,6 +59,11 @@ CONFIG_FILE_OPTIONS = {
         "username": {"type": "string", "default": None},
         "password": {"type": "string", "default": None},
         "api_key": {"type": "string", "default": None},
+        "basic_auth": {
+            # Basic auth credentials in username:password notation
+            "type": "string",
+            "default": None,
+        },
     },
     "api": {"url": {"type": "string", "default": None}},
     "auth": {"url": {"type": "string", "default": None}},

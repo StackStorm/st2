@@ -401,9 +401,9 @@ Add-Content -value $data -encoding byte -path $filePath
         # handle deletion of the temporary file on exit of the with block
         with self._tmp_script(tmp_dir, script) as tmp_script:
             # the following wraps the script (from the file) in a script block ( {} )
-            # executes it, passing in the parameters built above
+            # executes it, passing in the parameters built above.
             # https://docs.microsoft.com/en-us/powershell/scripting/core-powershell/console/powershell.exe-command-line-help
-            ps = "& {%s}" % (tmp_script)
+            ps = tmp_script
             if params:
                 ps += " " + params
             return self._run_ps(ps)

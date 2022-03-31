@@ -355,6 +355,56 @@ class TestResourceManager(unittest2.TestCase):
         instance = mgr.get_by_name("abc")
         self.assertRaises(Exception, mgr.delete, instance)
 
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "get",
+        mock.MagicMock(
+            return_value=base.FakeResponse(
+                json.dumps([base.RESOURCES[0]]), 200, "OK", {}
+            )
+        ),
+    )
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "delete",
+        mock.MagicMock(return_value=base.FakeResponse("", 204, "NO CONTENT")),
+    )
+    def test_resource_delete_action(self):
+        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        instance = mgr.get_by_name("abc")
+        mgr.delete_action(instance, True)
+
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "delete",
+        mock.MagicMock(return_value=base.FakeResponse("", 404, "NOT FOUND")),
+    )
+    def test_resource_delete_action_404(self):
+        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        instance = base.FakeResource.deserialize(base.RESOURCES[0])
+        mgr.delete_action(instance, False)
+
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "get",
+        mock.MagicMock(
+            return_value=base.FakeResponse(
+                json.dumps([base.RESOURCES[0]]), 200, "OK", {}
+            )
+        ),
+    )
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "delete",
+        mock.MagicMock(
+            return_value=base.FakeResponse("", 500, "INTERNAL SERVER ERROR")
+        ),
+    )
+    def test_resource_delete_action_failed(self):
+        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        instance = mgr.get_by_name("abc")
+        self.assertRaises(Exception, mgr.delete_action, instance, True)
+
     @mock.patch("requests.get")
     @mock.patch("sseclient.SSEClient")
     def test_stream_resource_listen(self, mock_sseclient, mock_requests):
@@ -396,3 +446,28 @@ class TestResourceManager(unittest2.TestCase):
 
         self.assertEqual(mock_requests.call_args_list[1][0], call_args)
         self.assertEqual(mock_requests.call_args_list[1][1], call_kwargs)
+
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "post",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, "OK")
+        ),
+    )
+    def test_resource_clone(self):
+        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        source_ref = "spack.saction"
+        resource = mgr.clone(source_ref, "dpack", "daction", False)
+        self.assertIsNotNone(resource)
+
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "post",
+        mock.MagicMock(
+            return_value=base.FakeResponse("", 500, "INTERNAL SERVER ERROR")
+        ),
+    )
+    def test_resource_clone_failed(self):
+        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        source_ref = "spack.saction"
+        self.assertRaises(Exception, mgr.clone, source_ref, "dpack", "daction")
