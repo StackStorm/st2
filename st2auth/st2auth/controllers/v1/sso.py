@@ -94,14 +94,44 @@ class SingleSignOnController(object):
 CALLBACK_SUCCESS_RESPONSE_BODY = """
 <html>
     <script>
+        function setCookie(name, value, days) {
+            var expires = "";
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
         function getCookie(name) {
             var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
             return v ? v[2] : null;
         }
 
-        data = JSON.parse(window.localStorage.getItem('st2Session'));
-        data['token'] = JSON.parse(decodeURIComponent(getCookie('st2-auth-token')));
+        // This cookie should've been set by the sso module
+        tokenDetails = JSON.parse(decodeURIComponent(getCookie('st2-auth-token')));
+
+        // Defining what to be set
+        data = JSON.parse(window.localStorage.getItem('st2Session') || "{}");
+        data['token'] = tokenDetails
+
+        if (!data['server']) {
+            serverPrefix = location.protocol + '//' + location.host;
+            data['server'] = {
+                "api": `${serverPrefix}/api`,
+                "auth": `${serverPrefix}/auth`,
+                "stream": `${serverPrefix}/stream`,
+                "token": null
+            }
+            console.log("Configured default server endpoints to [%%s]", data['server'])
+        }
+
+        // Persising data
+        console.log("Setting credentials to persistent stores")
         window.localStorage.setItem('st2Session', JSON.stringify(data));
+        window.localStorage.setItem('logged_in', { "loggedIn": true })
+        setCookie("auth-token", tokenDetails.token)
+
         window.location.replace("%s");
     </script>
 </html>
