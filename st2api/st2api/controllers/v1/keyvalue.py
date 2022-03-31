@@ -97,8 +97,17 @@ class KeyValuePairController(ResourceController):
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         extra = {"scope": scope, "name": name, "user": user, "key_ref": key_ref}
         LOG.debug("GET /v1/keys/%s", name, extra=extra)
-        LOG.audit("User %s decrypted the value %s ", user, name,
-                  extra={"user": user, "scope": scope, "key_name": name, "operation": "decrypt"})
+        LOG.audit(
+            "User %s decrypted the value %s ",
+            user,
+            name,
+            extra={
+                "user": user,
+                "scope": scope,
+                "key_name": name,
+                "operation": "decrypt",
+            },
+        )
         # Setup a kvp database object used for verifying permission
         kvp_db = KeyValuePairDB(
             uid="%s:%s:%s" % (ResourceType.KEY_VALUE_PAIR, scope, key_ref),
