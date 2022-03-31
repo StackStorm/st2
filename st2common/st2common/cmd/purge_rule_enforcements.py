@@ -35,7 +35,7 @@ from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
-from st2common.garbage_collection.trace import purge_trace
+from st2common.garbage_collection.rule_enforcement import purge_rule_enforcements
 
 __all__ = ["main"]
 
@@ -47,7 +47,7 @@ def _register_cli_opts():
         cfg.StrOpt(
             "timestamp",
             default=None,
-            help="Will delete trace instances older than "
+            help="Will delete rule_enforcement instances older than "
             + "this UTC timestamp. "
             + "Example value: 2015-03-13T19:01:27.255542Z",
         )
@@ -71,7 +71,7 @@ def main():
 
     # Purge models.
     try:
-        purge_trace(logger=LOG, timestamp=timestamp)
+        purge_rule_enforcements(logger=LOG, timestamp=timestamp)
     except Exception as e:
         LOG.exception(six.text_type(e))
         return FAILURE_EXIT_CODE
