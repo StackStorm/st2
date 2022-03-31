@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import os
+from typing import Mapping, Sequence
 
 import six
 import jsonschema
@@ -247,16 +248,25 @@ def assign_default_values(instance, schema):
         if (
             is_attribute_type_array(attribute_type)
             and schema_items
-            and schema_items.get("properties", {})
         ):
             array_instance = instance.get(property_name, None)
-            array_schema = schema["properties"][property_name]["items"]
-
+            # Note: We don't perform subschema assignment if no value is provided
             if array_instance is not None:
-                # Note: We don't perform subschema assignment if no value is provided
-                instance[property_name] = assign_default_values(
-                    instance=array_instance, schema=array_schema
-                )
+                if (
+                    isinstance(schema_items, Mapping)
+                    and schema_items.get("properties", {})
+                ):
+                    instance[property_name] = assign_default_values(
+                        instance=array_instance, schema=schema_items
+                    )
+                elif array_instance and isinstance(schema_items, Sequence):
+                    array_instance_count = len(array_instance)
+                    for i, item_schema in enumerate(schema_items):
+                        if i > array_instance_count:
+                            break
+                        instance[property_name][i] = assign_default_values(
+                            instance=array_instance[i], schema=item_schema
+                        )
 
         # Object
         if is_attribute_type_object(attribute_type) and property_data.get(

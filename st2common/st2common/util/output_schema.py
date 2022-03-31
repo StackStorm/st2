@@ -19,7 +19,7 @@ import sys
 import traceback
 import jsonschema
 
-from collections.abc import Mapping, MutableMapping, MutableSequence
+from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from st2common.util import schema
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -138,7 +138,7 @@ def _get_masked_value(spec, value):
 
         items_schema = spec.get("items", {})
         output_count = len(value)
-        if isinstance(items_schema, Mapping):
+        if isinstance(items_schema, Sequence):
             # explicit schema for each item
             for i, item_spec in enumerate(items_schema):
                 if i >= output_count:

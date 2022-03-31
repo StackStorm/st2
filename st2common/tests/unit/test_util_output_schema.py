@@ -33,6 +33,12 @@ ACTION_RESULT = {
         "deep_output": {
             "deep_item_1": "Jindal",
         },
+        "array_output_1": [
+            {"deep_item_1": "foo"},
+            {"deep_item_1": "bar"},
+            {"deep_item_1": "baz"},
+        ],
+        "array_output_2": ["answer", 4.2, True, False],
     }
 }
 
@@ -41,8 +47,8 @@ ACTION_RESULT_ALT_TYPES = {
     "null": {"output": None},
     "number": {"output": 1.234},
     "string": {"output": "foobar"},
-    "object": ACTION_RESULT,
-    "array": {"output": [ACTION_RESULT]},
+    "object": {"output": {"prop": "value"}},
+    "array": {"output": [{"prop": "value"}]},
 }
 
 ACTION_RESULT_BOOLEANS = {
@@ -68,10 +74,25 @@ ACTION_OUTPUT_SCHEMA = {
         "deep_output": {
             "type": "object",
             "properties": {
-                "deep_item_1": {
-                    "type": "string",
-                },
+                "deep_item_1": {"type": "string"},
             },
+        },
+        "array_output_1": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "deep_item_1": {"type": "string"},
+                },
+            }
+        },
+        "array_output_2": {
+            "type": "array",
+            "items": [
+                {"type": "string"},
+                {"type": "number"},
+            ],
+            "additionalItems": {"type": "boolean"},
         },
     },
     "additionalProperties": False,
@@ -104,10 +125,25 @@ ACTION_OUTPUT_SCHEMA_WITH_SECRET = {
         "deep_output": {
             "type": "object",
             "properties": {
-                "deep_item_1": {
-                    "type": "string",
-                },
+                "deep_item_1": {"type": "string"},
             },
+        },
+        "array_output_1": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "deep_item_1": {"type": "string", "secret": True},
+                },
+            }
+        },
+        "array_output_2": {
+            "type": "array",
+            "items": [
+                {"type": "string"},
+                {"type": "number", "secret": True},
+            ],
+            "additionalItems": {"type": "boolean", "secret": True},
         },
     },
     "additionalProperties": False,
@@ -152,11 +188,19 @@ class OutputSchemaTestCase(unittest2.TestCase):
         expected_result = {
             "error": (
                 "Additional properties are not allowed ('output' was unexpected)\n\n"
-                "Failed validating 'additionalProperties' in schema:\n    "
-                "{'additionalProperties': False,\n     'properties': {'not_a_key_you_have': "
-                "{'type': 'string'}},\n     'type': 'object'}\n\nOn instance:\n    {'output': "
-                "{'deep_output': {'deep_item_1': 'Jindal'},\n                'output_1': 'Bobby',"
-                "\n                'output_2': 5,\n                'output_3': 'shhh!'}}"
+                "Failed validating 'additionalProperties' in schema:\n"
+                "    {'additionalProperties': False,\n"
+                "     'properties': {'not_a_key_you_have': {'type': 'string'}},\n"
+                "     'type': 'object'}\n\n"
+                "On instance:\n"
+                "    {'output': {'array_output_1': [{'deep_item_1': 'foo'},\n"
+                "                                   {'deep_item_1': 'bar'},\n"
+                "                                   {'deep_item_1': 'baz'}],\n"
+                "                'array_output_2': ['answer', 4.2, True, False],\n"
+                "                'deep_output': {'deep_item_1': 'Jindal'},\n"
+                "                'output_1': 'Bobby',\n"
+                "                'output_2': 5,\n"
+                "                'output_3': 'shhh!'}}"
             ),
             "message": "Error validating output. See error output for more details.",
         }
@@ -203,6 +247,17 @@ class OutputSchemaTestCase(unittest2.TestCase):
                 "deep_output": {
                     "deep_item_1": "Jindal",
                 },
+                "array_output_1": [
+                    {"deep_item_1": MASKED_ATTRIBUTE_VALUE},
+                    {"deep_item_1": MASKED_ATTRIBUTE_VALUE},
+                    {"deep_item_1": MASKED_ATTRIBUTE_VALUE},
+                ],
+                "array_output_2": [
+                    "answer",
+                    MASKED_ATTRIBUTE_VALUE,
+                    MASKED_ATTRIBUTE_VALUE,
+                    MASKED_ATTRIBUTE_VALUE,
+                ],
             }
         }
 
@@ -259,6 +314,12 @@ class OutputSchemaTestCase(unittest2.TestCase):
                 "deep_output": {
                     "deep_item_1": "Jindal",
                 },
+                "array_output_1": [
+                    {"deep_item_1": "foo"},
+                    {"deep_item_1": "bar"},
+                    {"deep_item_1": "baz"},
+                ],
+                "array_output_2": ["answer", 4.2, True, False],
             }
         }
 
@@ -292,13 +353,17 @@ class OutputSchemaTestCase(unittest2.TestCase):
 
         # output_schema covers objects but output is not a dict/object.
         for _, action_result in ACTION_RESULT_ALT_TYPES.items():
-            masked_output = output_schema.mask_secret_output(ac_ex, action_result)
-            self.assertDictEqual(masked_output, action_result)
+            ac_ex_result = copy.deepcopy(action_result)
+            expected_masked_output = copy.deepcopy(action_result)
+            masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+            self.assertDictEqual(masked_output, expected_masked_output)
 
         # output_schema covers objects but output is a bool.
         for _, action_result in ACTION_RESULT_BOOLEANS.items():
-            masked_output = output_schema.mask_secret_output(ac_ex, action_result)
-            self.assertDictEqual(masked_output, action_result)
+            ac_ex_result = copy.deepcopy(action_result)
+            expected_masked_output = copy.deepcopy(action_result)
+            masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
+            self.assertDictEqual(masked_output, expected_masked_output)
 
         # The output key is missing.
         ac_ex_result = {"output1": None}
