@@ -171,7 +171,17 @@ class KeyValuePairController(ResourceController):
         self._validate_decrypt_query_parameter(
             decrypt=decrypt, scope=scope, requester_user=requester_user
         )
-
+        LOG.audit(
+            "User %s decrypted the value %s ",
+            user,
+            name,
+            extra={
+                "user": user,
+                "scope": scope,
+                "key_name": name,
+                "operation": "decrypt",
+            },
+        )
         current_user = requester_user.name
         user = user or requester_user.name
 
