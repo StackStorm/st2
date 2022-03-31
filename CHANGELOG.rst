@@ -169,6 +169,10 @@ Fixed
 
   Contributed by @khushboobhatia01
 
+* Fixed issue where pack index searches are ignoring no_proxy #5497
+
+  Contributed by @minsis
+
 3.6.0 - October 29, 2021
 ------------------------
 
