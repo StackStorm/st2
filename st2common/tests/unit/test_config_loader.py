@@ -575,6 +575,116 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         config_db.delete()
 
+    def test_get_config_dynamic_config_item_under_pattern_properties(self):
+        pack_name = "dummy_pack_schema_with_pattern_properties_1"
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        encrypted_value = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v1_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value, secret=True)
+        )
+
+        ####################
+        # values in objects under an object with additionalProperties
+        values = {
+            "profiles": {
+                "dev": {
+                    # no host or port to test default value
+                    "token": "hard-coded-secret",
+                },
+                "prod": {
+                    "host": "127.1.2.7",
+                    "port": 8282,
+                    # encrypted in datastore
+                    "token": "{{st2kv.system.k1_encrypted}}",
+                    # schema declares `secret: true` which triggers auto-decryption.
+                    # If this were not encrypted, it would try to decrypt it and fail.
+                },
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        config_rendered = loader.get_config()
+
+        self.assertEqual(
+            config_rendered,
+            {
+                "region": "us-east-1",
+                "profiles": {
+                    "dev": {
+                        "host": "127.0.0.3",
+                        "port": 8080,
+                        "token": "hard-coded-secret",
+                    },
+                    "prod": {
+                        "host": "127.1.2.7",
+                        "port": 8282,
+                        "token": "v1_encrypted",
+                    },
+                },
+            },
+        )
+
+        config_db.delete()
+
+    def test_get_config_dynamic_config_item_under_additional_items(self):
+        pack_name = "dummy_pack_schema_with_additional_items_1"
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        encrypted_value = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v1_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value, secret=True)
+        )
+
+        ####################
+        # values in objects under an object with additionalProperties
+        values = {
+            "profiles": [
+                {
+                    # no host or port to test default value
+                    "token": "hard-coded-secret",
+                },
+                {
+                    "host": "127.1.2.7",
+                    "port": 8282,
+                    # encrypted in datastore
+                    "token": "{{st2kv.system.k1_encrypted}}",
+                    # schema declares `secret: true` which triggers auto-decryption.
+                    # If this were not encrypted, it would try to decrypt it and fail.
+                },
+            ]
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        config_rendered = loader.get_config()
+
+        self.assertEqual(
+            config_rendered,
+            {
+                "region": "us-east-1",
+                "profiles": [
+                    {
+                        "host": "127.0.0.3",
+                        "port": 8080,
+                        "token": "hard-coded-secret",
+                    },
+                    {
+                        "host": "127.1.2.7",
+                        "port": 8282,
+                        "token": "v1_encrypted",
+                    },
+                ],
+            },
+        )
+
+        config_db.delete()
+
     def test_empty_config_object_in_the_database(self):
         pack_name = "dummy_pack_empty_config"
 
