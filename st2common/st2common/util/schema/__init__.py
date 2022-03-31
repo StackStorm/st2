@@ -245,16 +245,12 @@ def assign_default_values(instance, schema):
         schema_items = property_data.get("items", {})
 
         # Array
-        if (
-            is_attribute_type_array(attribute_type)
-            and schema_items
-        ):
+        if is_attribute_type_array(attribute_type) and schema_items:
             array_instance = instance.get(property_name, None)
             # Note: We don't perform subschema assignment if no value is provided
             if array_instance is not None:
-                if (
-                    isinstance(schema_items, Mapping)
-                    and schema_items.get("properties", {})
+                if isinstance(schema_items, Mapping) and schema_items.get(
+                    "properties", {}
                 ):
                     instance[property_name] = assign_default_values(
                         instance=array_instance, schema=schema_items

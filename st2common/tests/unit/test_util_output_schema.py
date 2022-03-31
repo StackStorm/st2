@@ -99,7 +99,7 @@ ACTION_OUTPUT_SCHEMA = {
                 "properties": {
                     "deep_item_1": {"type": "string"},
                 },
-            }
+            },
         },
         "array_output_2": {
             "type": "array",
@@ -158,7 +158,7 @@ ACTION_OUTPUT_SCHEMA_WITH_SECRET = {
                 "properties": {
                     "deep_item_1": {"type": "string", "secret": True},
                 },
-            }
+            },
         },
         "array_output_2": {
             "type": "array",
