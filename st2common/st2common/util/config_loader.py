@@ -252,19 +252,28 @@ class ContentPackConfigLoader(object):
 
         Note: This method mutates config argument in place.
 
-        :rtype: ``dict``
+        :rtype: ``dict|list``
         """
         schema_is_dict = isinstance(schema, dict)
         iterator = schema.items() if schema_is_dict else enumerate(schema)
 
+        # _get_*_schema ensures that schema_item is always a dict
         for schema_item_key, schema_item in iterator:
             has_default_value = "default" in schema_item
-            has_config_value = schema_item_key in config
+            if isinstance(config, dict):
+                has_config_value = schema_item_key in config
+            else:
+                has_config_value = schema_item_key < len(config)
 
             default_value = schema_item.get("default", None)
             if has_default_value and not has_config_value:
                 # Config value is not provided, but default value is, use a default value
                 config[schema_item_key] = default_value
+
+            try:
+                config_value = config[schema_item_key]
+            except (KeyError, IndexError):
+                config_value = None
 
             schema_item_type = schema_item.get("type", None)
 
@@ -281,16 +290,16 @@ class ContentPackConfigLoader(object):
                     or has_pattern_properties
                     or has_additional_properties
                 ):
-                    if not config.get(schema_item_key, None):
-                        config[schema_item_key] = {}
+                    if not config_value:
+                        config_value = config[schema_item_key] = {}
 
                     property_schema = self._get_object_property_schema(
                         schema_item,
-                        additional_properties_keys=config[schema_item_key].keys(),
+                        additional_properties_keys=config_value.keys(),
                     )
 
                     self._assign_default_values(
-                        schema=property_schema, config=config[schema_item_key]
+                        schema=property_schema, config=config_value
                     )
             elif schema_item_type == "array":
                 has_items = schema_item.get("items", None)
@@ -298,15 +307,15 @@ class ContentPackConfigLoader(object):
 
                 # Inspect nested array items
                 if has_items or has_additional_items:
-                    if not config.get(schema_item_key, None):
-                        config[schema_item_key] = []
+                    if not config_value:
+                        config_value = config[schema_item_key] = []
 
                     items_schema = self._get_array_items_schema(
                         schema_item,
-                        items_count=len(config[schema_item_key]),
+                        items_count=len(config_value),
                     )
                     self._assign_default_values(
-                        schema=items_schema, config=config[schema_item_key]
+                        schema=items_schema, config=config_value
                     )
 
         return config
