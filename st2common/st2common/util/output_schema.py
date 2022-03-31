@@ -42,7 +42,8 @@ def _output_schema_is_valid(_schema):
             schema.get_action_output_schema(),
             cls=schema.get_validator("custom"),
         )
-    except jsonschema.ValidationError:
+    except jsonschema.ValidationError as e:
+        LOG.debug("output_schema not valid: %s", e)
         # likely a legacy partial object schema (only defines properties)
         return False
     return True
