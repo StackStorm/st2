@@ -35,6 +35,11 @@ ACTION_RESULT = {
             "extra_item_1": 42,
             "extra_item_2": 33,
         },
+        "pattern_output": {
+            "a": "x",
+            "b": "y",
+            "c": "z",
+        },
         "array_output_1": [
             {"deep_item_1": "foo"},
             {"deep_item_1": "bar"},
@@ -79,6 +84,13 @@ ACTION_OUTPUT_SCHEMA = {
                 "deep_item_1": {"type": "string"},
             },
             "additionalProperties": {"type": "integer"},
+        },
+        "pattern_output": {
+            "type": "object",
+            "patternProperties": {
+                "^\\w$": {"type": "string"},
+            },
+            "additionalProperties": False,
         },
         "array_output_1": {
             "type": "array",
@@ -131,6 +143,13 @@ ACTION_OUTPUT_SCHEMA_WITH_SECRET = {
                 "deep_item_1": {"type": "string"},
             },
             "additionalProperties": {"type": "integer", "secret": True},
+        },
+        "pattern_output": {
+            "type": "object",
+            "patternProperties": {
+                "^\\w$": {"type": "string", "secret": True},
+            },
+            "additionalProperties": False,
         },
         "array_output_1": {
             "type": "array",
@@ -206,7 +225,8 @@ class OutputSchemaTestCase(unittest2.TestCase):
                 "                                'extra_item_2': 33},\n"
                 "                'output_1': 'Bobby',\n"
                 "                'output_2': 5,\n"
-                "                'output_3': 'shhh!'}}"
+                "                'output_3': 'shhh!',\n"
+                "                'pattern_output': {'a': 'x', 'b': 'y', 'c': 'z'}}}"
             ),
             "message": "Error validating output. See error output for more details.",
         }
@@ -254,6 +274,11 @@ class OutputSchemaTestCase(unittest2.TestCase):
                     "deep_item_1": "Jindal",
                     "extra_item_1": MASKED_ATTRIBUTE_VALUE,
                     "extra_item_2": MASKED_ATTRIBUTE_VALUE,
+                },
+                "pattern_output": {
+                    "a": MASKED_ATTRIBUTE_VALUE,
+                    "b": MASKED_ATTRIBUTE_VALUE,
+                    "c": MASKED_ATTRIBUTE_VALUE,
                 },
                 "array_output_1": [
                     {"deep_item_1": MASKED_ATTRIBUTE_VALUE},

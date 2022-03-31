@@ -108,7 +108,7 @@ def _get_masked_value(spec, value):
             and isinstance(pattern_properties_schema, Mapping)
         ):
             # patternProperties is not malformed
-            for key_pattern, pattern_property_spec in pattern_properties_schema:
+            for key_pattern, pattern_property_spec in pattern_properties_schema.items():
                 if not unhandled_keys:
                     # nothing to check, don't compile the next pattern
                     break
