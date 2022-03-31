@@ -32,6 +32,8 @@ ACTION_RESULT = {
         "output_3": "shhh!",
         "deep_output": {
             "deep_item_1": "Jindal",
+            "extra_item_1": 42,
+            "extra_item_2": 33,
         },
         "array_output_1": [
             {"deep_item_1": "foo"},
@@ -76,6 +78,7 @@ ACTION_OUTPUT_SCHEMA = {
             "properties": {
                 "deep_item_1": {"type": "string"},
             },
+            "additionalProperties": {"type": "integer"},
         },
         "array_output_1": {
             "type": "array",
@@ -127,6 +130,7 @@ ACTION_OUTPUT_SCHEMA_WITH_SECRET = {
             "properties": {
                 "deep_item_1": {"type": "string"},
             },
+            "additionalProperties": {"type": "integer", "secret": True},
         },
         "array_output_1": {
             "type": "array",
@@ -197,7 +201,9 @@ class OutputSchemaTestCase(unittest2.TestCase):
                 "                                   {'deep_item_1': 'bar'},\n"
                 "                                   {'deep_item_1': 'baz'}],\n"
                 "                'array_output_2': ['answer', 4.2, True, False],\n"
-                "                'deep_output': {'deep_item_1': 'Jindal'},\n"
+                "                'deep_output': {'deep_item_1': 'Jindal',\n"
+                "                                'extra_item_1': 42,\n"
+                "                                'extra_item_2': 33},\n"
                 "                'output_1': 'Bobby',\n"
                 "                'output_2': 5,\n"
                 "                'output_3': 'shhh!'}}"
@@ -246,6 +252,8 @@ class OutputSchemaTestCase(unittest2.TestCase):
                 "output_3": MASKED_ATTRIBUTE_VALUE,
                 "deep_output": {
                     "deep_item_1": "Jindal",
+                    "extra_item_1": MASKED_ATTRIBUTE_VALUE,
+                    "extra_item_2": MASKED_ATTRIBUTE_VALUE,
                 },
                 "array_output_1": [
                     {"deep_item_1": MASKED_ATTRIBUTE_VALUE},
@@ -306,22 +314,7 @@ class OutputSchemaTestCase(unittest2.TestCase):
             },
         }
 
-        expected_masked_output = {
-            "output": {
-                "output_1": "Bobby",
-                "output_2": 5,
-                "output_3": "shhh!",
-                "deep_output": {
-                    "deep_item_1": "Jindal",
-                },
-                "array_output_1": [
-                    {"deep_item_1": "foo"},
-                    {"deep_item_1": "bar"},
-                    {"deep_item_1": "baz"},
-                ],
-                "array_output_2": ["answer", 4.2, True, False],
-            }
-        }
+        expected_masked_output = copy.deepcopy(ACTION_RESULT)
 
         masked_output = output_schema.mask_secret_output(
             ac_ex, copy.deepcopy(ACTION_RESULT)
