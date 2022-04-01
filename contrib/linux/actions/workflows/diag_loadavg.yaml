@@ -46,7 +46,7 @@
         cmd: >
           echo "{{__results}}"
           | python3 -c
-          'import ast, datetime, json, sys; 
+          'import ast, datetime, json, sys;
           diag_data=ast.literal_eval(sys.stdin.read());
           diag_data["timestamp"] = str(datetime.datetime.now());
           print(json.dumps(diag_data))'
