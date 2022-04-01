@@ -172,6 +172,7 @@ class WebhooksController(object):
             payload = {}
 
             payload["headers"] = headers
+            payload["headers_lower"] = {k.lower(): v for k, v in headers.items()}
             payload["body"] = body
 
             # Dispatch trigger instance for each of the trigger found

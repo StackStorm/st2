@@ -18,6 +18,7 @@ import sys
 import traceback
 import jsonschema
 
+from collections.abc import Mapping
 from st2common.util import schema
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -68,7 +69,16 @@ def mask_secret_output(ac_ex, output_value):
     if not output_value.get(output_key):
         return output_value
 
+    if not isinstance(output_value[output_key], Mapping):
+        # TODO: Allow output_schema + masking for non-dict action output.
+        #       Current implementation expects actions to return JSON dicts.
+        return output_value
+
     for key, spec in output_schema.items():
+        if not isinstance(spec, Mapping):
+            # TODO: Spec should be a jsonschema object. This will change in a future
+            #       release, so we just ignore invalid schemas for now.
+            continue
         if key in output_value[output_key] and spec.get("secret", False):
             output_value[output_key][key] = MASKED_ATTRIBUTE_VALUE
 

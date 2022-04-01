@@ -156,6 +156,7 @@ class ActionsQueueConsumer(QueueConsumer):
     def shutdown(self):
         self._workflows_dispatcher.shutdown()
         self._actions_dispatcher.shutdown()
+        self.should_stop = True
 
 
 class VariableMessageQueueConsumer(QueueConsumer):
@@ -203,6 +204,9 @@ class MessageHandler(object):
     def shutdown(self):
         LOG.info("Shutting down %s...", self.__class__.__name__)
         self._queue_consumer.shutdown()
+
+    def kill(self):
+        self._consumer_thread.kill(SystemExit())
 
     @abc.abstractmethod
     def process(self, message):

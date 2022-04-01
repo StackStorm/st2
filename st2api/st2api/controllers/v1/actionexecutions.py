@@ -219,6 +219,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 liveaction=liveaction_db,
                 action_db=action_db,
                 runnertype_db=runnertype_db,
+                validate_params=False,
             )
 
             # By this point the execution is already in the DB therefore need to mark it failed.
