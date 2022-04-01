@@ -15,9 +15,7 @@
 
 from st2actions.runners.pythonrunner import Action
 
-__all__ = [
-    'GetLibraryPathAction'
-]
+__all__ = ["GetLibraryPathAction"]
 
 
 class GetLibraryPathAction(Action):

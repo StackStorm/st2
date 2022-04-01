@@ -4,6 +4,722 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+
+* Fix deserialization bug in st2 API for url encoded payloads. #5536
+
+  Contributed by @sravs-dev
+
+* Fix issue of WinRM parameter passing fails for larger scripts.#5538
+
+  Contributed by @ashwini-orchestral
+
+* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
+  ``timedelta.total_seconds()`` return. #5462
+
+  Contributed by @blackstrip
+
+* Fix issue with pack option not working when running policy list cli #5534
+
+  Contributed by @momokuri-3
+
+* Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
+
+  contributed by @guzzijones12
+
+* Link shutdown routine and sigterm handler to main thread #5555
+
+  Contributed by @khushboobhatia01
+
+* Change compound index for ActionExecutionDB to improve query performance #5568
+
+  Contributed by @khushboobhatia01
+
+* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
+
+  Contributed by Amanda McGuinness (@amanda11 intive) #5581
+
+Added
+~~~~~
+
+* Minor updates for RockyLinux. #5552
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Added st2 API get action parameters by ref. #5509
+
+  API endpoint ``/api/v1/actions/views/parameters/{action_id}`` accepts ``ref_or_id``.
+
+  Contributed by @DavidMeu
+
+* Enable setting ttl for MockDatastoreService. #5468
+
+  Contributed by @ytjohn
+
+* Added st2 API and CLI command for actions clone operation.
+
+  API endpoint ``/api/v1/actions/{ref_or_id}/clone`` takes ``ref_or_id`` of source action.
+  Request method body takes destination pack and action name. Request method body also takes
+  optional paramater ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
+  overwritten.
+
+  CLI command ``st2 action clone <ref_or_id> <dest_pack> <dest_action>`` takes source ``ref_or_id``, destination
+  pack name and destination action name as mandatory arguments.
+  In case destionation already exists then command takes optional arugument ``-f`` or ``--force`` to overwrite
+  destination action. #5345
+
+  Contributed by @mahesh-orch.
+
+* Implemented RBAC functionality for existing ``KEY_VALUE_VIEW, KEY_VALUE_SET, KEY_VALUE_DELETE`` and new permission types ``KEY_VALUE_LIST, KEY_VALUE_ALL``.
+  RBAC is enabled in the ``st2.conf`` file. Access to a key value pair is checked in the KeyValuePair API controller. #5354
+
+  Contributed by @m4dcoder and @ashwini-orchestral
+
+* Added service degerestration on shutdown of a service. #5396
+
+  Contributed by @khushboobhatia01
+
+* Added pysocks python package for SOCKS proxy support. #5460
+
+  Contributed by @kingsleyadam
+
+* Added support for multiple LDAP hosts to st2-auth-ldap. #5535, https://github.com/StackStorm/st2-auth-ldap/pull/100
+
+  Contributed by @ktyogurt
+
+* Implemented graceful shutdown for action runner. Enabled ``graceful_shutdown`` in ``st2.conf`` file. #5428
+
+  Contributed by @khushboobhatia01
+
+* Enhanced 'search' operator to allow complex criteria matching on payload items. #5482
+
+  Contributed by @erceth
+
+* Added cancel/pause/resume requester information to execution context. #5554
+
+  Contributed by @khushboobhatia01
+
+* Added `trigger.headers_lower` to webhook trigger payload. This allows rules to match webhook triggers
+  without dealing with the case-sensitive nature of `trigger.headers`, as `triggers.headers_lower` providers
+  the same headers, but with the header name lower cased. #5038
+
+  Contributed by @Rand01ph
+
+* Added support to override enabled parameter of resources. #5506
+
+  Contributed by Amanda McGuinness (@amanda11 Intive)
+
+* Add new ``api.auth_cookie_secure`` and ``api.auth_cookie_same_site`` config options which
+  specify values which are set for ``secure`` and ``SameSite`` attribute for the auth cookie
+  we set when authenticating via token / api key in query parameter value (e.g. via st2web).
+
+  For security reasons, ``api.auth_cookie_secure`` defaults to ``True``. This should only be
+  changed to ``False`` if you have a valid reason to not run StackStorm behind HTTPs proxy.
+
+  Default value for ``api.auth_cookie_same_site`` is ``lax``. If you want to disable this
+  functionality so it behaves the same as in the previous releases, you can set that option
+  to ``None``.
+
+  #5248
+
+  Contributed by @Kami.
+
+* Add new ``st2 action-alias test <message string>`` CLI command which allows users to easily
+  test action alias matching and result formatting.
+
+  This command will first try to find a matching alias (same as ``st2 action-alias match``
+  command) and if a match is found, trigger an execution (same as ``st2 action-alias execute``
+  command) and format the execution result.
+
+  This means it uses exactly the same flow as commands on chat, but the interaction avoids
+  chat and hubot which should make testing and developing aliases easier and faster. #5143
+
+  #5143
+
+  Contributed by @Kami.
+
+* Add new ``credentials.basic_auth = username:password`` CLI configuration option.
+
+  This argument allows client to use additional set of basic auth credentials when talking to the
+  StackStorm API endpoints (api, auth, stream) - that is, in addition to the token / api key
+  native StackStorm auth.
+
+  This allows for simple basic auth based multi factor authentication implementation for
+  installations which don't utilize SSO.
+
+  #5152
+
+  Contributed by @Kami.
+
+* Added garbage collection for rule_enforcement and trace models #5596/5602
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Added garbage collection for workflow execution and task execution objects #4924
+  Contributed by @srimandaleeka01 and @amanda11
+
+
+Fixed
+~~~~~
+
+* Fixed regression caused by #5358. Use string lock name instead of object ID. #5484
+
+  Contributed by @khushboobhatia01
+
+* Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
+
+* Use byte type lock name which is supported by all tooz drivers. #5529
+
+  Contributed by @khushboobhatia01
+
+* Fixed issue where pack index searches are ignoring no_proxy #5497
+
+  Contributed by @minsis
+
+3.6.0 - October 29, 2021
+------------------------
+
+Added
+~~~~~
+
+* Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+
+* ``st2.conf`` is now the only place to configure ports for ``st2api``, ``st2auth``, and ``st2stream``.
+
+  We replaced the static ``.socket`` sytemd units in deb and rpm packages with a python-based generator for the
+  ``st2api``, ``st2auth``, and ``st2stream`` services. The generators will get ``<ip>:<port>`` from ``st2.conf``
+  to create the ``.socket`` files dynamically. #5286 and st2-packages#706
+
+  Contributed by @nzlosh
+
+Changed
+~~~~~~~
+
+* Modified action delete API to delete action files from disk along with backward compatibility.
+
+  From CLI ``st2 action delete <pack>.<action>`` will delete only action database entry.
+  From CLI ``st2 action delete --remove-files <pack>.<action>`` or ``st2 action delete -r <pack>.<action>``
+  will delete action database entry along with files from disk.
+
+  API action DELETE method with ``{"remove_files": true}`` argument in json body will remove database
+  entry of action along with files from disk.
+  API action DELETE method with ``{"remove_files": false}`` or no additional argument in json body will remove
+  only action database entry. #5304, #5351, #5360
+
+  Contributed by @mahesh-orch.
+
+* Removed --python3 deprecated flag from st2client. #5305
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+  Contributed by @blag.
+* Fixed ``__init__.py`` files to use double quotes to better align with black linting #5299
+
+  Contributed by @blag.
+
+* Reduced minimum TTL on garbage collection for action executions and trigger instances from 7 days to 1 day. #5287
+
+  Contributed by @ericreeves.
+
+* update db connect mongo connection test - `isMaster` MongoDB command depreciated, switch to `ping` #5302, #5341
+
+  Contributed by @lukepatrick
+
+* Actionrunner worker shutdown should stop Kombu consumer thread. #5338
+
+  Contributed by @khushboobhatia01
+
+* Move to using Jinja sandboxed environment #5359
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Pinned python module `networkx` to versions between 2.5.1(included) and 2.6(excluded) because Python v3.6 support was dropped in v2.6.
+  Also pinned `decorator==4.4.2` (dependency of `networkx<2.6`) to work around missing python 3.8 classifiers on `decorator`'s wheel. #5376
+
+  Contributed by @nzlosh
+
+* Add new ``--enable-profiler`` flag to all the servies. This flag enables cProfiler based profiler
+  for the service in question and  dumps the profiling data to a file on process
+  exit.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when profiling code. #5199
+
+  Contributed by @Kami.
+
+* Add new ``--enable-eventlet-blocking-detection`` flag to all the servies. This flag enables
+  eventlet long operation / blocked main loop logic which throws an exception if a particular
+  code blocks longer than a specific duration in seconds.
+
+  This functionality should never be used in production, but only in development environments or
+  similar when debugging code. #5199
+
+* Silence pylint about dev/debugging utility (tools/direct_queue_publisher.py) that uses pika because kombu
+  doesn't support what it does. If anyone uses that utility, they have to install pika manually. #5380
+
+* Fixed version of cffi as changes in 1.15.0 meant that it attempted to load libffi.so.8. #5390
+
+  Contributed by @amanda11, Ammeon Solutions
+
+* Updated Bash installer to install latest RabbitMQ version rather than out-dated version available
+  in OS distributions.
+
+  Contributed by @amanda11, Ammeon Solutions
+
+Fixed
+~~~~~
+
+* Correct error reported when encrypted key value is reported, and another key value parameter that requires conversion is present. #5328
+  Contributed by @amanda11, Ammeon Solutions
+
+* Make ``update_executions()`` atomic by protecting the update with a coordination lock. Actions, like workflows, may have multiple
+  concurrent updates to their execution state. This makes those updates safer, which should make the execution status more reliable. #5358
+
+  Contributed by @khushboobhatia01
+
+* Fix "not iterable" error for ``output_schema`` handling. If a schema is not well-formed, we ignore it.
+  Also, if action output is anything other than a JSON object, we do not try to process it any more.
+  ``output_schema`` will change in a future release to support non-object output. #5309
+
+  Contributed by @guzzijones
+
+* ``core.inject_trigger``: resolve ``trigger`` payload shadowing by deprecating ``trigger`` param in favor of ``trigger_name``.
+  ``trigger`` param is still available for backwards compatibility, but will be removed in a future release. #5335 and #5383
+
+  Contributed by @mjtice
+
+3.5.0 - June 23, 2021
+---------------------
+
+Added
+~~~~~
+
+* Added web header settings for additional security hardening to nginx.conf: X-Frame-Options,
+  Strict-Transport-Security, X-XSS-Protection and server-tokens. #5183
+
+  Contributed by @shital.
+
+* Added support for ``limit`` and ``offset`` argument to the ``list_values`` data store
+  service method (#5097 and #5171).
+
+  Contributed by @anirudhbagri.
+
+* Various additional metrics have been added to the action runner service to provide for better
+  operational visibility. (improvement) #4846
+
+  Contributed by @Kami.
+
+* Added sensor model to list of JSON schemas auto-generated by `make schemasgen` that can be used
+  by development tools to validate pack contents. (improvement)
+
+* Added the command line utility `st2-validate-pack` that can be used by pack developers to
+  validate pack contents. (improvement)
+
+* Fix a bug in the API and CLI code which would prevent users from being able to retrieve resources
+  which contain non-ascii (utf-8) characters in the names / references. (bug fix) #5189
+
+  Contributed by @Kami.
+
+* Fix a bug in the API router code and make sure we return correct and user-friendly error to the
+  user in case we fail to parse the request URL / path because it contains invalid or incorrectly
+  URL encoded data.
+
+  Previously such errors weren't handled correctly which meant original exception with a stack
+  trace got propagated to the user. (bug fix) #5189
+
+  Contributed by @Kami.
+
+* Make redis the default coordinator backend.
+
+* Fix a bug in the pack config loader so that objects covered by an additionalProperties schema
+  can use encrypted datastore keys and have their default values applied correctly. #5225
+
+  Contributed by @cognifloyd.
+
+* Add new ``database.compressors`` and ``database.zlib_compression_level`` config option which
+  specifies compression algorithms client supports for network / transport level compression
+  when talking to MongoDB.
+
+  Actual compression algorithm used will be then decided by the server and depends on the
+  algorithms which are supported by the server + client.
+
+  Possible / valid values include: zstd, zlib. Keep in mind that zstandard (zstd) is only supported
+  by MongoDB >= 4.2.
+
+  Our official Debian and RPM packages bundle ``zstandard`` dependency by default which means
+  setting this value to ``zstd`` should work out of the box as long as the server runs
+  MongoDB >= 4.2. #5177
+
+  Contributed by @Kami.
+
+* Add support for compressing the payloads which are sent over the message bus. Compression is
+  disabled by default and user can enable it by setting ``messaging.compression`` config option
+  to one of the following values: ``zstd``, ``lzma``, ``bz2``, ``gzip``.
+
+  In most cases we recommend using ``zstd`` (zstandard) since it offers best trade off between
+  compression ratio and number of CPU cycles spent for compression and compression.
+
+  How this will affect the deployment and throughput is very much user specific (workflow and
+  resources available). It may make sense to enable it when generic action trigger is enabled
+  and when working with executions with large textual results. #5241
+
+  Contributed by @Kami.
+
+* Mask secrets in output of an action execution in the API if the action has an output schema
+  defined and one or more output parameters are marked as secret. #5250
+
+  Contributed by @mahesh-orch.
+
+Changed
+~~~~~~~
+
+* All the code has been refactored using black and black style is automatically enforced and
+  required for all the new code. (#5156)
+
+  Contributed by @Kami.
+
+* Default nginx config (``conf/nginx/st2.conf``) which is used by the installer and Docker
+  images has been updated to only support TLS v1.2 and TLS v1.3 (support for TLS v1.0 and v1.1
+  has been removed).
+
+  Keep in mind that TLS v1.3 will only be used when nginx is running on more recent distros
+  where nginx is compiled against OpenSSL v1.1.1 which supports TLS 1.3. #5183 #5216
+
+  Contributed by @Kami and @shital.
+
+* Add new ``-x`` argument to the ``st2 execution get`` command which allows
+  ``result`` field to be excluded from the output. (improvement) #4846
+
+* Update ``st2 execution get <id>`` command to also display execution ``log`` attribute which
+  includes execution state transition information.
+
+  By default ``end_timestamp`` attribute and ``duration`` attribute displayed in the command
+  output only include the time it took action runner to finish running actual action, but it
+  doesn't include the time it it takes action runner container to fully finish running the
+  execution - this includes persisting execution result in the database.
+
+  For actions which return large results, there could be a substantial discrepancy - e.g.
+  action itself could finish in 0.5 seconds, but writing data to the database could take
+  additional 5 seconds after the action code itself was executed.
+
+  For all purposes until the execution result is  persisted to the database, execution is
+  not considered as finished.
+
+  While writing result to the database action runner is also consuming CPU cycles since
+  serialization of large results is a CPU intensive task.
+
+  This means that "elapsed" attribute and start_timestamp + end_timestamp will make it look
+  like actual action completed in 0.5 seconds, but in reality it took 5.5 seconds (0.5 + 5 seconds).
+
+  Log attribute can be used to determine actual duration of the execution (from start to
+  finish). (improvement) #4846
+
+  Contributed by @Kami.
+
+* Various internal improvements (reducing number of DB queries, speeding up YAML parsing, using
+  DB object cache, etc.) which should speed up pack action registration between 15-30%. This is
+  especially pronounced with packs which have a lot of actions (e.g. aws one).
+  (improvement) #4846
+
+  Contributed by @Kami.
+
+* Underlying database field type and storage format for the ``Execution``, ``LiveAction``,
+  ``WorkflowExecutionDB``, ``TaskExecutionDB`` and ``TriggerInstanceDB`` database models has
+  changed.
+
+  This new format is much faster and efficient than the previous one. Users with larger executions
+  (executions with larger results) should see the biggest improvements, but the change also scales
+  down so there should also be improvements when reading and writing executions with small and
+  medium sized results.
+
+  Our micro and end to benchmarks have shown improvements up to 15-20x for write path (storing
+  model in the database) and up to 10x for the read path.
+
+  To put things into perspective - with previous version, running a Python runner action which
+  returns 8 MB result would take around ~18 seconds total, but with this new storage format, it
+  takes around 2 seconds (in this context, duration means the from the time the execution was
+  scheduled to the time the execution model and result was written and available in the database).
+
+  The difference is even larger when working with Orquesta workflows.
+
+  Overall performance improvement doesn't just mean large decrease in those operation timings, but
+  also large overall reduction of CPU usage - previously serializing large results was a CPU
+  intensive time since it included tons of conversions and transformations back and forth.
+
+  The new format is also around 10-20% more storage efficient which means that it should allows
+  for larger model values (MongoDB document size limit is 16 MB).
+
+  The actual change should be fully opaque and transparent to the end users - it's purely a
+  field storage implementation detail and the code takes care of automatically handling both
+  formats when working with those object.
+
+  Same field data storage optimizations have also been applied to workflow related database models
+  which should result in the same performance improvements for Orquesta workflows which pass larger
+  data sets / execution results around.
+
+  Trigger instance payload field has also been updated to use this new field type which should
+  result in lower CPU utilization and better throughput of rules engine service when working with
+  triggers with larger payloads.
+
+  This should address a long standing issue where StackStorm was reported to be slow and CPU
+  inefficient with handling large executions.
+
+  If you want to migrate existing database objects to utilize the new type, you can use
+  ``st2common/bin/migrations/v3.5/st2-migrate-db-dict-field-values`` migration
+  script. (improvement) #4846
+
+  Contributed by @Kami.
+
+* Add new ``result_size`` field to the ``ActionExecutionDB`` model. This field will only be
+  populated for executions which utilize new field storage format.
+
+  It holds the size of serialzed execution result field in bytes. This field will allow us to
+  implement more efficient execution result retrieval and provide better UX since we will be
+  able to avoid loading execution results in the WebUI for executions with very large results
+  (which cause browser to freeze). (improvement) #4846
+
+  Contributed by @Kami.
+
+* Add new ``/v1/executions/<id>/result[?download=1&compress=1&pretty_format=1]`` API endpoint
+  which can be used used to retrieve or download raw execution result as (compressed) JSON file.
+
+  This endpoint will primarily be used by st2web when executions produce very large results so
+  we can avoid loading, parsing and formatting those very large results as JSON in the browser
+  which freezes the browser window / tab. (improvement) #4846
+
+  Contributed by @Kami.
+
+* Update ``jinja2`` dependency to the latest stable version (2.11.3). #5195
+
+* Update ``pyyaml`` dependency to the latest stable version (5.4). #5207
+
+* Update various dependencies to latest stable versions (``bcrypt``, ``appscheduler``, ``pytz``,
+  ``python-dateutil``, ``psutil``, ``passlib``, ``gunicorn``, ``flex``, ``cryptography``.
+  ``eventlet``, ``greenlet``, ``webob`` , ``mongoengine``, ``pymongo``, ``requests``,
+  ``pyyaml``, ``kombu``, ``amqp``, ``python-ldap``).
+
+  #5215, https://github.com/StackStorm/st2-auth-ldap/pull/94
+
+  Contributed by @Kami.
+
+* Update code and dependencies so it supports Python 3.8 and Mongo DB 4.4 #5177
+
+  Contributed by @nzloshm @winem @Kami.
+
+* StackStorm Web UI (``st2web``) has been updated to not render and display execution results
+  larger than 200 KB directly in the history panel in the right side bar by default anymore.
+  Instead a link to view or download the raw result is displayed.
+
+  Execution result widget was never optimized to display very large results (especially for
+  executions which return large nested dictionaries) so it would freeze and hang the whole
+  browser tab / window when trying to render / display large results.
+
+  If for some reason you want to revert to the old behavior (this is almost never a good idea
+  since it will cause browser to freeze when trying to display large results), you can do that by
+  setting ``max_execution_result_size_for_render`` option in the config to a very large value (e.g.
+  ``max_execution_result_size_for_render: 16 * 1024 * 1024``).
+
+  https://github.com/StackStorm/st2web/pull/868
+
+  Contributed by @Kami.
+
+* Some of the config option registration code has been refactored to ignore "option already
+  registered" errors. That was done as a work around for an occasional race in the tests and
+  also to make all of the config option registration code expose the same consistent API. #5234
+
+  Contributed by @Kami.
+
+* Update ``pyywinrm`` dependency to the latest stable version (0.4.1). #5212
+
+  Contributed by @chadpatt .
+
+* Monkey patch on st2stream earlier in flow #5240
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Support % in CLI arguments by reading the ConfigParser() arguments with raw=True.
+
+  This removes support for '%' interpolations on the configuration arguments.
+
+  See https://docs.python.org/3.8/library/configparser.html#configparser.ConfigParser.get for
+  further details. #5253
+
+  Contributed by @winem.
+
+* Remove duplicate host header in the nginx config for the auth endpoint.
+
+* Update orquesta to v1.4.0.
+
+Improvements
+~~~~~~~~~~~~
+
+* CLI has been updated to use or ``orjson`` when parsing API response and C version of the YAML
+  safe dumper when formatting execution result for display. This should result in speed up when
+  displaying execution result (``st2 execution get``, etc.) for executions with large results.
+
+  When testing it locally, the difference for execution with 8 MB result was 18 seconds vs ~6
+  seconds. (improvement) #4846
+
+  Contributed by @Kami.
+
+* Update various Jinja functiona to utilize C version of YAML ``safe_{load,dump}`` functions and
+  orjson for better performance. (improvement) #4846
+
+  Contributed by @Kami.
+
+* For performance reasons, use ``udatetime`` library for parsing ISO8601 / RFC3339 date strings
+  where possible. (improvement) #4846
+
+  Contributed by @Kami.
+
+* Speed up service start up time by speeding up runners registration on service start up by
+  re-using existing stevedore ``ExtensionManager`` instance instead of instantiating new
+  ``DriverManager`` instance per extension which is not necessary and it's slow since it requires
+  disk / pkg resources scan for each extension. (improvement) #5198
+
+  Contributed by @Kami.
+
+* Add new ``?max_result_size`` query parameter filter to the ``GET /v1/executiond/<id>`` API
+  endpoint.
+
+  This query parameter allows clients to implement conditional execution result retrieval and
+  only retrieve the result field if it's smaller than the provided value.
+
+  This comes handy in the various client scenarios (such as st2web) where we don't display and
+  render very large results directly since it allows to speed things up and decrease amount of
+  data retrieved and parsed. (improvement) #5197
+
+  Contributed by @Kami.
+
+* Update default nginx config which is used for proxying API requests and serving static
+  content to only allow HTTP methods which are actually used by the services (get, post, put,
+  delete, options, head).
+
+  If a not-allowed method is used, nginx will abort the request early and return 405 status
+  code. #5193
+
+  Contributed by @ashwini-orchestral
+
+* Update default nginx config which is used for proxying API requests and serving static
+  content to not allow range requests. #5193
+
+  Contributed by @ashwini-orchestral
+
+* Drop unused python dependencies: prometheus_client, python-gnupg, more-itertools, zipp. #5228
+
+  Contributed by @cognifloyd.
+
+* Update majority of the "resource get" CLI commands (e.g. ``st2 execution get``,
+  ``st2 action get``, ``st2 rule get``, ``st2 pack get``, ``st2 apikey get``, ``st2 trace get``,
+  ``st2 key get``, ``st2 webhook get``, ``st2  timer get``, etc.) so they allow for retrieval
+  and printing of information for multiple resources using the following notation:
+  ``st2 <resource> get <id 1> <id 2> <id n>``, e.g. ``st2 action.get pack.show packs.get
+  packs.delete``
+
+  This change is fully backward compatible when retrieving only a single resource (aka single
+  id is passed to the command).
+
+  When retrieving a single source the command will throw and exit with non-zero if a resource is
+  not found, but when retrieving multiple resources, command will just print an error and
+  continue with printing the details of any other found resources. (new feature) #4912
+
+  Contributed by @Kami.
+
+Fixed
+~~~~~
+
+* Refactor spec_loader util to use yaml.load with SafeLoader. (security)
+  Contributed by @ashwini-orchestral
+
+* Import ABC from collections.abc for Python 3.10 compatibility. (#5007)
+  Contributed by @tirkarthi
+
+* Updated to use virtualenv 20.4.0/PIP20.3.3 and fixate-requirements to work with PIP 20.3.3 #512
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Fix ``st2 execution get --with-schema`` flag.  (bug fix) #4846
+
+  Contributed by @Kami.
+
+* Fix SensorTypeAPI schema to use class_name instead of name since documentation for pack
+  development uses class_name and registrar used to load sensor to database assign class_name
+  to name in the database model. (bug fix)
+
+* Updated paramiko version to 2.7.2, to go with updated cryptography to prevent problems
+  with ssh keys on remote actions. #5201
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+* Update rpm package metadata and fix ``Provides`` section for RHEL / CentOS 8 packages.
+
+  In the previous versions, RPM metadata would incorrectly signal that the ``st2`` package
+  provides various Python libraries which it doesn't (those Python libraries are only used
+  internally for the package local virtual environment).
+
+  https://github.com/StackStorm/st2-packages/pull/697
+
+  Contributed by @Kami.
+
+* Make sure ``st2common.util.green.shell.run_command()`` doesn't leave stray / zombie processes
+  laying around in some command timeout scenarios. #5220
+
+  Contributed by @r0m4n-z.
+
+* Fix support for skipping notifications for workflow actions. Previously if action metadata
+  specified an empty list for ``notify`` parameter value, that would be ignored / not handled
+  correctly for workflow (orquesta, action chain) actions. #5221 #5227
+
+  Contributed by @khushboobhatia01.
+
+* Clean up to remove unused methods in the action execution concurrency policies. #5268
+
+3.4.1 - March 14, 2021
+----------------------
+
+Added
+~~~~~
+
+
+* Service start up code has been updated to log a warning if a non-utf-8 encoding / locale is
+  detected.
+
+  Using non-utf-8 locale while working with unicode data will result in various issues so users
+  are strongly recommended to ensure encoding for all the StackStorm service is
+  set to ``utf-8``. (#5182)
+
+  Contributed by @Kami.
+
+Changed
+~~~~~~~
+
+* Use `sudo -E` to fix GitHub Actions tests #5187
+
+  Contributed by @cognifloyd
+
+Fixed
+~~~~~
+
+* Properly handle unicode strings in logs #5184
+
+  Fix a logging loop when attempting to encode Unicode characters in locales that do not support
+  Unicode characters - CVE-2021-28667.
+
+  See https://stackstorm.com/2021/03/10/stackstorm-v3-4-1-security-fix/ for more information.
+
+  Contributed by @Kami
+
+* Fix SensorTypeAPI schema to use class_name instead of name since documentation for pack
+  development uses class_name and registrar used to load sensor to database assign class_name
+  to name in the database model. (bug fix)
+
+* Updated paramiko version to 2.7.2, to go with updated cryptography to prevent problems
+  with ssh keys on remote actions. #5201
+
+  Contributed by Amanda McGuinness (@amanda11 Ammeon Solutions)
+
+3.4.0 - March 02, 2021
+----------------------
+
 Added
 ~~~~~
 
@@ -18,7 +734,9 @@ Added
 * Added st2-auth-ldap pip requirements for LDAP auth integartion. (new feature) #5082
   Contributed by @hnanchahal
 
-* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from scratch. (part of upgrade instructions) [#5167]
+* Added --register-recreate-virtualenvs flag to st2ctl reload to recreate virtualenvs from
+  scratch. (part of upgrade instructions) #5167
+
   Contributed by @winem and @blag
 
 * Added timeout parameter for pack install st2 client run to help with long running installs. This was already expose in
@@ -35,7 +753,7 @@ Changed
 * Improve the st2-self-check script to echo to stderr and exit if it isn't run with a
   ST2_AUTH_TOKEN or ST2_API_KEY environment variable. (improvement) #5068
 
-* Added timeout parameter for packs.install action to help with long running installs that exceed the 
+* Added timeout parameter for packs.install action to help with long running installs that exceed the
   default timeout of 600 sec which is defined by the python_script action runner (improvement) #5084
 
   Contributed by @hnanchahal
@@ -47,6 +765,18 @@ Changed
   Contributed by @nmaludy, @winem, and @blag
 
 * Updated cryptography dependency to version 3.3.2 to avoid CVE-2020-36242 (security) #5151
+
+* Update most of the code in the StackStorm API and services layer to utilize ``orjson`` library
+  for serializing and de-serializing json.
+
+  That should result in better json serialization and deserialization performance.
+
+  The change should be fully backward compatible, only difference is that API JSON responses now
+  won't be indented using 4 spaces by default (indenting adds unnecessary overhead and if needed,
+  the response can be pretty formatted on the client side using ``jq`` or similar). (improvement)
+  #5153
+
+  Contributed by @Kami
 
 Fixed
 ~~~~~
@@ -136,6 +866,7 @@ Added
 
 Changed
 ~~~~~~~
+
 * Switch to MongoDB ``4.0`` as the default version starting with all supported OS's in st2
   ``v3.3.0`` (improvement) #4972
 
@@ -158,6 +889,7 @@ Changed
 
 Fixed
 ~~~~~
+
 * Fixed a bug where `type` attribute was missing for netstat action in linux pack. Fixes #4946
 
   Reported by @scguoi and contributed by Sheshagiri (@sheshagiri)

@@ -1,6 +1,5 @@
 *.py[cod]
 *.sqlite
-*.swp
 *.log
 .stamp*
 
@@ -49,6 +48,7 @@ coverage*.xml
 .tox
 nosetests.xml
 htmlcov
+benchmark_histograms/
 
 # Mr Developer
 .idea
@@ -61,3 +61,5 @@ htmlcov
 # Editor Saves
 *~
 \#*\#
+[._]*.sw[a-p]
+[._]sw[a-p]

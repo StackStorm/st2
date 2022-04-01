@@ -24,10 +24,10 @@ from st2common.constants.rules import TRIGGER_ITEM_PAYLOAD_PREFIX
 from st2common.util.payload import PayloadLookup
 
 __all__ = [
-    'SEARCH',
-    'get_operator',
-    'get_allowed_operators',
-    'UnrecognizedConditionError',
+    "SEARCH",
+    "get_operator",
+    "get_allowed_operators",
+    "UnrecognizedConditionError",
 ]
 
 
@@ -40,7 +40,7 @@ def get_operator(op):
     if op in operators:
         return operators[op]
     else:
-        raise Exception('Invalid operator: ' + op)
+        raise Exception("Invalid operator: " + op)
 
 
 class UnrecognizedConditionError(Exception):
@@ -58,8 +58,10 @@ def search(value, criteria_pattern, criteria_condition, check_function):
 
     value: the payload list to search
     condition: one of:
-      * any - return true if any items of the list match and false if none of them match
-      * all - return true if all items of the list match and false if any of them do not match
+      * any - return true if any payload items of the list match all criteria items
+      * all - return true if all payload items of the list match all criteria items
+      * all2any - return true if all payload items of the list match any criteria items
+      * any2any - return true if any payload items match any criteria items
     pattern: a dictionary of criteria to apply to each item of the list
 
     This operator has O(n) algorithmic complexity in terms of number of child patterns.
@@ -86,18 +88,20 @@ def search(value, criteria_pattern, criteria_condition, check_function):
         ]
     }
 
-    And an example usage in criteria:
+    Example #1
 
     ---
     criteria:
       trigger.fields:
         type: search
         # Controls whether this criteria has to match any or all items of the list
-        condition: any  # or all
+        condition: any  # or all or all2any or any2any
         pattern:
           # Here our context is each item of the list
           # All of these patterns have to match the item for the item to match
           # These are simply other operators applied to each item in the list
+          # "#" and text after are ignored.
+          # This allows dictionary keys to be unique but refer to the same field
           item.field_name:
             type: "equals"
             pattern: "Status"
@@ -105,37 +109,53 @@ def search(value, criteria_pattern, criteria_condition, check_function):
           item.to_value:
             type: "equals"
             pattern: "Approved"
-    """
-    if criteria_condition == 'any':
-        # Any item of the list can match all patterns
-        rtn = any([
-            # Any payload item can match
-            all([
-                # Match all patterns
-                check_function(
-                    child_criterion_k, child_criterion_v,
-                    PayloadLookup(child_payload, prefix=TRIGGER_ITEM_PAYLOAD_PREFIX))
-                for child_criterion_k, child_criterion_v in six.iteritems(criteria_pattern)
-            ])
-            for child_payload in value
-        ])
-    elif criteria_condition == 'all':
-        # Every item of the list must match all patterns
-        rtn = all([
-            # All payload items must match
-            all([
-                # Match all patterns
-                check_function(
-                    child_criterion_k, child_criterion_v,
-                    PayloadLookup(child_payload, prefix=TRIGGER_ITEM_PAYLOAD_PREFIX))
-                for child_criterion_k, child_criterion_v in six.iteritems(criteria_pattern)
-            ])
-            for child_payload in value
-        ])
-    else:
-        raise UnrecognizedConditionError("The '%s' search condition is not recognized, only 'any' "
-                                         "and 'all' are allowed" % criteria_condition)
 
+          item.field_name#1:
+            type: "greaterthan"
+            pattern: 40
+
+          item.field_name#2:
+            type: "lessthan"
+            pattern: 50
+    """
+    if isinstance(value, dict):
+        value = [value]
+    payloadItemMatch = all
+    patternMatch = all
+    if criteria_condition == "any":
+        payloadItemMatch = any
+    elif criteria_condition == "all2any":
+        patternMatch = any
+    elif criteria_condition == "any2any":
+        payloadItemMatch = any
+        patternMatch = any
+    elif criteria_condition != "all":
+        raise UnrecognizedConditionError(
+            "The '%s' condition is not recognized for type search, 'any', 'all', 'any2any'"
+            " and 'all2any' are allowed" % criteria_condition
+        )
+
+    rtn = payloadItemMatch(
+        [
+            # any/all payload item can match
+            patternMatch(
+                [
+                    # Match any/all patterns
+                    check_function(
+                        child_criterion_k,
+                        child_criterion_v,
+                        PayloadLookup(
+                            child_payload, prefix=TRIGGER_ITEM_PAYLOAD_PREFIX
+                        ),
+                    )
+                    for child_criterion_k, child_criterion_v in six.iteritems(
+                        criteria_pattern
+                    )
+                ]
+            )
+            for child_payload in value
+        ]
+    )
     return rtn
 
 
@@ -292,19 +312,23 @@ def _timediff(diff_target, period_seconds, operator):
     # Note: date_utils.parse uses dateutil.parse which is way more flexible then strptime and
     # supports many date formats
     diff_target_utc = date_utils.parse(diff_target)
-    return operator((utc_now - diff_target_utc).total_seconds(), period_seconds)
+    return operator((utc_now - diff_target_utc).total_seconds(), float(period_seconds))
 
 
 def timediff_lt(value, criteria_pattern):
     if criteria_pattern is None:
         return False
-    return _timediff(diff_target=value, period_seconds=criteria_pattern, operator=less_than)
+    return _timediff(
+        diff_target=value, period_seconds=criteria_pattern, operator=less_than
+    )
 
 
 def timediff_gt(value, criteria_pattern):
     if criteria_pattern is None:
         return False
-    return _timediff(diff_target=value, period_seconds=criteria_pattern, operator=greater_than)
+    return _timediff(
+        diff_target=value, period_seconds=criteria_pattern, operator=greater_than
+    )
 
 
 def exists(value, criteria_pattern):
@@ -344,48 +368,48 @@ def ensure_operators_are_strings(value, criteria_pattern):
     :return: tuple(value, criteria_pattern)
     """
     if isinstance(value, bytes):
-        value = value.decode('utf-8')
+        value = value.decode("utf-8")
 
     if isinstance(criteria_pattern, bytes):
-        criteria_pattern = criteria_pattern.decode('utf-8')
+        criteria_pattern = criteria_pattern.decode("utf-8")
 
     return value, criteria_pattern
 
 
 # operator match strings
-MATCH_WILDCARD = 'matchwildcard'
-MATCH_REGEX = 'matchregex'
-REGEX = 'regex'
-IREGEX = 'iregex'
-EQUALS_SHORT = 'eq'
-EQUALS_LONG = 'equals'
-NEQUALS_LONG = 'nequals'
-NEQUALS_SHORT = 'neq'
-IEQUALS_SHORT = 'ieq'
-IEQUALS_LONG = 'iequals'
-CONTAINS_LONG = 'contains'
-ICONTAINS_LONG = 'icontains'
-NCONTAINS_LONG = 'ncontains'
-INCONTAINS_LONG = 'incontains'
-STARTSWITH_LONG = 'startswith'
-ISTARTSWITH_LONG = 'istartswith'
-ENDSWITH_LONG = 'endswith'
-IENDSWITH_LONG = 'iendswith'
-LESS_THAN_SHORT = 'lt'
-LESS_THAN_LONG = 'lessthan'
-GREATER_THAN_SHORT = 'gt'
-GREATER_THAN_LONG = 'greaterthan'
-TIMEDIFF_LT_SHORT = 'td_lt'
-TIMEDIFF_LT_LONG = 'timediff_lt'
-TIMEDIFF_GT_SHORT = 'td_gt'
-TIMEDIFF_GT_LONG = 'timediff_gt'
-KEY_EXISTS = 'exists'
-KEY_NOT_EXISTS = 'nexists'
-INSIDE_LONG = 'inside'
-INSIDE_SHORT = 'in'
-NINSIDE_LONG = 'ninside'
-NINSIDE_SHORT = 'nin'
-SEARCH = 'search'
+MATCH_WILDCARD = "matchwildcard"
+MATCH_REGEX = "matchregex"
+REGEX = "regex"
+IREGEX = "iregex"
+EQUALS_SHORT = "eq"
+EQUALS_LONG = "equals"
+NEQUALS_LONG = "nequals"
+NEQUALS_SHORT = "neq"
+IEQUALS_SHORT = "ieq"
+IEQUALS_LONG = "iequals"
+CONTAINS_LONG = "contains"
+ICONTAINS_LONG = "icontains"
+NCONTAINS_LONG = "ncontains"
+INCONTAINS_LONG = "incontains"
+STARTSWITH_LONG = "startswith"
+ISTARTSWITH_LONG = "istartswith"
+ENDSWITH_LONG = "endswith"
+IENDSWITH_LONG = "iendswith"
+LESS_THAN_SHORT = "lt"
+LESS_THAN_LONG = "lessthan"
+GREATER_THAN_SHORT = "gt"
+GREATER_THAN_LONG = "greaterthan"
+TIMEDIFF_LT_SHORT = "td_lt"
+TIMEDIFF_LT_LONG = "timediff_lt"
+TIMEDIFF_GT_SHORT = "td_gt"
+TIMEDIFF_GT_LONG = "timediff_gt"
+KEY_EXISTS = "exists"
+KEY_NOT_EXISTS = "nexists"
+INSIDE_LONG = "inside"
+INSIDE_SHORT = "in"
+NINSIDE_LONG = "ninside"
+NINSIDE_SHORT = "nin"
+SEARCH = "search"
 
 # operator lookups
 operators = {

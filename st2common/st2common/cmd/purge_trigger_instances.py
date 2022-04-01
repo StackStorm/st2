@@ -38,19 +38,20 @@ from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 
-__all__ = [
-    'main'
-]
+__all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
 
 
 def _register_cli_opts():
     cli_opts = [
-        cfg.StrOpt('timestamp', default=None,
-                   help='Will delete trigger instances older than ' +
-                   'this UTC timestamp. ' +
-                   'Example value: 2015-03-13T19:01:27.255542Z')
+        cfg.StrOpt(
+            "timestamp",
+            default=None,
+            help="Will delete trigger instances older than "
+            + "this UTC timestamp. "
+            + "Example value: 2015-03-13T19:01:27.255542Z",
+        )
     ]
     do_register_cli_opts(cli_opts)
 
@@ -63,10 +64,10 @@ def main():
     timestamp = cfg.CONF.timestamp
 
     if not timestamp:
-        LOG.error('Please supply a timestamp for purging models. Aborting.')
+        LOG.error("Please supply a timestamp for purging models. Aborting.")
         return 1
     else:
-        timestamp = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
+        timestamp = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
         timestamp = timestamp.replace(tzinfo=pytz.UTC)
 
     # Purge models.

@@ -22,26 +22,24 @@ from st2common.models.api.trace import TraceContext
 from st2common.transport import publishers
 
 __all__ = [
-    'TriggerCUDPublisher',
-    'TriggerInstancePublisher',
-
-    'TriggerDispatcher',
-
-    'get_sensor_cud_queue',
-    'get_trigger_cud_queue',
-    'get_trigger_instances_queue'
+    "TriggerCUDPublisher",
+    "TriggerInstancePublisher",
+    "TriggerDispatcher",
+    "get_sensor_cud_queue",
+    "get_trigger_cud_queue",
+    "get_trigger_instances_queue",
 ]
 
 LOG = logging.getLogger(__name__)
 
 # Exchange for Trigger CUD events
-TRIGGER_CUD_XCHG = Exchange('st2.trigger', type='topic')
+TRIGGER_CUD_XCHG = Exchange("st2.trigger", type="topic")
 
 # Exchange for TriggerInstance events
-TRIGGER_INSTANCE_XCHG = Exchange('st2.trigger_instances_dispatch', type='topic')
+TRIGGER_INSTANCE_XCHG = Exchange("st2.trigger_instances_dispatch", type="topic")
 
 # Exchane for Sensor CUD events
-SENSOR_CUD_XCHG = Exchange('st2.sensor', type='topic')
+SENSOR_CUD_XCHG = Exchange("st2.sensor", type="topic")
 
 
 class SensorCUDPublisher(publishers.CUDPublisher):
@@ -93,17 +91,23 @@ class TriggerDispatcher(object):
         :param trace_context: Trace context to associate with Trigger.
         :type trace_context: ``TraceContext``
         """
-        assert isinstance(payload, (type(None), dict))
-        assert isinstance(trace_context, (type(None), TraceContext))
+        if payload and not isinstance(payload, dict):
+            raise TypeError(
+                f"The payload has a value that is not a dictionary"
+                f" (was {type(payload)})."
+            )
+        if trace_context and not isinstance(trace_context, TraceContext):
+            raise TypeError(
+                f"The trace context has a value that is not of type TraceContext"
+                f" (was {type(trace_context)})."
+            )
 
-        payload = {
-            'trigger': trigger,
-            'payload': payload,
-            TRACE_CONTEXT: trace_context
-        }
-        routing_key = 'trigger_instance'
+        payload = {"trigger": trigger, "payload": payload, TRACE_CONTEXT: trace_context}
+        routing_key = "trigger_instance"
 
-        self._logger.debug('Dispatching trigger (trigger=%s,payload=%s)', trigger, payload)
+        self._logger.debug(
+            "Dispatching trigger (trigger=%s,payload=%s)", trigger, payload
+        )
         self._publisher.publish_trigger(payload=payload, routing_key=routing_key)
 
 

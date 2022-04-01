@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = ['TRACE_CONTEXT', 'TRACE_ID']
+__all__ = ["TRACE_CONTEXT", "TRACE_ID"]
 
 
-TRACE_CONTEXT = 'trace_context'
-TRACE_ID = 'trace_tag'
+TRACE_CONTEXT = "trace_context"
+TRACE_ID = "trace_tag"

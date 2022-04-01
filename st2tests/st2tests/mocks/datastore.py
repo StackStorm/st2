@@ -22,9 +22,7 @@ from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.services.datastore import BaseDatastoreService
 from st2client.models.keyvalue import KeyValuePair
 
-__all__ = [
-    'MockDatastoreService'
-]
+__all__ = ["MockDatastoreService"]
 
 
 class MockDatastoreService(BaseDatastoreService):
@@ -35,7 +33,8 @@ class MockDatastoreService(BaseDatastoreService):
     def __init__(self, logger, pack_name, class_name, api_username=None):
         self._pack_name = pack_name
         self._class_name = class_name
-        self._username = api_username or 'admin'
+        self._username = api_username or "admin"
+        self._logger = logger
 
         # Holds mock KeyValuePair objects
         # Key is a KeyValuePair name and value is the KeyValuePair object
@@ -53,18 +52,9 @@ class MockDatastoreService(BaseDatastoreService):
         :rtype: ``dict``
         """
         result = {
-            'username': self._username,
-            'rbac': {
-                'is_admin': True,
-                'enabled': True,
-                'roles': [
-                    'admin'
-                ]
-            },
-            'authentication': {
-                'method': 'authentication token',
-                'location': 'header'
-            }
+            "username": self._username,
+            "rbac": {"is_admin": True, "enabled": True, "roles": ["admin"]},
+            "authentication": {"method": "authentication token", "location": "header"},
         }
 
         return result
@@ -101,12 +91,12 @@ class MockDatastoreService(BaseDatastoreService):
         kvp = self._datastore_items[name]
         return kvp.value
 
-    def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
+    def set_value(
+        self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False
+    ):
         """
         Store a value in a dictionary which is local to this class.
         """
-        if ttl:
-            raise ValueError('MockDatastoreService.set_value doesn\'t support "ttl" argument')
 
         name = self._get_full_key_name(name=name, local=local)
 
@@ -114,6 +104,11 @@ class MockDatastoreService(BaseDatastoreService):
         instance.id = name
         instance.name = name
         instance.value = value
+        if ttl:
+            self._logger.warning(
+                "MockDatastoreService is not able to expire keys based on ttl."
+            )
+            instance.ttl = ttl
 
         self._datastore_items[name] = instance
         return True

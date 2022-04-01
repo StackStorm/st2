@@ -1,8 +1,0 @@
-- aliases: []
-  description: A runner that returns a static response regardless of input parameters
-  enabled: true
-  name: mock
-  query_module: mock_runner
-  runner_module: mock_runner
-  runner_parameters: {}
-

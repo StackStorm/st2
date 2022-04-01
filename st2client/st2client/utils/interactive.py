@@ -28,8 +28,8 @@ from st2client.exceptions.operations import OperationFailureException
 from six.moves import range
 
 
-POSITIVE_BOOLEAN = {'1', 'y', 'yes', 'true'}
-NEGATIVE_BOOLEAN = {'0', 'n', 'no', 'nope', 'nah', 'false'}
+POSITIVE_BOOLEAN = {"1", "y", "yes", "true"}
+NEGATIVE_BOOLEAN = {"0", "n", "no", "nope", "nah", "false"}
 
 
 class ReaderNotImplemented(OperationFailureException):
@@ -58,10 +58,8 @@ class StringReader(object):
     def __init__(self, name, spec, prefix=None, secret=False, **kw):
         self.name = name
         self.spec = spec
-        self.prefix = prefix or ''
-        self.options = {
-            'is_password': secret
-        }
+        self.prefix = prefix or ""
+        self.options = {"is_password": secret}
 
         self._construct_description()
         self._construct_template()
@@ -84,7 +82,7 @@ class StringReader(object):
         message = self.template.format(self.prefix + self.name, **self.spec)
         response = prompt(message, **self.options)
 
-        result = self.spec.get('default', None)
+        result = self.spec.get("default", None)
 
         if response:
             result = self._transform_response(response)
@@ -92,20 +90,21 @@ class StringReader(object):
         return result
 
     def _construct_description(self):
-        if 'description' in self.spec:
-            def get_bottom_toolbar_tokens(cli):
-                return [(token.Token.Toolbar, self.spec['description'])]
+        if "description" in self.spec:
 
-            self.options['get_bottom_toolbar_tokens'] = get_bottom_toolbar_tokens
+            def get_bottom_toolbar_tokens(cli):
+                return [(token.Token.Toolbar, self.spec["description"])]
+
+            self.options["get_bottom_toolbar_tokens"] = get_bottom_toolbar_tokens
 
     def _construct_template(self):
-        self.template = u'{0}: '
+        self.template = "{0}: "
 
-        if 'default' in self.spec:
-            self.template = u'{0} [{default}]: '
+        if "default" in self.spec:
+            self.template = "{0} [{default}]: "
 
     def _construct_validators(self):
-        self.options['validator'] = MuxValidator([self.validate], self.spec)
+        self.options["validator"] = MuxValidator([self.validate], self.spec)
 
     def _transform_response(self, response):
         return response
@@ -114,25 +113,27 @@ class StringReader(object):
 class BooleanReader(StringReader):
     @staticmethod
     def condition(spec):
-        return spec.get('type', None) == 'boolean'
+        return spec.get("type", None) == "boolean"
 
     @staticmethod
     def validate(input, spec):
-        if not input and (not spec.get('required', None) or spec.get('default', None)):
+        if not input and (not spec.get("required", None) or spec.get("default", None)):
             return
 
         if input.lower() not in POSITIVE_BOOLEAN | NEGATIVE_BOOLEAN:
-            raise validation.ValidationError(len(input),
-                                             'Does not look like boolean. Pick from [%s]'
-                                             % ', '.join(POSITIVE_BOOLEAN | NEGATIVE_BOOLEAN))
+            raise validation.ValidationError(
+                len(input),
+                "Does not look like boolean. Pick from [%s]"
+                % ", ".join(POSITIVE_BOOLEAN | NEGATIVE_BOOLEAN),
+            )
 
     def _construct_template(self):
-        self.template = u'{0} (boolean)'
+        self.template = "{0} (boolean)"
 
-        if 'default' in self.spec:
-            self.template += u' [{}]: '.format(self.spec.get('default') and 'y' or 'n')
+        if "default" in self.spec:
+            self.template += " [{}]: ".format(self.spec.get("default") and "y" or "n")
         else:
-            self.template += u': '
+            self.template += ": "
 
     def _transform_response(self, response):
         if response.lower() in POSITIVE_BOOLEAN:
@@ -141,14 +142,16 @@ class BooleanReader(StringReader):
             return False
 
         # Hopefully, it will never happen
-        raise OperationFailureException('Response neither positive no negative. '
-                                        'Value have not been properly validated.')
+        raise OperationFailureException(
+            "Response neither positive no negative. "
+            "Value have not been properly validated."
+        )
 
 
 class NumberReader(StringReader):
     @staticmethod
     def condition(spec):
-        return spec.get('type', None) == 'number'
+        return spec.get("type", None) == "number"
 
     @staticmethod
     def validate(input, spec):
@@ -161,12 +164,12 @@ class NumberReader(StringReader):
             super(NumberReader, NumberReader).validate(input, spec)
 
     def _construct_template(self):
-        self.template = u'{0} (float)'
+        self.template = "{0} (float)"
 
-        if 'default' in self.spec:
-            self.template += u' [{default}]: '.format(default=self.spec.get('default'))
+        if "default" in self.spec:
+            self.template += " [{default}]: ".format(default=self.spec.get("default"))
         else:
-            self.template += u': '
+            self.template += ": "
 
     def _transform_response(self, response):
         return float(response)
@@ -175,7 +178,7 @@ class NumberReader(StringReader):
 class IntegerReader(StringReader):
     @staticmethod
     def condition(spec):
-        return spec.get('type', None) == 'integer'
+        return spec.get("type", None) == "integer"
 
     @staticmethod
     def validate(input, spec):
@@ -188,12 +191,12 @@ class IntegerReader(StringReader):
             super(IntegerReader, IntegerReader).validate(input, spec)
 
     def _construct_template(self):
-        self.template = u'{0} (integer)'
+        self.template = "{0} (integer)"
 
-        if 'default' in self.spec:
-            self.template += u' [{default}]: '.format(default=self.spec.get('default'))
+        if "default" in self.spec:
+            self.template += " [{default}]: ".format(default=self.spec.get("default"))
         else:
-            self.template += u': '
+            self.template += ": "
 
     def _transform_response(self, response):
         return int(response)
@@ -205,71 +208,71 @@ class SecretStringReader(StringReader):
 
     @staticmethod
     def condition(spec):
-        return spec.get('secret', None)
+        return spec.get("secret", None)
 
     def _construct_template(self):
-        self.template = u'{0} (secret)'
+        self.template = "{0} (secret)"
 
-        if 'default' in self.spec:
-            self.template += u' [{default}]: '.format(default=self.spec.get('default'))
+        if "default" in self.spec:
+            self.template += " [{default}]: ".format(default=self.spec.get("default"))
         else:
-            self.template += u': '
+            self.template += ": "
 
 
 class EnumReader(StringReader):
     @staticmethod
     def condition(spec):
-        return spec.get('enum', None)
+        return spec.get("enum", None)
 
     @staticmethod
     def validate(input, spec):
-        if not input and (not spec.get('required', None) or spec.get('default', None)):
+        if not input and (not spec.get("required", None) or spec.get("default", None)):
             return
 
         if not input.isdigit():
-            raise validation.ValidationError(len(input), 'Not a number')
+            raise validation.ValidationError(len(input), "Not a number")
 
-        enum = spec.get('enum')
+        enum = spec.get("enum")
         try:
             enum[int(input)]
         except IndexError:
-            raise validation.ValidationError(len(input), 'Out of bounds')
+            raise validation.ValidationError(len(input), "Out of bounds")
 
     def _construct_template(self):
-        self.template = u'{0}: '
+        self.template = "{0}: "
 
-        enum = self.spec.get('enum')
+        enum = self.spec.get("enum")
         for index, value in enumerate(enum):
-            self.template += u'\n {} - {}'.format(index, value)
+            self.template += "\n {} - {}".format(index, value)
 
         num_options = len(enum)
-        more = ''
+        more = ""
         if num_options > 3:
             num_options = 3
-            more = '...'
+            more = "..."
         options = [str(i) for i in range(0, num_options)]
-        self.template += u'\nChoose from {}{}'.format(', '.join(options), more)
+        self.template += "\nChoose from {}{}".format(", ".join(options), more)
 
-        if 'default' in self.spec:
-            self.template += u' [{}]: '.format(enum.index(self.spec.get('default')))
+        if "default" in self.spec:
+            self.template += " [{}]: ".format(enum.index(self.spec.get("default")))
         else:
-            self.template += u': '
+            self.template += ": "
 
     def _transform_response(self, response):
-        return self.spec.get('enum')[int(response)]
+        return self.spec.get("enum")[int(response)]
 
 
 class ObjectReader(StringReader):
-
     @staticmethod
     def condition(spec):
-        return spec.get('type', None) == 'object'
+        return spec.get("type", None) == "object"
 
     def read(self):
-        prefix = u'{}.'.format(self.name)
+        prefix = "{}.".format(self.name)
 
-        result = InteractiveForm(self.spec.get('properties', {}),
-                                 prefix=prefix, reraise=True).initiate_dialog()
+        result = InteractiveForm(
+            self.spec.get("properties", {}), prefix=prefix, reraise=True
+        ).initiate_dialog()
 
         return result
 
@@ -277,25 +280,27 @@ class ObjectReader(StringReader):
 class ArrayReader(StringReader):
     @staticmethod
     def condition(spec):
-        return spec.get('type', None) == 'array'
+        return spec.get("type", None) == "array"
 
     @staticmethod
     def validate(input, spec):
-        if not input and (not spec.get('required', None) or spec.get('default', None)):
+        if not input and (not spec.get("required", None) or spec.get("default", None)):
             return
 
-        for m in re.finditer(r'[^, ]+', input):
+        for m in re.finditer(r"[^, ]+", input):
             index, item = m.start(), m.group()
             try:
-                StringReader.validate(item, spec.get('items', {}))
+                StringReader.validate(item, spec.get("items", {}))
             except validation.ValidationError as e:
                 raise validation.ValidationError(index, six.text_type(e))
 
     def read(self):
-        item_type = self.spec.get('items', {}).get('type', 'string')
+        item_type = self.spec.get("items", {}).get("type", "string")
 
-        if item_type not in ['string', 'integer', 'number', 'boolean']:
-            message = 'Interactive mode does not support arrays of %s type yet' % item_type
+        if item_type not in ["string", "integer", "number", "boolean"]:
+            message = (
+                "Interactive mode does not support arrays of %s type yet" % item_type
+            )
             raise ReaderNotImplemented(message)
 
         result = super(ArrayReader, self).read()
@@ -303,37 +308,46 @@ class ArrayReader(StringReader):
         return result
 
     def _construct_template(self):
-        self.template = u'{0} (comma-separated list)'
+        self.template = "{0} (comma-separated list)"
 
-        if 'default' in self.spec:
-            self.template += u' [{default}]: '.format(default=','.join(self.spec.get('default')))
+        if "default" in self.spec:
+            self.template += " [{default}]: ".format(
+                default=",".join(self.spec.get("default"))
+            )
         else:
-            self.template += u': '
+            self.template += ": "
 
     def _transform_response(self, response):
-        return [item.strip() for item in response.split(',')]
+        return [item.strip() for item in response.split(",")]
 
 
 class ArrayObjectReader(StringReader):
     @staticmethod
     def condition(spec):
-        return spec.get('type', None) == 'array' and spec.get('items', {}).get('type') == 'object'
+        return (
+            spec.get("type", None) == "array"
+            and spec.get("items", {}).get("type") == "object"
+        )
 
     def read(self):
         results = []
-        properties = self.spec.get('items', {}).get('properties', {})
-        message = '~~~ Would you like to add another item to  "%s" array / list?' % self.name
+        properties = self.spec.get("items", {}).get("properties", {})
+        message = (
+            '~~~ Would you like to add another item to  "%s" array / list?' % self.name
+        )
 
         is_continue = True
         index = 0
         while is_continue:
-            prefix = u'{name}[{index}].'.format(name=self.name, index=index)
-            results.append(InteractiveForm(properties,
-                                           prefix=prefix,
-                                           reraise=True).initiate_dialog())
+            prefix = "{name}[{index}].".format(name=self.name, index=index)
+            results.append(
+                InteractiveForm(
+                    properties, prefix=prefix, reraise=True
+                ).initiate_dialog()
+            )
 
             index += 1
-            if Question(message, {'default': 'y'}).read() != 'y':
+            if Question(message, {"default": "y"}).read() != "y":
                 is_continue = False
 
         return results
@@ -341,53 +355,55 @@ class ArrayObjectReader(StringReader):
 
 class ArrayEnumReader(EnumReader):
     def __init__(self, name, spec, prefix=None):
-        self.items = spec.get('items', {})
+        self.items = spec.get("items", {})
 
         super(ArrayEnumReader, self).__init__(name, spec, prefix)
 
     @staticmethod
     def condition(spec):
-        return spec.get('type', None) == 'array' and 'enum' in spec.get('items', {})
+        return spec.get("type", None) == "array" and "enum" in spec.get("items", {})
 
     @staticmethod
     def validate(input, spec):
-        if not input and (not spec.get('required', None) or spec.get('default', None)):
+        if not input and (not spec.get("required", None) or spec.get("default", None)):
             return
 
-        for m in re.finditer(r'[^, ]+', input):
+        for m in re.finditer(r"[^, ]+", input):
             index, item = m.start(), m.group()
             try:
-                EnumReader.validate(item, spec.get('items', {}))
+                EnumReader.validate(item, spec.get("items", {}))
             except validation.ValidationError as e:
                 raise validation.ValidationError(index, six.text_type(e))
 
     def _construct_template(self):
-        self.template = u'{0}: '
+        self.template = "{0}: "
 
-        enum = self.items.get('enum')
+        enum = self.items.get("enum")
         for index, value in enumerate(enum):
-            self.template += u'\n {} - {}'.format(index, value)
+            self.template += "\n {} - {}".format(index, value)
 
         num_options = len(enum)
-        more = ''
+        more = ""
         if num_options > 3:
             num_options = 3
-            more = '...'
+            more = "..."
         options = [str(i) for i in range(0, num_options)]
-        self.template += u'\nChoose from {}{}'.format(', '.join(options), more)
+        self.template += "\nChoose from {}{}".format(", ".join(options), more)
 
-        if 'default' in self.spec:
-            default_choises = [str(enum.index(item)) for item in self.spec.get('default')]
-            self.template += u' [{}]: '.format(', '.join(default_choises))
+        if "default" in self.spec:
+            default_choises = [
+                str(enum.index(item)) for item in self.spec.get("default")
+            ]
+            self.template += " [{}]: ".format(", ".join(default_choises))
         else:
-            self.template += u': '
+            self.template += ": "
 
     def _transform_response(self, response):
         result = []
 
-        for i in (item.strip() for item in response.split(',')):
+        for i in (item.strip() for item in response.split(",")):
             if i:
-                result.append(self.items.get('enum')[int(i)])
+                result.append(self.items.get("enum")[int(i)])
 
         return result
 
@@ -403,7 +419,7 @@ class InteractiveForm(object):
         ArrayObjectReader,
         ArrayReader,
         SecretStringReader,
-        StringReader
+        StringReader,
     ]
 
     def __init__(self, schema, prefix=None, reraise=False):
@@ -419,11 +435,11 @@ class InteractiveForm(object):
                 try:
                     result[field] = self._read_field(field)
                 except ReaderNotImplemented as e:
-                    print('%s. Skipping...' % six.text_type(e))
+                    print("%s. Skipping..." % six.text_type(e))
         except DialogInterrupted:
             if self.reraise:
                 raise
-            print('Dialog interrupted.')
+            print("Dialog interrupted.")
 
         return result
 
@@ -438,7 +454,7 @@ class InteractiveForm(object):
                 break
 
         if not reader:
-            raise ReaderNotImplemented('No reader for the field spec')
+            raise ReaderNotImplemented("No reader for the field spec")
 
         try:
             return reader.read()

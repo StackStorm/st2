@@ -14,6 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+from typing import Optional
+from typing import List
+
 import abc
 
 import six
@@ -23,12 +27,7 @@ from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.system.common import ResourceReference
 
 
-__all__ = [
-    'Access',
-
-    'ContentPackResource',
-    'StatusBasedResource'
-]
+__all__ = ["Access", "ContentPackResource", "StatusBasedResource"]
 
 LOG = logging.getLogger(__name__)
 
@@ -123,48 +122,60 @@ class Access(object):
         return cls._get_impl().aggregate(*args, **kwargs)
 
     @classmethod
-    def insert(cls, model_object, publish=True, dispatch_trigger=True,
-               log_not_unique_error_as_debug=False):
+    def insert(
+        cls,
+        model_object,
+        publish=True,
+        dispatch_trigger=True,
+        log_not_unique_error_as_debug=False,
+    ):
         # Late import to avoid very expensive in-direct import (~1 second) when this function
         # is not called / used
         from mongoengine import NotUniqueError
 
         if model_object.id:
-            raise ValueError('id for object %s was unexpected.' % model_object)
+            raise ValueError("id for object %s was unexpected." % model_object)
         try:
             model_object = cls._get_impl().insert(model_object)
         except NotUniqueError as e:
             if log_not_unique_error_as_debug:
-                LOG.debug('Conflict while trying to save in DB: %s.', six.text_type(e))
+                LOG.debug("Conflict while trying to save in DB: %s.", six.text_type(e))
             else:
-                LOG.exception('Conflict while trying to save in DB.')
+                LOG.exception("Conflict while trying to save in DB.")
             # On a conflict determine the conflicting object and return its id in
             # the raised exception.
             conflict_object = cls._get_by_object(model_object)
             conflict_id = str(conflict_object.id) if conflict_object else None
             message = six.text_type(e)
-            raise StackStormDBObjectConflictError(message=message, conflict_id=conflict_id,
-                                                  model_object=model_object)
+            raise StackStormDBObjectConflictError(
+                message=message, conflict_id=conflict_id, model_object=model_object
+            )
 
         # Publish internal event on the message bus
         if publish:
             try:
                 cls.publish_create(model_object)
             except:
-                LOG.exception('Publish failed.')
+                LOG.exception("Publish failed.")
 
         # Dispatch trigger
         if dispatch_trigger:
             try:
                 cls.dispatch_create_trigger(model_object)
             except:
-                LOG.exception('Trigger dispatch failed.')
+                LOG.exception("Trigger dispatch failed.")
 
         return model_object
 
     @classmethod
-    def add_or_update(cls, model_object, publish=True, dispatch_trigger=True, validate=True,
-                      log_not_unique_error_as_debug=False):
+    def add_or_update(
+        cls,
+        model_object,
+        publish=True,
+        dispatch_trigger=True,
+        validate=True,
+        log_not_unique_error_as_debug=False,
+    ):
         # Late import to avoid very expensive in-direct import (~1 second) when this function
         # is not called / used
         from mongoengine import NotUniqueError
@@ -174,16 +185,17 @@ class Access(object):
             model_object = cls._get_impl().add_or_update(model_object, validate=True)
         except NotUniqueError as e:
             if log_not_unique_error_as_debug:
-                LOG.debug('Conflict while trying to save in DB: %s.', six.text_type(e))
+                LOG.debug("Conflict while trying to save in DB: %s.", six.text_type(e))
             else:
-                LOG.exception('Conflict while trying to save in DB.')
+                LOG.exception("Conflict while trying to save in DB.")
             # On a conflict determine the conflicting object and return its id in
             # the raised exception.
             conflict_object = cls._get_by_object(model_object)
             conflict_id = str(conflict_object.id) if conflict_object else None
             message = six.text_type(e)
-            raise StackStormDBObjectConflictError(message=message, conflict_id=conflict_id,
-                                                  model_object=model_object)
+            raise StackStormDBObjectConflictError(
+                message=message, conflict_id=conflict_id, model_object=model_object
+            )
 
         is_update = str(pre_persist_id) == str(model_object.id)
 
@@ -195,7 +207,7 @@ class Access(object):
                 else:
                     cls.publish_create(model_object)
             except:
-                LOG.exception('Publish failed.')
+                LOG.exception("Publish failed.")
 
         # Dispatch trigger
         if dispatch_trigger:
@@ -205,7 +217,7 @@ class Access(object):
                 else:
                     cls.dispatch_create_trigger(model_object)
             except:
-                LOG.exception('Trigger dispatch failed.')
+                LOG.exception("Trigger dispatch failed.")
 
         return model_object
 
@@ -227,14 +239,14 @@ class Access(object):
             try:
                 cls.publish_update(model_object)
             except:
-                LOG.exception('Publish failed.')
+                LOG.exception("Publish failed.")
 
         # Dispatch trigger
         if dispatch_trigger:
             try:
                 cls.dispatch_update_trigger(model_object)
             except:
-                LOG.exception('Trigger dispatch failed.')
+                LOG.exception("Trigger dispatch failed.")
 
         return model_object
 
@@ -247,14 +259,14 @@ class Access(object):
             try:
                 cls.publish_delete(model_object)
             except Exception:
-                LOG.exception('Publish failed.')
+                LOG.exception("Publish failed.")
 
         # Dispatch trigger
         if dispatch_trigger:
             try:
                 cls.dispatch_delete_trigger(model_object)
             except Exception:
-                LOG.exception('Trigger dispatch failed.')
+                LOG.exception("Trigger dispatch failed.")
 
         return persisted_object
 
@@ -289,14 +301,18 @@ class Access(object):
         """
         Dispatch a resource-specific trigger which indicates a new resource has been created.
         """
-        return cls._dispatch_operation_trigger(operation='create', model_object=model_object)
+        return cls._dispatch_operation_trigger(
+            operation="create", model_object=model_object
+        )
 
     @classmethod
     def dispatch_update_trigger(cls, model_object):
         """
         Dispatch a resource-specific trigger which indicates an existing resource has been updated.
         """
-        return cls._dispatch_operation_trigger(operation='update', model_object=model_object)
+        return cls._dispatch_operation_trigger(
+            operation="update", model_object=model_object
+        )
 
     @classmethod
     def dispatch_delete_trigger(cls, model_object):
@@ -304,14 +320,18 @@ class Access(object):
         Dispatch a resource-specific trigger which indicates an existing resource has been
         deleted.
         """
-        return cls._dispatch_operation_trigger(operation='delete', model_object=model_object)
+        return cls._dispatch_operation_trigger(
+            operation="delete", model_object=model_object
+        )
 
     @classmethod
     def _get_trigger_ref_for_operation(cls, operation):
         trigger_ref = cls.operation_to_trigger_ref_map.get(operation, None)
 
         if not trigger_ref:
-            raise ValueError('Trigger ref not specified for operation: %s' % (operation))
+            raise ValueError(
+                "Trigger ref not specified for operation: %s" % (operation)
+            )
 
         return trigger_ref
 
@@ -322,11 +342,13 @@ class Access(object):
 
         trigger = cls._get_trigger_ref_for_operation(operation=operation)
 
-        object_payload = cls.api_model_cls.from_model(model_object, mask_secrets=True).__json__()
-        payload = {
-            'object': object_payload
-        }
-        return cls._dispatch_trigger(operation=operation, trigger=trigger, payload=payload)
+        object_payload = cls.api_model_cls.from_model(
+            model_object, mask_secrets=True
+        ).__json__()
+        payload = {"object": object_payload}
+        return cls._dispatch_trigger(
+            operation=operation, trigger=trigger, payload=payload
+        )
 
     @classmethod
     def _dispatch_trigger(cls, operation, trigger, payload):
@@ -338,23 +360,30 @@ class Access(object):
 
 
 class ContentPackResource(Access):
-
     @classmethod
-    def get_by_ref(cls, ref):
+    def get_by_ref(cls, ref, only_fields: Optional[List[str]] = None):
+        """
+        :param: only_field: Optional lists if fields to retrieve. If not specified, it defaults to
+                            all fields.
+        """
         if not ref:
             return None
 
         ref_obj = ResourceReference.from_string_reference(ref=ref)
-        result = cls.query(name=ref_obj.name,
-                           pack=ref_obj.pack).first()
+        result = cls.query(
+            name=ref_obj.name, pack=ref_obj.pack, only_fields=only_fields
+        ).first()
+
         return result
 
     @classmethod
     def _get_by_object(cls, object):
         # For an object with a resourcepack pack.name is unique.
-        name = getattr(object, 'name', '')
-        pack = getattr(object, 'pack', '')
-        return cls.get_by_ref(ResourceReference.to_string_reference(pack=pack, name=name))
+        name = getattr(object, "name", "")
+        pack = getattr(object, "pack", "")
+        return cls.get_by_ref(
+            ResourceReference.to_string_reference(pack=pack, name=name)
+        )
 
 
 class StatusBasedResource(Access):
@@ -372,4 +401,4 @@ class StatusBasedResource(Access):
         """
         publisher = cls._get_publisher()
         if publisher:
-            publisher.publish_state(model_object, getattr(model_object, 'status', None))
+            publisher.publish_state(model_object, getattr(model_object, "status", None))

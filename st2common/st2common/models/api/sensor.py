@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.trigger import TriggerTypeAPI
 from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.utils import sensor_type_utils
 
@@ -22,53 +23,38 @@ from st2common.models.utils import sensor_type_utils
 class SensorTypeAPI(BaseAPI):
     model = SensorTypeDB
     schema = {
-        'type': 'object',
-        'properties': {
-            'id': {
-                'type': 'string',
-                'default': None
+        "type": "object",
+        "properties": {
+            "id": {"type": "string", "default": None},
+            "ref": {"type": "string"},
+            "uid": {"type": "string"},
+            "class_name": {"type": "string", "required": True},
+            "pack": {"type": "string"},
+            "description": {"type": "string"},
+            "artifact_uri": {
+                "type": "string",
             },
-            'ref': {
-                'type': 'string'
+            "entry_point": {
+                "type": "string",
             },
-            'uid': {
-                'type': 'string'
+            "enabled": {
+                "description": "Enable or disable the sensor.",
+                "type": "boolean",
+                "default": True,
             },
-            'name': {
-                'type': 'string',
-                'required': True
+            "trigger_types": {
+                "type": "array",
+                "items": TriggerTypeAPI.schema,
+                "default": [],
             },
-            'pack': {
-                'type': 'string'
-            },
-            'description': {
-                'type': 'string'
-            },
-            'artifact_uri': {
-                'type': 'string',
-            },
-            'entry_point': {
-                'type': 'string',
-            },
-            'enabled': {
-                'description': 'Enable or disable the sensor.',
-                'type': 'boolean',
-                'default': True
-            },
-            'trigger_types': {
-                'type': 'array',
-                'default': []
-            },
-            'poll_interval': {
-                'type': 'number'
-            },
+            "poll_interval": {"type": "number"},
             "metadata_file": {
                 "description": "Path to the metadata file relative to the pack directory.",
                 "type": "string",
-                "default": ""
-            }
+                "default": "",
+            },
         },
-        'additionalProperties': False
+        "additionalProperties": False,
     }
 
     @classmethod

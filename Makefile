@@ -1,6 +1,5 @@
 ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
-TOX_DIR := .tox
 OS := $(shell uname)
 
 # We separate the OSX X and Linux virtualenvs so we can run in a Docker
@@ -8,10 +7,12 @@ OS := $(shell uname)
 ifeq ($(OS),Darwin)
 	VIRTUALENV_DIR ?= virtualenv-osx
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client-osx
+	VIRTUALENV_ST2CLIENT_PYPI_DIR ?= virtualenv-st2client-pypi-osx
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components-osx
 else
 	VIRTUALENV_DIR ?= virtualenv
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client
+	VIRTUALENV_ST2CLIENT_PYPI_DIR ?= virtualenv-st2client-pypi
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
@@ -55,21 +56,31 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
-PIP_VERSION ?= 20.0.2
+PIP_VERSION ?= 20.3.3
+SETUPTOOLS_VERSION ?= 51.3.3
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
 	PYLINT_CONCURRENCY := 1
 endif
 
-NOSE_OPTS := --rednose --immediate --with-parallel --nocapture
+ifndef XARGS_CONCURRENCY
+	XARGS_CONCURRENCY := 8
+endif
+
+# NOTE: We exclude resourceregistrar DEBUG level log messages since those are very noisy (we
+# loaded resources for every tests) which makes tests hard to troubleshoot on failure due to
+# pages and pages and pages of noise.
+# The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
+# See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
+NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --with-timer --nocapture
+	NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
 	NOSE_WITH_TIMER := 1
 endif
 
@@ -145,6 +156,11 @@ play:
 	@echo
 	@echo INCLUDE_TESTS_IN_COVERAGE=$(INCLUDE_TESTS_IN_COVERAGE)
 	@echo
+	@echo NODE_TOTAL=$(NODE_TOTAL)
+	@echo
+	@echo
+	@echo NODE_INDEX=$(NODE_INDEX)
+	@echo
 
 .PHONY: check
 check: check-requirements check-sdist-requirements flake8 checklogs
@@ -157,24 +173,28 @@ install-runners:
 	@echo ""
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
-	@for component in $(COMPONENTS_RUNNERS); do \
-		echo "==========================================================="; \
-		echo "Installing runner:" $$component; \
-		echo "==========================================================="; \
-		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
-	done
+	# NOTE: We use xargs to speed things up by installing runners in parallel
+	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
+	#@for component in $(COMPONENTS_RUNNERS); do \
+	#	echo "==========================================================="; \
+	#	echo "Installing runner:" $$component; \
+	#	echo "==========================================================="; \
+	#	#(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
+	#done
 
 .PHONY: install-mock-runners
 install-mock-runners:
 	@echo ""
 	@echo "================== INSTALL MOCK RUNNERS ===================="
 	@echo ""
-	@for component in $(MOCK_RUNNERS); do \
-		echo "==========================================================="; \
-		echo "Installing mock runner:" $$component; \
-		echo "==========================================================="; \
-		(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
-	done
+	# NOTE: We use xargs to speed things up by installing runners in parallel
+	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
+	#@for component in $(MOCK_RUNNERS); do \
+	#	echo "==========================================================="; \
+	#	echo "Installing mock runner:" $$component; \
+	#	echo "==========================================================="; \
+	#	(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
+	#done
 
 .PHONY: check-requirements
 .check-requirements:
@@ -232,7 +252,7 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -248,7 +268,8 @@ check-python-packages-nightly:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_COMPONENTS_DIR) --no-download
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
+	$(VIRTUALENV_COMPONENTS_DIR)/bin/pip install wheel
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -261,7 +282,13 @@ check-python-packages-nightly:
 	done
 
 .PHONY: ci-checks-nightly
+# TODO: Ony run micro-benchmarks once a week since they are extremly slow on CI
 ci-checks-nightly: check-python-packages-nightly
+#ci-checks-nightly: check-python-packages-nightly micro-benchmarks
+
+# CI checks which are very slow and only run on a weekly basic
+.PHONY: ci-checks-weekly
+ci-checks-weekly: micro-benchmarks
 
 .PHONY: checklogs
 checklogs:
@@ -275,6 +302,15 @@ pylint: requirements .pylint
 
 .PHONY: configgen
 configgen: requirements .configgen
+
+.PHONY: .shellcheck
+.shellcheck:
+	@echo
+	@echo "================== shellcheck ===================="
+	@echo
+	shellcheck scripts/ci/*.sh
+	shellcheck scripts/github/*.sh
+	shellcheck scripts/*.sh
 
 .PHONY: .configgen
 .configgen:
@@ -301,6 +337,10 @@ schemasgen: requirements .schemasgen
 	@echo
 	@echo "================== pylint ===================="
 	@echo
+	@echo "==========================================================="; \
+	echo "Test our custom pylint plugins before we use them"; \
+	echo "==========================================================="; \
+	. $(VIRTUALENV_DIR)/bin/activate ; pytest pylint_plugins || exit 1
 	# Lint st2 components
 	@for component in $(COMPONENTS); do\
 		echo "==========================================================="; \
@@ -326,6 +366,77 @@ schemasgen: requirements .schemasgen
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -j $(PYLINT_CONCURRENCY) -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
+# Black task which checks if the code comforts to black code style
+.PHONY: black-check
+black: requirements .black-check
+
+.PHONY: .black-check
+.black-check:
+	@echo
+	@echo "================== black-check ===================="
+	@echo
+	# st2 components
+	@for component in $(COMPONENTS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black $$(grep -rl '^#!/.*python' $$component/bin) || exit 1; \
+	done
+	# runner modules and packages
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black $$(grep -rl '^#!/.*python' $$component/bin) || exit 1; \
+	done
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml contrib/ || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml tools/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --check --config pyproject.toml pylint_plugins/*.py || exit 1;
+
+# Black task which reformats the code using black
+.PHONY: black
+black: requirements .black-format
+
+.PHONY: .black-format
+.black-format:
+	@echo
+	@echo "================== black ===================="
+	@echo
+	# st2 components
+	@for component in $(COMPONENTS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --config pyproject.toml $$component/ || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --config pyproject.toml $$(grep -rl '^#!/.*python' $$component/bin) || exit 1; \
+	done
+	# runner modules and packages
+	@for component in $(COMPONENTS_RUNNERS); do\
+		echo "==========================================================="; \
+		echo "Running black on" $$component; \
+		echo "==========================================================="; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --config pyproject.toml  $$component/ || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --config pyproject.toml $$(grep -rl '^#!/.*python' $$component/bin) || exit 1; \
+	done
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml contrib/ || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml tools/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; black --config pyproject.toml pylint_plugins/*.py || exit 1;
+
+.PHONY: pre-commit-checks
+black: requirements .pre-commit-checks
+
+# Ensure all files contain no trailing whitespace + that all YAML files are valid.
+.PHONY: .pre-commit-checks
+.pre-commit-checks:
+	@echo
+	@echo "================== pre-commit-checks ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; pre-commit run trailing-whitespace --all --show-diff-on-failure
+	. $(VIRTUALENV_DIR)/bin/activate; pre-commit run check-yaml --all --show-diff-on-failure
 .PHONY: lint-api-spec
 lint-api-spec: requirements .lint-api-spec
 
@@ -374,13 +485,41 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 tools/
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 pylint_plugins/
 
+# Make task which verifies st2client README will parse pypi checks
+. PHONY: .st2client-pypi-check
+.st2client-pypi-check:
+	@echo
+	@echo "==================== st2client pypi check ===================="
+	@echo
+	test -f $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_ST2CLIENT_PYPI_DIR)
+
+	# Setup PYTHONPATH in bash activate script...
+	# Delete existing entries (if any)
+	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	echo 'export PYTHONPATH' >> $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	touch $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+	chmod +x $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
+
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/pip install --upgrade "readme_renderer"
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/pip install --upgrade "restructuredtext-lint"
+
+	# Check with readme-renderer
+	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m readme_renderer README.rst
+	# Check with rst-lint - encounters errors that readme_renderer doesn't, but pypi complains about
+	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; rst-lint README.rst
+
 # Make task which verifies st2client installs and works fine
 .PHONY: .st2client-install-check
 .st2client-install-check:
 	@echo
 	@echo "==================== st2client install check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_ST2CLIENT_DIR) --no-download
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_ST2CLIENT_DIR)
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -394,11 +533,8 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	# NOTE We need to upgrade setuptools to avoid bug with dependency resolving in old versions
-	# Setuptools 42 added support for python_requires, which is used by the configparser package,
-	# which is required by the importlib-metadata package
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"
 
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python setup.py install ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
@@ -418,7 +554,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .generate-api-spec .flake8 .pylint .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
+.lint: .generate-api-spec .black-check .pre-commit-checks .flake8 .pylint .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check .st2client-install-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -448,6 +584,29 @@ compilepy3:
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name router\.py -name \*.py \) -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2exporter; test $$? -eq 1
+
+.PHONY: micro-benchmarks
+micro-benchmarks: requirements .micro-benchmarks
+
+.PHONY: .micro-benchmarks
+.micro-benchmarks:
+	@echo
+	@echo "==================== micro-benchmarks ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_multiple_fields"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_save_large_string_value"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_field_types.py -k "test_read_large_string_value"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_transport_compression.py -k "test_save_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_mongo_transport_compression.py -k "test_read_execution"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:dict_keys_count_and_depth -s -v st2common/benchmarks/micro/test_fast_deepcopy.py -k "test_fast_deepcopy_with_dict_values"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_fast_deepcopy.py -k "test_fast_deepcopy_with_json_fixture_file"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file,param:indent_sort_keys_tuple -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py -k "test_json_dumps"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py -k "test_json_loads"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_json_serialization_and_deserialization.py -k "test_orjson_dumps"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_publisher_compression.py -k "test_pickled_object_compression"
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --benchmark-histogram=benchmark_histograms/benchmark --benchmark-only --benchmark-name=short --benchmark-columns=min,max,mean,stddev,median,ops,rounds --benchmark-group-by=group,param:fixture_file -s -v st2common/benchmarks/micro/test_publisher_compression.py -k "test_pickled_object_compression_publish"
 
 .PHONY: .cleanmongodb
 .cleanmongodb:
@@ -511,11 +670,14 @@ distclean: clean
 	rm -rf *.egg-info*
 
 	# Generate finall requirements.txt file for each component
-	@for component in $(COMPONENTS_WITH_RUNNERS); do\
-		echo "==========================================================="; \
-		echo "Generating requirements.txt for" $$component; \
-		$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
-	done
+	# NOTE: We use xargs to speed things up by running commands in parallel
+	echo -e "$(COMPONENTS_WITH_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c "$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s {}/in-requirements.txt -f fixed-requirements.txt -o {}/requirements.txt"
+
+	#@for component in $(COMPONENTS_WITH_RUNNERS); do\
+	#	echo "==========================================================="; \
+	#	echo "Generating requirements.txt for" $$component; \
+	#	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
+	#done
 
 	@echo "==========================================================="
 
@@ -525,26 +687,14 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	@echo "==================== requirements ===================="
 	@echo
 	# Show pip installed packages before we start
+	echo ""
 	$(VIRTUALENV_DIR)/bin/pip list
+	echo ""
 
 	# Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
 	#       only have to update it one place when we change the version
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
-
-	# setuptools >= 41.0.1 is required for packs.install in dev envs
-	# setuptools >= 42     is required so setup.py install respects dependencies' python_requires
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==44.1.0"
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pbr==5.4.3"  # workaround for pbr issue
-
-	# Fix for Travis CI race
-	$(VIRTUALENV_DIR)/bin/pip install "six==1.12.0"
-
-	# Fix for Travis CI caching issue
-	if [[ "$(TRAVIS_EVENT_TYPE)" != "" ]]; then\
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "pytz" || echo "not installed"; \
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "python-dateutil" || echo "not installed"; \
-		$(VIRTUALENV_DIR)/bin/pip uninstall -y "orquesta" || echo "not installed"; \
-	fi
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
 
 	# Install requirements
 	for req in $(REQUIREMENTS); do \
@@ -556,12 +706,7 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
-
-	# Note: We install prance here and not as part of any component
-	# requirements.txt because it has a conflict with our dependency (requires
-	# new version of requests) which we cant resolve at this moment
-	$(VIRTUALENV_DIR)/bin/pip install "prance==0.15.0"
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
@@ -579,7 +724,9 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	git submodule update --init --recursive --remote
 
 	# Show currently install requirements
+	echo ""
 	$(VIRTUALENV_DIR)/bin/pip list
+	echo ""
 
 .PHONY: check-dependency-conflicts
 check-dependency-conflicts:
@@ -588,7 +735,7 @@ check-dependency-conflicts:
 	@echo
 	# Verify there are no conflicting dependencies
 	cat st2*/requirements.txt contrib/runners/*/requirements.txt | sort -u > req.txt && \
-	$(VIRTUALENV_DIR)/bin/pip-compile req.txt; \
+	$(VIRTUALENV_DIR)/bin/pip-compile req.txt || exit 1; \
 	if [[ -e req.txt ]]; then rm req.txt; fi
 
 .PHONY: virtualenv
@@ -598,7 +745,7 @@ virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -f $(VIRTUALENV_DIR)/bin/activate || virtualenv --python=$(PYTHON_VERSION) $(VIRTUALENV_DIR) --no-download
+	test -f $(VIRTUALENV_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_DIR)
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -637,6 +784,17 @@ endif
 
 	# debug pip installed packages
 	$(VIRTUALENV_DIR)/bin/pip list
+
+.PHONY: reset-submodules
+reset-submodules:
+	git submodule foreach --recursive git reset --hard
+
+.PHONY: reinit-submodules
+reinit-submodules:
+	# Unbind all submodules
+	git submodule deinit -f .
+	# Checkout again
+	git submodule update --init --recursive
 
 .PHONY: tests
 tests: pytests
@@ -787,15 +945,16 @@ endif
 			nosetests $(NOSE_OPTS) -s -v \
 			$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/integration || exit 1; \
 	done
-	@echo
-	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
-	@echo "The tests assume st2 is running on 127.0.0.1."
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; \
-		COVERAGE_FILE=.coverage.integration.orquesta \
-		nosetests $(NOSE_OPTS) -s -v \
-		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
-
+	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
+	# ci-integration-full target
+#	@echo
+#	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
+#	@echo "The tests assume st2 is running on 127.0.0.1."
+#	@echo
+#	. $(VIRTUALENV_DIR)/bin/activate; \
+@#		COVERAGE_FILE=.coverage.integration.orquesta \
+@#		nosetests $(NOSE_OPTS) -s -v \
+@#		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
@@ -978,8 +1137,10 @@ debs:
 .PHONY: ci
 ci: ci-checks ci-unit ci-integration ci-packs-tests
 
+# NOTE: pylint is moved to ci-compile so we more evenly spread the load across
+# various different jobs to make the whole workflow complete faster
 .PHONY: ci-checks
-ci-checks: .generated-files-check .pylint .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages
+ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages .st2client-pypi-check
 
 .PHONY: .rst-check
 .rst-check:
@@ -1025,8 +1186,12 @@ ci-unit: .unit-tests-coverage-html
 	@echo
 	@echo "==================== prepare integration ===================="
 	@echo
-	sudo -E ./scripts/travis/prepare-integration.sh
+	sudo -E ./scripts/github/prepare-integration.sh
 
+.PHONY: ci-integration-full
+ci-integration-full: .ci-prepare-integration .itests-coverage-html  .orquesta-itests-coverage-html
+
+# All integration tests minus orquesta ones
 .PHONY: ci-integration
 ci-integration: .ci-prepare-integration .itests-coverage-html
 
@@ -1040,4 +1205,4 @@ ci-orquesta: .ci-prepare-integration .orquesta-itests-coverage-html
 ci-packs-tests: .packs-tests
 
 .PHONY: ci-compile
-ci-compile: check-dependency-conflicts compilepy3
+ci-compile: check-dependency-conflicts compilepy3 .pylint

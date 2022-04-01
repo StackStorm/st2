@@ -26,14 +26,16 @@ class Trace(Access):
         return cls.impl
 
     @classmethod
-    def push_components(cls, instance, action_executions=None, rules=None, trigger_instances=None):
+    def push_components(
+        cls, instance, action_executions=None, rules=None, trigger_instances=None
+    ):
         update_kwargs = {}
         if action_executions:
-            update_kwargs['push_all__action_executions'] = action_executions
+            update_kwargs["push_all__action_executions"] = action_executions
         if rules:
-            update_kwargs['push_all__rules'] = rules
+            update_kwargs["push_all__rules"] = rules
         if trigger_instances:
-            update_kwargs['push_all__trigger_instances'] = trigger_instances
+            update_kwargs["push_all__trigger_instances"] = trigger_instances
         if update_kwargs:
             return cls.update(instance, **update_kwargs)
         return instance
@@ -49,3 +51,7 @@ class Trace(Access):
     @classmethod
     def push_trigger_instance(cls, instance, trigger_instance):
         return cls.update(instance, push__trigger_instances=trigger_instance)
+
+    @classmethod
+    def delete_by_query(cls, *args, **query):
+        return cls._get_impl().delete_by_query(*args, **query)

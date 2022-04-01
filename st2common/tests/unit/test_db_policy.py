@@ -24,64 +24,113 @@ from st2tests import DbModelTestCase
 
 
 class PolicyTypeReferenceTest(unittest2.TestCase):
-
     def test_is_reference(self):
-        self.assertTrue(PolicyTypeReference.is_reference('action.concurrency'))
-        self.assertFalse(PolicyTypeReference.is_reference('concurrency'))
-        self.assertFalse(PolicyTypeReference.is_reference(''))
+        self.assertTrue(PolicyTypeReference.is_reference("action.concurrency"))
+        self.assertFalse(PolicyTypeReference.is_reference("concurrency"))
+        self.assertFalse(PolicyTypeReference.is_reference(""))
         self.assertFalse(PolicyTypeReference.is_reference(None))
 
     def test_validate_resource_type(self):
-        self.assertEqual(PolicyTypeReference.validate_resource_type('action'), 'action')
-        self.assertRaises(ValueError, PolicyTypeReference.validate_resource_type, 'action.test')
+        self.assertEqual(PolicyTypeReference.validate_resource_type("action"), "action")
+        self.assertRaises(
+            ValueError, PolicyTypeReference.validate_resource_type, "action.test"
+        )
 
     def test_get_resource_type(self):
-        self.assertEqual(PolicyTypeReference.get_resource_type('action.concurrency'), 'action')
-        self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_resource_type, '.abc')
-        self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_resource_type, 'abc')
-        self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_resource_type, '')
-        self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_resource_type, None)
+        self.assertEqual(
+            PolicyTypeReference.get_resource_type("action.concurrency"), "action"
+        )
+        self.assertRaises(
+            InvalidReferenceError, PolicyTypeReference.get_resource_type, ".abc"
+        )
+        self.assertRaises(
+            InvalidReferenceError, PolicyTypeReference.get_resource_type, "abc"
+        )
+        self.assertRaises(
+            InvalidReferenceError, PolicyTypeReference.get_resource_type, ""
+        )
+        self.assertRaises(
+            InvalidReferenceError, PolicyTypeReference.get_resource_type, None
+        )
 
     def test_get_name(self):
-        self.assertEqual(PolicyTypeReference.get_name('action.concurrency'), 'concurrency')
-        self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_name, '.abc')
-        self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_name, 'abc')
-        self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_name, '')
+        self.assertEqual(
+            PolicyTypeReference.get_name("action.concurrency"), "concurrency"
+        )
+        self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_name, ".abc")
+        self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_name, "abc")
+        self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_name, "")
         self.assertRaises(InvalidReferenceError, PolicyTypeReference.get_name, None)
 
     def test_to_string_reference(self):
-        ref = PolicyTypeReference.to_string_reference(resource_type='action', name='concurrency')
-        self.assertEqual(ref, 'action.concurrency')
+        ref = PolicyTypeReference.to_string_reference(
+            resource_type="action", name="concurrency"
+        )
+        self.assertEqual(ref, "action.concurrency")
 
-        self.assertRaises(ValueError, PolicyTypeReference.to_string_reference,
-                          resource_type='action.test', name='concurrency')
-        self.assertRaises(ValueError, PolicyTypeReference.to_string_reference,
-                          resource_type=None, name='concurrency')
-        self.assertRaises(ValueError, PolicyTypeReference.to_string_reference,
-                          resource_type='', name='concurrency')
-        self.assertRaises(ValueError, PolicyTypeReference.to_string_reference,
-                          resource_type='action', name=None)
-        self.assertRaises(ValueError, PolicyTypeReference.to_string_reference,
-                          resource_type='action', name='')
-        self.assertRaises(ValueError, PolicyTypeReference.to_string_reference,
-                          resource_type=None, name=None)
-        self.assertRaises(ValueError, PolicyTypeReference.to_string_reference,
-                          resource_type='', name='')
+        self.assertRaises(
+            ValueError,
+            PolicyTypeReference.to_string_reference,
+            resource_type="action.test",
+            name="concurrency",
+        )
+        self.assertRaises(
+            ValueError,
+            PolicyTypeReference.to_string_reference,
+            resource_type=None,
+            name="concurrency",
+        )
+        self.assertRaises(
+            ValueError,
+            PolicyTypeReference.to_string_reference,
+            resource_type="",
+            name="concurrency",
+        )
+        self.assertRaises(
+            ValueError,
+            PolicyTypeReference.to_string_reference,
+            resource_type="action",
+            name=None,
+        )
+        self.assertRaises(
+            ValueError,
+            PolicyTypeReference.to_string_reference,
+            resource_type="action",
+            name="",
+        )
+        self.assertRaises(
+            ValueError,
+            PolicyTypeReference.to_string_reference,
+            resource_type=None,
+            name=None,
+        )
+        self.assertRaises(
+            ValueError,
+            PolicyTypeReference.to_string_reference,
+            resource_type="",
+            name="",
+        )
 
     def test_from_string_reference(self):
-        ref = PolicyTypeReference.from_string_reference('action.concurrency')
-        self.assertEqual(ref.resource_type, 'action')
-        self.assertEqual(ref.name, 'concurrency')
-        self.assertEqual(ref.ref, 'action.concurrency')
+        ref = PolicyTypeReference.from_string_reference("action.concurrency")
+        self.assertEqual(ref.resource_type, "action")
+        self.assertEqual(ref.name, "concurrency")
+        self.assertEqual(ref.ref, "action.concurrency")
 
-        ref = PolicyTypeReference.from_string_reference('action.concurrency.targeted')
-        self.assertEqual(ref.resource_type, 'action')
-        self.assertEqual(ref.name, 'concurrency.targeted')
-        self.assertEqual(ref.ref, 'action.concurrency.targeted')
+        ref = PolicyTypeReference.from_string_reference("action.concurrency.targeted")
+        self.assertEqual(ref.resource_type, "action")
+        self.assertEqual(ref.name, "concurrency.targeted")
+        self.assertEqual(ref.ref, "action.concurrency.targeted")
 
-        self.assertRaises(InvalidReferenceError, PolicyTypeReference.from_string_reference, '.test')
-        self.assertRaises(InvalidReferenceError, PolicyTypeReference.from_string_reference, '')
-        self.assertRaises(InvalidReferenceError, PolicyTypeReference.from_string_reference, None)
+        self.assertRaises(
+            InvalidReferenceError, PolicyTypeReference.from_string_reference, ".test"
+        )
+        self.assertRaises(
+            InvalidReferenceError, PolicyTypeReference.from_string_reference, ""
+        )
+        self.assertRaises(
+            InvalidReferenceError, PolicyTypeReference.from_string_reference, None
+        )
 
 
 class PolicyTypeTest(DbModelTestCase):
@@ -89,34 +138,26 @@ class PolicyTypeTest(DbModelTestCase):
 
     @staticmethod
     def _create_instance():
-        parameters = {
-            'threshold': {
-                'type': 'integer',
-                'required': True
-            }
-        }
+        parameters = {"threshold": {"type": "integer", "required": True}}
 
-        instance = PolicyTypeDB(name='concurrency',
-                                description='TBD',
-                                enabled=None,
-                                ref=None,
-                                resource_type='action',
-                                module='st2action.policies.concurrency',
-                                parameters=parameters)
+        instance = PolicyTypeDB(
+            name="concurrency",
+            description="TBD",
+            enabled=None,
+            ref=None,
+            resource_type="action",
+            module="st2action.policies.concurrency",
+            parameters=parameters,
+        )
 
         return instance
 
     def test_crud(self):
         instance = self._create_instance()
 
-        defaults = {
-            'ref': 'action.concurrency',
-            'enabled': True
-        }
+        defaults = {"ref": "action.concurrency", "enabled": True}
 
-        updates = {
-            'description': 'Limits the concurrent executions for the action.'
-        }
+        updates = {"description": "Limits the concurrent executions for the action."}
 
         self._assert_crud(instance, defaults=defaults, updates=updates)
 
@@ -130,16 +171,16 @@ class PolicyTest(DbModelTestCase):
 
     @staticmethod
     def _create_instance():
-        instance = PolicyDB(pack=None,
-                            name='local.concurrency',
-                            description='TBD',
-                            enabled=None,
-                            ref=None,
-                            resource_ref='core.local',
-                            policy_type='action.concurrency',
-                            parameters={
-                                'threshold': 25
-                            })
+        instance = PolicyDB(
+            pack=None,
+            name="local.concurrency",
+            description="TBD",
+            enabled=None,
+            ref=None,
+            resource_ref="core.local",
+            policy_type="action.concurrency",
+            parameters={"threshold": 25},
+        )
 
         return instance
 
@@ -147,13 +188,13 @@ class PolicyTest(DbModelTestCase):
         instance = self._create_instance()
 
         defaults = {
-            'pack': pack_constants.DEFAULT_PACK_NAME,
-            'ref': '%s.local.concurrency' % pack_constants.DEFAULT_PACK_NAME,
-            'enabled': True
+            "pack": pack_constants.DEFAULT_PACK_NAME,
+            "ref": "%s.local.concurrency" % pack_constants.DEFAULT_PACK_NAME,
+            "enabled": True,
         }
 
         updates = {
-            'description': 'Limits the concurrent executions for the action "core.local".'
+            "description": 'Limits the concurrent executions for the action "core.local".'
         }
 
         self._assert_crud(instance, defaults=defaults, updates=updates)
@@ -164,7 +205,7 @@ class PolicyTest(DbModelTestCase):
         self.assertIsNotNone(ref)
         self.assertEqual(ref.pack, instance.pack)
         self.assertEqual(ref.name, instance.name)
-        self.assertEqual(ref.ref, instance.pack + '.' + instance.name)
+        self.assertEqual(ref.ref, instance.pack + "." + instance.name)
         self.assertEqual(ref.ref, instance.ref)
 
     def test_unique_key(self):

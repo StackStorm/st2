@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 from st2common.util.monkey_patch import monkey_patch
+
 monkey_patch()
 
 import os
@@ -27,28 +28,31 @@ from st2common import log as logging
 from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import deregister_service
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2reactor.garbage_collector import config
 from st2reactor.garbage_collector.base import GarbageCollectorService
 
-__all__ = [
-    'main'
-]
+__all__ = ["main"]
 
 
 LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
 LOG = logging.getLogger(LOGGER_NAME)
+GARBAGE_COLLECTOR = "garbagecollector"
 
 
 def _setup():
-    capabilities = {
-        'name': 'garbagecollector',
-        'type': 'passive'
-    }
-    common_setup(service='garbagecollector', config=config, setup_db=True,
-                 register_mq_exchanges=True, register_signal_handlers=True,
-                 register_runners=False, service_registry=True,
-                 capabilities=capabilities)
+    capabilities = {"name": "garbagecollector", "type": "passive"}
+    common_setup(
+        service=GARBAGE_COLLECTOR,
+        config=config,
+        setup_db=True,
+        register_mq_exchanges=True,
+        register_signal_handlers=True,
+        register_runners=False,
+        service_registry=True,
+        capabilities=capabilities,
+    )
 
 
 def _teardown():
@@ -61,13 +65,15 @@ def main():
 
         collection_interval = cfg.CONF.garbagecollector.collection_interval
         sleep_delay = cfg.CONF.garbagecollector.sleep_delay
-        garbage_collector = GarbageCollectorService(collection_interval=collection_interval,
-                                                    sleep_delay=sleep_delay)
+        garbage_collector = GarbageCollectorService(
+            collection_interval=collection_interval, sleep_delay=sleep_delay
+        )
         exit_code = garbage_collector.run()
     except SystemExit as exit_code:
+        deregister_service(GARBAGE_COLLECTOR)
         return exit_code
     except:
-        LOG.exception('(PID:%s) GarbageCollector quit due to exception.', os.getpid())
+        LOG.exception("(PID:%s) GarbageCollector quit due to exception.", os.getpid())
         return FAILURE_EXIT_CODE
     finally:
         _teardown()

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import abc
 import importlib
 import inspect
@@ -24,10 +25,7 @@ from st2common.persistence import policy as policy_access
 
 LOG = logging.getLogger(__name__)
 
-__all__ = [
-    'ResourcePolicyApplicator',
-    'get_driver'
-]
+__all__ = ["ResourcePolicyApplicator", "get_driver"]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -60,23 +58,6 @@ class ResourcePolicyApplicator(object):
         """
         return target
 
-    def _get_lock_name(self, values):
-        """
-        Return a safe string which can be used as a lock name.
-
-        :param values: Dictionary with values to use in the lock name.
-        :type values: ``dict``
-
-        :rtype: ``st``
-        """
-        lock_uid = []
-
-        for key, value in six.iteritems(values):
-            lock_uid.append('%s=%s' % (key, value))
-
-        lock_uid = ','.join(lock_uid)
-        return lock_uid
-
 
 def get_driver(policy_ref, policy_type, **parameters):
     policy_type_db = policy_access.PolicyType.get_by_ref(policy_type)
@@ -88,5 +69,7 @@ def get_driver(policy_ref, policy_type, **parameters):
             # interested in
             continue
 
-        if (issubclass(obj, ResourcePolicyApplicator) and not obj.__name__.startswith('Base')):
+        if issubclass(obj, ResourcePolicyApplicator) and not obj.__name__.startswith(
+            "Base"
+        ):
             return obj(policy_ref, policy_type, **parameters)

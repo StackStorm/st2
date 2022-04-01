@@ -17,25 +17,22 @@ from __future__ import absolute_import
 
 from st2client.models import core
 
-__all__ = [
-    'Role',
-    'UserRoleAssignment'
-]
+__all__ = ["Role", "UserRoleAssignment"]
 
 
 class Role(core.Resource):
-    _alias = 'role'
-    _display_name = 'Role'
-    _plural = 'Roles'
-    _plural_display_name = 'Roles'
-    _repr_attributes = ['id', 'name', 'system']
-    _url_path = 'rbac/roles'
+    _alias = "role"
+    _display_name = "Role"
+    _plural = "Roles"
+    _plural_display_name = "Roles"
+    _repr_attributes = ["id", "name", "system"]
+    _url_path = "rbac/roles"
 
 
 class UserRoleAssignment(core.Resource):
-    _alias = 'role-assignment'
-    _display_name = 'Role Assignment'
-    _plural = 'RoleAssignments'
-    _plural_display_name = 'Role Assignments'
-    _repr_attributes = ['id', 'role', 'user', 'is_remote']
-    _url_path = 'rbac/role_assignments'
+    _alias = "role-assignment"
+    _display_name = "Role Assignment"
+    _plural = "RoleAssignments"
+    _plural_display_name = "Role Assignments"
+    _repr_attributes = ["id", "role", "user", "is_remote"]
+    _url_path = "rbac/role_assignments"

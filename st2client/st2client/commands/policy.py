@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import logging
 
-from st2client import models
+from st2client.models.policy import Policy, PolicyType
 from st2client.commands import resource
 
 
@@ -25,31 +25,36 @@ LOG = logging.getLogger(__name__)
 
 
 class PolicyTypeBranch(resource.ResourceBranch):
-
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(PolicyTypeBranch, self).__init__(
-            models.PolicyType, description, app, subparsers,
+            PolicyType,
+            description,
+            app,
+            subparsers,
             parent_parser=parent_parser,
             read_only=True,
-            commands={
-                'list': PolicyTypeListCommand,
-                'get': PolicyTypeGetCommand
-            })
+            commands={"list": PolicyTypeListCommand, "get": PolicyTypeGetCommand},
+        )
 
 
 class PolicyTypeListCommand(resource.ResourceListCommand):
-    display_attributes = ['id', 'resource_type', 'name', 'description']
+    display_attributes = ["id", "resource_type", "name", "description"]
 
     def __init__(self, resource, *args, **kwargs):
         super(PolicyTypeListCommand, self).__init__(resource, *args, **kwargs)
 
-        self.parser.add_argument('-r', '--resource-type', type=str, dest='resource_type',
-                                 help='Return policy types for the resource type.')
+        self.parser.add_argument(
+            "-r",
+            "--resource-type",
+            type=str,
+            dest="resource_type",
+            help="Return policy types for the resource type.",
+        )
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         if args.resource_type:
-            filters = {'resource_type': args.resource_type}
+            filters = {"resource_type": args.resource_type}
             filters.update(**kwargs)
             instances = self.manager.query(**filters)
             return instances
@@ -58,60 +63,80 @@ class PolicyTypeListCommand(resource.ResourceListCommand):
 
 
 class PolicyTypeGetCommand(resource.ResourceGetCommand):
-    pk_argument_name = 'ref_or_id'
+    pk_argument_name = "ref_or_id"
 
     def get_resource(self, ref_or_id, **kwargs):
         return self.get_resource_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
 
 
 class PolicyBranch(resource.ResourceBranch):
-
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(PolicyBranch, self).__init__(
-            models.Policy, description, app, subparsers,
+            Policy,
+            description,
+            app,
+            subparsers,
             parent_parser=parent_parser,
             commands={
-                'list': PolicyListCommand,
-                'get': PolicyGetCommand,
-                'update': PolicyUpdateCommand,
-                'delete': PolicyDeleteCommand
-            })
+                "list": PolicyListCommand,
+                "get": PolicyGetCommand,
+                "update": PolicyUpdateCommand,
+                "delete": PolicyDeleteCommand,
+            },
+        )
 
 
 class PolicyListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'resource_ref', 'policy_type', 'enabled']
+    display_attributes = ["ref", "resource_ref", "policy_type", "enabled"]
 
     def __init__(self, resource, *args, **kwargs):
         super(PolicyListCommand, self).__init__(resource, *args, **kwargs)
 
-        self.parser.add_argument('-r', '--resource-ref', type=str, dest='resource_ref',
-                                 help='Return policies for the resource ref.')
-        self.parser.add_argument('-pt', '--policy-type', type=str, dest='policy_type',
-                                 help='Return policies of the policy type.')
+        self.parser.add_argument(
+            "-r",
+            "--resource-ref",
+            type=str,
+            dest="resource_ref",
+            help="Return policies for the resource ref.",
+        )
+        self.parser.add_argument(
+            "-pt",
+            "--policy-type",
+            type=str,
+            dest="policy_type",
+            help="Return policies of the policy type.",
+        )
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        if args.resource_ref or args.policy_type:
-            filters = {}
-
-            if args.resource_ref:
-                filters['resource_ref'] = args.resource_ref
-
-            if args.policy_type:
-                filters['policy_type'] = args.policy_type
-
-            filters.update(**kwargs)
-
-            return self.manager.query(**filters)
-        else:
-            return self.manager.get_all(**kwargs)
+        filters = {}
+        if args.pack:
+            filters["pack"] = args.pack
+        if args.resource_ref:
+            filters["resource_ref"] = args.resource_ref
+        if args.policy_type:
+            filters["policy_type"] = args.policy_type
+        filters.update(**kwargs)
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ",".join(include_attributes)
+            filters["params"] = {"include_attributes": include_attributes}
+        return self.manager.query(**filters)
 
 
 class PolicyGetCommand(resource.ContentPackResourceGetCommand):
-    display_attributes = ['all']
-    attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
-                               'enabled', 'resource_ref', 'policy_type',
-                               'parameters']
+    display_attributes = ["all"]
+    attribute_display_order = [
+        "id",
+        "ref",
+        "pack",
+        "name",
+        "description",
+        "enabled",
+        "resource_ref",
+        "policy_type",
+        "parameters",
+    ]
 
 
 class PolicyUpdateCommand(resource.ContentPackResourceUpdateCommand):
