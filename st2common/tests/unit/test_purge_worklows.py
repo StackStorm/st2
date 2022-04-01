@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2022 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ from __future__ import absolute_import
 from datetime import timedelta
 
 from st2common import log as logging
-from st2common.garbage_collection.workflows import purge_workflow_execution
+from st2common.garbage_collection.workflows import purge_workflow_executions
 from st2common.models.db.workflow import WorkflowExecutionDB
 from st2common.persistence.workflow import WorkflowExecution
 from st2common.util import date as date_utils
@@ -49,7 +49,7 @@ class TestPurgeWorkflowExecutionInstances(CleanDbTestCase):
         self.assertRaisesRegexp(
             ValueError,
             expected_msg,
-            purge_workflow_execution,
+            purge_workflow_executions,
             logger=LOG,
             timestamp=None,
         )
@@ -79,7 +79,7 @@ class TestPurgeWorkflowExecutionInstances(CleanDbTestCase):
         WorkflowExecution.add_or_update(instance_db)
 
         self.assertEqual(len(WorkflowExecution.get_all()), 3)
-        purge_workflow_execution(logger=LOG, timestamp=now - timedelta(days=10))
+        purge_workflow_executions(logger=LOG, timestamp=now - timedelta(days=10))
         self.assertEqual(len(WorkflowExecution.get_all()), 2)
 
     def test_purge_incomplete(self):
@@ -106,7 +106,7 @@ class TestPurgeWorkflowExecutionInstances(CleanDbTestCase):
         WorkflowExecution.add_or_update(instance_db)
 
         self.assertEqual(len(WorkflowExecution.get_all()), 3)
-        purge_workflow_execution(
+        purge_workflow_executions(
             logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=True
         )
         self.assertEqual(len(WorkflowExecution.get_all()), 1)

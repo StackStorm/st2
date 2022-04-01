@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2022 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ from __future__ import absolute_import
 from datetime import timedelta
 
 from st2common import log as logging
-from st2common.garbage_collection.workflows import purge_task_execution
+from st2common.garbage_collection.workflows import purge_task_executions
 from st2common.models.db.workflow import TaskExecutionDB
 from st2common.persistence.workflow import TaskExecution
 from st2common.util import date as date_utils
@@ -47,7 +47,7 @@ class TestPurgeTaskExecutionInstances(CleanDbTestCase):
         self.assertEqual(len(TaskExecution.get_all()), 1)
         expected_msg = "Specify a valid timestamp"
         self.assertRaisesRegexp(
-            ValueError, expected_msg, purge_task_execution, logger=LOG, timestamp=None
+            ValueError, expected_msg, purge_task_executions, logger=LOG, timestamp=None
         )
         self.assertEqual(len(TaskExecution.get_all()), 1)
 
@@ -76,7 +76,7 @@ class TestPurgeTaskExecutionInstances(CleanDbTestCase):
         TaskExecution.add_or_update(instance_db)
 
         self.assertEqual(len(TaskExecution.get_all()), 3)
-        purge_task_execution(logger=LOG, timestamp=now - timedelta(days=10))
+        purge_task_executions(logger=LOG, timestamp=now - timedelta(days=10))
         self.assertEqual(len(TaskExecution.get_all()), 2)
 
     def test_purge_incomplete(self):
@@ -104,7 +104,7 @@ class TestPurgeTaskExecutionInstances(CleanDbTestCase):
         TaskExecution.add_or_update(instance_db)
 
         self.assertEqual(len(TaskExecution.get_all()), 3)
-        purge_task_execution(
+        purge_task_executions(
             logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=True
         )
         self.assertEqual(len(TaskExecution.get_all()), 1)

@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2022 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 
 """
-A utility script that purges st2 executions older than certain
+A utility script that purges st2 workflow executions older than certain
 timestamp.
 
 *** RISK RISK RISK. You will lose data. Run at your own risk. ***
@@ -35,7 +35,7 @@ from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
-from st2common.garbage_collection.workflows import purge_workflow_execution
+from st2common.garbage_collection.workflows import purge_workflow_executions
 
 __all__ = ["main"]
 
@@ -47,7 +47,7 @@ def _register_cli_opts():
         cfg.StrOpt(
             "timestamp",
             default=None,
-            help="Will delete workflow execution older than "
+            help="Will delete workflow execution objects older than "
             + "this UTC timestamp. "
             + "Example value: 2015-03-13T19:01:27.255542Z.",
         ),
@@ -55,8 +55,8 @@ def _register_cli_opts():
             "purge-incomplete",
             default=False,
             help="Purge all models irrespective of their ``status``."
-            + 'By default, only executions in completed states such as "succeeeded" '
-            + ', "failed", "canceled" and "timed_out" are deleted.',
+            + 'By default, only workflow executions in completed states such as '
+            + '"succeeeded", "failed", "canceled" and "timed_out" are deleted.',
         ),
     ]
     do_register_cli_opts(cli_opts)
@@ -78,7 +78,7 @@ def main():
         timestamp = timestamp.replace(tzinfo=pytz.UTC)
 
     try:
-        purge_workflow_execution(
+        purge_workflow_executions(
             logger=LOG, timestamp=timestamp, purge_incomplete=purge_incomplete
         )
     except Exception as e:

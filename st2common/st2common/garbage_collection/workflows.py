@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2022 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ from st2common.persistence.workflow import WorkflowExecution
 from st2common.persistence.workflow import TaskExecution
 
 
-__all__ = ["purge_workflow_execution", "purge_task_execution"]
+__all__ = ["purge_workflow_executions", "purge_task_executions"]
 
 # TODO: Are these valid too..
 DONE_STATES = [
@@ -38,7 +38,7 @@ DONE_STATES = [
 ]
 
 
-def purge_workflow_execution(logger, timestamp, purge_incomplete=False):
+def purge_workflow_executions(logger, timestamp, purge_incomplete=False):
     """
     Purge workflow execution output objects.
 
@@ -52,7 +52,7 @@ def purge_workflow_execution(logger, timestamp, purge_incomplete=False):
         raise ValueError("Specify a valid timestamp to purge.")
 
     logger.info(
-        "Purging executions older than timestamp: %s"
+        "Purging workflow executions older than timestamp: %s"
         % timestamp.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     )
 
@@ -76,13 +76,13 @@ def purge_workflow_execution(logger, timestamp, purge_incomplete=False):
         deleted_count = WorkflowExecution.delete_by_query(**exec_filters)
     except InvalidQueryError as e:
         msg = (
-            "Bad query (%s) used to delete execution instances: %s"
+            "Bad query (%s) used to delete workflow execution instances: %s"
             "Please contact support." % (exec_filters, six.text_type(e))
         )
         raise InvalidQueryError(msg)
     except:
         logger.exception(
-            "Deletion of execution models failed for query with filters: %s.",
+            "Deletion of workflow execution models failed for query with filters: %s.",
             exec_filters,
         )
     else:
@@ -93,13 +93,18 @@ def purge_workflow_execution(logger, timestamp, purge_incomplete=False):
     )
 
     if zombie_execution_instances > 0:
-        logger.error("Zombie execution instances left: %d.", zombie_execution_instances)
+        logger.error(
+            "Zombie workflow execution instances left: %d.", zombie_execution_instances
+        )
 
     # Print stats
-    logger.info("All execution models older than timestamp %s were deleted.", timestamp)
+    logger.info(
+        "All workflow execution models older than timestamp %s were deleted.",
+        timestamp,
+    )
 
 
-def purge_task_execution(logger, timestamp, purge_incomplete=False):
+def purge_task_executions(logger, timestamp, purge_incomplete=False):
     """
     Purge task execution output objects.
 
@@ -131,13 +136,13 @@ def purge_task_execution(logger, timestamp, purge_incomplete=False):
         deleted_count = TaskExecution.delete_by_query(**exec_filters)
     except InvalidQueryError as e:
         msg = (
-            "Bad query (%s) used to delete execution instances: %s"
+            "Bad query (%s) used to delete task execution instances: %s"
             "Please contact support." % (exec_filters, six.text_type(e))
         )
         raise InvalidQueryError(msg)
     except:
         logger.exception(
-            "Deletion of execution models failed for query with filters: %s.",
+            "Deletion of task execution models failed for query with filters: %s.",
             exec_filters,
         )
     else:
@@ -148,7 +153,11 @@ def purge_task_execution(logger, timestamp, purge_incomplete=False):
     )
 
     if zombie_execution_instances > 0:
-        logger.error("Zombie execution instances left: %d.", zombie_execution_instances)
+        logger.error(
+            "Zombie task execution instances left: %d.", zombie_execution_instances
+        )
 
     # Print stats
-    logger.info("All execution models older than timestamp %s were deleted.", timestamp)
+    logger.info(
+        "All task execution models older than timestamp %s were deleted.", timestamp
+    )

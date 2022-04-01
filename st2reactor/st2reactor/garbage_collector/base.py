@@ -41,8 +41,8 @@ from st2common.garbage_collection.executions import purge_execution_output_objec
 from st2common.garbage_collection.executions import purge_orphaned_workflow_executions
 from st2common.garbage_collection.inquiries import purge_inquiries
 from st2common.garbage_collection.workflows import (
-    purge_workflow_execution,
-    purge_task_execution,
+    purge_workflow_executions,
+    purge_task_executions,
 )
 from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 from st2common.garbage_collection.trace import purge_traces
@@ -260,7 +260,7 @@ class GarbageCollectorService(object):
         else:
             LOG.debug(skip_message, obj_type)
 
-        obj_type = "task executions"
+        obj_type = "workflow task executions"
         if self._task_executions_ttl and self._task_executions_ttl >= MINIMUM_TTL_DAYS:
             LOG.info(proc_message, obj_type)
             self._purge_task_executions()
@@ -311,8 +311,8 @@ class GarbageCollectorService(object):
 
     def _purge_workflow_executions(self):
         """
-        Purge workflow executions and corresponding live action, stdout and stderr object which match
-        the criteria defined in the config.
+        Purge workflow executions and corresponding live action, stdout and stderr
+        object which match the criteria defined in the config.
         """
         utc_now = get_datetime_utc_now()
         timestamp = utc_now - datetime.timedelta(days=self._workflow_executions_ttl)
@@ -329,7 +329,7 @@ class GarbageCollectorService(object):
         assert timestamp < utc_now
 
         try:
-            purge_workflow_execution(logger=LOG, timestamp=timestamp)
+            purge_workflow_executions(logger=LOG, timestamp=timestamp)
         except Exception as e:
             LOG.exception(
                 "Failed to delete workflow executions: %s" % (six.text_type(e))
@@ -339,8 +339,8 @@ class GarbageCollectorService(object):
 
     def _purge_task_executions(self):
         """
-        Purge task executions and corresponding live action, stdout and stderr object which match
-        the criteria defined in the config.
+        Purge workflow task executions and corresponding live action, stdout and stderr
+        object which match the criteria defined in the config.
         """
         utc_now = get_datetime_utc_now()
         timestamp = utc_now - datetime.timedelta(days=self._task_executions_ttl)
@@ -352,14 +352,16 @@ class GarbageCollectorService(object):
             )
 
         timestamp_str = isotime.format(dt=timestamp)
-        LOG.info("Deleting task executions older than: %s" % (timestamp_str))
+        LOG.info("Deleting workflow task executions older than: %s" % (timestamp_str))
 
         assert timestamp < utc_now
 
         try:
-            purge_task_execution(logger=LOG, timestamp=timestamp)
+            purge_task_executions(logger=LOG, timestamp=timestamp)
         except Exception as e:
-            LOG.exception("Failed to delete task executions: %s" % (six.text_type(e)))
+            LOG.exception(
+                "Failed to delete workflow task executions: %s" % (six.text_type(e))
+            )
 
         return True
 
