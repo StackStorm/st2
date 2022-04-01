@@ -204,7 +204,7 @@ class PacksControllerTestCase(
 
     @mock.patch.object(ActionExecutionsControllerMixin, "_handle_schedule_execution")
     def test_install_with_timeout_parameter(self, _handle_schedule_execution):
-        _handle_schedule_execution.return_value = Response(json={'id': '123'})
+        _handle_schedule_execution.return_value = Response(json={"id": "123"})
         payload = {"packs": ["some"], "timeout": 600}
 
         resp = self.app.post_json("/v1/packs/install", payload)
