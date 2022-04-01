@@ -43,13 +43,14 @@ class ActionsRegistrar(ResourceRegistrar):
         Discover all the packs in the provided directory and register actions from all of the
         discovered packs.
 
-        :return: Number of actions registered.
-        :rtype: ``int``
+        :return: Number of actions registered, Number of actions overridden
+        :rtype: ``tuple``
         """
         # Register packs first
         self.register_packs(base_dirs=base_dirs)
 
         registered_count = 0
+        overridden_count = 0
         content = self._pack_loader.get_content(
             base_dirs=base_dirs, content_type="actions"
         )
@@ -63,8 +64,11 @@ class ActionsRegistrar(ResourceRegistrar):
                     "Registering actions from pack %s:, dir: %s", pack, actions_dir
                 )
                 actions = self._get_actions_from_pack(actions_dir)
-                count = self._register_actions_from_pack(pack=pack, actions=actions)
+                count, overridden = self._register_actions_from_pack(
+                    pack=pack, actions=actions
+                )
                 registered_count += count
+                overridden_count += overridden
             except Exception as e:
                 if self._fail_on_failure:
                     raise e
@@ -73,14 +77,14 @@ class ActionsRegistrar(ResourceRegistrar):
                     "Failed registering all actions from pack: %s", actions_dir
                 )
 
-        return registered_count
+        return registered_count, overridden_count
 
     def register_from_pack(self, pack_dir):
         """
         Register all the actions from the provided pack.
 
-        :return: Number of actions registered.
-        :rtype: ``int``
+        :return: Number of actions registered, Number of actions overridden
+        :rtype: ``tuple``
         """
         pack_dir = pack_dir[:-1] if pack_dir.endswith("/") else pack_dir
         _, pack = os.path.split(pack_dir)
@@ -92,6 +96,7 @@ class ActionsRegistrar(ResourceRegistrar):
         self.register_pack(pack_name=pack, pack_dir=pack_dir)
 
         registered_count = 0
+        overridden_count = 0
         if not actions_dir:
             return registered_count
 
@@ -99,7 +104,7 @@ class ActionsRegistrar(ResourceRegistrar):
 
         try:
             actions = self._get_actions_from_pack(actions_dir=actions_dir)
-            registered_count = self._register_actions_from_pack(
+            registered_count, overridden_count = self._register_actions_from_pack(
                 pack=pack, actions=actions
             )
         except Exception as e:
@@ -108,7 +113,7 @@ class ActionsRegistrar(ResourceRegistrar):
 
             LOG.exception("Failed registering all actions from pack: %s", actions_dir)
 
-        return registered_count
+        return registered_count, overridden_count
 
     def _get_actions_from_pack(self, actions_dir):
         actions = self.get_resources_from_pack(resources_dir=actions_dir)
@@ -141,6 +146,9 @@ class ActionsRegistrar(ResourceRegistrar):
             pack_ref=pack, file_path=action, use_pack_cache=True
         )
         content["metadata_file"] = metadata_file
+
+        # Pass override information
+        altered = self._override_loader.override(pack, "actions", content)
 
         action_api = ActionAPI(**content)
 
@@ -214,12 +222,17 @@ class ActionsRegistrar(ResourceRegistrar):
             LOG.exception("Failed to write action to db %s.", model.name)
             raise
 
+        return altered
+
     def _register_actions_from_pack(self, pack, actions):
         registered_count = 0
+        overridden_count = 0
         for action in actions:
             try:
                 LOG.debug("Loading action from %s.", action)
-                self._register_action(pack=pack, action=action)
+                altered = self._register_action(pack=pack, action=action)
+                if altered:
+                    overridden_count += 1
             except Exception as e:
                 if self._fail_on_failure:
                     msg = 'Failed to register action "%s" from pack "%s": %s' % (
@@ -234,7 +247,7 @@ class ActionsRegistrar(ResourceRegistrar):
             else:
                 registered_count += 1
 
-        return registered_count
+        return registered_count, overridden_count
 
 
 def register_actions(

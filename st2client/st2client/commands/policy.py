@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import logging
 
-from st2client import models
+from st2client.models.policy import Policy, PolicyType
 from st2client.commands import resource
 
 
@@ -27,7 +27,7 @@ LOG = logging.getLogger(__name__)
 class PolicyTypeBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(PolicyTypeBranch, self).__init__(
-            models.PolicyType,
+            PolicyType,
             description,
             app,
             subparsers,
@@ -72,7 +72,7 @@ class PolicyTypeGetCommand(resource.ResourceGetCommand):
 class PolicyBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(PolicyBranch, self).__init__(
-            models.Policy,
+            Policy,
             description,
             app,
             subparsers,
@@ -109,20 +109,19 @@ class PolicyListCommand(resource.ContentPackResourceListCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        if args.resource_ref or args.policy_type:
-            filters = {}
-
-            if args.resource_ref:
-                filters["resource_ref"] = args.resource_ref
-
-            if args.policy_type:
-                filters["policy_type"] = args.policy_type
-
-            filters.update(**kwargs)
-
-            return self.manager.query(**filters)
-        else:
-            return self.manager.get_all(**kwargs)
+        filters = {}
+        if args.pack:
+            filters["pack"] = args.pack
+        if args.resource_ref:
+            filters["resource_ref"] = args.resource_ref
+        if args.policy_type:
+            filters["policy_type"] = args.policy_type
+        filters.update(**kwargs)
+        include_attributes = self._get_include_attributes(args=args)
+        if include_attributes:
+            include_attributes = ",".join(include_attributes)
+            filters["params"] = {"include_attributes": include_attributes}
+        return self.manager.query(**filters)
 
 
 class PolicyGetCommand(resource.ContentPackResourceGetCommand):

@@ -199,8 +199,9 @@ def _db_connect(
     # successfully established.
     # See http://api.mongodb.com/python/current/api/pymongo/mongo_client.html for details
     try:
-        # The ismaster command is cheap and does not require auth
-        connection.admin.command("ismaster")
+        # The ping command is cheap and does not require auth
+        # https://www.mongodb.com/community/forums/t/how-to-use-the-new-hello-interface-for-availability/116748/
+        connection.admin.command("ping")
     except (ConnectionFailure, ServerSelectionTimeoutError) as e:
         # NOTE: ServerSelectionTimeoutError can also be thrown if SSLHandShake fails in the server
         # Sadly the client doesn't include more information about the error so in such scenarios
@@ -735,6 +736,19 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
                 raise db_exc.StackStormDBObjectWriteConflictError(instance)
 
             return self._undo_dict_field_escape(instance)
+
+    def delete(self, instance):
+        return instance.delete()
+
+    def delete_by_query(self, *args, **query):
+        """
+        Delete objects by query and return number of deleted objects.
+        """
+        qs = self.model.objects.filter(*args, **query)
+        count = qs.delete()
+        log_query_and_profile_data_for_queryset(queryset=qs)
+
+        return count
 
 
 def get_host_names_for_uri_dict(uri_dict):
