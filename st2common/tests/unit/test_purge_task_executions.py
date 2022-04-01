@@ -1,4 +1,4 @@
-# Copyright 2020, The StackStorm Authors.
+# Copyright 2020 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,9 +38,8 @@ class TestPurgeTaskExecutionInstances(CleanDbTestCase):
         now = date_utils.get_datetime_utc_now()
 
         instance_db = TaskExecutionDB(
-            trigger="purge_tool.dummy.trigger",
-            payload={"hola": "hi", "kuraci": "chicken"},
-            occurrence_time=now - timedelta(days=20),
+            start_timestamp=now - timedelta(days=20),
+            end_timestamp=now - timedelta(days=20),
             status="succeeded",
         )
         TaskExecution.add_or_update(instance_db)
@@ -56,21 +55,56 @@ class TestPurgeTaskExecutionInstances(CleanDbTestCase):
         now = date_utils.get_datetime_utc_now()
 
         instance_db = TaskExecutionDB(
-            trigger="purge_tool.dummy.trigger",
-            payload={"hola": "hi", "kuraci": "chicken"},
-            occurrence_time=now - timedelta(days=20),
+            start_timestamp=now - timedelta(days=20),
+            end_timestamp=now - timedelta(days=20),
             status="failed",
         )
         TaskExecution.add_or_update(instance_db)
 
+        # Addn incomplete
         instance_db = TaskExecutionDB(
-            trigger="purge_tool.dummy.trigger",
-            payload={"hola": "hi", "kuraci": "chicken"},
-            occurrence_time=now - timedelta(days=5),
+            start_timestamp=now - timedelta(days=20),
+            status="running",
+        )
+        TaskExecution.add_or_update(instance_db)
+
+        instance_db = TaskExecutionDB(
+            start_timestamp=now - timedelta(days=5),
+            end_timestamp=now - timedelta(days=5),
             status="canceled",
         )
         TaskExecution.add_or_update(instance_db)
 
-        self.assertEqual(len(TaskExecution.get_all()), 2)
+        self.assertEqual(len(TaskExecution.get_all()), 3)
         purge_task_execution(logger=LOG, timestamp=now - timedelta(days=10))
+        self.assertEqual(len(TaskExecution.get_all()), 2)
+
+    def test_purge_incomplete(self):
+        now = date_utils.get_datetime_utc_now()
+
+        instance_db = TaskExecutionDB(
+            start_timestamp=now - timedelta(days=20),
+            end_timestamp=now - timedelta(days=20),
+            status="failed",
+        )
+        TaskExecution.add_or_update(instance_db)
+
+        # Addn incomplete
+        instance_db = TaskExecutionDB(
+            start_timestamp=now - timedelta(days=20),
+            status="running",
+        )
+        TaskExecution.add_or_update(instance_db)
+
+        instance_db = TaskExecutionDB(
+            start_timestamp=now - timedelta(days=5),
+            end_timestamp=now - timedelta(days=5),
+            status="canceled",
+        )
+        TaskExecution.add_or_update(instance_db)
+
+        self.assertEqual(len(TaskExecution.get_all()), 3)
+        purge_task_execution(
+            logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=True
+        )
         self.assertEqual(len(TaskExecution.get_all()), 1)

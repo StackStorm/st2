@@ -1,4 +1,4 @@
-# Copyright 2020, The StackStorm Authors.
+# Copyright 2020 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,9 +38,8 @@ class TestPurgeWorkflowExecutionInstances(CleanDbTestCase):
         now = date_utils.get_datetime_utc_now()
 
         instance_db = WorkflowExecutionDB(
-            trigger="purge_tool.dummy.trigger",
-            payload={"hola": "hi", "kuraci": "chicken"},
-            occurrence_time=now - timedelta(days=20),
+            start_timestamp=now - timedelta(days=20),
+            end_timestamp=now - timedelta(days=20),
             status="running",
         )
         WorkflowExecution.add_or_update(instance_db)
@@ -60,21 +59,54 @@ class TestPurgeWorkflowExecutionInstances(CleanDbTestCase):
         now = date_utils.get_datetime_utc_now()
 
         instance_db = WorkflowExecutionDB(
-            trigger="purge_tool.dummy.trigger",
-            payload={"hola": "hi", "kuraci": "chicken"},
-            occurrence_time=now - timedelta(days=20),
+            start_timestamp=now - timedelta(days=20),
+            end_timestamp=now - timedelta(days=20),
+            status="failed",
+        )
+        WorkflowExecution.add_or_update(instance_db)
+
+        instance_db = WorkflowExecutionDB(
+            start_timestamp=now - timedelta(days=20),
             status="running",
         )
         WorkflowExecution.add_or_update(instance_db)
 
         instance_db = WorkflowExecutionDB(
-            trigger="purge_tool.dummy.trigger",
-            payload={"hola": "hi", "kuraci": "chicken"},
-            occurrence_time=now - timedelta(days=5),
+            start_timestamp=now - timedelta(days=5),
+            end_timestamp=now - timedelta(days=5),
             status="succeeded",
         )
         WorkflowExecution.add_or_update(instance_db)
 
-        self.assertEqual(len(WorkflowExecution.get_all()), 2)
+        self.assertEqual(len(WorkflowExecution.get_all()), 3)
         purge_workflow_execution(logger=LOG, timestamp=now - timedelta(days=10))
+        self.assertEqual(len(WorkflowExecution.get_all()), 2)
+
+    def test_purge_incomplete(self):
+        now = date_utils.get_datetime_utc_now()
+
+        instance_db = WorkflowExecutionDB(
+            start_timestamp=now - timedelta(days=20),
+            end_timestamp=now - timedelta(days=20),
+            status="cancelled",
+        )
+        WorkflowExecution.add_or_update(instance_db)
+
+        instance_db = WorkflowExecutionDB(
+            start_timestamp=now - timedelta(days=20),
+            status="running",
+        )
+        WorkflowExecution.add_or_update(instance_db)
+
+        instance_db = WorkflowExecutionDB(
+            start_timestamp=now - timedelta(days=5),
+            end_timestamp=now - timedelta(days=5),
+            status="succeeded",
+        )
+        WorkflowExecution.add_or_update(instance_db)
+
+        self.assertEqual(len(WorkflowExecution.get_all()), 3)
+        purge_workflow_execution(
+            logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=True
+        )
         self.assertEqual(len(WorkflowExecution.get_all()), 1)
