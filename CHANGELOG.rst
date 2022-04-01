@@ -155,6 +155,9 @@ Added
 * Added garbage collection for rule_enforcement and trace models #5596/5602
   Contributed by Amanda McGuinness (@amanda11 intive)
 
+* Added garbage collection for workflow execution and task execution objects #4924
+  Contributed by @srimandaleeka01 and @amanda11
+
 
 Fixed
 ~~~~~

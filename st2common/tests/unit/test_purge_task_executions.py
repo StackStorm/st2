@@ -1,4 +1,4 @@
-# Copyright 2019 Extreme Networks, Inc.
+# Copyright 2021, The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from datetime import timedelta
 
 from st2common import log as logging
-from st2common.constants.triggers import TRIGGER_INSTANCE_PROCESSED
 from st2common.garbage_collection.workflows import purge_task_execution
 from st2common.models.db.workflow import TaskExecutionDB
 from st2common.persistence.workflow import TaskExecution
@@ -27,7 +26,6 @@ LOG = logging.getLogger(__name__)
 
 
 class TestPurgeTaskExecutionInstances(CleanDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         CleanDbTestCase.setUpClass()
@@ -39,32 +37,38 @@ class TestPurgeTaskExecutionInstances(CleanDbTestCase):
     def test_no_timestamp_doesnt_delete(self):
         now = date_utils.get_datetime_utc_now()
 
-        instance_db = TaskExecutionDB(trigger='purge_tool.dummy.trigger',
-                                      payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                      occurrence_time=now - timedelta(days=20),
-                                      status='succeeded')
+        instance_db = TaskExecutionDB(
+            trigger="purge_tool.dummy.trigger",
+            payload={"hola": "hi", "kuraci": "chicken"},
+            occurrence_time=now - timedelta(days=20),
+            status="succeeded",
+        )
         TaskExecution.add_or_update(instance_db)
 
         self.assertEqual(len(TaskExecution.get_all()), 1)
-        expected_msg = 'Specify a valid timestamp'
-        self.assertRaisesRegexp(ValueError, expected_msg,
-                                purge_task_execution,
-                                logger=LOG, timestamp=None)
+        expected_msg = "Specify a valid timestamp"
+        self.assertRaisesRegexp(
+            ValueError, expected_msg, purge_task_execution, logger=LOG, timestamp=None
+        )
         self.assertEqual(len(TaskExecution.get_all()), 1)
 
     def test_purge(self):
         now = date_utils.get_datetime_utc_now()
 
-        instance_db = TaskExecutionDB(trigger='purge_tool.dummy.trigger',
-                                      payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                      occurrence_time=now - timedelta(days=20),
-                                      status='failed')
+        instance_db = TaskExecutionDB(
+            trigger="purge_tool.dummy.trigger",
+            payload={"hola": "hi", "kuraci": "chicken"},
+            occurrence_time=now - timedelta(days=20),
+            status="failed",
+        )
         TaskExecution.add_or_update(instance_db)
 
-        instance_db = TaskExecutionDB(trigger='purge_tool.dummy.trigger',
-                                      payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                      occurrence_time=now - timedelta(days=5),
-                                      status='canceled')
+        instance_db = TaskExecutionDB(
+            trigger="purge_tool.dummy.trigger",
+            payload={"hola": "hi", "kuraci": "chicken"},
+            occurrence_time=now - timedelta(days=5),
+            status="canceled",
+        )
         TaskExecution.add_or_update(instance_db)
 
         self.assertEqual(len(TaskExecution.get_all()), 2)

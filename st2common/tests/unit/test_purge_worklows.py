@@ -1,4 +1,4 @@
-# Copyright 2019 Extreme Networks, Inc.
+# Copyright 2021, The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from datetime import timedelta
 
 from st2common import log as logging
-from st2common.constants.triggers import TRIGGER_INSTANCE_PROCESSED
 from st2common.garbage_collection.workflows import purge_workflow_execution
 from st2common.models.db.workflow import WorkflowExecutionDB
 from st2common.persistence.workflow import WorkflowExecution
@@ -27,7 +26,6 @@ LOG = logging.getLogger(__name__)
 
 
 class TestPurgeWorkflowExecutionInstances(CleanDbTestCase):
-
     @classmethod
     def setUpClass(cls):
         CleanDbTestCase.setUpClass()
@@ -39,32 +37,42 @@ class TestPurgeWorkflowExecutionInstances(CleanDbTestCase):
     def test_no_timestamp_doesnt_delete(self):
         now = date_utils.get_datetime_utc_now()
 
-        instance_db = WorkflowExecutionDB(trigger='purge_tool.dummy.trigger',
-                                          payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                          occurrence_time=now - timedelta(days=20),
-                                          status='running')
+        instance_db = WorkflowExecutionDB(
+            trigger="purge_tool.dummy.trigger",
+            payload={"hola": "hi", "kuraci": "chicken"},
+            occurrence_time=now - timedelta(days=20),
+            status="running",
+        )
         WorkflowExecution.add_or_update(instance_db)
 
         self.assertEqual(len(WorkflowExecution.get_all()), 1)
-        expected_msg = 'Specify a valid timestamp'
-        self.assertRaisesRegexp(ValueError, expected_msg,
-                                purge_workflow_execution,
-                                logger=LOG, timestamp=None)
+        expected_msg = "Specify a valid timestamp"
+        self.assertRaisesRegexp(
+            ValueError,
+            expected_msg,
+            purge_workflow_execution,
+            logger=LOG,
+            timestamp=None,
+        )
         self.assertEqual(len(WorkflowExecution.get_all()), 1)
 
     def test_purge(self):
         now = date_utils.get_datetime_utc_now()
 
-        instance_db = WorkflowExecutionDB(trigger='purge_tool.dummy.trigger',
-                                          payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                          occurrence_time=now - timedelta(days=20),
-                                          status='running')
+        instance_db = WorkflowExecutionDB(
+            trigger="purge_tool.dummy.trigger",
+            payload={"hola": "hi", "kuraci": "chicken"},
+            occurrence_time=now - timedelta(days=20),
+            status="running",
+        )
         WorkflowExecution.add_or_update(instance_db)
 
-        instance_db = WorkflowExecutionDB(trigger='purge_tool.dummy.trigger',
-                                          payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                          occurrence_time=now - timedelta(days=5),
-                                          status='succeeded')
+        instance_db = WorkflowExecutionDB(
+            trigger="purge_tool.dummy.trigger",
+            payload={"hola": "hi", "kuraci": "chicken"},
+            occurrence_time=now - timedelta(days=5),
+            status="succeeded",
+        )
         WorkflowExecution.add_or_update(instance_db)
 
         self.assertEqual(len(WorkflowExecution.get_all()), 2)
