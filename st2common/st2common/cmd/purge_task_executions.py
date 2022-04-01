@@ -55,7 +55,7 @@ def _register_cli_opts():
             "purge-incomplete",
             default=False,
             help="Purge all models irrespective of their ``status``."
-            + 'By default, only workflow task executions in completed states such as '
+            + "By default, only workflow task executions in completed states such as "
             + '"succeeeded", "failed", "canceled" and "timed_out" are deleted.',
         ),
     ]
