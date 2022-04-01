@@ -5174,6 +5174,11 @@ definitions:
         description: Set to True to skip pack dependency installations.
         required: false
         default: false
+      timeout:
+        type: int
+        description: Action timeout in seconds.
+        required: false
+        default: 600
   PacksUninstall:
     type: object
     properties:
