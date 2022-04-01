@@ -77,9 +77,15 @@ class EncryptedValueMigration(object):
                 new_encrypted_value = str(new_encrypted_value)
                 keyvalue_db.new_encrypted_value = new_encrypted_value[2:-1]
                 KeyValuePair.add_or_update(keyvalue_db)
-                print("Updated new encrypted value %s." % (new_encrypted_value))
+                print(
+                    "Updated encrypted value. "
+                    f"key={keyvalue_db.name} new_encrypted_value={new_encrypted_value}"
+                )
             else:
-                print("Cannot update the values as datastore contains cleartext")
+                print(
+                    "Unexpected cleartext value in query for secret datastore values. "
+                    f"key={keyvalue_db.name}"
+                )
 
 
 def setup():
