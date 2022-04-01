@@ -24,6 +24,7 @@ from collections.abc import Iterable
 from st2common.util import schema as util_schema
 from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
+from st2common.constants.pack import RESERVED_PACK_LIST
 from st2common.content.loader import MetaLoader
 from st2common.persistence.pack import Pack
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -88,6 +89,10 @@ def get_pack_ref_from_metadata(metadata, pack_directory_name=None):
             )
             raise ValueError(msg % (metadata["name"]))
 
+    if pack_ref in RESERVED_PACK_LIST:
+        raise ValueError(
+            f"{pack_ref} is a reserved name, and cannot be used as a pack name"
+        )
     return pack_ref
 
 
