@@ -158,6 +158,11 @@ Added
 * Added garbage collection for workflow execution and task execution objects #4924
   Contributed by @srimandaleeka01 and @amanda11
 
+* Added timeout parameter for pack install st2 client run to help with long running installs. This was already expose in
+  packs.install action but st2client was not updated to reflect the change (improvement) #5174
+
+  Contributed by @hnanchahal
+
 
 Fixed
 ~~~~~
@@ -738,11 +743,6 @@ Added
   scratch. (part of upgrade instructions) #5167
 
   Contributed by @winem and @blag
-
-* Added timeout parameter for pack install st2 client run to help with long running installs. This was already expose in
-  packs.install action but st2client was not updated to reflect the change (improvement) #5174
-
-  Contributed by @hnanchahal
 
 Changed
 ~~~~~~~
