@@ -110,6 +110,55 @@ Added
 
   Contributed by Amanda McGuinness (@amanda11 Intive)
 
+* Add new ``api.auth_cookie_secure`` and ``api.auth_cookie_same_site`` config options which
+  specify values which are set for ``secure`` and ``SameSite`` attribute for the auth cookie
+  we set when authenticating via token / api key in query parameter value (e.g. via st2web).
+
+  For security reasons, ``api.auth_cookie_secure`` defaults to ``True``. This should only be
+  changed to ``False`` if you have a valid reason to not run StackStorm behind HTTPs proxy.
+
+  Default value for ``api.auth_cookie_same_site`` is ``lax``. If you want to disable this
+  functionality so it behaves the same as in the previous releases, you can set that option
+  to ``None``.
+
+  #5248
+
+  Contributed by @Kami.
+
+* Add new ``st2 action-alias test <message string>`` CLI command which allows users to easily
+  test action alias matching and result formatting.
+
+  This command will first try to find a matching alias (same as ``st2 action-alias match``
+  command) and if a match is found, trigger an execution (same as ``st2 action-alias execute``
+  command) and format the execution result.
+
+  This means it uses exactly the same flow as commands on chat, but the interaction avoids
+  chat and hubot which should make testing and developing aliases easier and faster. #5143
+
+  #5143
+
+  Contributed by @Kami.
+
+* Add new ``credentials.basic_auth = username:password`` CLI configuration option.
+
+  This argument allows client to use additional set of basic auth credentials when talking to the
+  StackStorm API endpoints (api, auth, stream) - that is, in addition to the token / api key
+  native StackStorm auth.
+
+  This allows for simple basic auth based multi factor authentication implementation for
+  installations which don't utilize SSO.
+
+  #5152
+
+  Contributed by @Kami.
+
+* Added garbage collection for rule_enforcement and trace models #5596/5602
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Added garbage collection for workflow execution and task execution objects #4924
+  Contributed by @srimandaleeka01 and @amanda11
+
+
 Fixed
 ~~~~~
 
@@ -122,6 +171,10 @@ Fixed
 * Use byte type lock name which is supported by all tooz drivers. #5529
 
   Contributed by @khushboobhatia01
+
+* Fixed issue where pack index searches are ignoring no_proxy #5497
+
+  Contributed by @minsis
 
 3.6.0 - October 29, 2021
 ------------------------
