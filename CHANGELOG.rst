@@ -7,9 +7,6 @@ in development
 Added
 ~~~~~
 
-* Minor updates for RockyLinux. #5552
-  Contributed by Amanda McGuinness (@amanda11 intive)
-
 * Added st2 API get action parameters by ref. #5509
 
   API endpoint ``/api/v1/actions/views/parameters/{action_id}`` accepts ``ref_or_id``.
@@ -24,12 +21,12 @@ Added
 
   API endpoint ``/api/v1/actions/{ref_or_id}/clone`` takes ``ref_or_id`` of source action.
   Request method body takes destination pack and action name. Request method body also takes
-  optional paramater ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
+  optional parameter ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
   overwritten.
 
   CLI command ``st2 action clone <ref_or_id> <dest_pack> <dest_action>`` takes source ``ref_or_id``, destination
   pack name and destination action name as mandatory arguments.
-  In case destionation already exists then command takes optional arugument ``-f`` or ``--force`` to overwrite
+  In case destination already exists then command takes optional argument ``-f`` or ``--force`` to overwrite
   destination action. #5345
 
   Contributed by @mahesh-orch.
@@ -39,7 +36,7 @@ Added
 
   Contributed by @m4dcoder and @ashwini-orchestral
 
-* Added service deregestration on shutdown of a service. #5396
+* Added service deregistration on shutdown of a service. #5396
 
   Contributed by @khushboobhatia01
 
@@ -123,6 +120,10 @@ Added
 
 Changed
 ~~~~~~~
+
+* Minor updates for RockyLinux. #5552
+
+  Contributed by Amanda McGuinness (@amanda11 intive)
 
 * Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
 
