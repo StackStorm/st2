@@ -7,7 +7,6 @@ in development
 Fixed
 ~~~~~
 
-
 * Fix deserialization bug in st2 API for url encoded payloads. #5536
 
   Contributed by @sravs-dev
@@ -170,6 +169,10 @@ Fixed
 
 * Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
 
+* Fix actions from the contrib/linux pack that fail on CentOS-8 but work on other operating systems and distributions. (bug fix) #4999 #5004
+
+  Reported by @blag and @dove-young contributed by @winem.
+
 * Use byte type lock name which is supported by all tooz drivers. #5529
 
   Contributed by @khushboobhatia01
@@ -177,6 +180,14 @@ Fixed
 * Fixed issue where pack index searches are ignoring no_proxy #5497
 
   Contributed by @minsis
+
+* Fixed trigger references emitted by ``linux.file_watch.line``. #5467
+
+  Prior to this patch multiple files could be watched but the rule reference of last registered file
+  would be used for all trigger emissions causing rule enforcement to fail.  References are now tracked
+  on a per file basis and used in trigger emissions.
+
+  Contributed by @nzlosh
 
 3.6.0 - October 29, 2021
 ------------------------
