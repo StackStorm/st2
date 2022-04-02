@@ -191,6 +191,11 @@ Fixed
 
   Contributed by @nzlosh
 
+Changed
+~~~~~~~
+
+* Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
+
 3.6.0 - October 29, 2021
 ------------------------
 
