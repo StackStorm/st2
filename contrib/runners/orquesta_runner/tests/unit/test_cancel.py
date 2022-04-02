@@ -118,6 +118,7 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         lv_ac_db, ac_ex_db = ac_svc.request_cancellation(lv_ac_db, requester)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_CANCELING)
+        self.assertEqual(lv_ac_db.context["cancelled_by"], requester)
 
     def test_cancel_workflow_cascade_down_to_subworkflow(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "subworkflow.yaml")

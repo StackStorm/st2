@@ -4,8 +4,58 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+
+* Fix deserialization bug in st2 API for url encoded payloads. #5536
+
+  Contributed by @sravs-dev
+
+* Fix issue of WinRM parameter passing fails for larger scripts.#5538
+
+  Contributed by @ashwini-orchestral
+
+* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
+  ``timedelta.total_seconds()`` return. #5462
+
+  Contributed by @blackstrip
+
+* Fix issue with pack option not working when running policy list cli #5534
+
+  Contributed by @momokuri-3
+
+* Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
+
+  contributed by @guzzijones12
+
+* Link shutdown routine and sigterm handler to main thread #5555
+
+  Contributed by @khushboobhatia01
+
+* Change compound index for ActionExecutionDB to improve query performance #5568
+
+  Contributed by @khushboobhatia01
+
+* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
+
+  Contributed by Amanda McGuinness (@amanda11 intive) #5581
+
 Added
 ~~~~~
+
+* Minor updates for RockyLinux. #5552
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Added st2 API get action parameters by ref. #5509
+
+  API endpoint ``/api/v1/actions/views/parameters/{action_id}`` accepts ``ref_or_id``.
+
+  Contributed by @DavidMeu
+
+* Enable setting ttl for MockDatastoreService. #5468
+
+  Contributed by @ytjohn
 
 * Added st2 API and CLI command for actions clone operation.
 
@@ -30,6 +80,85 @@ Added
 
   Contributed by @khushboobhatia01
 
+* Added pysocks python package for SOCKS proxy support. #5460
+
+  Contributed by @kingsleyadam
+
+* Added support for multiple LDAP hosts to st2-auth-ldap. #5535, https://github.com/StackStorm/st2-auth-ldap/pull/100
+
+  Contributed by @ktyogurt
+
+* Implemented graceful shutdown for action runner. Enabled ``graceful_shutdown`` in ``st2.conf`` file. #5428
+
+  Contributed by @khushboobhatia01
+
+* Enhanced 'search' operator to allow complex criteria matching on payload items. #5482
+
+  Contributed by @erceth
+
+* Added cancel/pause/resume requester information to execution context. #5554
+
+  Contributed by @khushboobhatia01
+
+* Added `trigger.headers_lower` to webhook trigger payload. This allows rules to match webhook triggers
+  without dealing with the case-sensitive nature of `trigger.headers`, as `triggers.headers_lower` providers
+  the same headers, but with the header name lower cased. #5038
+
+  Contributed by @Rand01ph
+
+* Added support to override enabled parameter of resources. #5506
+
+  Contributed by Amanda McGuinness (@amanda11 Intive)
+
+* Add new ``api.auth_cookie_secure`` and ``api.auth_cookie_same_site`` config options which
+  specify values which are set for ``secure`` and ``SameSite`` attribute for the auth cookie
+  we set when authenticating via token / api key in query parameter value (e.g. via st2web).
+
+  For security reasons, ``api.auth_cookie_secure`` defaults to ``True``. This should only be
+  changed to ``False`` if you have a valid reason to not run StackStorm behind HTTPs proxy.
+
+  Default value for ``api.auth_cookie_same_site`` is ``lax``. If you want to disable this
+  functionality so it behaves the same as in the previous releases, you can set that option
+  to ``None``.
+
+  #5248
+
+  Contributed by @Kami.
+
+* Add new ``st2 action-alias test <message string>`` CLI command which allows users to easily
+  test action alias matching and result formatting.
+
+  This command will first try to find a matching alias (same as ``st2 action-alias match``
+  command) and if a match is found, trigger an execution (same as ``st2 action-alias execute``
+  command) and format the execution result.
+
+  This means it uses exactly the same flow as commands on chat, but the interaction avoids
+  chat and hubot which should make testing and developing aliases easier and faster. #5143
+
+  #5143
+
+  Contributed by @Kami.
+
+* Add new ``credentials.basic_auth = username:password`` CLI configuration option.
+
+  This argument allows client to use additional set of basic auth credentials when talking to the
+  StackStorm API endpoints (api, auth, stream) - that is, in addition to the token / api key
+  native StackStorm auth.
+
+  This allows for simple basic auth based multi factor authentication implementation for
+  installations which don't utilize SSO.
+
+  #5152
+
+  Contributed by @Kami.
+
+* Added garbage collection for rule_enforcement and trace models #5596/5602
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Added garbage collection for workflow execution and task execution objects #4924
+  Contributed by @srimandaleeka01 and @amanda11
+
+
 Fixed
 ~~~~~
 
@@ -38,6 +167,14 @@ Fixed
   Contributed by @khushboobhatia01
 
 * Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
+
+* Use byte type lock name which is supported by all tooz drivers. #5529
+
+  Contributed by @khushboobhatia01
+
+* Fixed issue where pack index searches are ignoring no_proxy #5497
+
+  Contributed by @minsis
 
 3.6.0 - October 29, 2021
 ------------------------
