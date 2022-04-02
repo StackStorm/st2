@@ -383,11 +383,22 @@ class Router(object):
                                 max_age = (
                                     auth_resp.expiry - date_utils.get_datetime_utc_now()
                                 )
+                                # NOTE: unset and none don't mean the same thing - unset implies
+                                # not setting this attribute at all (backward compatibility) and
+                                # none implies setting this attribute value to none
+                                same_site = cfg.CONF.api.auth_cookie_same_site
+
+                                kwargs = {}
+                                if same_site != "unset":
+                                    kwargs["samesite"] = same_site
+
                                 cookie_token = cookies.make_cookie(
                                     definition["x-set-cookie"],
                                     token,
                                     max_age=max_age,
                                     httponly=True,
+                                    secure=cfg.CONF.api.auth_cookie_secure,
+                                    **kwargs,
                                 )
 
                             break
@@ -494,7 +505,7 @@ class Router(object):
                         "application/x-www-form-urlencoded",
                         "multipart/form-data",
                     ]:
-                        data = urlparse.parse_qs(req.body)
+                        data = urlparse.parse_qs(six.ensure_str(req.body))
                     else:
                         raise ValueError(
                             'Unsupported Content-Type: "%s"' % (content_type)

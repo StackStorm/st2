@@ -8,6 +8,8 @@ greenlet
 jinja2
 jsonschema
 kombu
+#Used by jinja2
+MarkupSafe
 mongoengine
 networkx
 # used by networkx
@@ -28,6 +30,7 @@ requests
 retrying
 semver
 six
+tenacity
 tooz
 tenacity
 # Required by tooz - on new versions of tooz, all the backend dependencies need
@@ -39,6 +42,7 @@ routes
 flex
 webob
 jsonpath-rw
+pyOpenSSL
 python-statsd
 udatetime
 orjson

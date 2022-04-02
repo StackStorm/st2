@@ -5,7 +5,7 @@ st2flake8==0.1.0
 astroid==2.5.6
 pylint==2.8.2
 pylint-plugin-utils>=0.4
-black==20.8b1
+black==22.3.0
 pre-commit==2.1.0
 bandit==1.7.0
 ipython<6.0.0
