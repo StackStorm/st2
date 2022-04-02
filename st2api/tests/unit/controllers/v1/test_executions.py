@@ -871,7 +871,7 @@ class ActionExecutionControllerTestCase(
         self.assertEqual(post_resp.status_int, 201)
         execution_id = self._get_actionexecution_id(post_resp)
 
-        delay_time = 10 ** 10
+        delay_time = 10**10
         data = {"delay": delay_time}
         re_run_resp = self.app.post_json(
             "/v1/executions/%s/re_run" % (execution_id), data
