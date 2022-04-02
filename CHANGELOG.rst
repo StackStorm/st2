@@ -39,7 +39,7 @@ Added
 
   Contributed by @m4dcoder and @ashwini-orchestral
 
-* Added service degerestration on shutdown of a service. #5396
+* Added service deregestration on shutdown of a service. #5396
 
   Contributed by @khushboobhatia01
 
