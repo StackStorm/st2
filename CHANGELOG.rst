@@ -44,6 +44,8 @@ Fixed
 
   Contributed by @khushboobhatia01
 
+* Updated paramiko version to 2.10.3 to add support for more key verification algorithms. #5600
+
 Added
 ~~~~~
 
