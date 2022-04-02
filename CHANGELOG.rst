@@ -40,6 +40,10 @@ Fixed
 
   Contributed by Amanda McGuinness (@amanda11 intive) #5581
 
+* Downgrade tenacity as tooz dependency on tenacity has always been < 7.0.0 #5607
+
+  Contributed by @khushboobhatia01
+
 Added
 ~~~~~
 
