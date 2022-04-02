@@ -167,6 +167,10 @@ Fixed
 
 * Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
 
+* Fix actions from the contrib/linux pack that fail on CentOS-8 but work on other operating systems and distributions. (bug fix) #4999 #5004
+
+  Reported by @blag and @dove-young contributed by @winem.
+
 * Use byte type lock name which is supported by all tooz drivers. #5529
 
   Contributed by @khushboobhatia01
