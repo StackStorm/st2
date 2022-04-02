@@ -40,6 +40,10 @@ Fixed
 
   Contributed by Amanda McGuinness (@amanda11 intive) #5581
 
+* Downgrade tenacity as tooz dependency on tenacity has always been < 7.0.0 #5607
+
+  Contributed by @khushboobhatia01
+
 * Updated paramiko version to 2.10.3 to add support for more key verification algorithms. #5600
 
 Added
@@ -188,6 +192,11 @@ Fixed
   on a per file basis and used in trigger emissions.
 
   Contributed by @nzlosh
+
+Changed
+~~~~~~~
+
+* Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
 
 3.6.0 - October 29, 2021
 ------------------------
