@@ -41,6 +41,8 @@ Fixed
 
   Contributed by Amanda McGuinness (@amanda11 intive) #5581
 
+* Updated paramiko version to 2.10.3 to add support for more key verification algorithms. #5600
+
 Added
 ~~~~~
 
