@@ -4,48 +4,6 @@ Changelog
 in development
 --------------
 
-Fixed
-~~~~~
-
-* Fix deserialization bug in st2 API for url encoded payloads. #5536
-
-  Contributed by @sravs-dev
-
-* Fix issue of WinRM parameter passing fails for larger scripts.#5538
-
-  Contributed by @ashwini-orchestral
-
-* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
-  ``timedelta.total_seconds()`` return. #5462
-
-  Contributed by @blackstrip
-
-* Fix issue with pack option not working when running policy list cli #5534
-
-  Contributed by @momokuri-3
-
-* Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
-
-  contributed by @guzzijones12
-
-* Link shutdown routine and sigterm handler to main thread #5555
-
-  Contributed by @khushboobhatia01
-
-* Change compound index for ActionExecutionDB to improve query performance #5568
-
-  Contributed by @khushboobhatia01
-
-* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
-
-  Contributed by Amanda McGuinness (@amanda11 intive) #5581
-
-* Downgrade tenacity as tooz dependency on tenacity has always been < 7.0.0 #5607
-
-  Contributed by @khushboobhatia01
-
-* Updated paramiko version to 2.10.3 to add support for more key verification algorithms. #5600
-
 Added
 ~~~~~
 
@@ -163,9 +121,48 @@ Added
 * Added garbage collection for workflow execution and task execution objects #4924
   Contributed by @srimandaleeka01 and @amanda11
 
+Changed
+~~~~~~~
+
+* Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
+
+* Updated paramiko version to 2.10.3 to add support for more key verification algorithms. #5600
 
 Fixed
 ~~~~~
+
+* Fix deserialization bug in st2 API for url encoded payloads. #5536
+
+  Contributed by @sravs-dev
+
+* Fix issue of WinRM parameter passing fails for larger scripts.#5538
+
+  Contributed by @ashwini-orchestral
+
+* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
+  ``timedelta.total_seconds()`` return. #5462
+
+  Contributed by @blackstrip
+
+* Fix issue with pack option not working when running policy list cli #5534
+
+  Contributed by @momokuri-3
+
+* Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
+
+  contributed by @guzzijones12
+
+* Link shutdown routine and sigterm handler to main thread #5555
+
+  Contributed by @khushboobhatia01
+
+* Change compound index for ActionExecutionDB to improve query performance #5568
+
+  Contributed by @khushboobhatia01
+
+* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
+
+  Contributed by Amanda McGuinness (@amanda11 intive) #5581
 
 * Fixed regression caused by #5358. Use string lock name instead of object ID. #5484
 
@@ -193,10 +190,14 @@ Fixed
 
   Contributed by @nzlosh
 
-Changed
+* Downgrade tenacity as tooz dependency on tenacity has always been < 7.0.0 #5607
+
+  Contributed by @khushboobhatia01
+
+Removed
 ~~~~~~~
 
-* Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
+* Nothing removed
 
 3.6.0 - October 29, 2021
 ------------------------
