@@ -15,6 +15,9 @@
 
 from __future__ import absolute_import
 
+from typing import Optional
+from typing import Tuple
+
 import os
 import logging
 from functools import wraps
@@ -175,10 +178,30 @@ class Resource(object):
 
 
 class ResourceManager(object):
-    def __init__(self, resource, endpoint, cacert=None, debug=False):
+    def __init__(
+        self,
+        resource: str,
+        endpoint: str,
+        cacert: Optional[str] = None,
+        debug: bool = False,
+        basic_auth: Optional[Tuple[str, str]] = None,
+    ):
+        """
+        :param resource: Name of the resource to operate on.
+        :param endpoint: API endpoint URL.
+        :param cacert: Optional path to CA cert to use to validate the server side cert.
+        :param debug: True to enable debug mode where additional debug information will be logged.
+        :param basic_auth: Optional additional basic auth credentials in tuple(username, password)
+                           notation.
+        """
         self.resource = resource
+        self.endpoint = endpoint
+        self.cacert = cacert
         self.debug = debug
-        self.client = httpclient.HTTPClient(endpoint, cacert=cacert, debug=debug)
+        self.basic_auth = basic_auth
+        self.client = httpclient.HTTPClient(
+            endpoint, cacert=cacert, debug=debug, basic_auth=basic_auth
+        )
 
     @staticmethod
     def handle_error(response):
@@ -392,6 +415,27 @@ class ResourceManager(object):
         return True
 
     @add_auth_token_to_kwargs_from_env
+    def clone(
+        self,
+        source_ref,
+        dest_pack,
+        dest_action,
+        overwrite,
+        **kwargs,
+    ):
+        url = "/%s/%s/clone" % (self.resource.get_url_path_name(), source_ref)
+        payload = {
+            "dest_pack": dest_pack,
+            "dest_action": dest_action,
+            "overwrite": overwrite,
+        }
+        response = self.client.post(url, payload, **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+        instance = self.resource.deserialize(parse_api_response(response))
+        return instance
+
+    @add_auth_token_to_kwargs_from_env
     def delete_by_id(self, instance_id, **kwargs):
         url = "/%s/%s" % (self.resource.get_url_path_name(), instance_id)
         response = self.client.delete(url, **kwargs)
@@ -415,11 +459,6 @@ class ResourceManager(object):
 
 
 class ActionAliasResourceManager(ResourceManager):
-    def __init__(self, resource, endpoint, cacert=None, debug=False):
-        self.resource = resource
-        self.debug = debug
-        self.client = httpclient.HTTPClient(root=endpoint, cacert=cacert, debug=debug)
-
     @add_auth_token_to_kwargs_from_env
     def match(self, instance, **kwargs):
         url = "/%s/match" % self.resource.get_url_path_name()
@@ -659,11 +698,6 @@ class ConfigManager(ResourceManager):
 
 
 class WebhookManager(ResourceManager):
-    def __init__(self, resource, endpoint, cacert=None, debug=False):
-        self.resource = resource
-        self.debug = debug
-        self.client = httpclient.HTTPClient(root=endpoint, cacert=cacert, debug=debug)
-
     @add_auth_token_to_kwargs_from_env
     def post_generic_webhook(self, trigger, payload=None, trace_tag=None, **kwargs):
         url = "/webhooks/st2"
@@ -694,11 +728,16 @@ class WebhookManager(ResourceManager):
         )
 
 
-class StreamManager(object):
-    def __init__(self, endpoint, cacert=None, debug=False):
+class StreamManager(ResourceManager):
+    def __init__(self, endpoint, cacert=None, debug=False, basic_auth=None):
+        super(StreamManager, self).__init__(
+            resource=None,
+            endpoint=endpoint,
+            cacert=cacert,
+            debug=debug,
+            basic_auth=basic_auth,
+        )
         self._url = httpclient.get_url_without_trailing_slash(endpoint) + "/stream"
-        self.debug = debug
-        self.cacert = cacert
 
     @add_auth_token_to_kwargs_from_env
     def listen(self, events=None, **kwargs):
@@ -731,6 +770,9 @@ class StreamManager(object):
         if self.cacert is not None:
             request_params["verify"] = self.cacert
 
+        if self.basic_auth:
+            request_params["auth"] = self.basic_auth
+
         query_string = "?" + urllib.parse.urlencode(query_params)
         url = url + query_string
 
@@ -746,12 +788,12 @@ class StreamManager(object):
 
 
 class WorkflowManager(object):
-    def __init__(self, endpoint, cacert, debug):
+    def __init__(self, endpoint, cacert, debug, basic_auth=None):
         self.debug = debug
         self.cacert = cacert
         self.endpoint = endpoint + "/workflows"
         self.client = httpclient.HTTPClient(
-            root=self.endpoint, cacert=cacert, debug=debug
+            root=self.endpoint, cacert=cacert, debug=debug, basic_auth=basic_auth
         )
 
     @staticmethod

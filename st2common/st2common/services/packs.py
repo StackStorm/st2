@@ -15,17 +15,22 @@
 
 from __future__ import absolute_import
 
+import copy
 import itertools
 
 import os
 import requests
+from requests.utils import should_bypass_proxies
 import six
 from six.moves import range
 from oslo_config import cfg
+import shutil
+import yaml
 
 from st2common import log as logging
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions.content import ResourceDiskFilesRemovalError
+from st2common.models.db.stormbase import UIDFieldMixin
 from st2common.persistence.pack import Pack
 from st2common.util.misc import lowercase_value
 from st2common.util.jsonify import json_encode
@@ -36,6 +41,11 @@ __all__ = [
     "get_pack_from_index",
     "search_pack_index",
     "delete_action_files_from_pack",
+    "clone_action_files",
+    "clone_action_db",
+    "temp_backup_action_files",
+    "restore_temp_action_files",
+    "remove_temp_action_files",
 ]
 
 EXCLUDE_FIELDS = ["repo_url", "email"]
@@ -74,6 +84,7 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
     if proxy_config:
         https_proxy = proxy_config.get("https_proxy", None)
         http_proxy = proxy_config.get("http_proxy", None)
+        no_proxy = proxy_config.get("no_proxy", None)
         ca_bundle_path = proxy_config.get("proxy_ca_bundle_path", None)
 
         if https_proxy:
@@ -83,7 +94,17 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
         if http_proxy:
             proxies_dict["http"] = http_proxy
 
+        if no_proxy:
+            proxies_dict["no"] = no_proxy
+
     for index_url in index_urls:
+
+        # TODO:
+        # Bug  in requests doesn't bypass proxies, so we do it ourselves
+        # If this issue ever gets fixed then we can remove it
+        # https://github.com/psf/requests/issues/4871
+        bypass_proxy = should_bypass_proxies(index_url, proxies_dict.get("no"))
+
         index_status = {
             "url": index_url,
             "packs": 0,
@@ -93,7 +114,11 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
         index_json = None
 
         try:
-            request = requests.get(index_url, proxies=proxies_dict, verify=verify)
+            request = requests.get(
+                index_url,
+                proxies=proxies_dict if not bypass_proxy else None,
+                verify=verify if not bypass_proxy else True,
+            )
             request.raise_for_status()
             index_json = request.json()
         except ValueError as e:
@@ -290,3 +315,176 @@ def delete_action_files_from_pack(pack_name, entry_point, metadata_file):
             'The action metadata file "%s" does not exists on disk.',
             action_metadata_file_path,
         )
+
+
+def _clone_content_to_destination_file(source_file, destination_file):
+    try:
+        shutil.copy(src=source_file, dst=destination_file)
+    except PermissionError:
+        LOG.error(
+            'Unable to copy file to "%s" due to permission error.',
+            destination_file,
+        )
+        msg = 'Unable to copy file to "%s".' % (destination_file)
+        raise PermissionError(msg)
+    except Exception as e:
+        LOG.error(
+            'Unable to copy file to "%s". Exception was "%s".',
+            destination_file,
+            e,
+        )
+        msg = (
+            'Unable to copy file to "%s". Please check the logs or ask your '
+            "administrator to clone the files manually." % destination_file
+        )
+        raise Exception(msg)
+
+
+def clone_action_files(source_action_db, dest_action_db, dest_pack_base_path):
+    """
+    Prepares the path for entry point and metadata files for source and destination.
+    Clones the content from source action files to destination action files.
+    """
+
+    source_pack = source_action_db["pack"]
+    source_entry_point = source_action_db["entry_point"]
+    source_metadata_file = source_action_db["metadata_file"]
+    source_pack_base_path = get_pack_base_path(pack_name=source_pack)
+    source_metadata_file_path = os.path.join(
+        source_pack_base_path, source_metadata_file
+    )
+    dest_metadata_file_name = dest_action_db["metadata_file"]
+    dest_metadata_file_path = os.path.join(dest_pack_base_path, dest_metadata_file_name)
+
+    # creating actions directory in destination pack if doesn't exist
+    ac_dir_path = os.path.join(dest_pack_base_path, "actions")
+    if not os.path.isdir(ac_dir_path):
+        os.mkdir(path=ac_dir_path)
+    _clone_content_to_destination_file(
+        source_file=source_metadata_file_path, destination_file=dest_metadata_file_path
+    )
+
+    dest_entry_point = dest_action_db["entry_point"]
+    dest_runner_type = dest_action_db["runner_type"]["name"]
+
+    if dest_entry_point:
+        if dest_runner_type in ["orquesta", "action-chain"]:
+            # creating workflows directory if doesn't exist
+            wf_dir_path = os.path.join(dest_pack_base_path, "actions", "workflows")
+            if not os.path.isdir(wf_dir_path):
+                os.mkdir(path=wf_dir_path)
+        source_entry_point_file_path = os.path.join(
+            source_pack_base_path, "actions", source_entry_point
+        )
+        dest_entrypoint_file_path = os.path.join(
+            dest_pack_base_path, "actions", dest_entry_point
+        )
+        _clone_content_to_destination_file(
+            source_file=source_entry_point_file_path,
+            destination_file=dest_entrypoint_file_path,
+        )
+
+    with open(dest_metadata_file_path) as df:
+        doc = yaml.load(df, Loader=yaml.FullLoader)
+
+    doc["name"] = dest_action_db["name"]
+    if "pack" in doc:
+        doc["pack"] = dest_action_db["pack"]
+    doc["entry_point"] = dest_entry_point
+
+    with open(dest_metadata_file_path, "w") as df:
+        yaml.dump(doc, df, default_flow_style=False, sort_keys=False)
+
+
+def clone_action_db(source_action_db, dest_pack, dest_action):
+    dest_action_db = copy.deepcopy(source_action_db)
+    source_runner_type = source_action_db["runner_type"]["name"]
+    if source_action_db["entry_point"]:
+        if source_runner_type in ["orquesta", "action-chain"]:
+            dest_entry_point_file_name = "workflows/%s.yaml" % (dest_action)
+        else:
+            old_ext = os.path.splitext(source_action_db["entry_point"])[1]
+            dest_entry_point_file_name = dest_action + old_ext
+    else:
+        dest_entry_point_file_name = ""
+    dest_action_db["entry_point"] = dest_entry_point_file_name
+    dest_action_db["metadata_file"] = "actions/%s.yaml" % (dest_action)
+    dest_action_db["name"] = dest_action
+    dest_ref = ".".join([dest_pack, dest_action])
+    dest_action_db["ref"] = dest_ref
+    dest_action_db["uid"] = UIDFieldMixin.UID_SEPARATOR.join(
+        ["action", dest_pack, dest_action]
+    )
+    if "pack" in dest_action_db:
+        dest_action_db["pack"] = dest_pack
+    dest_action_db["id"] = None
+
+    return dest_action_db
+
+
+def temp_backup_action_files(pack_base_path, metadata_file, entry_point, temp_sub_dir):
+    temp_dir_path = "/tmp/%s" % temp_sub_dir
+    os.mkdir(temp_dir_path)
+    actions_dir = os.path.join(temp_dir_path, "actions")
+    os.mkdir(actions_dir)
+    temp_metadata_file_path = os.path.join(temp_dir_path, metadata_file)
+    dest_metadata_file_path = os.path.join(pack_base_path, metadata_file)
+    _clone_content_to_destination_file(
+        source_file=dest_metadata_file_path, destination_file=temp_metadata_file_path
+    )
+    if entry_point:
+        entry_point_dir = str(os.path.split(entry_point)[0])
+        if entry_point_dir != "":
+            os.makedirs(os.path.join(actions_dir, entry_point_dir))
+        temp_entry_point_file_path = os.path.join(actions_dir, entry_point)
+        dest_entry_point_file_path = os.path.join(
+            pack_base_path, "actions", entry_point
+        )
+        _clone_content_to_destination_file(
+            source_file=dest_entry_point_file_path,
+            destination_file=temp_entry_point_file_path,
+        )
+
+
+def restore_temp_action_files(pack_base_path, metadata_file, entry_point, temp_sub_dir):
+    temp_dir_path = "/tmp/%s" % temp_sub_dir
+    temp_metadata_file_path = os.path.join(temp_dir_path, metadata_file)
+    dest_metadata_file_path = os.path.join(pack_base_path, metadata_file)
+    _clone_content_to_destination_file(
+        source_file=temp_metadata_file_path, destination_file=dest_metadata_file_path
+    )
+    if entry_point:
+        temp_entry_point_file_path = os.path.join(temp_dir_path, "actions", entry_point)
+        dest_entry_point_file_path = os.path.join(
+            pack_base_path, "actions", entry_point
+        )
+        _clone_content_to_destination_file(
+            source_file=temp_entry_point_file_path,
+            destination_file=dest_entry_point_file_path,
+        )
+
+
+def remove_temp_action_files(temp_sub_dir):
+    temp_dir_path = "/tmp/%s" % temp_sub_dir
+    if os.path.isdir(temp_dir_path):
+        try:
+            shutil.rmtree(temp_dir_path)
+        except PermissionError:
+            LOG.error(
+                'No permission to delete the "%s" directory',
+                temp_dir_path,
+            )
+            msg = 'No permission to delete the "%s" directory' % (temp_dir_path)
+            raise PermissionError(msg)
+        except Exception as e:
+            LOG.error(
+                'Unable to delete "%s" directory. Exception was "%s"',
+                temp_dir_path,
+                e,
+            )
+            msg = (
+                'The temporary directory "%s" could not be removed from disk, please '
+                "check the logs or ask your StackStorm administrator to check "
+                "and delete the temporary directory manually" % (temp_dir_path)
+            )
+            raise Exception(msg)

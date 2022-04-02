@@ -8,6 +8,8 @@ greenlet
 jinja2
 jsonschema
 kombu
+#Used by jinja2
+MarkupSafe
 mongoengine
 networkx
 # used by networkx
@@ -37,6 +39,7 @@ routes
 flex
 webob
 jsonpath-rw
+pyOpenSSL
 python-statsd
 udatetime
 orjson

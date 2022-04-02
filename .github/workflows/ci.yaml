@@ -21,6 +21,9 @@ on:
     - cron:  '0 0 * * *'
 
 jobs:
+  # TODO: Fix the required checks!
+  #       When the pre_job triggers and skips builds, it prevents merging the PR because
+  #       the required checks are reported as skipped instead of passed.
   # Special job which automatically cancels old runs for the same branch, prevents runs for the
   # same file set which has already passed, etc.
   pre_job:
@@ -40,7 +43,7 @@ jobs:
     needs: pre_job
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
-    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-latest
     strategy:
@@ -92,9 +95,11 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v3-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-v2-python-${{ matrix.python }}-
+          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          # Don't use alternative key as if requirements.txt has altered we
+          # don't want to retrieve previous cache
+          #restore-keys: |
+          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v2
@@ -135,7 +140,8 @@ jobs:
     needs: pre_job
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
-    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    # NB: disabled. See TODO above pre_job
+    # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-latest
     strategy:
@@ -233,9 +239,11 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v3-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-python-${{ matrix.python }}-
+          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          # Don't use alternative key as if requirements.txt has altered we
+          # don't want to retrieve previous cache
+          #restore-keys: |
+          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v2
@@ -304,7 +312,7 @@ jobs:
     needs: pre_job
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
-    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-latest
     strategy:
@@ -428,6 +436,7 @@ jobs:
 
       # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -448,9 +457,11 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v3-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-python-${{ matrix.python }}-
+          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          # Don't use alternative key as if requirements.txt has altered we
+          # don't want to retrieve previous cache
+          #restore-keys: |
+          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v2

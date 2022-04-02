@@ -17,6 +17,9 @@ from __future__ import absolute_import
 import sys
 import traceback
 
+from tooz.coordination import GroupNotCreated
+from oslo_config import cfg
+
 from st2actions.container.base import RunnerContainer
 from st2common import log as logging
 from st2common.constants import action as action_constants
@@ -24,12 +27,14 @@ from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution import ActionExecution
+from st2common.services import coordination
 from st2common.services import executions
 from st2common.services import workflows as wf_svc
 from st2common.transport.consumers import MessageHandler
 from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
+from st2common.util import concurrency
 from st2common.util import system_info
 from st2common.transport import queues
 
@@ -134,7 +139,32 @@ class ActionExecutionDispatcher(MessageHandler):
 
     def shutdown(self):
         super(ActionExecutionDispatcher, self).shutdown()
+
+        if cfg.CONF.actionrunner.graceful_shutdown:
+
+            coordinator = coordination.get_coordinator()
+            member_ids = []
+            service = "actionrunner"
+            exit_timeout = cfg.CONF.actionrunner.exit_still_active_check
+            sleep_delay = cfg.CONF.actionrunner.still_active_check_interval
+            timeout = 0
+
+            while timeout < exit_timeout and self._running_liveactions:
+                try:
+                    member_ids = list(
+                        coordinator.get_members(service.encode("utf-8")).get()
+                    )
+                except GroupNotCreated:
+                    pass
+
+                # Check if there are other runners in service registry
+                if not member_ids:
+                    break
+                timeout += sleep_delay
+                concurrency.sleep(sleep_delay)
+
         # Abandon running executions if incomplete
+
         while self._running_liveactions:
             liveaction_id = self._running_liveactions.pop()
             try:
