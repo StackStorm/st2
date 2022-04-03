@@ -29,6 +29,7 @@ requests
 retrying
 semver
 six
+tenacity
 tooz
 # Required by tooz - on new versions of tooz, all the backend dependencies need
 # to be installed manually
