@@ -234,6 +234,7 @@ class KeyValuePairController(ResourceController):
         kvp_apis_user = []
 
         if scope in [ALL_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
+            decrypted_keys = []
             # If user has system role, then retrieve all system scoped items
             if has_system_role:
                 raw_filters["scope"] = FULL_SYSTEM_SCOPE
@@ -249,6 +250,20 @@ class KeyValuePairController(ResourceController):
                 )
 
                 kvp_apis_system.extend(items.json or [])
+                if decrypt and items.json:
+                    decrypted_keys.extend(kv_api.name for kv_api in items.json if kv_api.secret)
+                    if decrypted_keys:
+                        LOG.audit(
+                            "User %s decrypted the value %s ",
+                             decrypted_keys,
+                            extra={
+                                "User": user,
+                                "scope": FULL_SYSTEM_SCOPE,
+                                "key_name": decrypted_keys,
+                                "operation": "decrypt"
+                            }
+
+                        )
             else:
                 # Otherwise if user is not an admin, then get the list of
                 # system scoped items that user is granted permission to.
@@ -259,10 +274,26 @@ class KeyValuePairController(ResourceController):
                             scope=FULL_SYSTEM_SCOPE,
                             name=key,
                         )
-
                         kvp_apis_system.append(item)
                     except Exception as e:
                         LOG.error("Unable to get key %s: %s", key, str(e))
+                        continue
+                    if decrypt and item.secret:
+                        decrypted_keys.append(key)
+
+            if decrypted_keys:
+                LOG.audit(
+                    "User %s decrypted the value %s ",
+                    user,
+                    name,
+                    extra={
+                        "user": user,
+                        "scope": FULL_SYSTEM_SCOPE,
+                        "key_name": key,
+                        "operation": "decrypt",
+                    },
+                )
+
 
         if scope in [ALL_SCOPE, USER_SCOPE, FULL_USER_SCOPE]:
             # Retrieves all the user scoped items that the current user owns.
