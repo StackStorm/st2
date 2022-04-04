@@ -172,18 +172,6 @@ class KeyValuePairController(ResourceController):
         self._validate_decrypt_query_parameter(
             decrypt=decrypt, scope=scope, requester_user=requester_user
         )
-        if decrypt:
-            LOG.audit(
-                "User %s decrypted the value %s ",
-                user,
-                name,
-                extra={
-                    "user": user,
-                    "scope": scope,
-                    "key_name": name,
-                    "operation": "decrypt",
-                },
-            )
         current_user = requester_user.name
         user = user or requester_user.name
 
@@ -254,8 +242,9 @@ class KeyValuePairController(ResourceController):
                     decrypted_keys.extend(kv_api.name for kv_api in items.json if kv_api.secret)
                     if decrypted_keys:
                         LOG.audit(
-                            "User %s decrypted the value %s ",
-                             decrypted_keys,
+                            "User %s decrypted the values %s ",
+                            user,
+                            decrypted_keys,
                             extra={
                                 "User": user,
                                 "scope": FULL_SYSTEM_SCOPE,
@@ -278,7 +267,7 @@ class KeyValuePairController(ResourceController):
                             LOG.audit(
                                 "User %s decrypted the value %s ",
                                 user,
-                                name,
+                                key,
                                 extra={
                                     "user": user,
                                     "scope": FULL_SYSTEM_SCOPE,
@@ -293,20 +282,6 @@ class KeyValuePairController(ResourceController):
                     if decrypt and item.secret:
                         decrypted_keys.append(key)
 
-            if decrypted_keys:
-                LOG.audit(
-                    "User %s decrypted the value %s ",
-                    user,
-                    name,
-                    extra={
-                        "user": user,
-                        "scope": FULL_SYSTEM_SCOPE,
-                        "key_name": key,
-                        "operation": "decrypt",
-                    },
-                )
-
-
         if scope in [ALL_SCOPE, USER_SCOPE, FULL_USER_SCOPE]:
             # Retrieves all the user scoped items that the current user owns.
             raw_filters["scope"] = FULL_USER_SCOPE
@@ -320,6 +295,20 @@ class KeyValuePairController(ResourceController):
                 raw_filters=raw_filters,
                 requester_user=requester_user,
             )
+            if decrypt and items.json:
+                decrypted_keys.extend(kv_api.name for kv_api in items.json if kv_api.secret)
+                if decrypted_keys:
+                    LOG.audit(
+                        "User %s decrypted the values %s ",
+                        user,
+                        decrypted_keys,
+                        extra={
+                            "User": user,
+                            "scope": FULL_USER_SCOPE,
+                            "key_name": decrypted_keys,
+                            "operation": "decrypt"
+                        }
+                    )
 
             kvp_apis_user.extend(items.json)
 
