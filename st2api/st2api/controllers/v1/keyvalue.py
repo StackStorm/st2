@@ -274,6 +274,18 @@ class KeyValuePairController(ResourceController):
                             scope=FULL_SYSTEM_SCOPE,
                             name=key,
                         )
+                        if decrypt:
+                            LOG.audit(
+                                "User %s decrypted the value %s ",
+                                user,
+                                name,
+                                extra={
+                                    "user": user,
+                                    "scope": FULL_SYSTEM_SCOPE,
+                                    "key_name": key,
+                                    "operation": "decrypt",
+                                },
+                            )
                         kvp_apis_system.append(item)
                     except Exception as e:
                         LOG.error("Unable to get key %s: %s", key, str(e))
