@@ -235,7 +235,19 @@ class ContentPackConfigLoader(object):
 
         config_schema_item = config_schema_item or {}
         secret = config_schema_item.get("secret", False)
-
+        if secret or "decrypt_kv" in value:
+            LOG.audit(
+                "User %s is decrypting the value for key %s from the config within pack %s",
+                self.user,
+                key,
+                self.pack_name,
+                extra={
+                    "user": self.user,
+                    "key_name": key,
+                    "pack_name": self.pack_name,
+                    "operation": "pack_config_value_decrypt",
+                },
+            )
         try:
             value = render_template_with_system_and_user_context(
                 value=value, user=self.user
