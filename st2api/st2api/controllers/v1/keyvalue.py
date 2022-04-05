@@ -241,7 +241,9 @@ class KeyValuePairController(ResourceController):
 
                 kvp_apis_system.extend(items.json or [])
                 if decrypt and items.json:
-                    decrypted_keys.extend(kv_api.name for kv_api in items.json if kv_api.secret)
+                    decrypted_keys.extend(
+                        kv_api.name for kv_api in items.json if kv_api.secret
+                    )
             else:
                 # Otherwise if user is not an admin, then get the list of
                 # system scoped items that user is granted permission to.
@@ -268,9 +270,8 @@ class KeyValuePairController(ResourceController):
                         "User": user,
                         "scope": FULL_SYSTEM_SCOPE,
                         "key_name": decrypted_keys,
-                        "operation": "decrypt"
-                    }
-
+                        "operation": "decrypt",
+                    },
                 )
 
         if scope in [ALL_SCOPE, USER_SCOPE, FULL_USER_SCOPE]:
@@ -289,7 +290,9 @@ class KeyValuePairController(ResourceController):
 
             kvp_apis_user.extend(items.json)
             if decrypt and items.json:
-                decrypted_keys = [kvp_api.name for kvp_api in items.json if kvp_api.secret]
+                decrypted_keys = [
+                    kvp_api.name for kvp_api in items.json if kvp_api.secret
+                ]
                 if decrypted_keys:
                     LOG.audit(
                         "User %s decrypted the values %s ",
@@ -299,8 +302,8 @@ class KeyValuePairController(ResourceController):
                             "User": user,
                             "scope": FULL_USER_SCOPE,
                             "key_name": decrypted_keys,
-                            "operation": "decrypt"
-                        }
+                            "operation": "decrypt",
+                        },
                     )
 
         return kvp_apis_system + kvp_apis_user
