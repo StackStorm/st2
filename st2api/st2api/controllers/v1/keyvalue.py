@@ -242,7 +242,7 @@ class KeyValuePairController(ResourceController):
                 kvp_apis_system.extend(items.json or [])
                 if decrypt and items.json:
                     decrypted_keys.extend(
-                        kv_api.name for kv_api in items.json if kv_api["secret"]
+                        kv_api["name"] for kv_api in items.json if kv_api["secret"]
                     )
             else:
                 # Otherwise if user is not an admin, then get the list of
@@ -291,7 +291,7 @@ class KeyValuePairController(ResourceController):
             kvp_apis_user.extend(items.json)
             if decrypt and items.json:
                 decrypted_keys = [
-                    kvp_api.name for kvp_api in items.json if kvp_api["secret"]
+                    kvp_api["name"] for kvp_api in items.json if kvp_api["secret"]
                 ]
                 if decrypted_keys:
                     LOG.audit(
