@@ -272,6 +272,11 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
+    @mock.patch.object(
+        coordination_service.NoOpDriver,
+        "get_members",
+        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult("")),
+    )
     def test_workflow_engine_shutdown(self):
         cfg.CONF.set_override(
             name="service_registry", override=True, group="coordination"
@@ -289,8 +294,6 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflow_engine = workflows.get_engine()
 
-        # Manually add running workflow
-        workflow_engine._handling_workflows = [str(ac_ex_db.id)]
         eventlet.spawn(workflow_engine.shutdown)
 
         # Sleep for few seconds to ensure execution transitions to pausing.
@@ -318,7 +321,9 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
 
         workflow_engine = workflows.get_engine()
-        eventlet.sleep(workflow_engine._delay)
+        workflow_engine._delay = 0
+        workflow_engine.start(False)
+        eventlet.sleep(workflow_engine._delay + 5)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertTrue(
             lv_ac_db.status
@@ -328,3 +333,139 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
                 action_constants.LIVEACTION_STATUS_SUCCEEDED,
             ]
         )
+
+    @mock.patch.object(
+        coordination_service.NoOpDriver,
+        "get_members",
+        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult("member-1")),
+    )
+    def test_workflow_engine_shutdown_with_multiple_members(self):
+        cfg.CONF.set_override(
+            name="service_registry", override=True, group="coordination"
+        )
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+
+        # Assert action execution is running.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        workflow_engine = workflows.get_engine()
+
+        eventlet.spawn(workflow_engine.shutdown)
+
+        # Sleep for few seconds to ensure shutdown sequence completes.
+        eventlet.sleep(5)
+
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        # Process task1.
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
+        t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
+
+        workflows.get_engine().process(t1_ac_ex_db)
+        t1_ac_ex_db = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )[0]
+        self.assertEqual(
+            t1_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
+
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+    def test_workflow_engine_shutdown_with_service_registry_disabled(self):
+        cfg.CONF.set_override(
+            name="service_registry", override=False, group="coordination"
+        )
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+
+        # Assert action execution is running.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        workflow_engine = workflows.get_engine()
+
+        eventlet.spawn(workflow_engine.shutdown)
+
+        # Sleep for few seconds to ensure shutdown sequence completes.
+        eventlet.sleep(5)
+
+        # WFE doesn't pause the workflow, since service registry is disabled.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+    @mock.patch.object(
+        coordination_service.NoOpDriver,
+        "get_lock",
+        mock.MagicMock(return_value=coordination_service.NoOpLock(name="noop")),
+    )
+    def test_workflow_engine_concurrent_shutdown_and_start(self):
+        cfg.CONF.set_override(
+            name="service_registry", override=True, group="coordination"
+        )
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+
+        # Assert action execution is running.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        workflow_engine = workflows.get_engine()
+
+        workflow_engine._delay = 0
+        # Start and stop WFE simultaneously.
+        eventlet.spawn_after(1, workflow_engine.shutdown)
+        eventlet.spawn_after(1, workflow_engine.start, True)
+
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+
+        # Case 1: Shutdown routine acquires the lock first
+        # Case 2: Startup routine acquires the lock first
+        if lv_ac_db.status == action_constants.LIVEACTION_STATUS_PAUSING:
+            # Process task1
+            query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
+            t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+            t1_ac_ex_db = ex_db_access.ActionExecution.query(
+                task_execution=str(t1_ex_db.id)
+            )[0]
+
+            workflows.get_engine().process(t1_ac_ex_db)
+            # Startup sequence won't proceed until shutdown routine completes.
+            # Assuming shutdown sequence is complete, start up sequence will resume the workflow.
+            eventlet.sleep(workflow_engine._delay + 5)
+            lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+            self.assertTrue(
+                lv_ac_db.status
+                in [
+                    action_constants.LIVEACTION_STATUS_RESUMING,
+                    action_constants.LIVEACTION_STATUS_RUNNING,
+                    action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                ]
+            )
+        else:
+            coordination_service.NoOpDriver.get_members = mock.MagicMock(
+                return_value=coordination_service.NoOpAsyncResult("member-1")
+            )
+            eventlet.sleep(workflow_engine._delay + 5)
+            lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+            self.assertEqual(
+                lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING
+            )

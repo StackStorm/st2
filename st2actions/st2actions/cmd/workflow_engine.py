@@ -37,7 +37,7 @@ from st2common.service_setup import deregister_service
 __all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
-WORKFLOW_ENGINE = "workflow_engine"
+WORKFLOW_ENGINE = workflows.WORKFLOW_ENGINE
 
 
 def setup_sigterm_handler(engine):

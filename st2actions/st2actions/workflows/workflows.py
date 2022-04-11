@@ -48,7 +48,7 @@ WORKFLOW_EXECUTION_QUEUES = [
 ]
 
 WORKFLOW_ENGINE = "workflow_engine"
-SHUTDOWN_ROUTINE = "shutdown_routine"
+WORKFLOW_ENGINE_START_STOP_SEQ = "workflow_engine_start_stop_seq"
 
 
 class WorkflowExecutionHandler(consumers.VariableMessageHandler):
@@ -56,6 +56,8 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         super(WorkflowExecutionHandler, self).__init__(connection, queues)
         self._active_messages = 0
         self._semaphore = Semaphore()
+        # This is required to ensure workflows stuck in pausing state after shutdown transition to paused state after engine startup.
+        self._delay = 30
 
         def handle_workflow_execution_with_instrumentation(wf_ex_db):
             with metrics.CounterWithTimer(key="orquesta.workflow.executions"):
@@ -73,10 +75,6 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             wf_db_models.WorkflowExecutionDB: handle_workflow_execution_with_instrumentation,
             ex_db_models.ActionExecutionDB: handle_action_execution_with_instrumentation,
         }
-
-        # This is required to ensure workflows stuck in pausing state after shutdown transition to paused state after engine startup.
-        self._delay = 30
-        spawn_after(self._delay, self._resume_workflows_paused_during_shutdown)
 
     def get_queue_consumer(self, connection, queues):
         # We want to use a special ActionsQueueConsumer which uses 2 dispatcher pools
@@ -107,27 +105,35 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             with self._semaphore:
                 self._active_messages -= 1
 
+    def start(self, wait):
+        spawn_after(self._delay, self._resume_workflows_paused_during_shutdown)
+        super(WorkflowExecutionHandler, self).start(wait=wait)
+
     def shutdown(self):
         super(WorkflowExecutionHandler, self).shutdown()
-        while self._active_messages > 0:
-            concurrency.sleep(2)
+        exit_timeout = cfg.CONF.workflow_engine.exit_still_active_check
+        sleep_delay = cfg.CONF.workflow_engine.still_active_check_interval
+        timeout = 0
+
+        while timeout < exit_timeout and self._active_messages > 0:
+            concurrency.sleep(sleep_delay)
+            timeout += sleep_delay
 
         coordinator = coordination.get_coordinator()
         member_ids = []
-        with coordinator.get_lock(SHUTDOWN_ROUTINE):
+        with coordinator.get_lock(WORKFLOW_ENGINE_START_STOP_SEQ):
             try:
-                member_ids = list(
-                    coordinator.get_members(WORKFLOW_ENGINE.encode("utf-8")).get()
-                )
+                group_id = coordination.get_group_id(WORKFLOW_ENGINE)
+                member_ids = list(coordinator.get_members(group_id).get())
             except GroupNotCreated:
                 pass
 
-            # Check if there are other runners in service registry
+            # Check if there are other WFEs in service registry
             if cfg.CONF.coordination.service_registry and not member_ids:
                 ac_ex_dbs = self._get_running_workflows()
                 for ac_ex_db in ac_ex_dbs:
                     lv_ac = action_utils.get_liveaction_by_id(ac_ex_db.liveaction["id"])
-                    ac_svc.request_pause(lv_ac, SHUTDOWN_ROUTINE)
+                    ac_svc.request_pause(lv_ac, WORKFLOW_ENGINE_START_STOP_SEQ)
 
     def _get_running_workflows(self):
         query_filters = {
@@ -139,16 +145,16 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
     def _get_workflows_paused_during_shutdown(self):
         query_filters = {
             "status": ac_const.LIVEACTION_STATUS_PAUSED,
-            "context__paused_by": SHUTDOWN_ROUTINE,
+            "context__paused_by": WORKFLOW_ENGINE_START_STOP_SEQ,
         }
         return lv_db_access.LiveAction.query(**query_filters)
 
     def _resume_workflows_paused_during_shutdown(self):
         coordinator = coordination.get_coordinator()
-        with coordinator.get_lock(SHUTDOWN_ROUTINE):
+        with coordinator.get_lock(WORKFLOW_ENGINE_START_STOP_SEQ):
             lv_ac_dbs = self._get_workflows_paused_during_shutdown()
             for lv_ac_db in lv_ac_dbs:
-                ac_svc.request_resume(lv_ac_db, SHUTDOWN_ROUTINE)
+                ac_svc.request_resume(lv_ac_db, WORKFLOW_ENGINE_START_STOP_SEQ)
 
     def fail_workflow_execution(self, message, exception):
         # Prepare attributes based on message type.
