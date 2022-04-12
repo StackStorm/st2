@@ -17,7 +17,7 @@ from datetime import timedelta
 import bson
 
 from st2common import log as logging
-from st2common.garbage_collection.trace import purge_trace
+from st2common.garbage_collection.trace import purge_traces
 from st2common.models.db.trace import TraceDB, TraceComponentDB
 from st2common.persistence.trace import Trace
 from st2common.util import date as date_utils
@@ -50,7 +50,7 @@ class TestPurgeTrace(CleanDbTestCase):
         self.assertRaisesRegexp(
             ValueError,
             expected_msg,
-            purge_trace,
+            purge_traces,
             logger=LOG,
             timestamp=None,
         )
@@ -75,7 +75,7 @@ class TestPurgeTrace(CleanDbTestCase):
         )
 
         self.assertEqual(len(Trace.get_all()), 2)
-        purge_trace(logger=LOG, timestamp=now - timedelta(days=10))
+        purge_traces(logger=LOG, timestamp=now - timedelta(days=10))
         self.assertEqual(len(Trace.get_all()), 1)
 
     @staticmethod

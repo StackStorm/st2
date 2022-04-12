@@ -24,10 +24,10 @@ from mongoengine.errors import InvalidQueryError
 from st2common.persistence.trace import Trace
 from st2common.util import isotime
 
-__all__ = ["purge_trace"]
+__all__ = ["purge_traces"]
 
 
-def purge_trace(logger, timestamp):
+def purge_traces(logger, timestamp):
     """
     :param timestamp: Trace instances older than this timestamp will be deleted.
     :type timestamp: ``datetime.datetime

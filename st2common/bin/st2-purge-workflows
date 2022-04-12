@@ -16,7 +16,7 @@
 
 import sys
 
-from st2common.cmd.purge_trace import main
+from st2common.cmd.purge_workflows import main
 
 if __name__ == "__main__":
     sys.exit(main())
