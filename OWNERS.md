@@ -60,7 +60,7 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
-
+* Yuri Dubler ([@lm-ydubler](https://github.com/lm-ydubler)) - _LogicMonitor_ - StackStorm Exchange, CI.
 
 # Friends
 People that are currently not very active maintainers/contributors but who participated in and formed the project we have today.
