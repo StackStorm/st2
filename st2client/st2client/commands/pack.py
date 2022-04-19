@@ -255,6 +255,9 @@ class PackInstallCommand(PackAsyncCommand):
             % resource.get_plural_display_name().lower(),
         )
         self.parser.add_argument(
+            "--timeout", type=int, default=600, help="Action timeout in seconds."
+        )
+        self.parser.add_argument(
             "--force",
             action="store_true",
             default=False,
@@ -279,6 +282,7 @@ class PackInstallCommand(PackAsyncCommand):
             args.packs,
             force=args.force,
             skip_dependencies=args.skip_dependencies,
+            timeout=args.timeout,
             **kwargs,
         )
 
