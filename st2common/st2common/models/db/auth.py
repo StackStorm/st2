@@ -101,14 +101,12 @@ class SSORequestDB(stormbase.StormFoundationDB):
 
         -- cli --
         key: Symmetric key used to encrypt/decrypt contents from/to the CLI.
-        callback_url: what URL to be used as a callback endpoint
     """
 
     request_id = me.StringField(required=True)
     key = me.StringField(required=False, unique=False)
     expiry = me.DateTimeField(required=True)
     type = me.EnumField(Type, required=True)
-    callback_url = me.StringField(required= False)
     
 
 class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):

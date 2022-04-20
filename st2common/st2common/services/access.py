@@ -106,7 +106,7 @@ def delete_token(token):
     except Exception:
         raise
 
-def create_cli_sso_request(request_id, key, callback_url, ttl=120):
+def create_cli_sso_request(request_id, key, ttl=120):
     """
     :param request_id: ID of the SSO request that is being created (usually uuid format prepended by _)
     :type request_id: ``str``
@@ -114,14 +114,11 @@ def create_cli_sso_request(request_id, key, callback_url, ttl=120):
     :param key: Symmetric key used to encrypt/decrypt the request between the CLI and the server
     :type key: ``str``
 
-    :param callback_url: Where should the SSO authentication response be sent to after successful logins?
-    :type callback_url: ``str``
-
     :param ttl: SSO request TTL (in seconds).
     :type ttl: ``int``
     """
 
-    return _create_sso_request(request_id, ttl, SSORequestDB.Type.CLI, key=key, callback_url=callback_url)
+    return _create_sso_request(request_id, ttl, SSORequestDB.Type.CLI, key=key)
 
 def create_web_sso_request(request_id, ttl=120):
     """

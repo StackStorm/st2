@@ -148,7 +148,7 @@ class SingleSignOnRequestController(object):
                 LOG.warn("Could not decode incoming SSO CLI request key")
                 raise
 
-            sso_request = self._create_sso_request(create_cli_sso_request, key=key, callback_url=callback_url)
+            sso_request = self._create_sso_request(create_cli_sso_request, key=key)
             response = router.Response(status=http_client.OK)
             response.json = {
                 "sso_url": SSO_BACKEND.get_request_redirect_url(sso_request.request_id, callback_url),
