@@ -165,7 +165,8 @@ class HTTPClient(object):
         return response
 
     def _response_hook(self, response):
-        if self.debug:
+        # in case we're in testing, FakeResponse does not have a request parameter :/
+        if self.debug and hasattr(response, "request"):
             # Log cURL request line
             curl_line = self._get_curl_line_for_request(request=response.request)
             print("# -------- begin %d request ----------" % id(self))
