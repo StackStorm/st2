@@ -158,6 +158,13 @@ Added
 * Added garbage collection for workflow execution and task execution objects #4924
   Contributed by @srimandaleeka01 and @amanda11
 
+* Add the ability to limit the memory usage and output size of python action.
+  Two new config keys under the performance key were added:
+    * `action_max_memory_mb` - maximum memory size in MB that the process of the python action can use.
+    * `action_max_output_size_mb` - maximum size of output in MB .
+  by default, the value of the two configurations is set to zero, which means unlimited.
+  Contributed by @moradf90
+
 
 Fixed
 ~~~~~
