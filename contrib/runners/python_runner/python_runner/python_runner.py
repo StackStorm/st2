@@ -250,6 +250,7 @@ class PythonRunner(GitWorktreeActionRunner):
         if self._enable_common_pack_libs and pack_common_libs_path:
             sandbox_python_path = pack_common_libs_path + ":" + sandbox_python_path
 
+        env["PYTHONPATH"] = sandbox_python_path
 
         # Include user provided environment variables (if any)
         user_env_vars = self._get_env_vars()
