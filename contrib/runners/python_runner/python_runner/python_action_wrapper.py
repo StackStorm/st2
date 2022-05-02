@@ -168,7 +168,7 @@ class PythonActionWrapper(object):
         parent_args=None,
         log_level=PYTHON_RUNNER_DEFAULT_LOG_LEVEL,
         max_memory=0,
-        max_output_size=0
+        max_output_size=0,
     ):
         """
         :param pack: Name of the pack this action belongs to.
@@ -260,9 +260,14 @@ class PythonActionWrapper(object):
             except Exception:
                 print_output = str(action_output).encode("utf-8")
 
-            if self._max_output_size and sys.getsizeof(print_output) > self._max_output_size * 1024 * 1024:
-                sys.stderr.write(f'The action has reached the maximum allowable output size.\n'
-                                 f'Maximum allowable output size: {self._max_output_size}MB.\n')
+            if (
+                self._max_output_size
+                and sys.getsizeof(print_output) > self._max_output_size * 1024 * 1024
+            ):
+                sys.stderr.write(
+                    f"The action has reached the maximum allowable output size.\n"
+                    f"Maximum allowable output size: {self._max_output_size}MB.\n"
+                )
                 sys.exit(PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE)
 
             # Data is bytes so we use sys.stdout.buffer which works with bytes and not sys.stdout
@@ -277,8 +282,10 @@ class PythonActionWrapper(object):
             sys.stdout.buffer.write(ACTION_OUTPUT_RESULT_DELIMITER.encode("utf-8"))
             sys.stdout.flush()
         except MemoryError:
-            sys.stderr.write(f'The action has reached the maximum allowable memory.\n'
-                             f'Maximum allowable memory: {self._max_memory}MB')
+            sys.stderr.write(
+                f"The action has reached the maximum allowable memory.\n"
+                f"Maximum allowable memory: {self._max_memory}MB"
+            )
             sys.exit(PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE)
 
     def _get_action_instance(self):
@@ -348,8 +355,15 @@ if __name__ == "__main__":
         default=PYTHON_RUNNER_DEFAULT_LOG_LEVEL,
         help="Log level for actions",
     )
-    parser.add_argument('--max-memory', required=False, default=0, help='Maximum allowed memory')
-    parser.add_argument('--max-output-size', required=False, default=0, help='Maximum allowed output size')
+    parser.add_argument(
+        "--max-memory", required=False, default=0, help="Maximum allowed memory"
+    )
+    parser.add_argument(
+        "--max-output-size",
+        required=False,
+        default=0,
+        help="Maximum allowed output size",
+    )
 
     args = parser.parse_args()
 
@@ -418,7 +432,7 @@ if __name__ == "__main__":
         parent_args=parent_args,
         log_level=log_level,
         max_memory=max_memory,
-        max_output_size=max_output_size
+        max_output_size=max_output_size,
     )
 
     obj.run()
