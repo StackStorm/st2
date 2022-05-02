@@ -89,7 +89,7 @@ action_performance_opts = [
     cfg.IntOpt(
         'action_max_output_size_mb', default=0,
         help='Action maximum allowable output size (in MB) - 0 is unlimited'),
-    ]
+]
 
 common_config.do_register_opts(action_performance_opts, 'performance', True)
 
