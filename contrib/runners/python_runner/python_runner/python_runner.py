@@ -37,7 +37,11 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import MAX_PARAM_LENGTH
-from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
+from st2common.constants.runners import (
+    PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE,
+    PYTHON_RUNNER_DEFAULT_MAX_MEMORY,
+    PYTHON_RUNNER_DEFAULT_MAX_OUTPUT_SIZE,
+)
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
@@ -71,6 +75,8 @@ LOG = logging.getLogger(__name__)
 RUNNER_ENV = "env"
 RUNNER_TIMEOUT = "timeout"
 RUNNER_LOG_LEVEL = "log_level"
+RUNNER_MAX_MEMORY = "max_memory_mb"
+RUNNER_MAX_OUTPUT_SIZE = "max_output_size_mb"
 
 # Environment variables which can't be specified by the user
 BLACKLISTED_ENV_VARS = [
@@ -140,9 +146,21 @@ class PythonRunner(GitWorktreeActionRunner):
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
         self._log_level = self.runner_parameters.get(RUNNER_LOG_LEVEL, self._log_level)
+        self._action_max_memory_mb = self.runner_parameters.get(RUNNER_MAX_MEMORY, 0)
+        self._action_max_output_size_mb = self.runner_parameters.get(
+            RUNNER_MAX_OUTPUT_SIZE, 0
+        )
 
         if self._log_level == PYTHON_RUNNER_DEFAULT_LOG_LEVEL:
             self._log_level = cfg.CONF.actionrunner.python_runner_log_level
+
+        if self._action_max_memory_mb == PYTHON_RUNNER_DEFAULT_MAX_MEMORY:
+            self._action_max_memory_mb = cfg.CONF.performance.action_max_memory_mb
+
+        if self._action_max_output_size_mb == PYTHON_RUNNER_DEFAULT_MAX_OUTPUT_SIZE:
+            self._action_max_output_size_mb = (
+                cfg.CONF.performance.action_max_output_size_mb
+            )
 
     def run(self, action_parameters):
         LOG.debug("Running pythonrunner.")
@@ -195,8 +213,8 @@ class PythonRunner(GitWorktreeActionRunner):
             "--file-path=%s" % (self.entry_point),
             "--user=%s" % (user),
             "--parent-args=%s" % (parent_args),
-            "--max-memory=%s" % cfg.CONF.performance.action_max_memory_mb,
-            "--max-output-size=%s" % cfg.CONF.performance.action_max_output_size_mb,
+            "--max-memory=%s" % self._action_max_memory_mb,
+            "--max-output-size=%s" % self._action_max_output_size_mb,
         ]
 
         subprocess = concurrency.get_subprocess_module()

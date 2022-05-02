@@ -51,3 +51,11 @@
         - WARNING
         - INFO
         - DEBUG
+    max_memory_mb:
+      description: Action maximum allowable memory (in MB) - 0 is unlimited
+      type: integer
+      default: 0
+    max_output_size_mb:
+      description: Action maximum allowable output size (in MB) - 0 is unlimited
+      type: integer
+      default: 0
