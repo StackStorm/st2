@@ -195,11 +195,6 @@ Fixed
 
   Contributed by @khushboobhatia01
 
-Removed
-~~~~~~~
-
-* Nothing removed
-
 3.6.0 - October 29, 2021
 ------------------------
 
