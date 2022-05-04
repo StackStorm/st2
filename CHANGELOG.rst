@@ -112,6 +112,10 @@ Added
 
   Contributed by @Kami.
 
+* Add new audit message when a user has decrypted a key whether manually in the container (st2 key get [] --decrypt)
+  or through a workflow with a defined config. #5594
+  Contributed by @dmork123
+
 * Added garbage collection for rule_enforcement and trace models #5596/5602
   Contributed by Amanda McGuinness (@amanda11 intive)
 
@@ -194,6 +198,9 @@ Fixed
 * Downgrade tenacity as tooz dependency on tenacity has always been < 7.0.0 #5607
 
   Contributed by @khushboobhatia01
+
+* Pin ``typing-extensions<4.2`` (used indirectly by st2client) to maintain python 3.6 support. #5638
+
 
 3.6.0 - October 29, 2021
 ------------------------

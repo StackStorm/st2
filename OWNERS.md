@@ -33,12 +33,16 @@ Have deep platform knowledge & experience and demonstrate technical leadership a
 Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/maintainers) provide significant and reliable value to the project helping it grow and improve through development and maintenance. See [Maintainer Responsibilities](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#maintainer-responsibilities) for more info.
 * AJ Jonen ([@guzzijones](https://github.com/guzzijones)), _Cypherint_ <<aaron.jonen@cypherint.com>>
   - Workflows, st2 Core Performance, Releases.
+* Ankur Singh ([@rush-skills](https://github.com/rush-skills)), _CERN_ <<ankur.singh@cern.ch>>
+  - Community, Puppet, Workflows, HA.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) <<nzlosh@yahoo.com>>
   - Packaging, Systems, Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ <<cognifloyd@gmail.com>>
   - StackStorm Exchange, Kubernetes, ChatOps, Core, Ansible, Discussions.
 * JP Bourget ([@punkrokk](https://github.com/punkrokk)) <<jp.bourget@gmail.com>>
   - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCI.
+* Khushboo Bhatia ([@khushboobhatia01](https://github.com/khushboobhatia01)), _VMware_ <<khushb99@gmail.com>>
+  - StackStorm Core, Workflows.
 * Marcel Weinberg ([@winem](https://github.com/winem)), _CoreMedia_ <<mweinberg-os@email.de>>
   - Systems, Core, CI/CD, Docker, Community.
 * Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)), _Bitovi_ <<mick@bitovi.com>>
@@ -51,15 +55,14 @@ Contributors are using and occasionally contributing back to the project, might 
 They're not part of the TSC voting process, but appreciated for their contribution, involvement and may become Maintainers in the future depending on their effort and involvement. See [How to become a Maintainer?](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#how-to-become-a-maintainer)
 [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and have permissions to help triage the Issues and review PRs.
 * Anand Patel ([@arms11](https://github.com/arms11)), _VMware_ - Docker, Kubernetes.
-* Ankur Singh ([@rush-skills](https://github.com/rush-skills)), _CERN_ - Puppet, Core, Docker, K8s.
+* Bradley Bishop ([@bishopbm1](https://github.com/bishopbm1)), _Encore_, - Puppet, StackStorm Exchange.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
-* Khushboo Bhatia ([@khushboobhatia01](https://github.com/khushboobhatia01)), _VMware_ - Core, Orquesta.
 * Rick Kauffman ([@xod442](https://github.com/xod442)), _HPE_ - Community, HOWTOs, Blogs, Publications, Docker.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
-
+* Yuri Dubler ([@lm-ydubler](https://github.com/lm-ydubler)) - _LogicMonitor_ - StackStorm Exchange, CI.
 
 # Friends
 People that are currently not very active maintainers/contributors but who participated in and formed the project we have today.
