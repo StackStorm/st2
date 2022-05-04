@@ -202,6 +202,9 @@ Changed
 
 * Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
 
+* Pin ``typing-extensions<4.2`` (used indirectly by st2client) to maintain python 3.6 support. #5638
+
+
 3.6.0 - October 29, 2021
 ------------------------
 
