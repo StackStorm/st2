@@ -18,7 +18,7 @@ from typing import List, Mapping, Tuple
 from pants.backend.python.target_types import (
     PythonTestTarget,
     PythonTestsGeneratorTarget,
-    PythonTestsDependencies,
+    PythonTestsDependenciesField,
 )
 from pants.base.specs import AddressSpecs, DescendantAddresses
 from pants.engine.addresses import Address
@@ -66,7 +66,7 @@ async def map_stevedore_extensions() -> StevedoreExtensions:
 
 
 class InjectStevedoreNamespaceDependencies(InjectDependenciesRequest):
-    inject_for = PythonTestsDependencies
+    inject_for = PythonTestsDependenciesField
 
 
 @rule(
