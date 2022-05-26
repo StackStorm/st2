@@ -30,7 +30,7 @@ from pants.engine.target import (
     StringSequenceField,
     Target,
 )
-from pants.backend.python.target_types import EntryPoint
+from pants.backend.python.target_types import EntryPoint, PythonResolveField
 from pants.source.filespec import Filespec
 
 
@@ -126,6 +126,7 @@ class StevedoreExtension(Target):
         StevedoreNamespaceField,
         StevedoreEntryPointsField,
         StevedoreDependencies,
+        PythonResolveField,
     )
     help = "Entry points used to generate setuptools metadata for stevedore."
 

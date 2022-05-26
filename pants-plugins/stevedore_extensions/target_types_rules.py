@@ -16,10 +16,12 @@ import dataclasses
 import os
 
 from pants.backend.python.dependency_inference.module_mapper import (
-    PythonModule,
     PythonModuleOwners,
+    PythonModuleOwnersRequest,
 )
 from pants.backend.python.dependency_inference.rules import import_rules
+from pants.backend.python.subsystems.setup import PythonSetup
+from pants.backend.python.target_types import PythonResolveField
 from pants.engine.addresses import Address
 from pants.engine.fs import GlobMatchErrorBehavior, PathGlobs, Paths
 from pants.engine.rules import Get, collect_rules, MultiGet, rule, UnionRule
@@ -140,6 +142,7 @@ class InjectStevedoreExtensionDependencies(InjectDependenciesRequest):
 )
 async def inject_stevedore_entry_points_dependencies(
     request: InjectStevedoreExtensionDependencies,
+    python_setup: PythonSetup,
 ) -> InjectedDependencies:
     original_tgt: WrappedTarget = await Get(
         WrappedTarget, Address, request.dependencies_field.address
@@ -161,8 +164,13 @@ async def inject_stevedore_entry_points_dependencies(
         return InjectedDependencies()
     address = original_tgt.target.address
     owners_per_entry_point = await MultiGet(
-        Get(PythonModuleOwners, PythonModule(entry_point.value.module))
-        for entry_point in entry_points.val
+        Get(
+            PythonModuleOwners,
+            PythonModuleOwnersRequest(
+                entry_point.value.module,
+                resolve=original_tgt.target[PythonResolveField].normalized_value(python_setup),
+            )
+        ) for entry_point in entry_points.val
     )
     original_entry_points = original_tgt.target[StevedoreEntryPointsField].value
     resolved_owners = []
