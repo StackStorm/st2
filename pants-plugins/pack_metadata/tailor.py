@@ -28,7 +28,7 @@ from pack_metadata.target_types import PackMetadata
 
 
 @dataclass(frozen=True)
-class PutativePackMetadataTargetsRequest:
+class PutativePackMetadataTargetsRequest(PutativeTargetsRequest):
     pass
 
 

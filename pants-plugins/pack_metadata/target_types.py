@@ -14,14 +14,14 @@
 from typing import Sequence
 
 from pants.engine.target import COMMON_TARGET_FIELDS, Dependencies, Target
-from pants.core.target_types import FilesSources
+from pants.core.target_types import FilesGeneratingSourcesField
 
 
 class UnmatchedGlobsError(Exception):
     """Error thrown when a required set of globs didn't match."""
 
 
-class PackMetadataSources(FilesSources):
+class PackMetadataSources(FilesGeneratingSourcesField):
     required = False
     default = (
         # metadata does not include any python, shell, or other sources.
