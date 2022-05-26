@@ -15,7 +15,11 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import List, Mapping, Tuple
 
-from pants.backend.python.target_types import PythonTests, PythonTestsDependencies
+from pants.backend.python.target_types import (
+    PythonTestTarget,
+    PythonTestsGeneratorTarget,
+    PythonTestsDependencies,
+)
 from pants.base.specs import AddressSpecs, DescendantAddresses
 from pants.engine.addresses import Address
 from pants.engine.rules import collect_rules, Get, rule, UnionRule
@@ -92,6 +96,7 @@ async def inject_stevedore_dependencies(
 def rules():
     return [
         *collect_rules(),
-        PythonTests.register_plugin_field(StevedoreNamespacesField),
+        PythonTestsGeneratorTarget.register_plugin_field(StevedoreNamespacesField),
+        PythonTestTarget.register_plugin_field(StevedoreNamespacesField),
         UnionRule(InjectDependenciesRequest, InjectStevedoreNamespaceDependencies),
     ]
