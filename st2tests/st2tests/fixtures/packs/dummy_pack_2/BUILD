@@ -1,5 +1,6 @@
-python_sources()
-
-python_requirements(
-    name="reqs",
+resource(
+    name="pack_requirements",
+    source="requirements.txt",
 )
+
+python_sources()
