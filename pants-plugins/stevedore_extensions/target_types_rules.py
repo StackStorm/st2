@@ -168,9 +168,12 @@ async def inject_stevedore_entry_points_dependencies(
             PythonModuleOwners,
             PythonModuleOwnersRequest(
                 entry_point.value.module,
-                resolve=original_tgt.target[PythonResolveField].normalized_value(python_setup),
-            )
-        ) for entry_point in entry_points.val
+                resolve=original_tgt.target[PythonResolveField].normalized_value(
+                    python_setup
+                ),
+            ),
+        )
+        for entry_point in entry_points.val
     )
     original_entry_points = original_tgt.target[StevedoreEntryPointsField].value
     resolved_owners = []
