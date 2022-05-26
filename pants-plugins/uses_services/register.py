@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pants.backend.python.target_types import PythonTests
+from pants.backend.python.target_types import (
+    PythonTestTarget,
+    PythonTestsGeneratorTarget,
+)
 
 from uses_services import mongo, platform_
 from uses_services.target_types import UsesServicesField
@@ -19,7 +22,8 @@ from uses_services.target_types import UsesServicesField
 
 def rules():
     return [
-        PythonTests.register_plugin_field(UsesServicesField),
+        PythonTestsGeneratorTarget.register_plugin_field(UsesServicesField),
+        PythonTestTarget.register_plugin_field(UsesServicesField),
         *platform_.rules(),
         *mongo.rules(),
     ]
