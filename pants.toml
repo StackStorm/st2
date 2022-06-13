@@ -102,6 +102,7 @@ interpreter_constraints = [
 
 [python.resolves]
 st2 = "lockfiles/st2.lock"
+pylint_plugins = "lockfiles/pylint_plugins.lock"
 pants-plugins = "lockfiles/pants-plugins.lock"
 
 [python.resolves_to_interpreter_constraints]

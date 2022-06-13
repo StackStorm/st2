@@ -1,7 +1,16 @@
+__defaults__(
+    all=dict(
+        resolve="pylint_plugins",
+    )
+)
+
 python_sources()
 
 python_tests(
     name="tests",
+    dependencies=[
+        "!//conftest.py:test_utils",
+    ],
 )
 
 python_requirement(
