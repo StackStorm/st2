@@ -13,19 +13,32 @@
 # limitations under the License.
 from dataclasses import dataclass
 
-from pants.backend.python.target_types import PythonSourceField
+from pants.backend.python.target_types import EntryPoint, PythonSourceField
+from pants.backend.python.util_rules.pex import (
+    Pex,
+    PexRequest,
+    VenvPex,
+    VenvPexProcess,
+)
+from pants.backend.python.util_rules.pex_from_targets import PexFromTargetsRequest
+from pants.backend.python.util_rules.python_sources import (
+    PythonSourceFiles,
+    PythonSourceFilesRequest,
+)
 from pants.core.goals.fmt import FmtResult, FmtRequest
 from pants.core.goals.lint import LintResult, LintResults, LintTargetsRequest
 from pants.core.target_types import FileSourceField
-from pants.core.util_rules.source_files import SourceFilesRequest
-from pants.core.util_rules.stripped_source_files import StrippedSourceFiles
+from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
+from pants.engine.addresses import Address, UnparsedAddressInputs
 from pants.engine.fs import (
     CreateDigest,
     Digest,
     DigestContents,
     FileContent,
+    MergeDigests,
     Snapshot,
 )
+from pants.engine.process import Process, ProcessResult
 from pants.engine.rules import Get, MultiGet, collect_rules, rule
 from pants.engine.target import (
     FieldSet,
@@ -60,21 +73,38 @@ async def generate_sample_conf(
     target = request.protocol_target
 
     # Find all the dependencies of our target
-    transitive_targets = await Get(TransitiveTargets, TransitiveTargetsRequest([target.address]))
-
-    # Get the source files without the source-root prefix.
-    #stripped_sources = await Get(StrippedSourceFiles, SourceFilesRequest(
-    #    (tgt.get(SourcesField) for tgt in transitive_targets.closure)
-    #))
-
-    #contents = await Get(DigestContents, Digest, stripped_sources)
+    transitive_targets = await Get(
+        TransitiveTargets, TransitiveTargetsRequest([target.address])
+    )
 
     # actually generate it with an external script.
     # Generation cannot be inlined here because it needs to import the st2 code.
-    sample_conf = "asdf\n"
+    script = "config_gen"
+    pex_get = Get(
+        VenvPex,
+        PexFromTargetsRequest(
+            [Address("tools", target_name="tools", relative_file_path=f"{script}.py")],
+            output_filename=f"{script}.pex",
+            internal_only=True,
+            main=EntryPoint(script),
+        ),
+    )
+    sources_get = Get(
+        PythonSourceFiles,
+        PythonSourceFilesRequest(transitive_targets.closure, include_files=True),
+    )
+    pex, sources = await MultiGet(pex_get, sources_get)
+
+    result = await Get(
+        ProcessResult,
+        VenvPexProcess(
+            pex,
+            description=f"Regenerating {request.protocol_target.address}.",
+        ),
+    )
 
     output_path = f"{target.address.spec_path}/{target[SampleConfSourceField].value}"
-    content = FileContent(output_path, sample_conf.encode("utf-8"))
+    content = FileContent(output_path, result.stdout)
 
     output_digest = await Get(Digest, CreateDigest([content]))
     output_snapshot = await Get(Snapshot, Digest, output_digest)

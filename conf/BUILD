@@ -3,14 +3,13 @@ file(
     source="st2rc.sample.ini",
 )
 
-sample_conf(
+sample_conf(  # defined in pants-plugins/sample_conf
     name="st2.conf.sample",
-    # source="st2.conf.sample",
+    source="st2.conf.sample",
+    dependencies=[
+        "tools/config_gen.py",
+    ],
 )
-#file(
-#    name="st2.conf.sample",
-#    source="st2.conf.sample",
-#)
 
 file(
     name="logrotate",
