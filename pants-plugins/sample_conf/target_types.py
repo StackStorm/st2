@@ -11,25 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pants.engine.fs import GlobMatchErrorBehavior
 from pants.engine.target import (
     COMMON_TARGET_FIELDS,
     Dependencies,
-    OptionalSingleSourceField,
+    SingleSourceField,
     Target,
 )
 
 
-class SampleConfSourceField(OptionalSingleSourceField):
+class SampleConfSourceField(SingleSourceField):
     default = "st2.conf.sample"
-
-    default_glob_match_error_behavior = GlobMatchErrorBehavior.ignore
-
-
-# class SampleConfSourceField(SingleSourceField):
-#    alias = "output"
-#    required = False
-#    default = "st2.conf.sample"
 
 
 class SampleConf(Target):

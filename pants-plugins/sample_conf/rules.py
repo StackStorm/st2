@@ -13,9 +13,8 @@
 # limitations under the License.
 from dataclasses import dataclass
 
-from pants.backend.python.target_types import EntryPoint, PythonSourceField
+from pants.backend.python.target_types import EntryPoint
 from pants.backend.python.util_rules.pex import (
-    Pex,
     PexRequest,
     VenvPex,
     VenvPexProcess,
@@ -26,30 +25,23 @@ from pants.backend.python.util_rules.python_sources import (
     PythonSourceFilesRequest,
 )
 from pants.core.goals.fmt import FmtResult, FmtRequest
-from pants.core.goals.lint import LintResult, LintResults, LintTargetsRequest
-from pants.core.target_types import FileSourceField
-from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
-from pants.engine.addresses import Address, UnparsedAddressInputs
+from pants.engine.addresses import Address
 from pants.engine.fs import (
     CreateDigest,
     Digest,
-    DigestContents,
     FileContent,
-    MergeDigests,
     Snapshot,
 )
-from pants.engine.process import Process, ProcessResult
+from pants.engine.process import FallibleProcessResult
 from pants.engine.rules import Get, MultiGet, collect_rules, rule
 from pants.engine.target import (
     FieldSet,
-    GeneratedSources,
-    GenerateSourcesRequest,
     SourcesField,
-    Target,
     TransitiveTargets,
     TransitiveTargetsRequest,
 )
 from pants.engine.unions import UnionRule
+from pants.util.logging import LogLevel
 
 from sample_conf.target_types import (
     SampleConfSourceField,
@@ -57,60 +49,7 @@ from sample_conf.target_types import (
 )
 
 
-# CODEGEN #########################################################
-
-
-class GenerateSampleConfRequest(GenerateSourcesRequest):
-    input = SampleConfSourceField
-    output = SampleConfSourceField
-
-
-@rule
-async def generate_sample_conf(
-    request: GenerateSampleConfRequest,
-) -> GeneratedSources:
-    target = request.protocol_target
-
-    # Find all the dependencies of our target
-    transitive_targets = await Get(
-        TransitiveTargets, TransitiveTargetsRequest([target.address])
-    )
-
-    # actually generate it with an external script.
-    # Generation cannot be inlined here because it needs to import the st2 code.
-    script = "config_gen"
-    pex_get = Get(
-        VenvPex,
-        PexFromTargetsRequest(
-            [Address("tools", target_name="tools", relative_file_path=f"{script}.py")],
-            output_filename=f"{script}.pex",
-            internal_only=True,
-            main=EntryPoint(script),
-        ),
-    )
-    sources_get = Get(
-        PythonSourceFiles,
-        PythonSourceFilesRequest(transitive_targets.closure, include_files=True),
-    )
-    pex, sources = await MultiGet(pex_get, sources_get)
-
-    result = await Get(
-        ProcessResult,
-        VenvPexProcess(
-            pex,
-            description=f"Regenerating {request.protocol_target.address}.",
-        ),
-    )
-
-    output_path = f"{target.address.spec_path}/{target[SampleConfSourceField].value}"
-    content = FileContent(output_path, result.stdout)
-
-    output_digest = await Get(Digest, CreateDigest([content]))
-    output_snapshot = await Get(Snapshot, Digest, output_digest)
-    return GeneratedSources(output_snapshot)
-
-
-# FMT/LINT #########################################################
+SCRIPT = "config_gen"
 
 
 @dataclass(frozen=True)
@@ -120,23 +59,70 @@ class GenerateSampleConfFieldSet(FieldSet):
     source: SampleConfSourceField
 
 
-class GenerateSampleConfViaFmtRequest(FmtRequest, LintTargetsRequest):
+class GenerateSampleConfViaFmtRequest(FmtRequest):
     field_set_type = GenerateSampleConfFieldSet
-    name = "st2.conf.sample"
+    name = SCRIPT
 
 
-@rule(desc="Generate st2.conf.sample")
-async def gen_sample_conf_via_fmt(
+@rule(
+    desc="Update conf/st2.conf.sample with tools/config_gen.py",
+    level=LogLevel.DEBUG,
+)
+async def generate_sample_conf_via_fmt(
     request: GenerateSampleConfViaFmtRequest,
 ) -> FmtResult:
-    ...
-    return FmtResult(..., formatter_name=request.name)
+    # There will only be one target+field_set, but we iterate
+    # to satisfy how fmt expects that there could be more than one.
+    # If there is more than one, they will all get the same contents.
+
+    # Find all the dependencies of our target
+    transitive_targets = await Get(
+        TransitiveTargets,
+        TransitiveTargetsRequest(
+            [field_set.address for field_set in request.field_sets]
+        ),
+    )
+
+    # actually generate it with an external script.
+    # Generation cannot be inlined here because it needs to import the st2 code.
+    pex_get = Get(
+        VenvPex,
+        PexFromTargetsRequest(
+            [Address("tools", target_name="tools", relative_file_path=f"{SCRIPT}.py")],
+            output_filename=f"{SCRIPT}.pex",
+            internal_only=True,
+            main=EntryPoint(SCRIPT),
+        ),
+    )
+    sources_get = Get(
+        PythonSourceFiles,
+        PythonSourceFilesRequest(transitive_targets.closure, include_files=True),
+    )
+    pex, sources = await MultiGet(pex_get, sources_get)
+
+    result = await Get(
+        FallibleProcessResult,
+        VenvPexProcess(
+            pex,
+            description=f"Regenerating st2.conf.sample",
+        ),
+    )
+
+    contents = [
+        FileContent(
+            f"{field_set.address.spec_path}/{field_set.source.value}",
+            result.stdout,
+        )
+        for field_set in request.field_sets
+    ]
+
+    output_digest = await Get(Digest, CreateDigest(contents))
+    output_snapshot = await Get(Snapshot, Digest, output_digest)
+    return FmtResult.create(request, result, output_snapshot, strip_chroot_path=True)
 
 
 def rules():
     return [
         *collect_rules(),
-        UnionRule(GenerateSourcesRequest, GenerateSampleConfRequest),
         UnionRule(FmtRequest, GenerateSampleConfViaFmtRequest),
-        # UnionRule(LintTargetsRequest, GenerateSampleConfViaFmtRequest),
     ]
