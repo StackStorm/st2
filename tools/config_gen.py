@@ -175,6 +175,10 @@ def _print_options(opt_group, options):
                 value = ""
 
             value += " # comma separated list allowed here."
+        elif isinstance(opt.default, dict):
+            # this is for [sensorcontainer].partition_provider which
+            # is a generic cfg.Opt(type=types.Dict(value_type=types.String())
+            value = " ".join([f"{k}:{v}" for k, v in opt.default.items()])
         else:
             value = opt.default
 
