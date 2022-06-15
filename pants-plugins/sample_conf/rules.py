@@ -63,7 +63,6 @@ from sample_conf.target_types import (
 class GenerateSampleConfRequest(GenerateSourcesRequest):
     input = SampleConfSourceField
     output = SampleConfSourceField
-    #output = FileSourceField
 
 
 @rule
@@ -127,15 +126,11 @@ class GenerateSampleConfViaFmtRequest(FmtRequest, LintTargetsRequest):
 
 
 @rule(desc="Generate st2.conf.sample")
-async def gen_sample_conf_via_fmt(request: GenerateSampleConfViaFmtRequest) -> FmtResult:
+async def gen_sample_conf_via_fmt(
+    request: GenerateSampleConfViaFmtRequest,
+) -> FmtResult:
     ...
     return FmtResult(..., formatter_name=request.name)
-
-
-#@rule(desc="Ensure st2.conf.sample is up-to-date")
-#async def sample_conf_lint(request: GenerateSampleConfViaFmtRequest) -> LintResults:
-#    ...
-#    return LintResults([], linter_name=request.name)
 
 
 def rules():
@@ -143,5 +138,5 @@ def rules():
         *collect_rules(),
         UnionRule(GenerateSourcesRequest, GenerateSampleConfRequest),
         UnionRule(FmtRequest, GenerateSampleConfViaFmtRequest),
-#        UnionRule(LintTargetsRequest, GenerateSampleConfViaFmtRequest),
+        # UnionRule(LintTargetsRequest, GenerateSampleConfViaFmtRequest),
     ]

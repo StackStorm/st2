@@ -26,7 +26,7 @@ class SampleConfSourceField(OptionalSingleSourceField):
     default_glob_match_error_behavior = GlobMatchErrorBehavior.ignore
 
 
-#class SampleConfSourceField(SingleSourceField):
+# class SampleConfSourceField(SingleSourceField):
 #    alias = "output"
 #    required = False
 #    default = "st2.conf.sample"
@@ -35,6 +35,4 @@ class SampleConfSourceField(OptionalSingleSourceField):
 class SampleConf(Target):
     alias = "sample_conf"
     core_fields = (*COMMON_TARGET_FIELDS, Dependencies, SampleConfSourceField)
-    help = (
-        "Generate st2.conf.sample file from python sources."
-    )
+    help = "Generate st2.conf.sample file from python sources."
