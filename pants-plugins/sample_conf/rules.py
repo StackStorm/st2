@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from dataclasses import dataclass
+
 from pants.backend.python.target_types import PythonSourceField
+from pants.core.goals.fmt import FmtResult, FmtRequest
+from pants.core.goals.lint import LintResult, LintResults, LintTargetsRequest
 from pants.core.target_types import FileSourceField
 from pants.core.util_rules.source_files import SourceFilesRequest
 from pants.core.util_rules.stripped_source_files import StrippedSourceFiles
@@ -24,19 +28,23 @@ from pants.engine.fs import (
 )
 from pants.engine.rules import Get, MultiGet, collect_rules, rule
 from pants.engine.target import (
+    FieldSet,
     GeneratedSources,
     GenerateSourcesRequest,
     SourcesField,
+    Target,
     TransitiveTargets,
     TransitiveTargetsRequest,
 )
 from pants.engine.unions import UnionRule
 
 from sample_conf.target_types import (
-    #GenerateSampleConfSourceField,
     SampleConfSourceField,
     SampleConf,
 )
+
+
+# CODEGEN #########################################################
 
 
 class GenerateSampleConfRequest(GenerateSourcesRequest):
@@ -73,11 +81,37 @@ async def generate_sample_conf(
     return GeneratedSources(output_snapshot)
 
 
+# FMT/LINT #########################################################
+
+
+@dataclass(frozen=True)
+class GenerateSampleConfFieldSet(FieldSet):
+    required_fields = (SampleConfSourceField,)
+
+    source: SampleConfSourceField
+
+
+class GenerateSampleConfViaFmtRequest(FmtRequest, LintTargetsRequest):
+    field_set_type = GenerateSampleConfFieldSet
+    name = "st2.conf.sample"
+
+
+@rule(desc="Generate st2.conf.sample")
+async def gen_sample_conf_via_fmt(request: GenerateSampleConfViaFmtRequest) -> FmtResult:
+    ...
+    return FmtResult(..., formatter_name=request.name)
+
+
+#@rule(desc="Ensure st2.conf.sample is up-to-date")
+#async def sample_conf_lint(request: GenerateSampleConfViaFmtRequest) -> LintResults:
+#    ...
+#    return LintResults([], linter_name=request.name)
+
+
 def rules():
     return [
         *collect_rules(),
-        UnionRule(
-            GenerateSourcesRequest,
-            GenerateSampleConfRequest,
-        ),
+        UnionRule(GenerateSourcesRequest, GenerateSampleConfRequest),
+        UnionRule(FmtRequest, GenerateSampleConfViaFmtRequest),
+#        UnionRule(LintTargetsRequest, GenerateSampleConfViaFmtRequest),
     ]
