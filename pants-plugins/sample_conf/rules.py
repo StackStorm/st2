@@ -85,7 +85,7 @@ async def generate_sample_conf_via_fmt(
 
     # actually generate it with an external script.
     # Generation cannot be inlined here because it needs to import the st2 code.
-    pex_get = Get(
+    pex = await Get(
         VenvPex,
         PexFromTargetsRequest(
             [Address("tools", target_name="tools", relative_file_path=f"{SCRIPT}.py")],
@@ -94,11 +94,6 @@ async def generate_sample_conf_via_fmt(
             main=EntryPoint(SCRIPT),
         ),
     )
-    sources_get = Get(
-        PythonSourceFiles,
-        PythonSourceFilesRequest(transitive_targets.closure, include_files=True),
-    )
-    pex, sources = await MultiGet(pex_get, sources_get)
 
     result = await Get(
         FallibleProcessResult,
