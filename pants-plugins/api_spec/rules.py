@@ -246,6 +246,8 @@ async def validate_api_spec(
             argv=(
                 "--config-file",
                 "conf/st2.dev.conf",
+                # "--validate-defs",  # check for x-api-model in definitions
+                # "--verbose",  # show definitions on failure
             ),
             input_digest=input_digest,
             description=f"Validating openapi.yaml api spec",
