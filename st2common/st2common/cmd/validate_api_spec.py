@@ -22,8 +22,8 @@ in st2common/models/api/.
 from __future__ import absolute_import
 import os
 
+import prance
 from oslo_config import cfg
-from prance import ResolvingParser
 
 from st2common import config
 from st2common import log as logging
@@ -100,7 +100,7 @@ def validate_spec():
             f.write(spec_string)
             f.flush()
 
-    parser = ResolvingParser(spec_file)
+    parser = prance.ResolvingParser(spec_file)
     spec = parser.specification
 
     return _validate_definitions(spec)
@@ -118,7 +118,8 @@ def main():
         # The spec loader do not allow duplicate keys.
         spec_loader.load_spec("st2common", "openapi.yaml.j2")
 
-        ret = 0
+        # run the schema through prance to validate openapi spec.
+        ret = validate_spec()
     except Exception:
         LOG.error("Failed to validate openapi.yaml file", exc_info=True)
         ret = 1
