@@ -1,6 +1,6 @@
 # NOTE: This file is auto-generated - DO NOT EDIT MANUALLY
 # Edit st2common/st2common/openapi.yaml.j2 and then run
-# make .generate-api-spec
+# ./pants fmt st2common/st2common/openapi.yaml
 # to generate the final spec file
 swagger: '2.0'
 
