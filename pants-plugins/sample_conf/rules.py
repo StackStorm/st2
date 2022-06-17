@@ -75,14 +75,6 @@ async def generate_sample_conf_via_fmt(
     # to satisfy how fmt expects that there could be more than one.
     # If there is more than one, they will all get the same contents.
 
-    # Find all the dependencies of our target
-    transitive_targets = await Get(
-        TransitiveTargets,
-        TransitiveTargetsRequest(
-            [field_set.address for field_set in request.field_sets]
-        ),
-    )
-
     # actually generate it with an external script.
     # Generation cannot be inlined here because it needs to import the st2 code.
     pex = await Get(
