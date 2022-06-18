@@ -112,3 +112,6 @@ extra_requirements = [
   "st2flake8==0.1.0",  # TODO: remove in favor of regex-lint
 ]
 config = "lint-configs/python/.flake8"
+
+[regex-lint]
+config = "@lint-configs/regex-lint.yaml"
