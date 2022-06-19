@@ -26,6 +26,7 @@ backend_packages = [
   "pants.backend.plugin_development",
   "api_spec",
   "pack_metadata",
+  "release",
   "sample_conf",
   "schemas",
   "uses_services",
