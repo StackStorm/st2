@@ -136,6 +136,11 @@ st2 = "lockfiles/st2-constraints.txt"
 # Revisit this in pants 2.16 to see if it is feasible to use the default "warning".
 unowned_dependency_behavior = "ignore"
 
+[setup-py-generation]
+# when building the package (with ./pants package ::), pants will,
+# by default, generate a setup.py file for use with setuptools.
+generate_setup_default = true # true by default
+
 [bandit]
 lockfile = "lockfiles/bandit.lock"
 version = "bandit==1.7.0"
