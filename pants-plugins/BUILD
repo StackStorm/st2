@@ -11,3 +11,5 @@ pants_requirements(
     name="pants",
     testutil=True,
 )
+
+python_sources()
