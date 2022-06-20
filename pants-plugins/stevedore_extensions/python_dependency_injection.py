@@ -16,11 +16,12 @@ from dataclasses import dataclass
 from typing import List, Mapping, Tuple
 
 from pants.backend.python.target_types import (
+    PythonDistributionDependenciesField,
     PythonTestTarget,
     PythonTestsGeneratorTarget,
     PythonTestsDependenciesField,
 )
-from pants.base.specs import AddressSpecs, DescendantAddresses
+from pants.base.specs import AddressSpecs, DescendantAddresses, SiblingAddresses
 from pants.engine.addresses import Address
 from pants.engine.rules import collect_rules, Get, rule, UnionRule
 from pants.engine.target import (
@@ -35,6 +36,7 @@ from pants.util.ordered_set import OrderedSet
 
 from stevedore_extensions.target_types import (
     StevedoreDependenciesField,
+    StevedoreEntryPointsField,
     StevedoreExtension,
     StevedoreNamespaceField,
     StevedoreNamespacesField,
@@ -73,7 +75,7 @@ class InjectStevedoreNamespaceDependencies(InjectDependenciesRequest):
     desc="Inject stevedore_extension target dependencies for python_tests based on namespace list.",
     level=LogLevel.DEBUG,
 )
-async def inject_stevedore_dependencies(
+async def inject_stevedore_namespace_dependencies(
     request: InjectStevedoreNamespaceDependencies,
     stevedore_extensions: StevedoreExtensions,
 ) -> InjectedDependencies:
