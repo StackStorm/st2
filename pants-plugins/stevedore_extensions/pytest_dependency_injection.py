@@ -34,10 +34,10 @@ from pants.util.logging import LogLevel
 from pants.util.ordered_set import OrderedSet
 
 from stevedore_extensions.target_types import (
+    StevedoreDependenciesField,
     StevedoreExtension,
     StevedoreNamespaceField,
     StevedoreNamespacesField,
-    StevedoreDependencies,
 )
 
 
@@ -55,7 +55,7 @@ class StevedoreExtensions:
 async def map_stevedore_extensions() -> StevedoreExtensions:
     all_expanded_targets = await Get(Targets, AddressSpecs([DescendantAddresses("")]))
     stevedore_extensions = tuple(
-        tgt for tgt in all_expanded_targets if tgt.has_field(StevedoreDependencies)
+        tgt for tgt in all_expanded_targets if tgt.has_field(StevedoreDependenciesField)
     )
     mapping: Mapping[str, List[StevedoreExtension]] = defaultdict(list)
     for extension in stevedore_extensions:

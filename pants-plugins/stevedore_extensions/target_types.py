@@ -114,7 +114,7 @@ class ResolveStevedoreEntryPointsRequest:
 
 
 # See `target_types_rules.py` for a dependency injection rule.
-class StevedoreDependencies(Dependencies):
+class StevedoreDependenciesField(Dependencies):
     # dummy field for dependency injection to work
     alias = "_stevedore_dependencies"
 
@@ -125,7 +125,7 @@ class StevedoreExtension(Target):
         *COMMON_TARGET_FIELDS,
         StevedoreNamespaceField,
         StevedoreEntryPointsField,
-        StevedoreDependencies,
+        StevedoreDependenciesField,
         PythonResolveField,
     )
     help = "Entry points used to generate setuptools metadata for stevedore."

@@ -40,7 +40,7 @@ from pants.util.logging import LogLevel
 from stevedore_extensions.target_types import (
     ResolvedStevedoreEntryPoints,
     ResolveStevedoreEntryPointsRequest,
-    StevedoreDependencies,
+    StevedoreDependenciesField,
     StevedoreEntryPoints,
     StevedoreEntryPointsField,
 )
@@ -133,7 +133,7 @@ async def resolve_stevedore_entry_points(
 
 
 class InjectStevedoreExtensionDependencies(InjectDependenciesRequest):
-    inject_for = StevedoreDependencies
+    inject_for = StevedoreDependenciesField
 
 
 @rule(
