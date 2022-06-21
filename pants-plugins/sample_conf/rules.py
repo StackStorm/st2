@@ -15,15 +15,10 @@ from dataclasses import dataclass
 
 from pants.backend.python.target_types import EntryPoint
 from pants.backend.python.util_rules.pex import (
-    PexRequest,
     VenvPex,
     VenvPexProcess,
 )
 from pants.backend.python.util_rules.pex_from_targets import PexFromTargetsRequest
-from pants.backend.python.util_rules.python_sources import (
-    PythonSourceFiles,
-    PythonSourceFilesRequest,
-)
 from pants.core.goals.fmt import FmtResult, FmtRequest
 from pants.engine.addresses import Address
 from pants.engine.fs import (
@@ -33,20 +28,12 @@ from pants.engine.fs import (
     Snapshot,
 )
 from pants.engine.process import FallibleProcessResult
-from pants.engine.rules import Get, MultiGet, collect_rules, rule
-from pants.engine.target import (
-    FieldSet,
-    SourcesField,
-    TransitiveTargets,
-    TransitiveTargetsRequest,
-)
+from pants.engine.rules import Get, collect_rules, rule
+from pants.engine.target import FieldSet
 from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
 
-from sample_conf.target_types import (
-    SampleConfSourceField,
-    SampleConf,
-)
+from sample_conf.target_types import SampleConfSourceField
 
 
 SCRIPT = "config_gen"
@@ -91,7 +78,7 @@ async def generate_sample_conf_via_fmt(
         FallibleProcessResult,
         VenvPexProcess(
             pex,
-            description=f"Regenerating st2.conf.sample",
+            description="Regenerating st2.conf.sample",
         ),
     )
 
