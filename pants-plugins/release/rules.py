@@ -18,9 +18,9 @@ Based in part on Apache 2.0 licensed code from:
 https://github.com/pantsbuild/pants/blob/master/pants-plugins/internal_plugins/releases/register.py
 """
 
-from pants.backend.python.goals.setup_py import SetupKwargsRequest
+from pants.backend.python.goals.setup_py import SetupKwargs, SetupKwargsRequest
+from pants.engine.fs import DigestContents, GlobMatchErrorBehavior, PathGlobs
 from pants.engine.target import Target
-from pants.backend.python.goals.setup_py import SetupKwargs
 from pants.engine.rules import collect_rules, Get, rule, UnionRule
 
 from stevedore_extensions.setup_py_kwargs import (
@@ -64,11 +64,18 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
     ]
     kwargs["classifiers"] = [*standard_classifiers, *kwargs.get("classifiers", [])]
 
+    digest_contents = await Get(
+        DigestContents,
+        PathGlobs(
+            [f"{request.target.address.spec_path}/README.rst"],
+            glob_match_error_behavior=GlobMatchErrorBehavior.ignore,
+        ),
+    )
+    long_description = "\n".join(file_content.content.decode() for file_content in digest_contents)
+
     # Hardcode certain kwargs and validate that they weren't already set.
     hardcoded_kwargs = dict(
         version="4.0.0dev0",  # TODO
-        # long_description=long_description,
-        # long_description_content_type="text/x-rst",
         author="StackStorm",
         author_email="info@stackstorm.com",
         url="https://stackstorm.com",
@@ -86,6 +93,11 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
         },
         license="Apache License, Version 2.0",
     )
+
+    if long_description:
+        hardcoded_kwargs["long_description_content_type"] = "text/x-rst"
+        hardcoded_kwargs["long_description"] = long_description
+
     conflicting_hardcoded_kwargs = set(kwargs.keys()).intersection(
         hardcoded_kwargs.keys()
     )
