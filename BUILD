@@ -52,3 +52,8 @@ python_test_utils(
     name="test_utils",
     skip_pylint=True,
 )
+
+file(
+    name="license",
+    source="LICENSE",
+)

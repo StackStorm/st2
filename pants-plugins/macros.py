@@ -13,9 +13,27 @@
 # limitations under the License.
 
 
+def st2_license(**kwargs):
+    """copy the LICENSE file into each wheel.
+
+    As long as the file is in the src root when building the sdist/wheel,
+    setuptools automatically includes the LICENSE file in the dist-info.
+    """
+    if "dest" not in kwargs:
+        raise ValueError("'dest' path is required for st2_license macro")
+    relocated_files(  # noqa: F821
+        name="license",
+        files_targets=["//:license"],
+        src="",
+        **kwargs,
+    )
+
+
 def st2_runner_python_distribution(**kwargs):
     runner_name = kwargs.pop("runner_name")
     description = kwargs.pop("description")
+
+    st2_license(dest=f"contrib/runners/{runner_name}_runner")
 
     kwargs["provides"] = python_artifact(  # noqa: F821
         name=f"stackstorm-runner-{runner_name.replace('_', '-')}",
@@ -28,7 +46,7 @@ def st2_runner_python_distribution(**kwargs):
     )
 
     dependencies = kwargs.pop("dependencies", [])
-    for dep in [f"./{runner_name}_runner"]:
+    for dep in [f"./{runner_name}_runner", ":license"]:
         if dep not in dependencies:
             dependencies.append(dep)
     kwargs["dependencies"] = dependencies
@@ -44,6 +62,8 @@ def st2_runner_python_distribution(**kwargs):
 
 def st2_component_python_distribution(**kwargs):
     st2_component = kwargs.pop("component_name")
+
+    st2_license(dest=st2_component)
 
     description = (
         f"{st2_component} StackStorm event-driven automation platform component"
@@ -64,7 +84,7 @@ def st2_component_python_distribution(**kwargs):
 
     dependencies = kwargs.pop("dependencies", [])
 
-    for dep in [st2_component] + scripts:
+    for dep in [st2_component, ":license"] + scripts:
         dep = f"./{dep}" if dep[0] != ":" else dep
         if dep not in dependencies:
             dependencies.append(dep)
