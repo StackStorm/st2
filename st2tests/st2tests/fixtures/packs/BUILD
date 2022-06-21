@@ -13,7 +13,7 @@ pack_metadata_in_git_submodule(
     ],
 )
 
-shell_sources(
+st2_shell_sources_and_resources(
     name="test_content_version_shell",
     # do not check across git submodule boundary
     skip_shellcheck=True,
@@ -29,6 +29,7 @@ python_sources(
     dependencies=[
         ":test_content_version_metadata",
         ":test_content_version_shell",
+        ":test_content_version_shell_resources",
     ],
     sources=[
         "test_content_version/**/*.py",

@@ -22,7 +22,7 @@ def st2_shell_sources_and_resources(**kwargs):
     """
     shell_sources(**kwargs)  # noqa: F821
 
-    kwargs.pop("skip_shellcheck")
+    kwargs.pop("skip_shellcheck", None)
 
     kwargs["name"] += "_resources"
     resources(**kwargs)  # noqa: F821
