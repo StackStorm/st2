@@ -8,5 +8,9 @@ resource(
 )
 
 python_sources(
-    dependencies=[":metadata"],
+    dependencies=[
+        ":metadata",
+        "./actions",
+        "./sensors",
+    ],
 )

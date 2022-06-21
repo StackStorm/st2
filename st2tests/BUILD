@@ -1,3 +1,21 @@
 st2_component_python_distribution(
     component_name="st2tests",
+    dependencies=[
+        "./st2tests/policies",
+        "./st2tests/policies/meta",
+        "./st2tests/mocks",
+        "./st2tests/mocks/runners",
+        # fixture packs
+        "./st2tests/fixtures:rbac_fixtures",
+        # fixtures in packs that are not (directly) packs
+        "./st2tests/fixtures/packs/executions",
+        "./st2tests/fixtures/packs/runners",
+        "./st2tests/fixtures/packs/test_content_version_fixture",  # provides fixture const
+        # fixture etc
+        "./st2tests/fixtures/conf",
+        "./st2tests/fixtures/history_views",
+        "./st2tests/fixtures/keyczar_keys",
+        "./st2tests/fixtures/specs",
+        "./st2tests/fixtures/ssl_certs",
+    ],
 )
