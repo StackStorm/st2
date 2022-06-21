@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix redis SSL problems with sentinel #5660
+
 
 3.7.0 - May 05, 2022
 --------------------
