@@ -17,11 +17,12 @@ Please see https://www.pantsbuild.org/docs/plugins-setup-py
 Based in part on Apache 2.0 licensed code from:
 https://github.com/pantsbuild/pants/blob/master/pants-plugins/internal_plugins/releases/register.py
 """
+import re
 
 from pants.backend.python.goals.setup_py import SetupKwargs, SetupKwargsRequest
 from pants.engine.fs import DigestContents, GlobMatchErrorBehavior, PathGlobs
 from pants.engine.target import Target
-from pants.engine.rules import collect_rules, Get, rule, UnionRule
+from pants.engine.rules import collect_rules, Get, MultiGet, rule, UnionRule
 
 from stevedore_extensions.setup_py_kwargs import (
     StevedoreSetupKwargs,
@@ -64,18 +65,39 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
     ]
     kwargs["classifiers"] = [*standard_classifiers, *kwargs.get("classifiers", [])]
 
-    digest_contents = await Get(
-        DigestContents,
-        PathGlobs(
-            [f"{request.target.address.spec_path}/README.rst"],
-            glob_match_error_behavior=GlobMatchErrorBehavior.ignore,
+    # TODO: source the version from one place for the whole repo.
+    version_file = kwargs.pop("version_file")
+
+    version_digest_contents, readme_digest_contents = await MultiGet(
+        Get(
+            DigestContents,
+            PathGlobs(
+                [f"{request.target.address.spec_path}/{version_file}"],
+                description_of_origin=f"StackStorm version file: {version_file}",
+                glob_match_error_behavior=GlobMatchErrorBehavior.error,
+            ),
+        ),
+        Get(
+            DigestContents,
+            PathGlobs(
+                [f"{request.target.address.spec_path}/README.rst"],
+                glob_match_error_behavior=GlobMatchErrorBehavior.ignore,
+            ),
         ),
     )
-    long_description = "\n".join(file_content.content.decode() for file_content in digest_contents)
+
+    version_file_contents = version_digest_contents[0].content.decode()
+    version_match = re.search(
+        r"^__version__ = ['\"]([^'\"]*)['\"]", version_file_contents, re.M
+    )
+    if not version_match:
+        raise ValueError(
+            f"Could not find the __version__ in {request.target.address.spec_path}/{version_file}\n{version_file_contents}"
+        )
 
     # Hardcode certain kwargs and validate that they weren't already set.
     hardcoded_kwargs = dict(
-        version="4.0.0dev0",  # TODO
+        version=version_match.group(1),
         author="StackStorm",
         author_email="info@stackstorm.com",
         url="https://stackstorm.com",
@@ -94,6 +116,9 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
         license="Apache License, Version 2.0",
     )
 
+    long_description = (
+        readme_digest_contents[0].content.decode() if readme_digest_contents else ""
+    )
     if long_description:
         hardcoded_kwargs["long_description_content_type"] = "text/x-rst"
         hardcoded_kwargs["long_description"] = long_description
