@@ -12,19 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from dataclasses import dataclass
-from textwrap import dedent
 
 from pants.backend.python.target_types import EntryPoint
 from pants.backend.python.util_rules.pex import (
-    PexRequest,
     VenvPex,
     VenvPexProcess,
 )
 from pants.backend.python.util_rules.pex_from_targets import PexFromTargetsRequest
-from pants.backend.python.util_rules.python_sources import (
-    PythonSourceFiles,
-    PythonSourceFilesRequest,
-)
 from pants.core.goals.fmt import FmtResult, FmtRequest
 from pants.core.goals.lint import LintResult, LintResults, LintTargetsRequest
 from pants.core.target_types import FileSourceField, ResourceSourceField
@@ -48,10 +42,7 @@ from pants.engine.target import (
 from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
 
-from api_spec.target_types import (
-    APISpecSourceField,
-    APISpec,
-)
+from api_spec.target_types import APISpecSourceField
 
 
 GENERATE_SCRIPT = "generate_api_spec"
@@ -159,7 +150,7 @@ async def generate_api_spec_via_fmt(
                 "conf/st2.dev.conf",
             ),
             input_digest=input_digest,
-            description=f"Regenerating openapi.yaml api spec",
+            description="Regenerating openapi.yaml api spec",
             level=LogLevel.DEBUG,
         ),
     )
@@ -250,7 +241,7 @@ async def validate_api_spec(
                 # "--verbose",  # show definitions on failure
             ),
             input_digest=input_digest,
-            description=f"Validating openapi.yaml api spec",
+            description="Validating openapi.yaml api spec",
             level=LogLevel.DEBUG,
         ),
     )
