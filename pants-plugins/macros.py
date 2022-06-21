@@ -20,9 +20,9 @@ def st2_shell_sources_and_resources(**kwargs):
     are silently ignored. So, we also need the resources target
     to allow depending on them.
     """
-    shell_sources(**kwargs)
+    shell_sources(**kwargs)  # noqa: F821
 
     kwargs.pop("skip_shellcheck")
 
     kwargs["name"] += "_resources"
-    resources(**kwargs)
+    resources(**kwargs)  # noqa: F821
