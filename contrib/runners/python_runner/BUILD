@@ -3,4 +3,5 @@ st2_runner_python_distribution(
     description=(
         "Python action runner for the StackStorm event-driven automation platform"
     ),
+    zip_safe=False,
 )
