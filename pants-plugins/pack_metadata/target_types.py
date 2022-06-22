@@ -13,15 +13,18 @@
 # limitations under the License.
 from typing import Sequence
 
-from pants.engine.target import COMMON_TARGET_FIELDS, Dependencies, Target
-from pants.core.target_types import FilesGeneratingSourcesField
+from pants.engine.target import COMMON_TARGET_FIELDS, Dependencies
+from pants.core.target_types import (
+    ResourcesGeneratingSourcesField,
+    ResourcesGeneratorTarget,
+)
 
 
 class UnmatchedGlobsError(Exception):
     """Error thrown when a required set of globs didn't match."""
 
 
-class PackMetadataSources(FilesGeneratingSourcesField):
+class PackMetadataSourcesField(ResourcesGeneratingSourcesField):
     required = False
     default = (
         # metadata does not include any python, shell, or other sources.
@@ -37,7 +40,7 @@ class PackMetadataSources(FilesGeneratingSourcesField):
     )
 
 
-class PackMetadataInGitSubmoduleSources(PackMetadataSources):
+class PackMetadataInGitSubmoduleSources(PackMetadataSourcesField):
     required = True
 
     def validate_resolved_files(self, files: Sequence[str]) -> None:
@@ -51,9 +54,9 @@ class PackMetadataInGitSubmoduleSources(PackMetadataSources):
         super().validate_resolved_files(files)
 
 
-class PackMetadata(Target):
+class PackMetadata(ResourcesGeneratorTarget):
     alias = "pack_metadata"
-    core_fields = (*COMMON_TARGET_FIELDS, Dependencies, PackMetadataSources)
+    core_fields = (*COMMON_TARGET_FIELDS, Dependencies, PackMetadataSourcesField)
     help = (
         "Loose pack metadata files.\n\n"
         "Pack metadata includes top-level files (pack.yaml, <pack>.yaml.examle, "
