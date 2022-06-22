@@ -15,12 +15,14 @@ from pants.backend.python.target_types import PythonResolveField
 from pants.engine.target import (
     COMMON_TARGET_FIELDS,
     Dependencies,
-    SingleSourceField,
     Target,
+)
+from pants.core.target_types import (
+    ResourceSourceField,
 )
 
 
-class APISpecSourceField(SingleSourceField):
+class APISpecSourceField(ResourceSourceField):
     default = "openapi.yaml"
 
 
