@@ -67,5 +67,7 @@ benchmark_histograms/
 # Editor Saves
 *~
 \#*\#
-[._]*.sw[a-p]
-[._]sw[a-p]
+[._]*.sw[a-px]
+[._]sw[a-px]
+[._]*.sw[a-p]x
+[._]sw[a-p]x
