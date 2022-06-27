@@ -396,3 +396,21 @@ class TestResourceManager(unittest2.TestCase):
 
         self.assertEqual(mock_requests.call_args_list[1][0], call_args)
         self.assertEqual(mock_requests.call_args_list[1][1], call_kwargs)
+
+class TestKeyValuePairResourceManager(unittest2.TestCase):
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "get",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, "OK")
+        ),
+    )
+
+    def test_resource_get_by_name(self):
+
+        mgr = models.KeyValuePairResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        # No X-Total-Count
+        resource = mgr.get_by_name("abc")
+        actual = resource.serialize()
+        expected = json.loads(json.dumps(base.RESOURCES[0]))
+        self.assertEqual(actual, expected)        
