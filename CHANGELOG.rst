@@ -9,6 +9,12 @@ Fixed
 
 * Fix redis SSL problems with sentinel #5660
 
+* Fix a bug in the pack config loader so that objects covered by an ``patternProperties`` schema
+  or arrays using ``additionalItems`` schema(s) can use encrypted datastore keys and have their
+  default values applied correctly. #5321
+
+  Contributed by @cognifloyd.
+
 
 3.7.0 - May 05, 2022
 --------------------
@@ -226,12 +232,6 @@ Added
   to create the ``.socket`` files dynamically. #5286 and st2-packages#706
 
   Contributed by @nzlosh
-
-* Fix a bug in the pack config loader so that objects covered by an ``patternProperties`` schema
-  or arrays using ``additionalItems`` schema(s) can use encrypted datastore keys and have their
-  default values applied correctly. #5321
-
-  Contributed by @cognifloyd.
 
 Changed
 ~~~~~~~
