@@ -100,27 +100,52 @@ class ContentPackConfigLoader(object):
         return config
 
     @staticmethod
-    def _get_object_property_schema(object_schema, additional_properties_keys=None):
+    def _get_object_properties_schema(object_schema, objecy_keys=None):
         """
         Create a schema for an object property using all of: properties,
         patternProperties, and additionalProperties.
 
+        This 'flattens' properties, patternProperties, and additionalProperties
+        so that we can handle patternProperties and additionalProperties
+        as if they were defined in properties.
+        So, every key in objecy_keys will be assigned a schema
+        from properties, patternProperties, or additionalProperties.
+
+        NOTE: order of precedence: properties, patternProperties, additionalProperties
+        So, the additionalProperties schema is only used for keys that are not in
+        properties and that do not match any of the patterns in patternProperties.
+        And, patternProperties schemas only apply to keys missing from properties.
+
         :rtype: ``dict``
         """
-        property_schema = {}
+        flattened_properties_schema = {}
+
+        # First, eagerly add the additionalProperties schema for all object_keys to
+        # avoid tracking which keys are covered by patternProperties and properties.
+        # This schema will subsequently be replaced by the more-specific key matches
+        # in patternProperties and properties.
+
         additional_properties = object_schema.get("additionalProperties", {})
         # additionalProperties can be a boolean or a dict
         if additional_properties and isinstance(additional_properties, dict):
             # ensure that these keys are present in the object
-            for key in additional_properties_keys:
-                property_schema[key] = additional_properties
+            for key in objecy_keys:
+                flattened_properties_schema[key] = additional_properties
+
+        # Second, replace the additionalProperties schemas with any
+        # explicit property schemas in propertiea.
 
         properties_schema = object_schema.get("properties", {})
-        property_schema.update(properties_schema)
+        flattened_properties_schema.update(properties_schema)
 
-        potential_patterned_keys = set(additional_properties_keys) - set(
-            properties_schema.keys()
-        )
+        # Third, calculate which keys are in object_keys but not in properties.
+        # These are the only keys that can be matched with patternnProperties.
+
+        potential_patterned_keys = set(objecy_keys) - set(properties_schema.keys())
+
+        # Fourth, match the remaining keys with patternProperties,
+        # and replace the additionalProperties schema with the patternProperties schema
+        # because patternProperties is more specific than additionalProperties.
 
         pattern_properties = object_schema.get("patternProperties", {})
         # patternProperties can be a boolean or a dict
@@ -133,9 +158,9 @@ class ContentPackConfigLoader(object):
                 pattern = re.compile(raw_pattern)
                 for key in list(potential_patterned_keys):
                     if pattern.search(key):
-                        property_schema[key] = pattern_schema
+                        flattened_properties_schema[key] = pattern_schema
                         potential_patterned_keys.remove(key)
-        return property_schema
+        return flattened_properties_schema
 
     @staticmethod
     def _get_array_items_schema(object_schema, items_count=0):
@@ -204,12 +229,12 @@ class ContentPackConfigLoader(object):
 
             # Inspect nested object properties
             if is_dictionary:
-                property_schema = self._get_object_property_schema(
+                properties_schema = self._get_object_properties_schema(
                     schema_item,
-                    additional_properties_keys=config_item_value.keys(),
+                    objecy_keys=config_item_value.keys(),
                 )
                 self._assign_dynamic_config_values(
-                    schema=property_schema,
+                    schema=properties_schema,
                     config=config[config_item_key],
                     parent_keys=current_keys,
                 )
@@ -293,13 +318,13 @@ class ContentPackConfigLoader(object):
                     if not config_value:
                         config_value = config[schema_item_key] = {}
 
-                    property_schema = self._get_object_property_schema(
+                    properties_schema = self._get_object_properties_schema(
                         schema_item,
-                        additional_properties_keys=config_value.keys(),
+                        objecy_keys=config_value.keys(),
                     )
 
                     self._assign_default_values(
-                        schema=property_schema, config=config_value
+                        schema=properties_schema, config=config_value
                     )
             elif schema_item_type == "array":
                 has_items = schema_item.get("items", None)
