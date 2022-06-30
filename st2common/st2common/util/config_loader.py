@@ -167,6 +167,13 @@ class ContentPackConfigLoader(object):
         """
         Create a schema for array items using both additionalItems and items.
 
+        This 'flattens' items and additionalItems so that we can handle additionalItems
+        as if each additional item was defined in items.
+
+        The additionalItems schema will only be used if the items schema is shorter
+        than items_count. So, when additionalItems is defined, the items schema will be
+        extended to be at least as long as items_count.
+
         :rtype: ``list``
         """
         items_schema = []
@@ -184,7 +191,7 @@ class ContentPackConfigLoader(object):
         additional_items = object_schema.get("additionalItems", {})
         # additionalItems can be a boolean or a dict
         if additional_items and isinstance(additional_items, dict):
-            # ensure that these keys are present in the object
+            # ensure that these indexes are present in the array
             items_schema.extend([additional_items] * (items_count - items_schema_count))
 
         return items_schema
