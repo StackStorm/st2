@@ -118,48 +118,48 @@ class ContentPackConfigLoader(object):
 
         :rtype: ``dict``
         """
-        flattened_properties_schema = {}
+        # preserve the order in object_keys
+        flattened_properties_schema = {key: {} for key in object_keys}
 
-        # First, eagerly add the additionalProperties schema for all object_keys to
-        # avoid tracking which keys are covered by patternProperties and properties.
-        # This schema will subsequently be replaced by the more-specific key matches
-        # in patternProperties and properties.
+        # properties takes precedence over patternProperties and additionalProperties
+        properties_schema = object_schema.get("properties", {})
+        flattened_properties_schema.update(properties_schema)
 
+        # extra_keys has keys that may use patternProperties or additionalProperties
+        # we remove keys when they have been assigned a schema
+        extra_keys = set(objecy_keys) - set(properties_schema.keys())
+
+        if not extra_keys:
+            # nothing to check. Don't look at patternProperties or additionalProperties.
+            return flattened_properties_schema
+
+        # match each key against patternPropetties
+        pattern_properties = object_schema.get("patternProperties", {})
+        # patternProperties can be a boolean or a dict
+        if pattern_properties and isinstance(pattern_properties, dict):
+            for raw_pattern, pattern_schema in pattern_properties.items():
+                pattern = re.compile(raw_pattern)
+                for key in list(extra_keys):
+                    if pattern.search(key):
+                        # update matched key
+                        flattened_properties_schema[key] = pattern_schema
+                        # don't check matched key against any more patterns
+                        # and don't overwrite with additionalProperties
+                        extra_keys.remove(key)
+
+                if not extra_keys:
+                    # nothing to check. Don't compile any more patterns
+                    # and don't look at additionalProperties.
+                    return flattened_properties_schema
+
+        # fill in any remaining keys with additionalProperties
         additional_properties = object_schema.get("additionalProperties", {})
         # additionalProperties can be a boolean or a dict
         if additional_properties and isinstance(additional_properties, dict):
             # ensure that these keys are present in the object
-            for key in object_keys:
+            for key in extra_keys:
                 flattened_properties_schema[key] = additional_properties
 
-        # Second, replace the additionalProperties schemas with any
-        # explicit property schemas in propertiea.
-
-        properties_schema = object_schema.get("properties", {})
-        flattened_properties_schema.update(properties_schema)
-
-        # Third, calculate which keys are in object_keys but not in properties.
-        # These are the only keys that can be matched with patternnProperties.
-
-        potential_patterned_keys = set(objecy_keys) - set(properties_schema.keys())
-
-        # Fourth, match the remaining keys with patternProperties,
-        # and replace the additionalProperties schema with the patternProperties schema
-        # because patternProperties is more specific than additionalProperties.
-
-        pattern_properties = object_schema.get("patternProperties", {})
-        # patternProperties can be a boolean or a dict
-        if pattern_properties and isinstance(pattern_properties, dict):
-            # update any matching key
-            for raw_pattern, pattern_schema in pattern_properties.items():
-                if not potential_patterned_keys:
-                    # nothing to check. Don't compile any more patterns
-                    break
-                pattern = re.compile(raw_pattern)
-                for key in list(potential_patterned_keys):
-                    if pattern.search(key):
-                        flattened_properties_schema[key] = pattern_schema
-                        potential_patterned_keys.remove(key)
         return flattened_properties_schema
 
     @staticmethod
