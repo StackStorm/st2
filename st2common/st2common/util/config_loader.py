@@ -100,7 +100,7 @@ class ContentPackConfigLoader(object):
         return config
 
     @staticmethod
-    def _get_object_properties_schema(object_schema, objecy_keys=None):
+    def _get_object_properties_schema(object_schema, object_keys=None):
         """
         Create a schema for an object property using all of: properties,
         patternProperties, and additionalProperties.
@@ -108,7 +108,7 @@ class ContentPackConfigLoader(object):
         This 'flattens' properties, patternProperties, and additionalProperties
         so that we can handle patternProperties and additionalProperties
         as if they were defined in properties.
-        So, every key in objecy_keys will be assigned a schema
+        So, every key in object_keys will be assigned a schema
         from properties, patternProperties, or additionalProperties.
 
         NOTE: order of precedence: properties, patternProperties, additionalProperties
@@ -127,7 +127,7 @@ class ContentPackConfigLoader(object):
 
         # extra_keys has keys that may use patternProperties or additionalProperties
         # we remove keys when they have been assigned a schema
-        extra_keys = set(objecy_keys) - set(properties_schema.keys())
+        extra_keys = set(object_keys) - set(properties_schema.keys())
 
         if not extra_keys:
             # nothing to check. Don't look at patternProperties or additionalProperties.
@@ -242,7 +242,7 @@ class ContentPackConfigLoader(object):
             if is_dictionary:
                 properties_schema = self._get_object_properties_schema(
                     schema_item,
-                    objecy_keys=config_item_value.keys(),
+                    object_keys=config_item_value.keys(),
                 )
                 self._assign_dynamic_config_values(
                     schema=properties_schema,
@@ -331,7 +331,7 @@ class ContentPackConfigLoader(object):
 
                     properties_schema = self._get_object_properties_schema(
                         schema_item,
-                        objecy_keys=config_value.keys(),
+                        object_keys=config_value.keys(),
                     )
 
                     self._assign_default_values(
