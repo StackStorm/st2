@@ -163,7 +163,7 @@ class ContentPackConfigLoader(object):
         return flattened_properties_schema
 
     @staticmethod
-    def _get_array_items_schema(object_schema, items_count=0):
+    def _get_array_items_schema(array_schema, items_count=0):
         """
         Create a schema for array items using both additionalItems and items.
 
@@ -176,25 +176,29 @@ class ContentPackConfigLoader(object):
 
         :rtype: ``list``
         """
-        items_schema = []
-        object_items_schema = object_schema.get("items", [])
-        if isinstance(object_items_schema, dict):
-            items_schema.extend([object_items_schema] * items_count)
+        flattened_items_schema = []
+        items_schema = array_schema.get("items", [])
+        if isinstance(items_schema, dict):
+            # with only one schema for all items, additionalItems will be ignored.
+            flattened_items_schema.extend([items_schema] * items_count)
         else:
-            items_schema.extend(object_items_schema)
+            # items is a positional array of schemas
+            flattened_items_schema.extend(items_schema)
 
-        items_schema_count = len(items_schema)
-        if items_schema_count >= items_count:
+        flattened_items_schema_count = len(flattened_items_schema)
+        if flattened_items_schema_count >= items_count:
             # no additional items to account for.
-            return items_schema
+            return flattened_items_schema
 
-        additional_items = object_schema.get("additionalItems", {})
+        additional_items = array_schema.get("additionalItems", {})
         # additionalItems can be a boolean or a dict
         if additional_items and isinstance(additional_items, dict):
             # ensure that these indexes are present in the array
-            items_schema.extend([additional_items] * (items_count - items_schema_count))
+            flattened_items_schema.extend(
+                [additional_items] * (items_count - flattened_items_schema_count)
+            )
 
-        return items_schema
+        return flattened_items_schema
 
     def _assign_dynamic_config_values(self, schema, config, parent_keys=None):
         """
