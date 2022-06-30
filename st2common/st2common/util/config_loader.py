@@ -129,7 +129,7 @@ class ContentPackConfigLoader(object):
         # additionalProperties can be a boolean or a dict
         if additional_properties and isinstance(additional_properties, dict):
             # ensure that these keys are present in the object
-            for key in objecy_keys:
+            for key in object_keys:
                 flattened_properties_schema[key] = additional_properties
 
         # Second, replace the additionalProperties schemas with any
