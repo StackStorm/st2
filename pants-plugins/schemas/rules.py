@@ -19,7 +19,7 @@ from pants.backend.python.util_rules.pex import (
     VenvPexProcess,
 )
 from pants.backend.python.util_rules.pex_from_targets import PexFromTargetsRequest
-from pants.core.goals.fmt import FmtResult, FmtRequest
+from pants.core.goals.fmt import FmtResult, FmtTargetsRequest
 from pants.engine.addresses import Address
 from pants.engine.fs import (
     Digest,
@@ -44,7 +44,7 @@ class GenerateSchemasFieldSet(FieldSet):
     sources: SchemasSourcesField
 
 
-class GenerateSchemasViaFmtRequest(FmtRequest):
+class GenerateSchemasViaFmtTargetsRequest(FmtTargetsRequest):
     field_set_type = GenerateSchemasFieldSet
     name = CMD
 
@@ -54,7 +54,7 @@ class GenerateSchemasViaFmtRequest(FmtRequest):
     level=LogLevel.DEBUG,
 )
 async def generate_schemas_via_fmt(
-    request: GenerateSchemasViaFmtRequest,
+    request: GenerateSchemasViaFmtTargetsRequest,
 ) -> FmtResult:
     # There will only be one target+field_set, but we iterate
     # to satisfy how fmt expects that there could be more than one.
@@ -98,5 +98,5 @@ async def generate_schemas_via_fmt(
 def rules():
     return [
         *collect_rules(),
-        UnionRule(FmtRequest, GenerateSchemasViaFmtRequest),
+        UnionRule(FmtTargetsRequest, GenerateSchemasViaFmtTargetsRequest),
     ]

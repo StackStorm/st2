@@ -17,6 +17,7 @@ from pants.engine.target import (
     Dependencies,
     MultipleSourcesField,
     Target,
+    generate_multiple_sources_field_help_message,
 )
 
 
@@ -27,6 +28,10 @@ class SchemasSourcesField(MultipleSourcesField):
 
     # make sure at least one schema is present or fmt will be skipped.
     default_glob_match_error_behavior = GlobMatchErrorBehavior.error
+
+    help = generate_multiple_sources_field_help_message(
+        "Example: `sources=['*.json', '!ignore.json']`"
+    )
 
 
 class Schemas(Target):
