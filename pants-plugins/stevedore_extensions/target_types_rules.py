@@ -22,10 +22,10 @@ from pants.backend.python.dependency_inference.module_mapper import (
 from pants.backend.python.dependency_inference.rules import import_rules
 from pants.backend.python.subsystems.setup import PythonSetup
 from pants.backend.python.target_types import PythonResolveField
-from pants.engine.addresses import Address
 from pants.engine.fs import GlobMatchErrorBehavior, PathGlobs, Paths
 from pants.engine.rules import Get, collect_rules, MultiGet, rule, UnionRule
 from pants.engine.target import (
+    AllTargets,
     Dependencies,
     DependenciesRequest,
     ExplicitlyProvidedDependencies,
@@ -33,17 +33,28 @@ from pants.engine.target import (
     InjectedDependencies,
     InvalidFieldException,
     WrappedTarget,
+    WrappedTargetRequest,
 )
 from pants.source.source_root import SourceRoot, SourceRootRequest
 from pants.util.logging import LogLevel
 
 from stevedore_extensions.target_types import (
+    AllStevedoreExtensionTargets,
     ResolvedStevedoreEntryPoints,
     ResolveStevedoreEntryPointsRequest,
     StevedoreDependenciesField,
     StevedoreEntryPoints,
     StevedoreEntryPointsField,
 )
+
+
+@rule(desc="Find all StevedoreExtension targets in project", level=LogLevel.DEBUG)
+def find_all_stevedore_extension_targets(
+    targets: AllTargets,
+) -> AllStevedoreExtensionTargets:
+    return AllStevedoreExtensionTargets(
+        tgt for tgt in targets if tgt.has_field(StevedoreDependenciesField)
+    )
 
 
 @rule(
@@ -145,7 +156,11 @@ async def inject_stevedore_entry_points_dependencies(
     python_setup: PythonSetup,
 ) -> InjectedDependencies:
     original_tgt: WrappedTarget = await Get(
-        WrappedTarget, Address, request.dependencies_field.address
+        WrappedTarget,
+        WrappedTargetRequest(
+            request.dependencies_field.address,
+            description_of_origin="inject_stevedore_entry_points_dependencies",
+        ),
     )
     entry_points: ResolvedStevedoreEntryPoints
     explicitly_provided_deps, entry_points = await MultiGet(

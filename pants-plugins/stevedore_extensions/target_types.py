@@ -29,6 +29,7 @@ from pants.engine.target import (
     StringField,
     StringSequenceField,
     Target,
+    Targets,
 )
 from pants.backend.python.target_types import EntryPoint, PythonResolveField
 from pants.source.filespec import Filespec
@@ -141,3 +142,7 @@ class StevedoreNamespacesField(StringSequenceField):
         "The stevedore namespace format (my.stevedore.extension) is similar "
         "to a python namespace."
     )
+
+
+class AllStevedoreExtensionTargets(Targets):
+    pass

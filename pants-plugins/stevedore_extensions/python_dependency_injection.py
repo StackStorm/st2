@@ -21,7 +21,7 @@ from pants.backend.python.target_types import (
     PythonTestsGeneratorTarget,
     PythonTestsDependenciesField,
 )
-from pants.base.specs import AddressSpecs, DescendantAddresses, SiblingAddresses
+from pants.base.specs import DirGlobSpec, RawSpecs
 from pants.engine.addresses import Address
 from pants.engine.rules import collect_rules, Get, rule, UnionRule
 from pants.engine.target import (
@@ -29,13 +29,14 @@ from pants.engine.target import (
     InjectedDependencies,
     Targets,
     WrappedTarget,
+    WrappedTargetRequest,
 )
 from pants.util.frozendict import FrozenDict
 from pants.util.logging import LogLevel
 from pants.util.ordered_set import OrderedSet
 
 from stevedore_extensions.target_types import (
-    StevedoreDependenciesField,
+    AllStevedoreExtensionTargets,
     StevedoreEntryPointsField,
     StevedoreExtension,
     StevedoreNamespaceField,
@@ -54,11 +55,9 @@ class StevedoreExtensions:
     desc="Creating map of stevedore_extension namespaces to StevedoreExtension targets",
     level=LogLevel.DEBUG,
 )
-async def map_stevedore_extensions() -> StevedoreExtensions:
-    all_expanded_targets = await Get(Targets, AddressSpecs([DescendantAddresses("")]))
-    stevedore_extensions = tuple(
-        tgt for tgt in all_expanded_targets if tgt.has_field(StevedoreDependenciesField)
-    )
+async def map_stevedore_extensions(
+    stevedore_extensions: AllStevedoreExtensionTargets,
+) -> StevedoreExtensions:
     mapping: Mapping[str, List[StevedoreExtension]] = defaultdict(list)
     for extension in stevedore_extensions:
         mapping[extension[StevedoreNamespaceField].value].append(extension)
@@ -80,7 +79,13 @@ async def inject_stevedore_namespace_dependencies(
     stevedore_extensions: StevedoreExtensions,
 ) -> InjectedDependencies:
     original_tgt: WrappedTarget
-    original_tgt = await Get(WrappedTarget, Address, request.dependencies_field.address)
+    original_tgt = await Get(
+        WrappedTarget,
+        WrappedTargetRequest(
+            request.dependencies_field.address,
+            description_of_origin="inject_stevedore_namespace_dependencies",
+        ),
+    )
     if original_tgt.target.get(StevedoreNamespacesField).value is None:
         return InjectedDependencies()
 
