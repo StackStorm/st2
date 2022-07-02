@@ -164,6 +164,40 @@ class TestLoginPasswordAndConfig(TestLoginBase):
                 os.path.isfile("%stoken-%s" % (self.DOTST2_PATH, expected_username))
             )
 
+class TestLoginWithMissingUsername(TestLoginBase):
+
+    CONFIG_FILE_NAME = "logintest.cfg"
+
+    TOKEN = {
+        "user": "st2admin",
+        "token": "44583f15945b4095afbf57058535ca64",
+        "expiry": "2017-02-12T00:53:09.632783Z",
+        "id": "589e607532ed3535707f10eb",
+        "metadata": {},
+    }
+
+    @mock.patch.object(
+        requests,
+        "post",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, "OK")),
+    )
+    def runTest(self):
+        """Test 'st2 login' functionality missing the username and should fail"""
+
+        expected_username = self.TOKEN["user"]
+        args = [
+            "--config",
+            self.CONFIG_FILE,
+            "login",
+            "--password",
+            "Password1!",
+        ]
+
+        self.shell.run(args)
+        self.assertIn(
+            "Username expected when not using SSO login", self.stdout.getvalue()
+        )
+
 
 class TestLoginIntPwdAndConfig(TestLoginBase):
 

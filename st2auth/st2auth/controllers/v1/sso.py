@@ -14,6 +14,8 @@
 
 import datetime
 import json
+from subprocess import call
+from uuid import uuid4
 
 from oslo_config import cfg
 from six.moves import http_client
@@ -25,7 +27,12 @@ from st2auth import sso as st2auth_sso
 from st2common.exceptions import auth as auth_exc
 from st2common import log as logging
 from st2common import router
-
+from st2common.models.db.auth import SSORequestDB
+from st2common.services.access import create_cli_sso_request, create_web_sso_request, get_sso_request_by_request_id
+from st2common.exceptions.auth import SSORequestNotFoundError
+from st2common.util.crypto import read_crypto_key_from_dict, symmetric_encrypt
+from st2common.util.date import get_datetime_utc_now
+from st2common.util.jsonify import json_decode
 
 LOG = logging.getLogger(__name__)
 SSO_BACKEND = st2auth_sso.get_sso_backend()
@@ -35,8 +42,44 @@ class IdentityProviderCallbackController(object):
     def __init__(self):
         self.st2_auth_handler = handlers.ProxyAuthHandler()
 
+    # Validates the incoming SSO response by getting its ID, checking against
+    # the database for outstanding SSO requests and checking to see if they have already expired
+    def _validate_and_delete_sso_request(self, response):
+
+        # Grabs the ID from the SSO response based on the backend 
+        request_id = SSO_BACKEND.get_request_id_from_response(response)
+        if request_id is None:
+            raise ValueError("Invalid request id coming from SAML response")
+        
+        LOG.debug("Validating SSO request %s from received response!", request_id)
+
+        # Grabs the original SSO request based on the ID
+        original_sso_request = None
+        try:
+            original_sso_request = get_sso_request_by_request_id(request_id)
+        except SSORequestNotFoundError:
+            pass
+
+        if original_sso_request is None:
+            raise ValueError('This SSO request is invalid (it may have already been used)')
+
+        # Verifies if the request has expired already
+        LOG.info("Incoming SSO response matching request: %s, with expiry: %s", original_sso_request.request_id, original_sso_request.expiry)
+        if original_sso_request.expiry <= get_datetime_utc_now():
+            raise ValueError('The SSO request associated with this response has already expired!')
+
+        # All done, we should not need to use this again :)
+        LOG.debug("Deleting original SSO request from database with ID %s", original_sso_request.id)
+        original_sso_request.delete()
+
+        return original_sso_request
+
     def post(self, response, **kwargs):
         try:
+            
+            original_sso_request = self._validate_and_delete_sso_request(response)
+
+            # Obtain user details from the SSO response from the backend
             verified_user = SSO_BACKEND.verify_response(response)
 
             st2_auth_token_create_request = {
@@ -50,10 +93,17 @@ class IdentityProviderCallbackController(object):
                 remote_user=verified_user["username"],
                 headers={},
             )
-
-            return process_successful_authn_response(
-                verified_user["referer"], st2_auth_token
-            )
+            
+            # Depending on the type of SSO request we should handle the response differently
+            # ie WEB gets redirected and CLI gets an encrypted callback 
+            if original_sso_request.type == SSORequestDB.Type.WEB:
+                return process_successful_sso_web_response(
+                    verified_user["referer"], st2_auth_token
+                )
+            elif original_sso_request.type == SSORequestDB.Type.CLI:
+                return process_successful_sso_cli_response(verified_user['referer'], original_sso_request.key, st2_auth_token)
+            else:
+                raise NotImplementedError("Unexpected SSO request type [%s] -- I can deal with web and cli" % original_sso_request.type)
         except NotImplementedError as e:
             return process_failure_response(http_client.INTERNAL_SERVER_ERROR, e)
         except auth_exc.SSOVerificationError as e:
@@ -63,10 +113,48 @@ class IdentityProviderCallbackController(object):
 
 
 class SingleSignOnRequestController(object):
-    def get(self, referer):
+
+    def _create_sso_request(self, handler, **kwargs):
+
+        request_id = "id_%s" % str(uuid4())
+        sso_request = handler(request_id=request_id, **kwargs)
+        LOG.debug("Created SSO request with request id %s and expiry %s and type %s", request_id, sso_request.expiry, sso_request.type)
+        return sso_request
+
+    # web-intended SSO 
+    def get_web(self, referer):
         try:
+            sso_request = self._create_sso_request(create_web_sso_request)
+
             response = router.Response(status=http_client.TEMPORARY_REDIRECT)
-            response.location = SSO_BACKEND.get_request_redirect_url(referer)
+            response.location = SSO_BACKEND.get_request_redirect_url(sso_request.request_id, referer)
+            return response
+        except NotImplementedError as e:
+            return process_failure_response(http_client.INTERNAL_SERVER_ERROR, e)
+        except Exception as e:
+            raise e
+
+    # cli-intended SSO
+    def post_cli(self, response):
+        try:
+            key = getattr(response, 'key', None)
+            callback_url = getattr(response, 'callback_url', None)
+            if not key or not callback_url:
+                raise ValueError("Missing either key or callback_url!")
+
+            try:
+                aes_key = read_crypto_key_from_dict(json_decode(key))
+            except Exception:
+                LOG.warn("Could not decode incoming SSO CLI request key")
+                raise
+
+            sso_request = self._create_sso_request(create_cli_sso_request, key=key, callback_url=callback_url)
+            response = router.Response(status=http_client.OK)
+            response.json = {
+                "sso_url": SSO_BACKEND.get_request_redirect_url(sso_request.request_id, callback_url),
+                "expiry": sso_request.expiry
+            }
+
             return response
         except NotImplementedError as e:
             return process_failure_response(http_client.INTERNAL_SERVER_ERROR, e)
@@ -137,9 +225,8 @@ CALLBACK_SUCCESS_RESPONSE_BODY = """
 </html>
 """
 
-
-def process_successful_authn_response(referer, token):
-    token_json = {
+def token_to_json(token):
+    return {
         "id": str(token.id),
         "user": token.user,
         "token": token.token,
@@ -147,6 +234,25 @@ def process_successful_authn_response(referer, token):
         "service": False,
         "metadata": {},
     }
+
+
+def process_successful_sso_cli_response(callback_url, key, token):
+    token_json = token_to_json(token)
+    
+    aes_key = read_crypto_key_from_dict(json_decode(key))
+    encrypted_token = symmetric_encrypt(aes_key, json.dumps(token_json))
+
+    LOG.debug("Redirecting successfuly SSO CLI login to url [%s] with extra parameters for the encrypted token", callback_url)
+
+    # Response back to the browser has all the data in the query string, in an encrypted formta :)
+    resp = router.Response(status=http_client.FOUND)
+    resp.location = "%s?response=%s" % (callback_url, encrypted_token.decode('utf-8'))
+
+    return resp
+
+
+def process_successful_sso_web_response(referer, token):
+    token_json = token_to_json(token)
 
     body = CALLBACK_SUCCESS_RESPONSE_BODY % referer
     resp = router.Response(body=body)

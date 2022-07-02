@@ -23,7 +23,7 @@ import six
 
 from st2client import models
 from st2client.utils import httpclient
-from st2client.models.core import ResourceManager
+from st2client.models.core import ResourceManager, TokenResourceManager
 from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import ActionAliasExecutionManager
 from st2client.models.core import ActionResourceManager
@@ -37,6 +37,7 @@ from st2client.models.core import StreamManager
 from st2client.models.core import WorkflowManager
 from st2client.models.core import ServiceRegistryGroupsManager
 from st2client.models.core import ServiceRegistryMembersManager
+from st2client.models.core import TokenResourceManager
 from st2client.models.core import add_auth_token_to_kwargs_from_env
 
 
@@ -144,10 +145,10 @@ class Client(object):
 
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()
-        self.managers["Token"] = ResourceManager(
-            models.Token,
-            self.endpoints["auth"],
-            cacert=self.cacert,
+        self.managers["Token"] = TokenResourceManager(
+            models.Token, 
+            self.endpoints["auth"], 
+            cacert=self.cacert, 
             debug=self.debug,
             basic_auth=self.basic_auth,
         )

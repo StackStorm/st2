@@ -21,13 +21,13 @@ from oslo_config import cfg
 
 from st2common.util import isotime
 from st2common.util import date as date_utils
-from st2common.exceptions.auth import TokenNotFoundError, UserNotFoundError
+from st2common.exceptions.auth import SSORequestNotFoundError, TokenNotFoundError, UserNotFoundError
 from st2common.exceptions.auth import TTLTooLargeException
-from st2common.models.db.auth import TokenDB, UserDB
-from st2common.persistence.auth import Token, User
+from st2common.models.db.auth import SSORequestDB, TokenDB, UserDB
+from st2common.persistence.auth import SSORequest, Token, User
 from st2common import log as logging
 
-__all__ = ["create_token", "delete_token"]
+__all__ = ["create_token", "delete_token", "create_cli_sso_request", "create_web_sso_request", "get_sso_request_by_request_id", "delete_sso_request"]
 
 LOG = logging.getLogger(__name__)
 
@@ -102,6 +102,70 @@ def delete_token(token):
         token_db = Token.get(token)
         return Token.delete(token_db)
     except TokenNotFoundError:
+        pass
+    except Exception:
+        raise
+
+def create_cli_sso_request(request_id, key, callback_url, ttl=120):
+    """
+    :param request_id: ID of the SSO request that is being created (usually uuid format prepended by _)
+    :type request_id: ``str``
+
+    :param key: Symmetric key used to encrypt/decrypt the request between the CLI and the server
+    :type key: ``str``
+
+    :param callback_url: Where should the SSO authentication response be sent to after successful logins?
+    :type callback_url: ``str``
+
+    :param ttl: SSO request TTL (in seconds).
+    :type ttl: ``int``
+    """
+
+    return _create_sso_request(request_id, ttl, SSORequestDB.Type.CLI, key=key, callback_url=callback_url)
+
+def create_web_sso_request(request_id, ttl=120):
+    """
+    :param request_id: ID of the SSO request that is being created (usually uuid format prepended by _)
+    :type request_id: ``str``
+
+    :param ttl: SSO request TTL (in seconds).
+    :type ttl: ``int``
+    """
+
+    return _create_sso_request(request_id, ttl, SSORequestDB.Type.WEB)
+
+def _create_sso_request(request_id, ttl, type, **kwargs) -> SSORequestDB:
+
+    expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
+        
+    request = SSORequestDB(
+        request_id=request_id, 
+        expiry=expiry, 
+        type=type, 
+        **kwargs
+    )
+    SSORequest.add_or_update(request)
+
+    expire_string = isotime.format(expiry, offset=False)
+
+    LOG.audit(
+        'Created SAML request with ID "%s" set to expire at "%s" of type "%s".'
+        % (request_id, expire_string, type)
+    )
+
+    return request
+
+
+def get_sso_request_by_request_id(request_id) -> SSORequestDB:
+    request_db = SSORequest.get_by_request_id(request_id)
+    return request_db
+
+
+def delete_sso_request(id):
+    try:
+        request_db = SSORequest.get(id)
+        return SSORequest.delete(request_db)
+    except SSORequestNotFoundError:
         pass
     except Exception:
         raise
