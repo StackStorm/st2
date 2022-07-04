@@ -587,7 +587,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         )
 
         ####################
-        # values in objects under an object with additionalProperties
+        # values in objects under an object with patternProperties
         values = {
             "profiles": {
                 "dev": {
@@ -622,6 +622,105 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                     "prod": {
                         "host": "127.1.2.7",
                         "port": 8282,
+                        "token": "v1_encrypted",
+                    },
+                },
+            },
+        )
+
+        config_db.delete()
+
+    def test_get_config_dynamic_config_item_properties_order_of_precedence(self):
+        pack_name = "dummy_pack_schema_with_properties_1"
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        encrypted_value = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v1_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value, secret=True)
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k2_encrypted", value=encrypted_value, secret=True)
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k3_encrypted", value=encrypted_value, secret=True)
+        )
+
+        ####################
+        # values in objects under an object with additionalProperties
+        values = {
+            "profiles": {
+                # properties
+                "foo": {
+                    "domain": "foo.example.com",
+                    "token": "hard-coded-secret",
+                },
+                "bar": {
+                    "domain": "bar.example.com",
+                    "token": "{{st2kv.system.k1_encrypted}}",
+                },
+                # patternProperties start with env-
+                "env-dev": {
+                    "host": "127.0.0.127",
+                    "token": "hard-coded-secret",
+                },
+                "env-prod": {
+                    "host": "127.1.2.7",
+                    "port": 8282,
+                    # encrypted in datastore
+                    "token": "{{st2kv.system.k2_encrypted}}",
+                    # schema declares `secret: true` which triggers auto-decryption.
+                    # If this were not encrypted, it would try to decrypt it and fail.
+                },
+                # additionalProperties
+                "dev": {
+                    "url": "https://example.com",
+                    "token": "hard-coded-secret",
+                },
+                "prod": {
+                    "url": "https://other.example.com",
+                    "port": 2345,
+                    "token": "{{st2kv.system.k3_encrypted}}",
+                },
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        config_rendered = loader.get_config()
+
+        self.assertEqual(
+            config_rendered,
+            {
+                "region": "us-east-1",
+                "profiles": {
+                    "foo": {
+                        "domain": "foo.example.com",
+                        "token": "hard-coded-secret",
+                    },
+                    "bar": {
+                        "domain": "bar.example.com",
+                        "token": "v1_encrypted",
+                    },
+                    "env-dev": {
+                        "host": "127.0.0.127",
+                        "port": 8080,
+                        "token": "hard-coded-secret",
+                    },
+                    "env-prod": {
+                        "host": "127.1.2.7",
+                        "port": 8282,
+                        "token": "v1_encrypted",
+                    },
+                    "dev": {
+                        "url": "https://example.com",
+                        "port": 1234,
+                        "token": "hard-coded-secret",
+                    },
+                    "prod": {
+                        "url": "https://other.example.com",
+                        "port": 2345,
                         "token": "v1_encrypted",
                     },
                 },
