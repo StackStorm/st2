@@ -22,3 +22,7 @@
           type: "string"
           required: true
           secret: true
+  foobar:
+    type: "array"
+    required: false
+    additionalItems: true

@@ -762,7 +762,21 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                     # schema declares `secret: true` which triggers auto-decryption.
                     # If this were not encrypted, it would try to decrypt it and fail.
                 },
-            ]
+            ],
+            # foobar has additionalItems: true
+            "foobar": [
+                # there are no types to validate here
+                5,
+                "a string",
+                {
+                    # there are no defaults to interpolate here
+                    "token": "hard-coded-secret",
+                },
+                {
+                    # nothing is marked `secret: true` so no auto-decryption occurs.
+                    "token": "{{st2kv.system.k1_encrypted|decrypt_kv}}",
+                },
+            ],
         }
         config_db = ConfigDB(pack=pack_name, values=values)
         config_db = Config.add_or_update(config_db)
@@ -782,6 +796,16 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                     {
                         "host": "127.1.2.7",
                         "port": 8282,
+                        "token": "v1_encrypted",
+                    },
+                ],
+                "foobar": [
+                    5,
+                    "a string",
+                    {
+                        "token": "hard-coded-secret",
+                    },
+                    {
                         "token": "v1_encrypted",
                     },
                 ],
