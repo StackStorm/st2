@@ -137,20 +137,28 @@ class ContentPackConfigLoader(object):
         pattern_properties = object_schema.get("patternProperties", {})
         # patternProperties can be a boolean or a dict
         if pattern_properties and isinstance(pattern_properties, dict):
-            for raw_pattern, pattern_schema in pattern_properties.items():
-                pattern = re.compile(raw_pattern)
-                for key in list(extra_keys):
+            # we need to match all extra_keys against all patterns
+            # and then compose the per-property schema from all
+            # the matched patterns' properties.
+            pattern_properties = {
+                re.compile(raw_pattern): pattern_schema
+                for raw_pattern, pattern_schema in pattern_properties.items()
+            }
+            for key in list(extra_keys):
+                key_schemas = []
+                for pattern, pattern_schema in pattern_properties.items():
                     if pattern.search(key):
-                        # update matched key
-                        flattened_properties_schema[key] = pattern_schema
-                        # don't check matched key against any more patterns
-                        # and don't overwrite with additionalProperties
-                        extra_keys.remove(key)
+                        key_schemas.append(pattern_schema)
+                if key_schemas:
+                    composed_schema = {**schema for schema in key_schemas}
+                    # update matched key
+                    flattened_properties_schema[key] = composed_schema
+                    # don't overwrite matched key's schema with additionalProperties
+                    extra_keys.remove(key)
 
-                if not extra_keys:
-                    # nothing to check. Don't compile any more patterns
-                    # and don't look at additionalProperties.
-                    return flattened_properties_schema
+            if not extra_keys:
+                # nothing else to check. Don't look at additionalProperties.
+                return flattened_properties_schema
 
         # fill in any remaining keys with additionalProperties
         additional_properties = object_schema.get("additionalProperties", {})
