@@ -153,7 +153,9 @@ class ContentPackConfigLoader(object):
                     # This naive schema composition approximates allOf.
                     # We can improve this later if someone provides examples that need
                     # a better allOf schema implementation for patternProperties.
-                    composed_schema = {**schema for schema in key_schemas}
+                    composed_schema = {}
+                    for schema in key_schemas:
+                        composed_schema.update(schema)
                     # update matched key
                     flattened_properties_schema[key] = composed_schema
                     # don't overwrite matched key's schema with additionalProperties
