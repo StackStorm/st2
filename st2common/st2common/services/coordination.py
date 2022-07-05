@@ -277,3 +277,11 @@ def get_member_id():
     proc_info = system_info.get_process_info()
     member_id = six.b("%s_%d" % (proc_info["hostname"], proc_info["pid"]))
     return member_id
+
+
+def get_group_id(service):
+    if not isinstance(service, six.binary_type):
+        group_id = service.encode("utf-8")
+    else:
+        group_id = service
+    return group_id
