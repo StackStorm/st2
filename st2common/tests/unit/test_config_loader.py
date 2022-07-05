@@ -631,20 +631,26 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         config_db.delete()
 
     def test_get_config_dynamic_config_item_properties_order_of_precedence(self):
-        pack_name = "dummy_pack_schema_with_properties_1"
+        pack_name = "dummy_pack_schema_with_pattern_and_additional_properties_1"
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
-        encrypted_value = crypto.symmetric_encrypt(
+        encrypted_value_1 = crypto.symmetric_encrypt(
             KeyValuePairAPI.crypto_key, "v1_encrypted"
         )
         KeyValuePair.add_or_update(
-            KeyValuePairDB(name="k1_encrypted", value=encrypted_value, secret=True)
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value_1, secret=True)
+        )
+        encrypted_value_2 = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v2_encrypted"
         )
         KeyValuePair.add_or_update(
-            KeyValuePairDB(name="k2_encrypted", value=encrypted_value, secret=True)
+            KeyValuePairDB(name="k2_encrypted", value=encrypted_value_2, secret=True)
+        )
+        encrypted_value_3 = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v3_encrypted"
         )
         KeyValuePair.add_or_update(
-            KeyValuePairDB(name="k3_encrypted", value=encrypted_value, secret=True)
+            KeyValuePairDB(name="k3_encrypted", value=encrypted_value_3, secret=True)
         )
 
         ####################
@@ -711,7 +717,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                     "env-prod": {
                         "host": "127.1.2.7",
                         "port": 8282,
-                        "token": "v1_encrypted",
+                        "token": "v2_encrypted",
                     },
                     "dev": {
                         "url": "https://example.com",
@@ -721,7 +727,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                     "prod": {
                         "url": "https://other.example.com",
                         "port": 2345,
-                        "token": "v1_encrypted",
+                        "token": "v3_encrypted",
                     },
                 },
             },
