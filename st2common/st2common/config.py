@@ -797,6 +797,16 @@ def register_opts(ignore_errors=False):
             "orphaned and cancelled by the garbage collector. A value of zero means the "
             "feature is disabled. This is disabled by default.",
         ),
+        cfg.IntOpt(
+            "exit_still_active_check",
+            default=300,
+            help="How long to wait for process (in seconds) to exit after receiving shutdown signal.",
+        ),
+        cfg.IntOpt(
+            "still_active_check_interval",
+            default=2,
+            help="Time interval between subsequent queries to check executions handled by WFE.",
+        ),
     ]
 
     do_register_opts(

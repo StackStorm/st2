@@ -15,6 +15,11 @@ Fixed
 
   Contributed by @cognifloyd.
 
+Added
+~~~~~
+
+* Added graceful shutdown for workflow engine. #5463
+  Contributed by @khushboobhatia01
 
 3.7.0 - May 05, 2022
 --------------------
