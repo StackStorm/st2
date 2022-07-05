@@ -135,7 +135,7 @@ class ContentPackConfigLoader(object):
 
         # match each key against patternPropetties
         pattern_properties = object_schema.get("patternProperties", {})
-        # patternProperties can be a boolean or a dict
+        # patternProperties should be a dict if defined
         if pattern_properties and isinstance(pattern_properties, dict):
             # we need to match all extra_keys against all patterns
             # and then compose the per-property schema from all
@@ -150,6 +150,9 @@ class ContentPackConfigLoader(object):
                     if pattern.search(key):
                         key_schemas.append(pattern_schema)
                 if key_schemas:
+                    # This naive schema composition approximates allOf.
+                    # We can improve this later if someone provides examples that need
+                    # a better allOf schema implementation for patternProperties.
                     composed_schema = {**schema for schema in key_schemas}
                     # update matched key
                     flattened_properties_schema[key] = composed_schema
