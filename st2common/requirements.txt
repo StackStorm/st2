@@ -35,7 +35,7 @@ pymongo==3.11.3
 python-dateutil==2.8.1
 python-statsd==2.1.0
 pyyaml==5.4.1
-redis==3.5.3
+redis==4.1.4
 requests[security]==2.25.1
 retrying==1.3.3
 routes==2.4.1

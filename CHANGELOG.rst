@@ -7,50 +7,19 @@ in development
 Fixed
 ~~~~~
 
-* Fix deserialization bug in st2 API for url encoded payloads. #5536
-
-  Contributed by @sravs-dev
-
-* Fix issue of WinRM parameter passing fails for larger scripts.#5538
-
-  Contributed by @ashwini-orchestral
-
-* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
-  ``timedelta.total_seconds()`` return. #5462
-
-  Contributed by @blackstrip
-
-* Fix issue with pack option not working when running policy list cli #5534
-
-  Contributed by @momokuri-3
-
-* Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
-
-  contributed by @guzzijones12
-
-* Link shutdown routine and sigterm handler to main thread #5555
-
-  Contributed by @khushboobhatia01
-
-* Change compound index for ActionExecutionDB to improve query performance #5568
-
-  Contributed by @khushboobhatia01
-
-* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
-
-  Contributed by Amanda McGuinness (@amanda11 intive) #5581
-
-* Downgrade tenacity as tooz dependency on tenacity has always been < 7.0.0 #5607
-
-  Contributed by @khushboobhatia01
-
-* Updated paramiko version to 2.10.3 to add support for more key verification algorithms. #5600
+* Fix redis SSL problems with sentinel #5660
 
 Added
 ~~~~~
 
-* Minor updates for RockyLinux. #5552
-  Contributed by Amanda McGuinness (@amanda11 intive)
+* Added graceful shutdown for workflow engine. #5463
+  Contributed by @khushboobhatia01
+
+3.7.0 - May 05, 2022
+--------------------
+
+Added
+~~~~~
 
 * Added st2 API get action parameters by ref. #5509
 
@@ -66,12 +35,12 @@ Added
 
   API endpoint ``/api/v1/actions/{ref_or_id}/clone`` takes ``ref_or_id`` of source action.
   Request method body takes destination pack and action name. Request method body also takes
-  optional paramater ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
+  optional parameter ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
   overwritten.
 
   CLI command ``st2 action clone <ref_or_id> <dest_pack> <dest_action>`` takes source ``ref_or_id``, destination
   pack name and destination action name as mandatory arguments.
-  In case destionation already exists then command takes optional arugument ``-f`` or ``--force`` to overwrite
+  In case destination already exists then command takes optional argument ``-f`` or ``--force`` to overwrite
   destination action. #5345
 
   Contributed by @mahesh-orch.
@@ -81,7 +50,7 @@ Added
 
   Contributed by @m4dcoder and @ashwini-orchestral
 
-* Added service degerestration on shutdown of a service. #5396
+* Added service deregistration on shutdown of a service. #5396
 
   Contributed by @khushboobhatia01
 
@@ -167,10 +136,53 @@ Added
 * Added garbage collection for workflow execution and task execution objects #4924
   Contributed by @srimandaleeka01 and @amanda11
 
-* Added graceful shutdown for workflow engine. #5463
+=======
+Changed
+~~~~~~~
+
+* Minor updates for RockyLinux. #5552
+
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
+
+* Updated paramiko version to 2.10.3 to add support for more key verification algorithms. #5600
 
 Fixed
 ~~~~~
+
+* Fix deserialization bug in st2 API for url encoded payloads. #5536
+
+  Contributed by @sravs-dev
+
+* Fix issue of WinRM parameter passing fails for larger scripts.#5538
+
+  Contributed by @ashwini-orchestral
+
+* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
+  ``timedelta.total_seconds()`` return. #5462
+
+  Contributed by @blackstrip
+
+* Fix issue with pack option not working when running policy list cli #5534
+
+  Contributed by @momokuri-3
+
+* Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
+
+  contributed by @guzzijones12
+
+* Link shutdown routine and sigterm handler to main thread #5555
+
+  Contributed by @khushboobhatia01
+
+* Change compound index for ActionExecutionDB to improve query performance #5568
+
+  Contributed by @khushboobhatia01
+
+* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
+
+  Contributed by Amanda McGuinness (@amanda11 intive) #5581
 
 * Fixed regression caused by #5358. Use string lock name instead of object ID. #5484
 
@@ -198,10 +210,12 @@ Fixed
 
   Contributed by @nzlosh
 
-Changed
-~~~~~~~
+* Downgrade tenacity as tooz dependency on tenacity has always been < 7.0.0 #5607
 
-* Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
+  Contributed by @khushboobhatia01
+
+* Pin ``typing-extensions<4.2`` (used indirectly by st2client) to maintain python 3.6 support. #5638
+
 
 3.6.0 - October 29, 2021
 ------------------------
