@@ -136,7 +136,6 @@ Added
 * Added garbage collection for workflow execution and task execution objects #4924
   Contributed by @srimandaleeka01 and @amanda11
 
-=======
 Changed
 ~~~~~~~
 
