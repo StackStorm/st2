@@ -43,7 +43,13 @@ def monkey_patch(patch_thread=None):
                          patched unless debugger is used.
     :type patch_thread: ``bool``
     """
+    # Eventlet when patched doesn't throw the standard ssl error on timeout, which can break
+    # some third-party libraries including redis SSL.
+    # See: https://github.com/eventlet/eventlet/issues/692
+    # Therefore set the patched ssl module to use the standard socket.timeout exception
+    from eventlet.green import ssl
     import eventlet
+    from socket import timeout
 
     if patch_thread is None:
         patch_thread = not is_use_debugger_flag_provided()
@@ -51,6 +57,7 @@ def monkey_patch(patch_thread=None):
     eventlet.monkey_patch(
         os=True, select=True, socket=True, thread=patch_thread, time=True
     )
+    ssl.timeout_exc = timeout
 
 
 def use_select_poll_workaround(nose_only=True):
