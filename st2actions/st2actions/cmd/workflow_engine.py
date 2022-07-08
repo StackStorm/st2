@@ -37,7 +37,6 @@ from st2common.service_setup import deregister_service
 __all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
-WORKFLOW_ENGINE = "workflow_engine"
 
 
 def setup_sigterm_handler(engine):
@@ -53,7 +52,7 @@ def setup_sigterm_handler(engine):
 def setup():
     capabilities = {"name": "workflowengine", "type": "passive"}
     common_setup(
-        service=WORKFLOW_ENGINE,
+        service=workflows.WORKFLOW_ENGINE,
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
@@ -72,7 +71,7 @@ def run_server():
         engine.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
         LOG.info("(PID=%s) Workflow engine stopped.", os.getpid())
-        deregister_service(service=WORKFLOW_ENGINE)
+        deregister_service(service=workflows.WORKFLOW_ENGINE)
         engine.shutdown()
     except:
         LOG.exception("(PID=%s) Workflow engine unexpectedly stopped.", os.getpid())

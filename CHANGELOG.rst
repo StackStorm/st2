@@ -7,45 +7,30 @@ in development
 Fixed
 ~~~~~
 
-
-* Fix deserialization bug in st2 API for url encoded payloads. #5536
-
-  Contributed by @sravs-dev
-
-* Fix issue of WinRM parameter passing fails for larger scripts.#5538
-
-  Contributed by @ashwini-orchestral
-
-* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
-  ``timedelta.total_seconds()`` return. #5462
-
-  Contributed by @blackstrip
-
-* Fix issue with pack option not working when running policy list cli #5534
-
-  Contributed by @momokuri-3
-
-* Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
-
-  contributed by @guzzijones12
-
-* Link shutdown routine and sigterm handler to main thread #5555
-
-  Contributed by @khushboobhatia01
-
-* Change compound index for ActionExecutionDB to improve query performance #5568
-
-  Contributed by @khushboobhatia01
-
-* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
-
-  Contributed by Amanda McGuinness (@amanda11 intive) #5581
+* Fix redis SSL problems with sentinel #5660
 
 Added
 ~~~~~
 
-* Minor updates for RockyLinux. #5552
-  Contributed by Amanda McGuinness (@amanda11 intive)
+* Added graceful shutdown for workflow engine. #5463
+  Contributed by @khushboobhatia01
+
+* Add the ability to limit the memory usage and output size of python action.
+  Two new config keys under the performance key were added:
+
+  1. `action_max_memory_mb` - maximum memory size in MB that the process of the python action can use.
+
+  2. `action_max_output_size_mb` - maximum size of output in MB .
+
+  by default, the value of the two configurations is set to zero, which means unlimited.
+  #5320
+  Contributed by @moradf90
+
+3.7.0 - May 05, 2022
+--------------------
+
+Added
+~~~~~
 
 * Added st2 API get action parameters by ref. #5509
 
@@ -61,12 +46,12 @@ Added
 
   API endpoint ``/api/v1/actions/{ref_or_id}/clone`` takes ``ref_or_id`` of source action.
   Request method body takes destination pack and action name. Request method body also takes
-  optional paramater ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
+  optional parameter ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
   overwritten.
 
   CLI command ``st2 action clone <ref_or_id> <dest_pack> <dest_action>`` takes source ``ref_or_id``, destination
   pack name and destination action name as mandatory arguments.
-  In case destionation already exists then command takes optional arugument ``-f`` or ``--force`` to overwrite
+  In case destination already exists then command takes optional argument ``-f`` or ``--force`` to overwrite
   destination action. #5345
 
   Contributed by @mahesh-orch.
@@ -76,7 +61,7 @@ Added
 
   Contributed by @m4dcoder and @ashwini-orchestral
 
-* Added service degerestration on shutdown of a service. #5396
+* Added service deregistration on shutdown of a service. #5396
 
   Contributed by @khushboobhatia01
 
@@ -152,32 +137,72 @@ Added
 
   Contributed by @Kami.
 
+* Add new audit message when a user has decrypted a key whether manually in the container (st2 key get [] --decrypt)
+  or through a workflow with a defined config. #5594
+  Contributed by @dmork123
+
 * Added garbage collection for rule_enforcement and trace models #5596/5602
   Contributed by Amanda McGuinness (@amanda11 intive)
 
 * Added garbage collection for workflow execution and task execution objects #4924
   Contributed by @srimandaleeka01 and @amanda11
 
-* Add the ability to limit the memory usage and output size of python action.
-  Two new config keys under the performance key were added:
+Changed
+~~~~~~~
 
-  1. `action_max_memory_mb` - maximum memory size in MB that the process of the python action can use.
+* Minor updates for RockyLinux. #5552
 
-  2. `action_max_output_size_mb` - maximum size of output in MB .
+  Contributed by Amanda McGuinness (@amanda11 intive)
 
-  by default, the value of the two configurations is set to zero, which means unlimited.
-  #5320
-  Contributed by @moradf90
+* Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
 
+* Updated paramiko version to 2.10.3 to add support for more key verification algorithms. #5600
 
 Fixed
 ~~~~~
+
+* Fix deserialization bug in st2 API for url encoded payloads. #5536
+
+  Contributed by @sravs-dev
+
+* Fix issue of WinRM parameter passing fails for larger scripts.#5538
+
+  Contributed by @ashwini-orchestral
+
+* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
+  ``timedelta.total_seconds()`` return. #5462
+
+  Contributed by @blackstrip
+
+* Fix issue with pack option not working when running policy list cli #5534
+
+  Contributed by @momokuri-3
+
+* Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
+
+  contributed by @guzzijones12
+
+* Link shutdown routine and sigterm handler to main thread #5555
+
+  Contributed by @khushboobhatia01
+
+* Change compound index for ActionExecutionDB to improve query performance #5568
+
+  Contributed by @khushboobhatia01
+
+* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
+
+  Contributed by Amanda McGuinness (@amanda11 intive) #5581
 
 * Fixed regression caused by #5358. Use string lock name instead of object ID. #5484
 
   Contributed by @khushboobhatia01
 
 * Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
+
+* Fix actions from the contrib/linux pack that fail on CentOS-8 but work on other operating systems and distributions. (bug fix) #4999 #5004
+
+  Reported by @blag and @dove-young contributed by @winem.
 
 * Use byte type lock name which is supported by all tooz drivers. #5529
 
@@ -186,6 +211,21 @@ Fixed
 * Fixed issue where pack index searches are ignoring no_proxy #5497
 
   Contributed by @minsis
+
+* Fixed trigger references emitted by ``linux.file_watch.line``. #5467
+
+  Prior to this patch multiple files could be watched but the rule reference of last registered file
+  would be used for all trigger emissions causing rule enforcement to fail.  References are now tracked
+  on a per file basis and used in trigger emissions.
+
+  Contributed by @nzlosh
+
+* Downgrade tenacity as tooz dependency on tenacity has always been < 7.0.0 #5607
+
+  Contributed by @khushboobhatia01
+
+* Pin ``typing-extensions<4.2`` (used indirectly by st2client) to maintain python 3.6 support. #5638
+
 
 3.6.0 - October 29, 2021
 ------------------------
