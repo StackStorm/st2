@@ -575,6 +575,245 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
 
         config_db.delete()
 
+    def test_get_config_dynamic_config_item_under_pattern_properties(self):
+        pack_name = "dummy_pack_schema_with_pattern_properties_1"
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        encrypted_value = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v1_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value, secret=True)
+        )
+
+        ####################
+        # values in objects under an object with patternProperties
+        values = {
+            "profiles": {
+                "dev": {
+                    # no host or port to test default value
+                    "token": "hard-coded-secret",
+                },
+                "prod": {
+                    "host": "127.1.2.7",
+                    "port": 8282,
+                    # encrypted in datastore
+                    "token": "{{st2kv.system.k1_encrypted}}",
+                    # schema declares `secret: true` which triggers auto-decryption.
+                    # If this were not encrypted, it would try to decrypt it and fail.
+                },
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        config_rendered = loader.get_config()
+
+        self.assertEqual(
+            config_rendered,
+            {
+                "region": "us-east-1",
+                "profiles": {
+                    "dev": {
+                        "host": "127.0.0.3",
+                        "port": 8080,
+                        "token": "hard-coded-secret",
+                    },
+                    "prod": {
+                        "host": "127.1.2.7",
+                        "port": 8282,
+                        "token": "v1_encrypted",
+                    },
+                },
+            },
+        )
+
+        config_db.delete()
+
+    def test_get_config_dynamic_config_item_properties_order_of_precedence(self):
+        pack_name = "dummy_pack_schema_with_pattern_and_additional_properties_1"
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        encrypted_value_1 = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v1_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value_1, secret=True)
+        )
+        encrypted_value_2 = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v2_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k2_encrypted", value=encrypted_value_2, secret=True)
+        )
+        encrypted_value_3 = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v3_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k3_encrypted", value=encrypted_value_3, secret=True)
+        )
+
+        ####################
+        # values in objects under an object with additionalProperties
+        values = {
+            "profiles": {
+                # properties
+                "foo": {
+                    "domain": "foo.example.com",
+                    "token": "hard-coded-secret",
+                },
+                "bar": {
+                    "domain": "bar.example.com",
+                    "token": "{{st2kv.system.k1_encrypted}}",
+                },
+                # patternProperties start with env-
+                "env-dev": {
+                    "host": "127.0.0.127",
+                    "token": "hard-coded-secret",
+                },
+                "env-prod": {
+                    "host": "127.1.2.7",
+                    "port": 8282,
+                    # encrypted in datastore
+                    "token": "{{st2kv.system.k2_encrypted}}",
+                    # schema declares `secret: true` which triggers auto-decryption.
+                    # If this were not encrypted, it would try to decrypt it and fail.
+                },
+                # additionalProperties
+                "dev": {
+                    "url": "https://example.com",
+                    "token": "hard-coded-secret",
+                },
+                "prod": {
+                    "url": "https://other.example.com",
+                    "port": 2345,
+                    "token": "{{st2kv.system.k3_encrypted}}",
+                },
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        config_rendered = loader.get_config()
+
+        self.assertEqual(
+            config_rendered,
+            {
+                "region": "us-east-1",
+                "profiles": {
+                    "foo": {
+                        "domain": "foo.example.com",
+                        "token": "hard-coded-secret",
+                    },
+                    "bar": {
+                        "domain": "bar.example.com",
+                        "token": "v1_encrypted",
+                    },
+                    "env-dev": {
+                        "host": "127.0.0.127",
+                        "port": 8080,
+                        "token": "hard-coded-secret",
+                    },
+                    "env-prod": {
+                        "host": "127.1.2.7",
+                        "port": 8282,
+                        "token": "v2_encrypted",
+                    },
+                    "dev": {
+                        "url": "https://example.com",
+                        "port": 1234,
+                        "token": "hard-coded-secret",
+                    },
+                    "prod": {
+                        "url": "https://other.example.com",
+                        "port": 2345,
+                        "token": "v3_encrypted",
+                    },
+                },
+            },
+        )
+
+        config_db.delete()
+
+    def test_get_config_dynamic_config_item_under_additional_items(self):
+        pack_name = "dummy_pack_schema_with_additional_items_1"
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        encrypted_value = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v1_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value, secret=True)
+        )
+
+        ####################
+        # values in objects under an object with additionalProperties
+        values = {
+            "profiles": [
+                {
+                    # no host or port to test default value
+                    "token": "hard-coded-secret",
+                },
+                {
+                    "host": "127.1.2.7",
+                    "port": 8282,
+                    # encrypted in datastore
+                    "token": "{{st2kv.system.k1_encrypted}}",
+                    # schema declares `secret: true` which triggers auto-decryption.
+                    # If this were not encrypted, it would try to decrypt it and fail.
+                },
+            ],
+            # foobar has additionalItems: true
+            "foobar": [
+                # there are no types to validate here
+                5,
+                "a string",
+                {
+                    # there are no defaults to interpolate here
+                    "token": "hard-coded-secret",
+                },
+                {
+                    # nothing is marked `secret: true` so no auto-decryption occurs.
+                    "token": "{{st2kv.system.k1_encrypted|decrypt_kv}}",
+                },
+            ],
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        config_rendered = loader.get_config()
+
+        self.assertEqual(
+            config_rendered,
+            {
+                "region": "us-east-1",
+                "profiles": [
+                    {
+                        "host": "127.0.0.3",
+                        "port": 8080,
+                        "token": "hard-coded-secret",
+                    },
+                    {
+                        "host": "127.1.2.7",
+                        "port": 8282,
+                        "token": "v1_encrypted",
+                    },
+                ],
+                "foobar": [
+                    5,
+                    "a string",
+                    {
+                        "token": "hard-coded-secret",
+                    },
+                    {
+                        "token": "v1_encrypted",
+                    },
+                ],
+            },
+        )
+
+        config_db.delete()
+
     def test_empty_config_object_in_the_database(self):
         pack_name = "dummy_pack_empty_config"
 
