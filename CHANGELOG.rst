@@ -15,6 +15,10 @@ Fixed
 
   Contributed by @cognifloyd.
 
+* Fixed ``st2client/st2client/base.py`` file to check for http_proxy and https_proxy environment variables for both lower and upper cases.
+
+  Contributed by @S-T-A-R-L-O-R-D
+
 Added
 ~~~~~
 
