@@ -1,0 +1,61 @@
+---
+  region:
+    type: "string"
+    required: false
+    default: "us-east-1"
+  profiles:
+    type: "object"
+    required: false
+    # order of precedence: properties, patternProperties, additionalProperties
+    properties:
+      foo:
+        type: object
+        properties:
+          domain:
+            type: "string"
+            required: true
+          token:
+            type: "string"
+            required: true
+            secret: true
+      bar:
+        type: object
+        properties:
+          domain:
+            type: "string"
+            required: true
+          token:
+            type: "string"
+            required: true
+            secret: true
+    patternProperties:
+      "^env-\\w+$":
+        type: object
+        additionalProperties: false
+        properties:
+          host:
+            type: "string"
+            required: true
+          port:
+            type: "integer"
+            required: false
+            default: 8080
+          token:
+            type: "string"
+            required: true
+            secret: true
+    additionalProperties:
+      type: object
+      additionalProperties: false
+      properties:
+        url:
+          type: "string"
+          required: true
+        port:
+          type: "integer"
+          required: false
+          default: 1234
+        token:
+          type: "string"
+          required: true
+          secret: true

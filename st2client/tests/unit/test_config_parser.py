@@ -64,7 +64,12 @@ class CLIConfigParserTestCase(unittest2.TestCase):
                 "silence_schema_output": True,
             },
             "cli": {"debug": True, "cache_token": False, "timezone": "UTC"},
-            "credentials": {"username": "test1", "password": "test1", "api_key": None},
+            "credentials": {
+                "username": "test1",
+                "password": "test1",
+                "api_key": "api_key",
+                "basic_auth": "user1:pass1",
+            },
             "api": {"url": "http://127.0.0.1:9101/v1"},
             "auth": {"url": "http://127.0.0.1:9100/"},
             "stream": {"url": "http://127.0.0.1:9102/v1/stream"},
@@ -83,15 +88,18 @@ class CLIConfigParserTestCase(unittest2.TestCase):
         self.assertTrue(result["cli"]["cache_token"], True)
 
     def test_get_config_for_unicode_char(self):
+        # this test tests for config parameters with unicode characters and the % sign
+        # the % sign interpolation is disabled since values are read with raw=True; See:
+        # https://docs.python.org/3.8/library/configparser.html#configparser.ConfigParser
         parser = CLIConfigParser(
             config_file_path=CONFIG_FILE_PATH_UNICODE, validate_config_exists=False
         )
         config = parser.parse()
 
         if six.PY3:
-            self.assertEqual(config["credentials"]["password"], "密码")
+            self.assertEqual(config["credentials"]["password"], "密码%")
         else:
-            self.assertEqual(config["credentials"]["password"], "\u5bc6\u7801")
+            self.assertEqual(config["credentials"]["password"], "\u5bc6\u7801\u0025")
 
 
 class CLIConfigPermissionsTestCase(unittest2.TestCase):

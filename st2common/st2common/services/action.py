@@ -27,6 +27,7 @@ from st2common.persistence.execution import ActionExecutionOutput
 from st2common.persistence.workflow import TaskExecution
 from st2common.persistence.workflow import WorkflowExecution
 from st2common.models.db.execution import ActionExecutionOutputDB
+from st2common.models.db.auth import UserDB
 from st2common.runners import utils as runners_utils
 from st2common.services import executions
 from st2common.services import trace as trace_service
@@ -55,7 +56,9 @@ def _get_immutable_params(parameters):
     return [k for k, v in six.iteritems(parameters) if v.get("immutable", False)]
 
 
-def create_request(liveaction, action_db=None, runnertype_db=None):
+def create_request(
+    liveaction, action_db=None, runnertype_db=None, validate_params=True
+):
     """
     Create an action execution.
 
@@ -66,6 +69,9 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
     :param runnertype_db: Runner model to operate one. If not provided, one is retrieved from the
                           database using values from "liveaction".
     :type runnertype_db: :class:`RunnerTypeDB`
+    :param validate_params: Whether to validate parameters against schema. Default to True, but
+                          set to False when raising a request to report an error.
+    :type validate_params: ``bool``
 
     :return: (liveaction, execution)
     :rtype: tuple
@@ -108,13 +114,14 @@ def create_request(liveaction, action_db=None, runnertype_db=None):
     # Validate action parameters.
     schema = util_schema.get_schema_for_action_parameters(action_db, runnertype_db)
     validator = util_schema.get_validator()
-    util_schema.validate(
-        liveaction.parameters,
-        schema,
-        validator,
-        use_default=True,
-        allow_default_none=True,
-    )
+    if validate_params:
+        util_schema.validate(
+            liveaction.parameters,
+            schema,
+            validator,
+            use_default=True,
+            allow_default_none=True,
+        )
 
     # validate that no immutable params are being overriden. Although possible to
     # ignore the override it is safer to inform the user to avoid surprises.
@@ -208,7 +215,12 @@ def request(liveaction):
 
 
 def update_status(
-    liveaction, new_status, result=None, publish=True, set_result_size=False
+    liveaction,
+    new_status,
+    result=None,
+    publish=True,
+    set_result_size=False,
+    context=None,
 ):
     if liveaction.status == new_status:
         return liveaction
@@ -220,6 +232,7 @@ def update_status(
         "status": new_status,
         "result": result,
         "publish": False,
+        "context": context,
     }
 
     if new_status in action_constants.LIVEACTION_COMPLETED_STATES:
@@ -298,7 +311,10 @@ def request_cancellation(liveaction, requester):
     else:
         status = action_constants.LIVEACTION_STATUS_CANCELED
 
-    liveaction = update_status(liveaction, status, result=result)
+    liveaction.context["cancelled_by"] = get_requester(requester)
+    liveaction = update_status(
+        liveaction, status, result=result, context=liveaction.context
+    )
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
@@ -340,7 +356,12 @@ def request_pause(liveaction, requester):
             % liveaction.id
         )
 
-    liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_PAUSING)
+    liveaction.context["paused_by"] = get_requester(requester)
+    liveaction = update_status(
+        liveaction,
+        action_constants.LIVEACTION_STATUS_PAUSING,
+        context=liveaction.context,
+    )
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
@@ -384,7 +405,12 @@ def request_resume(liveaction, requester):
             'not in "paused" state.' % (liveaction.id, liveaction.status)
         )
 
-    liveaction = update_status(liveaction, action_constants.LIVEACTION_STATUS_RESUMING)
+    liveaction.context["resumed_by"] = get_requester(requester)
+    liveaction = update_status(
+        liveaction,
+        action_constants.LIVEACTION_STATUS_RESUMING,
+        context=liveaction.context,
+    )
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
@@ -602,3 +628,9 @@ def is_action_execution_under_action_chain_context(liveaction):
     if it contains the chain key in its context dictionary.
     """
     return liveaction.context and "chain" in liveaction.context
+
+
+def get_requester(requester):
+    if type(requester) == UserDB:
+        return requester["name"]
+    return requester

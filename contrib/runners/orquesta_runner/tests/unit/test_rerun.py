@@ -33,7 +33,6 @@ from st2common.persistence import execution as ex_db_access
 from st2common.persistence import liveaction as lv_db_access
 from st2common.persistence import workflow as wf_db_access
 from st2common.services import action as action_service
-from st2common.services import executions as execution_service
 from st2common.services import workflows as workflow_service
 from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import workflow as wf_ex_xport
@@ -52,7 +51,11 @@ PACKS = [
     st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
 ]
 
-RUNNER_RESULT_FAILED = (action_constants.LIVEACTION_STATUS_FAILED, {}, {})
+RUNNER_RESULT_FAILED = (
+    action_constants.LIVEACTION_STATUS_FAILED,
+    {"stderror": "..."},
+    {},
+)
 RUNNER_RESULT_RUNNING = (
     action_constants.LIVEACTION_STATUS_RUNNING,
     {"stdout": "..."},
@@ -216,10 +219,15 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         # Delete the workflow execution.
         wf_db_access.WorkflowExecution.delete(wf_ex_db, publish=False)
 
-        # Manually delete the workflow_execution_id from context of the action execution.
+        # Manually delete the workflow_execution_id from context of the liveaction.
         lv_ac_db1.context.pop("workflow_execution")
         lv_ac_db1 = lv_db_access.LiveAction.add_or_update(lv_ac_db1, publish=False)
-        ac_ex_db1 = execution_service.update_execution(lv_ac_db1, publish=False)
+        # Manually delete the workflow_execution_id from context of the action execution.
+        # We cannot use execution_service.update_execution here because by the time we reach
+        # execution_service.update_execution, action is already in completed state.
+        # Popping of workflow id and and updating the execution object will not work.
+        ac_ex_db1.context.pop("workflow_execution")
+        ac_ex_db1 = ex_db_access.ActionExecution.add_or_update(ac_ex_db1, publish=False)
 
         # Rerun the execution.
         context = {"re-run": {"ref": str(ac_ex_db1.id), "tasks": ["task1"]}}

@@ -25,6 +25,9 @@ on:
     - cron:  '0 0 * * *'
 
 jobs:
+  # TODO: Fix the required checks!
+  #       When the pre_job triggers and skips builds, it prevents merging the PR because
+  #       the required checks are reported as skipped instead of passed.
   # Special job which automatically cancels old runs for the same branch, prevents runs for the
   # same file set which has already passed, etc.
   pre_job:
@@ -43,23 +46,27 @@ jobs:
     needs: pre_job
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
-    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version }}'
+    # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        # NOTE: We need to use full Python version as part of Python deps cache key otherwise
+        # setup virtualenv step will fail.
         include:
           - name: 'Integration Tests (Orquesta)'
             task: 'ci-orquesta'
             nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version: '3.6'
+            python-version: '3.6.13'
+            python-version-short: '3.6'
           - name: 'Integration Tests (Orquesta)'
             task: 'ci-orquesta'
             nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version: '3.8'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
     services:
       mongo:
         image: mongo:4.4
@@ -135,18 +142,20 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-python-${{ matrix.python }}-
+          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          # Don't use alternative key as if requirements.txt has altered we
+          # don't want to retrieve previous cache
+          #restore-keys: |
+          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v2
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-apt-v7-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v5-
+            ${{ runner.os }}-apt-v7-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
