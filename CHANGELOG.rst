@@ -25,6 +25,17 @@ Added
 * Added graceful shutdown for workflow engine. #5463
   Contributed by @khushboobhatia01
 
+* Add the ability to limit the memory usage and output size of python action.
+  Two new config keys under the performance key were added:
+
+  1. `action_max_memory_mb` - maximum memory size in MB that the process of the python action can use.
+
+  2. `action_max_output_size_mb` - maximum size of output in MB .
+
+  by default, the value of the two configurations is set to zero, which means unlimited.
+  #5320
+  Contributed by @moradf90
+
 3.7.0 - May 05, 2022
 --------------------
 
