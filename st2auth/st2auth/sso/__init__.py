@@ -19,6 +19,7 @@ import six
 import traceback
 
 from oslo_config import cfg
+from st2auth.sso.base import BaseSingleSignOnBackend
 
 from st2common import log as logging
 
@@ -36,7 +37,7 @@ def get_available_backends():
     return driver_loader.get_available_backends(namespace=BACKENDS_NAMESPACE)
 
 
-def get_backend_instance(name):
+def get_backend_instance(name) -> BaseSingleSignOnBackend:
     sso_backend_cls = driver_loader.get_backend_driver(
         namespace=BACKENDS_NAMESPACE, name=name
     )
@@ -69,7 +70,7 @@ def get_backend_instance(name):
     return sso_backend
 
 
-def get_sso_backend():
+def get_sso_backend() -> BaseSingleSignOnBackend:
     """
     Return SingleSignOnBackend class instance.
     """

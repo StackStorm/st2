@@ -24,6 +24,7 @@ from six.moves import urllib
 import st2auth.handlers as handlers
 
 from st2auth import sso as st2auth_sso
+from st2auth.sso.base import BaseSingleSignOnBackend, BaseSingleSignOnBackendResponse
 from st2common.exceptions import auth as auth_exc
 from st2common import log as logging
 from st2common import router
@@ -81,16 +82,18 @@ class IdentityProviderCallbackController(object):
 
             # Obtain user details from the SSO response from the backend
             verified_user = SSO_BACKEND.verify_response(response)
+            if not isinstance(verified_user, BaseSingleSignOnBackendResponse):
+                return process_failure_response(http_client.INTERNAL_SERVER_ERROR, "Unexpected SSO backend response type. Expected BaseSingleSignOnBackendResponse instance!")
 
             st2_auth_token_create_request = {
-                "user": verified_user["username"],
+                "user": verified_user.username,
                 "ttl": None,
             }
 
             st2_auth_token = self.st2_auth_handler.handle_auth(
                 request=st2_auth_token_create_request,
-                remote_addr=verified_user["referer"],
-                remote_user=verified_user["username"],
+                remote_addr=verified_user.referer,
+                remote_user=verified_user.username,
                 headers={},
             )
             
@@ -98,10 +101,10 @@ class IdentityProviderCallbackController(object):
             # ie WEB gets redirected and CLI gets an encrypted callback 
             if original_sso_request.type == SSORequestDB.Type.WEB:
                 return process_successful_sso_web_response(
-                    verified_user["referer"], st2_auth_token
+                    verified_user.referer, st2_auth_token
                 )
             elif original_sso_request.type == SSORequestDB.Type.CLI:
-                return process_successful_sso_cli_response(verified_user['referer'], original_sso_request.key, st2_auth_token)
+                return process_successful_sso_cli_response(verified_user.referer, original_sso_request.key, st2_auth_token)
             else:
                 raise NotImplementedError("Unexpected SSO request type [%s] -- I can deal with web and cli" % original_sso_request.type)
         except NotImplementedError as e:
