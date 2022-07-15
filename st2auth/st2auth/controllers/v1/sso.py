@@ -136,12 +136,17 @@ class SingleSignOnRequestController(object):
             response.location = SSO_BACKEND.get_request_redirect_url(sso_request.request_id, referer)
             return response
         except NotImplementedError as e:
+            if sso_request:
+                sso_request.delete()
             return process_failure_response(http_client.INTERNAL_SERVER_ERROR, e)
         except Exception as e:
+            if sso_request:
+                sso_request.delete()
             raise e
 
     # cli-intended SSO
     def post_cli(self, response):
+        sso_request = None
         try:
             key = getattr(response, 'key', None)
             callback_url = getattr(response, 'callback_url', None)
@@ -152,7 +157,7 @@ class SingleSignOnRequestController(object):
                 aes_key = read_crypto_key_from_dict(json_decode(key))
             except Exception:
                 LOG.warn("Could not decode incoming SSO CLI request key")
-                raise
+                raise ValueError("The provided key is invalid! It should be stackstorm-compatible AES key")
 
             sso_request = self._create_sso_request(create_cli_sso_request, key=key)
             response = router.Response(status=http_client.OK)
@@ -163,8 +168,12 @@ class SingleSignOnRequestController(object):
 
             return response
         except NotImplementedError as e:
+            if sso_request:
+                sso_request.delete()
             return process_failure_response(http_client.INTERNAL_SERVER_ERROR, e)
         except Exception as e:
+            if sso_request:
+                sso_request.delete()
             raise e
 
 

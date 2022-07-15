@@ -31,6 +31,8 @@ __all__ = ["create_token", "delete_token", "create_cli_sso_request", "create_web
 
 LOG = logging.getLogger(__name__)
 
+DEFAULT_SSO_REQUEST_TTL = 120
+
 
 def create_token(
     username, ttl=None, metadata=None, add_missing_user=True, service=False
@@ -106,7 +108,7 @@ def delete_token(token):
     except Exception:
         raise
 
-def create_cli_sso_request(request_id, key, ttl=120):
+def create_cli_sso_request(request_id, key, ttl=DEFAULT_SSO_REQUEST_TTL):
     """
     :param request_id: ID of the SSO request that is being created (usually uuid format prepended by _)
     :type request_id: ``str``
@@ -120,7 +122,7 @@ def create_cli_sso_request(request_id, key, ttl=120):
 
     return _create_sso_request(request_id, ttl, SSORequestDB.Type.CLI, key=key)
 
-def create_web_sso_request(request_id, ttl=120):
+def create_web_sso_request(request_id, ttl=DEFAULT_SSO_REQUEST_TTL):
     """
     :param request_id: ID of the SSO request that is being created (usually uuid format prepended by _)
     :type request_id: ``str``

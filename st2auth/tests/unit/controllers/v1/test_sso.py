@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+from typing import List
+from st2common.models.db.auth import SSORequestDB
+from st2common.persistence.auth import SSORequest
+from st2common.services.access import DEFAULT_SSO_REQUEST_TTL
 import st2tests.config as tests_config
+
+from st2common.util import date as date_utils
 
 tests_config.parse_args()
 
@@ -30,11 +37,21 @@ from tests.base import FunctionalTest
 
 
 SSO_V1_PATH = "/v1/sso"
-SSO_REQUEST_V1_PATH = SSO_V1_PATH + "/request"
+SSO_REQUEST_WEB_V1_PATH = SSO_V1_PATH + "/request/web"
+SSO_REQUEST_CLI_V1_PATH = SSO_V1_PATH + "/request/cli"
 SSO_CALLBACK_V1_PATH = SSO_V1_PATH + "/callback"
 MOCK_REFERER = "https://127.0.0.1"
 MOCK_USER = "stanley"
-
+MOCK_CALLBACK_URL = 'http://localhost:34999'
+MOCK_CLI_REQUEST_KEY = json.dumps({
+    "hmacKey": {
+        "hmacKeyString": "-qdRklvhm4xvzIfaL6Z2nmQ-2N-c4IUtNa1_BowCVfg", 
+        "size": 256
+    }, 
+    "aesKeyString": "0UyXFjBTQ9PMyHZ0mqrvuqCSzesuFup1d6m-4Vi3vdo", 
+    "mode": "CBC", 
+    "size": 256
+})
 
 class TestSingleSignOnController(FunctionalTest):
     def test_sso_enabled(self):
@@ -63,35 +80,128 @@ class TestSingleSignOnController(FunctionalTest):
             sso_api_controller.SingleSignOnController._get_sso_enabled_config.called
         )
 
-
+# Base SSO request test class, to be used by CLI/WEB
 class TestSingleSignOnRequestController(FunctionalTest):
+
+    def _assert_response(self, response, status_code, expected_body):
+        self.assertTrue(response.status_code, status_code)
+        self.assertDictEqual(response.json, expected_body)
+
+
+    def _assert_sso_requests_len(self, expected):
+        sso_requests : List[SSORequestDB] = SSORequest.get_all()
+        self.assertEqual(len(sso_requests), expected)
+        return sso_requests
+
+    def _assert_sso_request_success(self, sso_request, type):
+        self.assertEqual(sso_request.type, type)
+        self.assertLessEqual(
+            abs(
+                sso_request.expiry.timestamp() 
+                - date_utils.get_datetime_utc_now().timestamp() 
+                - DEFAULT_SSO_REQUEST_TTL
+            ), 2)
+        sso_api_controller.SSO_BACKEND.get_request_redirect_url.assert_called_with(sso_request.request_id, MOCK_REFERER)
+
+    def _default_web_request(self, expect_errors):
+        return self.app.get(SSO_REQUEST_WEB_V1_PATH, 
+            headers={"referer": MOCK_REFERER}, expect_errors=expect_errors)
+    def _default_cli_request(
+        self, 
+        params={
+            'callback_url': MOCK_CALLBACK_URL, 
+            'key': MOCK_CLI_REQUEST_KEY
+        }, 
+        expect_errors=False):
+        return self.app.post(
+            SSO_REQUEST_CLI_V1_PATH, 
+            content_type="application/json",
+            params=json.dumps(params), 
+            expect_errors=expect_errors
+        )
+
+
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
         "get_request_redirect_url",
         mock.MagicMock(side_effect=Exception("fooobar")),
     )
-    def test_default_backend_unknown_exception(self):
-        expected_error = {"faultstring": "Internal Server Error"}
-        response = self.app.get(SSO_REQUEST_V1_PATH, expect_errors=True)
-        self.assertTrue(response.status_code, http_client.INTERNAL_SERVER_ERROR)
-        self.assertDictEqual(response.json, expected_error)
+    def test_web_default_backend_unknown_exception(self):
+        response = self._default_web_request(True)
+        self._assert_response(
+            response,
+            http_client.INTERNAL_SERVER_ERROR, 
+            {"faultstring": "Internal Server Error"})
+        self._assert_sso_requests_len(0)
 
-    def test_default_backend_not_implemented(self):
-        expected_error = {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE}
-        response = self.app.get(SSO_REQUEST_V1_PATH, expect_errors=True)
-        self.assertTrue(response.status_code, http_client.INTERNAL_SERVER_ERROR)
-        self.assertDictEqual(response.json, expected_error)
+    def test_web_default_backend_invalid_key(self):
+        response = self._default_web_request(True)
+        self._assert_response(
+            response,
+            http_client.INTERNAL_SERVER_ERROR, 
+            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE})
+        self._assert_sso_requests_len(0)
+
+
+    def test_web_default_backend_not_implemented(self):
+        response = self._default_web_request(True)
+        self._assert_response(
+            response,
+            http_client.INTERNAL_SERVER_ERROR, 
+            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE})
+        self._assert_sso_requests_len(0)
 
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
         "get_request_redirect_url",
         mock.MagicMock(return_value="https://127.0.0.1"),
     )
-    def test_idp_redirect(self):
-        response = self.app.get(SSO_REQUEST_V1_PATH, expect_errors=False)
+    def test_web_idp_redirect(self):
+        response = self._default_web_request(False)
         self.assertTrue(response.status_code, http_client.TEMPORARY_REDIRECT)
         self.assertEqual(response.location, "https://127.0.0.1")
 
+        # Make sure we have created a SSO request based on this call :)
+        sso_requests = self._assert_sso_requests_len(1)
+        sso_request = sso_requests[0]
+        self._assert_sso_request_success(sso_request, SSORequestDB.Type.WEB)
+
+
+    @mock.patch.object(
+        sso_api_controller.SSO_BACKEND,
+        "get_request_redirect_url",
+        mock.MagicMock(side_effect=Exception("fooobar")),
+    )
+    def test_cli_default_backend_unknown_exception(self):
+        response = self._default_cli_request(expect_errors=True)
+        self._assert_response(
+            response,
+            http_client.INTERNAL_SERVER_ERROR, 
+            {"faultstring": "Internal Server Error"})
+        self._assert_sso_requests_len(0)
+
+    def test_cli_default_backend_bad_key(self):
+        response = self._default_cli_request(
+            params={
+                'callback_url': MOCK_CALLBACK_URL,
+                'key': 'bad-key'
+            },
+            expect_errors=True
+        )
+        self._assert_response(
+            response,
+            http_client.INTERNAL_SERVER_ERROR, 
+            {"faultstring": "The provided key is invalid! It should be stackstorm-compatible AES key"})
+        self._assert_sso_requests_len(0)
+
+    def test_cli_default_backend_not_implemented(self):
+        response = self._default_cli_request(expect_errors=True)
+        self._assert_response(
+            response,
+            http_client.INTERNAL_SERVER_ERROR, 
+            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE})
+        self._assert_sso_requests_len(0)
+        
 
 class TestIdentityProviderCallbackController(FunctionalTest):
     @mock.patch.object(
