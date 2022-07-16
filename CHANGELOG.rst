@@ -28,7 +28,11 @@ Added
 Changed
 ~~~~~~~
 
-* ``output_schema`` must be a full jsonschema now. If a schema is not well-formed, we ignore it.
+* BREAKING CHANGE for anyone that uses ``output_schema``, which is disabled by default.
+  If you have ``[system].validate_output_schema = True`` in st2.conf AND you have added
+  ``output_schema`` to any of your packs, then you must update your action metadata.
+
+  ``output_schema`` must be a full jsonschema now. If a schema is not well-formed, we ignore it.
   Now, ``output`` can be types other than object such as list, bool, int, etc.
   This also means that all of an action's output can be masked as a secret.
 
