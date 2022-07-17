@@ -118,6 +118,12 @@ def fetch_requirements(requirements_file_path):
 
                 link = line.replace("-e ", "").strip()
                 return link, req_name[0]
+            elif vcs_prefix in line and line.count("@") == 2:
+                # PEP 440 direct reference: <package name>@ <url>@version
+                req_name, link = line.split("@", 1)
+                req_name = req_name.strip()
+                link = f"{link.strip()}#egg={req_name}"
+                return link, req_name
 
         return None, None
 
