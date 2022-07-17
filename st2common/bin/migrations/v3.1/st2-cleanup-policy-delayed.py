@@ -46,7 +46,7 @@ def main():
     except Exception as e:
         LOG.error(
             "ABORTED: Clean up of executions with deprecated policy-delayed status aborted on "
-            "first failure. %s" % e.message
+            "first failure. %s" % e.message  # pylint: disable=no-member
         )
         exit_code = 1
 
