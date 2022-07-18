@@ -25,6 +25,13 @@ Added
 * Added graceful shutdown for workflow engine. #5463
   Contributed by @khushboobhatia01
 
+Changed
+~~~~~~~
+
+* Use PEP 440 direct reference requirements instead of legacy PIP VCS requirements. Now, our ``*.requirements.txt`` files use
+  ``package-name@ git+https://url@version ; markers`` instead of ``git+https://url@version#egg=package-name ; markers``. #5673
+  Contributed by @cognifloyd
+
 3.7.0 - May 05, 2022
 --------------------
 
