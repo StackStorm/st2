@@ -58,7 +58,7 @@ def monkey_patch(patch_thread=None):
             port=os.environ.get("ST2_PYCHARM_DEBUG_PORT", 5000),
             stdoutToServer=True,
             stderrToServer=True,
-            patch_multiprocessing=True
+            patch_multiprocessing=True,
         )
 
     # Eventlet when patched doesn't throw the standard ssl error on timeout, which can break
