@@ -83,6 +83,11 @@ class TestSingleSignOnController(FunctionalTest):
 # Base SSO request test class, to be used by CLI/WEB
 class TestSingleSignOnRequestController(FunctionalTest):
 
+    # Cleanup sso requests
+    def setUp(self):
+        for x in SSORequest.get_all():
+            SSORequest.delete(x)
+
     def _assert_response(self, response, status_code, expected_body):
         self.assertTrue(response.status_code, status_code)
         self.assertDictEqual(response.json, expected_body)
