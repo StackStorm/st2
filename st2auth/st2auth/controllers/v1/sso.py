@@ -151,7 +151,7 @@ class SingleSignOnRequestController(object):
             key = getattr(response, 'key', None)
             callback_url = getattr(response, 'callback_url', None)
             if not key or not callback_url:
-                raise ValueError("Missing either key or callback_url!")
+                raise ValueError("Missing either key and/or callback_url!")
 
             try:
                 aes_key = read_crypto_key_from_dict(json_decode(key))
@@ -161,9 +161,11 @@ class SingleSignOnRequestController(object):
 
             sso_request = self._create_sso_request(create_cli_sso_request, key=key)
             response = router.Response(status=http_client.OK)
+            response.content_type = "application/json"
             response.json = {
                 "sso_url": SSO_BACKEND.get_request_redirect_url(sso_request.request_id, callback_url),
-                "expiry": sso_request.expiry
+                # this is needed because the db doesnt save microseconds
+                "expiry": sso_request.expiry.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "000+00:00"
             }
 
             return response

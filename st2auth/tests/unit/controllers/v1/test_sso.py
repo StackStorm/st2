@@ -103,6 +103,19 @@ class TestSingleSignOnRequestController(FunctionalTest):
             ), 2)
         sso_api_controller.SSO_BACKEND.get_request_redirect_url.assert_called_with(sso_request.request_id, MOCK_REFERER)
 
+    def _test_cli_request_bad_parameter_helper(self, params, expected_error):
+        response = self._default_cli_request(
+            params=params,
+            expect_errors=True
+        )
+        self._assert_response(
+            response,
+            http_client.INTERNAL_SERVER_ERROR, 
+            {"faultstring": expected_error})
+        self._assert_sso_requests_len(0)
+
+
+
     def _default_web_request(self, expect_errors):
         return self.app.get(SSO_REQUEST_WEB_V1_PATH, 
             headers={"referer": MOCK_REFERER}, expect_errors=expect_errors)
@@ -181,18 +194,37 @@ class TestSingleSignOnRequestController(FunctionalTest):
         self._assert_sso_requests_len(0)
 
     def test_cli_default_backend_bad_key(self):
-        response = self._default_cli_request(
-            params={
+        self._test_cli_request_bad_parameter_helper(
+            {
                 'callback_url': MOCK_CALLBACK_URL,
                 'key': 'bad-key'
             },
-            expect_errors=True
+            "The provided key is invalid! It should be stackstorm-compatible AES key"
         )
-        self._assert_response(
-            response,
-            http_client.INTERNAL_SERVER_ERROR, 
-            {"faultstring": "The provided key is invalid! It should be stackstorm-compatible AES key"})
-        self._assert_sso_requests_len(0)
+
+    def test_cli_default_backend_missing_key(self):
+        self._test_cli_request_bad_parameter_helper(
+            {
+                'callback_url': MOCK_CALLBACK_URL,
+            },
+            "Missing either key and/or callback_url!"
+        )
+
+    def test_cli_default_backend_missing_callback_url(self):
+        self._test_cli_request_bad_parameter_helper(
+            {
+                'key': MOCK_CLI_REQUEST_KEY,
+            },
+            "Missing either key and/or callback_url!"
+        )
+
+    def test_cli_default_backend_missing_key_and_callback_url(self):
+        self._test_cli_request_bad_parameter_helper(
+            {
+                'ops': 'ops'
+            },
+            "Missing either key and/or callback_url!"
+        )
 
     def test_cli_default_backend_not_implemented(self):
         response = self._default_cli_request(expect_errors=True)
@@ -201,6 +233,29 @@ class TestSingleSignOnRequestController(FunctionalTest):
             http_client.INTERNAL_SERVER_ERROR, 
             {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE})
         self._assert_sso_requests_len(0)
+
+
+    @mock.patch.object(
+        sso_api_controller.SSO_BACKEND,
+        "get_request_redirect_url",
+        mock.MagicMock(return_value="https://127.0.0.1"),
+    )
+    def test_cli_default_backend(self):
+        response = self._default_cli_request(
+            params={
+                'callback_url': MOCK_CALLBACK_URL,
+                'key': MOCK_CLI_REQUEST_KEY
+            },
+            expect_errors=False
+        )
+        sso_request = self._assert_sso_requests_len(1)[0]
+        self._assert_response(
+            response,
+            http_client.OK, 
+            {
+                "sso_url": "https://127.0.0.1",
+                "expiry": sso_request.expiry.isoformat()
+            })
         
 
 class TestIdentityProviderCallbackController(FunctionalTest):
