@@ -25,6 +25,19 @@ Added
 * Added graceful shutdown for workflow engine. #5463
   Contributed by @khushboobhatia01
 
+* Allow debugging st2 services in PyCharm Pro's Remote Debug Server.
+  To enable debugging, before starting the st2 process(es), you need to:
+
+    - install pydevd-pycharm (use the version specific to your pycharm install) in StackStorm's virtualenv.
+    - set the ``ST2_PYCHARM_DEBUG`` environment var to something non-empty like "true".
+    - (optional) set environment vars ``ST2_PYCHARM_DEBUG_HOST`` and
+      ``ST2_PYCHARM_DEBUG_PORT`` if pycharm is listening somewhere other than
+      ``localhost:5000``.
+
+  see: https://www.jetbrains.com/help/pycharm/remote-debugging-with-product.html#remote-debug-config
+
+  #5674 Contributed by @cognifloyd.
+
 3.7.0 - May 05, 2022
 --------------------
 
