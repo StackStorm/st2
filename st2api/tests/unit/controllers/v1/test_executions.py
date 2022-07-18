@@ -180,8 +180,12 @@ ACTION_WITH_OUTPUT_SCHEMA_WITH_SECRET_PARAMS = {
     "runner_type": "python-script",
     "parameters": {},
     "output_schema": {
-        "secret_param_1": {"type": "string", "required": True, "secret": True},
-        "secret_param_2": {"type": "string", "required": True, "secret": True},
+        "type": "object",
+        "properties": {
+            "secret_param_1": {"type": "string", "required": True, "secret": True},
+            "secret_param_2": {"type": "string", "required": True, "secret": True},
+        },
+        "additionalProperties": False,
     },
 }
 
@@ -194,8 +198,12 @@ ACTION_WITH_OUTPUT_SCHEMA_WITHOUT_SECRET_PARAMS = {
     "runner_type": "python-script",
     "parameters": {},
     "output_schema": {
-        "non_secret_param_1": {"type": "string", "required": True},
-        "non_secret_param_2": {"type": "string", "required": True},
+        "type": "object",
+        "properties": {
+            "non_secret_param_1": {"type": "string", "required": True},
+            "non_secret_param_2": {"type": "string", "required": True},
+        },
+        "additionalProperties": False,
     },
 }
 ACTION_DEFAULT_ENCRYPT_AND_BOOL = {

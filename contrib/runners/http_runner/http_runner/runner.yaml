@@ -54,18 +54,21 @@
         type: string
   output_key: body
   output_schema:
-    status_code:
-      type: integer
-    body:
-      anyOf:
-        - type: "object"
-        - type: "string"
-        - type: "integer"
-        - type: "number"
-        - type: "boolean"
-        - type: "array"
-        - type: "null"
-    parsed:
-      type: boolean
-    headers:
-      type: object
+    type: object
+    properties:
+      status_code:
+        type: integer
+      body:
+        anyOf:
+          - type: "object"
+          - type: "string"
+          - type: "integer"
+          - type: "number"
+          - type: "boolean"
+          - type: "array"
+          - type: "null"
+      parsed:
+        type: boolean
+      headers:
+        type: object
+    additionalProperties: false
