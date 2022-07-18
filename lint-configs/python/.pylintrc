@@ -27,7 +27,7 @@ property-classes=abc.abstractproperty
 # Note: This modules are manipulated during the runtime so we can't detect all the properties during
 # static analysis
 # orjson has type stubs, but pylint doesn't support __init__.pyi yet: https://github.com/PyCQA/pylint/issues/2873
-ignored-modules=distutils,eventlet.green.subprocess,six,six.moves,orjson
+ignored-modules=distutils,eventlet.green.subprocess,six,six.moves,orjson,pydevd_pycharm
 
 [FORMAT]
 max-line-length=100
