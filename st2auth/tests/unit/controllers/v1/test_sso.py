@@ -248,12 +248,16 @@ class TestSingleSignOnRequestController(FunctionalTest):
     def test_cli_default_backend(self):
         response = self._default_cli_request(
             params={
-                'callback_url': MOCK_CALLBACK_URL,
+                'callback_url': MOCK_REFERER,
                 'key': MOCK_CLI_REQUEST_KEY
             },
             expect_errors=False
         )
-        sso_request = self._assert_sso_requests_len(1)[0]
+
+        # Make sure we have created a SSO request based on this call :)
+        sso_requests = self._assert_sso_requests_len(1)
+        sso_request = sso_requests[0]
+        self._assert_sso_request_success(sso_request, SSORequestDB.Type.CLI)
         self._assert_response(
             response,
             http_client.OK, 
