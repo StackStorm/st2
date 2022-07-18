@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import os
+from typing import Mapping, Sequence
 
 import six
 import jsonschema
@@ -86,13 +87,16 @@ def get_draft_schema(version="custom", additional_properties=False):
     return schema
 
 
-def get_action_output_schema(additional_properties=True):
+def get_action_output_schema(additional_properties=True, description=None):
     """
     Return a generic schema which is used for validating action output.
     """
-    return get_draft_schema(
+    schema = get_draft_schema(
         version="action_output_schema", additional_properties=additional_properties
     )
+    if description:
+        schema["description"] = f"{description} (based on {schema['description']})"
+    return schema
 
 
 def get_action_parameters_schema(additional_properties=False):
@@ -207,9 +211,23 @@ def assign_default_values(instance, schema):
         return instance
 
     properties = schema.get("properties", {})
+    dependencies = schema.get("dependencies", {})
 
     for property_name, property_data in six.iteritems(properties):
         has_default_value = "default" in property_data
+        # only populate default if dependencies are met
+        # eg: exclusiveMaximum depends on maximum which does not have a default.
+        #     so we don't want to apply exclusiveMaximum's default unless maximum.
+        if has_default_value and property_name in dependencies:
+            for required_property in dependencies[property_name]:
+                if "default" in properties.get(required_property, {}):
+                    # we depend on something that has a default. Apply this default.
+                    continue
+                if required_property not in instance:
+                    # we depend on something that does not have a default.
+                    # do not apply this default.
+                    has_default_value = False
+                    break
         default_value = property_data.get("default", None)
 
         # Assign default value on the instance so the validation doesn't fail if requires is true
@@ -227,19 +245,24 @@ def assign_default_values(instance, schema):
         schema_items = property_data.get("items", {})
 
         # Array
-        if (
-            is_attribute_type_array(attribute_type)
-            and schema_items
-            and schema_items.get("properties", {})
-        ):
+        if is_attribute_type_array(attribute_type) and schema_items:
             array_instance = instance.get(property_name, None)
-            array_schema = schema["properties"][property_name]["items"]
-
+            # Note: We don't perform subschema assignment if no value is provided
             if array_instance is not None:
-                # Note: We don't perform subschema assignment if no value is provided
-                instance[property_name] = assign_default_values(
-                    instance=array_instance, schema=array_schema
-                )
+                if isinstance(schema_items, Mapping) and schema_items.get(
+                    "properties", {}
+                ):
+                    instance[property_name] = assign_default_values(
+                        instance=array_instance, schema=schema_items
+                    )
+                elif array_instance and isinstance(schema_items, Sequence):
+                    array_instance_count = len(array_instance)
+                    for i, item_schema in enumerate(schema_items):
+                        if i > array_instance_count:
+                            break
+                        instance[property_name][i] = assign_default_values(
+                            instance=array_instance[i], schema=item_schema
+                        )
 
         # Object
         if is_attribute_type_object(attribute_type) and property_data.get(
