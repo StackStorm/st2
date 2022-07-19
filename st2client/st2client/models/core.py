@@ -884,9 +884,8 @@ class ServiceRegistryMembersManager(ResourceManager):
         return result
 
 
-
 class TokenResourceManager(ResourceManager):
-    
+
     # This will spin up a local web server to mediate the requests from/to the sso
     # endpoint, so that we can intercept the callback and token :)
     #
@@ -901,29 +900,29 @@ class TokenResourceManager(ResourceManager):
         sso_proxy = sso_interceptor.SSOInterceptorProxy(key)
 
         response = self.client.post(
-            url, 
-            {
-                "key": key.to_json(),
-                "callback_url": sso_proxy.get_callback_url()
-            },
-            **kwargs
+            url,
+            {"key": key.to_json(), "callback_url": sso_proxy.get_callback_url()},
+            **kwargs,
         )
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
         json_response = response.json()
         if not type(json_response) is dict:
-            raise ValueError("Expected response body from SSO CLI request, but couldn't find one :( ")
-            
+            raise ValueError(
+                "Expected response body from SSO CLI request, but couldn't find one :( "
+            )
+
         sso_url = response.json().get("sso_url", None)
         if sso_url is None:
-            raise ValueError("Expected SSO URL to be present in SSO login request response!")
+            raise ValueError(
+                "Expected SSO URL to be present in SSO login request response!"
+            )
 
         sso_proxy.set_sso_url(sso_url)
 
         LOG.debug("Received SSO URL with lenght %d", len(sso_url))
         return sso_proxy
-
 
     def wait_for_sso_token(self, sso_proxy):
         return self.resource.deserialize(sso_proxy.get_token())

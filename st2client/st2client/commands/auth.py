@@ -19,10 +19,8 @@ import getpass
 import json
 import logging
 import os
-import dateutil
 import requests
 import six
-from dateutil import tz
 from six.moves.configparser import ConfigParser
 from six.moves import http_client
 
@@ -38,8 +36,10 @@ from st2client.utils.date import format_isodate_for_user_timezone
 
 LOG = logging.getLogger(__name__)
 
+
 class MissingUserNameException(Exception):
     pass
+
 
 class TokenCreateCommand(resource.ResourceCommand):
 
@@ -122,13 +122,18 @@ class LoginCommand(resource.ResourceCommand):
             **kwargs,
         )
 
-        self.parser.add_argument("username", nargs='?', default=None, help="Name of the user to authenticate (not needed if --sso is used).")
+        self.parser.add_argument(
+            "username",
+            nargs="?",
+            default=None,
+            help="Name of the user to authenticate (not needed if --sso is used).",
+        )
 
         self.parser.add_argument(
             "-s",
             "--sso",
             dest="sso",
-            action='store_true',
+            action="store_true",
             help="Whether to use SSO authentication or not. "
             "If chosen, bypasses username/password.",
         )
@@ -177,7 +182,10 @@ class LoginCommand(resource.ResourceCommand):
             # Retrieve token from SSO backend
             sso_proxy = self.manager.create_sso_request(**kwargs)
 
-            print("Please finish your SSO login by visiting: %s" % (sso_proxy.get_proxy_url()))
+            print(
+                "Please finish your SSO login by visiting: %s"
+                % (sso_proxy.get_proxy_url())
+            )
             token = self.manager.wait_for_sso_token(sso_proxy)
 
         # Defaults to username/password if not SSO
@@ -190,12 +198,11 @@ class LoginCommand(resource.ResourceCommand):
 
             if not args.password:
                 args.password = getpass.getpass()
-            
+
             # Retrieve token from username/password auth api
             token = self.manager.create(
                 instance, auth=(args.username, args.password), **kwargs
             )
-
 
         cli._cache_auth_token(token_obj=token)
 
@@ -208,7 +215,7 @@ class LoginCommand(resource.ResourceCommand):
             config.add_section("credentials")
 
         config.set("credentials", "username", token.user)
-        
+
         if args.write_password and not args.sso:
             config.set("credentials", "password", args.password)
         else:
@@ -244,16 +251,14 @@ class LoginCommand(resource.ResourceCommand):
                     "in the client config file (~/.st2/config)."
                 )
         except MissingUserNameException as e:
-            raise
+            raise e
         except Exception as e:
             if self.app.client.debug:
                 raise
 
             if args.sso:
-                raise Exception(
-                    "Could not perform SSO login: %s" % (six.text_type(e))
-                )
-            
+                raise Exception("Could not perform SSO login: %s" % (six.text_type(e)))
+
             else:
                 raise Exception(
                     "Failed to log in as %s: %s" % (args.username, six.text_type(e))

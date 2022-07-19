@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 from typing import List
 from st2auth.sso.base import BaseSingleSignOnBackendResponse
 from st2common.models.db.auth import SSORequestDB
 from st2common.persistence.auth import SSORequest, Token
-from st2common.services.access import DEFAULT_SSO_REQUEST_TTL, create_web_sso_request, create_cli_sso_request
+from st2common.services.access import (
+    DEFAULT_SSO_REQUEST_TTL,
+    create_web_sso_request,
+    create_cli_sso_request,
+)
 import st2tests.config as tests_config
-from st2common.util.crypto import read_crypto_key_from_dict, symmetric_decrypt, symmetric_encrypt
+from st2common.util.crypto import read_crypto_key_from_dict, symmetric_decrypt
 
 from st2common.util import date as date_utils
 
@@ -44,33 +47,36 @@ SSO_REQUEST_CLI_V1_PATH = SSO_V1_PATH + "/request/cli"
 SSO_CALLBACK_V1_PATH = SSO_V1_PATH + "/callback"
 MOCK_REFERER = "https://127.0.0.1"
 MOCK_USER = "stanley"
-MOCK_CALLBACK_URL = 'http://localhost:34999'
-MOCK_CLI_REQUEST_KEY = read_crypto_key_from_dict({
-    "hmacKey": {
-        "hmacKeyString": "-qdRklvhm4xvzIfaL6Z2nmQ-2N-c4IUtNa1_BowCVfg", 
-        "size": 256
-    }, 
-    "aesKeyString": "0UyXFjBTQ9PMyHZ0mqrvuqCSzesuFup1d6m-4Vi3vdo", 
-    "mode": "CBC", 
-    "size": 256
-})
-MOCK_CLI_REQUEST_KEY_ALTERNATIVE = read_crypto_key_from_dict({
-    "hmacKey":{
-        "hmacKeyString":"ENb-2COFGmdnshSnjjz3wePrxypVzCf9Jq2iuhXEgbc",
-        "size":256
-    },
-    "aesKeyString":"8TpT_RaA6dlharswjqVlJSw027B60UkgnQqcgGfmf08",
-    "mode":"CBC",
-    "size":256
-    })
-MOCK_CLI_REQUEST_KEY_JSON = MOCK_CLI_REQUEST_KEY.to_json()
-MOCK_REQUEST_ID="test-id"
-MOCK_GROUPS=["test", "test2"]
-MOCK_VERIFIED_USER_OBJECT=BaseSingleSignOnBackendResponse(
-    referer=MOCK_REFERER,
-    roles=MOCK_GROUPS,
-    username=MOCK_USER
+MOCK_CALLBACK_URL = "http://localhost:34999"
+MOCK_CLI_REQUEST_KEY = read_crypto_key_from_dict(
+    {
+        "hmacKey": {
+            "hmacKeyString": "-qdRklvhm4xvzIfaL6Z2nmQ-2N-c4IUtNa1_BowCVfg",
+            "size": 256,
+        },
+        "aesKeyString": "0UyXFjBTQ9PMyHZ0mqrvuqCSzesuFup1d6m-4Vi3vdo",
+        "mode": "CBC",
+        "size": 256,
+    }
 )
+MOCK_CLI_REQUEST_KEY_ALTERNATIVE = read_crypto_key_from_dict(
+    {
+        "hmacKey": {
+            "hmacKeyString": "ENb-2COFGmdnshSnjjz3wePrxypVzCf9Jq2iuhXEgbc",
+            "size": 256,
+        },
+        "aesKeyString": "8TpT_RaA6dlharswjqVlJSw027B60UkgnQqcgGfmf08",
+        "mode": "CBC",
+        "size": 256,
+    }
+)
+MOCK_CLI_REQUEST_KEY_JSON = MOCK_CLI_REQUEST_KEY.to_json()
+MOCK_REQUEST_ID = "test-id"
+MOCK_GROUPS = ["test", "test2"]
+MOCK_VERIFIED_USER_OBJECT = BaseSingleSignOnBackendResponse(
+    referer=MOCK_REFERER, roles=MOCK_GROUPS, username=MOCK_USER
+)
+
 
 class TestSingleSignOnController(FunctionalTest):
     def test_sso_enabled(self):
@@ -99,6 +105,7 @@ class TestSingleSignOnController(FunctionalTest):
             sso_api_controller.SingleSignOnController._get_sso_enabled_config.called
         )
 
+
 # Base SSO request test class, to be used by CLI/WEB
 class TestSingleSignOnRequestController(FunctionalTest):
 
@@ -115,9 +122,8 @@ class TestSingleSignOnRequestController(FunctionalTest):
         self.assertEqual(response.status_code, status_code)
         self.assertDictEqual(response.json, expected_body)
 
-
     def _assert_sso_requests_len(self, expected):
-        sso_requests : List[SSORequestDB] = SSORequest.get_all()
+        sso_requests: List[SSORequestDB] = SSORequest.get_all()
         self.assertEqual(len(sso_requests), expected)
         return sso_requests
 
@@ -125,40 +131,40 @@ class TestSingleSignOnRequestController(FunctionalTest):
         self.assertEqual(sso_request.type, type)
         self.assertLessEqual(
             abs(
-                sso_request.expiry.timestamp() 
-                - date_utils.get_datetime_utc_now().timestamp() 
+                sso_request.expiry.timestamp()
+                - date_utils.get_datetime_utc_now().timestamp()
                 - DEFAULT_SSO_REQUEST_TTL
-            ), 2)
-        sso_api_controller.SSO_BACKEND.get_request_redirect_url.assert_called_with(sso_request.request_id, MOCK_REFERER)
+            ),
+            2,
+        )
+        sso_api_controller.SSO_BACKEND.get_request_redirect_url.assert_called_with(
+            sso_request.request_id, MOCK_REFERER
+        )
 
     def _test_cli_request_bad_parameter_helper(self, params, expected_error):
-        response = self._default_cli_request(
-            params=params,
-            expect_errors=True
-        )
+        response = self._default_cli_request(params=params, expect_errors=True)
         self._assert_response(
-            response,
-            http_client.INTERNAL_SERVER_ERROR, 
-            {"faultstring": expected_error})
+            response, http_client.INTERNAL_SERVER_ERROR, {"faultstring": expected_error}
+        )
         self._assert_sso_requests_len(0)
 
-
-
     def _default_web_request(self, expect_errors):
-        return self.app.get(SSO_REQUEST_WEB_V1_PATH, 
-            headers={"referer": MOCK_REFERER}, expect_errors=expect_errors)
+        return self.app.get(
+            SSO_REQUEST_WEB_V1_PATH,
+            headers={"referer": MOCK_REFERER},
+            expect_errors=expect_errors,
+        )
+
     def _default_cli_request(
-        self, 
-        params={
-            'callback_url': MOCK_CALLBACK_URL, 
-            'key': MOCK_CLI_REQUEST_KEY_JSON
-        }, 
-        expect_errors=False):
+        self,
+        params={"callback_url": MOCK_CALLBACK_URL, "key": MOCK_CLI_REQUEST_KEY_JSON},
+        expect_errors=False,
+    ):
         return self.app.post(
-            SSO_REQUEST_CLI_V1_PATH, 
+            SSO_REQUEST_CLI_V1_PATH,
             content_type="application/json",
-            params=json.dumps(params), 
-            expect_errors=expect_errors
+            params=json.dumps(params),
+            expect_errors=expect_errors,
         )
 
     #
@@ -174,25 +180,27 @@ class TestSingleSignOnRequestController(FunctionalTest):
         response = self._default_web_request(True)
         self._assert_response(
             response,
-            http_client.INTERNAL_SERVER_ERROR, 
-            {"faultstring": "Internal Server Error"})
+            http_client.INTERNAL_SERVER_ERROR,
+            {"faultstring": "Internal Server Error"},
+        )
         self._assert_sso_requests_len(0)
 
     def test_web_default_backend_invalid_key(self):
         response = self._default_web_request(True)
         self._assert_response(
             response,
-            http_client.INTERNAL_SERVER_ERROR, 
-            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE})
+            http_client.INTERNAL_SERVER_ERROR,
+            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE},
+        )
         self._assert_sso_requests_len(0)
-
 
     def test_web_default_backend_not_implemented(self):
         response = self._default_web_request(True)
         self._assert_response(
             response,
-            http_client.INTERNAL_SERVER_ERROR, 
-            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE})
+            http_client.INTERNAL_SERVER_ERROR,
+            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE},
+        )
         self._assert_sso_requests_len(0)
 
     @mock.patch.object(
@@ -210,7 +218,6 @@ class TestSingleSignOnRequestController(FunctionalTest):
         sso_request = sso_requests[0]
         self._assert_sso_request_success(sso_request, SSORequestDB.Type.WEB)
 
-
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
         "get_request_redirect_url",
@@ -220,51 +227,46 @@ class TestSingleSignOnRequestController(FunctionalTest):
         response = self._default_cli_request(expect_errors=True)
         self._assert_response(
             response,
-            http_client.INTERNAL_SERVER_ERROR, 
-            {"faultstring": "Internal Server Error"})
+            http_client.INTERNAL_SERVER_ERROR,
+            {"faultstring": "Internal Server Error"},
+        )
         self._assert_sso_requests_len(0)
 
     def test_cli_default_backend_bad_key(self):
         self._test_cli_request_bad_parameter_helper(
-            {
-                'callback_url': MOCK_CALLBACK_URL,
-                'key': 'bad-key'
-            },
-            "The provided key is invalid! It should be stackstorm-compatible AES key"
+            {"callback_url": MOCK_CALLBACK_URL, "key": "bad-key"},
+            "The provided key is invalid! It should be stackstorm-compatible AES key",
         )
 
     def test_cli_default_backend_missing_key(self):
         self._test_cli_request_bad_parameter_helper(
             {
-                'callback_url': MOCK_CALLBACK_URL,
+                "callback_url": MOCK_CALLBACK_URL,
             },
-            "Missing either key and/or callback_url!"
+            "Missing either key and/or callback_url!",
         )
 
     def test_cli_default_backend_missing_callback_url(self):
         self._test_cli_request_bad_parameter_helper(
             {
-                'key': MOCK_CLI_REQUEST_KEY_JSON,
+                "key": MOCK_CLI_REQUEST_KEY_JSON,
             },
-            "Missing either key and/or callback_url!"
+            "Missing either key and/or callback_url!",
         )
 
     def test_cli_default_backend_missing_key_and_callback_url(self):
         self._test_cli_request_bad_parameter_helper(
-            {
-                'ops': 'ops'
-            },
-            "Missing either key and/or callback_url!"
+            {"ops": "ops"}, "Missing either key and/or callback_url!"
         )
 
     def test_cli_default_backend_not_implemented(self):
         response = self._default_cli_request(expect_errors=True)
         self._assert_response(
             response,
-            http_client.INTERNAL_SERVER_ERROR, 
-            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE})
+            http_client.INTERNAL_SERVER_ERROR,
+            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE},
+        )
         self._assert_sso_requests_len(0)
-
 
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
@@ -273,11 +275,8 @@ class TestSingleSignOnRequestController(FunctionalTest):
     )
     def test_cli_default_backend(self):
         response = self._default_cli_request(
-            params={
-                'callback_url': MOCK_REFERER,
-                'key': MOCK_CLI_REQUEST_KEY_JSON
-            },
-            expect_errors=False
+            params={"callback_url": MOCK_REFERER, "key": MOCK_CLI_REQUEST_KEY_JSON},
+            expect_errors=False,
         )
 
         # Make sure we have created a SSO request based on this call :)
@@ -286,12 +285,10 @@ class TestSingleSignOnRequestController(FunctionalTest):
         self._assert_sso_request_success(sso_request, SSORequestDB.Type.CLI)
         self._assert_response(
             response,
-            http_client.OK, 
-            {
-                "sso_url": "https://127.0.0.1",
-                "expiry": sso_request.expiry.isoformat()
-            })
-        
+            http_client.OK,
+            {"sso_url": "https://127.0.0.1", "expiry": sso_request.expiry.isoformat()},
+        )
+
 
 class TestIdentityProviderCallbackController(FunctionalTest):
 
@@ -302,16 +299,17 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         for x in SSORequest.get_all():
             SSORequest.delete(x)
 
-
-    def _assert_response(self, response, status_code, expected_body, response_type='json'):
+    def _assert_response(
+        self, response, status_code, expected_body, response_type="json"
+    ):
         self.assertEqual(response.status_code, status_code)
-        if response_type == 'json':
+        if response_type == "json":
             self.assertDictEqual(response.json, expected_body)
         else:
-            self.assertEqual(response.body.decode('utf-8'), expected_body)
+            self.assertEqual(response.body.decode("utf-8"), expected_body)
 
     def _assert_sso_requests_len(self, expected):
-        sso_requests : List[SSORequestDB] = SSORequest.get_all()
+        sso_requests: List[SSORequestDB] = SSORequest.get_all()
         self.assertEqual(len(sso_requests), expected)
         return sso_requests
 
@@ -326,7 +324,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         self.assertEqual(token.user, MOCK_USER)
         self.assertEqual(token.expiry.isoformat()[0:19], token_data["expiry"][0:19])
 
-    def _assert_response_has_token_cookie_only(self, response): 
+    def _assert_response_has_token_cookie_only(self, response):
 
         set_cookies_list = [h for h in response.headerlist if h[0] == "Set-Cookie"]
         self.assertEqual(len(set_cookies_list), 1)
@@ -338,16 +336,11 @@ class TestIdentityProviderCallbackController(FunctionalTest):
 
         return st2_auth_token
 
-    def _default_callback_request(
-        self, 
-        params={}, 
-        expect_errors=False):
+    def _default_callback_request(self, params={}, expect_errors=False):
         return self.app.post_json(
-            SSO_CALLBACK_V1_PATH,
-            params,
-            expect_errors=expect_errors
+            SSO_CALLBACK_V1_PATH, params, expect_errors=expect_errors
         )
-    
+
     #
     # Tests
     #
@@ -362,7 +355,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         self._assert_response(
             response,
             http_client.INTERNAL_SERVER_ERROR,
-            {"faultstring": "Internal Server Error"}
+            {"faultstring": "Internal Server Error"},
         )
 
     def test_default_backend_not_implemented(self):
@@ -370,7 +363,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         self._assert_response(
             response,
             http_client.INTERNAL_SERVER_ERROR,
-            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE}
+            {"faultstring": noop.NOT_IMPLEMENTED_MESSAGE},
         )
 
     @mock.patch.object(
@@ -383,7 +376,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         self._assert_response(
             response,
             http_client.BAD_REQUEST,
-            {"faultstring": "Invalid request id coming from SAML response"}
+            {"faultstring": "Invalid request id coming from SAML response"},
         )
 
     @mock.patch.object(
@@ -394,7 +387,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
         "verify_response",
-        mock.MagicMock(return_value={'test': 'user'}),
+        mock.MagicMock(return_value={"test": "user"}),
     )
     def test_default_backend_invalid_backend_response(self):
         create_web_sso_request(MOCK_REQUEST_ID)
@@ -402,12 +395,14 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         self._assert_response(
             response,
             http_client.INTERNAL_SERVER_ERROR,
-            {"faultstring": (
-                "Unexpected SSO backend response type."
-                " Expected BaseSingleSignOnBackendResponse instance!"
-            )}
+            {
+                "faultstring": (
+                    "Unexpected SSO backend response type."
+                    " Expected BaseSingleSignOnBackendResponse instance!"
+                )
+            },
         )
-    
+
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
         "get_request_id_from_response",
@@ -415,15 +410,14 @@ class TestIdentityProviderCallbackController(FunctionalTest):
     )
     def test_idp_callback_missing_sso_request(self):
         self._assert_sso_requests_len(0)
-        response = self._default_callback_request({
-            "foo": "bar"
-
-        }, expect_errors=True)
+        response = self._default_callback_request({"foo": "bar"}, expect_errors=True)
 
         self._assert_response(
             response,
             http_client.BAD_REQUEST,
-            {"faultstring": "This SSO request is invalid (it may have already been used)"}
+            {
+                "faultstring": "This SSO request is invalid (it may have already been used)"
+            },
         )
 
     @mock.patch.object(
@@ -436,15 +430,14 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         # Create fake expired request
         create_web_sso_request(MOCK_REQUEST_ID, -20)
         self._assert_sso_requests_len(1)
-        response = self._default_callback_request({
-            "foo": "bar"
-
-        }, expect_errors=True)
+        response = self._default_callback_request({"foo": "bar"}, expect_errors=True)
 
         self._assert_response(
             response,
             http_client.BAD_REQUEST,
-            {"faultstring": "The SSO request associated with this response has already expired!"}
+            {
+                "faultstring": "The SSO request associated with this response has already expired!"
+            },
         )
 
     @mock.patch.object(
@@ -462,12 +455,10 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         # Create fake request
         create_web_sso_request(MOCK_REQUEST_ID)
         self._assert_sso_requests_len(1)
-        
+
         # when
         # Callback based onthe fake request :) -- as mocked above
-        response = self._default_callback_request({
-            "foo": "bar"
-        }, expect_errors=False)
+        response = self._default_callback_request({"foo": "bar"}, expect_errors=False)
 
         # then
         # Validate request has been processed and response is as expected
@@ -476,13 +467,12 @@ class TestIdentityProviderCallbackController(FunctionalTest):
             response,
             http_client.OK,
             sso_api_controller.CALLBACK_SUCCESS_RESPONSE_BODY % MOCK_REFERER,
-            'str'
+            "str",
         )
 
         # Validate token is valid
         token_data = self._assert_response_has_token_cookie_only(response)
         self._assert_token_data_is_valid(token_data)
-
 
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
@@ -499,18 +489,18 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         # Create fake request
         create_cli_sso_request(MOCK_REQUEST_ID, MOCK_CLI_REQUEST_KEY_JSON)
         self._assert_sso_requests_len(1)
-        
+
         # when
         # Callback based onthe fake request :) -- as mocked above
-        response = self._default_callback_request({
-            "foo": "bar"
-        }, expect_errors=False)
+        response = self._default_callback_request({"foo": "bar"}, expect_errors=False)
 
         # then
         # Validate request has been processed and response is as expected
         self._assert_sso_requests_len(0)
         self.assertEqual(response.status_code, http_client.FOUND)
-        self.assertRegex(response.location, "^" + MOCK_REFERER + "\?response=[A-Z0-9]+$")
+        self.assertRegex(
+            response.location, "^" + MOCK_REFERER + r"\?response=[A-Z0-9]+$"
+        )
 
         # decrypt token
         encrypted_response = response.location.split("response=")[1]
@@ -520,7 +510,6 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         # Validate token is valid
         token_data = json.loads(token_data_json)
         self._assert_token_data_is_valid(token_data)
-
 
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
@@ -537,23 +526,23 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         # Create fake request
         create_cli_sso_request(MOCK_REQUEST_ID, MOCK_CLI_REQUEST_KEY_JSON)
         self._assert_sso_requests_len(1)
-        
+
         # when
         # Callback based onthe fake request :) -- as mocked above
-        response = self._default_callback_request({
-            "foo": "bar"
-        }, expect_errors=False)
+        response = self._default_callback_request({"foo": "bar"}, expect_errors=False)
 
         # then
         # Validate request has been processed and response is as expected
         self._assert_sso_requests_len(0)
         self.assertEqual(response.status_code, http_client.FOUND)
-        self.assertRegex(response.location, "^" + MOCK_REFERER + "\?response=[A-Z0-9]+$")
+        self.assertRegex(
+            response.location, "^" + MOCK_REFERER + r"\?response=[A-Z0-9]+$"
+        )
 
         # decrypt token
         encrypted_response = response.location.split("response=")[1]
         with self.assertRaises(Exception):
-            token_data_json = symmetric_decrypt(MOCK_CLI_REQUEST_KEY_ALTERNATIVE, encrypted_response)
+            symmetric_decrypt(MOCK_CLI_REQUEST_KEY_ALTERNATIVE, encrypted_response)
 
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
@@ -571,7 +560,6 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         response = self.app.post(SSO_CALLBACK_V1_PATH, data, headers=headers)
         self.assertEqual(response.status_code, http_client.OK)
-
 
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,

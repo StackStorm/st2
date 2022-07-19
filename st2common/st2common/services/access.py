@@ -21,13 +21,24 @@ from oslo_config import cfg
 
 from st2common.util import isotime
 from st2common.util import date as date_utils
-from st2common.exceptions.auth import SSORequestNotFoundError, TokenNotFoundError, UserNotFoundError
+from st2common.exceptions.auth import (
+    SSORequestNotFoundError,
+    TokenNotFoundError,
+    UserNotFoundError,
+)
 from st2common.exceptions.auth import TTLTooLargeException
 from st2common.models.db.auth import SSORequestDB, TokenDB, UserDB
 from st2common.persistence.auth import SSORequest, Token, User
 from st2common import log as logging
 
-__all__ = ["create_token", "delete_token", "create_cli_sso_request", "create_web_sso_request", "get_sso_request_by_request_id", "delete_sso_request"]
+__all__ = [
+    "create_token",
+    "delete_token",
+    "create_cli_sso_request",
+    "create_web_sso_request",
+    "get_sso_request_by_request_id",
+    "delete_sso_request",
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -108,6 +119,7 @@ def delete_token(token):
     except Exception:
         raise
 
+
 def create_cli_sso_request(request_id, key, ttl=DEFAULT_SSO_REQUEST_TTL):
     """
     :param request_id: ID of the SSO request that is being created (usually uuid format prepended by _)
@@ -122,6 +134,7 @@ def create_cli_sso_request(request_id, key, ttl=DEFAULT_SSO_REQUEST_TTL):
 
     return _create_sso_request(request_id, ttl, SSORequestDB.Type.CLI, key=key)
 
+
 def create_web_sso_request(request_id, ttl=DEFAULT_SSO_REQUEST_TTL):
     """
     :param request_id: ID of the SSO request that is being created (usually uuid format prepended by _)
@@ -133,16 +146,12 @@ def create_web_sso_request(request_id, ttl=DEFAULT_SSO_REQUEST_TTL):
 
     return _create_sso_request(request_id, ttl, SSORequestDB.Type.WEB)
 
+
 def _create_sso_request(request_id, ttl, type, **kwargs) -> SSORequestDB:
 
     expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
-        
-    request = SSORequestDB(
-        request_id=request_id, 
-        expiry=expiry, 
-        type=type, 
-        **kwargs
-    )
+
+    request = SSORequestDB(request_id=request_id, expiry=expiry, type=type, **kwargs)
     SSORequest.add_or_update(request)
 
     expire_string = isotime.format(expiry, offset=False)

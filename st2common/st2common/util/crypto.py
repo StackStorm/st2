@@ -190,6 +190,7 @@ def read_crypto_key(key_path):
         msg = 'Invalid or malformed key file "%s": %s' % (key_path, six.text_type(e))
         raise KeyError(msg)
 
+
 def read_crypto_key_from_dict(key_dict):
     """
     Read crypto key from provided Keyczar JSON-format dict and return parsed AESKey object.
@@ -209,7 +210,7 @@ def read_crypto_key_from_dict(key_dict):
             size=key_dict["size"],
         )
     except KeyError as e:
-        msg = 'Invalid or malformed AES key dictionary: %s' % (six.text_type(e))
+        msg = "Invalid or malformed AES key dictionary: %s" % (six.text_type(e))
         raise KeyError(msg)
 
     return aes_key

@@ -85,19 +85,19 @@ class TokenDB(stormbase.StormFoundationDB):
     )
     service = me.BooleanField(required=True, default=False)
 
-class SSORequestDB(stormbase.StormFoundationDB):
 
+class SSORequestDB(stormbase.StormFoundationDB):
     class Type(Enum):
-        CLI = 'cli'
-        WEB = 'web'
-    
+        CLI = "cli"
+        WEB = "web"
+
     """
     An entity representing a SSO request.
 
     Attribute:
         request_id: Reference to the SSO request unique ID
         expiry: Time at which this request expires.
-        type: What type of SSO request is this? web/cli 
+        type: What type of SSO request is this? web/cli
 
         -- cli --
         key: Symmetric key used to encrypt/decrypt contents from/to the CLI.
@@ -107,7 +107,7 @@ class SSORequestDB(stormbase.StormFoundationDB):
     key = me.StringField(required=False, unique=False)
     expiry = me.DateTimeField(required=True)
     type = me.EnumField(Type, required=True)
-    
+
 
 class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """

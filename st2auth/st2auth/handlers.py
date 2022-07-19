@@ -61,10 +61,14 @@ class AuthHandlerBase(object):
         return getattr(request, "roles", None)
 
     def _sync_roles_for_user(self, username, roles):
-        LOG.debug("Syncing roles [%s] for user [%s] (deleting all " 
-                "roles first and attaching them again)", roles, username)
+        LOG.debug(
+            "Syncing roles [%s] for user [%s] (deleting all "
+            "roles first and attaching them again)",
+            roles,
+            username,
+        )
         # Delete all role assignments
-        role_assignments = UserRoleAssignment.get_all(user= username)
+        role_assignments = UserRoleAssignment.get_all(user=username)
         for role_assignment in role_assignments:
             role_assignment.delete()
 
@@ -72,11 +76,11 @@ class AuthHandlerBase(object):
         for role in roles:
             # Assign role to user
             role_assignment_db = UserRoleAssignmentDB(
-                user=username, 
-                source="API", 
-                role=role, 
-                description="Synced by ProxyAuth", 
-                is_remote=True
+                user=username,
+                source="API",
+                role=role,
+                description="Synced by ProxyAuth",
+                is_remote=True,
             )
             UserRoleAssignment.add_or_update(role_assignment_db)
 

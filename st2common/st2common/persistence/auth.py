@@ -60,7 +60,6 @@ class User(Access):
         return cls.get_by_name(name)
 
 
-
 class SSORequest(Access):
     impl = MongoDBAccess(SSORequestDB)
 

@@ -19,26 +19,32 @@ from typing import List
 
 __all__ = ["BaseSingleSignOnBackend", "BaseSingleSignOnBackendResponse"]
 
+
 # This defines the expected response to be communicated back from verify_response methods
 @six.add_metaclass(abc.ABCMeta)
 class BaseSingleSignOnBackendResponse(object):
-    username : str = None
-    referer : str = None
-    roles : List[str] = None
+    username: str = None
+    referer: str = None
+    roles: List[str] = None
 
     def __init__(self, username=None, referer=None, roles=[]):
         self.username = username
         self.roles = roles
         self.referer = referer
-        
+
     def __eq__(self, other):
-        return self.username == other.username \
-            and self.roles == other.roles \
+        return (
+            self.username == other.username
+            and self.roles == other.roles
             and self.referer == other.referer
-    
+        )
+
     def __repr__(self):
-        return f"BaseSingleSignOnBackendResponse(username={self.username}, roles={self.roles}"\
+        return (
+            f"BaseSingleSignOnBackendResponse(username={self.username}, roles={self.roles}"
             + f", referer={self.referer}"
+        )
+
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseSingleSignOnBackend(object):
@@ -53,7 +59,7 @@ class BaseSingleSignOnBackend(object):
     def get_request_id_from_response(self, response) -> str:
         msg = 'The function "get_request_id_from_response" is not implemented in the base SSO backend.'
         raise NotImplementedError(msg)
-        
+
     def verify_response(self, response) -> BaseSingleSignOnBackendResponse:
         msg = (
             'The function "verify_response" is not implemented in the base SSO backend.'

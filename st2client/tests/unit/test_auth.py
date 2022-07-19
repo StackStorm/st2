@@ -164,6 +164,7 @@ class TestLoginPasswordAndConfig(TestLoginBase):
                 os.path.isfile("%stoken-%s" % (self.DOTST2_PATH, expected_username))
             )
 
+
 class TestLoginWithMissingUsername(TestLoginBase):
 
     CONFIG_FILE_NAME = "logintest.cfg"
@@ -184,7 +185,7 @@ class TestLoginWithMissingUsername(TestLoginBase):
     def runTest(self):
         """Test 'st2 login' functionality missing the username and should fail"""
 
-        expected_username = self.TOKEN["user"]
+        expected_username = self.TOKEN["user"]  # noqa
         args = [
             "--config",
             self.CONFIG_FILE,
