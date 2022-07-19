@@ -214,7 +214,7 @@ class KeyValuePairController(ResourceController):
         # items to avoid information leakage (aka user1 retrieves items for user2)
         name_for_keyref = ""
         if "name" in raw_filters and raw_filters["name"]:
-            name_for_keyref = raw_filters.get("name")
+            name_for_keyref = raw_filters["name"]
         else:
             name_for_keyref = prefix or ""
 
