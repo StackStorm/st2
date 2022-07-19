@@ -102,14 +102,14 @@ def _register_garbage_collector_opts(ignore_errors=False):
             help="Rule enforcements older than this value (days) will be automatically deleted. Defaults to None (disabled).",
         ),
         cfg.IntOpt(
-            "traces_ttl",
-            default=None,
-            help="Trace objects older than this value (days) will be automatically deleted. Defaults to None (disabled).",
-        ),
-        cfg.IntOpt(
             "tokens_ttl",
             default=None,
             help="Tokens that expired over this value (days) will be automatically deleted. Defaults to None (disabled).",
+        ),
+        cfg.IntOpt(
+            "traces_ttl",
+            default=None,
+            help="Trace objects older than this value (days) will be automatically deleted. Defaults to None (disabled).",
         ),
         cfg.IntOpt(
             "workflow_executions_ttl",
