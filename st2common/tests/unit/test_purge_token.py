@@ -67,9 +67,7 @@ class TestPurgeToken(CleanDbTestCase):
         self.assertEqual(len(Token.get_all()), 1)
 
     @staticmethod
-    def _create_save_token(
-        expiry_timestamp=None
-    ):
+    def _create_save_token(expiry_timestamp=None):
         created = TokenDB(
             id=str(bson.ObjectId()),
             user="pony",
