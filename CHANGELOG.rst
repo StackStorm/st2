@@ -67,6 +67,10 @@ Changed
 
   Contributed by @cognifloyd
 
+* Changed the `X-XSS-Protection` HTTP header from `1; mode=block` to `0` in the `conf/nginx/st2.conf` to align with the OWASP security standards. #5298
+
+  Contributed by @LiamRiddell
+
 3.7.0 - May 05, 2022
 --------------------
 
