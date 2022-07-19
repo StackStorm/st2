@@ -35,3 +35,6 @@ class NoOpSingleSignOnBackend(BaseSingleSignOnBackend):
 
     def verify_response(self, response):
         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE)
+
+    def get_request_id_from_response(self, response) -> str:
+        raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE)

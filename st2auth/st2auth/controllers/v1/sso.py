@@ -85,7 +85,7 @@ class IdentityProviderCallbackController(object):
             if not isinstance(verified_user, BaseSingleSignOnBackendResponse):
                 return process_failure_response(http_client.INTERNAL_SERVER_ERROR, "Unexpected SSO backend response type. Expected BaseSingleSignOnBackendResponse instance!")
 
-            LOG.debug("Authenticating SSO user [%s] with roles [%s]", verified_user.username, verified_user.roles)
+            LOG.info("Authenticating SSO user [%s] with roles [%s]", verified_user.username, verified_user.roles)
 
             st2_auth_token_create_request = {
                 "user": verified_user.username,
