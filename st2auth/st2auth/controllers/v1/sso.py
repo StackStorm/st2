@@ -99,19 +99,20 @@ class IdentityProviderCallbackController(object):
             if not isinstance(verified_user, BaseSingleSignOnBackendResponse):
                 return process_failure_response(
                     http_client.INTERNAL_SERVER_ERROR,
-                    "Unexpected SSO backend response type. Expected BaseSingleSignOnBackendResponse instance!",
+                    "Unexpected SSO backend response type. Expected "
+                    "BaseSingleSignOnBackendResponse instance!",
                 )
 
             LOG.info(
-                "Authenticating SSO user [%s] with roles [%s]",
+                "Authenticating SSO user [%s] with groups [%s]",
                 verified_user.username,
-                verified_user.roles,
+                verified_user.groups,
             )
 
             st2_auth_token_create_request = {
                 "user": verified_user.username,
                 "ttl": None,
-                "roles": verified_user.roles,
+                "groups": verified_user.groups,
             }
 
             st2_auth_token = self.st2_auth_handler.handle_auth(
@@ -298,7 +299,8 @@ def process_successful_sso_cli_response(callback_url, key, token):
     encrypted_token = symmetric_encrypt(aes_key, json.dumps(token_json))
 
     LOG.debug(
-        "Redirecting successfuly SSO CLI login to url [%s] with extra parameters for the encrypted token",
+        "Redirecting successfuly SSO CLI login to url [%s] "
+        "with extra parameters for the encrypted token",
         callback_url,
     )
 

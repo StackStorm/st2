@@ -25,23 +25,23 @@ __all__ = ["BaseSingleSignOnBackend", "BaseSingleSignOnBackendResponse"]
 class BaseSingleSignOnBackendResponse(object):
     username: str = None
     referer: str = None
-    roles: List[str] = None
+    groups: List[str] = None
 
-    def __init__(self, username=None, referer=None, roles=[]):
+    def __init__(self, username=None, referer=None, groups=[]):
         self.username = username
-        self.roles = roles
+        self.groups = groups
         self.referer = referer
 
     def __eq__(self, other):
         return (
             self.username == other.username
-            and self.roles == other.roles
+            and self.groups == other.groups
             and self.referer == other.referer
         )
 
     def __repr__(self):
         return (
-            f"BaseSingleSignOnBackendResponse(username={self.username}, roles={self.roles}"
+            f"BaseSingleSignOnBackendResponse(username={self.username}, groups={self.groups}"
             + f", referer={self.referer}"
         )
 
@@ -57,7 +57,10 @@ class BaseSingleSignOnBackend(object):
         raise NotImplementedError(msg)
 
     def get_request_id_from_response(self, response) -> str:
-        msg = 'The function "get_request_id_from_response" is not implemented in the base SSO backend.'
+        msg = (
+            'The function "get_request_id_from_response" is not implemented'
+            "in the base SSO backend."
+        )
         raise NotImplementedError(msg)
 
     def verify_response(self, response) -> BaseSingleSignOnBackendResponse:

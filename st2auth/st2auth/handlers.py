@@ -24,8 +24,6 @@ from st2common.exceptions.auth import TTLTooLargeException, UserNotFoundError
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.auth import NoNicknameOriginProvidedError, AmbiguousUserError
 from st2common.exceptions.auth import NotServiceUserError
-from st2common.models.db.rbac import UserRoleAssignmentDB
-from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.auth import User
 from st2common.router import abort
 from st2common.services.access import create_token
@@ -55,36 +53,38 @@ class AuthHandlerBase(object):
     ):
         raise NotImplementedError()
 
-    def _get_roles_for_request(self, request):
-        if type(request) is dict:
-            return request.get("roles", [])
-        return getattr(request, "roles", None)
+    def sync_user_groups(self, extra, username, groups):
 
-    def _sync_roles_for_user(self, username, roles):
+        if groups is None or len(groups) == 0:
+            LOG.debug("No groups to sync for user '%s'", username)
+            return
+
+        extra["username"] = username
+        extra["user_groups"] = groups
+
         LOG.debug(
-            "Syncing roles [%s] for user [%s] (deleting all "
-            "roles first and attaching them again)",
-            roles,
-            username,
+            'Found "%s" groups for user "%s"' % (len(groups), username),
+            extra=extra,
         )
-        # Delete all role assignments
-        role_assignments = UserRoleAssignment.get_all(user=username)
-        for role_assignment in role_assignments:
-            role_assignment.delete()
 
-        # Assign roles for each role
-        for role in roles:
-            # Assign role to user
-            role_assignment_db = UserRoleAssignmentDB(
-                user=username,
-                source="API",
-                role=role,
-                description="Synced by ProxyAuth",
-                is_remote=True,
+        user_db = UserDB(name=username)
+
+        rbac_backend = get_rbac_backend()
+        syncer = rbac_backend.get_remote_group_to_role_syncer()
+
+        try:
+            syncer.sync(user_db=user_db, groups=groups)
+        except Exception:
+            # Note: Failed sync is not fatal
+            LOG.exception(
+                'Failed to synchronize remote groups for user "%s"' % (username),
+                extra=extra,
             )
-            UserRoleAssignment.add_or_update(role_assignment_db)
-
-        LOG.debug("Roles successfully synced for user [%s]", username)
+        else:
+            LOG.debug(
+                'Successfully synchronized groups for user "%s"' % (username),
+                extra=extra,
+            )
 
     def _create_token_for_user(self, username, ttl=None):
         tokendb = create_token(username=username, ttl=ttl)
@@ -168,8 +168,11 @@ class ProxyAuthHandler(AuthHandlerBase):
             username = self._get_username_for_request(remote_user, request)
             try:
                 token = self._create_token_for_user(username=username, ttl=ttl)
-                roles = self._get_roles_for_request(request)
-                self._sync_roles_for_user(username, roles)
+                groups = getattr(request, "groups", None)
+
+                if cfg.CONF.rbac.backend != "noop":
+                    self.sync_user_groups(extra, username, groups)
+
             except TTLTooLargeException as e:
                 abort_request(
                     status_code=http_client.BAD_REQUEST, message=six.text_type(e)
@@ -263,33 +266,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
                     # No groups, return early
                     return token
 
-                extra["username"] = username
-                extra["user_groups"] = user_groups
-
-                LOG.debug(
-                    'Found "%s" groups for user "%s"' % (len(user_groups), username),
-                    extra=extra,
-                )
-
-                user_db = UserDB(name=username)
-
-                rbac_backend = get_rbac_backend()
-                syncer = rbac_backend.get_remote_group_to_role_syncer()
-
-                try:
-                    syncer.sync(user_db=user_db, groups=user_groups)
-                except Exception:
-                    # Note: Failed sync is not fatal
-                    LOG.exception(
-                        'Failed to synchronize remote groups for user "%s"'
-                        % (username),
-                        extra=extra,
-                    )
-                else:
-                    LOG.debug(
-                        'Successfully synchronized groups for user "%s"' % (username),
-                        extra=extra,
-                    )
+                self.sync_user_groups(extra, username, user_groups)
 
                 return token
             return token

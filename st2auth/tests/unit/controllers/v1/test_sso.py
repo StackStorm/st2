@@ -74,7 +74,7 @@ MOCK_CLI_REQUEST_KEY_JSON = MOCK_CLI_REQUEST_KEY.to_json()
 MOCK_REQUEST_ID = "test-id"
 MOCK_GROUPS = ["test", "test2"]
 MOCK_VERIFIED_USER_OBJECT = BaseSingleSignOnBackendResponse(
-    referer=MOCK_REFERER, roles=MOCK_GROUPS, username=MOCK_USER
+    referer=MOCK_REFERER, groups=MOCK_GROUPS, username=MOCK_USER
 )
 
 
@@ -144,7 +144,7 @@ class TestSingleSignOnRequestController(FunctionalTest):
     def _test_cli_request_bad_parameter_helper(self, params, expected_error):
         response = self._default_cli_request(params=params, expect_errors=True)
         self._assert_response(
-            response, http_client.INTERNAL_SERVER_ERROR, {"faultstring": expected_error}
+            response, http_client.BAD_REQUEST, {"faultstring": expected_error}
         )
         self._assert_sso_requests_len(0)
 
