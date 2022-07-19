@@ -25,6 +25,9 @@ Added
 * Added graceful shutdown for workflow engine. #5463
   Contributed by @khushboobhatia01
 
+* Added purging of old tokens. #?
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
 Changed
 ~~~~~~~
 
