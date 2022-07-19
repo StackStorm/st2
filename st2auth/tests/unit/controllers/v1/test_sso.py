@@ -54,6 +54,15 @@ MOCK_CLI_REQUEST_KEY = read_crypto_key_from_dict({
     "mode": "CBC", 
     "size": 256
 })
+MOCK_CLI_REQUEST_KEY_ALTERNATIVE = read_crypto_key_from_dict({
+    "hmacKey":{
+        "hmacKeyString":"ENb-2COFGmdnshSnjjz3wePrxypVzCf9Jq2iuhXEgbc",
+        "size":256
+    },
+    "aesKeyString":"8TpT_RaA6dlharswjqVlJSw027B60UkgnQqcgGfmf08",
+    "mode":"CBC",
+    "size":256
+    })
 MOCK_CLI_REQUEST_KEY_JSON = MOCK_CLI_REQUEST_KEY.to_json()
 MOCK_REQUEST_ID="test-id"
 MOCK_GROUPS=["test", "test2"]
@@ -505,13 +514,46 @@ class TestIdentityProviderCallbackController(FunctionalTest):
 
         # decrypt token
         encrypted_response = response.location.split("response=")[1]
-        encrypted_token = symmetric_decrypt(MOCK_CLI_REQUEST_KEY, encrypted_response)
-        self.assertIsNotNone(encrypted_token)
+        token_data_json = symmetric_decrypt(MOCK_CLI_REQUEST_KEY, encrypted_response)
+        self.assertIsNotNone(token_data_json)
 
         # Validate token is valid
-        token_data = json.loads(encrypted_token)
+        token_data = json.loads(token_data_json)
         self._assert_token_data_is_valid(token_data)
 
+
+    @mock.patch.object(
+        sso_api_controller.SSO_BACKEND,
+        "get_request_id_from_response",
+        mock.MagicMock(return_value=MOCK_REQUEST_ID),
+    )
+    @mock.patch.object(
+        sso_api_controller.SSO_BACKEND,
+        "verify_response",
+        mock.MagicMock(return_value=MOCK_VERIFIED_USER_OBJECT),
+    )
+    def test_idp_callback_cli_invalid_decryption_key(self):
+        # given
+        # Create fake request
+        create_cli_sso_request(MOCK_REQUEST_ID, MOCK_CLI_REQUEST_KEY_JSON)
+        self._assert_sso_requests_len(1)
+        
+        # when
+        # Callback based onthe fake request :) -- as mocked above
+        response = self._default_callback_request({
+            "foo": "bar"
+        }, expect_errors=False)
+
+        # then
+        # Validate request has been processed and response is as expected
+        self._assert_sso_requests_len(0)
+        self.assertEqual(response.status_code, http_client.FOUND)
+        self.assertRegex(response.location, "^" + MOCK_REFERER + "\?response=[A-Z0-9]+$")
+
+        # decrypt token
+        encrypted_response = response.location.split("response=")[1]
+        with self.assertRaises(Exception):
+            token_data_json = symmetric_decrypt(MOCK_CLI_REQUEST_KEY_ALTERNATIVE, encrypted_response)
 
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
