@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-
 try:
     from st2common.runners.base_action import Action
 except ImportError:

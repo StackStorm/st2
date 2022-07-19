@@ -447,6 +447,12 @@ class BaseCLIApp(object):
         print("")
         print("Proxy settings:")
         print("---------------")
-        print("HTTP_PROXY: %s" % (os.environ.get("HTTP_PROXY", "")))
-        print("HTTPS_PROXY: %s" % (os.environ.get("HTTPS_PROXY", "")))
+        print(
+            "HTTP_PROXY: %s"
+            % (os.environ.get("http_proxy", os.environ.get("HTTP_PROXY", "")))
+        )
+        print(
+            "HTTPS_PROXY: %s"
+            % (os.environ.get("http_proxy", os.environ.get("HTTPS_PROXY", "")))
+        )
         print("")

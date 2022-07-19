@@ -27,7 +27,7 @@ from st2common.constants.pack import MANIFEST_FILE_NAME
 
 
 class GetInstalled(Action):
-    """"Get information about installed pack."""
+    """Get information about installed pack."""
 
     def run(self, pack):
         """
