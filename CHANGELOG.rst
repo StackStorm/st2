@@ -24,6 +24,9 @@ Added
 
 * Added graceful shutdown for workflow engine. #5463
   Contributed by @khushboobhatia01
+  
+* Add ``ST2_USE_DEBUGGER`` env var as alternative to the ``--use-debugger`` cli flag. #5675
+  Contributed by @cognifloyd
 
 * Added purging of old tokens. #?
   Contributed by Amanda McGuinness (@amanda11 intive)
