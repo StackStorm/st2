@@ -11,6 +11,7 @@ cryptography==3.4.7
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
 eventlet==0.30.2
+etcd3gw==1.0.0
 flex==6.14.1
 gitpython==3.1.15
 # Needed by gitpython, old versions used to bundle it
@@ -67,6 +68,7 @@ sseclient-py==1.7
 stevedore==1.30.1
 tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
+tenacity>=3.2.1,<7.0.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
 # virtualenv==20.4.0 (<21) has pip==20.3.3 wheel==0.36.2 setuptools==51.3.3
 virtualenv==20.4.0

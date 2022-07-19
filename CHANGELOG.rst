@@ -266,6 +266,10 @@ Fixed
 * Pin ``typing-extensions<4.2`` (used indirectly by st2client) to maintain python 3.6 support. #5638
 
 
+* Add required dependency to support etcd3gw driver. #5528
+
+  Contributed by @khushboobhatia01
+
 3.6.0 - October 29, 2021
 ------------------------
 
