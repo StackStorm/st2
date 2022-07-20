@@ -19,6 +19,11 @@ Fixed
 
   Contributed by @S-T-A-R-L-O-R-D
 
+
+* Fixed ``st2client/st2client/base.py`` file to use ``https_proxy``(not ``http_proxy``) to check HTTPS_PROXY environment variables.
+
+  Contributed by @wfgydbu
+
 Added
 ~~~~~
 
@@ -67,8 +72,13 @@ Changed
 
   Contributed by @cognifloyd
 
+* Changed the `X-XSS-Protection` HTTP header from `1; mode=block` to `0` in the `conf/nginx/st2.conf` to align with the OWASP security standards. #5298
+
+  Contributed by @LiamRiddell
+
 * Use PEP 440 direct reference requirements instead of legacy PIP VCS requirements. Now, our ``*.requirements.txt`` files use
   ``package-name@ git+https://url@version ; markers`` instead of ``git+https://url@version#egg=package-name ; markers``. #5673
+
   Contributed by @cognifloyd
 
 3.7.0 - May 05, 2022
