@@ -23,6 +23,12 @@ Fixed
 
   Contributed by @bharath-orchestral
   
+
+* Fixed ``st2client/st2client/base.py`` file to use ``https_proxy``(not ``http_proxy``) to check HTTPS_PROXY environment variables.
+
+  Contributed by @wfgydbu
+
+  
 Added
 ~~~~~
 
