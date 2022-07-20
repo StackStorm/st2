@@ -4555,14 +4555,15 @@ paths:
               key:
                 type: string
                 description: The symmetric key to be used to encrypt contents of callback
+                required: true
               callback_url:
                 type: string
                 description:  What URL to be called back once the response from SSO is received
+                required: true
       responses:
         '200':
           description: SSO request valid
       security: []
-
   /auth/v1/sso/callback:
     post:
       operationId: st2auth.controllers.v1.sso:idp_callback_controller.post
@@ -5398,7 +5399,6 @@ definitions:
     type:
       - object
       - array
-  
   ActionParametersSubSchema:
     type: object
     description: Input parameters for the action.
