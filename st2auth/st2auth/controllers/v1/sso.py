@@ -202,6 +202,7 @@ class SingleSignOnRequestController(object):
                     sso_request.request_id, callback_url
                 ),
                 # this is needed because the db doesnt save microseconds
+                # pylint: disable=E1101
                 "expiry": sso_request.expiry.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
                 + "000+00:00",
             }

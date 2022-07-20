@@ -31,12 +31,13 @@ __all__ = [
     "AmbiguousUserError",
     "NotServiceUserError",
     "SSOVerificationError",
-    "SSORequestNotFoundError"
+    "SSORequestNotFoundError",
 ]
 
 
 class TokenNotProvidedError(StackStormBaseException):
     pass
+
 
 class SSORequestNotFoundError(StackStormBaseException):
     pass
