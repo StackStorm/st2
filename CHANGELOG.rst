@@ -4,6 +4,15 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Added support for SSO backends #5664
+
+  SAML backend on a separate [repository](https://github.com/StackStorm/st2-auth-backend-sso-saml2)
+
+  Contributed by @pimguilherme
+
 Fixed
 ~~~~~
 
