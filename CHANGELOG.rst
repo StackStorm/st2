@@ -19,6 +19,10 @@ Fixed
 
   Contributed by @S-T-A-R-L-O-R-D
 
+* Fixed a bug where calling 'get_by_name' on client for getting key details was not returning any results despite key being stored
+
+  Contributed by @bharath-orchestral
+  
 Added
 ~~~~~
 
