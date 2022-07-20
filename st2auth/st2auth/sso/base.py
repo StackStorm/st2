@@ -33,6 +33,8 @@ class BaseSingleSignOnBackendResponse(object):
         self.referer = referer
 
     def __eq__(self, other):
+        if other is None:
+            return False
         return (
             self.username == other.username
             and self.groups == other.groups
