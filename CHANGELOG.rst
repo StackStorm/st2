@@ -19,6 +19,11 @@ Fixed
 
   Contributed by @S-T-A-R-L-O-R-D
 
+
+* Fixed ``st2client/st2client/base.py`` file to use ``https_proxy``(not ``http_proxy``) to check HTTPS_PROXY environment variables.
+
+  Contributed by @wfgydbu
+
 Added
 ~~~~~
 
@@ -66,6 +71,10 @@ Changed
   #5319
 
   Contributed by @cognifloyd
+
+* Changed the `X-XSS-Protection` HTTP header from `1; mode=block` to `0` in the `conf/nginx/st2.conf` to align with the OWASP security standards. #5298
+
+  Contributed by @LiamRiddell
 
 Removed
 ~~~~~~~
