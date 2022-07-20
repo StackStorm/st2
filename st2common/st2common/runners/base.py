@@ -28,7 +28,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants import pack as pack_constants
-from st2common.constants.runners import RUNNERS_NAMESPACE
+from st2common.constants.runners import RUNNERS_NAMESPACE, MANIFEST_FILE_NAME
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions import actionrunner as exc
@@ -120,7 +120,7 @@ def get_metadata(package_name):
     """
     import pkg_resources
 
-    file_path = pkg_resources.resource_filename(package_name, "runner.yaml")
+    file_path = pkg_resources.resource_filename(package_name, MANIFEST_FILE_NAME)
 
     with open(file_path, "r") as fp:
         content = fp.read()

@@ -22,18 +22,20 @@ Fixed
 * Fixed a bug where calling 'get_by_name' on client for getting key details was not returning any results despite key being stored
 
   Contributed by @bharath-orchestral
-  
+ 
 
 * Fixed ``st2client/st2client/base.py`` file to use ``https_proxy``(not ``http_proxy``) to check HTTPS_PROXY environment variables.
 
   Contributed by @wfgydbu
 
-  
 Added
 ~~~~~
 
 * Added graceful shutdown for workflow engine. #5463
   Contributed by @khushboobhatia01
+
+* Add ``ST2_USE_DEBUGGER`` env var as alternative to the ``--use-debugger`` cli flag. #5675
+  Contributed by @cognifloyd
 
 Changed
 ~~~~~~~
@@ -73,6 +75,10 @@ Changed
   #5319
 
   Contributed by @cognifloyd
+
+* Changed the `X-XSS-Protection` HTTP header from `1; mode=block` to `0` in the `conf/nginx/st2.conf` to align with the OWASP security standards. #5298
+
+  Contributed by @LiamRiddell
 
 3.7.0 - May 05, 2022
 --------------------
