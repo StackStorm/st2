@@ -57,6 +57,7 @@ setup(
         "bin/st2-purge-trigger-instances",
         "bin/st2-purge-traces",
         "bin/st2-purge-rule-enforcements",
+        "bin/st2-purge-tokens",
         "bin/st2-run-pack-tests",
         "bin/st2ctl",
         "bin/st2-generate-symmetric-crypto-key",
