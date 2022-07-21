@@ -33,6 +33,9 @@ Added
 * Add ``ST2_USE_DEBUGGER`` env var as alternative to the ``--use-debugger`` cli flag. #5675
   Contributed by @cognifloyd
 
+* Added purging of old tokens. #56791
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
 Changed
 ~~~~~~~
 
