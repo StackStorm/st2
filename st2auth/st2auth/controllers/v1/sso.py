@@ -93,7 +93,8 @@ class IdentityProviderCallbackController(object):
     def post(self, response, **kwargs):
         try:
 
-            original_sso_request = self._validate_and_delete_sso_request(response)
+            original_sso_request = self._validate_and_delete_sso_request(
+                response)
 
             # Obtain user details from the SSO response from the backend
             verified_user = SSO_BACKEND.verify_response(response)
@@ -111,7 +112,6 @@ class IdentityProviderCallbackController(object):
             )
 
             st2_auth_token_create_request = GenericRequestParam(
-                user=verified_user.username,
                 ttl=None,
                 groups=verified_user.groups,
             )
@@ -195,7 +195,8 @@ class SingleSignOnRequestController(object):
                     "The provided key is invalid! It should be stackstorm-compatible AES key"
                 )
 
-            sso_request = self._create_sso_request(create_cli_sso_request, key=key)
+            sso_request = self._create_sso_request(
+                create_cli_sso_request, key=key)
             response = router.Response(status=http_client.OK)
             response.content_type = "application/json"
             response.json = {
@@ -308,7 +309,8 @@ def process_successful_sso_cli_response(callback_url, key, token):
 
     # Response back to the browser has all the data in the query string, in an encrypted formta :)
     resp = router.Response(status=http_client.FOUND)
-    resp.location = "%s?response=%s" % (callback_url, encrypted_token.decode("utf-8"))
+    resp.location = "%s?response=%s" % (
+        callback_url, encrypted_token.decode("utf-8"))
 
     return resp
 
