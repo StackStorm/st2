@@ -19,6 +19,7 @@ from uuid import uuid4
 from oslo_config import cfg
 from six.moves import http_client
 from six.moves import urllib
+from st2common.router import GenericRequestParam
 
 import st2auth.handlers as handlers
 
@@ -109,11 +110,11 @@ class IdentityProviderCallbackController(object):
                 verified_user.groups,
             )
 
-            st2_auth_token_create_request = {
-                "user": verified_user.username,
-                "ttl": None,
-                "groups": verified_user.groups,
-            }
+            st2_auth_token_create_request = GenericRequestParam(
+                user=verified_user.username,
+                ttl=None,
+                groups=verified_user.groups,
+            )
 
             st2_auth_token = self.st2_auth_handler.handle_auth(
                 request=st2_auth_token_create_request,

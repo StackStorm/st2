@@ -337,6 +337,9 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         for x in Role.get_all():
             Role.delete(x)
 
+        cfg.CONF.set_override(group="rbac", name="enable", override=False)
+        cfg.CONF.set_override(group="rbac", name="backend", override="default")
+
     # Helpers
     #
 
