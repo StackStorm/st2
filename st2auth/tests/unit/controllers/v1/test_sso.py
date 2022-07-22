@@ -12,12 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from tests.base import FunctionalTest
+from st2common.exceptions import auth as auth_exc
+from st2auth.sso import noop
+from st2auth.controllers.v1 import sso as sso_api_controller
+from six.moves import urllib
+from six.moves import http_client
+from oslo_config import cfg
+import mock
+import json
 from typing import List
 from st2auth.sso.base import BaseSingleSignOnBackendResponse
 from st2common.models.db.auth import SSORequestDB
 from st2common.persistence.auth import SSORequest, Token
 from st2common.persistence.rbac import GroupToRoleMapping, UserRoleAssignment, Role
-from st2common.models.db.rbac import GroupToRoleMappingDB, UserRoleAssignmentDB, RoleDB
+from st2common.models.db.rbac import GroupToRoleMappingDB, RoleDB
 from st2common.services.access import (
     DEFAULT_SSO_REQUEST_TTL,
     create_web_sso_request,
@@ -29,18 +38,6 @@ from st2common.util.crypto import read_crypto_key_from_dict, symmetric_decrypt
 from st2common.util import date as date_utils
 
 tests_config.parse_args()
-
-import json
-import mock
-
-from oslo_config import cfg
-from six.moves import http_client
-from six.moves import urllib
-
-from st2auth.controllers.v1 import sso as sso_api_controller
-from st2auth.sso import noop
-from st2common.exceptions import auth as auth_exc
-from tests.base import FunctionalTest
 
 
 SSO_V1_PATH = "/v1/sso"
@@ -113,16 +110,16 @@ class TestSingleSignOnRequestController(FunctionalTest):
 
     #
     # Settupers
-    # 
+    #
 
     # Cleanup sso requests
     def setUp(self):
         for x in SSORequest.get_all():
             SSORequest.delete(x)
-   
+
     #
     # Helpers
-    #     
+    #
 
     def _assert_response(self, response, status_code, expected_body):
         self.assertEqual(response.status_code, status_code)
@@ -297,8 +294,6 @@ class TestSingleSignOnRequestController(FunctionalTest):
 
 
 class TestIdentityProviderCallbackController(FunctionalTest):
-
-
     def setUp(self):
         for x in SSORequest.get_all():
             SSORequest.delete(x)
@@ -321,17 +316,11 @@ class TestIdentityProviderCallbackController(FunctionalTest):
             SSORequest.delete(x)
 
         GroupToRoleMappingDB(
-            group="test2",
-            roles=["system_admin", "admin"],
-            source="test",
-            enabled=True
+            group="test2", roles=["system_admin", "admin"], source="test", enabled=True
         ).save()
 
         GroupToRoleMappingDB(
-            group="test",
-            roles=["my-test"],
-            source="test",
-            enabled=True
+            group="test", roles=["my-test"], source="test", enabled=True
         ).save()
 
         cfg.CONF.set_override(group="rbac", name="enable", override=True)
@@ -530,7 +519,6 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         # Validate token is valid
         token_data = self._assert_response_has_token_cookie_only(response)
         self._assert_token_data_is_valid(token_data)
-    
 
     def test_idp_callback_web_without_rbac(self):
         self._assert_role_assignment_len(0)
@@ -542,10 +530,9 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         self._assert_role_assignment_len(0)
 
         self._test_idp_callback_web()
-        
+
         self._assert_role_assignment_len(3)
         self.tearDown_for_rbac()
-
 
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
@@ -594,7 +581,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         self._assert_role_assignment_len(0)
 
         self._test_idp_callback_cli()
-        
+
         self._assert_role_assignment_len(3)
         self.tearDown_for_rbac()
 

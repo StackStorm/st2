@@ -7,9 +7,11 @@ in development
 Added
 ~~~~~
 
-* Added support for SSO backends #5664
+* Revised support for SSO backends + SAML2 included by default #5664
 
-  SAML backend on a separate [repository](https://github.com/StackStorm/st2-auth-backend-sso-saml2)
+  SAML backend on a separate repository, included as a dependecy , https://github.com/StackStorm/st2-auth-backend-sso-saml2
+
+  RBAC support also baked into SSO backends
 
   Contributed by @pimguilherme
 
