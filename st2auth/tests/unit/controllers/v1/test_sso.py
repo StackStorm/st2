@@ -16,6 +16,8 @@ from typing import List
 from st2auth.sso.base import BaseSingleSignOnBackendResponse
 from st2common.models.db.auth import SSORequestDB
 from st2common.persistence.auth import SSORequest, Token
+from st2common.persistence.rbac import GroupToRoleMapping, UserRoleAssignment, Role
+from st2common.models.db.rbac import GroupToRoleMappingDB, UserRoleAssignmentDB, RoleDB
 from st2common.services.access import (
     DEFAULT_SSO_REQUEST_TTL,
     create_web_sso_request,
@@ -110,13 +112,17 @@ class TestSingleSignOnController(FunctionalTest):
 class TestSingleSignOnRequestController(FunctionalTest):
 
     #
-    # Helpers
-    #
+    # Settupers
+    # 
 
     # Cleanup sso requests
     def setUp(self):
         for x in SSORequest.get_all():
             SSORequest.delete(x)
+   
+    #
+    # Helpers
+    #     
 
     def _assert_response(self, response, status_code, expected_body):
         self.assertEqual(response.status_code, status_code)
@@ -292,12 +298,58 @@ class TestSingleSignOnRequestController(FunctionalTest):
 
 class TestIdentityProviderCallbackController(FunctionalTest):
 
-    # Helpers
-    #
 
     def setUp(self):
         for x in SSORequest.get_all():
             SSORequest.delete(x)
+
+    def setUp_for_rbac(self):
+        # Set up standard roles
+        for x in Role.get_all():
+            Role.delete(x)
+
+        RoleDB(name="system_admin", system=True).save()
+        RoleDB(name="admin", system=True).save()
+        RoleDB(name="my-test", system=True).save()
+
+        # Cleanup user assignments
+        for x in UserRoleAssignment.get_all():
+            UserRoleAssignment.delete(x)
+
+        # Set up assignment mappings
+        for x in GroupToRoleMapping.get_all():
+            SSORequest.delete(x)
+
+        GroupToRoleMappingDB(
+            group="test2",
+            roles=["system_admin", "admin"],
+            source="test",
+            enabled=True
+        ).save()
+
+        GroupToRoleMappingDB(
+            group="test",
+            roles=["my-test"],
+            source="test",
+            enabled=True
+        ).save()
+
+        cfg.CONF.set_override(group="rbac", name="enable", override=True)
+        cfg.CONF.set_override(group="rbac", name="backend", override="default")
+
+    def tearDown_for_rbac(self):
+
+        for x in UserRoleAssignment.get_all():
+            UserRoleAssignment.delete(x)
+
+        for x in GroupToRoleMapping.get_all():
+            SSORequest.delete(x)
+
+        for x in Role.get_all():
+            Role.delete(x)
+
+    # Helpers
+    #
 
     def _assert_response(
         self, response, status_code, expected_body, response_type="json"
@@ -312,6 +364,11 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         sso_requests: List[SSORequestDB] = SSORequest.get_all()
         self.assertEqual(len(sso_requests), expected)
         return sso_requests
+
+    def _assert_role_assignment_len(self, expected):
+        role_assignments: List[UserRoleAssignment] = UserRoleAssignment.get_all()
+        self.assertEqual(len(role_assignments), expected)
+        return role_assignments
 
     def _assert_token_data_is_valid(self, token_data):
         self.assertEqual(token_data["user"], MOCK_USER)
@@ -450,7 +507,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         "verify_response",
         mock.MagicMock(return_value=MOCK_VERIFIED_USER_OBJECT),
     )
-    def test_idp_callback_web(self):
+    def _test_idp_callback_web(self):
         # given
         # Create fake request
         create_web_sso_request(MOCK_REQUEST_ID)
@@ -473,6 +530,22 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         # Validate token is valid
         token_data = self._assert_response_has_token_cookie_only(response)
         self._assert_token_data_is_valid(token_data)
+    
+
+    def test_idp_callback_web_without_rbac(self):
+        self._assert_role_assignment_len(0)
+        self._test_idp_callback_web()
+        self._assert_role_assignment_len(0)
+
+    def test_idp_callback_web_with_rbac(self):
+        self.setUp_for_rbac()
+        self._assert_role_assignment_len(0)
+
+        self._test_idp_callback_web()
+        
+        self._assert_role_assignment_len(3)
+        self.tearDown_for_rbac()
+
 
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
@@ -484,7 +557,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         "verify_response",
         mock.MagicMock(return_value=MOCK_VERIFIED_USER_OBJECT),
     )
-    def test_idp_callback_cli(self):
+    def _test_idp_callback_cli(self):
         # given
         # Create fake request
         create_cli_sso_request(MOCK_REQUEST_ID, MOCK_CLI_REQUEST_KEY_JSON)
@@ -511,6 +584,20 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         token_data = json.loads(token_data_json)
         self._assert_token_data_is_valid(token_data)
 
+    def test_idp_callback_cli_without_rbac(self):
+        self._assert_role_assignment_len(0)
+        self._test_idp_callback_cli()
+        self._assert_role_assignment_len(0)
+
+    def test_idp_callback_cli_with_rbac(self):
+        self.setUp_for_rbac()
+        self._assert_role_assignment_len(0)
+
+        self._test_idp_callback_cli()
+        
+        self._assert_role_assignment_len(3)
+        self.tearDown_for_rbac()
+
     @mock.patch.object(
         sso_api_controller.SSO_BACKEND,
         "get_request_id_from_response",
@@ -526,6 +613,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         # Create fake request
         create_cli_sso_request(MOCK_REQUEST_ID, MOCK_CLI_REQUEST_KEY_JSON)
         self._assert_sso_requests_len(1)
+        self._assert_role_assignment_len(0)
 
         # when
         # Callback based onthe fake request :) -- as mocked above
@@ -534,6 +622,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
         # then
         # Validate request has been processed and response is as expected
         self._assert_sso_requests_len(0)
+        self._assert_role_assignment_len(0)
         self.assertEqual(response.status_code, http_client.FOUND)
         self.assertRegex(
             response.location, "^" + MOCK_REFERER + r"\?response=[A-Z0-9]+$"

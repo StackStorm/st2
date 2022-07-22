@@ -162,13 +162,14 @@ class ProxyAuthHandler(AuthHandlerBase):
     ):
         remote_addr = headers.get("x-forwarded-for", remote_addr)
         extra = {"remote_addr": remote_addr}
+        LOG.debug("Authenticating for proxy with request [%s]", request)
 
         if remote_user:
             ttl = getattr(request, "ttl", None)
             username = self._get_username_for_request(remote_user, request)
             try:
                 token = self._create_token_for_user(username=username, ttl=ttl)
-                groups = getattr(request, "groups", None)
+                groups = request.get("groups", None)
 
                 if cfg.CONF.rbac.backend != "noop":
                     self.sync_user_groups(extra, username, groups)
