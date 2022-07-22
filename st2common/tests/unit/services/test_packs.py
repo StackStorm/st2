@@ -186,10 +186,14 @@ SOURCE_WORKFLOW = {
     "name": "data-flow",
     "notify": {},
     "output_schema": {
-        "a6": {"type": "string", "required": True},
-        "b6": {"type": "string", "required": True},
-        "a7": {"type": "string", "required": True},
-        "b7": {"type": "string", "required": True, "secret": "********"},
+        "type": "object",
+        "properties": {
+            "a6": {"type": "string", "required": True},
+            "b6": {"type": "string", "required": True},
+            "a7": {"type": "string", "required": True},
+            "b7": {"type": "string", "required": True, "secret": True},
+        },
+        "additionalProperties": False,
     },
     "pack": TEST_SOURCE_WORKFLOW_PACK,
     "parameters": {"a1": {"required": True, "type": "string"}},
