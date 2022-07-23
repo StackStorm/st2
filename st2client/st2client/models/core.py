@@ -880,6 +880,7 @@ class ServiceRegistryMembersManager(ResourceManager):
 
         return result
 
+
 class KeyValuePairResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def get_by_name(self, name, **kwargs):
@@ -898,14 +899,14 @@ class KeyValuePairResourceManager(ResourceManager):
             name,
             urllib.parse.urlencode(params),
         )
-        
+
         if token:
             response = self.client.get(url, token=token)
         elif api_key:
             response = self.client.get(url, api_key=api_key)
         else:
             response = self.client.get(url)
-        
+
         if response.status_code == http_client.NOT_FOUND:
             # for query and query_with_count
             return []

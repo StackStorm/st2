@@ -472,6 +472,7 @@ class TestResourceManager(unittest2.TestCase):
         source_ref = "spack.saction"
         self.assertRaises(Exception, mgr.clone, source_ref, "dpack", "daction")
 
+
 class TestKeyValuePairResourceManager(unittest2.TestCase):
     @mock.patch.object(
         httpclient.HTTPClient,
