@@ -24,6 +24,8 @@ Fixed
 
   Contributed by @wfgydbu
 
+* Fixed schemas ... TODO: fill this out (this is here to silence the irritating changelog check until I'm ready to document)
+
 Added
 ~~~~~
 
