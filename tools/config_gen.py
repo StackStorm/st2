@@ -33,7 +33,6 @@ CONFIGS = [
     "st2stream.config",
     "st2auth.config",
     "st2common.config",
-    "st2exporter.config",
     "st2reactor.rules.config",
     "st2reactor.sensor.config",
     "st2reactor.timer.config",

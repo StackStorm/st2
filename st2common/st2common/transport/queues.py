@@ -39,7 +39,6 @@ __all__ = [
     "ACTIONRUNNER_CANCEL_QUEUE",
     "ACTIONRUNNER_PAUSE_QUEUE",
     "ACTIONRUNNER_RESUME_QUEUE",
-    "EXPORTER_WORK_QUEUE",
     "NOTIFIER_ACTIONUPDATE_WORK_QUEUE",
     "RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE",
     "RULESENGINE_WORK_QUEUE",
@@ -73,12 +72,6 @@ ACTIONRUNNER_PAUSE_QUEUE = liveaction.get_status_management_queue(
 
 ACTIONRUNNER_RESUME_QUEUE = liveaction.get_status_management_queue(
     "st2.actionrunner.resume", routing_key=action_constants.LIVEACTION_STATUS_RESUMING
-)
-
-
-# Used by the exporter service
-EXPORTER_WORK_QUEUE = execution.get_queue(
-    "st2.exporter.work", routing_key=publishers.UPDATE_RK
 )
 
 
