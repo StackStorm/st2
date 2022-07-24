@@ -84,6 +84,15 @@ Changed
 
   Contributed by @cognifloyd
 
+Removed
+~~~~~~~
+
+* Removed st2exporter service. It is unmaintained and does not get installed. It was
+  originally meant to help with analytics by exporting executions as json files that
+  could be imported into something like elasticsearch. Our code is now instrumented
+  to make a wider variety of stats available to metrics drivers. #5676
+  Contributed by @cognifloyd
+
 3.7.0 - May 05, 2022
 --------------------
 
