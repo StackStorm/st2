@@ -13,7 +13,7 @@ Fixed
   or arrays using ``additionalItems`` schema(s) can use encrypted datastore keys and have their
   default values applied correctly. #5321
 
-  Contributed by @cognifloyd.
+  Contributed by @cognifloyd
 
 * Fixed ``st2client/st2client/base.py`` file to check for http_proxy and https_proxy environment variables for both lower and upper cases.
 
@@ -24,7 +24,8 @@ Fixed
 
   Contributed by @wfgydbu
 
-* Fixed schemas ... TODO: fill this out (this is here to silence the irritating changelog check until I'm ready to document)
+* Fixed schema utils to more reliably handle schemas that define nested arrays (object-array-object-array-string) as discovered in some
+  of the ansible installer RBAC tests (see #5684). This includes a test that reproduced the error so we don't hit this again. #5685
 
 Added
 ~~~~~
