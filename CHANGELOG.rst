@@ -82,6 +82,11 @@ Changed
 
   Contributed by @LiamRiddell
 
+* Use PEP 440 direct reference requirements instead of legacy PIP VCS requirements. Now, our ``*.requirements.txt`` files use
+  ``package-name@ git+https://url@version ; markers`` instead of ``git+https://url@version#egg=package-name ; markers``. #5673
+
+  Contributed by @cognifloyd
+
 Removed
 ~~~~~~~
 
