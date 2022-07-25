@@ -313,7 +313,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
 
         # Set up assignment mappings
         for x in GroupToRoleMapping.get_all():
-            SSORequest.delete(x)
+            GroupToRoleMapping.delete(x)
 
         GroupToRoleMappingDB(
             group="test2", roles=["system_admin", "admin"], source="test", enabled=True
@@ -332,7 +332,7 @@ class TestIdentityProviderCallbackController(FunctionalTest):
             UserRoleAssignment.delete(x)
 
         for x in GroupToRoleMapping.get_all():
-            SSORequest.delete(x)
+            GroupToRoleMapping.delete(x)
 
         for x in Role.get_all():
             Role.delete(x)

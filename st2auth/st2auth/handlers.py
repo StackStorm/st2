@@ -55,7 +55,7 @@ class AuthHandlerBase(object):
 
     def sync_user_groups(self, extra, username, groups):
 
-        if groups is None or len(groups) == 0:
+        if groups is None:
             LOG.debug("No groups to sync for user '%s'", username)
             return
 
@@ -162,8 +162,8 @@ class ProxyAuthHandler(AuthHandlerBase):
     ):
         remote_addr = headers.get("x-forwarded-for", remote_addr)
         extra = {"remote_addr": remote_addr}
-        LOG.debug("Authenticating for proxy with request [%s]", request.__dict__ if request else None)
-
+        LOG.debug("Authenticating for proxy with request [%s]", getattr(request, "__dict__", None) if request else None)
+        
         if remote_user:
             ttl = getattr(request, "ttl", None)
             username = self._get_username_for_request(remote_user, request)
