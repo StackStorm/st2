@@ -80,7 +80,6 @@ def _register_config_opts():
     _register_action_sensor_opts()
     _register_ssh_runner_opts()
     _register_scheduler_opts()
-    _register_exporter_opts()
     _register_sensor_container_opts()
     _register_garbage_collector_opts()
 
@@ -388,18 +387,6 @@ def _register_scheduler_opts():
     ]
 
     _register_opts(scheduler_opts, group="scheduler")
-
-
-def _register_exporter_opts():
-    exporter_opts = [
-        cfg.StrOpt(
-            "dump_dir",
-            default="/opt/stackstorm/exports/",
-            help="Directory to dump data to.",
-        )
-    ]
-
-    _register_opts(exporter_opts, group="exporter")
 
 
 def _register_sensor_container_opts():

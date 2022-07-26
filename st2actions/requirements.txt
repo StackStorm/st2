@@ -9,14 +9,14 @@ MarkupSafe<2.1.0,>=0.23
 apscheduler==3.7.0
 chardet<3.1.0
 eventlet==0.30.2
-git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
 gitpython==3.1.15
 jinja2==2.11.3
 kombu==5.0.2
 lockfile==0.12.2
+logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
-pyinotify==0.9.6; platform_system=="Linux"
+pyinotify==0.9.6 ; platform_system=="Linux"
 pyparsing<3
 python-dateutil==2.8.1
 python-json-logger
