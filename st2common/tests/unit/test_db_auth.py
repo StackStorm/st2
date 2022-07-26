@@ -21,7 +21,7 @@ from st2common.models.db.auth import ApiKeyDB
 from st2common.persistence.auth import SSORequest, User
 from st2common.persistence.auth import Token
 from st2common.persistence.auth import ApiKey
-from st2common.util.date import get_datetime_utc_now
+from st2common.util.date import add_utc_tz, get_datetime_utc_now
 from st2tests import DbTestCase
 from mongoengine.errors import ValidationError
 
@@ -67,8 +67,8 @@ class SSORequestDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     persistance_class = SSORequest
     model_class_kwargs = {
         "request_id": "48144c2b-7969-4708-ba1d-96fd7d05393f",
-        "expiry": datetime.datetime.strptime(
-            "2050-01-05T10:00:00Z", "%Y-%m-%dT%H:%M:%S%z"
+        "expiry": add_utc_tz(
+            datetime.datetime.strptime("2050-01-05T10:00:00", "%Y-%m-%dT%H:%M:%S")
         ),
         "type": SSORequestDB.Type.CLI,
     }

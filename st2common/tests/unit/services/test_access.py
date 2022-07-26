@@ -32,7 +32,6 @@ import st2tests.config as tests_config
 USERNAME = "manas"
 
 SSO_REQUEST_ID = "a58fa0cd-61c8-4bd9-a2e7-a4497d6aca68"
-SSO_EXPIRY = datetime.datetime.strptime("2050-01-05T10:00:00Z", "%Y-%m-%dT%H:%M:%S%z")
 
 
 class AccessServiceTest(DbTestCase):
