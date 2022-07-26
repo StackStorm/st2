@@ -90,6 +90,20 @@ Changed
 
   Contributed by @LiamRiddell
 
+* Use PEP 440 direct reference requirements instead of legacy PIP VCS requirements. Now, our ``*.requirements.txt`` files use
+  ``package-name@ git+https://url@version ; markers`` instead of ``git+https://url@version#egg=package-name ; markers``. #5673
+
+  Contributed by @cognifloyd
+
+Removed
+~~~~~~~
+
+* Removed st2exporter service. It is unmaintained and does not get installed. It was
+  originally meant to help with analytics by exporting executions as json files that
+  could be imported into something like elasticsearch. Our code is now instrumented
+  to make a wider variety of stats available to metrics drivers. #5676
+  Contributed by @cognifloyd
+
 3.7.0 - May 05, 2022
 --------------------
 
