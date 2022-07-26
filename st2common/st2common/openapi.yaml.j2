@@ -4540,7 +4540,7 @@ paths:
   /auth/v1/sso/request/cli:
     post:
       operationId: st2auth.controllers.v1.sso:sso_request_controller.post_cli
-      description: Provides data for a CLI to handle SSO authentication internally.
+      description: Issues an encrypted SSO login request for a CLI
       parameters:
         - name: response
           in: body
@@ -4574,7 +4574,7 @@ paths:
         '200':
           description: SSO response valid
         '302':
-          description: SSO request valid and callback URL returned
+          description: SSO response valid and callback URL returned
         '401':
           description: Invalid or missing credentials has been provided
           schema:
