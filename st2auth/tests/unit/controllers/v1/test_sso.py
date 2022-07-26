@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# NOTE: We need to perform monkeypatch before importing ssl module otherwise tests will fail.
+# See https://github.com/StackStorm/st2/pull/4834 for details
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 from tests.base import FunctionalTest
 from st2common.exceptions import auth as auth_exc
 from st2auth.sso import noop
