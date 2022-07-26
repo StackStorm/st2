@@ -36,8 +36,7 @@ __all__ = [
     "delete_token",
     "create_cli_sso_request",
     "create_web_sso_request",
-    "get_sso_request_by_request_id",
-    "delete_sso_request",
+    "get_sso_request_by_request_id"
 ]
 
 LOG = logging.getLogger(__name__)
@@ -168,12 +167,3 @@ def get_sso_request_by_request_id(request_id) -> SSORequestDB:
     request_db = SSORequest.get_by_request_id(request_id)
     return request_db
 
-
-def delete_sso_request(id):
-    try:
-        request_db = SSORequest.get(id)
-        return SSORequest.delete(request_db)
-    except SSORequestNotFoundError:
-        pass
-    except Exception:
-        raise
