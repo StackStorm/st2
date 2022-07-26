@@ -162,8 +162,11 @@ class ProxyAuthHandler(AuthHandlerBase):
     ):
         remote_addr = headers.get("x-forwarded-for", remote_addr)
         extra = {"remote_addr": remote_addr}
-        LOG.debug("Authenticating for proxy with request [%s]", getattr(request, "__dict__", None) if request else None)
-        
+        LOG.debug(
+            "Authenticating for proxy with request [%s]",
+            getattr(request, "__dict__", None) if request else None,
+        )
+
         if remote_user:
             ttl = getattr(request, "ttl", None)
             username = self._get_username_for_request(remote_user, request)

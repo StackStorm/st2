@@ -4554,7 +4554,7 @@ paths:
             properties:
               key:
                 type: string
-                description: The AES256 symmetric key to be used to encrypt contents of callback
+                description: The symmetric key to be used to encrypt contents of callback
                 required: true
               callback_url:
                 type: string

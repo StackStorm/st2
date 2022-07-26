@@ -61,49 +61,60 @@ class ApiKeyDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class_kwargs = {"user": "pony", "key_hash": "token-token-token-token"}
     update_attribute_name = "user"
 
+
 class SSORequestDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     model_class = SSORequestDB
     persistance_class = SSORequest
     model_class_kwargs = {
         "request_id": "48144c2b-7969-4708-ba1d-96fd7d05393f",
-        "expiry": datetime.datetime.strptime("2050-01-05T10:00:00Z", "%Y-%m-%dT%H:%M:%S%z"),
+        "expiry": datetime.datetime.strptime(
+            "2050-01-05T10:00:00Z", "%Y-%m-%dT%H:%M:%S%z"
+        ),
         "type": SSORequestDB.Type.CLI,
     }
     update_attribute_name = "request_id"
 
     def _save_model(self, **kwargs):
         model_db = self.model_class(**kwargs)
-        saved_db = self.persistance_class.add_or_update(model_db)
+        self.persistance_class.add_or_update(model_db)
 
     def test_missing_parameters(self):
 
         self.assertRaises(
-            ValueError, self._save_model, **{
+            ValueError,
+            self._save_model,
+            **{
                 "request_id": self.model_class_kwargs["request_id"],
                 "expiry": self.model_class_kwargs["expiry"],
-            }
+            },
         )
 
         self.assertRaises(
-            ValueError, self._save_model, **{
+            ValueError,
+            self._save_model,
+            **{
                 "request_id": self.model_class_kwargs["request_id"],
                 "type": self.model_class_kwargs["type"],
-            }
+            },
         )
 
         self.assertRaises(
-            ValueError, self._save_model, **{
+            ValueError,
+            self._save_model,
+            **{
                 "type": self.model_class_kwargs["type"],
                 "expiry": self.model_class_kwargs["expiry"],
-            }
+            },
         )
 
     def test_invalid_parameters(self):
 
         self.assertRaises(
-            ValidationError, self._save_model, **{
+            ValidationError,
+            self._save_model,
+            **{
                 "type": "invalid",
                 "expiry": self.model_class_kwargs["expiry"],
                 "request_id": self.model_class_kwargs["request_id"],
-            }
+            },
         )

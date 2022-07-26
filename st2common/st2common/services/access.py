@@ -22,7 +22,6 @@ from oslo_config import cfg
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.exceptions.auth import (
-    SSORequestNotFoundError,
     TokenNotFoundError,
     UserNotFoundError,
 )
@@ -36,7 +35,7 @@ __all__ = [
     "delete_token",
     "create_cli_sso_request",
     "create_web_sso_request",
-    "get_sso_request_by_request_id"
+    "get_sso_request_by_request_id",
 ]
 
 LOG = logging.getLogger(__name__)
@@ -166,4 +165,3 @@ def _create_sso_request(request_id, ttl, type, **kwargs) -> SSORequestDB:
 def get_sso_request_by_request_id(request_id) -> SSORequestDB:
     request_db = SSORequest.get_by_request_id(request_id)
     return request_db
-

@@ -34,6 +34,7 @@ USERNAME = "manas"
 SSO_REQUEST_ID = "a58fa0cd-61c8-4bd9-a2e7-a4497d6aca68"
 SSO_EXPIRY = datetime.datetime.strptime("2050-01-05T10:00:00Z", "%Y-%m-%dT%H:%M:%S%z")
 
+
 class AccessServiceTest(DbTestCase):
     @classmethod
     def setUpClass(cls):
@@ -109,7 +110,6 @@ class AccessServiceTest(DbTestCase):
         self.assertRaises(
             TTLTooLargeException, access.create_token, USERNAME, ttl=ttl, service=False
         )
-
 
     def test_create_cli_sso_request(self):
         request = access.create_cli_sso_request(SSO_REQUEST_ID, None, 20)
