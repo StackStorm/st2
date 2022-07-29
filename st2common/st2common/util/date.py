@@ -90,7 +90,7 @@ def parse(value, preserve_original_tz=False):
 
     try:
         dt = ciso8601.parse_datetime(str(value))
-    except Exception as err:
+    except Exception:
         dt = dateutil.parser.parse(str(original_value))
 
     if not dt.tzinfo:
