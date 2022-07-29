@@ -318,7 +318,13 @@ class DbTestCase(BaseDbTestCase):
     def tearDownClass(cls):
         drop_db = True
 
-        # TODO: alternate method for pytest?
+        # TODO: pytst does not make results available to fixtures by default.
+        #       we might be able to add a hook+class fixture to help with this, but
+        #       that adds quite a bit of complexity. For now, pytest will always drop the db.
+        #       https://docs.pytest.org/en/stable/example/simple.html#making-test-result-information-available-in-fixtures
+        #       When someone does decide to tackle this, we will probably need to rename the db
+        #       for later inspection so subsequent tests still have a clean starting point as
+        #       pytest will not necessarily stop on failure like nosetest did.
         if cls.current_result and (cls.current_result.errors or cls.current_result.failures):
             # Don't drop DB on test failure
             drop_db = False
