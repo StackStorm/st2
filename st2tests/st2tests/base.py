@@ -325,7 +325,9 @@ class DbTestCase(BaseDbTestCase):
         #       When someone does decide to tackle this, we will probably need to rename the db
         #       for later inspection so subsequent tests still have a clean starting point as
         #       pytest will not necessarily stop on failure like nosetest did.
-        if cls.current_result and (cls.current_result.errors or cls.current_result.failures):
+        if cls.current_result and (
+            cls.current_result.errors or cls.current_result.failures
+        ):
             # Don't drop DB on test failure
             drop_db = False
 
