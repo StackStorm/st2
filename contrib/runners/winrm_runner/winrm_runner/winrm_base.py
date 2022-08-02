@@ -99,6 +99,7 @@ class WinRmRunnerTimoutError(Exception):
 
 class WinRmBaseRunner(ActionRunner):
     def pre_run(self):
+        # pylint: disable=unsubscriptable-object
         super(WinRmBaseRunner, self).pre_run()
 
         # common connection parameters

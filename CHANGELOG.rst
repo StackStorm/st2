@@ -7,6 +7,230 @@ in development
 Fixed
 ~~~~~
 
+* Fix redis SSL problems with sentinel #5660
+
+* Fix a bug in the pack config loader so that objects covered by an ``patternProperties`` schema
+  or arrays using ``additionalItems`` schema(s) can use encrypted datastore keys and have their
+  default values applied correctly. #5321
+
+  Contributed by @cognifloyd
+
+* Fixed ``st2client/st2client/base.py`` file to check for http_proxy and https_proxy environment variables for both lower and upper cases.
+
+  Contributed by @S-T-A-R-L-O-R-D
+
+
+* Fixed ``st2client/st2client/base.py`` file to use ``https_proxy``(not ``http_proxy``) to check HTTPS_PROXY environment variables.
+
+  Contributed by @wfgydbu
+
+* Fixed schema utils to more reliably handle schemas that define nested arrays (object-array-object-array-string) as discovered in some
+  of the ansible installer RBAC tests (see #5684). This includes a test that reproduced the error so we don't hit this again. #5685
+
+Added
+~~~~~
+
+* Added graceful shutdown for workflow engine. #5463
+  Contributed by @khushboobhatia01
+
+* Add ``ST2_USE_DEBUGGER`` env var as alternative to the ``--use-debugger`` cli flag. #5675
+  Contributed by @cognifloyd
+
+* Added purging of old tokens. #56791
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+Changed
+~~~~~~~
+
+* BREAKING CHANGE for anyone that uses ``output_schema``, which is disabled by default.
+  If you have ``[system].validate_output_schema = True`` in st2.conf AND you have added
+  ``output_schema`` to any of your packs, then you must update your action metadata.
+
+  ``output_schema`` must be a full jsonschema now. If a schema is not well-formed, we ignore it.
+  Now, ``output`` can be types other than object such as list, bool, int, etc.
+  This also means that all of an action's output can be masked as a secret.
+
+  To get the same behavior, you'll need to update your output schema.
+  For example, this schema:
+
+  .. code-block:: yaml
+
+    output_schema:
+      property1:
+        type: bool
+      property2:
+        type: str
+
+  should be updated like this:
+
+  .. code-block:: yaml
+
+    output_schema:
+      type: object
+      properties:
+        property1:
+          type: bool
+        property2:
+          type: str
+      additionalProperties: false
+
+  #5319
+
+  Contributed by @cognifloyd
+
+* Changed the `X-XSS-Protection` HTTP header from `1; mode=block` to `0` in the `conf/nginx/st2.conf` to align with the OWASP security standards. #5298
+
+  Contributed by @LiamRiddell
+
+* Use PEP 440 direct reference requirements instead of legacy PIP VCS requirements. Now, our ``*.requirements.txt`` files use
+  ``package-name@ git+https://url@version ; markers`` instead of ``git+https://url@version#egg=package-name ; markers``. #5673
+
+  Contributed by @cognifloyd
+
+Removed
+~~~~~~~
+
+* Removed st2exporter service. It is unmaintained and does not get installed. It was
+  originally meant to help with analytics by exporting executions as json files that
+  could be imported into something like elasticsearch. Our code is now instrumented
+  to make a wider variety of stats available to metrics drivers. #5676
+  Contributed by @cognifloyd
+
+3.7.0 - May 05, 2022
+--------------------
+
+Added
+~~~~~
+
+* Added st2 API get action parameters by ref. #5509
+
+  API endpoint ``/api/v1/actions/views/parameters/{action_id}`` accepts ``ref_or_id``.
+
+  Contributed by @DavidMeu
+
+* Enable setting ttl for MockDatastoreService. #5468
+
+  Contributed by @ytjohn
+
+* Added st2 API and CLI command for actions clone operation.
+
+  API endpoint ``/api/v1/actions/{ref_or_id}/clone`` takes ``ref_or_id`` of source action.
+  Request method body takes destination pack and action name. Request method body also takes
+  optional parameter ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
+  overwritten.
+
+  CLI command ``st2 action clone <ref_or_id> <dest_pack> <dest_action>`` takes source ``ref_or_id``, destination
+  pack name and destination action name as mandatory arguments.
+  In case destination already exists then command takes optional argument ``-f`` or ``--force`` to overwrite
+  destination action. #5345
+
+  Contributed by @mahesh-orch.
+
+* Implemented RBAC functionality for existing ``KEY_VALUE_VIEW, KEY_VALUE_SET, KEY_VALUE_DELETE`` and new permission types ``KEY_VALUE_LIST, KEY_VALUE_ALL``.
+  RBAC is enabled in the ``st2.conf`` file. Access to a key value pair is checked in the KeyValuePair API controller. #5354
+
+  Contributed by @m4dcoder and @ashwini-orchestral
+
+* Added service deregistration on shutdown of a service. #5396
+
+  Contributed by @khushboobhatia01
+
+* Added pysocks python package for SOCKS proxy support. #5460
+
+  Contributed by @kingsleyadam
+
+* Added support for multiple LDAP hosts to st2-auth-ldap. #5535, https://github.com/StackStorm/st2-auth-ldap/pull/100
+
+  Contributed by @ktyogurt
+
+* Implemented graceful shutdown for action runner. Enabled ``graceful_shutdown`` in ``st2.conf`` file. #5428
+
+  Contributed by @khushboobhatia01
+
+* Enhanced 'search' operator to allow complex criteria matching on payload items. #5482
+
+  Contributed by @erceth
+
+* Added cancel/pause/resume requester information to execution context. #5554
+
+  Contributed by @khushboobhatia01
+
+* Added `trigger.headers_lower` to webhook trigger payload. This allows rules to match webhook triggers
+  without dealing with the case-sensitive nature of `trigger.headers`, as `triggers.headers_lower` providers
+  the same headers, but with the header name lower cased. #5038
+
+  Contributed by @Rand01ph
+
+* Added support to override enabled parameter of resources. #5506
+
+  Contributed by Amanda McGuinness (@amanda11 Intive)
+
+* Add new ``api.auth_cookie_secure`` and ``api.auth_cookie_same_site`` config options which
+  specify values which are set for ``secure`` and ``SameSite`` attribute for the auth cookie
+  we set when authenticating via token / api key in query parameter value (e.g. via st2web).
+
+  For security reasons, ``api.auth_cookie_secure`` defaults to ``True``. This should only be
+  changed to ``False`` if you have a valid reason to not run StackStorm behind HTTPs proxy.
+
+  Default value for ``api.auth_cookie_same_site`` is ``lax``. If you want to disable this
+  functionality so it behaves the same as in the previous releases, you can set that option
+  to ``None``.
+
+  #5248
+
+  Contributed by @Kami.
+
+* Add new ``st2 action-alias test <message string>`` CLI command which allows users to easily
+  test action alias matching and result formatting.
+
+  This command will first try to find a matching alias (same as ``st2 action-alias match``
+  command) and if a match is found, trigger an execution (same as ``st2 action-alias execute``
+  command) and format the execution result.
+
+  This means it uses exactly the same flow as commands on chat, but the interaction avoids
+  chat and hubot which should make testing and developing aliases easier and faster. #5143
+
+  #5143
+
+  Contributed by @Kami.
+
+* Add new ``credentials.basic_auth = username:password`` CLI configuration option.
+
+  This argument allows client to use additional set of basic auth credentials when talking to the
+  StackStorm API endpoints (api, auth, stream) - that is, in addition to the token / api key
+  native StackStorm auth.
+
+  This allows for simple basic auth based multi factor authentication implementation for
+  installations which don't utilize SSO.
+
+  #5152
+
+  Contributed by @Kami.
+
+* Add new audit message when a user has decrypted a key whether manually in the container (st2 key get [] --decrypt)
+  or through a workflow with a defined config. #5594
+  Contributed by @dmork123
+
+* Added garbage collection for rule_enforcement and trace models #5596/5602
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+
+* Added garbage collection for workflow execution and task execution objects #4924
+  Contributed by @srimandaleeka01 and @amanda11
+
+Changed
+~~~~~~~
+
+* Minor updates for RockyLinux. #5552
+
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
+
+* Updated paramiko version to 2.10.3 to add support for more key verification algorithms. #5600
+
+Fixed
+~~~~~
 
 * Fix deserialization bug in st2 API for url encoded payloads. #5536
 
@@ -47,78 +271,31 @@ Fixed
 
 * Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
 
+* Fix actions from the contrib/linux pack that fail on CentOS-8 but work on other operating systems and distributions. (bug fix) #4999 #5004
+
+  Reported by @blag and @dove-young contributed by @winem.
+
 * Use byte type lock name which is supported by all tooz drivers. #5529
 
   Contributed by @khushboobhatia01
 
-Added
-~~~~~
+* Fixed issue where pack index searches are ignoring no_proxy #5497
 
-* Minor updates for RockyLinux. #5552
-  Contributed by Amanda McGuinness (@amanda11 intive)
+  Contributed by @minsis
 
-* Added st2 API get action parameters by ref. #5509
+* Fixed trigger references emitted by ``linux.file_watch.line``. #5467
 
-  API endpoint ``/api/v1/actions/views/parameters/{action_id}`` accepts ``ref_or_id``.
+  Prior to this patch multiple files could be watched but the rule reference of last registered file
+  would be used for all trigger emissions causing rule enforcement to fail.  References are now tracked
+  on a per file basis and used in trigger emissions.
 
-  Contributed by @DavidMeu
+  Contributed by @nzlosh
 
-* Enable setting ttl for MockDatastoreService. #5468
-
-  Contributed by @ytjohn
-
-* Added st2 API and CLI command for actions clone operation.
-
-  API endpoint ``/api/v1/actions/{ref_or_id}/clone`` takes ``ref_or_id`` of source action.
-  Request method body takes destination pack and action name. Request method body also takes
-  optional paramater ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
-  overwritten.
-
-  CLI command ``st2 action clone <ref_or_id> <dest_pack> <dest_action>`` takes source ``ref_or_id``, destination
-  pack name and destination action name as mandatory arguments.
-  In case destionation already exists then command takes optional arugument ``-f`` or ``--force`` to overwrite
-  destination action. #5345
-
-  Contributed by @mahesh-orch.
-
-* Implemented RBAC functionality for existing ``KEY_VALUE_VIEW, KEY_VALUE_SET, KEY_VALUE_DELETE`` and new permission types ``KEY_VALUE_LIST, KEY_VALUE_ALL``.
-  RBAC is enabled in the ``st2.conf`` file. Access to a key value pair is checked in the KeyValuePair API controller. #5354
-
-  Contributed by @m4dcoder and @ashwini-orchestral
-
-* Added service degerestration on shutdown of a service. #5396
+* Downgrade tenacity as tooz dependency on tenacity has always been < 7.0.0 #5607
 
   Contributed by @khushboobhatia01
 
-* Added pysocks python package for SOCKS proxy support. #5460
-
-  Contributed by @kingsleyadam
-
-* Added support for multiple LDAP hosts to st2-auth-ldap. #5535, https://github.com/StackStorm/st2-auth-ldap/pull/100
-
-  Contributed by @ktyogurt
-
-* Implemented graceful shutdown for action runner. Enabled ``graceful_shutdown`` in ``st2.conf`` file. #5428
-
-  Contributed by @khushboobhatia01
-
-* Enhanced 'search' operator to allow complex criteria matching on payload items. #5482
-
-  Contributed by @erceth
-
-* Added cancel/pause/resume requester information to execution context. #5554
-
-  Contributed by @khushboobhatia01
-
-* Added `trigger.headers_lower` to webhook trigger payload. This allows rules to match webhook triggers
-  without dealing with the case-sensitive nature of `trigger.headers`, as `triggers.headers_lower` providers
-  the same headers, but with the header name lower cased. #5038
-
-  Contributed by @Rand01ph
-
-* Moved @nmaludy from Senior Maintainers to Friends.
-
-  Contributed by @nmaludy
+* Pin ``typing-extensions<4.2`` (used indirectly by st2client) to maintain python 3.6 support. #5638
 
 
 3.6.0 - October 29, 2021

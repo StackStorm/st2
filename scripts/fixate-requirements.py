@@ -225,7 +225,14 @@ def write_requirements(
         # we don't have any idea how to process links, so just add them
         if linkreq.link and linkreq.link not in links:
             links.add(linkreq.link)
-            rline = str(linkreq.link)
+            if hasattr(req, "req") and req.req and str(req.req).count("@") == 2:
+                # PEP 440 direct reference
+                rline = str(linkreq.req)
+                # Also write out environment markers
+                if linkreq.markers:
+                    rline += " ; {}".format(str(linkreq.markers))
+            else:
+                rline = str(linkreq.link)
 
             if (hasattr(req, "is_editable") and req.is_editable) or (
                 hasattr(req, "editable") and req.editable

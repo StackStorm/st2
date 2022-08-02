@@ -1,0 +1,28 @@
+---
+  region:
+    type: "string"
+    required: false
+    default: "us-east-1"
+  profiles:
+    type: "array"
+    required: false
+    additionalItems:
+      type: object
+      additionalProperties: false
+      properties:
+        host:
+          type: "string"
+          required: false
+          default: "127.0.0.3"
+        port:
+          type: "integer"
+          required: false
+          default: 8080
+        token:
+          type: "string"
+          required: true
+          secret: true
+  foobar:
+    type: "array"
+    required: false
+    additionalItems: true

@@ -130,7 +130,7 @@ class BaseActionAliasTestCase(BasePackResourceTestCase):
         )
         aliases = registrar._get_aliases_from_pack(aliases_dir=aliases_path)
         for alias_path in aliases:
-            action_alias_db = registrar._get_action_alias_db(
+            action_alias_db, altered = registrar._get_action_alias_db(
                 pack=pack, action_alias=alias_path, ignore_metadata_file_error=True
             )
 
