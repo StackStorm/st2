@@ -84,7 +84,6 @@ Thank you, Friends!
 * Lakshmi Kannan ([@lakshmi-kannan](https://github.com/lakshmi-kannan)) - early Stormer. Initial Core platform architecture, scalability, reliability, Team Leadership during the project hard times.
 * Lindsay Hill ([@LindsayHill](https://github.com/LindsayHill)) - ex StackStorm product manager that made a significant impact building an ecosystem we see today.
 * Manas Kelshikar ([@manasdk](https://github.com/manasdk)) - ex Stormer. Developed (well) early core platform features.
-* Nick Maludy ([@nmaludy](https://github.com/nmaludy)) <<nmaludy@gmail.com>>
-  - Community, Core, Systems, Infrastructure, StackStorm Exchange, Puppet deployment. [Case Study](https://stackstorm.com/case-study-encore/).
+* Nick Maludy ([@nmaludy](https://github.com/nmaludy)) - Community, Core, Systems, Infrastructure, StackStorm Exchange, Puppet deployment. [Case Study](https://stackstorm.com/case-study-encore/).
 * Vineesh Jain ([@VineeshJain](https://github.com/VineeshJain)) - ex Stormer. Community, Tests, Core, QA.
 * Warren Van Winckel ([@warrenvw](https://github.com/warrenvw)) - ex Stormer. Docker, Kubernetes, Vagrant, Infrastructure.
