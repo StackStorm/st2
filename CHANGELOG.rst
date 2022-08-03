@@ -36,7 +36,7 @@ Added
 * Add ``ST2_USE_DEBUGGER`` env var as alternative to the ``--use-debugger`` cli flag. #5675
   Contributed by @cognifloyd
 
-* Added purging of old tokens. #56791
+* Added purging of old tokens. #5679
   Contributed by Amanda McGuinness (@amanda11 intive)
 
 Changed
@@ -86,6 +86,10 @@ Changed
   ``package-name@ git+https://url@version ; markers`` instead of ``git+https://url@version#egg=package-name ; markers``. #5673
 
   Contributed by @cognifloyd
+
+* Move from udatetime to ciso8601 for date functionality ahead of supporting python3.9 #5692
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
 
 Removed
 ~~~~~~~
