@@ -10,6 +10,7 @@ amqp==5.0.6
 apscheduler==3.7.0
 cffi<1.15.0
 chardet<3.1.0
+ciso8601
 cryptography==3.4.7
 decorator==4.4.2
 dnspython>=1.16.0,<2.0.0
@@ -43,7 +44,6 @@ six==1.13.0
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
-udatetime==0.0.16
 webob==1.8.7
 zake==0.2.2
 zstandard==0.15.2
