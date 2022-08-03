@@ -27,6 +27,8 @@ Fixed
 * Fixed schema utils to more reliably handle schemas that define nested arrays (object-array-object-array-string) as discovered in some
   of the ansible installer RBAC tests (see #5684). This includes a test that reproduced the error so we don't hit this again. #5685
 
+* Fixed eventlet monkey patching so more of the unit tests work under pytest. #5689
+
 Added
 ~~~~~
 
