@@ -21,6 +21,10 @@ from st2common.persistence.trigger import Trigger
 from st2common.persistence.trigger import TriggerType
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import get_fixtures_packs_base_path
+from st2tests.fixtures.packs.dummy_pack_1.fixture import (
+    PACK_NAME as DUMMY_PACK_1,
+    PACK_PATH as DUMMY_PACK_1_PATH,
+)
 
 __all__ = ["TriggersRegistrarTestCase"]
 
@@ -41,8 +45,7 @@ class TriggersRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(len(trigger_dbs), 2)
 
     def test_register_triggers_from_pack(self):
-        base_path = get_fixtures_packs_base_path()
-        pack_dir = os.path.join(base_path, "dummy_pack_1")
+        pack_dir = DUMMY_PACK_1_PATH
 
         trigger_type_dbs = TriggerType.get_all()
         self.assertEqual(len(trigger_type_dbs), 0)
@@ -57,11 +60,11 @@ class TriggersRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(len(trigger_dbs), 2)
 
         self.assertEqual(trigger_type_dbs[0].name, "event_handler")
-        self.assertEqual(trigger_type_dbs[0].pack, "dummy_pack_1")
+        self.assertEqual(trigger_type_dbs[0].pack, DUMMY_PACK_1)
         self.assertEqual(trigger_dbs[0].name, "event_handler")
-        self.assertEqual(trigger_dbs[0].pack, "dummy_pack_1")
+        self.assertEqual(trigger_dbs[0].pack, DUMMY_PACK_1)
         self.assertEqual(trigger_dbs[0].type, "dummy_pack_1.event_handler")
 
         self.assertEqual(trigger_type_dbs[1].name, "head_sha_monitor")
-        self.assertEqual(trigger_type_dbs[1].pack, "dummy_pack_1")
+        self.assertEqual(trigger_type_dbs[1].pack, DUMMY_PACK_1)
         self.assertEqual(trigger_type_dbs[1].payload_schema["type"], "object")

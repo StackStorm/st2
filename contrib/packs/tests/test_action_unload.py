@@ -36,15 +36,14 @@ from st2common.persistence.trigger import TriggerType
 
 from st2tests.base import BaseActionTestCase
 from st2tests.base import CleanDbTestCase
-from st2tests import fixturesloader
+from st2tests.fixtures.packs.dummy_pack_1.fixture import (
+    PACK_NAME as DUMMY_PACK_1,
+    PACK_PATH as PACK_PATH_1,
+)
 
 from pack_mgmt.unload import UnregisterPackAction
 
 __all__ = ["UnloadActionTestCase"]
-
-PACK_PATH_1 = os.path.join(
-    fixturesloader.get_fixtures_packs_base_path(), "dummy_pack_1"
-)
 
 
 class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
@@ -73,7 +72,7 @@ class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
         register_content()
 
     def test_run(self):
-        pack = "dummy_pack_1"
+        pack = DUMMY_PACK_1
         # Verify all the resources are there
 
         pack_dbs = Pack.query(ref=pack)

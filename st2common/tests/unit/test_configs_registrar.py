@@ -28,13 +28,14 @@ from st2tests.api import SUPER_SECRET_PARAMETER
 
 from st2tests.base import CleanDbTestCase
 from st2tests import fixturesloader
+from st2tests.fixtures.packs.dummy_pack_1.fixture import (
+    PACK_NAME as DUMMY_PACK_1,
+    PACK_PATH as PACK_1_PATH,
+)
 
 
 __all__ = ["ConfigsRegistrarTestCase"]
 
-PACK_1_PATH = os.path.join(
-    fixturesloader.get_fixtures_packs_base_path(), "dummy_pack_1"
-)
 PACK_6_PATH = os.path.join(
     fixturesloader.get_fixtures_packs_base_path(), "dummy_pack_6"
 )
@@ -60,7 +61,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
 
         registrar = ConfigsRegistrar(use_pack_cache=False)
         registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {"dummy_pack_1": PACK_1_PATH}
+        registrar._pack_loader.get_packs.return_value = {DUMMY_PACK_1: PACK_1_PATH}
         packs_base_paths = content_utils.get_packs_base_paths()
         registrar.register_from_packs(base_dirs=packs_base_paths)
 

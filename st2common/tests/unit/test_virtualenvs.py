@@ -28,6 +28,7 @@ import st2common.util.virtualenvs as virtualenvs
 from st2common.util.virtualenvs import install_requirement
 from st2common.util.virtualenvs import install_requirements
 from st2common.util.virtualenvs import setup_pack_virtualenv
+from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_NAME as DUMMY_PACK_1
 
 
 __all__ = ["VirtualenvUtilsTestCase"]
@@ -51,7 +52,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
 
     def test_setup_pack_virtualenv_doesnt_exist_yet(self):
         # Test a fresh virtualenv creation
-        pack_name = "dummy_pack_1"
+        pack_name = DUMMY_PACK_1
         pack_virtualenv_dir = os.path.join(self.virtualenvs_path, pack_name)
 
         # Verify virtualenv directory doesn't exist
@@ -72,7 +73,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
 
     def test_setup_pack_virtualenv_already_exists(self):
         # Test a scenario where virtualenv already exists
-        pack_name = "dummy_pack_1"
+        pack_name = DUMMY_PACK_1
         pack_virtualenv_dir = os.path.join(self.virtualenvs_path, pack_name)
 
         # Verify virtualenv directory doesn't exist

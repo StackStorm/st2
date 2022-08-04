@@ -23,6 +23,7 @@ from st2tests.base import IntegrationTestCase
 from st2common.util.shell import run_command
 from st2tests import config as test_config
 from st2tests.fixturesloader import get_fixtures_packs_base_path
+from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_PATH as DUMMY_PACK_1_PATH
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -43,7 +44,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         test_config.parse_args()
 
     def test_register_from_pack_success(self):
-        pack_dir = os.path.join(get_fixtures_packs_base_path(), "dummy_pack_1")
+        pack_dir = DUMMY_PACK_1_PATH
         runner_dirs = os.path.join(get_fixtures_packs_base_path(), "runners")
 
         opts = [
@@ -142,7 +143,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
     def test_register_all_and_register_setup_virtualenvs(self):
         # Verify that --register-all works in combinations with --register-setup-virtualenvs
         # Single pack
-        pack_dir = os.path.join(get_fixtures_packs_base_path(), "dummy_pack_1")
+        pack_dir = DUMMY_PACK_1_PATH
         cmd = BASE_CMD_ARGS + [
             "--register-pack=%s" % (pack_dir),
             "--register-all",
@@ -157,7 +158,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
 
     def test_register_setup_virtualenvs(self):
         # Single pack
-        pack_dir = os.path.join(get_fixtures_packs_base_path(), "dummy_pack_1")
+        pack_dir = DUMMY_PACK_1_PATH
 
         cmd = BASE_CMD_ARGS + [
             "--register-pack=%s" % (pack_dir),
@@ -173,7 +174,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
     def test_register_recreate_virtualenvs(self):
         # 1. Register the pack and ensure it exists and doesn't rely on state from previous
         # test methods
-        pack_dir = os.path.join(get_fixtures_packs_base_path(), "dummy_pack_1")
+        pack_dir = DUMMY_PACK_1_PATH
 
         cmd = BASE_CMD_ARGS + [
             "--register-pack=%s" % (pack_dir),
@@ -187,7 +188,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         self.assertEqual(exit_code, 0)
 
         # 2. Run it again with --register-recreate-virtualenvs flag
-        pack_dir = os.path.join(get_fixtures_packs_base_path(), "dummy_pack_1")
+        pack_dir = DUMMY_PACK_1_PATH
 
         cmd = BASE_CMD_ARGS + [
             "--register-pack=%s" % (pack_dir),
