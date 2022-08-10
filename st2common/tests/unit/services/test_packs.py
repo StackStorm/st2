@@ -23,8 +23,6 @@ import shutil
 import unittest2
 import uuid
 
-import st2tests
-
 from st2common.models.db.stormbase import UIDFieldMixin
 from st2common.services.packs import delete_action_files_from_pack
 from st2common.services.packs import clone_action_files

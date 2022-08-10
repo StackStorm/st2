@@ -31,7 +31,6 @@ from st2tests.fixtures.generic.fixture import (
     PACK_PATH as GENERIC_PACK_PATH,
 )
 import st2tests.fixturesloader as fixtures_loader
-from st2tests.fixturesloader import get_fixtures_base_path
 
 MOCK_RUNNER_TYPE_DB = RunnerTypeDB(name="run-local", runner_module="st2.runners.local")
 
