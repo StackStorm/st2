@@ -37,9 +37,11 @@ from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import publishers
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 
+from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_PATH as DUMMY_PACK_1_PATH
+
 
 PACKS = [
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/dummy_pack_1",
+    DUMMY_PACK_1_PATH,
     st2tests.fixturesloader.get_fixtures_packs_base_path() + "/orquesta_tests",
 ]
 
