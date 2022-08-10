@@ -28,7 +28,6 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2tests import ExecutionDbTestCase
-from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.runners import runner
 from st2tests.mocks.execution import MockExecutionPublisher
@@ -43,6 +42,7 @@ TEST_FIXTURES = {
     "policies": ["policy_1.yaml", "policy_2.yaml"],
 }
 
+PACK = "generic"
 LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 

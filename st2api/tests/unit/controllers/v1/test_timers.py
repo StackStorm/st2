@@ -22,7 +22,6 @@ with mock.patch.object(trigger_service, "create_trigger_type_db", mock.MagicMock
 
 from st2common.models.system.common import ResourceReference
 from st2tests.base import DbTestCase
-from st2tests.fixtures.timers.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2common.constants.triggers import (
     INTERVAL_TIMER_TRIGGER_REF,
@@ -32,6 +31,7 @@ from st2common.constants.triggers import CRON_TIMER_TRIGGER_REF
 
 from st2tests.api import FunctionalTest
 
+PACK = "timers"
 FIXTURES = {
     "triggers": [
         "cron1.yaml",

@@ -16,7 +16,6 @@
 import six
 
 from st2api.controllers.v1.rule_enforcement_views import RuleEnforcementViewController
-from st2tests.fixtures.rule_enforcements.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 from st2tests.api import FunctionalTest
@@ -31,6 +30,8 @@ TEST_FIXTURES = {
     "executions": ["execution1.yaml"],
     "triggerinstances": ["trigger_instance_1.yaml"],
 }
+
+FIXTURES_PACK = "rule_enforcements"
 
 
 class RuleEnforcementViewsControllerTestCase(

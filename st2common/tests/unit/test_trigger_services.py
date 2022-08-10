@@ -22,7 +22,6 @@ from st2common.persistence.trigger import Trigger, TriggerType
 import st2common.services.triggers as trigger_service
 
 from st2tests.base import CleanDbTestCase
-from st2tests.fixtures.generic.fixture import PACK_NAME as GENERIC_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 MOCK_TRIGGER = TriggerDB(
@@ -38,7 +37,7 @@ class TriggerServiceTests(CleanDbTestCase):
         test_fixtures = {"rules": ["cron_timer_rule_1.yaml", "cron_timer_rule_3.yaml"]}
         loader = FixturesLoader()
         fixtures = loader.load_fixtures(
-            fixtures_pack=GENERIC_PACK, fixtures_dict=test_fixtures
+            fixtures_pack="generic", fixtures_dict=test_fixtures
         )
         rules = fixtures["rules"]
 
@@ -62,7 +61,7 @@ class TriggerServiceTests(CleanDbTestCase):
         test_fixtures = {"rules": ["cron_timer_rule_1.yaml", "cron_timer_rule_2.yaml"]}
         loader = FixturesLoader()
         fixtures = loader.load_fixtures(
-            fixtures_pack=GENERIC_PACK, fixtures_dict=test_fixtures
+            fixtures_pack="generic", fixtures_dict=test_fixtures
         )
         rules = fixtures["rules"]
 
@@ -87,7 +86,7 @@ class TriggerServiceTests(CleanDbTestCase):
         test_fixtures = {"triggertypes": ["triggertype1.yaml"]}
         loader = FixturesLoader()
         fixtures = loader.save_fixtures_to_db(
-            fixtures_pack=GENERIC_PACK, fixtures_dict=test_fixtures
+            fixtures_pack="generic", fixtures_dict=test_fixtures
         )
         triggertypes = fixtures["triggertypes"]
         trigger_type_ref = ResourceReference.to_string_reference(
@@ -119,7 +118,7 @@ class TriggerServiceTests(CleanDbTestCase):
         test_fixtures = {"triggertypes": ["triggertype1.yaml"]}
         loader = FixturesLoader()
         fixtures = loader.save_fixtures_to_db(
-            fixtures_pack=GENERIC_PACK, fixtures_dict=test_fixtures
+            fixtures_pack="generic", fixtures_dict=test_fixtures
         )
         triggertypes = fixtures["triggertypes"]
         trigger_type_ref = ResourceReference.to_string_reference(

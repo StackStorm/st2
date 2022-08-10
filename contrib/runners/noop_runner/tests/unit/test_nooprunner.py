@@ -24,7 +24,6 @@ tests_config.parse_args()
 
 from unittest2 import TestCase
 from st2common.constants import action as action_constants
-from st2tests.fixtures.generic.fixture import PACK_NAME as GENERIC_PACK
 from st2tests.fixturesloader import FixturesLoader
 from noop_runner import noop_runner
 
@@ -35,7 +34,7 @@ class TestNoopRunner(TestCase):
 
     def test_noop_command_executes(self):
         models = TestNoopRunner.fixtures_loader.load_models(
-            fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["noop.yaml"]}
+            fixtures_pack="generic", fixtures_dict={"actions": ["noop.yaml"]}
         )
 
         action_db = models["actions"]["noop.yaml"]

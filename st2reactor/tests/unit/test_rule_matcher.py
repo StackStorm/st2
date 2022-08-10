@@ -31,7 +31,6 @@ from st2common.constants.rule_enforcement import RULE_ENFORCEMENT_STATUS_FAILED
 
 from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
-from st2tests.fixtures.backstop.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 
 __all__ = ["RuleMatcherTestCase", "BackstopRuleMatcherTestCase"]
@@ -286,6 +285,7 @@ class RuleMatcherTestCase(CleanDbTestCase):
         return rule_db
 
 
+PACK = "backstop"
 FIXTURES_TRIGGERS = {
     "triggertypes": ["triggertype1.yaml"],
     "triggers": ["trigger1.yaml"],
