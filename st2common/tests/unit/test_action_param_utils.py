@@ -30,6 +30,7 @@ from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
 from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2tests.base import DbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 
 
@@ -38,7 +39,6 @@ TEST_FIXTURES = {
     "runners": ["testrunner1.yaml", "testrunner3.yaml"],
 }
 
-PACK = "generic"
 LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 

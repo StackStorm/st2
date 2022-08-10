@@ -27,14 +27,13 @@ from st2common.services import executions as exe_svc
 from st2common.util import action_db as action_db_utils
 from st2tests import base
 from st2tests import fixturesloader
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 
 
 from st2tests import config as tests_config
 
 tests_config.parse_args()
 
-
-FIXTURES_PACK = "generic"
 
 TEST_FIXTURES = {
     "liveactions": ["liveaction1.yaml"],
