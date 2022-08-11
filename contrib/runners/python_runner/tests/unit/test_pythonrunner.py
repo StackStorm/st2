@@ -44,6 +44,7 @@ from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
 from st2tests.fixtures.packs.dummy_pack_9.fixture import PACK_PATH as DUMMY_PACK_9_PATH
 from st2tests.fixtures.packs.test_content_version_fixture.fixture import (
+    PACK_NAME as TEST_CONTENT_VERSION,
     PACK_PATH as TEST_CONTENT_VERSION_PATH,
 )
 from st2tests.fixturesloader import assert_submodules_are_checked_out
@@ -891,7 +892,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_get_sandbox_virtualenv_path.return_value = None
 
         # 1. valid version - 0.2.0
-        runner = self._get_mock_runner_obj(pack="test_content_version", sandbox=False)
+        runner = self._get_mock_runner_obj(pack=TEST_CONTENT_VERSION, sandbox=False)
         runner.entry_point = PRINT_VERSION_ACTION
         runner.runner_parameters = {"content_version": "v0.2.0"}
         runner.pre_run()
@@ -903,7 +904,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output["stdout"].strip(), "v0.2.0")
 
         # 2. valid version - 0.23.0
-        runner = self._get_mock_runner_obj(pack="test_content_version", sandbox=False)
+        runner = self._get_mock_runner_obj(pack=TEST_CONTENT_VERSION, sandbox=False)
         runner.entry_point = PRINT_VERSION_ACTION
         runner.runner_parameters = {"content_version": "v0.3.0"}
         runner.pre_run()
@@ -915,7 +916,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output["stdout"].strip(), "v0.3.0")
 
         # 3. invalid version = 0.30.0
-        runner = self._get_mock_runner_obj(pack="test_content_version", sandbox=False)
+        runner = self._get_mock_runner_obj(pack=TEST_CONTENT_VERSION, sandbox=False)
         runner.entry_point = PRINT_VERSION_ACTION
         runner.runner_parameters = {"content_version": "v0.30.0"}
 
@@ -939,7 +940,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         mock_process.communicate.return_value = ("", "")
         mock_popen.return_value = mock_process
 
-        runner = self._get_mock_runner_obj(pack="test_content_version", sandbox=False)
+        runner = self._get_mock_runner_obj(pack=TEST_CONTENT_VERSION, sandbox=False)
         runner._enable_common_pack_libs = True
         runner.auth_token = mock.Mock()
         runner.auth_token.token = "ponies"
@@ -961,7 +962,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         # Verify that local module import correctly use git worktree directory
         mock_get_sandbox_virtualenv_path.return_value = None
 
-        runner = self._get_mock_runner_obj(pack="test_content_version", sandbox=False)
+        runner = self._get_mock_runner_obj(pack=TEST_CONTENT_VERSION, sandbox=False)
         runner.entry_point = PRINT_VERSION_LOCAL_MODULE_ACTION
         runner.runner_parameters = {"content_version": "v0.2.0"}
         runner.pre_run()
