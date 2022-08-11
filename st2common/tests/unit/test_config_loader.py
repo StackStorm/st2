@@ -28,7 +28,7 @@ from st2tests.base import CleanDbTestCase
 from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_NAME as DUMMY_PACK_1
 from st2tests.fixtures.packs.dummy_pack_4.fixture import PACK_NAME as DUMMY_PACK_4
 from st2tests.fixtures.packs.dummy_pack_5.fixture import PACK_NAME as DUMMY_PACK_5
-from st2tests.fixtures.packs.dummy_pack_17.fixture import PACK_NAME as DUMMY_PACK_17
+from st2tests.fixtures.packs.dummy_pack_17.fixture import PACK_DIR_NAME as DUMMY_PACK_17
 from st2tests.fixtures.packs.dummy_pack_schema_with_additional_items_1.fixture import (
     PACK_NAME as DUMMY_PACK_SCHEMA_WITH_ADDITIONAL_ITEMS_1,
 )

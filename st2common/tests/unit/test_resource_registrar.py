@@ -15,8 +15,6 @@
 
 from __future__ import absolute_import
 
-import os
-
 import six
 import mock
 from jsonschema import ValidationError
@@ -27,7 +25,6 @@ from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 
 from st2tests.base import CleanDbTestCase
-from st2tests.fixturesloader import get_fixtures_base_path
 from st2tests.fixtures.packs.dummy_pack_1.fixture import (
     PACK_NAME as DUMMY_PACK_1,
     PACK_PATH as PACK_PATH_1,
@@ -36,7 +33,16 @@ from st2tests.fixtures.packs.dummy_pack_6.fixture import (
     PACK_NAME as DUMMY_PACK_6,
     PACK_PATH as PACK_PATH_6,
 )
+from st2tests.fixtures.packs.dummy_pack_7.fixture import (
+    PACK_NAME as DUMMY_PACK_7_NAME,
+    PACK_PATH as PACK_PATH_7,
+)
 from st2tests.fixtures.packs.dummy_pack_8.fixture import PACK_PATH as PACK_PATH_8
+from st2tests.fixtures.packs.dummy_pack_9.fixture import (
+    PACK_DIR_NAME as DUMMY_PACK_9,
+    PACK_NAME as DUMMY_PACK_9_DEPS,
+    PACK_PATH as PACK_PATH_9,
+)
 from st2tests.fixtures.packs.dummy_pack_10.fixture import PACK_PATH as PACK_PATH_10
 from st2tests.fixtures.packs.dummy_pack_13.fixture import PACK_PATH as PACK_PATH_13
 from st2tests.fixtures.packs.dummy_pack_14.fixture import PACK_PATH as PACK_PATH_14
@@ -63,9 +69,6 @@ from st2tests.fixtures.packs_invalid.dummy_pack_18.fixture import (
 
 
 __all__ = ["ResourceRegistrarTestCase"]
-
-PACK_PATH_7 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_7")
-PACK_PATH_9 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_9")
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -156,8 +159,8 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         # "ref" is not provided, but "name" is
         registrar._register_pack_db(pack_name=None, pack_dir=PACK_PATH_7)
 
-        pack_db = Pack.get_by_name("dummy_pack_7_name")
-        self.assertEqual(pack_db.ref, "dummy_pack_7_name")
+        pack_db = Pack.get_by_name(DUMMY_PACK_7_NAME)
+        self.assertEqual(pack_db.ref, DUMMY_PACK_7_NAME)
 
         # "ref" is not provided and "name" contains invalid characters
         expected_msg = "contains invalid characters"
@@ -214,12 +217,12 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
 
         registrar = ResourceRegistrar(use_pack_cache=False)
         registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {"dummy_pack_9": PACK_PATH_9}
+        registrar._pack_loader.get_packs.return_value = {DUMMY_PACK_9: PACK_PATH_9}
         packs_base_paths = content_utils.get_packs_base_paths()
         registrar.register_packs(base_dirs=packs_base_paths)
 
         # Dependencies, stackstorm_version and future values
-        pack_db = Pack.get_by_name("dummy_pack_9_deps")
+        pack_db = Pack.get_by_name(DUMMY_PACK_9_DEPS)
         self.assertEqual(pack_db.dependencies, ["core=0.2.0"])
         self.assertEqual(pack_db.stackstorm_version, ">=1.6.0, <2.2.0")
         self.assertEqual(pack_db.system, {"centos": {"foo": ">= 1.0"}})

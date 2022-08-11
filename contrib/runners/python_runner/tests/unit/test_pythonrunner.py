@@ -42,6 +42,10 @@ from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
+from st2tests.fixtures.packs.dummy_pack_9.fixture import PACK_PATH as DUMMY_PACK_9_PATH
+from st2tests.fixtures.packs.test_content_version_fixture.fixture import (
+    PACK_PATH as TEST_CONTENT_VERSION_PATH,
+)
 from st2tests.fixturesloader import assert_submodules_are_checked_out
 import st2tests.base as tests_base
 
@@ -58,25 +62,18 @@ TEST_ACTION_PATH = os.path.join(
 PATHS_ACTION_PATH = os.path.join(
     tests_base.get_resources_path(), "packs", "pythonactions/actions/python_paths.py"
 )
-ACTION_1_PATH = os.path.join(
-    tests_base.get_fixtures_path(),
-    "packs/dummy_pack_9/actions/list_repos_doesnt_exist.py",
-)
-ACTION_2_PATH = os.path.join(
-    tests_base.get_fixtures_path(), "packs/dummy_pack_9/actions/invalid_syntax.py"
-)
+ACTION_1_PATH = os.path.join(DUMMY_PACK_9_PATH, "actions/list_repos_doesnt_exist.py")
+ACTION_2_PATH = os.path.join(DUMMY_PACK_9_PATH, "actions/invalid_syntax.py")
 NON_SIMPLE_TYPE_ACTION = os.path.join(
     tests_base.get_resources_path(), "packs", "pythonactions/actions/non_simple_type.py"
 )
 PRINT_VERSION_ACTION = os.path.join(
-    tests_base.get_fixtures_path(),
-    "packs",
-    "test_content_version/actions/print_version.py",
+    TEST_CONTENT_VERSION_PATH,
+    "actions/print_version.py",
 )
 PRINT_VERSION_LOCAL_MODULE_ACTION = os.path.join(
-    tests_base.get_fixtures_path(),
-    "packs",
-    "test_content_version/actions/print_version_local_import.py",
+    TEST_CONTENT_VERSION_PATH,
+    "actions/print_version_local_import.py",
 )
 
 PRINT_CONFIG_ITEM_ACTION = os.path.join(

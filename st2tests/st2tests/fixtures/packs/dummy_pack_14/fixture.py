@@ -13,4 +13,5 @@
 # limitations under the License.
 from st2tests import fixturesloader
 
-PACK_NAME, PACK_PATH = fixturesloader.get_fixture_name_and_path(__file__)
+PACK_NAME = "dummy pack 14"
+PACK_DIR_NAME, PACK_PATH = fixturesloader.get_fixture_name_and_path(__file__)
