@@ -19,12 +19,11 @@ from st2common.util.monkey_patch import monkey_patch
 monkey_patch()
 
 from st2api.controllers.v1.traces import TracesController
+from st2tests.fixtures.traces.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 from st2tests.api import FunctionalTest
 from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
-
-FIXTURES_PACK = "traces"
 
 TEST_MODELS = {
     "traces": [

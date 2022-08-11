@@ -27,9 +27,9 @@ from st2reactor.container.partitioner_lookup import get_sensors_partitioner
 from st2reactor.container.hash_partitioner import Range
 from st2tests import config
 from st2tests import DbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 
-PACK = "generic"
 FIXTURES_1 = {"sensors": ["sensor1.yaml", "sensor2.yaml", "sensor3.yaml"]}
 
 

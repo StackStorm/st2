@@ -35,6 +35,7 @@ from action_chain_runner import action_chain_runner as acr
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixtures.packs.action_chain_tests.fixture import (
     PACK_NAME as TEST_PACK,
     PACK_PATH as TEST_PACK_PATH,
@@ -49,8 +50,6 @@ class DummyActionExecution(object):
         self.status = status
         self.result = result
 
-
-FIXTURES_PACK = "generic"
 
 TEST_MODELS = {"actions": ["a1.yaml", "a2.yaml"], "runners": ["testrunner1.yaml"]}
 

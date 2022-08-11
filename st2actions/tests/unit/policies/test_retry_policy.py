@@ -33,11 +33,11 @@ from st2common.services import trace as trace_service
 from st2actions.policies.retry import ExecutionRetryPolicyApplicator
 from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 
 __all__ = ["RetryPolicyTestCase"]
 
-PACK = "generic"
 TEST_FIXTURES = {"actions": ["action1.yaml"], "policies": ["policy_4.yaml"]}
 
 

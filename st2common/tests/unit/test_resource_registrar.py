@@ -48,6 +48,14 @@ from st2tests.fixtures.packs.dummy_pack_21.fixture import (
     PACK_NAME as DUMMY_PACK_21,
     PACK_PATH as PACK_PATH_21,
 )
+from st2tests.fixtures.packs_invalid.dummy_pack_17.fixture import (
+    PACK_NAME as DUMMY_PACK_17,
+    PACK_PATH as PACK_PATH_17,
+)
+from st2tests.fixtures.packs_invalid.dummy_pack_18.fixture import (
+    PACK_NAME as DUMMY_PACK_18,
+    PACK_PATH as PACK_PATH_18,
+)
 
 # from st2tests.fixtures.packs.dummy_pack_12.fixture import (
 #     PACK_PATH as PACK_PATH_12,
@@ -58,8 +66,6 @@ __all__ = ["ResourceRegistrarTestCase"]
 
 PACK_PATH_7 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_7")
 PACK_PATH_9 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_9")
-PACK_PATH_17 = os.path.join(get_fixtures_base_path(), "packs_invalid/dummy_pack_17")
-PACK_PATH_18 = os.path.join(get_fixtures_base_path(), "packs_invalid/dummy_pack_18")
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -237,7 +243,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
     def test_register_pack_empty_and_invalid_config_schema(self):
         registrar = ResourceRegistrar(use_pack_cache=False, fail_on_failure=True)
         registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {"dummy_pack_17": PACK_PATH_17}
+        registrar._pack_loader.get_packs.return_value = {DUMMY_PACK_17: PACK_PATH_17}
         packs_base_paths = content_utils.get_packs_base_paths()
 
         expected_msg = (
@@ -253,7 +259,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
     def test_register_pack_invalid_config_schema_invalid_attribute(self):
         registrar = ResourceRegistrar(use_pack_cache=False, fail_on_failure=True)
         registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {"dummy_pack_18": PACK_PATH_18}
+        registrar._pack_loader.get_packs.return_value = {DUMMY_PACK_18: PACK_PATH_18}
         packs_base_paths = content_utils.get_packs_base_paths()
 
         expected_msg = (

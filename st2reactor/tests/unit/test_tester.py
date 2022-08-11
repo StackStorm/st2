@@ -21,11 +21,10 @@ import mock
 from st2common.transport.publishers import PoolPublisher
 from st2reactor.rules.tester import RuleTester
 from st2tests.base import CleanDbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
-
-FIXTURES_PACK = "generic"
 
 TEST_MODELS_TRIGGERS = {
     "triggertypes": ["triggertype1.yaml", "triggertype2.yaml"],

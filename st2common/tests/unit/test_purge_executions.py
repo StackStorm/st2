@@ -35,6 +35,7 @@ from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.util import date as date_utils
 from st2tests.base import CleanDbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as GENERIC_PACK
 from st2tests.fixturesloader import FixturesLoader
 from six.moves import range
 
@@ -53,7 +54,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         super(TestPurgeExecutions, self).setUp()
         fixtures_loader = FixturesLoader()
         self.models = fixtures_loader.load_models(
-            fixtures_pack="generic", fixtures_dict=TEST_FIXTURES
+            fixtures_pack=GENERIC_PACK, fixtures_dict=TEST_FIXTURES
         )
 
     def test_no_timestamp_doesnt_delete_things(self):
