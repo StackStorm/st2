@@ -91,7 +91,7 @@ Changed
 * Move from udatetime to ciso8601 for date functionality ahead of supporting python3.9 #5692
   Contributed by Amanda McGuinness (@amanda11 intive)
 
-* Refactor tests to use python imports to identify test fixtures. #5699 #5702
+* Refactor tests to use python imports to identify test fixtures. #5699 #5702 #5703
   Contributed by @cognifloyd
 
 Removed
