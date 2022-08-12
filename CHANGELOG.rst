@@ -32,6 +32,9 @@ Fixed
 * Fix and reenable prance-based openapi spec validation, but make our custom ``x-api-model`` validation optional as the spec is out-of-date. #5709
   Contributed by @cognifloyd
 
+* Fixed generation of `st2.conf.sample` to show correct syntax for `[sensorcontainer].partition_provider` (space separated `key:value` pairs). #5710
+  Contributed by @cognifloyd
+
 Added
 ~~~~~
 
