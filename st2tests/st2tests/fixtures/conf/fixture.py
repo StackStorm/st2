@@ -13,6 +13,6 @@
 # limitations under the License.
 import os
 
-# Warning: Do not import fixturesloader aything to avoid breaking
+# Warning: Do not import fixturesloader to avoid breaking
 #   st2common/tests/integration/log_unicode_data.py
 FIXTURE_PATH = os.path.dirname(__file__)
