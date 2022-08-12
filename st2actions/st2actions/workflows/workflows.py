@@ -195,11 +195,13 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         wf_svc.update_progress(wf_ex_db, msg % (msg_type, wf_ex_id), severity="error")
         wf_svc.fail_workflow_execution(wf_ex_id, exception, task=task)
 
+    @wf_svc.add_system_info_to_action_context
     def handle_workflow_execution(self, wf_ex_db):
         # Request the next set of tasks to execute.
         wf_svc.update_progress(wf_ex_db, "Processing request for workflow execution.")
         wf_svc.request_next_tasks(wf_ex_db)
 
+    @wf_svc.add_system_info_to_action_context
     def handle_action_execution(self, ac_ex_db):
         # Exit if action execution is not executed under an orquesta workflow.
         if not wf_svc.is_action_execution_under_workflow_context(ac_ex_db):
