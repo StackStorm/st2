@@ -29,6 +29,9 @@ Fixed
 
 * Fixed eventlet monkey patching so more of the unit tests work under pytest. #5689
 
+* Fix and reenable prance-based openapi spec validation, but make our custom ``x-api-model`` validation optional as the spec is out-of-date. #5709
+  Contributed by @cognifloyd
+
 Added
 ~~~~~
 
