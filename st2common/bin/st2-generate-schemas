@@ -37,7 +37,7 @@ def init():
     schemas_dir = os.path.abspath(os.path.join(scripts_dir, "../../contrib/schemas"))
 
     # set the default for backwards compatibility
-    generate_schemas.default_scchemas_dir = schemas_dir
+    generate_schemas.default_schemas_dir = schemas_dir
 
 
 if __name__ == "__main__":
