@@ -94,6 +94,9 @@ Changed
 * Refactor tests to use python imports to identify test fixtures. #5699 #5702 #5703 #5704 #5705 #5706
   Contributed by @cognifloyd
 
+* Refactor ``st2-generate-schemas`` so that logic is in an importable module. #5708
+  Contributed by @cognifloyd
+
 Removed
 ~~~~~~~
 
