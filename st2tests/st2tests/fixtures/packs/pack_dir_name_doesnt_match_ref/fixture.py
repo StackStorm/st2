@@ -13,5 +13,5 @@
 # limitations under the License.
 from st2tests import fixturesloader
 
-PACK_NAME = "Dummy Pack 18"
+PACK_NAME = "pack_name_not_the_same_as_dir_name"
 PACK_DIR_NAME, PACK_PATH = fixturesloader.get_fixture_name_and_path(__file__)

@@ -42,12 +42,13 @@ from st2common.services import workflows as workflow_service
 from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import publishers
 from st2tests.fixtures.packs.core.fixture import PACK_PATH as CORE_PACK_PATH
+from st2tests.fixtures.packs.dummy_pack_7.fixture import (
+    PACK_DIR_NAME as PACK_7,
+    PACK_PATH as PACK_7_PATH,
+)
 from st2tests.fixtures.packs.orquesta_tests.fixture import PACK_PATH as TEST_PACK_PATH
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 
-
-PACK_7 = "dummy_pack_7"
-PACK_7_PATH = st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + PACK_7
 
 PACKS = [TEST_PACK_PATH, PACK_7_PATH, CORE_PACK_PATH]
 
