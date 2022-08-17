@@ -25,6 +25,37 @@ from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.util import crypto
 
 from st2tests.base import CleanDbTestCase
+from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_NAME as DUMMY_PACK_1
+from st2tests.fixtures.packs.dummy_pack_4.fixture import PACK_NAME as DUMMY_PACK_4
+from st2tests.fixtures.packs.dummy_pack_5.fixture import PACK_NAME as DUMMY_PACK_5
+from st2tests.fixtures.packs.dummy_pack_17.fixture import PACK_NAME as DUMMY_PACK_17
+from st2tests.fixtures.packs.dummy_pack_schema_with_additional_items_1.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_ADDITIONAL_ITEMS_1,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_additional_properties_1.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_ADDITIONAL_PROPERTIES_1,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_nested_object_1.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_1,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_nested_object_2.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_2,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_nested_object_3.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_3,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_nested_object_4.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_4,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_nested_object_5.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_5,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_pattern_and_additional_properties_1.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_PATTERN_AND_ADDITIONAL_PROPERTIES_1,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_pattern_properties_1.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_PATTERN_PROPERTIES_1,
+)
 
 __all__ = ["ContentPackConfigLoaderTestCase"]
 
@@ -37,7 +68,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         # Test a scenario where all the values are loaded from pack local
         # config and pack global config (pack name.yaml) doesn't exist.
         # Test a scenario where no values are overridden in the datastore
-        loader = ContentPackConfigLoader(pack_name="dummy_pack_4")
+        loader = ContentPackConfigLoader(pack_name=DUMMY_PACK_4)
         config = loader.get_config()
         expected_config = {}
 
@@ -47,7 +78,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         # Test a scenario where some values are overriden in datastore via pack
         # global config
         kvp_db = set_datastore_value_for_config_key(
-            pack_name="dummy_pack_5",
+            pack_name=DUMMY_PACK_5,
             key_name="api_secret",
             value="some_api_secret",
             secret=True,
@@ -60,14 +91,14 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertTrue(kvp_db.secret)
 
         kvp_db = set_datastore_value_for_config_key(
-            pack_name="dummy_pack_5",
+            pack_name=DUMMY_PACK_5,
             key_name="private_key_path",
             value="some_private_key",
         )
         self.assertEqual(kvp_db.value, "some_private_key")
         self.assertFalse(kvp_db.secret)
 
-        loader = ContentPackConfigLoader(pack_name="dummy_pack_5", user="joe")
+        loader = ContentPackConfigLoader(pack_name=DUMMY_PACK_5, user="joe")
         config = loader.get_config()
 
         # regions is provided in the pack global config
@@ -86,19 +117,19 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
     def test_get_config_default_value_from_config_schema_is_used(self):
         # No value is provided for "region" in the config, default value from config schema
         # should be used
-        loader = ContentPackConfigLoader(pack_name="dummy_pack_5")
+        loader = ContentPackConfigLoader(pack_name=DUMMY_PACK_5)
         config = loader.get_config()
         self.assertEqual(config["region"], "default-region-value")
 
         # Here a default value is specified in schema but an explicit value is provided in the
         # config
-        loader = ContentPackConfigLoader(pack_name="dummy_pack_1")
+        loader = ContentPackConfigLoader(pack_name=DUMMY_PACK_1)
         config = loader.get_config()
         self.assertEqual(config["region"], "us-west-1")
 
         # Config item attribute has required: false
         # Value is provided in the config - it should be used as provided
-        pack_name = "dummy_pack_5"
+        pack_name = DUMMY_PACK_5
 
         loader = ContentPackConfigLoader(pack_name=pack_name)
         config = loader.get_config()
@@ -120,7 +151,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         )
 
     def test_default_values_from_schema_are_used_when_no_config_exists(self):
-        pack_name = "dummy_pack_5"
+        pack_name = DUMMY_PACK_5
         config_db = Config.get_by_pack(pack_name)
 
         # Delete the existing config loaded in setUp
@@ -137,7 +168,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config["region"], "default-region-value")
 
     def test_default_values_are_used_when_default_values_are_falsey(self):
-        pack_name = "dummy_pack_17"
+        pack_name = DUMMY_PACK_17
 
         loader = ContentPackConfigLoader(pack_name=pack_name)
         config = loader.get_config()
@@ -177,7 +208,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
     def test_get_config_nested_schema_default_values_from_config_schema_are_used(self):
         # Special case for more complex config schemas with attributes ntesting.
         # Validate that the default values are also used for one level nested object properties.
-        pack_name = "dummy_pack_schema_with_nested_object_1"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_1
 
         # 1. None of the nested object values are provided
         loader = ContentPackConfigLoader(pack_name=pack_name)
@@ -196,7 +227,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config, expected_config)
 
         # 2. Some of the nested object values are provided (host, port)
-        pack_name = "dummy_pack_schema_with_nested_object_2"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_2
 
         loader = ContentPackConfigLoader(pack_name=pack_name)
         config = loader.get_config()
@@ -214,7 +245,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config, expected_config)
 
         # 3. Nested attribute (auth_settings.token) references a non-secret datastore value
-        pack_name = "dummy_pack_schema_with_nested_object_3"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_3
 
         kvp_db = set_datastore_value_for_config_key(
             pack_name=pack_name,
@@ -241,7 +272,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config, expected_config)
 
         # 4. Nested attribute (auth_settings.token) references a secret datastore value
-        pack_name = "dummy_pack_schema_with_nested_object_4"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_4
 
         kvp_db = set_datastore_value_for_config_key(
             pack_name=pack_name,
@@ -300,7 +331,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
     def test_get_config_dynamic_config_item_render_fails_user_friendly_exception_is_thrown(
         self,
     ):
-        pack_name = "dummy_pack_schema_with_nested_object_5"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_5
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
         # Render fails on top-level item
@@ -521,7 +552,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         config_db.delete()
 
     def test_get_config_dynamic_config_item_under_additional_properties(self):
-        pack_name = "dummy_pack_schema_with_additional_properties_1"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_ADDITIONAL_PROPERTIES_1
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
         encrypted_value = crypto.symmetric_encrypt(
@@ -576,7 +607,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         config_db.delete()
 
     def test_get_config_dynamic_config_item_under_pattern_properties(self):
-        pack_name = "dummy_pack_schema_with_pattern_properties_1"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_PATTERN_PROPERTIES_1
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
         encrypted_value = crypto.symmetric_encrypt(
@@ -631,7 +662,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         config_db.delete()
 
     def test_get_config_dynamic_config_item_properties_order_of_precedence(self):
-        pack_name = "dummy_pack_schema_with_pattern_and_additional_properties_1"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_PATTERN_AND_ADDITIONAL_PROPERTIES_1
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
         encrypted_value_1 = crypto.symmetric_encrypt(
@@ -736,7 +767,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         config_db.delete()
 
     def test_get_config_dynamic_config_item_under_additional_items(self):
-        pack_name = "dummy_pack_schema_with_additional_items_1"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_ADDITIONAL_ITEMS_1
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
         encrypted_value = crypto.symmetric_encrypt(

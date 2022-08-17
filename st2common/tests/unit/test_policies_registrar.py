@@ -32,6 +32,11 @@ from st2tests.fixtures.packs.dummy_pack_1.fixture import (
     PACK_NAME as DUMMY_PACK_1,
     PACK_PATH as DUMMY_PACK_1_PATH,
 )
+from st2tests.fixtures.packs.dummy_pack_2.fixture import (
+    PACK_NAME as DUMMY_PACK_2,
+    PACK_PATH as DUMMY_PACK_2_PATH,
+)
+from st2tests.fixtures.packs.orquesta_tests.fixture import PACK_NAME as ORQUESTA_TESTS
 
 __all__ = ["PoliciesRegistrarTestCase"]
 
@@ -85,7 +90,7 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
                 "parameters": {"retry_on": "timeout", "max_retry_count": 5},
             },
             "sequential.retry_on_failure": {
-                "pack": "orquesta_tests",
+                "pack": ORQUESTA_TESTS,
                 "type": "action.retry",
                 "parameters": {"retry_on": "failure", "max_retry_count": 1},
             },
@@ -128,15 +133,13 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
     def test_make_sure_policy_parameters_are_validated_during_register(self):
         # Policy where specified parameters fail schema validation
         registrar = PolicyRegistrar()
-        policy_path = os.path.join(
-            get_fixtures_packs_base_path(), "dummy_pack_2/policies/policy_3.yaml"
-        )
+        policy_path = os.path.join(DUMMY_PACK_2_PATH, "policies/policy_3.yaml")
 
         expected_msg = "100 is greater than the maximum of 5"
         self.assertRaisesRegexp(
             jsonschema.ValidationError,
             expected_msg,
             registrar._register_policy,
-            pack="dummy_pack_2",
+            pack=DUMMY_PACK_2,
             policy=policy_path,
         )

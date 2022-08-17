@@ -32,22 +32,34 @@ from st2tests.fixtures.packs.dummy_pack_1.fixture import (
     PACK_NAME as DUMMY_PACK_1,
     PACK_PATH as PACK_PATH_1,
 )
+from st2tests.fixtures.packs.dummy_pack_6.fixture import (
+    PACK_NAME as DUMMY_PACK_6,
+    PACK_PATH as PACK_PATH_6,
+)
+from st2tests.fixtures.packs.dummy_pack_8.fixture import PACK_PATH as PACK_PATH_8
 from st2tests.fixtures.packs.dummy_pack_10.fixture import PACK_PATH as PACK_PATH_10
+from st2tests.fixtures.packs.dummy_pack_13.fixture import PACK_PATH as PACK_PATH_13
+from st2tests.fixtures.packs.dummy_pack_14.fixture import PACK_PATH as PACK_PATH_14
+from st2tests.fixtures.packs.dummy_pack_20.fixture import (
+    PACK_NAME as DUMMY_PACK_20,
+    PACK_PATH as PACK_PATH_20,
+)
+from st2tests.fixtures.packs.dummy_pack_21.fixture import (
+    PACK_NAME as DUMMY_PACK_21,
+    PACK_PATH as PACK_PATH_21,
+)
+
+# from st2tests.fixtures.packs.dummy_pack_12.fixture import (
+#     PACK_PATH as PACK_PATH_12,
+# )  # not used?
 
 
 __all__ = ["ResourceRegistrarTestCase"]
 
-PACK_PATH_6 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_6")
 PACK_PATH_7 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_7")
-PACK_PATH_8 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_8")
 PACK_PATH_9 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_9")
-PACK_PATH_12 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_12")
-PACK_PATH_13 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_13")
-PACK_PATH_14 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_14")
 PACK_PATH_17 = os.path.join(get_fixtures_base_path(), "packs_invalid/dummy_pack_17")
 PACK_PATH_18 = os.path.join(get_fixtures_base_path(), "packs_invalid/dummy_pack_18")
-PACK_PATH_20 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_20")
-PACK_PATH_21 = os.path.join(get_fixtures_base_path(), "packs/dummy_pack_21")
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -101,13 +113,13 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         registrar = ResourceRegistrar(use_pack_cache=False)
         registrar._pack_loader.get_packs = mock.Mock()
         registrar._pack_loader.get_packs.return_value = {
-            "dummy_pack_20": PACK_PATH_20,
+            DUMMY_PACK_20: PACK_PATH_20,
         }
         packs_base_paths = content_utils.get_packs_base_paths()
         registrar.register_packs(base_dirs=packs_base_paths)
 
         # Ref is provided
-        pack_db = Pack.get_by_name("dummy_pack_20")
+        pack_db = Pack.get_by_name(DUMMY_PACK_20)
         self.assertEqual(pack_db.ref, "dummy_pack_20_ref")
         self.assertEqual(len(pack_db.contributors), 0)
 
@@ -121,13 +133,13 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         registrar._pack_loader.get_packs = mock.Mock()
         registrar._pack_loader.get_packs.return_value = {
             DUMMY_PACK_1: PACK_PATH_1,
-            "dummy_pack_6": PACK_PATH_6,
+            DUMMY_PACK_6: PACK_PATH_6,
         }
         packs_base_paths = content_utils.get_packs_base_paths()
         registrar.register_packs(base_dirs=packs_base_paths)
 
         # Ref is provided
-        pack_db = Pack.get_by_name("dummy_pack_6")
+        pack_db = Pack.get_by_name(DUMMY_PACK_6)
         self.assertEqual(pack_db.ref, "dummy_pack_6_ref")
         self.assertEqual(len(pack_db.contributors), 0)
 
@@ -257,7 +269,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
     def test_register_pack_invalid_python_versions_attribute(self):
         registrar = ResourceRegistrar(use_pack_cache=False, fail_on_failure=True)
         registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {"dummy_pack_21": PACK_PATH_21}
+        registrar._pack_loader.get_packs.return_value = {DUMMY_PACK_21: PACK_PATH_21}
         packs_base_paths = content_utils.get_packs_base_paths()
 
         expected_msg = r"'4' is not one of \['2', '3'\]"
