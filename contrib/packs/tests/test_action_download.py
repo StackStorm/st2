@@ -37,7 +37,8 @@ from st2common.util.pack_management import eval_repo_url
 
 from pack_mgmt.download import DownloadGitRepoAction
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# this import allows pants to detect that the fixtures are used in this file
+from .fixtures import FIXTURES_DIR
 
 PACK_INDEX = {
     "test": {
@@ -639,7 +640,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             side_effect=TypeError("detached head")
         )
 
-        pack_path = os.path.join(BASE_DIR, "fixtures/stackstorm-test")
+        pack_path = os.path.join(FIXTURES_DIR, "stackstorm-test")
 
         result = action.run(
             packs=["file://%s" % (pack_path)], abs_repo_base=self.repo_base
@@ -665,7 +666,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         )
 
         # 2. Local pack which is not a git repository
-        pack_path = os.path.join(BASE_DIR, "fixtures/stackstorm-test4")
+        pack_path = os.path.join(FIXTURES_DIR, "stackstorm-test4")
 
         result = action.run(
             packs=["file://%s" % (pack_path)], abs_repo_base=self.repo_base
