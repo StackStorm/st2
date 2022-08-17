@@ -34,6 +34,7 @@ from st2common.bootstrap import runnersregistrar as runners_registrar
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.base import DbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 import st2tests.config as tests_config
 from six.moves import range
@@ -41,8 +42,6 @@ from six.moves import range
 tests_config.parse_args()
 
 TEST_FIXTURES = {"actions": ["local.yaml"]}
-
-FIXTURES_PACK = "generic"
 
 NON_UTF8_RESULT = {
     "stderr": "",

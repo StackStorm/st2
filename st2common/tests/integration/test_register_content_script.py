@@ -27,6 +27,7 @@ from st2tests.fixturesloader import get_fixtures_packs_base_path
 # import this so that pants can infer dependencies for the glob below
 from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_PATH as DUMMY_PACK_1_PATH
 from st2tests.fixtures.packs.dummy_pack_4.fixture import PACK_PATH as DUMMY_PACK_4_PATH
+from st2tests.fixtures.packs_1.dummy_pack_4.fixture import PACK_PATH as EMPTY_PACK_PATH
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -116,6 +117,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         # dummy_pack_4 only has actions folder, make sure it doesn't throw when
         # sensors and other resource folders are missing
 
+        self.assertIn("fixtures/packs_1/", EMPTY_PACK_PATH)
         # Note: We want to use a different config which sets fixtures/packs_1/
         # dir as packs_base_paths
         cmd = [

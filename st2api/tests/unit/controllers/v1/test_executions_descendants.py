@@ -15,11 +15,10 @@
 
 import six
 
+from st2tests.fixtures.descendants.fixture import PACK_NAME as DESCENDANTS_PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.api import FunctionalTest
 
-
-DESCENDANTS_PACK = "descendants"
 
 DESCENDANTS_FIXTURES = {
     "executions": [

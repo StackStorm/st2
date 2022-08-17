@@ -44,6 +44,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import crypto as crypto_utils
 from st2common.util import date as date_utils
 from st2tests.api import SUPER_SECRET_PARAMETER
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.api import FunctionalTest
 
@@ -106,7 +107,6 @@ USR_TOKEN = TokenDB(
     id=bson.ObjectId(), user="tokenuser", token=uuid.uuid4().hex, expiry=EXPIRY
 )
 
-FIXTURES_PACK = "generic"
 FIXTURES = {"users": ["system_user.yaml", "token_user.yaml"]}
 
 # These parameters are used for the tests of getting value from datastore and decrypting it at
