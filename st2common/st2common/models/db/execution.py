@@ -199,7 +199,6 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         if "parameters" in self.liveaction:
             # We need to also encrypt the parameters inside liveaction
             original_liveaction_parameters = self.liveaction.get("parameters", {})
-            original_liveaction_parameters["value"] = "save"
             
             encrpyted_parameters = encrypt_secret_parameters(
                 original_liveaction_parameters,
@@ -260,7 +259,6 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
 
         if "parameters" in self.liveaction:
             original_liveaction_parameters = self.liveaction.get("parameters", {})
-            original_liveaction_parameters["value"] = "update"
             encrpyted_parameters = encrypt_secret_parameters(
                 original_liveaction_parameters,
                 secret_parameters,
