@@ -51,6 +51,11 @@ Added
 * Added purging of old tokens. #5679
   Contributed by Amanda McGuinness (@amanda11 intive)
 
+* Begin introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
+  working on StackStorm, improve our security posture, and improve CI reliability thanks in part
+  to pants' use of PEX lockfiles. This is not a user-facing addition. #5713
+  Contributed by @cognifloyd
+
 Changed
 ~~~~~~~
 
