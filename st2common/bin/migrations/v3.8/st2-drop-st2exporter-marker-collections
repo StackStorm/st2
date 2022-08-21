@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+# Copyright 2022 The StackStorm Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Migration which deletes the marker collections now that st2exporter has been removed.
+Only st2exporter used the marker collections.
+
+NB: Most people will not have these collections because st2exporter was optional,
+and the collections were not configured to be created automatically.
+"""
+
+import sys
+import traceback
+
+import mongoengine as me
+
+from mongoengine.connection import get_db
+from oslo_config import cfg
+
+from st2common import config
+from st2common.service_setup import db_setup
+from st2common.service_setup import db_teardown
+
+
+MARKER_COLLECTION = "marker_d_b"
+DUMPER_MARKER_COLLECTION = "dumper_marker_d_b"
+
+
+def delete_marker_collections():
+    db = get_db()
+    collections = db.collection_names()
+
+    if MARKER_COLLECTION in collections:
+        print(f"Dropping {MARKER_COLLECTION} collection...")
+        db[MARKER_COLLECTION].drop()
+
+    if DUMPER_MARKER_COLLECTION in collections:
+        print(f"Dropping {DUMPER_MARKER_COLLECTION} collection...")
+        db[DUMPER_MARKER_COLLECTION].drop()
+
+
+def main():
+    config.parse_args()
+    db_setup()
+
+    try:
+        delete_marker_collections(display_prompt=not cfg.CONF.yes)
+        exit_code = 0
+    except Exception as e:
+        print("ABORTED: Collection deletion aborted on first failure: %s" % (str(e)))
+        traceback.print_exc()
+        exit_code = 1
+
+    db_teardown()
+    sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    main()

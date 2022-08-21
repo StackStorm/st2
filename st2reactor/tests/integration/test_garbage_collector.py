@@ -34,6 +34,7 @@ from st2common.services import executions
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
 
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 from six.moves import range
 
@@ -57,8 +58,6 @@ CMD = [PYTHON_BINARY, BINARY, "--config-file", ST2_CONFIG_PATH]
 CMD_INQUIRY = [PYTHON_BINARY, BINARY, "--config-file", INQUIRY_CONFIG_PATH]
 
 TEST_FIXTURES = {"runners": ["inquirer.yaml"], "actions": ["ask.yaml"]}
-
-FIXTURES_PACK = "generic"
 
 
 class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):

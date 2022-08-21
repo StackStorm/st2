@@ -28,6 +28,15 @@ from st2common.persistence.policy import Policy
 from st2common.persistence.policy import PolicyType
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import get_fixtures_packs_base_path
+from st2tests.fixtures.packs.dummy_pack_1.fixture import (
+    PACK_NAME as DUMMY_PACK_1,
+    PACK_PATH as DUMMY_PACK_1_PATH,
+)
+from st2tests.fixtures.packs.dummy_pack_2.fixture import (
+    PACK_NAME as DUMMY_PACK_2,
+    PACK_PATH as DUMMY_PACK_2_PATH,
+)
+from st2tests.fixtures.packs.orquesta_tests.fixture import PACK_NAME as ORQUESTA_TESTS
 
 __all__ = ["PoliciesRegistrarTestCase"]
 
@@ -71,17 +80,17 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
 
         expected_policies = {
             "test_policy_1": {
-                "pack": "dummy_pack_1",
+                "pack": DUMMY_PACK_1,
                 "type": "action.concurrency",
                 "parameters": {"action": "delay", "threshold": 3},
             },
             "test_policy_3": {
-                "pack": "dummy_pack_1",
+                "pack": DUMMY_PACK_1,
                 "type": "action.retry",
                 "parameters": {"retry_on": "timeout", "max_retry_count": 5},
             },
             "sequential.retry_on_failure": {
-                "pack": "orquesta_tests",
+                "pack": ORQUESTA_TESTS,
                 "type": "action.retry",
                 "parameters": {"retry_on": "failure", "max_retry_count": 1},
             },
@@ -92,12 +101,12 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
         self.assertDictEqual(expected_policies, policies)
 
     def test_register_policies_from_pack(self):
-        pack_dir = os.path.join(get_fixtures_packs_base_path(), "dummy_pack_1")
+        pack_dir = DUMMY_PACK_1_PATH
         self.assertEqual(register_policies(pack_dir=pack_dir), 2)
 
         p1 = Policy.get_by_ref("dummy_pack_1.test_policy_1")
         self.assertEqual(p1.name, "test_policy_1")
-        self.assertEqual(p1.pack, "dummy_pack_1")
+        self.assertEqual(p1.pack, DUMMY_PACK_1)
         self.assertEqual(p1.resource_ref, "dummy_pack_1.local")
         self.assertEqual(p1.policy_type, "action.concurrency")
         # Verify that a default value for parameter "action" which isn't provided in the file is set
@@ -110,31 +119,27 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
     def test_register_policy_invalid_policy_type_references(self):
         # Policy references an invalid (inexistent) policy type
         registrar = PolicyRegistrar()
-        policy_path = os.path.join(
-            get_fixtures_packs_base_path(), "dummy_pack_1/policies/policy_2.yaml"
-        )
+        policy_path = os.path.join(DUMMY_PACK_1_PATH, "policies/policy_2.yaml")
 
         expected_msg = 'Referenced policy_type "action.mock_policy_error" doesnt exist'
         self.assertRaisesRegexp(
             ValueError,
             expected_msg,
             registrar._register_policy,
-            pack="dummy_pack_1",
+            pack=DUMMY_PACK_1,
             policy=policy_path,
         )
 
     def test_make_sure_policy_parameters_are_validated_during_register(self):
         # Policy where specified parameters fail schema validation
         registrar = PolicyRegistrar()
-        policy_path = os.path.join(
-            get_fixtures_packs_base_path(), "dummy_pack_2/policies/policy_3.yaml"
-        )
+        policy_path = os.path.join(DUMMY_PACK_2_PATH, "policies/policy_3.yaml")
 
         expected_msg = "100 is greater than the maximum of 5"
         self.assertRaisesRegexp(
             jsonschema.ValidationError,
             expected_msg,
             registrar._register_policy,
-            pack="dummy_pack_2",
+            pack=DUMMY_PACK_2,
             policy=policy_path,
         )

@@ -14,7 +14,10 @@
       type: array
   output_key: published
   output_schema:
-    published:
-      type: "object"
-    tasks:
-      type: "array"
+    type: object
+    properties:
+      published:
+        type: "object"
+      tasks:
+        type: "array"
+    additionalProperties: false

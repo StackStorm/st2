@@ -15,13 +15,16 @@ runner_parameters:
     default: false
     type: boolean
 output_schema:
-  succeeded:
-    type: boolean
-  failed:
-    type: boolean
-  return_code:
-    type: integer
-  stderr:
-    type: string
-  stdout:
-    type: string
+  type: object
+  properties:
+    succeeded:
+      type: boolean
+    failed:
+      type: boolean
+    return_code:
+      type: integer
+    stderr:
+      type: string
+    stdout:
+      type: string
+  additionalProperties: false
