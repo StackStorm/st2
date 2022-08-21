@@ -234,7 +234,7 @@ jobs:
           # this user is the username of the user in GitHub actions, used for SSH, etc during
           # integration tests (important)
           cp conf/st2.dev.conf "${ST2_CONF}"
-          sed -i -e "s,/home/vagrant/.ssh/stanley_rsa,/home/stanley/.ssh/authorized_keys," "${ST2_CONF}"
+          sed -i -e "s,/home/vagrant/.ssh/stanley_rsa,/home/stanley/.ssh/stanley_rsa," "${ST2_CONF}"
 
           sudo -E ./scripts/ci/add-itest-user-key.sh
       - name: Permissions Workaround
