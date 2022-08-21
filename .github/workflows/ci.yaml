@@ -177,6 +177,9 @@ jobs:
 
       # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+      # Array of tests to be skipped if the self-check is executed in the context of GitHub Actions
+      TESTS_TO_SKIP_IN_GHA=(tests.test_quickstart_rules tests.test_run_pack_tests_tool)
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -271,7 +274,6 @@ jobs:
           python3 setup.py develop
       - name: Run self-verification script
         env:
-          #ST2_CONF: /home/runner/work/st2/st2/${ST2_CONF}
           ST2_CONF: /home/runner/work/st2/st2/conf/st2.ci.conf
         run: |
           sudo -E ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t) PATH=${PATH} virtualenv/bin/st2-self-check
