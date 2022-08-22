@@ -53,13 +53,13 @@ class ActionExecution(Access):
     def get_by_name(cls, value):
         result = cls.get(name=value, raise_exception=True)
         return result
-    
+
     @classmethod
     def get_by_id(cls, value):
         instance = super(ActionExecution, cls).get_by_id(value)
         instance = cls._decrypt_secrets(instance)
         return instance
-    
+
     @classmethod
     def get_by_uid(cls, value):
         result = cls.get(uid=value, raise_exception=True)
@@ -82,6 +82,9 @@ class ActionExecution(Access):
             return instance
         # Decrypt secrets if any
         instance = cls._decrypt_secrets(instance)
+        from st2common import log as logging
+        LOG = logging.getLogger(__name__)
+        LOG.debug("ActionExecution : get : %s", instance)
         return instance
 
     @classmethod
@@ -102,8 +105,6 @@ class ActionExecution(Access):
         )
         setattr(instance, "parameters", decrypt_parameters)
 
-        # liveaction_parameter = getattr(instance, "liveaction", {}).get("parameters", None)
-        liveaction = getattr(instance, "liveaction", {})
         liveaction_parameter = getattr(instance, "liveaction", {}).get("parameters", {})
         if liveaction_parameter:
             decrypt_liveaction_parameters = decrypt_secret_parameters(
@@ -112,8 +113,9 @@ class ActionExecution(Access):
                 cls.encryption_key
             )
             instance.liveaction["parameters"] = decrypt_liveaction_parameters
-        
+
         return instance
+
 
 class ActionExecutionOutput(Access):
     impl = MongoDBAccess(ActionExecutionOutputDB)

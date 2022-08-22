@@ -53,7 +53,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     runner = stormbase.EscapedDictField(required=True)
     # Only the diff between the liveaction type and what is replicated
     # in the ActionExecutionDB object.
-    liveaction = stormbase.EscapedDynamicField(required=True)
+    liveaction = stormbase.EscapedDictField(required=True)
     workflow_execution = me.StringField()
     task_execution = me.StringField()
     status = me.StringField(
@@ -199,14 +199,14 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         if "parameters" in self.liveaction:
             # We need to also encrypt the parameters inside liveaction
             original_liveaction_parameters = self.liveaction.get("parameters", {})
-            
+
             encrpyted_parameters = encrypt_secret_parameters(
                 original_liveaction_parameters,
                 secret_parameters,
                 self.encryption_key
             )
             self.liveaction["parameters"] = encrpyted_parameters
-            # We also mask response found inside parameters under liveaction. 
+            # We also mask response found inside parameters under liveaction.
             # As mentioned above in mask_secrets function but I don't know what should be
             # the expected behaviour as there we are making all the values because
             # the schema is unknown
@@ -214,8 +214,8 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             original_output_value = self.result
             schema = self.action.get("output_schema")
             self.result = output_schema.encrypt_secret_output(
-                self.encryption_key, 
-                self.result, 
+                self.encryption_key,
+                self.result,
                 schema
             )
             # # Need output key
@@ -267,6 +267,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             self.liveaction["parameters"] = encrpyted_parameters
 
         return super(ActionExecutionDB, self).update(**kwargs)
+
 
 class ActionExecutionOutputDB(stormbase.StormFoundationDB):
     """

@@ -146,9 +146,10 @@ class LiveActionDB(stormbase.StormFoundationDB):
         return self
 
     def update(self, **kwargs):
-        # TODO : As of now update is not being used for LiveAction and that is why we did not 
+        # TODO : As of now update is not being used for LiveAction and that is why we did not
         # add the encryption logic here but we should add it here soon
         return super(LiveActionDB, self).update(**kwargs)
+
 
 # specialized access objects
 liveaction_access = MongoDBAccess(LiveActionDB)

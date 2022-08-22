@@ -172,7 +172,7 @@ def decrypt_secret_parameters(parameters, secret_parameters, encryption_key, res
                 )
         else:
             result[secret_param] = symmetric_decrypt(encryption_key, parameters)
-    
+
     return result
 
 
@@ -232,6 +232,7 @@ def encrypt_secret_parameters(parameters, secret_parameters, encryption_key, res
             result[secret_param] = symmetric_encrypt(encryption_key, parameters)
 
     return result
+
 
 def mask_secret_parameters(parameters, secret_parameters, result=None):
     """
