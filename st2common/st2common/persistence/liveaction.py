@@ -44,6 +44,7 @@ class LiveAction(persistence.StatusBasedResource):
     def delete_by_query(cls, *args, **query):
         return cls._get_impl().delete_by_query(*args, **query)
 
+    @classmethod
     def get(self, *args, **kwargs):
         return super(LiveAction, self).get(*args, **kwargs)
 
