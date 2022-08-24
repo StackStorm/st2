@@ -34,11 +34,11 @@ from st2common.util import param as param_utils
 
 from remote_runner.remote_script_runner import ParamikoRemoteScriptRunner
 
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 __all__ = ["ParamikoScriptRunnerTestCase"]
 
-FIXTURES_PACK = "generic"
 TEST_MODELS = {"actions": ["a1.yaml"]}
 
 MODELS = FixturesLoader().load_models(

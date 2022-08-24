@@ -23,8 +23,6 @@ import shutil
 import unittest2
 import uuid
 
-import st2tests
-
 from st2common.models.db.stormbase import UIDFieldMixin
 from st2common.services.packs import delete_action_files_from_pack
 from st2common.services.packs import clone_action_files
@@ -33,18 +31,17 @@ from st2common.services.packs import temp_backup_action_files
 from st2common.services.packs import restore_temp_action_files
 from st2common.services.packs import remove_temp_action_files
 
-TEST_PACK = "dummy_pack_1"
-TEST_PACK_PATH = os.path.join(
-    st2tests.fixturesloader.get_fixtures_packs_base_path(), TEST_PACK
+from st2tests.fixtures.packs.core.fixture import PACK_NAME as TEST_SOURCE_PACK
+from st2tests.fixtures.packs.dummy_pack_1.fixture import (
+    PACK_NAME as TEST_PACK,
+    PACK_PATH as TEST_PACK_PATH,
 )
-
-TEST_SOURCE_PACK = "core"
-
-TEST_SOURCE_WORKFLOW_PACK = "orquesta_tests"
-
-TEST_DEST_PACK = "dummy_pack_23"
-TEST_DEST_PACK_PATH = os.path.join(
-    st2tests.fixturesloader.get_fixtures_packs_base_path(), TEST_DEST_PACK
+from st2tests.fixtures.packs.dummy_pack_23.fixture import (
+    PACK_NAME as TEST_DEST_PACK,
+    PACK_PATH as TEST_DEST_PACK_PATH,
+)
+from st2tests.fixtures.packs.orquesta_tests.fixture import (
+    PACK_NAME as TEST_SOURCE_WORKFLOW_PACK,
 )
 
 SOURCE_ACTION_WITH_PYTHON_SCRIPT_RUNNER = {

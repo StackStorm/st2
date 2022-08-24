@@ -37,6 +37,7 @@ from st2common.services import trace as trace_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2tests import ExecutionDbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks.liveaction import MockLiveActionPublisher
@@ -47,7 +48,6 @@ __all__ = ["ExecutionCancellationTestCase"]
 
 TEST_FIXTURES = {"actions": ["action1.yaml"]}
 
-PACK = "generic"
 LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 

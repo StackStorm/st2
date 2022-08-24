@@ -41,6 +41,7 @@ from st2actions.notifier import config
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 
+# Do not use helpers from st2tests to calculate this (avoid extra imports).
 FIXTURES_DIR = os.path.join(ST2TESTS_PATH, "st2tests/fixtures")
 ST2_CONFIG_DEBUG_LL_PATH = os.path.join(
     FIXTURES_DIR, "conf/st2.tests.api.debug_log_level.conf"

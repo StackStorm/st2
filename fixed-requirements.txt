@@ -39,7 +39,7 @@ oslo.utils<5.0,>=4.0.0
 paramiko==2.10.1
 passlib==1.7.4
 prompt-toolkit==1.0.15
-pyinotify==0.9.6; platform_system=="Linux"
+pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==3.11.3
 pyparsing<3
 zstandard==0.15.2
@@ -82,4 +82,3 @@ psutil==5.8.0
 python-dateutil==2.8.1
 python-statsd==2.1.0
 orjson==3.5.2
-udatetime==0.0.16
