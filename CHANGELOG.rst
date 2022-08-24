@@ -19,6 +19,10 @@ Fixed
 
   Contributed by @S-T-A-R-L-O-R-D
 
+* Fixed a bug where calling 'get_by_name' on client for getting key details was not returning any results despite key being stored. #5677
+
+  Contributed by @bharath-orchestral
+
 
 * Fixed ``st2client/st2client/base.py`` file to use ``https_proxy``(not ``http_proxy``) to check HTTPS_PROXY environment variables.
 

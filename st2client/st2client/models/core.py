@@ -879,3 +879,38 @@ class ServiceRegistryMembersManager(ResourceManager):
             result.append(item)
 
         return result
+
+
+class KeyValuePairResourceManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def get_by_name(self, name, **kwargs):
+
+        token = kwargs.get("token", None)
+        api_key = kwargs.get("api_key", None)
+        params = kwargs.get("params", {})
+
+        for k, v in six.iteritems(kwargs):
+            # Note: That's a special case to support api_key and token kwargs
+            if k not in ["token", "api_key", "params"]:
+                params[k] = v
+
+        url = "/%s/%s/?%s" % (
+            self.resource.get_url_path_name(),
+            name,
+            urllib.parse.urlencode(params),
+        )
+
+        if token:
+            response = self.client.get(url, token=token)
+        elif api_key:
+            response = self.client.get(url, api_key=api_key)
+        else:
+            response = self.client.get(url)
+
+        if response.status_code == http_client.NOT_FOUND:
+            # for query and query_with_count
+            return []
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return self.resource.deserialize(parse_api_response(response))
