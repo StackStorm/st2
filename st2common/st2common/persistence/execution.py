@@ -82,9 +82,6 @@ class ActionExecution(Access):
             return instance
         # Decrypt secrets if any
         instance = cls._decrypt_secrets(instance)
-        from st2common import log as logging
-        LOG = logging.getLogger(__name__)
-        LOG.debug("ActionExecution : get : %s", instance)
         return instance
 
     @classmethod

@@ -213,16 +213,17 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         if self.result:
             original_output_value = self.result
             schema = self.action.get("output_schema")
-            self.result = output_schema.encrypt_secret_output(
-                self.encryption_key,
-                self.result,
-                schema
-            )
-            # # Need output key
-            # schema = self.action.get("output_schema")
-            # for key, spec in schema.items():
-            #     if key in self.result and spec.get("secret", False):
-            #         self.result[key] = str(symmetric_encrypt(self.encryption_key, self.result[key]))
+            if schema is not None:
+                self.result = output_schema.encrypt_secret_output(
+                    self.encryption_key,
+                    self.result,
+                    schema
+                )
+                # # Need output key
+                # schema = self.action.get("output_schema")
+                # for key, spec in schema.items():
+                #     if key in self.result and spec.get("secret", False):
+                #         self.result[key] = str(symmetric_encrypt(self.encryption_key, self.result[key]))
 
         self = super(ActionExecutionDB, self).save(*args, **kwargs)
         # Resetting to the original values
