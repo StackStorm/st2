@@ -46,6 +46,7 @@ from st2common.garbage_collection.workflows import (
 )
 from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 from st2common.garbage_collection.trace import purge_traces
+from st2common.garbage_collection.token import purge_tokens
 from st2common.garbage_collection.rule_enforcement import purge_rule_enforcements
 
 __all__ = ["GarbageCollectorService"]
@@ -76,6 +77,7 @@ class GarbageCollectorService(object):
         )
         self._trigger_instances_ttl = cfg.CONF.garbagecollector.trigger_instances_ttl
         self._traces_ttl = cfg.CONF.garbagecollector.traces_ttl
+        self._tokens_ttl = cfg.CONF.garbagecollector.tokens_ttl
         self._rule_enforcements_ttl = cfg.CONF.garbagecollector.rule_enforcements_ttl
         self._purge_inquiries = cfg.CONF.garbagecollector.purge_inquiries
         self._workflow_execution_max_idle = cfg.CONF.workflow_engine.gc_max_idle_sec
@@ -170,6 +172,11 @@ class GarbageCollectorService(object):
                 "Minimum possible TTL for traces_ttl in days is %s" % (MINIMUM_TTL_DAYS)
             )
 
+        if self._tokens_ttl and self._tokens_ttl < MINIMUM_TTL_DAYS:
+            raise ValueError(
+                "Minimum possible TTL for tokens_ttl in days is %s" % (MINIMUM_TTL_DAYS)
+            )
+
         if (
             self._rule_enforcements_ttl
             and self._rule_enforcements_ttl < MINIMUM_TTL_DAYS
@@ -228,6 +235,16 @@ class GarbageCollectorService(object):
         if self._traces_ttl and self._traces_ttl >= MINIMUM_TTL_DAYS:
             LOG.info(proc_message, obj_type)
             self._purge_traces()
+            concurrency.sleep(self._sleep_delay)
+        else:
+            LOG.debug(skip_message, obj_type)
+
+        obj_type = "token"
+
+        if self._tokens_ttl and self._tokens_ttl >= MINIMUM_TTL_DAYS:
+
+            LOG.info(proc_message, obj_type)
+            self._purge_tokens()
             concurrency.sleep(self._sleep_delay)
         else:
             LOG.debug(skip_message, obj_type)
@@ -454,6 +471,35 @@ class GarbageCollectorService(object):
             purge_traces(logger=LOG, timestamp=timestamp)
         except Exception as e:
             LOG.exception("Failed to delete trace: %s" % (six.text_type(e)))
+
+        return True
+
+    def _purge_tokens(self):
+        """
+        Purge token objects which match the criteria defined in the config.
+        """
+        utc_now = get_datetime_utc_now()
+        timestamp = utc_now - datetime.timedelta(days=self._tokens_ttl)
+
+        # Another sanity check to make sure we don't delete new objects
+        if timestamp > (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
+            raise ValueError(
+                "Calculated timestamp would violate the minimum TTL constraint"
+            )
+
+        timestamp_str = isotime.format(dt=timestamp)
+        LOG.info("Deleting token objects expired older than: %s" % (timestamp_str))
+
+        if timestamp >= utc_now:
+            raise ValueError(
+                f"Calculated timestamp ({timestamp}) is"
+                f" later than now in UTC ({utc_now})."
+            )
+
+        try:
+            purge_tokens(logger=LOG, timestamp=timestamp)
+        except Exception as e:
+            LOG.exception("Failed to delete token: %s" % (six.text_type(e)))
 
         return True
 

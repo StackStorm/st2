@@ -32,10 +32,14 @@ from st2common.util.virtualenvs import setup_pack_virtualenv
 from st2tests import config
 from st2tests.base import CleanFilesTestCase
 from st2tests.base import CleanDbTestCase
+from st2tests.fixtures.packs.test_library_dependencies.fixture import (
+    PACK_NAME as TEST_LIBRARY_DEPENDENCIES,
+)
 from st2tests.fixturesloader import get_fixtures_base_path
 
 __all__ = ["PythonRunnerBehaviorTestCase"]
 
+FIXTURES_BASE_PATH = get_fixtures_base_path()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WRAPPER_SCRIPT_PATH = os.path.join(
     BASE_DIR, "../../../python_runner/python_runner/python_action_wrapper.py"
@@ -72,7 +76,7 @@ class PythonRunnerBehaviorTestCase(CleanFilesTestCase, CleanDbTestCase):
         To test above, this uses 'get_library_path.py' action in 'test_library_dependencies' pack.
         This action returns file-path of imported module which is specified by 'module' parameter.
         """
-        pack_name = "test_library_dependencies"
+        pack_name = TEST_LIBRARY_DEPENDENCIES
 
         # Before calling action, this sets up virtualenv for test pack. This pack has
         # requirements.txt wihch only writes 'six' module.
@@ -123,7 +127,7 @@ class PythonRunnerBehaviorTestCase(CleanFilesTestCase, CleanDbTestCase):
             setattr(runner, key, value)
 
         runner.entry_point = os.path.join(
-            get_fixtures_base_path(), "packs/%s/actions/%s" % (pack, action)
+            FIXTURES_BASE_PATH, f"packs/{pack}/actions/{action}"
         )
         runner.pre_run()
         return runner.run(params)

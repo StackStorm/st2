@@ -29,6 +29,7 @@ RUNNER_COMMAND = "cmd"
 
 class WinRmCommandRunner(WinRmBaseRunner):
     def run(self, action_parameters):
+        # pylint: disable=unsubscriptable-object
         cmd_command = self.runner_parameters[RUNNER_COMMAND]
 
         # execute

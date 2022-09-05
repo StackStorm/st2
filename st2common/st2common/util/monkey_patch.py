@@ -19,6 +19,7 @@ Module for performing eventlet and other monkey patching.
 
 from __future__ import absolute_import
 
+import os
 import sys
 
 __all__ = [
@@ -29,6 +30,7 @@ __all__ = [
 
 USE_DEBUGGER_FLAG = "--use-debugger"
 PARENT_ARGS_FLAG = "--parent-args="
+USE_DEBUGGER_ENV_VAR = "ST2_USE_DEBUGGER"
 
 
 def monkey_patch(patch_thread=None):
@@ -89,7 +91,11 @@ def use_select_poll_workaround(nose_only=True):
     import eventlet
 
     # Work around to get tests to pass with eventlet >= 0.20.0
-    if not nose_only or (nose_only and "nose" in sys.modules.keys()):
+    if not nose_only or (
+        nose_only
+        # sys._called_from_test set in conftest.py for pytest runs
+        and ("nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"))
+    ):
         # Add back blocking poll() to eventlet monkeypatched select
         original_poll = eventlet.patcher.original("select").poll
         select.poll = original_poll
@@ -116,5 +122,9 @@ def is_use_debugger_flag_provided():
     for arg in sys.argv:
         if arg.startswith(PARENT_ARGS_FLAG) and USE_DEBUGGER_FLAG in arg:
             return True
+
+    # 3. Check for ST2_USE_DEBUGGER env var
+    if os.environ.get(USE_DEBUGGER_ENV_VAR, False):
+        return True
 
     return False

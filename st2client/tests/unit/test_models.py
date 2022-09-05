@@ -471,3 +471,20 @@ class TestResourceManager(unittest2.TestCase):
         mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
         source_ref = "spack.saction"
         self.assertRaises(Exception, mgr.clone, source_ref, "dpack", "daction")
+
+
+class TestKeyValuePairResourceManager(unittest2.TestCase):
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "get",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, "OK")
+        ),
+    )
+    def test_resource_get_by_name(self):
+        mgr = models.KeyValuePairResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        # No X-Total-Count
+        resource = mgr.get_by_name("abc")
+        actual = resource.serialize()
+        expected = json.loads(json.dumps(base.RESOURCES[0]))
+        self.assertEqual(actual, expected)

@@ -13,17 +13,108 @@ Fixed
   or arrays using ``additionalItems`` schema(s) can use encrypted datastore keys and have their
   default values applied correctly. #5321
 
-  Contributed by @cognifloyd.
+  Contributed by @cognifloyd
 
 * Fixed ``st2client/st2client/base.py`` file to check for http_proxy and https_proxy environment variables for both lower and upper cases.
 
   Contributed by @S-T-A-R-L-O-R-D
+
+* Fixed a bug where calling 'get_by_name' on client for getting key details was not returning any results despite key being stored. #5677
+
+  Contributed by @bharath-orchestral
+
+
+* Fixed ``st2client/st2client/base.py`` file to use ``https_proxy``(not ``http_proxy``) to check HTTPS_PROXY environment variables.
+
+  Contributed by @wfgydbu
+
+* Fixed schema utils to more reliably handle schemas that define nested arrays (object-array-object-array-string) as discovered in some
+  of the ansible installer RBAC tests (see #5684). This includes a test that reproduced the error so we don't hit this again. #5685
+
+* Fixed eventlet monkey patching so more of the unit tests work under pytest. #5689
+
+* Fix and reenable prance-based openapi spec validation, but make our custom ``x-api-model`` validation optional as the spec is out-of-date. #5709
+  Contributed by @cognifloyd
+
+* Fixed generation of `st2.conf.sample` to show correct syntax for `[sensorcontainer].partition_provider` (space separated `key:value` pairs). #5710
+  Contributed by @cognifloyd
 
 Added
 ~~~~~
 
 * Added graceful shutdown for workflow engine. #5463
   Contributed by @khushboobhatia01
+
+* Add ``ST2_USE_DEBUGGER`` env var as alternative to the ``--use-debugger`` cli flag. #5675
+  Contributed by @cognifloyd
+
+* Added purging of old tokens. #5679
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+Changed
+~~~~~~~
+
+* BREAKING CHANGE for anyone that uses ``output_schema``, which is disabled by default.
+  If you have ``[system].validate_output_schema = True`` in st2.conf AND you have added
+  ``output_schema`` to any of your packs, then you must update your action metadata.
+
+  ``output_schema`` must be a full jsonschema now. If a schema is not well-formed, we ignore it.
+  Now, ``output`` can be types other than object such as list, bool, int, etc.
+  This also means that all of an action's output can be masked as a secret.
+
+  To get the same behavior, you'll need to update your output schema.
+  For example, this schema:
+
+  .. code-block:: yaml
+
+    output_schema:
+      property1:
+        type: bool
+      property2:
+        type: str
+
+  should be updated like this:
+
+  .. code-block:: yaml
+
+    output_schema:
+      type: object
+      properties:
+        property1:
+          type: bool
+        property2:
+          type: str
+      additionalProperties: false
+
+  #5319
+
+  Contributed by @cognifloyd
+
+* Changed the `X-XSS-Protection` HTTP header from `1; mode=block` to `0` in the `conf/nginx/st2.conf` to align with the OWASP security standards. #5298
+
+  Contributed by @LiamRiddell
+
+* Use PEP 440 direct reference requirements instead of legacy PIP VCS requirements. Now, our ``*.requirements.txt`` files use
+  ``package-name@ git+https://url@version ; markers`` instead of ``git+https://url@version#egg=package-name ; markers``. #5673
+  Contributed by @cognifloyd
+
+* Move from udatetime to ciso8601 for date functionality ahead of supporting python3.9 #5692
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Refactor tests to use python imports to identify test fixtures. #5699 #5702 #5703 #5704 #5705 #5706
+  Contributed by @cognifloyd
+
+* Refactor ``st2-generate-schemas`` so that logic is in an importable module. #5708
+  Contributed by @cognifloyd
+
+Removed
+~~~~~~~
+
+* Removed st2exporter service. It is unmaintained and does not get installed. It was
+  originally meant to help with analytics by exporting executions as json files that
+  could be imported into something like elasticsearch. Our code is now instrumented
+  to make a wider variety of stats available to metrics drivers. #5676
+  Contributed by @cognifloyd
 
 3.7.0 - May 05, 2022
 --------------------
@@ -142,6 +233,7 @@ Added
 
 * Added garbage collection for rule_enforcement and trace models #5596/5602
   Contributed by Amanda McGuinness (@amanda11 intive)
+
 
 * Added garbage collection for workflow execution and task execution objects #4924
   Contributed by @srimandaleeka01 and @amanda11

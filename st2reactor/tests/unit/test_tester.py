@@ -21,11 +21,12 @@ import mock
 from st2common.transport.publishers import PoolPublisher
 from st2reactor.rules.tester import RuleTester
 from st2tests.base import CleanDbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
-BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+from tests.fixtures.fixture import FIXTURES_DIR
 
-FIXTURES_PACK = "generic"
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 
 TEST_MODELS_TRIGGERS = {
     "triggertypes": ["triggertype1.yaml", "triggertype2.yaml"],
@@ -44,9 +45,9 @@ class RuleTesterTestCase(CleanDbTestCase):
         FixturesLoader().save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_MODELS_ACTIONS
         )
-        rule_file_path = os.path.join(BASE_PATH, "../fixtures/rule.yaml")
+        rule_file_path = os.path.join(FIXTURES_DIR, "rule.yaml")
         trigger_instance_file_path = os.path.join(
-            BASE_PATH, "../fixtures/trigger_instance_1.yaml"
+            FIXTURES_DIR, "trigger_instance_1.yaml"
         )
         tester = RuleTester(
             rule_file_path=rule_file_path,
@@ -56,9 +57,9 @@ class RuleTesterTestCase(CleanDbTestCase):
         self.assertTrue(matching)
 
     def test_non_matching_trigger_from_file(self):
-        rule_file_path = os.path.join(BASE_PATH, "../fixtures/rule.yaml")
+        rule_file_path = os.path.join(FIXTURES_DIR, "rule.yaml")
         trigger_instance_file_path = os.path.join(
-            BASE_PATH, "../fixtures/trigger_instance_2.yaml"
+            FIXTURES_DIR, "trigger_instance_2.yaml"
         )
         tester = RuleTester(
             rule_file_path=rule_file_path,

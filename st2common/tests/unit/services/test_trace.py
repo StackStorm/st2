@@ -26,11 +26,10 @@ from st2common.exceptions.trace import UniqueTraceNotFoundException
 from st2common.models.api.trace import TraceContext
 from st2common.persistence.trace import Trace
 from st2common.services import trace as trace_service
+from st2tests.fixtures.traces.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2tests import DbTestCase
 
-
-FIXTURES_PACK = "traces"
 
 TEST_MODELS = OrderedDict(
     (

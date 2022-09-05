@@ -16,16 +16,19 @@
       default: []
   output_key: output
   output_schema:
-    errors:
-      anyOf:
-        - type: "object"
-        - type: "array"
-    output:
-      anyOf:
-        - type: "object"
-        - type: "string"
-        - type: "integer"
-        - type: "number"
-        - type: "boolean"
-        - type: "array"
-        - type: "null"
+    type: object
+    properties:
+      errors:
+        anyOf:
+          - type: "object"
+          - type: "array"
+      output:
+        anyOf:
+          - type: "object"
+          - type: "string"
+          - type: "integer"
+          - type: "number"
+          - type: "boolean"
+          - type: "array"
+          - type: "null"
+    additionalProperties: false
