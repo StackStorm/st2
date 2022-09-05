@@ -66,6 +66,7 @@ def get_action_parameters_specs(action_ref):
     :rtype: ``dict``
     """
     action_db = get_action_by_ref(ref=action_ref)
+
     parameters = {}
     if not action_db:
         return parameters

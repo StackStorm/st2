@@ -1739,7 +1739,6 @@ class ActionExecutionControllerTestCase(
             ("/v1/actionexecutions?include_attributes=parameters,runner"),
             ("/v1/actionexecutions?include_attributes=parameters,action,runner"),
         ]
- 
         for url in urls:
             resp = self.app.get(url + "&limit=1&show_secrets=True")
 

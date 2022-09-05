@@ -155,15 +155,12 @@ def create_execution_object(
 
     # NOTE: User input data is already validate as part of the API request,
     # other data is set by us. Skipping validation here makes operation 10%-30% faster
-    LOG.debug("In create_execution_object : execution : before : %s", execution)
     execution = ActionExecution.add_or_update(
         execution, publish=publish, validate=False
     )
-    LOG.debug("In create_execution_object : execution : after : %s", execution)
     if parent and str(execution.id) not in parent.children:
         values = {}
         values["push__children"] = str(execution.id)
-        LOG.debug("In create_execution_object : parent : %s", parent)
         ActionExecution.update(parent, **values)
 
     return execution
@@ -196,9 +193,7 @@ def update_execution(liveaction_db, publish=True, set_result_size=False):
     :param set_result_size: True to calculate size of the serialized result field value and set it
                             on the "result_size" database field.
     """
-    LOG.debug("In update_execution : liveaction_db : %s", liveaction_db)
     execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
-    LOG.debug("In update_execution : get : %s", execution)
     with coordination.get_coordinator().get_lock(str(liveaction_db.id).encode()):
         # Skip execution object update when action is already in completed state.
         if execution.status in action_constants.LIVEACTION_COMPLETED_STATES:
@@ -233,10 +228,7 @@ def update_execution(liveaction_db, publish=True, set_result_size=False):
                 )
                 kw["set__result_size"] = result_size
 
-        LOG.debug("In update_execution : Before update : %s", execution)
-        LOG.debug("In update_execution : Before update : kw : %s", kw)
         execution = ActionExecution.update(execution, publish=publish, **kw)
-        LOG.debug("In update_execution : After update : %s", execution)
         return execution
 
 

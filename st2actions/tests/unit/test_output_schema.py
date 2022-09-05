@@ -16,8 +16,6 @@ from __future__ import absolute_import
 
 import mock
 
-from oslo_config import cfg
-
 from http_runner import http_runner
 from python_runner import python_runner
 from orquesta_runner import orquesta_runner
@@ -130,13 +128,9 @@ class ActionExecutionOutputSchemaTest(st2tests.ExecutionDbTestCase):
             ac_ex_db, ac_const.LIVEACTION_STATUS_SUCCEEDED
         )
 
-        # Decrypting the result to then see if it matches the expectation
-        encryption_key = read_crypto_key(cfg.CONF.actionrunner.encryption_key_path)
-        decrpyted_ac_ex_db_result = ac_ex_db.result["result"]
-        decrpyted_ac_ex_db_result["k2"] = symmetric_decrypt(encryption_key, ac_ex_db.result["result"]["k2"])
         # Assert expected output written to the database
         expected_output = {"k1": "foobar", "k2": "shhhh!"}
-        self.assertDictEqual(decrpyted_ac_ex_db_result, expected_output)
+        self.assertDictEqual(ac_ex_db.result["result"], expected_output)
 
         # Assert expected output on conversion to API model
         ac_ex_api = ex_api_models.ActionExecutionAPI.from_model(
