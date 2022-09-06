@@ -16,7 +16,7 @@ The meetings are open, and we invite community to join them to be up-to-date wit
 
 * TSC Meetings Host responsibility is rotated between the TSC maintainers.
 * Priority to host is given based on activity: Current Release Owners > Maintainers who weren't in rotation > Other Maintainer Volunteers.
-* Maintainers are free to decide collectively who would run the next TSC meeting. They can run in pairs, swap, however for diversification reasons no Maintainer can be a host for more than one in three consecutive meetings.
+* Maintainers are free to decide collectively who would run the next TSC meeting: they can run in pairs, swap.
 See [StackStorm TSC Meetings](https://github.com/StackStorm/community/issues/33) for more info about the meeting schedule, calendar, meeting host responsibilities and procedure.
 
 ### Maintainer Roles
