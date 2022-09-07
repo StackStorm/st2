@@ -11,7 +11,7 @@ This group is responsible for all technical oversight of StackStorm as Open Sour
 
 ### TSC Meetings
 Because of the different schedules and time zones, TSC is keen to prioritize asynchronous collaboration and work.
-However, every month, [@StackStorm/tsc](OWNERS.md) members are gathering for `1 hour` to discuss the project problems, roadmap, priorities to help the StackStorm as a project evolve and succeed.
+However, every month, [@StackStorm/tsc](OWNERS.md) members gather for `1 hour` to discuss the project problems, roadmap, priorities to help the StackStorm as a project evolve and succeed.
 The meetings are open, and we invite community to join them to be up-to-date with the latest project developments and progress.
 
 * TSC Meetings Host responsibility is rotated between the TSC maintainers.
