@@ -11,13 +11,13 @@ This group is responsible for all technical oversight of StackStorm as Open Sour
 
 ### TSC Meetings
 Because of the different schedules and time zones, TSC is keen to prioritize asynchronous collaboration and work.
-However, every `1st Tuesday` of the month `09:30 AM US Pacific`, [@StackStorm/tsc](OWNERS.md) members are gathering for `1 hour` to discuss the project problems, roadmap, priorities to help the StackStorm as a project evolve and succeed.
+However, every month, [@StackStorm/tsc](OWNERS.md) members are gathering for `1 hour` to discuss the project problems, roadmap, priorities to help the StackStorm as a project evolve and succeed.
 The meetings are open, and we invite community to join them to be up-to-date with the latest project developments and progress.
 
 * TSC Meetings Host responsibility is rotated between the TSC maintainers.
 * Priority to host is given based on activity: Current Release Owners > Maintainers who weren't in rotation > Other Maintainer Volunteers.
 * Maintainers are free to decide collectively who would run the next TSC meeting: they can run in pairs, swap.
-See [StackStorm TSC Meetings](https://github.com/StackStorm/community/issues/33) for more info about the meeting schedule, calendar, meeting host responsibilities and procedure.
+See [StackStorm TSC Meetings](https://github.com/StackStorm/community/issues/33) for more info about the meeting schedule, how to join, calendar, meeting host responsibilities and procedure.
 
 ### Maintainer Roles
 The current list of maintainers is published and updated in [OWNERS.md](OWNERS.md).
