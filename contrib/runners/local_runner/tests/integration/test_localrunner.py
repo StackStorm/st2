@@ -36,6 +36,8 @@ from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
+from st2tests.fixtures.generic.fixture import PACK_NAME as GENERIC_PACK
+from st2tests.fixtures.localrunner_pack.fixture import PACK_NAME as LOCALRUNNER_PACK
 
 from local_runner import base as local_runner
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
@@ -60,7 +62,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     def test_shell_command_action_basic(self):
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic", fixtures_dict={"actions": ["local.yaml"]}
+            fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["local.yaml"]}
         )
         action_db = models["actions"]["local.yaml"]
 
@@ -94,7 +96,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     def test_timeout(self):
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic", fixtures_dict={"actions": ["local.yaml"]}
+            fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["local.yaml"]}
         )
         action_db = models["actions"]["local.yaml"]
         # smaller timeout == faster tests.
@@ -109,7 +111,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     )
     def test_shutdown(self):
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic", fixtures_dict={"actions": ["local.yaml"]}
+            fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["local.yaml"]}
         )
         action_db = models["actions"]["local.yaml"]
         runner = self._get_runner(action_db, cmd="sleep 0.1")
@@ -119,7 +121,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     def test_common_st2_env_vars_are_available_to_the_action(self):
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic", fixtures_dict={"actions": ["local.yaml"]}
+            fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["local.yaml"]}
         )
         action_db = models["actions"]["local.yaml"]
 
@@ -144,7 +146,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         # root / non-system user
         # Note: This test will fail if SETENV option is not present in the sudoers file
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic", fixtures_dict={"actions": ["local.yaml"]}
+            fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["local.yaml"]}
         )
         action_db = models["actions"]["local.yaml"]
 
@@ -188,7 +190,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         )
 
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic", fixtures_dict={"actions": ["local.yaml"]}
+            fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["local.yaml"]}
         )
         action_db = models["actions"]["local.yaml"]
 
@@ -225,7 +227,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         # Verify that we correctly retrieve all the output and wait for stdout and stderr reading
         # threads for short running actions.
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic", fixtures_dict={"actions": ["local.yaml"]}
+            fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["local.yaml"]}
         )
         action_db = models["actions"]["local.yaml"]
 
@@ -298,7 +300,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_shell_command_sudo_password_is_passed_to_sudo_binary(self):
         # Verify that sudo password is correctly passed to sudo binary via stdin
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic", fixtures_dict={"actions": ["local.yaml"]}
+            fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["local.yaml"]}
         )
         action_db = models["actions"]["local.yaml"]
 
@@ -356,7 +358,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_shell_command_invalid_stdout_password(self):
         # Simulate message printed to stderr by sudo when invalid sudo password is provided
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic", fixtures_dict={"actions": ["local.yaml"]}
+            fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["local.yaml"]}
         )
         action_db = models["actions"]["local.yaml"]
 
@@ -426,7 +428,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     def test_script_with_parameters_parameter_serialization(self):
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic",
+            fixtures_pack=GENERIC_PACK,
             fixtures_dict={"actions": ["local_script_with_params.yaml"]},
         )
         action_db = models["actions"]["local_script_with_params.yaml"]
@@ -557,7 +559,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         )
 
         models = self.fixtures_loader.load_models(
-            fixtures_pack="generic",
+            fixtures_pack=GENERIC_PACK,
             fixtures_dict={"actions": ["local_script_with_params.yaml"]},
         )
         action_db = models["actions"]["local_script_with_params.yaml"]
@@ -604,12 +606,12 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     def test_shell_script_action(self):
         models = self.fixtures_loader.load_models(
-            fixtures_pack="localrunner_pack",
+            fixtures_pack=LOCALRUNNER_PACK,
             fixtures_dict={"actions": ["text_gen.yml"]},
         )
         action_db = models["actions"]["text_gen.yml"]
         entry_point = self.fixtures_loader.get_fixture_file_path_abs(
-            "localrunner_pack", "actions", "text_gen.py"
+            LOCALRUNNER_PACK, "actions", "text_gen.py"
         )
         runner = self._get_runner(action_db, entry_point=entry_point)
         runner.pre_run()
@@ -620,12 +622,12 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
     def test_large_stdout(self):
         models = self.fixtures_loader.load_models(
-            fixtures_pack="localrunner_pack",
+            fixtures_pack=LOCALRUNNER_PACK,
             fixtures_dict={"actions": ["text_gen.yml"]},
         )
         action_db = models["actions"]["text_gen.yml"]
         entry_point = self.fixtures_loader.get_fixture_file_path_abs(
-            "localrunner_pack", "actions", "text_gen.py"
+            LOCALRUNNER_PACK, "actions", "text_gen.py"
         )
         runner = self._get_runner(action_db, entry_point=entry_point)
         runner.pre_run()

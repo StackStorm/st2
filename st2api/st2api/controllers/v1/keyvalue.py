@@ -212,8 +212,14 @@ class KeyValuePairController(ResourceController):
         # Set user scope prefix for the provided user (or current user if user not provided)
         # NOTE: It's very important raw_filters['prefix'] is set when requesting user scoped
         # items to avoid information leakage (aka user1 retrieves items for user2)
+        name_for_keyref = ""
+        if "name" in raw_filters and raw_filters["name"]:
+            name_for_keyref = raw_filters["name"]
+        else:
+            name_for_keyref = prefix or ""
+
         user_scope_prefix = get_key_reference(
-            name=prefix or "", scope=FULL_USER_SCOPE, user=user
+            name=name_for_keyref, scope=FULL_USER_SCOPE, user=user
         )
 
         # Special cases for ALL_SCOPE
@@ -277,7 +283,10 @@ class KeyValuePairController(ResourceController):
         if scope in [ALL_SCOPE, USER_SCOPE, FULL_USER_SCOPE]:
             # Retrieves all the user scoped items that the current user owns.
             raw_filters["scope"] = FULL_USER_SCOPE
-            raw_filters["prefix"] = user_scope_prefix
+            if "name" in raw_filters and raw_filters["name"]:
+                raw_filters["name"] = user_scope_prefix
+            else:
+                raw_filters["prefix"] = user_scope_prefix
 
             items = self._get_all(
                 from_model_kwargs=from_model_kwargs,

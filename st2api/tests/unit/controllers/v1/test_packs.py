@@ -35,8 +35,11 @@ from st2tests.fixtures.packs.dummy_pack_1.fixture import (
     PACK_PATH as DUMMY_PACK_1_PATH,
 )
 from st2tests.fixtures.packs.dummy_pack_10.fixture import (
-    PACK_NAME as DUMMY_PACK_10,
+    PACK_DIR_NAME as DUMMY_PACK_10,
     PACK_PATH as DUMMY_PACK_10_PATH,
+)
+from st2tests.fixtures.packs.dummy_pack_15.fixture import (
+    PACK_NAME as DUMMY_PACK_15,
 )
 
 __all__ = ["PacksControllerTestCase"]
@@ -669,7 +672,7 @@ class PacksControllerTestCase(
 
         # Fail on failure (broken action metadata)
         resp = self.app.post_json(
-            "/v1/packs/register", {"packs": ["dummy_pack_15"]}, expect_errors=True
+            "/v1/packs/register", {"packs": [DUMMY_PACK_15]}, expect_errors=True
         )
 
         expected_msg = "Failed to register action"

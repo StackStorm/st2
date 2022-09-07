@@ -37,7 +37,11 @@ from st2common.util import action_db as action_utils
 from st2common.util import date as date_utils
 
 from st2tests import ExecutionDbTestCase
-from st2tests import fixturesloader
+from st2tests.fixtures.packs.action_chain_tests.fixture import (
+    PACK_NAME as TEST_PACK,
+    PACK_PATH as TEST_PACK_PATH,
+)
+from st2tests.fixtures.packs.core.fixture import PACK_PATH as CORE_PACK_PATH
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
 from six.moves import range
 
@@ -67,10 +71,7 @@ TEST_FIXTURES = {
     ],
 }
 
-TEST_PACK = "action_chain_tests"
-TEST_PACK_PATH = fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
-
-PACKS = [TEST_PACK_PATH, fixturesloader.get_fixtures_packs_base_path() + "/core"]
+PACKS = [TEST_PACK_PATH, CORE_PACK_PATH]
 
 USERNAME = "stanley"
 

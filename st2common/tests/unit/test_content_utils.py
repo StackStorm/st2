@@ -35,6 +35,7 @@ from st2tests.fixtures.packs.dummy_pack_1.fixture import (
     PACK_NAME as DUMMY_PACK_1,
     PACK_PATH as DUMMY_PACK_1_PATH,
 )
+from st2tests.fixtures.packs.dummy_pack_2.fixture import PACK_PATH as DUMMY_PACK_2_PATH
 
 
 class ContentUtilsTestCase(unittest2.TestCase):
@@ -261,7 +262,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
         # 2. Invalid path - outside pack directory
         expected_msg = r"file_path (.*?) is not located inside the pack directory (.*?)"
 
-        file_path = os.path.join(packs_base_paths, "dummy_pack_2/actions/lib/foo.py")
+        file_path = os.path.join(DUMMY_PACK_2_PATH, "actions/lib/foo.py")
         self.assertRaisesRegexp(
             ValueError,
             expected_msg,
