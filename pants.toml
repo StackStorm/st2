@@ -1,0 +1,46 @@
+[GLOBAL]
+pants_version = "2.13.0rc2"
+
+[source]
+# recording each pack individually under root patterns is not great, but resolves these issues:
+# - Using a /contrib/* or other glob in root_patterns is dodgy as runners & schemas are in the same dir.
+#   In particular, with /contrib/* in root_patterns, *_runner imports become ambiguous
+#   (eg `import noop_runner` should use runners/noop_runner/noop_runner not runners/noop_runner).
+# - Using pack.yaml in marker_filenames prevents pants from inferring which fixture packs are
+#   used by which tests. We import a PACK_NAME and PACK_PATH from fixture.py in each of these
+#   fixture packs to enable this dependency inferrence. Having fine grained inferrence in-turn
+#   reduces the number of tests that need to be re-run when we change a fixture.
+# - Using another marker_file, like PACK_ROOT, is also problematic because of the core pack.
+#   /contrib/core is symlinked to /st2tests/st2tests/fixtures/packs/core for use as a fixture.
+#   It is used in quite a few tests, so it needs to continue living in both places.
+#   But, overlapping source roots (for st2tests and the pack) make importing from the fixture
+#   as we do with the other fixtures impossible.
+# Thus, we really do need to register each pack in contrib (but never under st2tests) separately.
+# We might also need to register packs in st2tests/testpacks.
+root_patterns = [
+  # root conftest.py
+  "/",
+  # core libs
+  "/st2*",
+  # runners
+  "/contrib/runners/*_runner",
+  # packs (list /contrib/* packs individually; see note above)
+  "/contrib/chatops",
+  "/contrib/core", # WARNING: also symlinked to st2tests/st2tests/fixtures/packs/core
+  "/contrib/default",
+  "/contrib/examples",
+  "/contrib/hello_st2",
+  "/contrib/linux",
+  "/contrib/packs",
+  "/st2tests/testpacks/checks",
+  "/st2tests/testpacks/errorcheck",
+  # odd import in examples.isprime
+  "/contrib/examples/lib",
+  # lint plugins
+  "/pylint_plugins",
+  # misc
+  "/scripts",
+  "/tools",
+  # benchmarks
+  "/st2common/benchmarks/micro",
+]
