@@ -31,14 +31,15 @@ from st2common.content import utils as content_utils
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.db.auth import UserDB
 from oslo_config import cfg
-opts=[
+
+opts = [
     cfg.StrOpt(
-            "encryption_key_path",
-            default="conf/st2_kvstore_demo.crypto.key.json",
-            help="Location of the symmetric encryption key for encrypting values in kvstore. "
-            "This key should be in JSON and should've been generated using "
-            "st2-generate-symmetric-crypto-key tool.",
-        ),
+        "encryption_key_path",
+        default="conf/st2_kvstore_demo.crypto.key.json",
+        help="Location of the symmetric encryption key for encrypting values in kvstore. "
+        "This key should be in JSON and should've been generated using "
+        "st2-generate-symmetric-crypto-key tool.",
+    ),
 ]
 cfg.CONF.register_opts(opts, group="actionrunner")
 from st2common.models.db.execution import ActionExecutionDB

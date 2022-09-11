@@ -199,7 +199,9 @@ def mask_secret_output(ac_ex, output_value):
 def encrypt_secret_output(encryption_key, output_value, output_schema):
     for key, spec in output_schema.items():
         if key in output_value and spec.get("secret", False):
-            output_value[key] = str(symmetric_encrypt(encryption_key, output_value[key]))
+            output_value[key] = str(
+                symmetric_encrypt(encryption_key, output_value[key])
+            )
     return output_value
 
 

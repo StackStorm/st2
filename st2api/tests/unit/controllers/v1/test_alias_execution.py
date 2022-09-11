@@ -14,20 +14,20 @@
 # limitations under the License.
 
 import copy
-from typing import overload
 
 import mock
 
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from oslo_config import cfg
-opts=[
+
+opts = [
     cfg.StrOpt(
-            "encryption_key_path",
-            default="conf/st2_kvstore_demo.crypto.key.json",
-            help="Location of the symmetric encryption key for encrypting values in kvstore. "
-            "This key should be in JSON and should've been generated using "
-            "st2-generate-symmetric-crypto-key tool.",
-        ),
+        "encryption_key_path",
+        default="conf/st2_kvstore_demo.crypto.key.json",
+        help="Location of the symmetric encryption key for encrypting values in kvstore. "
+        "This key should be in JSON and should've been generated using "
+        "st2-generate-symmetric-crypto-key tool.",
+    ),
 ]
 cfg.CONF.register_opts(opts, group="actionrunner")
 from st2common.models.db.execution import ActionExecutionDB

@@ -36,8 +36,6 @@ from st2common.services import action as action_service
 from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import publishers
 from st2tests.mocks import liveaction as mock_lv_ac_xport
-from st2common.util.crypto import read_crypto_key
-from st2common.util.crypto import symmetric_encrypt, symmetric_decrypt
 
 from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_PATH as DUMMY_PACK_1_PATH
 from st2tests.fixtures.packs.orquesta_tests.fixture import (

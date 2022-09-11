@@ -96,18 +96,14 @@ class ActionExecution(Access):
         secret_parameters = get_secret_parameters(parameters=parameters)
 
         decrypt_parameters = decrypt_secret_parameters(
-            getattr(instance, "parameters", {}),
-            secret_parameters,
-            cls.encryption_key
+            getattr(instance, "parameters", {}), secret_parameters, cls.encryption_key
         )
         setattr(instance, "parameters", decrypt_parameters)
 
         liveaction_parameter = getattr(instance, "liveaction", {}).get("parameters", {})
         if liveaction_parameter:
             decrypt_liveaction_parameters = decrypt_secret_parameters(
-                liveaction_parameter,
-                secret_parameters,
-                cls.encryption_key
+                liveaction_parameter, secret_parameters, cls.encryption_key
             )
             instance.liveaction["parameters"] = decrypt_liveaction_parameters
 

@@ -191,9 +191,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         parameters.update(self.runner.get("runner_parameters", {}))
         secret_parameters = get_secret_parameters(parameters=parameters)
         encrpyted_parameters = encrypt_secret_parameters(
-            self.parameters,
-            secret_parameters,
-            self.encryption_key
+            self.parameters, secret_parameters, self.encryption_key
         )
         self.parameters = encrpyted_parameters
         if "parameters" in self.liveaction:
@@ -201,9 +199,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             original_liveaction_parameters = self.liveaction.get("parameters", {})
 
             encrpyted_parameters = encrypt_secret_parameters(
-                original_liveaction_parameters,
-                secret_parameters,
-                self.encryption_key
+                original_liveaction_parameters, secret_parameters, self.encryption_key
             )
             self.liveaction["parameters"] = encrpyted_parameters
             # We also mask response found inside parameters under liveaction.
@@ -215,9 +211,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             schema = self.action.get("output_schema")
             if schema is not None:
                 self.result = output_schema.encrypt_secret_output(
-                    self.encryption_key,
-                    self.result,
-                    schema
+                    self.encryption_key, self.result, schema
                 )
                 # # Need output key
                 # schema = self.action.get("output_schema")
@@ -240,30 +234,28 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         parameters.update(self.runner.get("runner_parameters", {}))
         secret_parameters = get_secret_parameters(parameters=parameters)
         encrpyted_parameters = encrypt_secret_parameters(
-            self.parameters,
-            secret_parameters,
-            self.encryption_key
+            self.parameters, secret_parameters, self.encryption_key
         )
         self.parameters = encrpyted_parameters
         if "set__liveaction" in kwargs and "parameters" in kwargs["set__liveaction"]:
             encrpyted_parameters = encrypt_secret_parameters(
                 kwargs["set__liveaction"]["parameters"],
                 secret_parameters,
-                self.encryption_key
+                self.encryption_key,
             )
             kwargs["set__liveaction"]["parameters"] = encrpyted_parameters
         if "set__result" in kwargs and "result" in kwargs["set__result"]:
             output_value = kwargs["set__result"]["result"]
             # Need output key
             schema = self.action.get("output_schema")
-            kwargs["set__result"]["result"] = output_schema.encrypt_secret_output(self.encryption_key, output_value, schema)
+            kwargs["set__result"]["result"] = output_schema.encrypt_secret_output(
+                self.encryption_key, output_value, schema
+            )
 
         if "parameters" in self.liveaction:
             original_liveaction_parameters = self.liveaction.get("parameters", {})
             encrpyted_parameters = encrypt_secret_parameters(
-                original_liveaction_parameters,
-                secret_parameters,
-                self.encryption_key
+                original_liveaction_parameters, secret_parameters, self.encryption_key
             )
             self.liveaction["parameters"] = encrpyted_parameters
 

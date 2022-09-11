@@ -131,13 +131,14 @@ class LiveActionDB(stormbase.StormFoundationDB):
 
     def save(self, *args, **kwargs):
         from st2common.util import action_db
+
         original_parameters = copy.deepcopy(self.parameters)
-        action_parameters = action_db.get_action_parameters_specs(action_ref=self.action)
+        action_parameters = action_db.get_action_parameters_specs(
+            action_ref=self.action
+        )
         secret_parameters = get_secret_parameters(parameters=action_parameters)
         encrpyted_parameters = encrypt_secret_parameters(
-            self.parameters,
-            secret_parameters,
-            self.encryption_key
+            self.parameters, secret_parameters, self.encryption_key
         )
         self.parameters = encrpyted_parameters
         self = super(LiveActionDB, self).save(*args, **kwargs)

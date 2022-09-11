@@ -51,15 +51,14 @@ class LiveAction(persistence.StatusBasedResource):
     @classmethod
     def get_by_id(cls, value):
         from st2common.util import action_db
+
         instance = super(LiveAction, cls).get_by_id(value)
         parameters = getattr(instance, "parameters", None)
         action = getattr(instance, "action", None)
         action_parameters = action_db.get_action_parameters_specs(action_ref=action)
         secret_parameters = get_secret_parameters(parameters=action_parameters)
         decrypt_parameters = decrypt_secret_parameters(
-            parameters,
-            secret_parameters,
-            cls.encryption_key
+            parameters, secret_parameters, cls.encryption_key
         )
         setattr(instance, "parameters", decrypt_parameters)
         return instance

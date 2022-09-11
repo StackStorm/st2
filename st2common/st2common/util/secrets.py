@@ -137,7 +137,9 @@ def get_secret_parameters(parameters):
     return secret_parameters
 
 
-def decrypt_secret_parameters(parameters, secret_parameters, encryption_key, result=None):
+def decrypt_secret_parameters(
+    parameters, secret_parameters, encryption_key, result=None
+):
     iterator = None
     is_dict = isinstance(secret_parameters, dict)
     is_list = isinstance(secret_parameters, list)
@@ -168,7 +170,10 @@ def decrypt_secret_parameters(parameters, secret_parameters, encryption_key, res
             # we're assuming lists contain the same data type for every element
             for idx, value in enumerate(result):
                 result[idx] = decrypt_secret_parameters(
-                    parameters[idx], secret_sub_params, encryption_key, result=result[idx]
+                    parameters[idx],
+                    secret_sub_params,
+                    encryption_key,
+                    result=result[idx],
                 )
         else:
             result[secret_param] = symmetric_decrypt(encryption_key, parameters)
@@ -176,7 +181,9 @@ def decrypt_secret_parameters(parameters, secret_parameters, encryption_key, res
     return result
 
 
-def encrypt_secret_parameters(parameters, secret_parameters, encryption_key, result=None):
+def encrypt_secret_parameters(
+    parameters, secret_parameters, encryption_key, result=None
+):
     """
     Introspect the parameters dict and return a new dict with encyrpted secret
     parameters.
@@ -226,7 +233,10 @@ def encrypt_secret_parameters(parameters, secret_parameters, encryption_key, res
             # we're assuming lists contain the same data type for every element
             for idx, value in enumerate(result):
                 result[idx] = encrypt_secret_parameters(
-                    parameters[idx], secret_sub_params, encryption_key, result=result[idx]
+                    parameters[idx],
+                    secret_sub_params,
+                    encryption_key,
+                    result=result[idx],
                 )
         else:
             result[secret_param] = symmetric_encrypt(encryption_key, parameters)
