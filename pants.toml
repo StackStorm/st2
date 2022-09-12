@@ -1,5 +1,14 @@
 [GLOBAL]
 pants_version = "2.13.0rc2"
+backend_packages = [
+  # python
+  "pants.backend.python",
+  "pants.backend.experimental.python", # activates twine `publish` support
+  "pants.backend.python.mixed_interpreter_constraints",
+
+  # shell
+  "pants.backend.shell",
+]
 
 [source]
 # recording each pack individually under root patterns is not great, but resolves these issues:
