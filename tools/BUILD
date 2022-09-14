@@ -1,3 +1,9 @@
+python_requirement(
+    name="pika",
+    requirements=["pika"],
+    # used by direct_queue_publisher.py
+)
+
 python_sources(
     overrides={
         "config_gen.py": {
