@@ -1,5 +1,7 @@
 # Remember to list implicit packages here, otherwise version won't be fixated!
 importlib-metadata
+# importlib-metadata requires typing-extensions
+typing-extensions
 argcomplete
 prettytable
 pytz
@@ -12,7 +14,12 @@ six
 sseclient-py
 python-editor
 prompt-toolkit
+# mention cffi used by cryptography so we can control version
+cffi
 cryptography
 orjson
 # needed by requests
 chardet
+# required for SOCKS proxy support (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)
+pyOpenSSL
+pysocks

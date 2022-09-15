@@ -15,6 +15,11 @@
 
 from __future__ import absolute_import
 
+# pytest: make sure monkey_patching happens before importing mongoengine
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import mock
 
 from st2common.constants import action as action_constants
@@ -36,11 +41,11 @@ from st2common.util import date as date_utils
 from st2reactor.rules.enforcer import RuleEnforcer
 
 from st2tests import DbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 
 __all__ = ["RuleEnforcerTestCase", "RuleEnforcerDataTransformationTestCase"]
 
-PACK = "generic"
 FIXTURES_1 = {
     "runners": ["testrunner1.yaml", "testrunner2.yaml"],
     "actions": ["action1.yaml", "a2.yaml", "a2_default_value.yaml"],

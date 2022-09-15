@@ -25,6 +25,37 @@ from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.util import crypto
 
 from st2tests.base import CleanDbTestCase
+from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_NAME as DUMMY_PACK_1
+from st2tests.fixtures.packs.dummy_pack_4.fixture import PACK_NAME as DUMMY_PACK_4
+from st2tests.fixtures.packs.dummy_pack_5.fixture import PACK_NAME as DUMMY_PACK_5
+from st2tests.fixtures.packs.dummy_pack_17.fixture import PACK_DIR_NAME as DUMMY_PACK_17
+from st2tests.fixtures.packs.dummy_pack_schema_with_additional_items_1.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_ADDITIONAL_ITEMS_1,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_additional_properties_1.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_ADDITIONAL_PROPERTIES_1,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_nested_object_1.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_1,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_nested_object_2.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_2,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_nested_object_3.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_3,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_nested_object_4.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_4,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_nested_object_5.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_5,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_pattern_and_additional_properties_1.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_PATTERN_AND_ADDITIONAL_PROPERTIES_1,
+)
+from st2tests.fixtures.packs.dummy_pack_schema_with_pattern_properties_1.fixture import (
+    PACK_NAME as DUMMY_PACK_SCHEMA_WITH_PATTERN_PROPERTIES_1,
+)
 
 __all__ = ["ContentPackConfigLoaderTestCase"]
 
@@ -37,7 +68,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         # Test a scenario where all the values are loaded from pack local
         # config and pack global config (pack name.yaml) doesn't exist.
         # Test a scenario where no values are overridden in the datastore
-        loader = ContentPackConfigLoader(pack_name="dummy_pack_4")
+        loader = ContentPackConfigLoader(pack_name=DUMMY_PACK_4)
         config = loader.get_config()
         expected_config = {}
 
@@ -47,7 +78,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         # Test a scenario where some values are overriden in datastore via pack
         # global config
         kvp_db = set_datastore_value_for_config_key(
-            pack_name="dummy_pack_5",
+            pack_name=DUMMY_PACK_5,
             key_name="api_secret",
             value="some_api_secret",
             secret=True,
@@ -60,14 +91,14 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertTrue(kvp_db.secret)
 
         kvp_db = set_datastore_value_for_config_key(
-            pack_name="dummy_pack_5",
+            pack_name=DUMMY_PACK_5,
             key_name="private_key_path",
             value="some_private_key",
         )
         self.assertEqual(kvp_db.value, "some_private_key")
         self.assertFalse(kvp_db.secret)
 
-        loader = ContentPackConfigLoader(pack_name="dummy_pack_5", user="joe")
+        loader = ContentPackConfigLoader(pack_name=DUMMY_PACK_5, user="joe")
         config = loader.get_config()
 
         # regions is provided in the pack global config
@@ -86,19 +117,19 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
     def test_get_config_default_value_from_config_schema_is_used(self):
         # No value is provided for "region" in the config, default value from config schema
         # should be used
-        loader = ContentPackConfigLoader(pack_name="dummy_pack_5")
+        loader = ContentPackConfigLoader(pack_name=DUMMY_PACK_5)
         config = loader.get_config()
         self.assertEqual(config["region"], "default-region-value")
 
         # Here a default value is specified in schema but an explicit value is provided in the
         # config
-        loader = ContentPackConfigLoader(pack_name="dummy_pack_1")
+        loader = ContentPackConfigLoader(pack_name=DUMMY_PACK_1)
         config = loader.get_config()
         self.assertEqual(config["region"], "us-west-1")
 
         # Config item attribute has required: false
         # Value is provided in the config - it should be used as provided
-        pack_name = "dummy_pack_5"
+        pack_name = DUMMY_PACK_5
 
         loader = ContentPackConfigLoader(pack_name=pack_name)
         config = loader.get_config()
@@ -120,7 +151,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         )
 
     def test_default_values_from_schema_are_used_when_no_config_exists(self):
-        pack_name = "dummy_pack_5"
+        pack_name = DUMMY_PACK_5
         config_db = Config.get_by_pack(pack_name)
 
         # Delete the existing config loaded in setUp
@@ -137,7 +168,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config["region"], "default-region-value")
 
     def test_default_values_are_used_when_default_values_are_falsey(self):
-        pack_name = "dummy_pack_17"
+        pack_name = DUMMY_PACK_17
 
         loader = ContentPackConfigLoader(pack_name=pack_name)
         config = loader.get_config()
@@ -177,7 +208,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
     def test_get_config_nested_schema_default_values_from_config_schema_are_used(self):
         # Special case for more complex config schemas with attributes ntesting.
         # Validate that the default values are also used for one level nested object properties.
-        pack_name = "dummy_pack_schema_with_nested_object_1"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_1
 
         # 1. None of the nested object values are provided
         loader = ContentPackConfigLoader(pack_name=pack_name)
@@ -196,7 +227,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config, expected_config)
 
         # 2. Some of the nested object values are provided (host, port)
-        pack_name = "dummy_pack_schema_with_nested_object_2"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_2
 
         loader = ContentPackConfigLoader(pack_name=pack_name)
         config = loader.get_config()
@@ -214,7 +245,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config, expected_config)
 
         # 3. Nested attribute (auth_settings.token) references a non-secret datastore value
-        pack_name = "dummy_pack_schema_with_nested_object_3"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_3
 
         kvp_db = set_datastore_value_for_config_key(
             pack_name=pack_name,
@@ -241,7 +272,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config, expected_config)
 
         # 4. Nested attribute (auth_settings.token) references a secret datastore value
-        pack_name = "dummy_pack_schema_with_nested_object_4"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_4
 
         kvp_db = set_datastore_value_for_config_key(
             pack_name=pack_name,
@@ -300,7 +331,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
     def test_get_config_dynamic_config_item_render_fails_user_friendly_exception_is_thrown(
         self,
     ):
-        pack_name = "dummy_pack_schema_with_nested_object_5"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_NESTED_OBJECT_5
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
         # Render fails on top-level item
@@ -521,7 +552,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         config_db.delete()
 
     def test_get_config_dynamic_config_item_under_additional_properties(self):
-        pack_name = "dummy_pack_schema_with_additional_properties_1"
+        pack_name = DUMMY_PACK_SCHEMA_WITH_ADDITIONAL_PROPERTIES_1
         loader = ContentPackConfigLoader(pack_name=pack_name)
 
         encrypted_value = crypto.symmetric_encrypt(
@@ -570,6 +601,245 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                         "token": "v1_encrypted",
                     },
                 },
+            },
+        )
+
+        config_db.delete()
+
+    def test_get_config_dynamic_config_item_under_pattern_properties(self):
+        pack_name = DUMMY_PACK_SCHEMA_WITH_PATTERN_PROPERTIES_1
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        encrypted_value = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v1_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value, secret=True)
+        )
+
+        ####################
+        # values in objects under an object with patternProperties
+        values = {
+            "profiles": {
+                "dev": {
+                    # no host or port to test default value
+                    "token": "hard-coded-secret",
+                },
+                "prod": {
+                    "host": "127.1.2.7",
+                    "port": 8282,
+                    # encrypted in datastore
+                    "token": "{{st2kv.system.k1_encrypted}}",
+                    # schema declares `secret: true` which triggers auto-decryption.
+                    # If this were not encrypted, it would try to decrypt it and fail.
+                },
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        config_rendered = loader.get_config()
+
+        self.assertEqual(
+            config_rendered,
+            {
+                "region": "us-east-1",
+                "profiles": {
+                    "dev": {
+                        "host": "127.0.0.3",
+                        "port": 8080,
+                        "token": "hard-coded-secret",
+                    },
+                    "prod": {
+                        "host": "127.1.2.7",
+                        "port": 8282,
+                        "token": "v1_encrypted",
+                    },
+                },
+            },
+        )
+
+        config_db.delete()
+
+    def test_get_config_dynamic_config_item_properties_order_of_precedence(self):
+        pack_name = DUMMY_PACK_SCHEMA_WITH_PATTERN_AND_ADDITIONAL_PROPERTIES_1
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        encrypted_value_1 = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v1_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value_1, secret=True)
+        )
+        encrypted_value_2 = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v2_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k2_encrypted", value=encrypted_value_2, secret=True)
+        )
+        encrypted_value_3 = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v3_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k3_encrypted", value=encrypted_value_3, secret=True)
+        )
+
+        ####################
+        # values in objects under an object with additionalProperties
+        values = {
+            "profiles": {
+                # properties
+                "foo": {
+                    "domain": "foo.example.com",
+                    "token": "hard-coded-secret",
+                },
+                "bar": {
+                    "domain": "bar.example.com",
+                    "token": "{{st2kv.system.k1_encrypted}}",
+                },
+                # patternProperties start with env-
+                "env-dev": {
+                    "host": "127.0.0.127",
+                    "token": "hard-coded-secret",
+                },
+                "env-prod": {
+                    "host": "127.1.2.7",
+                    "port": 8282,
+                    # encrypted in datastore
+                    "token": "{{st2kv.system.k2_encrypted}}",
+                    # schema declares `secret: true` which triggers auto-decryption.
+                    # If this were not encrypted, it would try to decrypt it and fail.
+                },
+                # additionalProperties
+                "dev": {
+                    "url": "https://example.com",
+                    "token": "hard-coded-secret",
+                },
+                "prod": {
+                    "url": "https://other.example.com",
+                    "port": 2345,
+                    "token": "{{st2kv.system.k3_encrypted}}",
+                },
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        config_rendered = loader.get_config()
+
+        self.assertEqual(
+            config_rendered,
+            {
+                "region": "us-east-1",
+                "profiles": {
+                    "foo": {
+                        "domain": "foo.example.com",
+                        "token": "hard-coded-secret",
+                    },
+                    "bar": {
+                        "domain": "bar.example.com",
+                        "token": "v1_encrypted",
+                    },
+                    "env-dev": {
+                        "host": "127.0.0.127",
+                        "port": 8080,
+                        "token": "hard-coded-secret",
+                    },
+                    "env-prod": {
+                        "host": "127.1.2.7",
+                        "port": 8282,
+                        "token": "v2_encrypted",
+                    },
+                    "dev": {
+                        "url": "https://example.com",
+                        "port": 1234,
+                        "token": "hard-coded-secret",
+                    },
+                    "prod": {
+                        "url": "https://other.example.com",
+                        "port": 2345,
+                        "token": "v3_encrypted",
+                    },
+                },
+            },
+        )
+
+        config_db.delete()
+
+    def test_get_config_dynamic_config_item_under_additional_items(self):
+        pack_name = DUMMY_PACK_SCHEMA_WITH_ADDITIONAL_ITEMS_1
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        encrypted_value = crypto.symmetric_encrypt(
+            KeyValuePairAPI.crypto_key, "v1_encrypted"
+        )
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1_encrypted", value=encrypted_value, secret=True)
+        )
+
+        ####################
+        # values in objects under an object with additionalProperties
+        values = {
+            "profiles": [
+                {
+                    # no host or port to test default value
+                    "token": "hard-coded-secret",
+                },
+                {
+                    "host": "127.1.2.7",
+                    "port": 8282,
+                    # encrypted in datastore
+                    "token": "{{st2kv.system.k1_encrypted}}",
+                    # schema declares `secret: true` which triggers auto-decryption.
+                    # If this were not encrypted, it would try to decrypt it and fail.
+                },
+            ],
+            # foobar has additionalItems: true
+            "foobar": [
+                # there are no types to validate here
+                5,
+                "a string",
+                {
+                    # there are no defaults to interpolate here
+                    "token": "hard-coded-secret",
+                },
+                {
+                    # nothing is marked `secret: true` so no auto-decryption occurs.
+                    "token": "{{st2kv.system.k1_encrypted|decrypt_kv}}",
+                },
+            ],
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        config_rendered = loader.get_config()
+
+        self.assertEqual(
+            config_rendered,
+            {
+                "region": "us-east-1",
+                "profiles": [
+                    {
+                        "host": "127.0.0.3",
+                        "port": 8080,
+                        "token": "hard-coded-secret",
+                    },
+                    {
+                        "host": "127.1.2.7",
+                        "port": 8282,
+                        "token": "v1_encrypted",
+                    },
+                ],
+                "foobar": [
+                    5,
+                    "a string",
+                    {
+                        "token": "hard-coded-secret",
+                    },
+                    {
+                        "token": "v1_encrypted",
+                    },
+                ],
             },
         )
 

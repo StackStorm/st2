@@ -1,0 +1,6 @@
+---
+name : dummy_pack_schema_with_pattern_and_additional_properties_1
+description : dummy pack with nested objects under patternProperties and additionalProperties
+version : 0.1.0
+author : st2-dev
+email : info@stackstorm.com

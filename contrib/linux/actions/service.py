@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/opt/stackstorm/st2/bin/python
 
 # Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
@@ -69,7 +69,8 @@ if re.search(distro, "Ubuntu"):
 elif (
     re.search(distro, "Redhat")
     or re.search(distro, "Fedora")
-    or re.search(distro, "CentOS Linux")
+    or re.search(distro, "CentOS")
+    or re.search(distro, "Rocky Linux")
 ):
     cmd_args = ["systemctl", args["act"], args["service"]]
 

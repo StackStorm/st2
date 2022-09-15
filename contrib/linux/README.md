@@ -56,3 +56,4 @@ Example trigger payload:
 ## Troubleshooting
 
 * On CentOS7/RHEL7, dig is not installed by default. Run ``sudo yum install bind-utils`` to install.
+* On CentOS8/RHEL8, lsof is not installed by default. Run ``sudo yum install lsof`` to install.

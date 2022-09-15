@@ -13,6 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pytest: make sure monkey_patching happens before importing mongoengine
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import mock
 
 from st2common.content import utils as content_utils
@@ -199,7 +204,7 @@ class ActionViewsParametersControllerTestCase(FunctionalTest):
     @mock.patch.object(
         action_validator, "validate_action", mock.MagicMock(return_value=True)
     )
-    def test_get_one(self):
+    def test_get_one_by_id(self):
         post_resp = self.app.post_json("/v1/actions", ACTION_1)
         action_id = post_resp.json["id"]
         try:
@@ -207,6 +212,18 @@ class ActionViewsParametersControllerTestCase(FunctionalTest):
             self.assertEqual(get_resp.status_int, 200)
         finally:
             self.app.delete("/v1/actions/%s" % action_id)
+
+    @mock.patch.object(
+        action_validator, "validate_action", mock.MagicMock(return_value=True)
+    )
+    def test_get_one_by_ref(self):
+        post_resp = self.app.post_json("/v1/actions", ACTION_1)
+        action_ref = post_resp.json["ref"]
+        try:
+            get_resp = self.app.get("/v1/actions/views/parameters/%s" % action_ref)
+            self.assertEqual(get_resp.status_int, 200)
+        finally:
+            self.app.delete("/v1/actions/%s" % action_ref)
 
 
 class ActionEntryPointViewControllerTestCase(FunctionalTest):

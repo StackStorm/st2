@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import os
 
 import mock
 
@@ -27,17 +26,22 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.bootstrap.sensorsregistrar import SensorsRegistrar
 from st2common.bootstrap.rulesregistrar import RulesRegistrar
 
-__all__ = ["SensorRegistrationTestCase", "RuleRegistrationTestCase"]
+from tests.fixtures.packs import PACKS_DIR
+from tests.fixtures.packs.pack_with_rules.fixture import (
+    PACK_PATH as PACK_WITH_RULES_PATH,
+)
+from tests.fixtures.packs.pack_with_sensor.fixture import (
+    PACK_PATH as PACK_WITH_SENSOR_PATH,
+)
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PACKS_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../fixtures/packs"))
+__all__ = ["SensorRegistrationTestCase", "RuleRegistrationTestCase"]
 
 
 # NOTE: We need to perform this patching because test fixtures are located outside of the packs
 # base paths directory. This will never happen outside the context of test fixtures.
 @mock.patch(
     "st2common.content.utils.get_pack_base_path",
-    mock.Mock(return_value=os.path.join(PACKS_DIR, "pack_with_sensor")),
+    mock.Mock(return_value=PACK_WITH_SENSOR_PATH),
 )
 class SensorRegistrationTestCase(DbTestCase):
     @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())
@@ -142,7 +146,7 @@ class SensorRegistrationTestCase(DbTestCase):
 # base paths directory. This will never happen outside the context of test fixtures.
 @mock.patch(
     "st2common.content.utils.get_pack_base_path",
-    mock.Mock(return_value=os.path.join(PACKS_DIR, "pack_with_rules")),
+    mock.Mock(return_value=PACK_WITH_RULES_PATH),
 )
 class RuleRegistrationTestCase(DbTestCase):
     def test_register_rules(self):

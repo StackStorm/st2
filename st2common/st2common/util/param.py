@@ -19,7 +19,7 @@ import re
 import six
 import networkx as nx
 
-from jinja2 import meta
+from jinja2 import meta, exceptions
 from oslo_config import cfg
 from st2common import log as logging
 from st2common.util.config_loader import get_config
@@ -133,19 +133,24 @@ def _process(G, name, value):
     ) or jinja_utils.is_jinja_expression(complex_value_str)
 
     if is_jinja_expr:
-        G.add_node(name, template=value)
+        try:
+            template_ast = ENV.parse(value)
+            G.add_node(name, template=value)
 
-        template_ast = ENV.parse(value)
-        LOG.debug("Template ast: %s", template_ast)
-        # Dependencies of the node represent jinja variables used in the template
-        # We're connecting nodes with an edge for every depencency to traverse them
-        # in the right order and also make sure that we don't have missing or cyclic
-        # dependencies upfront.
-        dependencies = meta.find_undeclared_variables(template_ast)
-        LOG.debug("Dependencies: %s", dependencies)
-        if dependencies:
-            for dependency in dependencies:
-                G.add_edge(dependency, name)
+            LOG.debug("Template ast: %s", template_ast)
+            # Dependencies of the node represent jinja variables used in the template
+            # We're connecting nodes with an edge for every depencency to traverse them
+            # in the right order and also make sure that we don't have missing or cyclic
+            # dependencies upfront.
+            dependencies = meta.find_undeclared_variables(template_ast)
+            LOG.debug("Dependencies: %s", dependencies)
+            if dependencies:
+                for dependency in dependencies:
+                    G.add_edge(dependency, name)
+        except exceptions.TemplateSyntaxError:
+            G.add_node(name, value=value)
+            # not jinja after all
+            # is_jinga_expression only checks for {{ or {{% for speed
     else:
         G.add_node(name, value=value)
 
@@ -156,8 +161,8 @@ def _process_defaults(G, schemas):
     """
     for schema in schemas:
         for name, value in six.iteritems(schema):
-            absent = name not in G.node
-            is_none = G.node.get(name, {}).get("value") is None
+            absent = name not in G.nodes
+            is_none = G.nodes.get(name, {}).get("value") is None
             immutable = value.get("immutable", False)
             if absent or is_none or immutable:
                 _process(G, name, value.get("default"))
@@ -167,8 +172,8 @@ def _validate(G):
     """
     Validates dependency graph to ensure it has no missing or cyclic dependencies
     """
-    for name in G.nodes():
-        if "value" not in G.node[name] and "template" not in G.node[name]:
+    for name in G.nodes:
+        if "value" not in G.nodes[name] and "template" not in G.nodes[name]:
             msg = 'Dependency unsatisfied in variable "%s"' % name
             raise ParamException(msg)
 
@@ -232,7 +237,7 @@ def _resolve_dependencies(G):
     """
     context = {}
     for name in nx.topological_sort(G):
-        node = G.node[name]
+        node = G.nodes[name]
         try:
             context[name] = _render(node, context)
 

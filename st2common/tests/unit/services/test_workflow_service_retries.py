@@ -51,19 +51,13 @@ from st2common.services import workflows as wf_svc
 from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import workflow as wf_ex_xport
 from st2common.transport import publishers
+from st2tests.fixtures.packs.core.fixture import PACK_PATH as CORE_PACK_PATH
+from st2tests.fixtures.packs.orquesta_tests.fixture import PACK_PATH as TEST_PACK_PATH
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_PACK = "orquesta_tests"
-TEST_PACK_PATH = (
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
-)
-
-PACKS = [
-    TEST_PACK_PATH,
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
-]
+PACKS = [TEST_PACK_PATH, CORE_PACK_PATH]
 
 
 # Temporary directory used by the tests.
@@ -134,18 +128,9 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
-    @mock.patch.object(
-        coord_svc.NoOpDriver,
-        "get_lock",
-        mock.MagicMock(
-            side_effect=[
-                coordination.ToozConnectionError("foobar"),
-                coordination.ToozConnectionError("fubar"),
-                coord_svc.NoOpLock(name="noop"),
-            ]
-        ),
-    )
-    def test_recover_from_coordinator_connection_error(self):
+    @mock.patch.object(coord_svc.NoOpDriver, "get_lock")
+    def test_recover_from_coordinator_connection_error(self, mock_get_lock):
+        mock_get_lock.side_effect = coord_svc.NoOpLock(name="noop")
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -161,18 +146,25 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         )[0]
         tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
+        mock_get_lock.side_effect = [
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coord_svc.NoOpLock(name="noop"),
+            coord_svc.NoOpLock(name="noop"),
+            coord_svc.NoOpLock(name="noop"),
+            coord_svc.NoOpLock(name="noop"),
+            coord_svc.NoOpLock(name="noop"),
+        ]
         wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
 
+        mock_get_lock.side_effect = coord_svc.NoOpLock(name="noop")
         # Workflow service should recover from retries and task1 should succeed.
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
         self.assertEqual(tk1_ex_db.status, wf_statuses.SUCCEEDED)
 
-    @mock.patch.object(
-        coord_svc.NoOpDriver,
-        "get_lock",
-        mock.MagicMock(side_effect=coordination.ToozConnectionError("foobar")),
-    )
-    def test_retries_exhausted_from_coordinator_connection_error(self):
+    @mock.patch.object(coord_svc.NoOpDriver, "get_lock")
+    def test_retries_exhausted_from_coordinator_connection_error(self, mock_get_lock):
+        mock_get_lock.side_effect = coord_svc.NoOpLock(name="noop")
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
@@ -189,6 +181,13 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
+        mock_get_lock.side_effect = [
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+            coordination.ToozConnectionError("foobar"),
+        ]
         # The connection error should raise if retries are exhaused.
         self.assertRaises(
             coordination.ToozConnectionError,

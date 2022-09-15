@@ -4,8 +4,11 @@ python-dateutil
 eventlet
 jinja2
 kombu
+#Used by jinja2
+MarkupSafe
 oslo.config
 oslo.utils
+pyparsing
 requests
 six
 pyyaml
@@ -15,7 +18,7 @@ gitpython
 lockfile
 # needed by core "linux" pack - TODO: create virtualenv for linux pack on postinst
 pyinotify
-git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
+logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
 # required by pack_mgmt/setup_virtualenv.py#L135
 virtualenv
 # needed by requests

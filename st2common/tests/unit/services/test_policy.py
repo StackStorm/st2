@@ -30,10 +30,9 @@ from st2common.services import action as action_service
 from st2common.services import policies as policy_service
 
 import st2tests
+from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests import fixturesloader as fixtures
 
-
-PACK = "generic"
 
 TEST_FIXTURES = {
     "actions": [

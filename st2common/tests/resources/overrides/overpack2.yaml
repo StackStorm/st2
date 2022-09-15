@@ -1,0 +1,11 @@
+---
+actions:
+  defaults:
+    enabled: False
+    rubbish: False
+  exceptions:
+    action2:
+      enabled: True
+sensors:
+  defaults:
+    enabled: True

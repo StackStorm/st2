@@ -86,9 +86,11 @@ jobs:
             ~/.cache/pip
             virtualenv
             ~/virtualenv
-          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-python-${{ matrix.python }}-
+          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          # Don't use alternative key as if requirements.txt has altered we
+          # don't want to retrieve previous cache
+          #restore-keys: |
+          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v2

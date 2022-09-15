@@ -10,16 +10,19 @@ parameters:
     required: true
     type: string
 output_schema:
-  a6:
-    type: string
-    required: true
-  b6:
-    type: string
-    required: true
-  a7:
-    type: string
-    required: true
-  b7:
-    type: string
-    required: true
-    secret: true
+  type: object
+  properties:
+    a6:
+      type: string
+      required: true
+    b6:
+      type: string
+      required: true
+    a7:
+      type: string
+      required: true
+    b7:
+      type: string
+      required: true
+      secret: true
+  additionalProperties: false

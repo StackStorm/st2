@@ -31,14 +31,14 @@ import st2common.util.action_db as action_utils
 import st2common.util.date as date_utils
 
 from st2tests.base import CleanDbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
+from st2tests.fixtures.descendants.fixture import PACK_NAME as DESCENDANTS_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 import st2tests.config as tests_config
 from six.moves import range
 
 tests_config.parse_args()
-
-FIXTURES_PACK = "generic"
 
 TEST_FIXTURES = {
     "liveactions": [
@@ -228,8 +228,6 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
 
 
 # descendants test section
-
-DESCENDANTS_PACK = "descendants"
 
 DESCENDANTS_FIXTURES = {
     "executions": [

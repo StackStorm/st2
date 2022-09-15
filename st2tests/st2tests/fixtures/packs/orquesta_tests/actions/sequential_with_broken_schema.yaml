@@ -11,5 +11,8 @@ parameters:
     type: string
     default: Stanley
 output_schema:
-  notakey:
-    type: boolean
+  type: object
+  properties:
+    notakey:
+      type: boolean
+  additionalProperties: false

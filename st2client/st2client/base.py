@@ -57,6 +57,7 @@ CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
     "api_key": ["credentials", "api_key"],
     "cacert": ["general", "cacert"],
     "debug": ["cli", "debug"],
+    "basic_auth": ["credentials", "basic_auth"],
 }
 
 
@@ -87,6 +88,7 @@ class BaseCLIApp(object):
             "stream_url",
             "api_version",
             "cacert",
+            "basic_auth",
         ]
         cli_options = {opt: getattr(args, opt, None) for opt in cli_options}
         if cli_options.get("cacert", None) is not None:
@@ -445,6 +447,12 @@ class BaseCLIApp(object):
         print("")
         print("Proxy settings:")
         print("---------------")
-        print("HTTP_PROXY: %s" % (os.environ.get("HTTP_PROXY", "")))
-        print("HTTPS_PROXY: %s" % (os.environ.get("HTTPS_PROXY", "")))
+        print(
+            "HTTP_PROXY: %s"
+            % (os.environ.get("http_proxy", os.environ.get("HTTP_PROXY", "")))
+        )
+        print(
+            "HTTPS_PROXY: %s"
+            % (os.environ.get("https_proxy", os.environ.get("HTTPS_PROXY", "")))
+        )
         print("")

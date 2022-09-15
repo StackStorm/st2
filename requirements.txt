@@ -5,21 +5,20 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
+MarkupSafe<2.1.0,>=0.23
 RandomWords
 amqp==5.0.6
 apscheduler==3.7.0
 argcomplete==1.12.2
 bcrypt==3.2.0
+cffi<1.15.0
 chardet<3.1.0
+ciso8601
 cryptography==3.4.7
+decorator==4.4.2
 dnspython>=1.16.0,<2.0.0
 eventlet==0.31.0
 flex==6.14.1
-git+https://github.com/StackStorm/logshipper.git@stackstorm_patched#egg=logshipper
-git+https://github.com/StackStorm/orquesta.git@v1.4.0#egg=orquesta
-git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
-git+https://github.com/StackStorm/st2-auth-ldap.git@master#egg=st2-auth-ldap
-git+https://github.com/StackStorm/st2-rbac-backend.git@master#egg=st2-rbac-backend
 gitdb==4.0.2
 gitpython==3.1.15
 greenlet==1.0.0
@@ -30,23 +29,28 @@ jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==5.0.2
 lockfile==0.12.2
+logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
 mock==4.0.3
 mongoengine==0.23.0
-networkx==1.11
+networkx>=2.5.1,<2.6
 nose
 nose-parallel==0.4.0
 nose-timer==1.0.1
 orjson==3.5.2
+orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.5.0
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
-paramiko==2.7.2
+paramiko==2.10.1
 passlib==1.7.4
 prettytable==2.1.0
 prompt-toolkit==1.0.15
 psutil==5.8.0
-pyinotify==0.9.6; platform_system=="Linux"
+pyOpenSSL<=21.0.0
+pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==3.11.3
+pyparsing<3
 pyrabbit
+pysocks
 python-dateutil==2.8.1
 python-editor==1.0.4
 python-json-logger
@@ -54,7 +58,7 @@ python-statsd==2.1.0
 pytz==2021.1
 pywinrm==0.4.1
 pyyaml==5.4.1
-redis==3.5.3
+redis==4.1.4
 rednose
 requests[security]==2.25.1
 retrying==1.3.3
@@ -63,9 +67,13 @@ semver==2.13.0
 simplejson
 six==1.13.0
 sseclient-py==1.7
+st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
+st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
+st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 stevedore==1.30.1
+tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
-udatetime==0.0.16
+typing-extensions<4.2
 unittest2
 webob==1.8.7
 webtest

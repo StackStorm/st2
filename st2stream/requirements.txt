@@ -13,4 +13,5 @@ mongoengine==0.23.0
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 pymongo==3.11.3
+pyparsing<3
 six==1.13.0

@@ -38,6 +38,7 @@ from st2client.models.core import WorkflowManager
 from st2client.models.core import ServiceRegistryGroupsManager
 from st2client.models.core import ServiceRegistryMembersManager
 from st2client.models.core import add_auth_token_to_kwargs_from_env
+from st2client.models.core import KeyValuePairResourceManager
 
 
 LOG = logging.getLogger(__name__)
@@ -63,6 +64,7 @@ class Client(object):
         debug=False,
         token=None,
         api_key=None,
+        basic_auth=None,
     ):
         # Get CLI options. If not given, then try to get it from the environment.
         self.endpoints = dict()
@@ -129,115 +131,195 @@ class Client(object):
 
         self.api_key = api_key
 
+        if basic_auth:
+            # NOTE: We assume username can't contain colons
+            if len(basic_auth.split(":", 1)) != 2:
+                raise ValueError(
+                    "basic_auth config options needs to be in the "
+                    "username:password notation"
+                )
+
+            self.basic_auth = tuple(basic_auth.split(":", 1))
+        else:
+            self.basic_auth = None
+
         # Instantiate resource managers and assign appropriate API endpoint.
         self.managers = dict()
         self.managers["Token"] = ResourceManager(
-            models.Token, self.endpoints["auth"], cacert=self.cacert, debug=self.debug
+            models.Token,
+            self.endpoints["auth"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["RunnerType"] = ResourceManager(
             models.RunnerType,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Action"] = ActionResourceManager(
-            models.Action, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Action,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["ActionAlias"] = ActionAliasResourceManager(
             models.ActionAlias,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["ActionAliasExecution"] = ActionAliasExecutionManager(
             models.ActionAliasExecution,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["ApiKey"] = ResourceManager(
-            models.ApiKey, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.ApiKey,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Config"] = ConfigManager(
-            models.Config, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Config,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["ConfigSchema"] = ResourceManager(
             models.ConfigSchema,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Execution"] = ExecutionResourceManager(
             models.Execution,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         # NOTE: LiveAction has been deprecated in favor of Execution. It will be left here for
         # backward compatibility reasons until v3.2.0
         self.managers["LiveAction"] = self.managers["Execution"]
         self.managers["Inquiry"] = InquiryResourceManager(
-            models.Inquiry, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Inquiry,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Pack"] = PackResourceManager(
-            models.Pack, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Pack,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Policy"] = ResourceManager(
-            models.Policy, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Policy,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["PolicyType"] = ResourceManager(
             models.PolicyType,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Rule"] = ResourceManager(
-            models.Rule, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Rule,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Sensor"] = ResourceManager(
-            models.Sensor, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Sensor,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["TriggerType"] = ResourceManager(
             models.TriggerType,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Trigger"] = ResourceManager(
-            models.Trigger, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Trigger,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["TriggerInstance"] = TriggerInstanceResourceManager(
             models.TriggerInstance,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
-        self.managers["KeyValuePair"] = ResourceManager(
+        self.managers["KeyValuePair"] = KeyValuePairResourceManager(
             models.KeyValuePair,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Webhook"] = WebhookManager(
-            models.Webhook, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Webhook,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Timer"] = ResourceManager(
-            models.Timer, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Timer,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Trace"] = ResourceManager(
-            models.Trace, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Trace,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["RuleEnforcement"] = ResourceManager(
             models.RuleEnforcement,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Stream"] = StreamManager(
-            self.endpoints["stream"], cacert=self.cacert, debug=self.debug
+            self.endpoints["stream"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["Workflow"] = WorkflowManager(
-            self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
 
         # Service Registry
@@ -246,6 +328,7 @@ class Client(object):
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
 
         self.managers["ServiceRegistryMembers"] = ServiceRegistryMembersManager(
@@ -253,17 +336,23 @@ class Client(object):
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
 
         # RBAC
         self.managers["Role"] = ResourceManager(
-            models.Role, self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            models.Role,
+            self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         self.managers["UserRoleAssignment"] = ResourceManager(
             models.UserRoleAssignment,
             self.endpoints["api"],
             cacert=self.cacert,
             debug=self.debug,
+            basic_auth=self.basic_auth,
         )
 
     @add_auth_token_to_kwargs_from_env
@@ -275,7 +364,10 @@ class Client(object):
         """
         url = "/user"
         client = httpclient.HTTPClient(
-            root=self.endpoints["api"], cacert=self.cacert, debug=self.debug
+            root=self.endpoints["api"],
+            cacert=self.cacert,
+            debug=self.debug,
+            basic_auth=self.basic_auth,
         )
         response = client.get(url=url, **kwargs)
 

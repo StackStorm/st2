@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 import requests
 import mock
 import sys
@@ -32,7 +30,17 @@ from st2api.controllers.v1.packs import ENTITIES
 from st2tests.api import FunctionalTest
 from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixtures.packs.dummy_pack_1.fixture import (
+    PACK_NAME as DUMMY_PACK_1,
+    PACK_PATH as DUMMY_PACK_1_PATH,
+)
+from st2tests.fixtures.packs.dummy_pack_10.fixture import (
+    PACK_DIR_NAME as DUMMY_PACK_10,
+    PACK_PATH as DUMMY_PACK_10_PATH,
+)
+from st2tests.fixtures.packs.dummy_pack_15.fixture import (
+    PACK_NAME as DUMMY_PACK_15,
+)
 
 __all__ = ["PacksControllerTestCase"]
 
@@ -498,15 +506,10 @@ class PacksControllerTestCase(
 
         # Note: We only register a couple of packs and not all on disk to speed
         # things up. Registering all the packs takes a long time.
-        fixtures_base_path = get_fixtures_base_path()
-        packs_base_path = os.path.join(fixtures_base_path, "packs")
-        pack_names = [
-            "dummy_pack_1",
-            "dummy_pack_10",
-        ]
-        mock_return_value = {}
-        for pack_name in pack_names:
-            mock_return_value[pack_name] = os.path.join(packs_base_path, pack_name)
+        mock_return_value = {
+            DUMMY_PACK_1: DUMMY_PACK_1_PATH,
+            DUMMY_PACK_10: DUMMY_PACK_10_PATH,
+        }
 
         mock_get_packs.return_value = mock_return_value
 
@@ -529,7 +532,8 @@ class PacksControllerTestCase(
 
         # Register resources from a specific pack
         resp = self.app.post_json(
-            "/v1/packs/register", {"packs": ["dummy_pack_1"], "fail_on_failure": False}
+            "/v1/packs/register",
+            {"packs": [DUMMY_PACK_1], "fail_on_failure": False},
         )
 
         self.assertEqual(resp.status_int, 200)
@@ -538,13 +542,13 @@ class PacksControllerTestCase(
         self.assertTrue(resp.json["configs"] >= 1)
 
         # Verify metadata_file attribute is set
-        action_dbs = Action.query(pack="dummy_pack_1")
+        action_dbs = Action.query(pack=DUMMY_PACK_1)
         self.assertEqual(action_dbs[0].metadata_file, "actions/my_action.yaml")
 
         # Register 'all' resource types should try include any possible content for the pack
         resp = self.app.post_json(
             "/v1/packs/register",
-            {"packs": ["dummy_pack_1"], "fail_on_failure": False, "types": ["all"]},
+            {"packs": [DUMMY_PACK_1], "fail_on_failure": False, "types": ["all"]},
         )
 
         self.assertEqual(resp.status_int, 200)
@@ -566,7 +570,7 @@ class PacksControllerTestCase(
         # * policies -> policy types
         resp = self.app.post_json(
             "/v1/packs/register",
-            {"packs": ["dummy_pack_1"], "fail_on_failure": False, "types": ["actions"]},
+            {"packs": [DUMMY_PACK_1], "fail_on_failure": False, "types": ["actions"]},
         )
 
         self.assertEqual(resp.status_int, 200)
@@ -575,7 +579,7 @@ class PacksControllerTestCase(
 
         resp = self.app.post_json(
             "/v1/packs/register",
-            {"packs": ["dummy_pack_1"], "fail_on_failure": False, "types": ["rules"]},
+            {"packs": [DUMMY_PACK_1], "fail_on_failure": False, "types": ["rules"]},
         )
 
         self.assertEqual(resp.status_int, 200)
@@ -611,7 +615,7 @@ class PacksControllerTestCase(
 
         # Register specific type for a single packs
         resp = self.app.post_json(
-            "/v1/packs/register", {"packs": ["dummy_pack_1"], "types": ["action"]}
+            "/v1/packs/register", {"packs": [DUMMY_PACK_1], "types": ["action"]}
         )
 
         self.assertEqual(resp.status_int, 200)
@@ -620,7 +624,7 @@ class PacksControllerTestCase(
 
         # Verify that plural name form also works
         resp = self.app.post_json(
-            "/v1/packs/register", {"packs": ["dummy_pack_1"], "types": ["actions"]}
+            "/v1/packs/register", {"packs": [DUMMY_PACK_1], "types": ["actions"]}
         )
 
         self.assertEqual(resp.status_int, 200)
@@ -632,7 +636,7 @@ class PacksControllerTestCase(
         resp = self.app.post_json(
             "/v1/packs/register",
             {
-                "packs": ["dummy_pack_1", "dummy_pack_1", "dummy_pack_1"],
+                "packs": [DUMMY_PACK_1, DUMMY_PACK_1, DUMMY_PACK_1],
                 "types": ["actions"],
                 "fail_on_failure": False,
             },
@@ -653,13 +657,13 @@ class PacksControllerTestCase(
         # Fail on failure is enabled by default
         resp = self.app.post_json("/v1/packs/register", expect_errors=True)
 
-        expected_msg = 'Failed to register pack "dummy_pack_10":'
+        expected_msg = f'Failed to register pack "{DUMMY_PACK_10}":'
         self.assertEqual(resp.status_int, 400)
         self.assertIn(expected_msg, resp.json["faultstring"])
 
         # Fail on failure (broken pack metadata)
         resp = self.app.post_json(
-            "/v1/packs/register", {"packs": ["dummy_pack_1"]}, expect_errors=True
+            "/v1/packs/register", {"packs": [DUMMY_PACK_1]}, expect_errors=True
         )
 
         expected_msg = 'Referenced policy_type "action.mock_policy_error" doesnt exist'
@@ -668,7 +672,7 @@ class PacksControllerTestCase(
 
         # Fail on failure (broken action metadata)
         resp = self.app.post_json(
-            "/v1/packs/register", {"packs": ["dummy_pack_15"]}, expect_errors=True
+            "/v1/packs/register", {"packs": [DUMMY_PACK_15]}, expect_errors=True
         )
 
         expected_msg = "Failed to register action"
