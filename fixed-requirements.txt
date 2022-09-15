@@ -16,7 +16,7 @@ gitdb==4.0.2
 # Note: greenlet is used by eventlet
 greenlet==1.0.0
 # [20220915] Build from github repo until v21 is released.  See: https://github.com/benoitc/gunicorn/pull/2581
-git+https://github.com/benoitc/gunicorn@1299ea9e967a61ae2edebe191082fd169b864c64#egg=gunicorn==20.1.0
+gunicorn@ git+https://github.com/benoitc/gunicorn@1299ea9e967a61ae2edebe191082fd169b864c64
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==5.0.2

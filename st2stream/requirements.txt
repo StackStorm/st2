@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 eventlet==0.31.0
-git+https://github.com/benoitc/gunicorn@1299ea9e967a61ae2edebe191082fd169b864c64#egg=gunicorn==20.1.0
+gunicorn@ git+https://github.com/benoitc/gunicorn@1299ea9e967a61ae2edebe191082fd169b864c64
 jsonschema==2.6.0
 kombu==5.0.2
 mongoengine==0.23.0
