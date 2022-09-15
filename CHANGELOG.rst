@@ -59,6 +59,8 @@ Added
 Changed
 ~~~~~~~
 
+* Security update for eventlet to 0.31.0.  https://github.com/eventlet/eventlet/security/advisories/GHSA-9p9m-jm8w-94p2
+
 * BREAKING CHANGE for anyone that uses ``output_schema``, which is disabled by default.
   If you have ``[system].validate_output_schema = True`` in st2.conf AND you have added
   ``output_schema`` to any of your packs, then you must update your action metadata.
