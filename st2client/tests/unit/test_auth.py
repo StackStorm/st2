@@ -230,6 +230,7 @@ class TestLoginSSO(TestLoginBase):
             self.CONFIG_FILE,
             "login",
             "--sso",
+            "--no-sso-browser",
             "--sso-port",
             "34000",
         ]
@@ -243,11 +244,12 @@ class TestLoginSSO(TestLoginBase):
             match = None
             timeout_at = time() + 5
             while not match and timeout_at > time():
-                sleep(0.5)
-                match = re.search(r"http://localhost:34000/\S+", out_buffer.getvalue())
+                sleep(1)
+                LOG.debug("STDOUT buffer has: %s", out_buffer.getvalue())
+                match = re.search(
+                    r"http://localhost:34000/\S+", out_buffer.getvalue(), re.MULTILINE
+                )
             self.assertIsNotNone(match)
-
-            LOG.debug("STDOUT buffer has: %s", out_buffer.getvalue())
 
             # Hitting the localhost login url
             login_url = match[0]
@@ -259,6 +261,7 @@ class TestLoginSSO(TestLoginBase):
             )
 
             # Ignoring IDP flow and just hittin callback with proper response :)
+            LOG.debug("Calling back to local server")
             response = requests.get(
                 "http://localhost:34000/callback",
                 params={"response": self.ENCRYPTED_TOKEN},
@@ -266,6 +269,7 @@ class TestLoginSSO(TestLoginBase):
             )
             self.assertEquals(response.status_code, 302)
             self.assertEquals(response.headers["Location"], "/success")
+            LOG.debug("Finished SSO flow")
 
         # Calling the login proecss async
         ssoFlowThread = Thread(target=handle_sso_flow, daemon=True)

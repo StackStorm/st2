@@ -19,6 +19,7 @@ import getpass
 import json
 import logging
 import os
+import webbrowser
 import requests
 import six
 from six.moves.configparser import ConfigParser
@@ -146,6 +147,13 @@ class LoginCommand(resource.ResourceCommand):
             help="Fixed SSO port to use for local callback server. Default is 0, which is random",
         )
         self.parser.add_argument(
+            "--no-sso-browser",
+            dest="no_sso_browser",
+            action="store_true",
+            default=False,
+            help="Prevents from automatically launching the browser for SSO",
+        )
+        self.parser.add_argument(
             "-p",
             "--password",
             dest="password",
@@ -190,10 +198,18 @@ class LoginCommand(resource.ResourceCommand):
             # Retrieve token from SSO backend
             sso_proxy = self.manager.create_sso_request(args.sso_port, **kwargs)
 
-            print(
-                "Please finish your SSO login by visiting: %s"
-                % (sso_proxy.get_proxy_url())
-            )
+            if args.no_sso_browser:
+                print(
+                    "Please finish your SSO login by visiting: %s"
+                    % (sso_proxy.get_proxy_url())
+                )
+            else:
+                print(
+                    "Please finish the SSO login on your browser.\n"
+                    "If the browser hasn't opened automatically, please visit: %s"
+                    % (sso_proxy.get_proxy_url())
+                )
+                webbrowser.open(sso_proxy.get_proxy_url())
             token = self.manager.wait_for_sso_token(sso_proxy)
 
         # Defaults to username/password if not SSO
