@@ -38,8 +38,6 @@ import os
 import binascii
 import base64
 
-import json
-
 from hashlib import sha1
 
 import six
@@ -50,6 +48,9 @@ from cryptography.hazmat.primitives.ciphers import modes
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import hmac
 from cryptography.hazmat.backends import default_backend
+
+from st2common.util.jsonify import json_encode
+from st2common.util.jsonify import json_decode
 
 __all__ = [
     "KEYCZAR_HEADER_SIZE",
@@ -159,7 +160,7 @@ class AESKey(object):
             "mode": self.mode.upper(),
             "size": int(self.size),
         }
-        return json.dumps(data)
+        return json_encode(data)
 
     def __repr__(self):
         return "<AESKey hmac_key_size=%s,mode=%s,size=%s>" % (
@@ -181,18 +182,35 @@ def read_crypto_key(key_path):
     with open(key_path, "r") as fp:
         content = fp.read()
 
-    content = json.loads(content)
+    content = json_decode(content)
+
+    try:
+        return read_crypto_key_from_dict(content)
+    except KeyError as e:
+        msg = 'Invalid or malformed key file "%s": %s' % (key_path, six.text_type(e))
+        raise KeyError(msg)
+
+
+def read_crypto_key_from_dict(key_dict):
+    """
+    Read crypto key from provided Keyczar JSON-format dict and return parsed AESKey object.
+
+    :param key_dict: A dictionary with a key in Keyczar format (same keys as the JSON).
+    :type key_dict: ``dict``
+
+    :rtype: :class:`AESKey`
+    """
 
     try:
         aes_key = AESKey(
-            aes_key_string=content["aesKeyString"],
-            hmac_key_string=content["hmacKey"]["hmacKeyString"],
-            hmac_key_size=content["hmacKey"]["size"],
-            mode=content["mode"].upper(),
-            size=content["size"],
+            aes_key_string=key_dict["aesKeyString"],
+            hmac_key_string=key_dict["hmacKey"]["hmacKeyString"],
+            hmac_key_size=key_dict["hmacKey"]["size"],
+            mode=key_dict["mode"].upper(),
+            size=key_dict["size"],
         )
     except KeyError as e:
-        msg = 'Invalid or malformed key file "%s": %s' % (key_path, six.text_type(e))
+        msg = "Invalid or malformed AES key dictionary: %s" % (six.text_type(e))
         raise KeyError(msg)
 
     return aes_key
