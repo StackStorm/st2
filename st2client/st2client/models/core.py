@@ -899,8 +899,7 @@ class TokenResourceManager(ResourceManager):
         url = "/sso/request/cli"
 
         key = AESKey.generate()
-        print("KEY: %s", key.to_json())
-        sso_proxy = sso_interceptor.SSOInterceptorProxy(key, sso_port)
+        sso_proxy = sso_interceptor.SSOInterceptorProxy(key)
 
         response = self.client.post(
             url,
