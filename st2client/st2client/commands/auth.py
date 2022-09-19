@@ -210,7 +210,11 @@ class LoginCommand(resource.ResourceCommand):
                     % (sso_proxy.get_proxy_url())
                 )
                 webbrowser.open(sso_proxy.get_proxy_url())
-            token = self.manager.wait_for_sso_token(sso_proxy)
+
+            try:
+                token = self.manager.wait_for_sso_token(sso_proxy)
+            except KeyboardInterrupt:
+                raise Exception("SSO Login aborted by user")
 
         # Defaults to username/password if not SSO
         else:
