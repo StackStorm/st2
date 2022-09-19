@@ -70,7 +70,7 @@ class SSOInterceptorProxy:
         LOG.debug("Callback received and intercepted, token is provided :)")
         self.token = token
 
-    def get_token(self, timeout=5):
+    def get_token(self, timeout=90):
         LOG.debug(
             "Waiting for token to be received from SSO flow.. will timeout after [%s]s",
             timeout,
