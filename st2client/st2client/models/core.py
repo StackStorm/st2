@@ -893,17 +893,21 @@ class TokenResourceManager(ResourceManager):
     # to print out some interaction with the user and that's best done elsewhere, so
     # we'll just provide back the "interceptor" object, that is able to provide
     # the URL and wait for the token to be ready :)
-    def create_sso_request(self, **kwargs) -> sso_interceptor.SSOInterceptorProxy:
+    def create_sso_request(
+        self, sso_port=0, **kwargs
+    ) -> sso_interceptor.SSOInterceptorProxy:
         url = "/sso/request/cli"
 
         key = AESKey.generate()
-        sso_proxy = sso_interceptor.SSOInterceptorProxy(key)
+        print("KEY: %s", key.to_json())
+        sso_proxy = sso_interceptor.SSOInterceptorProxy(key, sso_port)
 
         response = self.client.post(
             url,
             {"key": key.to_json(), "callback_url": sso_proxy.get_callback_url()},
             **kwargs,
         )
+
         if response.status_code != http_client.OK:
             self.handle_error(response)
 

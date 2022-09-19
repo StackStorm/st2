@@ -138,6 +138,14 @@ class LoginCommand(resource.ResourceCommand):
             "If chosen, bypasses username/password.",
         )
         self.parser.add_argument(
+            "-P",
+            "--sso-port",
+            dest="sso_port",
+            type=int,
+            default=0,
+            help="Fixed SSO port to use for local callback server. Default is 0, which is random",
+        )
+        self.parser.add_argument(
             "-p",
             "--password",
             dest="password",
@@ -178,9 +186,9 @@ class LoginCommand(resource.ResourceCommand):
 
         # Retrieve token based on whether we're using SSO or username/password login :)
         if args.sso:
-            LOG.debug("Logging in with SSO")
+            LOG.debug("Logging in with SSO with fixed port [%d]", args.sso_port)
             # Retrieve token from SSO backend
-            sso_proxy = self.manager.create_sso_request(**kwargs)
+            sso_proxy = self.manager.create_sso_request(args.sso_port, **kwargs)
 
             print(
                 "Please finish your SSO login by visiting: %s"

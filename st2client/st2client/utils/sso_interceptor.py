@@ -41,9 +41,9 @@ class SSOInterceptorProxy:
     # token object to receive the token once it's avaiable!
     token = None
 
-    def __init__(self, key):
+    def __init__(self, key, sso_port):
 
-        self.server = HTTPServer(("localhost", 0), createSSOProxyHandler(self))
+        self.server = HTTPServer(("localhost", sso_port), createSSOProxyHandler(self))
         self.key = key
 
         LOG.debug(
@@ -70,7 +70,7 @@ class SSOInterceptorProxy:
         LOG.debug("Callback received and intercepted, token is provided :)")
         self.token = token
 
-    def get_token(self, timeout=90):
+    def get_token(self, timeout=5):
         LOG.debug(
             "Waiting for token to be received from SSO flow.. will timeout after [%s]s",
             timeout,
@@ -96,8 +96,8 @@ def createSSOProxyHandler(interceptor: SSOInterceptorProxy):
             try:
 
                 if o.path == "/callback":
-                    self._handle_callbakc(qs.get("response", [None])[0])
-                if o.path == "/success":
+                    self._handle_callback(qs.get("response", [None])[0])
+                elif o.path == "/success":
                     self._handle_success()
                 elif o.path == "/%s" % interceptor.url_id:
                     self._handle_sso_login()
@@ -109,6 +109,8 @@ def createSSOProxyHandler(interceptor: SSOInterceptorProxy):
             except Exception as e:
                 LOG.debug("Unexpected internal server error! %e", e)
                 self.send_error(500, explain="Unexpected error!" % str(e))
+
+            return True
 
         # This request is not expected by the sso proxy
         def _handle_unexpected_request(self):
@@ -125,7 +127,7 @@ def createSSOProxyHandler(interceptor: SSOInterceptorProxy):
 
         # This request should have all the callback data we are expecting
         # -- this means an encrypted key to be decrypted and used by the CLI :)
-        def _handle_callbakc(self, response):
+        def _handle_callback(self, response):
             LOG.debug("Intercepting SSO callback response!")
 
             if response is None:
@@ -133,14 +135,16 @@ def createSSOProxyHandler(interceptor: SSOInterceptorProxy):
                     "Expected 'response' field with encrypted key in callback!"
                 )
 
-            token = symmetric_decrypt(interceptor.key, response.encode("utf-8"))
+            token = None
             try:
+                token = symmetric_decrypt(interceptor.key, response.encode("utf-8"))
                 token_json = json.loads(token)
                 LOG.debug(
                     "Successful SSO login for user %s, redirecting to successful page!",
                     token_json.get("user", None),
                 )
             except:
+                LOG.debug("Could not understand the SSO callback response!")
                 raise ValueError(
                     "Could not understand the incoming SSO callback response"
                 )
