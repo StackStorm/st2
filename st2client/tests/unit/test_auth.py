@@ -30,7 +30,6 @@ from threading import Thread
 from datetime import datetime, timedelta
 
 import six
-from st2client.utils.sso_interceptor import SSOInterceptorProxy
 
 from tests import base
 from st2client import shell
@@ -40,7 +39,6 @@ from st2client.utils.crypto import (
     AESKey,
     read_crypto_key_from_dict,
     symmetric_encrypt,
-    symmetric_decrypt,
 )
 from st2client.utils.httpclient import (
     add_auth_token_to_headers,
