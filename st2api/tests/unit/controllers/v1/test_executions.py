@@ -333,12 +333,6 @@ LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM = {
     "action": "starterpack.st2.dummy.default_encrypted_value_secret_param",
 }
 
-FIXTURES_PACK = "generic"
-TEST_FIXTURES = {
-    "runners": ["testrunner1.yaml"],
-    "actions": ["action1.yaml", "local.yaml"],
-}
-
 
 @mock.patch.object(
     content_utils, "get_pack_base_path", mock.MagicMock(return_value="/tmp/test")

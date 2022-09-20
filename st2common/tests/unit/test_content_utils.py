@@ -31,6 +31,11 @@ from st2common.content.utils import get_action_libs_abs_path
 from st2common.content.utils import get_relative_path_to_pack_file
 from st2tests import config as tests_config
 from st2tests.fixturesloader import get_fixtures_packs_base_path
+from st2tests.fixtures.packs.dummy_pack_1.fixture import (
+    PACK_NAME as DUMMY_PACK_1,
+    PACK_PATH as DUMMY_PACK_1_PATH,
+)
+from st2tests.fixtures.packs.dummy_pack_2.fixture import PACK_PATH as DUMMY_PACK_2_PATH
 
 
 class ContentUtilsTestCase(unittest2.TestCase):
@@ -112,7 +117,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
             ValueError,
             expected_msg,
             get_pack_resource_file_abs_path,
-            pack_ref="dummy_pack_1",
+            pack_ref=DUMMY_PACK_1,
             resource_type="fooo",
             file_path="test.py",
         )
@@ -137,7 +142,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
                 ValueError,
                 expected_msg,
                 get_pack_resource_file_abs_path,
-                pack_ref="dummy_pack_1",
+                pack_ref=DUMMY_PACK_1,
                 resource_type="action",
                 file_path=file_path,
             )
@@ -152,7 +157,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
                 ValueError,
                 expected_msg,
                 get_pack_resource_file_abs_path,
-                pack_ref="dummy_pack_1",
+                pack_ref=DUMMY_PACK_1,
                 resource_type="sensor",
                 file_path=file_path,
             )
@@ -166,18 +171,16 @@ class ContentUtilsTestCase(unittest2.TestCase):
                 ValueError,
                 expected_msg,
                 get_pack_file_abs_path,
-                pack_ref="dummy_pack_1",
+                pack_ref=DUMMY_PACK_1,
                 file_path=file_path,
             )
 
         # Valid paths
         file_paths = ["foo.py", "a/foo.py", "a/b/foo.py"]
         for file_path in file_paths:
-            expected = os.path.join(
-                get_fixtures_packs_base_path(), "dummy_pack_1/actions", file_path
-            )
+            expected = os.path.join(DUMMY_PACK_1_PATH, "actions", file_path)
             result = get_pack_resource_file_abs_path(
-                pack_ref="dummy_pack_1", resource_type="action", file_path=file_path
+                pack_ref=DUMMY_PACK_1, resource_type="action", file_path=file_path
             )
             self.assertEqual(result, expected)
 
@@ -236,20 +239,18 @@ class ContentUtilsTestCase(unittest2.TestCase):
     def test_get_relative_path_to_pack_file(self):
         packs_base_paths = get_fixtures_packs_base_path()
 
-        pack_ref = "dummy_pack_1"
+        pack_ref = DUMMY_PACK_1
 
         # 1. Valid paths
-        file_path = os.path.join(packs_base_paths, "dummy_pack_1/pack.yaml")
+        file_path = os.path.join(DUMMY_PACK_1_PATH, "pack.yaml")
         result = get_relative_path_to_pack_file(pack_ref=pack_ref, file_path=file_path)
         self.assertEqual(result, "pack.yaml")
 
-        file_path = os.path.join(
-            packs_base_paths, "dummy_pack_1/actions/action.meta.yaml"
-        )
+        file_path = os.path.join(DUMMY_PACK_1_PATH, "actions/action.meta.yaml")
         result = get_relative_path_to_pack_file(pack_ref=pack_ref, file_path=file_path)
         self.assertEqual(result, "actions/action.meta.yaml")
 
-        file_path = os.path.join(packs_base_paths, "dummy_pack_1/actions/lib/foo.py")
+        file_path = os.path.join(DUMMY_PACK_1_PATH, "actions/lib/foo.py")
         result = get_relative_path_to_pack_file(pack_ref=pack_ref, file_path=file_path)
         self.assertEqual(result, "actions/lib/foo.py")
 
@@ -261,7 +262,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
         # 2. Invalid path - outside pack directory
         expected_msg = r"file_path (.*?) is not located inside the pack directory (.*?)"
 
-        file_path = os.path.join(packs_base_paths, "dummy_pack_2/actions/lib/foo.py")
+        file_path = os.path.join(DUMMY_PACK_2_PATH, "actions/lib/foo.py")
         self.assertRaisesRegexp(
             ValueError,
             expected_msg,

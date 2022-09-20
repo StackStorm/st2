@@ -16,7 +16,6 @@
 from __future__ import absolute_import
 
 import os
-from typing import Mapping, Sequence
 
 import six
 import jsonschema
@@ -210,11 +209,28 @@ def assign_default_values(instance, schema):
     if not instance_is_dict and not instance_is_array:
         return instance
 
+    schema_type = schema.get("type", None)
+
+    if instance_is_dict and schema_type == "object":
+        return _assign_default_values_object(instance, schema)
+
+    elif instance_is_array and schema_type == "array":
+        return _assign_default_values_array(instance, schema)
+
+    return instance
+
+
+def _assign_default_values_object(instance, schema):
+    # assert is_attribute_type_object(schema.get("type"))
+    if not isinstance(instance, dict):
+        return instance
+
+    # TODO: handle defaults in patternProperties and additionalProperties
     properties = schema.get("properties", {})
     dependencies = schema.get("dependencies", {})
 
-    for property_name, property_data in six.iteritems(properties):
-        has_default_value = "default" in property_data
+    for property_name, property_schema in properties.items():
+        has_default_value = "default" in property_schema
         # only populate default if dependencies are met
         # eg: exclusiveMaximum depends on maximum which does not have a default.
         #     so we don't want to apply exclusiveMaximum's default unless maximum.
@@ -228,54 +244,95 @@ def assign_default_values(instance, schema):
                     # do not apply this default.
                     has_default_value = False
                     break
-        default_value = property_data.get("default", None)
+
+        default_value = property_schema.get("default", None)
 
         # Assign default value on the instance so the validation doesn't fail if requires is true
         # but the value is not provided
-        if has_default_value:
-            if instance_is_dict and instance.get(property_name, None) is None:
-                instance[property_name] = default_value
-            elif instance_is_array:
-                for index, _ in enumerate(instance):
-                    if instance[index].get(property_name, None) is None:
-                        instance[index][property_name] = default_value
+        if has_default_value and instance.get(property_name, None) is None:
+            instance[property_name] = default_value
+
+        attribute_instance = instance.get(property_name, None)
+        if attribute_instance is None:
+            # Note: We don't perform subschema assignment if no value is provided
+            continue
 
         # Support for nested properties (array and object)
-        attribute_type = property_data.get("type", None)
-        schema_items = property_data.get("items", {})
+        attribute_type = property_schema.get("type", None)
 
         # Array
-        if is_attribute_type_array(attribute_type) and schema_items:
-            array_instance = instance.get(property_name, None)
-            # Note: We don't perform subschema assignment if no value is provided
-            if array_instance is not None:
-                if isinstance(schema_items, Mapping) and schema_items.get(
-                    "properties", {}
-                ):
-                    instance[property_name] = assign_default_values(
-                        instance=array_instance, schema=schema_items
-                    )
-                elif array_instance and isinstance(schema_items, Sequence):
-                    array_instance_count = len(array_instance)
-                    for i, item_schema in enumerate(schema_items):
-                        if i > array_instance_count:
-                            break
-                        instance[property_name][i] = assign_default_values(
-                            instance=array_instance[i], schema=item_schema
-                        )
+        if is_attribute_type_array(attribute_type):
+            instance[property_name] = _assign_default_values_array(
+                instance=attribute_instance,
+                schema=property_schema,
+            )
 
         # Object
-        if is_attribute_type_object(attribute_type) and property_data.get(
-            "properties", {}
-        ):
-            object_instance = instance.get(property_name, None)
-            object_schema = schema["properties"][property_name]
+        elif is_attribute_type_object(attribute_type):
+            instance[property_name] = _assign_default_values_object(
+                instance=attribute_instance,
+                schema=property_schema,
+            )
 
-            if object_instance is not None:
-                # Note: We don't perform subschema assignment if no value is provided
-                instance[property_name] = assign_default_values(
-                    instance=object_instance, schema=object_schema
-                )
+    return instance
+
+
+def _assign_default_values_array(instance, schema):
+    # assert is_attribute_type_array(schema.get("type"))
+    if not isinstance(instance, list):
+        return instance
+
+    # make sure we don't mess up the original schema
+    schema = fast_deepcopy_dict(schema)
+
+    # TODO: handle defaults in additionalItems
+    items = schema.get("items", [])
+
+    if not items:
+        return instance
+
+    # items is either
+    # - a single schema for all items, or
+    # - a list of schemas (a positional schemaArray).
+    if isinstance(items, dict):
+        items = [items] * len(instance)
+
+    # assert isinstance(items, list)
+
+    for index, item_schema in enumerate(items):
+        has_instance_value = index < len(instance)
+        if not has_instance_value:
+            break
+
+        has_default_value = "default" in item_schema
+        default_value = item_schema.get("default", None)
+
+        # Assign default value in the instance so the validation doesn't fail if requires is true
+        # but the value is not provided
+        if has_default_value and instance[index] is None:
+            instance[index] = default_value
+
+        item_instance = instance[index]
+        if item_instance is None:
+            # Note: We don't perform subschema assignment if no value is provided
+            continue
+
+        # Support for nested properties (array and object)
+        item_type = item_schema.get("type", None)
+
+        # Array
+        if is_attribute_type_array(item_type):
+            instance[index] = _assign_default_values_array(
+                instance=item_instance,
+                schema=item_schema,
+            )
+
+        # Object
+        if is_attribute_type_object(item_type):
+            instance[index] = _assign_default_values_object(
+                instance=item_instance,
+                schema=item_schema,
+            )
 
     return instance
 
@@ -366,6 +423,7 @@ def validate(
     if use_default and allow_default_none:
         schema = modify_schema_allow_default_none(schema=schema)
 
+    # TODO: expand default handling to more than just objects
     if use_default and schema_type == "object" and instance_is_dict:
         instance = assign_default_values(instance=instance, schema=schema)
 

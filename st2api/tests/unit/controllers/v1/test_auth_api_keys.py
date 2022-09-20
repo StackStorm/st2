@@ -19,10 +19,9 @@ from oslo_config import cfg
 from six.moves import http_client
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.persistence.auth import ApiKey
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.api import FunctionalTest
-
-FIXTURES_PACK = "generic"
 
 TEST_MODELS = {
     "apikeys": [

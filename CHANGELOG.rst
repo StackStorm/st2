@@ -24,16 +24,31 @@ Fixed
   or arrays using ``additionalItems`` schema(s) can use encrypted datastore keys and have their
   default values applied correctly. #5321
 
-  Contributed by @cognifloyd.
+  Contributed by @cognifloyd
 
 * Fixed ``st2client/st2client/base.py`` file to check for http_proxy and https_proxy environment variables for both lower and upper cases.
 
   Contributed by @S-T-A-R-L-O-R-D
 
+* Fixed a bug where calling 'get_by_name' on client for getting key details was not returning any results despite key being stored. #5677
+
+  Contributed by @bharath-orchestral
+
 
 * Fixed ``st2client/st2client/base.py`` file to use ``https_proxy``(not ``http_proxy``) to check HTTPS_PROXY environment variables.
 
   Contributed by @wfgydbu
+
+* Fixed schema utils to more reliably handle schemas that define nested arrays (object-array-object-array-string) as discovered in some
+  of the ansible installer RBAC tests (see #5684). This includes a test that reproduced the error so we don't hit this again. #5685
+
+* Fixed eventlet monkey patching so more of the unit tests work under pytest. #5689
+
+* Fix and reenable prance-based openapi spec validation, but make our custom ``x-api-model`` validation optional as the spec is out-of-date. #5709
+  Contributed by @cognifloyd
+
+* Fixed generation of `st2.conf.sample` to show correct syntax for `[sensorcontainer].partition_provider` (space separated `key:value` pairs). #5710
+  Contributed by @cognifloyd
 
 Added
 ~~~~~
@@ -44,8 +59,13 @@ Added
 * Add ``ST2_USE_DEBUGGER`` env var as alternative to the ``--use-debugger`` cli flag. #5675
   Contributed by @cognifloyd
 
-* Added purging of old tokens. #56791
+* Added purging of old tokens. #5679
   Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Begin introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
+  working on StackStorm, improve our security posture, and improve CI reliability thanks in part
+  to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725 #5732 #5733
+  Contributed by @cognifloyd
 
 Changed
 ~~~~~~~
@@ -92,7 +112,15 @@ Changed
 
 * Use PEP 440 direct reference requirements instead of legacy PIP VCS requirements. Now, our ``*.requirements.txt`` files use
   ``package-name@ git+https://url@version ; markers`` instead of ``git+https://url@version#egg=package-name ; markers``. #5673
+  Contributed by @cognifloyd
 
+* Move from udatetime to ciso8601 for date functionality ahead of supporting python3.9 #5692
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Refactor tests to use python imports to identify test fixtures. #5699 #5702 #5703 #5704 #5705 #5706
+  Contributed by @cognifloyd
+
+* Refactor ``st2-generate-schemas`` so that logic is in an importable module. #5708
   Contributed by @cognifloyd
 
 Removed

@@ -16,6 +16,11 @@
 
 from __future__ import absolute_import
 
+# pytest: make sure monkey_patching happens before importing mongoengine
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import six
 import mock
 
@@ -33,10 +38,9 @@ from st2common.util import param as param_utils
 from st2common.util.config_loader import get_config
 
 from st2tests import DbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
-
-FIXTURES_PACK = "generic"
 
 TEST_MODELS = {
     "actions": ["action_4_action_context_param.yaml", "action_system_default.yaml"],

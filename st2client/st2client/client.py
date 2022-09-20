@@ -38,6 +38,7 @@ from st2client.models.core import WorkflowManager
 from st2client.models.core import ServiceRegistryGroupsManager
 from st2client.models.core import ServiceRegistryMembersManager
 from st2client.models.core import add_auth_token_to_kwargs_from_env
+from st2client.models.core import KeyValuePairResourceManager
 
 
 LOG = logging.getLogger(__name__)
@@ -273,7 +274,7 @@ class Client(object):
             debug=self.debug,
             basic_auth=self.basic_auth,
         )
-        self.managers["KeyValuePair"] = ResourceManager(
+        self.managers["KeyValuePair"] = KeyValuePairResourceManager(
             models.KeyValuePair,
             self.endpoints["api"],
             cacert=self.cacert,

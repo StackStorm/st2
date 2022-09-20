@@ -126,6 +126,7 @@ class DbConnectionTestCase(DbTestCase):
     def test_network_level_compression(self):
         disconnect()
 
+        # db is not modified in this test, so this is safe to run in parallel.
         db_name = "st2"
         db_host = "localhost"
         db_port = 27017
@@ -521,6 +522,7 @@ class DbConnectionTestCase(DbTestCase):
         # and propagating the error
         disconnect()
 
+        # db is not modified in this test, so this is safe to run in parallel.
         db_name = "st2"
         db_host = "localhost"
         db_port = 27017
