@@ -14,10 +14,8 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import io
 import os
 import re
-import sys
 from time import sleep, time
 import uuid
 import json
