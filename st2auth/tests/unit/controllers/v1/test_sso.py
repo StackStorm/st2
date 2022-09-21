@@ -252,7 +252,7 @@ class TestSingleSignOnRequestController(FunctionalTest):
             {
                 "callback_url": MOCK_CALLBACK_URL,
             },
-            "Missing either key and/or callback_url!",
+            "'key' is a required property",
         )
 
     def test_cli_default_backend_missing_callback_url(self):
@@ -260,12 +260,12 @@ class TestSingleSignOnRequestController(FunctionalTest):
             {
                 "key": MOCK_CLI_REQUEST_KEY_JSON,
             },
-            "Missing either key and/or callback_url!",
+            "'callback_url' is a required property",
         )
 
     def test_cli_default_backend_missing_key_and_callback_url(self):
         self._test_cli_request_bad_parameter_helper(
-            {"ops": "ops"}, "Missing either key and/or callback_url!"
+            {"ops": "ops"}, "'key' is a required property"
         )
 
     def test_cli_default_backend_not_implemented(self):

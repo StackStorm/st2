@@ -183,6 +183,7 @@ class SingleSignOnRequestController(object):
         try:
             key = getattr(response, "key", None)
             callback_url = getattr(response, "callback_url", None)
+            # This is already checked at the API level, but aanyway..
             if not key or not callback_url:
                 raise ValueError("Missing either key and/or callback_url!")
 
