@@ -4547,15 +4547,16 @@ paths:
           description: SSO request with callback and key encryption
           schema:
             type: object
+            required:
+              - key
+              - callback_url
             properties:
               key:
                 type: string
                 description: The symmetric key to be used to encrypt contents of callback
-                required: true
               callback_url:
                 type: string
-                description:  What URL to be called back once the response from SSO is received
-                required: true
+                description: What URL to be called back once the response from SSO is received
       responses:
         '200':
           description: SSO request valid

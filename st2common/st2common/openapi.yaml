@@ -2,13 +2,13 @@
 # Edit st2common/st2common/openapi.yaml.j2 and then run
 # make .generate-api-spec
 # to generate the final spec file
-swagger: '2.0'
+swagger: "2.0"
 
 info:
   version: "1.0.0"
   title: StackStorm API
   description: |
-    
+
     ## Welcome
 
     Welcome to the StackStorm API Reference documentation! You can use the StackStorm API to integrate StackStorm with 3rd-party systems and custom applications. Example integrations include writing your own self-service user portal, or integrating with other orquestation systems.
@@ -197,7 +197,6 @@ info:
     Join our [Slack Community](https://stackstorm.com/community-signup) to get help from the engineering team and fellow users. You can also create issues against the main [StackStorm GitHub repo](https://github.com/StackStorm/st2/issues), or the [st2apidocs repo](https://github.com/StackStorm/st2apidocs) for documentation-specific issues.
 
     We also recommend reviewing the main [StackStorm documentation](https://docs.stackstorm.com/).
-    
 
 paths:
   /api/v1/:
@@ -205,7 +204,7 @@ paths:
       operationId: st2api.controllers.root:root_controller.index
       description: General API info.
       responses:
-        '200':
+        "200":
           description: General API info.
           schema:
             type: object
@@ -216,12 +215,12 @@ paths:
                 type: string
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/user:
     get:
       operationId: st2api.controllers.v1.user:user_controller.get
@@ -236,14 +235,14 @@ paths:
           x-as: auth_info
           description: Information on how user authenticated.
       responses:
-        '200':
+        "200":
           description: Metadata information about the authenticated user.
           schema:
             type: object
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
 
   /api/v1/actions:
     get:
@@ -299,20 +298,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of actions
           schema:
             type: array
             items:
-              $ref: '#/definitions/Action'
+              $ref: "#/definitions/Action"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     post:
       operationId: st2api.controllers.v1.actions:actions_controller.post
       description: |
@@ -322,25 +321,25 @@ paths:
           in: body
           description: Action content
           schema:
-            $ref: '#/definitions/ActionCreateRequest'
+            $ref: "#/definitions/ActionCreateRequest"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        "201":
           description: Single action being created
           schema:
-            $ref: '#/definitions/Action'
+            $ref: "#/definitions/Action"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/actions/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_one
@@ -358,18 +357,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Action requested
           schema:
-            $ref: '#/definitions/Action'
+            $ref: "#/definitions/Action"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.actions:actions_controller.put
       description: |
@@ -384,25 +383,25 @@ paths:
           in: body
           description: Action content
           schema:
-            $ref: '#/definitions/ActionUpdateRequest'
+            $ref: "#/definitions/ActionUpdateRequest"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Action updated
           schema:
-            $ref: '#/definitions/Action'
+            $ref: "#/definitions/Action"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     delete:
       operationId: st2api.controllers.v1.actions:actions_controller.delete
       description: |
@@ -417,19 +416,19 @@ paths:
           in: body
           description: Flag to remove action files from disk
           schema:
-            $ref: '#/definitions/ActionDeleteRequest'
+            $ref: "#/definitions/ActionDeleteRequest"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '204':
+        "204":
           description: Action deleted
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/actions/{ref_or_id}/clone:
     post:
       operationId: st2api.controllers.v1.actions:actions_controller.clone
@@ -445,7 +444,7 @@ paths:
           in: body
           description: Destination action content
           schema:
-            $ref: '#/definitions/ActionCloneRequest'
+            $ref: "#/definitions/ActionCloneRequest"
           required: true
       x-parameters:
         - name: user
@@ -453,18 +452,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        "201":
           description: Single action being cloned
           schema:
-            $ref: '#/definitions/Action'
+            $ref: "#/definitions/Action"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'  
+            $ref: "#/definitions/Error"
   /api/v1/actions/views/parameters/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.action_views:parameters_view_controller.get_one
@@ -482,10 +481,10 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: An object containing action parameters
           schema:
-            $ref: '#/definitions/ActionParameters'
+            $ref: "#/definitions/ActionParameters"
           examples:
             application/json:
               parameters:
@@ -495,7 +494,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/actions/views/overview:
     get:
       operationId: st2api.controllers.v1.action_views:overview_controller.get_all
@@ -544,20 +543,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of actions
           schema:
             type: array
             items:
-              $ref: '#/definitions/Action'
+              $ref: "#/definitions/Action"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/actions/views/overview/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.action_views:overview_controller.get_one
@@ -575,18 +574,18 @@ paths:
           x-as: requester_user
           description: User running the action
       responses:
-        '200':
+        "200":
           description: Action requested
           schema:
-            $ref: '#/definitions/Action'
+            $ref: "#/definitions/Action"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/actions/views/entry_point/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.action_views:entry_point_controller.get_one
@@ -604,7 +603,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Entry point code
           schema:
             type: string
@@ -617,13 +616,13 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/actionalias:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_all
       x-permissions: action_alias_list
       description: |
-          Get list of action-aliases.
+        Get list of action-aliases.
       parameters:
         - name: exclude_attributes
           in: query
@@ -666,20 +665,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of action aliases.
           schema:
             type: array
             items:
-              $ref: '#/definitions/ActionAlias'
+              $ref: "#/definitions/ActionAlias"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     post:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.post
       description: |
@@ -689,25 +688,25 @@ paths:
           in: body
           description: Action alias file.
           schema:
-            $ref: '#/definitions/ActionAlias'
+            $ref: "#/definitions/ActionAlias"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        "201":
           description: Action alias created
           schema:
-            $ref: '#/definitions/ActionAlias'
+            $ref: "#/definitions/ActionAlias"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/actionalias/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_one
@@ -727,18 +726,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Action alias requested
           schema:
-            $ref: '#/definitions/ActionAlias'
+            $ref: "#/definitions/ActionAlias"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.put
       description: Update action alias
@@ -752,7 +751,7 @@ paths:
           in: body
           description: JSON/YAML file containing the action alias to update.
           schema:
-            $ref: '#/definitions/ActionAlias'
+            $ref: "#/definitions/ActionAlias"
           required: true
       x-parameters:
         - name: user
@@ -760,18 +759,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Action alias updated.
           schema:
-            $ref: '#/definitions/ActionAlias'
+            $ref: "#/definitions/ActionAlias"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     delete:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.delete
       description: |
@@ -788,12 +787,12 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '204':
+        "204":
           description: Action alias deleted
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/actionalias/match:
     post:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.match
@@ -805,16 +804,16 @@ paths:
           in: body
           description: Object containing the format to be matched.
           schema:
-            $ref: '#/definitions/ActionAliasMatchRequest'
+            $ref: "#/definitions/ActionAliasMatchRequest"
       responses:
-        '200':
+        "200":
           description: Action alias match pattern
           schema:
-            $ref: '#/definitions/ActionAliasMatch'
+            $ref: "#/definitions/ActionAliasMatch"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/actionalias/help:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.help
@@ -841,18 +840,18 @@ paths:
           type: integer
           default: 0
       responses:
-        '200':
+        "200":
           description: Action alias match pattern
           schema:
-            $ref: '#/definitions/ActionAliasHelp'
+            $ref: "#/definitions/ActionAliasHelp"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/aliasexecution:
     post:
       operationId: st2api.controllers.v1.aliasexecution:action_alias_execution_controller.post
@@ -863,7 +862,7 @@ paths:
           in: body
           description: Alias execution payload.
           schema:
-            $ref: '#/definitions/AliasExecution'
+            $ref: "#/definitions/AliasExecution"
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -874,18 +873,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        "201":
           description: Action alias created
           schema:
-            $ref: '#/definitions/AliasExecution'
+            $ref: "#/definitions/AliasExecution"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/aliasexecution/match_and_execute:
     post:
       operationId: st2api.controllers.v1.aliasexecution:action_alias_execution_controller.match_and_execute
@@ -896,7 +895,7 @@ paths:
           in: body
           description: Input data.
           schema:
-            $ref: '#/definitions/AliasMatchAndExecuteInputAPI'
+            $ref: "#/definitions/AliasMatchAndExecuteInputAPI"
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -907,7 +906,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        "201":
           description: Action alias executions created
           schema:
             type: object
@@ -917,15 +916,15 @@ paths:
                 type: array
                 items:
                   type: object
-                  $ref: '#/definitions/AliasExecution'
+                  $ref: "#/definitions/AliasExecution"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
 
   /api/v1/executions:
     get:
@@ -1046,12 +1045,12 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of executions
           schema:
             type: array
             items:
-              $ref: '#/definitions/Execution'
+              $ref: "#/definitions/Execution"
           examples:
             application/json:
               - trigger:
@@ -1062,7 +1061,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.post
       x-log-result: false
@@ -1073,7 +1072,7 @@ paths:
           in: body
           description: Execution request
           schema:
-            $ref: '#/definitions/ExecutionRequest'
+            $ref: "#/definitions/ExecutionRequest"
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -1089,10 +1088,10 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        "201":
           description: Execution being created
           schema:
-            $ref: '#/definitions/Execution'
+            $ref: "#/definitions/Execution"
           examples:
             application/json:
               trigger:
@@ -1103,7 +1102,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/executions/{id}:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_one
@@ -1145,10 +1144,10 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Execution requested
           schema:
-            $ref: '#/definitions/Execution'
+            $ref: "#/definitions/Execution"
           examples:
             application/json:
               trigger:
@@ -1159,7 +1158,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.put
       description: |
@@ -1174,7 +1173,7 @@ paths:
           in: body
           description: Execution update request
           schema:
-            $ref: '#/definitions/ExecutionUpdateRequest'
+            $ref: "#/definitions/ExecutionUpdateRequest"
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -1185,14 +1184,14 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Execution that was updated
           schema:
-            $ref: '#/definitions/Execution'
+            $ref: "#/definitions/Execution"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     delete:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.delete
       description: |
@@ -1213,12 +1212,12 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Execution cancelled
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/executions/{id}/output:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_output_controller.get_one
@@ -1247,12 +1246,12 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Execution output.
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/executions/{id}/re_run:
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
@@ -1283,7 +1282,7 @@ paths:
                 default: []
               user:
                 type: string
-                default: ''
+                default: ""
               delay:
                 description: How long (in milliseconds) to delay the execution before scheduling.
                 type: integer
@@ -1297,10 +1296,10 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        "201":
           description: Single action being created
           schema:
-            $ref: '#/definitions/Execution'
+            $ref: "#/definitions/Execution"
           examples:
             application/json:
               trigger:
@@ -1311,7 +1310,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/executions/{id}/attribute/{attribute}:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_attribute_controller.get
@@ -1336,7 +1335,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Execution attribute requested
           examples:
             application/json:
@@ -1346,7 +1345,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/executions/{id}/children:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_children_controller.get_one
@@ -1375,12 +1374,12 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Execution attribute requested
           schema:
             type: array
             items:
-              $ref: '#/definitions/Execution'
+              $ref: "#/definitions/Execution"
           examples:
             application/json:
               trigger:
@@ -1389,7 +1388,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/executions/{id}/result:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_raw_result_controller.get
@@ -1424,7 +1423,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Execution result
           schema:
             type: string
@@ -1433,7 +1432,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/executions/views/filters:
     get:
       operationId: st2api.controllers.v1.execution_views:filters_controller.get_all
@@ -1448,10 +1447,10 @@ paths:
           items:
             type: string
       responses:
-        '200':
+        "200":
           description: A number of distinct values for the requested filters
           schema:
-            $ref: '#/definitions/ExecutionFilters'
+            $ref: "#/definitions/ExecutionFilters"
           examples:
             application/json:
               trigger:
@@ -1462,7 +1461,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/inquiries:
     get:
       operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_all
@@ -1493,16 +1492,16 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of inquries
           schema:
             type: array
             items:
-              $ref: '#/definitions/Inquiry'
+              $ref: "#/definitions/Inquiry"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/inquiries/{inquiry_id}:
     get:
       operationId: st2api.controllers.v1.inquiries:inquiries_controller.get_one
@@ -1520,14 +1519,14 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Inquiry requested.
           schema:
-            $ref: '#/definitions/Inquiry'
+            $ref: "#/definitions/Inquiry"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.inquiries:inquiries_controller.put
       description: |
@@ -1543,25 +1542,25 @@ paths:
           required: true
           description: Inquiry response
           schema:
-            $ref: '#/definitions/InquiryResponseResult'
+            $ref: "#/definitions/InquiryResponseResult"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Response received
           schema:
-            $ref: '#/definitions/InquiryResponseResult'
+            $ref: "#/definitions/InquiryResponseResult"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
@@ -1571,7 +1570,7 @@ paths:
         - name: prefix
           in: query
           description: |
-              Only return values which name starts with the provided prefix.
+            Only return values which name starts with the provided prefix.
           type: string
         - name: scope
           in: query
@@ -1613,19 +1612,19 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of key value pairs
           schema:
             type: array
             items:
-              $ref: '#/definitions/KeyValuePair'
+              $ref: "#/definitions/KeyValuePair"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/keys/{name}:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_one
@@ -1655,18 +1654,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Key value pair requested.
           schema:
-            $ref: '#/definitions/KeyValuePair'
+            $ref: "#/definitions/KeyValuePair"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.put
       description: |
@@ -1681,7 +1680,7 @@ paths:
           in: body
           description: Key Value pair content.
           schema:
-            $ref: '#/definitions/KeyValuePairRequest'
+            $ref: "#/definitions/KeyValuePairRequest"
           required: true
       x-parameters:
         - name: user
@@ -1689,18 +1688,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Key set/updated.
           schema:
-            $ref: '#/definitions/KeyValuePair'
+            $ref: "#/definitions/KeyValuePair"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     delete:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.delete
       description: Delete a Key.
@@ -1724,12 +1723,12 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '204':
+        "204":
           description: Key deleted.
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/packs:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_all
@@ -1783,19 +1782,19 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of installed packs.
           schema:
             type: array
             items:
-              $ref: '#/definitions/PacksList'
+              $ref: "#/definitions/PacksList"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/packs/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_one
@@ -1814,17 +1813,17 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Information about a pack.
           schema:
-            $ref: '#/definitions/PackView'
+            $ref: "#/definitions/PackView"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/packs/install:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.install.post
@@ -1836,25 +1835,25 @@ paths:
           in: body
           description: Packs to be installed
           schema:
-            $ref: '#/definitions/PacksInstall'
+            $ref: "#/definitions/PacksInstall"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '202':
+        "202":
           description: Pack installation request has been accepted
           schema:
-            $ref: '#/definitions/AsyncRequest'
+            $ref: "#/definitions/AsyncRequest"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/packs/uninstall:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.uninstall.post
@@ -1866,25 +1865,25 @@ paths:
           in: body
           description: Packs to be uninstalled
           schema:
-            $ref: '#/definitions/PacksUninstall'
+            $ref: "#/definitions/PacksUninstall"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '202':
+        "202":
           description: Pack uninstallation request has been accepted
           schema:
-            $ref: '#/definitions/AsyncRequest'
+            $ref: "#/definitions/AsyncRequest"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/packs/register:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.register.post
@@ -1896,37 +1895,37 @@ paths:
           in: body
           description: Pack(s) to be Registered
           schema:
-            $ref: '#/definitions/PacksRegister'
+            $ref: "#/definitions/PacksRegister"
       responses:
-        '200':
+        "200":
           description: Pack(s) Registered.
           schema:
-            $ref: '#/definitions/PacksList'
+            $ref: "#/definitions/PacksList"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/packs/index:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.index.get_all
       x-permissions: pack_search
       description: To list all the packs of all indexes used by your StackStorm instance.
       responses:
-        '200':
+        "200":
           description: Pack index.
           schema:
-            $ref: '#/definitions/PackIndex'
+            $ref: "#/definitions/PackIndex"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/packs/index/search:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.index.search.post
@@ -1938,9 +1937,9 @@ paths:
           in: body
           description: A query to search a pack or a pack name to get its details
           schema:
-            $ref: '#/definitions/PacksSearchShow'
+            $ref: "#/definitions/PacksSearchShow"
       responses:
-        '200':
+        "200":
           description: Pack search results.
           schema:
             type:
@@ -1952,12 +1951,12 @@ paths:
             # $ref: '#/definitions/PacksList'
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   # TODO: No unit test for /packs/index/health
   /api/v1/packs/index/health:
     get:
@@ -1965,17 +1964,17 @@ paths:
       x-permissions: pack_views_index_health
       description: To get the state of all indexes used by your StackStorm instance.
       responses:
-        '200':
+        "200":
           description: Index health.
           schema:
-            $ref: '#/definitions/PackIndex'
+            $ref: "#/definitions/PackIndex"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/packs/views/files/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.views.files.get_one
@@ -1993,19 +1992,19 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Information about a pack.
           schema:
             type: array
             items:
-              $ref: '#/definitions/DataFilesSubSchema'
+              $ref: "#/definitions/DataFilesSubSchema"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/packs/views/file/{ref_or_id}/{file_path}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.views.file.get_one
@@ -2041,14 +2040,14 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Content of the file.
-        '304':
+        "304":
           description: File has not been modified.
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/configs:
     get:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_all
@@ -2091,19 +2090,19 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Get packs config.
           # schema:
-            # type: array
-              # items:
-                # $ref: '#/definitions/PackConfig'
+          # type: array
+          # items:
+          # $ref: '#/definitions/PackConfig'
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/configs/{pack_ref}:
     get:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_one
@@ -2124,17 +2123,17 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Config for a particular pack.
           schema:
-            $ref: '#/definitions/PackConfigView'
+            $ref: "#/definitions/PackConfigView"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.put
       x-permissions: pack_config
@@ -2149,7 +2148,7 @@ paths:
           in: body
           description: Pack config content
           schema:
-            $ref: '#/definitions/PackConfigContent'
+            $ref: "#/definitions/PackConfigContent"
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -2160,17 +2159,17 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Config for a particular pack.
           schema:
-            $ref: '#/definitions/PackConfigCreate'
+            $ref: "#/definitions/PackConfigCreate"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/config_schemas:
     get:
       operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_all
@@ -2209,19 +2208,19 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Get packs config schema.
           # schema:
-            # type: array
-              # items:
-                # $ref: '#/definitions/PackConfig'
+          # type: array
+          # items:
+          # $ref: '#/definitions/PackConfig'
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/config_schemas/{pack_ref}:
     get:
       operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_one
@@ -2238,17 +2237,17 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Config schema for a particular pack.
           schema:
-            $ref: '#/definitions/PackConfigView'
+            $ref: "#/definitions/PackConfigView"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/policytypes:
     get:
       operationId: st2api.controllers.v1.policies:policy_type_controller.get_all
@@ -2304,20 +2303,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of policy types
           schema:
             type: array
             items:
-              $ref: '#/definitions/PolicyTypeList'
+              $ref: "#/definitions/PolicyTypeList"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/policytypes/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.policies:policy_type_controller.get_one
@@ -2334,18 +2333,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Specific policy type.
           schema:
-            $ref: '#/definitions/PolicyTypeList'
+            $ref: "#/definitions/PolicyTypeList"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/policies:
     get:
       operationId: st2api.controllers.v1.policies:policy_controller.get_all
@@ -2390,20 +2389,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Policy list
           schema:
             type: array
             items:
-              - $ref: '#/definitions/PolicyList'
+              - $ref: "#/definitions/PolicyList"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     post:
       operationId: st2api.controllers.v1.policies:policy_controller.post
       description: |
@@ -2413,7 +2412,7 @@ paths:
           in: body
           description: Policy details in yaml/json file
           schema:
-            $ref: '#/definitions/PolicyCreate'
+            $ref: "#/definitions/PolicyCreate"
           required: true
       x-parameters:
         - name: user
@@ -2421,18 +2420,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        "201":
           description: Policy created successfully.
           schema:
-            $ref: '#/definitions/PolicyList'
+            $ref: "#/definitions/PolicyList"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/policies/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.policies:policy_controller.get_one
@@ -2450,18 +2449,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Policy found.
           schema:
-            $ref: '#/definitions/PolicyList'
+            $ref: "#/definitions/PolicyList"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.policies:policy_controller.put
       description: |
@@ -2476,7 +2475,7 @@ paths:
           in: body
           description: Policy details in yaml/json file
           schema:
-            $ref: '#/definitions/PolicyCreate'
+            $ref: "#/definitions/PolicyCreate"
           required: true
       x-parameters:
         - name: user
@@ -2484,18 +2483,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Policy updated successfully.
           schema:
-            $ref: '#/definitions/PolicyList'
+            $ref: "#/definitions/PolicyList"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     delete:
       operationId: st2api.controllers.v1.policies:policy_controller.delete
       description: |
@@ -2512,12 +2511,12 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '204':
+        "204":
           description: Policy deleted
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/rbac/permission_types:
     get:
       operationId: st2api.controllers.v1.rbac:permission_types_controller.get_all
@@ -2528,14 +2527,14 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Dictionary of permission types by resource types.
           schema:
             type: object
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/rbac/permission_types/{resource_type}:
     get:
       operationId: st2api.controllers.v1.rbac:permission_types_controller.get_one
@@ -2552,14 +2551,14 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of permission types.
           schema:
             type: object
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/rbac/roles:
     get:
       operationId: st2api.controllers.v1.rbac:roles_controller.get_all
@@ -2575,7 +2574,7 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of all roles.
           schema:
             type: array
@@ -2583,12 +2582,12 @@ paths:
               type: object
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/rbac/roles/{name_or_id}:
     get:
       operationId: st2api.controllers.v1.rbac:roles_controller.get_one
@@ -2605,18 +2604,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of roles.
           schema:
             type: object
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/rbac/role_assignments:
     get:
       operationId: st2api.controllers.v1.rbac:role_assignments_controller.get_all
@@ -2644,7 +2643,7 @@ paths:
           description: Only include remote role assignments.
           type: boolean
       responses:
-        '200':
+        "200":
           description: List of all role assignments.
           schema:
             type: array
@@ -2652,12 +2651,12 @@ paths:
               type: object
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/rbac/role_assignments/{id}:
     get:
       operationId: st2api.controllers.v1.rbac:role_assignments_controller.get_one
@@ -2674,18 +2673,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Role assignment object.
           schema:
             type: object
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
 
   /api/v1/rules:
     get:
@@ -2747,20 +2746,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of rules
           schema:
             type: array
             items:
-              $ref: '#/definitions/Rule'
+              $ref: "#/definitions/Rule"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     post:
       operationId: st2api.controllers.v1.rules:rule_controller.post
       description: |
@@ -2770,25 +2769,25 @@ paths:
           in: body
           description: Rule content
           schema:
-            $ref: '#/definitions/Rule'
+            $ref: "#/definitions/Rule"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        "201":
           description: Single action being created
           schema:
-            $ref: '#/definitions/Rule'
+            $ref: "#/definitions/Rule"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/rules/{ref_or_id}:
     get:
       x-requirements:
@@ -2812,18 +2811,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Rule requested
           schema:
-            $ref: '#/definitions/Rule'
+            $ref: "#/definitions/Rule"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/rules/{rule_ref_or_id}:
     put:
       operationId: st2api.controllers.v1.rules:rule_controller.put
@@ -2839,25 +2838,25 @@ paths:
           in: body
           description: Rule content
           schema:
-            $ref: '#/definitions/Rule'
+            $ref: "#/definitions/Rule"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Action updated
           schema:
-            $ref: '#/definitions/Rule'
+            $ref: "#/definitions/Rule"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     delete:
       operationId: st2api.controllers.v1.rules:rule_controller.delete
       description: |
@@ -2874,12 +2873,12 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '204':
+        "204":
           description: Rule deleted
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/rules/views:
     get:
       operationId: st2api.controllers.v1.rule_views:rule_view_controller.get_all
@@ -2936,20 +2935,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of rules
           schema:
             type: array
             items:
-              $ref: '#/definitions/Rule'
+              $ref: "#/definitions/Rule"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/rules/views/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.rule_views:rule_view_controller.get_one
@@ -2967,37 +2966,37 @@ paths:
           x-as: requester_user
           description: User running the action
       responses:
-        '200':
+        "200":
           description: Rule requested
           schema:
-            $ref: '#/definitions/Rule'
+            $ref: "#/definitions/Rule"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/ruletypes:
     get:
       operationId: st2api.controllers.v1.ruletypes:rule_types_controller.get_all
       description: Returns a list of all rule types.
       responses:
-        '200':
+        "200":
           description: List of rules
           schema:
             type: array
             items:
-              $ref: '#/definitions/RuleType'
+              $ref: "#/definitions/RuleType"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/ruletypes/{id}:
     get:
       operationId: st2api.controllers.v1.ruletypes:rule_types_controller.get_one
@@ -3009,18 +3008,18 @@ paths:
           type: string
           required: true
       responses:
-        '200':
+        "200":
           description: RuleType requested
           schema:
-            $ref: '#/definitions/RuleType'
+            $ref: "#/definitions/RuleType"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/runnertypes:
     get:
       operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_all
@@ -3073,20 +3072,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of runner types
           schema:
             type: array
             items:
-              $ref: '#/definitions/RunnerType'
+              $ref: "#/definitions/RunnerType"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/runnertypes/{name_or_id}:
     get:
       operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_one
@@ -3104,18 +3103,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: RunnerType requested
           schema:
-            $ref: '#/definitions/RunnerType'
+            $ref: "#/definitions/RunnerType"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.runnertypes:runner_types_controller.put
       description: |
@@ -3130,25 +3129,25 @@ paths:
           in: body
           description: RunnerType content
           schema:
-            $ref: '#/definitions/RunnerType'
+            $ref: "#/definitions/RunnerType"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: RunnerType updated
           schema:
-            $ref: '#/definitions/RunnerType'
+            $ref: "#/definitions/RunnerType"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/sensortypes:
     get:
       operationId: st2api.controllers.v1.sensors:sensor_type_controller.get_all
@@ -3201,20 +3200,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of rules
           schema:
             type: array
             items:
-              $ref: '#/definitions/SensorType'
+              $ref: "#/definitions/SensorType"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/sensortypes/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.sensors:sensor_type_controller.get_one
@@ -3232,18 +3231,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: SensorType requested
           schema:
-            $ref: '#/definitions/SensorType'
+            $ref: "#/definitions/SensorType"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.sensors:sensor_type_controller.put
       description: |
@@ -3258,25 +3257,25 @@ paths:
           in: body
           description: SensorType content
           schema:
-            $ref: '#/definitions/SensorType'
+            $ref: "#/definitions/SensorType"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: SensorType updated
           schema:
-            $ref: '#/definitions/SensorType'
+            $ref: "#/definitions/SensorType"
           examples:
             application/json:
-              ref: 'core.webhook'
+              ref: "core.webhook"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/apikeys:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_all
@@ -3303,20 +3302,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of actions
           schema:
             type: array
             items:
-              $ref: '#/definitions/ApiKey'
+              $ref: "#/definitions/ApiKey"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     post:
       operationId: st2api.controllers.v1.auth:api_key_controller.post
       description: |
@@ -3326,25 +3325,25 @@ paths:
           in: body
           description: Action content
           schema:
-            $ref: '#/definitions/ApiKey'
+            $ref: "#/definitions/ApiKey"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '201':
+        "201":
           description: Single action being created
           schema:
-            $ref: '#/definitions/ApiKey'
+            $ref: "#/definitions/ApiKey"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/apikeys/{api_key_id_or_key}:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_one
@@ -3366,18 +3365,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Action requested
           schema:
-            $ref: '#/definitions/ApiKey'
+            $ref: "#/definitions/ApiKey"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.auth:api_key_controller.put
       description: |
@@ -3392,25 +3391,25 @@ paths:
           in: body
           description: Action content
           schema:
-            $ref: '#/definitions/ApiKey'
+            $ref: "#/definitions/ApiKey"
       x-parameters:
         - name: user
           in: context
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Action updated
           schema:
-            $ref: '#/definitions/ApiKey'
+            $ref: "#/definitions/ApiKey"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     delete:
       operationId: st2api.controllers.v1.auth:api_key_controller.delete
       description: |
@@ -3427,12 +3426,12 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '204':
+        "204":
           description: Action deleted
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/ruleenforcements:
     get:
       operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_all
@@ -3497,13 +3496,13 @@ paths:
         - name: enforced_at_gt
           in: query
           description: |
-              Only return enforcements with enforced_at greater than the one provided. Use time in the format.
+            Only return enforcements with enforced_at greater than the one provided. Use time in the format.
           type: string
           pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
         - name: enforced_at_lt
           in: query
           description: |
-              Only return enforcements with enforced_at lower than the one provided. Use time in the format.
+            Only return enforcements with enforced_at lower than the one provided. Use time in the format.
           type: string
           pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
       x-parameters:
@@ -3512,20 +3511,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of rule enforcements
           schema:
             type: array
             items:
-              $ref: '#/definitions/RuleEnforcementsList'
+              $ref: "#/definitions/RuleEnforcementsList"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/ruleenforcements/views:
     get:
       operationId: st2api.controllers.v1.rule_enforcement_views:rule_enforcement_view_controller.get_all
@@ -3590,13 +3589,13 @@ paths:
         - name: enforced_at_gt
           in: query
           description: |
-              Only return enforcements with enforced_at greater than the one provided. Use time in the format.
+            Only return enforcements with enforced_at greater than the one provided. Use time in the format.
           type: string
           pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
         - name: enforced_at_lt
           in: query
           description: |
-              Only return enforcements with enforced_at lower than the one provided. Use time in the format.
+            Only return enforcements with enforced_at lower than the one provided. Use time in the format.
           type: string
           pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
       x-parameters:
@@ -3605,20 +3604,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of rule enforcements
           schema:
             type: array
             items:
-              $ref: '#/definitions/RuleEnforcementsList'
+              $ref: "#/definitions/RuleEnforcementsList"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/ruleenforcements/{id}:
     get:
       operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_one
@@ -3635,18 +3634,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Rule Enforcements based on ref or id
           schema:
-            $ref: '#/definitions/RuleEnforcementsList'
+            $ref: "#/definitions/RuleEnforcementsList"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/ruleenforcements/views/{id}:
     get:
       operationId: st2api.controllers.v1.rule_enforcement_views:rule_enforcement_view_controller.get_one
@@ -3663,18 +3662,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Rule Enforcements based on ref or id
           schema:
-            $ref: '#/definitions/RuleEnforcementsList'
+            $ref: "#/definitions/RuleEnforcementsList"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
 
   /api/v1/timers:
     get:
@@ -3687,20 +3686,20 @@ paths:
           description: Type of timer
           type: string
       responses:
-        '200':
+        "200":
           description: List of timers
           schema:
             type: array
             items:
-              $ref: '#/definitions/TimersList'
+              $ref: "#/definitions/TimersList"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/timers/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.timers:timers_controller.get_one
@@ -3717,18 +3716,18 @@ paths:
           x-as: requester_user
           description: User performing the operation
       responses:
-        '200':
+        "200":
           description: Trace
           schema:
-            $ref: '#/definitions/TimersList'
+            $ref: "#/definitions/TimersList"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/traces:
     get:
       operationId: st2api.controllers.v1.traces:traces_controller.get_all
@@ -3793,12 +3792,12 @@ paths:
         - name: sort_asc
           in: query
           description: |
-              Sort in ascending order by start timestamp, asc/ascending (earliest first)
+            Sort in ascending order by start timestamp, asc/ascending (earliest first)
           type: string
         - name: sort_desc
           in: query
           description: |
-              Sort in descending order by start timestamp, desc/descending (latest first)
+            Sort in descending order by start timestamp, desc/descending (latest first)
           type: string
       x-parameters:
         - name: user
@@ -3806,20 +3805,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of traces
           schema:
             type: array
             items:
-              $ref: '#/definitions/TracesList'
+              $ref: "#/definitions/TracesList"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/traces/{id}:
     get:
       operationId: st2api.controllers.v1.traces:traces_controller.get_one
@@ -3836,18 +3835,18 @@ paths:
           x-as: requester_user
           description: User performing the operation
       responses:
-        '200':
+        "200":
           description: Trace
           schema:
-            $ref: '#/definitions/TracesList'
+            $ref: "#/definitions/TracesList"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/triggertypes:
     get:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.get_all
@@ -3902,20 +3901,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of trigger types
           schema:
             type: array
             items:
-              $ref: '#/definitions/TriggerType'
+              $ref: "#/definitions/TriggerType"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     post:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.post
       description: |
@@ -3925,20 +3924,20 @@ paths:
           in: body
           description: TriggerType content
           schema:
-            $ref: '#/definitions/TriggerTypeRequest'
+            $ref: "#/definitions/TriggerTypeRequest"
       responses:
-        '201':
+        "201":
           description: Single trigger type being created
           schema:
-            $ref: '#/definitions/TriggerType'
+            $ref: "#/definitions/TriggerType"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/triggertypes/{triggertype_ref_or_id}:
     get:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.get_one
@@ -3951,18 +3950,18 @@ paths:
           type: string
           required: true
       responses:
-        '200':
+        "200":
           description: TriggerType requested
           schema:
-            $ref: '#/definitions/TriggerType'
+            $ref: "#/definitions/TriggerType"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.put
       description: |
@@ -3977,20 +3976,20 @@ paths:
           in: body
           description: TriggerType content
           schema:
-            $ref: '#/definitions/TriggerTypeRequest'
+            $ref: "#/definitions/TriggerTypeRequest"
       responses:
-        '200':
+        "200":
           description: TriggerType updated
           schema:
-            $ref: '#/definitions/TriggerType'
+            $ref: "#/definitions/TriggerType"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     delete:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.delete
       description: |
@@ -4002,12 +4001,12 @@ paths:
           type: string
           required: true
       responses:
-        '204':
+        "204":
           description: TriggerType deleted
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/triggers:
     get:
       operationId: st2api.controllers.v1.triggers:trigger_controller.get_all
@@ -4018,20 +4017,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of triggers
           schema:
             type: array
             items:
-              $ref: '#/definitions/Trigger'
+              $ref: "#/definitions/Trigger"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     post:
       operationId: st2api.controllers.v1.triggers:trigger_controller.post
       description: |
@@ -4041,20 +4040,20 @@ paths:
           in: body
           description: Trigger content
           schema:
-            $ref: '#/definitions/TriggerRequest'
+            $ref: "#/definitions/TriggerRequest"
       responses:
-        '201':
+        "201":
           description: Single trigger being created
           schema:
-            $ref: '#/definitions/Trigger'
+            $ref: "#/definitions/Trigger"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/triggers/{trigger_id}:
     get:
       operationId: st2api.controllers.v1.triggers:trigger_controller.get_one
@@ -4067,18 +4066,18 @@ paths:
           type: string
           required: true
       responses:
-        '200':
+        "200":
           description: Trigger requested
           schema:
-            $ref: '#/definitions/Trigger'
+            $ref: "#/definitions/Trigger"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     put:
       operationId: st2api.controllers.v1.triggers:trigger_controller.put
       description: |
@@ -4093,20 +4092,20 @@ paths:
           in: body
           description: Trigger content
           schema:
-            $ref: '#/definitions/TriggerRequest'
+            $ref: "#/definitions/TriggerRequest"
       responses:
-        '200':
+        "200":
           description: Trigger updated
           schema:
-            $ref: '#/definitions/Trigger'
+            $ref: "#/definitions/Trigger"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
     delete:
       operationId: st2api.controllers.v1.triggers:trigger_controller.delete
       description: |
@@ -4118,12 +4117,12 @@ paths:
           type: string
           required: true
       responses:
-        '204':
+        "204":
           description: Trigger deleted
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/triggerinstances:
     get:
       operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_all
@@ -4192,20 +4191,20 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of trigger instances
           schema:
             type: array
             items:
-              $ref: '#/definitions/TriggerInstance'
+              $ref: "#/definitions/TriggerInstance"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/triggerinstances/{instance_id}:
     get:
       operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_one
@@ -4218,18 +4217,18 @@ paths:
           type: string
           required: true
       responses:
-        '200':
+        "200":
           description: Trigger instance requested
           schema:
-            $ref: '#/definitions/TriggerInstance'
+            $ref: "#/definitions/TriggerInstance"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/triggerinstances/{trigger_instance_id}/re_emit:
     post:
       operationId: st2api.controllers.v1.triggers:triggerinstance_resend_controller.post
@@ -4242,38 +4241,38 @@ paths:
           type: string
           required: true
       responses:
-        '200':
+        "200":
           description: Trigger instance being re-emitted
           schema:
-            $ref: '#/definitions/TriggerInstance'
+            $ref: "#/definitions/TriggerInstance"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/webhooks:
     get:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.get_all
       x-permissions: webhook_list
       description: Returns a list of all webhooks.
       responses:
-        '200':
+        "200":
           description: List of webhooks
           schema:
             type: array
             items:
-              $ref: '#/definitions/Webhook'
+              $ref: "#/definitions/Webhook"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/webhooks/{hook}:
     post:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.post
@@ -4291,7 +4290,7 @@ paths:
           in: body
           description: Webhook payload
           schema:
-            $ref: '#/definitions/WebhookBody'
+            $ref: "#/definitions/WebhookBody"
       x-parameters:
         - name: headers
           in: request
@@ -4301,18 +4300,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '202':
+        "202":
           description: Single action being created
           schema:
-            $ref: '#/definitions/WebhookBody'
+            $ref: "#/definitions/WebhookBody"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/webhooks/{url}:
     get:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.get_one
@@ -4330,18 +4329,18 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: Action requested
           schema:
-            $ref: '#/definitions/Webhook'
+            $ref: "#/definitions/Webhook"
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/workflows/inspect:
     post:
       operationId: st2api.controllers.v1.workflow_inspection:workflow_inspection_controller.post
@@ -4353,20 +4352,20 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: List of inspection errors separated by categories.
           schema:
-            $ref: '#/definitions/WorkflowInspectionErrors'
+            $ref: "#/definitions/WorkflowInspectionErrors"
           examples:
             application/json:
               - type: "content"
-                message: "The action \"std.noop\" is not registered in the database."
+                message: 'The action "std.noop" is not registered in the database.'
                 schema_path: "properties.tasks.patternProperties.^\\w+$.properties.action"
                 spec_path: "tasks.task3.action"
               - type: "context"
                 language: "yaql"
                 expression: "<% ctx().foobar %>"
-                message: "Variable \"foobar\" is referenced before assignment."
+                message: 'Variable "foobar" is referenced before assignment.'
                 schema_path: "properties.tasks.patternProperties.^\\w+$.properties.input"
                 spec_path: "tasks.task1.input"
               - type: "expression"
@@ -4382,7 +4381,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
 
   /api/v1/service_registry/groups:
     get:
@@ -4394,14 +4393,14 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of available groups.
           schema:
             type: object
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /api/v1/service_registry/groups/{group_id}/members:
     get:
       operationId: st2api.controllers.v1.service_registry:members_controller.get_one
@@ -4418,15 +4417,14 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: List of available members.
           schema:
             type: object
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
-
+            $ref: "#/definitions/Error"
 
   /auth/v1/tokens:
     post:
@@ -4448,7 +4446,7 @@ paths:
           in: body
           description: Lifespan of the token
           schema:
-            $ref: '#/definitions/TokenRequest'
+            $ref: "#/definitions/TokenRequest"
       x-parameters:
         - name: remote_addr
           in: environ
@@ -4459,31 +4457,31 @@ paths:
           description: set externally to indicate user identity in case of proxy auth
           type: string
       responses:
-        '201':
+        "201":
           description: New token has been created
           schema:
-            $ref: '#/definitions/Token'
+            $ref: "#/definitions/Token"
           headers:
             x-api-url:
               type: string
           examples:
             application/json:
               user: st2admin
-              token: '5e86421776f946e98faea36c29e5a7c7'
-              expiry: '2016-05-28T12:39:28.650231Z'
-              id: '574840001878c10d0b6e8fbf'
+              token: "5e86421776f946e98faea36c29e5a7c7"
+              expiry: "2016-05-28T12:39:28.650231Z"
+              id: "574840001878c10d0b6e8fbf"
               metadata: {}
-        '401':
+        "401":
           description: Invalid or missing credentials has been provided
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
           examples:
             application/json:
               faultstring: Invalid or missing credentials
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
       security: []
   /auth/v1/tokens/validate:
     post:
@@ -4495,36 +4493,36 @@ paths:
           in: body
           description: Token to validate
           schema:
-            $ref: '#/definitions/TokenValidationRequest'
+            $ref: "#/definitions/TokenValidationRequest"
       responses:
-        '200':
+        "200":
           description: Validation results
           schema:
-            $ref: '#/definitions/TokenValidationResult'
+            $ref: "#/definitions/TokenValidationResult"
           examples:
             application/json:
               valid: false
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
 
   /auth/v1/sso:
     get:
       operationId: st2auth.controllers.v1.sso:sso_controller.get
       description: Returns a flag indicating if SSO is enabled or not.
       responses:
-        '200':
+        "200":
           description: Returns a flag indicating if SSO is enabled
           schema:
-            $ref: '#/definitions/SSOEnabledResult'
+            $ref: "#/definitions/SSOEnabledResult"
           examples:
             application/json:
               enabled: false
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
       security: []
 
   /auth/v1/sso/request/web:
@@ -4537,7 +4535,7 @@ paths:
           description: set externally to indicate real source of the request
           type: string
       responses:
-        '307':
+        "307":
           description: Temporary redirect
       security: []
 
@@ -4551,17 +4549,18 @@ paths:
           description: SSO request with callback and key encryption
           schema:
             type: object
+            required:
+              - key
+              - callback_url
             properties:
               key:
                 type: string
                 description: The symmetric key to be used to encrypt contents of callback
-                required: true
               callback_url:
                 type: string
-                description:  What URL to be called back once the response from SSO is received
-                required: true
+                description: What URL to be called back once the response from SSO is received
       responses:
-        '200':
+        "200":
           description: SSO request valid
       security: []
   /auth/v1/sso/callback:
@@ -4575,21 +4574,21 @@ paths:
           schema:
             type: object
       responses:
-        '200':
+        "200":
           description: SSO response valid
-        '302':
+        "302":
           description: SSO response valid and callback URL returned
-        '401':
+        "401":
           description: Invalid or missing credentials has been provided
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
           examples:
             application/json:
               faultstring: Invalid or missing credentials
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
       security: []
 
   /stream/v1/stream:
@@ -4637,16 +4636,16 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: EventSource compatible stream of events
           examples:
             application/json:
-              ref: 'core.local'
+              ref: "core.local"
               # and stuff
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
   /stream/v1/executions/{id}/output:
     get:
       operationId: st2stream.controllers.v1.executions:action_execution_output_controller.get_one
@@ -4675,12 +4674,12 @@ paths:
           x-as: requester_user
           description: User performing the operation.
       responses:
-        '200':
+        "200":
           description: EventSource compatible stream of events
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/Error"
 
 definitions:
   Action:
@@ -4715,12 +4714,12 @@ definitions:
       entry_point:
         type: string
         description: The entry point for the action.
-        default: ''
+        default: ""
       pack:
         type: string
         description: The content pack this action belongs to.
       parameters:
-        $ref: '#/definitions/ActionParametersSubSchema'
+        $ref: "#/definitions/ActionParametersSubSchema"
       tags:
         type: array
         description: User associated metadata assigned to this object.
@@ -4730,9 +4729,9 @@ definitions:
         description: Notification settings for action.
         type: object
         properties:
-          on-complete: {$ref: '#/definitions/NotificationPropertySubSchema'}
-          on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
-          on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
+          on-complete: { $ref: "#/definitions/NotificationPropertySubSchema" }
+          on-failure: { $ref: "#/definitions/NotificationPropertySubSchema" }
+          on-success: { $ref: "#/definitions/NotificationPropertySubSchema" }
         additionalProperties: False
     # additionalProperties: false
   ActionCreateRequest:
@@ -4743,35 +4742,35 @@ definitions:
           pack:
             type: string
             description: The content pack this action belongs to.
-            default: 'default'
-      - $ref: '#/definitions/Action'
-      - $ref: '#/definitions/DataFilesSubSchema'
+            default: "default"
+      - $ref: "#/definitions/Action"
+      - $ref: "#/definitions/DataFilesSubSchema"
   ActionUpdateRequest:
     x-api-model: st2common.models.api.action:ActionUpdateAPI
     allOf:
-      - $ref: '#/definitions/Action'
-      - $ref: '#/definitions/DataFilesSubSchema'
+      - $ref: "#/definitions/Action"
+      - $ref: "#/definitions/DataFilesSubSchema"
   ActionDeleteRequest:
     allOf:
-      - $ref: '#/definitions/ActionDeleteSchema'
+      - $ref: "#/definitions/ActionDeleteSchema"
   ActionCloneRequest:
     allOf:
-      - $ref: '#/definitions/ActionCloneSchema'
+      - $ref: "#/definitions/ActionCloneSchema"
   ActionParameters:
     type: object
     properties:
       parameters:
-        $ref: '#/definitions/ActionParametersSubSchema'
+        $ref: "#/definitions/ActionParametersSubSchema"
   ActionAlias:
     x-api-model: st2common.models.api.action:ActionAliasAPI
     type: object
   ActionAliasRequest:
     type: object
     required:
-        - name
-        - ref
-        - pack
-        - action_ref
+      - name
+      - ref
+      - pack
+      - action_ref
     properties:
       name:
         description: Alias name.
@@ -4795,15 +4794,15 @@ definitions:
         description: Enable or disable the action from invocation.
         default: True
   ActionAliasMatchRequest:
-      type: object
-      required:
-        - command
-      properties:
-        command:
-          description: Command string to try to match the aliases against.
-          type: string
+    type: object
+    required:
+      - command
+    properties:
+      command:
+        description: Command string to try to match the aliases against.
+        type: string
   ActionAliasMatch:
-      type: object
+    type: object
   ActionAliasHelp:
     type: object
     properties:
@@ -4863,21 +4862,21 @@ definitions:
             description: Possible parameter format.
             items:
               oneOf:
-              - type: string
-              - type: object
-                description: Matched alias formats
-                properties:
-                  representation:
-                    type: array
-                    description: Alias format representations
-                    items:
+                - type: string
+                - type: object
+                  description: Matched alias formats
+                  properties:
+                    representation:
+                      type: array
+                      description: Alias format representations
+                      items:
+                        type: string
+                    match_multiple:
+                      type: boolean
+                      optional: true
+                    display:
                       type: string
-                  match_multiple:
-                    type: boolean
-                    optional: true
-                  display:
-                    type: string
-                    description: Display string of alias format
+                      description: Display string of alias format
           ack:
             type: object
             description: Acknowledgement message format.
@@ -4910,7 +4909,7 @@ definitions:
         type: object
         description: Execution result
         properties:
-          $ref: '#/definitions/Execution/properties'
+          $ref: "#/definitions/Execution/properties"
       message:
         type: string
   AliasMatchAndExecuteInputAPI:
@@ -4946,19 +4945,19 @@ definitions:
       id:
         type: string
       trigger:
-        $ref: '#/definitions/Trigger'
+        $ref: "#/definitions/Trigger"
       trigger_type:
-        $ref: '#/definitions/TriggerType'
+        $ref: "#/definitions/TriggerType"
       trigger_instance:
-        $ref: '#/definitions/TriggerInstance'
+        $ref: "#/definitions/TriggerInstance"
       rule:
-        $ref: '#/definitions/Rule'
+        $ref: "#/definitions/Rule"
       action:
-        $ref: '#/definitions/Action'
+        $ref: "#/definitions/Action"
       runner:
-        $ref: '#/definitions/RunnerType'
+        $ref: "#/definitions/RunnerType"
       liveaction:
-        $ref: '#/definitions/LiveAction'
+        $ref: "#/definitions/LiveAction"
       task_execution:
         type: string
       workflow_execution:
@@ -4966,7 +4965,23 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
+        enum:
+          [
+            "requested",
+            "scheduled",
+            "delayed",
+            "running",
+            "succeeded",
+            "failed",
+            "timeout",
+            "abandoned",
+            "canceling",
+            "canceled",
+            "pending",
+            "pausing",
+            "paused",
+            "resuming",
+          ]
       start_timestamp:
         description: The start time when the action is executed.
         type: string
@@ -4978,35 +4993,35 @@ definitions:
       elapsed_seconds:
         description: Time duration in seconds taken for completion of this execution.
         type: number
-#        required: False
+      #        required: False
       web_url:
         description: History URL for this execution if you want to view in UI.
         type: string
-#        required: False
+      #        required: False
       parameters:
         description: Input parameters for the action.
         type: object
-#        patternProperties:
-#          ^\w+$:
-#            anyOf:
-#              - type: array
-#              - type: boolean
-#              - type: integer
-#              - type: number
-#              - type: object
-#              - type: string
-#        additionalProperties: False
+      #        patternProperties:
+      #          ^\w+$:
+      #            anyOf:
+      #              - type: array
+      #              - type: boolean
+      #              - type: integer
+      #              - type: number
+      #              - type: object
+      #              - type: string
+      #        additionalProperties: False
       context:
         type: object
       result:
         type: object
-#        anyOf:
-#          - type: array
-#          - type: boolean
-#          - type: integer
-#          - type: number
-#          - type: object
-#          - type: string
+      #        anyOf:
+      #          - type: array
+      #          - type: boolean
+      #          - type: integer
+      #          - type: number
+      #          - type: object
+      #          - type: string
       result_size:
         type: integer
         default: 0
@@ -5028,7 +5043,23 @@ definitions:
               pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
             status:
               type: string
-              enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
+              enum:
+                [
+                  "requested",
+                  "scheduled",
+                  "delayed",
+                  "running",
+                  "succeeded",
+                  "failed",
+                  "timeout",
+                  "abandoned",
+                  "canceling",
+                  "canceled",
+                  "pending",
+                  "pausing",
+                  "paused",
+                  "resuming",
+                ]
       delay:
         description: How long (in milliseconds) to delay the execution before scheduling.
         type: integer
@@ -5037,21 +5068,37 @@ definitions:
     additionalProperties: False
   ExecutionRequest:
     allOf:
-      - $ref: '#/definitions/LiveAction'
+      - $ref: "#/definitions/LiveAction"
       - type: object
         properties:
           user:
             type: string
             x-nullable: true
             description: User context under which action should run (admins only)
-            default: ''
+            default: ""
   ExecutionUpdateRequest:
     type: object
     properties:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
+        enum:
+          [
+            "requested",
+            "scheduled",
+            "delayed",
+            "running",
+            "succeeded",
+            "failed",
+            "timeout",
+            "abandoned",
+            "canceling",
+            "canceled",
+            "pending",
+            "pausing",
+            "paused",
+            "resuming",
+          ]
       result:
         type: object
     additionalProperties: False
@@ -5225,33 +5272,36 @@ definitions:
         description: Types of content to register.
         type: array
         items:
-          $ref: '#/definitions/PacksContentRegisterType'
+          $ref: "#/definitions/PacksContentRegisterType"
       fail_on_failure:
         type: boolean
         description: True to fail on failure
         default: true
   PacksContentRegisterType:
-          type: string
-          enum: ['all',
-                  'runner',
-                  'action',
-                  'actions',
-                  'trigger',
-                  'triggers',
-                  'sensor',
-                  'sensors',
-                  'rule',
-                  'rules',
-                  'rule_type',
-                  'rule_types',
-                  'alias',
-                  'aliases',
-                  'policy_type',
-                  'policy_types',
-                  'policy',
-                  'policies',
-                  'config',
-                  'configs']
+    type: string
+    enum:
+      [
+        "all",
+        "runner",
+        "action",
+        "actions",
+        "trigger",
+        "triggers",
+        "sensor",
+        "sensors",
+        "rule",
+        "rules",
+        "rule_type",
+        "rule_types",
+        "alias",
+        "aliases",
+        "policy_type",
+        "policy_types",
+        "policy",
+        "policies",
+        "config",
+        "configs",
+      ]
   PacksSearchShow:
     type: object
     properties:
@@ -5339,7 +5389,23 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled', 'pending', 'pausing', 'paused', 'resuming']
+        enum:
+          [
+            "requested",
+            "scheduled",
+            "delayed",
+            "running",
+            "succeeded",
+            "failed",
+            "timeout",
+            "abandoned",
+            "canceling",
+            "canceled",
+            "pending",
+            "pausing",
+            "paused",
+            "resuming",
+          ]
       start_timestamp:
         description: The start time when the action is executed.
         type: string
@@ -5387,9 +5453,9 @@ definitions:
         description: Notification settings for liveaction.
         type: object
         properties:
-          on-complete: {$ref: '#/definitions/NotificationPropertySubSchema'}
-          on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
-          on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
+          on-complete: { $ref: "#/definitions/NotificationPropertySubSchema" }
+          on-failure: { $ref: "#/definitions/NotificationPropertySubSchema" }
+          on-success: { $ref: "#/definitions/NotificationPropertySubSchema" }
         additionalProperties: False
       delay:
         description: How long (in milliseconds) to delay the execution before scheduling.
@@ -5473,7 +5539,7 @@ definitions:
         description: Channels to post notifications to.
         items:
           type: string
-      channels:  # Deprecated. Only here for backward compatibility.
+      channels: # Deprecated. Only here for backward compatibility.
         type: array
         description: Channels to post notifications to.
         items:
@@ -5493,7 +5559,7 @@ definitions:
       ttl:
         type:
           - integer
-          - 'null'
+          - "null"
         minimum: 1
   Token:
     type: object
@@ -5516,7 +5582,7 @@ definitions:
       token:
         type:
           - string
-          - 'null'
+          - "null"
   TokenValidationResult:
     type: object
     properties:
@@ -5567,7 +5633,7 @@ definitions:
   WorkflowInspectionErrors:
     type: array
     items:
-      $ref: '#/definitions/WorkflowInspectionError'
+      $ref: "#/definitions/WorkflowInspectionError"
 
   ValidationError:
     type: object
