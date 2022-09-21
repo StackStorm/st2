@@ -233,9 +233,6 @@ class TestLoginSSO(TestLoginBase):
             "34000",
         ]
 
-        original_stdout = sys.stdout
-        out_buffer = io.StringIO()
-
         def handle_sso_flow():
             # Waiting for SSO link on the CLI
             LOG.debug("Waiting for SSO link")
@@ -243,10 +240,10 @@ class TestLoginSSO(TestLoginBase):
             timeout_at = time() + 5
             while not match and timeout_at > time():
                 sleep(1)
-                LOG.debug("STDOUT buffer has: %s", out_buffer.getvalue())
-                match = re.search(
-                    r"http://localhost:34000/\S+", out_buffer.getvalue(), re.MULTILINE
-                )
+                self.stdout.seek(0)
+                buffer = self.stdout.read()
+                LOG.debug("STDOUT buffer has: %s", buffer)
+                match = re.search(r"http://localhost:34000/\S+", buffer, re.MULTILINE)
             self.assertIsNotNone(match)
 
             # Hitting the localhost login url
@@ -269,13 +266,15 @@ class TestLoginSSO(TestLoginBase):
             self.assertEquals(response.headers["Location"], "/success")
             LOG.debug("Finished SSO flow")
 
-        # Calling the login proecss async
-        ssoFlowThread = Thread(target=handle_sso_flow, daemon=True)
-        ssoFlowThread.start()
+        def run_shell():
+            self.shell.run(args)
 
-        sys.stdout = out_buffer
-        self.shell.run(args)
-        sys.stdout = original_stdout
+        shellThread = Thread(target=run_shell)
+        shellThread.start()
+
+        handle_sso_flow()
+
+        shellThread.join()
 
         with open(self.CONFIG_FILE, "r") as config_file:
             for line in config_file.readlines():
