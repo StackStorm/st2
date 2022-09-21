@@ -28,6 +28,9 @@ virtualenv-components
 virtualenv-components-osx
 .venv-st2devbox
 
+# st2client build files
+st2client/build/*
+
 # generated travis conf
 conf/st2.travis.conf
 # generated GitHub Actions conf
