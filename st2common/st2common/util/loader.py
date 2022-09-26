@@ -30,7 +30,17 @@ from st2common import log as logging
 
 __all__ = ["register_plugin", "register_plugin_class", "load_meta_file"]
 
+# Create handlers
+c_handler = logging.StreamHandler()
+# c_handler.setLevel(logging.DEBUG)
 
+# Create formatters and add it to handlers
+formatter = logging.Formatter(
+    '[%(asctime)s %(levelname)s %(module)s - %(funcName)s:%(lineno)s]: %(message)s')
+c_handler.setFormatter(formatter)
+
+# Add handlers to the logger
+logging.basicConfig(handlers=[c_handler, ])
 LOG = logging.getLogger(__name__)
 
 PYTHON_EXTENSION = ".py"
