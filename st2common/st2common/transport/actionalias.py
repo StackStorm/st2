@@ -13,25 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# All Exchanges and Queues related to liveaction.
+
 from __future__ import absolute_import
-from st2common import transport
-from st2common.models.db.actionalias import actionalias_access
-from st2common.persistence.base import Access
+from kombu import Exchange, Queue
+from st2common.transport import publishers
 
 __all__ = [
-    "ActionAlias",
+    "ActionAliasPublisher",
+    "get_queue",
 ]
 
+ACTIONALIAS_XCHG = Exchange("st2.actionalias", type="topic")
 
-class ActionAlias(Access):
-    impl = actionalias_access
 
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
+class ActionAliasPublisher(publishers.CUDPublisher):
+    def __init__(self):
+        super(ActionAliasPublisher, self).__init__(exchange=ACTIONALIAS_XCHG)
 
-    @classmethod
-    def _get_publisher(cls):
-        if not cls.publisher:
-            cls.publisher = transport.actionalias.ActionAliasPublisher()
-        return cls.publisher
+
+def get_queue(name=None, routing_key=None, exclusive=False, auto_delete=False):
+    return Queue(
+        name,
+        ACTIONALIAS_XCHG,
+        routing_key=routing_key,
+        exclusive=exclusive,
+        auto_delete=auto_delete,
+    )
