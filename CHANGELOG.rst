@@ -56,6 +56,9 @@ Added
   to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725 #5732 #5733 #5737
   Contributed by @cognifloyd
 
+* Run the st2 self-check in Github Actions. #5609
+  Contributed by @winem
+
 Changed
 ~~~~~~~
 
