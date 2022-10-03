@@ -1,5 +1,12 @@
+[anonymous-telemetry]
+# This is opt-in by default, but we explicitly disable here as well.
+enabled = false
+# repo_id here allows individuals to opt-in on their machine
+# To opt-in, use ~/.pants.rc or envrc to set [anonymous-telemetry].enabled=true
+repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
+
 [GLOBAL]
-pants_version = "2.13.0rc2"
+pants_version = "2.14.0rc1"
 backend_packages = [
   # python
   "pants.backend.python",
@@ -8,6 +15,25 @@ backend_packages = [
 
   # shell
   "pants.backend.shell",
+]
+# pants ignores files in .gitignore, .*/ directories, /dist/ directory, and __pycache__.
+pants_ignore.add = [
+  # TODO: remove these once we start building wheels with pants.
+  "dist_utils.py",
+  "setup.py",
+  # keep tailor from using legacy requirements files (not for pants)
+  "contrib/examples/requirements.txt",
+  "contrib/hello_st2/requirements.txt",
+  "contrib/runners/*/in-requirements.txt",
+  "contrib/runners/*/requirements.txt",
+  "st2*/in-requirements.txt",
+  "st2*/requirements.txt",
+  "st2common/tests/fixtures/requirements-used-for-tests.txt",
+  "/fixed-requirements.txt",
+  "/test-requirements.txt",
+  # keep requirements.txt for now. We might ignore it if we need an alternate interrim
+  # file that is decoupled from our legacy requirements files generation.
+  # "/requirements.txt",
 ]
 
 [source]

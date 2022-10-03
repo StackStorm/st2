@@ -35,6 +35,8 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Workflows, st2 Core Performance, Releases.
 * Ankur Singh ([@rush-skills](https://github.com/rush-skills)), _CERN_ <<ankur.singh@cern.ch>>
   - Community, Puppet, Workflows, HA.
+* Bradley Bishop ([@bishopbm1](https://github.com/bishopbm1)), _Encore_ <<bishopbm1@gmail.com>>
+  - Puppet, StackStorm Exchange.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) <<nzlosh@yahoo.com>>
   - Packaging, Systems, Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * JP Bourget ([@punkrokk](https://github.com/punkrokk)) <<jp.bourget@gmail.com>>
@@ -53,7 +55,6 @@ Contributors are using and occasionally contributing back to the project, might 
 They're not part of the TSC voting process, but appreciated for their contribution, involvement and may become Maintainers in the future depending on their effort and involvement. See [How to become a Maintainer?](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#how-to-become-a-maintainer)
 [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and have permissions to help triage the Issues and review PRs.
 * Anand Patel ([@arms11](https://github.com/arms11)), _VMware_ - Docker, Kubernetes.
-* Bradley Bishop ([@bishopbm1](https://github.com/bishopbm1)), _Encore_, - Puppet, StackStorm Exchange.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
 * Rick Kauffman ([@xod442](https://github.com/xod442)), _HPE_ - Community, HOWTOs, Blogs, Publications, Docker.
