@@ -56,9 +56,6 @@ Added
   to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725 #5732 #5733 #5737
   Contributed by @cognifloyd
 
-* Run the st2 self-check in Github Actions. #5609
-  Contributed by @winem
-
 Changed
 ~~~~~~~
 
@@ -114,6 +111,9 @@ Changed
 
 * Refactor ``st2-generate-schemas`` so that logic is in an importable module. #5708
   Contributed by @cognifloyd
+
+* The st2-self-check utility exits with a return code != 0 if it fails. This was required to run it in Github Actions and have it as part of our automated test. #5609
+  Contributed by @winem
 
 Removed
 ~~~~~~~
