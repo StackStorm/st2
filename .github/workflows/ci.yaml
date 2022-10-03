@@ -152,7 +152,7 @@ jobs:
          #   python-version: '3.6.13'
           - name: 'Self-check on Python 3.8'
             python-version-short: '3.8'
-            python-version: '3.8.13'
+            python-version: '3.8.14'
     services:
       mongo:
         image: mongo:4.4
