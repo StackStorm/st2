@@ -2,23 +2,21 @@
 name: Validate Pants Metadata
 
 on:
-  # temporarily only allow manual runs until we have BUILD files and lockfiles
-  workflow_dispatch:
-  #push:
-  #  branches:
-  #    # only on merges to master branch
-  #    - master
-  #    # and version branches, which only include minor versions (eg: v3.4)
-  #    - v[0-9]+.[0-9]+
-  #  tags:
-  #    # also version tags, which include bugfix releases (eg: v3.4.0)
-  #    - v[0-9]+.[0-9]+.[0-9]+
-  #pull_request:
-  #  type: [opened, reopened, edited]
-  #  branches:
-  #    # Only for PRs targeting those branches
-  #    - master
-  #    - v[0-9]+.[0-9]+
+  push:
+    branches:
+      # only on merges to master branch
+      - master
+      # and version branches, which only include minor versions (eg: v3.4)
+      - v[0-9]+.[0-9]+
+    tags:
+      # also version tags, which include bugfix releases (eg: v3.4.0)
+      - v[0-9]+.[0-9]+.[0-9]+
+  pull_request:
+    type: [opened, reopened, edited]
+    branches:
+      # Only for PRs targeting those branches
+      - master
+      - v[0-9]+.[0-9]+
 
 jobs:
   pants-tailor:
@@ -42,11 +40,12 @@ jobs:
         #   Otherwise, we may need an additional workflow or job to delete old caches
         #   if they are not expiring fast enough, and we hit the GHA 10GB per repo max.
         with:
+          base-branch: master
           # To ignore a bad cache, bump the cache* integer.
           gha-cache-key: cache0-BUILD
           # This hash should include all of our lockfiles so that the pip/pex caches
           # get invalidated on any transitive dependency update.
-          named-caches-hash: ${{ hashFiles('requirements.txt' }}
+          named-caches-hash: ${{ hashFiles('requirements.txt') }}
           # enable the optional lmdb_store cache since we're not using remote caching.
           cache-lmdb-store: 'true'
 
