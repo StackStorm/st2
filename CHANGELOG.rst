@@ -56,6 +56,9 @@ Added
   to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725 #5732 #5733 #5737 #5738
   Contributed by @cognifloyd
 
+* Added publischer to ActionAlias
+  Contributed @ubaumann
+
 Changed
 ~~~~~~~
 
