@@ -18,9 +18,9 @@ on:
       # Only for PRs targeting those branches
       - master
       - v[0-9]+.[0-9]+
-  schedule:
-    # run every night at midnight
-    - cron:  '0 0 * * *'
+  #schedule:
+  #  # run every night at midnight
+  #  - cron:  '0 0 * * *'
 
 jobs:
   # Lint checks which don't depend on any service containes, etc. to be running.
