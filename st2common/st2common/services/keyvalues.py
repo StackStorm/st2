@@ -108,8 +108,12 @@ class KeyValueLookup(BaseKeyValueLookup):
     scope = SYSTEM_SCOPE
 
     def __init__(
-        self, prefix=None, key_prefix=None, cache=None,
-        scope=FULL_SYSTEM_SCOPE, context=None
+        self,
+        prefix=None,
+        key_prefix=None,
+        cache=None,
+        scope=FULL_SYSTEM_SCOPE,
+        context=None,
     ):
         if not scope:
             scope = FULL_SYSTEM_SCOPE
@@ -123,8 +127,16 @@ class KeyValueLookup(BaseKeyValueLookup):
         self._scope = scope
 
         self._context = context if context else dict()
-        self._user = context["user"] if "user" in context and context["user"] else cfg.CONF.system_user.user
-        self._user = context["api_user"] if "api_user" in context and context["api_user"] else self._user
+        self._user = (
+            context["user"]
+            if "user" in context and context["user"]
+            else cfg.CONF.system_user.user
+        )
+        self._user = (
+            context["api_user"]
+            if "api_user" in context and context["api_user"]
+            else self._user
+        )
 
     def __str__(self):
         return self._value_cache[self._key_prefix]
@@ -199,8 +211,13 @@ class UserKeyValueLookup(BaseKeyValueLookup):
     scope = USER_SCOPE
 
     def __init__(
-        self, user, prefix=None, key_prefix=None, cache=None,
-        scope=FULL_USER_SCOPE, context=None
+        self,
+        user,
+        prefix=None,
+        key_prefix=None,
+        cache=None,
+        scope=FULL_USER_SCOPE,
+        context=None,
     ):
         if not scope:
             scope = FULL_USER_SCOPE

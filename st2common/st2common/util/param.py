@@ -92,7 +92,9 @@ def _create_graph(action_context, config):
     Creates a generic directed graph for depencency tree and fills it with basic context variables
     """
     G = nx.DiGraph()
-    system_keyvalue_context = {SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE, context=action_context)}
+    system_keyvalue_context = {
+        SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE, context=action_context)
+    }
 
     # If both 'user' and 'api_user' are specified, this prioritize 'api_user'
     user = action_context["user"] if "user" in action_context else None
