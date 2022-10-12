@@ -29,8 +29,8 @@ from pants.engine.target import (
     Dependencies,
     DependenciesRequest,
     ExplicitlyProvidedDependencies,
-    InjectDependenciesRequest,
-    InjectedDependencies,
+    InferDependenciesRequest,
+    InferredDependencies,
     InvalidFieldException,
     WrappedTarget,
     WrappedTargetRequest,
@@ -143,7 +143,7 @@ async def resolve_stevedore_entry_points(
     return ResolvedStevedoreEntryPoints(StevedoreEntryPoints(resolved))
 
 
-class InjectStevedoreExtensionDependencies(InjectDependenciesRequest):
+class InferStevedoreExtensionDependencies(InferDependenciesRequest):
     inject_for = StevedoreDependenciesField
 
 
@@ -152,9 +152,9 @@ class InjectStevedoreExtensionDependencies(InjectDependenciesRequest):
     level=LogLevel.DEBUG,
 )
 async def inject_stevedore_entry_points_dependencies(
-    request: InjectStevedoreExtensionDependencies,
+    request: InferStevedoreExtensionDependencies,
     python_setup: PythonSetup,
-) -> InjectedDependencies:
+) -> InferredDependencies:
     original_tgt: WrappedTarget = await Get(
         WrappedTarget,
         WrappedTargetRequest(
@@ -176,7 +176,7 @@ async def inject_stevedore_entry_points_dependencies(
         ),
     )
     if entry_points.val is None:
-        return InjectedDependencies()
+        return InferredDependencies()
     address = original_tgt.target.address
     owners_per_entry_point = await MultiGet(
         Get(
@@ -210,12 +210,12 @@ async def inject_stevedore_entry_points_dependencies(
             (maybe_disambiguated,) if maybe_disambiguated else ()
         )
         resolved_owners.extend(unambiguous_owners)
-    return InjectedDependencies(resolved_owners)
+    return InferredDependencies(resolved_owners)
 
 
 def rules():
     return [
         *collect_rules(),
         *import_rules(),
-        UnionRule(InjectDependenciesRequest, InjectStevedoreExtensionDependencies),
+        UnionRule(InferDependenciesRequest, InferStevedoreExtensionDependencies),
     ]

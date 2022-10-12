@@ -25,8 +25,8 @@ from pants.base.specs import DirGlobSpec, RawSpecs
 from pants.engine.addresses import Address
 from pants.engine.rules import collect_rules, Get, rule, UnionRule
 from pants.engine.target import (
-    InjectDependenciesRequest,
-    InjectedDependencies,
+    InferDependenciesRequest,
+    InferredDependencies,
     Targets,
     WrappedTarget,
     WrappedTargetRequest,
@@ -66,18 +66,18 @@ async def map_stevedore_extensions(
     )
 
 
-class InjectStevedoreNamespaceDependencies(InjectDependenciesRequest):
+class InferStevedoreNamespaceDependencies(InferDependenciesRequest):
     inject_for = PythonTestsDependenciesField
 
 
 @rule(
-    desc="Inject stevedore_extension target dependencies for python_tests based on namespace list.",
+    desc="Infer stevedore_extension target dependencies for python_tests based on namespace list.",
     level=LogLevel.DEBUG,
 )
 async def inject_stevedore_namespace_dependencies(
-    request: InjectStevedoreNamespaceDependencies,
+    request: InferStevedoreNamespaceDependencies,
     stevedore_extensions: StevedoreExtensions,
-) -> InjectedDependencies:
+) -> InferredDependencies:
     original_tgt: WrappedTarget
     original_tgt = await Get(
         WrappedTarget,
@@ -87,7 +87,7 @@ async def inject_stevedore_namespace_dependencies(
         ),
     )
     if original_tgt.target.get(StevedoreNamespacesField).value is None:
-        return InjectedDependencies()
+        return InferredDependencies()
 
     namespaces: StevedoreNamespacesField = original_tgt.target[StevedoreNamespacesField]
 
@@ -97,7 +97,7 @@ async def inject_stevedore_namespace_dependencies(
         addresses.extend(extension.address for extension in extensions)
 
     result: OrderedSet[Address] = OrderedSet(addresses)
-    return InjectedDependencies(sorted(result))
+    return InferredDependencies(sorted(result))
 
 
 def rules():
@@ -105,5 +105,5 @@ def rules():
         *collect_rules(),
         PythonTestsGeneratorTarget.register_plugin_field(StevedoreNamespacesField),
         PythonTestTarget.register_plugin_field(StevedoreNamespacesField),
-        UnionRule(InjectDependenciesRequest, InjectStevedoreNamespaceDependencies),
+        UnionRule(InferDependenciesRequest, InferStevedoreNamespaceDependencies),
     ]
