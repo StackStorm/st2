@@ -19,7 +19,7 @@ from pants.backend.python.util_rules.pex import (
     VenvPexProcess,
 )
 from pants.backend.python.util_rules.pex_from_targets import PexFromTargetsRequest
-from pants.core.goals.fmt import FmtResult, FmtRequest
+from pants.core.goals.fmt import FmtResult, FmtTargetsRequest
 from pants.core.goals.lint import LintResult, LintResults, LintTargetsRequest
 from pants.core.target_types import FileSourceField, ResourceSourceField
 from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
@@ -63,7 +63,7 @@ class APISpecFieldSet(FieldSet):
     source: APISpecSourceField
 
 
-class GenerateAPISpecViaFmtRequest(FmtRequest):
+class GenerateAPISpecViaFmtTargetsRequest(FmtTargetsRequest):
     field_set_type = APISpecFieldSet
     name = GENERATE_SCRIPT
 
@@ -78,7 +78,7 @@ class ValidateAPISpecRequest(LintTargetsRequest):
     level=LogLevel.DEBUG,
 )
 async def generate_api_spec_via_fmt(
-    request: GenerateAPISpecViaFmtRequest,
+    request: GenerateAPISpecViaFmtTargetsRequest,
 ) -> FmtResult:
     # There will only be one target+field_set, but we iterate
     # to satisfy how fmt expects that there could be more than one.
@@ -253,6 +253,6 @@ async def validate_api_spec(
 def rules():
     return [
         *collect_rules(),
-        UnionRule(FmtRequest, GenerateAPISpecViaFmtRequest),
+        UnionRule(FmtTargetsRequest, GenerateAPISpecViaFmtTargetsRequest),
         UnionRule(LintTargetsRequest, ValidateAPISpecRequest),
     ]
