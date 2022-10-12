@@ -19,7 +19,7 @@ from pants.backend.python.util_rules.pex import (
     VenvPexProcess,
 )
 from pants.backend.python.util_rules.pex_from_targets import PexFromTargetsRequest
-from pants.core.goals.fmt import FmtResult, FmtRequest
+from pants.core.goals.fmt import FmtResult, FmtTargetsRequest
 from pants.engine.addresses import Address
 from pants.engine.fs import (
     CreateDigest,
@@ -46,7 +46,7 @@ class GenerateSampleConfFieldSet(FieldSet):
     source: SampleConfSourceField
 
 
-class GenerateSampleConfViaFmtRequest(FmtRequest):
+class GenerateSampleConfViaFmtTargetsRequest(FmtTargetsRequest):
     field_set_type = GenerateSampleConfFieldSet
     name = SCRIPT
 
@@ -56,7 +56,7 @@ class GenerateSampleConfViaFmtRequest(FmtRequest):
     level=LogLevel.DEBUG,
 )
 async def generate_sample_conf_via_fmt(
-    request: GenerateSampleConfViaFmtRequest,
+    request: GenerateSampleConfViaFmtTargetsRequest,
 ) -> FmtResult:
     # There will only be one target+field_set, but we iterate
     # to satisfy how fmt expects that there could be more than one.
@@ -98,5 +98,5 @@ async def generate_sample_conf_via_fmt(
 def rules():
     return [
         *collect_rules(),
-        UnionRule(FmtRequest, GenerateSampleConfViaFmtRequest),
+        UnionRule(FmtTargetsRequest, GenerateSampleConfViaFmtTargetsRequest),
     ]
