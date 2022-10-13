@@ -12,6 +12,7 @@ backend_packages = [
   "pants.backend.python",
   "pants.backend.experimental.python", # activates twine `publish` support
   "pants.backend.python.mixed_interpreter_constraints",
+  "pants.backend.python.lint.black",
 
   # shell
   "pants.backend.shell",
@@ -80,3 +81,6 @@ root_patterns = [
   # benchmarks
   "/st2common/benchmarks/micro",
 ]
+
+[black]
+version = "black==22.3.0"
