@@ -21,10 +21,11 @@ import eventlet
 from kombu.mixins import ConsumerMixin
 from oslo_config import cfg
 
-from st2common.models.api.action import LiveActionAPI
+from st2common.models.api.action import LiveActionAPI, ActionAliasAPI
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.transport import utils as transport_utils
+from st2common.transport.queues import STREAM_ACTIONALIAS_QUEUE
 from st2common.transport.queues import STREAM_ANNOUNCEMENT_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_ALL_WORK_QUEUE
 from st2common.transport.queues import STREAM_EXECUTION_UPDATE_WORK_QUEUE
@@ -201,6 +202,11 @@ class StreamListener(BaseListener):
 
     def get_consumers(self, consumer, channel):
         return [
+            consumer(
+                queues=[STREAM_ACTIONALIAS_QUEUE],
+                accept=["pickle"],
+                callbacks=[self.processor(ActionAliasAPI)],
+            ),
             consumer(
                 queues=[STREAM_ANNOUNCEMENT_WORK_QUEUE],
                 accept=["pickle"],
