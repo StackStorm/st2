@@ -56,6 +56,10 @@ Added
   to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725 #5732 #5733 #5737 #5738 #5758 #5751
   Contributed by @cognifloyd
 
+* Added querytype parameter to linux.dig action to allow specifying the dig 'type' parameter. Fixes #5772
+
+  Contributed by @AmbiguousYeoman
+
 Changed
 ~~~~~~~
 
