@@ -85,12 +85,19 @@ root_patterns = [
 ]
 
 [bandit]
+lockfile = "lockfiles/bandit"
 version = "bandit==1.7.0"
 args = [
   "-lll",  # only HIGH severity level
   "--exclude",
   "build,dist",
-  "--quiet",  # only show output in the case of an error
+  "--quiet", # only show output in the case of an error
+]
+extra_requirements = [
+  "setuptools",
+  # bandit needs stevedore which needs importlib-metadata<5
+  # see: https://github.com/PyCQA/bandit/pull/952
+  "importlib-metadata<5;python_version<'3.8'",
 ]
 
 [black]
