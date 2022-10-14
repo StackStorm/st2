@@ -13,6 +13,7 @@ backend_packages = [
   "pants.backend.experimental.python", # activates twine `publish` support
   "pants.backend.python.mixed_interpreter_constraints",
   "pants.backend.python.lint.black",
+  "pants.backend.python.lint.flake8",
 
   # shell
   "pants.backend.shell",
@@ -85,3 +86,10 @@ root_patterns = [
 [black]
 lockfile = "lockfiles/black.lock"
 version = "black==22.3.0"
+
+[flake8]
+extra_requirements = [
+  # license check plugin
+  "st2flake8==0.1.0",  # TODO: remove in favor of regex-lint
+]
+config = "lint-configs/python/.flake8"
