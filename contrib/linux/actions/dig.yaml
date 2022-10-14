@@ -17,4 +17,7 @@ parameters:
   count:
     type: integer
     default: 0
+  querytype:
+    default: 'A'
+    type: string
 runner_type: "python-script"
