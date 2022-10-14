@@ -88,6 +88,8 @@ lockfile = "lockfiles/black.lock"
 version = "black==22.3.0"
 
 [flake8]
+lockfile = "lockfiles/flake8"
+version = "flake8==4.0.1" # st2flake8 does not support flake8 v5
 extra_requirements = [
   # license check plugin
   "st2flake8==0.1.0",  # TODO: remove in favor of regex-lint
