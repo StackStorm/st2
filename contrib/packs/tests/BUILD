@@ -1,4 +1,5 @@
 python_tests(
+    skip_pylint=True,
     overrides={
         "test_action_download.py": {
             "dependencies": [
