@@ -129,12 +129,12 @@ class KeyValueLookup(BaseKeyValueLookup):
         self._context = context if context else dict()
         self._user = (
             context["user"]
-            if "user" in context and context["user"]
+            if context and "user" in context and context["user"]
             else cfg.CONF.system_user.user
         )
         self._user = (
             context["api_user"]
-            if "api_user" in context and context["api_user"]
+            if context and "api_user" in context and context["api_user"]
             else self._user
         )
 

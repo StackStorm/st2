@@ -16,6 +16,7 @@
 import mock
 
 import unittest2
+from oslo_config import cfg
 
 from st2common.util import keyvalue as kv_utl
 from st2common.constants.keyvalue import (
@@ -28,12 +29,18 @@ from st2common.constants.keyvalue import (
 )
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.models.db import auth as auth_db
-
+from st2tests import config
 
 USER = "stanley"
 
 
 class TestKeyValueUtil(unittest2.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(TestKeyValueUtil, cls).setUpClass()
+        config.parse_args()
+        cfg.CONF.set_override(name="backend", override="noop", group="rbac")
+
     def test_validate_scope(self):
         scope = FULL_USER_SCOPE
         kv_utl._validate_scope(scope)

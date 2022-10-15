@@ -39,6 +39,10 @@ Fixed
 * Fixed generation of `st2.conf.sample` to show correct syntax for `[sensorcontainer].partition_provider` (space separated `key:value` pairs). #5710
   Contributed by @cognifloyd
 
+* Fix access to key-value pairs in workflow and action execution where RBAC rules did not get applied
+
+  Contributed by @m4dcoder
+
 Added
 ~~~~~
 
