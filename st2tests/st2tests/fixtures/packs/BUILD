@@ -14,6 +14,7 @@ resources(
 
 shell_sources(
     name="test_content_version_shell",
+    skip_shellcheck=True,
     sources=[
         "test_content_version/**/*.sh",
     ],

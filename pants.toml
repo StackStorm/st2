@@ -15,6 +15,7 @@ backend_packages = [
 
   # shell
   "pants.backend.shell",
+  "pants.backend.shell.lint.shellcheck",
 ]
 # pants ignores files in .gitignore, .*/ directories, /dist/ directory, and __pycache__.
 pants_ignore.add = [
