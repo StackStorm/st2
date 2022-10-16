@@ -25,11 +25,10 @@ from pants.base.specs import DirGlobSpec, RawSpecs
 from pants.engine.addresses import Address
 from pants.engine.rules import collect_rules, Get, rule, UnionRule
 from pants.engine.target import (
+    FieldSet,
     InferDependenciesRequest,
     InferredDependencies,
     Targets,
-    WrappedTarget,
-    WrappedTargetRequest,
 )
 from pants.util.frozendict import FrozenDict
 from pants.util.logging import LogLevel
@@ -66,30 +65,28 @@ async def map_stevedore_extensions(
     )
 
 
+@dataclass(frozen=True)
+class PythonTestsStevedoreNamespaceInferenceFieldSet(FieldSet):
+    required_fields = (PythonTestsDependenciesField, StevedoreNamespacesField)
+
+    stevedore_namespaces: StevedoreNamespacesField
+
+
 class InferStevedoreNamespaceDependencies(InferDependenciesRequest):
-    inject_for = PythonTestsDependenciesField
+    infer_from = PythonTestsStevedoreNamespaceInferenceFieldSet
 
 
 @rule(
     desc="Infer stevedore_extension target dependencies for python_tests based on namespace list.",
     level=LogLevel.DEBUG,
 )
-async def inject_stevedore_namespace_dependencies(
+async def infer_stevedore_namespace_dependencies(
     request: InferStevedoreNamespaceDependencies,
     stevedore_extensions: StevedoreExtensions,
 ) -> InferredDependencies:
-    original_tgt: WrappedTarget
-    original_tgt = await Get(
-        WrappedTarget,
-        WrappedTargetRequest(
-            request.dependencies_field.address,
-            description_of_origin="inject_stevedore_namespace_dependencies",
-        ),
-    )
-    if original_tgt.target.get(StevedoreNamespacesField).value is None:
-        return InferredDependencies()
-
-    namespaces: StevedoreNamespacesField = original_tgt.target[StevedoreNamespacesField]
+    namespaces: StevedoreNamespacesField = request.field_set.stevedore_namespaces
+    if namespaces.value is None:
+        return InferredDependencies(())
 
     addresses = []
     for namespace in namespaces.value:

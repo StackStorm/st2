@@ -14,6 +14,7 @@
 # repurposed from pants.backend.python.target_types_rules
 import dataclasses
 import os
+from dataclasses import dataclass
 
 from pants.backend.python.dependency_inference.module_mapper import (
     PythonModuleOwners,
@@ -29,11 +30,10 @@ from pants.engine.target import (
     Dependencies,
     DependenciesRequest,
     ExplicitlyProvidedDependencies,
+    FieldSet,
     InferDependenciesRequest,
     InferredDependencies,
     InvalidFieldException,
-    WrappedTarget,
-    WrappedTargetRequest,
 )
 from pants.source.source_root import SourceRoot, SourceRootRequest
 from pants.util.logging import LogLevel
@@ -42,7 +42,6 @@ from stevedore_extensions.target_types import (
     AllStevedoreExtensionTargets,
     ResolvedStevedoreEntryPoints,
     ResolveStevedoreEntryPointsRequest,
-    StevedoreDependenciesField,
     StevedoreEntryPoints,
     StevedoreEntryPointsField,
 )
@@ -53,7 +52,7 @@ def find_all_stevedore_extension_targets(
     targets: AllTargets,
 ) -> AllStevedoreExtensionTargets:
     return AllStevedoreExtensionTargets(
-        tgt for tgt in targets if tgt.has_field(StevedoreDependenciesField)
+        tgt for tgt in targets if tgt.has_field(StevedoreEntryPointsField)
     )
 
 
@@ -143,54 +142,52 @@ async def resolve_stevedore_entry_points(
     return ResolvedStevedoreEntryPoints(StevedoreEntryPoints(resolved))
 
 
+@dataclass(frozen=True)
+class StevedoreEntryPointsInferenceFieldSet(FieldSet):
+    required_fields = (StevedoreEntryPointsField, Dependencies, PythonResolveField)
+
+    entry_points: StevedoreEntryPointsField
+    dependencies: Dependencies
+    resolve: PythonResolveField
+
+
 class InferStevedoreExtensionDependencies(InferDependenciesRequest):
-    inject_for = StevedoreDependenciesField
+    infer_from = StevedoreEntryPointsInferenceFieldSet
 
 
 @rule(
     desc="Inferring dependency from the stevedore_extension `entry_points` field",
     level=LogLevel.DEBUG,
 )
-async def inject_stevedore_entry_points_dependencies(
+async def infer_stevedore_entry_points_dependencies(
     request: InferStevedoreExtensionDependencies,
     python_setup: PythonSetup,
 ) -> InferredDependencies:
-    original_tgt: WrappedTarget = await Get(
-        WrappedTarget,
-        WrappedTargetRequest(
-            request.dependencies_field.address,
-            description_of_origin="inject_stevedore_entry_points_dependencies",
-        ),
-    )
     entry_points: ResolvedStevedoreEntryPoints
     explicitly_provided_deps, entry_points = await MultiGet(
         Get(
             ExplicitlyProvidedDependencies,
-            DependenciesRequest(original_tgt.target[Dependencies]),
+            DependenciesRequest(request.field_set.dependencies),
         ),
         Get(
             ResolvedStevedoreEntryPoints,
-            ResolveStevedoreEntryPointsRequest(
-                original_tgt.target[StevedoreEntryPointsField]
-            ),
+            ResolveStevedoreEntryPointsRequest(request.field_set.entry_points),
         ),
     )
     if entry_points.val is None:
         return InferredDependencies()
-    address = original_tgt.target.address
+    address = request.field_set.address
     owners_per_entry_point = await MultiGet(
         Get(
             PythonModuleOwners,
             PythonModuleOwnersRequest(
                 entry_point.value.module,
-                resolve=original_tgt.target[PythonResolveField].normalized_value(
-                    python_setup
-                ),
+                resolve=request.field_set.resolve.normalized_value(python_setup),
             ),
         )
         for entry_point in entry_points.val
     )
-    original_entry_points = original_tgt.target[StevedoreEntryPointsField].value
+    original_entry_points = request.field_set.entry_points.value
     resolved_owners = []
     for entry_point, owners, original_ep in zip(
         entry_points.val, owners_per_entry_point, original_entry_points

@@ -22,7 +22,6 @@ from pants.engine.collection import Collection
 from pants.engine.target import (
     AsyncFieldMixin,
     COMMON_TARGET_FIELDS,
-    Dependencies,
     DictStringToStringField,
     InvalidFieldException,
     SecondaryOwnerMixin,
@@ -114,19 +113,12 @@ class ResolveStevedoreEntryPointsRequest:
     entry_points_field: StevedoreEntryPointsField
 
 
-# See `target_types_rules.py` for a dependency injection rule.
-class StevedoreDependenciesField(Dependencies):
-    # dummy field for dependency injection to work
-    alias = "_stevedore_dependencies"
-
-
 class StevedoreExtension(Target):
     alias = "stevedore_extension"
     core_fields = (
         *COMMON_TARGET_FIELDS,
         StevedoreNamespaceField,
         StevedoreEntryPointsField,
-        StevedoreDependenciesField,
         PythonResolveField,
     )
     help = "Entry points used to generate setuptools metadata for stevedore."
