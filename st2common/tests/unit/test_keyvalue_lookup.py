@@ -213,7 +213,7 @@ class TestKeyValueLookup(CleanDbTestCase):
             + "64338294916D37E83C4796283C584751750E39844E2FD97A3727DB5D553F638"
         )
 
-        k1 = KeyValuePair.add_or_update(
+        KeyValuePair.add_or_update(
             KeyValuePairDB(name="k1", value=secret_value, secret=True)
         )
 
