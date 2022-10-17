@@ -12,6 +12,7 @@ backend_packages = [
   "pants.backend.python",
   "pants.backend.experimental.python", # activates twine `publish` support
   "pants.backend.python.mixed_interpreter_constraints",
+  "pants.backend.python.lint.bandit",
   "pants.backend.python.lint.black",
   "pants.backend.python.lint.flake8",
 
@@ -81,6 +82,22 @@ root_patterns = [
   "/tools",
   # benchmarks
   "/st2common/benchmarks/micro",
+]
+
+[bandit]
+lockfile = "lockfiles/bandit.lock"
+version = "bandit==1.7.0"
+args = [
+  "-lll",  # only HIGH severity level
+  "--exclude",
+  "build,dist",
+  "--quiet", # only show output in the case of an error
+]
+extra_requirements = [
+  "setuptools",
+  # bandit needs stevedore which needs importlib-metadata<5
+  # see: https://github.com/PyCQA/bandit/pull/952
+  "importlib-metadata<5;python_version<'3.8'",
 ]
 
 [black]
