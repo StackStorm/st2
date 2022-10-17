@@ -6,12 +6,13 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.14.0rc1"
+pants_version = "2.14.0rc3"
 backend_packages = [
   # python
   "pants.backend.python",
   "pants.backend.experimental.python", # activates twine `publish` support
   "pants.backend.python.mixed_interpreter_constraints",
+  "pants.backend.python.lint.black",
 
   # shell
   "pants.backend.shell",
@@ -80,3 +81,7 @@ root_patterns = [
   # benchmarks
   "/st2common/benchmarks/micro",
 ]
+
+[black]
+lockfile = "lockfiles/black.lock"
+version = "black==22.3.0"

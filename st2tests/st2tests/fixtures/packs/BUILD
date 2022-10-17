@@ -22,6 +22,7 @@ shell_sources(
 
 python_sources(
     name="test_content_version",
+    skip_black=True,
     dependencies=[
         ":test_content_version_metadata",
         ":test_content_version_shell",
