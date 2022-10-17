@@ -49,7 +49,12 @@ class DigActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
 
         results = action.run(
-            rand=False, count=0, nameserver=None, hostname="google.com", queryopts="short", querytype=""
+            rand=False,
+            count=0,
+            nameserver=None,
+            hostname="google.com",
+            queryopts="short",
+            querytype="",
         )
         self.assertIsInstance(results, list)
 

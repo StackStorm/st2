@@ -44,7 +44,6 @@ class DigAction(Action):
         cmd_args.append(hostname)
         cmd_args.append(querytype)
 
-
         try:
             raw_result = subprocess.Popen(
                 cmd_args, stderr=subprocess.PIPE, stdout=subprocess.PIPE
@@ -60,7 +59,7 @@ class DigAction(Action):
 
             # Better format the output when the type is TXT
             if querytype.lower() == "txt":
-                result_list_str = result_list_str.replace('"', '')
+                result_list_str = result_list_str.replace('"', "")
 
             result_list = list(filter(None, result_list_str.split("\n")))
 
