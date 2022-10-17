@@ -83,5 +83,5 @@ root_patterns = [
 ]
 
 [black]
-lockfile = "lockfiles/black"
+lockfile = "lockfiles/black.lock"
 version = "black==22.3.0"
