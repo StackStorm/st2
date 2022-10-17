@@ -183,11 +183,20 @@ def mask_secret_output(ac_ex, output_value):
         or output_key not in output_value
         # no action output_schema defined
         or not output_schema
-        # malformed action output_schema
-        or not _output_schema_is_valid(output_schema)
     ):
         # nothing to mask
         return output_value
+
+    # malformed action output_schema
+    if not _output_schema_is_valid(output_schema):
+        # check for legacy output schema (which is just object properties)
+        if _output_schema_is_legacy(output_schema):
+            output_schema = _update_legacy_output_schema(output_schema)
+        elif _malformed_output_schema_attempts_to_mask(output_schema):
+            output_schema = {"secret": True}
+        else:
+            # can't identify anything to mask
+            return output_value
 
     output_value[output_key] = _get_masked_value(
         output_schema, output_value[output_key]
