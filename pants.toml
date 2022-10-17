@@ -85,7 +85,7 @@ root_patterns = [
 ]
 
 [bandit]
-lockfile = "lockfiles/bandit"
+lockfile = "lockfiles/bandit.lock"
 version = "bandit==1.7.0"
 args = [
   "-lll",  # only HIGH severity level
