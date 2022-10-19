@@ -1,5 +1,6 @@
 python_sources()
 
 shell_sources(
-    name="actions0",
+    name="shell",
+    skip_shellcheck=True,
 )
