@@ -12,6 +12,10 @@
 
 set -eou pipefail
 
+# an arbitrary number: bump when there's a change that someone might want to query for
+# (e.g. checking $(PANTS_BOOTSTRAP_TOOLS=1 ./pants version) >= ...)
+SCRIPT_VERSION=1
+
 # Source any custom bootstrap settings for Pants from PANTS_BOOTSTRAP if it exists.
 : ${PANTS_BOOTSTRAP:=".pants.bootstrap"}
 if [[ -f "${PANTS_BOOTSTRAP}" ]]; then
@@ -40,9 +44,9 @@ fi
 
 PANTS_BOOTSTRAP="${PANTS_SETUP_CACHE}/bootstrap-$(uname -s)-$(uname -m)"
 
-_PEX_VERSION=2.1.62
+_PEX_VERSION=2.1.103
 _PEX_URL="https://github.com/pantsbuild/pex/releases/download/v${_PEX_VERSION}/pex"
-_PEX_EXPECTED_SHA256="56668b1ca147bd63141e586ffee97c7cc51ce8e6eac6c9b7a4bf1215b94396e5"
+_PEX_EXPECTED_SHA256="4d45336511484100ae4e2bab24542a8b86b12c8cb89230463593c60d08c4b8d3"
 
 VIRTUALENV_VERSION=20.4.7
 VIRTUALENV_REQUIREMENTS=$(
@@ -63,6 +67,8 @@ COLOR_RED="\x1b[31m"
 COLOR_GREEN="\x1b[32m"
 COLOR_YELLOW="\x1b[33m"
 COLOR_RESET="\x1b[0m"
+
+INSTALL_URL="https://www.pantsbuild.org/docs/installation"
 
 function log() {
   echo -e "$@" 1>&2
@@ -140,7 +146,7 @@ function determine_pants_version {
   if [[ -z "${pants_version}" ]]; then
     die "Please explicitly specify the \`pants_version\` in your \`pants.toml\` under the \`[GLOBAL]\` scope.
 See https://pypi.org/project/pantsbuild.pants/#history for all released versions
-and https://www.pantsbuild.org/docs/installation for more instructions."
+and ${INSTALL_URL} for more instructions."
   fi
   pants_major_version="$(echo "${pants_version}" | cut -d '.' -f1)"
   pants_minor_version="$(echo "${pants_version}" | cut -d '.' -f2)"
@@ -282,9 +288,13 @@ function bootstrap_pex {
 function scrub_env_vars {
   # Ensure the virtualenv PEX runs as shrink-wrapped.
   # See: https://github.com/pantsbuild/setup/issues/105
-  if [[ -n "${!PEX_@}" ]]; then
-    warn "Scrubbing ${!PEX_@}"
-    unset "${!PEX_@}"
+  local -r pex_env_vars=(${!PEX_@})
+  if [[ ! ${#pex_env_vars[@]} -eq 0 ]]; then
+    local -r pex_env_vars_to_scrub="${pex_env_vars[@]/PEX_ROOT}"
+    if [[ -n "${pex_env_vars_to_scrub[@]}" ]]; then
+      warn "Scrubbing ${pex_env_vars_to_scrub[@]}"
+      unset ${pex_env_vars_to_scrub[@]}
+    fi
   fi
   # Also ensure pip doesn't think packages on PYTHONPATH
   # are already installed.
@@ -382,6 +392,76 @@ function bootstrap_pants {
   fi
   echo "${bootstrapped}"
 }
+
+function run_bootstrap_tools {
+  # functionality for introspecting the bootstrapping process, without actually doing it
+  if [[ "${PANTS_BOOTSTRAP_TOOLS}" -gt "${SCRIPT_VERSION}" ]]; then
+      die "$0 script (bootstrap version ${SCRIPT_VERSION}) is too old for this invocation (with PANTS_BOOTSTRAP_TOOLS=${PANTS_BOOTSTRAP_TOOLS}).
+Please update it by following ${INSTALL_URL}"
+  fi
+
+  case "${1:-}" in
+    bootstrap-cache-key)
+      local pants_version=$(determine_pants_version)
+      local python="$(determine_python_exe "${pants_version}")"
+      # the python above may be a shim (e.g. pyenv or homebrew), so let's get an estimate of the
+      # actual path, as will be symlinked in the virtualenv. (NB. virtualenv does more complicated
+      # things, but we at least emulate the symlink-resolution that it does.)
+      local python_executable_path="$("${python}" -c 'import os, sys; print(os.path.realpath(sys.executable))')"
+
+      local requirements_file="$(mktemp)"
+      echo "${VIRTUALENV_REQUIREMENTS}" > "${requirements_file}"
+      local virtualenv_requirements_sha256="$(compute_sha256 "${python}" "${requirements_file}")"
+      rm "${requirements_file}"
+
+      local parts=(
+        "os_name=$(uname -s)"
+        "arch=$(uname -m)"
+        "python_path=${python}"
+        "python_executable_path=${python_executable_path}"
+        # the full interpreter information, for maximum compatibility
+        "python_version=$("$python" --version)"
+        "pex_version=${_PEX_VERSION}"
+        "virtualenv_requirements_sha256=${virtualenv_requirements_sha256}"
+        "pants_version=${pants_version}"
+      )
+      echo "${parts[*]}"
+      ;;
+    bootstrap-version)
+      echo "${SCRIPT_VERSION}"
+      ;;
+    help|"")
+      cat <<EOF
+Usage: PANTS_BOOTSTRAP_TOOLS=1 $0 ...
+
+Subcommands:
+  bootstrap-cache-key
+    Print an opaque that can be used as a key for accurate and safe caching of
+    the pants bootstrap directories.
+
+    (Added in bootstrap version 1.)
+
+  bootstrap-version
+    Print a version number for the bootstrap script itself.
+
+    Distributed scripts (such as reusable CI formulae) that use these bootstrap
+    tools should set PANTS_BOOTSTRAP_TOOLS to the minimum script version for the
+    features they require. For example, if 'some-tool' was added in version 123:
+
+        PANTS_BOOTSTRAP_TOOLS=123 ./pants some-tool
+
+    (Added in bootstrap version 1.)
+EOF
+      ;;
+    *)
+      die "Unknown subcommand for bootstrap tools: $1. Do you mean to run without PANTS_BOOTSTRAP_TOOLS=1? Or, update this script ($INSTALL_URL)?"
+  esac
+}
+
+if [[ "${PANTS_BOOTSTRAP_TOOLS:-}" -gt 0 ]]; then
+    run_bootstrap_tools "$@"
+    exit 0
+fi
 
 # Ensure we operate from the context of the ./pants buildroot.
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
