@@ -14,6 +14,7 @@ resources(
 
 shell_sources(
     name="test_content_version_shell",
+    # do not check across git submodule boundary
     skip_shellcheck=True,
     sources=[
         "test_content_version/**/*.sh",
@@ -22,6 +23,8 @@ shell_sources(
 
 python_sources(
     name="test_content_version",
+    # do not fmt across git submodule boundary
+    skip_black=True,
     dependencies=[
         ":test_content_version_metadata",
         ":test_content_version_shell",

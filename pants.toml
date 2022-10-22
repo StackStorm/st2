@@ -6,12 +6,15 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.14.0rc1"
+pants_version = "2.14.0rc3"
 backend_packages = [
   # python
   "pants.backend.python",
   "pants.backend.experimental.python", # activates twine `publish` support
   "pants.backend.python.mixed_interpreter_constraints",
+  "pants.backend.python.lint.bandit",
+  "pants.backend.python.lint.black",
+  "pants.backend.python.lint.flake8",
 
   # shell
   "pants.backend.shell",
@@ -80,3 +83,32 @@ root_patterns = [
   # benchmarks
   "/st2common/benchmarks/micro",
 ]
+
+[bandit]
+lockfile = "lockfiles/bandit.lock"
+version = "bandit==1.7.0"
+args = [
+  "-lll",  # only HIGH severity level
+  "--exclude",
+  "build,dist",
+  "--quiet", # only show output in the case of an error
+]
+extra_requirements = [
+  "setuptools",
+  # bandit needs stevedore which needs importlib-metadata<5
+  # see: https://github.com/PyCQA/bandit/pull/952
+  "importlib-metadata<5;python_version<'3.8'",
+]
+
+[black]
+lockfile = "lockfiles/black.lock"
+version = "black==22.3.0"
+
+[flake8]
+lockfile = "lockfiles/flake8.lock"
+version = "flake8==4.0.1" # st2flake8 does not support flake8 v5
+extra_requirements = [
+  # license check plugin
+  "st2flake8==0.1.0",  # TODO: remove in favor of regex-lint
+]
+config = "lint-configs/python/.flake8"
