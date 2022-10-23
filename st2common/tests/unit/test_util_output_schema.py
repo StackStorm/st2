@@ -399,8 +399,15 @@ class OutputSchemaTestCase(unittest2.TestCase):
                 "output_schema": RUNNER_OUTPUT_SCHEMA,
             },
         }
-        ac_ex_result = {"output_1": "foobar"}
-        expected_masked_output = {"output_1": "foobar"}
+
+        ac_ex_result = {OUTPUT_KEY: {"output_1": "foobar", "output_3": "fubar"}}
+
+        expected_masked_output = {
+            OUTPUT_KEY: {
+                "output_1": "foobar",
+                "output_3": MASKED_ATTRIBUTE_VALUE,
+            }
+        }
 
         # Legacy schemas should be ignored since they aren't full json schemas.
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
