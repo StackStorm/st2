@@ -41,7 +41,7 @@ Fixed
 
 * A new output schema using full JSON schema was introduced and secrets previously masked using
   the legacy output schema are now being displayed as plain text. To prevent security relative
-  issues, add backward compatibility to secret masking. Full output schema validattion will need
+  issues, add backward compatibility to secret masking. Full output schema validation will need
   to be migrated to the new schema.
 
   Contributed by @m4dcoder
