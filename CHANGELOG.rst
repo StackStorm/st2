@@ -39,6 +39,13 @@ Fixed
 * Fixed generation of `st2.conf.sample` to show correct syntax for `[sensorcontainer].partition_provider` (space separated `key:value` pairs). #5710
   Contributed by @cognifloyd
 
+* A new output schema using full JSON schema was introduced and secrets previously masked using
+  the legacy output schema are now being displayed as plain text. To prevent security relative
+  issues, add backward compatibility to secret masking. Full output schema validattion will need
+  to be migrated to the new schema.
+
+  Contributed by @m4dcoder
+
 Added
 ~~~~~
 
