@@ -389,7 +389,7 @@ class OutputSchemaTestCase(unittest2.TestCase):
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
-    def test_mask_secret_output_noop_legacy_schema(self):
+    def test_mask_secret_output_with_legacy_schema(self):
         ac_ex = {
             "action": {
                 "output_schema": LEGACY_ACTION_OUTPUT_SCHEMA,
@@ -409,7 +409,7 @@ class OutputSchemaTestCase(unittest2.TestCase):
             }
         }
 
-        # Legacy schemas should be ignored since they aren't full json schemas.
+        # Legacy schemas are not full json schemas, but they should still mask secrets.
         masked_output = output_schema.mask_secret_output(ac_ex, ac_ex_result)
         self.assertDictEqual(masked_output, expected_masked_output)
 
