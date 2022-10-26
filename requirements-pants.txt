@@ -1,0 +1,100 @@
+# Add/remove direct 3rd party dependencies here, with version constraints if necessary.
+# Then run `./pants generate-lockfiles --resolve=st2` to regenerate the lockfile.
+#
+# Please do not add transitive dependencies in this file (ie dependencies of our dependencies).
+# Use `lockfiles/st2-constraints.txt` to constrain the version of these transitive dependencies.
+#
+# Please keep this list alphabetical, with tooz backends in a separate list.
+
+apscheduler
+argcomplete
+ciso8601
+cryptography
+# eventlet 0.31+ and gunicorn 20.1.0 are not compatible
+eventlet<0.31
+# flex parses the openapi 2 spec in our router
+flex
+# gitpython & gitdb are used for pack management
+gitdb
+gitpython
+gunicorn
+jinja2
+jsonpath-rw
+jsonschema
+kombu
+lockfile
+mock
+mongoengine
+# Note: networkx v2.6 dropped support for Python3.6
+# networkx version is constrained in orquesta.
+networkx
+orjson
+orquesta @ git+https://github.com/StackStorm/orquesta.git@v1.5.0
+# NOTE: Recent version substantially affect the performance and add big import time overhead
+# See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
+oslo.config>=1.12.1,<1.13
+paramiko
+# prance is used by st2-validate-api-spec to validate the openapi spec
+# prance needs flex, but do not use the extra as that gets an old version.
+prance
+prettytable
+# For st2client: prompt-toolkit v2+ does not have prompt_toolkit.token.Token
+prompt-toolkit<2
+psutil
+pymongo
+# pyrabbit used in an integration test
+pyrabbit
+pytest
+python-dateutil
+python-editor
+# pythonjsonlogger referenced in st2actions/conf/logging.conf
+python-json-logger
+python-statsd
+pytz
+PyYAML
+# RandomWords used in some tests
+RandomWords
+requests[security]
+retrying
+routes
+semver
+# setuptools provides pkg_resources
+setuptools
+simplejson
+six
+# NOTE: we use sseclient-py instead of sseclient because sseclient
+# has various issues which sometimes hang the connection for a long time, etc.
+sseclient-py
+# bandit doesn't work w/ stevedore 3+
+stevedore<3
+# For backward compatibility reasons, flat file backend is installed by default
+st2-auth-backend-flat-file @ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
+st2-auth-ldap @ git+https://github.com/StackStorm/st2-auth-ldap.git@master
+st2-rbac-backend @ git+https://github.com/StackStorm/st2-rbac-backend.git@master
+# tabulate used by tools/log_watcher.py
+tabulate
+tooz
+udatetime
+ujson
+unittest2
+virtualenv
+webob
+webtest
+# zstandard is used for micro benchmarks
+zstandard
+
+# tooz backends
+redis
+zake
+
+# was in fixed-requirements.txt, but not in requirements-pants.txt
+# keyczar is used by a python2-only test.
+#python-keyczar
+
+###########
+
+# not needed with switch to pytest
+#nose
+#nose-timer
+#nose-parallel
+#rednose

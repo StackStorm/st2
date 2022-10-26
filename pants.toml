@@ -35,9 +35,9 @@ pants_ignore.add = [
   "st2common/tests/fixtures/requirements-used-for-tests.txt",
   "/fixed-requirements.txt",
   "/test-requirements.txt",
-  # keep requirements.txt for now. We might ignore it if we need an alternate interrim
-  # file that is decoupled from our legacy requirements files generation.
-  # "/requirements.txt",
+  # ignore requirements.txt for now, preferring interrim files that are decoupled from
+  # legacy requirements files generation: requirements-pants.txt & lockfiles/st2-constraints.txt
+  "/requirements.txt",
 ]
 
 [source]
