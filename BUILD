@@ -11,8 +11,8 @@ python_requirements(
         "RandomWords": ["random_words"],
     },
     overrides={
-        # flex uses pkg_resources w/o declaring the dep
-        "flex": {
+        # flex and stevedore uses pkg_resources w/o declaring the dep
+        ("flex", "stevedore"): {
             "dependencies": [
                 "//:reqs#setuptools",
             ]
@@ -21,12 +21,6 @@ python_requirements(
         "prance": {
             "dependencies": [
                 "//:reqs#flex",
-            ]
-        },
-        # stevedore uses pkg_resources w/o declaring the dep
-        "stevedore": {
-            "dependencies": [
-                "//:reqs#setuptools",
             ]
         },
         # tooz needs one or more backends (tooz is used by the st2 coordination backend)
