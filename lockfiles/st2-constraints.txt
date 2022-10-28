@@ -3,78 +3,111 @@
 #
 # Direct dependencies should be recorded in `requirements-pants.txt`, not here.
 
+# please document each version constraint as follows:
+#
+# REQUIRED BY: <package>, <package>, ...
+# REASON: <why do we need to constrain this transitive dep?>
+# NOTE: <status of this constraint / when can we remove it?>
+# DROPS RESOLVED VERSION: <which version pip resolved without this constraint>
+#<package><version constraint>
+
 # ############################################ #
 # pinned transitive deps from requirements.txt #
 # ############################################ #
-#
-# required by jinja2:
-# fixed-requirements.txt:
-#     Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
-#     >=0.23 was from jinja2
+
+# REQUIRED BY: jinja2
+# REASON: Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode >=0.23 was from jinja2
+# NOTE: try to remove constraint later.
+# DROPS RESOLVED VERSION: unknown
 MarkupSafe<2.1.0,>=0.23
 
-# required by kombu:
-# lockfile had 5.1.1 without this
+# REQUIRED BY: kombu
+# REASON: unknown -- this looks like a lockfile-style pin
+# NOTE: try to remove constraint later.
+# DROPS RESOLVED VERSION: 5.1.1
 amqp==5.0.6
 
-# required by cryptography, paramiko, passlib:
-# lockfile had 4.0.1 without this
+# REQUIRED BY: cryptography, paramiko, passlib
+# REASON: unknown -- this looks like a lockfile-style pin
+# NOTE: try to remove constraint later.
+# DROPS RESOLVED VERSION: 4.0.1
 bcrypt==3.2.0
 
-# required by bcrypt, cryptography, pynacl, zstandard:
-# lockfile had 1.15.1 without this
+# REQUIRED BY: bcrypt, cryptography, pynacl, zstandard
+# REASON: unknown
+# NOTE: try to remove constraint later.
+# DROPS RESOLVED VERSION: 1.15.1
 cffi<1.15.0
 
-# required by orquesta, prance, requests:
-# fixed-requirements.txt:
-#     requests 2.23 requires chardet < 3.1.0
-# lockfile had 3.0.4 without this
-# left commented since orquesta already constrains the version.
+# REQUIRED BY: orquesta, prance, requests
+# REASON: requests 2.23 requires chardet < 3.1.0
+# NOTE: orquesta already constrains this, so this is just documentation.
+# DROPS RESOLVED VERSION: 3.0.4
 #chardet<3.1.0
 
-# required by jsonpath-rw, networkx:
-# fixed-requireements.txt:
+# REQUIRED BY: jsonpath-rw, networkx
+# REASON:
 #     networkx requires decorator>=4.3,<5 which should resolve to version 4.4.2
 #     but the wheel on pypi does not say it supports python3.8, so pip gets
 #     confused. For now, pin decorator to work around pip's confusion.
-# lockfile had 4.4.2 without this (so this is just a pin)
+# NOTE: Since pants/pex use a newer version of pip, this is not an issue.
+# DROPS RESOLVED VERSION: 4.4.2
 #decorator==4.4.2
 
-# required by eventlet, pymongo:
-# fixed-requireements.txt:
-#     NOTE: 2.0 version breaks pymongo work with hosts
-# lockfile had 1.16 without this
+# REQUIRED BY: eventlet, pymongo
+# REASON: 2.0 version breaks pymongo work with hosts
+# NOTE: try to remove this later
+# DROPS RESOLVED VERSION: 1.16
 dnspython>=1.16.0,<2.0.0
 
-# required by eventlet:
-# lockfile had 1.1.3.post0 without this (so this is just a pin)
+# REQUIRED BY: eventlet
+# REASON: unknown -- this looks like a lockfile-style pin
+# NOTE: We are having a hard time upgrading eventlet, so this pin is commented
+#       out to see if that will help. If any tests fail, uncomment this.
+# DROPS RESOLVED VERSION: 1.1.3.post0
 #greenlet==1.0.0
 
-# required by argcomplete, click, debtcollector, kombu, pluggy, prettytable,
-# pytest, virtualenv:
-# lockfile had 4.8.3 without this (this pin actually causes conflicts)
+# REQUIRED BY: argcomplete, click, debtcollector, kombu, pluggy, prettytable,
+#             pytest, virtualenv
+# REASON: unknown
+# NOTE: This pinned version (3.10.1) actually conflicts with other requirements.
+#       So, it is commented out. If there are issues with newer versions,
+#       update this with a range of valid versions.
+# DROPS RESOLVED VERSION: 4.8.3
 #importlib-metadata==3.10.1
 
-# required by tooz:
-# lockfile had 4.13 without this
+# REQUIRED BY: tooz
+# REASON: unknown
+# NOTE: try to remove constraint later.
+# DROPS RESOLVED VERSION: 4.13
 oslo.utils<5.0,>=4.0.0
-# lockfile had 8.1 without this
+
+# REQUIRED BY: tooz
+# REASON: unknown
+# NOTE: try to remove constraint later.
+# DROPS RESOLVED VERSION: 8.1
 tenacity>=3.2.1,<7.0.0
 
-# required by st2-auth-backend-flat-file:
-# lockfile had 1.7.4 without this (so this is just a pin)
+# REQUIRED BY: st2-auth-backend-flat-file
+# REASON: unknown -- this looks like a lockfile-style pin
+# NOTE: st2-auth-backend-flat-file has a version range >=1.7.1,<1.8.0
+#       If we need to narrow that range, we should do so in:
+#       https://github.com/StackStorm/st2-auth-backend-flat-file/blob/master/requirements.txt
+# DROPS RESOLVED VERSION: 1.7.4
 #passlib==1.7.4
 
-# pyOpenSSL required by pymongo[ocsp], redis[ocsp], urllib3[secure]
+# pyOpenSSL required by: pymongo[ocsp], redis[ocsp], urllib3[secure]
 # but we don't use any of those, so skip copying from fixed-requirements.txt
 
-# required by httplib2, oslo.utils, packaging:
-# It looks like <3 was only needed for python2 compatibility.
-# lockfile had 3.0.7 without this.
+# REQUIRED BY: httplib2, oslo.utils, packaging
+# REASON: unknown -- It looks like <3 was only needed for python2 compatibility.
+# NOTE: this is still here, commented, until we can validate that all test are
+#       passing without it.
+# DROPS RESOLVED VERSION: 3.0.7
 #pyparsing<3
 
-# required by async-timeout, gitpython, importlib-metadata, redis:
-# fixed-requireements.txt:
-#     importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
-# lockfile had 4.1.1 without this.
+# REQUIRED BY: async-timeout, gitpython, importlib-metadata, redis
+# REASON: importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
+# NOTE: try to remove constraint later.
+# DROPS RESOLVED VERSION: 4.1.1
 typing-extensions<4.2
