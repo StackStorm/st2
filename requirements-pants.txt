@@ -1,5 +1,4 @@
 # Add/remove direct 3rd party dependencies here, with version constraints if necessary.
-# Then run `./pants generate-lockfiles --resolve=st2` to regenerate the lockfile.
 #
 # Please do not add transitive dependencies in this file (ie dependencies of our dependencies).
 # Use `lockfiles/st2-constraints.txt` to constrain the version of these transitive dependencies.

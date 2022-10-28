@@ -1,6 +1,5 @@
 # Add/remove version constraints for transitive dependencies in this file
 # (transitive dependencies are dependencies of our direct dependencies).
-# Then run `./pants generate-lockfiles --resolve=st2` to regenerate the lockfile.
 #
 # Direct dependencies should be recorded in `requirements-pants.txt`, not here.
 
