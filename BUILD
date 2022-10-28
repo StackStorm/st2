@@ -2,7 +2,6 @@ python_requirements(
     name="reqs",
     source="requirements-pants.txt",
     module_mapping={
-        "gitpython": ["git"],
         "python-editor": ["editor"],
         "python-json-logger": ["pythonjsonlogger"],
         "python-statsd": ["statsd"],
