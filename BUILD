@@ -1,6 +1,8 @@
 python_requirements(
     name="reqs",
     source="requirements-pants.txt",
+    # module_mapping can be removed once pants is released with
+    # https://github.com/pantsbuild/pants/pull/17390
     module_mapping={
         "python-editor": ["editor"],
         "python-json-logger": ["pythonjsonlogger"],
