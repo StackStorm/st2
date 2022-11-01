@@ -22,7 +22,12 @@ import pylint.testutils
 
 # merely importing this registers it in astroid
 # so parse() will use our predicate and transform functions.
-from . import api_models
+try:
+    # TODO: remove this once we remove the Makefile
+    from . import api_models
+except ImportError:
+    # pylint_plugins is on PYTHONPATH
+    import api_models
 
 
 def test_skiplist_class_gets_skipped():

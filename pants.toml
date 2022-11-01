@@ -174,9 +174,9 @@ source_plugins = [
 ]
 args = [
   # needed in st2* components, runners, packs
-  "--load-plugins=pylint_plugins.api_models",
+  "--load-plugins=api_models",
   # needed in st2* components, runners
-  "--load-plugins=pylint_plugins.db_models",
+  "--load-plugins=db_models",
 ]
 
 [pytest]
