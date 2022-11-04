@@ -384,13 +384,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "972cfa31bc2fedd3fa838a51e9bc7e64b7fb725a8c00e7431554311f180e9980",
-              "url": "https://files.pythonhosted.org/packages/09/85/302c153615db93e9197f13e02f448b3f95d7d786948f2fb3d6d5830a481b/zipp-3.9.0-py3-none-any.whl"
+              "hash": "4fcb6f278987a6605757302a6e40e896257570d11c51628968ccb2a47e80c6c1",
+              "url": "https://files.pythonhosted.org/packages/40/8a/d63273ed0fa4a3d06f77e7b043f6577d8894e95515b0c187c52e2c0efabb/zipp-3.10.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "3a7af91c3db40ec72dd9d154ae18e008c69efe8ca88dde4f9a731bb82fe2f9eb",
-              "url": "https://files.pythonhosted.org/packages/41/2e/1341c5634c25e7254df01ec1f6cbd2bcdee3e647709e7c3647d1b362e3ac/zipp-3.9.0.tar.gz"
+              "hash": "7a7262fd930bd3e36c50b9a64897aec3fafff3dfdeec9623ae22b40e93f99bb8",
+              "url": "https://files.pythonhosted.org/packages/8d/d7/1bd1e0a5bc95a27a6f5c4ee8066ddfc5b69a9ec8d39ab11a41a804ec8f0d/zipp-3.10.0.tar.gz"
             }
           ],
           "project_name": "zipp",
@@ -414,7 +414,7 @@
             "sphinx>=3.5; extra == \"docs\""
           ],
           "requires_python": ">=3.7",
-          "version": "3.9"
+          "version": "3.10"
         }
       ],
       "platform_tag": null
