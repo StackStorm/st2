@@ -16,6 +16,8 @@ flex
 # gitpython & gitdb are used for pack management
 gitdb
 gitpython
+# st2common/tests/integration/test_util_green.py requires greenlet (as does eventlet)
+greenlet
 gunicorn
 jinja2
 jsonpath-rw
