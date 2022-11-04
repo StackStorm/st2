@@ -120,6 +120,9 @@ extra_requirements = [
 [black]
 lockfile = "lockfiles/black.lock"
 version = "black==22.3.0"
+interpreter_constraints = [
+  "CPython>=3.6.2,<3.9",
+]
 
 [flake8]
 lockfile = "lockfiles/flake8.lock"
