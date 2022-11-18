@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+3.8.0 - November 18, 2022
+-------------------------
+
 Fixed
 ~~~~~
 
