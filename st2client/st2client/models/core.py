@@ -628,12 +628,20 @@ class AsyncRequest(Resource):
 
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def install(self, packs, force=False, skip_dependencies=False, **kwargs):
+    def install(
+        self,
+        packs,
+        force=False,
+        skip_dependencies=False,
+        checkout_submodules=False,
+        **kwargs,
+    ):
         url = "/%s/install" % (self.resource.get_url_path_name())
         payload = {
             "packs": packs,
             "force": force,
             "skip_dependencies": skip_dependencies,
+            "checkout_submodules": checkout_submodules,
         }
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != http_client.OK:
