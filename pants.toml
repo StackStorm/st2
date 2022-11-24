@@ -84,6 +84,16 @@ root_patterns = [
   "/st2common/benchmarks/micro",
 ]
 
+[python-infer]
+# https://www.pantsbuild.org/docs/reference-python-infer#unowned_dependency_behavior
+# The default changed from "ignore" to "warning" in pants 2.14.
+# Many of the new warnings however have been adressed via explicit deps,
+# so the warnings are not helpful. In pants 2.16, a "visibility" feature might help
+# us to disambiguate deps between files without those explicit BUILD dependencies,
+# and without adding "# pants: no-infer-dep" comments all over the codebase.
+# Revisit this in pants 2.16 to see if it is feasible to use the default "warning".
+unowned_dependency_behavior = "ignore"
+
 [bandit]
 lockfile = "lockfiles/bandit.lock"
 version = "bandit==1.7.0"
