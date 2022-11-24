@@ -73,10 +73,12 @@ class ActionExecutionSchedulingQueueItemDB(
             # NOTE: We limit index names to 65 characters total for compatibility with AWS
             # DocumentDB.
             # See https://github.com/StackStorm/st2/pull/4690 for details.
+            # Adding a union index speeds up the query action_execution_scheduling_queue_item_d_b
             {"fields": ["action_execution_id"], "name": "ac_exc_id"},
             {"fields": ["liveaction_id"], "name": "lv_ac_id"},
             {"fields": ["original_start_timestamp"], "name": "orig_s_ts"},
             {"fields": ["scheduled_start_timestamp"], "name": "schd_s_ts"},
+            {"fields": ["scheduled_start_timestamp", "original_start_timestamp"]},
         ]
     }
 
