@@ -54,6 +54,8 @@ Fixed
 
 Added
 ~~~~~
+* Added a joint index to solve the problem of slow mong queries #5805
+
 * core.st2.CronTimer : A scheduled task cannot be executed at a given time. Add a new cron function. set the milestone #5779
 
 * Added graceful shutdown for workflow engine. #5463
