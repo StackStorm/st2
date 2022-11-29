@@ -28,6 +28,8 @@ Added
 * Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
   Contributed by @maxfactor1
 
+* Added option to checkout git submodules when downloading/installing packs #5814
+  Contributed by @jk464
 
 3.8.0 - November 18, 2022
 -------------------------
