@@ -15,6 +15,8 @@
 
 from __future__ import absolute_import
 
+from oslo_config import cfg
+
 from st2common import log as logging
 
 from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE
@@ -22,14 +24,17 @@ from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
 from st2common.constants.keyvalue import ALLOWED_SCOPES
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR, USER_SEPARATOR
+from st2common.constants.types import ResourceType
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
+from st2common.models.db.auth import UserDB
 from st2common.models.system.keyvalue import UserKeyReference
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import PermissionGrant
-from st2common.constants.types import ResourceType
+from st2common.rbac.backends import get_rbac_backend
+from st2common.rbac.types import PermissionType
 
 __all__ = [
     "get_kvp_for_name",
@@ -103,7 +108,12 @@ class KeyValueLookup(BaseKeyValueLookup):
     scope = SYSTEM_SCOPE
 
     def __init__(
-        self, prefix=None, key_prefix=None, cache=None, scope=FULL_SYSTEM_SCOPE
+        self,
+        prefix=None,
+        key_prefix=None,
+        cache=None,
+        scope=FULL_SYSTEM_SCOPE,
+        context=None,
     ):
         if not scope:
             scope = FULL_SYSTEM_SCOPE
@@ -115,6 +125,18 @@ class KeyValueLookup(BaseKeyValueLookup):
         self._key_prefix = key_prefix or ""
         self._value_cache = cache or {}
         self._scope = scope
+
+        self._context = context if context else dict()
+        self._user = (
+            context["user"]
+            if context and "user" in context and context["user"]
+            else cfg.CONF.system_user.user
+        )
+        self._user = (
+            context["api_user"]
+            if context and "api_user" in context and context["api_user"]
+            else self._user
+        )
 
     def __str__(self):
         return self._value_cache[self._key_prefix]
@@ -154,6 +176,7 @@ class KeyValueLookup(BaseKeyValueLookup):
             key_prefix=key,
             cache=self._value_cache,
             scope=self._scope,
+            context=self._context,
         )
 
     def _get_kv(self, key):
@@ -167,6 +190,19 @@ class KeyValueLookup(BaseKeyValueLookup):
 
         if kvp:
             LOG.debug("Got value %s from datastore.", kvp.value)
+
+        # Check that user has permission to the key value pair.
+        # If RBAC is enabled, this check will verify if user has system role with all access.
+        # If RBAC is enabled, this check guards against a user accessing another user's kvp.
+        # If RBAC is enabled, user needs to be explicitly granted permission to view a system kvp.
+        # The check is sufficient to allow decryption of the system kvp.
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=UserDB(name=self._user),
+            resource_db=kvp,
+            permission_type=PermissionType.KEY_VALUE_PAIR_VIEW,
+        )
+
         return kvp.value if kvp else ""
 
 
@@ -175,7 +211,13 @@ class UserKeyValueLookup(BaseKeyValueLookup):
     scope = USER_SCOPE
 
     def __init__(
-        self, user, prefix=None, key_prefix=None, cache=None, scope=FULL_USER_SCOPE
+        self,
+        user,
+        prefix=None,
+        key_prefix=None,
+        cache=None,
+        scope=FULL_USER_SCOPE,
+        context=None,
     ):
         if not scope:
             scope = FULL_USER_SCOPE
@@ -188,6 +230,7 @@ class UserKeyValueLookup(BaseKeyValueLookup):
         self._value_cache = cache or {}
         self._user = user
         self._scope = scope
+        self._context = context if context else dict()
 
     def __str__(self):
         return self._value_cache[self._key_prefix]
