@@ -84,6 +84,13 @@ root_patterns = [
   "/st2common/benchmarks/micro",
 ]
 
+[python]
+interpreter_constraints = [
+  # python_distributions needs a single constraint (vs one line per python version).
+  # officially, we exclude 3.7 support, but that adds unnecessary complexity: "CPython>=3.6,!=3.7.*,<3.9",
+  "CPython>=3.6,<3.9",
+]
+
 [python-infer]
 # https://www.pantsbuild.org/docs/reference-python-infer#unowned_dependency_behavior
 # The default changed from "ignore" to "warning" in pants 2.14.
@@ -113,6 +120,9 @@ extra_requirements = [
 [black]
 lockfile = "lockfiles/black.lock"
 version = "black==22.3.0"
+interpreter_constraints = [
+  "CPython>=3.6.2,<3.9",
+]
 
 [flake8]
 lockfile = "lockfiles/flake8.lock"
