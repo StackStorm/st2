@@ -85,11 +85,22 @@ root_patterns = [
 ]
 
 [python]
+# resolver_version is always "pip-2020-resolver". legacy is not supported.
+enable_resolves = true
+default_resolve = "st2"
 interpreter_constraints = [
   # python_distributions needs a single constraint (vs one line per python version).
   # officially, we exclude 3.7 support, but that adds unnecessary complexity: "CPython>=3.6,!=3.7.*,<3.9",
   "CPython>=3.6,<3.9",
 ]
+
+[python.resolves]
+st2 = "lockfiles/st2.lock"
+
+[python.resolves_to_constraints_file]
+# Our direct requirements are in requirements-pants.txt;
+# put indirect/transitive version constraints here:
+st2 = "lockfiles/st2-constraints.txt"
 
 [python-infer]
 # https://www.pantsbuild.org/docs/reference-python-infer#unowned_dependency_behavior
