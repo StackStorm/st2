@@ -13,6 +13,9 @@ Added
   #5778 #5789 #5817 #5795 #5830
   Contributed by @cognifloyd
 
+* Added publisher to ActionAlias to enable streaming ActionAlias create/update/delete events.
+  Contributed @ubaumann
+
 
 3.8.0 - November 18, 2022
 -------------------------
@@ -77,9 +80,6 @@ Added
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
   to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725 #5732 #5733 #5737 #5738 #5758 #5751 #5774 #5776 #5777 #5782
   Contributed by @cognifloyd
-
-* Added publisher to ActionAlias to enable streaming ActionAlias create/update/delete events.
-  Contributed @ubaumann
 
 Changed
 ~~~~~~~
