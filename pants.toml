@@ -159,6 +159,12 @@ extra_requirements = [
 ]
 config = "lint-configs/python/.flake8"
 
+[pylint]
+version = "pylint~=2.8.2"
+extra_requirements = [
+  "setuptools", # includes pkg_resources
+]
+
 [pytest]
 lockfile = "lockfiles/pytest.lock"
 version = "pytest==7.0.1"  # copied from https://www.pantsbuild.org/v2.14/docs/reference-pytest#version
