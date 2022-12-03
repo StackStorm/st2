@@ -21,7 +21,7 @@ on:
 jobs:
   pants-tailor:
     name: Make sure pants BUILD files are up-to-date
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
