@@ -147,6 +147,11 @@ config = "lint-configs/python/.flake8"
 [regex-lint]
 config = "@lint-configs/regex-lint.yaml"
 
+[setuptools]
+# setuptools 59.7 (at least) does not support python 3.6
+version = "setuptools>=50.3.0,<59.0"
+lockfile = "lockfiles/setuptools.lock"
+
 [twine]
 lockfile = "lockfiles/twine.lock"
 version = "twine>=3.7.1,<3.8"
