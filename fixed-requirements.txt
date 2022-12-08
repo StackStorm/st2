@@ -38,7 +38,7 @@ oslo.config==9.0.0
 oslo.utils<5.0,>=4.0.0
 paramiko==2.10.1
 passlib==1.7.4
-prompt-toolkit==1.0.15
+prompt-toolkit==3.0.36
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==3.11.3
 pyparsing<3
