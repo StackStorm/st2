@@ -7,6 +7,7 @@ repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
 pants_version = "2.14.0"
+pythonpath = ["%(buildroot)s/pants-plugins"]
 backend_packages = [
   # python
   "pants.backend.python",
@@ -19,6 +20,9 @@ backend_packages = [
   # shell
   "pants.backend.shell",
   "pants.backend.shell.lint.shellcheck",
+
+  # internal plugins in pants-plugins/
+  "pants.backend.plugin_development",
 ]
 # pants ignores files in .gitignore, .*/ directories, /dist/ directory, and __pycache__.
 pants_ignore.add = [
@@ -77,6 +81,8 @@ root_patterns = [
   "/contrib/examples/lib",
   # lint plugins
   "/pylint_plugins",
+  # pants plugins
+  "/pants-plugins",
   # misc
   "/scripts",
   "/tools",
@@ -96,6 +102,15 @@ interpreter_constraints = [
 
 [python.resolves]
 st2 = "lockfiles/st2.lock"
+pants-plugins = "lockfiles/pants-plugins.lock"
+
+[python.resolves_to_interpreter_constraints]
+pants-plugins = [
+  # this should match the pants interpreter_constraints:
+  # https://github.com/pantsbuild/pants/blob/2.14.x/pants.toml#L125
+  # See: https://www.pantsbuild.org/docs/prerequisites
+  "CPython>=3.7,<3.10",
+]
 
 [python.resolves_to_constraints_file]
 # Our direct requirements are in requirements-pants.txt;
