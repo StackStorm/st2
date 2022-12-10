@@ -1,5 +1,9 @@
 python_sources(
-    dependencies=[
-        "st2common/st2common/policies/meta:policies_meta",
-    ]
+    overrides={
+        "policiesregistrar.py": {
+            "dependencies": [
+                "st2common/st2common/policies/meta:policies_meta",
+            ],
+        },
+    },
 )
