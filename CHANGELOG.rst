@@ -6,6 +6,7 @@ in development
 
 Added
 ~~~~~
+* Move `git clone` to `user_home/.st2packs` #5845
 
 * Error on `st2ctl status` when running in Kubernetes. #5851
   Contributed by @mamercad

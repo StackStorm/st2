@@ -129,7 +129,7 @@ def download_pack(
     with lock_file:
         try:
             user_home = os.path.expanduser("~")
-            abs_local_path = os.path.join(user_home, temp_dir_name)
+            abs_local_path = os.path.join(user_home, ".st2packs", temp_dir_name)
 
             if pack_url.startswith("file://"):
                 # Local pack
