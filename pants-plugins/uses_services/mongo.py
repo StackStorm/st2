@@ -83,7 +83,7 @@ async def mongo_is_running(
                 output_filename="mongoengine.pex",
                 internal_only=True,
                 requirements=PexRequirements({"mongoengine", "pymongo"}),
-            )
+            ),
         ),
     )
 
@@ -97,7 +97,7 @@ async def mongo_is_running(
             # this can change from run to run, so don't cache results.
             cache_scope=ProcessCacheScope.PER_SESSION,
             level=LogLevel.DEBUG,
-        )
+        ),
     )
     is_running = result.exit_code == 0
 

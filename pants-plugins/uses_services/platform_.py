@@ -43,7 +43,7 @@ async def get_platform() -> Platform:
                 output_filename="distro.pex",
                 internal_only=True,
                 requirements=PexRequirements({"distro"}),
-            )
+            ),
         ),
     )
 
@@ -57,7 +57,7 @@ async def get_platform() -> Platform:
             # this can change from run to run, so don't cache results.
             cache_scope=ProcessCacheScope.PER_RESTART_SUCCESSFULL,
             level=LogLevel.DEBUG,
-        )
+        ),
     )
     platform = json.loads(result.stdout)
     return Platform(**platform)
