@@ -60,22 +60,24 @@ async def mongo_is_running(
     #   for unit tests: st2tests/st2tests/config.py
     #   for integration tests: conf/st2.tests*.conf st2tests/st2tests/fixtures/conf/st2.tests*.conf
     #       (changed by setting ST2_CONFIG_PATH env var inside the tests)
-    # TODO: for unit tests: modify code to pull from an env var and then use per-pantsd-slot db_name
+    # TODO: for unit tests: modify code to pull db connect settings from env vars
     # TODO: for int tests: modify st2.tests*.conf on the fly to set the per-pantsd-slot db_name
+    #                      and either add env vars for db connect settings or modify conf files as well
 
     db_host = "127.0.0.1"  # localhost in test_db.DbConnectionTestCase
     db_port = 27017
-    db_name = "st2-test"  # st2 in test_db.DbConnectionTestCase
+    db_name = f"st2-test{os.environ.get('ST2TESTS_PARALLEL_SLOT', '')}"
+    # db_name = "st2-test"  # st2 in test_db.DbConnectionTestCase
     connection_timeout = 3000
 
-    # so st2-test database gets dropped between:
+    # The st2-test database gets dropped between (in Makefile based testing):
     #   - each component (st2*/ && various config/ dirs) in Makefile
     #   - DbTestCase/CleanDbTestCase setUpClass
 
     #   with our version of oslo.config (newer are slower) we can't directly override opts w/ environment variables.
 
     # Makefile
-    #    .run-unit-tests-with-coverage (<- .combine-unit-tests-coverage <- .coverage.unit <- .unit-tests-coverage-html <- ci-unit <- ci)
+    #    .run-unit-tests-coverage (<- .combine-unit-tests-coverage <- .coverage.unit <- .unit-tests-coverage-html <- ci-unit <- ci)
     #        echo "----- Dropping st2-test db -----"
     #        mongo st2-test --eval "db.dropDatabase();"
     #        for component in $(COMPONENTS_TEST)
@@ -226,7 +228,7 @@ async def mongo_is_running(
             For anyone who wants to attempt local development without vagrant,
             you are pretty much on your own. At a minimum you need to install
             and start mongo. Good luck!
-                """
+            """
         )
 
     raise ServiceMissingError("mongo", platform, instructions)
