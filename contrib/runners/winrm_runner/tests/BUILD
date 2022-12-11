@@ -3,5 +3,3 @@ __defaults__(
         skip_pylint=True,
     )
 )
-
-python_sources()

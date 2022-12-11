@@ -35,5 +35,6 @@ python_requirements(
 )
 
 python_test_utils(
-    name="test_utils0",
+    name="test_utils",
+    skip_pylint=True,
 )
