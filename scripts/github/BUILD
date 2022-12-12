@@ -1,5 +1,5 @@
 files(
-    name="artifacts",
+    name="assets",
     sources=[
         "*.txt",
         "*.conf",
@@ -7,5 +7,5 @@ files(
 )
 
 shell_sources(
-    dependencies=[":artifacts"],
+    dependencies=[":assets"],
 )

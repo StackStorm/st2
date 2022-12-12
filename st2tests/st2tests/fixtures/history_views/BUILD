@@ -1,8 +1,8 @@
 resources(
-    name="artifacts",
+    name="assets",
     sources=["*.yaml"],
 )
 
 python_sources(
-    dependencies=[":artifacts"],
+    dependencies=[":assets"],
 )
