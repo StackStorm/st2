@@ -32,7 +32,7 @@ files(
         "st2auth/conf:htpasswd",
         "st2actions/conf:logging",
         "st2reactor/conf:logging",
-        "st2tests/conf:other-logging-conf",
+        "st2tests/conf:other_logging_conf",
     ],
 )
 

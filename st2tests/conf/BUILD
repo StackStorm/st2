@@ -14,7 +14,7 @@ file(
 )
 
 files(
-    name="other-logging-conf",
+    name="other_logging_conf",
     sources=["logging.*.conf"],
 )
 

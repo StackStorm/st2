@@ -4,7 +4,7 @@ resources(
 )
 
 resources(
-    name="st2client-ini",
+    name="st2client_ini",
     sources=["*.ini"],
 )
 
