@@ -1,6 +1,6 @@
 ---
-# This Lint workflow uses pants
-name: Lint
+# This Test workflow uses pants
+name: Test
 
 on:
   push:
@@ -23,10 +23,21 @@ on:
   #  - cron:  '0 0 * * *'
 
 jobs:
-  # Lint checks which don't depend on any service containes, etc. to be running.
-  lint-checks:
-    name: 'Tests: (pants runs: pytest)'
+  test:
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # NOTE: We need to use full Python version as part of Python deps cache key otherwise
+        # setup virtualenv step will fail.
+        include:
+          - name: 'Test (pants runs: pytest)'
+            python-version-short: '3.6'
+            python-version: '3.6.13'
+          - name: 'Test (pants runs: pytest)'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
 
     env:
       COLUMNS: '120'
@@ -37,6 +48,12 @@ jobs:
         with:
           # a test uses a submodule, and pants needs access to it to calculate deps.
           submodules: 'true'
+
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+
 
       #- name: Cache APT Dependencies
       #  id: cache-apt-deps
@@ -69,7 +86,7 @@ jobs:
         with:
           base-branch: master
           # To ignore a bad cache, bump the cache* integer.
-          gha-cache-key: cache0
+          gha-cache-key: cache0-py${{ matrix.python-version }}
           # This hash should include all of our lockfiles so that the pip/pex caches
           # get invalidated on any transitive dependency update.
           named-caches-hash: ${{ hashFiles('requirements.txt') }}
@@ -78,7 +95,7 @@ jobs:
 
       - name: Test
         # We do not support running pytest everywhere yet. When we do it will be simply:
-        #   ./pants lint ::
+        #   ./pants test ::
         # Until then, we need to manually adjust this command line to test what we can.
         run: |
           ./pants test pylint_plugins/:: pants-plugins/::
