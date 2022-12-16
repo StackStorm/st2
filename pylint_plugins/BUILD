@@ -9,6 +9,7 @@ python_sources()
 python_tests(
     name="tests",
     dependencies=[
+        "./fixtures",
         "!//conftest.py:test_utils",
     ],
 )
