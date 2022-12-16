@@ -78,7 +78,10 @@ class ActionExecutionSchedulingQueueItemDB(
             {"fields": ["original_start_timestamp"], "name": "orig_s_ts"},
             {"fields": ["scheduled_start_timestamp"], "name": "schd_s_ts"},
             # Adding a union index speeds up the query action_execution_scheduling_queue_item_d_b
-            {"fields": ["scheduled_start_timestamp", "original_start_timestamp"], "name": "schd_orig_s_ts"},
+            {
+                "fields": ["scheduled_start_timestamp", "original_start_timestamp"],
+                "name": "schd_orig_s_ts",
+            },
         ]
     }
 
