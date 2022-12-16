@@ -16,6 +16,8 @@ Added
   #5778 #5789 #5817 #5795 #5830 #5833 #5834 #5841 #5840 #5838 #5842 #5837 #5849 #5850
   Contributed by @cognifloyd
 
+* Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
+
 
 3.8.0 - November 18, 2022
 -------------------------
@@ -66,8 +68,6 @@ Fixed
 
 Added
 ~~~~~
-* Added a joint index to solve the problem of slow mongo queries #5805
-* core.st2.CronTimer : A scheduled task cannot be executed at a given time. Add a new cron function. set the milestone #5779
 
 * Added graceful shutdown for workflow engine. #5463
   Contributed by @khushboobhatia01
