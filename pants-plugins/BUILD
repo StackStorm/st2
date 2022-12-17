@@ -8,5 +8,5 @@ __defaults__(
 # this adds a dependency on the pants libs using the version specified in pants.toml
 pants_requirements(
     name="pants",
-    testutil=False,
+    testutil=True,
 )
