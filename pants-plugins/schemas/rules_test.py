@@ -15,8 +15,12 @@ from __future__ import annotations
 
 import pytest
 
+from pants.backend.python import target_types_rules
 from pants.core.util_rules import source_files
+from pants.core.util_rules.archive import rules as archive_rules
 from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
+from pants.core.util_rules import system_binaries
+from pants.engine.fs import rules as fs_rules
 from pants.engine.target import Target
 from pants.core.goals.fmt import FmtResult
 from pants.testutil.rule_runner import QueryRule, RuleRunner
@@ -31,6 +35,10 @@ def rule_runner() -> RuleRunner:
         rules=[
             *schemas_rules(),
             *source_files.rules(),
+            *archive_rules(),
+            *fs_rules(),
+            *system_binaries.rules(),
+            *target_types_rules.rules(),
             QueryRule(FmtResult, (GenerateSchemasViaFmtTargetsRequest,)),
             QueryRule(SourceFiles, (SourceFilesRequest,)),
         ],
