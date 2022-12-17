@@ -15,12 +15,8 @@ from __future__ import annotations
 
 import pytest
 
-from pants.backend.python import target_types_rules
-from pants.core.util_rules import source_files
-from pants.core.util_rules.archive import rules as archive_rules
 from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
-from pants.core.util_rules import system_binaries
-from pants.engine.fs import rules as fs_rules
+from pants.engine.addresses import Address
 from pants.engine.target import Target
 from pants.core.goals.fmt import FmtResult
 from pants.testutil.rule_runner import QueryRule, RuleRunner
@@ -34,11 +30,6 @@ def rule_runner() -> RuleRunner:
     return RuleRunner(
         rules=[
             *schemas_rules(),
-            *source_files.rules(),
-            *archive_rules(),
-            *fs_rules(),
-            *system_binaries.rules(),
-            *target_types_rules.rules(),
             QueryRule(FmtResult, (GenerateSchemasViaFmtTargetsRequest,)),
             QueryRule(SourceFiles, (SourceFilesRequest,)),
         ],
@@ -60,7 +51,7 @@ def run_st2_generate_schemas(
     input_sources = rule_runner.request(
         SourceFiles,
         [
-            SourceFilesRequest(field_set.source for field_set in field_sets),
+            SourceFilesRequest(field_set.sources for field_set in field_sets),
         ],
     )
     fmt_result = rule_runner.request(

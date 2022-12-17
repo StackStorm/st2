@@ -14,7 +14,7 @@
 from dataclasses import dataclass
 
 from pants.backend.python.target_types import EntryPoint
-from pants.backend.python.util_rules import pex
+from pants.backend.python.util_rules import pex, pex_from_targets
 from pants.backend.python.util_rules.pex import (
     VenvPex,
     VenvPexProcess,
@@ -101,4 +101,5 @@ def rules():
         *collect_rules(),
         UnionRule(FmtTargetsRequest, GenerateSchemasViaFmtTargetsRequest),
         *pex.rules(),
+        *pex_from_targets.rules(),
     ]
