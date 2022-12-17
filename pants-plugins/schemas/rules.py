@@ -35,6 +35,7 @@ from pants.util.logging import LogLevel
 from schemas.target_types import SchemasSourcesField
 
 
+CMD_DIR = "st2common/st2common/cmd"
 CMD = "generate_schemas"
 
 
@@ -67,7 +68,7 @@ async def generate_schemas_via_fmt(
         PexFromTargetsRequest(
             [
                 Address(
-                    "st2common/st2common/cmd",
+                    CMD_DIR,
                     target_name="cmd",
                     relative_file_path=f"{CMD}.py",
                 )
