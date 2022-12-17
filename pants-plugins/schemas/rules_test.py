@@ -11,17 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import pytest
 
-from pants.backend.python import target_types_rules
-from pants.backend.python.target_types import PythonSourcesGeneratorTarget
-from pants.core.util_rules import config_files, source_files
+from pants.core.util_rules import source_files
+from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
 from pants.engine.target import Target
 from pants.core.goals.fmt import FmtResult
 from pants.testutil.rule_runner import QueryRule, RuleRunner
 
 from .rules import GenerateSchemasFieldSet, GenerateSchemasViaFmtTargetsRequest, rules as schemas_rules
+from .target_types import Schemas
 
 
 @pytest.fixture
@@ -29,13 +30,11 @@ def rule_runner() -> RuleRunner:
     return RuleRunner(
         rules=[
             *schemas_rules(),
-            *bandit_subsystem_rules(),
             *source_files.rules(),
-            *config_files.rules(),
-            *target_types_rules.rules(),
             QueryRule(FmtResult, (GenerateSchemasViaFmtTargetsRequest,)),
+            QueryRule(SourceFiles, (SourceFilesRequest,)),
         ],
-        target_types=[PythonSourcesGeneratorTarget],
+        target_types=[Schemas],
     )
 
 
