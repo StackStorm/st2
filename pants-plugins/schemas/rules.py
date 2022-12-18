@@ -28,6 +28,7 @@ from pants.engine.rules import Get, MultiGet, collect_rules, rule
 from pants.engine.target import FieldSet
 from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
+from pants.util.strutil import strip_v2_chroot_path
 
 from schemas.target_types import SchemasSourcesField
 
@@ -58,10 +59,7 @@ class GenerateSchemasViaFmtTargetsRequest(FmtTargetsRequest):
 async def generate_schemas_via_fmt(
     request: GenerateSchemasViaFmtTargetsRequest,
 ) -> FmtResult:
-    # There will only be one target+field_set, but we iterate
-    # to satisfy how fmt expects that there could be more than one.
-
-    # actually generate it with an external script.
+    # We use a pex to actually generate the schemas with an external script.
     # Generation cannot be inlined here because it needs to import the st2 code.
     pex = await Get(
         VenvPex,
@@ -79,6 +77,8 @@ async def generate_schemas_via_fmt(
         ),
     )
 
+    # There will probably only be one target+field_set, but we iterate
+    # to satisfy how fmt expects that there could be more than one.
     output_directories = [fs.address.spec_path for fs in request.field_sets]
 
     results = await MultiGet(
@@ -101,10 +101,18 @@ async def generate_schemas_via_fmt(
         Snapshot, MergeDigests(result.output_digest for result in results)
     )
 
-    # TODO: Use more than just the first process result.
-    #       Only file changes for extra runs get preserved.
-    return FmtResult.create(
-        request, results[0], output_snapshot, strip_chroot_path=True
+    stdout = "\n".join(
+        [strip_v2_chroot_path(process_result.stdout) for process_result in results]
+    )
+    stderr = "\n".join(
+        [strip_v2_chroot_path(process_result.stderr) for process_result in results]
+    )
+    return FmtResult(
+        input=request.snapshot,
+        output=output_snapshot,
+        stdout=stdout,
+        stderr=stderr,
+        formatter_name=request.name,
     )
 
 
