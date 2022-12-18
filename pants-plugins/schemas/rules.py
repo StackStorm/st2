@@ -22,11 +22,7 @@ from pants.backend.python.util_rules.pex import (
 from pants.backend.python.util_rules.pex_from_targets import PexFromTargetsRequest
 from pants.core.goals.fmt import FmtResult, FmtTargetsRequest
 from pants.engine.addresses import Address
-from pants.engine.fs import (
-    Digest,
-    MergeDigests,
-    Snapshot,
-)
+from pants.engine.fs import MergeDigests, Snapshot
 from pants.engine.process import FallibleProcessResult
 from pants.engine.rules import Get, MultiGet, collect_rules, rule
 from pants.engine.target import FieldSet
@@ -36,8 +32,10 @@ from pants.util.logging import LogLevel
 from schemas.target_types import SchemasSourcesField
 
 
+# these constants are also used in the tests.
 CMD_SOURCE_ROOT = "st2common"
 CMD_DIR = "st2common/st2common/cmd"
+CMD_MODULE = "st2common.cmd"
 CMD = "generate_schemas"
 
 
@@ -77,7 +75,7 @@ async def generate_schemas_via_fmt(
             ],
             output_filename=f"{CMD}.pex",
             internal_only=True,
-            main=EntryPoint.parse(f"st2common.cmd.{CMD}:main"),
+            main=EntryPoint.parse(f"{CMD_MODULE}.{CMD}:main"),
         ),
     )
 

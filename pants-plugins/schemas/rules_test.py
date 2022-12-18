@@ -13,6 +13,8 @@
 # limitations under the License.
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from pants.backend.python import target_types_rules
@@ -58,7 +60,7 @@ def run_st2_generate_schemas(
     rule_runner.set_options(
         [
             "--backend-packages=schemas",
-            "--source-root-patterns=/st2common",
+            f"--source-root-patterns=/{CMD_SOURCE_ROOT}",
             *(extra_args or ()),
         ],
         env_inherit={"PATH", "PYENV_ROOT", "HOME"},
@@ -108,19 +110,22 @@ def main():
 def write_files(
     schemas_dir: str, schema_file: str, before: str, after: str, rule_runner: RuleRunner
 ) -> None:
-    rule_runner.write_files(
-        {
-            f"{schemas_dir}/{schema_file}": before,
-            f"{schemas_dir}/BUILD": "schemas(name='t')",
-            # add in the target that's hard-coded in the generate_schemas_via_fmt rue
-            f"{CMD_DIR}/{CMD}.py": GENERATE_SCHEMAS_PY.format(
-                schemas_dir=schemas_dir, schema_text=after
-            ),
-            f"{CMD_DIR}/__init__.py": "",  # st2common/st2common/cmd/
-            f"{CMD_DIR}/../__init__.py": "",  # st2common/st2common/
-            f"{CMD_DIR}/BUILD": "python_sources()",
-        }
-    )
+    files = {
+        f"{schemas_dir}/{schema_file}": before,
+        f"{schemas_dir}/BUILD": "schemas(name='t')",
+        # add in the target that's hard-coded in the generate_schemas_via_fmt rue
+        f"{CMD_DIR}/{CMD}.py": GENERATE_SCHEMAS_PY.format(
+            schemas_dir=schemas_dir, schema_text=after
+        ),
+        f"{CMD_DIR}/BUILD": "python_sources()",
+    }
+
+    module = CMD_DIR
+    while module != CMD_SOURCE_ROOT:
+        files[f"{module}/__init__.py"] = ""
+        module = os.path.dirname(module)
+
+    rule_runner.write_files(files)
 
 
 def test_changed(rule_runner: RuleRunner) -> None:
@@ -136,7 +141,7 @@ def test_changed(rule_runner: RuleRunner) -> None:
         Address("my_dir", target_name="t", relative_file_path="dummy.json")
     )
     fmt_result = run_st2_generate_schemas(rule_runner, [tgt])
-    assert f'Schema will be written to "my_dir/dummy.json".' in fmt_result.stdout
+    assert 'Schema will be written to "my_dir/dummy.json".' in fmt_result.stdout
     assert fmt_result.output == get_snapshot(
         rule_runner, {"my_dir/dummy.json": "AFTER"}
     )
@@ -156,7 +161,7 @@ def test_unchanged(rule_runner: RuleRunner) -> None:
         Address("my_dir", target_name="t", relative_file_path="dummy.json")
     )
     fmt_result = run_st2_generate_schemas(rule_runner, [tgt])
-    assert f'Schema will be written to "my_dir/dummy.json".' in fmt_result.stdout
+    assert 'Schema will be written to "my_dir/dummy.json".' in fmt_result.stdout
     assert fmt_result.output == get_snapshot(
         rule_runner, {"my_dir/dummy.json": "AFTER"}
     )
