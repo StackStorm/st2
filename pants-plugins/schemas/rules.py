@@ -24,10 +24,11 @@ from pants.core.goals.fmt import FmtResult, FmtTargetsRequest
 from pants.engine.addresses import Address
 from pants.engine.fs import (
     Digest,
+    MergeDigests,
     Snapshot,
 )
 from pants.engine.process import FallibleProcessResult
-from pants.engine.rules import Get, collect_rules, rule
+from pants.engine.rules import Get, MultiGet, collect_rules, rule
 from pants.engine.target import FieldSet
 from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
@@ -35,6 +36,7 @@ from pants.util.logging import LogLevel
 from schemas.target_types import SchemasSourcesField
 
 
+CMD_SOURCE_ROOT = "st2common"
 CMD_DIR = "st2common/st2common/cmd"
 CMD = "generate_schemas"
 
@@ -75,26 +77,37 @@ async def generate_schemas_via_fmt(
             ],
             output_filename=f"{CMD}.pex",
             internal_only=True,
-            main=EntryPoint.parse("st2common.cmd.{CMD}:main"),
+            main=EntryPoint.parse(f"st2common.cmd.{CMD}:main"),
         ),
     )
 
-    output_directory = "contrib/schemas"
+    output_directories = [fs.address.spec_path for fs in request.field_sets]
 
-    result = await Get(
-        FallibleProcessResult,
-        VenvPexProcess(
-            pex,
-            argv=(output_directory,),
-            input_digest=request.snapshot.digest,
-            output_directories=[output_directory],
-            description="Regenerating st2 metadata schemas in contrib/schemas",
-            level=LogLevel.DEBUG,
-        ),
+    results = await MultiGet(
+        Get(
+            FallibleProcessResult,
+            VenvPexProcess(
+                pex,
+                argv=(output_directory,),
+                # This script actually ignores the input files.
+                input_digest=request.snapshot.digest,
+                output_directories=[output_directory],
+                description=f"Regenerating st2 metadata schemas in {output_directory}",
+                level=LogLevel.DEBUG,
+            ),
+        )
+        for output_directory in output_directories
     )
 
-    output_snapshot = await Get(Snapshot, Digest, result.output_digest)
-    return FmtResult.create(request, result, output_snapshot, strip_chroot_path=True)
+    output_snapshot = await Get(
+        Snapshot, MergeDigests(result.output_digest for result in results)
+    )
+
+    # TODO: Use more than just the first process result.
+    #       Only file changes for extra runs get preserved.
+    return FmtResult.create(
+        request, results[0], output_snapshot, strip_chroot_path=True
+    )
 
 
 def rules():

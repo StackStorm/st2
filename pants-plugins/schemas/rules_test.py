@@ -18,9 +18,9 @@ import pytest
 from pants.backend.python import target_types_rules
 from pants.backend.python.target_types import PythonSourcesGeneratorTarget
 
-# from pants.core.util_rules import config_files, source_files
 from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
 from pants.engine.addresses import Address
+from pants.engine.fs import CreateDigest, Digest, FileContent, Snapshot
 from pants.engine.target import Target
 from pants.core.goals.fmt import FmtResult
 from pants.testutil.rule_runner import QueryRule, RuleRunner
@@ -28,6 +28,7 @@ from pants.testutil.rule_runner import QueryRule, RuleRunner
 from .rules import (
     CMD,
     CMD_DIR,
+    CMD_SOURCE_ROOT,
     GenerateSchemasFieldSet,
     GenerateSchemasViaFmtTargetsRequest,
     rules as schemas_rules,
@@ -40,8 +41,6 @@ def rule_runner() -> RuleRunner:
     return RuleRunner(
         rules=[
             *schemas_rules(),
-            # *source_files.rules(),
-            # *config_files.rules(),
             *target_types_rules.rules(),
             QueryRule(FmtResult, (GenerateSchemasViaFmtTargetsRequest,)),
             QueryRule(SourceFiles, (SourceFilesRequest,)),
@@ -59,6 +58,7 @@ def run_st2_generate_schemas(
     rule_runner.set_options(
         [
             "--backend-packages=schemas",
+            "--source-root-patterns=/st2common",
             *(extra_args or ()),
         ],
         env_inherit={"PATH", "PYENV_ROOT", "HOME"},
@@ -82,12 +82,12 @@ def run_st2_generate_schemas(
 
 
 # copied from pantsbuild/pants.git/src/python/pants/backend/python/lint/black/rules_integration_test.py
-# def get_snapshot(rule_runner: RuleRunner, source_files: dict[str, str]) -> Snapshot:
-#    files = [
-#        FileContent(path, content.encode()) for path, content in source_files.items()
-#    ]
-#    digest = rule_runner.request(Digest, [CreateDigest(files)])
-#    return rule_runner.request(Snapshot, [digest])
+def get_snapshot(rule_runner: RuleRunner, source_files: dict[str, str]) -> Snapshot:
+    files = [
+        FileContent(path, content.encode()) for path, content in source_files.items()
+    ]
+    digest = rule_runner.request(Digest, [CreateDigest(files)])
+    return rule_runner.request(Snapshot, [digest])
 
 
 # add dummy script at st2common/st2common/cmd/generate_schemas.py that the test can load.
@@ -102,7 +102,6 @@ def main():
     print('Schema will be written to "%s".' % schema_file)
     with open(schema_file, "w") as f:
         f.write(schema_text)
-        f.write("\n")
 """
 
 
@@ -117,16 +116,48 @@ def write_files(
             f"{CMD_DIR}/{CMD}.py": GENERATE_SCHEMAS_PY.format(
                 schemas_dir=schemas_dir, schema_text=after
             ),
+            f"{CMD_DIR}/__init__.py": "",  # st2common/st2common/cmd/
+            f"{CMD_DIR}/../__init__.py": "",  # st2common/st2common/
             f"{CMD_DIR}/BUILD": "python_sources()",
         }
     )
 
 
-def test_something(rule_runner: RuleRunner) -> None:
-    write_files("my_dir", "dummy.json", rule_runner)
+def test_changed(rule_runner: RuleRunner) -> None:
+    write_files(
+        schemas_dir="my_dir",
+        schema_file="dummy.json",
+        before="BEFORE",
+        after="AFTER",
+        rule_runner=rule_runner,
+    )
 
     tgt = rule_runner.get_target(
         Address("my_dir", target_name="t", relative_file_path="dummy.json")
     )
     fmt_result = run_st2_generate_schemas(rule_runner, [tgt])
-    # TODO: add asserts
+    assert f'Schema will be written to "my_dir/dummy.json".' in fmt_result.stdout
+    assert fmt_result.output == get_snapshot(
+        rule_runner, {"my_dir/dummy.json": "AFTER"}
+    )
+    assert fmt_result.did_change is True
+
+
+def test_unchanged(rule_runner: RuleRunner) -> None:
+    write_files(
+        schemas_dir="my_dir",
+        schema_file="dummy.json",
+        before="AFTER",
+        after="AFTER",
+        rule_runner=rule_runner,
+    )
+
+    tgt = rule_runner.get_target(
+        Address("my_dir", target_name="t", relative_file_path="dummy.json")
+    )
+    fmt_result = run_st2_generate_schemas(rule_runner, [tgt])
+    assert f'Schema will be written to "my_dir/dummy.json".' in fmt_result.stdout
+    assert fmt_result.output == get_snapshot(
+        rule_runner, {"my_dir/dummy.json": "AFTER"}
+    )
+    assert fmt_result.did_change is False
