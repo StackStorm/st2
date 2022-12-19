@@ -71,7 +71,7 @@ function must_be_root() {
 
 function not_running_in_k8s() {
     if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
-        echo -e "\e[31mError: \"st2ctl status\" is not supported under Kubernetes \e[0m\n"
+        echo -e "\e[31mError: \"st2ctl status\" is not supported under Kubernetes, please use Kubernetes tools such as \"kubectl\" to view the StackStorm services in this cluster. \e[0m\n"
         exit 1
     fi
 }
