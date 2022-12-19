@@ -18,6 +18,7 @@ import abc
 DEFAULT_PACK_NAME = "default"
 
 
+# copied from st2common.models.api.notification
 NotificationSubSchemaAPI = {
     "type": "object",
     "properties": {
@@ -43,13 +44,13 @@ def get_schema(**kwargs):
     return {}
 
 
-# copied from st2common.models.api.base
+# copied (in part) from st2common.models.api.base
 class BaseAPI(abc.ABC):
     schema = abc.abstractproperty
     name = None
 
 
-# copied from st2common.models.api.action
+# copied (in part) from st2common.models.api.action
 class ActionAPI(BaseAPI):
     """
     The system entity that represents a Stack Action/Automation in the system.
@@ -132,6 +133,7 @@ class ActionAPI(BaseAPI):
     }
 
 
+# copied (in part) from st2common.models.api.trigger
 class TriggerTypeAPI(BaseAPI):
     schema = {
         "type": "object",

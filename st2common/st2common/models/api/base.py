@@ -29,6 +29,7 @@ __all__ = ["BaseAPI", "APIUIDMixin"]
 LOG = logging.getLogger(__name__)
 
 
+# NOTE: Update pylint_plugins/fixtures/api_models.py if this changes significantly
 @six.add_metaclass(abc.ABCMeta)
 class BaseAPI(object):
     schema = abc.abstractproperty
