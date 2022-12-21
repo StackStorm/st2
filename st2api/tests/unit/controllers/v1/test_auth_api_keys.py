@@ -51,6 +51,7 @@ class TestApiKeyController(FunctionalTest):
 
         cfg.CONF.set_override(name="mask_secrets", override=True, group="api")
         cfg.CONF.set_override(name="mask_secrets", override=True, group="log")
+        cfg.CONF.set_override(name="personal_keys", override=False, group="rbac")
 
         models = FixturesLoader().save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_MODELS

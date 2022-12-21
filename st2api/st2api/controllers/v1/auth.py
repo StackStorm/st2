@@ -74,11 +74,17 @@ class ApiKeyController(BaseRestControllerMixin):
 
         permission_type = PermissionType.API_KEY_VIEW
         rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_db_permission(
+        if cfg.CONF.rbac.personal_keys:
+            isKeyCreationAllowed = self.checkPersonalAPIKeyPermission(api_key_db,requester_user)
+            if not isKeyCreationAllowed:
+                LOG.exception("User does not have permission to view apikey=%s.", api_key_db)
+                abort(http_client.BAD_REQUEST, "")
+        else:
+            rbac_utils.assert_user_has_resource_api_permission(
             user_db=requester_user,
-            resource_db=api_key_db,
+            resource_api=api_key_db,
             permission_type=permission_type,
-        )
+            )
 
         try:
             mask_secrets = self._get_mask_secrets(
@@ -126,18 +132,39 @@ class ApiKeyController(BaseRestControllerMixin):
 
         return resp
 
+    def checkPersonalAPIKeyPermission(self, api_key_api, requester_user):
+        """
+        Checks whether requested user is the creating/updating/fetching/deleting the api key. This is used when 
+        'personal_keys' flag is set of 'rbac' group in conf file.
+        """
+        if not api_key_api or not requester_user:
+            return False
+        rbac_utils = get_rbac_backend().get_utils_class()
+        user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
+        is_same_user = requester_user.name == api_key_api.user
+        if (user_is_admin) or (is_same_user or api_key_api.user == ""):
+            return True
+        else:
+            return False
+
+
     def post(self, api_key_api, requester_user):
         """
         Create a new entry.
         """
-
         permission_type = PermissionType.API_KEY_CREATE
         rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_api_permission(
+        if cfg.CONF.rbac.personal_keys:
+            isKeyCreationAllowed = self.checkPersonalAPIKeyPermission(api_key_api,requester_user)
+            if not isKeyCreationAllowed:
+                LOG.exception("User does not have permission to create apikey=%s.", api_key_api)
+                abort(http_client.BAD_REQUEST, "")
+        else:
+            rbac_utils.assert_user_has_resource_api_permission(
             user_db=requester_user,
             resource_api=api_key_api,
             permission_type=permission_type,
-        )
+            )
 
         api_key_db = None
         api_key = None
@@ -184,11 +211,17 @@ class ApiKeyController(BaseRestControllerMixin):
 
         permission_type = PermissionType.API_KEY_MODIFY
         rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_db_permission(
+        if cfg.CONF.rbac.personal_keys:
+            isKeyCreationAllowed = self.checkPersonalAPIKeyPermission(api_key_db,requester_user)
+            if not isKeyCreationAllowed:
+                LOG.exception("User does not have permission to update apikey=%s.", api_key_db)
+                abort(http_client.BAD_REQUEST, "")
+        else:
+            rbac_utils.assert_user_has_resource_api_permission(
             user_db=requester_user,
-            resource_db=api_key_db,
+            resource_api=api_key_db,
             permission_type=permission_type,
-        )
+            )
 
         old_api_key_db = api_key_db
         api_key_db = ApiKeyAPI.to_model(api_key_api)
@@ -233,11 +266,17 @@ class ApiKeyController(BaseRestControllerMixin):
 
         permission_type = PermissionType.API_KEY_DELETE
         rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_db_permission(
+        if cfg.CONF.rbac.personal_keys:
+            isKeyCreationAllowed = self.checkPersonalAPIKeyPermission(api_key_db,requester_user)
+            if not isKeyCreationAllowed:
+                LOG.exception("User does not have permission to delete apikey=%s.", api_key_db)
+                abort(http_client.BAD_REQUEST, "")
+        else:
+            rbac_utils.assert_user_has_resource_api_permission(
             user_db=requester_user,
-            resource_db=api_key_db,
+            resource_api=api_key_db,
             permission_type=permission_type,
-        )
+            )
 
         ApiKey.delete(api_key_db)
 
