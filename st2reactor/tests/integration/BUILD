@@ -1,5 +1,5 @@
 __defaults__(
-    {python_tests: dict(tags=["integration"])},
+    {(python_test, python_tests): dict(tags=["integration"])},
     extend=True,
 )
 

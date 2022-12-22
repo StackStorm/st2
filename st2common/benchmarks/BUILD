@@ -1,3 +1,3 @@
 __defaults__(
-    {python_tests: dict(tags=["benchmarks"])},
+    {(python_test, python_tests): dict(tags=["benchmarks"])},
 )
