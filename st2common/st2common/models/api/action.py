@@ -165,6 +165,7 @@ class RunnerTypeAPI(BaseAPI):
         return model
 
 
+# NOTE: Update pylint_plugins/fixtures/api_models.py if this changes significantly
 class ActionAPI(BaseAPI, APIUIDMixin):
     """
     The system entity that represents a Stack Action/Automation in the system.
