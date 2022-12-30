@@ -1,4 +1,5 @@
 python_sources(
+    dependencies=["st2common/benchmarks/fixtures/json"],
     skip_pylint=True,
 )
 

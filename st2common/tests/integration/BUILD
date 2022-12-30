@@ -2,4 +2,9 @@ python_sources()
 
 python_tests(
     name="tests",
+    dependencies=[
+        # used by test_register_content_script
+        "conf/st2.tests.conf:st2_tests_conf",
+        "conf/st2.tests1.conf:st2_tests_conf",
+    ],
 )
