@@ -16,6 +16,8 @@ Added
   #5778 #5789 #5817 #5795 #5830 #5833 #5834 #5841 #5840 #5838 #5842 #5837 #5849 #5850
   Contributed by @cognifloyd
 
+* Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
+
 
 3.8.0 - November 18, 2022
 -------------------------
