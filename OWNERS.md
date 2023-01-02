@@ -39,8 +39,6 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Puppet, StackStorm Exchange.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) <<nzlosh@yahoo.com>>
   - Packaging, Systems, Chatops, Errbot, Community, Discussions, StackStorm Exchange.
-* JP Bourget ([@punkrokk](https://github.com/punkrokk)) <<jp.bourget@gmail.com>>
-  - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCI.
 * Khushboo Bhatia ([@khushboobhatia01](https://github.com/khushboobhatia01)), _VMware_ <<khushb99@gmail.com>>
   - StackStorm Core, Workflows.
 * Marcel Weinberg ([@winem](https://github.com/winem)), _CoreMedia_ <<mweinberg-os@email.de>>
@@ -85,6 +83,7 @@ Thank you, Friends!
 * Jinping Han ([@jinpingh](https://github.com/jinpingh)) - ex Stormer. Community, Core, Tests, Pack Dependencies.
 * Johan Dahlberg ([@johandahlberg](https://github.com/johandahlberg)) - Using st2 for Bioinformatics/Science project, providing feedback & contributions in Ansible, Community, Workflows. [Case Study](https://stackstorm.com/case-study-scilifelab/).
 * Johan Hermansson ([@johanherman](https://github.com/johanherman)) - Using st2 for Bioinformatics/Science project, feedback & contributions in Ansible, Community, Workflows. [Case Study](https://stackstorm.com/case-study-scilifelab/).
+* JP Bourget ([@punkrokk](https://github.com/punkrokk)) - Systems, deb/rpm, Deployments, Community, StackStorm Exchange, SecOps, CircleCI. Used ST2 for Security Orchestration.
 * Jon Middleton ([@jjm](https://github.com/jjm)) - StackStorm Exchange, Core, Discussions.
 * Lakshmi Kannan ([@lakshmi-kannan](https://github.com/lakshmi-kannan)) - early Stormer. Initial Core platform architecture, scalability, reliability, Team Leadership during the project hard times.
 * Lindsay Hill ([@LindsayHill](https://github.com/LindsayHill)) - ex StackStorm product manager that made a significant impact building an ecosystem we see today.
