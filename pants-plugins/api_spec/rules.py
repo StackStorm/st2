@@ -45,8 +45,12 @@ from pants.util.logging import LogLevel
 from api_spec.target_types import APISpecSourceField
 
 
-GENERATE_SCRIPT = "generate_api_spec"
-VALIDATE_SCRIPT = "validate_api_spec"
+# these constants are also used in the tests
+CMD_SOURCE_ROOT = "st2common"
+CMD_DIR = "st2common/st2common/cmd"
+CMD_MODULE = "st2common.cmd"
+GENERATE_CMD = "generate_api_spec"
+VALIDATE_CMD = "validate_api_spec"
 
 SPEC_HEADER = b"""\
 # NOTE: This file is auto-generated - DO NOT EDIT MANUALLY
@@ -65,12 +69,12 @@ class APISpecFieldSet(FieldSet):
 
 class GenerateAPISpecViaFmtTargetsRequest(FmtTargetsRequest):
     field_set_type = APISpecFieldSet
-    name = GENERATE_SCRIPT
+    name = GENERATE_CMD
 
 
 class ValidateAPISpecRequest(LintTargetsRequest):
     field_set_type = APISpecFieldSet
-    name = VALIDATE_SCRIPT
+    name = VALIDATE_CMD
 
 
 @rule(
@@ -115,14 +119,14 @@ async def generate_api_spec_via_fmt(
         PexFromTargetsRequest(
             [
                 Address(
-                    "st2common/st2common/cmd",
+                    CMD_DIR,
                     target_name="cmd",
-                    relative_file_path=f"{GENERATE_SCRIPT}.py",
+                    relative_file_path=f"{GENERATE_CMD}.py",
                 ),
             ],
-            output_filename=f"{GENERATE_SCRIPT}.pex",
+            output_filename=f"{GENERATE_CMD}.pex",
             internal_only=True,
-            main=EntryPoint.parse(f"st2common.cmd.{GENERATE_SCRIPT}:main"),
+            main=EntryPoint.parse(f"{CMD_MODULE}.{GENERATE_CMD}:main"),
         ),
     )
 
@@ -165,6 +169,7 @@ async def generate_api_spec_via_fmt(
 
     output_digest = await Get(Digest, CreateDigest(contents))
     output_snapshot = await Get(Snapshot, Digest, output_digest)
+    # TODO: Drop result.stdout since we already wrote it to a file?
     return FmtResult.create(request, result, output_snapshot, strip_chroot_path=True)
 
 
@@ -210,14 +215,14 @@ async def validate_api_spec(
         PexFromTargetsRequest(
             [
                 Address(
-                    "st2common/st2common/cmd",
+                    CMD_DIR,
                     target_name="cmd",
-                    relative_file_path=f"{VALIDATE_SCRIPT}.py",
+                    relative_file_path=f"{VALIDATE_CMD}.py",
                 ),
             ],
-            output_filename=f"{VALIDATE_SCRIPT}.pex",
+            output_filename=f"{VALIDATE_CMD}.pex",
             internal_only=True,
-            main=EntryPoint.parse(f"st2common.cmd.{VALIDATE_SCRIPT}:main"),
+            main=EntryPoint.parse(f"{CMD_MODULE}.{VALIDATE_CMD}:main"),
         ),
     )
 
