@@ -52,13 +52,6 @@ CMD_MODULE = "st2common.cmd"
 GENERATE_CMD = "generate_api_spec"
 VALIDATE_CMD = "validate_api_spec"
 
-SPEC_HEADER = b"""\
-# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY
-# Edit st2common/st2common/openapi.yaml.j2 and then run
-# ./pants fmt st2common/st2common/openapi.yaml
-# to generate the final spec file
-"""
-
 
 @dataclass(frozen=True)
 class APISpecFieldSet(FieldSet):
@@ -162,7 +155,7 @@ async def generate_api_spec_via_fmt(
     contents = [
         FileContent(
             f"{field_set.address.spec_path}/{field_set.source.value}",
-            SPEC_HEADER + result.stdout,
+            result.stdout,
         )
         for field_set in request.field_sets
     ]
