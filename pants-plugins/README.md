@@ -10,6 +10,7 @@ To see available goals, do "./pants help goals" and "./pants help $goal".
 
 These StackStorm-specific plugins are probably only useful for the st2 repo.
 - `api_spec`
+- `sample_conf`
 - `schemas`
 
 ### `api_spec` plugin
@@ -24,6 +25,15 @@ regenerated.
 This plugin also wires up pants so that the `lint` goal runs additional
 api spec validation on `st2common/st2common/openapi.yaml` with something
 like `./pants lint st2common/st2common/openapi.yaml`.
+
+### `sample_conf` plugin
+
+This plugin wires up pants to make sure `conf/st2.conf.sample` gets
+regenerated whenever the source files change. Now, whenever someone runs
+the `fmt` goal (eg `./pants fmt conf/st2.conf.sample`), the sample will
+be regenerated if any of the files used to generate it have changed.
+Also, running the `lint` goal will fail if the sample needs to be
+regenerated.
 
 ### `schemas` plugin
 
