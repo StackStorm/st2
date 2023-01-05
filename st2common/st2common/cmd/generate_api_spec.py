@@ -46,7 +46,7 @@ def setup():
 
 def generate_spec():
     spec_string = spec_loader.generate_spec("st2common", "openapi.yaml.j2")
-    print(SPEC_HEADER)
+    print(SPEC_HEADER.rstrip())
     print(spec_string)
 
 
