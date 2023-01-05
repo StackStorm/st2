@@ -104,7 +104,11 @@ if __name__ == "__main__":
 
 
 def write_files(
-    sample_conf_dir: str, sample_conf_file: str, before: str, after: str, rule_runner: RuleRunner
+    sample_conf_dir: str,
+    sample_conf_file: str,
+    before: str,
+    after: str,
+    rule_runner: RuleRunner,
 ) -> None:
     files = {
         f"{sample_conf_dir}/{sample_conf_file}": before,

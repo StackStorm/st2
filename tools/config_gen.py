@@ -25,7 +25,7 @@ from oslo_config import cfg
 
 
 CONFIGS = [
-    # this is duplicated in conf/BUILD
+    # this is duplicated in tools/BUILD
     # TODO: replace this with a heuristic that searches for config.py
     #       maybe with an exclude list (eg st2tests.config st2client)
     #       grep -rl 'def register_opts(ignore_errors=False):' st2*

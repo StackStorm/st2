@@ -31,12 +31,12 @@ python_requirements(
                 "//:reqs#zake",
             ]
         },
-		# make sure anything that uses st2-auth-ldap gets the st2auth constant
-		"st2-auth-ldap": {
+        # make sure anything that uses st2-auth-ldap gets the st2auth constant
+        "st2-auth-ldap": {
             "dependencies": [
                 "st2auth/st2auth/backends/constants.py",
             ]
-		}
+        },
     },
 )
 
