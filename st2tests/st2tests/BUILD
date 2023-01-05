@@ -1,0 +1,9 @@
+python_sources(
+    dependencies=[
+        "st2tests/conf:st2.conf",
+        "st2tests/conf:st2_kvstore_tests.crypto.key.json",
+        "st2tests/conf:logging.conf",
+        "./resources:ssh",
+        "./resources:packs",
+    ],
+)
