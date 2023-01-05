@@ -22,9 +22,10 @@ from pants.backend.python.target_types import PythonSourcesGeneratorTarget
 
 from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
 from pants.engine.addresses import Address
-from pants.engine.fs import CreateDigest, Digest, FileContent, Snapshot
+from pants.engine.fs import CreateDigest, Digest, EMPTY_DIGEST, FileContent, Snapshot
 from pants.engine.target import Target
 from pants.core.goals.fmt import FmtResult
+from pants.core.goals.lint import LintResult, LintResults
 from pants.testutil.rule_runner import QueryRule, RuleRunner
 
 from .rules import (
@@ -34,6 +35,7 @@ from .rules import (
     VALIDATE_CMD,
     APISpecFieldSet,
     GenerateAPISpecViaFmtTargetsRequest,
+    ValidateAPISpecRequest,
     rules as api_spec_rules,
 )
 from .target_types import APISpec
@@ -46,6 +48,7 @@ def rule_runner() -> RuleRunner:
             *api_spec_rules(),
             *target_types_rules.rules(),
             QueryRule(FmtResult, (GenerateAPISpecViaFmtTargetsRequest,)),
+            QueryRule(LintResults, (ValidateAPISpecRequest,)),
             QueryRule(SourceFiles, (SourceFilesRequest,)),
         ],
         target_types=[APISpec, PythonSourcesGeneratorTarget],
@@ -70,7 +73,7 @@ def run_st2_generate_api_spec(
     input_sources = rule_runner.request(
         SourceFiles,
         [
-            SourceFilesRequest(field_set.sources for field_set in field_sets),
+            SourceFilesRequest(field_set.source for field_set in field_sets),
         ],
     )
     fmt_result = rule_runner.request(
@@ -89,7 +92,7 @@ def run_st2_validate_api_spec(
     targets: list[Target],
     *,
     extra_args: list[str] | None = None,
-) -> LintResults:
+) -> Sequence[LintResult]:
     rule_runner.set_options(
         [
             "--backend-packages=api_spec",
@@ -99,21 +102,13 @@ def run_st2_validate_api_spec(
         env_inherit={"PATH", "PYENV_ROOT", "HOME"},
     )
     field_sets = [APISpecFieldSet.create(tgt) for tgt in targets]
-    input_sources = rule_runner.request(
-        SourceFiles,
-        [
-            SourceFilesRequest(field_set.sources for field_set in field_sets),
-        ],
-    )
     lint_results = rule_runner.request(
         LintResults,
         [
-            ValidateAPISpecRequest(
-                field_sets, snapshot=input_sources.snapshot
-            ),
+            ValidateAPISpecRequest(field_sets),
         ],
     )
-    return lint_results
+    return lint_results.results
 
 
 # copied from pantsbuild/pants.git/src/python/pants/backend/python/lint/black/rules_integration_test.py
@@ -141,7 +136,7 @@ def write_generate_files(
 ) -> None:
     files = {
         f"{api_spec_dir}/{api_spec_file}": before,
-        f"{api_spec_dir}/BUILD": "api_spec(name='t')",
+        f"{api_spec_dir}/BUILD": f"api_spec(name='t', source='{api_spec_file}')",
         # add in the target that's hard-coded in the generate_api_spec_via_fmt rue
         f"{CMD_DIR}/{GENERATE_CMD}.py": GENERATE_API_SPEC_PY.format(
             api_spec_dir=api_spec_dir, api_spec_text=after
@@ -171,7 +166,7 @@ def test_generate_changed(rule_runner: RuleRunner) -> None:
     )
     fmt_result = run_st2_generate_api_spec(rule_runner, [tgt])
     assert fmt_result.output == get_snapshot(
-        rule_runner, {"my_dir/dummy.yaml": "AFTER"}
+        rule_runner, {"my_dir/dummy.yaml": "AFTER\n"}
     )
     assert fmt_result.did_change is True
 
@@ -180,8 +175,8 @@ def test_generate_unchanged(rule_runner: RuleRunner) -> None:
     write_generate_files(
         api_spec_dir="my_dir",
         api_spec_file="dummy.yaml",
-        before="AFTER",
-        after="AFTER",
+        before="AFTER\n",
+        after="AFTER",  # print() adds a newline
         rule_runner=rule_runner,
     )
 
@@ -190,7 +185,7 @@ def test_generate_unchanged(rule_runner: RuleRunner) -> None:
     )
     fmt_result = run_st2_generate_api_spec(rule_runner, [tgt])
     assert fmt_result.output == get_snapshot(
-        rule_runner, {"my_dir/dummy.yaml": "AFTER"}
+        rule_runner, {"my_dir/dummy.yaml": "AFTER\n"}
     )
     assert fmt_result.did_change is False
 
@@ -210,7 +205,7 @@ def write_validate_files(
 ) -> None:
     files = {
         f"{api_spec_dir}/{api_spec_file}": contents,
-        f"{api_spec_dir}/BUILD": "api_spec(name='t')",
+        f"{api_spec_dir}/BUILD": f"api_spec(name='t', source='{api_spec_file}')",
         # add in the target that's hard-coded in the generate_api_spec_via_fmt rue
         f"{CMD_DIR}/{VALIDATE_CMD}.py": VALIDATE_API_SPEC_PY.format(
             api_spec_dir=api_spec_dir, rc=rc
@@ -240,8 +235,8 @@ def test_validate_passed(rule_runner: RuleRunner) -> None:
     )
     lint_result = run_st2_validate_api_spec(rule_runner, [tgt])
     assert len(lint_result) == 1
-    assert result[0].exit_code == 0
-    assert result[0].report == EMPTY_DIGEST
+    assert lint_result[0].exit_code == 0
+    assert lint_result[0].report == EMPTY_DIGEST
 
 
 
@@ -259,5 +254,5 @@ def test_validate_failed(rule_runner: RuleRunner) -> None:
     )
     lint_result = run_st2_validate_api_spec(rule_runner, [tgt])
     assert len(lint_result) == 1
-    assert result[0].exit_code == 1
-    assert result[0].report == EMPTY_DIGEST
+    assert lint_result[0].exit_code == 1
+    assert lint_result[0].report == EMPTY_DIGEST
