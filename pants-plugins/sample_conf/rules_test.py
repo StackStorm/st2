@@ -13,8 +13,6 @@
 # limitations under the License.
 from __future__ import annotations
 
-import os
-
 import pytest
 
 from pants.backend.python import target_types_rules
