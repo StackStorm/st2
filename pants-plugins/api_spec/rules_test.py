@@ -31,6 +31,7 @@ from .rules import (
     CMD_DIR,
     CMD_SOURCE_ROOT,
     GENERATE_CMD,
+    VALIDATE_CMD,
     APISpecFieldSet,
     GenerateAPISpecViaFmtTargetsRequest,
     rules as api_spec_rules,
@@ -81,6 +82,38 @@ def run_st2_generate_api_spec(
         ],
     )
     return fmt_result
+
+
+def run_st2_validate_api_spec(
+    rule_runner: RuleRunner,
+    targets: list[Target],
+    *,
+    extra_args: list[str] | None = None,
+) -> LintResults:
+    rule_runner.set_options(
+        [
+            "--backend-packages=api_spec",
+            f"--source-root-patterns=/{CMD_SOURCE_ROOT}",
+            *(extra_args or ()),
+        ],
+        env_inherit={"PATH", "PYENV_ROOT", "HOME"},
+    )
+    field_sets = [APISpecFieldSet.create(tgt) for tgt in targets]
+    input_sources = rule_runner.request(
+        SourceFiles,
+        [
+            SourceFilesRequest(field_set.sources for field_set in field_sets),
+        ],
+    )
+    lint_results = rule_runner.request(
+        LintResults,
+        [
+            ValidateAPISpecRequest(
+                field_sets, snapshot=input_sources.snapshot
+            ),
+        ],
+    )
+    return lint_results
 
 
 # copied from pantsbuild/pants.git/src/python/pants/backend/python/lint/black/rules_integration_test.py
@@ -160,3 +193,71 @@ def test_generate_unchanged(rule_runner: RuleRunner) -> None:
         rule_runner, {"my_dir/dummy.yaml": "AFTER"}
     )
     assert fmt_result.did_change is False
+
+
+# add dummy script at st2common/st2common/cmd/validate_api_spec.py that the test can load.
+VALIDATE_API_SPEC_PY = """
+import sys
+
+
+def main():
+    sys.exit({rc})
+"""
+
+
+def write_validate_files(
+    api_spec_dir: str, api_spec_file: str, contents: str, rc: int, rule_runner: RuleRunner
+) -> None:
+    files = {
+        f"{api_spec_dir}/{api_spec_file}": contents,
+        f"{api_spec_dir}/BUILD": "api_spec(name='t')",
+        # add in the target that's hard-coded in the generate_api_spec_via_fmt rue
+        f"{CMD_DIR}/{VALIDATE_CMD}.py": VALIDATE_API_SPEC_PY.format(
+            api_spec_dir=api_spec_dir, rc=rc
+        ),
+        f"{CMD_DIR}/BUILD": "python_sources()",
+    }
+
+    module = CMD_DIR
+    while module != CMD_SOURCE_ROOT:
+        files[f"{module}/__init__.py"] = ""
+        module = os.path.dirname(module)
+
+    rule_runner.write_files(files)
+
+
+def test_validate_passed(rule_runner: RuleRunner) -> None:
+    write_validate_files(
+        api_spec_dir="my_dir",
+        api_spec_file="dummy.yaml",
+        contents="PASS",
+        rc=0,
+        rule_runner=rule_runner,
+    )
+
+    tgt = rule_runner.get_target(
+        Address("my_dir", target_name="t", relative_file_path="dummy.yaml")
+    )
+    lint_result = run_st2_validate_api_spec(rule_runner, [tgt])
+    assert len(lint_result) == 1
+    assert result[0].exit_code == 0
+    assert result[0].report == EMPTY_DIGEST
+
+
+
+def test_validate_failed(rule_runner: RuleRunner) -> None:
+    write_validate_files(
+        api_spec_dir="my_dir",
+        api_spec_file="dummy.yaml",
+        contents="FAIL",
+        rc=1,
+        rule_runner=rule_runner,
+    )
+
+    tgt = rule_runner.get_target(
+        Address("my_dir", target_name="t", relative_file_path="dummy.yaml")
+    )
+    lint_result = run_st2_validate_api_spec(rule_runner, [tgt])
+    assert len(lint_result) == 1
+    assert result[0].exit_code == 1
+    assert result[0].report == EMPTY_DIGEST
