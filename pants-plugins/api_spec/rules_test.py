@@ -15,6 +15,8 @@ from __future__ import annotations
 
 import os
 
+from typing import Sequence
+
 import pytest
 
 from pants.backend.python import target_types_rules
@@ -132,7 +134,11 @@ def main():
 
 
 def write_generate_files(
-    api_spec_dir: str, api_spec_file: str, before: str, after: str, rule_runner: RuleRunner
+    api_spec_dir: str,
+    api_spec_file: str,
+    before: str,
+    after: str,
+    rule_runner: RuleRunner,
 ) -> None:
     files = {
         f"{api_spec_dir}/{api_spec_file}": before,
@@ -201,7 +207,11 @@ def main():
 
 
 def write_validate_files(
-    api_spec_dir: str, api_spec_file: str, contents: str, rc: int, rule_runner: RuleRunner
+    api_spec_dir: str,
+    api_spec_file: str,
+    contents: str,
+    rc: int,
+    rule_runner: RuleRunner,
 ) -> None:
     files = {
         f"{api_spec_dir}/{api_spec_file}": contents,
@@ -237,7 +247,6 @@ def test_validate_passed(rule_runner: RuleRunner) -> None:
     assert len(lint_result) == 1
     assert lint_result[0].exit_code == 0
     assert lint_result[0].report == EMPTY_DIGEST
-
 
 
 def test_validate_failed(rule_runner: RuleRunner) -> None:
