@@ -84,7 +84,7 @@ class ApiKeyController(BaseRestControllerMixin):
                 )
                 abort(http_client.BAD_REQUEST, "")
         else:
-            rbac_utils.assert_user_has_resource_api_permission(
+            rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
                 resource_db=api_key_db,
                 permission_type=permission_type,
@@ -228,7 +228,7 @@ class ApiKeyController(BaseRestControllerMixin):
                 )
                 abort(http_client.BAD_REQUEST, "")
         else:
-            rbac_utils.assert_user_has_resource_api_permission(
+            rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
                 resource_db=api_key_db,
                 permission_type=permission_type,
@@ -287,7 +287,7 @@ class ApiKeyController(BaseRestControllerMixin):
                 )
                 abort(http_client.BAD_REQUEST, "")
         else:
-            rbac_utils.assert_user_has_resource_api_permission(
+            rbac_utils.assert_user_has_resource_db_permission(
                 user_db=requester_user,
                 resource_db=api_key_db,
                 permission_type=permission_type,
