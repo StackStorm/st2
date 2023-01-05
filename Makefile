@@ -460,7 +460,7 @@ generate-api-spec: requirements .generate-api-spec
 	@echo
 	@echo "================== Generate openapi.yaml file ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf >> st2common/st2common/openapi.yaml
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf > st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
 circle-lint-api-spec:
