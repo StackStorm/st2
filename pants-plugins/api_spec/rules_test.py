@@ -143,7 +143,7 @@ def write_generate_files(
     files = {
         f"{api_spec_dir}/{api_spec_file}": before,
         f"{api_spec_dir}/BUILD": f"api_spec(name='t', source='{api_spec_file}')",
-        # add in the target that's hard-coded in the generate_api_spec_via_fmt rue
+        # add in the target that's hard-coded in the generate_api_spec_via_fmt rule
         f"{CMD_DIR}/{GENERATE_CMD}.py": GENERATE_API_SPEC_PY.format(
             api_spec_dir=api_spec_dir, api_spec_text=after
         ),
@@ -216,7 +216,7 @@ def write_validate_files(
     files = {
         f"{api_spec_dir}/{api_spec_file}": contents,
         f"{api_spec_dir}/BUILD": f"api_spec(name='t', source='{api_spec_file}')",
-        # add in the target that's hard-coded in the generate_api_spec_via_fmt rue
+        # add in the target that's hard-coded in the generate_api_spec_via_fmt rule
         f"{CMD_DIR}/{VALIDATE_CMD}.py": VALIDATE_API_SPEC_PY.format(
             api_spec_dir=api_spec_dir, rc=rc
         ),

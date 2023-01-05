@@ -97,7 +97,6 @@ async def generate_api_spec_via_fmt(
                 tgt.get(SourcesField) for tgt in transitive_targets.dependencies
             ],
             for_sources_types=(FileSourceField, ResourceSourceField),
-            # enable_codegen=True,
         ),
     )
 
@@ -193,7 +192,6 @@ async def validate_api_spec(
                 tgt.get(SourcesField) for tgt in transitive_targets.dependencies
             ],
             for_sources_types=(FileSourceField, ResourceSourceField),
-            # enable_codegen=True,
         ),
     )
 
@@ -236,8 +234,10 @@ async def validate_api_spec(
             argv=(
                 "--config-file",
                 "conf/st2.dev.conf",
+                # TODO: Uncomment these as part of a project to fix the (many) issues it identifies.
+                #       We can uncomment --validate-defs (and possibly --verbose) once the spec defs are valid.
                 # "--validate-defs",  # check for x-api-model in definitions
-                # "--verbose",  # show definitions on failure
+                # "--verbose",  # show model definitions on failure (only applies to --validate-defs)
             ),
             input_digest=input_digest,
             description="Validating openapi.yaml api spec",
