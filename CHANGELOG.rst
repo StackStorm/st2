@@ -19,6 +19,8 @@ Added
 
 * Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
 
+* Added a flag in config for a feature where non-admin users can manage their own keys. #5859
+  Contributed by @bharath-orchestral
 
 3.8.0 - November 18, 2022
 -------------------------

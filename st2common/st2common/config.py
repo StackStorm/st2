@@ -74,7 +74,7 @@ def register_opts(ignore_errors=False):
         ),
         cfg.BoolOpt(
             "personal_keys",
-            default=True,
+            default=False,
             help="Enable all non-admin users to create/update/delete their own keys. They cannot create/update/delete other's keys.",
         ),
     ]

@@ -138,18 +138,15 @@ class ApiKeyController(BaseRestControllerMixin):
 
     def checkPersonalAPIKeyPermission(self, api_key_api, requester_user):
         """
-        Checks whether requested user is the creating/updating/fetching/deleting the api key. This is used when
-        'personal_keys' flag is set of 'rbac' group in conf file.
+        Checks whether requested user is creating/updating/fetching/deleting the api key. This is used when
+        'personal_keys' flag is set in 'rbac' group in conf file.
         """
         if not api_key_api or not requester_user:
             return False
         rbac_utils = get_rbac_backend().get_utils_class()
         user_is_admin = rbac_utils.user_is_admin(user_db=requester_user)
         is_same_user = requester_user.name == api_key_api.user
-        if (user_is_admin) or (is_same_user or api_key_api.user == ""):
-            return True
-        else:
-            return False
+        return (user_is_admin) or (is_same_user or api_key_api.user == "")
 
     def post(self, api_key_api, requester_user):
         """
