@@ -18,6 +18,7 @@ from pants.backend.python.util_rules.pex import (
     PexRequirements,
     VenvPex,
     VenvPexProcess,
+    rules as pex_rules,
 )
 from pants.engine.fs import CreateDigest, Digest, FileContent
 from pants.engine.process import ProcessCacheScope, ProcessResult
@@ -77,4 +78,7 @@ async def get_platform() -> Platform:
 
 
 def rules():
-    return collect_rules()
+    return [
+        *collect_rules(),
+        *pex_rules(),
+    ]
