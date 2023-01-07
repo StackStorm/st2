@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 
+from dataclasses import dataclass
 from textwrap import dedent
 
 from pants.backend.python.goals.pytest_runner import (
@@ -41,7 +42,17 @@ from uses_services.scripts.is_mongo_running import (
 from uses_services.target_types import UsesServicesField
 
 
-class UsesMongoRequest(PytestPluginSetupRequest):
+@dataclass(frozen=True)
+class UsesMongoRequest:
+    pass
+
+
+@dataclass(frozen=True)
+class MongoIsRunning:
+    pass
+
+
+class PytestUsesMongoRequest(PytestPluginSetupRequest):
     @classmethod
     def is_applicable(cls, target: Target) -> bool:
         if not target.has_field(UsesServicesField):
@@ -51,13 +62,25 @@ class UsesMongoRequest(PytestPluginSetupRequest):
 
 
 @rule(
-    desc="Test to see if mongodb is running and accessible for tests.",
+    desc="Ensure mongodb is running and accessible before running tests.",
+    level=LogLevel.DEBUG,
+)
+async def mongo_is_running_for_pytest(
+    request: PytestUsesMongoRequest
+) -> PytestPluginSetup:
+    # this will raise an error if mongo is not running
+    _ = await Get(MongoIsRunning, UsesMongoRequest())
+
+    return PytestPluginSetup()
+
+
+@rule(
+    desc="Test to see if mongodb is running and accessible.",
     level=LogLevel.DEBUG,
 )
 async def mongo_is_running(
     request: UsesMongoRequest, platform: Platform
-) -> PytestPluginSetup:
-
+) -> MongoIsRunning:
     # These config opts are used via oslo_config.cfg.CONF.database.{host,port,db_name,connection_timeout}
     # These config opts currently hard-coded in:
     #   for unit tests: st2tests/st2tests/config.py
@@ -120,7 +143,9 @@ async def mongo_is_running(
     is_running = result.exit_code == 0
 
     if is_running:
-        return PytestPluginSetup()
+        return MongoIsRunning()
+
+    # mongo is not running, so raise an error with instructions.
 
     if platform.distro in ["centos", "rhel"] or "rhel" in platform.distro_like:
         instructions = dedent(
@@ -240,6 +265,6 @@ async def mongo_is_running(
 def rules():
     return [
         *collect_rules(),
-        UnionRule(PytestPluginSetupRequest, UsesMongoRequest),
+        UnionRule(PytestPluginSetupRequest, PytestUsesMongoRequest),
         *pex_rules(),
     ]
