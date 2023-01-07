@@ -44,7 +44,27 @@ from uses_services.target_types import UsesServicesField
 
 @dataclass(frozen=True)
 class UsesMongoRequest:
-    pass
+    """One or more targets need a running mongo service using these settings.
+
+    The db_* attributes represent the db connection settings from st2.conf.
+    In st2 code, they come from:
+        oslo_config.cfg.CONF.database.{host,port,db_name,connection_timeout}
+    """
+    # These config opts currently hard-coded in:
+    #   for unit tests: st2tests/st2tests/config.py
+    #   for integration tests: conf/st2.tests*.conf st2tests/st2tests/fixtures/conf/st2.tests*.conf
+    #       (changed by setting ST2_CONFIG_PATH env var inside the tests)
+    # TODO: for unit tests: modify code to pull db connect settings from env vars
+    # TODO: for int tests: modify st2.tests*.conf on the fly to set the per-pantsd-slot db_name
+    #                      and either add env vars for db connect settings or modify conf files as well
+
+    #   with our version of oslo.config (newer are slower) we can't directly override opts w/ environment variables.
+
+    db_host: str = "127.0.0.1"  # localhost in test_db.DbConnectionTestCase
+    db_port: int = 27017
+    # db_name is "st2" in test_db.DbConnectionTestCase
+    db_name: str = f"st2-test{os.environ.get('ST2TESTS_PARALLEL_SLOT', '')}"
+    db_connection_timeout: int = 3000
 
 
 @dataclass(frozen=True)
@@ -68,6 +88,20 @@ class PytestUsesMongoRequest(PytestPluginSetupRequest):
 async def mongo_is_running_for_pytest(
     request: PytestUsesMongoRequest
 ) -> PytestPluginSetup:
+    # TODO: delete these comments once the Makefile becomes irrelevant.
+    #       the comments explore how the Makefile prepares to run and runs tests
+
+    # The st2-test database gets dropped between (in Makefile based testing):
+    #   - each component (st2*/ && various config/ dirs) in Makefile
+    #   - DbTestCase/CleanDbTestCase setUpClass
+
+    # Makefile
+    #    .run-unit-tests-coverage (<- .combine-unit-tests-coverage <- .coverage.unit <- .unit-tests-coverage-html <- ci-unit <- ci)
+    #        echo "----- Dropping st2-test db -----"
+    #        mongo st2-test --eval "db.dropDatabase();"
+    #        for component in $(COMPONENTS_TEST)
+    #            nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/unit
+
     # this will raise an error if mongo is not running
     _ = await Get(MongoIsRunning, UsesMongoRequest())
 
@@ -81,34 +115,6 @@ async def mongo_is_running_for_pytest(
 async def mongo_is_running(
     request: UsesMongoRequest, platform: Platform
 ) -> MongoIsRunning:
-    # These config opts are used via oslo_config.cfg.CONF.database.{host,port,db_name,connection_timeout}
-    # These config opts currently hard-coded in:
-    #   for unit tests: st2tests/st2tests/config.py
-    #   for integration tests: conf/st2.tests*.conf st2tests/st2tests/fixtures/conf/st2.tests*.conf
-    #       (changed by setting ST2_CONFIG_PATH env var inside the tests)
-    # TODO: for unit tests: modify code to pull db connect settings from env vars
-    # TODO: for int tests: modify st2.tests*.conf on the fly to set the per-pantsd-slot db_name
-    #                      and either add env vars for db connect settings or modify conf files as well
-
-    db_host = "127.0.0.1"  # localhost in test_db.DbConnectionTestCase
-    db_port = 27017
-    db_name = f"st2-test{os.environ.get('ST2TESTS_PARALLEL_SLOT', '')}"
-    # db_name = "st2-test"  # st2 in test_db.DbConnectionTestCase
-    connection_timeout = 3000
-
-    # The st2-test database gets dropped between (in Makefile based testing):
-    #   - each component (st2*/ && various config/ dirs) in Makefile
-    #   - DbTestCase/CleanDbTestCase setUpClass
-
-    #   with our version of oslo.config (newer are slower) we can't directly override opts w/ environment variables.
-
-    # Makefile
-    #    .run-unit-tests-coverage (<- .combine-unit-tests-coverage <- .coverage.unit <- .unit-tests-coverage-html <- ci-unit <- ci)
-    #        echo "----- Dropping st2-test db -----"
-    #        mongo st2-test --eval "db.dropDatabase();"
-    #        for component in $(COMPONENTS_TEST)
-    #            nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/unit
-
     script_path = "./is_mongo_running.py"
 
     # pants is already watching this directory as it is under a source root.
@@ -132,7 +138,13 @@ async def mongo_is_running(
         FallibleProcessResult,
         VenvPexProcess(
             mongoengine_pex,
-            argv=(script_path, db_host, str(db_port), db_name, str(connection_timeout)),
+            argv=(
+                script_path,
+                request.db_host,
+                str(request.db_port),
+                request.db_name,
+                str(request.db_connection_timeout),
+            ),
             input_digest=script_digest,
             description="Checking to see if Mongo is up and accessible.",
             # this can change from run to run, so don't cache results.
