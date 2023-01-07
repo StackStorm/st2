@@ -31,7 +31,7 @@ from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
 
 from uses_services.exceptions import ServiceMissingError
-from uses_services.platform_ import Platform
+from uses_services.platform_rules import Platform
 from uses_services.scripts.is_mongo_running import (
     __file__ as is_mongo_running_full_path,
 )
