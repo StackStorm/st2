@@ -69,7 +69,7 @@ async def get_platform() -> Platform:
             input_digest=script_digest,
             description="Introspecting platform (arch, os, distro)",
             # this can change from run to run, so don't cache results.
-            cache_scope=ProcessCacheScope.PER_RESTART_SUCCESSFULL,
+            cache_scope=ProcessCacheScope.PER_RESTART_SUCCESSFUL,
             level=LogLevel.DEBUG,
         ),
     )
