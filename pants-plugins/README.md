@@ -8,6 +8,9 @@ The plugins here add custom goals or other logic into pants.
 
 To see available goals, do "./pants help goals" and "./pants help $goal".
 
+These plugins might be useful outside of the StackStorm project:
+- `uses_services`
+
 These StackStorm-specific plugins might be useful in other StackStorm-related repos.
 - `pack_metadata`
 
@@ -66,3 +69,13 @@ the `fmt` goal (eg `./pants fmt contrib/schemas::`), the schemas will
 be regenerated if any of the files used to generate them have changed.
 Also, running the `lint` goal will fail if the schemas need to be
 regenerated.
+
+### `uses_seevices` plugin
+
+This plugin validates that services are running if required. For example, some tests
+need mongo, so this plugin can ensure mongo is running. If it is not running, then
+an error with instructions on how to run it are given to the user.
+
+`uses_services` has some StackStorm-specific assumptions in it, but it might be
+generalizable. There are several other StackStorm-specific plugins, but some of
+them are only useful in the st2 repo.
