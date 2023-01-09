@@ -13,25 +13,15 @@
 # limitations under the License.
 from __future__ import annotations
 
-import os
-
 import pytest
 
-from pants.backend.python import target_types_rules
-from pants.backend.python.target_types import PythonSourcesGeneratorTarget
-
-from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
-from pants.engine.addresses import Address
 from pants.engine.internals.scheduler import ExecutionError
-from pants.engine.fs import CreateDigest, Digest, FileContent, Snapshot
 from pants.engine.target import Target
-from pants.core.goals.fmt import FmtResult
 from pants.testutil.rule_runner import QueryRule, RuleRunner
 
 from .exceptions import ServiceMissingError
 from .mongo_rules import (
     MongoIsRunning,
-    PytestUsesMongoRequest,
     UsesMongoRequest,
     rules as mongo_rules,
 )
@@ -49,15 +39,9 @@ def rule_runner() -> RuleRunner:
     return RuleRunner(
         rules=[
             *mongo_rules(),
-            # *target_types_rules.rules(),
             QueryRule(MongoIsRunning, (UsesMongoRequest, Platform)),
-            # QueryRule(PytestPluginSetup, (PytestUsesMongoRequest)),
         ],
-        target_types=[
-            # MockTarget,
-            # PythonTestsGeneratorTarget,
-            # PythonTestTarget,
-        ],
+        target_types=[],
     )
 
 
