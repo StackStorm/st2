@@ -33,7 +33,7 @@ from .mongo_rules import (
     MongoIsRunning,
     PytestUsesMongoRequest,
     UsesMongoRequest,
-    rules as mongo_rules
+    rules as mongo_rules,
 )
 from .platform_rules import Platform
 from .target_types import UsesServicesField
@@ -110,11 +110,11 @@ def platform(
 
 
 # TODO: this requires that mongo be running...
-#def test_is_running(rule_runner: RuleRunner) -> None:
+# def test_is_running(rule_runner: RuleRunner) -> None:
 #    request = UsesMongoRequest()
 #    mock_platform = platform()
 
-    # we are asserting that this does not raise an exception
+# we are asserting that this does not raise an exception
 #    is_running = run_mongo_is_running(rule_runner, request, mock_platform)
 #    assert is_running
 
@@ -176,7 +176,7 @@ def platform(
 def test_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
     request = UsesMongoRequest(
         db_host="127.100.20.7",
-        db_port=10, # unassigned port, unlikely to be used
+        db_port=10,  # unassigned port, unlikely to be used
     )
 
     with pytest.raises(ExecutionError) as exception_info:
@@ -187,7 +187,7 @@ def test_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
 
     exc = execution_error.wrapped_exceptions[0]
     assert isinstance(exc, ServiceMissingError)
-    
+
     assert exc.service == "mongo"
     assert "The mongo service does not seem to be running" in str(exc)
     assert exc.instructions != ""

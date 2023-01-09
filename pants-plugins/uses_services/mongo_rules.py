@@ -50,6 +50,7 @@ class UsesMongoRequest:
     In st2 code, they come from:
         oslo_config.cfg.CONF.database.{host,port,db_name,connection_timeout}
     """
+
     # These config opts currently hard-coded in:
     #   for unit tests: st2tests/st2tests/config.py
     #   for integration tests: conf/st2.tests*.conf st2tests/st2tests/fixtures/conf/st2.tests*.conf
@@ -86,7 +87,7 @@ class PytestUsesMongoRequest(PytestPluginSetupRequest):
     level=LogLevel.DEBUG,
 )
 async def mongo_is_running_for_pytest(
-    request: PytestUsesMongoRequest
+    request: PytestUsesMongoRequest,
 ) -> PytestPluginSetup:
     # TODO: delete these comments once the Makefile becomes irrelevant.
     #       the comments explore how the Makefile prepares to run and runs tests
