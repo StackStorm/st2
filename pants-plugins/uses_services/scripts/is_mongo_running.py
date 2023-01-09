@@ -17,12 +17,16 @@ import sys
 def _is_mongo_running(
     db_host: str, db_port: int, db_name: str, connection_timeout_ms: int
 ) -> bool:
+    """Connect to mongo with connection logic that mirrors the st2 code.
+
+    In particular, this is based on st2common.models.db.db_setup().
+    This should not import the st2 code as it should be self-contained.
+    """
     # late import so that __file__ can be imported in the pants plugin without these imports
     import mongoengine
     from pymongo.errors import ConnectionFailure
     from pymongo.errors import ServerSelectionTimeoutError
 
-    # cf st2common.models.db.setup()
     connection = mongoengine.connection.connect(
         db_name,
         host=db_host,
@@ -31,7 +35,7 @@ def _is_mongo_running(
         serverSelectionTimeoutMS=connection_timeout_ms,
     )
 
-    # connection.connect() is lazy. Make a command to test connection.
+    # connection.connect() is lazy. Make a command to test the connection.
     try:
         # The ismaster command is cheap and does not require auth
         connection.admin.command("ismaster")

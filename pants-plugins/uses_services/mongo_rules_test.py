@@ -94,7 +94,7 @@ def platform(
 
 
 # Warning this requires that mongo be running
-def test_is_running(rule_runner: RuleRunner) -> None:
+def test_mongo_is_running(rule_runner: RuleRunner) -> None:
     request = UsesMongoRequest()
     mock_platform = platform()
 
@@ -157,7 +157,7 @@ def test_is_running(rule_runner: RuleRunner) -> None:
         ),
     ),
 )
-def test_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
+def test_mongo_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
     request = UsesMongoRequest(
         db_host="127.100.20.7",
         db_port=10,  # unassigned port, unlikely to be used
