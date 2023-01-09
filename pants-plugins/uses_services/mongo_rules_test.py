@@ -109,14 +109,14 @@ def platform(
     )
 
 
-# TODO: this requires that mongo be running...
-# def test_is_running(rule_runner: RuleRunner) -> None:
-#    request = UsesMongoRequest()
-#    mock_platform = platform()
+# Warning this requires that mongo be running
+def test_is_running(rule_runner: RuleRunner) -> None:
+    request = UsesMongoRequest()
+    mock_platform = platform()
 
-# we are asserting that this does not raise an exception
-#    is_running = run_mongo_is_running(rule_runner, request, mock_platform)
-#    assert is_running
+    # we are asserting that this does not raise an exception
+    is_running = run_mongo_is_running(rule_runner, request, mock_platform)
+    assert is_running
 
 
 @pytest.mark.parametrize(
