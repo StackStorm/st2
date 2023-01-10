@@ -26,12 +26,6 @@ from .mongo_rules import (
     rules as mongo_rules,
 )
 from .platform_rules import Platform
-from .target_types import UsesServicesField
-
-
-class MockTarget(Target):
-    alias = "mock_target"
-    core_fields = (UsesServicesField,)
 
 
 @pytest.fixture

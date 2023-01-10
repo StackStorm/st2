@@ -187,7 +187,7 @@ async def mongo_is_running(
             enabled=1
             gpgkey=https://www.mongodb.org/static/pgp/server-4.0.asc
             EOT"
-            # install mongo
+            # Install mongo
             yum install mongodb-org
             # Don't forget to start mongo.
             """
