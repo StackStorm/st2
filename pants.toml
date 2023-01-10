@@ -25,6 +25,7 @@ backend_packages = [
   # internal plugins in pants-plugins/
   "pants.backend.plugin_development",
   "api_spec",
+  "sample_conf",
   "schemas",
 ]
 # pants ignores files in .gitignore, .*/ directories, /dist/ directory, and __pycache__.
