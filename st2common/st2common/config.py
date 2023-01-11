@@ -72,6 +72,11 @@ def register_opts(ignore_errors=False):
             "executions. All resources can only be viewed or executed by the owning user "
             "except the admin and system_user who can view or run everything.",
         ),
+        cfg.BoolOpt(
+            "personal_keys",
+            default=False,
+            help="Enable all non-admin users to create/update/delete their own keys. They cannot create/update/delete other's keys.",
+        ),
     ]
 
     do_register_opts(rbac_opts, "rbac", ignore_errors)
