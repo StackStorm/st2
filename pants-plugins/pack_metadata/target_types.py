@@ -60,7 +60,7 @@ class PackMetadata(ResourcesGeneratorTarget):
     help = (
         "Loose pack metadata files.\n\n"
         "Pack metadata includes top-level files (pack.yaml, <pack>.yaml.examle, "
-        "config.schema.yaml, icon.png, and requirements.txt) and metadata for actions, "
+        "config.schema.yaml, and icon.png) and metadata for actions, "
         "action-aliases, policies, rules, and sensors."
     )
 

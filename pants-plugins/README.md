@@ -8,6 +8,9 @@ The plugins here add custom goals or other logic into pants.
 
 To see available goals, do "./pants help goals" and "./pants help $goal".
 
+These StackStorm-specific plugins might be useful in other StackStorm-related repos.
+- `pack_metadata`
+
 These StackStorm-specific plugins are probably only useful for the st2 repo.
 - `api_spec`
 - `sample_conf`
@@ -25,6 +28,26 @@ regenerated.
 This plugin also wires up pants so that the `lint` goal runs additional
 api spec validation on `st2common/st2common/openapi.yaml` with something
 like `./pants lint st2common/st2common/openapi.yaml`.
+
+### `pack_metadata` plugin
+
+This plugin adds two new targets to pants:
+- `pack_metadata`
+- `pack_metadata_in_git_submodule`
+
+These targets include all StackStorm pack metadata files in a pack.
+Pack metadata includes top-level files (`pack.yaml`, `<pack>.yaml.examle`,
+`config.schema.yaml`, and `icon.png`) and metadata (`*.yaml`, `*.yml`)
+for actions, action-aliases, policies, rules, and sensors.
+
+This plugin also wires up the `tailor` goal, so that it will add a
+`pack_metadata(name="metadata")` target wherever it finds a `pack.yaml` file.
+
+One of the packs in this repo is in a git submodule to test our handling
+of git submodules (`st2tests/st2tests/fixtures/packs/test_content_version`).
+If it is not checked out, then some of the tests will fail.
+If it is not checked out, `pack_metadata_in_git_submodule` handles providing
+a helpful, instructive error message as early as possible.
 
 ### `sample_conf` plugin
 
