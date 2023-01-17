@@ -16,6 +16,7 @@ from __future__ import annotations
 import pytest
 
 from pants.engine.addresses import Address
+from pants.engine.internals.scheduler import ExecutionError
 from pants.testutil.rule_runner import QueryRule, RuleRunner
 
 from .target_types import (
@@ -49,8 +50,11 @@ def test_git_submodule_sources_missing(rule_runner: RuleRunner) -> None:
             "packs/BUILD": GIT_SUBMODULE_BUILD_FILE,
         }
     )
-    with pytest.raises(UnmatchedGlobsError):
-        tgt = rule_runner.get_target(Address("packs", target_name="metadata"))
+    with pytest.raises(ExecutionError) as e:
+        _ = rule_runner.get_target(Address("packs", target_name="metadata"))
+    exc = e.value.wrapped_exceptions[0]
+    assert isinstance(exc, UnmatchedGlobsError)
+    assert "One or more git submodules is not checked out" in str(exc)
 
 
 def test_git_submodule_sources_present(rule_runner: RuleRunner) -> None:
