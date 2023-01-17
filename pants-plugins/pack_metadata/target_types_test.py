@@ -16,14 +16,13 @@ from __future__ import annotations
 import pytest
 
 from pants.engine.addresses import Address
-from pants.engine.target import SourcesPaths, SourcesPathsRequest
 from pants.testutil.rule_runner import QueryRule, RuleRunner
 
 from .target_types import (
     PackMetadata,
     # PackMetadataSourcesField,
     PackMetadataInGitSubmodule,
-    PackMetadataInGitSubmoduleSources,
+    # PackMetadataInGitSubmoduleSources,
     UnmatchedGlobsError,
 )
 
@@ -31,9 +30,7 @@ from .target_types import (
 @pytest.fixture
 def rule_runner() -> RuleRunner:
     return RuleRunner(
-        rules=[
-            QueryRule(SourcesPaths, [SourcesPathsRequest]),
-        ],
+        rules=[],
         target_types=[PackMetadata, PackMetadataInGitSubmodule],
     )
 
@@ -52,12 +49,8 @@ def test_git_submodule_sources_missing(rule_runner: RuleRunner) -> None:
             "packs/BUILD": GIT_SUBMODULE_BUILD_FILE,
         }
     )
-    tgt = rule_runner.get_target(Address("packs", target_name="metadata"))
-
     with pytest.raises(UnmatchedGlobsError):
-        _ = rule_runner.request(
-            SourcesPaths, [SourcesPathsRequest(tgt[PackMetadataInGitSubmoduleSources])]
-        )
+        tgt = rule_runner.get_target(Address("packs", target_name="metadata"))
 
 
 def test_git_submodule_sources_present(rule_runner: RuleRunner) -> None:
@@ -67,9 +60,5 @@ def test_git_submodule_sources_present(rule_runner: RuleRunner) -> None:
             "packs/submodule_dir/pack.yaml": "---\nname: foobar\n",
         }
     )
-    tgt = rule_runner.get_target(Address("packs", target_name="metadata"))
-
     # basically: this asserts that it does not raise UnmatchedGlobsError
-    _ = rule_runner.request(
-        SourcesPaths, [SourcesPathsRequest(tgt[PackMetadataInGitSubmoduleSources])]
-    )
+    tgt = rule_runner.get_target(Address("packs", target_name="metadata"))
