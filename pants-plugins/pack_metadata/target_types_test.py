@@ -17,7 +17,7 @@ import pytest
 
 from pants.engine.addresses import Address
 from pants.engine.internals.scheduler import ExecutionError
-from pants.testutil.rule_runner import QueryRule, RuleRunner
+from pants.testutil.rule_runner import RuleRunner
 
 from .target_types import (
     PackMetadata,
@@ -65,4 +65,4 @@ def test_git_submodule_sources_present(rule_runner: RuleRunner) -> None:
         }
     )
     # basically: this asserts that it does not raise UnmatchedGlobsError
-    tgt = rule_runner.get_target(Address("packs", target_name="metadata"))
+    _ = rule_runner.get_target(Address("packs", target_name="metadata"))
