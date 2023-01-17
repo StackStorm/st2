@@ -28,7 +28,7 @@ backend_packages = [
   "pack_metadata",
   "sample_conf",
   "schemas",
-  "stevedore_extensions",
+  #"stevedore_extensions",
 ]
 # pants ignores files in .gitignore, .*/ directories, /dist/ directory, and __pycache__.
 pants_ignore.add = [
