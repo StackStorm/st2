@@ -94,7 +94,7 @@ class InferStevedoreNamespaceDependencies(InferDependenciesRequest):
 
 
 @rule(
-    desc="Infer stevedore_extension target dependencies for python_tests based on namespace list.",
+    desc="Infer stevedore_extension target dependencies based on namespace list.",
     level=LogLevel.DEBUG,
 )
 async def infer_stevedore_namespace_dependencies(

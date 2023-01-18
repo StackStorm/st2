@@ -190,7 +190,6 @@ def test_infer_stevedore_entry_points_dependencies() -> None:
     def run_dep_inference(address: Address) -> InferredDependencies:
         args = [
             "--source-root-patterns=runners/*_runner",
-            "--python-infer-assets",
         ]
         rule_runner.set_options(args, env_inherit={"PATH", "PYENV_ROOT", "HOME"})
         target = rule_runner.get_target(address)
