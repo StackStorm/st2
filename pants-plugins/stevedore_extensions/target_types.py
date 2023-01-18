@@ -91,7 +91,7 @@ class StevedoreEntryPointsField(
         entry_points = []
         for name, value in raw_entry_points.items():
             try:
-                entry_point = EntryPoint.parse(value)
+                entry_point = EntryPoint.parse(value, provenance=f"for {name} on {address}")
             except ValueError as e:
                 raise InvalidFieldException(str(e))
             entry_points.append(StevedoreEntryPoint(name=name, value=entry_point))
