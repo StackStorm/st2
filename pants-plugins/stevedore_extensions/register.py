@@ -15,7 +15,9 @@
 from pants.backend.codegen import export_codegen_goal
 
 from stevedore_extensions import (
-    target_types_rules, rules as stevedore_rules, python_dependency_injection
+    target_types_rules,
+    rules as stevedore_rules,
+    python_dependency_injection,
 )
 from stevedore_extensions.target_types import StevedoreExtension
 

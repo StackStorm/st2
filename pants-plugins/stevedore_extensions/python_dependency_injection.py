@@ -16,19 +16,16 @@ from dataclasses import dataclass
 from typing import List, Mapping, Tuple
 
 from pants.backend.python.target_types import (
-    PythonDistributionDependenciesField,
     PythonTestTarget,
     PythonTestsGeneratorTarget,
     PythonTestsDependenciesField,
 )
-from pants.base.specs import DirGlobSpec, RawSpecs
 from pants.engine.addresses import Address
-from pants.engine.rules import collect_rules, Get, rule, UnionRule
+from pants.engine.rules import collect_rules, rule, UnionRule
 from pants.engine.target import (
     FieldSet,
     InferDependenciesRequest,
     InferredDependencies,
-    Targets,
 )
 from pants.util.frozendict import FrozenDict
 from pants.util.logging import LogLevel
@@ -36,7 +33,6 @@ from pants.util.ordered_set import OrderedSet
 
 from stevedore_extensions.target_types import (
     AllStevedoreExtensionTargets,
-    StevedoreEntryPointsField,
     StevedoreExtension,
     StevedoreNamespaceField,
     StevedoreNamespacesField,
