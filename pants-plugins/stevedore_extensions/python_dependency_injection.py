@@ -23,6 +23,7 @@ from pants.backend.python.target_types import (
 from pants.engine.addresses import Address
 from pants.engine.rules import collect_rules, rule, UnionRule
 from pants.engine.target import (
+    AllTargets,
     FieldSet,
     InferDependenciesRequest,
     InferredDependencies,
@@ -33,10 +34,25 @@ from pants.util.ordered_set import OrderedSet
 
 from stevedore_extensions.target_types import (
     AllStevedoreExtensionTargets,
+    StevedoreEntryPointsField,
     StevedoreExtension,
     StevedoreNamespaceField,
     StevedoreNamespacesField,
 )
+
+
+# -----------------------------------------------------------------------------------------------
+# Utility rules to analyze all `StevedoreExtension` targets
+# -----------------------------------------------------------------------------------------------
+
+
+@rule(desc="Find all StevedoreExtension targets in project", level=LogLevel.DEBUG)
+def find_all_stevedore_extension_targets(
+    targets: AllTargets,
+) -> AllStevedoreExtensionTargets:
+    return AllStevedoreExtensionTargets(
+        tgt for tgt in targets if tgt.has_field(StevedoreEntryPointsField)
+    )
 
 
 @dataclass(frozen=True)
@@ -59,6 +75,11 @@ async def map_stevedore_extensions(
     return StevedoreExtensions(
         FrozenDict((k, tuple(v)) for k, v in sorted(mapping.items()))
     )
+
+
+# -----------------------------------------------------------------------------------------------
+# Dependencies for `python_test` and `python_tests` targets
+# -----------------------------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)

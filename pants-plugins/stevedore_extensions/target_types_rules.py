@@ -26,7 +26,6 @@ from pants.backend.python.target_types import PythonResolveField
 from pants.engine.fs import GlobMatchErrorBehavior, PathGlobs, Paths
 from pants.engine.rules import Get, collect_rules, MultiGet, rule, UnionRule
 from pants.engine.target import (
-    AllTargets,
     Dependencies,
     DependenciesRequest,
     ExplicitlyProvidedDependencies,
@@ -39,7 +38,6 @@ from pants.source.source_root import SourceRoot, SourceRootRequest
 from pants.util.logging import LogLevel
 
 from stevedore_extensions.target_types import (
-    AllStevedoreExtensionTargets,
     ResolvedStevedoreEntryPoints,
     ResolveStevedoreEntryPointsRequest,
     StevedoreEntryPoints,
@@ -47,13 +45,9 @@ from stevedore_extensions.target_types import (
 )
 
 
-@rule(desc="Find all StevedoreExtension targets in project", level=LogLevel.DEBUG)
-def find_all_stevedore_extension_targets(
-    targets: AllTargets,
-) -> AllStevedoreExtensionTargets:
-    return AllStevedoreExtensionTargets(
-        tgt for tgt in targets if tgt.has_field(StevedoreEntryPointsField)
-    )
+# -----------------------------------------------------------------------------------------------
+# `StevedoreExtension` target rules
+# -----------------------------------------------------------------------------------------------
 
 
 @rule(
