@@ -32,6 +32,7 @@ from pants.engine.target import (
 )
 from pants.backend.python.target_types import EntryPoint, PythonResolveField
 from pants.source.filespec import Filespec
+from pants.util.strutil import softwrap
 
 
 @dataclass(frozen=True)
@@ -46,11 +47,14 @@ class StevedoreEntryPoints(Collection[StevedoreEntryPoint]):
 
 class StevedoreNamespaceField(StringField):
     alias = "namespace"
-    help = (
-        "The stevedore extension namespace.\n\nThis looks like a python module "
-        "'my.stevedore.namespace', but a python module of that name does not "
-        "need to exist. This is what a stevedore ExtensionManager uses to look up "
-        "relevant entry_points from pkg_resources."
+    help = softwrap(
+        """
+        Set the stevedore extension namespace.
+
+        This looks like a python module 'my.stevedore.namespace', but a python module
+        of that name does not need to exist. This is what a stevedore ExtensionManager
+        uses to look up relevant entry_points from pkg_resources.
+        """
     )
     required = True
 
@@ -60,15 +64,19 @@ class StevedoreEntryPointsField(
 ):
     # based on pants.backend.python.target_types.PexEntryPointField
     alias = "entry_points"
-    help = (
-        "A dict that maps a stevedore extension name to the entry_point that implements it.\n\n"
-        # the odd spacing here minimizes diff with help text copied from PexEntryPointField
-        "You can specify each entry_point with "
-        "a full module like 'path.to.module' and 'path.to.module:func', or use a "
-        "shorthand to specify a file name, using the same syntax as the `sources` field:\n\n  1) "
-        "'app.py', Pants will convert into the module `path.to.app`;\n  2) 'app.py:func', Pants "
-        "will convert into `path.to.app:func`.\n\nYou must use the file name shorthand for file "
-        "arguments to work with this target."
+    help = softwrap(
+        """
+        Map stevedore extension names to the entry_point that implements each name.
+
+        Specify each entry_point to a module stevedore should use for the given extension name.
+        You can specify a full module like 'path.to.module' and 'path.to.module:func', or use a
+        shorthand to specify a file name, using the same syntax as the `sources` field:
+
+          1) 'app.py', Pants will convert into the module `path.to.app`;
+          2) 'app.py:func', Pants will convert into `path.to.app:func`.
+
+        You must use the file name shorthand for file arguments to work with this target.
+        """
     )
     required = True
     value: StevedoreEntryPoints
@@ -127,12 +135,15 @@ class StevedoreExtension(Target):
 # This is a lot like a SpecialCasedDependencies field, but it doesn't list targets directly.
 class StevedoreNamespacesField(StringSequenceField):
     alias = "stevedore_namespaces"
-    help = (
-        "A list of stevedore namespaces to include for tests.\n\n"
-        "All stevedore_extension targets with these namespaces will be added as "
-        "dependencies so that they are available on PYTHONPATH during tests. "
-        "The stevedore namespace format (my.stevedore.extension) is similar "
-        "to a python namespace."
+    help = softwrap(
+        """
+        List the stevedore namespaces required by this target.
+
+        All stevedore_extension targets with these namespaces will be added as
+        dependencies so that they are available on PYTHONPATH during tests.
+        The stevedore namespace format (my.stevedore.extension) is similar
+        to a python namespace.
+        """
     )
 
 
