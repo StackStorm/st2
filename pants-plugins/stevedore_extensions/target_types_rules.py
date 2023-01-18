@@ -57,6 +57,7 @@ from stevedore_extensions.target_types import (
 async def resolve_stevedore_entry_points(
     request: ResolveStevedoreEntryPointsRequest,
 ) -> ResolvedStevedoreEntryPoints:
+    # based on: pants.backend.python.target_types_rules.resolve_pex_entry_point
 
     # supported schemes mirror those in resolve_pex_entry_point:
     #  1) this does not support None, unlike pex_entry_point.
