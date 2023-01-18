@@ -13,21 +13,24 @@
 # limitations under the License.
 from __future__ import annotations
 
+from textwrap import dedent
+
 import pytest
 
 from pants.backend.python.target_types import (
     EntryPoint,
-    PythonTestTarget,
-    PythonTestsGeneratorTarget,
+    PythonSourceTarget,
+    PythonSourcesGeneratorTarget,
 )
 from pants.backend.python.target_types_rules import rules as python_target_types_rules
 from pants.engine.addresses import Address
 from pants.engine.internals.scheduler import ExecutionError
-from pants.engine.target import InferDependenciesRequest, InferredDependencies, Target
+from pants.engine.target import InferredDependencies
 from pants.testutil.rule_runner import QueryRule, RuleRunner
 
 from .target_types_rules import (
     InferStevedoreExtensionDependencies,
+    StevedoreEntryPointsInferenceFieldSet,
     resolve_stevedore_entry_points,
     rules as stevedore_target_types_rules,
 )
@@ -35,11 +38,8 @@ from .target_types import (
     ResolveStevedoreEntryPointsRequest,
     ResolvedStevedoreEntryPoints,
     StevedoreEntryPoint,
-    StevedoreEntryPoints,
     StevedoreEntryPointsField,  # on stevedore_extension target
     StevedoreExtension,
-    StevedoreNamespaceField,  # on stevedore_extension target
-    StevedoreNamespacesField,  # on other targets
 )
 
 
@@ -134,26 +134,97 @@ def test_resolve_stevedore_entry_points() -> None:
     }
 
 
-# async def infer_stevedore_entry_points_dependencies(
-#    request: InferStevedoreExtensionDependencies,
-#    python_setup: PythonSetup,
-# ) -> InferredDependencies:
-#    Get ResolvedStevedoreEntryPoints
-
-
 def test_infer_stevedore_entry_points_dependencies() -> None:
     rule_runner = RuleRunner(
         rules=[
             *python_target_types_rules(),
             *stevedore_target_types_rules(),
-            QueryRule(
-                ResolvedStevedoreEntryPoints, (ResolveStevedoreEntryPointsRequest,)
-            ),
             QueryRule(InferredDependencies, (InferStevedoreExtensionDependencies,)),
         ],
         target_types=[
-            PythonTestTarget,
-            PythonTestsGeneratorTarget,
+            PythonSourceTarget,
+            PythonSourcesGeneratorTarget,
             StevedoreExtension,
+        ],
+    )
+    rule_runner.write_files(
+        {
+            "runners/foobar_runner/BUILD": dedent(
+                """\
+                stevedore_extension(
+                    name="runner",
+                    namespace="st2common.runners.runner",
+                    entry_points={
+                        "foobar": "foobar_runner.foobar_runner",
+                    },
+                )
+
+                stevedore_extension(
+                    name="foobar",
+                    namespace="example.foobar",
+                    entry_points={
+                        "thing1": "foobar_runner.thing1:ThingBackend",
+                        "thing2": "foobar_runner.thing2:ThingBackend",
+                    },
+                )
+                """
+            ),
+            "runners/foobar_runner/foobar_runner/BUILD": "python_sources()",
+            "runners/foobar_runner/foobar_runner/__init__.py": "",
+            "runners/foobar_runner/foobar_runner/foobar_runner.py": "",
+            "runners/foobar_runner/foobar_runner/thing1.py": dedent(
+                """\
+                class ThingBackend:
+                    pass
+                """
+            ),
+            "runners/foobar_runner/foobar_runner/thing2.py": dedent(
+                """\
+                class ThingBackend:
+                    pass
+                """
+            ),
+        }
+    )
+
+    def run_dep_inference(address: Address) -> InferredDependencies:
+        args = [
+            "--source-root-patterns=runners/*_runner",
+            "--python-infer-assets",
+        ]
+        rule_runner.set_options(args, env_inherit={"PATH", "PYENV_ROOT", "HOME"})
+        target = rule_runner.get_target(address)
+        return rule_runner.request(
+            InferredDependencies,
+            [
+                InferStevedoreExtensionDependencies(
+                    StevedoreEntryPointsInferenceFieldSet.create(target)
+                )
+            ],
+        )
+
+    assert run_dep_inference(
+        Address("runners/foobar_runner", target_name="runner")
+    ) == InferredDependencies(
+        [
+            Address(
+                "runners/foobar_runner/foobar_runner",
+                relative_file_path="foobar_runner.py",
+            ),
+        ],
+    )
+
+    assert run_dep_inference(
+        Address("runners/foobar_runner", target_name="foobar")
+    ) == InferredDependencies(
+        [
+            Address(
+                "runners/foobar_runner/foobar_runner",
+                relative_file_path="thing1.py",
+            ),
+            Address(
+                "runners/foobar_runner/foobar_runner",
+                relative_file_path="thing2.py",
+            ),
         ],
     )

@@ -22,6 +22,7 @@ from pants.engine.collection import Collection
 from pants.engine.target import (
     AsyncFieldMixin,
     COMMON_TARGET_FIELDS,
+    Dependencies,
     DictStringToStringField,
     InvalidFieldException,
     SecondaryOwnerMixin,
@@ -129,6 +130,7 @@ class StevedoreExtension(Target):
         *COMMON_TARGET_FIELDS,
         StevedoreNamespaceField,
         StevedoreEntryPointsField,
+        Dependencies,
         PythonResolveField,
     )
     help = "Entry points used to generate setuptools metadata for stevedore."
