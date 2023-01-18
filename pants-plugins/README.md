@@ -8,6 +8,9 @@ The plugins here add custom goals or other logic into pants.
 
 To see available goals, do "./pants help goals" and "./pants help $goal".
 
+These plugins might be useful outside of the StackStorm project:
+- `stevedore_extensions`
+
 These StackStorm-specific plugins might be useful in other StackStorm-related repos.
 - `pack_metadata`
 
@@ -66,3 +69,12 @@ the `fmt` goal (eg `./pants fmt contrib/schemas::`), the schemas will
 be regenerated if any of the files used to generate them have changed.
 Also, running the `lint` goal will fail if the schemas need to be
 regenerated.
+
+### `stevedore_extensions` plugin
+
+This plugin teaches pants how to infer dependencies on stevedore
+extensions (python plugins loaded at runtime via entry points).
+This includes the `stevedore_extensions` target and the
+`stevedore_namespaces` field. When necessary, it generates an
+`entry_points.txt` file so that stevedore can work correctly
+within pants sandboxes.
