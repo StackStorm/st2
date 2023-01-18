@@ -17,7 +17,7 @@ from pants.backend.codegen import export_codegen_goal
 from stevedore_extensions import (
     target_types_rules,
     rules as stevedore_rules,
-    python_dependency_injection,
+    python_target_dependencies,
 )
 from stevedore_extensions.target_types import StevedoreExtension
 
@@ -30,7 +30,7 @@ def rules():
     return [
         *target_types_rules.rules(),
         *stevedore_rules.rules(),
-        *python_dependency_injection.rules(),
+        *python_target_dependencies.rules(),
         *export_codegen_goal.rules(),
     ]
 
