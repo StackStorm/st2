@@ -82,17 +82,9 @@ async def resolve_stevedore_entry_points(
         if entry_point.value.module.endswith(".py")
     )
 
-    # use iter so we can use next() below
-    iter_entry_point_paths_results = iter(entry_point_paths_results)
-
     # We will have already raised if the glob did not match, i.e. if there were no files. But
     # we need to check if they used a file glob (`*` or `**`) that resolved to >1 file.
-    for entry_point in request.entry_points_field.value:
-        # We just need paths here. If it's already a path, skip it until the next loop.
-        if not entry_point.value.module.endswith(".py"):
-            continue
-
-        entry_point_paths = next(iter_entry_point_paths_results)
+    for entry_point_paths in entry_point_paths_results:
         if len(entry_point_paths.files) != 1:
             raise InvalidFieldException(
                 f"Multiple files matched for the `{request.entry_points_field.alias}` "
@@ -101,20 +93,16 @@ async def resolve_stevedore_entry_points(
                 f"All matching files: {list(entry_point_paths.files)}."
             )
 
-    # restart the iterator
-    iter_entry_point_paths_results = iter(entry_point_paths_results)
-
     source_root_results = await MultiGet(
         Get(
             SourceRoot,
             SourceRootRequest,
-            SourceRootRequest.for_file(next(iter_entry_point_paths_results).files[0]),
+            SourceRootRequest.for_file(entry_point_path.files[0]),
         )
-        for entry_point in request.entry_points_field.value
-        if entry_point.value.module.endswith(".py")
+        for entry_point_path in entry_point_paths_results
     )
 
-    # restart the iterator
+    # use iter so we can use next() below
     iter_entry_point_paths_results = iter(entry_point_paths_results)
     iter_source_root_results = iter(source_root_results)
 
