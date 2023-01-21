@@ -59,7 +59,7 @@ class PackMetadata(ResourcesGeneratorTarget):
     core_fields = (*COMMON_TARGET_FIELDS, Dependencies, PackMetadataSourcesField)
     help = (
         "Loose pack metadata files.\n\n"
-        "Pack metadata includes top-level files (pack.yaml, <pack>.yaml.examle, "
+        "Pack metadata includes top-level files (pack.yaml, <pack>.yaml.example, "
         "config.schema.yaml, and icon.png) and metadata for actions, "
         "action-aliases, policies, rules, and sensors."
     )

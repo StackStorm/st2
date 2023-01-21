@@ -36,7 +36,7 @@ This plugin adds two new targets to pants:
 - `pack_metadata_in_git_submodule`
 
 These targets include all StackStorm pack metadata files in a pack.
-Pack metadata includes top-level files (`pack.yaml`, `<pack>.yaml.examle`,
+Pack metadata includes top-level files (`pack.yaml`, `<pack>.yaml.example`,
 `config.schema.yaml`, and `icon.png`) and metadata (`*.yaml`, `*.yml`)
 for actions, action-aliases, policies, rules, and sensors.
 
