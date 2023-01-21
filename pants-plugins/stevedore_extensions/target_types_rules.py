@@ -82,9 +82,20 @@ async def resolve_stevedore_entry_points(
         if entry_point.value.module.endswith(".py")
     )
 
+    # use iter so we can use next() below
+    iter_entry_point_paths_results = iter(entry_point_paths_results)
+
     # We will have already raised if the glob did not match, i.e. if there were no files. But
     # we need to check if they used a file glob (`*` or `**`) that resolved to >1 file.
-    for entry_point_paths in entry_point_paths_results:
+    #
+    # It is clearer to iterate over entry_point_paths_results, but we need to include
+    # the original glob in the error message, so we have to check for ".py" again.
+    for entry_point in request.entry_points_field.value:
+        # We only need paths/globs for this check. Ignore any modules.
+        if not entry_point.value.module.endswith(".py"):
+            continue
+
+        entry_point_paths = next(iter_entry_point_paths_results)
         if len(entry_point_paths.files) != 1:
             raise InvalidFieldException(
                 f"Multiple files matched for the `{request.entry_points_field.alias}` "
