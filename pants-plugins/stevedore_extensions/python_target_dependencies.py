@@ -57,7 +57,7 @@ def find_all_stevedore_extension_targets(
 
 @dataclass(frozen=True)
 class StevedoreExtensions:
-    """A mapping of stevedore namespaces to a list the targets that provide them"""
+    """A mapping of stevedore namespaces to a list of StevedoreExtension targets that provide them"""
 
     mapping: FrozenDict[str, Tuple[StevedoreExtension]]
 
