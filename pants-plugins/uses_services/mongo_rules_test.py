@@ -148,6 +148,16 @@ def test_mongo_is_running(rule_runner: RuleRunner) -> None:
             distro_version="19.6.0",
             mac_release="10.15.7",
         ),
+        platform(
+            arch="AMD64",
+            os="Windows",
+            win_release="",
+        ),
+        platform(
+            arch="aarch64",
+            os="Linux",
+            # no distro in termux on android
+        ),
     ),
 )
 def test_mongo_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
