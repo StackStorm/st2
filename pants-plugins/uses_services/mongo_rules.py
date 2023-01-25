@@ -34,7 +34,7 @@ from pants.engine.target import Target
 from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
 
-from uses_services.exceptions import ServiceMissingError
+from uses_services.exceptions import ServiceMissingError, ServiceSpecificMessages
 from uses_services.platform_rules import Platform
 from uses_services.scripts.is_mongo_running import (
     __file__ as is_mongo_running_full_path,
@@ -159,123 +159,41 @@ async def mongo_is_running(
         return MongoIsRunning()
 
     # mongo is not running, so raise an error with instructions.
-
-    if platform.distro in ["centos", "rhel"] or "rhel" in platform.distro_like:
-        instructions = dedent(
-            """\
-            If mongo is installed, but not running try:
-
-            """
-        )
-
-        if platform.distro_major_version == "7":
-            instructions += "\nservice mongo start\n"
-        else:
-            instructions += "\nsystemctl start mongod\n"
-
-        instructions += dedent(
-            """
-            If mongo is not installed, this is one way to install it:
-
-            # Add key and repo for the latest stable MongoDB (4.0)
-            rpm --import https://www.mongodb.org/static/pgp/server-4.0.asc
-            sh -c "cat <<EOT > /etc/yum.repos.d/mongodb-org-4.repo
-            [mongodb-org-4]
-            name=MongoDB Repository
-            baseurl=https://repo.mongodb.org/yum/redhat/${OSRELEASE_VERSION}/mongodb-org/4.0/x86_64/
-            gpgcheck=1
-            enabled=1
-            gpgkey=https://www.mongodb.org/static/pgp/server-4.0.asc
-            EOT"
-            # Install mongo
-            yum install mongodb-org
-            # Don't forget to start mongo.
-            """
-        )
-    elif platform.distro in ["ubuntu", "debian"] or "debian" in platform.distro_like:
-        instructions = dedent(
-            """\
-            If mongo is installed, but not running try:
-
-            systemctl start mongod
-
-            If mongo is not installed, this is one way to install it:
-
-            apt-get install mongodb mongodb-server
-            # Don't forget to start mongo.
-            """
-        )
-    elif platform.os == "Linux":
-        instructions = dedent(
-            f"""\
-            You are on Linux using {platform.distro_name}, which is not
-            one of our generally supported distributions. We recommend
-            you use vagrant for local development with something like:
-
-            vagrant init stackstorm/st2
-            vagrant up
-            vagrant ssh
-
-            Please see: https://docs.stackstorm.com/install/vagrant.html
-
-            For anyone who wants to attempt local development without vagrant,
-            you are pretty much on your own. At a minimum you need to install
-            and start mongo with something like:
-
-            systemctl start mongod
-
-            We would be interested to hear about alternative distros people
-            are using for development. If you are able, please let us know
-            on slack which distro you are using:
-
-            Arch: {platform.arch}
-            Distro: {platform.distro}
-            Distro Name: {platform.distro_name}
-            Distro Codename: {platform.distro_codename}
-            Distro Family: {platform.distro_like}
-            Distro Major Version: {platform.distro_major_version}
-            Distro Version: {platform.distro_version}
-
-            Thanks and Good Luck!
-            """
-        )
-    elif platform.os == "Darwin":  # MacOS
-        instructions = dedent(
-            """\
-            You are on Mac OS. Generally we recommend using vagrant for local
-            development on Mac OS with something like:
-
-            vagrant init stackstorm/st2
-            vagrant up
-            vagrant ssh
-
-            Please see: https://docs.stackstorm.com/install/vagrant.html
-
-            For anyone who wants to attempt local development without vagrant,
-            you may run into some speed bumps. Others StackStorm developers have
-            been known to use Mac OS for development, so feel free to ask for
-            help in slack. At a minimum you need to install and start mongo.
-            """
-        )
-    else:
-        instructions = dedent(
-            """\
-            You are not on Linux. In this case we recommend using vagrant
-            for local development with something like:
-
-            vagrant init stackstorm/st2
-            vagrant up
-            vagrant ssh
-
-            Please see: https://docs.stackstorm.com/install/vagrant.html
-
-            For anyone who wants to attempt local development without vagrant,
-            you are pretty much on your own. At a minimum you need to install
-            and start mongo. Good luck!
-            """
-        )
-
-    raise ServiceMissingError("mongo", platform, instructions)
+    raise ServiceMissingError(
+        platform,
+        ServiceSpecificMessages(
+            service="mongo",
+            service_start_cmd_el_7="service mongo start",
+            service_start_cmd_el="systemctl start mongod",
+            not_installed_clause_el="this is one way to install it:",
+            install_instructions_el=dedent(
+                """\
+                # Add key and repo for the latest stable MongoDB (4.0)
+                rpm --import https://www.mongodb.org/static/pgp/server-4.0.asc
+                sh -c "cat <<EOT > /etc/yum.repos.d/mongodb-org-4.repo
+                [mongodb-org-4]
+                name=MongoDB Repository
+                baseurl=https://repo.mongodb.org/yum/redhat/${OSRELEASE_VERSION}/mongodb-org/4.0/x86_64/
+                gpgcheck=1
+                enabled=1
+                gpgkey=https://www.mongodb.org/static/pgp/server-4.0.asc
+                EOT"
+                # Install mongo
+                yum install mongodb-org
+                # Don't forget to start mongo.
+                """
+            ),
+            service_start_cmd_deb="systemctl start mongod",
+            not_installed_clause_deb="this is one way to install it:",
+            install_instructions_deb=dedent(
+                """\
+                apt-get install mongodb mongodb-server
+                # Don't forget to start mongo.
+                """
+            ),
+            service_start_cmd_generic="systemctl start mongod",
+        ),
+    )
 
 
 def rules():
