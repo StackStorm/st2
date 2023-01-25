@@ -141,10 +141,4 @@ platform_samples = (
         distro_version="21.6.0",
         mac_release="12.6.2",
     ),
-    # Windows #####################
-    platform(
-        arch="AMD64",
-        os="Windows",
-        win_release="",
-    ),
 )
