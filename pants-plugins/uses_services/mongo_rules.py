@@ -230,7 +230,10 @@ async def mongo_is_running(
 
             Arch: {platform.arch}
             Distro: {platform.distro}
+            Distro Name: {platform.distro_name}
             Distro Codename: {platform.distro_codename}
+            Distro Family: {platform.distro_like}
+            Distro Major Version: {platform.distro_major_version}
             Distro Version: {platform.distro_version}
 
             Thanks and Good Luck!
