@@ -3,9 +3,8 @@ python_sources(
 )
 
 python_test_utils(
-    sources=[
-        "data_fixtures.py",
-    ],
+    name="test_utils",
+    sources=["data_fixtures.py"],
 )
 
 python_tests(
