@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
+
 from dataclasses import dataclass
+from textwrap import dedent
 
 from uses_services.platform_rules import Platform
 
@@ -35,7 +38,9 @@ class ServiceSpecificMessages:
 class ServiceMissingError(Exception):
     """Error raised when a test uses a service but that service is missing."""
 
-    def __init__(self, service, platform: Platform, instructions="", msg=None):
+    def __init__(
+        self, service: str, platform: Platform, instructions: str = "", msg=None
+    ):
         if msg is None:
             msg = f"The {service} service does not seem to be running or is not accessible!"
             if instructions:
@@ -46,9 +51,9 @@ class ServiceMissingError(Exception):
         self.instructions = instructions
 
     @classmethod
-    def generate_instructions(
+    def generate(
         cls, platform: Platform, messages: ServiceSpecificMessages
-    ):
+    ) -> ServiceMissingError:
         service = messages.service
 
         supported = False
@@ -154,4 +159,9 @@ class ServiceMissingError(Exception):
                 and start {service}. Good luck!
                 """
             )
-        return instructions
+
+        return cls(
+            service=service,
+            platform=platform,
+            instructions=instructions,
+        )

@@ -159,9 +159,9 @@ async def mongo_is_running(
         return MongoIsRunning()
 
     # mongo is not running, so raise an error with instructions.
-    raise ServiceMissingError(
-        platform,
-        ServiceSpecificMessages(
+    raise ServiceMissingError.generate(
+        platform=platform,
+        messages=ServiceSpecificMessages(
             service="mongo",
             service_start_cmd_el_7="service mongo start",
             service_start_cmd_el="systemctl start mongod",
