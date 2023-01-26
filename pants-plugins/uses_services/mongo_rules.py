@@ -169,8 +169,8 @@ async def mongo_is_running(
             install_instructions_el=dedent(
                 """\
                 # Add key and repo for the latest stable MongoDB (4.0)
-                rpm --import https://www.mongodb.org/static/pgp/server-4.0.asc
-                sh -c "cat <<EOT > /etc/yum.repos.d/mongodb-org-4.repo
+                sudo rpm --import https://www.mongodb.org/static/pgp/server-4.0.asc
+                sudo sh -c "cat <<EOT > /etc/yum.repos.d/mongodb-org-4.repo
                 [mongodb-org-4]
                 name=MongoDB Repository
                 baseurl=https://repo.mongodb.org/yum/redhat/${OSRELEASE_VERSION}/mongodb-org/4.0/x86_64/
@@ -179,7 +179,7 @@ async def mongo_is_running(
                 gpgkey=https://www.mongodb.org/static/pgp/server-4.0.asc
                 EOT"
                 # Install mongo
-                yum install mongodb-org
+                sudo yum -y install mongodb-org
                 # Don't forget to start mongo.
                 """
             ),
@@ -187,7 +187,7 @@ async def mongo_is_running(
             not_installed_clause_deb="this is one way to install it:",
             install_instructions_deb=dedent(
                 """\
-                apt-get install mongodb mongodb-server
+                sudo apt-get install -y mongodb-org
                 # Don't forget to start mongo.
                 """
             ),
