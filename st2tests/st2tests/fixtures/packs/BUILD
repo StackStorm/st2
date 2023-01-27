@@ -3,8 +3,7 @@
 # instructions on how to checkout the submodules if they are not checked out.
 # The test_content_version* targets are dependencies of ./test_content_version_fixture
 
-# pack_metadata_in_git_submodule(
-resources(
+pack_metadata_in_git_submodule(
     name="test_content_version_metadata",
     sources=[
         "test_content_version/pack.yaml",
