@@ -22,7 +22,6 @@ import glob
 from st2tests.base import IntegrationTestCase
 from st2common.util.shell import run_command
 from st2tests import config as test_config
-from st2tests.fixturesloader import get_fixtures_packs_base_path
 
 # import this so that pants can infer dependencies for the glob below
 from st2tests.fixtures.packs.all_packs_glob import PACKS_PATH
