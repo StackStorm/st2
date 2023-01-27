@@ -9,8 +9,11 @@ python_test_utils(
 
 python_tests(
     name="tests",
-    overrides={
-        # We use this plugin to validate we can run the tests for it.
-        "mongo_rules_test.py": {"uses": ["mongo"]},
-    },
+    # Do not enable `uses` for these tests.
+    # These tests still need the running services, but if the plugin
+    # is somehow broken, then any failures would prevent these tests
+    # from running to tell us what is wrong.
+    # overrides={
+    #    "mongo_rules_test.py": {"uses": ["mongo"]},
+    # },
 )
