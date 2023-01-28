@@ -137,7 +137,7 @@ class ServiceMissingError(Exception):
                 Please see: https://docs.stackstorm.com/install/vagrant.html
 
                 For anyone who wants to attempt local development without vagrant,
-                you may run into some speed bumps. Others StackStorm developers have
+                you may run into some speed bumps. Other StackStorm developers have
                 been known to use Mac OS for development, so feel free to ask for
                 help in slack. At a minimum you need to install and start {service}.
                 """
