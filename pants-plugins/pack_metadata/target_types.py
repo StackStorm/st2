@@ -17,6 +17,7 @@ from pants.engine.target import COMMON_TARGET_FIELDS, Dependencies
 from pants.core.target_types import (
     ResourcesGeneratingSourcesField,
     ResourcesGeneratorTarget,
+    GenericTarget,
 )
 
 
@@ -76,4 +77,15 @@ class PackMetadataInGitSubmodule(PackMetadata):
         "\npack_metadata_in_git_submodule variant errors if the sources field "
         "has unmatched globs. It prints instructions on how to checkout git "
         "submodules."
+    )
+
+
+class PacksGlob(GenericTarget):
+    alias = "packs_glob"
+    core_fields = (*COMMON_TARGET_FIELDS, Dependencies)
+    help = (
+        "Packs glob.\n\n"
+        "Avoid using this target. It gets automatic dependencies on all "
+        "subdirectories (packs) except those listed with ! in dependencies. "
+        "This is unfortunately needed by tests that use a glob to load pack fixtures."
     )
