@@ -11,13 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pack_metadata import tailor
-from pack_metadata.target_types import PackMetadata, PackMetadataInGitSubmodule
+from pack_metadata import tailor, target_types_rules
+from pack_metadata.target_types import (
+    PackMetadata,
+    PackMetadataInGitSubmodule,
+    PacksGlob,
+)
 
 
 def rules():
-    return tailor.rules()
+    return [
+        tailor.rules(),
+        target_types_rules.rules(),
+    ]
 
 
 def target_types():
-    return [PackMetadata, PackMetadataInGitSubmodule]
+    return [
+        PackMetadata,
+        PackMetadataInGitSubmodule,
+        PacksGlob,
+    ]

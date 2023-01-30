@@ -1,0 +1,88 @@
+# Copyright 2023 The StackStorm Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# repurposed from pants.backend.python.target_types_rules
+import dataclasses
+import os
+from dataclasses import dataclass
+
+from pants.engine.addresses import Address
+from pants.engine.fs import GlobMatchErrorBehavior, PathGlobs, Paths
+from pants.engine.rules import Get, collect_rules, MultiGet, rule, UnionRule
+from pants.engine.target import (
+    Dependencies,
+    DependenciesRequest,
+    ExplicitlyProvidedDependencies,
+    FieldSet,
+    InferDependenciesRequest,
+    InferredDependencies,
+    InvalidFieldException,
+)
+from pants.util.logging import LogLevel
+
+from pack_metadata.target_types import PacksGlobDependencies
+
+
+@dataclass(frozen=True)
+class PacksGlobInferenceFieldSet(FieldSet):
+    required_fields = (PacksGlobDependencies,)
+
+    dependencies: PacksGlobDependencies
+
+
+class InferPacksGlobDependencies(InferDependenciesRequest):
+    infer_from = PacksGlobInferenceFieldSet
+
+
+@rule(
+    desc="Inferring packs glob dependencies",
+    level=LogLevel.DEBUG,
+)
+async def infer_packs_globs_dependencies(
+    request: InferPacksGlobDependencies,
+) -> InferredDependencies:
+    address = request.field_set.address
+
+    paths, explicitly_provided_deps = await MultiGet(
+        Get(
+            Paths,
+            PathGlobs(
+                [os.path.join(address.spec_path, "*")],
+                glob_match_error_behavior=GlobMatchErrorBehavior.error,
+                description_of_origin=f"{address}'s packs glob",
+            ),
+        ),
+        Get(
+            ExplicitlyProvidedDependencies,
+            DependenciesRequest(request.field_set.dependencies),
+        ),
+    )
+
+    # explicitly_provided_deps.includes: FrozenOrderedSet[Address]
+    # explicitly_provided_deps.ignores: FrozenOrderedSet[Address]
+
+    implicit_packs = {Address(f"{pack}/") for pack in paths.dirs}
+
+    inferred_deps = (
+        implicit_packs
+        - explicitly_provided_deps.ignores
+        - explicitly_provided_deps.includes
+    )
+    return InferredDependencies(inferred_deps)
+
+
+def rules():
+    return [
+        *collect_rules(),
+        UnionRule(InferDependenciesRequest, InferPacksGlobDependencies),
+    ]
