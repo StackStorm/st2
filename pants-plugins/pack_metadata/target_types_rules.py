@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# repurposed from pants.backend.python.target_types_rules
 import os
 from dataclasses import dataclass
 
@@ -65,17 +64,14 @@ async def infer_packs_globs_dependencies(
         ),
     )
 
-    # explicitly_provided_deps.includes: FrozenOrderedSet[Address]
-    # explicitly_provided_deps.ignores: FrozenOrderedSet[Address]
+    implicit_packs_deps = {Address(pack) for pack in paths.dirs}
 
-    implicit_packs = {Address(f"{pack}/") for pack in paths.dirs}
-
-    inferred_deps = (
-        implicit_packs
-        - explicitly_provided_deps.ignores
-        - explicitly_provided_deps.includes
+    inferred_packs_deps = (
+        implicit_packs_deps
+        - explicitly_provided_deps.ignores  # FrozenOrderedSet[Address]
+        - explicitly_provided_deps.includes  # FrozenOrderedSet[Address]
     )
-    return InferredDependencies(inferred_deps)
+    return InferredDependencies(inferred_packs_deps)
 
 
 def rules():
