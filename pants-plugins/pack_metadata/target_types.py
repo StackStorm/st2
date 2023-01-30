@@ -80,9 +80,13 @@ class PackMetadataInGitSubmodule(PackMetadata):
     )
 
 
+class PacksGlobDependencies(Dependencies):
+    pass
+
+
 class PacksGlob(GenericTarget):
     alias = "packs_glob"
-    core_fields = (*COMMON_TARGET_FIELDS, Dependencies)
+    core_fields = (*COMMON_TARGET_FIELDS, PacksGlobDependencies)
     help = (
         "Packs glob.\n\n"
         "Avoid using this target. It gets automatic dependencies on all "
