@@ -42,7 +42,6 @@ packs_glob(
         "./core",
         # use :test_content_version instead because of the git submodule
         ":test_content_version",
-        "!./test_content_version",
         "!./test_content_version_fixture",
         # these are not packs
         "!./configs",

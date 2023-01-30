@@ -49,6 +49,11 @@ def test_infer_packs_globs_dependencies() -> None:
         {
             "packs/BUILD": dedent(
                 """\
+                python_sources(
+                    name="git_submodule",
+                    sources=["./git_submodule/*.py"],
+                )
+
                 packs_glob(
                     name="all_packs_glob",
                     dependencies=[
@@ -76,6 +81,9 @@ def test_infer_packs_globs_dependencies() -> None:
             "packs/d/BUILD": "python_sources()",
             "packs/d/__init__.py": "",
             "packs/d/fixture.py": "",
+            # imitate a pack in a git submodule (should NOT have a BUILD file)
+            "packs/git_submodule/__init__.py": "",
+            "packs/git_submodule/fixture.py": "",
             "packs/configs/BUILD": dedent(
                 """\
                 resources(
@@ -109,6 +117,7 @@ def test_infer_packs_globs_dependencies() -> None:
         [
             # should not have packs/a (explicit dep does not need to be inferred)
             # should not have packs/configs (explicitly ignored)
+            # should not have packs/git_submodule (no BUILD file = no targets to add)
             Address("packs/b"),
             Address("packs/c"),
             Address("packs/d"),

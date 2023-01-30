@@ -49,11 +49,11 @@ async def infer_packs_globs_dependencies(
 ) -> InferredDependencies:
     address = request.field_set.address
 
-    paths, explicitly_provided_deps = await MultiGet(
+    pack_build_paths, explicitly_provided_deps = await MultiGet(
         Get(
             Paths,
             PathGlobs(
-                [os.path.join(address.spec_path, "*")],
+                [os.path.join(address.spec_path, "*", "BUILD")],
                 glob_match_error_behavior=GlobMatchErrorBehavior.error,
                 description_of_origin=f"{address}'s packs glob",
             ),
@@ -64,7 +64,9 @@ async def infer_packs_globs_dependencies(
         ),
     )
 
-    implicit_packs_deps = {Address(pack) for pack in paths.dirs}
+    implicit_packs_deps = {
+        Address(os.path.dirname(path)) for path in pack_build_paths.files
+    }
 
     inferred_packs_deps = (
         implicit_packs_deps
