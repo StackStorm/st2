@@ -35,49 +35,19 @@ python_sources(
     ],
 )
 
-# Please make sure to register all of the packs in this dir.
-# For each pack, depend on the python_sources target (which depends on pack_metadata).
-target(
+packs_glob(
     name="all_packs",
     dependencies=[
-        "./action_chain_tests",
+        # core is a symlink instead of a dir
         "./core",
-        "./dummy_pack_1",
-        "./dummy_pack_2",
-        "./dummy_pack_3",
-        "./dummy_pack_4",
-        "./dummy_pack_5",
-        "./dummy_pack_6",
-        "./dummy_pack_7",
-        "./dummy_pack_8",
-        "./dummy_pack_9",
-        "./dummy_pack_10",
-        "./dummy_pack_11",
-        "./dummy_pack_12",
-        "./dummy_pack_13",
-        "./dummy_pack_14",
-        "./dummy_pack_15",
-        "./dummy_pack_16",
-        "./dummy_pack_17",
-        "./dummy_pack_18",
-        "./dummy_pack_19",
-        "./dummy_pack_20",
-        "./dummy_pack_21",
-        "./dummy_pack_22",
-        "./dummy_pack_23",
-        "./dummy_pack_schema_with_additional_items_1",
-        "./dummy_pack_schema_with_additional_properties_1",
-        "./dummy_pack_schema_with_nested_object_1",
-        "./dummy_pack_schema_with_nested_object_2",
-        "./dummy_pack_schema_with_nested_object_3",
-        "./dummy_pack_schema_with_nested_object_4",
-        "./dummy_pack_schema_with_nested_object_5",
-        "./dummy_pack_schema_with_pattern_and_additional_properties_1",
-        "./dummy_pack_schema_with_pattern_properties_1",
-        "./orquesta_tests",
-        "./pack_dir_name_doesnt_match_ref",
-        "./pack_invalid_requirements",
+        # use :test_content_version instead because of the git submodule
         ":test_content_version",
-        "./test_library_dependencies",
+        "!./test_content_version",
+        "!./test_content_version_fixture",
+        # these are not packs
+        "!./configs",
+        "!./executions",
+        "!./runners",
+        "!./all_packs_glob",  # the fixture that pulls in this target
     ],
 )
