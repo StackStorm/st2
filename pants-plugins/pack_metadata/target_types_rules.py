@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # repurposed from pants.backend.python.target_types_rules
-import dataclasses
 import os
 from dataclasses import dataclass
 
@@ -20,13 +19,11 @@ from pants.engine.addresses import Address
 from pants.engine.fs import GlobMatchErrorBehavior, PathGlobs, Paths
 from pants.engine.rules import Get, collect_rules, MultiGet, rule, UnionRule
 from pants.engine.target import (
-    Dependencies,
     DependenciesRequest,
     ExplicitlyProvidedDependencies,
     FieldSet,
     InferDependenciesRequest,
     InferredDependencies,
-    InvalidFieldException,
 )
 from pants.util.logging import LogLevel
 
