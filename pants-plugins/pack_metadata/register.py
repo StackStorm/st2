@@ -21,8 +21,8 @@ from pack_metadata.target_types import (
 
 def rules():
     return [
-        tailor.rules(),
-        target_types_rules.rules(),
+        *tailor.rules(),
+        *target_types_rules.rules(),
     ]
 
 
