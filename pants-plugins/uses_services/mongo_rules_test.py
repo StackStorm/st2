@@ -63,7 +63,7 @@ def run_mongo_is_running(
 # Warning this requires that mongo be running
 def test_mongo_is_running(rule_runner: RuleRunner) -> None:
     request = UsesMongoRequest()
-    mock_platform = platform()
+    mock_platform = platform(os="TestMock")
 
     # we are asserting that this does not raise an exception
     is_running = run_mongo_is_running(rule_runner, request, mock_platform)

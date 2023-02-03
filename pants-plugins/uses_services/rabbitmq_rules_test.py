@@ -64,7 +64,7 @@ def run_rabbitmq_is_running(
 # Warning this requires that rabbitmq be running
 def test_rabbitmq_is_running(rule_runner: RuleRunner) -> None:
     request = UsesRabbitMQRequest()
-    mock_platform = platform()
+    mock_platform = platform(os="TestMock")
 
     # we are asserting that this does not raise an exception
     is_running = run_rabbitmq_is_running(rule_runner, request, mock_platform)
@@ -74,8 +74,9 @@ def test_rabbitmq_is_running(rule_runner: RuleRunner) -> None:
 @pytest.mark.parametrize("mock_platform", platform_samples)
 def test_rabbitmq_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
     request = UsesRabbitMQRequest(
-        mq_host="127.100.20.7",
-        mq_port=10,  # unassigned port, unlikely to be used
+        mq_urls=(
+            "amqp://guest:guest@127.100.20.7:10/",  # 10 = unassigned port, unlikely to be used
+        ),
     )
 
     with pytest.raises(ExecutionError) as exception_info:

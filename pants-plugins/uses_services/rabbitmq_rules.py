@@ -62,7 +62,7 @@ class UsesRabbitMQRequest:
 
     #   with our version of oslo.config (newer are slower) we can't directly override opts w/ environment variables.
 
-    mq_urls: list[str] = ["amqp://guest:guest@127.0.0.1:5672//"]
+    mq_urls: tuple[str] = ("amqp://guest:guest@127.0.0.1:5672//",)
 
 
 @dataclass(frozen=True)
@@ -113,7 +113,7 @@ async def rabbitmq_is_running(
             PexRequest(
                 output_filename="kombu.pex",
                 internal_only=True,
-                requirements=PexRequirements({"kombu",}),
+                requirements=PexRequirements({"kombu"}),
             ),
         ),
     )
@@ -124,7 +124,7 @@ async def rabbitmq_is_running(
             kombu_pex,
             argv=(
                 script_path,
-                "amqp://guest:guest@127.0.0.1:5672/",
+                *request.mq_urls,
             ),
             input_digest=script_digest,
             description="Checking to see if RabbitMQ is up and accessible.",
@@ -139,9 +139,9 @@ async def rabbitmq_is_running(
         return RabbitMQIsRunning()
 
     # rabbitmq is not running, so raise an error with instructions.
-    raise ServiceMissingError(
-        platform,
-        ServiceSpecificMessages(
+    raise ServiceMissingError.generate(
+        platform=platform,
+        messages=ServiceSpecificMessages(
             service="rabbitmq",
             service_start_cmd_el_7="service rabbitmq-server start",
             service_start_cmd_el="systemctl start rabbitmq-server",
