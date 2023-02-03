@@ -6,6 +6,7 @@
 // {
 //   "version": 3,
 //   "valid_for_interpreter_constraints": [
+//     "CPython<3.10,>=3.7",
 //     "CPython<3.9,>=3.6"
 //   ],
 //   "generated_with_requirements": [
@@ -314,6 +315,7 @@
     "st2flake8==0.1.0"
   ],
   "requires_python": [
+    "<3.10,>=3.7",
     "<3.9,>=3.6"
   ],
   "resolver_version": "pip-2020-resolver",

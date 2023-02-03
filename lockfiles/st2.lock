@@ -13,9 +13,11 @@
 //     "RandomWords",
 //     "apscheduler",
 //     "argcomplete",
+//     "beautifulsoup4",
 //     "ciso8601",
 //     "cryptography",
 //     "eventlet<0.31",
+//     "flask",
 //     "flex",
 //     "gitdb",
 //     "gitpython",
@@ -773,6 +775,24 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "454a69d788c7fda44efd71e259be79577822f5e3f53f029a22d08004e951dc9f",
+              "url": "https://files.pythonhosted.org/packages/26/2f/1095cdc2868052dd1e64520f7c0d5c8c550ad297e944e641dbf1ffbb9a5d/dataclasses-0.6-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "6988bd2b895eef432d562370bb707d540f32f7360ab13da45340101bc2307d84",
+              "url": "https://files.pythonhosted.org/packages/59/e4/2f921edfdf1493bdc07b914cbea43bc334996df4841a34523baf73d1fb4f/dataclasses-0.6.tar.gz"
+            }
+          ],
+          "project_name": "dataclasses",
+          "requires_dists": [],
+          "requires_python": null,
+          "version": "0.6"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "1393a527d2c72f143ffa6a629e9c33face6642634eece475b48cab7b04ba61f3",
               "url": "https://files.pythonhosted.org/packages/a8/b8/3ab00e60d1c5665e831fa33bb47623ad613acb16c0d67e32e355efac44bd/debtcollector-2.5.0-py3-none-any.whl"
             },
@@ -915,6 +935,31 @@
           ],
           "requires_python": ">=3.6",
           "version": "3.4.1"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "59da8a3170004800a2837844bfa84d49b022550616070f7cb1a659682b2e7c9f",
+              "url": "https://files.pythonhosted.org/packages/cd/77/59df23681f4fd19b7cbbb5e92484d46ad587554f5d490f33ef907e456132/Flask-2.0.3-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "e1120c228ca2f553b470df4a5fa927ab66258467526069981b3eb0a91902687d",
+              "url": "https://files.pythonhosted.org/packages/84/9d/66347e6b3e2eb78647392d3969c23bdc2d8b2fdc32bd078c817c15cb81ad/Flask-2.0.3.tar.gz"
+            }
+          ],
+          "project_name": "flask",
+          "requires_dists": [
+            "Jinja2>=3.0",
+            "Werkzeug>=2.0",
+            "asgiref>=3.2; extra == \"async\"",
+            "click>=7.1.2",
+            "itsdangerous>=2.0",
+            "python-dotenv; extra == \"dotenv\""
+          ],
+          "requires_python": ">=3.6",
+          "version": "2.0.3"
         },
         {
           "artifacts": [
@@ -1287,6 +1332,24 @@
           "requires_dists": [],
           "requires_python": null,
           "version": "0.1.16"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "5174094b9637652bdb841a3029700391451bd092ba3db90600dea710ba28e97c",
+              "url": "https://files.pythonhosted.org/packages/9c/96/26f935afba9cd6140216da5add223a0c465b99d0f112b68a4ca426441019/itsdangerous-2.0.1-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "9e724d68fc22902a1435351f84c3fb8623f303fffcc566a4cb952df8c572cff0",
+              "url": "https://files.pythonhosted.org/packages/58/66/d6c5859dcac92b442626427a8c7a42322068c5cd5d4a463ce78b93f730b7/itsdangerous-2.0.1.tar.gz"
+            }
+          ],
+          "project_name": "itsdangerous",
+          "requires_dists": [],
+          "requires_python": ">=3.6",
+          "version": "2.0.1"
         },
         {
           "artifacts": [
@@ -4431,6 +4494,27 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "1421ebfc7648a39a5c58c601b154165d05cf47a3cd0ccb70857cbdacf6c8f2b8",
+              "url": "https://files.pythonhosted.org/packages/f4/f3/22afbdb20cc4654b10c98043414a14057cd27fdba9d4ae61cea596000ba2/Werkzeug-2.0.3-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "b863f8ff057c522164b6067c9e28b041161b4be5ba4d0daceeaa50a163822d3c",
+              "url": "https://files.pythonhosted.org/packages/6c/a8/60514fade2318e277453c9588545d0c335ea3ea6440ce5cdabfca7f73117/Werkzeug-2.0.3.tar.gz"
+            }
+          ],
+          "project_name": "werkzeug",
+          "requires_dists": [
+            "dataclasses; python_version < \"3.7\"",
+            "watchdog; extra == \"watchdog\""
+          ],
+          "requires_python": ">=3.6",
+          "version": "2.0.3"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "2cf71233a0ed05ccdabe209c606fe0bac7379fdcf687f39b944420d2a09fdb57",
               "url": "https://files.pythonhosted.org/packages/da/f4/7af9e01b6c1126b2daef72d5ba2cbf59a7229fd57c5b23166f694d758a8f/wrapt-1.14.1-cp38-cp38-musllinux_1_1_x86_64.whl"
             },
@@ -4766,9 +4850,11 @@
     "RandomWords",
     "apscheduler",
     "argcomplete",
+    "beautifulsoup4",
     "ciso8601",
     "cryptography",
     "eventlet<0.31",
+    "flask",
     "flex",
     "gitdb",
     "gitpython",

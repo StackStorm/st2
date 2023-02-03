@@ -460,11 +460,7 @@ generate-api-spec: requirements .generate-api-spec
 	@echo
 	@echo "================== Generate openapi.yaml file ===================="
 	@echo
-	echo "# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY" > st2common/st2common/openapi.yaml
-	echo "# Edit st2common/st2common/openapi.yaml.j2 and then run" >> st2common/st2common/openapi.yaml
-	echo "# make .generate-api-spec" >> st2common/st2common/openapi.yaml
-	echo "# to generate the final spec file" >> st2common/st2common/openapi.yaml
-	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf >> st2common/st2common/openapi.yaml
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf > st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
 circle-lint-api-spec:
@@ -568,7 +564,7 @@ clean: .cleanpycs
 compilepy3:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 3) ------"
-	python3 -m compileall -f -q -x 'virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test' .
+	python3 -m compileall -f -q -x 'virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test|./pants-plugins' .
 
 .PHONY: .cleanpycs
 .cleanpycs:

@@ -31,9 +31,24 @@ python_requirements(
                 "//:reqs#zake",
             ]
         },
+        # make sure anything that uses st2-auth-ldap gets the st2auth constant
+        "st2-auth-ldap": {
+            "dependencies": [
+                "st2auth/st2auth/backends/constants.py",
+            ]
+        },
     },
 )
 
+target(
+    name="auth_backends",
+    dependencies=[
+        "//:reqs#st2-auth-backend-flat-file",
+        "//:reqs#st2-auth-ldap",
+    ],
+)
+
 python_test_utils(
-    name="test_utils0",
+    name="test_utils",
+    skip_pylint=True,
 )
