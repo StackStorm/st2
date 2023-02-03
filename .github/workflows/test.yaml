@@ -45,6 +45,15 @@ jobs:
         ports:
           - 27017:27017
 
+      rabbitmq:
+        image: rabbitmq:3.8-management
+        options: >-
+          --name rabbitmq
+        ports:
+          - 5671:5671/tcp   # AMQP SSL port
+          - 5672:5672/tcp   # AMQP standard port
+          - 15672:15672/tcp # Management: HTTP, CLI
+
     env:
       COLUMNS: '120'
 
