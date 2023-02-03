@@ -26,4 +26,14 @@ st2_component_python_distribution(
         # dev scripts we might want to include
         # "bin/st2-generate-schemas",
     ],
+    entry_points={
+        stevedore_namespace("st2common.metrics.driver"): {
+            "statsd": "st2common.metrics.drivers.statsd_driver:StatsdDriver",
+            "noop": "st2common.metrics.drivers.noop_driver:NoopDriver",
+            "echo": "st2common.metrics.drivers.echo_driver:EchoDriver",
+        },
+        stevedore_namespace("st2common.rbac.backend"): {
+            "noop": "st2common.rbac.backends.noop:NoOpRBACBackend",
+        },
+    },
 )

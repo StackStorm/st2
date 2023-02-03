@@ -84,6 +84,8 @@ def st2_component_python_distribution(**kwargs):
     description = (
         f"{st2_component} StackStorm event-driven automation platform component"
     )
+    # setup(scripts=[...]) is for pre-made scripts, which we have.
+    # TODO: use entry_points.console_scripts instead of hand-generating these.
     scripts = kwargs.pop("scripts", [])
 
     st2_license(dest=st2_component)
