@@ -41,7 +41,7 @@ if __name__ == "__main__":
     mq_urls = list(sys.argv[1:])
     if not mq_urls:
         # st2.tests*.conf ends in /, but the default ends in //
-        mq_urls=["amqp://guest:guest@127.0.0.1:5672//"]
+        mq_urls = ["amqp://guest:guest@127.0.0.1:5672//"]
 
     is_running = _is_rabbitmq_running(mq_urls)
     exit_code = 0 if is_running else 1

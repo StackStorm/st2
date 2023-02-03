@@ -16,7 +16,6 @@ from __future__ import annotations
 import pytest
 
 from pants.engine.internals.scheduler import ExecutionError
-from pants.engine.target import Target
 from pants.testutil.rule_runner import QueryRule, RuleRunner
 
 from .data_fixtures import platform, platform_samples
