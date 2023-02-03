@@ -34,3 +34,19 @@ python_sources(
         "test_content_version/**/*.py",
     ],
 )
+
+packs_glob(
+    name="all_packs",
+    dependencies=[
+        # core is a symlink instead of a dir
+        "./core",
+        # use :test_content_version instead because of the git submodule
+        ":test_content_version",
+        "!./test_content_version_fixture",
+        # these are not packs
+        "!./configs",
+        "!./executions",
+        "!./runners",
+        "!./all_packs_glob",  # the fixture that pulls in this target
+    ],
+)

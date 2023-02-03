@@ -6,6 +6,7 @@ in development
 
 Added
 ~~~~~
+* Move `git clone` to `user_home/.st2packs` #5845
 
 * Error on `st2ctl status` when running in Kubernetes. #5851
   Contributed by @mamercad
@@ -14,7 +15,7 @@ Added
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
   to pants' use of PEX lockfiles. This is not a user-facing addition.
   #5778 #5789 #5817 #5795 #5830 #5833 #5834 #5841 #5840 #5838 #5842 #5837 #5849 #5850
-  #5846 #5853 #5848 #5847 #5858 #5857 #5860 #5868 #5871 #5864 #5884
+  #5846 #5853 #5848 #5847 #5858 #5857 #5860 #5868 #5871 #5864 #5874 #5884
   Contributed by @cognifloyd
 
 * Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
