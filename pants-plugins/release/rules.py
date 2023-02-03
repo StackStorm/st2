@@ -24,11 +24,6 @@ from pants.engine.fs import DigestContents, GlobMatchErrorBehavior, PathGlobs
 from pants.engine.target import Target
 from pants.engine.rules import collect_rules, Get, MultiGet, rule, UnionRule
 
-from stevedore_extensions.setup_py_kwargs import (
-    StevedoreSetupKwargs,
-    StevedoreSetupKwargsRequest,
-)
-
 
 class StackStormSetupKwargsRequest(SetupKwargsRequest):
     @classmethod
@@ -133,15 +128,6 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
             f"{sorted(conflicting_hardcoded_kwargs)}"
         )
     kwargs.update(hardcoded_kwargs)
-
-    # stevedore extensions define most of our setup.py "entry_points"
-    stevedore_kwargs = await Get(
-        StevedoreSetupKwargs, StevedoreSetupKwargsRequest(request)
-    )
-    kwargs["entry_points"] = {
-        **stevedore_kwargs.kwargs["entry_points"],
-        **kwargs.get("entry_points", {}),
-    }
 
     return SetupKwargs(kwargs, address=request.target.address)
 
