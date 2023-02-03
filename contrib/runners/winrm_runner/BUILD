@@ -12,4 +12,11 @@ st2_runner_python_distribution(
         "WinRM shell command and PowerShell script action runner "
         "for the StackStorm event-driven automation platform"
     ),
+    entry_points={
+        stevedore_namespace("st2common.runners.runner"): {
+            "winrm-cmd": "winrm_runner.winrm_command_runner",
+            "winrm-ps-cmd": "winrm_runner.winrm_ps_command_runner",
+            "winrm-ps-script": "winrm_runner.winrm_ps_script_runner",
+        },
+    },
 )
