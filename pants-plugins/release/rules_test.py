@@ -165,7 +165,10 @@ def test_setup_kwargs_plugin_no_version_file(rule_runner: RuleRunner) -> None:
     with pytest.raises(ExecutionError) as e:
         _ = gen_setup_kwargs(address, rule_runner)
     exc = e.value.wrapped_exceptions[0]
-    assert isinstance(exc, ValueError)  # TODO: glob error
+    assert (
+        "Unmatched glob from StackStorm version file: foobar_runner/__missing__.py"
+        in str(exc)
+    )
 
 
 def test_setup_kwargs_plugin_no_version(rule_runner: RuleRunner) -> None:
@@ -277,7 +280,7 @@ def test_setup_kwargs_plugin(rule_runner: RuleRunner) -> None:
                 "license": "Apache License, Version 2.0",
                 "project_urls": FrozenDict(PROJECT_URLS),
                 "version": "0.0test0",
-                "classifiers": [
+                "classifiers": (
                     *META_CLASSIFIERS,
                     LINUX_CLASSIFIER,
                     "Programming Language :: Python",
@@ -285,7 +288,7 @@ def test_setup_kwargs_plugin(rule_runner: RuleRunner) -> None:
                     "Programming Language :: Python :: 3.6",
                     "Programming Language :: Python :: 3.8",
                     "Qwerty :: Asdf :: Zxcv",
-                ],
+                ),
             }
         ),
         address=address,
@@ -335,7 +338,7 @@ def test_setup_kwargs_plugin_with_readme(rule_runner: RuleRunner) -> None:
                 "version": "0.0test0",
                 "long_description_content_type": "text/x-rst",
                 "long_description": "lorem ipsum",
-                "classifiers": [
+                "classifiers": (
                     *META_CLASSIFIERS,
                     LINUX_CLASSIFIER,
                     "Programming Language :: Python",
@@ -343,7 +346,7 @@ def test_setup_kwargs_plugin_with_readme(rule_runner: RuleRunner) -> None:
                     "Programming Language :: Python :: 3.6",
                     "Programming Language :: Python :: 3.8",
                     "Qwerty :: Asdf :: Zxcv",
-                ],
+                ),
             }
         ),
         address=address,

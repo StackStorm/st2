@@ -17,12 +17,16 @@ Please see https://www.pantsbuild.org/docs/plugins-setup-py
 Based in part on Apache 2.0 licensed code from:
 https://github.com/pantsbuild/pants/blob/master/pants-plugins/internal_plugins/releases/register.py
 """
+
+from __future__ import annotations
+
 import re
 
 from pants.backend.python.goals.setup_py import SetupKwargs, SetupKwargsRequest
 from pants.engine.fs import DigestContents, GlobMatchErrorBehavior, PathGlobs
 from pants.engine.target import Target
 from pants.engine.rules import collect_rules, Get, MultiGet, rule, UnionRule
+from pants.util.frozendict import FrozenDict
 
 
 REQUIRED_KWARGS = (
@@ -122,7 +126,7 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
 
     # Hardcode certain kwargs and validate that they weren't already set.
     hardcoded_kwargs = PROJECT_METADATA.copy()
-    hardcoded_kwargs["project_urls"] = PROJECT_URLS.copy()
+    hardcoded_kwargs["project_urls"] = FrozenDict(PROJECT_URLS)
     hardcoded_kwargs["version"] = version_match.group(1)
 
     long_description = (
@@ -144,13 +148,13 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
     kwargs.update(hardcoded_kwargs)
 
     # Add classifiers. We preserve any that were already set.
-    kwargs["classifiers"] = [
+    kwargs["classifiers"] = (
         *META_CLASSIFIERS,
         LINUX_CLASSIFIER,
         # TODO: add these dynamically based on interpreter constraints
         *python_classifiers("3", "3.6", "3.8"),
         *kwargs.get("classifiers", []),
-    ]
+    )
 
     return SetupKwargs(kwargs, address=request.target.address)
 
