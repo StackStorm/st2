@@ -20,10 +20,10 @@ from pants.testutil.rule_runner import QueryRule, RuleRunner
 
 from .data_fixtures import platform, platform_samples
 from .exceptions import ServiceMissingError
-from .mongo_rules import (
-    MongoIsRunning,
-    UsesMongoRequest,
-    rules as mongo_rules,
+from .rabbitmq_rules import (
+    RabbitMQIsRunning,
+    UsesRabbitMQRequest,
+    rules as rabbitmq_rules,
 )
 from .platform_rules import Platform
 
@@ -32,20 +32,20 @@ from .platform_rules import Platform
 def rule_runner() -> RuleRunner:
     return RuleRunner(
         rules=[
-            *mongo_rules(),
-            QueryRule(MongoIsRunning, (UsesMongoRequest, Platform)),
+            *rabbitmq_rules(),
+            QueryRule(RabbitMQIsRunning, (UsesRabbitMQRequest, Platform)),
         ],
         target_types=[],
     )
 
 
-def run_mongo_is_running(
+def run_rabbitmq_is_running(
     rule_runner: RuleRunner,
-    uses_mongo_request: UsesMongoRequest,
+    uses_rabbitmq_request: UsesRabbitMQRequest,
     mock_platform: Platform,
     *,
     extra_args: list[str] | None = None,
-) -> MongoIsRunning:
+) -> RabbitMQIsRunning:
     rule_runner.set_options(
         [
             "--backend-packages=uses_services",
@@ -54,31 +54,32 @@ def run_mongo_is_running(
         env_inherit={"PATH", "PYENV_ROOT", "HOME"},
     )
     result = rule_runner.request(
-        MongoIsRunning,
-        [uses_mongo_request, mock_platform],
+        RabbitMQIsRunning,
+        [uses_rabbitmq_request, mock_platform],
     )
     return result
 
 
-# Warning this requires that mongo be running
-def test_mongo_is_running(rule_runner: RuleRunner) -> None:
-    request = UsesMongoRequest()
+# Warning this requires that rabbitmq be running
+def test_rabbitmq_is_running(rule_runner: RuleRunner) -> None:
+    request = UsesRabbitMQRequest()
     mock_platform = platform(os="TestMock")
 
     # we are asserting that this does not raise an exception
-    is_running = run_mongo_is_running(rule_runner, request, mock_platform)
+    is_running = run_rabbitmq_is_running(rule_runner, request, mock_platform)
     assert is_running
 
 
 @pytest.mark.parametrize("mock_platform", platform_samples)
-def test_mongo_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
-    request = UsesMongoRequest(
-        db_host="127.100.20.7",
-        db_port=10,  # unassigned port, unlikely to be used
+def test_rabbitmq_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
+    request = UsesRabbitMQRequest(
+        mq_urls=(
+            "amqp://guest:guest@127.100.20.7:10/",  # 10 = unassigned port, unlikely to be used
+        ),
     )
 
     with pytest.raises(ExecutionError) as exception_info:
-        run_mongo_is_running(rule_runner, request, mock_platform)
+        run_rabbitmq_is_running(rule_runner, request, mock_platform)
 
     execution_error = exception_info.value
     assert len(execution_error.wrapped_exceptions) == 1
@@ -86,6 +87,6 @@ def test_mongo_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> 
     exc = execution_error.wrapped_exceptions[0]
     assert isinstance(exc, ServiceMissingError)
 
-    assert exc.service == "mongo"
-    assert "The mongo service does not seem to be running" in str(exc)
+    assert exc.service == "rabbitmq"
+    assert "The rabbitmq service does not seem to be running" in str(exc)
     assert exc.instructions != ""

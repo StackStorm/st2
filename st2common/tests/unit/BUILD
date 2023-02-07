@@ -9,7 +9,7 @@ python_tests(
         # several files import tests.unit.base which is ambiguous. Tell pants which one to use.
         "st2common/tests/unit/base.py",
     ],
-    uses=["mongo"],
+    uses=["mongo", "rabbitmq"],
 )
 
 python_sources()

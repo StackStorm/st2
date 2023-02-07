@@ -15,5 +15,6 @@ python_tests(
     # from running to tell us what is wrong.
     # overrides={
     #    "mongo_rules_test.py": {"uses": ["mongo"]},
+    #    "rabbitmq_rules_test.py": {"uses": ["rabbitmq"]},
     # },
 )

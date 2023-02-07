@@ -157,6 +157,8 @@ class ServiceMissingError(Exception):
                 For anyone who wants to attempt local development without vagrant,
                 you are pretty much on your own. At a minimum you need to install
                 and start {service}. Good luck!
+
+                Detected OS: {platform.os}
                 """
             )
 
