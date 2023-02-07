@@ -150,7 +150,10 @@ async def rabbitmq_is_running(
                 curl -sL https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | sudo bash
                 curl -sL https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | sudo bash
                 sudo yum makecache -y --disablerepo='*' --enablerepo='rabbitmq_rabbitmq-server'
-                # Install erlang and RabbitMQ
+                # Check for any required version constraints in our docs:
+                # https://docs.stackstorm.com/latest/install/rhel{platform.distro_major_version}.html
+
+                # Install erlang and RabbitMQ (and possibly constrain the version)
                 sudo yum -y install erlang{'' if platform.distro_major_version == "7" else '-*'}
                 sudo yum -y install rabbitmq-server
                 # Don't forget to start rabbitmq-server.
