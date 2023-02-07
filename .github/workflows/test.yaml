@@ -54,6 +54,19 @@ jobs:
           - 5672:5672/tcp   # AMQP standard port
           - 15672:15672/tcp # Management: HTTP, CLI
 
+      redis:
+         # Docker Hub image
+         image: redis
+         # Set health checks to wait until redis has started
+         options: >-
+           --name "redis"
+           --health-cmd "redis-cli ping"
+           --health-interval 10s
+           --health-timeout 5s
+           --health-retries 5
+         ports:
+           - 6379:6379/tcp
+
     env:
       COLUMNS: '120'
 
