@@ -20,6 +20,9 @@ Added
 
 * Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
 
+* Added publisher to ActionAlias to enable streaming ActionAlias create/update/delete events. #5763
+  Contributed by @ubaumann
+
 
 3.8.0 - November 18, 2022
 -------------------------
