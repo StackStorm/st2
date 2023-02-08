@@ -16,6 +16,7 @@ These StackStorm-specific plugins might be useful in other StackStorm-related re
 
 These StackStorm-specific plugins are probably only useful for the st2 repo.
 - `api_spec`
+- `macros.py` (not a plugin - see pants.toml `[GLOBAL].build_file_prelude_globs`)
 - `release`
 - `sample_conf`
 - `schemas`
@@ -32,6 +33,16 @@ regenerated.
 This plugin also wires up pants so that the `lint` goal runs additional
 api spec validation on `st2common/st2common/openapi.yaml` with something
 like `./pants lint st2common/st2common/openapi.yaml`.
+
+### `macros.py` macros
+
+[Macros](https://www.pantsbuild.org/docs/macros) are a pants feature
+that can reduce "boilerplate"/duplication in BUILD files. The functions
+defined in `macros.py` are available in all the BUILD files, and using
+them looks just like using the normal BUILD targets.
+
+For documentation about our macros, please refer to the function docstrings
+in the `macros.py` file.
 
 ### `pack_metadata` plugin
 
