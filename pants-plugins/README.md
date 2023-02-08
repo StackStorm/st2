@@ -16,6 +16,7 @@ These StackStorm-specific plugins might be useful in other StackStorm-related re
 
 These StackStorm-specific plugins are probably only useful for the st2 repo.
 - `api_spec`
+- `release`
 - `sample_conf`
 - `schemas`
 
@@ -51,6 +52,14 @@ of git submodules (`st2tests/st2tests/fixtures/packs/test_content_version`).
 If it is not checked out, then some of the tests will fail.
 If it is not checked out, `pack_metadata_in_git_submodule` handles providing
 a helpful, instructive error message as early as possible.
+
+### `release` plugin
+
+This plugin implements the [`SetupKwargs`](https://www.pantsbuild.org/docs/plugins-setup-py)
+plugin hook that pants uses when it auto-generates a `setup.py` file whenever
+it builds a `python_distribution()` (ie a wheel or an sdist). This makes it
+easy to centralize all of the common bits of metadata that need to go in all
+the wheels (like `author="StackStorm"` or our `project_urls`).
 
 ### `sample_conf` plugin
 
