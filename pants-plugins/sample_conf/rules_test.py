@@ -23,15 +23,15 @@ from pants.engine.addresses import Address
 from pants.engine.fs import CreateDigest, Digest, FileContent, Snapshot
 from pants.engine.target import Target
 from pants.core.goals.fmt import FmtResult
+from pants.core.util_rules.partitions import Partitions
 from pants.testutil.rule_runner import QueryRule, RuleRunner
 
 from .rules import (
-    SCRIPT,
-    SCRIPT_DIR,
     GenerateSampleConfFieldSet,
     GenerateSampleConfViaFmtTargetsRequest,
     rules as sample_conf_rules,
 )
+from .subsystem import ConfigGen
 from .target_types import SampleConf
 
 
@@ -41,7 +41,10 @@ def rule_runner() -> RuleRunner:
         rules=[
             *sample_conf_rules(),
             *target_types_rules.rules(),
-            QueryRule(FmtResult, (GenerateSampleConfViaFmtTargetsRequest,)),
+            QueryRule(
+                Partitions, (GenerateSampleConfViaFmtTargetsRequest.PartitionRequest,)
+            ),
+            QueryRule(FmtResult, (GenerateSampleConfViaFmtTargetsRequest.Batch,)),
             QueryRule(SourceFiles, (SourceFilesRequest,)),
         ],
         target_types=[SampleConf, PythonSourcesGeneratorTarget],
@@ -57,23 +60,35 @@ def run_st2_generate_sample_conf(
     rule_runner.set_options(
         [
             "--backend-packages=sample_conf",
-            f"--source-root-patterns=/{SCRIPT_DIR}",
+            f"--source-root-patterns=/{ConfigGen.directory}",
             *(extra_args or ()),
         ],
         env_inherit={"PATH", "PYENV_ROOT", "HOME"},
     )
-    field_sets = [GenerateSampleConfFieldSet.create(tgt) for tgt in targets]
+    field_sets = tuple(GenerateSampleConfFieldSet.create(tgt) for tgt in targets)
     input_sources = rule_runner.request(
         SourceFiles,
         [
             SourceFilesRequest(field_set.source for field_set in field_sets),
         ],
     )
+
+    # run DEFAULT_SINGLE_PARTITION rule
+    partitions = rule_runner.request(
+        Partitions,
+        [GenerateSampleConfViaFmtTargetsRequest.PartitionRequest(field_sets)],
+    )
+    assert len(partitions) == 1
+
+    # run generate_schemas_via_fmt rule
     fmt_result = rule_runner.request(
         FmtResult,
         [
-            GenerateSampleConfViaFmtTargetsRequest(
-                field_sets, snapshot=input_sources.snapshot
+            GenerateSampleConfViaFmtTargetsRequest.Batch(
+                tool_name="",
+                elements=partitions[0].elements,  # ie: files
+                partition_metadata=partitions[0].metadata,
+                snapshot=input_sources.snapshot,
             ),
         ],
     )
@@ -112,9 +127,11 @@ def write_files(
         f"{sample_conf_dir}/{sample_conf_file}": before,
         f"{sample_conf_dir}/BUILD": f"sample_conf(name='t', source='{sample_conf_file}')",
         # add in the target that's hard-coded in the generate_sample_conf_via_fmt rue
-        f"{SCRIPT_DIR}/{SCRIPT}.py": SCRIPT_PY.format(sample_conf_text=after),
-        f"{SCRIPT_DIR}/__init__.py": "",
-        f"{SCRIPT_DIR}/BUILD": "python_sources()",
+        f"{ConfigGen.directory}/{ConfigGen.script}.py": SCRIPT_PY.format(
+            sample_conf_text=after
+        ),
+        f"{ConfigGen.directory}/__init__.py": "",
+        f"{ConfigGen.directory}/BUILD": "python_sources()",
     }
 
     rule_runner.write_files(files)
