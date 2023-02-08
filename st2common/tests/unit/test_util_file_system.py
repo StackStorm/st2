@@ -30,9 +30,11 @@ class FileSystemUtilsTestCase(unittest2.TestCase):
         # Standard exclude pattern
         directory = os.path.join(ST2TESTS_DIR, "policies")
         expected = [
+            "BUILD",
             "mock_exception.py",
             "concurrency.py",
             "__init__.py",
+            "meta/BUILD",
             "meta/mock_exception.yaml",
             "meta/concurrency.yaml",
             "meta/__init__.py",
@@ -48,6 +50,6 @@ class FileSystemUtilsTestCase(unittest2.TestCase):
             "meta/__init__.py",
         ]
         result = get_file_list(
-            directory=directory, exclude_patterns=["*.pyc", "*.yaml"]
+            directory=directory, exclude_patterns=["*.pyc", "*.yaml", "*BUILD"]
         )
         self.assertItemsEqual(expected, result)

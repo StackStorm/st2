@@ -6,15 +6,29 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.14.0rc1"
+pants_version = "2.14.0"
+pythonpath = ["%(buildroot)s/pants-plugins"]
 backend_packages = [
   # python
   "pants.backend.python",
   "pants.backend.experimental.python", # activates twine `publish` support
   "pants.backend.python.mixed_interpreter_constraints",
+  "pants.backend.python.lint.bandit",
+  "pants.backend.python.lint.black",
+  "pants.backend.python.lint.flake8",
+  "pants.backend.python.lint.pylint",
 
   # shell
   "pants.backend.shell",
+  "pants.backend.shell.lint.shellcheck",
+
+  # internal plugins in pants-plugins/
+  "pants.backend.plugin_development",
+  "api_spec",
+  "pack_metadata",
+  "sample_conf",
+  "schemas",
+  "uses_services",
 ]
 # pants ignores files in .gitignore, .*/ directories, /dist/ directory, and __pycache__.
 pants_ignore.add = [
@@ -31,9 +45,9 @@ pants_ignore.add = [
   "st2common/tests/fixtures/requirements-used-for-tests.txt",
   "/fixed-requirements.txt",
   "/test-requirements.txt",
-  # keep requirements.txt for now. We might ignore it if we need an alternate interrim
-  # file that is decoupled from our legacy requirements files generation.
-  # "/requirements.txt",
+  # ignore requirements.txt for now, preferring interim files that are decoupled from
+  # legacy requirements files generation: requirements-pants.txt & lockfiles/st2-constraints.txt
+  "/requirements.txt",
 ]
 
 [source]
@@ -73,9 +87,135 @@ root_patterns = [
   "/contrib/examples/lib",
   # lint plugins
   "/pylint_plugins",
+  # pants plugins
+  "/pants-plugins",
   # misc
   "/scripts",
   "/tools",
   # benchmarks
   "/st2common/benchmarks/micro",
 ]
+
+[python]
+# resolver_version is always "pip-2020-resolver". legacy is not supported.
+enable_resolves = true
+default_resolve = "st2"
+interpreter_constraints = [
+  # python_distributions needs a single constraint (vs one line per python version).
+  # officially, we exclude 3.7 support, but that adds unnecessary complexity: "CPython>=3.6,!=3.7.*,<3.9",
+  "CPython>=3.6,<3.9",
+]
+
+[python.resolves]
+st2 = "lockfiles/st2.lock"
+pylint_plugins = "lockfiles/pylint_plugins.lock" # lockfiles/pylint.lock should have same contents
+pants-plugins = "lockfiles/pants-plugins.lock"
+
+[python.resolves_to_interpreter_constraints]
+pants-plugins = [
+  # this should match the pants interpreter_constraints:
+  # https://github.com/pantsbuild/pants/blob/2.14.x/pants.toml#L125
+  # See: https://www.pantsbuild.org/docs/prerequisites
+  "CPython>=3.7,<3.10",
+]
+
+[python.resolves_to_constraints_file]
+# Our direct requirements are in requirements-pants.txt;
+# put indirect/transitive version constraints here:
+st2 = "lockfiles/st2-constraints.txt"
+
+[python-infer]
+# https://www.pantsbuild.org/docs/reference-python-infer#unowned_dependency_behavior
+# The default changed from "ignore" to "warning" in pants 2.14.
+# Many of the new warnings however have been adressed via explicit deps,
+# so the warnings are not helpful. In pants 2.16, a "visibility" feature might help
+# us to disambiguate deps between files without those explicit BUILD dependencies,
+# and without adding "# pants: no-infer-dep" comments all over the codebase.
+# Revisit this in pants 2.16 to see if it is feasible to use the default "warning".
+unowned_dependency_behavior = "ignore"
+
+[bandit]
+lockfile = "lockfiles/bandit.lock"
+version = "bandit==1.7.0"
+args = [
+  "-lll",  # only HIGH severity level
+  "--exclude",
+  "build,dist",
+  "--quiet", # only show output in the case of an error
+]
+extra_requirements = [
+  "setuptools",
+  # bandit needs stevedore which needs importlib-metadata<5
+  # see: https://github.com/PyCQA/bandit/pull/952
+  "importlib-metadata<5;python_version<'3.8'",
+]
+
+[black]
+lockfile = "lockfiles/black.lock"
+version = "black==22.3.0"
+interpreter_constraints = [
+  "CPython>=3.6.2,<3.9",
+]
+
+[flake8]
+lockfile = "lockfiles/flake8.lock"
+version = "flake8==4.0.1" # st2flake8 does not support flake8 v5
+extra_requirements = [
+  # license check plugin
+  "st2flake8==0.1.0",  # TODO: remove in favor of regex-lint
+]
+config = "lint-configs/python/.flake8"
+
+[pylint]
+lockfile = "lockfiles/pylint.lock"
+version = "pylint~=2.8.2"
+extra_requirements = [
+  "setuptools", # includes pkg_resources
+]
+config = "lint-configs/python/.pylintrc"
+source_plugins = [
+  # the /pylint_plugins directory
+  "pylint_plugins",
+]
+args = [
+  # match the current Makefile usage with -E (TODO: drop this)
+  "--errors-only",
+  # needed in st2* components, runners, packs
+  "--load-plugins=api_models",
+  # needed in st2* components, runners
+  "--load-plugins=db_models",
+]
+
+[pytest]
+lockfile = "lockfiles/pytest.lock"
+version = "pytest==7.0.1"  # copied from https://www.pantsbuild.org/v2.14/docs/reference-pytest#version
+extra_requirements.add = [
+  "pytest-benchmark[histogram]==3.4.1",  # used for st2common/benchmarks
+  #"pytest-timer[colorama]",  # report test timing (--with-timer ala nose-timer)
+  "pytest-icdiff",  # make diff output easier to read
+  "pygments",  # highlight code in tracebacks
+
+  # other possible plugins
+  #"pytest-timeout",  # time limit on tests
+  #"pytest-mock",  # more convenient mocking
+
+  # included by default with pants
+  #"pytest-cov",  # coverage
+  #"pytest-xdist",  # parallel test runs (pants uses this if [pytest].xdist_enabled)
+]
+args = [
+  "--no-header",  # don't print pytest version for every tested file
+]
+execution_slot_var = "ST2TESTS_PARALLEL_SLOT"
+
+[regex-lint]
+config = "@lint-configs/regex-lint.yaml"
+
+[setuptools]
+# setuptools 59.7 (at least) does not support python 3.6
+version = "setuptools>=50.3.0,<59.0"
+lockfile = "lockfiles/setuptools.lock"
+
+[twine]
+lockfile = "lockfiles/twine.lock"
+version = "twine>=3.7.1,<3.8"

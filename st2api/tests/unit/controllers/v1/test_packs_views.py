@@ -133,7 +133,7 @@ class PacksViewsControllerTestCase(FunctionalTest):
         # Ref is not equal to the name, controller should still work
         resp = self.app.get("/v1/packs/views/files/dummy_pack_16")
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertEqual(len(resp.json), 3)
+        self.assertEqual(len(resp.json), 4)
         self.assertIn("pack.yaml", [f["file_path"] for f in resp.json])
 
         resp = self.app.get("/v1/packs/views/file/dummy_pack_16/pack.yaml")

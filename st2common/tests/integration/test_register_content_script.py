@@ -22,9 +22,9 @@ import glob
 from st2tests.base import IntegrationTestCase
 from st2common.util.shell import run_command
 from st2tests import config as test_config
-from st2tests.fixturesloader import get_fixtures_packs_base_path
 
 # import this so that pants can infer dependencies for the glob below
+from st2tests.fixtures.packs.all_packs_glob import PACKS_PATH
 from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_PATH as DUMMY_PACK_1_PATH
 from st2tests.fixtures.packs.dummy_pack_4.fixture import PACK_PATH as DUMMY_PACK_4_PATH
 from st2tests.fixtures.packs.runners.fixture import FIXTURE_PATH as RUNNER_DIRS
@@ -38,8 +38,7 @@ SCRIPT_PATH = os.path.abspath(SCRIPT_PATH)
 BASE_CMD_ARGS = [sys.executable, SCRIPT_PATH, "--config-file=conf/st2.tests.conf", "-v"]
 BASE_REGISTER_ACTIONS_CMD_ARGS = BASE_CMD_ARGS + ["--register-actions"]
 
-PACKS_PATH = get_fixtures_packs_base_path()
-PACKS_COUNT = len(glob.glob("%s/*/pack.yaml" % (PACKS_PATH)))
+PACKS_COUNT = len(glob.glob(f"{PACKS_PATH}/*/pack.yaml"))
 assert PACKS_COUNT >= 2
 
 

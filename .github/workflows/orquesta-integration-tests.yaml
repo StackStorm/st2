@@ -32,7 +32,7 @@ jobs:
   # same file set which has already passed, etc.
   pre_job:
     name: Skip Duplicate Jobs Pre Job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -48,7 +48,7 @@ jobs:
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -243,7 +243,7 @@ jobs:
     if: always()
     needs:
       - integration-tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Workflow conclusion
         # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
