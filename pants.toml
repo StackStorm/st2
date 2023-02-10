@@ -13,6 +13,7 @@ backend_packages = [
   # python
   "pants.backend.python",
   "pants.backend.experimental.python", # activates twine `publish` support
+  "pants.backend.experimental.python.framework.stevedore",
   "pants.backend.python.mixed_interpreter_constraints",
   "pants.backend.python.lint.bandit",
   "pants.backend.python.lint.black",

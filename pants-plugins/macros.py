@@ -13,11 +13,6 @@
 # limitations under the License.
 
 
-# this is only here temporarily until we update to pants 2.16+
-def stevedore_namespace(ns):
-    return ns
-
-
 def st2_publish_repos():
     """Return the list of repos twine should publish to.
 
