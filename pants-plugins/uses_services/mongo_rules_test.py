@@ -75,6 +75,7 @@ def test_mongo_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> 
     request = UsesMongoRequest(
         db_host="127.100.20.7",
         db_port=10,  # unassigned port, unlikely to be used
+        db_connection_timeout=10,  # ms # very short as it should fail anyway
     )
 
     with pytest.raises(ExecutionError) as exception_info:
