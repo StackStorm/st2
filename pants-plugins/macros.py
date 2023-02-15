@@ -13,6 +13,22 @@
 # limitations under the License.
 
 
+def st2_publish_repos():
+    """Return the list of repos twine should publish to.
+
+    Twine will publish to ALL of these repos when running `./pants publish`.
+
+    We use ST2_PUBLISH_REPO, an env var, To facilitate switching between
+    @testpypi and @pypi. That also means someone could publish to their own
+    private repo by changing this var.
+
+    Credentials for pypi should be in ~/.pypirc or in TWINE_* env vars.
+    """
+    # TODO: switch from hard-coded to env() once we upgrade to pants 2.16
+    # return [env("ST2_PUBLISH_REPO", "@pypi")]
+    return ["@pypi"]
+
+
 def st2_license(**kwargs):
     """copy the LICENSE file into each wheel.
 
@@ -49,13 +65,9 @@ def st2_runner_python_distribution(**kwargs):
     for dep in [f"./{runner_name}_runner", ":license"]:
         if dep not in dependencies:
             dependencies.append(dep)
-    kwargs["dependencies"] = dependencies
 
-    repositories = kwargs.pop("repositories", [])
-    for repo in ["@pypi"]:
-        if repo not in repositories:
-            repositories.append(repo)
-    kwargs["repositories"] = repositories
+    kwargs["dependencies"] = dependencies
+    kwargs["repositories"] = st2_publish_repos()
 
     python_distribution(**kwargs)  # noqa: F821
 
@@ -96,12 +108,7 @@ def st2_component_python_distribution(**kwargs):
                 dependencies.append(dep_res)
 
     kwargs["dependencies"] = dependencies
-
-    repositories = kwargs.pop("repositories", [])
-    for repo in ["@pypi"]:
-        if repo not in repositories:
-            repositories.append(repo)
-    kwargs["repositories"] = repositories
+    kwargs["repositories"] = st2_publish_repos()
 
     python_distribution(**kwargs)  # noqa: F821
 
