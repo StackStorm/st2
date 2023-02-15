@@ -25,12 +25,12 @@ def st2_publish_repos():
     Credentials for pypi should be in ~/.pypirc or in TWINE_* env vars.
     """
     # TODO: switch from hard-coded to env() once we upgrade to pants 2.16
-    # return [env("ST2_PUBLISH_REPO", "@pypi")]
+    # return [env("ST2_PUBLISH_REPO", "@pypi")]  # noqa: F821
     return ["@pypi"]
 
 
 def st2_license(**kwargs):
-    """copy the LICENSE file into each wheel.
+    """Copy the LICENSE file into each wheel.
 
     As long as the file is in the src root when building the sdist/wheel,
     setuptools automatically includes the LICENSE file in the dist-info.
@@ -46,6 +46,7 @@ def st2_license(**kwargs):
 
 
 def st2_runner_python_distribution(**kwargs):
+    """Create a python_distribution (wheel/sdist) for a StackStorm runner."""
     runner_name = kwargs.pop("runner_name")
     description = kwargs.pop("description")
 
@@ -73,15 +74,14 @@ def st2_runner_python_distribution(**kwargs):
 
 
 def st2_component_python_distribution(**kwargs):
+    """Create a python_distribution (wheel/sdist) for a core StackStorm component."""
     st2_component = kwargs.pop("component_name")
-
-    st2_license(dest=st2_component)
-
     description = (
         f"{st2_component} StackStorm event-driven automation platform component"
     )
-
     scripts = kwargs.pop("scripts", [])
+
+    st2_license(dest=st2_component)
 
     kwargs["provides"] = python_artifact(  # noqa: F821
         name=st2_component,
@@ -95,7 +95,6 @@ def st2_component_python_distribution(**kwargs):
     )
 
     dependencies = kwargs.pop("dependencies", [])
-
     for dep in [st2_component, ":license"] + scripts:
         dep = f"./{dep}" if dep[0] != ":" else dep
         if dep not in dependencies:
