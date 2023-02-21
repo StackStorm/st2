@@ -14,15 +14,39 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import mock
+
+from oslo_config import cfg
+
 from st2tests.base import CleanDbTestCase
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, FULL_USER_SCOPE
 from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE
+from st2common.constants.types import ResourceType
+from st2common.exceptions.rbac import ResourceAccessDeniedError
+from st2common.models.db.auth import UserDB
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
+from st2common.rbac.backends.noop import NoOpRBACUtils
+from st2common.rbac.types import PermissionType
 from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
+from st2tests import config
+
+USER = "stanley"
+RESOURCE_UUID = "%s:%s:%s" % (
+    ResourceType.KEY_VALUE_PAIR,
+    FULL_USER_SCOPE,
+    "stanley:foobar",
+)
 
 
 class TestKeyValueLookup(CleanDbTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(TestKeyValueLookup, cls).setUpClass()
+        config.parse_args()
+        cfg.CONF.set_override(name="backend", override="noop", group="rbac")
+
     def test_lookup_with_key_prefix(self):
         KeyValuePair.add_or_update(
             KeyValuePairDB(
@@ -171,3 +195,27 @@ class TestKeyValueLookup(CleanDbTestCase):
         self.assertEqual(str(lookup.count), "5.5")
         self.assertEqual(float(lookup.count), 5.5)
         self.assertEqual(int(lookup.count), 5)
+
+    @mock.patch.object(
+        NoOpRBACUtils,
+        "assert_user_has_resource_db_permission",
+        mock.MagicMock(
+            side_effect=ResourceAccessDeniedError(
+                user_db=UserDB(name=USER),
+                resource_api_or_db=KeyValuePairDB(uid=RESOURCE_UUID),
+                permission_type=PermissionType.KEY_VALUE_PAIR_VIEW,
+            )
+        ),
+    )
+    def test_system_kvp_lookup_unauthorized(self):
+        secret_value = (
+            "0055A2D9A09E1071931925933744965EEA7E23DCF59A8D1D7A3"
+            + "64338294916D37E83C4796283C584751750E39844E2FD97A3727DB5D553F638"
+        )
+
+        KeyValuePair.add_or_update(
+            KeyValuePairDB(name="k1", value=secret_value, secret=True)
+        )
+
+        lookup = KeyValueLookup()
+        self.assertRaises(ResourceAccessDeniedError, getattr, lookup, "k1")
