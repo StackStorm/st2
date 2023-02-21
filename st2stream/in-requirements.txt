@@ -9,4 +9,4 @@ oslo.utils
 pyparsing
 pymongo
 six
-gunicorn
+gunicorn@ git+https://github.com/benoitc/gunicorn.git@792edf6d9aabcbfb84e76be1d722ac49c32dc027

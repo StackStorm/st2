@@ -9,4 +9,4 @@ stevedore
 # For backward compatibility reasons, flat file backend is installed by default
 st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
-gunicorn
+gunicorn@ git+https://github.com/benoitc/gunicorn.git@792edf6d9aabcbfb84e76be1d722ac49c32dc027

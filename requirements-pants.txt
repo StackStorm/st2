@@ -18,7 +18,9 @@ gitdb
 gitpython
 # st2common/tests/integration/test_util_green.py requires greenlet (as does eventlet)
 greenlet
-gunicorn
+# use a commit hash from master branch until gunicorn 0.21 is released:
+# https://github.com/benoitc/gunicorn/issues/2638
+gunicorn @ git+https://github.com/benoitc/gunicorn.git@792edf6d9aabcbfb84e76be1d722ac49c32dc027
 jinja2
 jsonpath-rw
 jsonschema

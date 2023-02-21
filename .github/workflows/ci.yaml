@@ -572,7 +572,7 @@ jobs:
       #  Once you are done debugging in your SSH session, simply: touch /continue
       #  and this will continue the build.
       #
-      - name: Setup tmate session for debugging failed jobs (allows SSH into the container)
-        uses: mxschmitt/action-tmate@v3
-        if: "${{ failure() }}"
+      #- name: Setup tmate session for debugging failed jobs (allows SSH into the container)
+      #  uses: mxschmitt/action-tmate@v3
+      #  if: "${{ failure() }}"
       #

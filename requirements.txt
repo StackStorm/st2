@@ -17,12 +17,12 @@ ciso8601
 cryptography==3.4.7
 decorator==4.4.2
 dnspython>=1.16.0,<2.0.0
-eventlet==0.31.0
+eventlet==0.33.3
 flex==6.14.1
 gitdb==4.0.2
 gitpython==3.1.15
 greenlet==1.0.0
-gunicorn@ git+https://github.com/benoitc/gunicorn@1299ea9e967a61ae2edebe191082fd169b864c64
+gunicorn@ git+https://github.com/benoitc/gunicorn.git@792edf6d9aabcbfb84e76be1d722ac49c32dc027
 importlib-metadata==3.10.1
 jinja2==2.11.3
 jsonpath-rw==1.4.0
