@@ -14,6 +14,28 @@ Added
   RBAC support also baked into SSO backends
 
   Contributed by @pimguilherme
+  
+* Move `git clone` to `user_home/.st2packs` #5845
+
+* Error on `st2ctl status` when running in Kubernetes. #5851
+  Contributed by @mamercad
+
+* Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
+  working on StackStorm, improve our security posture, and improve CI reliability thanks in part
+  to pants' use of PEX lockfiles. This is not a user-facing addition.
+  #5778 #5789 #5817 #5795 #5830 #5833 #5834 #5841 #5840 #5838 #5842 #5837 #5849 #5850
+  #5846 #5853 #5848 #5847 #5858 #5857 #5860 #5868 #5871 #5864 #5874 #5884 #5893 #5891
+  #5890 #5898 #5901 #5906
+  Contributed by @cognifloyd
+
+* Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
+
+* Added publisher to ActionAlias to enable streaming ActionAlias create/update/delete events. #5763
+  Contributed by @ubaumann
+
+
+3.8.0 - November 18, 2022
+-------------------------
 
 Fixed
 ~~~~~

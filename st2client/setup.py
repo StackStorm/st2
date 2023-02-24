@@ -72,7 +72,7 @@ setup(
         "Repository": "https://github.com/StackStorm/st2",
         "Documentation": "https://docs.stackstorm.com",
         "Community": "https://stackstorm.com/community-signup",
-        "Questions": "https://forum.stackstorm.com/",
+        "Questions": "https://github.com/StackStorm/st2/discussions",
         "Donate": "https://funding.communitybridge.org/projects/stackstorm",
         "News/Blog": "https://stackstorm.com/blog",
         "Security": "https://docs.stackstorm.com/latest/security.html",
