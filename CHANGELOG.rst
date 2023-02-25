@@ -24,6 +24,9 @@ Added
 * Added publisher to ActionAlias to enable streaming ActionAlias create/update/delete events. #5763
   Contributed by @ubaumann
 
+* Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
+  Contributed by @maxfactor1
+
 
 3.8.0 - November 18, 2022
 -------------------------
