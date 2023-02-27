@@ -58,12 +58,9 @@ async def generate_sample_conf_via_fmt(
     request: GenerateSampleConfViaFmtTargetsRequest.Batch,
     subsystem: ConfigGen,
 ) -> FmtResult:
-    # There will only be one target+field_set, but we iterate
-    # to satisfy how fmt expects that there could be more than one.
-    # If there is more than one, they will all get the same contents.
-
-    # actually generate it with an external script.
+    # We use a pex to actually generate the sample conf with an external script.
     # Generation cannot be inlined here because it needs to import the st2 code.
+    # (the script location is defined on the ConfigGen subsystem)
     pex = await Get(VenvPex, PexFromTargetsRequest, subsystem.pex_request())
 
     result = await Get(

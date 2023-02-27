@@ -68,14 +68,11 @@ async def generate_api_spec_via_fmt(
     request: GenerateAPISpecViaFmtTargetsRequest.Batch,
     subsystem: GenerateApiSpec,
 ) -> FmtResult:
-    # There will only be one target+field_set, but we iterate
-    # to satisfy how fmt expects that there could be more than one.
-    # If there is more than one, they will all get the same contents.
-
     config_files_get = Get(ConfigFiles, ConfigFilesRequest, subsystem.config_request())
 
-    # actually generate it with an external script.
+    # We use a pex to actually generate the api spec with an external script.
     # Generation cannot be inlined here because it needs to import the st2 code.
+    # (the script location is defined on the GenerateApiSpec subsystem)
     pex_get = Get(VenvPex, PexFromTargetsRequest, subsystem.pex_request())
 
     config_files, pex = await MultiGet(config_files_get, pex_get)
@@ -122,10 +119,6 @@ async def validate_api_spec(
     request: ValidateAPISpecRequest.Batch,
     subsystem: ValidateApiSpec,
 ) -> LintResult:
-    # There will only be one target+field_set, but we iterate
-    # to satisfy how lint expects that there could be more than one.
-    # If there is more than one, they will all get the same contents.
-
     source_files_get = Get(
         SourceFiles,
         SourceFilesRequest(field_set.source for field_set in request.elements),
@@ -133,8 +126,9 @@ async def validate_api_spec(
 
     config_files_get = Get(ConfigFiles, ConfigFilesRequest, subsystem.config_request())
 
-    # actually validate it with an external script.
+    # We use a pex to actually validate the api spec with an external script.
     # Validation cannot be inlined here because it needs to import the st2 code.
+    # (the script location is defined on the ValidateApiSpec subsystem)
     pex_get = Get(VenvPex, PexFromTargetsRequest, subsystem.pex_request())
 
     source_files, config_files, pex = await MultiGet(

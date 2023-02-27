@@ -56,6 +56,7 @@ async def generate_schemas_via_fmt(
 ) -> FmtResult:
     # We use a pex to actually generate the schemas with an external script.
     # Generation cannot be inlined here because it needs to import the st2 code.
+    # (the script location is defined on the GenerateSchemas subsystem)
     pex = await Get(VenvPex, PexFromTargetsRequest, subsystem.pex_request())
 
     # There will probably only be one target+field_set, and therefor only one directory
