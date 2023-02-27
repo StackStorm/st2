@@ -9,7 +9,7 @@ python_requirement(
 st2_runner_python_distribution(
     runner_name="winrm",
     description=(
-        "WinRM shell command and PowerShell script action runner "
+        "WinRM shell command and PowerShell command and script action runner "
         "for the StackStorm event-driven automation platform"
     ),
     entry_points={
