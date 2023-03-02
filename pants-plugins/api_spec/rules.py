@@ -13,7 +13,6 @@
 # limitations under the License.
 from dataclasses import dataclass
 
-from pants.backend.python.target_types import EntryPoint
 from pants.backend.python.util_rules import pex, pex_from_targets
 from pants.backend.python.util_rules.pex import (
     VenvPex,
@@ -21,10 +20,10 @@ from pants.backend.python.util_rules.pex import (
 )
 from pants.backend.python.util_rules.pex_from_targets import PexFromTargetsRequest
 from pants.core.goals.fmt import FmtResult, FmtTargetsRequest
-from pants.core.goals.lint import LintResult, LintResults, LintTargetsRequest
-from pants.core.target_types import FileSourceField, ResourceSourceField
+from pants.core.goals.lint import LintResult, LintTargetsRequest
+from pants.core.util_rules.config_files import ConfigFiles, ConfigFilesRequest
+from pants.core.util_rules.partitions import PartitionerType
 from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
-from pants.engine.addresses import Address
 from pants.engine.fs import (
     CreateDigest,
     Digest,
@@ -34,24 +33,12 @@ from pants.engine.fs import (
 )
 from pants.engine.process import FallibleProcessResult, ProcessResult
 from pants.engine.rules import Get, MultiGet, collect_rules, rule
-from pants.engine.target import (
-    FieldSet,
-    SourcesField,
-    TransitiveTargets,
-    TransitiveTargetsRequest,
-)
-from pants.engine.unions import UnionRule
+from pants.engine.target import FieldSet
 from pants.util.logging import LogLevel
+from pants.util.strutil import strip_v2_chroot_path
 
+from api_spec.subsystem import GenerateApiSpec, ValidateApiSpec
 from api_spec.target_types import APISpecSourceField
-
-
-# these constants are also used in the tests
-CMD_SOURCE_ROOT = "st2common"
-CMD_DIR = "st2common/st2common/cmd"
-CMD_MODULE = "st2common.cmd"
-GENERATE_CMD = "generate_api_spec"
-VALIDATE_CMD = "validate_api_spec"
 
 
 @dataclass(frozen=True)
@@ -63,12 +50,14 @@ class APISpecFieldSet(FieldSet):
 
 class GenerateAPISpecViaFmtTargetsRequest(FmtTargetsRequest):
     field_set_type = APISpecFieldSet
-    name = GENERATE_CMD
+    tool_subsystem = GenerateApiSpec
+    partitioner_type = PartitionerType.DEFAULT_SINGLE_PARTITION
 
 
 class ValidateAPISpecRequest(LintTargetsRequest):
     field_set_type = APISpecFieldSet
-    name = VALIDATE_CMD
+    tool_subsystem = ValidateApiSpec
+    partitioner_type = PartitionerType.DEFAULT_SINGLE_PARTITION
 
 
 @rule(
@@ -76,66 +65,21 @@ class ValidateAPISpecRequest(LintTargetsRequest):
     level=LogLevel.DEBUG,
 )
 async def generate_api_spec_via_fmt(
-    request: GenerateAPISpecViaFmtTargetsRequest,
+    request: GenerateAPISpecViaFmtTargetsRequest.Batch,
+    subsystem: GenerateApiSpec,
 ) -> FmtResult:
-    # There will only be one target+field_set, but we iterate
-    # to satisfy how fmt expects that there could be more than one.
-    # If there is more than one, they will all get the same contents.
+    config_files_get = Get(ConfigFiles, ConfigFilesRequest, subsystem.config_request())
 
-    # Find all the dependencies of our target
-    transitive_targets = await Get(
-        TransitiveTargets,
-        TransitiveTargetsRequest(
-            [field_set.address for field_set in request.field_sets]
-        ),
-    )
-
-    dependency_files_get = Get(
-        SourceFiles,
-        SourceFilesRequest(
-            sources_fields=[
-                tgt.get(SourcesField) for tgt in transitive_targets.dependencies
-            ],
-            for_sources_types=(FileSourceField, ResourceSourceField),
-        ),
-    )
-
-    source_files_get = Get(
-        SourceFiles,
-        SourceFilesRequest(field_set.source for field_set in request.field_sets),
-    )
-
-    # actually generate it with an external script.
+    # We use a pex to actually generate the api spec with an external script.
     # Generation cannot be inlined here because it needs to import the st2 code.
-    pex_get = Get(
-        VenvPex,
-        PexFromTargetsRequest(
-            [
-                Address(
-                    CMD_DIR,
-                    target_name="cmd",
-                    relative_file_path=f"{GENERATE_CMD}.py",
-                ),
-            ],
-            output_filename=f"{GENERATE_CMD}.pex",
-            internal_only=True,
-            main=EntryPoint.parse(f"{CMD_MODULE}.{GENERATE_CMD}:main"),
-        ),
-    )
+    # (the script location is defined on the GenerateApiSpec subsystem)
+    pex_get = Get(VenvPex, PexFromTargetsRequest, subsystem.pex_request())
 
-    pex, dependency_files, source_files = await MultiGet(
-        pex_get, dependency_files_get, source_files_get
-    )
-
-    # If we were given an input digest from a previous formatter for the source files, then we
-    # should use that input digest instead of the one we read from the filesystem.
-    source_files_snapshot = (
-        source_files.snapshot if request.snapshot is None else request.snapshot
-    )
+    config_files, pex = await MultiGet(config_files_get, pex_get)
 
     input_digest = await Get(
         Digest,
-        MergeDigests((dependency_files.snapshot.digest, source_files_snapshot.digest)),
+        MergeDigests((config_files.snapshot.digest, request.snapshot.digest)),
     )
 
     result = await Get(
@@ -144,7 +88,7 @@ async def generate_api_spec_via_fmt(
             pex,
             argv=(
                 "--config-file",
-                "conf/st2.dev.conf",
+                subsystem.config_file,
             ),
             input_digest=input_digest,
             description="Regenerating openapi.yaml api spec",
@@ -152,18 +96,19 @@ async def generate_api_spec_via_fmt(
         ),
     )
 
-    contents = [
-        FileContent(
-            f"{field_set.address.spec_path}/{field_set.source.value}",
-            result.stdout,
-        )
-        for field_set in request.field_sets
-    ]
+    contents = [FileContent(file, result.stdout) for file in request.files]
 
     output_digest = await Get(Digest, CreateDigest(contents))
     output_snapshot = await Get(Snapshot, Digest, output_digest)
-    # TODO: Drop result.stdout since we already wrote it to a file?
-    return FmtResult.create(request, result, output_snapshot, strip_chroot_path=True)
+
+    return FmtResult(
+        input=request.snapshot,
+        output=output_snapshot,
+        # Drop result.stdout since we already wrote it to a file
+        stdout="",
+        stderr=strip_v2_chroot_path(result.stderr),
+        tool_name=request.tool_name,
+    )
 
 
 @rule(
@@ -171,60 +116,28 @@ async def generate_api_spec_via_fmt(
     level=LogLevel.DEBUG,
 )
 async def validate_api_spec(
-    request: ValidateAPISpecRequest,
-) -> LintResults:
-    # There will only be one target+field_set, but we iterate
-    # to satisfy how lint expects that there could be more than one.
-    # If there is more than one, they will all get the same contents.
-
-    # Find all the dependencies of our target
-    transitive_targets = await Get(
-        TransitiveTargets,
-        TransitiveTargetsRequest(
-            [field_set.address for field_set in request.field_sets]
-        ),
-    )
-
-    dependency_files_get = Get(
-        SourceFiles,
-        SourceFilesRequest(
-            sources_fields=[
-                tgt.get(SourcesField) for tgt in transitive_targets.dependencies
-            ],
-            for_sources_types=(FileSourceField, ResourceSourceField),
-        ),
-    )
-
+    request: ValidateAPISpecRequest.Batch,
+    subsystem: ValidateApiSpec,
+) -> LintResult:
     source_files_get = Get(
         SourceFiles,
-        SourceFilesRequest(field_set.source for field_set in request.field_sets),
+        SourceFilesRequest(field_set.source for field_set in request.elements),
     )
 
-    # actually validate it with an external script.
+    config_files_get = Get(ConfigFiles, ConfigFilesRequest, subsystem.config_request())
+
+    # We use a pex to actually validate the api spec with an external script.
     # Validation cannot be inlined here because it needs to import the st2 code.
-    pex_get = Get(
-        VenvPex,
-        PexFromTargetsRequest(
-            [
-                Address(
-                    CMD_DIR,
-                    target_name="cmd",
-                    relative_file_path=f"{VALIDATE_CMD}.py",
-                ),
-            ],
-            output_filename=f"{VALIDATE_CMD}.pex",
-            internal_only=True,
-            main=EntryPoint.parse(f"{CMD_MODULE}.{VALIDATE_CMD}:main"),
-        ),
-    )
+    # (the script location is defined on the ValidateApiSpec subsystem)
+    pex_get = Get(VenvPex, PexFromTargetsRequest, subsystem.pex_request())
 
-    pex, dependency_files, source_files = await MultiGet(
-        pex_get, dependency_files_get, source_files_get
+    source_files, config_files, pex = await MultiGet(
+        source_files_get, config_files_get, pex_get
     )
 
     input_digest = await Get(
         Digest,
-        MergeDigests((dependency_files.snapshot.digest, source_files.snapshot.digest)),
+        MergeDigests((config_files.snapshot.digest, source_files.snapshot.digest)),
     )
 
     process_result = await Get(
@@ -233,7 +146,7 @@ async def validate_api_spec(
             pex,
             argv=(
                 "--config-file",
-                "conf/st2.dev.conf",
+                subsystem.config_file,
                 # TODO: Uncomment these as part of a project to fix the (many) issues it identifies.
                 #       We can uncomment --validate-defs (and possibly --verbose) once the spec defs are valid.
                 # "--validate-defs",  # check for x-api-model in definitions
@@ -245,15 +158,14 @@ async def validate_api_spec(
         ),
     )
 
-    result = LintResult.from_fallible_process_result(process_result)
-    return LintResults([result], linter_name=request.name)
+    return LintResult.create(request, process_result)
 
 
 def rules():
     return [
         *collect_rules(),
-        UnionRule(FmtTargetsRequest, GenerateAPISpecViaFmtTargetsRequest),
-        UnionRule(LintTargetsRequest, ValidateAPISpecRequest),
+        *GenerateAPISpecViaFmtTargetsRequest.rules(),
+        *ValidateAPISpecRequest.rules(),
         *pex.rules(),
         *pex_from_targets.rules(),
     ]
