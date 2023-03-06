@@ -20,6 +20,7 @@ st2_component_python_distribution(
         "bin/st2-pack-download",
         "bin/st2-pack-setup-virtualenv",
         "bin/migrations/v3.5/st2-migrate-db-dict-field-values",
+        "bin/migrations/v3.8/st2-drop-st2exporter-marker-collections",
         "bin/st2-run-pack-tests:shell",
         "bin/st2ctl:shell",
         "bin/st2-self-check:shell",
