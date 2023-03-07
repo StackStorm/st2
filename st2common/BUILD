@@ -38,6 +38,45 @@ st2_component_python_distribution(
         },
     },
     dependencies=[
+        # no entry-point or script yet
+        "./st2common/garbage_collection/inquiries.py",  # missing cmd + ./bin/st2-purge-inquiries
+        #
+        # Things that need to be included as part of the st2common library's API:
+        #
+        # ### Public API ###
+        #
+        "./st2common/logging",  # used by all of our logging conf files
+        "./st2common/models/system",  # used by runners
+        "./st2common/policies",  # used by policies (see st2actions.policies)
+        "./st2common/runners",  # used by runners and python actions
+        #
+        # ### Mixed Public+Internal API ###
+        #
+        "./st2common/services",  # used by runners, python actions, st2api, ...
+        #
+        # ### Internal API ###
+        #
+        "./st2common/constants/garbage_collection.py",  # used by garbage collector
+        "./st2common/constants/policy.py",  # used by st2scheduler (in st2actions)
+        "./st2common/constants/timer.py",  # used by st2timersengine (in st2reactor)
+        "./st2common/middleware",  # used by st2auth, st2api, st2stream
+        "./st2common/models/api",  # used by st2auth, st2api, st2stream
+        "./st2common/models/system",  # used by st2auth, st2api, st2stream
+        "./st2common/models/db/timer.py",  # used by st2api
+        "./st2common/models/db/webhook.py",  # used by st2api
+        "./st2common/persistence/execution_queue.py",  # used by st2scheduler (in st2actions)
+        "./st2common/stream",  # used by st2stream
+        "./st2common/transport/consumers.py",  # used by st2actions- and st2reactor-related services
+        "./st2common/util/actionalias_helpstring.py",  # used by st2api
+        "./st2common/util/auth.py",  # used by st2api, st2auth
+        "./st2common/util/keyvalue.py",  # used by st2api
+        "./st2common/util/sandboxing.py",  # used by python runner and sensor container
+        "./st2common/util/service.py",  # used by st2scheduler (in st2actions)
+        "./st2common/util/wsgi.py",  # used by st2stream
+        "./st2common/validators/api/misc.py",  # used by st2api
+        #
+        # ### Dead Code (?) ###
+        #
         # Added gunicorn bug workaround for SyncWorker users in #2571. No known active users. To use:
         #   `gunicorn -k st2common.util.gunicorn_workers.EventletSyncWorker ...`
         # "./st2common/util/gunicorn_workers.py",
