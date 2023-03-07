@@ -38,6 +38,22 @@ st2_component_python_distribution(
         },
     },
     dependencies=[
+        # Added gunicorn bug workaround for SyncWorker users in #2571. No known active users. To use:
+        #   `gunicorn -k st2common.util.gunicorn_workers.EventletSyncWorker ...`
+        # "./st2common/util/gunicorn_workers.py",
+        #
+        # Known dead code that should be deleted. Do not add these:
+        # ./st2common/callback/* (was for the old mistral_v2 runner. see #4038)
+        # ./st2common/constants/scheduler.py (unused since #4397)
+        # ./st2common/content/validators.py (unused since #939)
+        # ./st2common/exceptions/api.py (unused since #1840)
+        # ./st2common/exceptions/connection.py (unused since #1794)
+        # ./st2common/exceptions/resultstracker.py (unused since #5011)
+        # ./st2common/models/api/actionrunner.py (unused since #442)
+        # ./st2common/models/db/reactor.py (unused since #5922)
+        # ./st2common/persistence/reactor.py (unused since #5922)
+        # ./st2common/util/argument_parser.py (never used since added in e9ae7e31e1eb47e49f0fdc414ed6d2b8eccf4748)
+        # ./st2common/validators/workflow (unused since #5011)
     ],
     # commands helpful in inspecting the dependencies (the "=(...)" is zsh syntax)
     #   python files under st2common that will not be included in the wheel
