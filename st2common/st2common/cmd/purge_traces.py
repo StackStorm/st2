@@ -14,8 +14,7 @@
 
 
 """
-A utility script that purges trigger instances older than certain
-timestamp.
+A utility script that purges traces older than certain timestamp.
 
 *** RISK RISK RISK. You will lose data. Run at your own risk. ***
 """
