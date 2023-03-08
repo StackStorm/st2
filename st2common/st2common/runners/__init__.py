@@ -21,7 +21,7 @@ from st2common.util import driver_loader
 
 __all__ = ["BACKENDS_NAMESPACE", "get_available_backends", "get_backend_driver"]
 
-BACKENDS_NAMESPACE = "st2common.runners.runner"
+BACKENDS_NAMESPACE = "st2common.runners.runner"  # pants: no-infer-dep
 
 
 def get_available_backends():

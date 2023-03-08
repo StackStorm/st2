@@ -131,6 +131,13 @@ pants-plugins = [
 st2 = "lockfiles/st2-constraints.txt"
 
 [python-infer]
+# https://www.pantsbuild.org/docs/reference-python-infer#string_imports
+# https://www.pantsbuild.org/docs/reference-python-infer#string_imports_min_dots
+# Infer a target's dependencies based on strings that look like dynamic deps with >=1 dots.
+# To debug the imports and see if a string is used in dep inference or if it is ignored, use:
+#   ./pants python-dump-source-analysis --analysis-flavor=raw_dependency_inference <path(s) to file(s)> | jq '.[].resolved'
+string_imports = true
+string_imports_min_dots = 1
 # https://www.pantsbuild.org/docs/reference-python-infer#unowned_dependency_behavior
 # The default changed from "ignore" to "warning" in pants 2.14.
 # Many of the new warnings however have been adressed via explicit deps,
