@@ -24,10 +24,7 @@ and the collections were not configured to be created automatically.
 import sys
 import traceback
 
-import mongoengine as me
-
 from mongoengine.connection import get_db
-from oslo_config import cfg
 
 from st2common import config
 from st2common.service_setup import db_setup
