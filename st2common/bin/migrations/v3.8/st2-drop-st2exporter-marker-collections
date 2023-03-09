@@ -56,7 +56,7 @@ def main():
     db_setup()
 
     try:
-        delete_marker_collections(display_prompt=not cfg.CONF.yes)
+        delete_marker_collections()
         exit_code = 0
     except Exception as e:
         print("ABORTED: Collection deletion aborted on first failure: %s" % (str(e)))
