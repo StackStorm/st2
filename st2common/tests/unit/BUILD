@@ -14,7 +14,7 @@ python_tests(
         "test_util_file_system.py": dict(
             dependencies=[
                 "st2tests/st2tests/policies",
-                "st2tests/st2tests/policies/meta:policies_meta",
+                "st2tests/st2tests/policies/meta",
             ],
         ),
     },
