@@ -1,5 +1,6 @@
 pack_metadata(
     name="metadata",
+    dependencies=[":pack_requirements"],
 )
 
 resource(
