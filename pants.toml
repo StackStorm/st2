@@ -85,8 +85,11 @@ root_patterns = [
   "/contrib/packs",
   "/st2tests/testpacks/checks",
   "/st2tests/testpacks/errorcheck",
-  # odd import in examples.isprime
-  "/contrib/examples/lib",
+  # pack common lib directories that ST2 adds to the PATH for actions/sensors
+  "/contrib/*/lib",
+  "/contrib/*/actions/lib",
+  # other special-cased pack directories
+  "/contrib/examples/actions/ubuntu_pkg_info", # python script runs via shell expecting cwd in PYTHONPATH
   # lint plugins
   "/pylint_plugins",
   # pants plugins
