@@ -9,6 +9,12 @@ python_tests(
         # several files import tests.unit.base which is ambiguous. Tell pants which one to use.
         "st2common/tests/unit/base.py",
     ],
+    stevedore_namespaces=[
+        "orquesta.expressions.functions",
+        "st2common.runners.runner",
+        "st2common.rbac.backend",
+        "st2common.metrics.driver",
+    ],
     uses=["mongo", "rabbitmq"],
     overrides={
         "test_util_file_system.py": dict(
