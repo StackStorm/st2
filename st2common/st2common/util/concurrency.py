@@ -26,7 +26,7 @@ except ImportError:
     eventlet = None
 
 try:
-    import gevent  # pylint: disable=import-error
+    import gevent  # pylint: disable=import-error # pants: no-infer-dep
     import gevent.pool
 except ImportError:
     gevent = None

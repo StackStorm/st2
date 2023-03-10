@@ -1,3 +1,15 @@
+python_requirement(
+    name="graphviz",
+    requirements=["graphviz"],
+    # used by st2-analyze-links.py and visualize_action_chain.py
+)
+
+python_requirement(
+    name="pika",
+    requirements=["pika"],
+    # used by direct_queue_publisher.py
+)
+
 python_sources(
     overrides={
         "config_gen.py": {
