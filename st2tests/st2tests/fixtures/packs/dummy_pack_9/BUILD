@@ -3,5 +3,8 @@ pack_metadata(
 )
 
 python_sources(
-    dependencies=[":metadata"],
+    dependencies=[
+        ":metadata",
+        "./actions",
+    ],
 )
