@@ -1,3 +1,17 @@
+__dependents_rules__(
+    (
+        # winrm
+        ":winrm",
+        # can used by sources in the winrm_runner
+        "/**",
+        # and nothing else
+        "!*",
+    ),
+
+    # everything else is not restricted
+    ("*", "*"),
+)
+
 python_requirement(
     name="winrm",
     requirements=["pywinrm"],
