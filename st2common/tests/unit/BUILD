@@ -12,4 +12,6 @@ python_tests(
     uses=["mongo", "rabbitmq"],
 )
 
-python_sources()
+python_test_utils(
+    sources=["*.py", "!test_*.py"],
+)
