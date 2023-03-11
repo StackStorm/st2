@@ -1,7 +1,7 @@
 __dependents_rules__(
     (
         # winrm
-        ":winrm",
+        "/winrm",
         # can used by sources in the winrm_runner
         "/**",
         # and nothing else

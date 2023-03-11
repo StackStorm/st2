@@ -1,7 +1,7 @@
 __dependents_rules__(
     (
         # graphviz and pika
-        (":graphviz", ":pika"),
+        ("/graphviz", "/pika"),
         # can used by tools in this directory
         "/**",
         # and nothing else
