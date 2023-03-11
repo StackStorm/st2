@@ -24,9 +24,7 @@ def st2_publish_repos():
 
     Credentials for pypi should be in ~/.pypirc or in TWINE_* env vars.
     """
-    # TODO: switch from hard-coded to env() once we upgrade to pants 2.16
-    # return [env("ST2_PUBLISH_REPO", "@pypi")]  # noqa: F821
-    return ["@pypi"]
+    return [env("ST2_PUBLISH_REPO", "@pypi")]  # noqa: F821
 
 
 def st2_license(**kwargs):
