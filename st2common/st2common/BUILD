@@ -3,7 +3,7 @@ __dependencies_rules__(
         # All sources in st2common
         "*",
         # may depend on 3rd party dependencies,
-        "//reqs#*",
+        {"path": "//", "name": "reqs#*"},
         # and on st2client
         "//st2client/st2client/**",
         # and on anything in this diretory,
