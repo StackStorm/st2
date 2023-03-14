@@ -3,8 +3,6 @@ __defaults__(
     extend=True,
 )
 
-python_sources()
-
 python_tests(
     name="tests",
     dependencies=[
@@ -12,4 +10,8 @@ python_tests(
         "conf/st2.tests.conf:st2_tests_conf",
         "conf/st2.tests1.conf:st2_tests_conf",
     ],
+)
+
+python_test_utils(
+    sources=["*.py", "!test_*.py"],
 )
