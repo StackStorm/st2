@@ -189,6 +189,9 @@ extra_requirements = [
 ]
 config = "lint-configs/python/.flake8"
 
+[generate-lockfiles]
+diff = true
+
 [pylint]
 lockfile = "lockfiles/pylint.lock"
 version = "pylint~=2.8.2"
