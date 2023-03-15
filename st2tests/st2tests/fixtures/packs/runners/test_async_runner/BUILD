@@ -1,3 +1,3 @@
-python_tests(
-    name="tests",
+python_sources(
+    sources=["*.py"],
 )

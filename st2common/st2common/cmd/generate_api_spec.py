@@ -30,12 +30,23 @@ __all__ = ["main"]
 LOG = logging.getLogger(__name__)
 
 
+# TODO: replace makefile reference with pants equivalent
+# ./pants fmt st2common/st2common/openapi.yaml
+SPEC_HEADER = """\
+# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY
+# Edit st2common/st2common/openapi.yaml.j2 and then run
+# make .generate-api-spec
+# to generate the final spec file
+"""
+
+
 def setup():
     common_setup(config=config, setup_db=False, register_mq_exchanges=False)
 
 
 def generate_spec():
     spec_string = spec_loader.generate_spec("st2common", "openapi.yaml.j2")
+    print(SPEC_HEADER.rstrip())
     print(spec_string)
 
 
