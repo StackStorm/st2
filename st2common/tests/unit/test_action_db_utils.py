@@ -532,7 +532,7 @@ class ActionDBUtilsTestCase(DbTestCase):
                     "default": "runnerdummy",
                 },
             },
-            "runner_module": "tests.test_runner",
+            "runner_module": "tests.test_runner",  # pants: no-infer-dep
         }
         runnertype_api = RunnerTypeAPI(**test_runner)
         ActionDBUtilsTestCase.runnertype_db = RunnerType.add_or_update(

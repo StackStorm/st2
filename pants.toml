@@ -6,13 +6,14 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.15.0"
+pants_version = "2.16.0a0"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
   # python
   "pants.backend.python",
   "pants.backend.experimental.python", # activates twine `publish` support
+  "pants.backend.experimental.python.framework.stevedore",
   "pants.backend.python.mixed_interpreter_constraints",
   "pants.backend.python.lint.bandit",
   "pants.backend.python.lint.black",
@@ -130,14 +131,26 @@ pants-plugins = [
 st2 = "lockfiles/st2-constraints.txt"
 
 [python-infer]
+# https://www.pantsbuild.org/docs/reference-python-infer#string_imports
+# https://www.pantsbuild.org/docs/reference-python-infer#string_imports_min_dots
+# Infer a target's dependencies based on strings that look like dynamic deps with >=1 dots.
+# To debug the imports and see if a string is used in dep inference or if it is ignored, use:
+#   ./pants python-dump-source-analysis --analysis-flavor=raw_dependency_inference <path(s) to file(s)> | jq '.[].resolved'
+string_imports = true
+string_imports_min_dots = 1
 # https://www.pantsbuild.org/docs/reference-python-infer#unowned_dependency_behavior
 # The default changed from "ignore" to "warning" in pants 2.14.
-# Many of the new warnings however have been adressed via explicit deps,
-# so the warnings are not helpful. In pants 2.16, a "visibility" feature might help
-# us to disambiguate deps between files without those explicit BUILD dependencies,
-# and without adding "# pants: no-infer-dep" comments all over the codebase.
-# Revisit this in pants 2.16 to see if it is feasible to use the default "warning".
+# The ambiguity_resolution setting/feature (below) added in 2.16 resolves most of
+# our ambiguous dependency inference issues, which allowed us to remove the explicit
+# deps in various BUILD files. But, there is not a good way to tell pants about our
+# custom PYTHONPATH for packs, so actions that import other actions are still showing
+# up as unowned. Maybe we can extend pants-plugins/pack_metadata so we can use "warn".
 unowned_dependency_behavior = "ignore"
+# https://www.pantsbuild.org/v2.16/docs/reference-python-infer#ambiguity_resolution
+# When resolving ambiguous deps prefer one that is in the same source root as the
+# file that uses it. So, without manually disambiguating the dep in the BUILD file,
+# importing tests.unit.base in st2common/tests/unit will get a dep on st2common/tests/unit/base.py
+ambiguity_resolution = "by_source_root"
 
 [setup-py-generation]
 # when building the package (with ./pants package ::), pants will,
@@ -175,6 +188,9 @@ extra_requirements = [
   "st2flake8==0.1.0",  # TODO: remove in favor of regex-lint
 ]
 config = "lint-configs/python/.flake8"
+
+[generate-lockfiles]
+diff = true
 
 [pylint]
 lockfile = "lockfiles/pylint.lock"
