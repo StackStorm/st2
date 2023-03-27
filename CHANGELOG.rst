@@ -28,6 +28,9 @@ Added
 * Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
   Contributed by @maxfactor1
 
+* Python 3.9 support. #5730
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
 
 3.8.0 - November 18, 2022
 -------------------------
