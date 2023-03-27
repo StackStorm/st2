@@ -6,8 +6,8 @@
 // {
 //   "version": 3,
 //   "valid_for_interpreter_constraints": [
-//     "CPython<3.10,>=3.7",
-//     "CPython<3.9,>=3.6"
+//     "CPython<3.10,>=3.6",
+//     "CPython<3.10,>=3.7"
 //   ],
 //   "generated_with_requirements": [
 //     "bandit==1.7.0",
@@ -52,7 +52,7 @@
             "stevedore>=1.20.0"
           ],
           "requires_python": ">=3.5",
-          "version": "1.7"
+          "version": "1.7.0"
         },
         {
           "artifacts": [
@@ -137,19 +137,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "db2317ff07c84c4c63648c9064a79fe9d9f5c7ce85a9099d4b6258b3db83225a",
-              "url": "https://files.pythonhosted.org/packages/e5/37/10e8a53f196cf0bcb93008daed42e2c47c7876430a7efd044ff4d647f30a/pbr-5.11.0-py2.py3-none-any.whl"
+              "hash": "567f09558bae2b3ab53cb3c1e2e33e726ff3338e7bae3db5dc954b3a44eef12b",
+              "url": "https://files.pythonhosted.org/packages/01/06/4ab11bf70db5a60689fc521b636849c8593eb67a2c6bdf73a16c72d16a12/pbr-5.11.1-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "b97bc6695b2aff02144133c2e7399d5885223d42b7912ffaec2ca3898e673bfe",
-              "url": "https://files.pythonhosted.org/packages/52/fb/630d52aaca8fc7634a0711b6ae12a0e828b6f9264bd8051225025c3ed075/pbr-5.11.0.tar.gz"
+              "hash": "aefc51675b0b533d56bb5fd1c8c6c0522fe31896679882e1c4c63d5e4a0fccb3",
+              "url": "https://files.pythonhosted.org/packages/02/d8/acee75603f31e27c51134a858e0dea28d321770c5eedb9d1d673eb7d3817/pbr-5.11.1.tar.gz"
             }
           ],
           "project_name": "pbr",
           "requires_dists": [],
           "requires_python": ">=2.6",
-          "version": "5.11"
+          "version": "5.11.1"
         },
         {
           "artifacts": [
@@ -247,7 +247,7 @@
           "project_name": "pyyaml",
           "requires_dists": [],
           "requires_python": ">=3.6",
-          "version": "6"
+          "version": "6.0"
         },
         {
           "artifacts": [
@@ -292,7 +292,7 @@
             "wheel; extra == \"testing\""
           ],
           "requires_python": ">=3.6",
-          "version": "59.6"
+          "version": "59.6.0"
         },
         {
           "artifacts": [
@@ -310,7 +310,7 @@
           "project_name": "six",
           "requires_dists": [],
           "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7",
-          "version": "1.16"
+          "version": "1.16.0"
         },
         {
           "artifacts": [
@@ -328,7 +328,7 @@
           "project_name": "smmap",
           "requires_dists": [],
           "requires_python": ">=3.6",
-          "version": "5"
+          "version": "5.0.0"
         },
         {
           "artifacts": [
@@ -398,14 +398,14 @@
             "sphinx; extra == \"docs\""
           ],
           "requires_python": ">=3.6",
-          "version": "3.6"
+          "version": "3.6.0"
         }
       ],
       "platform_tag": null
     }
   ],
   "path_mappings": {},
-  "pex_version": "2.1.108",
+  "pex_version": "2.1.126",
   "pip_version": "20.3.4-patched",
   "prefer_older_binary": false,
   "requirements": [
@@ -414,8 +414,8 @@
     "setuptools"
   ],
   "requires_python": [
-    "<3.10,>=3.7",
-    "<3.9,>=3.6"
+    "<3.10,>=3.6",
+    "<3.10,>=3.7"
   ],
   "resolver_version": "pip-2020-resolver",
   "style": "universal",
