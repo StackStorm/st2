@@ -25,6 +25,13 @@ st2_shell_sources_and_resources(
         # st2-run-pack-tests creates its own virtualenv on the fly and
         # installs its dependencies, so most don't need to be listed here.
         # It can optionally use the deps installed with st2tests package.
-        # "st2-run-pack-tests": dict(),
+        "st2-run-pack-tests": dict(
+            dependencies=[
+                "//:reqs#virtualenv",
+                "//:reqs#pip",
+                "//:reqs#setuptools",
+                "//:reqs#wheel",
+            ],
+        ),
     },
 )
