@@ -14,6 +14,7 @@
 # limitations under the License.
 
 __all__ = [
+    "COMMON_LIB_DIR",
     "PACKS_PACK_NAME",
     "PACK_REF_WHITELIST_REGEX",
     "RESERVED_PACK_LIST",
@@ -31,6 +32,8 @@ __all__ = [
     "MANIFEST_FILE_NAME",
     "CONFIG_SCHEMA_FILE_NAME",
 ]
+
+COMMON_LIB_DIR = "lib"
 
 # Prefix for render context w/ config
 PACK_CONFIG_CONTEXT_KV_PREFIX = "config_context"

@@ -21,17 +21,14 @@ from oslo_config import cfg
 
 from st2common.constants.keyvalue import ALL_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.constants.keyvalue import DATASTORE_SCOPE_SEPARATOR
-from st2common.rbac.backends import get_rbac_backend
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, FULL_USER_SCOPE
+from st2common.constants.keyvalue import USER_SCOPE, ALLOWED_SCOPES
+from st2common.exceptions.rbac import AccessDeniedError
+from st2common.models.db.auth import UserDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services.config import deserialize_key_value
-from st2common.constants.keyvalue import (
-    FULL_SYSTEM_SCOPE,
-    FULL_USER_SCOPE,
-    USER_SCOPE,
-    ALLOWED_SCOPES,
-)
-from st2common.models.db.auth import UserDB
-from st2common.exceptions.rbac import AccessDeniedError
+from st2common.rbac.backends import get_rbac_backend
+from st2common.rbac.types import PermissionType
 
 __all__ = ["get_datastore_full_scope", "get_key"]
 
@@ -106,16 +103,20 @@ def get_key(key=None, user_db=None, scope=None, decrypt=False):
 
     _validate_scope(scope=scope)
 
-    rbac_utils = get_rbac_backend().get_utils_class()
-    is_admin = rbac_utils.user_is_admin(user_db=user_db)
-
-    # User needs to be either admin or requesting item for itself
-    _validate_decrypt_query_parameter(
-        decrypt=decrypt, scope=scope, is_admin=is_admin, user_db=user_db
-    )
-
     # Get the key value pair by scope and name.
     kvp = KeyValuePair.get_by_scope_and_name(scope, key_id)
+
+    # Check that user has permission to the key value pair.
+    # If RBAC is enabled, this check will verify if user has system role with all access.
+    # If RBAC is enabled, this check guards against a user accessing another user's kvp.
+    # If RBAC is enabled, user needs to be explicitly granted permission to view a system kvp.
+    # The check is sufficient to allow decryption of the system kvp.
+    rbac_utils = get_rbac_backend().get_utils_class()
+    rbac_utils.assert_user_has_resource_db_permission(
+        user_db=user_db,
+        resource_db=kvp,
+        permission_type=PermissionType.KEY_VALUE_PAIR_VIEW,
+    )
 
     # Decrypt in deserialize_key_value cannot handle NoneType.
     if kvp.value is None:

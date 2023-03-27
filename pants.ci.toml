@@ -1,0 +1,13 @@
+# This config is for CI. It extends the config in pants.toml.
+# See https://www.pantsbuild.org/docs/using-pants-in-ci
+
+[GLOBAL]
+# Colors often work in CI, but the shell is usually not a TTY so Pants
+# doesn't attempt to use them by default.
+colors = true
+
+[stats]
+# "print metrics of your cache's performance at the end of the run,
+# including the number of cache hits and the total time saved thanks
+# to caching"
+log = true

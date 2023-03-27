@@ -35,6 +35,7 @@ from st2common.constants.action import (
 )
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import MAX_PARAM_LENGTH
+from st2common.constants.pack import COMMON_LIB_DIR
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.execution import ActionExecutionOutput
 from python_runner.python_action_wrapper import PythonActionWrapper
@@ -951,7 +952,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs["env"]
-        pack_common_lib_path = os.path.join(runner.git_worktree_path, "lib")
+        pack_common_lib_path = os.path.join(runner.git_worktree_path, COMMON_LIB_DIR)
         self.assertIn("PYTHONPATH", actual_env)
         self.assertIn(pack_common_lib_path, actual_env["PYTHONPATH"])
 

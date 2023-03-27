@@ -4,6 +4,34 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+* Move `git clone` to `user_home/.st2packs` #5845
+
+* Error on `st2ctl status` when running in Kubernetes. #5851
+  Contributed by @mamercad
+
+* Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
+  working on StackStorm, improve our security posture, and improve CI reliability thanks in part
+  to pants' use of PEX lockfiles. This is not a user-facing addition.
+  #5778 #5789 #5817 #5795 #5830 #5833 #5834 #5841 #5840 #5838 #5842 #5837 #5849 #5850
+  #5846 #5853 #5848 #5847 #5858 #5857 #5860 #5868 #5871 #5864 #5874 #5884 #5893 #5891
+  #5890 #5898 #5901 #5906 #5899 #5907 #5909 #5922 #5926 #5927 #5925 #5928 #5929 #5930
+  #5931 #5932
+  Contributed by @cognifloyd
+
+* Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
+
+* Added publisher to ActionAlias to enable streaming ActionAlias create/update/delete events. #5763
+  Contributed by @ubaumann
+
+* Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
+  Contributed by @maxfactor1
+
+
+3.8.0 - November 18, 2022
+-------------------------
+
 Fixed
 ~~~~~
 
@@ -23,7 +51,6 @@ Fixed
 
   Contributed by @bharath-orchestral
 
-
 * Fixed ``st2client/st2client/base.py`` file to use ``https_proxy``(not ``http_proxy``) to check HTTPS_PROXY environment variables.
 
   Contributed by @wfgydbu
@@ -39,6 +66,16 @@ Fixed
 * Fixed generation of `st2.conf.sample` to show correct syntax for `[sensorcontainer].partition_provider` (space separated `key:value` pairs). #5710
   Contributed by @cognifloyd
 
+* Fix access to key-value pairs in workflow and action execution where RBAC rules did not get applied #5764
+
+  Contributed by @m4dcoder
+
+* Add backward compatibility to secret masking introduced in #5319 to prevent security-relative issues.
+  Migration to the new schema is required to take advantage of the full output schema validation. #5783
+
+  Contributed by @m4dcoder
+
+
 Added
 ~~~~~
 
@@ -53,8 +90,12 @@ Added
 
 * Begin introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
-  to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725
+  to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725 #5732 #5733 #5737 #5738 #5758 #5751 #5774 #5776 #5777 #5782
   Contributed by @cognifloyd
+
+* Added querytype parameter to linux.dig action to allow specifying the dig 'type' parameter. Fixes #5772
+
+  Contributed by @AmbiguousYeoman
 
 Changed
 ~~~~~~~

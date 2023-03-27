@@ -36,7 +36,14 @@ def _output_schema_is_valid(_schema):
     if not isinstance(_schema, Mapping):
         # malformed schema
         return False
+
+    if "type" not in _schema:
+        # legacy schema format
+        return False
+
     try:
+        # the validator is smart enough to handle
+        # schema that is similar to the input schema
         schema.validate(
             _schema,
             schema.get_action_output_schema(),
@@ -44,9 +51,22 @@ def _output_schema_is_valid(_schema):
         )
     except jsonschema.ValidationError as e:
         LOG.debug("output_schema not valid: %s", e)
-        # likely a legacy partial object schema (only defines properties)
         return False
+
     return True
+
+
+def _normalize_legacy_output_schema(_schema):
+    if not isinstance(_schema, Mapping):
+        return _schema
+
+    _normalized_schema = {
+        "type": "object",
+        "properties": _schema,
+        "additionalProperties": True,
+    }
+
+    return _normalized_schema
 
 
 def _validate_runner(runner_schema, result):
@@ -183,15 +203,31 @@ def mask_secret_output(ac_ex, output_value):
         or output_key not in output_value
         # no action output_schema defined
         or not output_schema
-        # malformed action output_schema
-        or not _output_schema_is_valid(output_schema)
     ):
         # nothing to mask
         return output_value
 
+    # backward compatibility for legacy output_schema so secrets stay masked
+    if not _output_schema_is_valid(output_schema):
+        # normalized the legacy schema to a full JSON schema and check if it is valid
+        normalized_output_schema = _normalize_legacy_output_schema(output_schema)
+
+        if not _output_schema_is_valid(normalized_output_schema):
+            # nothing to mask
+            return output_value
+
+        # mask secret for the legacy output schema
+        output_value[output_key] = _get_masked_value(
+            normalized_output_schema, output_value[output_key]
+        )
+
+        return output_value
+
+    # mask secret for the output schema
     output_value[output_key] = _get_masked_value(
         output_schema, output_value[output_key]
     )
+
     return output_value
 
 
