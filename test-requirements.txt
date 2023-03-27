@@ -44,4 +44,4 @@ zstandard==0.15.2
 # ujson is used for micro benchmarks
 ujson==4.0.2
 # needed by integration tests for coordination
-redis==3.5.3
+redis==4.5.3
