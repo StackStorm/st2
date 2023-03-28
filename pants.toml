@@ -106,6 +106,8 @@ root_patterns = [
 # DEFAULT has values that we can reuse/interpolate below
 [DEFAULT]
 # This is the range of python versions that we support.
+# Make sure to also update supported_interpreter_constraints in pants-plugins/macros.py
+# (which is for use in parametrize() and similar ic-specific use-cases).
 st2_interpreter_constraints = "CPython>=3.8.1,<3.12"
 
 # This should match the pants interpreter_constraints:
