@@ -13,6 +13,16 @@
 # limitations under the License.
 
 
+# use this to parametrize targets as necessary.
+# eg: interpreter_constraints=parametrize(**supported_python_interpreter_constraints)
+def supported_python_interpreter_constraints():
+    return dict(
+        py36=["CPython==3.6.*"],
+        py37=["CPython==3.7.*"],
+        py38=["CPython==3.8.*"],
+    )
+
+
 def st2_publish_repos():
     """Return the list of repos twine should publish to.
 
