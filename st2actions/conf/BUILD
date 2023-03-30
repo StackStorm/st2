@@ -7,11 +7,11 @@ files(
     name="logging",
     sources=["logging*.conf"],
     overrides={
-        "logging.conf": {
-            "dependencies": [
+        "logging.conf": dict(
+            dependencies=[
                 "//:reqs#python-json-logger",
             ],
-        },
+        ),
     },
 )
 
