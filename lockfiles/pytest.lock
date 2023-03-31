@@ -6,8 +6,7 @@
 // {
 //   "version": 3,
 //   "valid_for_interpreter_constraints": [
-//     "CPython<3.10,>=3.7",
-//     "CPython<3.9,>=3.6"
+//     "CPython<3.10,>=3.6"
 //   ],
 //   "generated_with_requirements": [
 //     "pygments",
@@ -37,51 +36,47 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "86efa402f67bf2df34f51a335487cf46b1ec130d02b8d39fd248abfd30da551c",
-              "url": "https://files.pythonhosted.org/packages/f2/bc/d817287d1aa01878af07c19505fafd1165cd6a119e9d0821ca1d1c20312d/attrs-22.1.0-py2.py3-none-any.whl"
+              "hash": "29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836",
+              "url": "https://files.pythonhosted.org/packages/fb/6e/6f83bf616d2becdf333a1640f1d463fef3150e2e926b7010cb0f81c95e88/attrs-22.2.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "29adc2665447e5191d0e7c568fde78b21f9672d344281d0c6e1ab085429b22b6",
-              "url": "https://files.pythonhosted.org/packages/1a/cb/c4ffeb41e7137b23755a45e1bfec9cbb76ecf51874c6f1d113984ecaa32c/attrs-22.1.0.tar.gz"
+              "hash": "c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99",
+              "url": "https://files.pythonhosted.org/packages/21/31/3f468da74c7de4fcf9b25591e682856389b3400b4b62f201e65f15ea3e07/attrs-22.2.0.tar.gz"
             }
           ],
           "project_name": "attrs",
           "requires_dists": [
-            "cloudpickle; platform_python_implementation == \"CPython\" and extra == \"dev\"",
-            "cloudpickle; platform_python_implementation == \"CPython\" and extra == \"tests\"",
+            "attrs[docs,tests]; extra == \"dev\"",
+            "attrs[tests-no-zope]; extra == \"tests\"",
+            "attrs[tests]; extra == \"cov\"",
+            "cloudpickle; platform_python_implementation == \"CPython\" and extra == \"tests-no-zope\"",
             "cloudpickle; platform_python_implementation == \"CPython\" and extra == \"tests_no_zope\"",
-            "coverage[toml]>=5.0.2; extra == \"dev\"",
-            "coverage[toml]>=5.0.2; extra == \"tests\"",
-            "coverage[toml]>=5.0.2; extra == \"tests_no_zope\"",
-            "furo; extra == \"dev\"",
+            "coverage-enable-subprocess; extra == \"cov\"",
+            "coverage[toml]>=5.3; extra == \"cov\"",
             "furo; extra == \"docs\"",
-            "hypothesis; extra == \"dev\"",
-            "hypothesis; extra == \"tests\"",
+            "hypothesis; extra == \"tests-no-zope\"",
             "hypothesis; extra == \"tests_no_zope\"",
-            "mypy!=0.940,>=0.900; extra == \"dev\"",
-            "mypy!=0.940,>=0.900; extra == \"tests\"",
-            "mypy!=0.940,>=0.900; extra == \"tests_no_zope\"",
-            "pre-commit; extra == \"dev\"",
-            "pympler; extra == \"dev\"",
-            "pympler; extra == \"tests\"",
+            "mypy<0.990,>=0.971; platform_python_implementation == \"CPython\" and extra == \"tests-no-zope\"",
+            "mypy<0.990,>=0.971; platform_python_implementation == \"CPython\" and extra == \"tests_no_zope\"",
+            "myst-parser; extra == \"docs\"",
+            "pympler; extra == \"tests-no-zope\"",
             "pympler; extra == \"tests_no_zope\"",
-            "pytest-mypy-plugins; extra == \"dev\"",
-            "pytest-mypy-plugins; extra == \"tests\"",
-            "pytest-mypy-plugins; extra == \"tests_no_zope\"",
-            "pytest>=4.3.0; extra == \"dev\"",
-            "pytest>=4.3.0; extra == \"tests\"",
+            "pytest-mypy-plugins; (platform_python_implementation == \"CPython\" and python_version < \"3.11\") and extra == \"tests-no-zope\"",
+            "pytest-mypy-plugins; (platform_python_implementation == \"CPython\" and python_version < \"3.11\") and extra == \"tests_no_zope\"",
+            "pytest-xdist[psutil]; extra == \"tests-no-zope\"",
+            "pytest-xdist[psutil]; extra == \"tests_no_zope\"",
+            "pytest>=4.3.0; extra == \"tests-no-zope\"",
             "pytest>=4.3.0; extra == \"tests_no_zope\"",
-            "sphinx-notfound-page; extra == \"dev\"",
             "sphinx-notfound-page; extra == \"docs\"",
-            "sphinx; extra == \"dev\"",
             "sphinx; extra == \"docs\"",
-            "zope.interface; extra == \"dev\"",
+            "sphinxcontrib-towncrier; extra == \"docs\"",
+            "towncrier; extra == \"docs\"",
             "zope.interface; extra == \"docs\"",
             "zope.interface; extra == \"tests\""
           ],
-          "requires_python": ">=3.5",
-          "version": "22.1"
+          "requires_python": ">=3.6",
+          "version": "22.2.0"
         },
         {
           "artifacts": [
@@ -246,20 +241,20 @@
             "pre-commit; extra == \"testing\""
           ],
           "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7",
-          "version": "1.9"
+          "version": "1.9.0"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "35d24b728e48b7e0a12bdb69386d3bfc7eef4fe922d0ac1cd70d6e5c11630bae",
-              "url": "https://files.pythonhosted.org/packages/fd/d5/3ab4777d15535bf712e1d3509b7bdfc01ed4da7c935679f84bd454fbb0fe/icdiff-2.0.5.tar.gz"
+              "hash": "a2673b335d671e64fc73c44e1eaa0aa01fd0e68354e58ee17e863ab29912a79a",
+              "url": "https://files.pythonhosted.org/packages/b6/11/542ff30f2c399d71126e55b64d41cb5caa78ddf7ce557fddf45607a41fe8/icdiff-2.0.6.tar.gz"
             }
           ],
           "project_name": "icdiff",
           "requires_dists": [],
           "requires_python": null,
-          "version": "2.0.5"
+          "version": "2.0.6"
         },
         {
           "artifacts": [
@@ -359,7 +354,7 @@
             "tox; extra == \"dev\""
           ],
           "requires_python": ">=3.6",
-          "version": "1"
+          "version": "1.0.0"
         },
         {
           "artifacts": [
@@ -377,7 +372,7 @@
           "project_name": "pprintpp",
           "requires_dists": [],
           "requires_python": null,
-          "version": "0.4"
+          "version": "0.4.0"
         },
         {
           "artifacts": [
@@ -395,7 +390,7 @@
           "project_name": "py",
           "requires_dists": [],
           "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7",
-          "version": "1.11"
+          "version": "1.11.0"
         },
         {
           "artifacts": [
@@ -413,7 +408,7 @@
           "project_name": "py-cpuinfo",
           "requires_dists": [],
           "requires_python": null,
-          "version": "9"
+          "version": "9.0.0"
         },
         {
           "artifacts": [
@@ -450,7 +445,7 @@
             "sphinx; extra == \"docs\""
           ],
           "requires_python": null,
-          "version": "3"
+          "version": "3.0.0"
         },
         {
           "artifacts": [
@@ -474,13 +469,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "f643f331ab57ba3c9d89212ee4a2dabc6e94f117cf4eefde99a0574720d14c42",
-              "url": "https://files.pythonhosted.org/packages/4f/82/672cd382e5b39ab1cd422a672382f08a1fb3d08d9e0c0f3707f33a52063b/Pygments-2.13.0-py3-none-any.whl"
+              "hash": "fa7bd7bd2771287c0de303af8bfdfc731f51bd2c6a47ab69d117138893b82717",
+              "url": "https://files.pythonhosted.org/packages/0b/42/d9d95cc461f098f204cd20c85642ae40fbff81f74c300341b8d0e0df14e0/Pygments-2.14.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "56a8508ae95f98e2b9bdf93a6be5ae3f7d8af858b43e02c5a2ff083726be40c1",
-              "url": "https://files.pythonhosted.org/packages/e0/ef/5905cd3642f2337d44143529c941cc3a02e5af16f0f65f81cbef7af452bb/Pygments-2.13.0.tar.gz"
+              "hash": "b3ed06a9e8ac9a9aae5a6f5dbe78a8a58655d17b43b93c078f094ddc476ae297",
+              "url": "https://files.pythonhosted.org/packages/da/6a/c427c06913204e24de28de5300d3f0e809933f376e0b7df95194b2bb3f71/Pygments-2.14.0.tar.gz"
             }
           ],
           "project_name": "pygments",
@@ -488,7 +483,7 @@
             "importlib-metadata; python_version < \"3.8\" and extra == \"plugins\""
           ],
           "requires_python": ">=3.6",
-          "version": "2.13"
+          "version": "2.14.0"
         },
         {
           "artifacts": [
@@ -598,7 +593,7 @@
             "virtualenv; extra == \"testing\""
           ],
           "requires_python": ">=3.6",
-          "version": "3"
+          "version": "3.0.0"
         },
         {
           "artifacts": [
@@ -619,7 +614,7 @@
             "pytest>=3.10"
           ],
           "requires_python": ">=3.6",
-          "version": "1.4"
+          "version": "1.4.0"
         },
         {
           "artifacts": [
@@ -661,7 +656,7 @@
             "setproctitle; extra == \"setproctitle\""
           ],
           "requires_python": ">=3.6",
-          "version": "2.5"
+          "version": "2.5.0"
         },
         {
           "artifacts": [
@@ -728,14 +723,14 @@
             "sphinx; extra == \"docs\""
           ],
           "requires_python": ">=3.6",
-          "version": "3.6"
+          "version": "3.6.0"
         }
       ],
       "platform_tag": null
     }
   ],
   "path_mappings": {},
-  "pex_version": "2.1.108",
+  "pex_version": "2.1.131",
   "pip_version": "20.3.4-patched",
   "prefer_older_binary": false,
   "requirements": [
@@ -747,8 +742,7 @@
     "pytest==7.0.1"
   ],
   "requires_python": [
-    "<3.10,>=3.7",
-    "<3.9,>=3.6"
+    "<3.10,>=3.6"
   ],
   "resolver_version": "pip-2020-resolver",
   "style": "universal",
