@@ -192,6 +192,20 @@ config = "lint-configs/python/.flake8"
 [generate-lockfiles]
 diff = true
 
+[pex-cli]
+# [pex-cli] can be removed once we upgrade to pex 2.17
+# We overwrite `version` and `known_versions` to:
+#   - fix lockfile spaces to minimize the regen diff
+#   - make sure the locked pip/setuptools ends up in virtualenv exports
+#     https://github.com/pantsbuild/pex/issues/2105
+version = "v2.1.131"
+known_versions = [
+  "v2.1.131|macos_arm64|28b9dfc7e2f5f49f1e189b79eba3dd79ca2186f765009ea02dd6095f5359bf59|4084520",
+  "v2.1.131|macos_x86_64|28b9dfc7e2f5f49f1e189b79eba3dd79ca2186f765009ea02dd6095f5359bf59|4084520",
+  "v2.1.131|linux_x86_64|28b9dfc7e2f5f49f1e189b79eba3dd79ca2186f765009ea02dd6095f5359bf59|4084520",
+  "v2.1.131|linux_arm64|28b9dfc7e2f5f49f1e189b79eba3dd79ca2186f765009ea02dd6095f5359bf59|4084520"
+]
+
 [pylint]
 lockfile = "lockfiles/pylint.lock"
 version = "pylint~=2.8.2"
