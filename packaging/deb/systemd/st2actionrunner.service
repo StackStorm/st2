@@ -1,0 +1,14 @@
+[Unit]
+Description=StackStorm service st2actionrunner
+After=network.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/default/st2actionrunner
+ExecStart=/bin/bash /opt/stackstorm/st2/bin/runners.sh start
+ExecStop=/bin/bash /opt/stackstorm/st2/bin/runners.sh stop
+PrivateTmp=true
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
