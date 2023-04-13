@@ -78,6 +78,7 @@ stevedore
 # For backward compatibility reasons, flat file backend is installed by default
 st2-auth-backend-flat-file
 st2-auth-ldap @ git+https://github.com/StackStorm/st2-auth-ldap.git@master
+st2-auth-pam @ git+https://github.com/StackStorm/st2-auth-pam.git@master
 st2-rbac-backend @ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 # tabulate used by tools/log_watcher.py
 tabulate
