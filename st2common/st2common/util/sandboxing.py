@@ -23,7 +23,7 @@ from __future__ import absolute_import
 import fnmatch
 import os
 import sys
-from distutils.sysconfig import get_python_lib
+import sysconfig
 
 from oslo_config import cfg
 
@@ -108,7 +108,7 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
 
     if inherit_parent_virtualenv and is_in_virtualenv():
         # We are running inside virtualenv
-        site_packages_dir = get_python_lib()
+        site_packages_dir = sysconfig.get_path('platlib')
 
         sys_prefix = os.path.abspath(sys.prefix)
         if sys_prefix not in site_packages_dir:

@@ -59,6 +59,7 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_VERSION ?= 20.3.3
 SETUPTOOLS_VERSION ?= 51.3.3
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
+PACKAGING_VERSION ?= 23.1
 
 ifndef PYLINT_CONCURRENCY
 	PYLINT_CONCURRENCY := 1
@@ -662,6 +663,7 @@ distclean: clean
 .PHONY: .requirements
 .requirements: virtualenv
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "PACKAGING_VERSION==$(PACKAGING_VERSION)"
 	# Print out pip version
 	$(VIRTUALENV_DIR)/bin/pip --version
 	# Generate all requirements to support current CI pipeline.

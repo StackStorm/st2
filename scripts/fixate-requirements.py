@@ -34,7 +34,7 @@ import os
 import os.path
 import sys
 
-from distutils.version import StrictVersion
+from packaging.version import Version
 
 # NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
 PY2 = sys.version_info[0] == 2
@@ -116,7 +116,7 @@ def parse_args():
 
 
 def check_pip_version():
-    if StrictVersion(pip.__version__) < StrictVersion("6.1.0"):
+    if Version(pip.__version__) < Version("6.1.0"):
         print(
             "Upgrade pip, your version `{0}' " "is outdated:\n".format(pip.__version__),
             GET_PIP,
