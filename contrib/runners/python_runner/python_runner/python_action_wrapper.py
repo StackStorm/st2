@@ -49,7 +49,7 @@ if __name__ == "__main__":
     # This puts priority on loading virtualenv library in the pack's action. This is necessary
     # for the situation that both st2 and pack require to load same name libraries with different
     # version. Without this statement, action may call library method with unexpected dependencies.
-    sys.path.insert(0, sysconfig.get_path('platlib'))
+    sys.path.insert(0, sysconfig.get_path("platlib"))
 
 import sys
 import argparse
