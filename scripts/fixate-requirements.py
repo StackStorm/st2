@@ -271,7 +271,6 @@ def write_requirements(
 
 
 if __name__ == "__main__":
-    check_pip_version()
     args = parse_args()
 
     if args["skip"]:
