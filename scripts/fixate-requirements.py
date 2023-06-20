@@ -34,8 +34,6 @@ import os
 import os.path
 import sys
 
-from packaging.version import Version
-
 # NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
@@ -113,15 +111,6 @@ def parse_args():
         parser.print_help()
         sys.exit(1)
     return vars(parser.parse_args())
-
-
-def check_pip_version():
-    if Version(pip.__version__) < Version("6.1.0"):
-        print(
-            "Upgrade pip, your version `{0}' " "is outdated:\n".format(pip.__version__),
-            GET_PIP,
-        )
-        sys.exit(1)
 
 
 def load_requirements(file_path):
