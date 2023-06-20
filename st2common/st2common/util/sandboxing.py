@@ -23,13 +23,17 @@ from __future__ import absolute_import
 import fnmatch
 import os
 import sys
-import sysconfig
+from sysconfig import get_path 
 
 from oslo_config import cfg
 
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.content.utils import get_pack_base_path
+
+def get_python_lib():
+    """Replacement for distutil.sysconfig.get_python_lib, returns a string with the python platform lib path (to site-packages)"""
+    return get_path('platlib')
 
 __all__ = [
     "get_sandbox_python_binary_path",
@@ -108,7 +112,7 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
 
     if inherit_parent_virtualenv and is_in_virtualenv():
         # We are running inside virtualenv
-        site_packages_dir = sysconfig.get_path('platlib')
+        site_packages_dir = get_python_lib()
 
         sys_prefix = os.path.abspath(sys.prefix)
         if sys_prefix not in site_packages_dir:
