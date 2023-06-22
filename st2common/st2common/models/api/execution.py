@@ -29,6 +29,7 @@ from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common import log as logging
 from st2common.util.deep_copy import fast_deepcopy_dict
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 
 __all__ = ["ActionExecutionAPI", "ActionExecutionOutputAPI"]
 
@@ -147,13 +148,13 @@ class ActionExecutionAPI(BaseAPI):
     }
     skip_unescape_field_names = [
         "result",
+        "parameters"
     ]
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
-        doc = cls._from_model(model, mask_secrets=mask_secrets)
 
-        doc["result"] = ActionExecutionDB.result.parse_field_value(doc["result"])
+        doc = cls._from_model(model, mask_secrets=mask_secrets)
 
         start_timestamp = model.start_timestamp
         start_timestamp_iso = isotime.format(start_timestamp, offset=False)
@@ -170,6 +171,20 @@ class ActionExecutionAPI(BaseAPI):
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)
+
+    @classmethod
+    def convert_raw(cls, doc, raw_values):
+        """
+        override this class to
+        convert any raw byte values into dict 
+
+        :param doc: dict
+        :param raw_values: dict[field]:bytestring
+        """
+
+        for field_name, field_value in raw_values.items():
+            doc[field_name] = JSONDictEscapedFieldCompatibilityField().parse_field_value(field_value)
+        return doc
 
     @classmethod
     def to_model(cls, instance):

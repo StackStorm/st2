@@ -38,6 +38,7 @@ PACK_SEPARATOR = "."
 
 
 class LiveActionDB(stormbase.StormFoundationDB):
+    # same as action execution
     workflow_execution = me.StringField()
     task_execution = me.StringField()
     # TODO: Can status be an enum at the Mongo layer?
@@ -54,11 +55,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
     action = me.StringField(
         required=True, help_text="Reference to the action that has to be executed."
     )
-    action_is_workflow = me.BooleanField(
-        default=False,
-        help_text="A flag indicating whether the referenced action is a workflow.",
-    )
-    parameters = stormbase.EscapedDynamicField(
+    parameters = JSONDictEscapedFieldCompatibilityField(
         default={},
         help_text="The key-value pairs passed as to the action runner & execution.",
     )
@@ -68,20 +65,25 @@ class LiveActionDB(stormbase.StormFoundationDB):
     context = me.DictField(
         default={}, help_text="Contextual information on the action execution."
     )
-    callback = me.DictField(
-        default={},
-        help_text="Callback information for the on completion of action execution.",
-    )
-    runner_info = me.DictField(
-        default={},
-        help_text="Information about the runner which executed this live action (hostname, pid).",
-    )
-    notify = me.EmbeddedDocumentField(NotificationSchema)
     delay = me.IntField(
         min_value=0,
         help_text="How long (in milliseconds) to delay the execution before scheduling.",
     )
 
+    # diff from action execution
+    action_is_workflow = me.BooleanField(
+        default=False,
+        help_text="A flag indicating whether the referenced action is a workflow.",
+    )
+    callback = me.DictField(
+        default={},
+        help_text="Callback information for the on completion of action execution.",
+    )
+    notify = me.EmbeddedDocumentField(NotificationSchema)
+    runner_info = me.DictField(
+        default={},
+        help_text="Information about the runner which executed this live action (hostname, pid).",
+    )
     meta = {
         "indexes": [
             {"fields": ["-start_timestamp", "action"]},

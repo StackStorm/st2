@@ -100,6 +100,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             # error handling routine will fail as well because it will try to update
             # the database and fail the workflow execution gracefully. In this case,
             # the garbage collector will find and cancel these workflow executions.
+            LOG.error(e, exc_info=True)
             self.fail_workflow_execution(message, e)
         finally:
             with self._semaphore:
@@ -132,7 +133,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             if cfg.CONF.coordination.service_registry and not member_ids:
                 ac_ex_dbs = self._get_running_workflows()
                 for ac_ex_db in ac_ex_dbs:
-                    lv_ac = action_utils.get_liveaction_by_id(ac_ex_db.liveaction["id"])
+                    lv_ac = action_utils.get_liveaction_by_id(ac_ex_db.liveaction)
                     ac_svc.request_pause(lv_ac, WORKFLOW_ENGINE_START_STOP_SEQ)
 
     def _get_running_workflows(self):
@@ -251,7 +252,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             return
 
         # Apply post run policies.
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(ac_ex_db.liveaction["id"])
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(ac_ex_db.liveaction)
         pc_svc.apply_post_run_policies(lv_ac_db)
 
         # Process completion of the action execution.
