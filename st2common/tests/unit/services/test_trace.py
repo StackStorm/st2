@@ -254,7 +254,7 @@ class TestTraceService(DbTestCase):
         traceable_liveaction = copy.copy(self.traceable_liveaction)
         # fixtures id value in liveaction is not persisted in DB.
         traceable_liveaction.id = bson.ObjectId(
-            self.traceable_execution.liveaction["id"]
+            self.traceable_execution.liveaction
         )
         created, trace_db = trace_service.get_trace_db_by_live_action(
             traceable_liveaction

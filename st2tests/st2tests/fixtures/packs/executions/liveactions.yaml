@@ -1,6 +1,7 @@
 ---
 task1:
   action: executions.local
+  id: "liveaction1"
   callback: {}
   end_timestamp: '2014-09-01T00:00:05.000000Z'
   parameters:
@@ -19,6 +20,7 @@ task1:
   status: succeeded
 task2:
   action: executions.local
+  id: "liveaction2"
   callback: {}
   end_timestamp: '2014-09-01T00:00:05.000000Z'
   parameters:
@@ -36,6 +38,7 @@ task2:
   start_timestamp: '2014-09-01T00:00:03.000000Z'
   status: succeeded
 workflow:
+  id: "workflow1"
   action: executions.chain
   callback: {}
   end_timestamp: '2014-09-01T00:00:05.000000Z'

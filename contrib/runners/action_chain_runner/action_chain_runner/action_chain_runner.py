@@ -333,7 +333,7 @@ class ActionChainRunner(ActionRunner):
                 and child_exec.status in action_constants.LIVEACTION_CANCELABLE_STATES
             ):
                 action_service.request_cancellation(
-                    LiveAction.get(id=child_exec.liveaction["id"]),
+                    LiveAction.get(id=child_exec.liveaction),
                     self.context.get("user", None),
                 )
 
@@ -353,7 +353,7 @@ class ActionChainRunner(ActionRunner):
                 and child_exec.status == action_constants.LIVEACTION_STATUS_RUNNING
             ):
                 action_service.request_pause(
-                    LiveAction.get(id=child_exec.liveaction["id"]),
+                    LiveAction.get(id=child_exec.liveaction),
                     self.context.get("user", None),
                 )
 
