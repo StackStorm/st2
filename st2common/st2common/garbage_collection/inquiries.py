@@ -78,7 +78,7 @@ def purge_inquiries(logger):
             liveaction_db = action_utils.update_liveaction_status(
                 status=action_constants.LIVEACTION_STATUS_TIMED_OUT,
                 result=inquiry.result,
-                liveaction_id=inquiry.liveaction.get("id"),
+                liveaction_id=inquiry.liveaction,
             )
             executions.update_execution(liveaction_db)
 

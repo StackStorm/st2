@@ -39,6 +39,7 @@ from st2common.exceptions import actionrunner as runner_exc
 from st2common.exceptions import apivalidation as validation_exc
 from st2common.exceptions import param as param_exc
 from st2common.exceptions import trace as trace_exc
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
@@ -205,7 +206,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         runnertype_db = action_utils.get_runnertype_by_name(
             action_db.runner_type["name"]
         )
-
         try:
             liveaction_db.parameters = param_utils.render_live_params(
                 runnertype_db.runner_parameters,
@@ -241,7 +241,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         liveaction_db, actionexecution_db = action_service.create_request(
             liveaction=liveaction_db, action_db=action_db, runnertype_db=runnertype_db
         )
-
         _, actionexecution_db = action_service.publish_request(
             liveaction_db, actionexecution_db
         )
@@ -634,8 +633,10 @@ class ActionExecutionReRunController(
 
         # Merge in any parameters provided by the user
         new_parameters = {}
+        original_parameters = getattr(existing_execution, "parameters", b"{}")
+        original_params_decoded = JSONDictEscapedFieldCompatibilityField().parse_field_value(original_parameters)
         if not no_merge:
-            new_parameters.update(getattr(existing_execution, "parameters", {}))
+            new_parameters.update(original_params_decoded)
         new_parameters.update(spec_api.parameters)
 
         # Create object for the new execution
@@ -842,7 +843,7 @@ class ActionExecutionsController(
         if not execution_api:
             abort(http_client.NOT_FOUND, "Execution with id %s not found." % id)
 
-        liveaction_id = execution_api.liveaction["id"]
+        liveaction_id = execution_api.liveaction
         if not liveaction_id:
             abort(
                 http_client.INTERNAL_SERVER_ERROR,
@@ -867,7 +868,7 @@ class ActionExecutionsController(
                 liveaction_db, status, result, set_result_size=True
             )
             actionexecution_db = ActionExecution.get(
-                liveaction__id=str(liveaction_db.id)
+                liveaction=str(liveaction_db.id)
             )
             return (liveaction_db, actionexecution_db)
 
@@ -971,7 +972,7 @@ class ActionExecutionsController(
         if not execution_api:
             abort(http_client.NOT_FOUND, "Execution with id %s not found." % id)
 
-        liveaction_id = execution_api.liveaction["id"]
+        liveaction_id = execution_api.liveaction
         if not liveaction_id:
             abort(
                 http_client.INTERNAL_SERVER_ERROR,

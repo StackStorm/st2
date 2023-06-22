@@ -130,7 +130,7 @@ class OrquestaFunctionTest(st2tests.ExecutionDbTestCase):
                 task_execution=str(tk_ex_db.id)
             )[0]
             tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(
-                tk_ac_ex_db.liveaction["id"]
+                tk_ac_ex_db.liveaction
             )
 
             self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)

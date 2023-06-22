@@ -136,12 +136,15 @@ class OrquestaRunner(runners.AsyncActionRunner):
                 wf_def, self.execution, st2_ctx, notify_cfg=notify_cfg
             )
         except wf_exc.WorkflowInspectionError as e:
+            _, ex, tb = sys.exc_info()
             status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {"errors": e.args[1], "output": None}
+            result = {"errors": e.args[1], "output": None, "traceback": "".join(traceback.format_tb(tb, 20))}
             return (status, result, self.context)
         except Exception as e:
+            _, ex, tb = sys.exc_info()
             status = ac_const.LIVEACTION_STATUS_FAILED
-            result = {"errors": [{"message": six.text_type(e)}], "output": None}
+            result = {"errors": [{"message": six.text_type(e)}], "output": None,
+                    "traceback": "".join(traceback.format_tb(tb, 20))}
             return (status, result, self.context)
 
         return self._handle_workflow_return_value(wf_ex_db)
@@ -178,7 +181,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
             if self.task_pauseable(child_ex):
                 ac_svc.request_pause(
-                    lv_db_access.LiveAction.get(id=child_ex.liveaction["id"]),
+                    lv_db_access.LiveAction.get(id=child_ex.liveaction),
                     self.context.get("user", None),
                 )
 
@@ -209,7 +212,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
             if self.task_resumeable(child_ex):
                 ac_svc.request_resume(
-                    lv_db_access.LiveAction.get(id=child_ex.liveaction["id"]),
+                    lv_db_access.LiveAction.get(id=child_ex.liveaction),
                     self.context.get("user", None),
                 )
 
@@ -270,7 +273,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
             if self.task_cancelable(child_ex):
                 ac_svc.request_cancellation(
-                    lv_db_access.LiveAction.get(id=child_ex.liveaction["id"]),
+                    lv_db_access.LiveAction.get(id=child_ex.liveaction),
                     self.context.get("user", None),
                 )
 

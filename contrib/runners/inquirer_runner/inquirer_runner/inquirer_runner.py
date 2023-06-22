@@ -74,7 +74,7 @@ class Inquirer(runners.ActionRunner):
 
     def run(self, action_parameters):
         liveaction_db = action_utils.get_liveaction_by_id(self.liveaction_id)
-        exc = ex_db_access.ActionExecution.get(liveaction__id=str(liveaction_db.id))
+        exc = ex_db_access.ActionExecution.get(liveaction=str(liveaction_db.id))
 
         # Assemble and dispatch trigger
         trigger_ref = sys_db_models.ResourceReference.to_string_reference(

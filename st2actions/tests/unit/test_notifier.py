@@ -133,7 +133,7 @@ class NotifierTestCase(CleanDbTestCase):
         LiveAction.add_or_update(liveaction_db)
 
         execution = MOCK_EXECUTION
-        execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+        execution.liveaction = str(liveaction_db.id)
         execution.status = liveaction_db.status
 
         dispatcher = NotifierTestCase.MockDispatcher(self)
@@ -183,7 +183,7 @@ class NotifierTestCase(CleanDbTestCase):
         LiveAction.add_or_update(liveaction_db)
 
         execution = MOCK_EXECUTION
-        execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+        execution.liveaction = str(liveaction_db.id)
         execution.status = liveaction_db.status
 
         dispatcher = NotifierTestCase.MockDispatcher(self)
@@ -236,7 +236,7 @@ class NotifierTestCase(CleanDbTestCase):
         LiveAction.add_or_update(liveaction_db)
 
         execution = MOCK_EXECUTION
-        execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+        execution.liveaction = str(liveaction_db.id)
         execution.status = liveaction_db.status
 
         notifier = Notifier(connection=None, queues=[])
@@ -268,7 +268,7 @@ class NotifierTestCase(CleanDbTestCase):
             liveaction_db = LiveActionDB(action="core.local")
             liveaction_db.status = status
             execution = MOCK_EXECUTION
-            execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+            execution.liveaction = str(liveaction_db.id)
             execution.status = liveaction_db.status
 
             notifier = Notifier(connection=None, queues=[])
@@ -305,7 +305,7 @@ class NotifierTestCase(CleanDbTestCase):
             liveaction_db = LiveActionDB(action="core.local")
             liveaction_db.status = status
             execution = MOCK_EXECUTION
-            execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+            execution.liveaction = str(liveaction_db.id)
             execution.status = liveaction_db.status
 
             notifier = Notifier(connection=None, queues=[])
@@ -352,7 +352,7 @@ class NotifierTestCase(CleanDbTestCase):
             liveaction_db = LiveActionDB(id=bson.ObjectId(), action="core.local")
             liveaction_db.status = status
             execution = MOCK_EXECUTION
-            execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+            execution.liveaction = str(liveaction_db.id)
             execution.status = liveaction_db.status
 
             mock_LiveAction.get_by_id.return_value = liveaction_db
@@ -402,7 +402,7 @@ class NotifierTestCase(CleanDbTestCase):
             liveaction_db = LiveActionDB(id=bson.ObjectId(), action="core.local")
             liveaction_db.status = status
             execution = MOCK_EXECUTION
-            execution.liveaction = vars(LiveActionAPI.from_model(liveaction_db))
+            execution.liveaction = str(liveaction_db.id)
             execution.status = liveaction_db.status
 
             mock_LiveAction.get_by_id.return_value = liveaction_db

@@ -215,7 +215,7 @@ class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
         self.assertEqual(expected_num_exec, runner.MockActionRunner.run.call_count)
 
         # Check the status changes.
-        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+        execution = ActionExecution.get(liveaction=str(liveaction.id))
         expected_status_changes = [
             "requested",
             "delayed",
