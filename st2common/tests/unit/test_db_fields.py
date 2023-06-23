@@ -37,8 +37,6 @@ from st2common.models.db import stormbase
 from st2common.models.db import MongoDBAccess
 from st2common.fields import JSONDictField
 from st2common.fields import JSONDictEscapedFieldCompatibilityField
-from st2common.fields import JSONDictFieldCompressionAlgorithmEnum
-from st2common.fields import JSONDictFieldSerializationFormatEnum
 
 from st2tests import DbTestCase
 
