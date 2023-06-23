@@ -160,7 +160,7 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {"param1": "value1", "param4": SUPER_SECRET_PARAMETER}
         self.assertEqual(request.call_args[0][0].parameters, expected_parameters)
-        #above working
+        # above working
         post_resp = self._do_post(
             alias_execution=self.alias4,
             command=command,

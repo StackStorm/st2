@@ -634,7 +634,11 @@ class ActionExecutionReRunController(
         # Merge in any parameters provided by the user
         new_parameters = {}
         original_parameters = getattr(existing_execution, "parameters", b"{}")
-        original_params_decoded = JSONDictEscapedFieldCompatibilityField().parse_field_value(original_parameters)
+        original_params_decoded = (
+            JSONDictEscapedFieldCompatibilityField().parse_field_value(
+                original_parameters
+            )
+        )
         if not no_merge:
             new_parameters.update(original_params_decoded)
         new_parameters.update(spec_api.parameters)
@@ -867,9 +871,7 @@ class ActionExecutionsController(
             liveaction_db = action_service.update_status(
                 liveaction_db, status, result, set_result_size=True
             )
-            actionexecution_db = ActionExecution.get(
-                liveaction=str(liveaction_db.id)
-            )
+            actionexecution_db = ActionExecution.get(liveaction=str(liveaction_db.id))
             return (liveaction_db, actionexecution_db)
 
         try:

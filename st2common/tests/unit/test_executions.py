@@ -38,7 +38,9 @@ class TestActionExecutionHistoryModel(DbTestCase):
                 "id": str(bson.ObjectId()),
                 "action": copy.deepcopy(fixture.ARTIFACTS["actions"]["local"]),
                 "runner": copy.deepcopy(fixture.ARTIFACTS["runners"]["run-local"]),
-                "liveaction": copy.deepcopy(fixture.ARTIFACTS["liveactions"]["task1"]["id"]),
+                "liveaction": copy.deepcopy(
+                    fixture.ARTIFACTS["liveactions"]["task1"]["id"]
+                ),
                 "status": fixture.ARTIFACTS["liveactions"]["task1"]["status"],
                 "start_timestamp": fixture.ARTIFACTS["liveactions"]["task1"][
                     "start_timestamp"
@@ -71,7 +73,9 @@ class TestActionExecutionHistoryModel(DbTestCase):
             "rule": copy.deepcopy(fixture.ARTIFACTS["rule"]),
             "action": copy.deepcopy(fixture.ARTIFACTS["actions"]["chain"]),
             "runner": copy.deepcopy(fixture.ARTIFACTS["runners"]["action-chain"]),
-            "liveaction": copy.deepcopy(fixture.ARTIFACTS["liveactions"]["workflow"]["id"]),
+            "liveaction": copy.deepcopy(
+                fixture.ARTIFACTS["liveactions"]["workflow"]["id"]
+            ),
             "children": [task["id"] for task in self.fake_history_subtasks],
             "status": fixture.ARTIFACTS["liveactions"]["workflow"]["status"],
             "start_timestamp": fixture.ARTIFACTS["liveactions"]["workflow"][
@@ -180,9 +184,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertIsNone(getattr(obj, "rule", None))
         self.assertDictEqual(obj.action, self.fake_history_subtasks[0]["action"])
         self.assertDictEqual(obj.runner, self.fake_history_subtasks[0]["runner"])
-        self.assertEqual(
-            obj.liveaction, self.fake_history_subtasks[0]["liveaction"]
-        )
+        self.assertEqual(obj.liveaction, self.fake_history_subtasks[0]["liveaction"])
         self.assertEqual(obj.parent, self.fake_history_subtasks[0]["parent"])
         self.assertIsNone(getattr(obj, "children", None))
 
@@ -195,8 +197,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.rule, {})
         self.assertDictEqual(model.action, self.fake_history_subtasks[0]["action"])
         self.assertDictEqual(model.runner, self.fake_history_subtasks[0]["runner"])
-        self.assertEqual(model.liveaction,
-                self.fake_history_subtasks[0]["liveaction"])
+        self.assertEqual(model.liveaction, self.fake_history_subtasks[0]["liveaction"])
         self.assertEqual(model.parent, self.fake_history_subtasks[0]["parent"])
         self.assertListEqual(model.children, [])
 
@@ -209,9 +210,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertIsNone(getattr(obj, "rule", None))
         self.assertDictEqual(obj.action, self.fake_history_subtasks[0]["action"])
         self.assertDictEqual(obj.runner, self.fake_history_subtasks[0]["runner"])
-        self.assertEqual(
-            obj.liveaction, self.fake_history_subtasks[0]["liveaction"]
-        )
+        self.assertEqual(obj.liveaction, self.fake_history_subtasks[0]["liveaction"])
         self.assertEqual(obj.parent, self.fake_history_subtasks[0]["parent"])
         self.assertIsNone(getattr(obj, "children", None))
 
@@ -227,8 +226,7 @@ class TestActionExecutionHistoryModel(DbTestCase):
         self.assertDictEqual(model.rule, {})
         self.assertDictEqual(model.action, self.fake_history_subtasks[0]["action"])
         self.assertDictEqual(model.runner, self.fake_history_subtasks[0]["runner"])
-        self.assertEqual(model.liveaction,
-                self.fake_history_subtasks[0]["liveaction"])
+        self.assertEqual(model.liveaction, self.fake_history_subtasks[0]["liveaction"])
         self.assertEqual(model.parent, self.fake_history_subtasks[0]["parent"])
         self.assertListEqual(model.children, [])
 

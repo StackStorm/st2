@@ -681,8 +681,11 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
         }
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback_in_var = traceback.format_tb(exc_traceback)
-        update_task_execution(str(task_ex_db.id), statuses.FAILED, {"errors":
-            [error], "traceback": traceback_in_var})
+        update_task_execution(
+            str(task_ex_db.id),
+            statuses.FAILED,
+            {"errors": [error], "traceback": traceback_in_var},
+        )
         raise e
 
     return task_ex_db
@@ -1202,7 +1205,7 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
                 )
                 LOG.error(e, exc_info=True)
                 LOG.exception(msg)
- 
+
                 fail_workflow_execution(str(wf_ex_db.id), e, task=task)
                 return
 

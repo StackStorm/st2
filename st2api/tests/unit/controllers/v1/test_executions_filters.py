@@ -62,7 +62,9 @@ class TestActionExecutionFilters(FunctionalTest):
                 "runner": copy.deepcopy(fixture.ARTIFACTS["runners"]["action-chain"]),
                 "liveaction": fixture.ARTIFACTS["liveactions"]["workflow"]["id"],
                 "status": fixture.ARTIFACTS["liveactions"]["workflow"]["status"],
-                "result": copy.deepcopy(fixture.ARTIFACTS["liveactions"]["workflow"]["result"]),
+                "result": copy.deepcopy(
+                    fixture.ARTIFACTS["liveactions"]["workflow"]["result"]
+                ),
                 "context": copy.deepcopy(fixture.ARTIFACTS["context"]),
                 "children": [],
             },
@@ -71,8 +73,9 @@ class TestActionExecutionFilters(FunctionalTest):
                 "runner": copy.deepcopy(fixture.ARTIFACTS["runners"]["run-local"]),
                 "liveaction": fixture.ARTIFACTS["liveactions"]["task1"]["id"],
                 "status": fixture.ARTIFACTS["liveactions"]["task1"]["status"],
-                "result": copy.deepcopy(fixture.ARTIFACTS["liveactions"]["task1"]["result"]),
-
+                "result": copy.deepcopy(
+                    fixture.ARTIFACTS["liveactions"]["task1"]["result"]
+                ),
             },
         ]
 
