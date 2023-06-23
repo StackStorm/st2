@@ -493,9 +493,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         t2_t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t2_t1_ex_db.id)
         )[0]
-        t2_t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(
-            t2_t1_ac_ex_db.liveaction
-        )
+        t2_t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_t1_ac_ex_db.liveaction)
         self.assertEqual(
             t2_t1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )
@@ -514,9 +512,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         t2_t2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t2_t2_ex_db.id)
         )[0]
-        t2_t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(
-            t2_t2_ac_ex_db.liveaction
-        )
+        t2_t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_t2_ac_ex_db.liveaction)
         self.assertEqual(
             t2_t2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_PENDING
         )
@@ -568,9 +564,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         t2_t3_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t2_t3_ex_db.id)
         )[0]
-        t2_t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(
-            t2_t3_ac_ex_db.liveaction
-        )
+        t2_t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_t3_ac_ex_db.liveaction)
         self.assertEqual(
             t2_t3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )

@@ -235,7 +235,10 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         }
 
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
-        self.assertEqual(lv_ac_db.result["errors"][0]["message"], expected_result["errors"][0]["message"])
+        self.assertEqual(
+            lv_ac_db.result["errors"][0]["message"],
+            expected_result["errors"][0]["message"],
+        )
         self.assertIsNone(lv_ac_db.result["output"], expected_result["output"])
 
     def test_notify_task_list_item_value(self):
