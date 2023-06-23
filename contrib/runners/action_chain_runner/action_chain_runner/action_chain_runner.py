@@ -966,7 +966,7 @@ class ActionChainRunner(ActionRunner):
 
         execution_db = None
         if liveaction_db:
-            execution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+            execution_db = ActionExecution.get(liveaction=str(liveaction_db.id))
 
         result["id"] = action_node.name
         result["name"] = action_node.name
