@@ -153,9 +153,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(len(tk_ac_ex_dbs), 1)
 
-        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(
-            tk_ac_ex_dbs[0].liveaction
-        )
+        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_dbs[0].liveaction)
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Pause the subworkflow.
@@ -491,9 +489,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         tk_ac_ex_dbs = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[0].id)
         )
-        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(
-            tk_ac_ex_dbs[0].liveaction
-        )
+        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_dbs[0].liveaction)
         self.assertEqual(tk_ac_ex_dbs[0].status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(tk_ac_ex_dbs[0])
