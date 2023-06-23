@@ -139,9 +139,7 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(len(tk_ac_ex_dbs), 1)
 
-        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(
-            tk_ac_ex_dbs[0].liveaction
-        )
+        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_dbs[0].liveaction)
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Cancel the main workflow.
@@ -182,9 +180,7 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(len(tk_ac_ex_dbs), 1)
 
-        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(
-            tk_ac_ex_dbs[0].liveaction
-        )
+        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_dbs[0].liveaction)
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Cancel the subworkflow.
@@ -230,9 +226,7 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(len(tk1_ac_ex_dbs), 1)
 
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(
-            tk1_ac_ex_dbs[0].liveaction
-        )
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_dbs[0].liveaction)
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         tk2_ac_ex_dbs = ex_db_access.ActionExecution.query(
@@ -240,9 +234,7 @@ class OrquestaRunnerCancelTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(len(tk2_ac_ex_dbs), 1)
 
-        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(
-            tk2_ac_ex_dbs[0].liveaction
-        )
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_dbs[0].liveaction)
         self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Cancel the subworkflow which should cascade up to the root.
