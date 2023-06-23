@@ -1193,18 +1193,14 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
                 # Request the task execution.
                 request_task_execution(wf_ex_db, st2_ctx, task)
             except Exception as e:
-                import sys
-                import traceback
 
                 exc_type, exc_value, exc_traceback = sys.exc_info()
-                traceback_in_var = traceback.format_tb(exc_traceback)
                 msg = 'Failed task execution for task "%s", route "%s".'
                 msg = msg % (task["id"], str(task["route"]))
                 update_progress(
                     wf_ex_db, "%s %s" % (msg, str(e)), severity="error", log=False
                 )
-                LOG.error(e, exc_info=True)
-                LOG.exception(msg)
+                LOG.exception(msg, exc_info=True)
 
                 fail_workflow_execution(str(wf_ex_db.id), e, task=task)
                 return

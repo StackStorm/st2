@@ -27,7 +27,6 @@ from st2actions.notifier.notifier import Notifier
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
-from st2common.models.api.action import LiveActionAPI
 from st2common.models.db.action import ActionDB
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
