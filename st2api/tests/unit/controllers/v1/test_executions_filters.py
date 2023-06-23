@@ -60,16 +60,19 @@ class TestActionExecutionFilters(FunctionalTest):
                 "rule": copy.deepcopy(fixture.ARTIFACTS["rule"]),
                 "action": copy.deepcopy(fixture.ARTIFACTS["actions"]["chain"]),
                 "runner": copy.deepcopy(fixture.ARTIFACTS["runners"]["action-chain"]),
-                "liveaction": copy.deepcopy(
-                    fixture.ARTIFACTS["liveactions"]["workflow"]
-                ),
+                "liveaction": fixture.ARTIFACTS["liveactions"]["workflow"]["id"],
+                "status": fixture.ARTIFACTS["liveactions"]["workflow"]["status"],
+                "result": copy.deepcopy(fixture.ARTIFACTS["liveactions"]["workflow"]["result"]),
                 "context": copy.deepcopy(fixture.ARTIFACTS["context"]),
                 "children": [],
             },
             {
                 "action": copy.deepcopy(fixture.ARTIFACTS["actions"]["local"]),
                 "runner": copy.deepcopy(fixture.ARTIFACTS["runners"]["run-local"]),
-                "liveaction": copy.deepcopy(fixture.ARTIFACTS["liveactions"]["task1"]),
+                "liveaction": fixture.ARTIFACTS["liveactions"]["task1"]["id"],
+                "status": fixture.ARTIFACTS["liveactions"]["task1"]["status"],
+                "result": copy.deepcopy(fixture.ARTIFACTS["liveactions"]["task1"]["result"]),
+
             },
         ]
 
@@ -89,8 +92,8 @@ class TestActionExecutionFilters(FunctionalTest):
             data["id"] = obj_id
             data["start_timestamp"] = isotime.format(timestamp, offset=False)
             data["end_timestamp"] = isotime.format(timestamp, offset=False)
-            data["status"] = data["liveaction"]["status"]
-            data["result"] = data["liveaction"]["result"]
+            data["status"] = data["status"]
+            data["result"] = data["result"]
             if fake_type["action"]["name"] == "local" and random.choice([True, False]):
                 assign_parent(data)
             wb_obj = ActionExecutionAPI(**data)
@@ -135,7 +138,7 @@ class TestActionExecutionFilters(FunctionalTest):
         self.assertEqual(record["id"], obj_id)
         self.assertDictEqual(record["action"], fake_record.action)
         self.assertDictEqual(record["runner"], fake_record.runner)
-        self.assertDictEqual(record["liveaction"], fake_record.liveaction)
+        self.assertEqual(record["liveaction"], fake_record.liveaction)
 
     def test_get_one_failed(self):
         response = self.app.get(
