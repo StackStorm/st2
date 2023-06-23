@@ -89,7 +89,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                 status=status,
                 action={"ref": "core.local"},
                 runner={"name": "local-shell-cmd"},
-                liveaction={"ref": "foo"},
+                liveaction="ref",
             )
             ActionExecution.add_or_update(action_execution_db)
 
@@ -125,7 +125,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                 status=status,
                 action={"ref": "core.local"},
                 runner={"name": "local-shell-cmd"},
-                liveaction={"ref": "foo"},
+                liveaction="ref",
             )
             ActionExecution.add_or_update(action_execution_db)
 
@@ -160,7 +160,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
                 status=status,
                 action={"ref": "core.local"},
                 runner={"name": "local-shell-cmd"},
-                liveaction={"ref": "foo"},
+                liveaction="ref",
             )
             ActionExecution.add_or_update(action_execution_db)
 
