@@ -145,7 +145,10 @@ class RunnerContainer(object):
             # mark execution as failed.
             status = action_constants.LIVEACTION_STATUS_FAILED
             # include the error message and traceback to try and provide some hints.
-            LOG.exception("Failed to run action. traceback: %s".format("".join(traceback.format_tb(tb, 20))))
+            LOG.exception(
+                "Failed to run action. traceback: %s"
+                % "".join(traceback.format_tb(tb, 20))
+            )
             result = {
                 "error": str(ex),
                 "traceback": "".join(traceback.format_tb(tb, 20)),

@@ -44,35 +44,38 @@ class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
 
         scheduled_filters = {
             "status": action_constants.LIVEACTION_STATUS_SCHEDULED,
-            "action": target.action
+            "action": target.action,
         }
-        scheduled = [i for i in
-                action_access.LiveAction.query(**scheduled_filters)]
+        scheduled = [i for i in action_access.LiveAction.query(**scheduled_filters)]
 
         running_filters = {
             "status": action_constants.LIVEACTION_STATUS_RUNNING,
-            "action": target.action
+            "action": target.action,
         }
-        running = [i for i in
-                action_access.LiveAction.query(**running_filters)]
+        running = [i for i in action_access.LiveAction.query(**running_filters)]
         running.extend(scheduled)
         count = 0
-        target_parameters = JSONDictEscapedFieldCompatibilityField(
-                ).parse_field_value(target.parameters)
+        target_parameters = JSONDictEscapedFieldCompatibilityField().parse_field_value(
+            target.parameters
+        )
         target_key_value_policy_attributes = {
-                k: v for k, v in
-                target_parameters.items() if k in self.attributes}
+            k: v for k, v in target_parameters.items() if k in self.attributes
+        }
 
         for i in running:
-            running_event_parameters = \
-                    JSONDictEscapedFieldCompatibilityField(
-                            ).parse_field_value(i.parameters)
+            running_event_parameters = (
+                JSONDictEscapedFieldCompatibilityField().parse_field_value(i.parameters)
+            )
             # list of event parameter values that are also in policy
             running_event_policy_item_key_value_attributes = {
-                    k: v for k, v in
-                    running_event_parameters.items() if k in self.attributes}
-            if running_event_policy_item_key_value_attributes == \
-                    target_key_value_policy_attributes:
+                k: v
+                for k, v in running_event_parameters.items()
+                if k in self.attributes
+            }
+            if (
+                running_event_policy_item_key_value_attributes
+                == target_key_value_policy_attributes
+            ):
                 count += 1
 
         # Mark the execution as scheduled if threshold is not reached or delayed otherwise.
