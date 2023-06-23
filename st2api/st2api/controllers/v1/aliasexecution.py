@@ -188,8 +188,9 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
                 mask_secrets = self._get_mask_secrets(
                     requester_user, show_secrets=show_secrets
                 )
-                liveaction = LiveActionAPI.from_model(liveaction,
-                        mask_secrets=mask_secrets)
+                liveaction = LiveActionAPI.from_model(
+                    liveaction, mask_secrets=mask_secrets
+                )
                 execution.liveaction = liveaction
             result = {
                 "execution": execution,

@@ -71,7 +71,7 @@ RESPOND_LIVEACTION = {
         }
     },
     "action": "st2.inquiry.respond",
-    "id": "liveaction_respond"
+    "id": "liveaction_respond",
 }
 
 OUTPUT_SCHEMA_RESULT = {
