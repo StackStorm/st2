@@ -441,23 +441,22 @@ class LiveActionAPI(BaseAPI):
         },
         "additionalProperties": False,
     }
-    skip_unescape_field_names = [
-        "result",
-        "parameters"
-    ]
+    skip_unescape_field_names = ["result", "parameters"]
 
     @classmethod
     def convert_raw(cls, doc, raw_values):
         """
         override this class to
-        convert any raw byte values into dict 
+        convert any raw byte values into dict
 
         :param doc: dict
         :param raw_values: dict[field]:bytestring
         """
 
         for field_name, field_value in raw_values.items():
-            doc[field_name] = JSONDictEscapedFieldCompatibilityField().parse_field_value(field_value)
+            doc[
+                field_name
+            ] = JSONDictEscapedFieldCompatibilityField().parse_field_value(field_value)
         return doc
 
     @classmethod

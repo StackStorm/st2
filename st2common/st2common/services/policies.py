@@ -65,7 +65,13 @@ def apply_pre_run_policies(lv_ac_db):
             traceback_var = "".join(traceback.format_tb(tb, 20))
             message = 'An exception occurred while applying policy "%s" (%s) for liveaction "%s". traceback "%s"'
             LOG.exception(
-                message % (policy_db.ref, policy_db.policy_type, str(lv_ac_db.id), traceback_var)
+                message
+                % (
+                    policy_db.ref,
+                    policy_db.policy_type,
+                    str(lv_ac_db.id),
+                    traceback_var,
+                )
             )
 
         if lv_ac_db.status == ac_const.LIVEACTION_STATUS_DELAYED:

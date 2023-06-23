@@ -87,8 +87,11 @@ class BaseAPI(object):
 
     @classmethod
     def _from_model(cls, model, mask_secrets=False):
-        unescape_fields = [k for k, v in model._fields.items() if type(v) in
-                [EscapedDynamicField, EscapedDictField]]
+        unescape_fields = [
+            k
+            for k, v in model._fields.items()
+            if type(v) in [EscapedDynamicField, EscapedDictField]
+        ]
         unescape_fields = set(unescape_fields) - set(cls.skip_unescape_field_names)
         doc = model.to_mongo()
 
@@ -117,7 +120,7 @@ class BaseAPI(object):
     def convert_raw(cls, doc, raw_values):
         """
         override this class to
-        convert any raw byte values into dict 
+        convert any raw byte values into dict
         you can also use this to fix any other fields that need 'fixing'
 
         :param doc: dict

@@ -86,13 +86,12 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
         class LiveActionDB_OldFieldType(LiveActionDB):
             result = stormbase.EscapedDynamicField(default={})
 
-        #todo(aj) need ActionExecutionDB_NewFieldType to be used for update
-        #here.  the model field type has changed to string in current models
+        # todo(aj) need ActionExecutionDB_NewFieldType to be used for update
+        # here.  the model field type has changed to string in current models
 
         class ActionExecutionDB_NewFieldType(ActionExecutionDB):
             liveaction = stormbase.EscapedDictField(required=True)
             parameters = stormbase.EscapedDynamicField(default={})
-
 
         execution_dbs = ActionExecution.query(
             __raw__={
