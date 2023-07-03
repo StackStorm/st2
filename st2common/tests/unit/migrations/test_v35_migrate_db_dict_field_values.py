@@ -112,7 +112,9 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
             trigger_type = stormbase.EscapedDictField()
             trigger_instance = stormbase.EscapedDictField()
             rule = stormbase.EscapedDictField()
-            result_size = me.IntField(default=0, help_text="Serialized result size in bytes")
+            result_size = me.IntField(
+                default=0, help_text="Serialized result size in bytes"
+            )
             parent = me.StringField()
             children = me.ListField(field=me.StringField())
             log = me.ListField(field=me.DictField())
@@ -135,7 +137,8 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
                 help_text="The timestamp when the liveaction has finished."
             )
             action = me.StringField(
-                required=True, help_text="Reference to the action that has to be executed."
+                required=True,
+                help_text="Reference to the action that has to be executed.",
             )
             parameters = JSONDictEscapedFieldCompatibilityField(
                 default={},
@@ -182,7 +185,8 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
                 help_text="The timestamp when the liveaction has finished."
             )
             action = me.StringField(
-                required=True, help_text="Reference to the action that has to be executed."
+                required=True,
+                help_text="Reference to the action that has to be executed.",
             )
             parameters = JSONDictEscapedFieldCompatibilityField(
                 default={},
@@ -242,7 +246,9 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
             trigger_type = stormbase.EscapedDictField()
             trigger_instance = stormbase.EscapedDictField()
             rule = stormbase.EscapedDictField()
-            result_size = me.IntField(default=0, help_text="Serialized result size in bytes")
+            result_size = me.IntField(
+                default=0, help_text="Serialized result size in bytes"
+            )
             parent = me.StringField()
             children = me.ListField(field=me.StringField())
             log = me.ListField(field=me.DictField())
