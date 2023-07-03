@@ -67,9 +67,12 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._execute_workflow("examples.orquesta-fail-inspection")
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        errors = []
         for i in ex.result.get("errors"):
             i.pop("traceback", None)
-        self.assertDictEqual(ex.result, {"errors": expected_errors, "output": None})
+            errors.append(i)
+        self.assertDictEqual(errors, expected_errors)
+        self.assertIsNone(ex.result["output"])
 
     def test_input_error(self):
         expected_errors = [
@@ -247,11 +250,13 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
 
         ex = self._execute_workflow("examples.orquesta-fail-inspection-task-contents")
         ex = self._wait_for_completion(ex)
+        errors = []
         for i in ex.result.get("errors"):
             i.pop("traceback", None)
-
+            errors.append(i)
+        self.assertDictEqual(errors, expected_errors)
+        self.assertIsNone(ex.result["output"])
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result, {"errors": expected_errors, "output": None})
 
     def test_remediate_then_fail(self):
         expected_errors = [
