@@ -23,6 +23,7 @@ from st2common.constants import action as ac_const
 
 class ErrorHandlingTest(base.TestWorkflowExecution):
     def test_inspection_error(self):
+        self.maxDiff = None
         expected_errors = [
             {
                 "type": "content",
@@ -194,6 +195,7 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         self.assertDictEqual(ex.result, {"errors": expected_errors, "output": None})
 
     def test_task_content_errors(self):
+        self.maxDiff = None
         expected_errors = [
             {
                 "type": "content",
