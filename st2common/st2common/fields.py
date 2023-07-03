@@ -414,7 +414,7 @@ class JSONDictField(BinaryField):
         data = orjson.loads(data)
         return data
 
-    def _serialize_field_value(self, value: dict) -> bytes:
+    def _serialize_field_value(self, value: dict, zstd=True) -> bytes:
         """
         Serialize and encode the provided field value.
         """
@@ -434,8 +434,9 @@ class JSONDictField(BinaryField):
                 return list(obj)
             raise TypeError
 
-        value = orjson.dumps(value, default=default)
-        data = zstandard.ZstdCompressor().compress(value)
+        data = orjson.dumps(value, default=default)
+        if zstd:
+            data = zstandard.ZstdCompressor().compress(data)
 
         return data
 

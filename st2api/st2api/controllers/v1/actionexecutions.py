@@ -27,6 +27,7 @@ import jsonschema
 from oslo_config import cfg
 from six.moves import http_client
 from mongoengine.queryset.visitor import Q
+import zstandard
 
 from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
@@ -438,12 +439,16 @@ class ActionExecutionRawResultController(BaseActionExecutionNestedController):
             # For new JSON storage format we just use raw value since it's already JSON serialized
             # string
             response_body = result["result"]
-
+            try:
+                response_body = zstandard.ZstdDecompressor().decompress(response_body)
+                # skip if already a byte string and not compressed
+            except zstandard.ZstdError:
+                pass
             if pretty_format:
                 # Pretty format is not a default behavior since it adds quite some overhead (e.g.
                 # 10-30ms for non pretty format for 4 MB json vs ~120 ms for pretty formatted)
                 response_body = orjson.dumps(
-                    orjson.loads(result["result"]), option=orjson.OPT_INDENT_2
+                    orjson.loads(response_body), option=orjson.OPT_INDENT_2
                 )
 
         response = Response()
