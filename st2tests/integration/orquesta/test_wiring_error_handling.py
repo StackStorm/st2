@@ -71,7 +71,8 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         for i in ex.result.get("errors"):
             i.pop("traceback", None)
             errors.append(i)
-        self.assertDictEqual(errors, expected_errors)
+        for index, i in errors:
+            self.assertDictEqual(i, expected_errors[index])
         self.assertIsNone(ex.result["output"])
 
     def test_input_error(self):
@@ -141,8 +142,8 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         for i in ex.result.get("errors"):
             i.pop("traceback", None)
 
-        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(ex.result, {"errors": expected_errors, "output": None})
+        self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
 
     def test_task_transition_error(self):
         expected_errors = [
