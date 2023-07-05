@@ -22,7 +22,6 @@ from st2common.constants import action as ac_const
 
 
 class ErrorHandlingTest(base.TestWorkflowExecution):
-
     def error_inspect(self, ex, expected_errors):
         errors = []
         for i in ex.result.get("errors"):
@@ -95,7 +94,6 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.error_inspect(ex, expected_errors)
-
 
     def test_vars_error(self):
         expected_errors = [
