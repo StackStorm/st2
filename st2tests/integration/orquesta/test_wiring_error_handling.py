@@ -159,6 +159,7 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._execute_workflow("examples.orquesta-fail-task-transition")
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, expected_output)
         self.error_inspect(ex, expected_errors)
 
     def test_task_publish_error(self):
@@ -181,6 +182,7 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._wait_for_completion(ex)
 
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, expected_output)
         self.error_inspect(ex, expected_errors)
 
     def test_output_error(self):
