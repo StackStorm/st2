@@ -1,0 +1,227 @@
+#!/usr/bin/env python
+# Copyright 2021 The StackStorm Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Migration which which migrates data for existing objects in the database which utilize
+liveaction to a string
+
+Migration step is idempotent and can be retried on failures / partial runs.
+
+Right now the script utilizes no concurrency and performs migration one object by one. That's done
+for simplicity reasons and also to avoid massive CPU usage spikes when running this script with
+large concurrency on large objects.
+
+Keep in mind that only "completed" objects are processes - this means Executions in "final" states
+(succeeded, failed, timeout, etc.).
+
+We determine if an object should be migrating using mongodb $type query (for execution objects we
+could also determine that based on the presence of result_size field).
+"""
+
+import sys
+import datetime
+import time
+import traceback
+
+from oslo_config import cfg
+
+from st2common import config
+from st2common.service_setup import db_setup
+from st2common.service_setup import db_teardown
+from st2common.util import isotime
+from st2common.models.db.execution import ActionExecutionDB
+from st2common.persistence.execution import ActionExecution
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.constants.action import LIVEACTION_COMPLETED_STATES
+
+# NOTE: To avoid unnecessary mongoengine object churn when retrieving only object ids (aka to avoid
+# instantiating model class with a single field), we use raw pymongo value which is a dict with a
+# single value
+
+
+def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -> None:
+    """
+    Perform migrations for execution related objects (ActionExecutionDB, LiveActionDB).
+    """
+    print("Migrating execution objects")
+
+    # NOTE: We first only retrieve the IDs because there could be a lot of objects in the database
+    # and this could result in massive ram use. Technically, mongoengine loads querysets lazily,
+    # but this is not always the case so it's better to first retrieve all the IDs and then retrieve
+    # objects one by one.
+    # Keep in mind we need to use ModelClass.objects and not PersistanceClass.query() so .only()
+    # works correctly - with PersistanceClass.query().only() all the fields will still be retrieved.
+
+    # 1. Migrate ActionExecutionDB objects
+    result = (
+        ActionExecutionDB.objects(
+            __raw__={
+                "status": {
+                    "$in": LIVEACTION_COMPLETED_STATES,
+                },
+            },
+            start_timestamp__gte=start_dt,
+            start_timestamp__lte=end_dt,
+        )
+        .only("id")
+        .as_pymongo()
+    )
+    execution_ids = set([str(item["_id"]) for item in result])
+    objects_count = result.count()
+
+    if not execution_ids:
+        print("Found no ActionExecutionDB objects to migrate.")
+        print("")
+        return None
+
+    print("Will migrate %s ActionExecutionDB objects" % (objects_count))
+    print("")
+
+    for index, execution_id in enumerate(execution_ids, 1):
+        try:
+            execution_db = ActionExecution.get_by_id(execution_id)
+        except StackStormDBObjectNotFoundError:
+            print(
+                "Skipping ActionExecutionDB with id %s which is missing in the database"
+                % (execution_id)
+            )
+            continue
+
+        print(
+            "[%s/%s] Migrating ActionExecutionDB with id %s"
+            % (index, objects_count, execution_id)
+        )
+
+        # This is a bit of a "hack", but it's the easiest way to tell mongoengine that a specific
+        # field has been updated and should be saved. If we don't do, nothing will be re-saved on
+        # .save() call due to mongoengine only trying to save what has changed to make it more
+        # efficient instead of always re-saving the whole object.
+        execution_db._mark_as_changed("liveaction")
+        # NOTE: If you want to view changed fields, you can access execution_db._changed_fields
+        # will throw an exception if already a string
+        execution_db.liveaction = execution_db.liveaction.get("id", None)
+        execution_db.save()
+        print("ActionExecutionDB with id %s has been migrated" % (execution_db.id))
+
+
+def _register_cli_opts():
+    cfg.CONF.register_cli_opt(
+        cfg.BoolOpt(
+            "yes",
+            short="y",
+            required=False,
+            default=False,
+        )
+    )
+
+    # We default to past 30 days. Keep in mind that using longer period may take a long time in
+    # case there are many objects in the database.
+    now_dt = datetime.datetime.utcnow()
+    start_dt = now_dt - datetime.timedelta(days=30)
+
+    cfg.CONF.register_cli_opt(
+        cfg.StrOpt(
+            "start-dt",
+            required=False,
+            help=(
+                "Start cut off ISO UTC iso date time string for objects which will be migrated. "
+                "Defaults to now - 30 days."
+                "Example value: 2020-03-13T19:01:27Z"
+            ),
+            default=start_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
+    )
+    cfg.CONF.register_cli_opt(
+        cfg.StrOpt(
+            "end-dt",
+            required=False,
+            help=(
+                "End cut off UTC ISO date time string for objects which will be migrated."
+                "Defaults to now."
+                "Example value: 2020-03-13T19:01:27Z"
+            ),
+            default=now_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
+    )
+
+
+def migrate_objects(
+    start_dt: datetime.datetime, end_dt: datetime.datetime, display_prompt: bool = True
+) -> None:
+    start_dt_str = start_dt.strftime("%Y-%m-%d %H:%M:%S")
+    end_dt_str = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    print("StackStorm v3.5 database field data migration script\n")
+
+    if display_prompt:
+        input(
+            "Will migrate objects with creation date between %s UTC and %s UTC.\n\n"
+            "You are strongly recommended to create database backup before proceeding.\n\n"
+            "Depending on the number of the objects in the database, "
+            "migration may take multiple hours or more. You are recommended to start the "
+            "script in a screen session, tmux or similar. \n\n"
+            "To proceed with the migration, press enter and to cancel it, press CTRL+C.\n"
+            % (start_dt_str, end_dt_str)
+        )
+        print("")
+
+    print(
+        "Migrating affected database objects between %s and %s"
+        % (start_dt_str, end_dt_str)
+    )
+    print("")
+
+    start_ts = int(time.time())
+    migrate_executions(start_dt=start_dt, end_dt=end_dt)
+    end_ts = int(time.time())
+
+    duration = end_ts - start_ts
+
+    print(
+        "SUCCESS: All database objects migrated successfully (duration: %s seconds)."
+        % (duration)
+    )
+
+
+def main():
+    _register_cli_opts()
+
+    config.parse_args()
+    db_setup()
+
+    start_dt = isotime.parse(cfg.CONF.start_dt)
+
+    if cfg.CONF.end_dt == "now":
+        end_dt = datetime.datetime.utcnow()
+        end_dt = end_dt.replace(tzinfo=datetime.timezone.utc)
+    else:
+        end_dt = isotime.parse(cfg.CONF.end_dt)
+
+    try:
+        migrate_objects(
+            start_dt=start_dt, end_dt=end_dt, display_prompt=not cfg.CONF.yes
+        )
+        exit_code = 0
+    except Exception as e:
+        print("ABORTED: Objects migration aborted on first failure: %s" % (str(e)))
+        traceback.print_exc()
+        exit_code = 1
+
+    db_teardown()
+    sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    main()
