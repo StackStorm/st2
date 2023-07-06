@@ -322,6 +322,11 @@ def register_opts(ignore_errors=False):
             "By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, "
             "MONGODB-CR (MongoDB Challenge Response protocol) for older servers.",
         ),
+        cfg.BoolOpt(
+            "parameter_result_compression", default=True, help="use zstandard "
+            "compression for parameter and result storage in liveaction and "
+            "execution models"
+        ),
         cfg.StrOpt(
             "compressors",
             default="",

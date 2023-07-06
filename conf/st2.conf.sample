@@ -126,6 +126,7 @@ url = None
 [database]
 # Specifies database authentication mechanisms. By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, MONGODB-CR (MongoDB Challenge Response protocol) for older servers.
 authentication_mechanism = None
+parameter_result_compression = True
 # Comma delimited string of compression algorithms to use for transport level compression. Actual algorithm will then be decided based on the algorithms supported by the client and the server. For example: zstd. Defaults to no compression. Keep in mind that zstd is only supported with MongoDB 4.2 and later.
 compressors =
 # Connection retry backoff max (seconds).
