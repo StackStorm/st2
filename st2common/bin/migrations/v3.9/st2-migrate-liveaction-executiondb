@@ -163,7 +163,7 @@ def migrate_objects(
     start_dt_str = start_dt.strftime("%Y-%m-%d %H:%M:%S")
     end_dt_str = end_dt.strftime("%Y-%m-%d %H:%M:%S")
 
-    print("StackStorm v3.5 database field data migration script\n")
+    print("StackStorm v3.9 database field data migration script\n")
 
     if display_prompt:
         input(
