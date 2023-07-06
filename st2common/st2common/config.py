@@ -244,9 +244,11 @@ def register_opts(ignore_errors=False):
             "MONGODB-CR (MongoDB Challenge Response protocol) for older servers.",
         ),
         cfg.BoolOpt(
-            "parameter_result_compression", default=True, help="use zstandard "
+            "parameter_result_compression",
+            default=True,
+            help="use zstandard "
             "compression for parameter and result storage in liveaction and "
-            "execution models"
+            "execution models",
         ),
         cfg.StrOpt(
             "compressors",
