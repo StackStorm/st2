@@ -38,6 +38,7 @@ from mongoengine import BinaryField
 from mongoengine.base.datastructures import mark_as_changed_wrapper
 from mongoengine.base.datastructures import mark_key_as_changed_wrapper
 from mongoengine.common import _import_class
+from oslo_config import cfg
 
 from st2common.util import date as date_utils
 from st2common.util import mongoescape
@@ -435,7 +436,8 @@ class JSONDictField(BinaryField):
             raise TypeError
 
         data = orjson.dumps(value, default=default)
-        if zstd:
+        parameter_result_compression = cfg.CONF.database.parameter_result_compression
+        if zstd and parameter_result_compression:
             data = zstandard.ZstdCompressor().compress(data)
 
         return data
