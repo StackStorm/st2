@@ -27,7 +27,6 @@ from typing import Union
 
 import datetime
 import calendar
-import enum
 import weakref
 
 import orjson
@@ -40,6 +39,11 @@ from mongoengine.base.datastructures import mark_key_as_changed_wrapper
 from mongoengine.common import _import_class
 from oslo_config import cfg
 
+from st2common.constants.compression import (
+    JSONDictFieldCompressionAlgorithmEnum,
+    MAP_COMPRESS,
+    MAP_UNCOMPRESS,
+)
 from st2common.util import date as date_utils
 from st2common.util import mongoescape
 
@@ -49,34 +53,6 @@ SECOND_TO_MICROSECONDS = 1000000
 
 # Delimiter field used for actual JSON dict field binary value
 JSON_DICT_FIELD_DELIMITER = b":"
-
-
-class JSONDictFieldCompressionAlgorithmEnum(enum.Enum):
-    """
-    Enum which represents compression algorithm (if any) used for a specific JSONDictField value.
-    """
-
-    NONE = b"n"
-    ZSTANDARD = b"z"
-
-
-class JSONDictFieldSerializationFormatEnum(enum.Enum):
-    """
-    Enum which represents serialization format used for a specific JSONDictField value.
-    """
-
-    ORJSON = b"o"
-
-
-VALID_JSON_DICT_COMPRESSION_ALGORITHMS = [
-    JSONDictFieldCompressionAlgorithmEnum.NONE.value,
-    JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value,
-]
-
-
-VALID_JSON_DICT_SERIALIZATION_FORMATS = [
-    JSONDictFieldSerializationFormatEnum.ORJSON.value,
-]
 
 
 class ComplexDateTimeField(LongField):
@@ -407,7 +383,10 @@ class JSONDictField(BinaryField):
             return value
         data = value
         try:
-            data = zstandard.ZstdDecompressor().decompress(value)
+            uncompression_header = value[0]
+            uncompression_method = MAP_UNCOMPRESS.get(uncompression_header, False)
+            if uncompression_method:
+                data = uncompression_method(value)
             # skip if already a byte string and not compressed
         except zstandard.ZstdError:
             pass
@@ -415,7 +394,7 @@ class JSONDictField(BinaryField):
         data = orjson.loads(data)
         return data
 
-    def _serialize_field_value(self, value: dict, zstd=True) -> bytes:
+    def _serialize_field_value(self, value: dict, compress=True) -> bytes:
         """
         Serialize and encode the provided field value.
         """
@@ -437,8 +416,10 @@ class JSONDictField(BinaryField):
 
         data = orjson.dumps(value, default=default)
         parameter_result_compression = cfg.CONF.database.parameter_result_compression
-        if zstd and parameter_result_compression:
-            data = zstandard.ZstdCompressor().compress(data)
+        compression_method = MAP_COMPRESS.get(parameter_result_compression, False)
+        # none is not mapped at all so has no compression method
+        if compress and compression_method:
+            data = compression_method(data)
 
         return data
 
