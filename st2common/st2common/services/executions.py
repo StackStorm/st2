@@ -224,7 +224,7 @@ def update_execution(liveaction_db, publish=True, set_result_size=False):
             with Timer(key="action.executions.calculate_result_size"):
                 result_size = len(
                     ActionExecutionDB.result._serialize_field_value(
-                        value=liveaction_db.result, zstd=False
+                        value=liveaction_db.result, compress=False
                     )
                 )
                 kw["set__result_size"] = result_size

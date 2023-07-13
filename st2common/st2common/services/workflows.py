@@ -1215,7 +1215,7 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
         next_tasks = conductor.get_next_tasks()
 
         if not next_tasks:
-            update_progress(wf_ex_db, "No tasks identified to execute next.")
+            update_progress(wf_ex_db, "end  of while No tasks identified to execute next.")
             update_progress(wf_ex_db, "\n", log=False)
 
 
