@@ -383,10 +383,10 @@ class JSONDictField(BinaryField):
             return value
         data = value
         try:
-            uncompression_header = value[0]
+            uncompression_header = value[0:1]
             uncompression_method = MAP_UNCOMPRESS.get(uncompression_header, False)
             if uncompression_method:
-                data = uncompression_method(value)
+                data = uncompression_method(value[1:])
             # skip if already a byte string and not compressed
         except zstandard.ZstdError:
             pass
