@@ -96,8 +96,9 @@ class JSONDictFieldTestCase(unittest.TestCase):
         self.assertTrue(isinstance(result, bytes))
 
     def test_to_mongo_to_python_none(self):
-        cfg.CONF.set_override(name="parameter_result_compression",
-                group="database", override="none")
+        cfg.CONF.set_override(
+            name="parameter_result_compression", group="database", override="none"
+        )
         field = JSONDictField(use_header=False)
         result = field.to_mongo(MOCK_DATA_DICT)
 
@@ -106,8 +107,9 @@ class JSONDictFieldTestCase(unittest.TestCase):
         self.assertEqual(result, MOCK_DATA_DICT)
 
     def test_to_mongo_zstandard(self):
-        cfg.CONF.set_override(name="parameter_result_compression",
-                group="database", override="zstandard")
+        cfg.CONF.set_override(
+            name="parameter_result_compression", group="database", override="zstandard"
+        )
         field = JSONDictField(use_header=False)
         result = field.to_mongo(MOCK_DATA_DICT)
 

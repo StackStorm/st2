@@ -21,10 +21,7 @@ import sys
 from oslo_config import cfg
 from oslo_config.sources._environment import EnvironmentConfigurationSource
 
-from st2common.constants.compression import (
-    ZSTANDARD_COMPRESS,
-    VALID_COMPRESS
-)
+from st2common.constants.compression import ZSTANDARD_COMPRESS, VALID_COMPRESS
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
