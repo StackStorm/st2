@@ -138,8 +138,9 @@ connection_timeout = 3000
 db_name = st2
 # host of db server
 host = 127.0.0.1
-# use zstandard compression for parameter and result storage in liveaction and execution models
-parameter_result_compression = True
+# compression for parameter and result storage in liveaction and execution models
+# Valid values: zstandard, none
+parameter_result_compression = zstandard
 # password for db login
 password = None
 # port of db server
