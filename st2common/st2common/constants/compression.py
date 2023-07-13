@@ -24,10 +24,7 @@ import zstandard
 ZSTANDARD_COMPRESS = "zstandard"
 NO_COMPRESSION = "none"
 
-VALID_COMPRESS = [
-    ZSTANDARD_COMPRESS,
-    NO_COMPRESSION
-]
+VALID_COMPRESS = [ZSTANDARD_COMPRESS, NO_COMPRESSION]
 
 
 class JSONDictFieldCompressionAlgorithmEnum(enum.Enum):
@@ -44,8 +41,10 @@ VALID_JSON_DICT_COMPRESSION_ALGORITHMS = [
 
 
 def zstandard_compress(data):
-    data = JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value \
+    data = (
+        JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
         + zstandard.ZstdCompressor().compress(data)
+    )
     return data
 
 
