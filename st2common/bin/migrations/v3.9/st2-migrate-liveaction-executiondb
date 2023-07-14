@@ -23,7 +23,7 @@ Right now the script utilizes no concurrency and performs migration one object b
 for simplicity reasons and also to avoid massive CPU usage spikes when running this script with
 large concurrency on large objects.
 
-Keep in mind that only "completed" objects are processes - this means Executions in "final" states
+Keep in mind that only "completed" objects are processed - this means Executions in "final" states
 (succeeded, failed, timeout, etc.).
 
 We determine if an object should be migrating using mongodb $type query (for execution objects we
