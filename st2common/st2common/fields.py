@@ -40,7 +40,6 @@ from mongoengine.common import _import_class
 from oslo_config import cfg
 
 from st2common.constants.compression import (
-    JSONDictFieldCompressionAlgorithmEnum,
     MAP_COMPRESS,
     MAP_UNCOMPRESS,
 )

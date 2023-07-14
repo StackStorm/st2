@@ -25,7 +25,7 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import ActionAliasAPI
 from st2common.models.api.action import AliasMatchAndExecuteInputAPI
 from st2common.models.api.auth import get_system_username
-from st2common.models.api.execution import ActionExecutionAPI, LiveActionAPI
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.auth import UserDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
@@ -35,7 +35,6 @@ from st2common.models.utils.action_alias_utils import (
 )
 from st2common.models.utils.action_alias_utils import inject_immutable_parameters
 from st2common.persistence.actionalias import ActionAlias
-from st2common.persistence.liveaction import LiveAction
 from st2common.services import action as action_service
 from st2common.util import action_db as action_utils
 from st2common.util import reference
