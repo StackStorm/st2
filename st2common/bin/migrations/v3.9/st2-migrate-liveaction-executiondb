@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-Migration which which migrates data for existing objects in the database which utilize
+Migration which migrates data for existing objects in the database which utilize
 liveaction to a string
 
 Migration step is idempotent and can be retried on failures / partial runs.
