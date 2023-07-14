@@ -87,7 +87,6 @@ class TestApp(webtest.TestApp):
         if req.environ["REQUEST_METHOD"] != "OPTIONS":
             # Making sure endpoint handles OPTIONS method properly
             self.options(req.environ["PATH_INFO"])
-
         res = super(TestApp, self).do_request(req, **kwargs)
 
         if res.headers.get("Warning", None):

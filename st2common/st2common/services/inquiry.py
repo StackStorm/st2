@@ -121,6 +121,10 @@ def validate_response(inquiry, response):
 
 
 def respond(inquiry, response, requester=None):
+    """
+    :param inquiry: InquiryAPI
+    :param response: dict
+    """
     # Set requester to system user is not provided.
     if not requester:
         requester = cfg.CONF.system_user.user
