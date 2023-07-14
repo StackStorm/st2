@@ -183,15 +183,6 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
                 show_secrets=show_secrets,
                 requester_user=requester_user,
             )
-            if hasattr(execution, "liveaction"):
-                liveaction = LiveAction.get_by_id(execution.liveaction)
-                mask_secrets = self._get_mask_secrets(
-                    requester_user, show_secrets=show_secrets
-                )
-                liveaction = LiveActionAPI.from_model(
-                    liveaction, mask_secrets=mask_secrets
-                )
-                execution.liveaction = liveaction
             result = {
                 "execution": execution,
                 "actionalias": ActionAliasAPI.from_model(action_alias_db),

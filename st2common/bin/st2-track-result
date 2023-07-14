@@ -68,7 +68,7 @@ def add_result_tracker(exec_id):
 
     LOG.info("Retrieving runner type and liveaction records...")
     runnertype_db = action_db.get_runnertype_by_name(exec_db.action.get("runner_type"))
-    liveaction_db = action_db.get_liveaction_by_id(exec_db.liveaction)
+    liveaction_db = action_db.get_liveaction_by_id(exec_db.liveaction_id)
 
     # Skip if liveaction is completed.
     if liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
@@ -100,7 +100,7 @@ def del_result_tracker(exec_id):
     LOG.info('Found action execution record for "%s".', exec_id)
 
     LOG.info("Retrieving runner type and liveaction records...")
-    liveaction_db = action_db.get_liveaction_by_id(exec_db.liveaction)
+    liveaction_db = action_db.get_liveaction_by_id(exec_db.liveaction_id)
 
     LOG.info("Removing result tracker entry...")
     removed = queries.remove_query(liveaction_db.id)

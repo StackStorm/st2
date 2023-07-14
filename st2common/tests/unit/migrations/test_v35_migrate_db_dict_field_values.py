@@ -83,7 +83,7 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
         LiveActionDB._meta["allow_inheritance"] = True
 
         class ActionExecutionDB_OldFieldType(ActionExecutionDB):
-
+            liveaction_id = None
             result = stormbase.EscapedDynamicField(default={})
             liveaction = stormbase.EscapedDictField(required=True)
             parameters = stormbase.EscapedDynamicField(default={})
@@ -168,6 +168,7 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
             )
 
         class LiveActionDB_NewFieldType(LiveActionDB):
+            liveaction_id = None
             result = JSONDictEscapedFieldCompatibilityField(
                 default={}, help_text="Action defined result."
             )

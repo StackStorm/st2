@@ -342,9 +342,6 @@ class JSONDictField(BinaryField):
     """
 
     def __init__(self, *args, **kwargs):
-        self.compression_algorithm = (
-            JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
-        )
         super(JSONDictField, self).__init__(*args, **kwargs)
 
     def to_mongo(self, value):

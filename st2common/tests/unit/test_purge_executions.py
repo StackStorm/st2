@@ -194,7 +194,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         exec_model["end_timestamp"] = end_ts
         exec_model["status"] = action_constants.LIVEACTION_STATUS_SUCCEEDED
         exec_model["id"] = bson.ObjectId()
-        exec_model["liveaction"] = str(liveaction.id)
+        exec_model["liveaction_id"] = str(liveaction.id)
         ActionExecution.add_or_update(exec_model)
 
         liveactions = LiveAction.get_all()

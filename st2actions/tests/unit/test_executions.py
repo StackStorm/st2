@@ -96,7 +96,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         )
 
         execution = self._get_action_execution(
-            liveaction=str(liveaction.id), raise_exception=True
+            liveaction_id=str(liveaction.id), raise_exception=True
         )
 
         self.assertDictEqual(execution.trigger, {})
@@ -132,7 +132,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         )
 
         execution = self._get_action_execution(
-            liveaction=str(liveaction.id), raise_exception=True
+            liveaction_id=str(liveaction.id), raise_exception=True
         )
 
         action = action_utils.get_action_by_ref("executions.chain")
@@ -150,7 +150,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
-        self.assertEqual(execution.liveaction, str(liveaction.id))
+        self.assertEqual(execution.liveaction_id, str(liveaction.id))
         self.assertGreater(len(execution.children), 0)
 
         for child in execution.children:
@@ -197,7 +197,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         )
 
         execution = self._get_action_execution(
-            liveaction=str(liveaction.id), raise_exception=True
+            liveaction_id=str(liveaction.id), raise_exception=True
         )
 
         self.assertDictEqual(execution.trigger, vars(TriggerAPI.from_model(trigger)))
@@ -224,7 +224,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
-        self.assertEqual(execution.liveaction, str(liveaction.id))
+        self.assertEqual(execution.liveaction_id, str(liveaction.id))
 
     def _get_action_execution(self, **kwargs):
         return ActionExecution.get(**kwargs)

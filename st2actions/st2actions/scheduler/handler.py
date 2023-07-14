@@ -136,7 +136,7 @@ class ActionExecutionSchedulingQueueHandler(object):
         for entry in ActionExecutionSchedulingQueue.query(
             action_execution_id__in=["", None]
         ):
-            execution_db = ActionExecution.get(liveaction=entry.liveaction_id)
+            execution_db = ActionExecution.get(liveaction_id=entry.liveaction_id)
 
             if not execution_db:
                 continue
