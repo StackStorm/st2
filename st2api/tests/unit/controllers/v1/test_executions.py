@@ -2000,7 +2000,7 @@ class ActionExecutionOutputControllerTestCase(
             status=status,
             action={"ref": "core.local"},
             runner={"name": "local-shell-cmd"},
-            liveaction="ref",
+            liveaction_id="ref",
         )
         action_execution_db = ActionExecution.add_or_update(action_execution_db)
 
@@ -2081,7 +2081,7 @@ class ActionExecutionOutputControllerTestCase(
                 status=status,
                 action={"ref": "core.local"},
                 runner={"name": "local-shell-cmd"},
-                liveaction="ref",
+                liveaction_id="ref",
             )
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
 

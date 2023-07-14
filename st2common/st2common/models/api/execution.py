@@ -39,7 +39,6 @@ LOG = logging.getLogger(__name__)
 REQUIRED_ATTR_SCHEMAS = {
     "action": copy.deepcopy(ActionAPI.schema),
     "runner": copy.deepcopy(RunnerTypeAPI.schema),
-    "liveaction": copy.deepcopy(LiveActionAPI.schema),
 }
 
 for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
@@ -61,7 +60,7 @@ class ActionExecutionAPI(BaseAPI):
             "rule": RuleAPI.schema,
             "action": REQUIRED_ATTR_SCHEMAS["action"],
             "runner": REQUIRED_ATTR_SCHEMAS["runner"],
-            "liveaction": REQUIRED_ATTR_SCHEMAS["liveaction"],
+            "liveaction_id": {"type": "string", "required": True},
             "status": {
                 "description": "The current status of the action execution.",
                 "type": "string",

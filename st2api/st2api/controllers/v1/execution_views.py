@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 SUPPORTED_FILTERS = {
     "action": "action.ref",
     "status": "status",
-    "liveaction": "liveaction.id",
+    "liveaction_id": "liveaction_id",
     "parent": "parent",
     "rule": "rule.name",
     "runner": "runner.name",
@@ -54,7 +54,7 @@ FILTERS_WITH_VALID_NULL_VALUES = [
 
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1
 # relation between filter and particular history record.
-IGNORE_FILTERS = ["parent", "timestamp", "liveaction", "trigger_instance"]
+IGNORE_FILTERS = ["parent", "timestamp", "liveaction_id", "trigger_instance"]
 
 
 class FiltersController(object):
