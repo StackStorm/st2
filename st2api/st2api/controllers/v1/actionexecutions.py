@@ -425,9 +425,7 @@ class ActionExecutionRawResultController(BaseActionExecutionNestedController):
 
         # For backward compatibility we also support old non JSON field storage format
         if pretty_format:
-            response_body = orjson.dumps(
-                result, option=orjson.OPT_INDENT_2
-            )
+            response_body = orjson.dumps(result, option=orjson.OPT_INDENT_2)
         else:
             response_body = orjson.dumps(result)
 
@@ -856,7 +854,9 @@ class ActionExecutionsController(
             liveaction_db = action_service.update_status(
                 liveaction_db, status, result, set_result_size=True
             )
-            actionexecution_db = ActionExecution.get(liveaction_id=str(liveaction_db.id))
+            actionexecution_db = ActionExecution.get(
+                liveaction_id=str(liveaction_db.id)
+            )
             return (liveaction_db, actionexecution_db)
 
         try:
