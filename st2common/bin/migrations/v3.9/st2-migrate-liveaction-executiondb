@@ -38,10 +38,14 @@ import traceback
 from oslo_config import cfg
 
 from st2common import config
+from st2common import transport
+from st2common.models import stormbase
+from st2common.models.db import MongoDBAccess
 from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
 from st2common.util import isotime
 from st2common.models.db.execution import ActionExecutionDB
+from st2common.persistence.base import Access
 from st2common.persistence.execution import ActionExecution
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
@@ -49,6 +53,29 @@ from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 # NOTE: To avoid unnecessary mongoengine object churn when retrieving only object ids (aka to avoid
 # instantiating model class with a single field), we use raw pymongo value which is a dict with a
 # single value
+
+
+class ActionExecutionDBOLD(ActionExecutionDB):
+    liveaction = stormbase.EscapedDictField(required=True)
+
+
+class ActionExecutionOLD(Access):
+    impl = MongoDBAccess(ActionExecutionDBOLD)
+    publisher = None
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.execution.ActionExecutionPublisher()
+        return cls.publisher
+
+    @classmethod
+    def delete_by_query(cls, *args, **query):
+        return cls._get_impl().delete_by_query(*args, **query)
 
 
 def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -> None:
@@ -66,7 +93,7 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
 
     # 1. Migrate ActionExecutionDB objects
     result = (
-        ActionExecutionDB.objects(
+        ActionExecutionDBOLD.objects(
             __raw__={
                 "status": {
                     "$in": LIVEACTION_COMPLETED_STATES,
@@ -108,7 +135,7 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
         # field has been updated and should be saved. If we don't do, nothing will be re-saved on
         # .save() call due to mongoengine only trying to save what has changed to make it more
         # efficient instead of always re-saving the whole object.
-        execution_db._mark_as_changed("liveaction")
+        execution_db._mark_as_changed("liveaction_id")
         # NOTE: If you want to view changed fields, you can access execution_db._changed_fields
         # will throw an exception if already a string
         execution_db.liveaction_id = execution_db.liveaction.get("id", None)
