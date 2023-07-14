@@ -118,7 +118,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
-        self.assertEqual(execution.liveaction, str(liveaction.id))
+        self.assertEqual(execution.liveaction_id, str(liveaction.id))
 
     def test_basic_execution_history_create_failed(self):
         MOCK_FAIL_EXECUTION_CREATE = True  # noqa

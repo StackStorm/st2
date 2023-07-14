@@ -252,7 +252,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             return
 
         # Apply post run policies.
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(ac_ex_db.liveaction)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(ac_ex_db.liveaction_id)
         pc_svc.apply_post_run_policies(lv_ac_db)
 
         # Process completion of the action execution.

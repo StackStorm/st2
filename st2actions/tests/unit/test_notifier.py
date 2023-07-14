@@ -132,7 +132,7 @@ class NotifierTestCase(CleanDbTestCase):
         LiveAction.add_or_update(liveaction_db)
 
         execution = MOCK_EXECUTION
-        execution.liveaction = str(liveaction_db.id)
+        execution.liveaction_id = str(liveaction_db.id)
         execution.status = liveaction_db.status
 
         dispatcher = NotifierTestCase.MockDispatcher(self)

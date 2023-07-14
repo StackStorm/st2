@@ -140,7 +140,7 @@ class ActionExecutionModelTest(DbTestCase):
             created.action = execution["action"]
             created.status = execution["status"]
             created.runner = execution["runner"]
-            created.liveaction = execution["liveaction"]
+            created.liveaction_id = execution["liveaction_id"]
             created.result = execution["result"]
 
             saved = ActionExecutionModelTest._save_execution(created)
