@@ -97,7 +97,7 @@ class SchedulerEntrypoint(consumers.MessageHandler):
         """
         Create ActionExecutionSchedulingQueueItemDB from live action.
         """
-        execution = ActionExecution.get(liveaction=str(liveaction.id))
+        execution = ActionExecution.get(liveaction_id=str(liveaction.id))
 
         execution_queue_item_db = ActionExecutionSchedulingQueueItemDB()
         execution_queue_item_db.action_execution_id = str(execution.id)

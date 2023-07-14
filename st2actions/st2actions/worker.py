@@ -235,7 +235,7 @@ class ActionExecutionDispatcher(MessageHandler):
         return result
 
     def _cancel_action(self, liveaction_db):
-        action_execution_db = ActionExecution.get(liveaction=str(liveaction_db.id))
+        action_execution_db = ActionExecution.get(liveaction_id=str(liveaction_db.id))
         extra = {
             "action_execution_db": action_execution_db,
             "liveaction_db": liveaction_db,
@@ -265,7 +265,7 @@ class ActionExecutionDispatcher(MessageHandler):
         return result
 
     def _pause_action(self, liveaction_db):
-        action_execution_db = ActionExecution.get(liveaction=str(liveaction_db.id))
+        action_execution_db = ActionExecution.get(liveaction_id=str(liveaction_db.id))
         extra = {
             "action_execution_db": action_execution_db,
             "liveaction_db": liveaction_db,
@@ -294,7 +294,7 @@ class ActionExecutionDispatcher(MessageHandler):
         return result
 
     def _resume_action(self, liveaction_db):
-        action_execution_db = ActionExecution.get(liveaction=str(liveaction_db.id))
+        action_execution_db = ActionExecution.get(liveaction_id=str(liveaction_db.id))
         extra = {
             "action_execution_db": action_execution_db,
             "liveaction_db": liveaction_db,

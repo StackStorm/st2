@@ -128,7 +128,7 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertEqual(action_execution_dbs[1].status, LIVEACTION_STATUS_REQUESTED)
 
         # Verify retried execution contains policy related context
-        original_liveaction_id = action_execution_dbs[0].liveaction
+        original_liveaction_id = action_execution_dbs[0].liveaction_id
 
         context = action_execution_dbs[1].context
         self.assertIn("policies", context)
@@ -183,7 +183,7 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertEqual(action_execution_dbs[1].status, LIVEACTION_STATUS_REQUESTED)
 
         # Verify retried execution contains policy related context
-        original_liveaction_id = action_execution_dbs[0].liveaction
+        original_liveaction_id = action_execution_dbs[0].liveaction_id
 
         context = action_execution_dbs[1].context
         self.assertIn("policies", context)
@@ -216,7 +216,7 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertEqual(action_execution_dbs[2].status, LIVEACTION_STATUS_REQUESTED)
 
         # Verify retried execution contains policy related context
-        original_liveaction_id = action_execution_dbs[1].liveaction
+        original_liveaction_id = action_execution_dbs[1].liveaction_id
 
         context = action_execution_dbs[2].context
         self.assertIn("policies", context)

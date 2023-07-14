@@ -852,7 +852,7 @@ class ActionExecutionsController(
         if not execution_api:
             abort(http_client.NOT_FOUND, "Execution with id %s not found." % id)
 
-        liveaction_id = execution_api.liveaction
+        liveaction_id = execution_api.liveaction_id
         if not liveaction_id:
             abort(
                 http_client.INTERNAL_SERVER_ERROR,
@@ -876,7 +876,7 @@ class ActionExecutionsController(
             liveaction_db = action_service.update_status(
                 liveaction_db, status, result, set_result_size=True
             )
-            actionexecution_db = ActionExecution.get(liveaction=str(liveaction_db.id))
+            actionexecution_db = ActionExecution.get(liveaction_id=str(liveaction_db.id))
             return (liveaction_db, actionexecution_db)
 
         try:
@@ -979,7 +979,7 @@ class ActionExecutionsController(
         if not execution_api:
             abort(http_client.NOT_FOUND, "Execution with id %s not found." % id)
 
-        liveaction_id = execution_api.liveaction
+        liveaction_id = execution_api.liveaction_id
         if not liveaction_id:
             abort(
                 http_client.INTERNAL_SERVER_ERROR,

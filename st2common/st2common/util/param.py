@@ -310,11 +310,10 @@ def render_live_params(
     additional_contexts=None,
 ):
     """
-    :param params BaseDict
+    :param params: BaseDict
     Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
     dict of plain rendered parameters.
     """
-    params = params
     additional_contexts = additional_contexts or {}
 
     pack = action_context.get("pack")

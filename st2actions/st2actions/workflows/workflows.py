@@ -133,7 +133,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             if cfg.CONF.coordination.service_registry and not member_ids:
                 ac_ex_dbs = self._get_running_workflows()
                 for ac_ex_db in ac_ex_dbs:
-                    lv_ac = action_utils.get_liveaction_by_id(ac_ex_db.liveaction)
+                    lv_ac = action_utils.get_liveaction_by_id(ac_ex_db.liveaction_id)
                     ac_svc.request_pause(lv_ac, WORKFLOW_ENGINE_START_STOP_SEQ)
 
     def _get_running_workflows(self):

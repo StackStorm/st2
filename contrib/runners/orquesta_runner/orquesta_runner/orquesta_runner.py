@@ -188,7 +188,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
             if self.task_pauseable(child_ex):
                 ac_svc.request_pause(
-                    lv_db_access.LiveAction.get(id=child_ex.liveaction),
+                    lv_db_access.LiveAction.get(id=child_ex.liveaction_id),
                     self.context.get("user", None),
                 )
 
@@ -219,7 +219,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
             if self.task_resumeable(child_ex):
                 ac_svc.request_resume(
-                    lv_db_access.LiveAction.get(id=child_ex.liveaction),
+                    lv_db_access.LiveAction.get(id=child_ex.liveaction_id),
                     self.context.get("user", None),
                 )
 
@@ -280,7 +280,7 @@ class OrquestaRunner(runners.AsyncActionRunner):
             child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
             if self.task_cancelable(child_ex):
                 ac_svc.request_cancellation(
-                    lv_db_access.LiveAction.get(id=child_ex.liveaction),
+                    lv_db_access.LiveAction.get(id=child_ex.liveaction_id),
                     self.context.get("user", None),
                 )
 
