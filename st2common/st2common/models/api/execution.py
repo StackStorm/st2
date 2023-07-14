@@ -26,7 +26,7 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common import log as logging
 from st2common.util.deep_copy import fast_deepcopy_dict
 from st2common.fields import JSONDictEscapedFieldCompatibilityField
