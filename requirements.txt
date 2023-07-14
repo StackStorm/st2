@@ -78,5 +78,10 @@ unittest2
 webob==1.8.9
 webtest
 zake==0.2.2
+<<<<<<< HEAD
 zipp==3.20.2
 zstandard==0.23.0
+=======
+zipp<3.16.0
+zstandard==0.15.2
+>>>>>>> f405c12c2 (pin zipp < 3.16)
