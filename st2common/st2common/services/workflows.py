@@ -472,7 +472,7 @@ def request_cancellation(ac_ex_db):
         and root_ac_ex_db.status not in ac_const.LIVEACTION_CANCEL_STATES
     ):
         LOG.info("[%s] Cascading cancelation request to parent workflow.", wf_ac_ex_id)
-        root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction)
+        root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction_id)
         ac_svc.request_cancellation(root_lv_ac_db, None)
 
     LOG.debug("[%s] %s", wf_ac_ex_id, conductor.serialize())
@@ -915,7 +915,7 @@ def handle_action_execution_resume(ac_ex_db):
 
         if parent_ac_ex_db.status == ac_const.LIVEACTION_STATUS_PAUSED:
             action_utils.update_liveaction_status(
-                liveaction_id=parent_ac_ex_db.liveaction,
+                liveaction_id=parent_ac_ex_db.liveaction_id,
                 status=ac_const.LIVEACTION_STATUS_RUNNING,
                 publish=False,
             )
@@ -1449,7 +1449,7 @@ def update_execution_records(
 
     # Update the corresponding liveaction and action execution for the workflow.
     wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
-    wf_lv_ac_db = action_utils.get_liveaction_by_id(wf_ac_ex_db.liveaction)
+    wf_lv_ac_db = action_utils.get_liveaction_by_id(wf_ac_ex_db.liveaction_id)
 
     # Gather result for liveaction and action execution.
     result = {"output": wf_ex_db.output or None}

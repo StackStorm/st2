@@ -395,7 +395,7 @@ class BaseActionExecutionControllerTestCase(object):
 
     @staticmethod
     def _get_liveaction_id(resp):
-        return resp.json["liveaction"]
+        return resp.json["liveaction_id"]
 
     def _do_get_one(self, actionexecution_id, *args, **kwargs):
         return self.app.get("/v1/executions/%s" % actionexecution_id, *args, **kwargs)

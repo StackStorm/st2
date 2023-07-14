@@ -79,13 +79,13 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     web_url = me.StringField(required=False)
 
     # liveaction id
-    liveaction = me.StringField()
+    liveaction_id = me.StringField()
 
     meta = {
         "indexes": [
             {"fields": ["rule.ref"]},
             {"fields": ["action.ref"]},
-            {"fields": ["liveaction"]},
+            {"fields": ["liveaction_id"]},
             {"fields": ["start_timestamp"]},
             {"fields": ["end_timestamp"]},
             {"fields": ["status"]},

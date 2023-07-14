@@ -94,14 +94,14 @@ ACTIONEXECUTIONS = {
         "action": {"uid": "action:core:ask", "output_schema": {}},
         "status": "succeeded",
         "runner": {"name": "inquirer"},
-        "liveaction": INQUIRY_LIVEACTION["id"],
+        "liveaction_id": INQUIRY_LIVEACTION["id"],
         "result": INQUIRY_RESULT,
     },
     "execution_2": {
         "action": {"uid": "action:st2:inquiry.respond", "output_schema": {}},
         "status": "succeeded",
         "runner": {"name": "python-script"},
-        "liveaction": RESPOND_LIVEACTION["id"],
+        "liveaction_id": RESPOND_LIVEACTION["id"],
         "result": {"exit_code": 0, "result": None, "stderr": "", "stdout": ""},
     },
     "execution_3": {
@@ -122,7 +122,7 @@ ACTIONEXECUTIONS = {
         },
         "status": "succeeded",
         "runner": {"name": "inquirer", "output_key": "result"},
-        "liveaction": OUTPUT_SCHEMA_LIVEACTION["id"],
+        "liveaction_id": OUTPUT_SCHEMA_LIVEACTION["id"],
         "result": OUTPUT_SCHEMA_RESULT,
     },
 }

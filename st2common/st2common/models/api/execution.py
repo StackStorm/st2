@@ -175,6 +175,10 @@ class ActionExecutionAPI(BaseAPI):
         override this class to
         convert any raw byte values into dict
 
+        Now add the JSON string field value which shouldn't be escaped back.
+        We don't JSON parse the field value here because that happens inside the model specific
+        "from_model()" method where we also parse and convert all the other field values.
+
         :param doc: dict
         :param raw_values: dict[field]:bytestring
         """

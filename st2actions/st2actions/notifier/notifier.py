@@ -83,7 +83,7 @@ class Notifier(consumers.MessageHandler):
         LOG.debug('Processing action execution "%s".', execution_id, extra=extra)
 
         # Get the corresponding liveaction record.
-        liveaction_db = LiveAction.get_by_id(execution_db.liveaction)
+        liveaction_db = LiveAction.get_by_id(execution_db.liveaction_id)
 
         if execution_db.status in LIVEACTION_COMPLETED_STATES:
             # If the action execution is executed under an orquesta workflow, policies for the

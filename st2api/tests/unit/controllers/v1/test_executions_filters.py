@@ -60,7 +60,7 @@ class TestActionExecutionFilters(FunctionalTest):
                 "rule": copy.deepcopy(fixture.ARTIFACTS["rule"]),
                 "action": copy.deepcopy(fixture.ARTIFACTS["actions"]["chain"]),
                 "runner": copy.deepcopy(fixture.ARTIFACTS["runners"]["action-chain"]),
-                "liveaction": fixture.ARTIFACTS["liveactions"]["workflow"]["id"],
+                "liveaction_id": fixture.ARTIFACTS["liveactions"]["workflow"]["id"],
                 "status": fixture.ARTIFACTS["liveactions"]["workflow"]["status"],
                 "result": copy.deepcopy(
                     fixture.ARTIFACTS["liveactions"]["workflow"]["result"]
@@ -71,7 +71,7 @@ class TestActionExecutionFilters(FunctionalTest):
             {
                 "action": copy.deepcopy(fixture.ARTIFACTS["actions"]["local"]),
                 "runner": copy.deepcopy(fixture.ARTIFACTS["runners"]["run-local"]),
-                "liveaction": fixture.ARTIFACTS["liveactions"]["task1"]["id"],
+                "liveaction_id": fixture.ARTIFACTS["liveactions"]["task1"]["id"],
                 "status": fixture.ARTIFACTS["liveactions"]["task1"]["status"],
                 "result": copy.deepcopy(
                     fixture.ARTIFACTS["liveactions"]["task1"]["result"]
@@ -141,7 +141,7 @@ class TestActionExecutionFilters(FunctionalTest):
         self.assertEqual(record["id"], obj_id)
         self.assertDictEqual(record["action"], fake_record.action)
         self.assertDictEqual(record["runner"], fake_record.runner)
-        self.assertEqual(record["liveaction"], fake_record.liveaction)
+        self.assertEqual(record["liveaction_id"], fake_record.liveaction_id)
 
     def test_get_one_failed(self):
         response = self.app.get(

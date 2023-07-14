@@ -111,7 +111,7 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
         execution_db._mark_as_changed("liveaction")
         # NOTE: If you want to view changed fields, you can access execution_db._changed_fields
         # will throw an exception if already a string
-        execution_db.liveaction = execution_db.liveaction.get("id", None)
+        execution_db.liveaction_id = execution_db.liveaction.get("id", None)
         execution_db.save()
         print("ActionExecutionDB with id %s has been migrated" % (execution_db.id))
 

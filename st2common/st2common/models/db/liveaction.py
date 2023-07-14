@@ -116,6 +116,23 @@ class LiveActionDB(stormbase.StormFoundationDB):
         result["parameters"] = mask_secret_parameters(
             parameters=execution_parameters, secret_parameters=secret_parameters
         )
+        if result.get("action", "") == "st2.inquiry.respond":
+            # In this case, this execution is just a plain python action, not
+            # an inquiry, so we don't natively have a handle on the response
+            # schema.
+            #
+            # To prevent leakage, we can just mask all response fields.
+            #
+            # Note: The 'string' type in secret_parameters doesn't matter,
+            #       it's just a placeholder to tell mask_secret_parameters()
+            #       that this parameter is indeed a secret parameter and to
+            #       mask it.
+            result["parameters"]["response"] = mask_secret_parameters(
+                parameters=result["parameters"]["response"],
+                secret_parameters={
+                    p: "string" for p in result["parameters"]["response"]
+                },
+            )
         return result
 
     def get_masked_parameters(self):

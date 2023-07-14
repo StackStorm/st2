@@ -459,7 +459,7 @@ class RunnerContainer(object):
         runner.action_name = action_db.name
         runner.liveaction = liveaction_db
         runner.liveaction_id = str(liveaction_db.id)
-        runner.execution = ActionExecution.get(liveaction=str(runner.liveaction_id))
+        runner.execution = ActionExecution.get(liveaction_id=str(runner.liveaction_id))
         runner.execution_id = str(runner.execution.id)
         runner.entry_point = resolved_entry_point
         runner.context = context
