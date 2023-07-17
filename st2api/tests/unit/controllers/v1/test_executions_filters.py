@@ -33,7 +33,9 @@ from st2common.util import date as date_utils
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 from st2api.controllers.v1.execution_views import FILTERS_WITH_VALID_NULL_VALUES
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.action import LiveAction
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.api.execution import LiveActionAPI
 
 
 class TestActionExecutionFilters(FunctionalTest):
@@ -101,6 +103,18 @@ class TestActionExecutionFilters(FunctionalTest):
             db_obj = ActionExecutionAPI.to_model(wb_obj)
             cls.refs[obj_id] = ActionExecution.add_or_update(db_obj)
             cls.start_timestamps.append(timestamp)
+            # also add the liveaction to the database so it can be retrieved by
+            # the actionexecution api
+            liveaction_data = {
+                "id": data["liveaction_id"],
+                "action": fake_type["action"]["name"],
+                "status": data["status"],
+            }
+            wb_live_obj = LiveActionAPI(**liveaction_data)
+            live_db_obj = LiveActionAPI.to_model(wb_live_obj)
+            # hard code id of liveaction
+            live_db_obj.id = data["liveaction_id"]
+            LiveAction.add_or_update(live_db_obj)
 
         cls.start_timestamps = sorted(cls.start_timestamps)
 

@@ -79,7 +79,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     web_url = me.StringField(required=False)
 
     # liveaction id
-    liveaction_id = me.StringField()
+    liveaction_id = me.StringField(required=True)
 
     meta = {
         "indexes": [

@@ -31,7 +31,8 @@ DESCENDANTS_FIXTURES = {
         "child1_level3.yaml",
         "child2_level3.yaml",
         "child3_level3.yaml",
-    ]
+    ],
+    "liveactions": ["liveaction_fake.yaml"],
 }
 
 
@@ -40,7 +41,9 @@ class ActionExecutionControllerTestCaseDescendantsTest(FunctionalTest):
     def setUpClass(cls):
         super(ActionExecutionControllerTestCaseDescendantsTest, cls).setUpClass()
         cls.MODELS = FixturesLoader().save_fixtures_to_db(
-            fixtures_pack=DESCENDANTS_PACK, fixtures_dict=DESCENDANTS_FIXTURES
+            fixtures_pack=DESCENDANTS_PACK,
+            fixtures_dict=DESCENDANTS_FIXTURES,
+            use_object_ids=True,
         )
 
     def test_get_all_descendants(self):
