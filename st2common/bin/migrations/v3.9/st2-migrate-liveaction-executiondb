@@ -56,7 +56,7 @@ from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 
 class ActionExecutionDBOLD(ActionExecutionDB):
     liveaction = stormbase.EscapedDictField(required=True)
-
+    liveaction_id = me.StringField(required=False) # was not required previously
 
 class ActionExecutionOLD(Access):
     impl = MongoDBAccess(ActionExecutionDBOLD)
@@ -117,7 +117,7 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
 
     for index, execution_id in enumerate(execution_ids, 1):
         try:
-            execution_db = ActionExecution.get_by_id(execution_id)
+            execution_db = ActionExecutionOLD.get_by_id(execution_id)
         except StackStormDBObjectNotFoundError:
             print(
                 "Skipping ActionExecutionDB with id %s which is missing in the database"
