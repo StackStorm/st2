@@ -322,8 +322,14 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 201)
 
         result = resp.json["results"][0]
+        live_action = result["execution"]["liveaction"]
         action_alias = result["actionalias"]
         self.assertEqual(resp.status_int, 201)
+        self.assertTrue(isinstance(live_action["parameters"]["array_param"], list))
+        self.assertEqual(live_action["parameters"]["array_param"][0], "one")
+        self.assertEqual(live_action["parameters"]["array_param"][1], "two")
+        self.assertEqual(live_action["parameters"]["array_param"][2], "three")
+        self.assertEqual(live_action["parameters"]["array_param"][3], "four")
         self.assertTrue(
             isinstance(action_alias["immutable_parameters"]["array_param"], str)
         )
@@ -342,9 +348,15 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 201)
 
         result = resp.json["results"][0]
+        live_action = result["execution"]["liveaction"]
         action_alias = result["actionalias"]
 
         self.assertEqual(resp.status_int, 201)
+        self.assertTrue(isinstance(live_action["parameters"]["array_param"], list))
+        self.assertEqual(live_action["parameters"]["array_param"][0]["key1"], "one")
+        self.assertEqual(live_action["parameters"]["array_param"][0]["key2"], "two")
+        self.assertEqual(live_action["parameters"]["array_param"][1]["key3"], "three")
+        self.assertEqual(live_action["parameters"]["array_param"][1]["key4"], "four")
         self.assertTrue(
             isinstance(action_alias["immutable_parameters"]["array_param"], list)
         )
