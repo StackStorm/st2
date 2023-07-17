@@ -32,6 +32,7 @@ from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.db.auth import UserDB
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
+from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
@@ -2000,9 +2001,19 @@ class ActionExecutionOutputControllerTestCase(
             status=status,
             action={"ref": "core.local"},
             runner={"name": "local-shell-cmd"},
-            liveaction_id="ref",
+            liveaction_id="54c6b6d60640fd4f5354e74a",
         )
         action_execution_db = ActionExecution.add_or_update(action_execution_db)
+        liveaction_db = LiveActionDB(
+            id="54c6b6d60640fd4f5354e74a",
+            start_timestamp=timestamp,
+            end_timestamp=timestamp,
+            status=status,
+            action="core.local",
+            runner_info={"name": "local-shell-cmd"},
+        )
+
+        LiveAction.add_or_update(liveaction_db)
 
         output_params = dict(
             execution_id=str(action_execution_db.id),
@@ -2081,9 +2092,19 @@ class ActionExecutionOutputControllerTestCase(
                 status=status,
                 action={"ref": "core.local"},
                 runner={"name": "local-shell-cmd"},
-                liveaction_id="ref",
+                liveaction_id="54c6b6d60640fd4f5354e74a",
             )
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
+            liveaction_db = LiveActionDB(
+                id="54c6b6d60640fd4f5354e74a",
+                start_timestamp=timestamp,
+                end_timestamp=timestamp,
+                status=status,
+                action="core.local",
+                runner_info={"name": "local-shell-cmd"},
+            )
+
+            LiveAction.add_or_update(liveaction_db)
 
             for i in range(1, 6):
                 stdout_db = ActionExecutionOutputDB(
