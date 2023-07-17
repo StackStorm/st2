@@ -136,7 +136,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(
             user_db=requester_user, user=user
         )
-
         try:
             return self._schedule_execution(
                 liveaction=liveaction_api,

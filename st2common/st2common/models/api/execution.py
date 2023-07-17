@@ -40,7 +40,7 @@ LOG = logging.getLogger(__name__)
 REQUIRED_ATTR_SCHEMAS = {
     "action": copy.deepcopy(ActionAPI.schema),
     "runner": copy.deepcopy(RunnerTypeAPI.schema),
-    "liveaction": copy.deepcopy(LiveActionAPI.schema)
+    "liveaction": copy.deepcopy(LiveActionAPI.schema),
 }
 
 for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
@@ -158,8 +158,15 @@ class ActionExecutionAPI(BaseAPI):
         start_timestamp = model.start_timestamp
         start_timestamp_iso = isotime.format(start_timestamp, offset=False)
         doc["start_timestamp"] = start_timestamp_iso
-        live_action_model = LiveAction.get_by_id(doc["liveaction_id"])
-        doc["liveaction"] = LiveActionAPI._from_model(live_action_model, mask_secrets=mask_secrets)
+        # check to see if liveaction_id has been excluded in output filtering
+        if doc.get("liveaction_id", False):
+            live_action_model = LiveAction.get_by_id(doc["liveaction_id"])
+            if live_action_model is not None:
+                doc["liveaction"] = LiveActionAPI.from_model(
+                    live_action_model, mask_secrets=mask_secrets
+                )
+            else:
+                doc["liveaction"] = {}
 
         end_timestamp = model.end_timestamp
         if end_timestamp:

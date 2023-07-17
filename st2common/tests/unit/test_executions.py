@@ -93,14 +93,18 @@ class TestActionExecutionHistoryModel(DbTestCase):
                 "end_timestamp"
             ],
         }
-        self.fake_history_workflow_liveaction = fixture.ARTIFACTS["liveactions"]["workflow"]
+        self.fake_history_workflow_liveaction = fixture.ARTIFACTS["liveactions"][
+            "workflow"
+        ]
         # Assign parent to the execution records for the subtasks.
         for task in self.fake_history_subtasks:
             task["parent"] = self.fake_history_workflow["id"]
 
     def test_model_complete(self):
         # create LiveactionApiObject
-        live_action_obj = LiveActionAPI(**copy.deepcopy(self.fake_history_workflow_liveaction))
+        live_action_obj = LiveActionAPI(
+            **copy.deepcopy(self.fake_history_workflow_liveaction)
+        )
 
         # Create API object.
         obj = ActionExecutionAPI(**copy.deepcopy(self.fake_history_workflow))
@@ -196,7 +200,9 @@ class TestActionExecutionHistoryModel(DbTestCase):
 
     def test_model_partial(self):
         # create LiveactionApiObject
-        live_action_obj = LiveActionAPI(**copy.deepcopy(self.fake_history_liveactions[0]))
+        live_action_obj = LiveActionAPI(
+            **copy.deepcopy(self.fake_history_liveactions[0])
+        )
         # Create API object.
         obj = ActionExecutionAPI(**copy.deepcopy(self.fake_history_subtasks[0]))
         self.assertIsNone(getattr(obj, "trigger", None))

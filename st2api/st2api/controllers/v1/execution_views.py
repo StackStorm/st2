@@ -56,7 +56,13 @@ FILTERS_WITH_VALID_NULL_VALUES = [
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1
 # relation between filter and particular history record.
 # tldr: these filters represent MANY distinct possibilities
-IGNORE_FILTERS = ["parent", "timestamp", "liveaction", "liveaction_id", "trigger_instance"]
+IGNORE_FILTERS = [
+    "parent",
+    "timestamp",
+    "liveaction",
+    "liveaction_id",
+    "trigger_instance",
+]
 
 
 class FiltersController(object):
