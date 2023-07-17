@@ -24,9 +24,10 @@ from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
+from st2common.persistence.liveaction import LiveAction
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.api.action import RunnerTypeAPI, ActionAPI
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common import log as logging
 from st2common.util.deep_copy import fast_deepcopy_dict
 from st2common.fields import JSONDictEscapedFieldCompatibilityField
@@ -39,6 +40,7 @@ LOG = logging.getLogger(__name__)
 REQUIRED_ATTR_SCHEMAS = {
     "action": copy.deepcopy(ActionAPI.schema),
     "runner": copy.deepcopy(RunnerTypeAPI.schema),
+    "liveaction": copy.deepcopy(LiveActionAPI.schema)
 }
 
 for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
@@ -61,6 +63,7 @@ class ActionExecutionAPI(BaseAPI):
             "action": REQUIRED_ATTR_SCHEMAS["action"],
             "runner": REQUIRED_ATTR_SCHEMAS["runner"],
             "liveaction_id": {"type": "string", "required": True},
+            "liveaction": REQUIRED_ATTR_SCHEMAS["liveaction"],
             "status": {
                 "description": "The current status of the action execution.",
                 "type": "string",
@@ -155,6 +158,8 @@ class ActionExecutionAPI(BaseAPI):
         start_timestamp = model.start_timestamp
         start_timestamp_iso = isotime.format(start_timestamp, offset=False)
         doc["start_timestamp"] = start_timestamp_iso
+        live_action_model = LiveAction.get_by_id(doc["liveaction_id"])
+        doc["liveaction"] = LiveActionAPI._from_model(live_action_model, mask_secrets=mask_secrets)
 
         end_timestamp = model.end_timestamp
         if end_timestamp:

@@ -95,8 +95,6 @@ class TestActionExecutionFilters(FunctionalTest):
             data["id"] = obj_id
             data["start_timestamp"] = isotime.format(timestamp, offset=False)
             data["end_timestamp"] = isotime.format(timestamp, offset=False)
-            data["status"] = data["status"]
-            data["result"] = data["result"]
             if fake_type["action"]["name"] == "local" and random.choice([True, False]):
                 assign_parent(data)
             wb_obj = ActionExecutionAPI(**data)
