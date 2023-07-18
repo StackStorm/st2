@@ -166,7 +166,7 @@ class ActionExecutionAPI(BaseAPI):
                     live_action_model, mask_secrets=mask_secrets
                 )
             else:
-                doc["liveaction"] = {}
+                doc["liveaction"] = {"id": doc["liveaction_id"]}
 
         end_timestamp = model.end_timestamp
         if end_timestamp:
