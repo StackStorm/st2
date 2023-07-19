@@ -30,7 +30,6 @@ import calendar
 import weakref
 
 import orjson
-import zstandard
 
 from mongoengine import LongField
 from mongoengine import BinaryField
@@ -40,8 +39,8 @@ from mongoengine.common import _import_class
 from oslo_config import cfg
 
 from st2common.constants.compression import (
-    compress,
-    uncompress,
+    compress as compress_function,
+    uncompress as uncompress_function,
     MAP_COMPRESS,
     MAP_UNCOMPRESS,
 )
@@ -380,7 +379,7 @@ class JSONDictField(BinaryField):
             # Already deserializaed
             return value
 
-        data = orjson.loads(uncompress(value))
+        data = orjson.loads(uncompress_function(value))
         return data
 
     def _serialize_field_value(self, value: dict, compress=True) -> bytes:
@@ -405,7 +404,7 @@ class JSONDictField(BinaryField):
 
         data = orjson.dumps(value, default=default)
         if compress:
-            data = compress(data)
+            data = compress_function(data)
         return data
 
     def __get__(self, instance, owner):
