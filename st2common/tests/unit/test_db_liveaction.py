@@ -155,9 +155,6 @@ class LiveActionModelTest(DbTestCase):
         self.assertEqual(
             saved.action, retrieved.action, "Same triggertype was not returned."
         )
-        import pdb
-
-        pdb.set_trace()
         masked = retrieved.mask_secrets(retrieved.to_serializable_dict())
         for value in masked["parameters"]["response"].values():
             self.assertEqual(value, MASKED_ATTRIBUTE_VALUE)
