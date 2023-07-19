@@ -35,7 +35,6 @@ import datetime
 import time
 import traceback
 
-import mongoengine as me
 from oslo_config import cfg
 
 from st2common import config
@@ -54,31 +53,6 @@ from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 # single value
 
 
-class ActionExecutionDBOLD(ActionExecutionDB):
-    ActionExecutionDB._meta["allow_inheritance"] = True
-
-    liveaction = stormbase.EscapedDictField(required=True)
-    liveaction_id = me.StringField(required=False)  # was not required previously
-
-
-class ActionExecutionOLD(Access):
-    impl = MongoDBAccess(ActionExecutionDBOLD)
-    publisher = None
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
-
-    @classmethod
-    def _get_publisher(cls):
-        if not cls.publisher:
-            cls.publisher = transport.execution.ActionExecutionPublisher()
-        return cls.publisher
-
-    @classmethod
-    def delete_by_query(cls, *args, **query):
-        return cls._get_impl().delete_by_query(*args, **query)
-
 
 def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -> None:
     """
@@ -92,10 +66,39 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
     # objects one by one.
     # Keep in mind we need to use ModelClass.objects and not PersistanceClass.query() so .only()
     # works correctly - with PersistanceClass.query().only() all the fields will still be retrieved.
-
     # 1. Migrate ActionExecutionDB objects
-    result = (
-        ActionExecutionDBOLD.objects(
+    result_add_liveaction_id = (
+        ActionExecutionDB.objects(
+            __raw__={
+                "status": {
+                    "$in": LIVEACTION_COMPLETED_STATES,
+                },
+            },
+            start_timestamp__gte=start_dt,
+            start_timestamp__lte=end_dt,
+        ).update(
+            __raw__={
+                "$set": {'liveaction_id': {"$concat": ["$liveaction.id"]}}
+                }
+            )
+    )
+    result_remove_liveaction = (
+        ActionExecutionDB.objects(
+            __raw__={
+                "status": {
+                    "$in": LIVEACTION_COMPLETED_STATES,
+                },
+            },
+            start_timestamp__gte=start_dt,
+            start_timestamp__lte=end_dt,
+        ).update(
+            __raw__={
+                "$unset": {'liveaction': 1 }
+                }
+            )
+    )
+ 
+    res_count = ActionExecutionDB.objects(
             __raw__={
                 "status": {
                     "$in": LIVEACTION_COMPLETED_STATES,
@@ -104,46 +107,11 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
             start_timestamp__gte=start_dt,
             start_timestamp__lte=end_dt,
         )
-        .only("id")
-        .as_pymongo()
-    )
-    execution_ids = set([str(item["_id"]) for item in result])
-    objects_count = result.count()
+    import pdb; pdb.set_trace()
+    objects_count = res_count.count()
 
-    if not execution_ids:
-        print("Found no ActionExecutionDB objects to migrate.")
-        print("")
-        return None
-
-    print("Will migrate %s ActionExecutionDB objects" % (objects_count))
+    print("migrated %s ActionExecutionDB objects" % (objects_count))
     print("")
-
-    for index, execution_id in enumerate(execution_ids, 1):
-        try:
-            execution_db = ActionExecutionOLD.get_by_id(execution_id)
-        except StackStormDBObjectNotFoundError:
-            print(
-                "Skipping ActionExecutionDB with id %s which is missing in the database"
-                % (execution_id)
-            )
-            continue
-
-        print(
-            "[%s/%s] Migrating ActionExecutionDB with id %s"
-            % (index, objects_count, execution_id)
-        )
-
-        # This is a bit of a "hack", but it's the easiest way to tell mongoengine that a specific
-        # field has been updated and should be saved. If we don't do, nothing will be re-saved on
-        # .save() call due to mongoengine only trying to save what has changed to make it more
-        # efficient instead of always re-saving the whole object.
-        execution_db._mark_as_changed("liveaction_id")
-        # NOTE: If you want to view changed fields, you can access execution_db._changed_fields
-        # will throw an exception if already a string
-        execution_db.liveaction_id = execution_db.liveaction.get("id")
-        execution_db.save()
-        print("ActionExecutionDB with id %s has been migrated" % (execution_db.id))
-
 
 def _register_cli_opts():
     cfg.CONF.register_cli_opt(
