@@ -36,13 +36,10 @@ from mongoengine import BinaryField
 from mongoengine.base.datastructures import mark_as_changed_wrapper
 from mongoengine.base.datastructures import mark_key_as_changed_wrapper
 from mongoengine.common import _import_class
-from oslo_config import cfg
 
 from st2common.constants.compression import (
     compress as compress_function,
-    uncompress as uncompress_function,
-    MAP_COMPRESS,
-    MAP_UNCOMPRESS,
+    uncompress as uncompress_function
 )
 from st2common.util import date as date_utils
 from st2common.util import mongoescape
