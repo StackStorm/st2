@@ -19,6 +19,7 @@ Mongoengine is licensed under MIT.
 
 
 import enum
+from oslo_config import cfg
 import zstandard
 
 ZSTANDARD_COMPRESS = "zstandard"
@@ -61,3 +62,29 @@ MAP_COMPRESS = {
 MAP_UNCOMPRESS = {
     JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value: zstandard_uncompress,
 }
+
+
+def uncompress(value: bytes):
+    data = value
+    try:
+        uncompression_header = value[0:1]
+        uncompression_method = MAP_UNCOMPRESS.get(uncompression_header, False)
+        if uncompression_method: # skip if no compress
+            data = uncompression_method(value[1:])
+    # will need to add additional exceptions if additonal compression methods
+    # are added in the future; please do not catch the general exception here.
+    except zstandard.ZstdError:
+        # skip if already a byte string and not zstandard compressed
+        pass
+    return data
+
+
+def compress(value: bytes):
+    data = value
+    parameter_result_compression = cfg.CONF.database.parameter_result_compression
+    compression_method = MAP_COMPRESS.get(parameter_result_compression, False)
+    # none is not mapped at all so has no compression method
+    if compression_method:
+        data = compression_method(value)
+    return data
+

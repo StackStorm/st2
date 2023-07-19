@@ -40,6 +40,8 @@ from mongoengine.common import _import_class
 from oslo_config import cfg
 
 from st2common.constants.compression import (
+    compress,
+    uncompress,
     MAP_COMPRESS,
     MAP_UNCOMPRESS,
 )
@@ -377,17 +379,8 @@ class JSONDictField(BinaryField):
         if isinstance(value, dict):
             # Already deserializaed
             return value
-        data = value
-        try:
-            uncompression_header = value[0:1]
-            uncompression_method = MAP_UNCOMPRESS.get(uncompression_header, False)
-            if uncompression_method:
-                data = uncompression_method(value[1:])
-            # skip if already a byte string and not compressed
-        except zstandard.ZstdError:
-            pass
 
-        data = orjson.loads(data)
+        data = orjson.loads(uncompress(value))
         return data
 
     def _serialize_field_value(self, value: dict, compress=True) -> bytes:
@@ -411,12 +404,8 @@ class JSONDictField(BinaryField):
             raise TypeError
 
         data = orjson.dumps(value, default=default)
-        parameter_result_compression = cfg.CONF.database.parameter_result_compression
-        compression_method = MAP_COMPRESS.get(parameter_result_compression, False)
-        # none is not mapped at all so has no compression method
-        if compress and compression_method:
-            data = compression_method(data)
-
+        if compress:
+            data = compress(data)
         return data
 
     def __get__(self, instance, owner):
