@@ -38,20 +38,15 @@ import traceback
 from oslo_config import cfg
 
 from st2common import config
-from st2common import transport
-from st2common.models.db import MongoDBAccess, stormbase
 from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
 from st2common.util import isotime
 from st2common.models.db.execution import ActionExecutionDB
-from st2common.persistence.base import Access
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 
 # NOTE: To avoid unnecessary mongoengine object churn when retrieving only object ids (aka to avoid
 # instantiating model class with a single field), we use raw pymongo value which is a dict with a
 # single value
-
 
 
 def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -> None:
@@ -67,51 +62,35 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
     # Keep in mind we need to use ModelClass.objects and not PersistanceClass.query() so .only()
     # works correctly - with PersistanceClass.query().only() all the fields will still be retrieved.
     # 1. Migrate ActionExecutionDB objects
-    result_add_liveaction_id = (
-        ActionExecutionDB.objects(
-            __raw__={
-                "status": {
-                    "$in": LIVEACTION_COMPLETED_STATES,
-                },
-            },
-            start_timestamp__gte=start_dt,
-            start_timestamp__lte=end_dt,
-        ).update(
-            __raw__={
-                "$set": {'liveaction_id': {"$concat": ["$liveaction.id"]}}
-                }
-            )
-    )
-    result_remove_liveaction = (
-        ActionExecutionDB.objects(
-            __raw__={
-                "status": {
-                    "$in": LIVEACTION_COMPLETED_STATES,
-                },
-            },
-            start_timestamp__gte=start_dt,
-            start_timestamp__lte=end_dt,
-        ).update(
-            __raw__={
-                "$unset": {'liveaction': 1 }
-                }
-            )
-    )
- 
     res_count = ActionExecutionDB.objects(
-            __raw__={
-                "status": {
-                    "$in": LIVEACTION_COMPLETED_STATES,
-                },
+        __raw__={
+            "status": {
+                "$in": LIVEACTION_COMPLETED_STATES,
             },
-            start_timestamp__gte=start_dt,
-            start_timestamp__lte=end_dt,
-        )
-    import pdb; pdb.set_trace()
+        },
+        start_timestamp__gte=start_dt,
+        start_timestamp__lte=end_dt,
+    ).as_pymongo()
+    for item in res_count:
+        ActionExecutionDB.objects(
+            __raw__={"_id": item["_id"]}
+        ).update(__raw__={"$set": {"liveaction_id": item["liveaction"]["id"]}})
+
+    ActionExecutionDB.objects(
+        __raw__={
+            "status": {
+                "$in": LIVEACTION_COMPLETED_STATES,
+            },
+        },
+        start_timestamp__gte=start_dt,
+        start_timestamp__lte=end_dt,
+    ).update(__raw__={"$unset": {"liveaction": 1}})
+
     objects_count = res_count.count()
 
     print("migrated %s ActionExecutionDB objects" % (objects_count))
     print("")
+
 
 def _register_cli_opts():
     cfg.CONF.register_cli_opt(
