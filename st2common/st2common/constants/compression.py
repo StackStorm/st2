@@ -69,7 +69,7 @@ def uncompress(value: bytes):
     try:
         uncompression_header = value[0:1]
         uncompression_method = MAP_UNCOMPRESS.get(uncompression_header, False)
-        if uncompression_method: # skip if no compress
+        if uncompression_method:  # skip if no compress
             data = uncompression_method(value[1:])
     # will need to add additional exceptions if additonal compression methods
     # are added in the future; please do not catch the general exception here.
@@ -87,4 +87,3 @@ def compress(value: bytes):
     if compression_method:
         data = compression_method(value)
     return data
-
