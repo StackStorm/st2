@@ -39,7 +39,7 @@ from mongoengine.common import _import_class
 
 from st2common.constants.compression import (
     compress as compress_function,
-    uncompress as uncompress_function
+    uncompress as uncompress_function,
 )
 from st2common.util import date as date_utils
 from st2common.util import mongoescape
