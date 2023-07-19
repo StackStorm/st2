@@ -55,6 +55,8 @@ from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 
 
 class ActionExecutionDBOLD(ActionExecutionDB):
+    ActionExecutionDB._meta["allow_inheritance"] = True
+
     liveaction = stormbase.EscapedDictField(required=True)
     liveaction_id = me.StringField(required=False)  # was not required previously
 
