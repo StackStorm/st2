@@ -72,9 +72,9 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
         start_timestamp__lte=end_dt,
     ).as_pymongo()
     for item in res_count:
-        ActionExecutionDB.objects(
-            __raw__={"_id": item["_id"]}
-        ).update(__raw__={"$set": {"liveaction_id": item["liveaction"]["id"]}})
+        ActionExecutionDB.objects(__raw__={"_id": item["_id"]}).update(
+            __raw__={"$set": {"liveaction_id": item["liveaction"]["id"]}}
+        )
 
     ActionExecutionDB.objects(
         __raw__={
