@@ -35,6 +35,7 @@ import datetime
 import time
 import traceback
 
+import mongoengine as me
 from oslo_config import cfg
 
 from st2common import config
@@ -45,7 +46,6 @@ from st2common.service_setup import db_teardown
 from st2common.util import isotime
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.base import Access
-from st2common.persistence.execution import ActionExecution
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 
@@ -56,7 +56,8 @@ from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 
 class ActionExecutionDBOLD(ActionExecutionDB):
     liveaction = stormbase.EscapedDictField(required=True)
-    liveaction_id = me.StringField(required=False) # was not required previously
+    liveaction_id = me.StringField(required=False)  # was not required previously
+
 
 class ActionExecutionOLD(Access):
     impl = MongoDBAccess(ActionExecutionDBOLD)
@@ -137,7 +138,7 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
         execution_db._mark_as_changed("liveaction_id")
         # NOTE: If you want to view changed fields, you can access execution_db._changed_fields
         # will throw an exception if already a string
-        execution_db.liveaction_id = execution_db.liveaction.get("id", None)
+        execution_db.liveaction_id = execution_db.liveaction.get("id")
         execution_db.save()
         print("ActionExecutionDB with id %s has been migrated" % (execution_db.id))
 
