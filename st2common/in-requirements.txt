@@ -14,7 +14,7 @@ mongoengine
 networkx
 # used by networkx
 decorator
-orquesta@ git+https://github.com/guzzijones/orquesta.git@nocopy
+orquesta@ git+https://github.com/guzzijones/orquesta.git@1364dca91614d343b8d0c8b18d4ebf0bd6bf3fb8
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 oslo.config
 paramiko
