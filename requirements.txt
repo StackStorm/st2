@@ -37,7 +37,7 @@ nose
 nose-parallel==0.4.0
 nose-timer==1.0.1
 orjson==3.5.2
-orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.5.0
+orquesta@ git+https://github.com/guzzijones/orquesta.git@nocopy
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 paramiko==2.10.1
