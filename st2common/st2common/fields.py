@@ -365,9 +365,6 @@ class JSONDictField(BinaryField):
     def parse_field_value(self, value: Optional[Union[bytes, dict]]) -> dict:
         """
         Parse provided binary field value and return parsed value (dictionary).
-
-        For example:
-
         """
         if not value:
             return self.default
