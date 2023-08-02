@@ -50,15 +50,7 @@ def parse_args(args=None, coordinator_noop=True):
 
 def _setup_config_opts(coordinator_noop=True):
     reset()
-
-    try:
-        _register_config_opts()
-    except Exception as e:
-        print(e)
-        # Some scripts register the options themselves which means registering them again will
-        # cause a non-fatal exception
-        return
-
+    _register_config_opts()
     _override_config_opts(coordinator_noop=coordinator_noop)
 
 
@@ -88,7 +80,16 @@ def _override_db_opts():
     # use separate dbs for safer parallel test runs
     db_name = f"st2-test{os.environ.get('ST2TESTS_PARALLEL_SLOT', '')}"
     CONF.set_override(name="db_name", override=db_name, group="database")
-    CONF.set_override(name="host", override="127.0.0.1", group="database")
+    CONF.set_override(
+        name="connection_timeout",
+        override=os.environ.get("ST2_DB_CONNECTION_TIMEOUT", 10000),
+        group="database",
+    )
+    CONF.set_override(
+        name="host",
+        override=os.environ.get("ST2_OVERRIDE_HOST", "127.0.0.1"),
+        group="database",
+    )
 
 
 def _override_common_opts():
@@ -136,6 +137,10 @@ def _override_scheduler_opts():
 
 def _override_coordinator_opts(noop=False):
     driver = None if noop else "zake://"
+    ST2_OVERRIDE_COORD = os.environ.get("ST2_OVERRIDE_COORD", None)
+    if ST2_OVERRIDE_COORD:
+        driver = f"redis://{ST2_OVERRIDE_COORD}:6379?socket_timeout=90"
+
     CONF.set_override(name="url", override=driver, group="coordination")
     CONF.set_override(name="lock_timeout", override=1, group="coordination")
 
@@ -183,65 +188,6 @@ def _register_api_opts():
     ]
 
     _register_opts(api_opts, group="api")
-
-    messaging_opts = [
-        cfg.StrOpt(
-            "url",
-            default="amqp://guest:guest@127.0.0.1:5672//",
-            help="URL of the messaging server.",
-        ),
-        cfg.ListOpt(
-            "cluster_urls",
-            default=[],
-            help="URL of all the nodes in a messaging service cluster.",
-        ),
-        cfg.IntOpt(
-            "connection_retries",
-            default=10,
-            help="How many times should we retry connection before failing.",
-        ),
-        cfg.IntOpt(
-            "connection_retry_wait",
-            default=10000,
-            help="How long should we wait between connection retries.",
-        ),
-        cfg.BoolOpt(
-            "ssl",
-            default=False,
-            help="Use SSL / TLS to connect to the messaging server. Same as "
-            'appending "?ssl=true" at the end of the connection URL string.',
-        ),
-        cfg.StrOpt(
-            "ssl_keyfile",
-            default=None,
-            help="Private keyfile used to identify the local connection against RabbitMQ.",
-        ),
-        cfg.StrOpt(
-            "ssl_certfile",
-            default=None,
-            help="Certificate file used to identify the local connection (client).",
-        ),
-        cfg.StrOpt(
-            "ssl_cert_reqs",
-            default=None,
-            choices="none, optional, required",
-            help="Specifies whether a certificate is required from the other side of the "
-            "connection, and whether it will be validated if provided.",
-        ),
-        cfg.StrOpt(
-            "ssl_ca_certs",
-            default=None,
-            help="ca_certs file contains a set of concatenated CA certificates, which are "
-            "used to validate certificates passed from RabbitMQ.",
-        ),
-        cfg.StrOpt(
-            "login_method",
-            default=None,
-            help="Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).",
-        ),
-    ]
-
-    _register_opts(messaging_opts, group="messaging")
 
     ssh_runner_opts = [
         cfg.StrOpt(

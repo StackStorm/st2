@@ -18,7 +18,7 @@ gitpython
 lockfile
 # needed by core "linux" pack - TODO: create virtualenv for linux pack on postinst
 pyinotify
-logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
+logshipper@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/logshipper.git@v1.0.0
 # required by pack_mgmt/setup_virtualenv.py#L135
 virtualenv
 # needed by requests

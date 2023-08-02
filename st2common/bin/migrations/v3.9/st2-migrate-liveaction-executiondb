@@ -42,7 +42,10 @@ from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
 from st2common.util import isotime
 from st2common.models.db.execution import ActionExecutionDB
-from st2common.constants.action import LIVEACTION_COMPLETED_STATES, LIVEACTION_STATUS_PAUSED
+from st2common.constants.action import (
+    LIVEACTION_COMPLETED_STATES,
+    LIVEACTION_STATUS_PAUSED,
+)
 
 # NOTE: To avoid unnecessary mongoengine object churn when retrieving only object ids (aka to avoid
 # instantiating model class with a single field), we use raw pymongo value which is a dict with a

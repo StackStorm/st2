@@ -1,1 +1,1 @@
-orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.5.0
+orquesta@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/orquesta.git@nocopy

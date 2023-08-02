@@ -1,3 +1,0 @@
-[submodule "st2tests/st2tests/fixtures/packs/test_content_version"]
-	path = st2tests/st2tests/fixtures/packs/test_content_version
-	url = https://github.com/StackStorm-Exchange/stackstorm-test-content-version.git

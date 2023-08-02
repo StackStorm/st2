@@ -1,0 +1,63 @@
+checks:
+  tags:
+    - st2 
+  stage: checks 
+  variables:
+    GITLAB_TOKEN_U: ORCHESTRATION_GAT
+    GITLAB_TOKEN_K: $ORCHESTRATION_GAT
+  before_script:
+    - yum --enablerepo epel install -y ShellCheck 
+  script:
+    - bash ./tools/sed-requirements.sh
+    - make requirements
+    - make ci-checks
+  rules:
+    - if: '($CI_PIPELINE_SOURCE == "push")'
+
+unittests:
+  tags:
+    - st2 
+  stage: unittests 
+  variables:
+    GITLAB_TOKEN_U: ORCHESTRATION_GAT
+    GITLAB_TOKEN_K: $ORCHESTRATION_GAT
+    FF_NETWORK_PER_BUILD: 1
+    ST2_OVERRIDE_HOST: mymongo
+    # tests actually expect coordinator to be off
+    #ST2_OVERRIDE_COORD: redis
+    ST2_DB_CONNECTION_TIMEOUT: 60000 # milliseconds
+    ST2_MESSAGING_HOST: rabbitmq
+    DOCKER_DRIVER: overlay2 
+    CONTENT_FOLDER: st2tests/st2tests/fixtures/packs/test_content_version
+
+  services:
+    - name: registry.ifp.lmco.com/mongo:4.4
+      alias: mymongo
+    - name: registry.ifp.lmco.com/redis:6.0
+      alias: redis
+    - name: registry.ifp.lmco.com/rabbitmq:3.6-management
+      alias: rabbitmq
+
+
+  before_script:
+    - yum --enablerepo lmprod install -y sudo
+    - yum --enablerepo lmprod install -y mongodb-org-shell 
+    - yum --enablerepo lmprod install -y bind-utils
+    - time mongo mymongo/admin
+    - useradd stanley
+    - time nslookup mymongo 
+    - git clone https://$GITLAB_TOKEN_U:$GITLAB_TOKEN_K@gitlab.ifp.lmco.com/orchestration/stackstorm/stackstorm-test-content-version  $CONTENT_FOLDER    
+
+  script:
+    - export ST2_OVERRIDE_HOST=$(dig +short mymongo | head -n1)
+    - echo $ST2_OVERRIDE_HOST
+    - bash ./tools/sed-requirements.sh
+    - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make unit-tests
+
+  rules:
+    - if: '($CI_PIPELINE_SOURCE == "push")'
+
+
+stages:
+  - checks
+  - unittests 

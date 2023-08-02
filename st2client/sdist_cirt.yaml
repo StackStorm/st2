@@ -1,0 +1,22 @@
+target: 3
+py3:
+  Requires:
+    FindReplace:
+      - - python%{python3_pkgversion}-python-dateutil
+        - python%{python3_pkgversion}-dateutil
+      - - python%{python3_pkgversion}-prompt-toolkit
+        - python%{python3_pkgversion}-prompt_toolkit
+      - - python%{python3_pkgversion}-python-editor
+        - python%{python3_pkgversion}-editor
+      - - python%{python3_pkgversion}-pyopenssl
+        - python%{python3_pkgversion}-pyOpenSSL
+
+
+
+
+
+src:
+  '%changelog': |
+    * Wed May 5 2021 AJ Jonen <aj.jonen@lmco.com> - 3.4.1-1
+    - initial
+

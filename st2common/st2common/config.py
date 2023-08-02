@@ -270,12 +270,13 @@ def register_opts(ignore_errors=False):
 
     do_register_opts(db_opts, "database", ignore_errors)
 
+    messaging_host = os.environ.get("ST2_MESSAGING_HOST", "127.0.0.1")
     messaging_opts = [
         # It would be nice to be able to deprecate url and completely switch to using
         # url. However, this will be a breaking change and will have impact so allowing both.
         cfg.StrOpt(
             "url",
-            default="amqp://guest:guest@127.0.0.1:5672//",
+            default=f"amqp://guest:guest@{messaging_host}:5672//",
             help="URL of the messaging server.",
         ),
         cfg.ListOpt(

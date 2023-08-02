@@ -17,6 +17,11 @@ from __future__ import absolute_import
 import mock
 import six
 
+from st2tests import config as test_config
+
+test_config.parse_args()
+
+
 from st2common.constants import action as action_constants
 from st2common.models.api.action import ActionAPI
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI

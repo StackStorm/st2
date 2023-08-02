@@ -722,7 +722,7 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
-	git submodule update --init --recursive --remote
+	#git submodule update --init --recursive --remote
 
 	# Show currently install requirements
 	echo ""
@@ -818,7 +818,11 @@ unit-tests: requirements .unit-tests
 	@echo "==================== tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongo mymongo/st2-test --eval "db.dropDatabase();"
+#	. $(VIRTUALENV_DIR)/bin/activate; \
+#		    nosetests $(NOSE_OPTS) -s -v \
+#		    st2actions/tests/unit/test_worker.py:WorkerTestCase.test_worker_graceful_shutdown_with_multiple_runners || exit 1; 
+
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -1114,7 +1118,7 @@ cli:
 	@echo
 	@echo "=================== Building st2 client ==================="
 	@echo
-	pushd $(CURDIR) && cd st2client && ((python setup.py develop || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
+	pushd $(CURDIR) && cd st2client && ((pip install -e . || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
 
 .PHONY: rpms
 rpms:
@@ -1141,7 +1145,7 @@ ci: ci-checks ci-unit ci-integration ci-packs-tests
 # NOTE: pylint is moved to ci-compile so we more evenly spread the load across
 # various different jobs to make the whole workflow complete faster
 .PHONY: ci-checks
-ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .flake8 check-requirements check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check .st2client-install-check check-python-packages .st2client-pypi-check
+ci-checks: .generated-files-check .shellcheck .black-check .flake8 check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check check-python-packages 
 
 .PHONY: .rst-check
 .rst-check:

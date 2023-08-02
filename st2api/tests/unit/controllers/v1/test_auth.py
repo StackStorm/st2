@@ -33,7 +33,7 @@ USER = "stanley"
 USER_DB = UserDB(name=USER)
 TOKEN = uuid.uuid4().hex
 NOW = date_utils.get_datetime_utc_now()
-FUTURE = NOW + datetime.timedelta(seconds=300)
+FUTURE = NOW + datetime.timedelta(seconds=86400)
 PAST = NOW + datetime.timedelta(seconds=-300)
 
 

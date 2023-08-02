@@ -12,6 +12,6 @@ oslo.config>=1.12.1,<1.13
 passlib==1.7.4
 pymongo==3.11.3
 six==1.13.0
-st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
-st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
+st2-auth-backend-flat-file@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/st2-auth-backend-flat-file.git@master
+st2-auth-ldap@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/st2-auth-ldap.git@master
 stevedore==1.30.1

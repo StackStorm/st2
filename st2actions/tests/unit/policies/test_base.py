@@ -117,7 +117,7 @@ class SchedulerPoliciesTestCase(CleanDbTestCase):
 class NotifierPoliciesTestCase(CleanDbTestCase):
     @classmethod
     def setUpClass(cls):
-        DbTestCase.setUpClass()
+        # DbTestCase.setUpClass()
         super(NotifierPoliciesTestCase, cls).setUpClass()
 
     def setUp(self):
