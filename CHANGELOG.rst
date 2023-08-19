@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix CI usses #6015
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
 Added
 ~~~~~
 * Move `git clone` to `user_home/.st2packs` #5845

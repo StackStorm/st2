@@ -82,3 +82,4 @@ psutil==5.8.0
 python-dateutil==2.8.1
 python-statsd==2.1.0
 orjson==3.5.2
+zipp<3.16.0
