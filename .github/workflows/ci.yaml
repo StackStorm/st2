@@ -70,11 +70,19 @@ jobs:
             task: 'ci-compile'
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Lint Checks (black, flake8, etc.)'
+            task: 'ci-checks'
+            python-version-short: '3.10'
+            python-version: '3.10.9'
+          - name: 'Compile (pip deps, pylint, etc.)'
+            task: 'ci-compile'
+            python-version-short: '3.10'
+            python-version: '3.10.9'
 
     env:
       TASK: '${{ matrix.task }}'
       COLUMNS: '120'
-      PYLINT_CONCURRENCY: '4'
+      PYLINT_CONCURRENCY: '6'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -174,6 +182,18 @@ jobs:
             nosetests_node_index: 1
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Unit Tests (chunk 1)'
+            task: 'ci-unit'
+            nosetests_node_total: 2
+            nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.9'
+          - name: 'Unit Tests (chunk 2)'
+            task: 'ci-unit'
+            nosetests_node_total: 2
+            nosetests_node_index: 1
+            python-version-short: '3.10'
+            python-version: '3.10.9'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
@@ -359,6 +379,24 @@ jobs:
             nosetests_node_index: 1
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.9'
+          - name: 'Integration Tests (chunk 1)'
+            task: 'ci-integration'
+            nosetests_node_total: 2
+            nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.9'
+          - name: 'Integration Tests (chunk 2)'
+            task: 'ci-integration'
+            nosetests_node_total: 2
+            nosetests_node_index: 1
+            python-version-short: '3.10'
+            python-version: '3.10.9'
     services:
       mongo:
         image: mongo:4.4

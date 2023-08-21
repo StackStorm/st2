@@ -46,6 +46,12 @@ jobs:
             nosetests_node_index: 0
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Microbenchmarks'
+            task: 'micro-benchmarks'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.9'
     services:
       mongo:
         image: mongo:4.4
