@@ -34,6 +34,7 @@ Added
 * Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
   Contributed by @maxfactor1
 
+* Added get-dependencies option to install_pack.py #5994
 
 3.8.0 - November 18, 2022
 -------------------------
