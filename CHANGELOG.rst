@@ -51,6 +51,9 @@ Fixed
 * For "local-shell-script" runner, on readonly filesystems, don't attempt to run chmod +x on script_action. Fixes #5591
   Contributed by @jk464
 
+* Fixed RBAC support to action-alias help and match end point. #6022
+  Contributed by @nzlosh
+
 Added
 ~~~~~
 * Move `git clone` to `user_home/.st2packs` #5845
