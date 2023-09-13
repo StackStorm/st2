@@ -16,7 +16,6 @@
 import os
 import sys
 
-import six
 import mock
 import unittest2
 
