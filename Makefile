@@ -661,7 +661,7 @@ distclean: clean
 
 .PHONY: .requirements
 .requirements: virtualenv
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)" 
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
 	# Print out pip version
 	$(VIRTUALENV_DIR)/bin/pip --version
 	# Generate all requirements to support current CI pipeline.
