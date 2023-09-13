@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix CI usses #6015
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
 Added
 ~~~~~
 * Remove `distutils` dependencies across the project. #5992
