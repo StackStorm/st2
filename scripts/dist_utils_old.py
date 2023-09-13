@@ -38,7 +38,6 @@ else:
 GET_PIP = "curl https://bootstrap.pypa.io/get-pip.py | python"
 
 try:
-    import pip
     from pip import __version__ as pip_version
 except ImportError as e:
     print("Failed to import pip: %s" % (text_type(e)))
