@@ -10,6 +10,9 @@ Fixed
 * Fix CI usses #6015
   Contributed by Amanda McGuinness (@amanda11 intive)
 
+* Bumped `paramiko` to `2.10.5` to fix an issue with SSH Certs - https://github.com/paramiko/paramiko/issues/2017
+  Contributed by @jk464
+
 Added
 ~~~~~
 * Remove `distutils` dependencies across the project. #5992
@@ -36,7 +39,6 @@ Added
 
 * Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
   Contributed by @maxfactor1
-
 
 3.8.0 - November 18, 2022
 -------------------------
