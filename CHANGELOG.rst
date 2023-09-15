@@ -15,8 +15,6 @@ Fixed
 
 Added
 ~~~~~
-* Remove `distutils` dependencies across the project. #5992
-  Contributed by @AndroxxTraxxon
 
 * Move `git clone` to `user_home/.st2packs` #5845
 
@@ -39,6 +37,11 @@ Added
 
 * Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
   Contributed by @maxfactor1
+
+Changed
+~~~~~~~
+* Remove `distutils` dependencies across the project. #5992
+  Contributed by @AndroxxTraxxon
 
 3.8.0 - November 18, 2022
 -------------------------
