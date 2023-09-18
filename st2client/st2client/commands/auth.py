@@ -19,7 +19,7 @@ import getpass
 import json
 import logging
 import os
-
+import webbrowser
 import requests
 import six
 from six.moves.configparser import ConfigParser
@@ -32,9 +32,14 @@ from st2client.commands import resource
 from st2client.commands.noop import NoopCommand
 from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
+from st2client.utils.date import format_isodate_for_user_timezone
 
 
 LOG = logging.getLogger(__name__)
+
+
+class MissingUserNameException(Exception):
+    pass
 
 
 class TokenCreateCommand(resource.ResourceCommand):
@@ -118,8 +123,36 @@ class LoginCommand(resource.ResourceCommand):
             **kwargs,
         )
 
-        self.parser.add_argument("username", help="Name of the user to authenticate.")
+        self.parser.add_argument(
+            "username",
+            nargs="?",
+            default=None,
+            help="Name of the user to authenticate (not needed if --sso is used).",
+        )
 
+        self.parser.add_argument(
+            "-s",
+            "--sso",
+            dest="sso",
+            action="store_true",
+            help="Whether to use SSO authentication or not. "
+            "If chosen, bypasses username/password.",
+        )
+        self.parser.add_argument(
+            "-P",
+            "--sso-port",
+            dest="sso_port",
+            type=int,
+            default=0,
+            help="Fixed SSO port to use for local callback server. Default is 0, which is random",
+        )
+        self.parser.add_argument(
+            "--no-sso-browser",
+            dest="no_sso_browser",
+            action="store_true",
+            default=False,
+            help="Prevents from automatically launching the browser for SSO",
+        )
         self.parser.add_argument(
             "-p",
             "--password",
@@ -143,13 +176,11 @@ class LoginCommand(resource.ResourceCommand):
             default=False,
             dest="write_password",
             help="Write the password in plain text to the config file "
-            "(default is to omit it)",
+            "(only applicable to username/password login, and default is to omit it)",
         )
 
     def run(self, args, **kwargs):
 
-        if not args.password:
-            args.password = getpass.getpass()
         instance = self.resource(ttl=args.ttl) if args.ttl else self.resource()
 
         cli = BaseCLIApp()
@@ -161,11 +192,47 @@ class LoginCommand(resource.ResourceCommand):
             # config file not found in args or in env, defaulting
             config_file = config_parser.ST2_CONFIG_PATH
 
-        # Retrieve token
-        manager = self.manager.create(
-            instance, auth=(args.username, args.password), **kwargs
-        )
-        cli._cache_auth_token(token_obj=manager)
+        # Retrieve token based on whether we're using SSO or username/password login :)
+        if args.sso:
+            LOG.debug("Logging in with SSO with fixed port [%d]", args.sso_port)
+            # Retrieve token from SSO backend
+            sso_proxy = self.manager.create_sso_request(args.sso_port, **kwargs)
+
+            if args.no_sso_browser:
+                print(
+                    "Please finish your SSO login by visiting: %s"
+                    % (sso_proxy.get_proxy_url())
+                )
+            else:
+                print(
+                    "Please finish the SSO login on your browser.\n"
+                    "If the browser hasn't opened automatically, please visit: %s"
+                    % (sso_proxy.get_proxy_url())
+                )
+                webbrowser.open(sso_proxy.get_proxy_url())
+
+            try:
+                token = self.manager.wait_for_sso_token(sso_proxy)
+            except KeyboardInterrupt:
+                raise Exception("SSO Login aborted by user")
+
+        # Defaults to username/password if not SSO
+        else:
+            LOG.debug("Logging in with username/password")
+            if not args.username:
+                raise MissingUserNameException(
+                    "Username expected when not using SSO login"
+                )
+
+            if not args.password:
+                args.password = getpass.getpass()
+
+            # Retrieve token from username/password auth api
+            token = self.manager.create(
+                instance, auth=(args.username, args.password), **kwargs
+            )
+
+        cli._cache_auth_token(token_obj=token)
 
         # Update existing configuration with new credentials
         config = ConfigParser()
@@ -175,8 +242,9 @@ class LoginCommand(resource.ResourceCommand):
         if not config.has_section("credentials"):
             config.add_section("credentials")
 
-        config.set("credentials", "username", args.username)
-        if args.write_password:
+        config.set("credentials", "username", token.user)
+
+        if args.write_password and not args.sso:
             config.set("credentials", "password", args.password)
         else:
             # Remove any existing password from config
@@ -189,37 +257,40 @@ class LoginCommand(resource.ResourceCommand):
         if not config_existed:
             os.chmod(config_file, 0o660)
 
-        return manager
+        return token
 
     def run_and_print(self, args, **kwargs):
+
         try:
-            self.run(args, **kwargs)
+            token = self.run(args, **kwargs)
+            formatted_expiry = format_isodate_for_user_timezone(token.expiry)
+            print("Logged in as %s until %s" % (token.user, formatted_expiry))
+
+            if not args.write_password and not args.sso:
+                print("")
+                print(
+                    "Note: You didn't use --write-password option so the password hasn't been "
+                    "stored in the client config and you will need to login again after %s hours when "
+                    "the auth token expires." % (formatted_expiry)
+                )
+                print(
+                    'As an alternative, you can run st2 login command with the "--write-password" '
+                    "flag, but keep it mind this will cause it to store the password in plain-text "
+                    "in the client config file (~/.st2/config)."
+                )
+        except MissingUserNameException as e:
+            raise e
         except Exception as e:
             if self.app.client.debug:
                 raise
 
-            raise Exception(
-                "Failed to log in as %s: %s" % (args.username, six.text_type(e))
-            )
+            if args.sso:
+                raise Exception("Could not perform SSO login: %s" % (six.text_type(e)))
 
-        print("Logged in as %s" % (args.username))
-
-        if not args.write_password:
-            # Note: Client can't depend and import from common so we need to hard-code this
-            # default value
-            token_expire_hours = 24
-
-            print("")
-            print(
-                "Note: You didn't use --write-password option so the password hasn't been "
-                "stored in the client config and you will need to login again in %s hours when "
-                "the auth token expires." % (token_expire_hours)
-            )
-            print(
-                'As an alternative, you can run st2 login command with the "--write-password" '
-                "flag, but keep it mind this will cause it to store the password in plain-text "
-                "in the client config file (~/.st2/config)."
-            )
+            else:
+                raise Exception(
+                    "Failed to log in as %s: %s" % (args.username, six.text_type(e))
+                )
 
 
 class WhoamiCommand(resource.ResourceCommand):

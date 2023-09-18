@@ -18,6 +18,7 @@ import datetime
 import uuid
 
 from oslo_config import cfg
+from st2common.models.db.auth import SSORequestDB
 from st2tests.base import DbTestCase
 from st2common.util import isotime
 from st2common.util import date as date_utils
@@ -29,6 +30,8 @@ import st2tests.config as tests_config
 
 
 USERNAME = "manas"
+
+SSO_REQUEST_ID = "a58fa0cd-61c8-4bd9-a2e7-a4497d6aca68"
 
 
 class AccessServiceTest(DbTestCase):
@@ -106,3 +109,37 @@ class AccessServiceTest(DbTestCase):
         self.assertRaises(
             TTLTooLargeException, access.create_token, USERNAME, ttl=ttl, service=False
         )
+
+    def test_create_cli_sso_request(self):
+        request = access.create_cli_sso_request(SSO_REQUEST_ID, None, 20)
+        self.assertIsNotNone(request)
+        self.assertEqual(request.type, SSORequestDB.Type.CLI)
+        self.assertEqual(request.request_id, SSO_REQUEST_ID)
+        self.assertLessEqual(
+            abs(
+                request.expiry.timestamp()
+                - date_utils.get_datetime_utc_now().timestamp()
+                - 20
+            ),
+            2,
+        )
+
+    def test_create_web_sso_request(self):
+        request = access.create_web_sso_request(SSO_REQUEST_ID, 20)
+        self.assertIsNotNone(request)
+        self.assertEqual(request.type, SSORequestDB.Type.WEB)
+        self.assertEqual(request.request_id, SSO_REQUEST_ID)
+        self.assertLessEqual(
+            abs(
+                request.expiry.timestamp()
+                - date_utils.get_datetime_utc_now().timestamp()
+                - 20
+            ),
+            2,
+        )
+
+    def test_get_sso_request_by_id(self):
+        access.create_web_sso_request(SSO_REQUEST_ID, 20)
+        request = access.get_sso_request_by_request_id(SSO_REQUEST_ID)
+        self.assertIsNotNone(request)
+        self.assertEqual(request.request_id, SSO_REQUEST_ID)

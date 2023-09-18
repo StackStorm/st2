@@ -4526,10 +4526,11 @@ paths:
           schema:
             $ref: '#/definitions/Error'
       security: []
-  /auth/v1/sso/request:
+
+  /auth/v1/sso/request/web:
     get:
-      operationId: st2auth.controllers.v1.sso:sso_request_controller.get
-      description: Redirects to the SSO Idp login page.
+      operationId: st2auth.controllers.v1.sso:sso_request_controller.get_web
+      description: Redirects to the SSO Idp login page from a user that's using the browser.
       parameters:
         - name: referer
           in: header
@@ -4538,6 +4539,31 @@ paths:
       responses:
         '307':
           description: Temporary redirect
+      security: []
+
+  /auth/v1/sso/request/cli:
+    post:
+      operationId: st2auth.controllers.v1.sso:sso_request_controller.post_cli
+      description: Issues an encrypted SSO login request for a CLI
+      parameters:
+        - name: response
+          in: body
+          description: SSO request with callback and key encryption
+          schema:
+            type: object
+            required:
+              - key
+              - callback_url
+            properties:
+              key:
+                type: string
+                description: The symmetric key to be used to encrypt contents of callback
+              callback_url:
+                type: string
+                description: What URL to be called back once the response from SSO is received
+      responses:
+        '200':
+          description: SSO request valid
       security: []
   /auth/v1/sso/callback:
     post:
@@ -4552,6 +4578,8 @@ paths:
       responses:
         '200':
           description: SSO response valid
+        '302':
+          description: SSO response valid and callback URL returned
         '401':
           description: Invalid or missing credentials has been provided
           schema:

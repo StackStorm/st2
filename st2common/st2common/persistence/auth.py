@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 from st2common.exceptions.auth import (
+    SSORequestNotFoundError,
     TokenNotFoundError,
     ApiKeyNotFoundError,
     UserNotFoundError,
@@ -22,7 +23,7 @@ from st2common.exceptions.auth import (
     NoNicknameOriginProvidedError,
 )
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
+from st2common.models.db.auth import SSORequestDB, UserDB, TokenDB, ApiKeyDB
 from st2common.persistence.base import Access
 from st2common.util import hash as hash_utils
 
@@ -57,6 +58,44 @@ class User(Access):
         # For User name is unique.
         name = getattr(object, "name", "")
         return cls.get_by_name(name)
+
+
+class SSORequest(Access):
+    impl = MongoDBAccess(SSORequestDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def add_or_update(cls, model_object, publish=True, validate=True):
+        if not getattr(model_object, "request_id", None):
+            raise ValueError("SSO Request ID is not provided in the object.")
+        if not getattr(model_object, "type", None):
+            raise ValueError("SSO request type is not defined in the object")
+        if not getattr(model_object, "expiry", None):
+            raise ValueError("SSO request expiry is not provided in the object.")
+        return super(SSORequest, cls).add_or_update(
+            model_object, publish=publish, validate=validate
+        )
+
+    @classmethod
+    def get(cls, value):
+        result = cls.query(id=value).first()
+
+        if not result:
+            raise SSORequestNotFoundError()
+
+        return result
+
+    @classmethod
+    def get_by_request_id(cls, value):
+        result = cls.query(request_id=value).first()
+
+        if not result:
+            raise SSORequestNotFoundError()
+
+        return result
 
 
 class Token(Access):

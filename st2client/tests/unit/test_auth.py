@@ -15,6 +15,8 @@
 
 from __future__ import absolute_import
 import os
+import re
+from time import sleep, time
 import uuid
 import json
 import mock
@@ -22,6 +24,8 @@ import tempfile
 import requests
 import argparse
 import logging
+from threading import Thread
+from datetime import datetime, timedelta
 
 import six
 
@@ -29,11 +33,15 @@ from tests import base
 from st2client import shell
 from st2client.models.core import add_auth_token_to_kwargs_from_env
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
+from st2client.utils.crypto import (
+    AESKey,
+    read_crypto_key_from_dict,
+    symmetric_encrypt,
+)
 from st2client.utils.httpclient import (
     add_auth_token_to_headers,
     add_json_content_type_to_headers,
 )
-
 
 LOG = logging.getLogger(__name__)
 
@@ -163,6 +171,159 @@ class TestLoginPasswordAndConfig(TestLoginBase):
             self.assertTrue(
                 os.path.isfile("%stoken-%s" % (self.DOTST2_PATH, expected_username))
             )
+
+
+class TestLoginSSO(TestLoginBase):
+
+    ORIGINAL_POST_FN = requests.post
+
+    CONFIG_FILE_NAME = "logintest.cfg"
+
+    LOGIN_REQUEST_MOCK_KEY = read_crypto_key_from_dict(
+        {
+            "hmacKey": {
+                "hmacKeyString": "-qdRklvhm4xvzIfaL6Z2nmQ-2N-c4IUtNa1_BowCVfg",
+                "size": 256,
+            },
+            "aesKeyString": "0UyXFjBTQ9PMyHZ0mqrvuqCSzesuFup1d6m-4Vi3vdo",
+            "mode": "CBC",
+            "size": 256,
+        }
+    )
+
+    TOKEN = {
+        "user": "stanley",
+        "token": "44583f15945b4095afbf57058535ca64",
+        "expiry": "2017-02-12T00:53:09.632783Z",
+        "id": "589e607532ed3535707f10eb",
+        "metadata": {},
+    }
+
+    ENCRYPTED_TOKEN = symmetric_encrypt(
+        LOGIN_REQUEST_MOCK_KEY, json.dumps(TOKEN)
+    ).decode("utf-8")
+
+    LOGIN_REQUEST_RESPONSE = {
+        # This is just a placeholder name, it's all mocked :)
+        "sso_url": "http://keycloak/realms/StackStorm/protocol/saml?SAMLRequest=fZFRS8MwFIX%2FSsl7TJPV1Ya1MB3iYOJYqw%2B%2BSJpFF2yTmXsr%2Bu%2FNplNU2OM53HNzvtyJg1ROB9y4lXkZDGDy1ncOZLRLMgQnvQIbpeoNSNSynl4vpDhJ5TZ49Np35DvAjwcUgAlovSPJfFYSu34QOs9yk2f0LB8rmqm2oAUfjempUCLX3Ohx25LkzgSIqZLEJTEKMJi5A1QOo5UKQdOC8qLhuRRCZuKeJLOIYZ3CfWqDuJWMdV6rbuMB5SjlnAWjuh5YjUo%2F1%2BhDzw48DFQfoZZf8ty6tXVPx9HazyGQV02zpMubuiHJ9IB74R0MvQm1Ca9Wm9vV4n8ppuIFGIBn0ejaWIpUk%2Fijco8bksvYUOHxEjvHrunjflQahxbfSfX3pQn7WVvtxO%2FrVx8%3D&RelayState=%7B%22referer%22%3A+%22http%3A%2F%2Flocalhost%3A34000%2Fcallback%22%7D",
+        "expiry": (datetime.now() + timedelta(hours=3)).strftime(
+            "%Y-%m-%dT%H:%M:%S.%f"
+        )[:-3]
+        + "000+00:00",
+    }
+
+    @mock.patch.object(AESKey, "generate", return_value=LOGIN_REQUEST_MOCK_KEY)
+    @mock.patch(
+        "requests.post",
+        return_value=base.FakeResponse(json.dumps(LOGIN_REQUEST_RESPONSE), 200, "OK"),
+    )
+    def runTest(self, mock_aeskey_generate, mock_post):
+        """Test 'st2 login --sso' functionality"""
+
+        expected_username = self.TOKEN["user"]
+        args = [
+            "--config",
+            self.CONFIG_FILE,
+            "login",
+            "--sso",
+            "--no-sso-browser",
+            "--sso-port",
+            "34000",
+        ]
+
+        def handle_sso_flow():
+            # Waiting for SSO link on the CLI
+            LOG.debug("Waiting for SSO link")
+            match = None
+            timeout_at = time() + 5
+            while not match and timeout_at > time():
+                sleep(1)
+                self.stdout.seek(0)
+                buffer = self.stdout.read()
+                LOG.debug("STDOUT buffer has: %s", buffer)
+                match = re.search(r"http://localhost:34000/\S+", buffer, re.MULTILINE)
+            self.assertIsNotNone(match)
+
+            # Hitting the localhost login url
+            login_url = match[0]
+            LOG.debug("GETting SSO login to %s", login_url)
+            response = requests.get(login_url, allow_redirects=False)
+            self.assertEquals(response.status_code, 307)
+            self.assertEquals(
+                response.headers["Location"], self.LOGIN_REQUEST_RESPONSE["sso_url"]
+            )
+
+            # Ignoring IDP flow and just hittin callback with proper response :)
+            LOG.debug("Calling back to local server")
+            response = requests.get(
+                "http://localhost:34000/callback",
+                params={"response": self.ENCRYPTED_TOKEN},
+                allow_redirects=False,
+            )
+            self.assertEquals(response.status_code, 302)
+            self.assertEquals(response.headers["Location"], "/success")
+            LOG.debug("Finished SSO flow")
+
+        def run_shell():
+            self.shell.run(args)
+
+        shellThread = Thread(target=run_shell)
+        shellThread.start()
+
+        handle_sso_flow()
+
+        shellThread.join()
+
+        with open(self.CONFIG_FILE, "r") as config_file:
+            for line in config_file.readlines():
+                print(line)
+                # Make sure certain values are not present
+                self.assertNotIn("password", line)
+                self.assertNotIn("olduser", line)
+
+                # Make sure configured username is what we expect
+                if "username" in line:
+                    self.assertEqual(line.split(" ")[2][:-1], expected_username)
+
+            # validate token was created
+            self.assertTrue(
+                os.path.isfile("%stoken-%s" % (self.DOTST2_PATH, expected_username))
+            )
+
+
+class TestLoginWithMissingUsername(TestLoginBase):
+
+    CONFIG_FILE_NAME = "logintest.cfg"
+
+    TOKEN = {
+        "user": "st2admin",
+        "token": "44583f15945b4095afbf57058535ca64",
+        "expiry": "2017-02-12T00:53:09.632783Z",
+        "id": "589e607532ed3535707f10eb",
+        "metadata": {},
+    }
+
+    @mock.patch.object(
+        requests,
+        "post",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, "OK")),
+    )
+    def runTest(self):
+        """Test 'st2 login' functionality missing the username and should fail"""
+
+        expected_username = self.TOKEN["user"]  # noqa
+        args = [
+            "--config",
+            self.CONFIG_FILE,
+            "login",
+            "--password",
+            "Password1!",
+        ]
+
+        self.shell.run(args)
+        self.assertIn(
+            "Username expected when not using SSO login", self.stdout.getvalue()
+        )
 
 
 class TestLoginIntPwdAndConfig(TestLoginBase):

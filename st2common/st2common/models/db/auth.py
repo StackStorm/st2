@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import copy
+from enum import Enum
 import mongoengine as me
 
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -25,7 +26,7 @@ from st2common.models.db import stormbase
 from st2common.rbac.backends import get_rbac_backend
 from st2common.util import date as date_utils
 
-__all__ = ["UserDB", "TokenDB", "ApiKeyDB"]
+__all__ = ["UserDB", "TokenDB", "ApiKeyDB", "SSORequestDB"]
 
 
 class UserDB(stormbase.StormFoundationDB):
@@ -85,6 +86,29 @@ class TokenDB(stormbase.StormFoundationDB):
     service = me.BooleanField(required=True, default=False)
 
 
+class SSORequestDB(stormbase.StormFoundationDB):
+    class Type(Enum):
+        CLI = "cli"
+        WEB = "web"
+
+    """
+    An entity representing a SSO request.
+
+    Attribute:
+        request_id: Reference to the SSO request unique ID
+        expiry: Time at which this request expires.
+        type: What type of SSO request is this? web/cli
+
+        -- cli --
+        key: Symmetric key used to encrypt/decrypt contents from/to the CLI.
+    """
+
+    request_id = me.StringField(required=True)
+    key = me.StringField(required=False, unique=False)
+    expiry = me.DateTimeField(required=True)
+    type = me.EnumField(Type, required=True)
+
+
 class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """
     An entity representing an API key object.
@@ -127,4 +151,4 @@ class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
         return result
 
 
-MODELS = [UserDB, TokenDB, ApiKeyDB]
+MODELS = [UserDB, TokenDB, ApiKeyDB, SSORequestDB]

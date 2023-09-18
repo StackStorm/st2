@@ -37,6 +37,7 @@ from st2client.utils.misc import reencode_list_with_surrogate_escape_sequences
 from st2common.models.db.auth import TokenDB
 from tests import base
 
+
 LOG = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

@@ -14,14 +14,16 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from st2common.models.db.auth import UserDB
+import datetime
+from st2common.models.db.auth import SSORequestDB, UserDB
 from st2common.models.db.auth import TokenDB
 from st2common.models.db.auth import ApiKeyDB
-from st2common.persistence.auth import User
+from st2common.persistence.auth import SSORequest, User
 from st2common.persistence.auth import Token
 from st2common.persistence.auth import ApiKey
-from st2common.util.date import get_datetime_utc_now
+from st2common.util.date import add_utc_tz, get_datetime_utc_now
 from st2tests import DbTestCase
+from mongoengine.errors import ValidationError
 
 from tests.unit.base import BaseDBModelCRUDTestCase
 
@@ -58,3 +60,61 @@ class ApiKeyDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
     persistance_class = ApiKey
     model_class_kwargs = {"user": "pony", "key_hash": "token-token-token-token"}
     update_attribute_name = "user"
+
+
+class SSORequestDBModelCRUDTestCase(BaseDBModelCRUDTestCase, DbTestCase):
+    model_class = SSORequestDB
+    persistance_class = SSORequest
+    model_class_kwargs = {
+        "request_id": "48144c2b-7969-4708-ba1d-96fd7d05393f",
+        "expiry": add_utc_tz(
+            datetime.datetime.strptime("2050-01-05T10:00:00", "%Y-%m-%dT%H:%M:%S")
+        ),
+        "type": SSORequestDB.Type.CLI,
+    }
+    update_attribute_name = "request_id"
+
+    def _save_model(self, **kwargs):
+        model_db = self.model_class(**kwargs)
+        self.persistance_class.add_or_update(model_db)
+
+    def test_missing_parameters(self):
+
+        self.assertRaises(
+            ValueError,
+            self._save_model,
+            **{
+                "request_id": self.model_class_kwargs["request_id"],
+                "expiry": self.model_class_kwargs["expiry"],
+            },
+        )
+
+        self.assertRaises(
+            ValueError,
+            self._save_model,
+            **{
+                "request_id": self.model_class_kwargs["request_id"],
+                "type": self.model_class_kwargs["type"],
+            },
+        )
+
+        self.assertRaises(
+            ValueError,
+            self._save_model,
+            **{
+                "type": self.model_class_kwargs["type"],
+                "expiry": self.model_class_kwargs["expiry"],
+            },
+        )
+
+    def test_invalid_parameters(self):
+
+        self.assertRaises(
+            ValidationError,
+            self._save_model,
+            **{
+                "type": "invalid",
+                "expiry": self.model_class_kwargs["expiry"],
+                "request_id": self.model_class_kwargs["request_id"],
+            },
+        )

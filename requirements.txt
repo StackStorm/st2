@@ -19,6 +19,7 @@ decorator==4.4.2
 dnspython>=1.16.0,<2.0.0
 eventlet==0.30.2
 flex==6.14.1
+git+https://github.com/pimguilherme/st2-auth-backend-sso-saml2.git@feat/saml#egg=st2-auth-backend-sso-saml2
 gitdb==4.0.2
 gitpython==3.1.15
 greenlet==1.0.0

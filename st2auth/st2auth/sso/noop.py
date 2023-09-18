@@ -21,7 +21,7 @@ __all__ = ["NoOpSingleSignOnBackend"]
 
 NOT_IMPLEMENTED_MESSAGE = (
     'The default "noop" SSO backend is not a proper implementation. '
-    "Please refer to the enterprise version for configuring SSO."
+    "Please configure SSO accordingly by selecting a proper backend."
 )
 
 
@@ -30,8 +30,11 @@ class NoOpSingleSignOnBackend(BaseSingleSignOnBackend):
     NoOp SSO authentication backend.
     """
 
-    def get_request_redirect_url(self, referer):
+    def get_request_redirect_url(self, request_id, referer):
         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE)
 
     def verify_response(self, response):
+        raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE)
+
+    def get_request_id_from_response(self, response) -> str:
         raise NotImplementedError(NOT_IMPLEMENTED_MESSAGE)

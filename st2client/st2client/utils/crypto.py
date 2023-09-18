@@ -49,8 +49,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import hmac
 from cryptography.hazmat.backends import default_backend
 
-from st2common.util.jsonify import json_encode
-from st2common.util.jsonify import json_decode
+from st2client.utils.jsonify import json_encode
+from st2client.utils.jsonify import json_decode
 
 __all__ = [
     "KEYCZAR_HEADER_SIZE",

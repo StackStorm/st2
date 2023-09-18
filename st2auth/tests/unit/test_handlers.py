@@ -30,7 +30,117 @@ from st2tests.mocks.auth import DUMMY_CREDS
 from st2tests.mocks.auth import MockRequest
 from st2tests.mocks.auth import get_mock_backend
 
+from st2common.persistence.rbac import UserRoleAssignment
+from st2common.models.db.rbac import GroupToRoleMappingDB, RoleDB
+
+
 __all__ = ["AuthHandlerTestCase"]
+
+from st2common.router import GenericRequestParam
+
+MOCK_USER = "test_proxy_handler"
+
+
+@mock.patch("st2auth.handlers.get_auth_backend_instance", get_mock_backend)
+class ProxyHandlerRBACAndGroupsTestCase(CleanDbTestCase):
+    def _assert_roles_len(self, user, total):
+        user_roles = UserRoleAssignment.get_all(user=user)
+        self.assertEqual(len(user_roles), total)
+        return user_roles
+
+    def setUp(self):
+        super(ProxyHandlerRBACAndGroupsTestCase, self).setUp()
+
+        cfg.CONF.auth.backend = "mock"
+
+        # Create test roles
+        RoleDB(name="role-1").save()
+        RoleDB(name="role-2").save()
+
+        # Create tsts mappings
+        GroupToRoleMappingDB(
+            group="group-1", roles=["role-1"], source="test", enabled=True
+        ).save()
+
+        GroupToRoleMappingDB(
+            group="group-2", roles=["role-2"], source="test", enabled=True
+        ).save()
+
+        cfg.CONF.set_override(name="enable", group="rbac", override=False)
+        cfg.CONF.set_override(name="backend", group="rbac", override="noop")
+
+    def test_proxy_handler_no_groups_no_rbac(self):
+        h = handlers.ProxyAuthHandler()
+        request = {}
+        token = h.handle_auth(
+            request, headers={}, remote_addr=None, remote_user=MOCK_USER
+        )
+        self._assert_roles_len(token.user, 0)
+        self.assertEqual(token.user, MOCK_USER)
+
+    def test_proxy_handler_with_groups_and_rbac_disabled(self):
+
+        h = handlers.ProxyAuthHandler()
+
+        request = GenericRequestParam(groups=["group-1", "group-2"])
+        token = h.handle_auth(
+            request, headers={}, remote_addr=None, remote_user=MOCK_USER
+        )
+        self._assert_roles_len(token.user, 0)
+
+        self.assertEqual(token.user, MOCK_USER)
+
+    def test_proxy_handler_with_groups_and_rbac_enabled(self):
+
+        cfg.CONF.set_override(name="enable", group="rbac", override=True)
+        cfg.CONF.set_override(name="backend", group="rbac", override="default")
+
+        h = handlers.ProxyAuthHandler()
+
+        request = GenericRequestParam(groups=["group-1", "group-2"])
+        token = h.handle_auth(
+            request, headers={}, remote_addr=None, remote_user=MOCK_USER
+        )
+
+        self.assertEqual(token.user, MOCK_USER)
+        user_roles = self._assert_roles_len(token.user, 2)
+        self.assertEqual(user_roles[0].role, "role-1")
+        self.assertEqual(user_roles[1].role, "role-2")
+
+    def test_proxy_handler_no_groups_and_rbac_enabled_with_no_prior_roles(self):
+
+        cfg.CONF.set_override(name="enable", group="rbac", override=True)
+        cfg.CONF.set_override(name="backend", group="rbac", override="default")
+
+        h = handlers.ProxyAuthHandler()
+
+        request = GenericRequestParam(groups=[])
+        token = h.handle_auth(
+            request, headers={}, remote_addr=None, remote_user=MOCK_USER
+        )
+        user_roles = self._assert_roles_len(token.user, 0)
+
+        self.assertEqual(token.user, MOCK_USER)
+        self.assertEqual(len(user_roles), 0)
+
+    def test_proxy_handler_no_groups_and_rbac_enabled_with_prior_roles(self):
+
+        self.test_proxy_handler_with_groups_and_rbac_enabled()
+        self._assert_roles_len(MOCK_USER, 2)
+
+        cfg.CONF.set_override(name="enable", group="rbac", override=True)
+        cfg.CONF.set_override(name="backend", group="rbac", override="default")
+
+        h = handlers.ProxyAuthHandler()
+
+        request = GenericRequestParam(groups=[])
+        token = h.handle_auth(
+            request, headers={}, remote_addr=None, remote_user=MOCK_USER
+        )
+        user_roles = UserRoleAssignment.get_all(user=token.user)
+
+        self.assertEqual(token.user, MOCK_USER)
+        self.assertEqual(len(user_roles), 0)
 
 
 @mock.patch("st2auth.handlers.get_auth_backend_instance", get_mock_backend)
@@ -39,14 +149,6 @@ class AuthHandlerTestCase(CleanDbTestCase):
         super(AuthHandlerTestCase, self).setUp()
 
         cfg.CONF.auth.backend = "mock"
-
-    def test_proxy_handler(self):
-        h = handlers.ProxyAuthHandler()
-        request = {}
-        token = h.handle_auth(
-            request, headers={}, remote_addr=None, remote_user="test_proxy_handler"
-        )
-        self.assertEqual(token.user, "test_proxy_handler")
 
     def test_standalone_bad_auth_type(self):
         h = handlers.StandaloneAuthHandler()

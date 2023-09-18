@@ -15,6 +15,15 @@ Fixed
 
 Added
 ~~~~~
+
+* Revised support for SSO backends + SAML2 included by default #5664
+
+  SAML backend on a separate repository, included as a dependecy , https://github.com/StackStorm/st2-auth-backend-sso-saml2
+
+  RBAC support also baked into SSO backends
+
+  Contributed by @pimguilherme
+  
 * Move `git clone` to `user_home/.st2packs` #5845
 
 * Error on `st2ctl status` when running in Kubernetes. #5851

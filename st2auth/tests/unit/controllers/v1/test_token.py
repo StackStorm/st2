@@ -26,6 +26,12 @@ import string
 import mock
 from oslo_config import cfg
 
+# NOTE: We need to perform monkeypatch before importing ssl module otherwise tests will fail.
+# See https://github.com/StackStorm/st2/pull/4834 for details
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 from tests.base import FunctionalTest
 from st2common.util import isotime
 from st2common.util import date as date_utils

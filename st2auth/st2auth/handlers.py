@@ -53,6 +53,39 @@ class AuthHandlerBase(object):
     ):
         raise NotImplementedError()
 
+    def sync_user_groups(self, extra, username, groups):
+
+        if groups is None:
+            LOG.debug("No groups to sync for user '%s'", username)
+            return
+
+        extra["username"] = username
+        extra["user_groups"] = groups
+
+        LOG.debug(
+            'Found "%s" groups for user "%s"' % (len(groups), username),
+            extra=extra,
+        )
+
+        user_db = UserDB(name=username)
+
+        rbac_backend = get_rbac_backend()
+        syncer = rbac_backend.get_remote_group_to_role_syncer()
+
+        try:
+            syncer.sync(user_db=user_db, groups=groups)
+        except Exception:
+            # Note: Failed sync is not fatal
+            LOG.exception(
+                'Failed to synchronize remote groups for user "%s"' % (username),
+                extra=extra,
+            )
+        else:
+            LOG.debug(
+                'Successfully synchronized groups for user "%s"' % (username),
+                extra=extra,
+            )
+
     def _create_token_for_user(self, username, ttl=None):
         tokendb = create_token(username=username, ttl=ttl)
         return TokenAPI.from_model(tokendb)
@@ -129,12 +162,21 @@ class ProxyAuthHandler(AuthHandlerBase):
     ):
         remote_addr = headers.get("x-forwarded-for", remote_addr)
         extra = {"remote_addr": remote_addr}
+        LOG.debug(
+            "Authenticating for proxy with request [%s]",
+            getattr(request, "__dict__", None) if request else None,
+        )
 
         if remote_user:
             ttl = getattr(request, "ttl", None)
             username = self._get_username_for_request(remote_user, request)
             try:
                 token = self._create_token_for_user(username=username, ttl=ttl)
+                groups = getattr(request, "groups", None)
+
+                if cfg.CONF.rbac.backend != "noop":
+                    self.sync_user_groups(extra, username, groups)
+
             except TTLTooLargeException as e:
                 abort_request(
                     status_code=http_client.BAD_REQUEST, message=six.text_type(e)
@@ -228,33 +270,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
                     # No groups, return early
                     return token
 
-                extra["username"] = username
-                extra["user_groups"] = user_groups
-
-                LOG.debug(
-                    'Found "%s" groups for user "%s"' % (len(user_groups), username),
-                    extra=extra,
-                )
-
-                user_db = UserDB(name=username)
-
-                rbac_backend = get_rbac_backend()
-                syncer = rbac_backend.get_remote_group_to_role_syncer()
-
-                try:
-                    syncer.sync(user_db=user_db, groups=user_groups)
-                except Exception:
-                    # Note: Failed sync is not fatal
-                    LOG.exception(
-                        'Failed to synchronize remote groups for user "%s"'
-                        % (username),
-                        extra=extra,
-                    )
-                else:
-                    LOG.debug(
-                        'Successfully synchronized groups for user "%s"' % (username),
-                        extra=extra,
-                    )
+                self.sync_user_groups(extra, username, user_groups)
 
                 return token
             return token
