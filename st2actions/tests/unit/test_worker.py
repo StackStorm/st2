@@ -20,6 +20,7 @@ import mock
 import os
 from oslo_config import cfg
 import tempfile
+from tooz.drivers.redis import RedisDriver
 
 import st2actions.worker as actions_worker
 from st2common.constants import action as action_constants
@@ -169,7 +170,7 @@ class WorkerTestCase(DbTestCase):
         runner_thread.wait()
 
     @mock.patch.object(
-        coordination.NoOpDriver,
+        RedisDriver,
         "get_members",
         mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
     )
@@ -177,6 +178,8 @@ class WorkerTestCase(DbTestCase):
         cfg.CONF.set_override(
             name="graceful_shutdown", override=True, group="actionrunner"
         )
+        # make sure coordinator is started
+        coordination.get_coordinator()
         action_worker = actions_worker.get_worker()
         temp_file = None
 
@@ -205,7 +208,7 @@ class WorkerTestCase(DbTestCase):
                     break
 
             self.assertEqual(len(action_worker._running_liveactions), 1)
-
+            eventlet.sleep(1)  # give coordinator a bit
             # Shutdown the worker to trigger the abandon process.
             shutdown_thread = eventlet.spawn(action_worker.shutdown)
 
@@ -296,7 +299,7 @@ class WorkerTestCase(DbTestCase):
         shutdown_thread.kill()
 
     @mock.patch.object(
-        coordination.NoOpDriver,
+        RedisDriver,
         "get_members",
         mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
     )

@@ -59,6 +59,8 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_VERSION ?= 20.3.3
 SETUPTOOLS_VERSION ?= 51.3.3
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
+GITLAB_TOKEN_K := $(GITLAB_TOKEN_K)
+GITLAB_TOKEN_U := $(GITLAB_TOKEN_U)
 
 ifndef PYLINT_CONCURRENCY
 	PYLINT_CONCURRENCY := 1
@@ -682,8 +684,22 @@ distclean: clean
 
 	@echo "==========================================================="
 
+.PHONY: sedrequirements
+sedrequirements:
+	@echo
+	@echo "==================== sedrequirements ===================="
+	@echo
+	sed -i "s/GITLAB_TOKEN_USER/$(GITLAB_TOKEN_U)/g" ./st2common/in-requirements.txt
+	sed -i "s/GITLAB_TOKEN_USER/$(GITLAB_TOKEN_U)/g" ./st2actions/in-requirements.txt
+	sed -i "s/GITLAB_TOKEN_USER/$(GITLAB_TOKEN_U)/g" ./st2auth/in-requirements.txt
+	sed -i "s/GITLAB_TOKEN_USER/$(GITLAB_TOKEN_U)/g" requirements.txt
+	sed -i "s/GITLAB_TOKEN_KEY/$(GITLAB_TOKEN_K)/g" ./st2common/in-requirements.txt
+	sed -i "s/GITLAB_TOKEN_KEY/$(GITLAB_TOKEN_K)/g" ./st2actions/in-requirements.txt
+	sed -i "s/GITLAB_TOKEN_KEY/$(GITLAB_TOKEN_K)/g" ./st2auth/in-requirements.txt
+	sed -i "s/GITLAB_TOKEN_KEY/$(GITLAB_TOKEN_K)/g" requirements.txt
+
 .PHONY: requirements
-requirements: virtualenv .requirements .sdist-requirements install-runners install-mock-runners
+requirements: virtualenv sedrequirements .requirements .sdist-requirements install-runners install-mock-runners
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
@@ -822,7 +838,7 @@ unit-tests: requirements .unit-tests
 #	. $(VIRTUALENV_DIR)/bin/activate; \
 #		    nosetests $(NOSE_OPTS) -s -v \
 #		    st2actions/tests/unit/test_worker.py:WorkerTestCase.test_worker_graceful_shutdown_with_multiple_runners || exit 1; 
-
+#
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \

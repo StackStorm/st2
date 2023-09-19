@@ -141,6 +141,7 @@ class ActionExecutionDispatcher(MessageHandler):
         super(ActionExecutionDispatcher, self).shutdown()
 
         if cfg.CONF.actionrunner.graceful_shutdown:
+            LOG.info("graceful shutdown")
 
             coordinator = coordination.get_coordinator()
             member_ids = []

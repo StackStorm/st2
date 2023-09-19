@@ -24,7 +24,7 @@ unittests:
     FF_NETWORK_PER_BUILD: 1
     ST2_OVERRIDE_HOST: mymongo
     # tests actually expect coordinator to be off
-    #ST2_OVERRIDE_COORD: redis
+    ST2_OVERRIDE_COORD: redis
     ST2_DB_CONNECTION_TIMEOUT: 60000 # milliseconds
     ST2_MESSAGING_HOST: rabbitmq
     DOCKER_DRIVER: overlay2 
@@ -51,7 +51,6 @@ unittests:
   script:
     - export ST2_OVERRIDE_HOST=$(dig +short mymongo | head -n1)
     - echo $ST2_OVERRIDE_HOST
-    - bash ./tools/sed-requirements.sh
     - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make unit-tests
 
   rules:
