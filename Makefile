@@ -846,7 +846,7 @@ endif
 	@echo "==================== unit tests with coverage  ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongo mymongo/st2-test --eval "db.dropDatabase();"
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -903,7 +903,7 @@ itests: requirements .itests
 	@echo "==================== integration tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongo mymongo/st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
@@ -925,7 +925,7 @@ endif
 	@echo "================ integration tests with coverage ================"
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongo mymongo/st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
@@ -1077,7 +1077,7 @@ runners-tests: requirements .runners-tests
 	@echo "==================== runners-tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongo mymongo/st2-test --eval "db.dropDatabase();"
 	@for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
