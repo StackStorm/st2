@@ -51,6 +51,8 @@ unittests:
   script:
     - export ST2_OVERRIDE_HOST=$(dig +short mymongo | head -n1)
     - echo $ST2_OVERRIDE_HOST
+    - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make runners-tests
+    - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make packs-tests
     - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make unit-tests
 
   rules:
