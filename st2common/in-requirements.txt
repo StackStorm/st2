@@ -14,8 +14,8 @@ mongoengine
 networkx
 # used by networkx
 decorator
-orquesta@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/orquesta.git@nocopy
-st2-rbac-backend@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/st2-rbac-backend.git@master
+orquesta
+st2-rbac-backend
 oslo.config
 paramiko
 pyyaml
