@@ -29,7 +29,7 @@ jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==5.0.2
 lockfile==0.12.2
-logshipper@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/logshipper.git@v1.0.0
+logshipper
 mock==4.0.3
 mongoengine==0.23.0
 networkx>=2.5.1,<2.6
@@ -37,7 +37,7 @@ nose
 nose-parallel==0.4.0
 nose-timer==1.0.1
 orjson==3.5.2
-orquesta@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/orquesta.git@nocopy
+orquesta
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 paramiko==2.10.1
@@ -67,9 +67,9 @@ semver==2.13.0
 simplejson
 six==1.13.0
 sseclient-py==1.7
-st2-auth-backend-flat-file@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/st2-auth-backend-flat-file.git@master
-st2-auth-ldap@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/st2-auth-ldap.git@master
-st2-rbac-backend@ git+https://GITLAB_TOKEN_USER:GITLAB_TOKEN_KEY@gitlab.ifp.lmco.com/orchestration/stackstorm/st2-rbac-backend.git@master
+st2-auth-backend-flat-file
+st2-auth-ldap
+st2-rbac-backend
 stevedore==1.30.1
 tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
