@@ -8,7 +8,6 @@ checks:
   before_script:
     - yum --enablerepo epel install -y ShellCheck 
   script:
-    - bash ./tools/sed-requirements.sh
     - make requirements
     - make ci-checks
   rules:
