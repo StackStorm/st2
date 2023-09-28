@@ -15,6 +15,7 @@ Fixed
 
 Added
 ~~~~~
+
 * Move `git clone` to `user_home/.st2packs` #5845
 
 * Error on `st2ctl status` when running in Kubernetes. #5851
@@ -36,6 +37,11 @@ Added
 
 * Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
   Contributed by @maxfactor1
+
+Changed
+~~~~~~~
+* Remove `distutils` dependencies across the project. #5992
+  Contributed by @AndroxxTraxxon
 
 3.8.0 - November 18, 2022
 -------------------------
