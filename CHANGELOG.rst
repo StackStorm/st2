@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* Bumped `pyyaml` to `6.0.1` and `orjson` to `3.9.7`
+  Contributed by @mamercad
+
 Fixed
 ~~~~~
 
