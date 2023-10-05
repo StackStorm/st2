@@ -13,6 +13,8 @@ Fixed
 * Bumped `paramiko` to `2.10.5` to fix an issue with SSH Certs - https://github.com/paramiko/paramiko/issues/2017
   Contributed by @jk464
 
+* Avoid logging sensitive information in debug (fix #5977)
+
 Added
 ~~~~~
 
