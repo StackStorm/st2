@@ -45,6 +45,7 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.constants.action import (
     LIVEACTION_COMPLETED_STATES,
     LIVEACTION_STATUS_PAUSED,
+    LIVEACTION_STATUS_PENDING
 )
 
 # NOTE: To avoid unnecessary mongoengine object churn when retrieving only object ids (aka to avoid
@@ -68,21 +69,24 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
     res_count = ActionExecutionDB.objects(
         __raw__={
             "status": {
-                "$in": LIVEACTION_COMPLETED_STATES + [LIVEACTION_STATUS_PAUSED],
+                "$in": LIVEACTION_COMPLETED_STATES + [LIVEACTION_STATUS_PAUSED, LIVEACTION_STATUS_PENDING],
             },
         },
         start_timestamp__gte=start_dt,
         start_timestamp__lte=end_dt,
     ).as_pymongo()
     for item in res_count:
-        ActionExecutionDB.objects(__raw__={"_id": item["_id"]}).update(
-            __raw__={"$set": {"liveaction_id": item["liveaction"]["id"]}}
-        )
+        try:
+            ActionExecutionDB.objects(__raw__={"_id": item["_id"]}).update(
+                __raw__={"$set": {"liveaction_id": item["liveaction"]["id"]}}
+            )
+        except KeyError as e:
+            pass
 
     ActionExecutionDB.objects(
         __raw__={
             "status": {
-                "$in": LIVEACTION_COMPLETED_STATES + [LIVEACTION_STATUS_PAUSED],
+                "$in": LIVEACTION_COMPLETED_STATES + [LIVEACTION_STATUS_PAUSED, LIVEACTION_STATUS_PENDING],
             },
         },
         start_timestamp__gte=start_dt,
