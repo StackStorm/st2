@@ -408,7 +408,7 @@
     }
   ],
   "path_mappings": {},
-  "pex_version": "2.1.126",
+  "pex_version": "2.1.131",
   "pip_version": "20.3.4-patched",
   "prefer_older_binary": false,
   "requirements": [

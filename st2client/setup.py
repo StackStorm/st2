@@ -18,13 +18,10 @@ import os.path
 
 from setuptools import setup, find_packages
 
-from dist_utils import check_pip_version
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
 
 from st2client import __version__
-
-check_pip_version()
 
 ST2_COMPONENT = "st2client"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

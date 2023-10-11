@@ -16,7 +16,6 @@
 import os
 import sys
 
-import six
 import mock
 import unittest2
 
@@ -26,8 +25,6 @@ SCRIPTS_PATH = os.path.join(BASE_DIR, "../../../scripts/")
 # Add scripts/ which contain main dist_utils.py to PYTHONPATH
 sys.path.insert(0, SCRIPTS_PATH)
 
-from dist_utils import check_pip_is_installed
-from dist_utils import check_pip_version
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
 from dist_utils import get_version_string
@@ -50,39 +47,6 @@ class DistUtilsTestCase(unittest2.TestCase):
 
     def tearDown(self):
         super(DistUtilsTestCase, self).tearDown()
-
-    def test_check_pip_is_installed_success(self):
-        self.assertTrue(check_pip_is_installed())
-
-    @mock.patch("sys.exit")
-    def test_check_pip_is_installed_failure(self, mock_sys_exit):
-        if six.PY3:
-            module_name = "builtins.__import__"
-        else:
-            module_name = "__builtin__.__import__"
-
-        with mock.patch(module_name) as mock_import:
-            mock_import.side_effect = ImportError("not found")
-
-            self.assertEqual(mock_sys_exit.call_count, 0)
-            check_pip_is_installed()
-            self.assertEqual(mock_sys_exit.call_count, 1)
-            self.assertEqual(mock_sys_exit.call_args_list[0][0], (1,))
-
-    def test_check_pip_version_success(self):
-        self.assertTrue(check_pip_version())
-
-    @mock.patch("sys.exit")
-    def test_check_pip_version_failure(self, mock_sys_exit):
-
-        mock_pip = mock.Mock()
-        mock_pip.__version__ = "0.0.0"
-        sys.modules["pip"] = mock_pip
-
-        self.assertEqual(mock_sys_exit.call_count, 0)
-        check_pip_version()
-        self.assertEqual(mock_sys_exit.call_count, 1)
-        self.assertEqual(mock_sys_exit.call_args_list[0][0], (1,))
 
     def test_get_version_string(self):
         version = get_version_string(VERSION_FILE_PATH)

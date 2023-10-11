@@ -25,3 +25,4 @@ requests[security]==2.25.1
 six==1.13.0
 sseclient-py==1.7
 typing-extensions<4.2
+zipp<3.16.0
