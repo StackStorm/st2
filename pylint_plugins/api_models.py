@@ -147,11 +147,22 @@ def transform(cls: nodes.ClassDef):
                 if (
                     isinstance(target, nodes.Subscript)
                     and target.value.value.name == "schema"
-                    and target.value.slice.value.value == "properties"
                 ):
-                    property_name_node = target.slice.value
+                    if (
+                        isinstance(target.value.slice.value, nodes.Const)
+                        and target.value.slice.value.value == "properties"
+                    ):
+                        property_name_node = target.slice.value
+                    elif (
+                        isinstance(target.value.slice, nodes.Const)
+                        and target.value.slice.value == "properties"
+                    ):
+                        property_name_node = target.slice
+                    else:
+                        # not schema["properties"]
+                        continue
                 else:
-                    # not schema["properties"]
+                    # not schema[...]
                     continue
             except AttributeError:
                 continue
