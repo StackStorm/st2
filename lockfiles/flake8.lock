@@ -6,8 +6,7 @@
 // {
 //   "version": 3,
 //   "valid_for_interpreter_constraints": [
-//     "CPython<3.10,>=3.7",
-//     "CPython<3.9,>=3.6"
+//     "CPython<3.10,>=3.6"
 //   ],
 //   "generated_with_requirements": [
 //     "flake8==4.0.1",
@@ -131,7 +130,7 @@
             "zipp>=0.5"
           ],
           "requires_python": ">=3.6",
-          "version": "4.2"
+          "version": "4.2.0"
         },
         {
           "artifacts": [
@@ -167,7 +166,7 @@
           "project_name": "pycodestyle",
           "requires_dists": [],
           "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7",
-          "version": "2.8"
+          "version": "2.8.0"
         },
         {
           "artifacts": [
@@ -185,7 +184,7 @@
           "project_name": "pyflakes",
           "requires_dists": [],
           "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7",
-          "version": "2.4"
+          "version": "2.4.0"
         },
         {
           "artifacts": [
@@ -230,7 +229,7 @@
             "wheel; extra == \"testing\""
           ],
           "requires_python": ">=3.6",
-          "version": "59.6"
+          "version": "59.6.0"
         },
         {
           "artifacts": [
@@ -251,7 +250,7 @@
             "flake8-polyfill==1.0.2"
           ],
           "requires_python": null,
-          "version": "0.1"
+          "version": "0.1.0"
         },
         {
           "artifacts": [
@@ -300,14 +299,14 @@
             "sphinx; extra == \"docs\""
           ],
           "requires_python": ">=3.6",
-          "version": "3.6"
+          "version": "3.6.0"
         }
       ],
       "platform_tag": null
     }
   ],
   "path_mappings": {},
-  "pex_version": "2.1.108",
+  "pex_version": "2.1.131",
   "pip_version": "20.3.4-patched",
   "prefer_older_binary": false,
   "requirements": [
@@ -315,8 +314,7 @@
     "st2flake8==0.1.0"
   ],
   "requires_python": [
-    "<3.10,>=3.7",
-    "<3.9,>=3.6"
+    "<3.10,>=3.6"
   ],
   "resolver_version": "pip-2020-resolver",
   "style": "universal",

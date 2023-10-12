@@ -4,8 +4,20 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix CI usses #6015
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Bumped `paramiko` to `2.10.5` to fix an issue with SSH Certs - https://github.com/paramiko/paramiko/issues/2017
+  Contributed by @jk464
+
+* Avoid logging sensitive information in debug (fix #5977)
+
 Added
 ~~~~~
+
 * Move `git clone` to `user_home/.st2packs` #5845
 
 * Error on `st2ctl status` when running in Kubernetes. #5851
@@ -17,7 +29,7 @@ Added
   #5778 #5789 #5817 #5795 #5830 #5833 #5834 #5841 #5840 #5838 #5842 #5837 #5849 #5850
   #5846 #5853 #5848 #5847 #5858 #5857 #5860 #5868 #5871 #5864 #5874 #5884 #5893 #5891
   #5890 #5898 #5901 #5906 #5899 #5907 #5909 #5922 #5926 #5927 #5925 #5928 #5929 #5930
-  #5931 #5932
+  #5931 #5932 #5948 #5949 #5950
   Contributed by @cognifloyd
 
 * Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
@@ -28,6 +40,10 @@ Added
 * Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
   Contributed by @maxfactor1
 
+Changed
+~~~~~~~
+* Remove `distutils` dependencies across the project. #5992
+  Contributed by @AndroxxTraxxon
 
 3.8.0 - November 18, 2022
 -------------------------

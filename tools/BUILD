@@ -12,8 +12,8 @@ python_requirement(
 
 python_sources(
     overrides={
-        "config_gen.py": {
-            "dependencies": [
+        "config_gen.py": dict(
+            dependencies=[
                 # the auth backends get listed in the conf file
                 "//:auth_backends",
                 # We are using string import detection to gather the imports
@@ -21,7 +21,7 @@ python_sources(
                 # helpful in validating that dependencies include everything:
                 # grep -rl '^def register_opts(ignore_errors=False):' st2*
             ]
-        },
+        ),
     },
 )
 
