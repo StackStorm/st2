@@ -40,6 +40,9 @@ Added
 * Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
   Contributed by @maxfactor1
 
+* Python 3.9 support. #5730
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
 Changed
 ~~~~~~~
 * Remove `distutils` dependencies across the project. #5992
