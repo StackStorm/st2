@@ -6,7 +6,7 @@
 // {
 //   "version": 3,
 //   "valid_for_interpreter_constraints": [
-//     "CPython<3.9,>=3.6"
+//     "CPython<3.10,>=3.6"
 //   ],
 //   "generated_with_requirements": [
 //     "PyYAML",
@@ -5089,7 +5089,7 @@
     "zstandard"
   ],
   "requires_python": [
-    "<3.9,>=3.6"
+    "<3.10,>=3.6"
   ],
   "resolver_version": "pip-2020-resolver",
   "style": "universal",
