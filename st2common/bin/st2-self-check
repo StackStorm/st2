@@ -29,7 +29,7 @@ function usage() {
 RUN_ORQUESTA_TESTS=true
 RUN_WINDOWS_TESTS=false
 ST2_TESTS_BRANCH="master"
-TESTS_TO_SKIP_IN_GHA="${TESTS_TO_SKIP_IN_GHA:-}"
+TESTS_TO_SKIP="${TESTS_TO_SKIP:-}"
 
 while getopts "b:wo" o
 do
@@ -142,7 +142,7 @@ do
         continue
     fi
 
-    if [[ -n "${GITHUB_ACTIONS}" && " ${TESTS_TO_SKIP_IN_GHA} " =~ " ${TEST} " ]]; then
+    if [[ -n "${GITHUB_ACTIONS}" && " ${TESTS_TO_SKIP} " =~ " ${TEST} " ]]; then
         echo "Skipping ${TEST}..."
         continue
     fi

@@ -188,7 +188,7 @@ jobs:
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
       # Space separated list of tests to be skipped if the self-check is running in GitHub Actions
-      TESTS_TO_SKIP_IN_GHA: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
+      TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2

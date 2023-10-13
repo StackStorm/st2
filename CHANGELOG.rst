@@ -15,6 +15,9 @@ Fixed
 
 * Avoid logging sensitive information in debug (fix #5977)
 
+* Run the st2 self-check in Github Actions and support the environment variable `TESTS_TO_SKIP` to skip tests when running st2-self-check . #5609
+  Contributed by @winem
+
 Added
 ~~~~~
 
