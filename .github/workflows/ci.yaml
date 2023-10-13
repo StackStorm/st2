@@ -28,7 +28,7 @@ jobs:
   # same file set which has already passed, etc.
   pre_job:
     name: Skip Duplicate Jobs Pre Job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -45,7 +45,7 @@ jobs:
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -70,11 +70,19 @@ jobs:
             task: 'ci-compile'
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Lint Checks (black, flake8, etc.)'
+            task: 'ci-checks'
+            python-version-short: '3.9'
+            python-version: '3.9.14'
+          - name: 'Compile (pip deps, pylint, etc.)'
+            task: 'ci-compile'
+            python-version-short: '3.9'
+            python-version: '3.9.14'
 
     env:
       TASK: '${{ matrix.task }}'
       COLUMNS: '120'
-      PYLINT_CONCURRENCY: '4'
+      PYLINT_CONCURRENCY: '6'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -300,7 +308,7 @@ jobs:
     # NB: disabled. See TODO above pre_job
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -331,6 +339,18 @@ jobs:
             nosetests_node_index: 1
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Unit Tests (chunk 1)'
+            task: 'ci-unit'
+            nosetests_node_total: 2
+            nosetests_node_index: 0
+            python-version-short: '3.9'
+            python-version: '3.9.14'
+          - name: 'Unit Tests (chunk 2)'
+            task: 'ci-unit'
+            nosetests_node_total: 2
+            nosetests_node_index: 1
+            python-version-short: '3.9'
+            python-version: '3.9.14'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
@@ -471,7 +491,7 @@ jobs:
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -516,6 +536,24 @@ jobs:
             nosetests_node_index: 1
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.9'
+            python-version: '3.9.14'
+          - name: 'Integration Tests (chunk 1)'
+            task: 'ci-integration'
+            nosetests_node_total: 2
+            nosetests_node_index: 0
+            python-version-short: '3.9'
+            python-version: '3.9.14'
+          - name: 'Integration Tests (chunk 2)'
+            task: 'ci-integration'
+            nosetests_node_total: 2
+            nosetests_node_index: 1
+            python-version-short: '3.9'
+            python-version: '3.9.14'
     services:
       mongo:
         image: mongo:4.4
@@ -705,7 +743,7 @@ jobs:
       - lint-checks
       - unit-tests
       - integration-tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Workflow conclusion
         # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs

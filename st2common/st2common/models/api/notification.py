@@ -16,6 +16,8 @@
 from __future__ import absolute_import
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 
+
+# NOTE: Update pylint_plugins/fixtures/api_models.py if this changes significantly
 NotificationSubSchemaAPI = {
     "type": "object",
     "properties": {

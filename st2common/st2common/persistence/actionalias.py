@@ -14,13 +14,24 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+from st2common import transport
 from st2common.models.db.actionalias import actionalias_access
-from st2common.persistence import base as persistence
+from st2common.persistence.base import Access
+
+__all__ = [
+    "ActionAlias",
+]
 
 
-class ActionAlias(persistence.Access):
+class ActionAlias(Access):
     impl = actionalias_access
 
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.actionalias.ActionAliasPublisher()
+        return cls.publisher

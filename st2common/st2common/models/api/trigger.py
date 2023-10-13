@@ -26,6 +26,7 @@ from st2common.models.system.common import ResourceReference
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
 
+# NOTE: Update pylint_plugins/fixtures/api_models.py if this changes significantly
 class TriggerTypeAPI(BaseAPI):
     model = TriggerTypeDB
     schema = {

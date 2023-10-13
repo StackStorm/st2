@@ -43,7 +43,7 @@ if not hasattr(cfg.CONF, "metrics"):
 
 LOG = logging.getLogger(__name__)
 
-PLUGIN_NAMESPACE = "st2common.metrics.driver"
+PLUGIN_NAMESPACE = "st2common.metrics.driver"  # pants: no-infer-dep
 
 # Stores reference to the metrics driver class instance.
 # NOTE: This value is populated lazily on the first get_driver() function call

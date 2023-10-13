@@ -1,0 +1,71 @@
+# This BUILD file has requirements for most of the tools resolves
+
+python_requirement(
+    name="bandit-reqs",
+    resolve="bandit",
+    requirements=[
+        "bandit==1.7.0",
+        "setuptools",
+        "GitPython==3.1.18",
+        # bandit needs stevedore which needs importlib-metadata<5
+        # see: https://github.com/PyCQA/bandit/pull/952
+        "importlib-metadata<5;python_version<'3.8'",
+    ],
+)
+
+python_requirement(
+    name="black-reqs",
+    resolve="black",
+    requirements=[
+        "black==22.3.0",
+        "typing-extensions>=3.10.0.0;python_version<'3.10'",
+    ],
+)
+
+python_requirement(
+    name="flake8-reqs",
+    resolve="flake8",
+    requirements=[
+        "flake8==4.0.1",  # st2flake8 does not support flake8 v5
+        # license check plugin
+        "st2flake8==0.1.0",  # TODO: remove in favor of regex-lint or preamble
+    ],
+)
+
+# for pants-plugins, see //pants-plugins/BUILD
+# for pylint, see //pylint_plugins/BUILD
+
+python_requirement(
+    name="pytest-reqs",
+    resolve="pytest",
+    requirements=[
+        "pytest==7.0.1",  # copied from https://www.pantsbuild.org/v2.14/docs/reference-pytest#version
+        "pytest-benchmark[histogram]==3.4.1",
+        # "pytest-timer[colorama]",
+        "pytest-icdiff",
+        "pygments",
+        # "pytest-timeout",
+        # "pytest-mock",
+        "pytest-cov>=2.12,!=2.12.1,<3.1",
+        "pytest-xdist>=2.5,<3",
+    ],
+)
+
+python_requirement(
+    name="setuptools-reqs",
+    resolve="setuptools",
+    requirements=[
+        # setuptools 59.7 (at least) does not support python 3.6
+        "setuptools>=50.3.0,<59.0",
+        "wheel>=0.35.1,<0.38",
+    ],
+)
+
+python_requirement(
+    name="twine-reqs",
+    resolve="twine",
+    requirements=[
+        "twine>=3.7.1,<3.8",
+        "colorama>=0.4.3",
+    ],
+)

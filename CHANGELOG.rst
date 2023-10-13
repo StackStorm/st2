@@ -4,15 +4,49 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+* Fix CI usses #6015
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Bumped `paramiko` to `2.10.5` to fix an issue with SSH Certs - https://github.com/paramiko/paramiko/issues/2017
+  Contributed by @jk464
+
+* Avoid logging sensitive information in debug (fix #5977)
+
 Added
 ~~~~~
+
+* Move `git clone` to `user_home/.st2packs` #5845
+
+* Error on `st2ctl status` when running in Kubernetes. #5851
+  Contributed by @mamercad
 
 * Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
   to pants' use of PEX lockfiles. This is not a user-facing addition.
-  #5778 #5789
+  #5778 #5789 #5817 #5795 #5830 #5833 #5834 #5841 #5840 #5838 #5842 #5837 #5849 #5850
+  #5846 #5853 #5848 #5847 #5858 #5857 #5860 #5868 #5871 #5864 #5874 #5884 #5893 #5891
+  #5890 #5898 #5901 #5906 #5899 #5907 #5909 #5922 #5926 #5927 #5925 #5928 #5929 #5930
+  #5931 #5932 #5948 #5949 #5950
   Contributed by @cognifloyd
 
+* Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
+
+* Added publisher to ActionAlias to enable streaming ActionAlias create/update/delete events. #5763
+  Contributed by @ubaumann
+
+* Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
+  Contributed by @maxfactor1
+
+* Python 3.9 support. #5730
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+Changed
+~~~~~~~
+* Remove `distutils` dependencies across the project. #5992
+  Contributed by @AndroxxTraxxon
 
 3.8.0 - November 18, 2022
 -------------------------
@@ -77,6 +111,10 @@ Added
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
   to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725 #5732 #5733 #5737 #5738 #5758 #5751 #5774 #5776 #5777 #5782
   Contributed by @cognifloyd
+
+* Added querytype parameter to linux.dig action to allow specifying the dig 'type' parameter. Fixes #5772
+
+  Contributed by @AmbiguousYeoman
 
 Changed
 ~~~~~~~
