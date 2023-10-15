@@ -261,3 +261,76 @@ class ActionRunCommandTest(unittest2.TestCase):
 
         # set auto_dict back to default
         mockarg.auto_dict = False
+
+    def test_correctly_process_inherit_env_when_no_parameters_set(self):
+        """test_correctly_process_inherit_env_when_no_parameters_set
+
+        This tests that we still correctly pass through the environment variables
+        when --inherit-env is set and we run a job that does not have parameters
+        """
+
+        runner = RunnerType()
+        runner.runner_parameters = {}
+
+        action = Action()
+        action.ref = "test.action"
+
+        subparser = mock.Mock()
+        command = ActionRunCommand(action, self, subparser, name="test")
+
+        mockarg = mock.Mock()
+        mockarg.inherit_env = True
+        mockarg.auto_dict = True
+        mockarg.parameters = []
+
+        k1 = "key1"
+        v1 = "value1"
+        k2 = "key2"
+        v2 = "value2"
+
+        with mock.patch("os.environ.copy") as mockCopy:
+            mockCopy.return_value = {k1: v1, k2: v2}
+            param = command._get_action_parameters_from_args(
+                action=action, runner=runner, args=mockarg
+            )
+
+        self.assertIn("env", param, "did not correctly populate the env field in the returned data from _get_action_parameters_from_args")
+
+        env_params = param["env"]
+        self.assertIn(k1, env_params, f"did not correctly copy {k1} env variable into the parameters")
+        self.assertIn(k2, env_params, f"did not correctly copy {k2} env variable into the parameters")
+        self.assertEqual(v1, env_params[k1], f"did not correctly copy the value for {k1} env variable, {v1}, into the parameters")
+        self.assertEqual(v2, env_params[k2], f"did not correctly copy the value for {k2} env variable, {v2}, into the parameters")
+
+    def test_correctly_generate_empty_params_no_inherit_empty_parameters(self):
+        """test_correctly_generate_empty_params_no_inherit_empty_parameters
+
+        Verifies that we return an empty dict when we do not provide inherit env and parameters
+        """
+
+        runner = RunnerType()
+        runner.runner_parameters = {}
+
+        action = Action()
+        action.ref = "test.action"
+
+        subparser = mock.Mock()
+        command = ActionRunCommand(action, self, subparser, name="test")
+
+        mockarg = mock.Mock()
+        mockarg.inherit_env = False
+        mockarg.auto_dict = True
+        mockarg.parameters = []
+
+        k1 = "key1"
+        v1 = "value1"
+        k2 = "key2"
+        v2 = "value2"
+
+        with mock.patch("os.environ.copy") as mockCopy:
+            mockCopy.return_value = {k1: v1, k2: v2}
+            param = command._get_action_parameters_from_args(
+                action=action, runner=runner, args=mockarg
+            )
+
+        self.assertDictEqual({}, param, "should return an empty dictionary")

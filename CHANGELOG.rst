@@ -20,6 +20,8 @@ Fixed
 
 * Fix codecov stackstorm/st2 (https://github.com/StackStorm/st2/issues/6035)
 
+* Fix #4676, edge case where --inherit-env is skipped if the action has no parameters
+
 Added
 ~~~~~
 
