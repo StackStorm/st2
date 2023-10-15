@@ -294,13 +294,13 @@ class ActionRunCommandTest(unittest2.TestCase):
                 action=action, runner=runner, args=mockarg
             )
 
-        self.assertIn("env", param, "did not correctly populate the env field in the returned data from _get_action_parameters_from_args")
+        self.assertIn("env", param)
 
         env_params = param["env"]
-        self.assertIn(k1, env_params, f"did not correctly copy {k1} env variable into the parameters")
-        self.assertIn(k2, env_params, f"did not correctly copy {k2} env variable into the parameters")
-        self.assertEqual(v1, env_params[k1], f"did not correctly copy the value for {k1} env variable, {v1}, into the parameters")
-        self.assertEqual(v2, env_params[k2], f"did not correctly copy the value for {k2} env variable, {v2}, into the parameters")
+        self.assertIn(k1, env_params)
+        self.assertIn(k2, env_params)
+        self.assertEqual(v1, env_params[k1])
+        self.assertEqual(v2, env_params[k2])
 
     def test_correctly_generate_empty_params_no_inherit_empty_parameters(self):
         """test_correctly_generate_empty_params_no_inherit_empty_parameters
@@ -333,4 +333,4 @@ class ActionRunCommandTest(unittest2.TestCase):
                 action=action, runner=runner, args=mockarg
             )
 
-        self.assertDictEqual({}, param, "should return an empty dictionary")
+        self.assertDictEqual({}, param)
