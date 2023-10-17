@@ -1,5 +1,4 @@
-# NOTE: codecov only supports coverage==4.5.2
-coverage==4.5.2
+coverage
 pep8==1.7.1
 st2flake8==0.1.0
 astroid==2.5.6
