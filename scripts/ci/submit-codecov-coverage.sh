@@ -18,8 +18,9 @@
 # has already checked that the build has succeeded.
 # If we're on Travis, then we need to manually check that the build succeeded.
 if [[ "${USER}" == "runner" || ${TRAVIS_TEST_RESULT} -eq 0 ]]; then
-    pip install codecov-cli
-    codecovcli upload-process
+    pip install -U pip
+    pip install codecov-cli>=0.3.2
+    codecovcli upload-process --git-service
     exit $?
 else
     echo "Build has failed, not submitting coverage"
