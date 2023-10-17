@@ -14,7 +14,7 @@ echo "IS_NIGHTLY_BUILD=${IS_NIGHTLY_BUILD}" >> ${GITHUB_ENV}
 # since it has huge performance overhead (tests are 50% or so slower)
 ENABLE_COVERAGE=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
 # shellcheck disable=SC2086
-echo "ENABLE_COVERAGE=${ENABLE_COVERAGE}" >> ${GITHUB_ENV}
+echo "ENABLE_COVERAGE=yes" >> ${GITHUB_ENV}
 
 # We only run tests with "--with-timer" flag on master and not for PRs since it adds 1-2
 # minutes of overhead to each build.
