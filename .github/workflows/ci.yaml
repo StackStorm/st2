@@ -146,9 +146,6 @@ jobs:
 
   self-check:
     needs: pre_job
-    # NOTE: We always want to run job on master since we run some additional checks there (code
-    # coverage, etc)
-    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-20.04
     strategy:
