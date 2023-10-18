@@ -15,6 +15,9 @@ Fixed
 
 * Avoid logging sensitive information in debug (fix #5977)
 
+* Shells via `pywinrm` are initialized with the 65001 codepage to ensure raw string responses are UTF-8 (fix #6034)
+  Contributed by @stealthii
+
 Added
 ~~~~~
 

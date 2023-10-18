@@ -193,11 +193,18 @@ class WinRmBaseRunner(ActionRunner):
         return b"".join(stdout_buffer), b"".join(stderr_buffer), return_code
 
     def _winrm_run_cmd(self, session, command, args=(), env=None, cwd=None):
-        # NOTE: this is copied from pywinrm because it doesn't support
-        # passing env and working_directory from the Session.run_cmd.
-        # It also doesn't support timeouts. All of these things have been
-        # added
-        shell_id = session.protocol.open_shell(env_vars=env, working_directory=cwd)
+        """Run a command on the remote host and return the standard output and
+        error as a tuple.
+
+        Extended from pywinrm to support passing env and cwd to open_shell,
+        as well as enforcing the UTF-8 codepage. Also supports timeouts.
+
+        """
+        shell_id = session.protocol.open_shell(
+            working_directory=cwd,
+            env_vars=env,
+            codepage=65001,
+        )
         command_id = session.protocol.run_command(shell_id, command, args)
         # try/catch is for custom timeout handing (StackStorm custom)
         try:
