@@ -15,12 +15,12 @@
 # limitations under the License.
 
 COMPONENTS="st2actionrunner st2api st2stream st2auth st2garbagecollector st2notifier st2rulesengine st2sensorcontainer st2chatops st2timersengine st2workflowengine st2scheduler"
-ST2_CONF="/etc/st2/st2.conf"
+ST2_CONF="${ST2_CONF:-/etc/st2/st2.conf}"
 SYSTEMD_RELOADED=""
 
-# Ensure global environment is sourced if exists
+# Ensure global environment is sourced if exists and if not executed in the context of Github Actions
 # Does not happen consistently with all OSes we support.
-[ -r /etc/environment ] && source /etc/environment
+[ -z "${GITHUB_ACTIONS}" ] && [ -r /etc/environment ] && source /etc/environment
 
 # load in environment to allow override of COMPONENTS and ST2_CONF above
 # Ubuntu/Debian

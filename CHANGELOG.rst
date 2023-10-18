@@ -43,6 +43,10 @@ Added
 * Python 3.9 support. #5730
   Contributed by Amanda McGuinness (@amanda11 intive)
 
+* Run the st2 self-check in Github Actions and support the environment variable `TESTS_TO_SKIP` to skip tests when running st2-self-check. #5609
+
+  Contributed by @winem
+
 Changed
 ~~~~~~~
 * Remove `distutils` dependencies across the project. #5992
