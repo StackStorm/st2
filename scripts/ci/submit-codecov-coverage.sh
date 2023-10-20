@@ -20,7 +20,7 @@
 if [[ "${USER}" == "runner" || ${TRAVIS_TEST_RESULT} -eq 0 ]]; then
     pip install -U pip
     pip install codecov-cli>=0.3.2
-    codecovcli upload-process -t ${CODECOV_TOKEN}
+    codecovcli upload-process -t "${CODECOV_TOKEN}"
     exit $?
 else
     echo "Build has failed, not submitting coverage"
