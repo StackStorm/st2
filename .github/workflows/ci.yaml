@@ -718,7 +718,8 @@ jobs:
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
         if: "${{ success() && env.ENABLE_COVERAGE == 'yes' && env.TASK == 'ci-integration' }}"
-        uses: codecov/codecov-action@v3
+        run: |
+          ./scripts/ci/submit-codecov-coverage.sh
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Compress Service Logs Before upload
