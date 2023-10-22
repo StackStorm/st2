@@ -98,12 +98,10 @@ class TestTokenController(FunctionalTest):
         return response
 
     def test_token_post_proxy_user(self):
-        headers = {
-            "X-Forwarded-For": "192.0.2.1",
-            "X-Forwarded-User": "testuser"
-        }
+        headers = {"X-Forwarded-For": "192.0.2.1", "X-Forwarded-User": "testuser"}
         response = self.app.post_json(
-            TOKEN_V1_PATH, {},
+            TOKEN_V1_PATH,
+            {},
             headers=headers,
             expect_errors=False,
             extra_environ={"REMOTE_USER": ""},
