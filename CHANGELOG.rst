@@ -6,6 +6,8 @@ in development
 
 Fixed
 ~~~~~
+* Fix issue #5983
+  Contributed by Ronnie Hoffmann (@ZoeLeah Schwarz IT KG)
 
 * Fix proxy auth mode in HA environments #5766
   Contributed by @floatingstatic
