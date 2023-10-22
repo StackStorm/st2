@@ -7,6 +7,9 @@ in development
 Fixed
 ~~~~~
 
+* Fix proxy auth mode in HA environments #5766
+  Contributed by @floatingstatic
+
 * Fix CI usses #6015
   Contributed by Amanda McGuinness (@amanda11 intive)
 
