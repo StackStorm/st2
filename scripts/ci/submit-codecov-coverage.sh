@@ -20,6 +20,7 @@
 if [[ "${USER}" == "runner" || ${TRAVIS_TEST_RESULT} -eq 0 ]]; then
     # 1. Install codecov dependencies
     pip install -U pip
+    pip install coverage
     pip install codecov-cli>=0.3.2
 
     # 2. Combine coverage report and submit coverage report to codecov.io
