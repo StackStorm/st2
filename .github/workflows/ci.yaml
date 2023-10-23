@@ -371,7 +371,7 @@ jobs:
 
     env:
       TASK: '${{ matrix.task }}'
-
+      PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
@@ -478,9 +478,11 @@ jobs:
           ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') }}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   integration-tests:
     needs: pre_job
@@ -606,7 +608,7 @@ jobs:
 
     env:
       TASK: '${{ matrix.task }}'
-
+      PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
@@ -715,9 +717,11 @@ jobs:
           script -e -c "make ${TASK}" && exit 0
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' && env.TASK == 'ci-integration' }}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.TASK == 'ci-integration') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Compress Service Logs Before upload
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         run: |
