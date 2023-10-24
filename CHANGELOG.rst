@@ -18,7 +18,7 @@ Fixed
 
 * Avoid logging sensitive information in debug (fix #5977)
 
-* Fix codecov stackstorm/st2 (https://github.com/StackStorm/st2/issues/6035)
+* Fix codecov for intergration and unit tests stackstorm/st2 (#6035 and #6046)
 
 Added
 ~~~~~
