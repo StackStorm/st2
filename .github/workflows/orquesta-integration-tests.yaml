@@ -229,6 +229,8 @@ jobs:
         if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Compress Service Logs Before upload
         if: ${{ failure() }}
         run: |
