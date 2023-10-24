@@ -6,10 +6,7 @@ in development
 
 Fixed
 ~~~~~
-* Fix issue #5983 with actions that are executed remotely.
-  The following error message was returned: "/opt/stackstorm/st2/bin/python: bad interpreter: No such file or directory"
-  Change the shebang line "#!/opt/stackstorm/st2/bin/python" to "#!/usr/bin/env python".
-  It was also changed "#!/usr/bin/python" to "#!/usr/bin/env python" to have it consistent
+* Fix issue with linux pack actions failed to run remotely due to incorrect python shebang. #5983 #6042
   Contributed by Ronnie Hoffmann (@ZoeLeah Schwarz IT KG)
 
 * Fix proxy auth mode in HA environments #5766
