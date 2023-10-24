@@ -226,7 +226,7 @@ jobs:
           path: logs/
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
+        if: "${{ success()  }}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
         env:
