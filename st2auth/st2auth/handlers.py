@@ -130,6 +130,25 @@ class ProxyAuthHandler(AuthHandlerBase):
         remote_addr = headers.get("x-forwarded-for", remote_addr)
         extra = {"remote_addr": remote_addr}
 
+        # Needed to support st2client which does not connect via st2web
+        if authorization and not remote_user:
+            try:
+                auth_value = base64.b64decode(authorization[1])
+            except Exception:
+                LOG.audit("Invalid authorization header", extra=extra)
+                abort_request()
+                return
+
+            split = auth_value.split(b":", 1)
+            if len(split) != 2:
+                LOG.audit("Invalid authorization header", extra=extra)
+                abort_request()
+                return
+
+            remote_user = split[0]
+            if six.PY3 and isinstance(remote_user, six.binary_type):
+                remote_user = remote_user.decode("utf-8")
+
         if remote_user:
             ttl = getattr(request, "ttl", None)
             username = self._get_username_for_request(remote_user, request)
