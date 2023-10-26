@@ -136,8 +136,8 @@ def merge_source_requirements(sources):
                 # Requirements starting with project name "project ..."
                 parsedreq = parse_req_from_line(req.requirement, req.line_source)
                 if parsedreq.requirement:
-                    # Skip already added project name
-                    if parsedreq.requirement.name in projects:
+                    # Skip already added project name, unless it has markers
+                    if parsedreq.requirement.name in projects and not parsedreq.markers:
                         continue
                     projects.add(parsedreq.requirement.name)
                     merged_requirements.append(req)
@@ -181,6 +181,9 @@ def write_requirements(
         if hasattr(req, "requirement"):
             parsedreq = parse_req_from_line(req.requirement, req.line_source)
             project_name = parsedreq.requirement.name
+            # consider requirements with markers as unique
+            if parsedreq.markers:
+                project_name = f"{project_name};{parsedreq.markers}"
 
             if not req.requirement:
                 continue
@@ -228,6 +231,8 @@ def write_requirements(
                 rline = "-e %s" % (rline)
         elif hasattr(req, "requirement") and req.requirement:
             project = parsedreq.requirement.name
+            if parsedreq.markers:
+                project = f"{project};{parsedreq.markers}"
             req_obj = fixedreq_hash.get(project, req)
 
             rline = str(req_obj.requirement)
