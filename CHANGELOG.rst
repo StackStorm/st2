@@ -6,6 +6,8 @@ in development
 
 Fixed
 ~~~~~
+* Update orquesta to v1.6.0 to fix outdated dependencies (security). #6050
+
 * Fix issue with linux pack actions failed to run remotely due to incorrect python shebang. #5983 #6042
   Contributed by Ronnie Hoffmann (@ZoeLeah Schwarz IT KG)
 
