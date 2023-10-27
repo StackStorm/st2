@@ -26,6 +26,8 @@ lockfile==0.12.2
 # >=0.23 was from jinja2
 MarkupSafe<2.1.0,>=0.23
 mongoengine==0.23.0
+# required by orquesta
+networkx<3
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
