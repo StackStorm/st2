@@ -6,6 +6,8 @@ in development
 
 Fixed
 ~~~~~
+* Fix issue with linux pack actions failed to run remotely due to incorrect python shebang. #5983 #6042
+  Contributed by Ronnie Hoffmann (@ZoeLeah Schwarz IT KG)
 
 * Fix proxy auth mode in HA environments #5766
   Contributed by @floatingstatic
@@ -18,7 +20,7 @@ Fixed
 
 * Avoid logging sensitive information in debug (fix #5977)
 
-* Fix codecov stackstorm/st2 (https://github.com/StackStorm/st2/issues/6035)
+* Fix codecov failures for stackstorm/st2 tests. #6035, #6046, #6048
 
 * Fix #4676, edge case where --inherit-env is skipped if the action has no parameters
 
