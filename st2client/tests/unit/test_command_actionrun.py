@@ -359,7 +359,7 @@ class ActionRunCommandTest(unittest2.TestCase):
         self.assertIn("foo", param[p_array])
         self.assertIn("bar", param[p_array])
         self.assertIn(p_ra_dicts, param)
-        self.assertDictEqual({"foo": '1', "bar": '2'}, param[p_ra_dicts][0])
+        self.assertDictEqual({"foo": "1", "bar": "2"}, param[p_ra_dicts][0])
 
     def test_correctly_generate_empty_params_no_inherit_empty_parameters(self):
         """test_correctly_generate_empty_params_no_inherit_empty_parameters
