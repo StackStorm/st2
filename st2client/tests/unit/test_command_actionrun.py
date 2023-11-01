@@ -306,7 +306,7 @@ class ActionRunCommandTest(unittest2.TestCase):
         """test_correctly_process_inherit_env_when_parameters_set
 
         This tests that we still correctly pass through the environment variables
-        when --inherit-env is set and we run a job that has parameters
+        when --inherit-env is set and we run a job that has action parameters set
         """
 
         runner = RunnerType()
