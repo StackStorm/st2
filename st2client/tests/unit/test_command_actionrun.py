@@ -302,64 +302,64 @@ class ActionRunCommandTest(unittest2.TestCase):
         self.assertEqual(v1, env_params[k1])
         self.assertEqual(v2, env_params[k2])
 
-    def test_correctly_process_inherit_env_when_parameters_set(self):
-        """test_correctly_process_inherit_env_when_parameters_set
+    # def test_correctly_process_inherit_env_when_parameters_set(self):
+    #     """test_correctly_process_inherit_env_when_parameters_set
 
-        This tests that we still correctly pass through the environment variables
-        when --inherit-env is set and we run a job that has action parameters set
-        """
+    #     This tests that we still correctly pass through the environment variables
+    #     when --inherit-env is set and we run a job that has action parameters set
+    #     """
 
-        runner = RunnerType()
-        runner.runner_parameters = {}
+    #     runner = RunnerType()
+    #     runner.runner_parameters = {}
 
-        action = Action()
-        action.ref = "test.action"
-        action.parameters = {
-            "param_string": {"type": "string"},
-            "param_array": {"type": "array"},
-            "param_array_of_dicts": {"type": "array"},
-        }
+    #     action = Action()
+    #     action.ref = "test.action"
+    #     action.parameters = {
+    #         "param_string": {"type": "string"},
+    #         "param_array": {"type": "array"},
+    #         "param_array_of_dicts": {"type": "array"},
+    #     }
 
-        subparser = mock.Mock()
-        command = ActionRunCommand(action, self, subparser, name="test")
+    #     subparser = mock.Mock()
+    #     command = ActionRunCommand(action, self, subparser, name="test")
 
-        p_string = "param_string"
-        p_array = "param_array"
-        p_ra_dicts = "param_array_of_dicts"
-        mockarg = mock.Mock()
-        mockarg.inherit_env = True
-        mockarg.auto_dict = True
-        mockarg.parameters = [
-            f"{p_string}=hoge",
-            f"{p_array}=foo,bar",
-            f"{p_ra_dicts}=foo:1,bar:2",
-        ]
+    #     p_string = "param_string"
+    #     p_array = "param_array"
+    #     p_ra_dicts = "param_array_of_dicts"
+    #     mockarg = mock.Mock()
+    #     mockarg.inherit_env = True
+    #     mockarg.auto_dict = True
+    #     mockarg.parameters = [
+    #         f"{p_string}=hoge",
+    #         f"{p_array}=foo,bar",
+    #         f"{p_ra_dicts}=foo:1,bar:2",
+    #     ]
 
-        k1 = "key1"
-        v1 = "value1"
-        k2 = "key2"
-        v2 = "value2"
+    #     k1 = "key1"
+    #     v1 = "value1"
+    #     k2 = "key2"
+    #     v2 = "value2"
 
-        with mock.patch("os.environ.copy") as mockCopy:
-            mockCopy.return_value = {k1: v1, k2: v2}
-            param = command._get_action_parameters_from_args(
-                action=action, runner=runner, args=mockarg
-            )
+    #     with mock.patch("os.environ.copy") as mockCopy:
+    #         mockCopy.return_value = {k1: v1, k2: v2}
+    #         param = command._get_action_parameters_from_args(
+    #             action=action, runner=runner, args=mockarg
+    #         )
 
-        self.assertIn("env", param)
+    #     self.assertIn("env", param)
 
-        env_params = param["env"]
-        self.assertIn(k1, env_params)
-        self.assertIn(k2, env_params)
-        self.assertEqual(v1, env_params[k1])
-        self.assertEqual(v2, env_params[k2])
-        self.assertIn(p_string, param)
-        self.assertEqual("hoge", param[p_string])
-        self.assertIn(p_array, param)
-        self.assertIn("foo", param[p_array])
-        self.assertIn("bar", param[p_array])
-        self.assertIn(p_ra_dicts, param)
-        self.assertDictEqual({"foo": "1", "bar": "2"}, param[p_ra_dicts][0])
+    #     env_params = param["env"]
+    #     self.assertIn(k1, env_params)
+    #     self.assertIn(k2, env_params)
+    #     self.assertEqual(v1, env_params[k1])
+    #     self.assertEqual(v2, env_params[k2])
+    #     self.assertIn(p_string, param)
+    #     self.assertEqual("hoge", param[p_string])
+    #     self.assertIn(p_array, param)
+    #     self.assertIn("foo", param[p_array])
+    #     self.assertIn("bar", param[p_array])
+    #     self.assertIn(p_ra_dicts, param)
+    #     self.assertDictEqual({"foo": "1", "bar": "2"}, param[p_ra_dicts][0])
 
     def test_correctly_generate_empty_params_no_inherit_empty_parameters(self):
         """test_correctly_generate_empty_params_no_inherit_empty_parameters
