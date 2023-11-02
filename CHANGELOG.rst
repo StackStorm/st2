@@ -22,7 +22,7 @@ Fixed
 
 * Fix codecov failures for stackstorm/st2 tests. #6035, #6046, #6048
 
-* Update cryptography 3.4.7 -> 39.0.1 and pyOpenSSL 21.0.0 -> 23.1.0 (security). #6055
+* Update cryptography 3.4.7 -> 39.0.1, pyOpenSSL 21.0.0 -> 23.1.0, paramiko 2.10.5 -> 2.11.0 (security). #6055
 
 Added
 ~~~~~
