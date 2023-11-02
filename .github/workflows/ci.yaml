@@ -103,7 +103,7 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
           # Don't use alternative key as if requirements.txt has altered we
           # don't want to retrieve previous cache
           #restore-keys: |
