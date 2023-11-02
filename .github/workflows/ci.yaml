@@ -107,16 +107,16 @@ jobs:
           # Don't use alternative key as if requirements.txt has altered we
           # don't want to retrieve previous cache
           #restore-keys: |
-          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
+          #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v2
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v7-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-apt-v8-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v7-
+            ${{ runner.os }}-apt-v8-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
