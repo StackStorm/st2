@@ -45,7 +45,7 @@ passlib==1.7.4
 prettytable==2.1.0
 prompt-toolkit==1.0.15
 psutil==5.8.0
-pyOpenSSL<=21.0.0
+pyOpenSSL==23.1.0
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==3.11.3
 pyparsing<3
