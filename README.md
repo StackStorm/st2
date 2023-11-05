@@ -31,10 +31,6 @@
 
 [![StackStorm 5 min Intro Video](https://cloud.githubusercontent.com/assets/1294734/10356016/16278d0a-6d27-11e5-987d-c8a7629a69ed.png)](https://www.youtube.com/watch?v=pzZws3ftDtA)
 
-## Who is using StackStorm?
-
-[See the list of official StackStorm ADOPTERS.md](/ADOPTERS.md)
-
 ### About
 
 StackStorm is a platform for integration and automation across services and tools. It ties together your existing infrastructure and application environment so you can more easily automate that environment -- with a particular focus on taking actions in response to events.
