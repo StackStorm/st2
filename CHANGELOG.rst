@@ -24,6 +24,9 @@ Fixed
 
 * Update cryptography 3.4.7 -> 39.0.1, pyOpenSSL 21.0.0 -> 23.1.0, paramiko 2.10.5 -> 2.11.0 (security). #6055
 
+* Bump virtualenv to 20.16.7, importlib-metadata to 4.10.1, requests to 2.31.0, gitpython to 3.1.37. #6062
+  Contributed by @jk464
+
 Added
 ~~~~~
 
