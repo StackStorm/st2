@@ -8,8 +8,8 @@
 argcomplete==1.12.2
 cffi<1.15.0
 chardet<3.1.0
-cryptography==39.0.1
-importlib-metadata==3.10.1
+cryptography>=40.0.2,<=41.0.4
+importlib-metadata>=4.8.3,<=4.10.1
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 orjson==3.5.2
