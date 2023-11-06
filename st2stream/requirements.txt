@@ -5,8 +5,8 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-eventlet==0.30.2
-gunicorn==20.1.0
+eventlet==0.33.3
+gunicorn==21.2.0
 jsonschema==2.6.0
 kombu==5.0.2
 mongoengine==0.23.0
