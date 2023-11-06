@@ -20,7 +20,7 @@ dnspython>=1.16.0,<2.0.0
 eventlet==0.30.2
 flex==6.14.1
 gitdb==4.0.2
-gitpython==3.1.15
+gitpython>=3.1.18,<=3.1.37
 greenlet==1.0.0
 gunicorn==20.1.0
 importlib-metadata==3.10.1
