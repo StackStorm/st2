@@ -23,7 +23,7 @@ gitdb==4.0.2
 gitpython>=3.1.18,<=3.1.37
 greenlet==1.0.0
 gunicorn==20.1.0
-importlib-metadata>=4.8.3,<=4.10.1
+importlib-metadata>=3.10.1,<=4.10.1
 jinja2==2.11.3
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
