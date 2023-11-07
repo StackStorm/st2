@@ -73,8 +73,6 @@ except ImportError:
     # Do not error, as will only use on pip >= 20
     pass
 
-from packaging.requirements import Requirement
-
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -191,12 +189,6 @@ def write_requirements(
 
             if not req.req:
                 continue
-
-        # If the requirement has markers, and they don't meet the
-        # current environment ignore this requirement
-        packaging_req = Requirement(req.requirement)
-        if packaging_req.marker and not packaging_req.marker.evaluate():
-            continue
 
         if project_name in fixedreq_hash:
             raise ValueError(
