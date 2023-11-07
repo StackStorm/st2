@@ -7,17 +7,17 @@ chardet<3.1.0
 cffi<1.15.0
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython>=1.16.0,<2.0.0
-cryptography==3.4.7
+cryptography==39.0.1
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
-eventlet==0.30.2
+eventlet==0.33.3
 flex==6.14.1
 gitpython==3.1.15
 # Needed by gitpython, old versions used to bundle it
 gitdb==4.0.2
 # Note: greenlet is used by eventlet
 greenlet==1.0.0
-gunicorn==20.1.0
+gunicorn==21.2.0
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==5.0.2
@@ -36,15 +36,16 @@ decorator==4.4.2
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
-paramiko==2.10.5
+# paramiko 2.11.0 is needed by cryptography > 37.0.0
+paramiko==2.11.0
 passlib==1.7.4
 prompt-toolkit==1.0.15
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==3.11.3
 pyparsing<3
 zstandard==0.15.2
-# pyOpenSSL 22.0.0 requires cryptography>=35.0
-pyOpenSSL<=21.0.0
+# pyOpenSSL 23.1.0 supports cryptography up to 40.0.x
+pyOpenSSL==23.1.0
 python-editor==1.0.4
 python-keyczar==0.716
 pytz==2021.1

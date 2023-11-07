@@ -22,11 +22,11 @@ Command-line interface to StackStorm.
 from __future__ import print_function
 from __future__ import absolute_import
 
-# Ignore CryptographyDeprecationWarning warnings which appear on older versions of Python 2.7
+# Ignore CryptographyDeprecationWarning warnings which appear on Python 3.6
+# TODO: Remove after dropping python3.6
 import warnings
-from cryptography.utils import CryptographyDeprecationWarning
 
-warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
+warnings.filterwarnings("ignore", message="Python 3.6 is no longer supported")
 
 import os
 import sys
