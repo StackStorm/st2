@@ -60,7 +60,7 @@ six==1.13.0
 argparse==1.12.2
 argcomplete==1.12.2
 prettytable==2.1.0
-importlib-metadata>=3.10.1,<=4.10.1
+importlib-metadata<=4.10.1
 # importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
 typing-extensions<4.2
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
