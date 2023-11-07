@@ -69,8 +69,8 @@ stevedore==1.30.1
 tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
-# virtualenv<=20.16.7 (<21) has pip==22.3.1 wheel==0.38.4 setuptools==65.5.1
-virtualenv<=20.16.7
+# virtualenv==20.4.0 (<21) has pip==20.3.3 wheel==0.36.2 setuptools==51.3.3
+virtualenv==20.4.0
 webob==1.8.7
 zake==0.2.2
 # test requirements below
