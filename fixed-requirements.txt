@@ -12,7 +12,7 @@ cryptography==39.0.1
 # depend on rely
 eventlet==0.33.3
 flex==6.14.1
-gitpython==3.1.15
+gitpython<=3.1.37
 # Needed by gitpython, old versions used to bundle it
 gitdb==4.0.2
 # Note: greenlet is used by eventlet
