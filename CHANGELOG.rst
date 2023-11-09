@@ -30,6 +30,8 @@ Fixed
 * Bumped `eventlet` to `0.33.3` and `gunicorn` to `21.2.0` to fix `RecursionError` bug in setting `SSLContext` `minimum_version` property. #6061
   Contributed by @jk464
 
+* Update version 3.1.15 of ``gitpython`` to 3.1.18 for py3.6 and to 3.1.37 for py3.8 (security). #6063
+
 Added
 ~~~~~
 
