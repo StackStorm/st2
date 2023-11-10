@@ -6,6 +6,9 @@ in development
 
 Fixed
 ~~~~~
+* Additional fixes for st2 client auth when proxy auth mode enabled #6049
+  Contributed by @floatingstatic
+
 * Fix issue with linux pack actions failed to run remotely due to incorrect python shebang. #5983 #6042
   Contributed by Ronnie Hoffmann (@ZoeLeah Schwarz IT KG)
 
