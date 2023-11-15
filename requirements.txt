@@ -14,15 +14,15 @@ bcrypt==3.2.0
 cffi<1.15.0
 chardet<3.1.0
 ciso8601
-cryptography==3.4.7
+cryptography==39.0.1
 decorator==4.4.2
 dnspython>=1.16.0,<2.0.0
-eventlet==0.30.2
+eventlet==0.33.3
 flex==6.14.1
 gitdb==4.0.2
 gitpython==3.1.15
 greenlet==1.0.0
-gunicorn==20.1.0
+gunicorn==21.2.0
 importlib-metadata==3.10.1
 jinja2==2.11.3
 jsonpath-rw==1.4.0
@@ -40,12 +40,12 @@ orjson==3.5.2
 orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.5.0
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
-paramiko==2.10.5
+paramiko==2.11.0
 passlib==1.7.4
 prettytable==2.1.0
 prompt-toolkit==1.0.15
 psutil==5.8.0
-pyOpenSSL<=21.0.0
+pyOpenSSL==23.1.0
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==3.11.3
 pyparsing<3
