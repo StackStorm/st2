@@ -34,6 +34,7 @@ Fixed
 
 Added
 ~~~~~
+* Added Schwarz Digits to ADOPTERS.md by Ronnie Hoffmann (@ZoeLeah Schwarz IT KG)
 
 * Move `git clone` to `user_home/.st2packs` #5845
 
