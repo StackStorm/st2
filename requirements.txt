@@ -36,7 +36,7 @@ networkx>=2.5.1,<2.6
 nose
 nose-parallel==0.4.0
 nose-timer==1.0.1
-orjson==3.5.2
+orjson==3.9.7
 orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.5.0
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
@@ -57,7 +57,7 @@ python-json-logger
 python-statsd==2.1.0
 pytz==2021.1
 pywinrm==0.4.1
-pyyaml==5.4.1
+pyyaml==6.0.1
 redis==4.1.4
 rednose
 requests[security]==2.25.1

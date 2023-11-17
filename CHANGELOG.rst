@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+Changed
+~~~~~~~
+
+* Bumped `pyyaml` to `6.0.1` and `orjson` to `3.9.7`
+  Contributed by @mamercad
+
 Fixed
 ~~~~~
 * Additional fixes for st2 client auth when proxy auth mode enabled #6049
