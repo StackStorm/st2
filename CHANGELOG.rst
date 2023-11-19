@@ -25,6 +25,8 @@ Fixed
 
 * Fix codecov failures for stackstorm/st2 tests. #6035, #6046, #6048
 
+* Fix #4676, edge case where --inherit-env is skipped if the action has no parameters
+
 * Update cryptography 3.4.7 -> 39.0.1, pyOpenSSL 21.0.0 -> 23.1.0, paramiko 2.10.5 -> 2.11.0 (security). #6055
 
 * Bumped `eventlet` to `0.33.3` and `gunicorn` to `21.2.0` to fix `RecursionError` bug in setting `SSLContext` `minimum_version` property. (security) #6061
