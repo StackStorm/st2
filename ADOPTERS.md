@@ -1,3 +1,6 @@
+# Who uses StackStorm?
+As the StackStorm Community evolves, we'd like to keep track of our users. Please submit a PR with your organization and a brief use case description below.
+
 This is an alphabetical list of known [StackStorm](https://stackstorm.com/) adopters:
 
 <!-- Max 3 Github lines for each adopter! -->

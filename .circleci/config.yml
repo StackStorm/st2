@@ -219,7 +219,7 @@ jobs:
   deploy:
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/ruby:2.4
+      - image: circleci/ruby:2.7
     working_directory: /tmp/deploy
     environment:
       - DISTROS: "bionic focal el7 el8"

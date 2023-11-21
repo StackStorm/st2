@@ -67,6 +67,12 @@ jobs:
             nosetests_node_index: 0
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Integration Tests (Orquesta)'
+            task: 'ci-orquesta'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.9'
+            python-version: '3.9.14'
     services:
       mongo:
         image: mongo:4.4
@@ -100,7 +106,6 @@ jobs:
 
     env:
       TASK: '${{ matrix.task }}'
-
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
@@ -218,11 +223,6 @@ jobs:
         with:
           name: logs
           path: logs/
-      - name: Codecov
-        # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
-        run: |
-          ./scripts/ci/submit-codecov-coverage.sh
       - name: Compress Service Logs Before upload
         if: ${{ failure() }}
         run: |

@@ -147,11 +147,24 @@ def transform(cls: nodes.ClassDef):
                 if (
                     isinstance(target, nodes.Subscript)
                     and target.value.value.name == "schema"
-                    and target.value.slice.value.value == "properties"
                 ):
-                    property_name_node = target.slice.value
+                    if (
+                        isinstance(target.value.slice.value, nodes.Const)
+                        and target.value.slice.value.value == "properties"
+                    ):
+                        # python <3.9
+                        property_name_node = target.slice.value
+                    elif (
+                        isinstance(target.value.slice, nodes.Const)
+                        and target.value.slice.value == "properties"
+                    ):
+                        # python 3.9+
+                        property_name_node = target.slice
+                    else:
+                        # not schema["properties"]
+                        continue
                 else:
-                    # not schema["properties"]
+                    # not schema[...]
                     continue
             except AttributeError:
                 continue
@@ -197,7 +210,12 @@ def transform(cls: nodes.ClassDef):
         #   schema = {"properties": {"action": REQUIRED_ATTR_SCHEMAS["action"]}}
         if isinstance(property_data_node, nodes.Subscript):
             var_name = property_data_node.value.name
-            subscript = property_data_node.slice.value.value
+            if isinstance(property_data_node.slice.value, nodes.Const):  # python <3.9
+                subscript = property_data_node.slice.value.value
+            elif isinstance(property_data_node.slice, nodes.Const):  # python 3.9+
+                subscript = property_data_node.slice.value
+            else:
+                continue
 
             # lookup var by name (assume its at module level)
             var_node = next(cls.root().igetattr(var_name))

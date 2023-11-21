@@ -25,10 +25,9 @@ from oslo_config import cfg
 
 
 CONFIGS = [
-    # this is duplicated in tools/BUILD
-    # TODO: replace this with a heuristic that searches for config.py
-    #       maybe with an exclude list (eg st2tests.config st2client)
-    #       grep -rl 'def register_opts(ignore_errors=False):' st2*
+    # pants uses these strings to infer dependencies. Compare this list
+    # with the output of this command to make sure everything is present:
+    #   grep -rl 'def register_opts(ignore_errors=False):' st2*
     "st2actions.config",
     "st2actions.scheduler.config",
     "st2actions.notifier.config",

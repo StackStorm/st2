@@ -31,11 +31,13 @@ mongoengine
 # networkx version is constrained in orquesta.
 networkx
 orjson
-orquesta @ git+https://github.com/StackStorm/orquesta.git@v1.5.0
+orquesta @ git+https://github.com/StackStorm/orquesta.git@v1.6.0
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
 paramiko
+# we use pip at runtime
+pip
 # prance is used by st2-validate-api-spec to validate the openapi spec
 # prance needs flex, but do not use the extra as that gets an old version.
 prance
@@ -60,7 +62,7 @@ requests[security]
 retrying
 routes
 semver
-# setuptools provides pkg_resources
+# setuptools provides pkg_resources (and we need it with pip at runtime)
 setuptools
 simplejson
 six
@@ -82,6 +84,8 @@ unittest2
 virtualenv
 webob
 webtest
+# we use pip+wheel at runtime
+wheel
 # zstandard is used for micro benchmarks
 zstandard
 

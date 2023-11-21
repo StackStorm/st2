@@ -23,13 +23,19 @@ from __future__ import absolute_import
 import fnmatch
 import os
 import sys
-from distutils.sysconfig import get_python_lib
+from sysconfig import get_path
 
 from oslo_config import cfg
 
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.content.utils import get_pack_base_path
+
+
+def get_python_lib():
+    """Replacement for distutil.sysconfig.get_python_lib, returns a string with the python platform lib path (to site-packages)"""
+    return get_path("platlib")
+
 
 __all__ = [
     "get_sandbox_python_binary_path",
