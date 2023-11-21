@@ -29,8 +29,10 @@ Fixed
 
 * Update cryptography 3.4.7 -> 39.0.1, pyOpenSSL 21.0.0 -> 23.1.0, paramiko 2.10.5 -> 2.11.0 (security). #6055
 
-* Bumped `eventlet` to `0.33.3` and `gunicorn` to `21.2.0` to fix `RecursionError` bug in setting `SSLContext` `minimum_version` property. #6061
+* Bumped `eventlet` to `0.33.3` and `gunicorn` to `21.2.0` to fix `RecursionError` bug in setting `SSLContext` `minimum_version` property. (security) #6061
   Contributed by @jk464
+
+* Update orquesta to v1.6.0 to fix outdated dependencies (security). #6050
 
 Added
 ~~~~~
