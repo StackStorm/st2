@@ -34,9 +34,10 @@ Fixed
 
 * Update orquesta to v1.6.0 to fix outdated dependencies (security). #6050
 
+* Fix KV value lookup in actions when RBAC is enabled #5934
+
 Added
 ~~~~~
-
 * Move `git clone` to `user_home/.st2packs` #5845
 
 * Error on `st2ctl status` when running in Kubernetes. #5851
