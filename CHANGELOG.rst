@@ -36,6 +36,8 @@ Fixed
 
 * Fix KV value lookup in actions when RBAC is enabled #5934
 
+* Update version 3.1.15 of ``gitpython`` to 3.1.18 for py3.6 and to 3.1.37 for py3.8 (security). #6063
+
 Added
 ~~~~~
 * Move `git clone` to `user_home/.st2packs` #5845

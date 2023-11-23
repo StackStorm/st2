@@ -12,7 +12,9 @@ cryptography==39.0.1
 # depend on rely
 eventlet==0.33.3
 flex==6.14.1
-gitpython==3.1.15
+# Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
+# TODO: Pin to 3.1.37 or higher after dropping python3.6 support
+gitpython<=3.1.37
 # Needed by gitpython, old versions used to bundle it
 gitdb==4.0.2
 # Note: greenlet is used by eventlet
