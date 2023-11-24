@@ -14,7 +14,7 @@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-
 git+https://github.com/StackStorm/st2.git#egg=python_runner&subdirectory=contrib/runners/python_runner
 hg+https://hg.repo/some_pkg.git#egg=SomePackageHq
 svn+svn://svn.repo/some_pkg/trunk/@ma-branch#egg=SomePackageSvn
-gitpython>=3.1.18,<=3.1.37
+gitpython==2.1.11
 ose-timer==0.7.5
 oslo.config<1.13,>=1.12.1
 requests[security]<2.22.0,>=2.21.0

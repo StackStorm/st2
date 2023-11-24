@@ -16,7 +16,7 @@ eventlet<0.31
 flex
 # gitpython & gitdb are used for pack management
 gitdb
-gitpython>=3.1.18,<=3.1.37
+gitpython
 # st2common/tests/integration/test_util_green.py requires greenlet (as does eventlet)
 greenlet
 gunicorn
