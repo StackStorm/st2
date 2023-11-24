@@ -75,6 +75,7 @@ tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
 typing-extensions<4.2
 unittest2
+urllib3<2; python_version < '3.7'
 webob==1.8.7
 webtest
 zake==0.2.2

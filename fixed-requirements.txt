@@ -64,6 +64,8 @@ six==1.13.0
 argparse==1.12.2
 # Note: argcomplete 1.12.3 supports importlib-metadata<5
 argcomplete==1.12.3
+# Note: argcomplete supports urllib3<3,>=1.21.1 installing urllib3 v2, which is not compatible with python3.6
+urllib3<2; python_version < '3.7'
 prettytable==2.1.0
 # Note: installs importlib-metadata==4.10.1 (security fixed) under py3.8 and importlib-metadata==4.8.3 (latest available, vulnerable) under py3.6
 # TODO: Pin to 4.10.1 or higher after dropping python3.6 support
