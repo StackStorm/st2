@@ -60,7 +60,8 @@ routes==2.4.1
 semver==2.13.0
 six==1.13.0
 argparse==1.12.2
-argcomplete==1.12.2
+# Note: argcomplete 1.12.3 supports importlib-metadata<5
+argcomplete==1.12.3
 prettytable==2.1.0
 importlib-metadata<=4.10.1
 # importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+

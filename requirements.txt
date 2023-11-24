@@ -9,7 +9,7 @@ MarkupSafe<2.1.0,>=0.23
 RandomWords
 amqp==5.0.6
 apscheduler==3.7.0
-argcomplete==1.12.2
+argcomplete==1.12.3
 bcrypt==3.2.0
 cffi<1.15.0
 chardet<3.1.0

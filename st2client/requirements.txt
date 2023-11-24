@@ -5,7 +5,7 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-argcomplete==1.12.2
+argcomplete==1.12.3
 cffi<1.15.0
 chardet<3.1.0
 cryptography==39.0.1
