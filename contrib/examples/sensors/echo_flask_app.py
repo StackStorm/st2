@@ -41,7 +41,9 @@ class EchoFlaskSensor(Sensor):
             self._sensor_service.dispatch(
                 trigger="examples.echoflasksensor", payload=payload
             )
-            return jsonify(request.get_json(force=True), status=200, mimetype='application/json')
+            return jsonify(
+                request.get_json(force=True), status=200, mimetype="application/json"
+            )
 
         self._log.info(
             "Listening for payload on http://{}:{}{}".format(
