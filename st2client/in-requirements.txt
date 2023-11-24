@@ -3,8 +3,6 @@ importlib-metadata
 # importlib-metadata requires typing-extensions
 typing-extensions
 argcomplete
-# argcomplete requires urllib3
-urllib3
 prettytable
 pytz
 python-dateutil
