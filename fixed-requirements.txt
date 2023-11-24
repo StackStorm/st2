@@ -54,6 +54,8 @@ pytz==2021.1
 pywinrm==0.4.1
 pyyaml==5.4.1
 redis==4.1.4
+# Note: installs requests[security]==2.31.0 (security fixed) under py3.8 and requests[security]==2.27.1 (latest available, vulnerable) under py3.6
+# TODO: Pin explicitly after dropping python3.6 support
 requests[security]>=2.27.1,<=2.31.0
 retrying==1.3.3
 routes==2.4.1
@@ -63,7 +65,9 @@ argparse==1.12.2
 # Note: argcomplete 1.12.3 supports importlib-metadata<5
 argcomplete==1.12.3
 prettytable==2.1.0
-importlib-metadata<=4.10.1
+# Note: installs importlib-metadata==4.10.1 (security fixed) under py3.8 and importlib-metadata==4.8.3 (latest available, vulnerable) under py3.6
+# TODO: Pin to 4.10.1 or higher after dropping python3.6 support
+importlib-metadata>=4.8.3,<=4.10.1
 # importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
 typing-extensions<4.2
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
