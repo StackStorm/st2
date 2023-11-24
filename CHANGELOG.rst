@@ -6,6 +6,9 @@ in development
 
 Fixed
 ~~~~~
+* Additional fixes for st2 client auth when proxy auth mode enabled #6049
+  Contributed by @floatingstatic
+
 * Fix issue with linux pack actions failed to run remotely due to incorrect python shebang. #5983 #6042
   Contributed by Ronnie Hoffmann (@ZoeLeah Schwarz IT KG)
 
@@ -22,14 +25,24 @@ Fixed
 
 * Fix codecov failures for stackstorm/st2 tests. #6035, #6046, #6048
 
+* Fix #4676, edge case where --inherit-env is skipped if the action has no parameters
+
 * Update cryptography 3.4.7 -> 39.0.1, pyOpenSSL 21.0.0 -> 23.1.0, paramiko 2.10.5 -> 2.11.0 (security). #6055
 
-* Bump virtualenv to 20.16.7, importlib-metadata to 4.10.1, requests to 2.31.0, gitpython to 3.1.37, and for Python3.8 only cryptography to 41.0.4, pyopenssl to 23.2.0. #6062
+* Bumped `eventlet` to `0.33.3` and `gunicorn` to `21.2.0` to fix `RecursionError` bug in setting `SSLContext` `minimum_version` property. (security) #6061
+  Contributed by @jk464
+
+* Update orquesta to v1.6.0 to fix outdated dependencies (security). #6050
+
+* Fix KV value lookup in actions when RBAC is enabled #5934
+
+* Update version 3.1.15 of ``gitpython`` to 3.1.18 for py3.6 and to 3.1.37 for py3.8 (security). #6063
+
+* Update requests 2.25.1 -> 2.31.0 and importlib-metadata 3.10.1 -> 4.10.1 (security). #6062
   Contributed by @jk464
 
 Added
 ~~~~~
-
 * Move `git clone` to `user_home/.st2packs` #5845
 
 * Error on `st2ctl status` when running in Kubernetes. #5851
