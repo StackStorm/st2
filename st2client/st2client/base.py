@@ -16,12 +16,12 @@
 from __future__ import absolute_import
 
 import os
-import pwd
 import json
 import logging
 import time
 import calendar
 import traceback
+import platform
 
 import six
 import requests
@@ -37,7 +37,6 @@ from st2client.client import Client
 from st2client.config import get_config
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.misc import merge_dicts
-import platform
 
 __all__ = ["BaseCLIApp"]
 
@@ -46,6 +45,7 @@ __all__ = ["BaseCLIApp"]
 if platform.system() == "Windows":
     os.getlogin = lambda: os.environ.get("USERNAME")
 else:
+    import pwd
     os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 
 # How many seconds before the token actual expiration date we should consider the token as
