@@ -6,6 +6,9 @@ in development
 
 Fixed
 ~~~~~
+* ‎Fix Snyk Security Finding Cross-site Scripting (XSS) in contrib/examples/sensors/echo_flask_app.py
+  Contributed by (@philipphomberger Schwarz IT KG)
+
 * Additional fixes for st2 client auth when proxy auth mode enabled #6049
   Contributed by @floatingstatic
 
