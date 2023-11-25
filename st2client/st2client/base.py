@@ -37,11 +37,16 @@ from st2client.client import Client
 from st2client.config import get_config
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.misc import merge_dicts
+import platform
 
 __all__ = ["BaseCLIApp"]
 
 # Fix for "os.getlogin()) OSError: [Errno 2] No such file or directory"
-os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
+# Add Plattform Check to fix the Issue that PWD not exist on Windows and so the CLI not working.
+if platform.system() == "Windows":
+    os.getlogin = lambda: os.environ.get("USERNAME")
+else:
+    os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 
 # How many seconds before the token actual expiration date we should consider the token as
 # expired. This is used to prevent the operation from failing durig the API request because the
