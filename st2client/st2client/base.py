@@ -41,7 +41,9 @@ from st2client.utils.misc import merge_dicts
 __all__ = ["BaseCLIApp"]
 
 # Fix for "os.getlogin()) OSError: [Errno 2] No such file or directory"
-# Add Plattform Check to fix the Issue that PWD not exist on Windows and so the CLI not working.
+# Add Plattform Check to fix the Issue that PWD not exist on Windows and so the ST2 CLI not working.
+# https://docs.python.org/3.8/library/pwd.html
+# Windows Default ENVVARS -> https://www.computerhope.com/issues/ch000088.htm
 if platform.system() == "Windows":
     os.getlogin = lambda: os.environ.get("USERNAME")
 else:
