@@ -6,6 +6,7 @@ in development
 
 Fixed
 ~~~~~
+
 * ‎Fix ST2 Client for Windows Clients. PWD is a Unix only Libary. 
   Contributed by (@philipphomberger Schwarz IT KG)
 
