@@ -48,6 +48,7 @@ if platform.system() == "Windows":
     os.getlogin = lambda: os.environ.get("USERNAME")
 else:
     import pwd
+
     os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 
 # How many seconds before the token actual expiration date we should consider the token as
