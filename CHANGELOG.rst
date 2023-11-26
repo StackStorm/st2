@@ -41,7 +41,7 @@ Fixed
 
 * Update version 3.1.15 of ``gitpython`` to 3.1.18 for py3.6 and to 3.1.37 for py3.8 (security). #6063
 
-* Update importlib-metadata from 3.10.1 to 4.8.3 for py3.6 and to 4.10.1 for py3.8 (security).
+* Update importlib-metadata from 3.10.1 to 4.8.3 for py3.6 and to 4.10.1 for py3.8 (security). #6072
   Contributed by @jk464
 
 Added
