@@ -6,11 +6,10 @@ in development
 
 Fixed
 ~~~~~
-
-* ‎Fix ST2 Client for Windows Clients. PWD is a Unix only Libary. 
+* Fix ST2 Client for Windows Clients. PWD is a Unix only Libary. #6071
   Contributed by (@philipphomberger Schwarz IT KG)
 
-* ‎Fix Snyk Security Finding Cross-site Scripting (XSS) in contrib/examples/sensors/echo_flask_app.py
+* Fix Snyk Security Finding Cross-site Scripting (XSS) in contrib/examples/sensors/echo_flask_app.py #6070
   Contributed by (@philipphomberger Schwarz IT KG)
 
 * Additional fixes for st2 client auth when proxy auth mode enabled #6049
