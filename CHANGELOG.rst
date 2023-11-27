@@ -6,6 +6,9 @@ in development
 
 Fixed
 ~~~~~
+* Fix Snyk Security Finding Cross-site Scripting (XSS) in contrib/examples/sensors/echo_flask_app.py
+  Contributed by (@philipphomberger Schwarz IT KG)
+
 * Additional fixes for st2 client auth when proxy auth mode enabled #6049
   Contributed by @floatingstatic
 
@@ -38,8 +41,10 @@ Fixed
 
 * Update version 3.1.15 of ``gitpython`` to 3.1.18 for py3.6 and to 3.1.37 for py3.8 (security). #6063
 
-* Update requests from 2.25.1 to 2.27.1 for py3.6  and to 2.31.0 for py3.8 (security).
-  Update importlib-metadata from 3.10.1 to 4.8.3 for py3.6 and to 4.10.1 for py3.8 (security). #6062
+* Update importlib-metadata from 3.10.1 to 4.8.3 for py3.6 and to 4.10.1 for py3.8 (security). #6072
+  Contributed by @jk464
+
+* Update requests from 2.25.1 to 2.27.1 for py3.6  and to 2.31.0 for py3.8 (security). #6062
   Contributed by @jk464
 
 Added
