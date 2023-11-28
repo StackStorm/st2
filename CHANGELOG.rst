@@ -44,6 +44,9 @@ Fixed
 * Update importlib-metadata from 3.10.1 to 4.8.3 for py3.6 and to 4.10.1 for py3.8 (security). #6072
   Contributed by @jk464
 
+* Update requests from 2.25.1 to 2.27.1 for py3.6  and to 2.31.0 for py3.8 (security). #6062
+  Contributed by @jk464
+
 Added
 ~~~~~
 * Move `git clone` to `user_home/.st2packs` #5845
