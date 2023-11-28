@@ -44,6 +44,9 @@ Fixed
 * Update importlib-metadata from 3.10.1 to 4.8.3 for py3.6 and to 4.10.1 for py3.8 (security). #6072
   Contributed by @jk464
 
+* For "local-shell-script" runner, on readonly filesystems, don't attempt to run chmod +x on script_action. Fixes #5591
+  Contributed by @jk464
+
 Added
 ~~~~~
 * Move `git clone` to `user_home/.st2packs` #5845
