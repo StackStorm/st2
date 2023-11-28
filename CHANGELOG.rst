@@ -6,22 +6,16 @@ in development
 
 Fixed
 ~~~~~
-* Fix Snyk Security Finding Cross-site Scripting (XSS) in contrib/examples/sensors/echo_flask_app.py
-  Contributed by (@philipphomberger Schwarz IT KG)
-
-* Additional fixes for st2 client auth when proxy auth mode enabled #6049
+* Fix proxy auth mode in HA environments #5766 #6049
   Contributed by @floatingstatic
 
 * Fix issue with linux pack actions failed to run remotely due to incorrect python shebang. #5983 #6042
   Contributed by Ronnie Hoffmann (@ZoeLeah Schwarz IT KG)
 
-* Fix proxy auth mode in HA environments #5766
-  Contributed by @floatingstatic
-
 * Fix CI usses #6015
   Contributed by Amanda McGuinness (@amanda11 intive)
 
-* Bumped `paramiko` to `2.10.5` to fix an issue with SSH Certs - https://github.com/paramiko/paramiko/issues/2017
+* Bumped `paramiko` to `2.10.5` to fix an issue with SSH Certs - paramiko/paramiko#2017 (security)
   Contributed by @jk464
 
 * Avoid logging sensitive information in debug (fix #5977)
@@ -29,6 +23,12 @@ Fixed
 * Fix codecov failures for stackstorm/st2 tests. #6035, #6046, #6048
 
 * Fix #4676, edge case where --inherit-env is skipped if the action has no parameters
+
+* Fix ST2 Client for Windows Clients. PWD is a Unix only Libary. #6071
+  Contributed by (@philipphomberger Schwarz IT KG)
+
+* Fix Snyk Security Finding Cross-site Scripting (XSS) in contrib/examples/sensors/echo_flask_app.py #6070
+  Contributed by (@philipphomberger Schwarz IT KG)
 
 * Update cryptography 3.4.7 -> 39.0.1, pyOpenSSL 21.0.0 -> 23.1.0, paramiko 2.10.5 -> 2.11.0 (security). #6055
 
@@ -72,7 +72,6 @@ Added
   Contributed by Amanda McGuinness (@amanda11 intive)
 
 * Run the st2 self-check in Github Actions and support the environment variable `TESTS_TO_SKIP` to skip tests when running st2-self-check. #5609
-
   Contributed by @winem
 
 Changed
