@@ -44,7 +44,8 @@ __all__ = ["BaseCLIApp"]
 # https://docs.python.org/3.8/library/pwd.html
 if platform.system() != "Windows":
     import pwd
-# Fix for "os.getlogin()) OSError: [Errno 2] No such file or directory"
+
+    # Fix for "os.getlogin()) OSError: [Errno 2] No such file or directory"
     os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 
 # How many seconds before the token actual expiration date we should consider the token as
