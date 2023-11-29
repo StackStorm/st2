@@ -27,6 +27,7 @@ from kombu.serialization import pickle_loads
 
 from st2common import log as logging
 from st2common.transport import utils as transport_utils
+from st2common.transport.actionalias import ACTIONALIAS_XCHG
 from st2common.transport.actionexecutionstate import ACTIONEXECUTIONSTATE_XCHG
 from st2common.transport.announcement import ANNOUNCEMENT_XCHG
 from st2common.transport.connection_retry_wrapper import ConnectionRetryWrapper
@@ -62,6 +63,7 @@ __all__ = [
 
 # List of exchanges which are pre-declared on service set up.
 EXCHANGES = [
+    ACTIONALIAS_XCHG,
     ACTIONEXECUTIONSTATE_XCHG,
     ANNOUNCEMENT_XCHG,
     EXECUTION_XCHG,

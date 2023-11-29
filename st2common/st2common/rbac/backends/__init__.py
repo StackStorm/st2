@@ -26,7 +26,7 @@ __all__ = ["get_available_backends", "get_backend_instance", "get_rbac_backend"]
 
 LOG = logging.getLogger(__name__)
 
-BACKENDS_NAMESPACE = "st2common.rbac.backend"
+BACKENDS_NAMESPACE = "st2common.rbac.backend"  # pants: no-infer-dep
 
 # Cache which maps backed name -> backend class instance
 # NOTE: We use cache to avoid slow stevedore dynamic filesystem instrospection on every

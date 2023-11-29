@@ -7,17 +7,19 @@ chardet<3.1.0
 cffi<1.15.0
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython>=1.16.0,<2.0.0
-cryptography==3.4.7
+cryptography==39.0.1
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
-eventlet==0.30.2
+eventlet==0.33.3
 flex==6.14.1
-gitpython==3.1.15
+# Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
+# TODO: Pin to 3.1.37 or higher after dropping python3.6 support
+gitpython<=3.1.37
 # Needed by gitpython, old versions used to bundle it
 gitdb==4.0.2
 # Note: greenlet is used by eventlet
 greenlet==1.0.0
-gunicorn==20.1.0
+gunicorn==21.2.0
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==5.0.2
@@ -26,8 +28,8 @@ lockfile==0.12.2
 # >=0.23 was from jinja2
 MarkupSafe<2.1.0,>=0.23
 mongoengine==0.23.0
-# networkx v2.6 does not support Python3.6.  Update networkx to match orquesta
-networkx>=2.5.1,<2.6
+# required by orquesta (networkx<2.6 for py3.6, networkx<3 for py3.8)
+networkx<3
 # networkx requires decorator>=4.3,<5 which should resolve to version 4.4.2
 # but the wheel on pypi does not say it supports python3.8, so pip gets
 # confused. For now, pin decorator to work around pip's confusion.
@@ -36,15 +38,16 @@ decorator==4.4.2
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
-paramiko==2.10.1
+# paramiko 2.11.0 is needed by cryptography > 37.0.0
+paramiko==2.11.0
 passlib==1.7.4
 prompt-toolkit==1.0.15
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==3.11.3
 pyparsing<3
 zstandard==0.15.2
-# pyOpenSSL 22.0.0 requires cryptography>=35.0
-pyOpenSSL<=21.0.0
+# pyOpenSSL 23.1.0 supports cryptography up to 40.0.x
+pyOpenSSL==23.1.0
 python-editor==1.0.4
 python-keyczar==0.716
 pytz==2021.1
@@ -57,9 +60,12 @@ routes==2.4.1
 semver==2.13.0
 six==1.13.0
 argparse==1.12.2
-argcomplete==1.12.2
+# Note: argcomplete 1.12.3 supports importlib-metadata<5
+argcomplete==1.12.3
 prettytable==2.1.0
-importlib-metadata==3.10.1
+# Note: installs importlib-metadata==4.10.1 (security fixed) under py3.8 and importlib-metadata==4.8.3 (latest available, vulnerable) under py3.6
+# TODO: Pin to 4.10.1 or higher after dropping python3.6 support
+importlib-metadata>=4.8.3,<=4.10.1
 # importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
 typing-extensions<4.2
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
@@ -82,3 +88,4 @@ psutil==5.8.0
 python-dateutil==2.8.1
 python-statsd==2.1.0
 orjson==3.5.2
+zipp<3.16.0

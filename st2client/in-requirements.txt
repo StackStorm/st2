@@ -23,3 +23,5 @@ chardet
 # required for SOCKS proxy support (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)
 pyOpenSSL
 pysocks
+# adding so can set version
+zipp

@@ -37,7 +37,7 @@ import os
 import json
 
 import unittest2
-from distutils.spawn import find_executable
+from shutil import which as shutil_which
 
 from st2common.util.shell import run_command
 from six.moves import range
@@ -61,7 +61,7 @@ WRAPPER_SCRIPT_PATH = os.path.join(
     BASE_DIR, "../../../python_runner/python_runner/python_action_wrapper.py"
 )
 WRAPPER_SCRIPT_PATH = os.path.abspath(WRAPPER_SCRIPT_PATH)
-TIME_BINARY_PATH = find_executable("time")
+TIME_BINARY_PATH = shutil_which("time")
 TIME_BINARY_AVAILABLE = TIME_BINARY_PATH is not None
 
 

@@ -1,0 +1,5 @@
+files(
+    sources=[
+        "images/*.png",
+    ],
+)

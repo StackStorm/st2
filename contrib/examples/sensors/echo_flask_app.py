@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from flask import request, Flask
+from flask import request, jsonify, Flask
 
 from st2reactor.sensor.base import Sensor
 
@@ -41,7 +41,9 @@ class EchoFlaskSensor(Sensor):
             self._sensor_service.dispatch(
                 trigger="examples.echoflasksensor", payload=payload
             )
-            return request.data
+            return jsonify(
+                request.get_json(force=True), status=200, mimetype="application/json"
+            )
 
         self._log.info(
             "Listening for payload on http://{}:{}{}".format(

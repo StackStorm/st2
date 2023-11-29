@@ -29,6 +29,7 @@ import st2tests.base as tests_base
 from st2tests.fixtures.generic.fixture import (
     PACK_NAME as GENERIC_PACK,
     PACK_PATH as GENERIC_PACK_PATH,
+    PACK_BASE_PATH as PACKS_BASE_PATH,
 )
 import st2tests.fixturesloader as fixtures_loader
 
@@ -52,9 +53,8 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
     )
     def test_register_all_actions(self):
         try:
-            packs_base_path = fixtures_loader.get_fixtures_base_path()
             all_actions_in_db = Action.get_all()
-            actions_registrar.register_actions(packs_base_paths=[packs_base_path])
+            actions_registrar.register_actions(packs_base_paths=[PACKS_BASE_PATH])
         except Exception as e:
             print(six.text_type(e))
             self.fail("All actions must be registered without exceptions.")

@@ -4,6 +4,83 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+* Fix proxy auth mode in HA environments #5766 #6049
+  Contributed by @floatingstatic
+
+* Fix issue with linux pack actions failed to run remotely due to incorrect python shebang. #5983 #6042
+  Contributed by Ronnie Hoffmann (@ZoeLeah Schwarz IT KG)
+
+* Fix CI usses #6015
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Bumped `paramiko` to `2.10.5` to fix an issue with SSH Certs - paramiko/paramiko#2017 (security)
+  Contributed by @jk464
+
+* Avoid logging sensitive information in debug (fix #5977)
+
+* Fix codecov failures for stackstorm/st2 tests. #6035, #6046, #6048
+
+* Fix #4676, edge case where --inherit-env is skipped if the action has no parameters
+
+* Fix ST2 Client for Windows Clients. PWD is a Unix only Libary. #6071
+  Contributed by (@philipphomberger Schwarz IT KG)
+
+* Fix Snyk Security Finding Cross-site Scripting (XSS) in contrib/examples/sensors/echo_flask_app.py #6070
+  Contributed by (@philipphomberger Schwarz IT KG)
+
+* Update cryptography 3.4.7 -> 39.0.1, pyOpenSSL 21.0.0 -> 23.1.0, paramiko 2.10.5 -> 2.11.0 (security). #6055
+
+* Bumped `eventlet` to `0.33.3` and `gunicorn` to `21.2.0` to fix `RecursionError` bug in setting `SSLContext` `minimum_version` property. (security) #6061
+  Contributed by @jk464
+
+* Update orquesta to v1.6.0 to fix outdated dependencies (security). #6050
+
+* Fix KV value lookup in actions when RBAC is enabled #5934
+
+* Update version 3.1.15 of ``gitpython`` to 3.1.18 for py3.6 and to 3.1.37 for py3.8 (security). #6063
+
+* Update importlib-metadata from 3.10.1 to 4.8.3 for py3.6 and to 4.10.1 for py3.8 (security). #6072
+  Contributed by @jk464
+
+* For "local-shell-script" runner, on readonly filesystems, don't attempt to run chmod +x on script_action. Fixes #5591
+  Contributed by @jk464
+
+Added
+~~~~~
+* Move `git clone` to `user_home/.st2packs` #5845
+
+* Error on `st2ctl status` when running in Kubernetes. #5851
+  Contributed by @mamercad
+
+* Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
+  working on StackStorm, improve our security posture, and improve CI reliability thanks in part
+  to pants' use of PEX lockfiles. This is not a user-facing addition.
+  #5778 #5789 #5817 #5795 #5830 #5833 #5834 #5841 #5840 #5838 #5842 #5837 #5849 #5850
+  #5846 #5853 #5848 #5847 #5858 #5857 #5860 #5868 #5871 #5864 #5874 #5884 #5893 #5891
+  #5890 #5898 #5901 #5906 #5899 #5907 #5909 #5922 #5926 #5927 #5925 #5928 #5929 #5930
+  #5931 #5932 #5948 #5949 #5950
+  Contributed by @cognifloyd
+
+* Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
+
+* Added publisher to ActionAlias to enable streaming ActionAlias create/update/delete events. #5763
+  Contributed by @ubaumann
+
+* Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
+  Contributed by @maxfactor1
+
+* Python 3.9 support. #5730
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Run the st2 self-check in Github Actions and support the environment variable `TESTS_TO_SKIP` to skip tests when running st2-self-check. #5609
+  Contributed by @winem
+
+Changed
+~~~~~~~
+* Remove `distutils` dependencies across the project. #5992
+  Contributed by @AndroxxTraxxon
 
 3.8.0 - November 18, 2022
 -------------------------
@@ -68,6 +145,10 @@ Added
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
   to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725 #5732 #5733 #5737 #5738 #5758 #5751 #5774 #5776 #5777 #5782
   Contributed by @cognifloyd
+
+* Added querytype parameter to linux.dig action to allow specifying the dig 'type' parameter. Fixes #5772
+
+  Contributed by @AmbiguousYeoman
 
 Changed
 ~~~~~~~

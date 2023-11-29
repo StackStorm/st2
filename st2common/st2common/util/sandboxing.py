@@ -23,12 +23,19 @@ from __future__ import absolute_import
 import fnmatch
 import os
 import sys
-from distutils.sysconfig import get_python_lib
+from sysconfig import get_path
 
 from oslo_config import cfg
 
+from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.content.utils import get_pack_base_path
+
+
+def get_python_lib():
+    """Replacement for distutil.sysconfig.get_python_lib, returns a string with the python platform lib path (to site-packages)"""
+    return get_path("platlib")
+
 
 __all__ = [
     "get_sandbox_python_binary_path",
@@ -149,7 +156,9 @@ def get_sandbox_python_path_for_python_action(
         ]
 
         # Add the pack's lib directory (lib/python3.x) in front of the PYTHONPATH.
-        pack_actions_lib_paths = os.path.join(pack_base_path, "actions", "lib")
+        pack_actions_lib_paths = os.path.join(
+            pack_base_path, "actions", ACTION_LIBS_DIR
+        )
         pack_virtualenv_lib_path = os.path.join(virtualenv_path, "lib")
         pack_venv_lib_directory = os.path.join(
             pack_virtualenv_lib_path, virtualenv_directories[0]
