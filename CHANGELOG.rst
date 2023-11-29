@@ -1,8 +1,12 @@
 Changelog
 =========
 
-in development
+In development
 --------------
+
+
+3.8.1 - November 29, 2023
+-------------------------
 
 Fixed
 ~~~~~
