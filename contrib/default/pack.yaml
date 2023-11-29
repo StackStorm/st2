@@ -1,6 +1,6 @@
 ---
 name: default
 description: Default pack where all resources created using the API with no pack specified get saved.
-version: 3.8.0
+version: 3.8.1
 author : StackStorm, Inc.
 email : info@stackstorm.com
