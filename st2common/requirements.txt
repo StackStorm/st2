@@ -24,14 +24,14 @@ jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==5.0.2
 lockfile==0.12.2
-mongoengine==0.23.0
+mongoengine==0.27.0
 networkx<3
 orjson==3.5.2
 orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
 oslo.config>=1.12.1,<1.13
 paramiko==2.11.0
 pyOpenSSL==23.1.0
-pymongo==3.11.3
+pymongo==4.6.1
 python-dateutil==2.8.1
 python-statsd==2.1.0
 pyyaml==5.4.1

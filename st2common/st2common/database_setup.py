@@ -42,7 +42,6 @@ def db_config():
         "ssl_cert_reqs": cfg.CONF.database.ssl_cert_reqs,
         "ssl_ca_certs": cfg.CONF.database.ssl_ca_certs,
         "authentication_mechanism": cfg.CONF.database.authentication_mechanism,
-        "ssl_match_hostname": cfg.CONF.database.ssl_match_hostname,
     }
 
 

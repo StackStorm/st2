@@ -132,8 +132,7 @@ def _db_connect(
     ssl_certfile=None,
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
-    authentication_mechanism=None,
-    ssl_match_hostname=True,
+    authentication_mechanism=None
 ):
 
     if "://" in db_host:
@@ -168,7 +167,6 @@ def _db_connect(
         ssl_cert_reqs=ssl_cert_reqs,
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
     )
 
     compressor_kwargs = {}
@@ -237,7 +235,6 @@ def db_setup(
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
     authentication_mechanism=None,
-    ssl_match_hostname=True,
 ):
 
     connection = _db_connect(
@@ -252,7 +249,6 @@ def db_setup(
         ssl_cert_reqs=ssl_cert_reqs,
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
     )
 
     # Create all the indexes upfront to prevent race-conditions caused by
@@ -403,7 +399,6 @@ def db_cleanup(
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
     authentication_mechanism=None,
-    ssl_match_hostname=True,
 ):
 
     connection = _db_connect(
@@ -418,7 +413,6 @@ def db_cleanup(
         ssl_cert_reqs=ssl_cert_reqs,
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
     )
 
     LOG.info(
@@ -440,7 +434,6 @@ def _get_ssl_kwargs(
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
     authentication_mechanism=None,
-    ssl_match_hostname=True,
 ):
     # NOTE: In pymongo 3.9.0 some of the ssl related arguments have been renamed -
     # https://api.mongodb.com/python/current/changelog.html#changes-in-version-3-9-0
@@ -468,10 +461,6 @@ def _get_ssl_kwargs(
     if authentication_mechanism:
         ssl_kwargs["ssl"] = True
         ssl_kwargs["authentication_mechanism"] = authentication_mechanism
-    if ssl_kwargs.get("ssl", False):
-        # pass in ssl_match_hostname only if ssl is True. The right default value
-        # for ssl_match_hostname in almost all cases is True.
-        ssl_kwargs["ssl_match_hostname"] = ssl_match_hostname
     return ssl_kwargs
 
 

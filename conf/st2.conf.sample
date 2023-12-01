@@ -153,8 +153,6 @@ ssl_cert_reqs = None
 ssl_certfile = None
 # Private keyfile used to identify the local connection against MongoDB.
 ssl_keyfile = None
-# If True and `ssl_cert_reqs` is not None, enables hostname verification
-ssl_match_hostname = True
 # username for db login
 username = None
 # Compression level when compressors is set to zlib. Valid values are -1 to 9. Defaults to 6.
