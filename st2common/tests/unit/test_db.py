@@ -505,7 +505,7 @@ class DbCleanupTestCase(DbTestCase):
         """
         Tests dropping the database. Requires the db server to be running.
         """
-        self.assertIn(cfg.CONF.database.db_name, self.db_connection.database_names())
+        self.assertIn(cfg.CONF.database.db_name, self.db_connection.list_database_names())
 
         connection = db_cleanup()
 
