@@ -132,7 +132,7 @@ def _db_connect(
     ssl_certfile=None,
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
-    authentication_mechanism=None
+    authentication_mechanism=None,
 ):
 
     if "://" in db_host:
