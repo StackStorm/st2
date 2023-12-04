@@ -7,12 +7,12 @@
 # update the component requirements.txt
 eventlet==0.33.3
 gunicorn==21.2.0
-jsonschema==2.6.0
-kombu==5.0.2
+jsonschema!=2.5.0,<=3.2,>=2.0.0
+kombu==5.3.4
 mongoengine==0.27.0
-oslo.config>=1.12.1,<1.13
-oslo.utils<5.0,>=4.0.0
+oslo.config==9.2.0
+oslo.utils==6.3.0
 pymongo==4.6.1
-pyparsing<3
+pyparsing==3.1.1
 simplejson
-six==1.13.0
+six==1.16.0
