@@ -82,7 +82,7 @@ Changed
 * Remove `distutils` dependencies across the project. #5992
   Contributed by @AndroxxTraxxon
 
-* Remove deprecated not use dependencie `python-keyczar`. #6078
+* Drop Python 3.6. Support. Update Pipeline Templates. #6080
   Contributed by (@philipphomberger Schwarz IT KG)
 
 3.8.0 - November 18, 2022
