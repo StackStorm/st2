@@ -44,8 +44,8 @@ jobs:
   integration:
     docker:
       - image: circleci/python:3.8
-      - image: mongo:4.0
-      - image: rabbitmq:3
+      - image: mongo:6.0
+      - image: rabbitmq:3.9
     working_directory: ~/st2
     steps:
       - checkout
@@ -80,8 +80,8 @@ jobs:
   lint:
     docker:
       - image: circleci/python:3.8
-      - image: mongo:4.0
-      - image: rabbitmq:3
+      - image: mongo:6.0
+      - image: rabbitmq:3.9
     working_directory: ~/st2
     steps:
       - checkout
