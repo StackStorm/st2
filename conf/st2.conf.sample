@@ -39,7 +39,7 @@ workflows_pool_size = 40
 # List of origins allowed for api, auth and stream
 allow_origin = http://127.0.0.1:3000 # comma separated list allowed here.
 # SameSite attribute value for the auth-token cookie we set on successful authentication from st2web. If you don't have a specific reason (e.g. supporting old browsers) we recommend you set this value to strict. Setting it to "unset" will default to the behavior in previous releases and not set this SameSite header value.
-# Valid values: OrderedDict([('strict', None), ('lax', None), ('none', None), ('unset', None)])
+# Valid values: strict, lax, none, unset
 auth_cookie_same_site = lax
 # True if secure flag should be set for "auth-token" cookie which is set on successful authentication via st2web. You should only set this to False if you have a good reason to not run and access StackStorm behind https proxy.
 auth_cookie_secure = True
@@ -147,7 +147,7 @@ ssl = False
 # ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from MongoDB.
 ssl_ca_certs = None
 # Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided
-# Valid values: OrderedDict([('n', None), ('o', None), ('e', None), (',', None), (' ', None), ('p', None), ('t', None), ('i', None), ('a', None), ('l', None), ('r', None), ('q', None), ('u', None), ('d', None)])
+# Valid values: none, optional, required
 ssl_cert_reqs = None
 # Certificate file used to identify the localconnection
 ssl_certfile = None
@@ -204,7 +204,7 @@ redirect_stderr = False
 # URL of all the nodes in a messaging service cluster.
 cluster_urls =  # comma separated list allowed here.
 # Compression algorithm to use for compressing the payloads which are sent over the message bus. Defaults to no compression.
-# Valid values: OrderedDict([('zstd', None), ('lzma', None), ('bz2', None), ('gzip', None), (None, None)])
+# Valid values: zstd, lzma, bz2, gzip, None
 compression = None
 # How many times should we retry connection before failing.
 connection_retries = 10
@@ -217,7 +217,7 @@ ssl = False
 # ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from RabbitMQ.
 ssl_ca_certs = None
 # Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided.
-# Valid values: OrderedDict([('n', None), ('o', None), ('e', None), (',', None), (' ', None), ('p', None), ('t', None), ('i', None), ('a', None), ('l', None), ('r', None), ('q', None), ('u', None), ('d', None)])
+# Valid values: none, optional, required
 ssl_cert_reqs = None
 # Certificate file used to identify the local connection (client).
 ssl_certfile = None

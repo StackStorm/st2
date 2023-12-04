@@ -38,8 +38,8 @@ nose-parallel==0.4.0
 nose-timer==1.0.1
 orjson==3.5.2
 orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
-oslo.config==9.2.0
-oslo.utils==6.3.0
+oslo.config>=1.12.1,<1.13
+oslo.utils<5.0,>=4.0.0
 paramiko==3.3.1
 passlib==1.7.4
 prettytable==2.1.0
