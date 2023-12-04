@@ -1,6 +1,6 @@
 # Packages versions fixed for the whole st2 stack
 # Note: amqp is used by kombu
-amqp==5.2.0
+amqp>=5.1.1
 apscheduler==3.10.0
 # orquesta 1.6.0 depends on chardet<4.0.0 and >=3.0.2 need update first
 chardet<4.0.0,>=3.0.2
@@ -27,7 +27,7 @@ lockfile==0.12.2
 # Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
 # >=0.23 was from jinja2
 MarkupSafe<2.1.0,>=0.23
-mongoengine==0.27.0
+mongoengine==0.23.0
 # required by orquesta (networkx<2.6 for py3.6, networkx<3 for py3.8)
 networkx<3
 # networkx requires decorator>=4.3,<5 which should resolve to version 4.4.2
@@ -44,7 +44,7 @@ passlib==1.7.4
 prompt-toolkit==1.0.15
 # Newer version not working AttributeError: module 'prompt_toolkit.token' has no attribute 'Token'
 pyinotify==0.9.6 ; platform_system=="Linux"
-pymongo==4.6.1
+pymongo==3.11.3
 pyparsing==3.1.1
 zstandard==0.22.0
 pyOpenSSL==23.3.0
