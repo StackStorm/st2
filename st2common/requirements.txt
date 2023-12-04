@@ -6,12 +6,12 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 MarkupSafe<2.1.0,>=0.23
-amqp==5.0.6
-apscheduler==3.7.0
-cffi<1.15.0
-chardet<3.1.0
+amqp==5.2.0
+apscheduler==3.10.0
+cffi==1.16.0
+chardet <4.0.0, >=3.0.2
 ciso8601
-cryptography==39.0.1
+cryptography==41.0.7
 decorator==4.4.2
 dnspython>=1.16.0,<2.0.0
 eventlet==0.33.3
@@ -29,8 +29,8 @@ networkx<3
 orjson==3.5.2
 orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
 oslo.config>=1.12.1,<1.13
-paramiko==2.11.0
-pyOpenSSL==23.1.0
+paramiko==3.3.1
+pyOpenSSL==23.3.0
 pymongo==4.6.1
 python-dateutil==2.8.1
 python-statsd==2.1.0

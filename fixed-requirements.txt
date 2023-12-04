@@ -1,13 +1,13 @@
 # Packages versions fixed for the whole st2 stack
 # Note: amqp is used by kombu
-amqp==5.0.6
-apscheduler==3.7.0
-# requests 2.23 requires chardet < 3.1.0
-chardet<3.1.0
-cffi<1.15.0
+amqp==5.2.0
+apscheduler==3.10.0
+# orquesta 1.6.0 depends on chardet<4.0.0 and >=3.0.2 need update first
+chardet <4.0.0, >=3.0.2
+cffi==1.16.0
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython>=1.16.0,<2.0.0
-cryptography==39.0.1
+cryptography==41.0.7
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
 eventlet==0.33.3
@@ -38,8 +38,7 @@ decorator==4.4.2
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
-# paramiko 2.11.0 is needed by cryptography > 37.0.0
-paramiko==2.11.0
+paramiko==3.3.1
 passlib==1.7.4
 prompt-toolkit==1.0.15
 pyinotify==0.9.6 ; platform_system=="Linux"
@@ -47,7 +46,7 @@ pymongo==4.6.1
 pyparsing<3
 zstandard==0.15.2
 # pyOpenSSL 23.1.0 supports cryptography up to 40.0.x
-pyOpenSSL==23.1.0
+pyOpenSSL==23.3.0
 python-editor==1.0.4
 python-keyczar==0.716
 pytz==2021.1
