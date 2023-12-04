@@ -40,7 +40,8 @@ oslo.config==9.2.0
 oslo.utils==6.3.0
 paramiko==3.3.1
 passlib==1.7.4
-prompt-toolkit==3.0.41
+prompt-toolkit==1.0.15
+# Newer version not working AttributeError: module 'prompt_toolkit.token' has no attribute 'Token'
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==4.6.1
 pyparsing==3.1.1
