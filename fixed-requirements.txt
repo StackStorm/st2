@@ -36,8 +36,9 @@ networkx<3
 decorator==4.4.2
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
-oslo.config==9.2.0
-oslo.utils==6.3.0
+oslo.config>=1.12.1,<1.13
+oslo.utils<5.0,>=4.0.0
+# newer version of oslo make problems in the unit test cases.
 paramiko==3.3.1
 passlib==1.7.4
 prompt-toolkit==1.0.15
