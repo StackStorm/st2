@@ -19,8 +19,9 @@ gitdb==4.0.11
 greenlet==3.0.1
 gunicorn==21.2.0
 jsonpath-rw==1.4.0
-jsonschema<=3.0
+jsonschema==2.6.0
 # jsonschema Orecheste Update needed for newest Version.
+# jsonschema error in nwer version shema._validators' has no attribute 'properties_draft4'
 kombu==5.3.4
 lockfile==0.12.2
 # Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
