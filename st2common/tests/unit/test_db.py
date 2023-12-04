@@ -511,7 +511,7 @@ class DbCleanupTestCase(DbTestCase):
 
         connection = db_cleanup()
 
-        self.assertNotIn(cfg.CONF.database.db_name, connection.database_names())
+        self.assertNotIn(cfg.CONF.database.db_name, connection.list_database_names())
 
 
 @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())
