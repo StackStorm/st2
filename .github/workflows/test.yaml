@@ -33,9 +33,6 @@ jobs:
         # setup virtualenv step will fail.
         include:
           - name: 'Test (pants runs: pytest)'
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Test (pants runs: pytest)'
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Test (pants runs: pytest)'
