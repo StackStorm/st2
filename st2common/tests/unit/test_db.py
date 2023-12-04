@@ -505,13 +505,11 @@ class DbCleanupTestCase(DbTestCase):
         """
         Tests dropping the database. Requires the db server to be running.
         """
-        self.assertIn(
-            cfg.CONF.database.db_name, self.db_connection.list_database_names()
-        )
+        self.assertIn(cfg.CONF.database.db_name, self.db_connection.database_names())
 
         connection = db_cleanup()
 
-        self.assertNotIn(cfg.CONF.database.db_name, connection.list_database_names())
+        self.assertNotIn(cfg.CONF.database.db_name, connection.database_names())
 
 
 @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())
