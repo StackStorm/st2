@@ -9,7 +9,7 @@ MarkupSafe<2.1.0,>=0.23
 RandomWords
 amqp==5.0.6
 apscheduler==3.7.0
-argcomplete==1.12.3
+argcomplete==3.1.6
 bcrypt==3.2.0
 cffi<1.15.0
 chardet<3.1.0
@@ -23,7 +23,7 @@ gitdb==4.0.2
 gitpython<=3.1.37
 greenlet==1.0.0
 gunicorn==21.2.0
-importlib-metadata>=4.8.3,<=4.10.1
+importlib-metadata==7.0.0
 jinja2==2.11.3
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
