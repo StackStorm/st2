@@ -3,7 +3,7 @@
 amqp==5.2.0
 apscheduler==3.10.0
 # orquesta 1.6.0 depends on chardet<4.0.0 and >=3.0.2 need update first
-chardet <4.0.0, >=3.0.2
+chardet<4.0.0,>=3.0.2
 cffi==1.16.0
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython>=1.16.0,<2.0.0
@@ -12,17 +12,15 @@ cryptography==41.0.7
 # depend on rely
 eventlet==0.33.3
 flex==6.14.1
-# Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
-# TODO: Pin to 3.1.37 or higher after dropping python3.6 support
-gitpython<=3.1.37
+gitpython==3.1.40
 # Needed by gitpython, old versions used to bundle it
-gitdb==4.0.2
+gitdb==4.0.11
 # Note: greenlet is used by eventlet
-greenlet==1.0.0
+greenlet==3.0.1
 gunicorn==21.2.0
 jsonpath-rw==1.4.0
-jsonschema==2.6.0
-kombu==5.0.2
+jsonschema==4.20.0
+kombu==5.3.4
 lockfile==0.12.2
 # Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
 # >=0.23 was from jinja2
@@ -36,24 +34,23 @@ networkx<3
 decorator==4.4.2
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
-oslo.config>=1.12.1,<1.13
-oslo.utils<5.0,>=4.0.0
+oslo.config==9.2.0
+oslo.utils==6.3.0
 paramiko==3.3.1
 passlib==1.7.4
-prompt-toolkit==1.0.15
+prompt-toolkit==3.0.41
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==4.6.1
-pyparsing<3
-zstandard==0.15.2
-# pyOpenSSL 23.1.0 supports cryptography up to 40.0.x
+pyparsing==3.1.1
+zstandard==0.22.0
 pyOpenSSL==23.3.0
 python-editor==1.0.4
 python-keyczar==0.716
-pytz==2021.1
-pywinrm==0.4.1
-pyyaml==5.4.1
-redis==4.1.4
-requests[security]==2.25.1
+pytz==2023.3.post1
+pywinrm==0.4.3
+pyyaml==6.0.1
+redis==5.0.1
+requests==2.31.0
 retrying==1.3.3
 routes==2.4.1
 semver==2.13.0
@@ -64,7 +61,7 @@ argcomplete==1.12.3
 prettytable==2.1.0
 # Note: installs importlib-metadata==4.10.1 (security fixed) under py3.8 and importlib-metadata==4.8.3 (latest available, vulnerable) under py3.6
 # TODO: Pin to 4.10.1 or higher after dropping python3.6 support
-importlib-metadata>=4.8.3,<=4.10.1
+importlib-metadata==7.0.0
 # importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
 typing-extensions<4.2
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
