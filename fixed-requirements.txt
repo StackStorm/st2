@@ -1,7 +1,7 @@
 # Packages versions fixed for the whole st2 stack
 # Note: amqp is used by kombu
 amqp>=5.1.1
-apscheduler==3.10.0
+apscheduler==3.10.4
 # orquesta 1.6.0 depends on chardet<4.0.0 and >=3.0.2 need update first
 chardet<4.0.0,>=3.0.2
 cffi==1.16.0

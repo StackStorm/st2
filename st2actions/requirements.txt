@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 MarkupSafe<2.1.0,>=0.23
-apscheduler==3.10.0
+apscheduler==3.10.4
 chardet<4.0.0,>=3.0.2
 eventlet==0.33.3
 gitpython==3.1.40
