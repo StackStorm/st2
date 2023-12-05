@@ -29,9 +29,9 @@ mock
 mongoengine
 # Note: networkx v2.6 dropped support for Python3.6
 # networkx version is constrained in orquesta.
-networkx<3
+networkx
 orjson
-orquesta @ git+https://github.com/StackStorm/orquesta.git@v1.6.0
+orquesta@ git+https://github.com/philipphomberger/orquesta.git@feature/3.9
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
 oslo.config>=1.12.1,<1.13
