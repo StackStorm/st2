@@ -73,7 +73,7 @@ st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 stevedore==5.1.0
 tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
-typing-extensions<4.2
+typing-extensions==4.8.0
 unittest2
 webob==1.8.7
 webtest

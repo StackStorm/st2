@@ -67,7 +67,7 @@ prettytable==2.1.0
 # TODO: Pin to 4.10.1 or higher after dropping python3.6 support
 importlib-metadata==7.0.0
 # importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
-typing-extensions<4.2
+typing-extensions==4.8.0
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
 sseclient-py==1.7
 stevedore==5.1.0
