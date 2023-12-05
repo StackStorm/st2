@@ -43,7 +43,7 @@ semver==3.0.2
 six==1.16.0
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 tenacity>=3.2.1,<7.0.0
-tooz==2.8.0
+tooz==4.3.0
 webob==1.8.7
 zake==0.2.2
 zstandard==0.22.0
