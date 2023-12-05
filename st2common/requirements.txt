@@ -21,7 +21,7 @@ gitpython==3.1.40
 greenlet==3.0.1
 jinja2
 jsonpath-rw==1.4.0
-jsonschema==4.20.0
+jsonschema==2.6.0
 kombu==5.3.4
 lockfile==0.12.2
 mongoengine==0.23.0

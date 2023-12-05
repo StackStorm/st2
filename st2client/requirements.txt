@@ -11,7 +11,7 @@ chardet==5.2.0
 cryptography==41.0.7
 importlib-metadata==7.0.0
 jsonpath-rw==1.4.0
-jsonschema==4.20.0
+jsonschema==2.6.0
 orjson==3.5.2
 prettytable==2.1.0
 prompt-toolkit==1.0.15

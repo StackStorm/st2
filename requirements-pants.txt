@@ -22,7 +22,7 @@ greenlet
 gunicorn
 jinja2
 jsonpath-rw
-jsonschema
+jsonschema!=2.5.0,>=2.0.0,<=3.2 # MIT
 kombu
 lockfile
 mock
