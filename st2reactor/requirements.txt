@@ -8,7 +8,7 @@
 apscheduler==3.10.4
 eventlet==0.33.3
 jsonpath-rw==1.4.0
-jsonschema==2.6.0
+jsonschema==4.20.0
 kombu==5.3.4
 oslo.config>=1.12.1,<1.13
 python-dateutil==2.8.1

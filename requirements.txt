@@ -12,7 +12,7 @@ apscheduler==3.10.4
 argcomplete==3.1.6
 bcrypt==3.2.0
 cffi==1.16.0
-chardet<4.0.0,>=3.0.2
+chardet==5.2.0
 ciso8601
 cryptography==41.0.7
 decorator==4.4.2
@@ -24,9 +24,9 @@ gitpython==3.1.40
 greenlet==3.0.1
 gunicorn==21.2.0
 importlib-metadata==7.0.0
-jinja2==2.11.3
+jinja2
 jsonpath-rw==1.4.0
-jsonschema==2.6.0
+jsonschema==4.20.0
 kombu==5.3.4
 lockfile==0.12.2
 logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
@@ -37,7 +37,7 @@ nose
 nose-parallel==0.4.0
 nose-timer==1.0.1
 orjson==3.5.2
-orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
+orquesta@ git+https://github.com/philipphomberger/orquesta.git@feature/3.9
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 paramiko==3.3.1
@@ -70,7 +70,7 @@ sseclient-py==1.7
 st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
-stevedore==1.30.1
+stevedore==5.1.0
 tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
 typing-extensions<4.2

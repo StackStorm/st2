@@ -3,7 +3,7 @@
 amqp>=5.1.1
 apscheduler==3.10.4
 # orquesta 1.6.0 depends on chardet<4.0.0 and >=3.0.2 need update first
-chardet<4.0.0,>=3.0.2
+chardet==5.2.0
 cffi==1.16.0
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython>=1.16.0,<2.0.0
@@ -19,7 +19,7 @@ gitdb==4.0.11
 greenlet==3.0.1
 gunicorn==21.2.0
 jsonpath-rw==1.4.0
-jsonschema==2.6.0
+jsonschema==4.20.0
 # jsonschema Orecheste Update needed for newest Version.
 # jsonschema error in nwer version shema._validators' has no attribute 'properties_draft4'
 kombu==5.3.4
@@ -70,7 +70,7 @@ importlib-metadata==7.0.0
 typing-extensions<4.2
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
 sseclient-py==1.7
-stevedore==1.30.1
+stevedore==5.1.0
 tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
@@ -80,7 +80,7 @@ webob==1.8.7
 zake==0.2.2
 # test requirements below
 bcrypt==3.2.0
-jinja2==2.11.3
+Jinja2==3.1.2
 mock==4.0.3
 nose-timer==1.0.1
 nose-parallel==0.4.0

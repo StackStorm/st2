@@ -108,8 +108,8 @@ enable_resolves = true
 default_resolve = "st2"
 interpreter_constraints = [
   # python_distributions needs a single constraint (vs one line per python version).
-  # officially, we exclude 3.7 support, but that adds unnecessary complexity: "CPython>=3.6,!=3.7.*,<3.10",
-  "CPython>=3.6,<3.10",
+  # officially, we exclude 3.7 support, but that adds unnecessary complexity: "CPython>=3.8,!=3.7.*,<3.10",
+  "CPython>=3.8,<3.10",
   # NB: constraints for tools defined below
 ]
 
@@ -128,19 +128,19 @@ twine = "lockfiles/twine.lock"
 
 [python.resolves_to_interpreter_constraints]
 # for tools, we have to include constraints for st2 and pants-plugins
-bandit = ["CPython>=3.6,<3.10"]
-black = ["CPython>=3.6.2,<3.10"] # black doesn't support <3.6.2
-flake8 = ["CPython>=3.6,<3.10"]
+bandit = ["CPython>=3.8,<3.10"]
+black = ["CPython>=3.8.2,<3.10"] # black doesn't support <3.6.2
+flake8 = ["CPython>=3.8,<3.10"]
 pants-plugins = [
   # this should match the pants interpreter_constraints:
   # https://github.com/pantsbuild/pants/blob/2.14.x/pants.toml#L125
   # See: https://www.pantsbuild.org/docs/prerequisites
   "CPython>=3.7,<3.10",
 ]
-pylint = ["CPython>=3.6,<3.10"]
-pytest = ["CPython>=3.6,<3.10"]
-setuptools = ["CPython>=3.6,<3.10"]
-twine = ["CPython>=3.6,<3.10"]
+pylint = ["CPython>=3.8,<3.10"]
+pytest = ["CPython>=3.8,<3.10"]
+setuptools = ["CPython>=3.8,<3.10"]
+twine = ["CPython>=3.8,<3.10"]
 
 [python.resolves_to_constraints_file]
 # Our direct requirements are in requirements-pants.txt;
@@ -188,7 +188,7 @@ requirements = ["bandit", "setuptools", "GitPython"] # versions in BUILD.tools
 install_from_resolve = "black"
 requirements = ["black"] # version in BUILD.tools
 interpreter_constraints = [
-  "CPython>=3.6.2,<3.10",
+  "CPython>=3.8.2,<3.10",
 ]
 
 [flake8]

@@ -9,7 +9,7 @@ MarkupSafe<2.1.0,>=0.23
 amqp>=5.1.1
 apscheduler==3.10.4
 cffi==1.16.0
-chardet<4.0.0,>=3.0.2
+chardet==5.2.0
 ciso8601
 cryptography==41.0.7
 decorator==4.4.2
@@ -19,15 +19,15 @@ flex==6.14.1
 gitdb==4.0.11
 gitpython==3.1.40
 greenlet==3.0.1
-jinja2==2.11.3
+jinja2
 jsonpath-rw==1.4.0
-jsonschema==2.6.0
+jsonschema==4.20.0
 kombu==5.3.4
 lockfile==0.12.2
 mongoengine==0.23.0
 networkx
 orjson==3.5.2
-orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
+orquesta@ git+https://github.com/philipphomberger/orquesta.git@feature/3.9
 oslo.config>=1.12.1,<1.13
 paramiko==3.3.1
 pyOpenSSL==23.3.0

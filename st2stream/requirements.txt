@@ -7,7 +7,7 @@
 # update the component requirements.txt
 eventlet==0.33.3
 gunicorn==21.2.0
-jsonschema==2.6.0
+jsonschema==4.20.0
 kombu==5.3.4
 mongoengine==0.23.0
 oslo.config>=1.12.1,<1.13

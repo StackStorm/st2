@@ -70,7 +70,7 @@ six
 # has various issues which sometimes hang the connection for a long time, etc.
 sseclient-py
 # bandit doesn't work w/ stevedore 3+
-stevedore<3
+stevedore==5.1.0
 # For backward compatibility reasons, flat file backend is installed by default
 st2-auth-backend-flat-file @ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
 st2-auth-ldap @ git+https://github.com/StackStorm/st2-auth-ldap.git@master

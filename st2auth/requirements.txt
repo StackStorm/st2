@@ -14,4 +14,4 @@ pymongo==3.11.3
 six==1.16.0
 st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
-stevedore==1.30.1
+stevedore==5.1.0
