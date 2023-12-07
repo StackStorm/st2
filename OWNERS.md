@@ -55,6 +55,7 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Anand Patel ([@arms11](https://github.com/arms11)), _VMware_ - Docker, Kubernetes.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
+* Kirill Enykeev ([@enykeev](https://github.com/enykeev)), _SentinelOne_ - ex Stormer. WebUI, Workflow Designer.
 * Mark Mercado ([@mamercad](https://github.com/mamercad)), _DigitalOcean_ - Ansible, Docker, K8s, StackStorm Exchange. [StackStorm Adoption](https://github.com/StackStorm/st2/pull/5836).
 * Rick Kauffman ([@xod442](https://github.com/xod442)), _HPE_ - Community, HOWTOs, Blogs, Publications, Docker.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
@@ -74,7 +75,6 @@ Thank you, Friends!
 * Denis Barishev ([@dennybaa](https://github.com/dennybaa)) - ex Stormer. Re-architeced StackStorm installer via deb/rpm packages, made it stable, repeatable, fixed first platform pain points.
 * Ed Medvedev ([@emedvedev](https://github.com/emedvedev)) - ex Stormer. Made WebUI slick and ChatOps awesome, discovered and implemented today's [StackStorm Exchange](https://exchange.stackstorm.org/).
 * Evan Powell ([@epowell101](https://github.com/epowell101)) - StackStorm co-founder, first CEO, Stormer forever.
-* Kirill Enykeev ([@enykeev](https://github.com/enykeev)) - ex Stormer. WebUI, Workflow Designer, StackStorm Exchange, CI.
 * Michael Ward ([@mward29](https://github.com/mward29)) - StackStorm Exchange, Community, Docker & K8s. [Case Study](https://stackstorm.com/case-study-pearson/).
 * Matthew Stone ([@bigmstone](https://github.com/bigmstone)) - ex Stormer. Project Leadership and StackStorm's [Robot Arm :)](https://twitter.com/Stack_Storm/status/1217056819736203270).
 * Matt Oswalt ([@Mierdin](https://github.com/Mierdin)) - ex Stormer. Invented, architected and implemented [st2 Inquiries](https://docs.stackstorm.com/inquiries.html).
