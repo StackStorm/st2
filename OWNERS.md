@@ -57,6 +57,7 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
 * Mark Mercado ([@mamercad](https://github.com/mamercad)), _DigitalOcean_ - Ansible, Docker, K8s, StackStorm Exchange. [StackStorm Adoption](https://github.com/StackStorm/st2/pull/5836).
 * Rick Kauffman ([@xod442](https://github.com/xod442)), _HPE_ - Community, HOWTOs, Blogs, Publications, Docker.
+* Ronnie Hoffmann ([@ZoeLeah](https://github.com/ZoeLeah)), _Schwarz IT KG_ - Docker, K8s.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
