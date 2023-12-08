@@ -49,7 +49,6 @@ pyparsing==3.1.1
 zstandard==0.22.0
 pyOpenSSL==23.3.0
 python-editor==1.0.4
-python-keyczar==0.716
 pytz==2023.3.post1
 pywinrm==0.4.3
 pyyaml==6.0.1
