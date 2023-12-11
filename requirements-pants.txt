@@ -11,7 +11,7 @@ argcomplete
 ciso8601
 cryptography
 # eventlet 0.31+ and gunicorn 20.1.0 are not compatible
-eventlet<0.31
+eventlet==0.31.0
 # flex parses the openapi 2 spec in our router
 flex
 # gitpython & gitdb are used for pack management
@@ -63,7 +63,7 @@ retrying
 routes
 semver
 # setuptools provides pkg_resources (and we need it with pip at runtime)
-setuptools
+setuptools==65.5.1
 simplejson
 six
 # NOTE: we use sseclient-py instead of sseclient because sseclient
@@ -85,7 +85,7 @@ virtualenv
 webob
 webtest
 # we use pip+wheel at runtime
-wheel
+wheel==0.38.0
 # zstandard is used for micro benchmarks
 zstandard
 
