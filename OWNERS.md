@@ -59,6 +59,7 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Rick Kauffman ([@xod442](https://github.com/xod442)), _HPE_ - Community, HOWTOs, Blogs, Publications, Docker.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
+* Sravanthi Konduru ([@sravs-dev](https://github.com/sravs-dev)), _Salesforce_, - Core, StackStorm Exchange.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
 * Yuri Dubler ([@lm-ydubler](https://github.com/lm-ydubler)) - _LogicMonitor_ - StackStorm Exchange, CI.
 
