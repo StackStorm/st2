@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 MarkupSafe<2.1.0,>=0.23
-amqp>=5.1.1
+amqp==5.0.6
 apscheduler==3.10.4
 cffi==1.16.0
 chardet==5.2.0
