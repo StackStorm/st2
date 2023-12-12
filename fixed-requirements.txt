@@ -22,7 +22,7 @@ jsonpath-rw==1.4.0
 jsonschema==2.6.0
 # jsonschema Orecheste Update needed for newest Version.
 # jsonschema error in nwer version shema._validators' has no attribute 'properties_draft4'
-kombu==5.3.4
+kombu==5.2.0
 lockfile==0.12.2
 # Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
 # >=0.23 was from jinja2
