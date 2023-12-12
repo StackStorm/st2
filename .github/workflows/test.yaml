@@ -25,7 +25,7 @@ on:
 jobs:
   test:
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
