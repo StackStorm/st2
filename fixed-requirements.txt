@@ -39,7 +39,7 @@ decorator==4.4.2
 oslo.config>=1.12.1,<1.13
 oslo.utils<5.0,>=4.0.0
 # paramiko 2.11.0 is needed by cryptography > 37.0.0
-paramiko==2.11.0
+paramiko==3.4.0
 passlib==1.7.4
 prompt-toolkit==1.0.15
 pyinotify==0.9.6 ; platform_system=="Linux"
