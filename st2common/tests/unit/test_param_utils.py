@@ -59,7 +59,6 @@ class ParamsUtilsTest(DbTestCase):
     runnertype_db = FIXTURES["runners"]["testrunner1.yaml"]
 
     def test_process_jinja_exception(self):
-
         action_context = {"api_user": "noob"}
         config = {}
         G = param_utils._create_graph(action_context, config)
@@ -69,7 +68,6 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEquals(G.nodes.get(name, {}).get("value"), value)
 
     def test_process_jinja_template(self):
-
         action_context = {"api_user": "noob"}
         config = {}
         G = param_utils._create_graph(action_context, config)
@@ -524,28 +522,20 @@ class ParamsUtilsTest(DbTestCase):
         params = {"r1": "{{r3}}", "r2": "{{r3}}"}
         runner_param_info = {"r1": {}, "r2": {}}
         action_param_info = {}
-        test_pass = True
-        try:
-            param_utils.get_finalized_params(
-                runner_param_info, action_param_info, params, {"user": None}
-            )
-            test_pass = False
-        except ParamException as e:
-            test_pass = six.text_type(e).find("Dependency") == 0
-        self.assertTrue(test_pass)
+        result = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, {"user": None}
+        )
+        self.assertEquals(result[0]["r1"], params["r1"])
+        self.assertEquals(result[0]["r2"], params["r2"])
 
         params = {}
         runner_param_info = {"r1": {"default": "{{r3}}"}, "r2": {"default": "{{r3}}"}}
         action_param_info = {}
-        test_pass = True
-        try:
-            param_utils.get_finalized_params(
-                runner_param_info, action_param_info, params, {"user": None}
-            )
-            test_pass = False
-        except ParamException as e:
-            test_pass = six.text_type(e).find("Dependency") == 0
-        self.assertTrue(test_pass)
+        result2 = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, {"user": None}
+        )
+        self.assertEquals(result2[0]["r1"], runner_param_info["r1"]["default"])
+        self.assertEquals(result2[0]["r2"], runner_param_info["r2"]["default"])
 
     def test_get_finalized_params_no_double_rendering(self):
         params = {"r1": "{{ action_context.h1 }}{{ action_context.h2 }}"}
@@ -788,16 +778,10 @@ class ParamsUtilsTest(DbTestCase):
         }
         action_context = {"user": None}
 
-        expected_msg = 'Dependency unsatisfied in variable "variable_not_defined"'
-        self.assertRaisesRegexp(
-            ParamException,
-            expected_msg,
-            param_utils.render_live_params,
-            runner_param_info,
-            action_param_info,
-            params,
-            action_context,
+        result = param_utils.render_live_params(
+            runner_param_info, action_param_info, params, action_context
         )
+        self.assertEquals(result["r4"], params["r4"])
 
     def test_add_default_templates_to_live_params(self):
         """Test addition of template values in defaults to live params"""

@@ -174,13 +174,22 @@ def _validate(G):
     """
     Validates dependency graph to ensure it has no missing or cyclic dependencies
     """
+    g_copy = G.copy()
     for name in G.nodes:
         if "value" not in G.nodes[name] and "template" not in G.nodes[name]:
-            msg = 'Dependency unsatisfied in variable "%s"' % name
-            raise ParamException(msg)
+            # this is a string not a jinja template;  embedded {{sometext}}
+            for i in G.neighbors(name):
+                # remove template for neighbors; this isn't actually a variable
+                # it is a value
+                # remove template attr if it exists
+                g_copy.nodes[i]["value"] = g_copy.nodes[i].pop("template")
+                # remove edges
+                g_copy.remove_edge(name, i)
+            # remove node from graph
+            g_copy.remove_node(name)
 
-    if not nx.is_directed_acyclic_graph(G):
-        graph_cycles = nx.simple_cycles(G)
+    if not nx.is_directed_acyclic_graph(g_copy):
+        graph_cycles = nx.simple_cycles(g_copy)
 
         variable_names = []
         for cycle in graph_cycles:
@@ -197,6 +206,7 @@ def _validate(G):
             "referencing itself" % (variable_names)
         )
         raise ParamException(msg)
+    return g_copy
 
 
 def _render(node, render_context):
@@ -336,9 +346,10 @@ def render_live_params(
 
     [_process(G, name, value) for name, value in six.iteritems(params)]
     _process_defaults(G, [action_parameters, runner_parameters])
-    _validate(G)
+    G = _validate(G)
 
     context = _resolve_dependencies(G)
+    LOG.debug("context: %s" % str(context))
     live_params = _cast_params_from(
         params, context, [action_parameters, runner_parameters]
     )
@@ -359,7 +370,7 @@ def render_final_params(runner_parameters, action_parameters, params, action_con
     # by that point, all params should already be resolved so any template should be treated value
     [G.add_node(name, value=value) for name, value in six.iteritems(params)]
     _process_defaults(G, [action_parameters, runner_parameters])
-    _validate(G)
+    G = _validate(G)
 
     context = _resolve_dependencies(G)
     context = _cast_params_from(
