@@ -349,7 +349,6 @@ def render_live_params(
     G = _validate(G)
 
     context = _resolve_dependencies(G)
-    LOG.debug("context: %s" % str(context))
     live_params = _cast_params_from(
         params, context, [action_parameters, runner_parameters]
     )
