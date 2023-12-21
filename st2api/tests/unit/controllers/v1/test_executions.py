@@ -774,10 +774,8 @@ class ActionExecutionControllerTestCase(
         # Runner type does not expects additional properties.
         execution["parameters"]["hosts"] = "{{ABSENT}}"
         post_resp = self._do_post(execution, expect_errors=True)
-        self.assertEqual(post_resp.status_int, 400)
-        self.assertEqual(
-            post_resp.json["faultstring"], 'Dependency unsatisfied in variable "ABSENT"'
-        )
+        # we no longer fail if parameter is not found
+        self.assertEqual(post_resp.status_int, 201)
 
     def test_post_parameter_validation_explicit_none(self):
         execution = copy.deepcopy(LIVE_ACTION_1)
