@@ -1,6 +1,4 @@
 checks:
-  tags:
-    - st2 
   stage: checks 
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
@@ -15,7 +13,7 @@ checks:
 
 unittests:
   tags:
-    - mock_static 
+    - mock-static 
   stage: unittests 
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
