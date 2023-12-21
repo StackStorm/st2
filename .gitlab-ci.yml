@@ -1,4 +1,6 @@
 checks:
+  tags:
+    - mock-static 
   stage: checks 
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
