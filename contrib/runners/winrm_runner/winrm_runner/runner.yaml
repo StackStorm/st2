@@ -66,6 +66,26 @@
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
       type: boolean
+  output_key: stdout
+  output_schema:
+    type: object
+    properties:
+      succeeded:
+        type: boolean
+        required: true
+      failed:
+        type: boolean
+        required: true
+      stdout:
+        anyOf:
+          - type: "object"
+          - type: "string"
+        required: true
+      stderr:
+        type: string
+        required: true
+      return_code:
+        type: integer
 - description: A remote execution runner that executes PowerShell commands via WinRM on a remote host
   enabled: true
   name: winrm-ps-cmd
@@ -134,6 +154,26 @@
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
       type: boolean
+  output_key: stdout
+  output_schema:
+    type: object
+    properties:
+      succeeded:
+        type: boolean
+        required: true
+      failed:
+        type: boolean
+        required: true
+      stdout:
+        anyOf:
+          - type: "object"
+          - type: "string"
+        required: true
+      stderr:
+        type: string
+        required: true
+      return_code:
+        type: integer
 - description: A remote execution runner that executes PowerShell script via WinRM on a set of remote hosts
   enabled: true
   name: winrm-ps-script
@@ -199,3 +239,23 @@
         CA bundle which comes from Mozilla. Verification using a custom CA bundle
         is not yet supported. Set to False to skip verification.
       type: boolean
+  output_key: stdout
+  output_schema:
+    type: object
+    properties:
+      succeeded:
+        type: boolean
+        required: true
+      failed:
+        type: boolean
+        required: true
+      stdout:
+        anyOf:
+          - type: "object"
+          - type: "string"
+        required: true
+      stderr:
+        type: string
+        required: true
+      return_code:
+        type: integer

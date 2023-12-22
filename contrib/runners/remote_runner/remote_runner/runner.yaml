@@ -82,6 +82,26 @@
         config is used.
       required: false
       type: string
+  output_key: stdout
+  output_schema:
+    type: object
+    properties:
+      succeeded:
+        type: boolean
+        required: true
+      failed:
+        type: boolean
+        required: true
+      stdout:
+        anyOf:
+          - type: "object"
+          - type: "string"
+        required: true
+      stderr:
+        type: string
+        required: true
+      return_code:
+        type: integer
 - description: A remote execution runner that executes actions as a fixed system user.
   enabled: true
   name: remote-shell-script
@@ -162,3 +182,23 @@
         config is used.
       required: false
       type: string
+  output_key: stdout
+  output_schema:
+    type: object
+    properties:
+      succeeded:
+        type: boolean
+        required: true
+      failed:
+        type: boolean
+        required: true
+      stdout:
+        anyOf:
+          - type: "object"
+          - type: "string"
+        required: true
+      stderr:
+        type: string
+        required: true
+      return_code:
+        type: integer
