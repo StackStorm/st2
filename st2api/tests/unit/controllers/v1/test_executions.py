@@ -453,7 +453,12 @@ class ActionExecutionControllerTestCase(
 
         # Update it with the result (this populates result and result size attributes)
         data = {
-            "result": {"stdout": {"fooo": "a" * 1000}, "succeeded": True, "failed": False, "stderr": ""},
+            "result": {
+                "stdout": {"fooo": "a" * 1000},
+                "succeeded": True,
+                "failed": False,
+                "stderr": "",
+            },
             "status": "succeeded",
         }
         actual_result_size = len(json_encode(data["result"]))
@@ -1289,16 +1294,30 @@ class ActionExecutionControllerTestCase(
         self.assertEqual(post_resp.status_int, 201)
 
         execution_id = self._get_actionexecution_id(post_resp)
-        updates = {"status": "succeeded", "result": {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""}}
+        updates = {
+            "status": "succeeded",
+            "result": {
+                "stdout": "foobar",
+                "succeeded": True,
+                "failed": False,
+                "stderr": "",
+            },
+        }
         put_resp = self._do_put(execution_id, updates)
         self.assertEqual(put_resp.status_int, 200)
         self.assertEqual(put_resp.json["status"], "succeeded")
-        self.assertDictEqual(put_resp.json["result"], {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""})
+        self.assertDictEqual(
+            put_resp.json["result"],
+            {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""},
+        )
 
         get_resp = self._do_get_one(execution_id)
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(get_resp.json["status"], "succeeded")
-        self.assertDictEqual(get_resp.json["result"], {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""})
+        self.assertDictEqual(
+            get_resp.json["result"],
+            {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""},
+        )
 
     def test_put_bad_state(self):
         post_resp = self._do_post(LIVE_ACTION_1)
@@ -1337,11 +1356,22 @@ class ActionExecutionControllerTestCase(
         self.assertEqual(post_resp.status_int, 201)
 
         execution_id = self._get_actionexecution_id(post_resp)
-        updates = {"status": "succeeded", "result": {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""}}
+        updates = {
+            "status": "succeeded",
+            "result": {
+                "stdout": "foobar",
+                "succeeded": True,
+                "failed": False,
+                "stderr": "",
+            },
+        }
         put_resp = self._do_put(execution_id, updates)
         self.assertEqual(put_resp.status_int, 200)
         self.assertEqual(put_resp.json["status"], "succeeded")
-        self.assertDictEqual(put_resp.json["result"], {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""})
+        self.assertDictEqual(
+            put_resp.json["result"],
+            {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""},
+        )
 
         updates = {"status": "abandoned"}
         put_resp = self._do_put(execution_id, updates, expect_errors=True)
@@ -1353,7 +1383,15 @@ class ActionExecutionControllerTestCase(
         self.assertEqual(post_resp.status_int, 201)
 
         execution_id = self._get_actionexecution_id(post_resp)
-        updates = {"status": "succeeded", "result": {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""}}
+        updates = {
+            "status": "succeeded",
+            "result": {
+                "stdout": "foobar",
+                "succeeded": True,
+                "failed": False,
+                "stderr": "",
+            },
+        }
         put_resp = self._do_put(execution_id, updates, expect_errors=True)
         self.assertEqual(put_resp.status_int, 500)
 
@@ -1620,22 +1658,39 @@ class ActionExecutionControllerTestCase(
         execution_id = self._get_actionexecution_id(get_resp)
         updates = {
             "status": "succeeded",
-            "result": {"stdout": "foobar", "stderr": "barfoo", "succeeded": True, "failed": False},
+            "result": {
+                "stdout": "foobar",
+                "stderr": "barfoo",
+                "succeeded": True,
+                "failed": False,
+            },
         }
         put_resp = self._do_put(execution_id, updates)
         self.assertEqual(put_resp.status_int, 200)
         self.assertEqual(put_resp.json["status"], "succeeded")
         self.assertDictEqual(
-            put_resp.json["result"], {"stdout": "foobar", "stderr": "barfoo", "succeeded": True, "failed": False}
+            put_resp.json["result"],
+            {
+                "stdout": "foobar",
+                "stderr": "barfoo",
+                "succeeded": True,
+                "failed": False,
+            },
         )
         self.assertEqual(
-            put_resp.json["result_size"], len('{"stdout":"foobar","stderr":"barfoo","succeeded":true,"failed":false}')
+            put_resp.json["result_size"],
+            len(
+                '{"stdout":"foobar","stderr":"barfoo","succeeded":true,"failed":false}'
+            ),
         )
 
         # 1. download=False, compress=False, pretty_format=False
         get_resp = self.app.get("/v1/executions/%s/result" % (execution_id))
         self.assertEqual(get_resp.headers["Content-Type"], "text/json")
-        self.assertEqual(get_resp.body, b'{"stdout":"foobar","stderr":"barfoo","succeeded":true,"failed":false}')
+        self.assertEqual(
+            get_resp.body,
+            b'{"stdout":"foobar","stderr":"barfoo","succeeded":true,"failed":false}',
+        )
 
         # 2. download=False, compress=False, pretty_format=True
         get_resp = self.app.get(
@@ -1655,7 +1710,10 @@ class ActionExecutionControllerTestCase(
         # NOTE: webtest auto decompresses the result
         get_resp = self.app.get("/v1/executions/%s/result?compress=1" % (execution_id))
         self.assertEqual(get_resp.headers["Content-Type"], "application/x-gzip")
-        self.assertEqual(get_resp.body, b'{"stdout":"foobar","stderr":"barfoo","succeeded":true,"failed":false}')
+        self.assertEqual(
+            get_resp.body,
+            b'{"stdout":"foobar","stderr":"barfoo","succeeded":true,"failed":false}',
+        )
 
         # 4. download=True, compress=False, pretty_format=False
         get_resp = self.app.get("/v1/executions/%s/result?download=1" % (execution_id))
@@ -1664,7 +1722,10 @@ class ActionExecutionControllerTestCase(
             get_resp.headers["Content-Disposition"],
             "attachment; filename=execution_%s_result.json" % (execution_id),
         )
-        self.assertEqual(get_resp.body, b'{"stdout":"foobar","stderr":"barfoo","succeeded":true,"failed":false}')
+        self.assertEqual(
+            get_resp.body,
+            b'{"stdout":"foobar","stderr":"barfoo","succeeded":true,"failed":false}',
+        )
 
         # 5. download=True, compress=False, pretty_format=True
         get_resp = self.app.get(
@@ -1788,7 +1849,13 @@ class ActionExecutionControllerTestCase(
 
         data = {}
         data["status"] = action_constants.LIVEACTION_STATUS_SUCCEEDED
-        data["result"] = {"foo": "bar", "stdout": "hello world", "stderr": "", "succeeded": True, "failed": False}
+        data["result"] = {
+            "foo": "bar",
+            "stdout": "hello world",
+            "stderr": "",
+            "succeeded": True,
+            "failed": False,
+        }
 
         resp = self.app.put_json("/v1/executions/%s" % (exec_id), data)
         self.assertEqual(resp.status_int, 200)

@@ -50,15 +50,10 @@ class MockActionRunner(ActionRunner):
             "failed": False,
             "stdout": "res",
             "stderr": "",
-            "succeeded": True
+            "succeeded": True,
         }
         if action_params.get("actionstr", "") == "dict_resp":
-            default_result["stdout"] = {
-                "key": "value",
-                "key2": {
-                    "sk1": "v1"
-                }
-            }
+            default_result["stdout"] = {"key": "value", "key2": {"sk1": "v1"}}
 
         default_context = {"third_party_system": {"ref_id": "1234"}}
 
