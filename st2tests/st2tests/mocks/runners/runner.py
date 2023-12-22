@@ -29,7 +29,6 @@ def get_runner(config=None):
 class MockActionRunner(ActionRunner):
     def __init__(self):
         super(MockActionRunner, self).__init__(runner_id="1")
-
         self.pre_run_called = False
         self.run_called = False
         self.post_run_called = False
@@ -45,7 +44,22 @@ class MockActionRunner(ActionRunner):
         if self.runner_parameters.get("raise", False):
             raise Exception("Raise required.")
 
-        default_result = {"ran": True, "action_params": action_params}
+        default_result = {
+            "ran": True,
+            "action_params": action_params,
+            "failed": False,
+            "stdout": "res",
+            "stderr": "",
+            "succeeded": True
+        }
+        if action_params.get("actionstr", "") == "dict_resp":
+            default_result["stdout"] = {
+                "key": "value",
+                "key2": {
+                    "sk1": "v1"
+                }
+            }
+
         default_context = {"third_party_system": {"ref_id": "1234"}}
 
         status = self.runner_parameters.get("mock_status", LIVEACTION_STATUS_SUCCEEDED)
