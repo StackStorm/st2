@@ -24,7 +24,7 @@
    curl -sSL https://stackstorm.com/packages/install.sh | bash -s -- --user=st2admin --password=Ch@ngeMe
    ```
 * Read the docs: [https://docs.stackstorm.com/index.html](https://docs.stackstorm.com/install/index.html)
-* Questions? Check out [forum.stackstorm.com](https://forum.stackstorm.com/)
+* Questions? Check out [GitHub Discussions](https://github.com/StackStorm/st2/discussions)
 * Or join our [Slack community](https://stackstorm.com/community-signup)
 
 ## StackStorm Overview
