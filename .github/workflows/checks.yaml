@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: Changelog check
         # https://github.com/marketplace/actions/changelog-checker
-        uses: Zomzog/changelog-checker@v1.2.0
+        uses: Zomzog/changelog-checker@v1.3.0
         with:
           fileName: CHANGELOG.rst
           checkNotification: Simple

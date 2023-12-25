@@ -56,28 +56,20 @@ jobs:
         include:
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Compile (pip deps, pylint, etc.)'
-            task: 'ci-compile'
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Lint Checks (black, flake8, etc.)'
-            task: 'ci-checks'
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Compile (pip deps, pylint, etc.)'
-            task: 'ci-compile'
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Lint Checks (black, flake8, etc.)'
-            task: 'ci-checks'
             python-version-short: '3.9'
-            python-version: '3.9.14'
+            python-version: '3.9.18'
           - name: 'Compile (pip deps, pylint, etc.)'
             task: 'ci-compile'
             python-version-short: '3.9'
-            python-version: '3.9.14'
+            python-version: '3.9.18'
+          - name: 'Lint Checks (black, flake8, etc.)'
+            task: 'ci-checks'
+            python-version-short: '3.10'
+            python-version: '3.10.13'
+          - name: 'Compile (pip deps, pylint, etc.)'
+            task: 'ci-compile'
+            python-version-short: '3.10'
+            python-version: '3.10.13'
 
     env:
       TASK: '${{ matrix.task }}'
@@ -152,21 +144,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-         # TODO: Check if we want to fix the errors on Py 3.6 to have it tested as well
-         #- name: 'Self-check on Python 3.6'
-         #   python-version-short: '3.6'
-         #   python-version: '3.6.13'
-          - name: 'Self-check on Python 3.8'
-            python-version-short: '3.8'
-            python-version: '3.8.14'
+          - name: 'Self-check on Python 3.9'
+            python-version-short: '3.9'
+            python-version: '3.9.18'
+          - name: 'Self-check on Python 3.10'
+            python-version-short: '3.10'
+            python-version: '3.10.13'
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:6.0
         ports:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.12-management
         options: >-
           --name rabbitmq
         ports:
@@ -316,52 +307,40 @@ jobs:
             task: 'ci-unit'
             nosetests_node_total: 2
             nosetests_node_index: 0
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Unit Tests (chunk 2)'
-            task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Unit Tests (chunk 1)'
-            task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Unit Tests (chunk 2)'
-            task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Unit Tests (chunk 1)'
-            task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
             python-version-short: '3.9'
-            python-version: '3.9.14'
+            python-version: '3.9.18'
           - name: 'Unit Tests (chunk 2)'
             task: 'ci-unit'
             nosetests_node_total: 2
             nosetests_node_index: 1
             python-version-short: '3.9'
-            python-version: '3.9.14'
+            python-version: '3.9.18'
+          - name: 'Unit Tests (chunk 1)'
+            task: 'ci-unit'
+            nosetests_node_total: 2
+            nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.13'
+          - name: 'Unit Tests (chunk 2)'
+            task: 'ci-unit'
+            nosetests_node_total: 2
+            nosetests_node_index: 1
+            python-version-short: '3.10'
+            python-version: '3.10.13'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
-          #   python-version: '3.6.13'
+          #   python-version: '3.9.18'
           #   nosetests_node_total: 1
           #  nosetests_node_ index: 0
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:6.0
         ports:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.12-management
         options: >-
           --name rabbitmq
         ports:
@@ -477,8 +456,10 @@ jobs:
         run: |
           ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
       - name: Codecov
-        # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
+        # NOTE: We only generate and submit coverage report for master and version
+        # branches and only when the build succeeds (default on GitHub Actions,
+        # this was not the case on Travis so we had to explicitly check success)
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.PYTHON_VERSION_SHORT == '3.9')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
         env:
@@ -503,59 +484,41 @@ jobs:
             task: 'ci-packs-tests'
             nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version-short: '3.6'
-            python-version: '3.6.13'
+            python-version-short: '3.9'
+            python-version: '3.9.18'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
             nosetests_node_total: 2
             nosetests_node_index: 0
-            python-version-short: '3.6'
-            python-version: '3.6.13'
+            python-version-short: '3.9'
+            python-version: '3.9.18'
           - name: 'Integration Tests (chunk 2)'
             task: 'ci-integration'
             nosetests_node_total: 2
             nosetests_node_index: 1
-            python-version-short: '3.6'
-            python-version: '3.6.13'
+            python-version-short: '3.9'
+            python-version: '3.9.18'
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
             nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version-short: '3.8'
-            python-version: '3.8.10'
+            python-version-short: '3.10'
+            python-version: '3.9.13'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
             nosetests_node_total: 2
             nosetests_node_index: 0
-            python-version-short: '3.8'
-            python-version: '3.8.10'
+            python-version-short: '3.10'
+            python-version: '3.9.13'
           - name: 'Integration Tests (chunk 2)'
             task: 'ci-integration'
             nosetests_node_total: 2
             nosetests_node_index: 1
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version-short: '3.9'
-            python-version: '3.9.14'
-          - name: 'Integration Tests (chunk 1)'
-            task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
-            python-version-short: '3.9'
-            python-version: '3.9.14'
-          - name: 'Integration Tests (chunk 2)'
-            task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
-            python-version-short: '3.9'
-            python-version: '3.9.14'
+            python-version-short: '3.10'
+            python-version: '3.9.13'
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:6.0
         ports:
           - 27017:27017
 
@@ -566,7 +529,7 @@ jobs:
       # or they require config in entrypoint args (which we can't override for GHA services)
       # bitnami builds ways to get config files from mounted volumes.
       rabbitmq:
-        image: bitnami/rabbitmq:3.8
+        image: bitnami/rabbitmq:3.12
         volumes:
           - /home/runner/rabbitmq_conf:/bitnami/conf  # RABBITMQ_MOUNTED_CONF_DIR
         env:
@@ -717,7 +680,7 @@ jobs:
           script -e -c "make ${TASK}" && exit 0
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.TASK == 'ci-integration') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.TASK == 'ci-integration') && (env.PYTHON_VERSION_SHORT == '3.9')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
         env:
