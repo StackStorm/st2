@@ -21,8 +21,6 @@ Have deep platform knowledge & experience and demonstrate technical leadership a
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, Release Engineering, Infrastructure, Documentation.
 * Carlos ([@nzlosh](https://github.com/nzlosh)) <<nzlosh@yahoo.com>>
   - Packaging, Systems, Chatops, Errbot, Community, Discussions, StackStorm Exchange.
-* Eugen Cusmaunsa ([@armab](https://github.com/armab)) <<armab@stackstorm.com>>
-  - Systems, Deployments, Docker, K8s, HA, Ansible, Chef, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering, Community.
 * Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ <<cognifloyd@gmail.com>>
   - StackStorm Exchange, Kubernetes, ChatOps, Core, Discussions.
 * Tomaz Muraus ([@kami](https://github.com/kami)) <<tomaz@stackstorm.com>>
@@ -59,7 +57,9 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
 * Kirill Enykeev ([@enykeev](https://github.com/enykeev)), _SentinelOne_ - ex Stormer. WebUI, Workflow Designer.
+* Philipp Homberger ([@philipphomberger](https://github.com/philipphomberger)), _Schwarz IT KG_ - Core, StackStorm Exchange.
 * Rick Kauffman ([@xod442](https://github.com/xod442)), _HPE_ - Community, HOWTOs, Blogs, Publications, Docker.
+* Ronnie Hoffmann ([@ZoeLeah](https://github.com/ZoeLeah)), _Schwarz IT KG_ - Docker, K8s.
 * Scott Swann ([@jk464](https://github.com/jk464)) - StackStorm core, Security.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
@@ -78,6 +78,7 @@ Thank you, Friends!
   - ChatOps, StackStorm Exchange, Community, Documentation, CI/CD.
 * Denis Barishev ([@dennybaa](https://github.com/dennybaa)) - ex Stormer. Re-architeced StackStorm installer via deb/rpm packages, made it stable, repeatable, fixed first platform pain points.
 * Ed Medvedev ([@emedvedev](https://github.com/emedvedev)) - ex Stormer. Made WebUI slick and ChatOps awesome, discovered and implemented today's [StackStorm Exchange](https://exchange.stackstorm.org/).
+* Eugen Cusmaunsa ([@armab](https://github.com/armab)) - Ex Stormer. [StackStorm TSC Governance](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md) creator, Open Source Community builder. Deployments, Docker, K8s, Ansible, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering.
 * Evan Powell ([@epowell101](https://github.com/epowell101)) - StackStorm co-founder, first CEO, Stormer forever.
 * Michael Ward ([@mward29](https://github.com/mward29)) - StackStorm Exchange, Community, Docker & K8s. [Case Study](https://stackstorm.com/case-study-pearson/).
 * Matthew Stone ([@bigmstone](https://github.com/bigmstone)) - ex Stormer. Project Leadership and StackStorm's [Robot Arm :)](https://twitter.com/Stack_Storm/status/1217056819736203270).
