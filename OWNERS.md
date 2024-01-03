@@ -19,6 +19,8 @@ Senior [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/mainta
 Have deep platform knowledge & experience and demonstrate technical leadership as well as driving the project forward.
 * Amanda McGuinness ([@amanda11](https://github.com/amanda11)), _intive_ <<amanda.mcguinness@intive.com>>
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, Release Engineering, Infrastructure, Documentation.
+* Carlos ([@nzlosh](https://github.com/nzlosh)) <<nzlosh@yahoo.com>>
+  - Packaging, Systems, Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Eugen Cusmaunsa ([@armab](https://github.com/armab)) <<armab@stackstorm.com>>
   - Systems, Deployments, Docker, K8s, HA, Ansible, Chef, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering, Community.
 * Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ <<cognifloyd@gmail.com>>
@@ -37,8 +39,6 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Community, Puppet, Workflows, HA.
 * Bradley Bishop ([@bishopbm1](https://github.com/bishopbm1)), _Encore_ <<bishopbm1@gmail.com>>
   - Puppet, StackStorm Exchange.
-* Carlos ([@nzlosh](https://github.com/nzlosh)) <<nzlosh@yahoo.com>>
-  - Packaging, Systems, Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Khushboo Bhatia ([@khushboobhatia01](https://github.com/khushboobhatia01)), _VMware_ <<khushb99@gmail.com>>
   - StackStorm Core, Workflows.
 * Marcel Weinberg ([@winem](https://github.com/winem)), _CoreMedia_ <<mweinberg-os@email.de>>
