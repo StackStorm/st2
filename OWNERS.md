@@ -59,7 +59,6 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
 * Jeremiah Millay ([@floatingstatic](https://github.com/floatingstatic)), _Fastly_ - Core, StackStorm Exchange.
-* Mark Mercado ([@mamercad](https://github.com/mamercad)), _DigitalOcean_ - Ansible, Docker, K8s, StackStorm Exchange. [StackStorm Adoption](https://github.com/StackStorm/st2/pull/5836).
 * Rick Kauffman ([@xod442](https://github.com/xod442)), _HPE_ - Community, HOWTOs, Blogs, Publications, Docker.
 * Scott Swann ([@jk464](https://github.com/jk464)) - StackStorm core, Security.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
