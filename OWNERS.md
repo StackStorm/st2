@@ -56,6 +56,7 @@ They're not part of the TSC voting process, but appreciated for their contributi
 * David Culbreth ([@AndroxxTraxxon](https://github.com/AndroxxTraxxon)) - _H-E-B_ - StackStorm core, Orquesta.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
+* Philipp Homberger ([@philipphomberger](https://github.com/philipphomberger)), _Schwarz IT KG_ - Core, StackStorm Exchange.
 * Rick Kauffman ([@xod442](https://github.com/xod442)), _HPE_ - Community, HOWTOs, Blogs, Publications, Docker.
 * Ronnie Hoffmann ([@ZoeLeah](https://github.com/ZoeLeah)), _Schwarz IT KG_ - Docker, K8s.
 * Scott Swann ([@jk464](https://github.com/jk464)) - StackStorm core, Security.
