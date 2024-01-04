@@ -56,14 +56,6 @@ jobs:
         include:
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Compile (pip deps, pylint, etc.)'
-            task: 'ci-compile'
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Lint Checks (black, flake8, etc.)'
-            task: 'ci-checks'
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Compile (pip deps, pylint, etc.)'
@@ -316,18 +308,6 @@ jobs:
             task: 'ci-unit'
             nosetests_node_total: 2
             nosetests_node_index: 0
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Unit Tests (chunk 2)'
-            task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Unit Tests (chunk 1)'
-            task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Unit Tests (chunk 2)'
@@ -499,24 +479,6 @@ jobs:
         include:
           # We run pack tests here since they rely on some integration tests set
           # up (aka stanley user being present, etc.)
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Integration Tests (chunk 1)'
-            task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Integration Tests (chunk 2)'
-            task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
-            python-version-short: '3.6'
-            python-version: '3.6.13'
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
             nosetests_node_total: 1

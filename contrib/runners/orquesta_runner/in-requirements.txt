@@ -1,1 +1,1 @@
-orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
+orquesta@ git+https://github.com/philipphomberger/orquesta.git@feature/3.9
