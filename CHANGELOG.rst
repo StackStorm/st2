@@ -5,6 +5,10 @@ in development
 --------------
 Fixed
 ~~~~~
+Changed
+~~~~~
+* Bump Zomzog/changelog-checker to v1.3.0
+* Update github/workflows to latest python 3.9, 3.10, mongo:6.0 and rabbitmq:3.12-management
 
 3.8.1 - December 13, 2023
 -------------------------
