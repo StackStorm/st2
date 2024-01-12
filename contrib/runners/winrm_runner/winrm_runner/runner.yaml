@@ -72,10 +72,8 @@
     properties:
       succeeded:
         type: boolean
-        required: true
       failed:
         type: boolean
-        required: true
       stdout:
         anyOf:
           - type: "object"
@@ -85,7 +83,6 @@
         required: true
       stderr:
         type: string
-        required: true
       return_code:
         type: integer
 - description: A remote execution runner that executes PowerShell commands via WinRM on a remote host
@@ -162,10 +159,8 @@
     properties:
       succeeded:
         type: boolean
-        required: true
       failed:
         type: boolean
-        required: true
       stdout:
         anyOf:
           - type: "object"
@@ -175,7 +170,6 @@
         required: true
       stderr:
         type: string
-        required: true
       return_code:
         type: integer
 - description: A remote execution runner that executes PowerShell script via WinRM on a set of remote hosts
@@ -249,10 +243,8 @@
     properties:
       succeeded:
         type: boolean
-        required: true
       failed:
         type: boolean
-        required: true
       stdout:
         anyOf:
           - type: "object"
@@ -262,6 +254,5 @@
         required: true
       stderr:
         type: string
-        required: true
       return_code:
         type: integer

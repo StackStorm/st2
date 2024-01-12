@@ -39,10 +39,8 @@
     properties:
       succeeded:
         type: boolean
-        required: true
       failed:
         type: boolean
-        required: true
       stdout:
         anyOf:
           - type: "object"
@@ -52,7 +50,6 @@
         required: true
       stderr:
         type: string
-        required: true
       return_code:
         type: integer
 - description: A runner to execute local actions as a fixed user.
@@ -102,10 +99,8 @@
     properties:
       succeeded:
         type: boolean
-        required: true
       failed:
         type: boolean
-        required: true
       stdout:
         anyOf:
           - type: "object"
@@ -115,6 +110,5 @@
         required: true
       stderr:
         type: string
-        required: true
       return_code:
         type: integer

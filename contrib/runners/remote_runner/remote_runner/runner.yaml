@@ -88,10 +88,8 @@
     properties:
       succeeded:
         type: boolean
-        required: true
       failed:
         type: boolean
-        required: true
       stdout:
         anyOf:
           - type: "object"
@@ -101,7 +99,6 @@
         required: true
       stderr:
         type: string
-        required: true
       return_code:
         type: integer
 - description: A remote execution runner that executes actions as a fixed system user.
@@ -190,10 +187,8 @@
     properties:
       succeeded:
         type: boolean
-        required: true
       failed:
         type: boolean
-        required: true
       stdout:
         anyOf:
           - type: "object"
@@ -203,6 +198,5 @@
         required: true
       stderr:
         type: string
-        required: true
       return_code:
         type: integer
