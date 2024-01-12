@@ -80,7 +80,7 @@
         anyOf:
           - type: "object"
           - type: "string"
-          - type: "list"
+          - type: "array"
           - type: "number"
         required: true
       stderr:
@@ -170,7 +170,7 @@
         anyOf:
           - type: "object"
           - type: "string"
-          - type: "list"
+          - type: "array"
           - type: "number"
         required: true
       stderr:
@@ -257,7 +257,7 @@
         anyOf:
           - type: "object"
           - type: "string"
-          - type: "list"
+          - type: "array"
           - type: "number"
         required: true
       stderr:
