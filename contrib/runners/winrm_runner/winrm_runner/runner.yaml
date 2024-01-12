@@ -80,6 +80,8 @@
         anyOf:
           - type: "object"
           - type: "string"
+          - type: "list"
+          - type: "number"
         required: true
       stderr:
         type: string
@@ -168,6 +170,8 @@
         anyOf:
           - type: "object"
           - type: "string"
+          - type: "list"
+          - type: "number"
         required: true
       stderr:
         type: string
@@ -253,6 +257,8 @@
         anyOf:
           - type: "object"
           - type: "string"
+          - type: "list"
+          - type: "number"
         required: true
       stderr:
         type: string
