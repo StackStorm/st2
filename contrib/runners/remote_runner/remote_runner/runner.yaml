@@ -96,7 +96,6 @@
           - type: "string"
           - type: "array"
           - type: "number"
-        required: true
       stderr:
         type: string
       return_code:
@@ -195,7 +194,6 @@
           - type: "string"
           - type: "array"
           - type: "number"
-        required: true
       stderr:
         type: string
       return_code:
