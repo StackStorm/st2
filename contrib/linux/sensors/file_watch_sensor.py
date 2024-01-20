@@ -446,7 +446,7 @@ class FileWatchSensor(Sensor):
         file_path = trigger["parameters"].get("file_path", None)
 
         if not file_path:
-            self.log.error('Received trigger type without "file_path" field.')
+            self.log.error("Received trigger type without 'file_path' field.")
             return
 
         self.tail_manager.stop_tailing_file(file_path, self._handle_line)
@@ -470,7 +470,7 @@ class FileWatchSensor(Sensor):
         self.log.debug(
             f"Sending payload {payload} for trigger {trigger} to sensor_service."
         )
-        self.sensor_service.dispatch(trigger=self.trigger, payload=payload)
+        self.sensor_service.dispatch(trigger=trigger, payload=payload)
 
 
 if __name__ == "__main__":
