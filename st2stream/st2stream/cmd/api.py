@@ -27,6 +27,7 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import deregister_service
 from st2common.stream.listener import get_listener_if_set
 from st2common.util.wsgi import shutdown_server_kill_pending_requests
 from st2stream.signal_handlers import register_stream_signal_handlers
@@ -48,6 +49,7 @@ eventlet.monkey_patch(
 )
 
 LOG = logging.getLogger(__name__)
+STREAM = "stream"
 
 # How much time to give to the request in progress to finish in seconds before killing them
 WSGI_SERVER_REQUEST_SHUTDOWN_TIME = 2
@@ -61,7 +63,7 @@ def _setup():
         "type": "active",
     }
     common_setup(
-        service="stream",
+        service=STREAM,
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
@@ -86,6 +88,7 @@ def _run_server():
     sock = eventlet.listen((host, port))
 
     def queue_shutdown(signal_number, stack_frame):
+        deregister_service(STREAM)
         eventlet.spawn_n(
             shutdown_server_kill_pending_requests,
             sock=sock,
@@ -111,8 +114,10 @@ def main():
         _setup()
         return _run_server()
     except SystemExit as exit_code:
+        deregister_service(STREAM)
         sys.exit(exit_code)
     except KeyboardInterrupt:
+        deregister_service(STREAM)
         listener = get_listener_if_set(name="stream")
 
         if listener:

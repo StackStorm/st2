@@ -26,18 +26,20 @@ from st2common import log as logging
 from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import deregister_service
 from st2reactor.rules import config
 from st2reactor.rules import worker
 
 
 LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
 LOG = logging.getLogger(LOGGER_NAME)
+RULESENGINE = "rulesengine"
 
 
 def _setup():
     capabilities = {"name": "rulesengine", "type": "passive"}
     common_setup(
-        service="rulesengine",
+        service=RULESENGINE,
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
@@ -63,6 +65,7 @@ def _run_worker():
         return rules_engine_worker.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info("(PID=%s) RulesEngine stopped.", os.getpid())
+        deregister_service(RULESENGINE)
         rules_engine_worker.shutdown()
     except:
         LOG.exception("(PID:%s) RulesEngine quit due to exception.", os.getpid())

@@ -383,10 +383,15 @@ class PackInstallRequestAPI(BaseAPI):
     schema = {
         "type": "object",
         "properties": {
-            "packs": {"type": "array"},
+            "packs": {"type": "array"},  # TODO: add enum
             "force": {
                 "type": "boolean",
                 "description": "Force pack installation",
+                "default": False,
+            },
+            "skip_dependencies": {
+                "type": "boolean",
+                "description": "Set to True to skip pack dependency installations.",
                 "default": False,
             },
         },

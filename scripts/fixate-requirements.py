@@ -34,8 +34,6 @@ import os
 import os.path
 import sys
 
-from distutils.version import StrictVersion
-
 # NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
@@ -49,7 +47,6 @@ OSCWD = os.path.abspath(os.curdir)
 GET_PIP = "    curl https://bootstrap.pypa.io/get-pip.py | python"
 
 try:
-    import pip
     from pip import __version__ as pip_version
 except ImportError as e:
     print("Failed to import pip: %s" % (text_type(e)))
@@ -113,15 +110,6 @@ def parse_args():
         parser.print_help()
         sys.exit(1)
     return vars(parser.parse_args())
-
-
-def check_pip_version():
-    if StrictVersion(pip.__version__) < StrictVersion("6.1.0"):
-        print(
-            "Upgrade pip, your version `{0}' " "is outdated:\n".format(pip.__version__),
-            GET_PIP,
-        )
-        sys.exit(1)
 
 
 def load_requirements(file_path):
@@ -225,7 +213,14 @@ def write_requirements(
         # we don't have any idea how to process links, so just add them
         if linkreq.link and linkreq.link not in links:
             links.add(linkreq.link)
-            rline = str(linkreq.link)
+            if hasattr(req, "req") and req.req and str(req.req).count("@") == 2:
+                # PEP 440 direct reference
+                rline = str(linkreq.req)
+                # Also write out environment markers
+                if linkreq.markers:
+                    rline += " ; {}".format(str(linkreq.markers))
+            else:
+                rline = str(linkreq.link)
 
             if (hasattr(req, "is_editable") and req.is_editable) or (
                 hasattr(req, "editable") and req.editable
@@ -275,7 +270,6 @@ def write_requirements(
 
 
 if __name__ == "__main__":
-    check_pip_version()
     args = parse_args()
 
     if args["skip"]:

@@ -25,11 +25,10 @@ from oslo_config import cfg
 
 from st2common.transport import utils as transport_utils
 
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixtures.ssl_certs.fixture import FIXTURE_PATH as CERTS_FIXTURES_PATH
 
 __all__ = ["RabbitMQTLSListenerTestCase"]
 
-CERTS_FIXTURES_PATH = os.path.join(get_fixtures_base_path(), "ssl_certs/")
 ST2_CI = os.environ.get("ST2_CI", "false").lower() == "true"
 
 NON_SSL_LISTENER_PORT = 5672

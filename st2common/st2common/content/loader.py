@@ -20,6 +20,7 @@ import os
 from yaml.parser import ParserError
 import six
 
+from oslo_config import cfg
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.constants.meta import PARSER_FUNCS
@@ -28,7 +29,7 @@ from st2common.constants.pack import MANIFEST_FILE_NAME
 if six.PY2:
     from io import open
 
-__all__ = ["ContentPackLoader", "MetaLoader"]
+__all__ = ["ContentPackLoader", "MetaLoader", "OverrideLoader"]
 
 LOG = logging.getLogger(__name__)
 
@@ -257,6 +258,138 @@ class MetaLoader(object):
             raise ValueError(error)
 
         return result
+
+    def _load(self, parser_func, file_path):
+        with open(file_path, "r", encoding="utf-8") as fd:
+            try:
+                return parser_func(fd)
+            except ValueError:
+                LOG.exception("Failed loading content from %s.", file_path)
+                raise
+            except ParserError:
+                LOG.exception("Failed loading content from %s.", file_path)
+                raise
+
+
+class OverrideLoader(object):
+    """
+    Class for loading pack override data
+    """
+
+    # Mapping of permitted override types to resource name
+    ALLOWED_OVERRIDE_TYPES = {
+        "sensors": "class_name",
+        "actions": "name",
+        "rules": "name",
+        "aliases": "name",
+    }
+
+    ALLOWED_OVERRIDE_NAMES = [
+        "enabled",
+    ]
+
+    DEFAULT_OVERRIDE_VALUES = {"enabled": True}
+
+    def override(self, pack_name, resource_type, content):
+
+        """
+        Loads override content for pack, and updates content
+
+        :param pack_name: Name of pack
+        :type pack_name: ``str``
+        :param resource_type: Type of resource loading
+        :type type: ``str``
+        :param content: Content as loaded from meta information
+        :type content: ``object``
+        :return: Whether data was overridden
+        :rtype: ``bool``
+        """
+        orig_content = content.copy()
+        if resource_type not in self.ALLOWED_OVERRIDE_TYPES.keys():
+            raise ValueError(
+                f"Invalid override type of {resource_type} attempted for pack {pack_name}"
+            )
+
+        override_dir = os.path.join(cfg.CONF.system.base_path, "overrides")
+        # Apply global overrides
+        global_file = os.path.join(override_dir, "_global.yaml")
+        self._apply_override_file(global_file, pack_name, resource_type, content, True)
+
+        # Apply pack overrides
+        override_file = os.path.join(override_dir, f"{pack_name}.yaml")
+        self._apply_override_file(
+            override_file, pack_name, resource_type, content, False
+        )
+        if content == orig_content:
+            overridden = False
+        else:
+            # Need to account for defaults that might not have been set
+            for key in self.ALLOWED_OVERRIDE_NAMES:
+                if key not in orig_content.keys() and key in content.keys():
+                    orig_content[key] = self.DEFAULT_OVERRIDE_VALUES[key]
+            if content == orig_content:
+                overridden = False
+            else:
+                overridden = True
+        return overridden
+
+    def _apply_override_file(
+        self, override_file, pack_name, resource_type, content, global_file
+    ):
+
+        """
+        Loads override content from override file
+
+        :param override_file: Override filename
+        :type override_file: ``str``
+        :param pack_name: Name of pack
+        :type pack_name: ``str``
+        :param resource_type: Type of resource loading
+        :type type: ``str``
+        :param content: Content as loaded from meta information
+        :type content: ``object``
+        """
+
+        if not os.path.exists(override_file):
+            # No override file for pack
+            LOG.debug(f"No override file {override_file} found")
+            return
+
+        # Read override file
+        file_name, file_ext = os.path.splitext(override_file)
+        overrides = self._load(PARSER_FUNCS[file_ext], override_file)
+        # Apply overrides
+        if resource_type in overrides:
+            type_override = overrides[resource_type]
+            name = content[self.ALLOWED_OVERRIDE_TYPES[resource_type]]
+            if "defaults" in type_override:
+                for key in type_override["defaults"]:
+                    if key in self.ALLOWED_OVERRIDE_NAMES:
+                        content[key] = type_override["defaults"][key]
+                        LOG.debug(
+                            f"Overridden {resource_type} {pack_name}.{name} {key} to default value of {content[key]} from {override_file}"
+                        )
+                    else:
+                        raise ValueError(
+                            f"Override attempted with invalid default key {key} in pack {pack_name}"
+                        )
+
+            if global_file:
+                # No exceptions required in global content file
+                return
+
+            if "exceptions" in type_override:
+                if name in type_override["exceptions"]:
+                    for key in type_override["exceptions"][name]:
+                        if key in self.ALLOWED_OVERRIDE_NAMES:
+                            content[key] = type_override["exceptions"][name][key]
+                            LOG.debug(
+                                f"Overridden {resource_type} {pack_name}.{name} {key} to exception value of {content[key]} from {override_file}"
+                            )
+                        else:
+                            raise ValueError(
+                                f"Override attempted with invalid exceptions key {key} in pack {pack_name}"
+                            )
 
     def _load(self, parser_func, file_path):
         with open(file_path, "r", encoding="utf-8") as fd:

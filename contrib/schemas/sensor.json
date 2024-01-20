@@ -11,7 +11,7 @@
         "uid": {
             "type": "string"
         },
-        "name": {
+        "class_name": {
             "type": "string",
             "required": true
         },

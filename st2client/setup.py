@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
@@ -18,13 +18,10 @@ import os.path
 
 from setuptools import setup, find_packages
 
-from dist_utils import check_pip_version
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
 
 from st2client import __version__
-
-check_pip_version()
 
 ST2_COMPONENT = "st2client"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -72,7 +69,7 @@ setup(
         "Repository": "https://github.com/StackStorm/st2",
         "Documentation": "https://docs.stackstorm.com",
         "Community": "https://stackstorm.com/community-signup",
-        "Questions": "https://forum.stackstorm.com/",
+        "Questions": "https://github.com/StackStorm/st2/discussions",
         "Donate": "https://funding.communitybridge.org/projects/stackstorm",
         "News/Blog": "https://stackstorm.com/blog",
         "Security": "https://docs.stackstorm.com/latest/security.html",

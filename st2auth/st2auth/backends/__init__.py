@@ -26,7 +26,7 @@ __all__ = ["get_available_backends", "get_backend_instance"]
 
 LOG = logging.getLogger(__name__)
 
-BACKENDS_NAMESPACE = "st2auth.backends.backend"
+BACKENDS_NAMESPACE = "st2auth.backends.backend"  # pants: no-infer-dep
 
 
 def get_available_backends():

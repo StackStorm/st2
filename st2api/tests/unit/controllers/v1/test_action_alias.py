@@ -16,12 +16,12 @@
 from st2common.models.api.action import ActionAliasAPI
 from st2api.controllers.v1.actionalias import ActionAliasController
 
+from st2tests.fixtures.aliases.fixture import PACK_NAME as FIXTURES_PACK
+from st2tests.fixtures.generic.fixture import PACK_NAME as GENERIC_FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 from st2tests.api import FunctionalTest
 from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
-
-FIXTURES_PACK = "aliases"
 
 TEST_MODELS = {
     "aliases": [
@@ -35,8 +35,6 @@ TEST_MODELS = {
 TEST_LOAD_MODELS = {
     "aliases": ["alias3.yaml"],
 }
-
-GENERIC_FIXTURES_PACK = "generic"
 
 TEST_LOAD_MODELS_GENERIC = {"aliases": ["alias3.yaml"], "runners": ["testrunner1.yaml"]}
 

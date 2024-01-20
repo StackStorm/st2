@@ -1,0 +1,25 @@
+name: Checks
+
+on:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - master
+      - v[0-9]+.[0-9]+
+
+jobs:
+  # Changelog checker will verify if CHANGELOG.rst was updated for every PR
+  # See: https://keepachangelog.com/en/1.0.0/
+  changelog-checker:
+    name: Add CHANGELOG.rst
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Changelog check
+        # https://github.com/marketplace/actions/changelog-checker
+        uses: Zomzog/changelog-checker@v1.2.0
+        with:
+          fileName: CHANGELOG.rst
+          checkNotification: Simple
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

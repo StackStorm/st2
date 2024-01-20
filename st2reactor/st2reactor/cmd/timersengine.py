@@ -30,18 +30,20 @@ from st2common.constants.timer import TIMER_ENABLED_LOG_LINE, TIMER_DISABLED_LOG
 from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import deregister_service
 from st2reactor.timer import config
 from st2reactor.timer.base import St2Timer
 
 
 LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
 LOG = logging.getLogger(LOGGER_NAME)
+TIMER_ENGINE = "timer_engine"
 
 
 def _setup():
     capabilities = {"name": "timerengine", "type": "passive"}
     common_setup(
-        service="timer_engine",
+        service=TIMER_ENGINE,
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
@@ -78,6 +80,7 @@ def _run_worker():
             LOG.info(TIMER_DISABLED_LOG_LINE)
     except (KeyboardInterrupt, SystemExit):
         LOG.info("(PID=%s) TimerEngine stopped.", os.getpid())
+        deregister_service(TIMER_ENGINE)
     except:
         LOG.exception("(PID:%s) TimerEngine quit due to exception.", os.getpid())
         return 1

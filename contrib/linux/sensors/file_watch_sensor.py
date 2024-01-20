@@ -407,11 +407,11 @@ class TailManager(object):
 class FileWatchSensor(Sensor):
     def __init__(self, *args, logger=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.trigger = None
-        self.logger = logger or self.sensor_service.get_logger(__name__)
+        self.log = logger or self.sensor_service.get_logger(__name__)
+        self.file_ref = {}
 
     def setup(self):
-        self.tail_manager = TailManager(logger=self.logger)
+        self.tail_manager = TailManager(logger=self.log)
         self.tail_manager.start()
 
     def run(self):
@@ -424,16 +424,18 @@ class FileWatchSensor(Sensor):
         file_path = trigger["parameters"].get("file_path", None)
 
         if not file_path:
-            self.logger.error('Received trigger type without "file_path" field.')
+            self.log.error('Received trigger type without "file_path" field.')
             return
 
-        self.trigger = trigger.get("ref", None)
+        trigger = trigger.get("ref", None)
 
-        if not self.trigger:
-            raise Exception("Trigger %s did not contain a ref." % trigger)
+        if not trigger:
+            raise Exception(f"Trigger {trigger} did not contain a ref.")
 
         self.tail_manager.tail_file(file_path, self._handle_line)
-        self.logger.info('Added file "%s"' % (file_path))
+        self.file_ref[file_path] = trigger
+
+        self.log.info(f"Added file '{file_path}' ({trigger}) to watch list.")
 
         self.tail_manager.start()
 
@@ -444,24 +446,29 @@ class FileWatchSensor(Sensor):
         file_path = trigger["parameters"].get("file_path", None)
 
         if not file_path:
-            self.logger.error('Received trigger type without "file_path" field.')
+            self.log.error('Received trigger type without "file_path" field.')
             return
 
         self.tail_manager.stop_tailing_file(file_path, self._handle_line)
-        self.trigger = None
+        self.file_ref.pop(file_path)
 
-        self.logger.info('Removed file "%s"' % (file_path))
+        self.log.info(f"Removed file '{file_path}' ({trigger}) from watch list.")
 
     def _handle_line(self, file_path, line):
+        if file_path not in self.file_ref:
+            self.log.error(
+                f"No reference found for {file_path}, unable to emit trigger!"
+            )
+            return
+
+        trigger = self.file_ref[file_path]
         payload = {
             "file_path": file_path,
             "file_name": pathlib.Path(file_path).name,
             "line": line,
         }
-        self.logger.debug(
-            "Sending payload %s for trigger %s to sensor_service.",
-            payload,
-            self.trigger,
+        self.log.debug(
+            f"Sending payload {payload} for trigger {trigger} to sensor_service."
         )
         self.sensor_service.dispatch(trigger=self.trigger, payload=payload)
 

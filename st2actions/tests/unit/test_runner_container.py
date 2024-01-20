@@ -39,6 +39,7 @@ from st2tests.base import DbTestCase
 import st2tests.config as tests_config
 
 tests_config.parse_args()
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 
@@ -63,8 +64,6 @@ TEST_FIXTURES = {
         "action-invalid-runner.yaml",
     ],
 }
-
-FIXTURES_PACK = "generic"
 
 NON_UTF8_RESULT = {
     "stderr": "",

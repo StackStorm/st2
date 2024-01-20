@@ -16,12 +16,12 @@
 from __future__ import absolute_import
 
 import os
-import pwd
 import json
 import logging
 import time
 import calendar
 import traceback
+import platform
 
 import six
 import requests
@@ -40,8 +40,13 @@ from st2client.utils.misc import merge_dicts
 
 __all__ = ["BaseCLIApp"]
 
-# Fix for "os.getlogin()) OSError: [Errno 2] No such file or directory"
-os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
+# Add Plattform Check to fix the Issue that PWD not exist on Windows and so the ST2 CLI not working.
+# https://docs.python.org/3.8/library/pwd.html
+if platform.system() != "Windows":
+    import pwd
+
+    # Fix for "os.getlogin()) OSError: [Errno 2] No such file or directory"
+    os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 
 # How many seconds before the token actual expiration date we should consider the token as
 # expired. This is used to prevent the operation from failing durig the API request because the
@@ -57,6 +62,7 @@ CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
     "api_key": ["credentials", "api_key"],
     "cacert": ["general", "cacert"],
     "debug": ["cli", "debug"],
+    "basic_auth": ["credentials", "basic_auth"],
 }
 
 
@@ -87,6 +93,7 @@ class BaseCLIApp(object):
             "stream_url",
             "api_version",
             "cacert",
+            "basic_auth",
         ]
         cli_options = {opt: getattr(args, opt, None) for opt in cli_options}
         if cli_options.get("cacert", None) is not None:
@@ -445,6 +452,12 @@ class BaseCLIApp(object):
         print("")
         print("Proxy settings:")
         print("---------------")
-        print("HTTP_PROXY: %s" % (os.environ.get("HTTP_PROXY", "")))
-        print("HTTPS_PROXY: %s" % (os.environ.get("HTTPS_PROXY", "")))
+        print(
+            "HTTP_PROXY: %s"
+            % (os.environ.get("http_proxy", os.environ.get("HTTP_PROXY", "")))
+        )
+        print(
+            "HTTPS_PROXY: %s"
+            % (os.environ.get("https_proxy", os.environ.get("HTTPS_PROXY", "")))
+        )
         print("")

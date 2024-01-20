@@ -14,13 +14,20 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
-import six
+import json
 import logging
 import unittest2
 
+import six
+import mock
+import requests
+
 from st2client import models
 from st2client.client import Client
+
+from tests import base
 
 
 LOG = logging.getLogger(__name__)
@@ -64,6 +71,50 @@ class TestClientEndpoints(unittest2.TestCase):
         self.assertEqual(endpoints["base"], base_url)
         self.assertEqual(endpoints["api"], api_url)
         self.assertEqual(endpoints["stream"], stream_url)
+
+    @mock.patch.object(
+        requests,
+        "get",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, "OK")),
+    )
+    def test_basic_auth_option_success(self):
+        client = Client(basic_auth="username:password")
+        self.assertEqual(client.basic_auth, ("username", "password"))
+
+        self.assertEqual(requests.get.call_count, 0)
+        client.actions.get_all()
+        self.assertEqual(requests.get.call_count, 1)
+
+        requests.get.assert_called_with(
+            "http://127.0.0.1:9101/v1/actions", auth=("username", "password"), params={}
+        )
+
+    @mock.patch.object(
+        requests,
+        "get",
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, "OK")),
+    )
+    def test_basic_auth_option_success_password_with_colon(self):
+        client = Client(basic_auth="username:password:with:colon")
+        self.assertEqual(client.basic_auth, ("username", "password:with:colon"))
+
+        self.assertEqual(requests.get.call_count, 0)
+        client.actions.get_all()
+        self.assertEqual(requests.get.call_count, 1)
+
+        requests.get.assert_called_with(
+            "http://127.0.0.1:9101/v1/actions",
+            auth=("username", "password:with:colon"),
+            params={},
+        )
+
+    def test_basic_auth_option_invalid_notation(self):
+        self.assertRaisesRegex(
+            ValueError,
+            "needs to be in the username:password notation",
+            Client,
+            basic_auth="username_password",
+        )
 
     def test_env(self):
         base_url = "http://www.stackstorm.com"

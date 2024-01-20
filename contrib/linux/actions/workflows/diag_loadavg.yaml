@@ -7,7 +7,6 @@
         hosts: "{{hostname}}"
         period: "all"
       on-success: "d_state_processes"
-      on-failure: "email_escalation"
     -
       name: "d_state_processes"
       ref: "linux.check_processes"
@@ -17,7 +16,6 @@
         criteria: "D"
         args: "pidlist"
       on-success: "r_state_processes"
-      on-failure: "email_escalation"
     -
       name: "r_state_processes"
       ref: "linux.check_processes"
@@ -27,7 +25,6 @@
         criteria: "R"
         args: "pidlist"
       on-success: "netstat"
-      on-failure: "email_escalation"
     -
       name: "netstat"
       ref: "linux.netstat_grep"
@@ -35,7 +32,6 @@
         hosts: "{{hostname}}"
         pids: "{{d_state_processes[hostname].stderr}} {{r_state_processes[hostname].stderr}}"
       on-success: "lsof"
-      on-failure: "email_escalation"
     -
       name: "lsof"
       ref: "linux.lsof_pids"
@@ -47,5 +43,13 @@
       name: "dump_results"
       ref: "core.local"
       parameters:
-        cmd: "echo \"ST2 Workflow\tdiag_loadavg:\t{{__results}}\" >> /tmp/diag_loadavg && echo 'Output written to file /tmp/diag_loadavg'"
+        cmd: >
+          echo "{{__results}}"
+          | python3 -c
+          'import ast, datetime, json, sys;
+          diag_data=ast.literal_eval(sys.stdin.read());
+          diag_data["timestamp"] = str(datetime.datetime.now());
+          print(json.dumps(diag_data))'
+          >> /tmp/diag_loadavg.json
+          && echo 'Output written to file /tmp/diag_loadavg.json'
   default: "check_load"

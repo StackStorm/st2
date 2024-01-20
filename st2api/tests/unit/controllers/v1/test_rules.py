@@ -26,6 +26,7 @@ from st2common.persistence.trigger import Trigger
 from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2api.controllers.v1.rules import RuleController
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 from st2tests.api import FunctionalTest
@@ -39,8 +40,6 @@ TEST_FIXTURES = {
     "triggers": ["trigger1.yaml"],
     "triggertypes": ["triggertype1.yaml", "triggertype_with_parameters_2.yaml"],
 }
-
-FIXTURES_PACK = "generic"
 
 
 @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())

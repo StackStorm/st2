@@ -105,8 +105,16 @@ ACTIONEXECUTIONS = {
         "action": {
             "uid": "action:core:ask",
             "output_schema": {
-                "os_secret_param": {"type": "string", "required": True, "secret": True},
-                "os_non_secret_param": {"type": "string", "required": True},
+                "type": "object",
+                "properties": {
+                    "os_secret_param": {
+                        "type": "string",
+                        "required": True,
+                        "secret": True,
+                    },
+                    "os_non_secret_param": {"type": "string", "required": True},
+                },
+                "additionalProperties": False,
             },
         },
         "status": "succeeded",

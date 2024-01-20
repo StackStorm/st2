@@ -35,6 +35,12 @@ from action_chain_runner import action_chain_runner as acr
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
+from st2tests.fixtures.packs.action_chain_tests.fixture import (
+    PACK_NAME as TEST_PACK,
+    PACK_PATH as TEST_PACK_PATH,
+)
+from st2tests.fixtures.packs.core.fixture import PACK_PATH as CORE_PACK_PATH
 from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
 
 
@@ -44,8 +50,6 @@ class DummyActionExecution(object):
         self.status = status
         self.result = result
 
-
-FIXTURES_PACK = "generic"
 
 TEST_MODELS = {"actions": ["a1.yaml", "a2.yaml"], "runners": ["testrunner1.yaml"]}
 
@@ -60,10 +64,7 @@ CHAIN_1_PATH = fixturesloader.FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, "actionchains", "chain_with_notifications.yaml"
 )
 
-TEST_PACK = "action_chain_tests"
-TEST_PACK_PATH = fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
-
-PACKS = [TEST_PACK_PATH, fixturesloader.get_fixtures_packs_base_path() + "/core"]
+PACKS = [TEST_PACK_PATH, CORE_PACK_PATH]
 
 MOCK_NOTIFY = {
     "on-complete": {

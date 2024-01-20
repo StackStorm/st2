@@ -29,6 +29,7 @@ function usage() {
 RUN_ORQUESTA_TESTS=true
 RUN_WINDOWS_TESTS=false
 ST2_TESTS_BRANCH="master"
+TESTS_TO_SKIP="${TESTS_TO_SKIP:-}"
 
 while getopts "b:wo" o
 do
@@ -101,10 +102,15 @@ if [ ${EXIT_CODE} -ne 0 ]; then
 fi
 
 echo "Copying asserts, fixtures, tests and examples packs."
-chown -R root:st2packs st2tests/packs/
-chmod -R 775 st2tests/packs/*
+if [ -n "${GITHUB_ACTIONS}" ]; then
+  cp -Rf --preserve /home/runner/work/st2/st2/contrib/examples /opt/stackstorm/packs/
+else
+  chmod -R 775 st2tests/packs/*
+  cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
+  chown -R root:st2packs st2tests/packs/
+fi
+
 cp -R --preserve st2tests/packs/* /opt/stackstorm/packs/
-cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
 
 echo "Installing asserts, fixtures, tests and examples packs."
 st2 run packs.setup_virtualenv packs=examples,tests,asserts,fixtures,webui
@@ -136,11 +142,16 @@ do
         continue
     fi
 
+    if [[ " ${TESTS_TO_SKIP} " =~ " ${TEST} " ]]; then
+        echo "Skipping ${TEST}..."
+        continue
+    fi
+
     echo -n "Attempting Test ${TEST}..."
 
     START_TS=$(date +%s)
     OUTPUT=$(st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN})
-    echo ${OUTPUT} | grep "status" | grep -q "succeeded"
+    echo "${OUTPUT}" | grep "status" | grep -q "succeeded"
     EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
@@ -159,7 +170,7 @@ if [ ${RUN_ORQUESTA_TESTS} = "true" ]; then
 
     START_TS=$(date +%s)
     OUTPUT=$(st2 run examples.orquesta-examples)
-    echo ${OUTPUT} | grep "status" | grep -q "succeeded"
+    echo "${OUTPUT}" | grep "status" | grep -q "succeeded"
     EXIT_CODE=$?
     END_TS=$(date +%s)
     DURATION=$(expr ${END_TS} - ${START_TS})
@@ -179,6 +190,9 @@ if [ $ERRORS -ne 0 ]; then
     echo "SELF CHECK FAILED!"
     echo "st2-self-check failed.  See above.  Also check the execution list for details."
     echo "st2 execution list"
+    if [ -n "${GITHUB_ACTIONS}" ]; then
+      exit 1
+    fi
 else
     echo "SELF CHECK SUCCEEDED!"
     echo -e "st2-self-check succeeded."

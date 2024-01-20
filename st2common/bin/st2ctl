@@ -15,17 +15,17 @@
 # limitations under the License.
 
 COMPONENTS="st2actionrunner st2api st2stream st2auth st2garbagecollector st2notifier st2rulesengine st2sensorcontainer st2chatops st2timersengine st2workflowengine st2scheduler"
-ST2_CONF="/etc/st2/st2.conf"
+ST2_CONF="${ST2_CONF:-/etc/st2/st2.conf}"
 SYSTEMD_RELOADED=""
 
-# Ensure global environment is sourced if exists
+# Ensure global environment is sourced if exists and if not executed in the context of Github Actions
 # Does not happen consistently with all OSes we support.
-[ -r /etc/environment ] && source /etc/environment
+[ -z "${GITHUB_ACTIONS}" ] && [ -r /etc/environment ] && source /etc/environment
 
 # load in environment to allow override of COMPONENTS and ST2_CONF above
 # Ubuntu/Debian
 [ -r /etc/default/st2ctl ] && source /etc/default/st2ctl
-# RHEL/CentOS
+# RHEL/CentOS/Rocky
 [ -r /etc/sysconfig/st2ctl ] && source /etc/sysconfig/st2ctl
 
 
@@ -65,6 +65,13 @@ function print_usage() {
 function must_be_root() {
     if [ $(id -u) -ne 0 ]; then
         echo "Please run this command with root privileges"
+        exit 1
+    fi
+}
+
+function not_running_in_k8s() {
+    if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
+        echo -e "\e[31mError: \"st2ctl status\" is not supported under Kubernetes, please use Kubernetes tools such as \"kubectl\" to view the StackStorm services in this cluster. \e[0m\n"
         exit 1
     fi
 }
@@ -263,6 +270,7 @@ case ${1} in
     fi
     ;;
   status)
+    not_running_in_k8s
     getpids
     ;;
   *)

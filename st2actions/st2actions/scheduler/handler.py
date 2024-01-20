@@ -173,9 +173,12 @@ class ActionExecutionSchedulingQueueHandler(object):
                         )
                     )
                 except db_exc.StackStormDBObjectWriteConflictError:
-                    msg = '[%s] Item "%s" is currently being processed by another scheduler.' % (
-                        execution_queue_item_db.action_execution_id,
-                        str(execution_queue_item_db.id),
+                    msg = (
+                        '[%s] Item "%s" is currently being processed by another scheduler.'
+                        % (
+                            execution_queue_item_db.action_execution_id,
+                            str(execution_queue_item_db.id),
+                        )
                     )
                     LOG.error(msg)
                     raise Exception(msg)

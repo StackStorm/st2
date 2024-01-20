@@ -17,11 +17,11 @@ from __future__ import absolute_import
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.policies import ResourcePolicyApplicator, get_driver
 from st2tests import DbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 
 __all__ = ["PolicyTestCase"]
 
-PACK = "generic"
 TEST_FIXTURES = {
     "runners": ["testrunner1.yaml"],
     "actions": ["action1.yaml"],

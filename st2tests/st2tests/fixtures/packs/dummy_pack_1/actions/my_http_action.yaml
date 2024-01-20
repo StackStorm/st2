@@ -11,12 +11,15 @@ parameters:
     immutable: true
     default: https://api.stackstorm.com
 output_schema:
-  k1:
-    type: string
-    required: true
-  k2:
-    type: string
-    required: true
-    secret: true
-  k3:
-    type: boolean
+  type: object
+  properties:
+    k1:
+      type: string
+      required: true
+    k2:
+      type: string
+      required: true
+      secret: true
+    k3:
+      type: boolean
+  additionalProperties: false

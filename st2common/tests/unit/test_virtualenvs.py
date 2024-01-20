@@ -28,6 +28,11 @@ import st2common.util.virtualenvs as virtualenvs
 from st2common.util.virtualenvs import install_requirement
 from st2common.util.virtualenvs import install_requirements
 from st2common.util.virtualenvs import setup_pack_virtualenv
+from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_NAME as DUMMY_PACK_1
+from st2tests.fixtures.packs.dummy_pack_2.fixture import PACK_NAME as DUMMY_PACK_2
+from st2tests.fixtures.packs.pack_invalid_requirements.fixture import (
+    PACK_NAME as PACK_INVALID_REQUIREMENTS,
+)
 
 
 __all__ = ["VirtualenvUtilsTestCase"]
@@ -51,7 +56,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
 
     def test_setup_pack_virtualenv_doesnt_exist_yet(self):
         # Test a fresh virtualenv creation
-        pack_name = "dummy_pack_1"
+        pack_name = DUMMY_PACK_1
         pack_virtualenv_dir = os.path.join(self.virtualenvs_path, pack_name)
 
         # Verify virtualenv directory doesn't exist
@@ -72,7 +77,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
 
     def test_setup_pack_virtualenv_already_exists(self):
         # Test a scenario where virtualenv already exists
-        pack_name = "dummy_pack_1"
+        pack_name = DUMMY_PACK_1
         pack_virtualenv_dir = os.path.join(self.virtualenvs_path, pack_name)
 
         # Verify virtualenv directory doesn't exist
@@ -104,7 +109,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
 
     def test_setup_virtualenv_update(self):
         # Test a virtualenv update with pack which has requirements.txt
-        pack_name = "dummy_pack_2"
+        pack_name = DUMMY_PACK_2
         pack_virtualenv_dir = os.path.join(self.virtualenvs_path, pack_name)
 
         # Verify virtualenv directory doesn't exist
@@ -133,7 +138,7 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         self.assertVirtualenvExists(pack_virtualenv_dir)
 
     def test_setup_virtualenv_invalid_dependency_in_requirements_file(self):
-        pack_name = "pack_invalid_requirements"
+        pack_name = PACK_INVALID_REQUIREMENTS
         pack_virtualenv_dir = os.path.join(self.virtualenvs_path, pack_name)
 
         # Verify virtualenv directory doesn't exist
@@ -378,3 +383,16 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         self.assertTrue(os.path.isdir(os.path.join(virtualenv_dir, "bin/")))
 
         return True
+
+    def test_setup_virtualenv_reserved_packname(self):
+        # Test a virtualenv update with pack which has global name
+        pack_name = "_global"
+
+        self.assertRaises(
+            ValueError,
+            setup_pack_virtualenv,
+            pack_name=pack_name,
+            update=False,
+            include_setuptools=False,
+            include_wheel=False,
+        )

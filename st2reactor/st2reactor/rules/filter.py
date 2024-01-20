@@ -154,8 +154,10 @@ class RuleFilter(object):
 
             return (False, None, None)
 
+        # Avoids the dict unique keys limitation. Allows multiple evaluations of the same payload item by a rule.
+        criterion_k_hash_strip = criterion_k.split("#", 1)[0]
         try:
-            matches = payload_lookup.get_value(criterion_k)
+            matches = payload_lookup.get_value(criterion_k_hash_strip)
             # pick value if only 1 matches else will end up being an array match.
             if matches:
                 payload_value = matches[0] if len(matches) > 0 else matches

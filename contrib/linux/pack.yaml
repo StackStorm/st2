@@ -16,7 +16,7 @@ keywords:
   - open ports
   - processes
   - ps
-version : 1.0.2
+version : 1.2.1
 python_versions:
   - "2"
   - "3"

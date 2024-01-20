@@ -20,22 +20,24 @@ from st2common.bootstrap import aliasesregistrar
 from st2common.persistence.action import ActionAlias
 
 from st2tests import DbTestCase
-from st2tests import fixturesloader
+from st2tests.fixtures.packs.dummy_pack_1.fixture import (
+    PACK_PATH as ALIASES_FIXTURE_PACK_PATH,
+)
 
 __all__ = ["TestAliasRegistrar"]
 
-
-ALIASES_FIXTURE_PACK_PATH = os.path.join(
-    fixturesloader.get_fixtures_packs_base_path(), "dummy_pack_1"
-)
 ALIASES_FIXTURE_PATH = os.path.join(ALIASES_FIXTURE_PACK_PATH, "aliases")
 
 
 class TestAliasRegistrar(DbTestCase):
     def test_alias_registration(self):
-        count = aliasesregistrar.register_aliases(pack_dir=ALIASES_FIXTURE_PACK_PATH)
+        count, overridden = aliasesregistrar.register_aliases(
+            pack_dir=ALIASES_FIXTURE_PACK_PATH
+        )
         # expect all files to contain be aliases
         self.assertEqual(count, len(os.listdir(ALIASES_FIXTURE_PATH)))
+        # Nothing overridden
+        self.assertEqual(0, overridden)
 
         action_alias_dbs = ActionAlias.get_all()
         self.assertEqual(action_alias_dbs[0].metadata_file, "aliases/alias1.yaml")

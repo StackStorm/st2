@@ -14,8 +14,10 @@
 # limitations under the License.
 
 __all__ = [
+    "COMMON_LIB_DIR",
     "PACKS_PACK_NAME",
     "PACK_REF_WHITELIST_REGEX",
+    "RESERVED_PACK_LIST",
     "PACK_RESERVED_CHARACTERS",
     "PACK_VERSION_SEPARATOR",
     "PACK_VERSION_REGEX",
@@ -31,11 +33,16 @@ __all__ = [
     "CONFIG_SCHEMA_FILE_NAME",
 ]
 
+COMMON_LIB_DIR = "lib"
+
 # Prefix for render context w/ config
 PACK_CONFIG_CONTEXT_KV_PREFIX = "config_context"
 
 # A list of allowed characters for the pack name
 PACK_REF_WHITELIST_REGEX = r"^[a-z0-9_]+$"
+
+# A list of reserved pack names that cannot be used
+RESERVED_PACK_LIST = ["_global"]
 
 # Check for a valid semver string
 PACK_VERSION_REGEX = r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$"  # noqa

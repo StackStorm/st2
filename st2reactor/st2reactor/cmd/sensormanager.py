@@ -28,6 +28,7 @@ from st2common import log as logging
 from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import deregister_service
 from st2common.exceptions.sensors import SensorNotFoundException
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2reactor.sensor import config
@@ -39,12 +40,13 @@ __all__ = ["main"]
 
 LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
 LOG = logging.getLogger(LOGGER_NAME)
+SENSOR_CONTAINER = "sensorcontainer"
 
 
 def _setup():
     capabilities = {"name": "sensorcontainer", "type": "passive"}
     common_setup(
-        service="sensorcontainer",
+        service=SENSOR_CONTAINER,
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
@@ -80,6 +82,7 @@ def main():
         )
         return container_manager.run_sensors()
     except SystemExit as exit_code:
+        deregister_service(SENSOR_CONTAINER)
         return exit_code
     except SensorNotFoundException as e:
         LOG.exception(e)

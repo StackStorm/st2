@@ -22,6 +22,7 @@ from st2common.persistence.policy import PolicyType, Policy
 from st2common.transport.publishers import PoolPublisher
 from st2api.controllers.v1.policies import PolicyTypeController
 from st2api.controllers.v1.policies import PolicyController
+from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 
 from st2tests.api import FunctionalTest
@@ -35,7 +36,6 @@ TEST_FIXTURES = {
     "policies": ["policy_1.yaml", "policy_2.yaml"],
 }
 
-PACK = "generic"
 LOADER = FixturesLoader()
 FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 

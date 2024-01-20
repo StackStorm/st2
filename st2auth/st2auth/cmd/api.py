@@ -27,6 +27,7 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import deregister_service
 from st2auth import config
 
 config.register_opts(ignore_errors=True)
@@ -39,6 +40,7 @@ __all__ = ["main"]
 
 
 LOG = logging.getLogger(__name__)
+AUTH = "auth"
 
 
 def _setup():
@@ -50,7 +52,7 @@ def _setup():
         "type": "active",
     }
     common_setup(
-        service="auth",
+        service=AUTH,
         config=config,
         setup_db=True,
         register_mq_exchanges=False,
@@ -108,6 +110,7 @@ def main():
         _setup()
         return _run_server()
     except SystemExit as exit_code:
+        deregister_service(AUTH)
         sys.exit(exit_code)
     except Exception:
         LOG.exception("(PID=%s) ST2 Auth API quit due to exception.", os.getpid())

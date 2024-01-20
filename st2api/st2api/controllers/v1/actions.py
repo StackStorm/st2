@@ -17,6 +17,7 @@ import os
 import os.path
 import stat
 import errno
+import uuid
 
 import six
 from mongoengine import ValidationError
@@ -31,18 +32,26 @@ from st2common import log as logging
 from st2common.constants.triggers import ACTION_FILE_WRITTEN_TRIGGER
 from st2common.exceptions.action import InvalidActionParameterException
 from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.exceptions.rbac import ResourceAccessDeniedError
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac.backends import get_rbac_backend
 from st2common.router import abort
+from st2common.router import GenericRequestParam
 from st2common.router import Response
 from st2common.validators.api.misc import validate_not_part_of_system_pack
+from st2common.validators.api.misc import validate_not_part_of_system_pack_by_name
 from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_pack_resource_file_abs_path
 from st2common.content.utils import get_relative_path_to_pack_file
 from st2common.services.packs import delete_action_files_from_pack
+from st2common.services.packs import clone_action_files
+from st2common.services.packs import clone_action_db
+from st2common.services.packs import temp_backup_action_files
+from st2common.services.packs import remove_temp_action_files
+from st2common.services.packs import restore_temp_action_files
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
@@ -281,6 +290,146 @@ class ActionsController(resource.ContentPackResourceController):
         LOG.audit("Action deleted. Action.id=%s" % (action_db.id), extra=extra)
         return Response(status=http_client.NO_CONTENT)
 
+    def clone(self, dest_data, ref_or_id, requester_user):
+        """
+        Clone an action from source pack to destination pack.
+        Handles requests:
+            POST /actions/{ref_or_id}/clone
+        """
+
+        source_action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        if not source_action_db:
+            msg = "The requested source for cloning operation doesn't exists"
+            abort(http_client.BAD_REQUEST, six.text_type(msg))
+
+        extra = {"action_db": source_action_db}
+        LOG.audit(
+            "Source action found. Action.id=%s" % (source_action_db.id), extra=extra
+        )
+
+        try:
+            permission_type = PermissionType.ACTION_VIEW
+            rbac_utils = get_rbac_backend().get_utils_class()
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=source_action_db,
+                permission_type=permission_type,
+            )
+        except ResourceAccessDeniedError as e:
+            abort(http_client.UNAUTHORIZED, six.text_type(e))
+
+        cloned_dest_action_db = clone_action_db(
+            source_action_db=source_action_db,
+            dest_pack=dest_data.dest_pack,
+            dest_action=dest_data.dest_action,
+        )
+
+        cloned_action_api = ActionAPI.from_model(cloned_dest_action_db)
+
+        try:
+            permission_type = PermissionType.ACTION_CREATE
+            rbac_utils.assert_user_has_resource_api_permission(
+                user_db=requester_user,
+                resource_api=cloned_action_api,
+                permission_type=permission_type,
+            )
+        except ResourceAccessDeniedError as e:
+            abort(http_client.UNAUTHORIZED, six.text_type(e))
+
+        dest_pack_base_path = get_pack_base_path(pack_name=dest_data.dest_pack)
+
+        if not os.path.isdir(dest_pack_base_path):
+            msg = "Destination pack '%s' doesn't exist" % (dest_data.dest_pack)
+            abort(http_client.BAD_REQUEST, six.text_type(msg))
+
+        dest_pack_base_path = get_pack_base_path(pack_name=dest_data.dest_pack)
+        dest_ref = ".".join([dest_data.dest_pack, dest_data.dest_action])
+        dest_action_db = self._get_by_ref(resource_ref=dest_ref)
+
+        try:
+            validate_not_part_of_system_pack_by_name(dest_data.dest_pack)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, six.text_type(e))
+
+        if dest_action_db:
+            if not dest_data.overwrite:
+                msg = "The requested destination action already exists"
+                abort(http_client.BAD_REQUEST, six.text_type(msg))
+
+            try:
+                permission_type = PermissionType.ACTION_DELETE
+                rbac_utils.assert_user_has_resource_db_permission(
+                    user_db=requester_user,
+                    resource_db=dest_action_db,
+                    permission_type=permission_type,
+                )
+                options = GenericRequestParam(remove_files=True)
+                dest_metadata_file = dest_action_db["metadata_file"]
+                dest_entry_point = dest_action_db["entry_point"]
+                temp_sub_dir = str(uuid.uuid4())
+                temp_backup_action_files(
+                    dest_pack_base_path,
+                    dest_metadata_file,
+                    dest_entry_point,
+                    temp_sub_dir,
+                )
+                self.delete(options, dest_ref, requester_user)
+            except ResourceAccessDeniedError as e:
+                abort(http_client.UNAUTHORIZED, six.text_type(e))
+            except Exception as e:
+                LOG.debug(
+                    "Exception encountered during deleting existing destination action. "
+                    "Exception was: %s",
+                    e,
+                )
+                abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
+
+        try:
+            post_response = self.post(cloned_action_api, requester_user)
+            if post_response.status_code != http_client.CREATED:
+                raise Exception("Could not add cloned action to database.")
+            cloned_dest_action_db["id"] = post_response.json["id"]
+            clone_action_files(
+                source_action_db=source_action_db,
+                dest_action_db=cloned_dest_action_db,
+                dest_pack_base_path=dest_pack_base_path,
+            )
+            extra = {"cloned_acion_db": cloned_dest_action_db}
+            LOG.audit(
+                "Action cloned. Action.id=%s" % (cloned_dest_action_db.id), extra=extra
+            )
+            if dest_action_db:
+                remove_temp_action_files(temp_sub_dir)
+            return post_response
+        except PermissionError as e:
+            LOG.error("No permission to clone the action. Exception was %s", e)
+            delete_action_files_from_pack(
+                pack_name=cloned_dest_action_db["pack"],
+                entry_point=cloned_dest_action_db["entry_point"],
+                metadata_file=cloned_dest_action_db["metadata_file"],
+            )
+            if post_response.status_code == http_client.CREATED:
+                Action.delete(cloned_dest_action_db)
+            if dest_action_db:
+                self._restore_action(dest_action_db, dest_pack_base_path, temp_sub_dir)
+            abort(http_client.FORBIDDEN, six.text_type(e))
+        except Exception as e:
+            LOG.error(
+                "Exception encountered during cloning action. Exception was %s",
+                e,
+            )
+            delete_action_files_from_pack(
+                pack_name=cloned_dest_action_db["pack"],
+                entry_point=cloned_dest_action_db["entry_point"],
+                metadata_file=cloned_dest_action_db["metadata_file"],
+            )
+            if post_response.status_code == http_client.CREATED:
+                Action.delete(cloned_dest_action_db)
+            if dest_action_db:
+                self._restore_action(dest_action_db, dest_pack_base_path, temp_sub_dir)
+
+            abort(http_client.INTERNAL_SERVER_ERROR, six.text_type(e))
+
     def _handle_data_files(self, pack_ref, data_files):
         """
         Method for handling action data files.
@@ -391,6 +540,17 @@ class ActionsController(resource.ContentPackResourceController):
                 "host_info": host_info,
             }
             self._trigger_dispatcher.dispatch(trigger=trigger, payload=payload)
+
+    def _restore_action(self, action_db, pack_base_path, temp_sub_dir):
+        restore_temp_action_files(
+            pack_base_path,
+            action_db["metadata_file"],
+            action_db["entry_point"],
+            temp_sub_dir,
+        )
+        action_db.id = None
+        Action.add_or_update(action_db)
+        remove_temp_action_files(temp_sub_dir)
 
 
 actions_controller = ActionsController()

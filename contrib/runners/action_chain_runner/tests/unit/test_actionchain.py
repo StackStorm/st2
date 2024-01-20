@@ -35,6 +35,7 @@ from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
 from st2common.exceptions.action import ParameterRenderingFailedException
 from st2tests import ExecutionDbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 
@@ -44,8 +45,6 @@ class DummyActionExecution(object):
         self.status = status
         self.result = result
 
-
-FIXTURES_PACK = "generic"
 
 TEST_MODELS = {
     "actions": ["a1.yaml", "a2.yaml", "action_4_action_context_param.yaml"],

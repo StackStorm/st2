@@ -27,7 +27,8 @@ from st2common.models.db.rule import RuleDB
 from st2common.models.db.trigger import TriggerDB
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.models.system.common import ResourceReference
-from st2common.persistence.reactor import Rule, TriggerInstance, Trigger
+from st2common.persistence.rule import Rule
+from st2common.persistence.trigger import Trigger, TriggerInstance
 
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.matcher import RulesMatcher

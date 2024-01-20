@@ -34,6 +34,7 @@ class MockDatastoreService(BaseDatastoreService):
         self._pack_name = pack_name
         self._class_name = class_name
         self._username = api_username or "admin"
+        self._logger = logger
 
         # Holds mock KeyValuePair objects
         # Key is a KeyValuePair name and value is the KeyValuePair object
@@ -96,10 +97,6 @@ class MockDatastoreService(BaseDatastoreService):
         """
         Store a value in a dictionary which is local to this class.
         """
-        if ttl:
-            raise ValueError(
-                'MockDatastoreService.set_value doesn\'t support "ttl" argument'
-            )
 
         name = self._get_full_key_name(name=name, local=local)
 
@@ -107,6 +104,11 @@ class MockDatastoreService(BaseDatastoreService):
         instance.id = name
         instance.name = name
         instance.value = value
+        if ttl:
+            self._logger.warning(
+                "MockDatastoreService is not able to expire keys based on ttl."
+            )
+            instance.ttl = ttl
 
         self._datastore_items[name] = instance
         return True

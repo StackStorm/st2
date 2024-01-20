@@ -25,6 +25,7 @@ from __future__ import absolute_import
 from kombu import Queue
 
 from st2common.constants import action as action_constants
+from st2common.transport import actionalias
 from st2common.transport import actionexecutionstate
 from st2common.transport import announcement
 from st2common.transport import execution
@@ -39,10 +40,10 @@ __all__ = [
     "ACTIONRUNNER_CANCEL_QUEUE",
     "ACTIONRUNNER_PAUSE_QUEUE",
     "ACTIONRUNNER_RESUME_QUEUE",
-    "EXPORTER_WORK_QUEUE",
     "NOTIFIER_ACTIONUPDATE_WORK_QUEUE",
     "RESULTSTRACKER_ACTIONSTATE_WORK_QUEUE",
     "RULESENGINE_WORK_QUEUE",
+    "STREAM_ACTIONALIAS_QUEUE",
     "STREAM_ANNOUNCEMENT_WORK_QUEUE",
     "STREAM_EXECUTION_ALL_WORK_QUEUE",
     "STREAM_EXECUTION_UPDATE_WORK_QUEUE",
@@ -76,12 +77,6 @@ ACTIONRUNNER_RESUME_QUEUE = liveaction.get_status_management_queue(
 )
 
 
-# Used by the exporter service
-EXPORTER_WORK_QUEUE = execution.get_queue(
-    "st2.exporter.work", routing_key=publishers.UPDATE_RK
-)
-
-
 # Used by the notifier service
 NOTIFIER_ACTIONUPDATE_WORK_QUEUE = execution.get_queue(
     "st2.notifiers.execution.work", routing_key=publishers.UPDATE_RK
@@ -101,6 +96,10 @@ RULESENGINE_WORK_QUEUE = reactor.get_trigger_instances_queue(
 
 
 # Used by the stream service
+STREAM_ACTIONALIAS_QUEUE = actionalias.get_queue(
+    routing_key=publishers.ANY_RK, exclusive=True, auto_delete=True
+)
+
 STREAM_ANNOUNCEMENT_WORK_QUEUE = announcement.get_queue(
     routing_key=publishers.ANY_RK, exclusive=True, auto_delete=True
 )

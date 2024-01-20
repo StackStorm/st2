@@ -11,5 +11,8 @@ parameters:
     type: string
     default: Stanley
 output_schema:
-  msg:
-    type: string
+  type: object
+  properties:
+    msg:
+      type: string
+  additionalProperties: false

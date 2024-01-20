@@ -1,8 +1,0 @@
-#!/usr/bin/env python3
-
-import sys
-from st2exporter.cmd import st2exporter_starter
-
-
-if __name__ == "__main__":
-    sys.exit(st2exporter_starter.main())

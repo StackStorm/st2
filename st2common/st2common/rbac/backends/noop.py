@@ -196,6 +196,16 @@ class NoOpRBACUtils(BaseRBACUtils):
         return True
 
     @staticmethod
+    def user_has_system_role(user_db):
+        """
+        :param user: User object to check for.
+        :type user: :class:`UserDB`
+
+        :rtype: ``bool``
+        """
+        return True
+
+    @staticmethod
     def user_has_rule_trigger_permission(user_db, trigger):
         """
         Check that the currently logged-in has necessary permissions on the trigger used /

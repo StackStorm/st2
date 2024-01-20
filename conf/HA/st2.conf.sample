@@ -26,9 +26,6 @@ virtualenv_opts = --always-copy
 [notifier]
 logging = /etc/st2/logging.notifier.conf
 
-[exporter]
-logging = /etc/st2/logging.exporter.conf
-
 [garbagecollector]
 logging = /etc/st2/logging.garbagecollector.conf
 

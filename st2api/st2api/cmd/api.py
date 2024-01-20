@@ -31,16 +31,19 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import deregister_service
 from st2api import config
 
 config.register_opts(ignore_errors=True)
 
 from st2api import app
+from st2api.validation import validate_auth_cookie_is_correctly_configured
 from st2api.validation import validate_rbac_is_correctly_configured
 
 __all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
+API = "api"
 
 # How much time to give to the request in progress to finish in seconds before killing them
 WSGI_SERVER_REQUEST_SHUTDOWN_TIME = 2
@@ -55,7 +58,7 @@ def _setup():
     }
 
     common_setup(
-        service="api",
+        service=API,
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
@@ -66,6 +69,7 @@ def _setup():
     )
 
     # Additional pre-run time checks
+    validate_auth_cookie_is_correctly_configured()
     validate_rbac_is_correctly_configured()
 
 
@@ -94,6 +98,7 @@ def main():
         _setup()
         return _run_server()
     except SystemExit as exit_code:
+        deregister_service(API)
         sys.exit(exit_code)
     except Exception:
         LOG.exception("(PID=%s) ST2 API quit due to exception.", os.getpid())

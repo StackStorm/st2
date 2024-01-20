@@ -18,10 +18,9 @@ from st2common.exceptions.trace import TraceNotFoundException
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.trace import Trace
 import st2common.services.action as action_services
+from st2tests.fixtures.traces.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2tests import DbTestCase
-
-FIXTURES_PACK = "traces"
 
 TEST_MODELS = {
     "executions": ["traceable_execution.yaml"],

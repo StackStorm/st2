@@ -42,13 +42,14 @@ class RulesRegistrar(ResourceRegistrar):
 
     def register_from_packs(self, base_dirs):
         """
-        :return: Number of rules registered.
-        :rtype: ``int``
+        :return: Tuple, Number of rules registered, overridden
+        :rtype: ``tuple``
         """
         # Register packs first
         self.register_packs(base_dirs=base_dirs)
 
         registered_count = 0
+        overridden_count = 0
         content = self._pack_loader.get_content(
             base_dirs=base_dirs, content_type="rules"
         )
@@ -59,22 +60,23 @@ class RulesRegistrar(ResourceRegistrar):
             try:
                 LOG.debug("Registering rules from pack: %s", pack)
                 rules = self._get_rules_from_pack(rules_dir)
-                count = self._register_rules_from_pack(pack, rules)
+                count, override = self._register_rules_from_pack(pack, rules)
                 registered_count += count
+                overridden_count += override
             except Exception as e:
                 if self._fail_on_failure:
                     raise e
 
                 LOG.exception("Failed registering all rules from pack: %s", rules_dir)
 
-        return registered_count
+        return registered_count, overridden_count
 
     def register_from_pack(self, pack_dir):
         """
         Register all the rules from the provided pack.
 
-        :return: Number of rules registered.
-        :rtype: ``int``
+        :return: Number of rules registered, Number of rules overridden
+        :rtype: ``tuple``
         """
         pack_dir = pack_dir[:-1] if pack_dir.endswith("/") else pack_dir
         _, pack = os.path.split(pack_dir)
@@ -86,27 +88,31 @@ class RulesRegistrar(ResourceRegistrar):
         self.register_pack(pack_name=pack, pack_dir=pack_dir)
 
         registered_count = 0
+        overridden_count = 0
         if not rules_dir:
-            return registered_count
+            return registered_count, overridden_count
 
         LOG.debug("Registering rules from pack %s:, dir: %s", pack, rules_dir)
 
         try:
             rules = self._get_rules_from_pack(rules_dir=rules_dir)
-            registered_count = self._register_rules_from_pack(pack=pack, rules=rules)
+            registered_count, overridden_count = self._register_rules_from_pack(
+                pack=pack, rules=rules
+            )
         except Exception as e:
             if self._fail_on_failure:
                 raise e
 
             LOG.exception("Failed registering all rules from pack: %s", rules_dir)
 
-        return registered_count
+        return registered_count, overridden_count
 
     def _get_rules_from_pack(self, rules_dir):
         return self.get_resources_from_pack(resources_dir=rules_dir)
 
     def _register_rules_from_pack(self, pack, rules):
         registered_count = 0
+        overridden_count = 0
 
         # TODO: Refactor this monstrosity
         for rule in rules:
@@ -127,6 +133,9 @@ class RulesRegistrar(ResourceRegistrar):
                     pack_ref=pack, file_path=rule, use_pack_cache=True
                 )
                 content["metadata_file"] = metadata_file
+
+                # Pass override information
+                altered = self._override_loader.override(pack, "rules", content)
 
                 rule_api = RuleAPI(**content)
                 rule_api.validate()
@@ -198,8 +207,10 @@ class RulesRegistrar(ResourceRegistrar):
                 LOG.exception("Failed registering rule from %s.", rule)
             else:
                 registered_count += 1
+                if altered:
+                    overridden_count += 1
 
-        return registered_count
+        return registered_count, overridden_count
 
 
 def register_rules(

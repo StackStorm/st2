@@ -22,7 +22,7 @@ from st2tests.base import RunnerTestCase
 from winrm_runner import winrm_ps_script_runner
 from winrm_runner.winrm_base import WinRmBaseRunner
 
-FIXTURES_PATH = os.path.join(os.path.dirname(__file__), "fixtures")
+from .fixtures import FIXTURES_PATH
 
 POWERSHELL_SCRIPT_PATH = os.path.join(FIXTURES_PATH, "TestScript.ps1")
 

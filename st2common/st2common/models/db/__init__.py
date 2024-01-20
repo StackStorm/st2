@@ -36,7 +36,11 @@ import sys
 # For now, we go with option 2) since it seems to be good enough of a compromise. We detect if we
 # are running inside tests by checking if "nose" module is present - the same logic we already use
 # in a couple of other places (and something which would need to be changed if we switch to pytest).
-if "nose" in sys.modules.keys():
+# For pytest, we set sys._called_from_test in conftest.py
+if "nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"):
+    # pytest can load any test file first, which randomizes where the monkey_patch is needed.
+    # thus mongoengine might already be loaded at this point under pytest!
+    # In that case, we just add the monkey_patch to the top of that test file.
     from st2common.util.monkey_patch import monkey_patch
 
     monkey_patch()
@@ -736,6 +740,19 @@ class ChangeRevisionMongoDBAccess(MongoDBAccess):
                 raise db_exc.StackStormDBObjectWriteConflictError(instance)
 
             return self._undo_dict_field_escape(instance)
+
+    def delete(self, instance):
+        return instance.delete()
+
+    def delete_by_query(self, *args, **query):
+        """
+        Delete objects by query and return number of deleted objects.
+        """
+        qs = self.model.objects.filter(*args, **query)
+        count = qs.delete()
+        log_query_and_profile_data_for_queryset(queryset=qs)
+
+        return count
 
 
 def get_host_names_for_uri_dict(uri_dict):

@@ -59,7 +59,7 @@ from common import PYTEST_FIXTURE_FILE_PARAM_NO_8MB_DECORATOR
 
 
 # Needed so we can subclass it
-LiveActionDB._meta["allow_inheritance"] = True
+LiveActionDB._meta["allow_inheritance"] = True  # pylint: disable=no-member
 
 
 # 1. Current approach aka using EscapedDynamicField

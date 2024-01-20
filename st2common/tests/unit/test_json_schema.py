@@ -143,6 +143,34 @@ TEST_SCHEMA_5 = {
     },
 }
 
+TEST_SCHEMA_6 = {
+    "additionalProperties": False,
+    "title": "foo",
+    "description": "Nested array-object-array-string structure.",
+    "type": "object",
+    "properties": {
+        "arg_optional_type_array": {
+            "description": "like rbac role permission_grants",
+            "type": "array",
+            "items": {
+                "description": "like a permission_grant",
+                "type": "object",
+                "properties": {
+                    "item_arg_optional_type_array": {
+                        "description": "like rbac role grant permission_types",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": ["one", "two", "three"],
+                        },
+                        "default": [],
+                    },
+                },
+            },
+        },
+    },
+}
+
 
 class JSONSchemaTestCase(TestCase):
     def test_use_default_value(self):
@@ -411,4 +439,45 @@ class JSONSchemaTestCase(TestCase):
         array_type_property = TEST_SCHEMA_1["properties"]["arg_optional_type_array"]
         self.assertFalse(
             util_schema.is_attribute_type_object(array_type_property.get("type"))
+        )
+
+    def test_nested_schemas(self):
+        validator = util_schema.get_validator()
+
+        # allow empty Array
+        instance = {"arg_optional_type_array": []}
+        util_schema.validate(
+            instance=instance, schema=TEST_SCHEMA_6, cls=validator, use_default=True
+        )
+
+        # allow Array with one item with None
+        instance = {"arg_optional_type_array": [{"item_arg_optional_type_array": None}]}
+        util_schema.validate(
+            instance=instance, schema=TEST_SCHEMA_6, cls=validator, use_default=True
+        )
+
+        # allow Array with one item with empty array
+        instance = {"arg_optional_type_array": [{"item_arg_optional_type_array": []}]}
+        util_schema.validate(
+            instance=instance, schema=TEST_SCHEMA_6, cls=validator, use_default=True
+        )
+
+        # allow Array with one item with Array with one string
+        instance = {
+            "arg_optional_type_array": [{"item_arg_optional_type_array": ["one"]}]
+        }
+        util_schema.validate(
+            instance=instance, schema=TEST_SCHEMA_6, cls=validator, use_default=True
+        )
+
+        # allow Array with multiple items
+        instance = {
+            "arg_optional_type_array": [
+                {"item_arg_optional_type_array": None},
+                {"item_arg_optional_type_array": ["one"]},
+                {"item_arg_optional_type_array": ["two", "three"]},
+            ]
+        }
+        util_schema.validate(
+            instance=instance, schema=TEST_SCHEMA_6, cls=validator, use_default=True
         )

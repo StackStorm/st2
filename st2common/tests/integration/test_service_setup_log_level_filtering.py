@@ -22,36 +22,34 @@ import eventlet
 from eventlet.green import subprocess
 
 from st2tests.base import IntegrationTestCase
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixtures.conf.fixture import FIXTURE_PATH as CONF_FIXTURES_PATH
 
 __all__ = ["ServiceSetupLogLevelFilteringTestCase"]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-FIXTURES_DIR = get_fixtures_base_path()
-
 ST2_CONFIG_INFO_LL_PATH = os.path.join(
-    FIXTURES_DIR, "conf/st2.tests.api.info_log_level.conf"
+    CONF_FIXTURES_PATH, "st2.tests.api.info_log_level.conf"
 )
 ST2_CONFIG_INFO_LL_PATH = os.path.abspath(ST2_CONFIG_INFO_LL_PATH)
 
 ST2_CONFIG_DEBUG_LL_PATH = os.path.join(
-    FIXTURES_DIR, "conf/st2.tests.api.debug_log_level.conf"
+    CONF_FIXTURES_PATH, "st2.tests.api.debug_log_level.conf"
 )
 ST2_CONFIG_DEBUG_LL_PATH = os.path.abspath(ST2_CONFIG_DEBUG_LL_PATH)
 
 ST2_CONFIG_AUDIT_LL_PATH = os.path.join(
-    FIXTURES_DIR, "conf/st2.tests.api.audit_log_level.conf"
+    CONF_FIXTURES_PATH, "st2.tests.api.audit_log_level.conf"
 )
 ST2_CONFIG_AUDIT_LL_PATH = os.path.abspath(ST2_CONFIG_AUDIT_LL_PATH)
 
 ST2_CONFIG_SYSTEM_DEBUG_PATH = os.path.join(
-    FIXTURES_DIR, "conf/st2.tests.api.system_debug_true.conf"
+    CONF_FIXTURES_PATH, "st2.tests.api.system_debug_true.conf"
 )
 ST2_CONFIG_SYSTEM_DEBUG_PATH = os.path.abspath(ST2_CONFIG_SYSTEM_DEBUG_PATH)
 
 ST2_CONFIG_SYSTEM_LL_DEBUG_PATH = os.path.join(
-    FIXTURES_DIR, "conf/st2.tests.api.system_debug_true_logging_debug.conf"
+    CONF_FIXTURES_PATH, "st2.tests.api.system_debug_true_logging_debug.conf"
 )
 
 PYTHON_BINARY = sys.executable

@@ -64,7 +64,12 @@ class CLIConfigParserTestCase(unittest2.TestCase):
                 "silence_schema_output": True,
             },
             "cli": {"debug": True, "cache_token": False, "timezone": "UTC"},
-            "credentials": {"username": "test1", "password": "test1", "api_key": None},
+            "credentials": {
+                "username": "test1",
+                "password": "test1",
+                "api_key": "api_key",
+                "basic_auth": "user1:pass1",
+            },
             "api": {"url": "http://127.0.0.1:9101/v1"},
             "auth": {"url": "http://127.0.0.1:9100/"},
             "stream": {"url": "http://127.0.0.1:9102/v1/stream"},

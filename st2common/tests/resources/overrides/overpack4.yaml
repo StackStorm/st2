@@ -1,0 +1,4 @@
+---
+actions:
+  defaults:
+    enabled: False

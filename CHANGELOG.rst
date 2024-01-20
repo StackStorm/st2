@@ -4,10 +4,451 @@ Changelog
 in development
 --------------
 
+Fixed
+~~~~~
+
+Changed
+~~~~~~~
+
+* The FileWatchSensor in the linux pack uses `watchdog` now instead of `logshipper` (`logshipper` and its requirement `pyinotify` are unmaintained).
+  The `watchdog` project is actively maintained, and has wide support for Linux, MacOS, BSD, Windows, and a polling fallback implementation.
+  Dropping `pyinotify` has a side benefit of allowing MacOS users to more easily hack on StackStorm's code, since `pyinotify` cannot install on MacOS.
+
+  The FileWatchSensor is now an excellent example of how to write a sensor following this refactor. It breaks up the code into well structured classes
+  that all have a single focus. You can also run the sensor Python script itself, which makes development and testing much easier. #5096
+
+  Contributed by @blag
+
+3.8.1 - December 13, 2023
+-------------------------
+Fixed
+~~~~~
+* Fix proxy auth mode in HA environments #5766 #6049
+  Contributed by @floatingstatic
+
+* Fix issue with linux pack actions failed to run remotely due to incorrect python shebang. #5983 #6042
+  Contributed by Ronnie Hoffmann (@ZoeLeah Schwarz IT KG)
+
+* Fix CI usses #6015
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Bumped `paramiko` to `2.10.5` to fix an issue with SSH Certs - paramiko/paramiko#2017 (security)
+  Contributed by @jk464
+
+* Avoid logging sensitive information in debug (fix #5977)
+
+* Fix codecov failures for stackstorm/st2 tests. #6035, #6046, #6048
+
+* Fix #4676, edge case where --inherit-env is skipped if the action has no parameters
+
+* Fix ST2 Client for Windows Clients. PWD is a Unix only Libary. #6071
+  Contributed by (@philipphomberger Schwarz IT KG)
+
+* Fix Snyk Security Finding Cross-site Scripting (XSS) in contrib/examples/sensors/echo_flask_app.py #6070
+  Contributed by (@philipphomberger Schwarz IT KG)
+
+* Update cryptography 3.4.7 -> 39.0.1, pyOpenSSL 21.0.0 -> 23.1.0, paramiko 2.10.5 -> 2.11.0 (security). #6055
+
+* Bumped `eventlet` to `0.33.3` and `gunicorn` to `21.2.0` to fix `RecursionError` bug in setting `SSLContext` `minimum_version` property. (security) #6061
+  Contributed by @jk464
+
+* Update orquesta to v1.6.0 to fix outdated dependencies (security). #6050
+
+* Fix KV value lookup in actions when RBAC is enabled #5934
+
+* Update version 3.1.15 of ``gitpython`` to 3.1.18 for py3.6 and to 3.1.37 for py3.8 (security). #6063
+
+* Update importlib-metadata from 3.10.1 to 4.8.3 for py3.6 and to 4.10.1 for py3.8 (security). #6072
+  Contributed by @jk464
+
+* For "local-shell-script" runner, on readonly filesystems, don't attempt to run chmod +x on script_action. Fixes #5591
+  Contributed by @jk464
+
+Added
+~~~~~
+* Move `git clone` to `user_home/.st2packs` #5845
+
+* Error on `st2ctl status` when running in Kubernetes. #5851
+  Contributed by @mamercad
+
+* Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
+  working on StackStorm, improve our security posture, and improve CI reliability thanks in part
+  to pants' use of PEX lockfiles. This is not a user-facing addition.
+  #5778 #5789 #5817 #5795 #5830 #5833 #5834 #5841 #5840 #5838 #5842 #5837 #5849 #5850
+  #5846 #5853 #5848 #5847 #5858 #5857 #5860 #5868 #5871 #5864 #5874 #5884 #5893 #5891
+  #5890 #5898 #5901 #5906 #5899 #5907 #5909 #5922 #5926 #5927 #5925 #5928 #5929 #5930
+  #5931 #5932 #5948 #5949 #5950
+  Contributed by @cognifloyd
+
+* Added a joint index to solve the problem of slow mongo queries for scheduled executions. #5805
+
+* Added publisher to ActionAlias to enable streaming ActionAlias create/update/delete events. #5763
+  Contributed by @ubaumann
+
+* Expose environment variable ST2_ACTION_DEBUG to all StackStorm actions.
+  Contributed by @maxfactor1
+
+* Python 3.9 support. #5730
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Run the st2 self-check in Github Actions and support the environment variable `TESTS_TO_SKIP` to skip tests when running st2-self-check. #5609
+  Contributed by @winem
+
+Changed
+~~~~~~~
+* Remove `distutils` dependencies across the project. #5992
+  Contributed by @AndroxxTraxxon
+
+3.8.0 - November 18, 2022
+-------------------------
+
+Fixed
+~~~~~
+
+* Fix redis SSL problems with sentinel #5660
+
+* Fix a bug in the pack config loader so that objects covered by an ``patternProperties`` schema
+  or arrays using ``additionalItems`` schema(s) can use encrypted datastore keys and have their
+  default values applied correctly. #5321
+
+  Contributed by @cognifloyd
+
+* Fixed ``st2client/st2client/base.py`` file to check for http_proxy and https_proxy environment variables for both lower and upper cases.
+
+  Contributed by @S-T-A-R-L-O-R-D
+
+* Fixed a bug where calling 'get_by_name' on client for getting key details was not returning any results despite key being stored. #5677
+
+  Contributed by @bharath-orchestral
+
+* Fixed ``st2client/st2client/base.py`` file to use ``https_proxy``(not ``http_proxy``) to check HTTPS_PROXY environment variables.
+
+  Contributed by @wfgydbu
+
+* Fixed schema utils to more reliably handle schemas that define nested arrays (object-array-object-array-string) as discovered in some
+  of the ansible installer RBAC tests (see #5684). This includes a test that reproduced the error so we don't hit this again. #5685
+
+* Fixed eventlet monkey patching so more of the unit tests work under pytest. #5689
+
+* Fix and reenable prance-based openapi spec validation, but make our custom ``x-api-model`` validation optional as the spec is out-of-date. #5709
+  Contributed by @cognifloyd
+
+* Fixed generation of `st2.conf.sample` to show correct syntax for `[sensorcontainer].partition_provider` (space separated `key:value` pairs). #5710
+  Contributed by @cognifloyd
+
+* Fix access to key-value pairs in workflow and action execution where RBAC rules did not get applied #5764
+
+  Contributed by @m4dcoder
+
+* Add backward compatibility to secret masking introduced in #5319 to prevent security-relative issues.
+  Migration to the new schema is required to take advantage of the full output schema validation. #5783
+
+  Contributed by @m4dcoder
+
+
+Added
+~~~~~
+
+* Added graceful shutdown for workflow engine. #5463
+  Contributed by @khushboobhatia01
+
+* Add ``ST2_USE_DEBUGGER`` env var as alternative to the ``--use-debugger`` cli flag. #5675
+  Contributed by @cognifloyd
+
+* Added purging of old tokens. #5679
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Begin introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
+  working on StackStorm, improve our security posture, and improve CI reliability thanks in part
+  to pants' use of PEX lockfiles. This is not a user-facing addition. #5713 #5724 #5726 #5725 #5732 #5733 #5737 #5738 #5758 #5751 #5774 #5776 #5777 #5782
+  Contributed by @cognifloyd
+
+* Added querytype parameter to linux.dig action to allow specifying the dig 'type' parameter. Fixes #5772
+
+  Contributed by @AmbiguousYeoman
+
+Changed
+~~~~~~~
+
+* BREAKING CHANGE for anyone that uses ``output_schema``, which is disabled by default.
+  If you have ``[system].validate_output_schema = True`` in st2.conf AND you have added
+  ``output_schema`` to any of your packs, then you must update your action metadata.
+
+  ``output_schema`` must be a full jsonschema now. If a schema is not well-formed, we ignore it.
+  Now, ``output`` can be types other than object such as list, bool, int, etc.
+  This also means that all of an action's output can be masked as a secret.
+
+  To get the same behavior, you'll need to update your output schema.
+  For example, this schema:
+
+  .. code-block:: yaml
+
+    output_schema:
+      property1:
+        type: bool
+      property2:
+        type: str
+
+  should be updated like this:
+
+  .. code-block:: yaml
+
+    output_schema:
+      type: object
+      properties:
+        property1:
+          type: bool
+        property2:
+          type: str
+      additionalProperties: false
+
+  #5319
+
+  Contributed by @cognifloyd
+
+* Changed the `X-XSS-Protection` HTTP header from `1; mode=block` to `0` in the `conf/nginx/st2.conf` to align with the OWASP security standards. #5298
+
+  Contributed by @LiamRiddell
+
+* Use PEP 440 direct reference requirements instead of legacy PIP VCS requirements. Now, our ``*.requirements.txt`` files use
+  ``package-name@ git+https://url@version ; markers`` instead of ``git+https://url@version#egg=package-name ; markers``. #5673
+  Contributed by @cognifloyd
+
+* Move from udatetime to ciso8601 for date functionality ahead of supporting python3.9 #5692
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Refactor tests to use python imports to identify test fixtures. #5699 #5702 #5703 #5704 #5705 #5706
+  Contributed by @cognifloyd
+
+* Refactor ``st2-generate-schemas`` so that logic is in an importable module. #5708
+  Contributed by @cognifloyd
+
+Removed
+~~~~~~~
+
+* Removed st2exporter service. It is unmaintained and does not get installed. It was
+  originally meant to help with analytics by exporting executions as json files that
+  could be imported into something like elasticsearch. Our code is now instrumented
+  to make a wider variety of stats available to metrics drivers. #5676
+  Contributed by @cognifloyd
+
+3.7.0 - May 05, 2022
+--------------------
+
+Added
+~~~~~
+
+* Added st2 API get action parameters by ref. #5509
+
+  API endpoint ``/api/v1/actions/views/parameters/{action_id}`` accepts ``ref_or_id``.
+
+  Contributed by @DavidMeu
+
+* Enable setting ttl for MockDatastoreService. #5468
+
+  Contributed by @ytjohn
+
+* Added st2 API and CLI command for actions clone operation.
+
+  API endpoint ``/api/v1/actions/{ref_or_id}/clone`` takes ``ref_or_id`` of source action.
+  Request method body takes destination pack and action name. Request method body also takes
+  optional parameter ``overwrite``. ``overwrite = true`` in case of destination action already exists and to be
+  overwritten.
+
+  CLI command ``st2 action clone <ref_or_id> <dest_pack> <dest_action>`` takes source ``ref_or_id``, destination
+  pack name and destination action name as mandatory arguments.
+  In case destination already exists then command takes optional argument ``-f`` or ``--force`` to overwrite
+  destination action. #5345
+
+  Contributed by @mahesh-orch.
+
+* Implemented RBAC functionality for existing ``KEY_VALUE_VIEW, KEY_VALUE_SET, KEY_VALUE_DELETE`` and new permission types ``KEY_VALUE_LIST, KEY_VALUE_ALL``.
+  RBAC is enabled in the ``st2.conf`` file. Access to a key value pair is checked in the KeyValuePair API controller. #5354
+
+  Contributed by @m4dcoder and @ashwini-orchestral
+
+* Added service deregistration on shutdown of a service. #5396
+
+  Contributed by @khushboobhatia01
+
+* Added pysocks python package for SOCKS proxy support. #5460
+
+  Contributed by @kingsleyadam
+
+* Added support for multiple LDAP hosts to st2-auth-ldap. #5535, https://github.com/StackStorm/st2-auth-ldap/pull/100
+
+  Contributed by @ktyogurt
+
+* Implemented graceful shutdown for action runner. Enabled ``graceful_shutdown`` in ``st2.conf`` file. #5428
+
+  Contributed by @khushboobhatia01
+
+* Enhanced 'search' operator to allow complex criteria matching on payload items. #5482
+
+  Contributed by @erceth
+
+* Added cancel/pause/resume requester information to execution context. #5554
+
+  Contributed by @khushboobhatia01
+
+* Added `trigger.headers_lower` to webhook trigger payload. This allows rules to match webhook triggers
+  without dealing with the case-sensitive nature of `trigger.headers`, as `triggers.headers_lower` providers
+  the same headers, but with the header name lower cased. #5038
+
+  Contributed by @Rand01ph
+
+* Added support to override enabled parameter of resources. #5506
+
+  Contributed by Amanda McGuinness (@amanda11 Intive)
+
+* Add new ``api.auth_cookie_secure`` and ``api.auth_cookie_same_site`` config options which
+  specify values which are set for ``secure`` and ``SameSite`` attribute for the auth cookie
+  we set when authenticating via token / api key in query parameter value (e.g. via st2web).
+
+  For security reasons, ``api.auth_cookie_secure`` defaults to ``True``. This should only be
+  changed to ``False`` if you have a valid reason to not run StackStorm behind HTTPs proxy.
+
+  Default value for ``api.auth_cookie_same_site`` is ``lax``. If you want to disable this
+  functionality so it behaves the same as in the previous releases, you can set that option
+  to ``None``.
+
+  #5248
+
+  Contributed by @Kami.
+
+* Add new ``st2 action-alias test <message string>`` CLI command which allows users to easily
+  test action alias matching and result formatting.
+
+  This command will first try to find a matching alias (same as ``st2 action-alias match``
+  command) and if a match is found, trigger an execution (same as ``st2 action-alias execute``
+  command) and format the execution result.
+
+  This means it uses exactly the same flow as commands on chat, but the interaction avoids
+  chat and hubot which should make testing and developing aliases easier and faster. #5143
+
+  #5143
+
+  Contributed by @Kami.
+
+* Add new ``credentials.basic_auth = username:password`` CLI configuration option.
+
+  This argument allows client to use additional set of basic auth credentials when talking to the
+  StackStorm API endpoints (api, auth, stream) - that is, in addition to the token / api key
+  native StackStorm auth.
+
+  This allows for simple basic auth based multi factor authentication implementation for
+  installations which don't utilize SSO.
+
+  #5152
+
+  Contributed by @Kami.
+
+* Add new audit message when a user has decrypted a key whether manually in the container (st2 key get [] --decrypt)
+  or through a workflow with a defined config. #5594
+  Contributed by @dmork123
+
+* Added garbage collection for rule_enforcement and trace models #5596/5602
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+
+* Added garbage collection for workflow execution and task execution objects #4924
+  Contributed by @srimandaleeka01 and @amanda11
+
+Changed
+~~~~~~~
+
+* Minor updates for RockyLinux. #5552
+
+  Contributed by Amanda McGuinness (@amanda11 intive)
+
+* Bump black to v22.3.0 - This is  used internally to reformat our python code. #5606
+
+* Updated paramiko version to 2.10.3 to add support for more key verification algorithms. #5600
+
+Fixed
+~~~~~
+
+* Fix deserialization bug in st2 API for url encoded payloads. #5536
+
+  Contributed by @sravs-dev
+
+* Fix issue of WinRM parameter passing fails for larger scripts.#5538
+
+  Contributed by @ashwini-orchestral
+
+* Fix Type error for ``time_diff`` critera comparison. convert the timediff value as float to match
+  ``timedelta.total_seconds()`` return. #5462
+
+  Contributed by @blackstrip
+
+* Fix issue with pack option not working when running policy list cli #5534
+
+  Contributed by @momokuri-3
+
+* Fix exception thrown if action parameter contains {{ or {% and no closing jinja characters. #5556
+
+  contributed by @guzzijones12
+
+* Link shutdown routine and sigterm handler to main thread #5555
+
+  Contributed by @khushboobhatia01
+
+* Change compound index for ActionExecutionDB to improve query performance #5568
+
+  Contributed by @khushboobhatia01
+
+* Fix build issue due to MarkUpSafe 2.1.0 removing soft_unicode
+
+  Contributed by Amanda McGuinness (@amanda11 intive) #5581
+
+* Fixed regression caused by #5358. Use string lock name instead of object ID. #5484
+
+  Contributed by @khushboobhatia01
+
+* Fix ``st2-self-check`` script reporting falsey success when the nested workflows runs failed. #5487
+
+* Fix actions from the contrib/linux pack that fail on CentOS-8 but work on other operating systems and distributions. (bug fix) #4999 #5004
+
+  Reported by @blag and @dove-young contributed by @winem.
+
+* Use byte type lock name which is supported by all tooz drivers. #5529
+
+  Contributed by @khushboobhatia01
+
+* Fixed issue where pack index searches are ignoring no_proxy #5497
+
+  Contributed by @minsis
+
+* Fixed trigger references emitted by ``linux.file_watch.line``. #5467
+
+  Prior to this patch multiple files could be watched but the rule reference of last registered file
+  would be used for all trigger emissions causing rule enforcement to fail.  References are now tracked
+  on a per file basis and used in trigger emissions.
+
+  Contributed by @nzlosh
+
+* Downgrade tenacity as tooz dependency on tenacity has always been < 7.0.0 #5607
+
+  Contributed by @khushboobhatia01
+
+* Pin ``typing-extensions<4.2`` (used indirectly by st2client) to maintain python 3.6 support. #5638
+
+
+3.6.0 - October 29, 2021
+------------------------
+
 Added
 ~~~~~
 
 * Added possibility to add new values to the KV store via CLI without leaking them to the shell history. #5164
+
+* ``st2.conf`` is now the only place to configure ports for ``st2api``, ``st2auth``, and ``st2stream``.
+
+  We replaced the static ``.socket`` sytemd units in deb and rpm packages with a python-based generator for the
+  ``st2api``, ``st2auth``, and ``st2stream`` services. The generators will get ``<ip>:<port>`` from ``st2.conf``
+  to create the ``.socket`` files dynamically. #5286 and st2-packages#706
+
+  Contributed by @nzlosh
 
 Changed
 ~~~~~~~
@@ -74,14 +515,14 @@ Changed
 * Silence pylint about dev/debugging utility (tools/direct_queue_publisher.py) that uses pika because kombu
   doesn't support what it does. If anyone uses that utility, they have to install pika manually. #5380
 
-* The FileWatchSensor in the linux pack uses `watchdog` now instead of `logshipper` (`logshipper` and its requirement `pyinotify` are unmaintained).
-  The `watchdog` project is actively maintained, and has wide support for Linux, MacOS, BSD, Windows, and a polling fallback implementation.
-  Dropping `pyinotify` has a side benefit of allowing MacOS users to more easily hack on StackStorm's code, since `pyinotify` cannot install on MacOS.
+* Fixed version of cffi as changes in 1.15.0 meant that it attempted to load libffi.so.8. #5390
 
-  The FileWatchSensor is now an excellent example of how to write a sensor following this refactor. It breaks up the code into well structured classes
-  that all have a single focus. You can also run the sensor Python script itself, which makes development and testing much easier. #5096
+  Contributed by @amanda11, Ammeon Solutions
 
-  Contributed by @blag
+* Updated Bash installer to install latest RabbitMQ version rather than out-dated version available
+  in OS distributions.
+
+  Contributed by @amanda11, Ammeon Solutions
 
 Fixed
 ~~~~~
@@ -94,6 +535,16 @@ Fixed
 
   Contributed by @khushboobhatia01
 
+* Fix "not iterable" error for ``output_schema`` handling. If a schema is not well-formed, we ignore it.
+  Also, if action output is anything other than a JSON object, we do not try to process it any more.
+  ``output_schema`` will change in a future release to support non-object output. #5309
+
+  Contributed by @guzzijones
+
+* ``core.inject_trigger``: resolve ``trigger`` payload shadowing by deprecating ``trigger`` param in favor of ``trigger_name``.
+  ``trigger`` param is still available for backwards compatibility, but will be removed in a future release. #5335 and #5383
+
+  Contributed by @mjtice
 
 3.5.0 - June 23, 2021
 ---------------------

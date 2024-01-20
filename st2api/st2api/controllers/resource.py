@@ -188,7 +188,7 @@ class ResourceController(object):
 
         # TODO: To protect us from DoS, we need to make max_limit mandatory
         offset = int(offset)
-        if offset >= 2 ** 31:
+        if offset >= 2**31:
             raise ValueError('Offset "%s" specified is more than 32-bit int' % (offset))
 
         limit = validate_limit_query_param(limit=limit, requester_user=requester_user)

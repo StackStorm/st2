@@ -38,6 +38,7 @@ from st2common.transport.publishers import CUDPublisher
 from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2tests import ExecutionDbTestCase, EventletTestCase
 import st2tests.config as tests_config
+from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks.liveaction import MockLiveActionPublisherSchedulingQueueOnly
@@ -46,7 +47,6 @@ from six.moves import range
 
 __all__ = ["ConcurrencyByAttributePolicyTestCase"]
 
-PACK = "generic"
 TEST_FIXTURES = {
     "actions": ["action1.yaml", "action2.yaml"],
     "policies": ["policy_3.yaml", "policy_7.yaml"],

@@ -35,7 +35,7 @@ class Range(object):
     RANGE_MIN_VALUE = 0
 
     RANGE_MAX_ENUM = "max"
-    RANGE_MAX_VALUE = 2 ** 32
+    RANGE_MAX_VALUE = 2**32
 
     def __init__(self, range_repr):
         self.range_start, self.range_end = self._get_range_boundaries(range_repr)

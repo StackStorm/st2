@@ -24,7 +24,6 @@ import abc
 import six
 import json
 import logging
-import traceback
 
 from functools import wraps
 
@@ -102,6 +101,7 @@ class ResourceBranch(commands.Branch):
             "delete": ResourceDeleteCommand,
             "enable": ResourceEnableCommand,
             "disable": ResourceDisableCommand,
+            "clone": ResourceCloneCommand,
         }
         for cmd, cmd_class in cmd_map.items():
             if cmd not in commands:
@@ -116,6 +116,7 @@ class ResourceBranch(commands.Branch):
             self.commands["create"] = commands["create"](*args)
             self.commands["update"] = commands["update"](*args)
             self.commands["delete"] = commands["delete"](*args)
+            self.commands["clone"] = commands["clone"](*args)
 
         if has_disable:
             self.commands["enable"] = commands["enable"](*args)
@@ -198,10 +199,11 @@ class ResourceCommand(commands.Command):
         try:
             instance = self.manager.get_by_id(pk, **kwargs)
         except Exception as e:
-            traceback.print_exc()
             # Hack for "Unauthorized" exceptions, we do want to propagate those
             response = getattr(e, "response", None)
             status_code = getattr(response, "status_code", None)
+            if status_code and status_code == http_client.FORBIDDEN:
+                raise e
             if status_code and status_code == http_client.UNAUTHORIZED:
                 raise e
 
@@ -756,6 +758,28 @@ class ContentPackResourceDeleteCommand(ResourceDeleteCommand):
     """
 
     pk_argument_name = "ref_or_id"
+
+
+class ResourceCloneCommand(ResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceCloneCommand, self).__init__(
+            resource,
+            "clone",
+            "Clone a new %s." % resource.get_display_name().lower(),
+            *args,
+            **kwargs,
+        )
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        raise NotImplementedError("clone '%s' is not implemented." % args.parser)
+
+    def run_and_print(self, args, **kwargs):
+        self.run(args, **kwargs)
+
+
+class ContentPackResourceCloneCommand(ResourceCloneCommand):
+    pass
 
 
 def load_meta_file(file_path):

@@ -1,0 +1,4 @@
+---
+sensors:
+  defaults:
+    enabled: false

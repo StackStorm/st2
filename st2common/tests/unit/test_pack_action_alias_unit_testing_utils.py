@@ -14,20 +14,18 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import os
 
 import mock
 
 from st2tests.base import BaseActionAliasTestCase
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixtures.packs.pack_dir_name_doesnt_match_ref.fixture import (
+    PACK_NAME as PACK_NAME_NOT_THE_SAME_AS_DIR_NAME,
+    PACK_PATH as PACK_PATH_1,
+)
 from st2common.exceptions.content import ParseException
 from st2common.models.db.actionalias import ActionAliasDB
 
 __all__ = ["PackActionAliasUnitTestUtils"]
-
-PACK_PATH_1 = os.path.join(
-    get_fixtures_base_path(), "packs/pack_dir_name_doesnt_match_ref"
-)
 
 
 class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
@@ -119,7 +117,7 @@ class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
 
         action_alias_db = self._get_action_alias_db_by_name(name="alias1")
         self.assertEqual(action_alias_db.name, "alias1")
-        self.assertEqual(action_alias_db.pack, "pack_name_not_the_same_as_dir_name")
+        self.assertEqual(action_alias_db.pack, PACK_NAME_NOT_THE_SAME_AS_DIR_NAME)
 
     # Note: We mock the original method to make testing of all the edge cases easier
     def _get_action_alias_db_by_name(self, name):

@@ -17,43 +17,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+A script that generates st2 metadata (pack, action, rule, ...) schemas.
+`st2-generate-schemas` is used to to update contrib/schemas/*.json.
+
+USAGE: st2-generate-schemas <destination directory>
+"""
+
 from __future__ import absolute_import
 
-import json
 import os
-import six
+import sys
 
-from st2common.models.api import action as action_models
-from st2common.models.api import pack as pack_models
-from st2common.models.api import policy as policy_models
-from st2common.models.api import rule as rule_models
-from st2common.models.api import sensor as sensor_models
-
-content_models = {
-    "pack": pack_models.PackAPI,
-    "action": action_models.ActionAPI,
-    "alias": action_models.ActionAliasAPI,
-    "policy": policy_models.PolicyAPI,
-    "rule": rule_models.RuleAPI,
-    "sensor": sensor_models.SensorTypeAPI,
-}
+from st2common.cmd import generate_schemas
 
 
-def main():
+def init():
     scripts_dir = os.path.dirname(os.path.abspath(__file__))
     schemas_dir = os.path.abspath(os.path.join(scripts_dir, "../../contrib/schemas"))
 
-    for name, model in six.iteritems(content_models):
-        schema_text = json.dumps(model.schema, indent=4)
-        print('Generated schema for the "%s" model.' % name)
-
-        schema_file = os.path.join(schemas_dir, name + ".json")
-        print('Schema will be written to "%s".' % schema_file)
-
-        with open(schema_file, "w") as f:
-            f.write(schema_text)
-            f.write("\n")
+    # set the default for backwards compatibility
+    generate_schemas.default_schemas_dir = schemas_dir
 
 
 if __name__ == "__main__":
-    main()
+    init()
+    sys.exit(generate_schemas.main())

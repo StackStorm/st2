@@ -43,19 +43,13 @@ from st2common.services import workflows as wf_svc
 from st2common.transport import liveaction as lv_ac_xport
 from st2common.transport import workflow as wf_ex_xport
 from st2common.transport import publishers
+from st2tests.fixtures.packs.core.fixture import PACK_PATH as CORE_PACK_PATH
+from st2tests.fixtures.packs.orquesta_tests.fixture import PACK_PATH as TEST_PACK_PATH
 from st2tests.mocks import liveaction as mock_lv_ac_xport
 from st2tests.mocks import workflow as mock_wf_ex_xport
 
 
-TEST_PACK = "orquesta_tests"
-TEST_PACK_PATH = (
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/" + TEST_PACK
-)
-
-PACKS = [
-    TEST_PACK_PATH,
-    st2tests.fixturesloader.get_fixtures_packs_base_path() + "/core",
-]
+PACKS = [TEST_PACK_PATH, CORE_PACK_PATH]
 
 
 @mock.patch.object(
@@ -118,6 +112,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         lv_ac_db, ac_ex_db = ac_svc.request_pause(lv_ac_db, cfg.CONF.system_user.user)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_PAUSING)
+        self.assertEqual(lv_ac_db.context["paused_by"], cfg.CONF.system_user.user)
 
     @mock.patch.object(ac_svc, "is_children_active", mock.MagicMock(return_value=True))
     def test_pause_with_active_children(self):
@@ -525,6 +520,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
             workflow_execution=str(wf_ex_dbs[0].id)
         )
         self.assertEqual(len(tk_ex_dbs), 2)
+        self.assertEqual(lv_ac_db.context["resumed_by"], cfg.CONF.system_user.user)
 
     def test_resume_cascade_to_subworkflow(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "subworkflow.yaml")

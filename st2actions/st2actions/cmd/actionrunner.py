@@ -30,16 +30,18 @@ from st2actions import worker
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.service_setup import deregister_service
 
 __all__ = ["main"]
 
 LOG = logging.getLogger(__name__)
+ACTIONRUNNER = "actionrunner"
 
 
-def _setup_sigterm_handler():
+def _setup_sigterm_handler(action_worker):
     def sigterm_handler(signum=None, frame=None):
         # This will cause SystemExit to be throw and allow for component cleanup.
-        sys.exit(0)
+        action_worker.kill()
 
     # Register a SIGTERM signal handler which calls sys.exit which causes SystemExit to
     # be thrown. We catch SystemExit and handle cleanup there.
@@ -49,7 +51,7 @@ def _setup_sigterm_handler():
 def _setup():
     capabilities = {"name": "actionrunner", "type": "passive"}
     common_setup(
-        service="actionrunner",
+        service=ACTIONRUNNER,
         config=config,
         setup_db=True,
         register_mq_exchanges=True,
@@ -58,14 +60,12 @@ def _setup():
         capabilities=capabilities,
     )
 
-    _setup_sigterm_handler()
-
 
 def _run_worker():
     LOG.info("(PID=%s) Worker started.", os.getpid())
 
     action_worker = worker.get_worker()
-
+    _setup_sigterm_handler(action_worker)
     try:
         action_worker.start()
         action_worker.wait()
@@ -75,6 +75,7 @@ def _run_worker():
         errors = False
 
         try:
+            deregister_service(service=ACTIONRUNNER)
             action_worker.shutdown()
         except:
             LOG.exception("Unable to shutdown worker.")

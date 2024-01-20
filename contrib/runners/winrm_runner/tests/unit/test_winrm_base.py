@@ -909,7 +909,7 @@ Add-Content -value $data -encoding byte -path $filePath
         mock_tmp_script.assert_called_with(
             "[System.IO.Path]::GetTempPath()", "$PSVersionTable"
         )
-        mock_run_ps.assert_called_with("& {C:\\tmpscript.ps1}")
+        mock_run_ps.assert_called_with("C:\\tmpscript.ps1")
 
     @mock.patch("winrm_runner.winrm_base.WinRmBaseRunner._run_ps")
     @mock.patch("winrm_runner.winrm_base.WinRmBaseRunner._tmp_script")
@@ -923,7 +923,7 @@ Add-Content -value $data -encoding byte -path $filePath
         mock_tmp_script.assert_called_with(
             "[System.IO.Path]::GetTempPath()", "Get-ChildItem"
         )
-        mock_run_ps.assert_called_with("& {C:\\tmpscript.ps1} -param1 value1 arg1")
+        mock_run_ps.assert_called_with("C:\\tmpscript.ps1 -param1 value1 arg1")
 
     @mock.patch("winrm_runner.winrm_base.WinRmBaseRunner._run_ps")
     def test__run_ps_or_raise(self, mock_run_ps):

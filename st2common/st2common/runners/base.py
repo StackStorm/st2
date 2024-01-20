@@ -28,7 +28,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.constants import pack as pack_constants
-from st2common.constants.runners import RUNNERS_NAMESPACE
+from st2common.constants.runners import RUNNERS_NAMESPACE, MANIFEST_FILE_NAME
 from st2common.content.utils import get_pack_directory
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions import actionrunner as exc
@@ -120,7 +120,7 @@ def get_metadata(package_name):
     """
     import pkg_resources
 
-    file_path = pkg_resources.resource_filename(package_name, "runner.yaml")
+    file_path = pkg_resources.resource_filename(package_name, MANIFEST_FILE_NAME)
 
     with open(file_path, "r") as fp:
         content = fp.read()
@@ -155,6 +155,7 @@ class ActionRunner(object):
         self.context = None
         self.auth_token = None
         self.rerun_ex_ref = None
+        self._debug = None
 
     def pre_run(self):
         # Handle runner "enabled" attribute
@@ -233,6 +234,7 @@ class ActionRunner(object):
         result["ST2_ACTION_PACK_NAME"] = self.get_pack_ref()
         result["ST2_ACTION_EXECUTION_ID"] = str(self.execution_id)
         result["ST2_ACTION_API_URL"] = get_full_public_api_url()
+        result["ST2_ACTION_DEBUG"] = str(self._debug)
 
         if self.auth_token:
             result["ST2_ACTION_AUTH_TOKEN"] = self.auth_token.token

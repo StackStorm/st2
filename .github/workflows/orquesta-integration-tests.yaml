@@ -25,11 +25,14 @@ on:
     - cron:  '0 0 * * *'
 
 jobs:
+  # TODO: Fix the required checks!
+  #       When the pre_job triggers and skips builds, it prevents merging the PR because
+  #       the required checks are reported as skipped instead of passed.
   # Special job which automatically cancels old runs for the same branch, prevents runs for the
   # same file set which has already passed, etc.
   pre_job:
     name: Skip Duplicate Jobs Pre Job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -43,9 +46,9 @@ jobs:
     needs: pre_job
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
-    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -64,6 +67,12 @@ jobs:
             nosetests_node_index: 0
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Integration Tests (Orquesta)'
+            task: 'ci-orquesta'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.9'
+            python-version: '3.9.14'
     services:
       mongo:
         image: mongo:4.4
@@ -97,7 +106,6 @@ jobs:
 
     env:
       TASK: '${{ matrix.task }}'
-
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
@@ -139,9 +147,11 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v3-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-python-${{ matrix.python }}-
+          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          # Don't use alternative key as if requirements.txt has altered we
+          # don't want to retrieve previous cache
+          #restore-keys: |
+          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v2
@@ -213,11 +223,6 @@ jobs:
         with:
           name: logs
           path: logs/
-      - name: Codecov
-        # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
-        run: |
-          ./scripts/ci/submit-codecov-coverage.sh
       - name: Compress Service Logs Before upload
         if: ${{ failure() }}
         run: |
@@ -238,7 +243,7 @@ jobs:
     if: always()
     needs:
       - integration-tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Workflow conclusion
         # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs

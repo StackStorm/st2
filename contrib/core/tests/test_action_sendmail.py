@@ -25,6 +25,7 @@ import mailparser
 
 from st2common.constants import action as action_constants
 
+from st2tests.fixtures.packs.core.fixture import PACK_NAME
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
@@ -37,6 +38,10 @@ __all__ = ["SendmailActionTestCase"]
 MOCK_EXECUTION = mock.Mock()
 MOCK_EXECUTION.id = "598dbf0c0640fd54bffc688b"
 HOSTNAME = socket.gethostname()
+
+# we need the core pack to also be in st2tests.fixtures so we can use FixturesLoader()
+# The PACK_NAME import tells pants to include that, so use the var here.
+FIXTURE_PACK = "packs/" + PACK_NAME
 
 
 class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase):
@@ -237,11 +242,11 @@ class SendmailActionTestCase(RunnerTestCase, CleanDbTestCase, CleanFilesTestCase
         parse the output email data.
         """
         models = self.fixtures_loader.load_models(
-            fixtures_pack="packs/core", fixtures_dict={"actions": ["sendmail.yaml"]}
+            fixtures_pack=FIXTURE_PACK, fixtures_dict={"actions": ["sendmail.yaml"]}
         )
         action_db = models["actions"]["sendmail.yaml"]
         entry_point = self.fixtures_loader.get_fixture_file_path_abs(
-            "packs/core", "actions", "send_mail/send_mail"
+            FIXTURE_PACK, "actions", "send_mail/send_mail"
         )
 
         runner = self._get_runner(action_db, entry_point=entry_point)

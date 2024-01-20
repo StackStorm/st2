@@ -13,10 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pytest: make sure monkey_patching happens before importing mongoengine
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import six
 
 from st2common.models.system.common import ResourceReference
 from st2api.controllers.v1.rule_views import RuleViewController
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 from st2tests.api import FunctionalTest
@@ -32,8 +38,6 @@ TEST_FIXTURES = {
 }
 
 TEST_FIXTURES_RULES = {"rules": ["rule1.yaml", "rule4.yaml", "rule5.yaml"]}
-
-FIXTURES_PACK = "generic"
 
 
 class RuleViewControllerTestCase(

@@ -18,9 +18,9 @@ import unittest2
 
 from jsonschema.exceptions import ValidationError
 from st2common.models.system import actionchain
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
-FIXTURES_PACK = "generic"
 TEST_FIXTURES = {
     "actionchains": [
         "chain1.yaml",

@@ -288,17 +288,6 @@ function st2start(){
             --config-file $ST2_CONF
     fi
 
-    # Start Exporter
-    if [ -n "$ST2_EXPORTER" ]; then
-        EXPORTS_DIR=$(exportsdir)
-        sudo mkdir -p $EXPORTS_DIR
-        sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $EXPORTS_DIR
-        echo 'Starting screen session st2-exporter...'
-        screen -L -d -m -S st2-exporter ${VIRTUALENV}/bin/python \
-            ./st2exporter/bin/st2exporter \
-            --config-file $ST2_CONF
-    fi
-
     # Check whether screen sessions are started
     SCREENS=(
         "st2-api"

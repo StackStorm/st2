@@ -30,13 +30,13 @@ from st2common.services import policies as policy_service
 from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 
 
 __all__ = ["SchedulerPoliciesTestCase", "NotifierPoliciesTestCase"]
 
 
-PACK = "generic"
 TEST_FIXTURES_1 = {
     "actions": ["action1.yaml"],
     "policies": [

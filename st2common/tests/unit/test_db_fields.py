@@ -23,6 +23,12 @@ import mock
 import unittest2
 import orjson
 import zstandard
+
+# pytest: make sure monkey_patching happens before importing mongoengine
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import mongoengine as me
 
 from st2common.fields import ComplexDateTimeField

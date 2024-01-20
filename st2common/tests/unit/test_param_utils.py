@@ -16,6 +16,11 @@
 
 from __future__ import absolute_import
 
+# pytest: make sure monkey_patching happens before importing mongoengine
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 import six
 import mock
 
@@ -33,10 +38,9 @@ from st2common.util import param as param_utils
 from st2common.util.config_loader import get_config
 
 from st2tests import DbTestCase
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
-
-FIXTURES_PACK = "generic"
 
 TEST_MODELS = {
     "actions": ["action_4_action_context_param.yaml", "action_system_default.yaml"],
@@ -53,6 +57,26 @@ class ParamsUtilsTest(DbTestCase):
     action_db = FIXTURES["actions"]["action_4_action_context_param.yaml"]
     action_system_default_db = FIXTURES["actions"]["action_system_default.yaml"]
     runnertype_db = FIXTURES["runners"]["testrunner1.yaml"]
+
+    def test_process_jinja_exception(self):
+
+        action_context = {"api_user": "noob"}
+        config = {}
+        G = param_utils._create_graph(action_context, config)
+        name = "a1"
+        value = {"test": "http://someurl?value={{a"}
+        param_utils._process(G, name, value)
+        self.assertEquals(G.nodes.get(name, {}).get("value"), value)
+
+    def test_process_jinja_template(self):
+
+        action_context = {"api_user": "noob"}
+        config = {}
+        G = param_utils._create_graph(action_context, config)
+        name = "a1"
+        value = "http://someurl?value={{a}}"
+        param_utils._process(G, name, value)
+        self.assertEquals(G.nodes.get(name, {}).get("template"), value)
 
     def test_get_finalized_params(self):
         params = {

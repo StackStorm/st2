@@ -26,6 +26,8 @@ import unittest2
 from io import BytesIO
 from six.moves import StringIO
 
+import pytest
+
 from tests import base
 from tests.fixtures import loader
 
@@ -75,12 +77,20 @@ HAS_CARRIAGE_RETURN = FIXTURES["executions"][
 ]
 
 
+@pytest.fixture(scope="class")
+def redirect_console_for_pytest(request):
+    request.cls._redirect_console = lambda *args: None
+    request.cls._undo_console_redirect = lambda *args: None
+
+
+@pytest.mark.usefixtures("redirect_console_for_pytest")
 class TestExecutionResultFormatter(unittest2.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestExecutionResultFormatter, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
         self.table = table.SingleRowTable()
         color.DISABLED = True
+        self._capsys = None
 
     def setUp(self):
         self.fd, self.path = tempfile.mkstemp()
@@ -100,13 +110,28 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
 
+    @pytest.fixture(autouse=True)
+    def redirect_console_with_capsys(self, capsys):
+        self._capsys = capsys
+        yield
+        self._capsys = None
+
+    def _get_output(self):
+        if self._capsys:
+            captured = self._capsys.readouterr()
+            # stderr actually has some extra newlines not accounted for in old capture method.
+            content = captured.out  # + captured.err
+            return content
+        self._undo_console_redirect()
+        with open(self.path, "r") as fd:
+            content = fd.read()
+        return content
+
     def test_console_redirect(self):
         message = "Hello, World!"
         print(message)
-        self._undo_console_redirect()
-        with open(self.path, "r") as fd:
-            content = fd.read().replace("\n", "")
-        self.assertEqual(content, message)
+        content = self._get_output()
+        self.assertEqual(content.replace("\n", ""), message)
 
     def test_execution_get_default(self):
         argv = ["execution", "get", EXECUTION["id"]]
@@ -167,9 +192,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
         argv = ["execution", "get", NEWLINE["id"]]
         self.assertEqual(self.shell.run(argv), 0)
-        self._undo_console_redirect()
-        with open(self.path, "r") as fd:
-            content = fd.read()
+        content = self._get_output()
 
         # NOTE: For some reason CI and locally the indent is different sometimes (2 vs 4 spaces)
         # even though it's using the same code
@@ -191,9 +214,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
         argv = ["execution", "get", UNICODE["id"]]
         self.assertEqual(self.shell.run(argv), 0)
-        self._undo_console_redirect()
-        with open(self.path, "r") as fd:
-            content = fd.read()
+        content = self._get_output()
 
         content = content.replace(r"\xE2\x80\xA1", r"\u2021")
         self.assertEqual(content, FIXTURES["results"]["execution_unicode_py3.txt"])
@@ -208,9 +229,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def test_execution_double_backslash_not_unicode_escape_sequence(self):
         argv = ["execution", "get", DOUBLE_BACKSLASH["id"]]
         self.assertEqual(self.shell.run(argv), 0)
-        self._undo_console_redirect()
-        with open(self.path, "r") as fd:
-            content = fd.read()
+        content = self._get_output()
 
         self.assertEqual(content, FIXTURES["results"]["execution_double_backslash.txt"])
 
@@ -256,9 +275,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def test_execution_get_detail_with_carriage_return(self):
         argv = ["execution", "get", HAS_CARRIAGE_RETURN["id"], "-d"]
         self.assertEqual(self.shell.run(argv), 0)
-        self._undo_console_redirect()
-        with open(self.path, "r") as fd:
-            content = fd.read()
+        content = self._get_output()
 
         self.assertEqual(
             content, FIXTURES["results"]["execution_result_has_carriage_return_py3.txt"]
@@ -275,10 +292,8 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         # Client shouldn't throw if "-a" flag is provided when listing executions
         argv = ["execution", "list", "-a", "start_timestamp"]
         self.assertEqual(self.shell.run(argv), 0)
-        self._undo_console_redirect()
+        content = self._get_output()
 
-        with open(self.path, "r") as fd:
-            content = fd.read()
         self.assertEqual(
             content, FIXTURES["results"]["execution_list_attr_start_timestamp.txt"]
         )
@@ -292,10 +307,8 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         # Client shouldn't throw if "-a" flag is provided, but there are no executions
         argv = ["execution", "list", "-a", "start_timestamp"]
         self.assertEqual(self.shell.run(argv), 0)
-        self._undo_console_redirect()
+        content = self._get_output()
 
-        with open(self.path, "r") as fd:
-            content = fd.read()
         self.assertEqual(
             content,
             FIXTURES["results"][
@@ -312,9 +325,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     )
     def _get_execution(self, argv):
         self.assertEqual(self.shell.run(argv), 0)
-        self._undo_console_redirect()
-        with open(self.path, "r") as fd:
-            content = fd.read()
+        content = self._get_output()
 
         return content
 
@@ -327,9 +338,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     )
     def _get_schema_execution(self, argv):
         self.assertEqual(self.shell.run(argv), 0)
-        self._undo_console_redirect()
-        with open(self.path, "r") as fd:
-            content = fd.read()
+        content = self._get_output()
 
         return content
 

@@ -16,6 +16,7 @@
 import six
 
 from st2api.controllers.v1.rule_enforcements import RuleEnforcementController
+from st2tests.fixtures.rule_enforcements.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 from st2tests.api import FunctionalTest
@@ -26,8 +27,6 @@ http_client = six.moves.http_client
 TEST_FIXTURES = {
     "enforcements": ["enforcement1.yaml", "enforcement2.yaml", "enforcement3.yaml"]
 }
-
-FIXTURES_PACK = "rule_enforcements"
 
 
 class RuleEnforcementControllerTestCase(

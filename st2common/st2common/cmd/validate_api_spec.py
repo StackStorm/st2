@@ -22,8 +22,8 @@ in st2common/models/api/.
 from __future__ import absolute_import
 import os
 
+import prance
 from oslo_config import cfg
-from prance import ResolvingParser
 
 from st2common import config
 from st2common import log as logging
@@ -43,6 +43,14 @@ cfg.CONF.register_cli_opt(
         required=False,
         default="st2common/st2common/openapi.yaml",
     )
+)
+
+# When disabled, only load the spec in prance to validate. Otherwise check for x-api-model as well.
+# validate-defs is disabled by default until these are resolved:
+#   https://github.com/StackStorm/st2/issues/3575
+#   https://github.com/StackStorm/st2/issues/3788
+cfg.CONF.register_cli_opt(
+    cfg.BoolOpt("validate-defs", short="-d", required=False, default=False)
 )
 
 cfg.CONF.register_cli_opt(
@@ -71,6 +79,7 @@ def _validate_definitions(spec):
 
             if verbose:
                 LOG.info("Supplied definition for model %s: \n\n%s.", model, definition)
+                msg += "\n"
 
             error = True
             LOG.error(msg)
@@ -81,6 +90,7 @@ def _validate_definitions(spec):
 def validate_spec():
     spec_file = cfg.CONF.spec_file
     generate_spec = cfg.CONF.generate
+    validate_defs = cfg.CONF.validate_defs
 
     if not os.path.exists(spec_file) and not generate_spec:
         msg = (
@@ -100,13 +110,16 @@ def validate_spec():
             f.write(spec_string)
             f.flush()
 
-    parser = ResolvingParser(spec_file)
+    parser = prance.ResolvingParser(spec_file)
     spec = parser.specification
+
+    if not validate_defs:
+        return True
 
     return _validate_definitions(spec)
 
 
-def teartown():
+def teardown():
     common_teardown()
 
 
@@ -118,11 +131,14 @@ def main():
         # The spec loader do not allow duplicate keys.
         spec_loader.load_spec("st2common", "openapi.yaml.j2")
 
-        ret = 0
+        # run the schema through prance to validate openapi spec.
+        passed = validate_spec()
+
+        ret = 0 if passed else 1
     except Exception:
         LOG.error("Failed to validate openapi.yaml file", exc_info=True)
         ret = 1
     finally:
-        teartown()
+        teardown()
 
     return ret

@@ -10,7 +10,6 @@
 *.egg
 *.egg-info
 dist
-build
 .venv
 eggs
 parts
@@ -53,6 +52,12 @@ nosetests.xml
 htmlcov
 benchmark_histograms/
 
+# Pants workspace files
+/.pants.d/
+/dist/
+/.pids
+/.pants.workdir.file_lock*
+
 # Mr Developer
 .idea
 .DS_Store
@@ -64,5 +69,9 @@ benchmark_histograms/
 # Editor Saves
 *~
 \#*\#
-[._]*.sw[a-p]
-[._]sw[a-p]
+[._]*.sw[a-px]
+[._]sw[a-px]
+[._]*.sw[a-p]x
+[._]sw[a-p]x
+
+**/build/lib/**

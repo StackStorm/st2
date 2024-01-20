@@ -116,13 +116,9 @@ class RunnerTypeAPI(BaseAPI):
                 "type": "string",
                 "required": False,
             },
-            "output_schema": {
-                "description": "Schema for the runner's output.",
-                "type": "object",
-                "patternProperties": {r"^\w+$": util_schema.get_action_output_schema()},
-                "additionalProperties": False,
-                "default": {},
-            },
+            "output_schema": util_schema.get_action_output_schema(
+                description="Runner Output Schema"
+            ),
         },
         "additionalProperties": False,
     }
@@ -169,6 +165,7 @@ class RunnerTypeAPI(BaseAPI):
         return model
 
 
+# NOTE: Update pylint_plugins/fixtures/api_models.py if this changes significantly
 class ActionAPI(BaseAPI, APIUIDMixin):
     """
     The system entity that represents a Stack Action/Automation in the system.
@@ -228,13 +225,9 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "additionalProperties": False,
                 "default": {},
             },
-            "output_schema": {
-                "description": "Schema for the action's output.",
-                "type": "object",
-                "patternProperties": {r"^\w+$": util_schema.get_action_output_schema()},
-                "additionalProperties": False,
-                "default": {},
-            },
+            "output_schema": util_schema.get_action_output_schema(
+                description="Action Output Schema"
+            ),
             "tags": {
                 "description": "User associated metadata assigned to this object.",
                 "type": "array",

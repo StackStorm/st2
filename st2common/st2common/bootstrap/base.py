@@ -22,6 +22,7 @@ import six
 from st2common import log as logging
 from st2common.constants.pack import CONFIG_SCHEMA_FILE_NAME
 from st2common.content.loader import MetaLoader
+from st2common.content.loader import OverrideLoader
 from st2common.content.loader import ContentPackLoader
 from st2common.models.api.pack import PackAPI
 from st2common.models.api.pack import ConfigSchemaAPI
@@ -68,6 +69,7 @@ class ResourceRegistrar(object):
         self._fail_on_failure = fail_on_failure
 
         self._meta_loader = MetaLoader()
+        self._override_loader = OverrideLoader()
         self._pack_loader = ContentPackLoader()
 
         # Maps runner name -> RunnerTypeDB

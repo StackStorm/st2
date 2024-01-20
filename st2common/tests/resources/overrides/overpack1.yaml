@@ -1,0 +1,7 @@
+---
+actions:
+  defaults:
+    enabled: False
+  exceptions:
+    action2:
+      enabled: True

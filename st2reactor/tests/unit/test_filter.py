@@ -414,3 +414,25 @@ class FilterTest(DbTestCase):
         }
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter())
+
+    def test_hash_strip_int_value(self):
+        rule = MOCK_RULE_1
+        rule.criteria = {
+            "trigger.int": {"type": "gt", "pattern": 0},
+            "trigger.int#2": {"type": "lt", "pattern": 2},
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), "equals check should have passed.")
+
+        rule = MOCK_RULE_1
+        rule.criteria = {
+            "trigger.int": {"type": "gt", "pattern": 2},
+            "trigger.int#2": {"type": "lt", "pattern": 3},
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertFalse(f.filter(), "trigger value is gt than 0 but didn't match.")
+
+        rule = MOCK_RULE_1
+        rule.criteria = {"trigger.int#1": {"type": "lt", "pattern": 2}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), "trigger value is gt than 0 but didn't match.")

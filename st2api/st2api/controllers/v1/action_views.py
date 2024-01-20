@@ -26,6 +26,7 @@ from st2common import log as logging
 from st2common.content import utils
 from st2common.models.api.action import ActionAPI
 from st2common.models.utils import action_param_utils
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
 from st2common.rbac.types import PermissionType
@@ -51,6 +52,18 @@ class LookupUtils(object):
             abort(http_client.NOT_FOUND, msg)
 
     @staticmethod
+    def _get_action_by_ref(ref):
+        try:
+            action_db = Action.get_by_ref(ref)
+            if not action_db:
+                raise ValueError('Referenced action "%s" doesnt exist' % (ref))
+            return action_db
+        except Exception as e:
+            msg = 'Database lookup for ref="%s" resulted in exception. %s' % (ref, e)
+            LOG.exception(msg)
+            abort(http_client.NOT_FOUND, msg)
+
+    @staticmethod
     def _get_runner_by_id(id):
         try:
             return RunnerType.get_by_id(id)
@@ -70,18 +83,21 @@ class LookupUtils(object):
 
 
 class ParametersViewController(object):
-    def get_one(self, action_id, requester_user):
-        return self._get_one(action_id, requester_user=requester_user)
+    def get_one(self, ref_or_id, requester_user):
+        return self._get_one(ref_or_id, requester_user=requester_user)
 
     @staticmethod
-    def _get_one(action_id, requester_user):
+    def _get_one(ref_or_id, requester_user):
         """
-        List merged action & runner parameters by action id.
+        List merged action & runner parameters by action id or ref.
 
         Handle:
             GET /actions/views/parameters/1
         """
-        action_db = LookupUtils._get_action_by_id(action_id)
+        if ResourceReference.is_resource_reference(ref_or_id):
+            action_db = LookupUtils._get_action_by_ref(ref_or_id)
+        else:
+            action_db = LookupUtils._get_action_by_id(ref_or_id)
 
         permission_type = PermissionType.ACTION_VIEW
         rbac_utils = get_rbac_backend().get_utils_class()
@@ -193,7 +209,7 @@ class OverviewController(resource.ContentPackResourceController):
     def _transform_action_api(action_api, requester_user):
         action_id = action_api.id
         result = ParametersViewController._get_one(
-            action_id=action_id, requester_user=requester_user
+            ref_or_id=action_id, requester_user=requester_user
         )
         action_api.parameters = result.get("parameters", {})
         return action_api

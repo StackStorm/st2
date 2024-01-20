@@ -19,6 +19,7 @@ Module for performing eventlet and other monkey patching.
 
 from __future__ import absolute_import
 
+import os
 import sys
 
 __all__ = [
@@ -29,6 +30,7 @@ __all__ = [
 
 USE_DEBUGGER_FLAG = "--use-debugger"
 PARENT_ARGS_FLAG = "--parent-args="
+USE_DEBUGGER_ENV_VAR = "ST2_USE_DEBUGGER"
 
 
 def monkey_patch(patch_thread=None):
@@ -43,14 +45,22 @@ def monkey_patch(patch_thread=None):
                          patched unless debugger is used.
     :type patch_thread: ``bool``
     """
+    # Eventlet when patched doesn't throw the standard ssl error on timeout, which can break
+    # some third-party libraries including redis SSL.
+    # See: https://github.com/eventlet/eventlet/issues/692
+    # Therefore set the patched ssl module to use the standard socket.timeout exception
+    from eventlet.green import ssl
     import eventlet
+    from socket import timeout
 
     if patch_thread is None:
         patch_thread = not is_use_debugger_flag_provided()
 
+    # TODO: support gevent.patch_all if .concurrency.CONCURRENCY_LIBRARY = "gevent"
     eventlet.monkey_patch(
         os=True, select=True, socket=True, thread=patch_thread, time=True
     )
+    ssl.timeout_exc = timeout
 
 
 def use_select_poll_workaround(nose_only=True):
@@ -82,7 +92,11 @@ def use_select_poll_workaround(nose_only=True):
     import eventlet
 
     # Work around to get tests to pass with eventlet >= 0.20.0
-    if not nose_only or (nose_only and "nose" in sys.modules.keys()):
+    if not nose_only or (
+        nose_only
+        # sys._called_from_test set in conftest.py for pytest runs
+        and ("nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"))
+    ):
         # Add back blocking poll() to eventlet monkeypatched select
         original_poll = eventlet.patcher.original("select").poll
         select.poll = original_poll
@@ -109,5 +123,9 @@ def is_use_debugger_flag_provided():
     for arg in sys.argv:
         if arg.startswith(PARENT_ARGS_FLAG) and USE_DEBUGGER_FLAG in arg:
             return True
+
+    # 3. Check for ST2_USE_DEBUGGER env var
+    if os.environ.get(USE_DEBUGGER_ENV_VAR, False):
+        return True
 
     return False
