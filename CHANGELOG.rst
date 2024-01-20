@@ -3,7 +3,11 @@ Changelog
 
 in development
 --------------
+Fixed
+~~~~~
 
+3.8.1 - December 13, 2023
+-------------------------
 Fixed
 ~~~~~
 * Fix proxy auth mode in HA environments #5766 #6049

@@ -19,8 +19,8 @@ Senior [@StackStorm/maintainers](https://github.com/orgs/StackStorm/teams/mainta
 Have deep platform knowledge & experience and demonstrate technical leadership as well as driving the project forward.
 * Amanda McGuinness ([@amanda11](https://github.com/amanda11)), _intive_ <<amanda.mcguinness@intive.com>>
   - Ansible, Core, deb/rpm packages, CI/CD, Deployments, Release Engineering, Infrastructure, Documentation.
-* Eugen Cusmaunsa ([@armab](https://github.com/armab)) <<armab@stackstorm.com>>
-  - Systems, Deployments, Docker, K8s, HA, Ansible, Chef, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering, Community.
+* Carlos ([@nzlosh](https://github.com/nzlosh)) <<nzlosh@yahoo.com>>
+  - Packaging, Systems, Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Jacob Floyd ([@cognifloyd](https://github.com/cognifloyd/)), _Copart_ <<cognifloyd@gmail.com>>
   - StackStorm Exchange, Kubernetes, ChatOps, Core, Discussions.
 * Tomaz Muraus ([@kami](https://github.com/kami)) <<tomaz@stackstorm.com>>
@@ -37,12 +37,12 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Community, Puppet, Workflows, HA.
 * Bradley Bishop ([@bishopbm1](https://github.com/bishopbm1)), _Encore_ <<bishopbm1@gmail.com>>
   - Puppet, StackStorm Exchange.
-* Carlos ([@nzlosh](https://github.com/nzlosh)) <<nzlosh@yahoo.com>>
-  - Packaging, Systems, Chatops, Errbot, Community, Discussions, StackStorm Exchange.
 * Khushboo Bhatia ([@khushboobhatia01](https://github.com/khushboobhatia01)), _VMware_ <<khushb99@gmail.com>>
   - StackStorm Core, Workflows.
 * Marcel Weinberg ([@winem](https://github.com/winem)), _CoreMedia_ <<mweinberg-os@email.de>>
   - Systems, Core, CI/CD, Docker, Community.
+* Mark Mercado ([@mamercad](https://github.com/mamercad)), _DigitalOcean_ <<mmercado@digitalocean.com>>
+  - Ansible, Docker, K8s, StackStorm Exchange. [StackStorm Adoption](https://github.com/StackStorm/st2/pull/5836)
 * Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)), _Bitovi_ <<mick@bitovi.com>>
   - Systems, ST2 Exchange. [Case Study](https://stackstorm.com/case-study-bitovi/).
 
@@ -53,12 +53,18 @@ Contributors are using and occasionally contributing back to the project, might 
 They're not part of the TSC voting process, but appreciated for their contribution, involvement and may become Maintainers in the future depending on their effort and involvement. See [How to become a Maintainer?](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#how-to-become-a-maintainer)
 [@StackStorm/contributors](https://github.com/orgs/StackStorm/teams/contributors) are invited to StackStorm Github organization and have permissions to help triage the Issues and review PRs.
 * Anand Patel ([@arms11](https://github.com/arms11)), _VMware_ - Docker, Kubernetes.
+* David Culbreth ([@AndroxxTraxxon](https://github.com/AndroxxTraxxon)) - _H-E-B_ - StackStorm core, Orquesta.
 * Harsh Nanchahal ([@hnanchahal](https://github.com/hnanchahal)), _Starbucks_ - Core, Docker, Kubernetes.
 * Hiroyasu Ohyama ([@userlocalhost](https://github.com/userlocalhost)) - Orquesta, Workflows, st2 Japan Community. [Case Study](https://stackstorm.com/case-study-dmm/).
-* Mark Mercado ([@mamercad](https://github.com/mamercad)), _DigitalOcean_ - Ansible, Docker, K8s, StackStorm Exchange. [StackStorm Adoption](https://github.com/StackStorm/st2/pull/5836).
+* Jeremiah Millay ([@floatingstatic](https://github.com/floatingstatic)), _Fastly_ - Core, StackStorm Exchange.
+* Kirill Enykeev ([@enykeev](https://github.com/enykeev)), _SentinelOne_ - ex Stormer. WebUI, Workflow Designer.
+* Philipp Homberger ([@philipphomberger](https://github.com/philipphomberger)), _Schwarz IT KG_ - Core, StackStorm Exchange.
 * Rick Kauffman ([@xod442](https://github.com/xod442)), _HPE_ - Community, HOWTOs, Blogs, Publications, Docker.
+* Ronnie Hoffmann ([@ZoeLeah](https://github.com/ZoeLeah)), _Schwarz IT KG_ - Docker, K8s.
+* Scott Swann ([@jk464](https://github.com/jk464)) - StackStorm core, Security.
 * Sheshagiri Rao Mallipedhi ([@sheshagiri](https://github.com/sheshagiri)) - Docker, Core, StackStorm Exchange.
 * Shital Raut ([@shital-orchestral](https://github.com/shital-orchestral)), _Orchestral.ai_ - Web UI.
+* Sravanthi Konduru ([@sravs-dev](https://github.com/sravs-dev)), _Salesforce_, - Core, StackStorm Exchange.
 * Tristan Struthers ([@trstruth](https://github.com/trstruth)) - Docker, K8s, Orquesta, Community.
 * Yuri Dubler ([@lm-ydubler](https://github.com/lm-ydubler)) - _LogicMonitor_ - StackStorm Exchange, CI.
 
@@ -73,8 +79,8 @@ Thank you, Friends!
   - ChatOps, StackStorm Exchange, Community, Documentation, CI/CD.
 * Denis Barishev ([@dennybaa](https://github.com/dennybaa)) - ex Stormer. Re-architeced StackStorm installer via deb/rpm packages, made it stable, repeatable, fixed first platform pain points.
 * Ed Medvedev ([@emedvedev](https://github.com/emedvedev)) - ex Stormer. Made WebUI slick and ChatOps awesome, discovered and implemented today's [StackStorm Exchange](https://exchange.stackstorm.org/).
+* Eugen Cusmaunsa ([@armab](https://github.com/armab)) - Ex Stormer. [StackStorm TSC Governance](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md) creator, Open Source Community builder. Deployments, Docker, K8s, Ansible, Vagrant, deb/rpm, CI/CD, Infrastructure, Release Engineering.
 * Evan Powell ([@epowell101](https://github.com/epowell101)) - StackStorm co-founder, first CEO, Stormer forever.
-* Kirill Enykeev ([@enykeev](https://github.com/enykeev)) - ex Stormer. WebUI, Workflow Designer, StackStorm Exchange, CI.
 * Michael Ward ([@mward29](https://github.com/mward29)) - StackStorm Exchange, Community, Docker & K8s. [Case Study](https://stackstorm.com/case-study-pearson/).
 * Matthew Stone ([@bigmstone](https://github.com/bigmstone)) - ex Stormer. Project Leadership and StackStorm's [Robot Arm :)](https://twitter.com/Stack_Storm/status/1217056819736203270).
 * Matt Oswalt ([@Mierdin](https://github.com/Mierdin)) - ex Stormer. Invented, architected and implemented [st2 Inquiries](https://docs.stackstorm.com/inquiries.html).
