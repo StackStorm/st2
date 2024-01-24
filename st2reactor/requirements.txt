@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 apscheduler==3.7.0
-eventlet==0.30.2
+eventlet==0.33.3
 jsonpath-rw==1.4.0
 jsonschema==2.6.0
 kombu==5.0.2

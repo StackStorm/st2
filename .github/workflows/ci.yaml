@@ -70,11 +70,19 @@ jobs:
             task: 'ci-compile'
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Lint Checks (black, flake8, etc.)'
+            task: 'ci-checks'
+            python-version-short: '3.9'
+            python-version: '3.9.14'
+          - name: 'Compile (pip deps, pylint, etc.)'
+            task: 'ci-compile'
+            python-version-short: '3.9'
+            python-version: '3.9.14'
 
     env:
       TASK: '${{ matrix.task }}'
       COLUMNS: '120'
-      PYLINT_CONCURRENCY: '4'
+      PYLINT_CONCURRENCY: '6'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -136,6 +144,160 @@ jobs:
         run: |
           ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
 
+  self-check:
+    needs: pre_job
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+         # TODO: Check if we want to fix the errors on Py 3.6 to have it tested as well
+         #- name: 'Self-check on Python 3.6'
+         #   python-version-short: '3.6'
+         #   python-version: '3.6.13'
+          - name: 'Self-check on Python 3.8'
+            python-version-short: '3.8'
+            python-version: '3.8.14'
+    services:
+      mongo:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
+
+      rabbitmq:
+        image: rabbitmq:3.8-management
+        options: >-
+          --name rabbitmq
+        ports:
+            - 5671:5671/tcp   # AMQP SSL port
+            - 5672:5672/tcp   # AMQP standard port
+            - 15672:15672/tcp # Management: HTTP, CLI
+
+    env:
+      # CI st2.conf (with ST2_CI_USER user instead of stanley)
+      ST2_CONF: 'conf/st2.ci.conf'
+
+      # Name of the user who is running the CI (on GitHub Actions this is 'runner')
+      ST2_CI_USER: 'runner'
+
+      # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
+      PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+      # Space separated list of tests to be skipped if the self-check is running in GitHub Actions
+      TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Custom Environment Setup
+        run: |
+          ./scripts/github/setup-environment.sh
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - name: Cache Python Dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+            virtualenv
+            ~/virtualenv
+          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+          # !virtualenv/lib/python*/site-packages/st2*
+          # !virtualenv/bin/st2*
+          key: ${{ runner.os }}-v3-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python }}-
+      - name: Cache APT Dependencies
+        id: cache-apt-deps
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/apt_cache
+          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-v5-
+      - name: Install APT Depedencies
+        env:
+          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
+        run: |
+          cat /etc/environment
+          # install dev dependencies for Python YAML and LDAP packages
+          # https://github.com/StackStorm/st2-auth-ldap
+          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Install virtualenv
+        run: |
+          ./scripts/github/install-virtualenv.sh
+      - name: Install requirements
+        run: |
+          ./scripts/ci/install-requirements.sh
+      - name: Run Redis Service Container
+        timeout-minutes: 2
+        run: |
+          docker run --rm --detach -p 127.0.0.1:6379:6379/tcp --name redis redis:latest
+          until [ "$(docker inspect -f {{.State.Running}} redis)" == "true" ]; do sleep 0.1; done
+      - name: Setup Tests
+        run: |
+          # prep a ci-specific dev conf file that uses runner instead of stanley
+          # this user is the username of the user in GitHub actions, used for SSH, etc during
+          # integration tests (important)
+          cp conf/st2.dev.conf "${ST2_CONF}"
+          sed -i -e "s,/home/vagrant/.ssh/stanley_rsa,/home/stanley/.ssh/stanley_rsa," "${ST2_CONF}"
+
+          sudo -E ./scripts/ci/add-itest-user-key.sh
+      - name: Permissions Workaround
+        run: |
+          sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
+      - name: Reconfigure RabbitMQ
+        # bitnami image allows (see bitnami/rabbitmq readme):
+        # Here we're copying a rabbitmq.config file which won't do anything.
+        # We need to switch to custom.conf or advanced.config.
+        timeout-minutes: 2  # may die if rabbitmq fails to start
+        run: |
+          ./scripts/github/configure-rabbitmq.sh
+      - name: Print versions
+        run: |
+          ./scripts/ci/print-versions.sh
+      - name: make
+        timeout-minutes: 14  # may die if rabbitmq fails to start
+        # use: script -e -c to print colors
+        run: |
+          script -e -c "make .ci-prepare-integration" && exit 0
+      - name: Extend the path for upcoming tasks
+        run: |
+          echo ${HOME}/work/st2/st2/virtualenv/bin
+          echo ${HOME}/work/st2/st2/virtualenv/bin >> $GITHUB_PATH
+      - name: Create symlinks to find the binaries when running st2 actions
+        run: |
+          ln -s ${HOME}/work/st2/st2/virtualenv/bin/st2 /usr/local/bin/st2
+          ln -s ${HOME}/work/st2/st2/virtualenv/bin/st2-run-pack-tests /usr/local/bin/st2-run-pack-tests
+      - name: Install st2client
+        timeout-minutes: 5
+        run: |
+          cd ./st2client
+          pip3 install --upgrade pip
+          python3 setup.py develop
+      - name: Run self-verification script
+        env:
+          ST2_CONF: /home/runner/work/st2/st2/conf/st2.ci.conf
+        run: |
+          sudo -E ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t) PATH=${PATH} virtualenv/bin/st2-self-check
+      - name: Compress Service Logs Before upload
+        if: ${{ failure() }}
+        run: |
+          tar cvzpf logs.tar.gz logs/*
+      - name: Upload StackStorm services Logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.tar.gz
+          retention-days: 7
+      - name: Stop Redis Service Container
+        if: "${{ always() }}"
+        run: docker rm --force redis || true
+
   unit-tests:
     needs: pre_job
     # NOTE: We always want to run job on master since we run some additional checks there (code
@@ -174,6 +336,18 @@ jobs:
             nosetests_node_index: 1
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Unit Tests (chunk 1)'
+            task: 'ci-unit'
+            nosetests_node_total: 2
+            nosetests_node_index: 0
+            python-version-short: '3.9'
+            python-version: '3.9.14'
+          - name: 'Unit Tests (chunk 2)'
+            task: 'ci-unit'
+            nosetests_node_total: 2
+            nosetests_node_index: 1
+            python-version-short: '3.9'
+            python-version: '3.9.14'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
@@ -197,7 +371,7 @@ jobs:
 
     env:
       TASK: '${{ matrix.task }}'
-
+      PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
@@ -304,9 +478,11 @@ jobs:
           ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') }}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   integration-tests:
     needs: pre_job
@@ -359,6 +535,24 @@ jobs:
             nosetests_node_index: 1
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.9'
+            python-version: '3.9.14'
+          - name: 'Integration Tests (chunk 1)'
+            task: 'ci-integration'
+            nosetests_node_total: 2
+            nosetests_node_index: 0
+            python-version-short: '3.9'
+            python-version: '3.9.14'
+          - name: 'Integration Tests (chunk 2)'
+            task: 'ci-integration'
+            nosetests_node_total: 2
+            nosetests_node_index: 1
+            python-version-short: '3.9'
+            python-version: '3.9.14'
     services:
       mongo:
         image: mongo:4.4
@@ -414,7 +608,7 @@ jobs:
 
     env:
       TASK: '${{ matrix.task }}'
-
+      PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
@@ -523,9 +717,11 @@ jobs:
           script -e -c "make ${TASK}" && exit 0
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' && env.TASK == 'ci-integration' }}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.TASK == 'ci-integration') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Compress Service Logs Before upload
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         run: |

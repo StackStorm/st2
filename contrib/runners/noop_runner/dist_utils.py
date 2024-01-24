@@ -24,8 +24,6 @@ import os
 import re
 import sys
 
-from distutils.version import StrictVersion
-
 # NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
 #
 # TODO: Why can't this script rely on 3rd party dependencies? Is it because it has to import
@@ -48,48 +46,11 @@ else:
 GET_PIP = "curl https://bootstrap.pypa.io/get-pip.py | python"
 
 __all__ = [
-    "check_pip_is_installed",
-    "check_pip_version",
     "fetch_requirements",
     "apply_vagrant_workaround",
     "get_version_string",
     "parse_version_string",
 ]
-
-
-def check_pip_is_installed():
-    """
-    Ensure that pip is installed.
-    """
-    try:
-        import pip  # NOQA
-    except ImportError as e:
-        print("Failed to import pip: %s" % (text_type(e)))
-        print("")
-        print("Download pip:\n%s" % (GET_PIP))
-        sys.exit(1)
-
-    return True
-
-
-def check_pip_version(min_version="6.0.0"):
-    """
-    Ensure that a minimum supported version of pip is installed.
-    """
-    check_pip_is_installed()
-
-    import pip
-
-    if StrictVersion(pip.__version__) < StrictVersion(min_version):
-        print(
-            "Upgrade pip, your version '{0}' "
-            "is outdated. Minimum required version is '{1}':\n{2}".format(
-                pip.__version__, min_version, GET_PIP
-            )
-        )
-        sys.exit(1)
-
-    return True
 
 
 def fetch_requirements(requirements_file_path):

@@ -67,7 +67,7 @@ def setup_pack_virtualenv(
                    level logger.
 
     :param no_download: Do not download and install latest version of pre-installed packages such
-                        as pip and distutils.
+                        as pip and setuptools.
     :type no_download: ``bool``
     """
     logger = logger or LOG
@@ -170,7 +170,7 @@ def create_virtualenv(
     :type include_wheel : ``bool``
 
     :param no_download: Do not download and install latest version of pre-installed packages such
-                        as pip and distutils.
+                        as pip and setuptools.
     :type no_download: ``bool``
     """
 

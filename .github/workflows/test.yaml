@@ -38,6 +38,9 @@ jobs:
           - name: 'Test (pants runs: pytest)'
             python-version-short: '3.8'
             python-version: '3.8.10'
+          - name: 'Test (pants runs: pytest)'
+            python-version-short: '3.9'
+            python-version: '3.9.14'
 
     services:
       mongo:

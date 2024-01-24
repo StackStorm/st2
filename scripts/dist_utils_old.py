@@ -27,8 +27,6 @@ import os
 import re
 import sys
 
-from distutils.version import StrictVersion
-
 # NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
 PY3 = sys.version_info[0] == 3
 
@@ -40,7 +38,6 @@ else:
 GET_PIP = "curl https://bootstrap.pypa.io/get-pip.py | python"
 
 try:
-    import pip
     from pip import __version__ as pip_version
 except ImportError as e:
     print("Failed to import pip: %s" % (text_type(e)))
@@ -62,26 +59,11 @@ except ImportError:
         sys.exit(1)
 
 __all__ = [
-    "check_pip_version",
     "fetch_requirements",
     "apply_vagrant_workaround",
     "get_version_string",
     "parse_version_string",
 ]
-
-
-def check_pip_version(min_version="6.0.0"):
-    """
-    Ensure that a minimum supported version of pip is installed.
-    """
-    if StrictVersion(pip.__version__) < StrictVersion(min_version):
-        print(
-            "Upgrade pip, your version '{0}' "
-            "is outdated. Minimum required version is '{1}':\n{2}".format(
-                pip.__version__, min_version, GET_PIP
-            )
-        )
-        sys.exit(1)
 
 
 def fetch_requirements(requirements_file_path):

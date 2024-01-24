@@ -16,12 +16,12 @@
 from __future__ import absolute_import
 
 import os
-import pwd
 import json
 import logging
 import time
 import calendar
 import traceback
+import platform
 
 import six
 import requests
@@ -40,8 +40,13 @@ from st2client.utils.misc import merge_dicts
 
 __all__ = ["BaseCLIApp"]
 
-# Fix for "os.getlogin()) OSError: [Errno 2] No such file or directory"
-os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
+# Add Plattform Check to fix the Issue that PWD not exist on Windows and so the ST2 CLI not working.
+# https://docs.python.org/3.8/library/pwd.html
+if platform.system() != "Windows":
+    import pwd
+
+    # Fix for "os.getlogin()) OSError: [Errno 2] No such file or directory"
+    os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 
 # How many seconds before the token actual expiration date we should consider the token as
 # expired. This is used to prevent the operation from failing durig the API request because the
