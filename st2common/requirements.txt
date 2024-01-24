@@ -27,7 +27,7 @@ lockfile==0.12.2
 mongoengine==0.23.0
 networkx<3
 orjson==3.5.2
-orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
+orquesta@ git+https://github.com/guzzijones/orquesta.git@429f0e06312c6fa5a20a19a01aff81e09c55e41a
 oslo.config>=1.12.1,<1.13
 paramiko==2.11.0
 pyOpenSSL==23.1.0

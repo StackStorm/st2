@@ -20,9 +20,9 @@ import datetime
 import calendar
 
 import mock
+from oslo_config import cfg
 import unittest2
 import orjson
-import zstandard
 
 # pytest: make sure monkey_patching happens before importing mongoengine
 from st2common.util.monkey_patch import monkey_patch
@@ -37,8 +37,6 @@ from st2common.models.db import stormbase
 from st2common.models.db import MongoDBAccess
 from st2common.fields import JSONDictField
 from st2common.fields import JSONDictEscapedFieldCompatibilityField
-from st2common.fields import JSONDictFieldCompressionAlgorithmEnum
-from st2common.fields import JSONDictFieldSerializationFormatEnum
 
 from st2tests import DbTestCase
 
@@ -79,6 +77,14 @@ ModelJsonDictFieldAccess = MongoDBAccess(ModelWithJSONDictFieldDB)
 
 
 class JSONDictFieldTestCase(unittest2.TestCase):
+    def setUp(self):
+        # NOTE: It's important we re-establish a connection on each setUp
+        cfg.CONF.reset()
+
+    def tearDown(self):
+        # NOTE: It's important we disconnect here otherwise tests will fail
+        cfg.CONF.reset()
+
     def test_set_to_mongo(self):
         field = JSONDictField(use_header=False)
         result = field.to_mongo({"test": {1, 2}})
@@ -89,12 +95,27 @@ class JSONDictFieldTestCase(unittest2.TestCase):
         result = field.to_mongo({"test": {1, 2}})
         self.assertTrue(isinstance(result, bytes))
 
-    def test_to_mongo(self):
+    def test_to_mongo_to_python_none(self):
+        cfg.CONF.set_override(
+            name="parameter_result_compression", group="database", override="none"
+        )
         field = JSONDictField(use_header=False)
         result = field.to_mongo(MOCK_DATA_DICT)
 
         self.assertTrue(isinstance(result, bytes))
-        self.assertEqual(result, orjson.dumps(MOCK_DATA_DICT))
+        result = field.to_python(result)
+        self.assertEqual(result, MOCK_DATA_DICT)
+
+    def test_to_mongo_zstandard(self):
+        cfg.CONF.set_override(
+            name="parameter_result_compression", group="database", override="zstandard"
+        )
+        field = JSONDictField(use_header=False)
+        result = field.to_mongo(MOCK_DATA_DICT)
+
+        self.assertTrue(isinstance(result, bytes))
+        result = field.to_python(result)
+        self.assertEqual(result, MOCK_DATA_DICT)
 
     def test_to_python(self):
         field = JSONDictField(use_header=False)
@@ -147,75 +168,13 @@ class JSONDictFieldTestCase(unittest2.TestCase):
         self.assertEqual(result, {"c": "d"})
 
 
-class JSONDictFieldTestCaseWithHeader(unittest2.TestCase):
-    def test_to_mongo_no_compression(self):
-        field = JSONDictField(use_header=True)
-
-        result = field.to_mongo(MOCK_DATA_DICT)
-        self.assertTrue(isinstance(result, bytes))
-
-        split = result.split(b":", 2)
-        self.assertEqual(split[0], JSONDictFieldCompressionAlgorithmEnum.NONE.value)
-        self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
-        self.assertEqual(orjson.loads(split[2]), MOCK_DATA_DICT)
-
-        parsed_value = field.parse_field_value(result)
-        self.assertEqual(parsed_value, MOCK_DATA_DICT)
-
-    def test_to_mongo_zstandard_compression(self):
-        field = JSONDictField(use_header=True, compression_algorithm="zstandard")
-
-        result = field.to_mongo(MOCK_DATA_DICT)
-        self.assertTrue(isinstance(result, bytes))
-
-        split = result.split(b":", 2)
-        self.assertEqual(
-            split[0], JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
-        )
-        self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
-        self.assertEqual(
-            orjson.loads(zstandard.ZstdDecompressor().decompress(split[2])),
-            MOCK_DATA_DICT,
-        )
-
-        parsed_value = field.parse_field_value(result)
-        self.assertEqual(parsed_value, MOCK_DATA_DICT)
-
-    def test_to_python_no_compression(self):
-        field = JSONDictField(use_header=True)
-
-        serialized_data = field.to_mongo(MOCK_DATA_DICT)
-
-        self.assertTrue(isinstance(serialized_data, bytes))
-        split = serialized_data.split(b":", 2)
-        self.assertEqual(split[0], JSONDictFieldCompressionAlgorithmEnum.NONE.value)
-        self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
-
-        desserialized_data = field.to_python(serialized_data)
-        self.assertEqual(desserialized_data, MOCK_DATA_DICT)
-
-    def test_to_python_zstandard_compression(self):
-        field = JSONDictField(use_header=True, compression_algorithm="zstandard")
-
-        serialized_data = field.to_mongo(MOCK_DATA_DICT)
-        self.assertTrue(isinstance(serialized_data, bytes))
-
-        split = serialized_data.split(b":", 2)
-        self.assertEqual(
-            split[0], JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
-        )
-        self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
-
-        desserialized_data = field.to_python(serialized_data)
-        self.assertEqual(desserialized_data, MOCK_DATA_DICT)
-
-
 class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
     def test_to_mongo(self):
         field = JSONDictEscapedFieldCompatibilityField(use_header=False)
 
         result_to_mongo_1 = field.to_mongo(MOCK_DATA_DICT)
-        self.assertEqual(result_to_mongo_1, orjson.dumps(MOCK_DATA_DICT))
+        self.assertTrue(isinstance(result_to_mongo_1, bytes))
+        self.assertEqual(result_to_mongo_1[0:1], b"z")
 
         # Already serialized
         result_to_mongo_2 = field.to_mongo(MOCK_DATA_DICT)
@@ -275,7 +234,12 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         self.assertEqual(len(pymongo_result), 1)
         self.assertEqual(pymongo_result[0]["_id"], inserted_model_db.id)
         self.assertTrue(isinstance(pymongo_result[0]["result"], bytes))
-        self.assertEqual(orjson.loads(pymongo_result[0]["result"]), expected_data)
+
+        result = pymongo_result[0]["result"]
+
+        field = JSONDictField(use_header=False)
+        result = field.to_python(result)
+        self.assertEqual(result, expected_data)
         self.assertEqual(pymongo_result[0]["counter"], 1)
 
     def test_field_state_changes_are_correctly_detected_add_or_update_method(self):

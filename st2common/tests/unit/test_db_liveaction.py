@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 import mock
 
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.persistence.liveaction import LiveAction
@@ -131,6 +132,32 @@ class LiveActionModelTest(DbTestCase):
         self.assertEqual(on_success.message, retrieved.notify.on_success.message)
         self.assertEqual(on_failure.message, retrieved.notify.on_failure.message)
         self.assertEqual(retrieved.notify.on_complete, None)
+
+    def test_liveaction_inquiry_response_action(self):
+        RESPOND_LIVEACTION = {
+            "parameters": {
+                "response": {
+                    "secondfactor": "omgsupersecret",
+                }
+            },
+            "action": "st2.inquiry.respond",
+            "id": "54c6b6d60640fd4f5354e74c",
+        }
+
+        created = LiveActionDB()
+        created.action = RESPOND_LIVEACTION["action"]
+        created.status = "succeeded"
+        created.parameters = RESPOND_LIVEACTION["parameters"]
+        created.id = RESPOND_LIVEACTION["id"]
+        saved = LiveActionModelTest._save_liveaction(created)
+
+        retrieved = LiveAction.get_by_id(saved.id)
+        self.assertEqual(
+            saved.action, retrieved.action, "Same triggertype was not returned."
+        )
+        masked = retrieved.mask_secrets(retrieved.to_serializable_dict())
+        for value in masked["parameters"]["response"].values():
+            self.assertEqual(value, MASKED_ATTRIBUTE_VALUE)
 
     @staticmethod
     def _save_liveaction(liveaction):

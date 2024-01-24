@@ -144,7 +144,7 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         mock_get_lock.side_effect = [
             coordination.ToozConnectionError("foobar"),
@@ -178,7 +178,7 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         mock_get_lock.side_effect = [
@@ -220,7 +220,7 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(tk1_ac_ex_db)
 
@@ -247,7 +247,7 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # The connection error should raise if retries are exhaused.

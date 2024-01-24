@@ -27,7 +27,6 @@ from typing import Union
 
 import datetime
 import calendar
-import enum
 import weakref
 
 import orjson
@@ -38,6 +37,10 @@ from mongoengine.base.datastructures import mark_as_changed_wrapper
 from mongoengine.base.datastructures import mark_key_as_changed_wrapper
 from mongoengine.common import _import_class
 
+from st2common.constants.compression import (
+    compress as compress_function,
+    uncompress as uncompress_function,
+)
 from st2common.util import date as date_utils
 from st2common.util import mongoescape
 
@@ -47,34 +50,6 @@ SECOND_TO_MICROSECONDS = 1000000
 
 # Delimiter field used for actual JSON dict field binary value
 JSON_DICT_FIELD_DELIMITER = b":"
-
-
-class JSONDictFieldCompressionAlgorithmEnum(enum.Enum):
-    """
-    Enum which represents compression algorithm (if any) used for a specific JSONDictField value.
-    """
-
-    NONE = b"n"
-    ZSTANDARD = b"z"
-
-
-class JSONDictFieldSerializationFormatEnum(enum.Enum):
-    """
-    Enum which represents serialization format used for a specific JSONDictField value.
-    """
-
-    ORJSON = b"o"
-
-
-VALID_JSON_DICT_COMPRESSION_ALGORITHMS = [
-    JSONDictFieldCompressionAlgorithmEnum.NONE.value,
-    JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value,
-]
-
-
-VALID_JSON_DICT_SERIALIZATION_FORMATS = [
-    JSONDictFieldSerializationFormatEnum.ORJSON.value,
-]
 
 
 class ComplexDateTimeField(LongField):
@@ -331,13 +306,14 @@ class BaseDict(dict):
 
 class JSONDictField(BinaryField):
     """
-    Custom field types which stores dictionary as JSON serialized strings.
+    Custom field types which stores dictionary as zstandard compressed JSON serialized strings.
 
-    This is done because storing large objects as JSON serialized strings is much more fficient
+    This is done because storing large objects as compressed JSON serialized
+    strings is much more efficient
     on the serialize and unserialize paths compared to used EscapedDictField which needs to escape
     all the special values ($, .).
 
-    Only downside is that to MongoDB those values are plain raw strings which means you can't query
+    Only downside is that to MongoDB those values are compressed plain raw strings which means you can't query
     on actual dictionary field values. That's not an issue for us, because in places where we use
     it, those values are already treated as plain binary blobs to the database layer and we never
     directly query on those field values.
@@ -358,25 +334,11 @@ class JSONDictField(BinaryField):
 
     IMPLEMENTATION DETAILS:
 
-    If header is used, values are stored in the following format:
-        <compression type>:<serialization type>:<serialized binary data>.
 
-    For example:
 
-        n:o:... - No compression, (or)json serialization
-        z:o:... - Zstandard compression, (or)json serialization
-
-    If header is not used, value is stored as a serialized JSON string of the input dictionary.
     """
 
     def __init__(self, *args, **kwargs):
-        # True if we should use field header which is more future proof approach and also allows
-        # us to support optional per-field compression, etc.
-        # This option is only exposed so we can benchmark different approaches and how much overhead
-        # using a header adds.
-        self.use_header = kwargs.pop("use_header", False)
-        self.compression_algorithm = kwargs.pop("compression_algorithm", "none")
-
         super(JSONDictField, self).__init__(*args, **kwargs)
 
     def to_mongo(self, value):
@@ -406,8 +368,6 @@ class JSONDictField(BinaryField):
 
         For example:
 
-            - (n, o, ...) - no compression, data is serialized using orjson
-            - (z, o, ...) - zstandard compression, data is serialized using orjson
         """
         if not value:
             return self.default
@@ -416,45 +376,10 @@ class JSONDictField(BinaryField):
             # Already deserializaed
             return value
 
-        if not self.use_header:
-            return orjson.loads(value)
-
-        split = value.split(JSON_DICT_FIELD_DELIMITER, 2)
-
-        if len(split) != 3:
-            raise ValueError(
-                "Expected 3 values when splitting field value, got %s" % (len(split))
-            )
-
-        compression_algorithm = split[0]
-        serialization_format = split[1]
-        data = split[2]
-
-        if compression_algorithm not in VALID_JSON_DICT_COMPRESSION_ALGORITHMS:
-            raise ValueError(
-                "Invalid or unsupported value for compression algorithm header "
-                "value: %s" % (compression_algorithm)
-            )
-
-        if serialization_format not in VALID_JSON_DICT_SERIALIZATION_FORMATS:
-            raise ValueError(
-                "Invalid or unsupported value for serialization format header "
-                "value: %s" % (serialization_format)
-            )
-
-        if (
-            compression_algorithm
-            == JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
-        ):
-            # NOTE: At this point zstandard is only test dependency
-            import zstandard
-
-            data = zstandard.ZstdDecompressor().decompress(data)
-
-        data = orjson.loads(data)
+        data = orjson.loads(uncompress_function(value))
         return data
 
-    def _serialize_field_value(self, value: dict) -> bytes:
+    def _serialize_field_value(self, value: dict, compress=True) -> bytes:
         """
         Serialize and encode the provided field value.
         """
@@ -474,21 +399,10 @@ class JSONDictField(BinaryField):
                 return list(obj)
             raise TypeError
 
-        if not self.use_header:
-            return orjson.dumps(value, default=default)
-
         data = orjson.dumps(value, default=default)
-
-        if self.compression_algorithm == "zstandard":
-            # NOTE: At this point zstandard is only test dependency
-            import zstandard
-
-            compression_header = JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD
-            data = zstandard.ZstdCompressor().compress(data)
-        else:
-            compression_header = JSONDictFieldCompressionAlgorithmEnum.NONE
-
-        return compression_header.value + b":" + b"o:" + data
+        if compress:
+            data = compress_function(data)
+        return data
 
     def __get__(self, instance, owner):
         """
@@ -522,11 +436,6 @@ class JSONDictEscapedFieldCompatibilityField(JSONDictField):
     def to_mongo(self, value):
         if isinstance(value, bytes):
             # Already serialized
-            if value[0] == b"{" and self.use_header:
-                # Serialized, but doesn't contain header prefix, add it (assume migration from
-                # format without a header)
-                return "n:o:" + value
-
             return value
 
         if not isinstance(value, dict):

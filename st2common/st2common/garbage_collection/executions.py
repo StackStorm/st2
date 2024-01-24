@@ -223,5 +223,5 @@ def purge_orphaned_workflow_executions(logger):
     # as a result of the original failure, the garbage collection routine here cancels
     # the workflow execution so it cannot be rerun from failed task(s).
     for ac_ex_db in workflow_service.identify_orphaned_workflows():
-        lv_ac_db = LiveAction.get(id=ac_ex_db.liveaction["id"])
+        lv_ac_db = LiveAction.get(id=ac_ex_db.liveaction_id)
         action_service.request_cancellation(lv_ac_db, None)
