@@ -6,7 +6,7 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.16.0"
+pants_version = "2.17.1"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
@@ -133,7 +133,7 @@ black = ["CPython>=3.6.2,<3.10"] # black doesn't support <3.6.2
 flake8 = ["CPython>=3.6,<3.10"]
 pants-plugins = [
   # this should match the pants interpreter_constraints:
-  # https://github.com/pantsbuild/pants/blob/2.16.x/pants.toml#L141
+  # https://github.com/pantsbuild/pants/blob/2.17.x/pants.toml#L143
   # See: https://www.pantsbuild.org/docs/prerequisites
   "CPython>=3.7,<3.10",
 ]
@@ -168,6 +168,9 @@ unowned_dependency_behavior = "ignore"
 # file that uses it. So, without manually disambiguating the dep in the BUILD file,
 # importing tests.unit.base in st2common/tests/unit will get a dep on st2common/tests/unit/base.py
 ambiguity_resolution = "by_source_root"
+# https://www.pantsbuild.org/v2.17/docs/reference-python-infer#use_rust_parser
+# This should be much faster, but is giving a lot of "more than one target owns this module" warnings.
+use_rust_parser = false
 
 [setup-py-generation]
 # when building the package (with `pants package ::`), pants will,
