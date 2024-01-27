@@ -152,7 +152,7 @@ st2 = "lockfiles/st2-constraints.txt"
 # https://www.pantsbuild.org/docs/reference-python-infer#string_imports_min_dots
 # Infer a target's dependencies based on strings that look like dynamic deps with >=1 dots.
 # To debug the imports and see if a string is used in dep inference or if it is ignored, use:
-#   ./pants python-dump-source-analysis --analysis-flavor=raw_dependency_inference <path(s) to file(s)> | jq '.[].resolved'
+#   pants python-dump-source-analysis --analysis-flavor=raw_dependency_inference <path(s) to file(s)> | jq '.[].resolved'
 string_imports = true
 string_imports_min_dots = 1
 # https://www.pantsbuild.org/docs/reference-python-infer#unowned_dependency_behavior
@@ -170,7 +170,7 @@ unowned_dependency_behavior = "ignore"
 ambiguity_resolution = "by_source_root"
 
 [setup-py-generation]
-# when building the package (with ./pants package ::), pants will,
+# when building the package (with `pants package ::`), pants will,
 # by default, generate a setup.py file for use with setuptools.
 generate_setup_default = true # true by default
 
