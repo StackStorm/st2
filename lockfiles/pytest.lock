@@ -247,14 +247,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "a2673b335d671e64fc73c44e1eaa0aa01fd0e68354e58ee17e863ab29912a79a",
-              "url": "https://files.pythonhosted.org/packages/b6/11/542ff30f2c399d71126e55b64d41cb5caa78ddf7ce557fddf45607a41fe8/icdiff-2.0.6.tar.gz"
+              "hash": "f05d1b3623223dd1c70f7848da7d699de3d9a2550b902a8234d9026292fb5762",
+              "url": "https://files.pythonhosted.org/packages/7c/2a/b3178baa75a3ec75a33588252296c82a1332d2b83cd01061539b74bde9dd/icdiff-2.0.7-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "f79a318891adbf59a45e3a7694f5e1f18c5407065264637072ac8363b759866f",
+              "url": "https://files.pythonhosted.org/packages/fa/e4/43341832be5f2bcae71eb3ef08a07aaef9b74f74fe0b3675f62bd12057fe/icdiff-2.0.7.tar.gz"
             }
           ],
           "project_name": "icdiff",
           "requires_dists": [],
           "requires_python": null,
-          "version": "2.0.6"
+          "version": "2.0.7"
         },
         {
           "artifacts": [
@@ -414,13 +419,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "9ae06e32dec1422f9cd0d606fe2728f78e0b5d644551137480d8d5806e2426f0",
-              "url": "https://files.pythonhosted.org/packages/e2/34/aa8cafcdf57058c080f64e5205eaed2ed523aec0d6519a92aec250189079/pygal-3.0.0-py2.py3-none-any.whl"
+              "hash": "5a3ebc203555d1bd72361552822f736d29592fd7de6df870430374ba31798538",
+              "url": "https://files.pythonhosted.org/packages/e6/b9/57eeee7baa4efe13719c67d762ee86deb53f5a8d1461914f515c5a6a9a5d/pygal-3.0.1-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "2923f95d2e515930aa5a997219dccefbf3d92b7eaf5fc1c9febb95b09935fdb2",
-              "url": "https://files.pythonhosted.org/packages/a8/db/021ea4fc623cbef831333bfb896374d2931be26c899d18c075579e955886/pygal-3.0.0.tar.gz"
+              "hash": "dd2e2220bc0013a8c43c08c861d1db32601f12aecc243d4d639e7858b9f8af85",
+              "url": "https://files.pythonhosted.org/packages/63/20/dc77bafe001b61b9a55b5307f4b8fcfdb8f3b680881bdf6d2f10fee1c99e/pygal-3.0.1.tar.gz"
             }
           ],
           "project_name": "pygal",
@@ -444,8 +449,8 @@
             "sphinx-rtd-theme; extra == \"docs\"",
             "sphinx; extra == \"docs\""
           ],
-          "requires_python": null,
-          "version": "3.0.0"
+          "requires_python": ">=3.6",
+          "version": "3.0.1"
         },
         {
           "artifacts": [
@@ -620,6 +625,11 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "93ba20b71e51db7abecf99abee8fd13abd9ba7934f8e6838d1c4f443b4fc56a7",
+              "url": "https://files.pythonhosted.org/packages/2e/8f/31f2bc7054966ff3157202b3f680f623839ec85ce8a8a692732c991c9256/pytest_icdiff-0.6-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
               "hash": "e8f1ef4550a893b4f0a0ea7e7a8299b12ded72c086101d7811ddec0d85fd1bad",
               "url": "https://files.pythonhosted.org/packages/bc/20/133cf393f53f26095bdb71f482a14bc7218b9892352bb09097c341d810be/pytest-icdiff-0.6.tar.gz"
             }
@@ -630,7 +640,7 @@
             "pprintpp",
             "pytest"
           ],
-          "requires_python": ">=3.6",
+          "requires_python": ">=3.7",
           "version": "0.6"
         },
         {
@@ -730,7 +740,7 @@
     }
   ],
   "path_mappings": {},
-  "pex_version": "2.1.131",
+  "pex_version": "2.1.134",
   "pip_version": "20.3.4-patched",
   "prefer_older_binary": false,
   "requirements": [

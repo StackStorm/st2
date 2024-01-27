@@ -6,7 +6,7 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.16.0rc0"
+pants_version = "2.16.0"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
@@ -133,7 +133,7 @@ black = ["CPython>=3.6.2,<3.10"] # black doesn't support <3.6.2
 flake8 = ["CPython>=3.6,<3.10"]
 pants-plugins = [
   # this should match the pants interpreter_constraints:
-  # https://github.com/pantsbuild/pants/blob/2.14.x/pants.toml#L125
+  # https://github.com/pantsbuild/pants/blob/2.16.x/pants.toml#L141
   # See: https://www.pantsbuild.org/docs/prerequisites
   "CPython>=3.7,<3.10",
 ]
@@ -182,44 +182,19 @@ args = [
   "--quiet", # only show output in the case of an error
 ]
 install_from_resolve = "bandit"
-requirements = ["bandit", "setuptools", "GitPython"] # versions in BUILD.tools
 
 [black]
 install_from_resolve = "black"
-requirements = ["black"] # version in BUILD.tools
-interpreter_constraints = [
-  "CPython>=3.6.2,<3.10",
-]
 
 [flake8]
 install_from_resolve = "flake8"
-requirements = [ # versions in BUILD.tools
-  "flake8",
-  # license check plugin
-  "st2flake8",  # TODO: remove in favor of regex-lint or preamble
-]
 config = "lint-configs/python/.flake8"
 
 [generate-lockfiles]
 diff = true
 
-[pex-cli]
-# [pex-cli] can be removed once we upgrade to pex 2.17
-# We overwrite `version` and `known_versions` to:
-#   - fix lockfile spaces to minimize the regen diff
-#   - make sure the locked pip/setuptools ends up in virtualenv exports
-#     https://github.com/pantsbuild/pex/issues/2105
-version = "v2.1.131"
-known_versions = [
-  "v2.1.131|macos_arm64|28b9dfc7e2f5f49f1e189b79eba3dd79ca2186f765009ea02dd6095f5359bf59|4084520",
-  "v2.1.131|macos_x86_64|28b9dfc7e2f5f49f1e189b79eba3dd79ca2186f765009ea02dd6095f5359bf59|4084520",
-  "v2.1.131|linux_x86_64|28b9dfc7e2f5f49f1e189b79eba3dd79ca2186f765009ea02dd6095f5359bf59|4084520",
-  "v2.1.131|linux_arm64|28b9dfc7e2f5f49f1e189b79eba3dd79ca2186f765009ea02dd6095f5359bf59|4084520"
-]
-
 [pylint]
 install_from_resolve = "pylint"
-requirements = ["pylint", "setuptools"] # versions in pylint_plugins/BUILD
 config = "lint-configs/python/.pylintrc"
 source_plugins = [
   # the /pylint_plugins directory
@@ -236,21 +211,6 @@ args = [
 
 [pytest]
 install_from_resolve = "pytest"
-requirements = [ # versions in BUILD.tools
-  "pytest",
-  "pytest-benchmark[histogram]",  # used for st2common/benchmarks
-  #"pytest-timer[colorama]",  # report test timing (--with-timer ala nose-timer)
-  "pytest-icdiff",  # make diff output easier to read
-  "pygments",  # highlight code in tracebacks
-
-  # other possible plugins
-  #"pytest-timeout",  # time limit on tests
-  #"pytest-mock",  # more convenient mocking
-
-  # needed by pants
-  "pytest-cov",  # coverage
-  "pytest-xdist",  # parallel test runs (pants uses this if [pytest].xdist_enabled)
-]
 args = [
   "--no-header",  # don't print pytest version for every tested file
 ]
@@ -261,8 +221,6 @@ config = "@lint-configs/regex-lint.yaml"
 
 [setuptools]
 install_from_resolve = "setuptools"
-requirements = ["setuptools", "wheel"] # versions in BUILD.tools
 
 [twine]
 install_from_resolve = "twine"
-requirements = ["twine", "colorama"] # versions in BUILD.tools

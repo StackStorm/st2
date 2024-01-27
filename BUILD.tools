@@ -40,14 +40,18 @@ python_requirement(
     resolve="pytest",
     requirements=[
         "pytest==7.0.1",  # copied from https://www.pantsbuild.org/v2.14/docs/reference-pytest#version
-        "pytest-benchmark[histogram]==3.4.1",
-        # "pytest-timer[colorama]",
-        "pytest-icdiff",
-        "pygments",
-        # "pytest-timeout",
-        # "pytest-mock",
-        "pytest-cov>=2.12,!=2.12.1,<3.1",
-        "pytest-xdist>=2.5,<3",
+        "pytest-benchmark[histogram]==3.4.1",  # used for st2common/benchmarks
+        # "pytest-timer[colorama]",  # report test timing (--with-timer ala nose-timer)
+        "pytest-icdiff",  # make diff output easier to read
+        "pygments",  # highlight code in tracebacks
+        #
+        # other possible plugins
+        # "pytest-timeout",  # time limit on tests
+        # "pytest-mock",  # more convenient mocking
+        #
+        # needed by pants
+        "pytest-cov>=2.12,!=2.12.1,<3.1",  # coverage
+        "pytest-xdist>=2.5,<3",  # parallel test runs (pants uses this if [pytest].xdist_enabled)
     ],
 )
 
