@@ -22,7 +22,7 @@ greenlet
 gunicorn
 jinja2
 jsonpath-rw
-jsonschema
+jsonschema>=3
 kombu
 lockfile
 mock
