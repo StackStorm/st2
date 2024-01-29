@@ -29,7 +29,6 @@
 //     "jsonschema<4,>=3",
 //     "kombu",
 //     "lockfile",
-//     "logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system == \"Linux\"",
 //     "mail-parser==3.15.0",
 //     "mock",
 //     "mongoengine",
@@ -44,7 +43,6 @@
 //     "prettytable",
 //     "prompt-toolkit<2",
 //     "psutil",
-//     "pyinotify<=0.10,>=0.9.5; platform_system == \"Linux\"",
 //     "pymongo",
 //     "pyrabbit",
 //     "pysocks",
@@ -74,6 +72,7 @@
 //     "ujson",
 //     "unittest2",
 //     "virtualenv",
+//     "watchdog",
 //     "webob",
 //     "webtest",
 //     "wheel",
@@ -1697,29 +1696,6 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "b0fb343d27ee21201dc0002bd48cd7591dfe3cb17914b56326f99344bfb89dc9",
-              "url": "git+https://github.com/StackStorm/logshipper.git@stackstorm_patched"
-            }
-          ],
-          "project_name": "logshipper",
-          "requires_dists": [
-            "eventlet",
-            "pika",
-            "pyinotify",
-            "python-dateutil",
-            "python-statsd",
-            "pytz",
-            "pyyaml",
-            "requests",
-            "six"
-          ],
-          "requires_python": null,
-          "version": "0.0.0"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
               "hash": "b5d3cd8752cd7c0352c4520388b00881bca24e5ce613d667d8ff8a3ce4994f51",
               "url": "https://files.pythonhosted.org/packages/67/5a/6ad8c80b10fe92a6d123660b63fa3e23a7a0fe55c20201ab794c9d714f0e/mail_parser-3.15.0-py3-none-any.whl"
             },
@@ -2723,19 +2699,6 @@
           "requires_dists": [],
           "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7",
           "version": "2.21"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
-              "hash": "9c998a5d7606ca835065cdabc013ae6c66eb9ea76a00a1e3bc6e0cfe2b4f71f4",
-              "url": "https://files.pythonhosted.org/packages/e3/c0/fd5b18dde17c1249658521f69598f3252f11d9d7a980c5be8619970646e1/pyinotify-0.9.6.tar.gz"
-            }
-          ],
-          "project_name": "pyinotify",
-          "requires_dists": [],
-          "requires_python": null,
-          "version": "0.9.6"
         },
         {
           "artifacts": [
@@ -4456,6 +4419,96 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "d429c2430c93b7903914e4db9a966c7f2b068dd2ebdd2fa9b9ce094c7d459f33",
+              "url": "https://files.pythonhosted.org/packages/2b/f0/456948b865ab259784f774154e7d65844fa9757522fdb11533fbf8ae7aca/watchdog-3.0.0-py3-none-manylinux2014_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "c07253088265c363d1ddf4b3cdb808d59a0468ecd017770ed716991620b8f77a",
+              "url": "https://files.pythonhosted.org/packages/21/72/46fd174352cd88b9157ade77e3b8835125d4b1e5186fc7f1e8c44664e029/watchdog-3.0.0-py3-none-manylinux2014_i686.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "25f70b4aa53bd743729c7475d7ec41093a580528b100e9a8c5b5efe8899592fc",
+              "url": "https://files.pythonhosted.org/packages/2e/54/48527f3aea4f7ed331072352fee034a7f3d6ec7a2ed873681738b2586498/watchdog-3.0.0-cp38-cp38-macosx_10_9_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "c9d8c8ec7efb887333cf71e328e39cffbf771d8f8f95d308ea4125bf5f90ba64",
+              "url": "https://files.pythonhosted.org/packages/30/65/9e36a3c821d47a22e54a8fc73681586b2d26e82d24ea3af63acf2ef78f97/watchdog-3.0.0-pp39-pypy39_pp73-macosx_10_9_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "ba07e92756c97e3aca0912b5cbc4e5ad802f4557212788e72a72a47ff376950d",
+              "url": "https://files.pythonhosted.org/packages/40/1b/4e6d3e0f587587931f590531b4ed08070d71a9efb35541d792a68d8ee593/watchdog-3.0.0-py3-none-manylinux2014_s390x.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "233b5817932685d39a7896b1090353fc8efc1ef99c9c054e46c8002561252fb8",
+              "url": "https://files.pythonhosted.org/packages/51/b9/444a984b1667013bac41b31b45d9718e069cc7502a43a924896806605d83/watchdog-3.0.0-cp39-cp39-macosx_11_0_arm64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "51f90f73b4697bac9c9a78394c3acbbd331ccd3655c11be1a15ae6fe289a8c83",
+              "url": "https://files.pythonhosted.org/packages/71/3a/b12740f4f60861240d57b42a2ac6ac0a2821db506c4435f7872c1fad867d/watchdog-3.0.0-py3-none-manylinux2014_ppc64le.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "5113334cf8cf0ac8cd45e1f8309a603291b614191c9add34d33075727a967709",
+              "url": "https://files.pythonhosted.org/packages/74/3c/e4b77f4f069aca2b6e35925db7a1aa6cb600dcb52fc3e962284640ca37f3/watchdog-3.0.0-py3-none-manylinux2014_ppc64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "7c5f84b5194c24dd573fa6472685b2a27cc5a17fe5f7b6fd40345378ca6812e3",
+              "url": "https://files.pythonhosted.org/packages/75/fe/d9a37d8df76878853f68dd665ec6d2c7a984645de460164cb880a93ffe6b/watchdog-3.0.0-cp39-cp39-macosx_10_9_universal2.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "8ae9cda41fa114e28faf86cb137d751a17ffd0316d1c34ccf2235e8a84365c7f",
+              "url": "https://files.pythonhosted.org/packages/7f/6e/7ca8ed16928d7b11da69372f55c64a09dce649d2b24b03f7063cd8683c4b/watchdog-3.0.0-cp38-cp38-macosx_10_9_universal2.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "0e06ab8858a76e1219e68c7573dfeba9dd1c0219476c5a44d5333b01d7e1743a",
+              "url": "https://files.pythonhosted.org/packages/92/28/631872d7fbc45527037060db8c838b47a129a6c09d2297d6dddcfa283cf2/watchdog-3.0.0-py3-none-manylinux2014_aarch64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "3aa7f6a12e831ddfe78cdd4f8996af9cf334fd6346531b16cec61c3b3c0d8da0",
+              "url": "https://files.pythonhosted.org/packages/94/ce/70c65a6c4b0330129c402624d42f67ce82d6a0ba2036de67628aeffda3c1/watchdog-3.0.0-cp39-cp39-macosx_10_9_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "4d98a320595da7a7c5a18fc48cb633c2e73cda78f93cac2ef42d42bf609a33f9",
+              "url": "https://files.pythonhosted.org/packages/95/a6/d6ef450393dac5734c63c40a131f66808d2e6f59f6165ab38c98fbe4e6ec/watchdog-3.0.0.tar.gz"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "d00e6be486affb5781468457b21a6cbe848c33ef43f9ea4a73b4882e5f188a44",
+              "url": "https://files.pythonhosted.org/packages/c0/a2/4e3230bdc1fb878b152a2c66aa941732776f4545bd68135d490591d66713/watchdog-3.0.0-py3-none-manylinux2014_armv7l.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "4f94069eb16657d2c6faada4624c39464f65c05606af50bb7902e036e3219be3",
+              "url": "https://files.pythonhosted.org/packages/dc/89/3a3ce6dd01807ff918aec3bbcabc92ed1a7edc5bb2266c720bb39fec1bec/watchdog-3.0.0-cp38-cp38-macosx_11_0_arm64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "8f3ceecd20d71067c7fd4c9e832d4e22584318983cabc013dbf3f70ea95de346",
+              "url": "https://files.pythonhosted.org/packages/ea/76/bef1c6f6ac18041234a9f3e8bc995d611e255c44f10433bfaf255968c269/watchdog-3.0.0-pp38-pypy38_pp73-macosx_10_9_x86_64.whl"
+            }
+          ],
+          "project_name": "watchdog",
+          "requires_dists": [
+            "PyYAML>=3.10; extra == \"watchmedo\""
+          ],
+          "requires_python": ">=3.7",
+          "version": "3.0.0"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "3da69048e4540d84af32131829ff948f1e022c1c6bdb8d6102117aac784f6859",
               "url": "https://files.pythonhosted.org/packages/fd/84/fd2ba7aafacbad3c4201d395674fc6348826569da3c0937e75505ead3528/wcwidth-0.2.13-py2.py3-none-any.whl"
             },
@@ -4881,7 +4934,6 @@
     "jsonschema<4,>=3",
     "kombu",
     "lockfile",
-    "logshipper",
     "mail-parser==3.15.0",
     "mock",
     "mongoengine",
@@ -4896,7 +4948,6 @@
     "prettytable",
     "prompt-toolkit<2",
     "psutil",
-    "pyinotify<=0.10,>=0.9.5; platform_system == \"Linux\"",
     "pymongo",
     "pyrabbit",
     "pysocks",
@@ -4926,6 +4977,7 @@
     "ujson",
     "unittest2",
     "virtualenv",
+    "watchdog",
     "webob",
     "webtest",
     "wheel",
