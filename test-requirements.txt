@@ -15,7 +15,7 @@ tabulate
 unittest2
 sphinx==1.7.9
 sphinx-autobuild
-# pin transitive dep that as newer versions of alabaster do not support older sphinx versions
+# pin alabaster (transitive dep of sphinx) as newer versions of alabaster do not support older sphinx versions
 alabaster<0.7.14 ; python_version >= '3.9'
 # nosetests enhancements
 rednose
