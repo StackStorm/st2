@@ -3,8 +3,23 @@ Changelog
 
 in development
 --------------
+
+Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
+
 Fixed
 ~~~~~
+
+Changed
+~~~~~~~
+* Bumped `jsonschema` 2.6.0 -> 3.2.0 now that python3.6 is not supported. #6118
+
+Added
+~~~~~
+* Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
+  working on StackStorm, improve our security posture, and improve CI reliability thanks in part
+  to pants' use of PEX lockfiles. This is not a user-facing addition.
+  #6118
+  Contributed by @cognifloyd
 
 3.8.1 - December 13, 2023
 -------------------------
