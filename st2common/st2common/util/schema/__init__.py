@@ -20,7 +20,7 @@ import os
 import six
 import jsonschema
 from jsonschema import _legacy_validators, _validators
-from jsonschema.validators import create
+from jsonschema.validators import Draft4Validator, create
 
 from st2common.exceptions.action import InvalidActionParameterException
 from st2common.util import jsonify
@@ -137,6 +137,8 @@ CustomValidator = create(
         "uniqueItems": _validators.uniqueItems,
     },
     version="custom_validator",
+    type_checker=Draft4Validator.TYPE_CHECKER,
+    id_of=Draft4Validator.ID_OF,
 )
 
 
