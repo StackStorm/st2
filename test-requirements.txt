@@ -15,6 +15,8 @@ tabulate
 unittest2
 sphinx==1.7.9
 sphinx-autobuild
+# pin alabaster (sphinx dependency) or pip installs one that is not compatible
+alabaster<0.7.14
 # nosetests enhancements
 rednose
 nose-timer==1.0.1
