@@ -26,7 +26,7 @@
 //     "gunicorn",
 //     "jinja2",
 //     "jsonpath-rw",
-//     "jsonschema>=3",
+//     "jsonschema<4,>=3",
 //     "kombu",
 //     "lockfile",
 //     "logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system == \"Linux\"",
@@ -1581,13 +1581,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "b73dd6829ae6b3a78cd37ba393749f9d30860dbe39debb27c36eff159949a14e",
-              "url": "https://files.pythonhosted.org/packages/26/d9/bec6a24dfbee30cc477625e13e5b8750c2f6097675adb1f8cf1ceac021a6/kazoo-2.9.0-py2.py3-none-any.whl"
+              "hash": "de2d69168de432ff66b457a26c727a5bf7ff53af5806653fd1df7f04b6a5483c",
+              "url": "https://files.pythonhosted.org/packages/fc/48/6a6f6de9b6257cd1741ffb877068731a7469d13ea0e2d73c9a1daa557c59/kazoo-2.10.0-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "800318c7f3dab648cdf616dfb25bdabeefab2a6837aa6951e0fa3ff80e656969",
-              "url": "https://files.pythonhosted.org/packages/e2/57/3da88c2fdc94bf2976df72d2dcfad3655ab64fa3fd5879b39d174c7e5993/kazoo-2.9.0.tar.gz"
+              "hash": "905796ae4f4c12bd4e4ae92e6e5d018439e6b56c8cfbb24825362e79b230dab1",
+              "url": "https://files.pythonhosted.org/packages/ff/01/75d0baf017c89de8909e4429a1865a17e45d9b787ce8084a2c55c95a79c9/kazoo-2.10.0.tar.gz"
             }
           ],
           "project_name": "kazoo",
@@ -1602,17 +1602,20 @@
             "gevent>=1.2; extra == \"alldeps\"",
             "gevent>=1.2; extra == \"gevent\"",
             "gevent>=1.2; implementation_name != \"pypy\" and extra == \"test\"",
-            "mock; extra == \"test\"",
+            "mypy>=0.991; extra == \"alldeps\"",
+            "mypy>=0.991; extra == \"typing\"",
             "objgraph; extra == \"test\"",
             "pure-sasl>=0.5.1; extra == \"alldeps\"",
             "pure-sasl>=0.5.1; extra == \"sasl\"",
+            "pyjks; extra == \"test\"",
+            "pyopenssl; extra == \"test\"",
             "pytest-cov; extra == \"test\"",
             "pytest; extra == \"test\"",
-            "selectors2>=2.0.2; python_version < \"3.4.0\"",
-            "six"
+            "sphinx-autodoc-typehints>=1; extra == \"alldeps\"",
+            "sphinx-autodoc-typehints>=1; extra == \"docs\""
           ],
           "requires_python": null,
-          "version": "2.9.0"
+          "version": "2.10.0"
         },
         {
           "artifacts": [
@@ -3237,19 +3240,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "ce42d816b81b68506614c11e8937d3aa9e41007ceb50bfdcb0749b921bf646c7",
-              "url": "https://files.pythonhosted.org/packages/32/4d/aaf7eff5deb402fd9a24a1449a8119f00d74ae9c2efa79f8ef9994261fc2/pytz-2023.3.post1-py2.py3-none-any.whl"
+              "hash": "f90ef520d95e7c46951105338d918664ebfd6f1d995bd7d153127ce90efafa6a",
+              "url": "https://files.pythonhosted.org/packages/3b/dd/9b84302ba85ac6d3d3042d3e8698374838bde1c386b4adb1223d7a0efd4e/pytz-2023.4-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "7b4fddbeb94a1eba4b557da24f19fdf9db575192544270a9101d8509f9f43d7b",
-              "url": "https://files.pythonhosted.org/packages/69/4f/7bf883f12ad496ecc9514cd9e267b29a68b3e9629661a2bbc24f80eff168/pytz-2023.3.post1.tar.gz"
+              "hash": "31d4583c4ed539cd037956140d695e42c033a19e984bfce9964a3f7d59bc2b40",
+              "url": "https://files.pythonhosted.org/packages/ae/fd/c5bafe60236bc2a464452f916b6a1806257109c8954d6a7d19e5d4fb012f/pytz-2023.4.tar.gz"
             }
           ],
           "project_name": "pytz",
           "requires_dists": [],
           "requires_python": null,
-          "version": "2023.3.post1"
+          "version": "2023.4"
         },
         {
           "artifacts": [
@@ -4875,7 +4878,7 @@
     "gunicorn",
     "jinja2",
     "jsonpath-rw",
-    "jsonschema>=3",
+    "jsonschema<4,>=3",
     "kombu",
     "lockfile",
     "logshipper",
