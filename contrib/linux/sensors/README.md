@@ -1,6 +1,6 @@
 ## NOTICE
 
-File watch sensor has been updated to use trigger with parameters supplied via a rule approach. Tailing a file path supplied via a config file is now deprecated.
+File watch sensor has been updated to use trigger with parameters supplied via a rule approach.
 
 An example rule to supply a file path is as follows:
 

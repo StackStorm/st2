@@ -6,12 +6,38 @@ This pack contains actions for commonly used Linux commands and tools.
 
 ### FileWatchSensor
 
-This sensor monitors specified files for new new lines. Once a new line is
-detected, a trigger is emitted.
+This sensor monitors files specified in rules (under trigger parameters) for new lines.
+Once a new line is detected, a trigger instance is emitted.
 
-### linux.file_watch.line trigger
+#### Adding a file path to the file watch sensor
 
-Example trigger payload:
+To tell the FileWatchSensor to start watching a new file, define a rule that
+- uses the `linux.file_watch.line` trigger type
+- pass the `file_path` to watch under trigger parameters.
+
+For example, this rule would cause the sensor to start watching `/tmp/st2_test`:
+
+```yaml
+---
+name: sample_rule_file_watch
+description: Run echo on changes to /tmp/st2_test
+enabled: false
+
+trigger:
+  type: linux.file_watch.line
+  parameters:
+    file_path: /tmp/st2_test
+
+action:
+  ref: core.local
+  parameters:
+    cmd: echo "{{trigger}}"
+```
+
+
+#### linux.file_watch.line trigger
+
+Example trigger instance payload:
 
 ```json
 {
