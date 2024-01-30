@@ -427,20 +427,52 @@ class FileWatchSensor(Sensor):
             self.log.error('Received trigger type without "file_path" field.')
             return
 
-        trigger = trigger.get("ref", None)
+        trigger_ref = trigger.get("ref", None)
 
-        if not trigger:
-            raise Exception(f"Trigger {trigger} did not contain a ref.")
+        if not trigger_ref:
+            raise Exception(f"Trigger {trigger_ref} did not contain a ref.")
 
         self.tail_manager.tail_file(file_path, self._handle_line)
         self.file_ref[file_path] = trigger
 
-        self.log.info(f"Added file '{file_path}' ({trigger}) to watch list.")
+        self.log.info(f"Added file '{file_path}' ({trigger_ref}) to watch list.")
 
         self.tail_manager.start()
 
     def update_trigger(self, trigger):
-        pass
+        file_path = trigger["parameters"].get("file_path", None)
+
+        if not file_path:
+            self.log.error('Received trigger type without "file_path" field.')
+            return
+
+        trigger_ref = trigger.get("ref", None)
+
+        if file_path in self.file_ref:
+            self.log.debug(
+                f"No update required as file '{file_path}' ({trigger_ref}) already in watch list."
+            )
+            return
+
+        if not trigger_ref:
+            raise Exception(f"Trigger {trigger_ref} did not contain a ref.")
+
+        for old_file_path, ref in self.file_ref.items():
+            if ref == trigger_ref:
+                self.tail_manager.stop_tailing_file(old_file_path, self._handle_line)
+                self.file_ref.pop(old_file_path)
+
+                self.tail_manager.tail_file(file_path, self._handle_line)
+                self.file_ref[file_path] = trigger
+
+                self.log.info(
+                    f"Updated to add file '{file_path}' instead of '{old_file_path}' ({trigger_ref}) in watch list."
+                )
+                break
+
+        if file_path not in self.file_ref:
+            # Maybe the add_trigger message was missed.
+            self.add_trigger(trigger)
 
     def remove_trigger(self, trigger):
         file_path = trigger["parameters"].get("file_path", None)
