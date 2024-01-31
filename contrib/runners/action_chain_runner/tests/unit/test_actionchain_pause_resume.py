@@ -702,6 +702,7 @@ class ActionChainRunnerPauseResumeTest(ExecutionDbTestCase):
         liveaction = self._wait_for_status(
             liveaction, action_constants.LIVEACTION_STATUS_PAUSED
         )
+
         extra_info = str(liveaction)
         self.assertEqual(
             liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info

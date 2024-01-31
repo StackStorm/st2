@@ -4,7 +4,7 @@ checks:
   stage: checks 
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
-    GITLAB_TOKEN_K: $ORCHESTRATION_GAT_READ
+    GITLAB_TOKEN_K: $ORCHESTRATION_GAT_READ_2
   before_script:
     - yum --enablerepo epel install -y ShellCheck 
   script:
@@ -19,7 +19,7 @@ unittests:
   stage: unittests 
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
-    GITLAB_TOKEN_K: $ORCHESTRATION_GAT_READ
+    GITLAB_TOKEN_K: $ORCHESTRATION_GAT_READ_2
     FF_NETWORK_PER_BUILD: 1
     ST2_OVERRIDE_HOST: mymongo
     # tests actually expect coordinator to be off
