@@ -694,14 +694,15 @@ class ActionChainRunnerPauseResumeTest(ExecutionDbTestCase):
             liveaction.status, action_constants.LIVEACTION_STATUS_PAUSING, extra_info
         )
 
-        # Delete the temporary file that the action chain is waiting on.
-        os.remove(path)
-        self.assertFalse(os.path.exists(path))
-
         # Wait until the liveaction is paused.
         liveaction = self._wait_for_status(
             liveaction, action_constants.LIVEACTION_STATUS_PAUSED
         )
+        # Delete the temporary file that the action chain is waiting on.
+        os.remove(path)
+        self.assertFalse(os.path.exists(path))
+
+
         extra_info = str(liveaction)
         self.assertEqual(
             liveaction.status, action_constants.LIVEACTION_STATUS_PAUSED, extra_info
