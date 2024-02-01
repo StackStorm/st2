@@ -19,6 +19,8 @@ import copy
 import datetime
 import retrying
 import six
+import sys
+import traceback
 
 from orquesta import conducting
 from orquesta import events
@@ -248,6 +250,7 @@ def request(wf_def, ac_ex_db, st2_ctx, notify_cfg=None):
     )
 
     # Instantiate the workflow conductor.
+    LOG.info("action_params: " + str(action_params))
     conductor_params = {"inputs": action_params, "context": st2_ctx}
     conductor = conducting.WorkflowConductor(wf_spec, **conductor_params)
 
@@ -666,7 +669,7 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
     except Exception as e:
         msg = 'Failed action execution(s) for task "%s", route "%s".'
         msg = msg % (task_id, str(task_route))
-        LOG.exception(msg)
+        LOG.exception(msg, exc_info=True)
         msg = "%s %s: %s" % (msg, type(e).__name__, six.text_type(e))
         update_progress(wf_ex_db, msg, severity="error", log=False)
         msg = "%s: %s" % (type(e).__name__, six.text_type(e))
@@ -676,7 +679,13 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
             "task_id": task_id,
             "route": task_route,
         }
-        update_task_execution(str(task_ex_db.id), statuses.FAILED, {"errors": [error]})
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback_in_var = traceback.format_tb(exc_traceback)
+        update_task_execution(
+            str(task_ex_db.id),
+            statuses.FAILED,
+            {"errors": [error], "traceback": traceback_in_var},
+        )
         raise e
 
     return task_ex_db
@@ -1189,7 +1198,7 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
                 update_progress(
                     wf_ex_db, "%s %s" % (msg, str(e)), severity="error", log=False
                 )
-                LOG.exception(msg)
+                LOG.exception(msg, exc_info=True)
                 fail_workflow_execution(str(wf_ex_db.id), e, task=task)
                 return
 
