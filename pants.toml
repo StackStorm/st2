@@ -236,3 +236,6 @@ install_from_resolve = "setuptools"
 
 [twine]
 install_from_resolve = "twine"
+
+[cli.alias]
+--all-changed = "--changed-since=HEAD --changed-dependents=transitive"
