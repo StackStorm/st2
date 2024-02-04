@@ -146,6 +146,13 @@ twine = ["CPython>=3.8,<3.10"]
 # put indirect/transitive version constraints here:
 st2 = "lockfiles/st2-constraints.txt"
 
+[export]
+py_editable_in_resolve = [
+  # Include PEP-660 editable installs of st2 code in exported virtualenv
+  # (this is like doing `pip install -e`) to facilitate development.
+  "st2",
+]
+
 [python-infer]
 # https://www.pantsbuild.org/docs/reference-python-infer#string_imports
 # https://www.pantsbuild.org/docs/reference-python-infer#string_imports_min_dots
