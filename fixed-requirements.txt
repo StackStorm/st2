@@ -7,7 +7,7 @@ chardet<3.1.0
 cffi<1.15.0
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython>=1.16.0,<2.0.0
-cryptography==39.0.1
+cryptography==42.0.0
 # Note: 0.20.0 removed select.poll() on which some of our code and libraries we
 # depend on rely
 eventlet==0.33.3

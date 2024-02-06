@@ -14,7 +14,7 @@ bcrypt==3.2.0
 cffi<1.15.0
 chardet<3.1.0
 ciso8601
-cryptography==39.0.1
+cryptography==42.0.0
 decorator==4.4.2
 dnspython>=1.16.0,<2.0.0
 eventlet==0.33.3
