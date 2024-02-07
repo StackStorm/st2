@@ -18,7 +18,7 @@ from textwrap import dedent
 
 import pytest
 
-from pants.backend.python.goals.setup_py import SetupKwargs
+from pants.backend.python.util_rules.package_dists import SetupKwargs
 from pants.backend.python.macros.python_artifact import PythonArtifact
 from pants.backend.python.target_types import (
     PythonDistribution,
