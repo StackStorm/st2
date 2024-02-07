@@ -19,8 +19,6 @@ import copy
 import datetime
 import retrying
 import six
-import sys
-import traceback
 
 from orquesta import conducting
 from orquesta import events
@@ -679,13 +677,7 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
             "task_id": task_id,
             "route": task_route,
         }
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback_in_var = traceback.format_tb(exc_traceback)
-        update_task_execution(
-            str(task_ex_db.id),
-            statuses.FAILED,
-            {"errors": [error], "traceback": traceback_in_var},
-        )
+        update_task_execution(str(task_ex_db.id), statuses.FAILED, {"errors": [error]})
         raise e
 
     return task_ex_db
