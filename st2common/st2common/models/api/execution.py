@@ -147,7 +147,7 @@ class ActionExecutionAPI(BaseAPI):
         "additionalProperties": False,
     }
     skip_unescape_field_names = [
-        "result",
+        "result", "parameters"
     ]
 
     @classmethod

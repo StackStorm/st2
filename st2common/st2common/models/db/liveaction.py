@@ -132,6 +132,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
                     p: "string" for p in result["parameters"]["response"]
                 },
             )
+        return result
 
     def get_masked_parameters(self):
         """

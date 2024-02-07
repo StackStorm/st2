@@ -126,7 +126,6 @@ class BaseAPI(object):
         :param doc: dict
         :param raw_values: dict[field]:bytestring
         """
-
         for field_name, field_value in raw_values.items():
             doc[field_name] = field_value
         return doc

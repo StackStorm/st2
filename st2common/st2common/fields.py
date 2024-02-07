@@ -372,7 +372,7 @@ class JSONDictField(BinaryField):
         if isinstance(value, dict):
             # Already deserializaed
             return value
-        print("uncompress_function called")
+
         data = orjson.loads(uncompress_function(value))
         return data
 
@@ -391,7 +391,6 @@ class JSONDictField(BinaryField):
         #
         # If this turns out to be not true or it adds more overhead in other scenarios, we should
         # revisit this decision and only use "default" argument where needed (aka Workflow models).
-        print("compress_function called")
         def default(obj):
             if isinstance(obj, set):
                 return list(obj)

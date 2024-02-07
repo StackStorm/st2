@@ -420,7 +420,9 @@ class ActionExecutionRawResultController(BaseActionExecutionNestedController):
         # NOTE: we need to use to_python() to uncompress the data
         try:
             result = (
-                self.access.impl.model.objects.filter(id=id).only("result")[0].result
+                self.access.impl.model.objects.filter(id=id)
+                .only("result")
+                .as_pymongo()[0]
             )
         except IndexError:
             raise NotFoundException("Execution with id %s not found" % (id))

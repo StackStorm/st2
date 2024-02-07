@@ -125,7 +125,6 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         :return: result: action execution object with masked secret paramters in input and output schema.
         :rtype: result: ``dict``
         """
-
         result = copy.deepcopy(value)
 
         liveaction = result["liveaction"]
