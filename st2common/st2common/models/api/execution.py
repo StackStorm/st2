@@ -146,9 +146,7 @@ class ActionExecutionAPI(BaseAPI):
         },
         "additionalProperties": False,
     }
-    skip_unescape_field_names = [
-        "result", "parameters"
-    ]
+    skip_unescape_field_names = ["result", "parameters"]
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
