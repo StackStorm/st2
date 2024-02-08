@@ -19,6 +19,7 @@ Changed
 * Drop Python 3.6 testing in CircleCI. #6080
   Contributed by (@philipphomberger Schwarz IT KG)
 * Refactor `tools/launchdev.sh` to use `tmux` instead of `screen`. #6186 (by @nzlosh and @cognifloyd)
+* Updated package build container environment to use py3.8 and mongo4.4  #6129
 
 Added
 ~~~~~
