@@ -12,6 +12,7 @@ Fixed
 Changed
 ~~~~~~~
 * Bumped `jsonschema` 2.6.0 -> 3.2.0 now that python3.6 is not supported. #6118
+* Updated package build container environment to use py3.8 and mongo4.4  #6129
 
 Added
 ~~~~~
