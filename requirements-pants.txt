@@ -99,8 +99,8 @@ zake
 
 ###########
 
-# not needed with switch to pytest
-#nose
-#nose-timer
-#nose-parallel
-#rednose
+# remove once we switch to pytest
+nose
+nose-timer
+nose-parallel
+rednose
