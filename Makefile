@@ -5,12 +5,12 @@ OS := $(shell uname)
 # We separate the OSX X and Linux virtualenvs so we can run in a Docker
 # container (st2devbox) while doing things on our host Mac machine
 ifeq ($(OS),Darwin)
-	VIRTUALENV_DIR ?= virtualenv-osx
+	#VIRTUALENV_DIR ?= virtualenv-osx
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client-osx
 	VIRTUALENV_ST2CLIENT_PYPI_DIR ?= virtualenv-st2client-pypi-osx
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components-osx
 else
-	VIRTUALENV_DIR ?= virtualenv
+	#VIRTUALENV_DIR ?= virtualenv
 	VIRTUALENV_ST2CLIENT_DIR ?= virtualenv-st2client
 	VIRTUALENV_ST2CLIENT_PYPI_DIR ?= virtualenv-st2client-pypi
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
@@ -18,6 +18,9 @@ endif
 
 # Assign PYTHON_VERSION if it doesn't already exist
 PYTHON_VERSION ?= python3
+PYTHON_BINARY = $(shell which $(PYTHON_VERSION))
+PYTHON_BINARY_VERSION = $(shell $(PYTHON_BINARY) -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")')
+VIRTUALENV_DIR = dist/export/python/virtualenvs/st2/$(PYTHON_BINARY_VERSION)
 
 BINARIES := bin
 
@@ -173,7 +176,7 @@ install-runners:
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
+#	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
 	#@for component in $(COMPONENTS_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing runner:" $$component; \
@@ -187,7 +190,7 @@ install-mock-runners:
 	@echo "================== INSTALL MOCK RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
+#	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
 	#@for component in $(MOCK_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing mock runner:" $$component; \
@@ -646,10 +649,10 @@ distclean: clean
 .PHONY: .sdist-requirements
 .sdist-requirements:
 	# Copy over shared dist utils module which is needed by setup.py
-	@for component in $(COMPONENTS_WITH_RUNNERS); do\
-		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
-		scripts/write-headers.sh $$component/dist_utils.py || break;\
-	done
+#	@for component in $(COMPONENTS_WITH_RUNNERS); do\
+#		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
+#		scripts/write-headers.sh $$component/dist_utils.py || break;\
+#	done
 
 	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
 	#@for component in $(COMPONENTS_TEST); do\
@@ -660,18 +663,18 @@ distclean: clean
 
 .PHONY: .requirements
 .requirements: virtualenv
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
+#	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
 	# Print out pip version
 	$(VIRTUALENV_DIR)/bin/pip --version
 	# Generate all requirements to support current CI pipeline.
-	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+#	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
 	# Remove any *.egg-info files which polute PYTHONPATH
-	rm -rf *.egg-info*
+#	rm -rf *.egg-info*
 
 	# Generate finall requirements.txt file for each component
 	# NOTE: We use xargs to speed things up by running commands in parallel
-	echo -e "$(COMPONENTS_WITH_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c "$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s {}/in-requirements.txt -f fixed-requirements.txt -o {}/requirements.txt"
+#	echo -e "$(COMPONENTS_WITH_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c "$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s {}/in-requirements.txt -f fixed-requirements.txt -o {}/requirements.txt"
 
 	#@for component in $(COMPONENTS_WITH_RUNNERS); do\
 	#	echo "==========================================================="; \
@@ -693,40 +696,40 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 
 	# Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
 	#       only have to update it one place when we change the version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
+#	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
+#	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
 
 	# Install requirements
-	for req in $(REQUIREMENTS); do \
-		echo "Installing $$req..." ; \
-		$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
-	done
+#	for req in $(REQUIREMENTS); do \
+#		echo "Installing $$req..." ; \
+#		$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
+#	done
 
 	# Install st2common package to load drivers defined in st2common setup.py
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+#	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+#	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Install st2auth to register SSO drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+#	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --init --recursive --remote
 
 	# Show currently install requirements
-	echo ""
-	$(VIRTUALENV_DIR)/bin/pip list
-	echo ""
+#	echo ""
+#	$(VIRTUALENV_DIR)/bin/pip list
+#	echo ""
 
 .PHONY: check-dependency-conflicts
 check-dependency-conflicts:
@@ -745,27 +748,30 @@ virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -f $(VIRTUALENV_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_DIR)
+#	test -f $(VIRTUALENV_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_DIR)
+	test -f $(VIRTUALENV_DIR)/bin/activate || pants export --resolve=st2 \
+		--python-bootstrap-search-path=[] --python-bootstrap-search-path=$(PYTHON_BINARY)
+	test -L virtualenv || (rm -rf virtualenv && ln -s $(VIRTUALENV_DIR) virtualenv)
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
-ifeq ($(OS),Darwin)
-	echo 'Setting up virtualenv on $(OS)...'
-	sed -i '' '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
-	sed -i '' '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
-	sed -i '' '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
-else
-	echo 'Setting up virtualenv on $(OS)...'
-	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
-	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
-	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
-endif
+#ifeq ($(OS),Darwin)
+#	echo 'Setting up virtualenv on $(OS)...'
+#	sed -i '' '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
+#	sed -i '' '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
+#	sed -i '' '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
+#else
+#	echo 'Setting up virtualenv on $(OS)...'
+#	sed -i '/_OLD_PYTHONPATHp/d' $(VIRTUALENV_DIR)/bin/activate
+#	sed -i '/PYTHONPATH=/d' $(VIRTUALENV_DIR)/bin/activate
+#	sed -i '/export PYTHONPATH/d' $(VIRTUALENV_DIR)/bin/activate
+#endif
 
-	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
-	#echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
-	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
-	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
-	touch $(VIRTUALENV_DIR)/bin/activate
+#	echo '_OLD_PYTHONPATH=$$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
+#	#echo 'PYTHONPATH=$$_OLD_PYTHONPATH:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
+#	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
+#	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
+#	touch $(VIRTUALENV_DIR)/bin/activate
 
 	# Setup PYTHONPATH in fish activate script...
 	#echo '' >> $(VIRTUALENV_DIR)/bin/activate.fish
@@ -1057,7 +1063,7 @@ packs-tests: requirements .packs-tests
 	@echo "==================== packs-tests ===================="
 	@echo
 	# Install st2common to register metrics drivers
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+#	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
 	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -p FILENAME
 
 
