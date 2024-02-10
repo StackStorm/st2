@@ -725,6 +725,7 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --init --recursive --remote
+	git submodule foreach --recursive git fetch --tags --verbose
 
 	# Show currently install requirements
 #	echo ""
