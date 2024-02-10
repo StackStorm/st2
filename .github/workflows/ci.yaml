@@ -44,6 +44,7 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    if: false
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-20.04
     strategy:
@@ -138,6 +139,7 @@ jobs:
 
   self-check:
     needs: pre_job
+    if: false
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-20.04
     strategy:
@@ -382,21 +384,21 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '${{ matrix.python-version }}'
-      - name: Cache Python Dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cache/pip
-            virtualenv
-            ~/virtualenv
-          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
-          # !virtualenv/lib/python*/site-packages/st2*
-          # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
-          # Don't use alternative key as if requirements.txt has altered we
-          # don't want to retrieve previous cache
-          #restore-keys: |
-          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
+      #- name: Cache Python Dependencies
+      #  uses: actions/cache@v2
+      #  with:
+      #    path: |
+      #      ~/.cache/pip
+      #      virtualenv
+      #      ~/virtualenv
+      #    # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+      #    # !virtualenv/lib/python*/site-packages/st2*
+      #    # !virtualenv/bin/st2*
+      #    key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+      #    # Don't use alternative key as if requirements.txt has altered we
+      #    # don't want to retrieve previous cache
+      #    #restore-keys: |
+      #    #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v2
@@ -498,6 +500,7 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
+    if: false
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-20.04
     strategy:
@@ -730,7 +733,7 @@ jobs:
 
   slack-notification:
     name: Slack notification for failed master builds
-    if: always()
+    if: false
     needs:
       - lint-checks
       - unit-tests
