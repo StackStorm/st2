@@ -27,7 +27,7 @@ cat conf/st2.ci.conf || true
 echo ""
 
 # install st2 client
-python ./st2client/setup.py develop
+#python ./st2client/setup.py develop
 st2 --version
 
 # Clean up old screen log files
