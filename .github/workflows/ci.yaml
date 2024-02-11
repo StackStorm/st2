@@ -73,6 +73,9 @@ jobs:
             python-version: '3.9.14'
 
     env:
+      # the python binary used by the Makefile
+      PYTHON_VERSION: 'python${{ matrix.python-version-short }}'
+
       TASK: '${{ matrix.task }}'
       COLUMNS: '120'
       PYLINT_CONCURRENCY: '6'
@@ -198,6 +201,9 @@ jobs:
             - 15672:15672/tcp # Management: HTTP, CLI
 
     env:
+      # the python binary used by the Makefile
+      PYTHON_VERSION: 'python${{ matrix.python-version-short }}'
+
       # CI st2.conf (with ST2_CI_USER user instead of stanley)
       ST2_CONF: 'conf/st2.ci.conf'
 
@@ -418,6 +424,9 @@ jobs:
       PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
+
+      # the python binary used by the Makefile
+      PYTHON_VERSION: 'python${{ matrix.python-version-short }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
@@ -670,6 +679,9 @@ jobs:
       PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
+
+      # the python binary used by the Makefile
+      PYTHON_VERSION: 'python${{ matrix.python-version-short }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
