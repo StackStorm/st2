@@ -77,7 +77,6 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
             if "expression" in expected_errors[i]:
                 self.assertEqual(ex.result["errors"][i]["expression"], expected_errors[i]["expression"])
 
-
     def test_input_error(self):
         expected_errors = [
             {
