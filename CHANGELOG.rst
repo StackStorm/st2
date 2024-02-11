@@ -9,9 +9,6 @@ Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 * implemented zstandard compression for parameters and results. #5995
   contributed by @guzzijones12
 
-* removed embedded liveaction in action execution database table #5995
-  contributed by @guzzijones12
-
 Fixed
 ~~~~~
 
