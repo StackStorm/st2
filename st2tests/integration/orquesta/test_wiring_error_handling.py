@@ -69,13 +69,24 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         self.assertEqual(len(ex.result["errors"]), len(expected_errors))
         for i in range(len(ex.result["errors"])):
             self.assertEqual(ex.result["errors"][i]["type"], expected_errors[i]["type"])
-            self.assertEqual(ex.result["errors"][i]["message"], expected_errors[i]["message"])
-            self.assertEqual(ex.result["errors"][i]["schema_path"], expected_errors[i]["schema_path"])
-            self.assertEqual(ex.result["errors"][i]["spec_path"], expected_errors[i]["spec_path"])
+            self.assertEqual(
+                ex.result["errors"][i]["message"], expected_errors[i]["message"]
+            )
+            self.assertEqual(
+                ex.result["errors"][i]["schema_path"], expected_errors[i]["schema_path"]
+            )
+            self.assertEqual(
+                ex.result["errors"][i]["spec_path"], expected_errors[i]["spec_path"]
+            )
             if "language" in expected_errors[i]:
-                self.assertEqual(ex.result["errors"][i]["language"], expected_errors[i]["language"])
+                self.assertEqual(
+                    ex.result["errors"][i]["language"], expected_errors[i]["language"]
+                )
             if "expression" in expected_errors[i]:
-                self.assertEqual(ex.result["errors"][i]["expression"], expected_errors[i]["expression"])
+                self.assertEqual(
+                    ex.result["errors"][i]["expression"],
+                    expected_errors[i]["expression"],
+                )
 
     def test_input_error(self):
         expected_errors = [
@@ -239,9 +250,15 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         self.assertEqual(len(ex.result["errors"]), len(expected_errors))
         for i in range(len(ex.result["errors"])):
             self.assertEqual(ex.result["errors"][i]["type"], expected_errors[i]["type"])
-            self.assertEqual(ex.result["errors"][i]["message"], expected_errors[i]["message"])
-            self.assertEqual(ex.result["errors"][i]["schema_path"], expected_errors[i]["schema_path"])
-            self.assertEqual(ex.result["errors"][i]["spec_path"], expected_errors[i]["spec_path"])
+            self.assertEqual(
+                ex.result["errors"][i]["message"], expected_errors[i]["message"]
+            )
+            self.assertEqual(
+                ex.result["errors"][i]["schema_path"], expected_errors[i]["schema_path"]
+            )
+            self.assertEqual(
+                ex.result["errors"][i]["spec_path"], expected_errors[i]["spec_path"]
+            )
 
     def test_remediate_then_fail(self):
         expected_errors = [
