@@ -78,4 +78,4 @@ COMMON_ACTION_ENV_VARIABLES = [
 ]
 
 # Namespaces for dynamically loaded runner modules
-RUNNERS_NAMESPACE = "st2common.runners.runner"
+RUNNERS_NAMESPACE = "st2common.runners.runner"  # pants: no-infer-dep

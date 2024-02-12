@@ -14,8 +14,8 @@ python_tests(
     # is somehow broken, then any failures would prevent these tests
     # from running to tell us what is wrong.
     # overrides={
-    #    "mongo_rules_test.py": {"uses": ["mongo"]},
-    #    "rabbitmq_rules_test.py": {"uses": ["rabbitmq"]},
-    #    "redis_rules_test.py": {"uses": ["redis"]},
+    #    "mongo_rules_test.py": dict(uses=["mongo"]),
+    #    "rabbitmq_rules_test.py": dict(uses=["rabbitmq"]),
+    #    "redis_rules_test.py": dict(uses=["redis"]),
     # },
 )

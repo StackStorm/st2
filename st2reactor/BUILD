@@ -1,0 +1,11 @@
+st2_component_python_distribution(
+    component_name="st2reactor",
+    scripts=[
+        "bin/st2-rule-tester",
+        "bin/st2-trigger-refire",
+        "bin/st2rulesengine",
+        "bin/st2sensorcontainer",
+        "bin/st2garbagecollector",
+        "bin/st2timersengine",
+    ],
+)

@@ -29,6 +29,7 @@ import st2tests.base as tests_base
 from st2tests.fixtures.generic.fixture import (
     PACK_NAME as GENERIC_PACK,
     PACK_PATH as GENERIC_PACK_PATH,
+    PACK_BASE_PATH as PACKS_BASE_PATH,
 )
 import st2tests.fixturesloader as fixtures_loader
 
@@ -52,9 +53,8 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
     )
     def test_register_all_actions(self):
         try:
-            packs_base_path = fixtures_loader.get_fixtures_base_path()
             all_actions_in_db = Action.get_all()
-            actions_registrar.register_actions(packs_base_paths=[packs_base_path])
+            actions_registrar.register_actions(packs_base_paths=[PACKS_BASE_PATH])
         except Exception as e:
             print(six.text_type(e))
             self.fail("All actions must be registered without exceptions.")
@@ -130,7 +130,10 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             GENERIC_PACK, "actions", "action_invalid_param_type.yaml"
         )
 
-        expected_msg = "'list' is not valid under any of the given schema"
+        # with jsonschema 2.6.0, the anyOf validator errors with:
+        #   "'list' is not valid under any of the given schemas"
+        # with jsonschema 3.2.0, the underlying enum (anyOf->enum) gets reported instead:
+        expected_msg = r"'list' is not one of \['array', 'boolean', 'integer', 'null', 'number', 'object', 'string'\].*"
         self.assertRaisesRegexp(
             jsonschema.ValidationError,
             expected_msg,

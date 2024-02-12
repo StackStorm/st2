@@ -16,7 +16,6 @@
 from __future__ import absolute_import
 
 import mock
-import six
 
 from orquesta import statuses as wf_statuses
 
@@ -333,10 +332,7 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         self.assertDictEqual(ac_ex_db.result, expected_result)
 
     def test_fail_start_task_input_value_type(self):
-        if six.PY3:
-            msg = "Value \"{'x': 'foobar'}\" must either be a string or None. Got \"dict\"."
-        else:
-            msg = "Value \"{u'x': u'foobar'}\" must either be a string or None. Got \"dict\"."
+        msg = "Value \"{'x': 'foobar'}\" must either be a string or None. Got \"dict\"."
 
         msg = "ValueError: " + msg
 
@@ -488,10 +484,7 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         self.assertDictEqual(ac_ex_db.result, expected_result)
 
     def test_fail_next_task_input_value_type(self):
-        if six.PY3:
-            msg = "Value \"{'x': 'foobar'}\" must either be a string or None. Got \"dict\"."
-        else:
-            msg = "Value \"{u'x': u'foobar'}\" must either be a string or None. Got \"dict\"."
+        msg = "Value \"{'x': 'foobar'}\" must either be a string or None. Got \"dict\"."
 
         msg = "ValueError: " + msg
 

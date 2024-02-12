@@ -16,7 +16,7 @@
 def st2_publish_repos():
     """Return the list of repos twine should publish to.
 
-    Twine will publish to ALL of these repos when running `./pants publish`.
+    Twine will publish to ALL of these repos when running `pants publish`.
 
     We use ST2_PUBLISH_REPO, an env var, To facilitate switching between
     @testpypi and @pypi. That also means someone could publish to their own
@@ -24,9 +24,7 @@ def st2_publish_repos():
 
     Credentials for pypi should be in ~/.pypirc or in TWINE_* env vars.
     """
-    # TODO: switch from hard-coded to env() once we upgrade to pants 2.16
-    # return [env("ST2_PUBLISH_REPO", "@pypi")]  # noqa: F821
-    return ["@pypi"]
+    return [env("ST2_PUBLISH_REPO", "@pypi")]  # noqa: F821
 
 
 def st2_license(**kwargs):
@@ -79,6 +77,8 @@ def st2_component_python_distribution(**kwargs):
     description = (
         f"{st2_component} StackStorm event-driven automation platform component"
     )
+    # setup(scripts=[...]) is for pre-made scripts, which we have.
+    # TODO: use entry_points.console_scripts instead of hand-generating these.
     scripts = kwargs.pop("scripts", [])
 
     st2_license(dest=st2_component)

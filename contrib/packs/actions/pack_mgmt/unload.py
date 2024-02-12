@@ -20,13 +20,13 @@ from st2common.runners.base_action import Action as BaseAction
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.pack import Config
-from st2common.persistence.reactor import SensorType
-from st2common.persistence.reactor import TriggerType
-from st2common.persistence.reactor import Trigger
-from st2common.persistence.reactor import Rule
 from st2common.persistence.action import Action
 from st2common.persistence.action import ActionAlias
 from st2common.persistence.policy import Policy
+from st2common.persistence.rule import Rule
+from st2common.persistence.sensor import SensorType
+from st2common.persistence.trigger import Trigger
+from st2common.persistence.trigger import TriggerType
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.services.triggers import cleanup_trigger_db_for_rule
 from st2common.exceptions.db import StackStormDBObjectNotFoundError

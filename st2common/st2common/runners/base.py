@@ -155,6 +155,7 @@ class ActionRunner(object):
         self.context = None
         self.auth_token = None
         self.rerun_ex_ref = None
+        self._debug = None
 
     def pre_run(self):
         # Handle runner "enabled" attribute

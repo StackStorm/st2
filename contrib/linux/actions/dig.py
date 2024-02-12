@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 
 # Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
@@ -25,7 +25,7 @@ from st2common.runners.base_action import Action
 
 
 class DigAction(Action):
-    def run(self, rand, count, nameserver, hostname, queryopts):
+    def run(self, rand, count, nameserver, hostname, queryopts, querytype):
         opt_list = []
         output = []
 
@@ -42,6 +42,7 @@ class DigAction(Action):
         cmd_args.extend(["+" + option for option in opt_list])
 
         cmd_args.append(hostname)
+        cmd_args.append(querytype)
 
         try:
             raw_result = subprocess.Popen(
@@ -55,6 +56,10 @@ class DigAction(Action):
                 result_list_str = raw_result.decode(encoding)
             else:
                 result_list_str = str(raw_result)
+
+            # Better format the output when the type is TXT
+            if querytype.lower() == "txt":
+                result_list_str = result_list_str.replace('"', "")
 
             result_list = list(filter(None, result_list_str.split("\n")))
 

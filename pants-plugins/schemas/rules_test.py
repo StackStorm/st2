@@ -25,16 +25,15 @@ from pants.engine.addresses import Address
 from pants.engine.fs import CreateDigest, Digest, FileContent, Snapshot
 from pants.engine.target import Target
 from pants.core.goals.fmt import FmtResult
+from pants.core.util_rules.partitions import Partitions
 from pants.testutil.rule_runner import QueryRule, RuleRunner
 
 from .rules import (
-    CMD,
-    CMD_DIR,
-    CMD_SOURCE_ROOT,
     GenerateSchemasFieldSet,
     GenerateSchemasViaFmtTargetsRequest,
     rules as schemas_rules,
 )
+from .subsystem import GenerateSchemas
 from .target_types import Schemas
 
 
@@ -44,7 +43,10 @@ def rule_runner() -> RuleRunner:
         rules=[
             *schemas_rules(),
             *target_types_rules.rules(),
-            QueryRule(FmtResult, (GenerateSchemasViaFmtTargetsRequest,)),
+            QueryRule(
+                Partitions, (GenerateSchemasViaFmtTargetsRequest.PartitionRequest,)
+            ),
+            QueryRule(FmtResult, (GenerateSchemasViaFmtTargetsRequest.Batch,)),
             QueryRule(SourceFiles, (SourceFilesRequest,)),
         ],
         target_types=[Schemas, PythonSourcesGeneratorTarget],
@@ -60,23 +62,35 @@ def run_st2_generate_schemas(
     rule_runner.set_options(
         [
             "--backend-packages=schemas",
-            f"--source-root-patterns=/{CMD_SOURCE_ROOT}",
+            f"--source-root-patterns=/{GenerateSchemas.source_root}",
             *(extra_args or ()),
         ],
         env_inherit={"PATH", "PYENV_ROOT", "HOME"},
     )
-    field_sets = [GenerateSchemasFieldSet.create(tgt) for tgt in targets]
+    field_sets = tuple(GenerateSchemasFieldSet.create(tgt) for tgt in targets)
     input_sources = rule_runner.request(
         SourceFiles,
         [
             SourceFilesRequest(field_set.sources for field_set in field_sets),
         ],
     )
+
+    # run generate_schemas_partitioner rule
+    partitions = rule_runner.request(
+        Partitions,
+        [GenerateSchemasViaFmtTargetsRequest.PartitionRequest(field_sets)],
+    )
+    assert len(partitions) == 1
+
+    # run generate_schemas_via_fmt rule
     fmt_result = rule_runner.request(
         FmtResult,
         [
-            GenerateSchemasViaFmtTargetsRequest(
-                field_sets, snapshot=input_sources.snapshot
+            GenerateSchemasViaFmtTargetsRequest.Batch(
+                tool_name="",
+                elements=partitions[0].elements,  # ie: files
+                partition_metadata=partitions[0].metadata,
+                snapshot=input_sources.snapshot,
             ),
         ],
     )
@@ -114,14 +128,14 @@ def write_files(
         f"{schemas_dir}/{schema_file}": before,
         f"{schemas_dir}/BUILD": "schemas(name='t')",
         # add in the target that's hard-coded in the generate_schemas_via_fmt rue
-        f"{CMD_DIR}/{CMD}.py": GENERATE_SCHEMAS_PY.format(
+        f"{GenerateSchemas.directory}/{GenerateSchemas.cmd}.py": GENERATE_SCHEMAS_PY.format(
             schemas_dir=schemas_dir, schema_text=after
         ),
-        f"{CMD_DIR}/BUILD": "python_sources()",
+        f"{GenerateSchemas.directory}/BUILD": "python_sources()",
     }
 
-    module = CMD_DIR
-    while module != CMD_SOURCE_ROOT:
+    module = GenerateSchemas.directory
+    while module != GenerateSchemas.source_root:
         files[f"{module}/__init__.py"] = ""
         module = os.path.dirname(module)
 

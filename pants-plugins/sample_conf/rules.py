@@ -13,7 +13,6 @@
 # limitations under the License.
 from dataclasses import dataclass
 
-from pants.backend.python.target_types import EntryPoint
 from pants.backend.python.util_rules import pex, pex_from_targets
 from pants.backend.python.util_rules.pex import (
     VenvPex,
@@ -21,7 +20,7 @@ from pants.backend.python.util_rules.pex import (
 )
 from pants.backend.python.util_rules.pex_from_targets import PexFromTargetsRequest
 from pants.core.goals.fmt import FmtResult, FmtTargetsRequest
-from pants.engine.addresses import Address
+from pants.core.util_rules.partitions import PartitionerType
 from pants.engine.fs import (
     CreateDigest,
     Digest,
@@ -31,15 +30,11 @@ from pants.engine.fs import (
 from pants.engine.process import FallibleProcessResult
 from pants.engine.rules import Get, collect_rules, rule
 from pants.engine.target import FieldSet
-from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
+from pants.util.strutil import strip_v2_chroot_path
 
+from sample_conf.subsystem import ConfigGen
 from sample_conf.target_types import SampleConfSourceField
-
-
-# these constants are also used in the tests.
-SCRIPT_DIR = "tools"
-SCRIPT = "config_gen"
 
 
 @dataclass(frozen=True)
@@ -51,37 +46,22 @@ class GenerateSampleConfFieldSet(FieldSet):
 
 class GenerateSampleConfViaFmtTargetsRequest(FmtTargetsRequest):
     field_set_type = GenerateSampleConfFieldSet
-    name = SCRIPT
+    tool_subsystem = ConfigGen
+    partitioner_type = PartitionerType.DEFAULT_SINGLE_PARTITION
 
 
 @rule(
-    desc=f"Update conf/st2.conf.sample with {SCRIPT_DIR}/{SCRIPT}.py",
+    desc=f"Update conf/st2.conf.sample with {ConfigGen.directory}/{ConfigGen.script}.py",
     level=LogLevel.DEBUG,
 )
 async def generate_sample_conf_via_fmt(
-    request: GenerateSampleConfViaFmtTargetsRequest,
+    request: GenerateSampleConfViaFmtTargetsRequest.Batch,
+    subsystem: ConfigGen,
 ) -> FmtResult:
-    # There will only be one target+field_set, but we iterate
-    # to satisfy how fmt expects that there could be more than one.
-    # If there is more than one, they will all get the same contents.
-
-    # actually generate it with an external script.
+    # We use a pex to actually generate the sample conf with an external script.
     # Generation cannot be inlined here because it needs to import the st2 code.
-    pex = await Get(
-        VenvPex,
-        PexFromTargetsRequest(
-            [
-                Address(
-                    SCRIPT_DIR,
-                    target_name=SCRIPT_DIR,
-                    relative_file_path=f"{SCRIPT}.py",
-                )
-            ],
-            output_filename=f"{SCRIPT}.pex",
-            internal_only=True,
-            main=EntryPoint(SCRIPT),
-        ),
-    )
+    # (the script location is defined on the ConfigGen subsystem)
+    pex = await Get(VenvPex, PexFromTargetsRequest, subsystem.pex_request())
 
     result = await Get(
         FallibleProcessResult,
@@ -91,23 +71,25 @@ async def generate_sample_conf_via_fmt(
         ),
     )
 
-    contents = [
-        FileContent(
-            f"{field_set.address.spec_path}/{field_set.source.value}",
-            result.stdout,
-        )
-        for field_set in request.field_sets
-    ]
+    contents = [FileContent(file, result.stdout) for file in request.files]
 
     output_digest = await Get(Digest, CreateDigest(contents))
     output_snapshot = await Get(Snapshot, Digest, output_digest)
-    return FmtResult.create(request, result, output_snapshot, strip_chroot_path=True)
+
+    return FmtResult(
+        input=request.snapshot,
+        output=output_snapshot,
+        # Drop result.stdout since we already wrote it to a file
+        stdout="",
+        stderr=strip_v2_chroot_path(result.stderr),
+        tool_name=request.tool_name,
+    )
 
 
 def rules():
     return [
         *collect_rules(),
-        UnionRule(FmtTargetsRequest, GenerateSampleConfViaFmtTargetsRequest),
+        *GenerateSampleConfViaFmtTargetsRequest.rules(),
         *pex.rules(),
         *pex_from_targets.rules(),
     ]

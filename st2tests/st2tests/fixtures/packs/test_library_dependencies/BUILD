@@ -1,5 +1,6 @@
 pack_metadata(
     name="metadata",
+    dependencies=[":pack_requirements"],
 )
 
 resource(
@@ -8,5 +9,8 @@ resource(
 )
 
 python_sources(
-    dependencies=[":metadata"],
+    dependencies=[
+        ":metadata",
+        "./actions",
+    ],
 )

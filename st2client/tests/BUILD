@@ -4,4 +4,6 @@ __defaults__(
     )
 )
 
-python_sources()
+python_test_utils(
+    sources=["*.py"],
+)
