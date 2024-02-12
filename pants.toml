@@ -147,11 +147,11 @@ twine = ["CPython>=3.8,<3.10"]
 st2 = "lockfiles/st2-constraints.txt"
 
 [export]
-py_editable_in_resolve = [
-  # Include PEP-660 editable installs of st2 code in exported virtualenv
-  # (this is like doing `pip install -e`) to facilitate development.
-  "st2",
-]
+# When exporting the virtualenv, include editable installs of our sources
+# so that the entry_points metadata is available for stevedore's use.
+py_editable_in_resolve = ["st2"]
+# We need mutable venvs to use the editable installs of our sources.
+py_resolve_format = "mutable_virtualenv"
 
 [python-infer]
 # https://www.pantsbuild.org/docs/reference-python-infer#string_imports
