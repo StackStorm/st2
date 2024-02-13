@@ -363,6 +363,10 @@ def register_opts(ignore_errors=False):
     api_opts = [
         cfg.StrOpt("host", default="127.0.0.1", help="StackStorm API server host"),
         cfg.IntOpt("port", default=9101, help="StackStorm API server port"),
+        cfg.IntOpt("max_page_size",
+                   default=100,
+                   help="Maximum limit (page size) argument which can be specified by the user in a query string.",
+                   ),
         cfg.ListOpt(
             "allow_origin",
             default=["http://127.0.0.1:3000"],
