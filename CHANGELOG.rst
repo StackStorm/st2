@@ -66,6 +66,9 @@ Fixed
 * For "local-shell-script" runner, on readonly filesystems, don't attempt to run chmod +x on script_action. Fixes #5591
   Contributed by @jk464
 
+* Fix "api.max_page_size" added to st2common/st2common/config.py. Fixes 5327
+  Contributed by @maxfactor1
+
 Added
 ~~~~~
 * Move `git clone` to `user_home/.st2packs` #5845
