@@ -2,7 +2,7 @@ __dependents_rules__(
     (
         # winrm
         {"path": "/", "name": "winrm"},
-        # can used by sources in the winrm_runner
+        # can ONLY be used by sources in the winrm_runner
         "/**",
         # and nothing else
         "!*",
