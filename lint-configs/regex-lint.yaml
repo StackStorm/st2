@@ -16,7 +16,8 @@ required_matches:
   #       - https://github.com/pantsbuild/pants/discussions/17389 dep rules
   #       - https://github.com/pantsbuild/pants/issues/17634 visibility stabilization
   #       - https://www.pantsbuild.org/v2.16/docs/validating-dependencies
-  #       When that happens, we can remove these regex based dependency checks.
+  #       We can use the visibility lint backend once we upgrade to pants 2.18:
+  #       https://www.pantsbuild.org/blog/2023/11/14/pants-2.18.0-is-released#more-visible-visibility
 
   # st2client-dependencies-check
   st2client:
