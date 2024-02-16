@@ -10,7 +10,7 @@ private_key = $dir/private/ca_private_key.pem
 serial = $dir/serial
 
 default_crl_days = 7
-default_days = 1825
+default_days = 5475
 default_md = sha256
 
 policy = testca_policy
