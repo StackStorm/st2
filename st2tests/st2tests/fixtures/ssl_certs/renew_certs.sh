@@ -1,8 +1,9 @@
 #!/bin/bash
+set -eo pipefail
 
 FIXTURE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-cd ${FIXTURE_DIR}/ca
+cd "${FIXTURE_DIR}/ca"
 
 # regenerate the CA (w/ 15 year duration)
 openssl req -new \
@@ -38,7 +39,7 @@ for x in server client; do
 
     # Copy the cert without the prologue
     openssl x509 \
-        -in certs/$(cat serial.old).pem \
+        -in "certs/$(cat serial.old).pem" \
         -out ../${x}/${x}_certificate.pem
 
     # Convert the x509 key+cert to a p12/pfx format file.
@@ -51,4 +52,4 @@ for x in server client; do
         -password pass:MySecretPassword
 done
 
-sed -i -e 's/notAfter=[^`]*'"/$(openssl x509 -in ca_certificate_bundle.pem -noout -dates | grep notAfter)/" ${FIXTURE_DIR}/README.md
+sed -i -e 's/notAfter=[^`]*'"/$(openssl x509 -in ca_certificate_bundle.pem -noout -dates | grep notAfter)/" "${FIXTURE_DIR}/README.md"
