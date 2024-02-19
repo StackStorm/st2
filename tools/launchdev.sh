@@ -320,7 +320,7 @@ function st2start(){
         echo 'Registering sensors, runners, actions, rules, aliases, and policies...'
         ${VIRTUALENV}/bin/python \
             ./st2common/bin/st2-register-content \
-            --config-file $ST2_CONF --register-all
+            --config-file $ST2_CONF --register-all --debug
     fi
 
     if [ "$copy_test_packs" = true ]; then
