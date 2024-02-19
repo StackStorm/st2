@@ -8,6 +8,8 @@ Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 
 Fixed
 ~~~~~
+* Shells via `pywinrm` are initialized with the 65001 codepage to ensure raw string responses are UTF-8 (fix #6034)
+  Contributed by @stealthii
 
 Changed
 ~~~~~~~
