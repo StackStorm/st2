@@ -60,7 +60,7 @@ pytz
 PyYAML
 # RandomWords used in some tests
 RandomWords
-requests[security]
+requests
 retrying
 routes
 semver
