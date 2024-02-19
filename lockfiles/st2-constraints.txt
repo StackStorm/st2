@@ -37,7 +37,9 @@ amqp==5.0.6
 # REASON: unknown -- this looks like a lockfile-style pin
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: 4.0.1
-bcrypt==3.2.0
+#bcrypt==3.2.0
+# try widening the valid versions
+bcrypt<4
 
 # REQUIRED BY: bcrypt, cryptography, pynacl, zstandard
 # REASON: unknown
@@ -116,4 +118,4 @@ tenacity>=3.2.1,<7.0.0
 # REASON: importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: 4.1.1
-typing-extensions<4.2
+#typing-extensions<4.2

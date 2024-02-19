@@ -10,8 +10,7 @@ apscheduler
 argcomplete
 ciso8601
 cryptography
-# eventlet 0.31+ and gunicorn 20.1.0 are not compatible
-eventlet<0.31
+eventlet
 # flex parses the openapi 2 spec in our router
 flex
 # gitpython & gitdb are used for pack management
