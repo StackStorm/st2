@@ -27,7 +27,7 @@
 //     "jinja2",
 //     "jsonpath-rw",
 //     "jsonschema<4,>=3",
-//     "kombu",
+//     "kombu<5.1,>=5.0",
 //     "lockfile",
 //     "logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system == \"Linux\"",
 //     "mail-parser==3.15.0",
@@ -60,7 +60,7 @@
 //     "pywinrm",
 //     "redis",
 //     "rednose",
-//     "requests[security]",
+//     "requests",
 //     "retrying",
 //     "routes",
 //     "semver",
@@ -87,7 +87,6 @@
 //   "manylinux": "manylinux2014",
 //   "requirement_constraints": [
 //     "MarkupSafe<2.1.0,>=0.23",
-//     "amqp==5.0.6",
 //     "bcrypt==3.2.0",
 //     "cffi<1.15.0",
 //     "dnspython<2.0.0,>=1.16.0",
@@ -107,7 +106,6 @@
   "build_isolation": true,
   "constraints": [
     "MarkupSafe<2.1.0,>=0.23",
-    "amqp==5.0.6",
     "bcrypt==3.2.0",
     "cffi<1.15.0",
     "dnspython<2.0.0,>=1.16.0",
@@ -122,21 +120,21 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "493a2ac6788ce270a2f6a765b017299f60c1998f5a8617908ee9be082f7300fb",
-              "url": "https://files.pythonhosted.org/packages/80/f1/cd7626c763e58f967317023c3dd01a2fab5d6f00f8e1c672ccceb3aae5cb/amqp-5.0.6-py3-none-any.whl"
+              "hash": "827cb12fb0baa892aad844fd95258143bce4027fdac4fccddbc43330fd281637",
+              "url": "https://files.pythonhosted.org/packages/b3/f0/8e5be5d5e0653d9e1d02b1144efa33ff7d2963dfad07049e02c0fa9b2e8d/amqp-5.2.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "03e16e94f2b34c31f8bf1206d8ddd3ccaa4c315f7f6a1879b7b1210d229568c2",
-              "url": "https://files.pythonhosted.org/packages/dd/a8/b00824f9be6eb4e15f565a82731c39962d71ba6e692659d22b61991b884a/amqp-5.0.6.tar.gz"
+              "hash": "a1ecff425ad063ad42a486c902807d1482311481c8ad95a72694b2975e75f7fd",
+              "url": "https://files.pythonhosted.org/packages/32/2c/6eb09fbdeb3c060b37bd33f8873832897a83e7a428afe01aad333fc405ec/amqp-5.2.0.tar.gz"
             }
           ],
           "project_name": "amqp",
           "requires_dists": [
-            "vine==5.0.0"
+            "vine<6.0.0,>=5.0.0"
           ],
           "requires_python": ">=3.6",
-          "version": "5.0.6"
+          "version": "5.2.0"
         },
         {
           "artifacts": [
@@ -1642,41 +1640,38 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "d36f0cde6a18d9eb7b6b3aa62a59bfdff7f5724689850e447eca5be8efc9d501",
-              "url": "https://files.pythonhosted.org/packages/ce/71/3cba2d6bfc10f018654ee7c4bcbce273f2c1040323fc50ff464985327a0f/kombu-5.2.2-py3-none-any.whl"
+              "hash": "6dc509178ac4269b0e66ab4881f70a2035c33d3a622e20585f965986a5182006",
+              "url": "https://files.pythonhosted.org/packages/22/6e/69bc1061633a88aa47beaa8bbecff1c3c555a005603cfbebcec4aa37f183/kombu-5.0.2-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "0f5d0763fb916808f617b886697b2be28e6bc35026f08e679697fc814b48a608",
-              "url": "https://files.pythonhosted.org/packages/8d/1f/d9c6395a2e1f38573712031187d0f46aa2d7b04afea539f540adc10b767f/kombu-5.2.2.tar.gz"
+              "hash": "f4965fba0a4718d47d470beeb5d6446e3357a62402b16c510b6a2f251e05ac3c",
+              "url": "https://files.pythonhosted.org/packages/3b/3a/f880f867bb2690aee3454aa31143d441fee79c5c5ce4d9537114675447b3/kombu-5.0.2.tar.gz"
             }
           ],
           "project_name": "kombu",
           "requires_dists": [
             "PyYAML>=3.10; extra == \"yaml\"",
-            "amqp<6.0.0,>=5.0.6",
-            "azure-servicebus>=7.0.0; extra == \"azureservicebus\"",
+            "amqp<6.0.0,>=5.0.0",
+            "azure-servicebus>=0.21.1; extra == \"azureservicebus\"",
             "azure-storage-queue; extra == \"azurestoragequeues\"",
-            "boto3>=1.9.12; extra == \"sqs\"",
-            "cached-property; python_version < \"3.8\"",
+            "boto3>=1.4.4; extra == \"sqs\"",
             "importlib-metadata>=0.18; python_version < \"3.8\"",
             "kazoo>=1.3.1; extra == \"zookeeper\"",
-            "librabbitmq>=2.0.0; extra == \"librabbitmq\"",
+            "librabbitmq>=1.5.2; extra == \"librabbitmq\"",
             "msgpack; extra == \"msgpack\"",
-            "pycurl~=7.44.1; extra == \"sqs\"",
-            "pymongo<3.12.1,>=3.3.0; extra == \"mongodb\"",
+            "pycurl==7.43.0.2; extra == \"sqs\"",
+            "pymongo>=3.3.0; extra == \"mongodb\"",
             "pyro4; extra == \"pyro\"",
             "python-consul>=0.6.0; extra == \"consul\"",
             "qpid-python>=0.26; extra == \"qpid\"",
             "qpid-tools>=0.26; extra == \"qpid\"",
-            "redis<4.0.0,>=3.4.1; extra == \"redis\"",
+            "redis>=3.3.11; extra == \"redis\"",
             "softlayer-messaging>=1.0.3; extra == \"slmq\"",
-            "sqlalchemy; extra == \"sqlalchemy\"",
-            "urllib3>=1.26.7; extra == \"sqs\"",
-            "vine"
+            "sqlalchemy; extra == \"sqlalchemy\""
           ],
-          "requires_python": ">=3.7",
-          "version": "5.2.2"
+          "requires_python": ">=3.6",
+          "version": "5.0.2"
         },
         {
           "artifacts": [
@@ -2054,21 +2049,21 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "d542c37909f1624665ec7f59ea2e388a20eb678188f1b0c4cb50fdd600f89264",
-              "url": "https://files.pythonhosted.org/packages/7f/e1/1b7ebbccd9262cd08f8fde49a2632724268e952a1613bcad0de6062b0cc4/netaddr-1.1.0-py3-none-any.whl"
+              "hash": "bd9e9534b0d46af328cf64f0e5a23a5a43fca292df221c85580b27394793496e",
+              "url": "https://files.pythonhosted.org/packages/d0/e4/a57d2ad0c1381d6304c7eb3aed7c1a415c5b443e71d7e5c88378ac60d1ef/netaddr-1.2.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "eabeba62193525757ed3ab4aacc4ab8089f84e57059fd41fde58df95c128a26d",
-              "url": "https://files.pythonhosted.org/packages/d4/79/a9b05aa527c0032c0eb6c20d70c0a1335d1dadf000b789d9bbfb8993168c/netaddr-1.1.0.tar.gz"
+              "hash": "6eb8fedf0412c6d294d06885c110de945cf4d22d2b510d0404f4e06950857987",
+              "url": "https://files.pythonhosted.org/packages/54/e6/0308695af3bd001c7ce503b3a8628a001841fe1def19374c06d4bce9089b/netaddr-1.2.1.tar.gz"
             }
           ],
           "project_name": "netaddr",
           "requires_dists": [
-            "ipython; extra == \"shell\""
+            "ipython; extra == \"nicer-shell\""
           ],
           "requires_python": ">=3.7",
-          "version": "1.1.0"
+          "version": "1.2.1"
         },
         {
           "artifacts": [
@@ -2661,24 +2656,24 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "a71292ab7769a5de274b146b276ce938786f56c31cf7cea88b6f3775d82fe8c8",
-              "url": "https://files.pythonhosted.org/packages/4d/81/316b6a55a0d1f327d04cc7b0ba9d04058cb62de6c3a4d4b0df280cbe3b0b/prettytable-3.9.0-py3-none-any.whl"
+              "hash": "6536efaf0757fdaa7d22e78b3aac3b69ea1b7200538c2c6995d649365bddab92",
+              "url": "https://files.pythonhosted.org/packages/3d/c4/a32f4bf44faf95accbbd5d7864ddef9e289749a8efbc3adaad4a4671779a/prettytable-3.10.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "f4ed94803c23073a90620b201965e5dc0bccf1760b7a7eaf3158cab8aaffdf34",
-              "url": "https://files.pythonhosted.org/packages/e1/c0/5e9c4d2a643a00a6f67578ef35485173de273a4567279e4f0c200c01386b/prettytable-3.9.0.tar.gz"
+              "hash": "9665594d137fb08a1117518c25551e0ede1687197cf353a4fdc78d27e1073568",
+              "url": "https://files.pythonhosted.org/packages/19/d3/7cb826e085a254888d8afb4ae3f8d43859b13149ac8450b221120d4964c9/prettytable-3.10.0.tar.gz"
             }
           ],
           "project_name": "prettytable",
           "requires_dists": [
             "pytest-cov; extra == \"tests\"",
-            "pytest-lazy-fixture; extra == \"tests\"",
+            "pytest-lazy-fixtures; extra == \"tests\"",
             "pytest; extra == \"tests\"",
             "wcwidth"
           ],
           "requires_python": ">=3.8",
-          "version": "3.9.0"
+          "version": "3.10.0"
         },
         {
           "artifacts": [
@@ -3176,13 +3171,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "50fb9cbe836c3f20f0dfa99c565201fb75dc54c8d76373cd1bde06b06657bdb6",
-              "url": "https://files.pythonhosted.org/packages/c7/10/727155d44c5e04bb08e880668e53079547282e4f950535234e5a80690564/pytest-8.0.0-py3-none-any.whl"
+              "hash": "3e4f16fe1c0a9dc9d9389161c127c3edc5d810c38d6793042fb81d9f48a59fca",
+              "url": "https://files.pythonhosted.org/packages/2e/28/30125a808a2448d72fdba26d01ef2bec76a3c860c8694b636e6104e38713/pytest-8.0.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "249b1b0864530ba251b7438274c4d251c58d868edaaec8762893ad4a0d71c36c",
-              "url": "https://files.pythonhosted.org/packages/50/fd/af2d835eed57448960c4e7e9ab76ee42f24bcdd521e967191bc26fa2dece/pytest-8.0.0.tar.gz"
+              "hash": "267f6563751877d772019b13aacbe4e860d73fe8f651f28112e9ac37de7513ae",
+              "url": "https://files.pythonhosted.org/packages/57/93/429cffe6e4b45ef6ef392a30a090a7a431088417fb75f9bc142f4c24f23b/pytest-8.0.1.tar.gz"
             }
           ],
           "project_name": "pytest",
@@ -3204,7 +3199,7 @@
             "xmlschema; extra == \"testing\""
           ],
           "requires_python": ">=3.8",
-          "version": "8.0.0"
+          "version": "8.0.1"
         },
         {
           "artifacts": [
@@ -4415,13 +4410,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "ce3711610ddce217e6d113a2732fafad960a03fd0318c91faa79481e35c11224",
-              "url": "https://files.pythonhosted.org/packages/88/75/311454fd3317aefe18415f04568edc20218453b709c63c58b9292c71be17/urllib3-2.2.0-py3-none-any.whl"
+              "hash": "450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d",
+              "url": "https://files.pythonhosted.org/packages/a2/73/a68704750a7679d0b6d3ad7aa8d4da8e14e151ae82e6fee774e6e0d05ec8/urllib3-2.2.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "051d961ad0c62a94e50ecf1af379c3aba230c66c710493493560c0c223c49f20",
-              "url": "https://files.pythonhosted.org/packages/e2/cc/abf6746cc90bc52df4ba730f301b89b3b844d6dc133cb89a01cfe2511eb9/urllib3-2.2.0.tar.gz"
+              "hash": "d0570876c61ab9e520d776c38acbbb5b05a776d3f9ff98a5c8fd5162a444cf19",
+              "url": "https://files.pythonhosted.org/packages/7a/50/7fd50a27caa0652cd4caf224aa87741ea41d3265ad13f010886167cfcc79/urllib3-2.2.1.tar.gz"
             }
           ],
           "project_name": "urllib3",
@@ -4433,7 +4428,7 @@
             "zstandard>=0.18.0; extra == \"zstd\""
           ],
           "requires_python": ">=3.8",
-          "version": "2.2.0"
+          "version": "2.2.1"
         },
         {
           "artifacts": [
@@ -4452,19 +4447,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "4c9dceab6f76ed92105027c49c823800dd33cacce13bdedc5b914e3514b7fb30",
-              "url": "https://files.pythonhosted.org/packages/8d/61/a7badb48186919a9fd7cf0ef427cab6d16e0ed474035c36fa64ddd72bfa2/vine-5.0.0-py2.py3-none-any.whl"
+              "hash": "40fdf3c48b2cfe1c38a49e9ae2da6fda88e4794c810050a728bd7413811fb1dc",
+              "url": "https://files.pythonhosted.org/packages/03/ff/7c0c86c43b3cbb927e0ccc0255cb4057ceba4799cd44ae95174ce8e8b5b2/vine-5.1.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "7d3b1624a953da82ef63462013bbd271d3eb75751489f9807598e8f340bd637e",
-              "url": "https://files.pythonhosted.org/packages/66/b2/8954108816865edf2b1e0d24f3c2c11dfd7232f795bcf1e4164fb8ee5e15/vine-5.0.0.tar.gz"
+              "hash": "8b62e981d35c41049211cf62a0a1242d8c1ee9bd15bb196ce38aefd6799e61e0",
+              "url": "https://files.pythonhosted.org/packages/bd/e4/d07b5f29d283596b9727dd5275ccbceb63c44a1a82aa9e4bfd20426762ac/vine-5.1.0.tar.gz"
             }
           ],
           "project_name": "vine",
           "requires_dists": [],
           "requires_python": ">=3.6",
-          "version": "5.0.0"
+          "version": "5.1.0"
         },
         {
           "artifacts": [
@@ -4978,7 +4973,7 @@
     "jinja2",
     "jsonpath-rw",
     "jsonschema<4,>=3",
-    "kombu",
+    "kombu<5.1,>=5.0",
     "lockfile",
     "logshipper",
     "mail-parser==3.15.0",
@@ -5011,7 +5006,7 @@
     "pywinrm",
     "redis",
     "rednose",
-    "requests[security]",
+    "requests",
     "retrying",
     "routes",
     "semver",
