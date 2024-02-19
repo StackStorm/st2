@@ -374,15 +374,7 @@ class ParamsUtilsTest(DbTestCase):
             rendered=rendered, parameter_schemas=parameter_schemas
         )
 
-        if six.PY3:
-            expected = {"a1": ("unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2")}
-        else:
-            expected = {
-                "a1": (
-                    "unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc"
-                    "\x83\xcc\xbe\xe2\x80\xa2\xcc\x83\xcc\xbe)\xdb\xb6 unicode2"
-                )
-            }
+        expected = {"a1": ("unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2")}
 
         self.assertEqual(result, expected)
 
@@ -398,15 +390,7 @@ class ParamsUtilsTest(DbTestCase):
             runner_param_info, action_param_info, params, action_context
         )
 
-        if six.PY3:
-            expected_action_params = {"a1": ("unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2")}
-        else:
-            expected_action_params = {
-                "a1": (
-                    "unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc"
-                    "\x83\xcc\xbe\xe2\x80\xa2\xcc\x83\xcc\xbe)\xdb\xb6 unicode2"
-                )
-            }
+        expected_action_params = {"a1": ("unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2")}
 
         self.assertEqual(r_runner_params, {})
         self.assertEqual(r_action_params, expected_action_params)

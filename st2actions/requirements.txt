@@ -8,8 +8,8 @@
 MarkupSafe<2.1.0,>=0.23
 apscheduler==3.7.0
 chardet<3.1.0
-eventlet==0.30.2
-gitpython==3.1.15
+eventlet==0.33.3
+gitpython<=3.1.37
 jinja2==2.11.3
 kombu==5.0.2
 lockfile==0.12.2

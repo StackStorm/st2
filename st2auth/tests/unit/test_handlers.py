@@ -48,6 +48,31 @@ class AuthHandlerTestCase(CleanDbTestCase):
         )
         self.assertEqual(token.user, "test_proxy_handler")
 
+    def test_proxy_handler_no_remote_user(self):
+        h = handlers.ProxyAuthHandler()
+        request = {}
+        token = h.handle_auth(
+            request,
+            headers={},
+            remote_addr=None,
+            remote_user=None,
+            authorization=("basic", DUMMY_CREDS),
+        )
+        self.assertEqual(token.user, "auser")
+
+    def test_proxy_handler_bad_auth(self):
+        h = handlers.ProxyAuthHandler()
+        request = {}
+
+        with self.assertRaises(exc.HTTPUnauthorized):
+            h.handle_auth(
+                request,
+                headers={},
+                remote_addr=None,
+                remote_user=None,
+                authorization=None,
+            )
+
     def test_standalone_bad_auth_type(self):
         h = handlers.StandaloneAuthHandler()
         request = {}

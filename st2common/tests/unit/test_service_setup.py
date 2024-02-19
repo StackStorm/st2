@@ -17,7 +17,6 @@ from __future__ import absolute_import
 
 import tempfile
 
-import six
 import mock
 
 from oslo_config.cfg import ConfigFilesNotFoundError
@@ -104,10 +103,7 @@ class ServiceSetupTestCase(CleanFilesTestCase):
     def test_no_logging_config_found(self):
         config.get_logging_config_path = mock_get_logging_config_path
 
-        if six.PY3:
-            expected_msg = ".*KeyError:.*"
-        else:
-            expected_msg = "No section: .*"
+        expected_msg = ".*KeyError:.*"
 
         self.assertRaisesRegexp(
             Exception,
@@ -134,14 +130,8 @@ class ServiceSetupTestCase(CleanFilesTestCase):
 
         config.get_logging_config_path = mock_get_logging_config_path
 
-        if six.PY3:
-            expected_msg = "ValueError: Unknown level: 'invalid_log_level'"
-            exc_type = ValueError
-        else:
-            expected_msg = (
-                "Invalid log level selected. Log level names need to be all uppercase"
-            )
-            exc_type = KeyError
+        expected_msg = "ValueError: Unknown level: 'invalid_log_level'"
+        exc_type = ValueError
 
         self.assertRaisesRegexp(
             exc_type,

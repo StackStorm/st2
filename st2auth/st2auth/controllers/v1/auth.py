@@ -67,6 +67,10 @@ class TokenController(object):
         if "x-forwarded-for" in kwargs:
             headers["x-forwarded-for"] = kwargs.pop("x-forwarded-for")
 
+        remote_user = kwargs.pop("remote_user", None)
+        if not remote_user and "x-forwarded-user" in kwargs:
+            remote_user = kwargs.pop("x-forwarded-user", None)
+
         authorization = kwargs.pop("authorization", None)
         if authorization:
             authorization = tuple(authorization.split(" "))
@@ -75,7 +79,7 @@ class TokenController(object):
             request=request,
             headers=headers,
             remote_addr=kwargs.pop("remote_addr", None),
-            remote_user=kwargs.pop("remote_user", None),
+            remote_user=remote_user,
             authorization=authorization,
             **kwargs,
         )

@@ -7,4 +7,4 @@ Those certificates are issues and signed by a custom CA which is contained in th
 
 Certificate passphrase is ``MySecretPassword``.
 
-NOTE: Those cerificates will expire on ``notAfter=Feb 11 15:58:38 2024 GMT``.
+NOTE: Those cerificates will expire on ``notAfter=Feb 12 04:43:45 2039 GMT``.

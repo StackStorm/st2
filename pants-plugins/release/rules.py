@@ -22,7 +22,10 @@ from __future__ import annotations
 
 import re
 
-from pants.backend.python.goals.setup_py import SetupKwargs, SetupKwargsRequest
+from pants.backend.python.util_rules.package_dists import (
+    SetupKwargs,
+    SetupKwargsRequest,
+)
 from pants.engine.fs import DigestContents, GlobMatchErrorBehavior, PathGlobs
 from pants.engine.target import Target
 from pants.engine.rules import collect_rules, Get, MultiGet, rule, UnionRule

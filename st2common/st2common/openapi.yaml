@@ -4444,6 +4444,10 @@ paths:
           in: header
           description: set externally to indicate real source of the request
           type: string
+        - name: x-forwarded-user
+          in: header
+          description: set externally to indicate the remote username in the case of proxy auth
+          type: string
         - name: request
           in: body
           description: Lifespan of the token

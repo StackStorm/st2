@@ -47,3 +47,7 @@ file(
     name="license",
     source="LICENSE",
 )
+
+shell_sources(
+    name="root",
+)

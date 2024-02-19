@@ -336,14 +336,9 @@ class RulesControllerTestCase(
         post_resp = self.__do_post(RulesControllerTestCase.RULE_2)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        if six.PY3:
-            expected_msg = (
-                b"Additional properties are not allowed ('minutex' was unexpected)"
-            )
-        else:
-            expected_msg = (
-                b"Additional properties are not allowed (u'minutex' was unexpected)"
-            )
+        expected_msg = (
+            b"Additional properties are not allowed ('minutex' was unexpected)"
+        )
 
         self.assertIn(expected_msg, post_resp.body)
 
@@ -385,16 +380,8 @@ class RulesControllerTestCase(
         post_resp = self.__do_post(RulesControllerTestCase.RULE_9)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-        if six.PY3:
-            expected_msg_1 = (
-                "Failed validating 'type' in schema['properties']['param1']:"
-            )
-            expected_msg_2 = "12345 is not of type 'string'"
-        else:
-            expected_msg_1 = (
-                "Failed validating u'type' in schema[u'properties'][u'param1']:"
-            )
-            expected_msg_2 = "12345 is not of type u'string'"
+        expected_msg_1 = "Failed validating 'type' in schema['properties']['param1']:"
+        expected_msg_2 = "12345 is not of type 'string'"
 
         self.assertIn(expected_msg_1, post_resp.json["faultstring"])
         self.assertIn(expected_msg_2, post_resp.json["faultstring"])

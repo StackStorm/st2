@@ -19,15 +19,12 @@
 # If we're on Travis, then we need to manually check that the build succeeded.
 if [[ "${USER}" == "runner" || ${TRAVIS_TEST_RESULT} -eq 0 ]]; then
     # 1. Install codecov dependencies
-    # NOTE: We need eventlet installed so coverage can be correctly combined. This is needed because we are covering code which utilizes eventlet.
-    # Without eventlet being available to the coverage command it will fail with "Couldn't trace with concurrency=eventlet, the module isn't installed."
-    pip install eventlet
-    # NOTE: codecov only supports coverage==4.5.2
-    pip install 'coverage<5.0'
-    pip install "codecov==2.1.11"
+    pip install -U pip
+    pip install coverage
+    pip install 'codecov-cli>=0.4'
 
-    # 2. Combine coverage report and submit coverage report to codecovs.io
-    codecov --required
+    # 2. Combine coverage report and submit coverage report to codecov.io
+    codecovcli upload-process -t "${CODECOV_TOKEN}"
     exit $?
 else
     echo "Build has failed, not submitting coverage"

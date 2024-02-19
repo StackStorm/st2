@@ -24,7 +24,6 @@ try:
 except ImportError:
     import json
 
-import six
 import mock
 import unittest2
 from six.moves import http_client
@@ -539,14 +538,9 @@ class ActionsControllerTestCase(
         post_resp = self.__do_post(ACTION_13, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
 
-        if six.PY3:
-            expected_error = (
-                b"['string', 'object'] is not valid under any of the given schemas"
-            )
-        else:
-            expected_error = (
-                b"[u'string', u'object'] is not valid under any of the given schemas"
-            )
+        expected_error = (
+            b"['string', 'object'] is not valid under any of the given schemas"
+        )
 
         self.assertIn(expected_error, post_resp.body)
 

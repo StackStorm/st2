@@ -679,7 +679,10 @@ class PacksControllerTestCase(
         self.assertEqual(resp.status_int, 400)
         self.assertIn(expected_msg, resp.json["faultstring"])
 
-        expected_msg = "'stringa' is not valid under any of the given schemas"
+        # with jsonschema 2.6.0, the anyOf validator errors with:
+        #   "'stringa' is not valid under any of the given schemas"
+        # with jsonschema 3.2.0, the underlying enum (anyOf->enum) gets reported instead:
+        expected_msg = "'stringa' is not one of ['array', 'boolean', 'integer', 'null', 'number', 'object', 'string']"
         self.assertEqual(resp.status_int, 400)
         self.assertIn(expected_msg, resp.json["faultstring"])
 

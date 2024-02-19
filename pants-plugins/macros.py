@@ -16,7 +16,7 @@
 def st2_publish_repos():
     """Return the list of repos twine should publish to.
 
-    Twine will publish to ALL of these repos when running `./pants publish`.
+    Twine will publish to ALL of these repos when running `pants publish`.
 
     We use ST2_PUBLISH_REPO, an env var, To facilitate switching between
     @testpypi and @pypi. That also means someone could publish to their own

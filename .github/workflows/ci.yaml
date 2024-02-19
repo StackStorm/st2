@@ -56,14 +56,6 @@ jobs:
         include:
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Compile (pip deps, pylint, etc.)'
-            task: 'ci-compile'
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Lint Checks (black, flake8, etc.)'
-            task: 'ci-checks'
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Compile (pip deps, pylint, etc.)'
@@ -152,10 +144,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-         # TODO: Check if we want to fix the errors on Py 3.6 to have it tested as well
-         #- name: 'Self-check on Python 3.6'
-         #   python-version-short: '3.6'
-         #   python-version: '3.6.13'
           - name: 'Self-check on Python 3.8'
             python-version-short: '3.8'
             python-version: '3.8.14'
@@ -316,18 +304,6 @@ jobs:
             task: 'ci-unit'
             nosetests_node_total: 2
             nosetests_node_index: 0
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Unit Tests (chunk 2)'
-            task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Unit Tests (chunk 1)'
-            task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Unit Tests (chunk 2)'
@@ -371,7 +347,7 @@ jobs:
 
     env:
       TASK: '${{ matrix.task }}'
-
+      PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
@@ -478,9 +454,11 @@ jobs:
           ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') }}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   integration-tests:
     needs: pre_job
@@ -497,24 +475,6 @@ jobs:
         include:
           # We run pack tests here since they rely on some integration tests set
           # up (aka stanley user being present, etc.)
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Integration Tests (chunk 1)'
-            task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
-            python-version-short: '3.6'
-            python-version: '3.6.13'
-          - name: 'Integration Tests (chunk 2)'
-            task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
-            python-version-short: '3.6'
-            python-version: '3.6.13'
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
             nosetests_node_total: 1
@@ -606,7 +566,7 @@ jobs:
 
     env:
       TASK: '${{ matrix.task }}'
-
+      PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
@@ -715,9 +675,11 @@ jobs:
           script -e -c "make ${TASK}" && exit 0
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' && env.TASK == 'ci-integration' }}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.TASK == 'ci-integration') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Compress Service Logs Before upload
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         run: |

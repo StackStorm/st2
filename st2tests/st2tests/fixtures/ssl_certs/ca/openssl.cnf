@@ -10,7 +10,7 @@ private_key = $dir/private/ca_private_key.pem
 serial = $dir/serial
 
 default_crl_days = 7
-default_days = 1825
+default_days = 5475
 default_md = sha256
 
 policy = testca_policy
@@ -33,10 +33,10 @@ default_bits = 2048
 default_keyfile = ./private/ca_private_key.pem
 default_md = sha256
 prompt = yes
-distinguished_name = root_ca_distinguished_name
+distinguished_name = distinguished_name
 x509_extensions = root_ca_extensions
 
-[ root_ca_distinguished_name ]
+[ distinguished_name ]
 commonName = hostname
 
 [ root_ca_extensions ]
