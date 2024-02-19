@@ -182,9 +182,9 @@ function st2start(){
     # option so we need to use screen config file per screen window
 
     # Run the st2 API server
-    echo 'Starting screen session st2-api...'
+    echo 'Starting screen session st2-api'
     if [ "${use_gunicorn}" = true ]; then
-        echo '  using gunicorn to run st2-api...'
+        echo '  using gunicorn to run st2-api'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -L -c tools/screen-configs/st2api.conf -d -m -S st2-api ${VIRTUALENV}/bin/gunicorn \
             st2api.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
@@ -194,7 +194,11 @@ function st2start(){
             --config-file $ST2_CONF
     fi
 
+	# give st2api time to startup and load things into database
+	sleep 10
+
     # Run st2stream API server
+    echo 'Starting screen session st2-stream'
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-stream'
         export ST2_CONFIG_PATH=${ST2_CONF}
@@ -206,6 +210,9 @@ function st2start(){
             --config-file $ST2_CONF
     fi
 
+	# give st2stream time to startup and load things into database
+	sleep 10
+
     # Run the workflow engine server
     echo 'Starting screen session st2-workflow(s)'
     WORKFLOW_ENGINE_SCREENS=()
@@ -213,7 +220,7 @@ function st2start(){
     do
         WORKFLOW_ENGINE_NAME=st2-workflow-$i
         WORKFLOW_ENGINE_SCREENS+=($WORKFLOW_ENGINE_NAME)
-        echo '  starting '$WORKFLOW_ENGINE_NAME'...'
+        echo '  starting '$WORKFLOW_ENGINE_NAME
         screen -L -c tools/screen-configs/st2workflowengine.conf -d -m -S $WORKFLOW_ENGINE_NAME ${VIRTUALENV}/bin/python \
             ./st2actions/bin/st2workflowengine \
             --config-file $ST2_CONF
@@ -226,7 +233,7 @@ function st2start(){
     do
         RUNNER_NAME=st2-actionrunner-$i
         RUNNER_SCREENS+=($RUNNER_NAME)
-        echo '  starting '$RUNNER_NAME'...'
+        echo '  starting '$RUNNER_NAME
         screen -L -c tools/screen-configs/st2actionrunner.conf -d -m -S $RUNNER_NAME ${VIRTUALENV}/bin/python \
             ./st2actions/bin/st2actionrunner \
             --config-file $ST2_CONF
@@ -245,7 +252,7 @@ function st2start(){
     do
         SCHEDULER_NAME=st2-scheduler-$i
         SCHEDULER_SCREENS+=($SCHEDULER_NAME)
-        echo '  starting '$SCHEDULER_NAME'...'
+        echo '  starting '$SCHEDULER_NAME
         screen -L -c tools/screen-configs/st2scheduler.conf -d -m -S $SCHEDULER_NAME ${VIRTUALENV}/bin/python \
             ./st2actions/bin/st2scheduler \
             --config-file $ST2_CONF
@@ -258,27 +265,27 @@ function st2start(){
         --config-file $ST2_CONF
 
     # Run the rules engine server
-    echo 'Starting screen session st2-rulesengine...'
+    echo 'Starting screen session st2-rulesengine'
     screen -L -c tools/screen-configs/st2rulesengine.conf -d -m -S st2-rulesengine ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2rulesengine \
         --config-file $ST2_CONF
 
     # Run the timer engine server
-    echo 'Starting screen session st2-timersengine...'
+    echo 'Starting screen session st2-timersengine'
     screen -L -c tools/screen-configs/st2timersengine.conf -d -m -S st2-timersengine ${VIRTUALENV}/bin/python \
         ./st2reactor/bin/st2timersengine \
         --config-file $ST2_CONF
 
     # Run the actions notifier
-    echo 'Starting screen session st2-notifier...'
+    echo 'Starting screen session st2-notifier'
     screen -L -c tools/screen-configs/st2notifier.conf -d -m -S st2-notifier ${VIRTUALENV}/bin/python \
         ./st2actions/bin/st2notifier \
         --config-file $ST2_CONF
 
     # Run the auth API server
-    echo 'Starting screen session st2-auth...'
+    echo 'Starting screen session st2-auth'
     if [ "${use_gunicorn}" = true ]; then
-        echo '  using gunicorn to run st2-auth...'
+        echo '  using gunicorn to run st2-auth'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -L -c tools/screen-configs/st2auth.conf -d -m -S st2-auth ${VIRTUALENV}/bin/gunicorn \
             st2auth.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
