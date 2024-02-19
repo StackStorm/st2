@@ -16,7 +16,7 @@
 //     "beautifulsoup4",
 //     "ciso8601",
 //     "cryptography",
-//     "eventlet<0.31",
+//     "eventlet",
 //     "flask",
 //     "flex",
 //     "gitdb",
@@ -88,12 +88,11 @@
 //   "requirement_constraints": [
 //     "MarkupSafe<2.1.0,>=0.23",
 //     "amqp==5.0.6",
-//     "bcrypt==3.2.0",
+//     "bcrypt<4",
 //     "cffi<1.15.0",
 //     "dnspython<2.0.0,>=1.16.0",
 //     "oslo.utils<5.0,>=4.0.0",
-//     "tenacity<7.0.0,>=3.2.1",
-//     "typing-extensions<4.2"
+//     "tenacity<7.0.0,>=3.2.1"
 //   ],
 //   "only_binary": [],
 //   "no_binary": []
@@ -108,12 +107,11 @@
   "constraints": [
     "MarkupSafe<2.1.0,>=0.23",
     "amqp==5.0.6",
-    "bcrypt==3.2.0",
+    "bcrypt<4",
     "cffi<1.15.0",
     "dnspython<2.0.0,>=1.16.0",
     "oslo.utils<5.0,>=4.0.0",
-    "tenacity<7.0.0,>=3.2.1",
-    "typing-extensions<4.2"
+    "tenacity<7.0.0,>=3.2.1"
   ],
   "locked_resolves": [
     {
@@ -313,54 +311,58 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "56e5da069a76470679f312a7d3d23deb3ac4519991a0361abc11da837087b61d",
-              "url": "https://files.pythonhosted.org/packages/66/23/f0e4f9f37c00bbebb9014e3daaa8ca40561fef4a3dc12aee3643248c4208/bcrypt-3.2.0-cp36-abi3-musllinux_1_1_x86_64.whl"
+              "hash": "cd43303d6b8a165c29ec6756afd169faba9396a9472cdff753fe9f19b96ce2fa",
+              "url": "https://files.pythonhosted.org/packages/18/76/057b0637c880e6cb0abdc8a867d080376ddca6ed7d05b7738f589cc5c1a8/bcrypt-3.2.2-cp36-abi3-musllinux_1_1_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "cd1ea2ff3038509ea95f687256c46b79f5fc382ad0aa3664d200047546d511d1",
-              "url": "https://files.pythonhosted.org/packages/26/70/6d218afbe4c73538053c1016dd631e8f25fffc10cd01f5c272d7acf3c03d/bcrypt-3.2.0-cp36-abi3-manylinux2010_x86_64.whl"
+              "hash": "2b02d6bfc6336d1094276f3f588aa1225a598e27f8e3388f4db9948cb707b521",
+              "url": "https://files.pythonhosted.org/packages/3e/df/289db4f31b303de6addb0897c8b5c01b23bd4b8c511ac80a32b08658847c/bcrypt-3.2.2-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "63d4e3ff96188e5898779b6057878fecf3f11cfe6ec3b313ea09955d587ec7a7",
-              "url": "https://files.pythonhosted.org/packages/52/a7/51ab6481ac355517696477889d8ab232106a0ddadda642c54e47a2ab40b9/bcrypt-3.2.0-cp36-abi3-manylinux1_x86_64.whl"
+              "hash": "a2c46100e315c3a5b90fdc53e429c006c5f962529bc27e1dfd656292c20ccc40",
+              "url": "https://files.pythonhosted.org/packages/40/8f/b67b42faa2e4d944b145b1a402fc08db0af8fe2dfa92418c674b5a302496/bcrypt-3.2.2-cp36-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "b589229207630484aefe5899122fb938a5b017b0f4349f769b8c13e78d99a8fd",
-              "url": "https://files.pythonhosted.org/packages/6d/41/9c68492335dc668066a420b1fb1809f24b933e74807142f9e2dd38dafe4b/bcrypt-3.2.0-cp36-abi3-macosx_10_10_universal2.whl"
+              "hash": "88273d806ab3a50d06bc6a2fc7c87d737dd669b76ad955f449c43095389bc8fb",
+              "url": "https://files.pythonhosted.org/packages/61/3d/dce83194830183aa700cab07c89822471d21663a86a0b305d1e5c7b02810/bcrypt-3.2.2-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "cdcdcb3972027f83fe24a48b1e90ea4b584d35f1cc279d76de6fc4b13376239d",
-              "url": "https://files.pythonhosted.org/packages/b5/96/a2819de4faae6b6339a398ab1354770bf8fa532a5e0df0e2f08481fdb670/bcrypt-3.2.0-cp36-abi3-manylinux2014_aarch64.whl"
+              "hash": "6d2cb9d969bfca5bc08e45864137276e4c3d3d7de2b162171def3d188bf9d34a",
+              "url": "https://files.pythonhosted.org/packages/86/1b/f4d7425dfc6cd0e405b48ee484df6d80fb39e05f25963dbfcc2c511e8341/bcrypt-3.2.2-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "c95d4cbebffafcdd28bd28bb4e25b31c50f6da605c81ffd9ad8a3d1b2ab7b1b6",
-              "url": "https://files.pythonhosted.org/packages/bf/6a/0afb1e04aebd4c3ceae630a87a55fbfbbd94dea4eaf01e53d36743c85f02/bcrypt-3.2.0-cp36-abi3-macosx_10_9_x86_64.whl"
+              "hash": "61bae49580dce88095d669226d5076d0b9d927754cedbdf76c6c9f5099ad6f26",
+              "url": "https://files.pythonhosted.org/packages/8c/b3/1257f7d64ee0aa0eb4fb1de5da8c2647a57db7b737da1f2342ac1889d3b8/bcrypt-3.2.2-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "a0584a92329210fcd75eb8a3250c5a941633f8bfaf2a18f81009b097732839b7",
-              "url": "https://files.pythonhosted.org/packages/c0/75/323f3e9e051726cef8a1d71d340a208ed5fe9dbdebc13b83428355c1382e/bcrypt-3.2.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl"
+              "hash": "7180d98a96f00b1050e93f5b0f556e658605dd9f524d0b0e68ae7944673f525e",
+              "url": "https://files.pythonhosted.org/packages/a0/c2/05354b1d4351d2e686a32296cc9dd1e63f9909a580636df0f7b06d774600/bcrypt-3.2.2-cp36-abi3-macosx_10_10_universal2.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "5b93c1726e50a93a033c36e5ca7fdcd29a5c7395af50a6892f5d9e7c6cfbfb29",
-              "url": "https://files.pythonhosted.org/packages/d8/ba/21c475ead997ee21502d30f76fd93ad8d5858d19a3fad7cd153de698c4dd/bcrypt-3.2.0.tar.gz"
+              "hash": "433c410c2177057705da2a9f2cd01dd157493b2a7ac14c8593a16b3dab6b6bfb",
+              "url": "https://files.pythonhosted.org/packages/e8/36/edc85ab295ceff724506252b774155eff8a238f13730c8b13badd33ef866/bcrypt-3.2.2.tar.gz"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "7d9ba2e41e330d2af4af6b1b6ec9e6128e91343d0b4afb9282e54e5508f31baa",
+              "url": "https://files.pythonhosted.org/packages/fc/9a/e1867f0b27a3f4ce90e21dd7f322f0e15d4aac2434d3b938dcf765e47c6b/bcrypt-3.2.2-cp36-abi3-musllinux_1_1_aarch64.whl"
             }
           ],
           "project_name": "bcrypt",
           "requires_dists": [
             "cffi>=1.1",
             "mypy; extra == \"typecheck\"",
-            "pytest!=3.3.0,>=3.2.1; extra == \"tests\"",
-            "six>=1.4.1"
+            "pytest!=3.3.0,>=3.2.1; extra == \"tests\""
           ],
           "requires_python": ">=3.6",
-          "version": "3.2.0"
+          "version": "3.2.2"
         },
         {
           "artifacts": [
@@ -1013,24 +1015,30 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "c4e2c5452e54a267f5ce56092eeeed3d52d5c9319e545a796ab5ebbb5b2528ef",
-              "url": "https://files.pythonhosted.org/packages/ea/c6/9990551f52dcb9dd50ea87904e68ee61f20ec03de208d2bb0a0a5ab072a5/eventlet-0.30.3-py2.py3-none-any.whl"
+              "hash": "7ed9493b26e02f575f4804ef263190839e9651989523f6f8f9c2866a05c12c83",
+              "url": "https://files.pythonhosted.org/packages/44/d2/2f3da64a54d247b8504f644a42163deb5d28b3c57719eb6acc9932734c20/eventlet-0.35.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "a802caa725d6eb2d45a763c33f6bb5206e8d0566d5abc03638225379cf32476d",
-              "url": "https://files.pythonhosted.org/packages/d5/93/22be27621c6b017ac630f84b94ac8ac11231f7f03a6a0aec668365f823fe/eventlet-0.30.3.tar.gz"
+              "hash": "3b2eede94d64538cb894eec50302a881e056ed7e057f0e24fb45b28a19d6b2e8",
+              "url": "https://files.pythonhosted.org/packages/40/18/7b06bfa5cbcd38284d31fe9322a35ce401e50c4654fb4a69a612c0444995/eventlet-0.35.1.tar.gz"
             }
           ],
           "project_name": "eventlet",
           "requires_dists": [
-            "dnspython<2.0.0,>=1.15.0",
-            "greenlet>=0.3",
+            "black; extra == \"dev\"",
+            "build; extra == \"dev\"",
+            "commitizen; extra == \"dev\"",
+            "dnspython>=1.15.0",
+            "greenlet>=1.0",
+            "isort; extra == \"dev\"",
             "monotonic>=1.4; python_version < \"3.5\"",
-            "six>=1.10.0"
+            "pip-tools; extra == \"dev\"",
+            "pre-commit; extra == \"dev\"",
+            "twine; extra == \"dev\""
           ],
-          "requires_python": null,
-          "version": "0.30.3"
+          "requires_python": ">=3.7",
+          "version": "0.35.1"
         },
         {
           "artifacts": [
@@ -4964,7 +4972,7 @@
     "beautifulsoup4",
     "ciso8601",
     "cryptography",
-    "eventlet<0.31",
+    "eventlet",
     "flask",
     "flex",
     "gitdb",
