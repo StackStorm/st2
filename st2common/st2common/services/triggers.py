@@ -285,6 +285,7 @@ def create_or_update_trigger_db(trigger, log_not_unique_error_as_debug=False):
         )
 
     existing_trigger_db = _get_trigger_db(trigger)
+    LOG.debug("create_or_update_trigger_db :: existing_trigger_db")
 
     if existing_trigger_db:
         is_update = True
@@ -293,6 +294,7 @@ def create_or_update_trigger_db(trigger, log_not_unique_error_as_debug=False):
 
     trigger_api = TriggerAPI(**trigger)
     trigger_api.validate()
+    LOG.debug("create_or_update_trigger_db :: trigger_api")
     trigger_db = TriggerAPI.to_model(trigger_api)
 
     if is_update:
@@ -301,6 +303,7 @@ def create_or_update_trigger_db(trigger, log_not_unique_error_as_debug=False):
     trigger_db = Trigger.add_or_update(
         trigger_db, log_not_unique_error_as_debug=log_not_unique_error_as_debug
     )
+    LOG.debug("create_or_update_trigger_db :: trigger_db")
 
     extra = {"trigger_db": trigger_db}
 
@@ -422,6 +425,7 @@ def create_shadow_trigger(trigger_type_db, log_not_unique_error_as_debug=False):
         "type": trigger_type_ref,
         "parameters": {},
     }
+    LOG.debug("create_shadow_trigger :: trigger ")
 
     return create_or_update_trigger_db(
         trigger, log_not_unique_error_as_debug=log_not_unique_error_as_debug
