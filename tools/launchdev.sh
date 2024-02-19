@@ -194,9 +194,6 @@ function st2start(){
             --config-file $ST2_CONF
     fi
 
-	# give st2api time to startup and load things into database
-	sleep 10
-
     # Run st2stream API server
     echo 'Starting screen session st2-stream'
     if [ "${use_gunicorn}" = true ]; then
