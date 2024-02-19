@@ -74,7 +74,7 @@ dnspython>=1.16.0,<2.0.0
 #       out to see if that will help. If any tests fail, uncomment this.
 # DROPS RESOLVED VERSION: 1.1.3.post0
 #greenlet==1.0.0
-greenlet<3
+greenlet<2
 
 # REQUIRED BY: argcomplete, click, debtcollector, kombu, pluggy, prettytable,
 #             pytest, virtualenv
