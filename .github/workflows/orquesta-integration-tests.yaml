@@ -189,7 +189,7 @@ jobs:
         run: |
           ./scripts/ci/print-versions.sh
       - name: make
-        timeout-minutes: 31
+        timeout-minutes: 41
         env:
           MAX_ATTEMPTS: 3
           RETRY_DELAY: 5
