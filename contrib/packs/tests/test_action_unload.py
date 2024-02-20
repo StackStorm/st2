@@ -85,7 +85,7 @@ class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
         config_dbs = Config.query(pack=pack)
 
         self.assertEqual(len(pack_dbs), 1)
-        self.assertEqual(len(action_dbs), 1)
+        self.assertEqual(len(action_dbs), 3)
         self.assertEqual(len(alias_dbs), 3)
         self.assertEqual(len(rule_dbs), 1)
         self.assertEqual(len(sensor_dbs), 3)
