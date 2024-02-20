@@ -7,6 +7,9 @@ exclude = '''
   /(
     | \.git
     | \.virtualenv
+    | venv
+    | virtualenv
+    | virtualenv-osx
     | __pycache__
     | test_content_version
   )/

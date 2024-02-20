@@ -16,6 +16,11 @@
             description: "Path to the file to monitor"
             type: "string"
             required: true
+          follow:
+            description: "Whether or not to follow the file when it moves"
+            type: "boolean"
+            required: false
+            default: false
         additionalProperties: false
       # This is the schema of the trigger payload the sensor generates
       payload_schema:

@@ -33,6 +33,9 @@ conf/st2.travis.conf
 # generated GitHub Actions conf
 conf/st2.githubactions.conf
 
+# Vagrant
+.vagrant/
+
 # Installer logs
 pip-log.txt
 
