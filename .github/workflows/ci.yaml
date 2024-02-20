@@ -665,7 +665,6 @@ jobs:
 
           ./scripts/ci/print-versions.sh
       - name: make
-        if: "${{ env.TASK == 'ci-integration' }}"
         #timeout-minutes: 7
         # TODO: Use dynamic timeout value based on the branch - for master we
         # need to use timeout x2 due to coverage overhead
