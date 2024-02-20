@@ -3,61 +3,20 @@
 # string with no escape characters (so it's particularly useful for expressing regexes).
 # Adding quotes around these may change their meaning, so don't do so without thought.
 
-required_matches:
+required_matches: {}
   # If we decide to enable this, remove the st2flake8
   #python_source:
   #  - python_header
   #build_files:
   #  - python_header
 
-  # TODO: In the future pants should get `visibility` and possibly other
-  #       features to restrict imports for dependees or dependencies.
-  #       - https://github.com/pantsbuild/pants/issues/13393
-  #       - https://github.com/pantsbuild/pants/pull/15803
-  #       - https://github.com/pantsbuild/pants/pull/15836
-  #       When that happens, we can add that target metadata,
-  #       and remove these regex based dependency checks.
-
-  # st2client-dependencies-check
-  st2client:
-    - must_not_import_st2common
-
-  # st2common-circular-dependencies-check
-  st2common:
-    - must_not_import_st2reactor
-    - must_not_import_st2api
-    - must_not_import_st2auth
-    #- must_not_import_st2actions
-    #- must_not_import_st2stream
-  st2common_except_services_inquiry:
-    # The makefile excluded: runnersregistrar.py, compat.py, inquiry.py
-    # runnersregistrar does not have an st2actions ref since 2016.
-    # compat.py st2actions function was added and removed in 2017.
-    # services/inquiry.py still imports st2actions.
-    - must_not_import_st2actions
-  st2common_except_router:
-    # The makefile excluded router.py from st2stream check.
-    # In router.py, "st2stream" is a string, not an import.
-    - must_not_import_st2stream
-
-path_patterns:
+path_patterns: []
   #- name: python_source
   #  pattern: (?<!__init__)\.py$
   #- name: build_files
   #  pattern: /BUILD$
 
-  - name: st2client
-    pattern: st2client/st2client/.*\.py$
-  - name: st2common
-    pattern: st2common/st2common/.*\.py$
-
-  - name: st2common_except_services_inquiry
-    pattern: st2common/st2common/(?!services/inquiry\.py).*\.py$
-
-  - name: st2common_except_router
-    pattern: st2common/st2common/(?!router\.py).*\.py$
-
-content_patterns:
+content_patterns: []
   #- name: python_header
   #  pattern: |+
   #    ^(?:#\!\/usr\/bin\/env python3
@@ -75,27 +34,3 @@ content_patterns:
   #    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   #    # See the License for the specific language governing permissions and
   #    # limitations under the License.
-
-  - name: must_not_import_st2common
-    pattern: st2common
-    inverted: true
-
-  - name: must_not_import_st2reactor
-    pattern: st2reactor
-    inverted: true
-
-  - name: must_not_import_st2actions
-    pattern: st2actions
-    inverted: true
-
-  - name: must_not_import_st2api
-    pattern: st2api
-    inverted: true
-
-  - name: must_not_import_st2auth
-    pattern: st2auth
-    inverted: true
-
-  - name: must_not_import_st2stream
-    pattern: st2stream
-    inverted: true

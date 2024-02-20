@@ -6,10 +6,13 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.17.1"
+pants_version = "2.18.2"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
+  # https://www.pantsbuild.org/2.19/docs/using-pants/validating-dependencies
+  "pants.backend.experimental.visibility",
+
   # python
   "pants.backend.python",
   "pants.backend.experimental.python", # activates twine `publish` support
@@ -226,3 +229,6 @@ install_from_resolve = "setuptools"
 
 [twine]
 install_from_resolve = "twine"
+
+[cli.alias]
+--all-changed = "--changed-since=HEAD --changed-dependents=transitive"
