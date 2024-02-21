@@ -1,3 +1,19 @@
+__dependents_rules__(
+    (
+        # graphviz and pika
+        (
+            {"path": "/", "name": "graphviz"},
+            {"path": "/", "name": "pika"},
+        ),
+        # can used by tools in this directory
+        "/**",
+        # and nothing else
+        "!*",
+    ),
+    # everything else is not restricted
+    ("*", "*"),
+)
+
 python_requirement(
     name="graphviz",
     requirements=["graphviz"],

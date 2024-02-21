@@ -10,6 +10,9 @@ pants_version = "2.17.1"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
+  # https://www.pantsbuild.org/2.19/docs/using-pants/validating-dependencies
+  "pants.backend.experimental.visibility",
+
   # python
   "pants.backend.python",
   "pants.backend.experimental.python", # activates twine `publish` support
