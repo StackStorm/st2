@@ -102,6 +102,9 @@ Changed
 * Remove `distutils` dependencies across the project. #5992
   Contributed by @AndroxxTraxxon
 
+* Remove deprecated not use dependencie `python-keyczar`. #6078
+  Contributed by (@philipphomberger Schwarz IT KG)
+
 3.8.0 - November 18, 2022
 -------------------------
 
