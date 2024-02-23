@@ -24,6 +24,12 @@ Added
 * Build of ST2 EL9 packages #6153
   Contributed by @amanda11
 
+Added
+~~~~~
+* add a schema to shell and winrm runners to allow validations to be executed againt their payloads. This means that shell or winrm jobs
+  that return a json object will be parsed into a dict to allow for field validations to be performed. Non json string resonses are still
+  handled as normal #6102
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed

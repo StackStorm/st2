@@ -50,7 +50,7 @@ PACKS = [TEST_PACK_PATH, CORE_PACK_PATH]
 RUNNER_RESULT_FAILED = (action_constants.LIVEACTION_STATUS_FAILED, {}, {})
 RUNNER_RESULT_SUCCEEDED = (
     action_constants.LIVEACTION_STATUS_SUCCEEDED,
-    {"stdout": "foobar"},
+    {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""},
     {},
 )
 
