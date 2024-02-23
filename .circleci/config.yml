@@ -124,21 +124,6 @@ jobs:
       - BASH_ENV: ~/.buildenv
     steps:
       - checkout
-      - run:
-          name: Install latest Docker Compose V2
-          command: |
-            set -x
-            export CODENAME=$(source /etc/os-release && echo "$VERSION_CODENAME")
-            export DISTRO=$(source /etc/os-release && echo "$ID")
-            export ARCH=$(dpkg --print-architecture)
-            # get gpg key for download.docker
-            curl -fsSL https://download.docker.com/linux/${DISTRO}/gpg | sudo gpg --dearmor -o /etc/apt
-            # set source list
-            sudo tee <<<"deb [arch=${ARCH}] https://download.docker.com/linux/${DISTRO} ${CODENAME} sta
-            # update package list
-            sudo apt update
-            # install docker CLI and Docker Compose v2
-            sudo apt install docker-ce-cli docker-compose-plugin
       - setup_remote_docker:
           reusable: true    # default - false
           exclusive: true   # default - true
