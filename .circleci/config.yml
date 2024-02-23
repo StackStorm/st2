@@ -148,7 +148,7 @@ jobs:
           command: |
             set -x
             docker --version
-            docker compose --version
+            docker compose version
       - run:
           name: Download st2-packages repository
           command: |
