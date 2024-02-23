@@ -2,6 +2,12 @@ python_requirements(
     name="reqs",
     source="requirements-pants.txt",
     overrides={
+        # something is indirectly using eventlet's pyOpenSSL libs
+        "eventlet": dict(
+            dependencies=[
+                "//:reqs#pyOpenSSL",
+            ]
+        ),
         # flex and stevedore uses pkg_resources w/o declaring the dep
         ("flex", "stevedore"): dict(
             dependencies=[
