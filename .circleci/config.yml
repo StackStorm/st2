@@ -132,7 +132,7 @@ jobs:
             export DISTRO=$(source /etc/os-release && echo "$ID")
             export ARCH=$(dpkg --print-architecture)
             # get gpg key for download.docker
-            url -fsSL https://download.docker.com/linux/${DISTRO}/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/download.docker.gpg
+            curl -fsSL https://download.docker.com/linux/${DISTRO}/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/download.docker.gpg
             # set source list
             sudo tee <<<"deb [arch=${ARCH}] https://download.docker.com/linux/${DISTRO} ${CODENAME} stable" /etc/apt/sources.list.d/download.docker.list
             # update package list
