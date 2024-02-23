@@ -21,6 +21,8 @@ Added
   to pants' use of PEX lockfiles. This is not a user-facing addition.
   #6118 #6141 #6133
   Contributed by @cognifloyd
+* Build of ST2 EL9 packages #6153
+  Contributed by @amanda11
 
 3.8.1 - December 13, 2023
 -------------------------
