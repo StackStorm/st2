@@ -12,11 +12,12 @@ required_matches:
 
   # TODO: In the future pants should get `visibility` and possibly other
   #       features to restrict imports for dependees or dependencies.
-  #       - https://github.com/pantsbuild/pants/issues/13393
-  #       - https://github.com/pantsbuild/pants/pull/15803
-  #       - https://github.com/pantsbuild/pants/pull/15836
-  #       When that happens, we can add that target metadata,
-  #       and remove these regex based dependency checks.
+  #       We now have the rules. We just need the lint backend to check regularly.
+  #       - https://github.com/pantsbuild/pants/discussions/17389 dep rules
+  #       - https://github.com/pantsbuild/pants/issues/17634 visibility stabilization
+  #       - https://www.pantsbuild.org/v2.16/docs/validating-dependencies
+  #       We can use the visibility lint backend once we upgrade to pants 2.18:
+  #       https://www.pantsbuild.org/blog/2023/11/14/pants-2.18.0-is-released#more-visible-visibility
 
   # st2client-dependencies-check
   st2client:

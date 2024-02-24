@@ -144,10 +144,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-         # TODO: Check if we want to fix the errors on Py 3.6 to have it tested as well
-         #- name: 'Self-check on Python 3.6'
-         #   python-version-short: '3.6'
-         #   python-version: '3.6.13'
           - name: 'Self-check on Python 3.8'
             python-version-short: '3.8'
             python-version: '3.8.14'
@@ -669,7 +665,6 @@ jobs:
 
           ./scripts/ci/print-versions.sh
       - name: make
-        if: "${{ env.TASK == 'ci-integration' }}"
         #timeout-minutes: 7
         # TODO: Use dynamic timeout value based on the branch - for master we
         # need to use timeout x2 due to coverage overhead

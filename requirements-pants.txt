@@ -22,11 +22,12 @@ greenlet
 gunicorn
 jinja2
 jsonpath-rw
-jsonschema
+jsonschema>=3,<4
 kombu
 lockfile
 mock
-mongoengine
+# mongoengine 0.24.0 has breaking changes to support pymongo 4.0
+mongoengine>=0.21.0,<0.24.0
 # Note: networkx v2.6 dropped support for Python3.6
 # networkx version is constrained in orquesta.
 networkx
@@ -45,7 +46,8 @@ prettytable
 # For st2client: prompt-toolkit v2+ does not have prompt_toolkit.token.Token
 prompt-toolkit<2
 psutil
-pymongo
+# pymongo 3.13 has backports of APIs from pymongo 4 to help w/ migration
+pymongo>=3.11.0,<3.13.0
 # pyrabbit used in an integration test
 pyrabbit
 pytest
@@ -99,8 +101,8 @@ zake
 
 ###########
 
-# not needed with switch to pytest
-#nose
-#nose-timer
-#nose-parallel
-#rednose
+# remove once we switch to pytest
+nose
+nose-timer
+nose-parallel
+rednose

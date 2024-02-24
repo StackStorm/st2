@@ -84,7 +84,7 @@ token_ttl = 86400
 # Standalone mode options - options below only apply when auth service is running in the standalone
 # mode.
 
-# Authentication backend to use in a standalone mode. Available backends: ldap, flat_file.
+# Authentication backend to use in a standalone mode. Available backends: flat_file, ldap.
 backend = flat_file
 # JSON serialized arguments which are passed to the authentication backend in a standalone mode.
 backend_kwargs = None
