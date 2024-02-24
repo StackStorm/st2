@@ -273,7 +273,6 @@ class BaseDbTestCase(BaseTestCase):
             cls.db_connection.drop_database(cfg.CONF.database.db_name)
 
         db_teardown()
-        cls.db_connection = None
 
     @classmethod
     def _drop_collections(cls):

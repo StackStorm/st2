@@ -231,11 +231,6 @@ def register_opts(ignore_errors=False):
             help="ca_certs file contains a set of concatenated CA certificates, which are "
             "used to validate certificates passed from MongoDB.",
         ),
-        cfg.BoolOpt(
-            "ssl_match_hostname",
-            default=True,
-            help="If True and `ssl_cert_reqs` is not None, enables hostname verification",
-        ),
         cfg.StrOpt(
             "authentication_mechanism",
             default=None,

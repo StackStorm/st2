@@ -50,7 +50,6 @@ def db_cleanup_with_retry(
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
     authentication_mechanism=None,
-    ssl_match_hostname=True,
 ):
     """
     This method is a retry version of db_cleanup.
@@ -68,7 +67,6 @@ def db_cleanup_with_retry(
         ssl_cert_reqs=ssl_cert_reqs,
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
     )
 
 
