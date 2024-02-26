@@ -12,7 +12,7 @@ cryptography==39.0.1
 importlib-metadata>=4.8.3,<=4.10.1
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
-orjson==3.5.2
+orjson==3.9.15
 prettytable==2.1.0
 prompt-toolkit==1.0.15
 pyOpenSSL==23.1.0
