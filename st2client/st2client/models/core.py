@@ -555,7 +555,7 @@ class ExecutionResourceManager(ResourceManager):
         if response.status_code != http_client.OK:
             self.handle_error(response)
 
-        return orjson.loads(response.text)
+        return response.text
 
     @add_auth_token_to_kwargs_from_env
     def pause(self, execution_id, **kwargs):
