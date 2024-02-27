@@ -324,7 +324,6 @@ class AliasExecutionTestCase(FunctionalTest):
         result = resp.json["results"][0]
         live_action = result["execution"]["liveaction"]
         action_alias = result["actionalias"]
-
         self.assertEqual(resp.status_int, 201)
         self.assertTrue(isinstance(live_action["parameters"]["array_param"], list))
         self.assertEqual(live_action["parameters"]["array_param"][0], "one")
