@@ -14,6 +14,8 @@ Changed
 ~~~~~~~
 * Bumped `jsonschema` 2.6.0 -> 3.2.0 now that python3.6 is not supported. #6118
 
+* Upgrade `pymongo` and `mongoengine` for MongoDB v5/6/7 support. #6157
+
 Added
 ~~~~~
 * Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)

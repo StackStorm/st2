@@ -27,7 +27,8 @@ lockfile==0.12.2
 # Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
 # >=0.23 was from jinja2
 MarkupSafe<2.1.0,>=0.23
-mongoengine==0.23.0
+# mongoengine 0.24.0 has breaking changes to support pymongo 4.0
+mongoengine>=0.21.0,<0.24.0
 # required by orquesta (networkx<2.6 for py3.6, networkx<3 for py3.8)
 networkx<3
 # networkx requires decorator>=4.3,<5 which should resolve to version 4.4.2
@@ -43,7 +44,8 @@ paramiko==2.11.0
 passlib==1.7.4
 prompt-toolkit==1.0.15
 pyinotify==0.9.6 ; platform_system=="Linux"
-pymongo==3.11.3
+# pymongo 3.13 has backports of APIs from pymongo 4 to help w/ migration
+pymongo>=3.11.0,<3.13.0
 pyparsing<3
 zstandard==0.15.2
 # pyOpenSSL 23.1.0 supports cryptography up to 40.0.x

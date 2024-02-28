@@ -10,7 +10,7 @@ eventlet==0.33.3
 gunicorn==21.2.0
 oslo.config>=1.12.1,<1.13
 passlib==1.7.4
-pymongo==3.11.3
+pymongo>=3.11.0,<3.13.0
 six==1.13.0
 st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
