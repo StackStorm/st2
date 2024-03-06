@@ -30,9 +30,8 @@ networkx==2.8.8
 # networkx dropped its dep on decorator in version 2.6, so the old pin is unneeded.
 # now jsonpath-rw is the only thing that depends on decorator (a transitive dep)
 decorator==5.1.1
-# NOTE: Recent version substantially affect the performance and add big import time overhead
-# See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
-oslo.config==1.12.1
+# Use latest (Mar 2024) oslo config for py3.10 support.
+oslo.config==9.4.0
 oslo.utils==7.1.0
 # paramiko 2.11.0 is needed by cryptography > 37.0.0
 paramiko==3.4.0
