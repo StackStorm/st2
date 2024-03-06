@@ -55,7 +55,8 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
-PIP_VERSION ?= 20.3.3
+# 202403: Use pip 24.0 which is the highest supported version across Python 3.8 - 3.10
+PIP_VERSION ?= 24.0
 SETUPTOOLS_VERSION ?= 51.3.3
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
