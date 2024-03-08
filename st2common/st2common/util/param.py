@@ -204,6 +204,8 @@ def _remove_bad(g_copy, parent, nodes, tracked_parents=None):
 
     if tracked_parents is None:
         tracked_parents = [parent]
+    else:
+        tracked_parents.append(parent)
     for i in nodes:
         g_copy.nodes[parent]["value"] = g_copy.nodes[parent].pop("template")
         if i in g_copy.nodes:
