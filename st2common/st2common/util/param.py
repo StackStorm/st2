@@ -170,23 +170,75 @@ def _process_defaults(G, schemas):
                 _process(G, name, value.get("default"))
 
 
+def _check_any_bad(G, nodes, check_any_bad=None, tracked_parents=None):
+    """
+    :param G: nx.DiGraph
+    :param nodes: list[dict]
+    :param check_any_bad: list[boolean]
+    :param tracked_parents: list[str]
+    """
+    if tracked_parents is None:
+        tracked_parents = []
+    if check_any_bad is None:
+        check_any_bad = []
+    for name in nodes:
+        if "value" not in G.nodes[name] and "template" not in G.nodes[name]:
+            # this is a string not a jinja template;  embedded {{sometext}}
+            check_any_bad.append(False)
+        else:
+            check_any_bad.append(True)
+        children = [i for i in G.predecessors(name)]
+        if name not in tracked_parents:
+            tracked_parents.extend(nodes)
+            _check_any_bad(G, children, check_any_bad, tracked_parents)
+    return check_any_bad
+
+
+def _remove_bad(g_copy, parent, nodes, tracked_parents=None):
+    """
+    :param G: nx.DiGraph
+    :param nodes: str
+    :param check_any_bad: list[str]
+    :param tracked_parents: list[str]
+    """
+
+    if tracked_parents is None:
+        tracked_parents = [parent]
+    for i in nodes:
+        g_copy.nodes[parent]["value"] = g_copy.nodes[parent].pop("template")
+        if i in g_copy.nodes:
+            children = [i for i in g_copy.predecessors(i)]
+            if children:
+                if i not in tracked_parents:
+                    _remove_bad(g_copy, i, children)
+            # remove template for neighbors; this isn't actually a variable
+            # it is a value
+            # remove template attr if it exists on parent
+            # remove edges
+            g_copy.remove_edge(i, parent)
+            # remove node from graph
+            g_copy.remove_node(i)
+
+
 def _validate(G):
     """
     Validates dependency graph to ensure it has no missing or cyclic dependencies
     """
     g_copy = G.copy()
     for name in G.nodes:
-        if "value" not in G.nodes[name] and "template" not in G.nodes[name]:
-            # this is a string not a jinja template;  embedded {{sometext}}
-            for i in G.neighbors(name):
-                # remove template for neighbors; this isn't actually a variable
-                # it is a value
-                # remove template attr if it exists
-                g_copy.nodes[i]["value"] = g_copy.nodes[i].pop("template")
-                # remove edges
-                g_copy.remove_edge(name, i)
-            # remove node from graph
-            g_copy.remove_node(name)
+        children = [i for i in G.predecessors(name)]
+        if len(children) > 0:
+            # has children
+            check_all = _check_any_bad(G, children)
+            # check if all are FALSE
+            if not any(check_all):
+                # this is a string or object with embedded jinja string that
+                # doesn't exist as a parameter and  not a jinja template;  embedded {{sometext}}
+                _remove_bad(g_copy, name, children)
+            elif True in check_all and False in check_all:
+                msg = 'Dependency unsatisfied in variable "%s"' % name
+                # one of the parameters exists but not all
+                raise ParamException(msg)
 
     if not nx.is_directed_acyclic_graph(g_copy):
         graph_cycles = nx.simple_cycles(g_copy)
@@ -286,7 +338,6 @@ def _cast_params_from(params, context, schemas):
     # value is a template, it is rendered and added to the live params before this validation.
     for schema in schemas:
         for param_name, param_details in schema.items():
-
             # Skip if the parameter have immutable set to true in schema
             if param_details.get("immutable"):
                 continue
@@ -347,7 +398,6 @@ def render_live_params(
     [_process(G, name, value) for name, value in six.iteritems(params)]
     _process_defaults(G, [action_parameters, runner_parameters])
     G = _validate(G)
-
     context = _resolve_dependencies(G)
     live_params = _cast_params_from(
         params, context, [action_parameters, runner_parameters]
