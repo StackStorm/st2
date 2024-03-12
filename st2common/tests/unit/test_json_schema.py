@@ -179,7 +179,7 @@ class JSONSchemaTestCase(TestCase):
         validator = util_schema.get_validator()
 
         expected_msg = "'arg_required_no_default' is a required property"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValidationError,
             expected_msg,
             util_schema.validate,

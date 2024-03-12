@@ -192,7 +192,7 @@ class TestClientEndpoints(unittest.TestCase):
         # Invalid value, path to the bundle doesn't exist
         cacert = os.path.abspath(__file__)
         expected_msg = 'CA cert file "doesntexist" does not exist'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             Client,

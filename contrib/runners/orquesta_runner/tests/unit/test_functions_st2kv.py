@@ -93,7 +93,7 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         self.assertIsNone(st2kv.st2kv_(MOCK_CTX, "foo_null"))
 
     def test_key_does_not_exist(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exc.ExpressionEvaluationException,
             'The key ".*" does not exist in the StackStorm datastore.',
             st2kv.st2kv_,
@@ -120,7 +120,7 @@ class UserScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         kvp_util, "get_key", mock.MagicMock(side_effect=Exception("Mock failure."))
     )
     def test_get_key_exception(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exc.ExpressionEvaluationException,
             "Mock failure.",
             st2kv.st2kv_,
@@ -168,7 +168,7 @@ class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         self.assertIsNone(st2kv.st2kv_(MOCK_CTX, "system.foo_null"))
 
     def test_key_does_not_exist(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exc.ExpressionEvaluationException,
             'The key ".*" does not exist in the StackStorm datastore.',
             st2kv.st2kv_,
@@ -197,7 +197,7 @@ class SystemScopeDatastoreFunctionTest(st2tests.ExecutionDbTestCase):
         kvp_util, "get_key", mock.MagicMock(side_effect=Exception("Mock failure."))
     )
     def test_get_key_exception(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exc.ExpressionEvaluationException,
             "Mock failure.",
             st2kv.st2kv_,

@@ -746,7 +746,7 @@ class CLITokenCachingTestCase(unittest.TestCase):
             fp.write("CORRRRRUPTED!")
 
         expected_msg = "File (.+) with cached token is corrupted or invalid"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             shell._get_cached_auth_token,

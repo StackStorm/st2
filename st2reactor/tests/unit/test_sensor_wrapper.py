@@ -152,7 +152,7 @@ class SensorWrapperTestCase(unittest.TestCase):
         expected_msg = (
             "Failed to load sensor class from file.*? No such file or directory"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             IOError,
             expected_msg,
             SensorWrapper,
@@ -171,7 +171,7 @@ class SensorWrapperTestCase(unittest.TestCase):
         expected_msg = (
             "Failed to load sensor class from file.*? 'typobar' is not defined"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             NameError,
             expected_msg,
             SensorWrapper,

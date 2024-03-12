@@ -180,7 +180,7 @@ class ParamikoSSHClientTestCase(unittest.TestCase):
 
         client = ParamikoSSHClient(**conn_params)
 
-        self.assertRaisesRegexp(ValueError, expected_msg, client.connect)
+        self.assertRaisesRegex(ValueError, expected_msg, client.connect)
 
     @patch("paramiko.SSHClient", Mock)
     @patch.object(
@@ -230,7 +230,7 @@ class ParamikoSSHClientTestCase(unittest.TestCase):
         mock = ParamikoSSHClient(**conn_params)
 
         expected_msg = "Invalid or unsupported key type"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             paramiko.ssh_exception.SSHException, expected_msg, mock.connect
         )
 
@@ -247,7 +247,7 @@ class ParamikoSSHClientTestCase(unittest.TestCase):
 
         expected_msg = "passphrase should accompany private key material"
         client = ParamikoSSHClient(**conn_params)
-        self.assertRaisesRegexp(ValueError, expected_msg, client.connect)
+        self.assertRaisesRegex(ValueError, expected_msg, client.connect)
 
     @patch("paramiko.SSHClient", Mock)
     def test_passphrase_not_provided_for_encrypted_key_file(self):
@@ -330,7 +330,7 @@ class ParamikoSSHClientTestCase(unittest.TestCase):
         expected_msg = "passphrase should accompany private key material"
         client = ParamikoSSHClient(**conn_params)
 
-        self.assertRaisesRegexp(ValueError, expected_msg, client.connect)
+        self.assertRaisesRegex(ValueError, expected_msg, client.connect)
 
     @patch("paramiko.SSHClient", Mock)
     @patch.object(
@@ -351,7 +351,7 @@ class ParamikoSSHClientTestCase(unittest.TestCase):
         mock = ParamikoSSHClient(**conn_params)
 
         expected_msg = "Invalid passphrase or invalid/unsupported key type"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             paramiko.ssh_exception.SSHException, expected_msg, mock.connect
         )
 
@@ -375,7 +375,7 @@ class ParamikoSSHClientTestCase(unittest.TestCase):
             conn_params["key_material"] = key_material
             mock = ParamikoSSHClient(**conn_params)
 
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 paramiko.ssh_exception.SSHException, expected_msg, mock.connect
             )
 
