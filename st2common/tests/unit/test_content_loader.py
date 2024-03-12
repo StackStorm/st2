@@ -100,7 +100,7 @@ class ContentLoaderTest(unittest.TestCase):
         pack_path = os.path.join(RESOURCES_DIR, "packs/pack100")
 
         message_regex = "Directory .*? doesn't exist"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             message_regex,
             loader.get_content_from_pack,
@@ -226,14 +226,14 @@ class YamlLoaderTestCase(unittest.TestCase):
         result = yaml.load(dumped, Loader=FullLoader)
         self.assertTrue(result)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             yaml.constructor.ConstructorError,
             "could not determine a constructor",
             yaml_safe_load,
             dumped,
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             yaml.constructor.ConstructorError,
             "could not determine a constructor",
             yaml.load,
@@ -242,7 +242,7 @@ class YamlLoaderTestCase(unittest.TestCase):
         )
 
         if CSafeLoader:
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 yaml.constructor.ConstructorError,
                 "could not determine a constructor",
                 yaml.load,

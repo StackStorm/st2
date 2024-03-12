@@ -96,7 +96,7 @@ class LoaderTest(unittest.TestCase):
         file_path = os.path.join(SRC_ROOT, "plugin/sampleplugin3.py")
 
         expected_msg = 'doesn\'t expose class named "SamplePluginNotExists"'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             Exception,
             expected_msg,
             plugin_loader.register_plugin_class,
@@ -111,7 +111,7 @@ class LoaderTest(unittest.TestCase):
         expected_msg = (
             'doesn\'t implement required "do_work" method from the base class'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             plugin_loader.IncompatiblePluginException,
             expected_msg,
             plugin_loader.register_plugin_class,

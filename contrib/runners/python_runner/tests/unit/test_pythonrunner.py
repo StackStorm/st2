@@ -281,7 +281,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.entry_point = ""
 
         expected_msg = "Action .*? is missing entry_point attribute"
-        self.assertRaisesRegexp(Exception, expected_msg, runner.run, {})
+        self.assertRaisesRegex(Exception, expected_msg, runner.run, {})
 
     @mock.patch("st2common.util.concurrency.subprocess_popen")
     def test_action_with_user_supplied_env_vars(self, mock_popen):
@@ -720,7 +720,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         expected_msg = (
             'File "/tmp/doesnt.exist" has no action class or the file doesn\'t exist.'
         )
-        self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
+        self.assertRaisesRegex(Exception, expected_msg, wrapper._get_action_instance)
 
         # File in a directory which is a Python package
         wrapper = PythonActionWrapper(
@@ -732,7 +732,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             r"\(action file most likely doesn\'t exist or contains invalid syntax\): "
             r"\[Errno 2\] No such file or directory"
         )
-        self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
+        self.assertRaisesRegex(Exception, expected_msg, wrapper._get_action_instance)
 
     def test_python_action_wrapper_action_script_file_contains_invalid_syntax_friendly_error(
         self,
@@ -745,7 +745,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             r"\(action file most likely doesn\'t exist or contains invalid syntax\): "
             r"No module named \'?invalid\'?"
         )
-        self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
+        self.assertRaisesRegex(Exception, expected_msg, wrapper._get_action_instance)
 
     def test_simple_action_log_messages_and_log_level_runner_param(self):
         expected_msg_1 = (
@@ -927,7 +927,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             '"v0.30.0" provided. Make sure that git repository is up '
             "to date and contains that revision."
         )
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(ValueError, expected_msg, runner.pre_run)
 
     @mock.patch("python_runner.python_runner.get_sandbox_virtualenv_path")
     @mock.patch("st2common.util.concurrency.subprocess_popen")
@@ -998,7 +998,7 @@ git: 'worktree' is not a git command. See 'git --help'.
             "doesn't support git worktree command. To be able to utilize this "
             "functionality you need to use git >= 2.5.0."
         )
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(ValueError, expected_msg, runner.pre_run)
 
     @mock.patch("st2common.runners.base.run_command")
     def test_content_version_pack_repo_not_git_repository(self, mock_run_command):
@@ -1020,7 +1020,7 @@ Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
             "git repository. To utilize this functionality, pack directory needs to "
             "be a git repository."
         )
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(ValueError, expected_msg, runner.pre_run)
 
     @mock.patch("st2common.runners.base.run_command")
     def test_content_version_invalid_git_revision(self, mock_run_command):
@@ -1040,7 +1040,7 @@ fatal: invalid reference: vinvalid
             '"vinvalid" provided. Make sure that git repository is up '
             "to date and contains that revision."
         )
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(ValueError, expected_msg, runner.pre_run)
 
     def test_missing_config_item_user_friendly_error(self):
         runner = self._get_mock_runner_obj()

@@ -79,7 +79,7 @@ class BaseSensorTestCaseTestCase(BaseSensorTestCase):
         sensor_service = self.sensor_service
 
         expected_msg = 'Trigger "nope" hasn\'t been dispatched'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AssertionError, expected_msg, self.assertTriggerDispatched, trigger="nope"
         )
 
@@ -89,7 +89,7 @@ class BaseSensorTestCaseTestCase(BaseSensorTestCase):
         result = self.assertTriggerDispatched(trigger="test1", payload={"a": "b"})
         self.assertTrue(result)
         expected_msg = 'Trigger "test1" hasn\'t been dispatched'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AssertionError,
             expected_msg,
             self.assertTriggerDispatched,

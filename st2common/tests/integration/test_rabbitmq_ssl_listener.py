@@ -135,7 +135,7 @@ class RabbitMQTLSListenerTestCase(unittest.TestCase):
         )
 
         expected_msg = r"\[SSL: CERTIFICATE_VERIFY_FAILED\] certificate verify failed"
-        self.assertRaisesRegexp(ssl.SSLError, expected_msg, connection.connect)
+        self.assertRaisesRegex(ssl.SSLError, expected_msg, connection.connect)
 
         # 3. Validate server cert against other CA bundle (failure)
         ca_cert_path = os.path.join("/etc/ssl/certs/SecureTrust_CA.pem")
@@ -152,7 +152,7 @@ class RabbitMQTLSListenerTestCase(unittest.TestCase):
         )
 
         expected_msg = r"\[SSL: CERTIFICATE_VERIFY_FAILED\] certificate verify failed"
-        self.assertRaisesRegexp(ssl.SSLError, expected_msg, connection.connect)
+        self.assertRaisesRegex(ssl.SSLError, expected_msg, connection.connect)
 
         # 4. Validate server cert against other CA bundle (failure)
         # We use invalid bundle but cert_reqs is none
@@ -231,4 +231,4 @@ class RabbitMQTLSListenerTestCase(unittest.TestCase):
         )
 
         expected_msg = r"\[X509: KEY_VALUES_MISMATCH\] key values mismatch"
-        self.assertRaisesRegexp(ssl.SSLError, expected_msg, connection.connect)
+        self.assertRaisesRegex(ssl.SSLError, expected_msg, connection.connect)

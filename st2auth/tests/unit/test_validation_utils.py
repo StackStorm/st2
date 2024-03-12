@@ -37,7 +37,7 @@ class ValidationUtilsTestCase(unittest.TestCase):
             'Invalid auth mode "invalid" specified in the config. '
             "Valid modes are: proxy, standalone"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, expected_msg, validate_auth_backend_is_correctly_configured
         )
 
@@ -57,6 +57,6 @@ class ValidationUtilsTestCase(unittest.TestCase):
             "Configured auth backend doesn't expose user group information. Disable "
             "remote group synchronization or"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, expected_msg, validate_auth_backend_is_correctly_configured
         )

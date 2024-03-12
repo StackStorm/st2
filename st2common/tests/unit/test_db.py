@@ -492,7 +492,7 @@ class DbConnectionTestCase(DbTestCase):
         password = "pass_st2"
 
         expected_msg = "Failed to connect"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ConnectionFailure,
             expected_msg,
             db_setup,

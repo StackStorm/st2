@@ -45,7 +45,7 @@ class CastsTestCase(unittest.TestCase):
         # Non string or non, should throw a friendly exception
         value = []
         expected_msg = r'Value "\[\]" must either be a string or None. Got "list"'
-        self.assertRaisesRegexp(ValueError, expected_msg, cast_func, value)
+        self.assertRaisesRegex(ValueError, expected_msg, cast_func, value)
 
     def test_cast_array(self):
         cast_func = get_cast("array")
