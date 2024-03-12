@@ -12,7 +12,6 @@ isort>=4.2.5
 mock==4.0.3
 nose>=1.3.7
 tabulate
-unittest2
 sphinx==1.7.9
 sphinx-autobuild
 # pin alabaster (sphinx dependency) or pip installs one that is not compatible
@@ -34,6 +33,8 @@ prance==0.15.0
 pip-tools>=5.4,<6.1
 # 202403: Use 6.2.5 for py3.10 support
 pytest==6.2.5
+pytest-cov==4.1.0
+pytest-xdist==3.5.0
 pytest-benchmark==3.4.1
 pytest-benchmark[histogram]==3.4.1
 # zstandard is used for micro benchmarks

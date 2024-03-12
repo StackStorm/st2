@@ -15,14 +15,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.util.payload import PayloadLookup
 
 __all__ = ["PayloadLookupTestCase"]
 
 
-class PayloadLookupTestCase(unittest2.TestCase):
+class PayloadLookupTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.payload = PayloadLookup(

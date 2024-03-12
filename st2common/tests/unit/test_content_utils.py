@@ -17,7 +17,7 @@ from __future__ import absolute_import
 import os
 import os.path
 
-import unittest2
+import unittest
 from oslo_config import cfg
 
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
@@ -38,7 +38,7 @@ from st2tests.fixtures.packs.dummy_pack_1.fixture import (
 from st2tests.fixtures.packs.dummy_pack_2.fixture import PACK_PATH as DUMMY_PACK_2_PATH
 
 
-class ContentUtilsTestCase(unittest2.TestCase):
+class ContentUtilsTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         tests_config.parse_args()

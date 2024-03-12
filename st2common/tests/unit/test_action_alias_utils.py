@@ -23,7 +23,7 @@ from sre_parse import (
     AT_END_STRING,
 )
 from mock import Mock
-from unittest2 import TestCase
+from unittest import TestCase
 from st2common.exceptions.content import ParseException
 from st2common.models.utils.action_alias_utils import (
     ActionAliasFormatParser,

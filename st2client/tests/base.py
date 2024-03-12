@@ -20,7 +20,7 @@ import json
 import logging
 
 import six
-import unittest2
+import unittest
 
 from st2client import models
 
@@ -70,7 +70,7 @@ class FakeApp(object):
         self.client = FakeClient()
 
 
-class BaseCLITestCase(unittest2.TestCase):
+class BaseCLITestCase(unittest.TestCase):
     capture_output = (
         True  # if True, stdout and stderr are saved to self.stdout and self.stderr
     )

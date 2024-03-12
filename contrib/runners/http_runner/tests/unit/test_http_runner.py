@@ -20,7 +20,7 @@ import re
 
 import six
 import mock
-import unittest2
+import unittest
 
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from http_runner.http_runner import HTTPClient
@@ -41,7 +41,7 @@ class MockResult(object):
     close = mock.Mock()
 
 
-class HTTPClientTestCase(unittest2.TestCase):
+class HTTPClientTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         tests_config.parse_args()
@@ -383,7 +383,7 @@ class HTTPClientTestCase(unittest2.TestCase):
         )
 
 
-class HTTPRunnerTestCase(unittest2.TestCase):
+class HTTPRunnerTestCase(unittest.TestCase):
     @mock.patch("http_runner.http_runner.requests")
     def test_get_success(self, mock_requests):
         mock_result = MockResult()

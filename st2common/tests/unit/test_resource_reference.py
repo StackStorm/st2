@@ -14,13 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.models.system.common import ResourceReference
 from st2common.models.system.common import InvalidResourceReferenceError
 
 
-class ResourceReferenceTestCase(unittest2.TestCase):
+class ResourceReferenceTestCase(unittest.TestCase):
     def test_resource_reference_success(self):
         value = "pack1.name1"
         ref = ResourceReference.from_string_reference(ref=value)

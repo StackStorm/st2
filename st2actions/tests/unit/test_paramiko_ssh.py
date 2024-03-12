@@ -19,7 +19,7 @@ import os
 
 import mock
 import paramiko
-import unittest2
+import unittest
 from oslo_config import cfg
 from mock import call, patch, Mock, MagicMock
 from six.moves import StringIO
@@ -34,7 +34,7 @@ tests_config.parse_args()
 __all__ = ["ParamikoSSHClientTestCase"]
 
 
-class ParamikoSSHClientTestCase(unittest2.TestCase):
+class ParamikoSSHClientTestCase(unittest.TestCase):
     @patch("paramiko.SSHClient", Mock)
     def setUp(self):
         """
