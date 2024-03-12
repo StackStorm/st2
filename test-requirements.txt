@@ -17,11 +17,6 @@ sphinx==1.7.9
 sphinx-autobuild
 # pin alabaster (sphinx dependency) or pip installs one that is not compatible
 alabaster<0.7.14
-# nosetests enhancements
-rednose
-nose-timer==1.0.1
-# splitting tests run on a separate CI machines
-nose-parallel==0.4.0
 # Required by st2client tests (202403: downgrade pyyaml to 5.3.1 to avoid pyyaml AttributeError: cython_sources error.)
 pyyaml==5.3.1
 RandomWords
