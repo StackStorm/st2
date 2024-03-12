@@ -644,7 +644,7 @@ class CLITokenCachingTestCase(unittest.TestCase):
             "Unable to retrieve cached token from .*? read access to the parent "
             "directory"
         )
-        self.assertRegexpMatches(log_message, expected_msg)
+        self.assertRegex(log_message, expected_msg)
 
         # 2. Read access on the directory, but not on the cached token file
         os.chmod(self._mock_config_directory_path, 0o777)  # nosec
@@ -662,7 +662,7 @@ class CLITokenCachingTestCase(unittest.TestCase):
         expected_msg = (
             "Unable to retrieve cached token from .*? read access to this file"
         )
-        self.assertRegexpMatches(log_message, expected_msg)
+        self.assertRegex(log_message, expected_msg)
 
         # 3. Other users also have read access to the file
         os.chmod(self._mock_config_directory_path, 0o777)  # nosec
@@ -678,7 +678,7 @@ class CLITokenCachingTestCase(unittest.TestCase):
         log_message = shell.LOG.warn.call_args[0][0]
 
         expected_msg = "Permissions .*? for cached token file .*? are too permissive.*"
-        self.assertRegexpMatches(log_message, expected_msg)
+        self.assertRegex(log_message, expected_msg)
 
     def test_cache_auth_token_invalid_permissions(self):
         shell = Shell()
@@ -707,7 +707,7 @@ class CLITokenCachingTestCase(unittest.TestCase):
             "Unable to write token to .*? doesn't have write access to the parent "
             "directory"
         )
-        self.assertRegexpMatches(log_message, expected_msg)
+        self.assertRegex(log_message, expected_msg)
 
         # 2. Current user has no write access to the cached token file
         os.chmod(self._mock_config_directory_path, 0o777)  # nosec
@@ -722,7 +722,7 @@ class CLITokenCachingTestCase(unittest.TestCase):
         expected_msg = (
             "Unable to write token to .*? doesn't have write access to this file"
         )
-        self.assertRegexpMatches(log_message, expected_msg)
+        self.assertRegex(log_message, expected_msg)
 
     def test_get_cached_auth_token_no_token_cache_file(self):
         client = Client()
