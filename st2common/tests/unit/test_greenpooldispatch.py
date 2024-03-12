@@ -18,7 +18,7 @@ import eventlet
 import mock
 
 from st2common.util.greenpooldispatch import BufferedDispatcher
-from unittest2 import TestCase
+from unittest import TestCase
 from six.moves import range
 
 

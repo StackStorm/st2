@@ -20,7 +20,7 @@ from st2common.util.monkey_patch import monkey_patch
 monkey_patch()
 
 import os
-import unittest2
+import unittest
 
 import six
 import mock
@@ -39,7 +39,7 @@ RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../resources"))
 __all__ = ["SensorWrapperTestCase"]
 
 
-class SensorWrapperTestCase(unittest2.TestCase):
+class SensorWrapperTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(SensorWrapperTestCase, cls).setUpClass()

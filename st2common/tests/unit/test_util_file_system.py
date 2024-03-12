@@ -17,7 +17,7 @@ from __future__ import absolute_import
 import os
 import os.path
 
-import unittest2
+import unittest
 
 from st2common.util.file_system import get_file_list
 
@@ -25,7 +25,7 @@ CURRENT_DIR = os.path.dirname(__file__)
 ST2TESTS_DIR = os.path.join(CURRENT_DIR, "../../../st2tests/st2tests")
 
 
-class FileSystemUtilsTestCase(unittest2.TestCase):
+class FileSystemUtilsTestCase(unittest.TestCase):
     def test_get_file_list(self):
         # Standard exclude pattern
         directory = os.path.join(ST2TESTS_DIR, "policies")

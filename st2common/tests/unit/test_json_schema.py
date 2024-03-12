@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from unittest2 import TestCase
+from unittest import TestCase
 from jsonschema.exceptions import ValidationError
 
 from st2common.util import schema as util_schema

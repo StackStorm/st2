@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import json
 import logging
 import mock
-import unittest2
+import unittest
 
 from tests import base
 
@@ -55,7 +55,7 @@ ENTRYPOINT = (
 )
 
 
-class TestActionResourceManager(unittest2.TestCase):
+class TestActionResourceManager(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestActionResourceManager, cls).setUpClass()

@@ -20,7 +20,7 @@ import ssl
 import socket
 
 import six
-import unittest2
+import unittest
 from oslo_config import cfg
 
 from st2common.transport import utils as transport_utils
@@ -37,11 +37,11 @@ SSL_LISTENER_PORT = 5671
 
 # NOTE: We only run those tests on the CI provider because at the moment, local
 #       vagrant dev VM doesn't expose RabbitMQ SSL listener by default
-@unittest2.skipIf(
+@unittest.skipIf(
     not ST2_CI,
     'Skipping tests because ST2_CI environment variable is not set to "true"',
 )
-class RabbitMQTLSListenerTestCase(unittest2.TestCase):
+class RabbitMQTLSListenerTestCase(unittest.TestCase):
     def setUp(self):
         # Set default values
         cfg.CONF.set_override(name="ssl", override=False, group="messaging")

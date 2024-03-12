@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest2
+import unittest
 from oslo_config import cfg
 
 from st2auth.validation import validate_auth_backend_is_correctly_configured
@@ -22,7 +22,7 @@ from st2tests import config as tests_config
 __all__ = ["ValidationUtilsTestCase"]
 
 
-class ValidationUtilsTestCase(unittest2.TestCase):
+class ValidationUtilsTestCase(unittest.TestCase):
     def setUp(self):
         super(ValidationUtilsTestCase, self).setUp()
         tests_config.parse_args()

@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import os
 import mock
 import shutil
-import unittest2
+import unittest
 import uuid
 
 from st2common.models.db.stormbase import UIDFieldMixin
@@ -201,7 +201,7 @@ SOURCE_WORKFLOW = {
 }
 
 
-class DeleteActionFilesTest(unittest2.TestCase):
+class DeleteActionFilesTest(unittest.TestCase):
     def test_delete_action_files_from_pack(self):
         """
         Test that the action files present in the pack and removed
@@ -280,7 +280,7 @@ class DeleteActionFilesTest(unittest2.TestCase):
         self.assertFalse(os.path.exists(metadata_file))
 
 
-class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
+class DeleteActionEntryPointFilesErrorTest(unittest.TestCase):
     """
     Testing that exceptions are thrown by delete_action_files_from_pack function
     for entry point file. Here only entry point file is created and metadata
@@ -347,7 +347,7 @@ class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
 
-class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
+class DeleteActionMetadataFilesErrorTest(unittest.TestCase):
     """
     Testing that exceptions are thrown by delete_action_files_from_pack function for
     metadata file. Here only metadata file is created and metadata file doesn't exist.
@@ -413,7 +413,7 @@ class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
 
-class CloneActionDBAndFilesTestCase(unittest2.TestCase):
+class CloneActionDBAndFilesTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
@@ -587,7 +587,7 @@ class CloneActionDBAndFilesTestCase(unittest2.TestCase):
         self.assertTrue(os.path.exists(workflows_dir_path))
 
 
-class CloneActionFilesBackupTestCase(unittest2.TestCase):
+class CloneActionFilesBackupTestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
