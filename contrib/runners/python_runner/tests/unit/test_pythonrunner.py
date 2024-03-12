@@ -978,7 +978,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             "<module '?local_module'? from '?%s/actions/local_module.py'?>.*"
             % runner.git_worktree_path
         )
-        self.assertRegexpMatches(output["stdout"].strip(), expected_stdout)
+        self.assertRegex(output["stdout"].strip(), expected_stdout)
 
     @mock.patch("st2common.runners.base.run_command")
     def test_content_version_old_git_version(self, mock_run_command):
