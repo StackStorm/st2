@@ -77,6 +77,7 @@ endif
 # The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
 # See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
 NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
+PYTEST_OPTS := -n auto
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
@@ -830,7 +831,7 @@ unit-tests: requirements .unit-tests
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
 		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
-		    nosetests $(NOSE_OPTS) -s -v \
+		    pytest --capture=no --verbose \
 		    $$component/tests/unit || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
@@ -857,8 +858,7 @@ endif
 		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
 		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
 		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
-		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
-		    $(NOSE_COVERAGE_PACKAGES) \
+		    pytest --capture=no --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
 		    $$component/tests/unit || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
@@ -915,7 +915,7 @@ itests: requirements .itests
 		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
-		    nosetests $(NOSE_OPTS) -s -v \
+		    pytest --capture=no --verbose $(PYTEST_OPTS) \
 		    $$component/tests/integration || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running integration tests in" $$component; \
@@ -940,8 +940,7 @@ endif
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
-		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
-		    $(NOSE_COVERAGE_PACKAGES) \
+		    pytest --capture=no --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
 		    $$component/tests/integration || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done integration running tests in" $$component; \
