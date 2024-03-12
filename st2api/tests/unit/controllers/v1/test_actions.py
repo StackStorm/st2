@@ -553,7 +553,7 @@ class ActionsControllerTestCase(
         self.assertIn(b"id", post_resp.body)
         data = json.loads(post_resp.body)
         # Verify that user-provided id is discarded.
-        self.assertNotEquals(data["id"], ACTION_7["id"])
+        self.assertNotEqual(data["id"], ACTION_7["id"])
         self.__do_delete(self.__get_action_id(post_resp))
 
     @mock.patch.object(
