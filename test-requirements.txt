@@ -23,11 +23,6 @@ sphinx>=5.0.0,<7.2.0
 sphinx-autobuild
 # pin alabaster (sphinx dependency) or pip installs one that is not compatible
 alabaster<0.7.14
-# nosetests enhancements
-rednose
-nose-timer==1.0.1
-# splitting tests run on a separate CI machines
-nose-parallel==0.4.0
 # Required by st2client tests
 pyyaml==6.0.2
 # Constrain pygments required by editor to align with st2 core version
