@@ -17,6 +17,7 @@ ciso8601
 cryptography==42.0.5
 decorator==5.1.1
 dnspython==1.16.0
+editor==1.6.6
 eventlet==0.36.1
 flex==6.14.1
 gitdb==4.0.11
@@ -52,7 +53,6 @@ pyparsing==3.1.2
 pyrabbit
 pysocks
 python-dateutil==2.9.0
-python-editor==1.0.4
 python-json-logger
 python-statsd==2.1.0
 pytz==2024.1

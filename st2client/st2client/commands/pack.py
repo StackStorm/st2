@@ -542,7 +542,7 @@ class PackConfigCommand(resource.ResourceCommand):
         if preview_dialog.read() == "y":
             try:
                 contents = yaml.safe_dump(config, indent=4, default_flow_style=False)
-                modified = editor.edit(contents=contents)
+                modified = editor.editor(text=contents)
                 config = yaml.safe_load(modified)
             except editor.EditorError as e:
                 print(six.text_type(e))
