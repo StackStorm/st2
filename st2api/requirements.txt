@@ -8,7 +8,7 @@
 eventlet==0.33.3
 gunicorn==21.2.0
 jsonschema==3.2.0
-kombu==5.0.2
+kombu==5.3.5
 mongoengine>=0.21.0,<0.24.0
 oslo.config==9.4.0
 oslo.utils==7.1.0

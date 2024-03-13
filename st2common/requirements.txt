@@ -22,7 +22,7 @@ greenlet==3.0.3
 jinja2==2.11.3
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
-kombu==5.0.2
+kombu==5.3.5
 lockfile==0.12.2
 mongoengine>=0.21.0,<0.24.0
 networkx<3

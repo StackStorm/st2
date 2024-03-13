@@ -15,12 +15,13 @@ flex==6.14.1
 gitpython<=3.1.37
 # Needed by gitpython, old versions used to bundle it
 gitdb==4.0.2
-# Note: greenlet is used by eventlet (2023: 3.0.3 support for py3.10)
+# Note: greenlet is used by eventlet (202403: 3.0.3 support for py3.10)
 greenlet==3.0.3
 gunicorn==21.2.0
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
-kombu==5.0.2
+# 202403: Update to 5.3.5 for py3.10 support
+kombu==5.3.5
 lockfile==0.12.2
 # Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
 # >=0.23 was from jinja2
