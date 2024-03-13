@@ -224,7 +224,7 @@ def _register_api_opts():
         cfg.StrOpt(
             "ssl_cert_reqs",
             default=None,
-            choices="none, optional, required",
+            choices=["none", "optional", "required"],
             help="Specifies whether a certificate is required from the other side of the "
             "connection, and whether it will be validated if provided.",
         ),
