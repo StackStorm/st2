@@ -48,14 +48,15 @@ class ValidationUtilsTestCase(unittest.TestCase):
         invalid_values = ["strictx", "laxx", "nonex", "invalid"]
 
         for value in invalid_values:
-            cfg.CONF.set_override(
-                group="api", name="auth_cookie_same_site", override=value
-            )
+            with self.assertRaisesRegex(ValueError, r"Valid values are \[strict, lax, none, unset\], but found"):
+                cfg.CONF.set_override(
+                    group="api", name="auth_cookie_same_site", override=value
+                )
 
-            expected_msg = "Valid values are: strict, lax, none, unset"
-            self.assertRaisesRegex(
-                ValueError, expected_msg, validate_auth_cookie_is_correctly_configured
-            )
+                # ~ expected_msg = "Valid values are: strict, lax, none, unset"
+                # ~ self.assertRaisesRegex(
+                    # ~ ValueError, expected_msg, validate_auth_cookie_is_correctly_configured
+                # ~ )
 
         # SameSite=none + Secure=false is not compatible
         cfg.CONF.set_override(
