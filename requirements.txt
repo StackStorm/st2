@@ -43,7 +43,7 @@ oslo.utils==7.1.0
 paramiko==3.4.0
 passlib==1.7.4
 prettytable==3.10.0
-prompt-toolkit==1.0.18
+prompt-toolkit==3.0.43
 psutil==5.9.8
 pyOpenSSL
 pyinotify==0.9.6 ; platform_system=="Linux"

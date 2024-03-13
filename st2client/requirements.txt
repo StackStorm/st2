@@ -14,7 +14,7 @@ jsonpath-rw==1.4.0
 jsonschema==3.2.0
 orjson==3.10.1
 prettytable==3.10.0
-prompt-toolkit==1.0.18
+prompt-toolkit==3.0.43
 pyOpenSSL
 pysocks
 python-dateutil==2.9.0
