@@ -289,7 +289,7 @@ class SensorWrapper(object):
                 self._class_name,
                 six.text_type(e),
             )
-            self._logger.warn(msg, exc_info=True)
+            self._logger.warning(msg, exc_info=True)
             raise Exception(msg)
 
     def stop(self):
