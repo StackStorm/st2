@@ -12,7 +12,7 @@ jsonpath-rw
 requests
 six
 sseclient-py
-python-editor
+editor
 prompt-toolkit
 # mention cffi used by cryptography so we can control version
 cffi

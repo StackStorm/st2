@@ -49,7 +49,8 @@ pyparsing<3
 zstandard==0.15.2
 # pyOpenSSL 23.1.0 supports cryptography up to 40.0.x
 pyOpenSSL==23.1.0
-python-editor==1.0.4
+# 202403: switch from python-editor to editor for py3.10 support
+editor==1.6.6
 python-keyczar==0.716
 pytz==2021.1
 pywinrm==0.4.1
