@@ -548,6 +548,16 @@ class ExecutionResourceManager(ResourceManager):
         return response.text
 
     @add_auth_token_to_kwargs_from_env
+    def get_result(self, execution_id, **kwargs):
+        url = "/%s/%s/result" % (self.resource.get_url_path_name(), execution_id)
+
+        response = self.client.get(url, **kwargs)
+        if response.status_code != http_client.OK:
+            self.handle_error(response)
+
+        return response.text
+
+    @add_auth_token_to_kwargs_from_env
     def pause(self, execution_id, **kwargs):
         url = "/%s/%s" % (self.resource.get_url_path_name(), execution_id)
         data = {"status": "pausing"}

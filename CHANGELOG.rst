@@ -24,6 +24,9 @@ Added
 * Build of ST2 EL9 packages #6153
   Contributed by @amanda11
 
+* Added a `get_result` method to the `ExecutionResourceManager` Class for st2client
+  Contributed by @skiedude
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed
