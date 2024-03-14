@@ -617,6 +617,7 @@ class CLITokenCachingTestCase(unittest.TestCase):
         with open(self._mock_config_path, "w") as fp:
             fp.write(MOCK_CONFIG)
 
+    @unittest.skipIf(os.getuid() == 0, reason="Test must be run as non-root user.")
     def test_get_cached_auth_token_invalid_permissions(self):
         shell = Shell()
         client = Client()
