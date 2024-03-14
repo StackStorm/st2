@@ -10,8 +10,7 @@ apscheduler
 argcomplete
 ciso8601
 cryptography
-# eventlet 0.31+ and gunicorn 20.1.0 are not compatible
-eventlet<0.31
+eventlet
 # flex parses the openapi 2 spec in our router
 flex
 # gitpython & gitdb are used for pack management
@@ -33,9 +32,9 @@ mongoengine>=0.21.0,<0.24.0
 networkx
 orjson
 orquesta @ git+https://github.com/StackStorm/orquesta.git@v1.6.0
-# NOTE: Recent version substantially affect the performance and add big import time overhead
-# See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
-oslo.config>=1.12.1,<1.13
+# Historical reference: https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433
+# Relaxed pinning for py3.10 support.
+oslo.config
 paramiko
 # we use pip at runtime
 pip
@@ -43,8 +42,7 @@ pip
 # prance needs flex, but do not use the extra as that gets an old version.
 prance
 prettytable
-# For st2client: prompt-toolkit v2+ does not have prompt_toolkit.token.Token
-prompt-toolkit<2
+prompt-toolkit
 psutil
 # pymongo 3.13 has backports of APIs from pymongo 4 to help w/ migration
 pymongo>=3.11.0,<3.13.0
@@ -52,7 +50,7 @@ pymongo>=3.11.0,<3.13.0
 pyrabbit
 pytest
 python-dateutil
-python-editor
+editor
 # pythonjsonlogger referenced in st2actions/conf/logging.conf
 python-json-logger
 python-statsd

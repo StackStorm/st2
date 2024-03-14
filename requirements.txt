@@ -7,7 +7,7 @@
 # update the component requirements.txt
 MarkupSafe<2.1.0,>=0.23
 RandomWords
-amqp==5.0.6
+amqp<6.0.0,>=5.1.1
 apscheduler==3.7.0
 argcomplete==1.12.3
 bcrypt==3.2.0
@@ -18,7 +18,7 @@ cryptography==39.0.1
 decorator==4.4.2
 dnspython==2.6.1
 editor==1.6.6
-eventlet==0.33.3
+eventlet==0.35.2
 flex==6.14.1
 gitdb==4.0.2
 gitpython<=3.1.37

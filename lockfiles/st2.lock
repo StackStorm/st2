@@ -16,7 +16,8 @@
 //     "beautifulsoup4",
 //     "ciso8601",
 //     "cryptography",
-//     "eventlet<0.31",
+//     "editor",
+//     "eventlet",
 //     "flask",
 //     "flex",
 //     "gitdb",
@@ -39,13 +40,13 @@
 //     "nose-timer",
 //     "orjson",
 //     "orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0",
-//     "oslo.config<1.13,>=1.12.1",
+//     "oslo.config",
 //     "paramiko",
 //     "pika",
 //     "pip",
 //     "prance",
 //     "prettytable",
-//     "prompt-toolkit<2",
+//     "prompt-toolkit",
 //     "psutil",
 //     "pyinotify<=0.10,>=0.9.5; platform_system == \"Linux\"",
 //     "pymongo<3.13.0,>=3.11.0",
@@ -53,7 +54,6 @@
 //     "pysocks",
 //     "pytest",
 //     "python-dateutil",
-//     "python-editor",
 //     "python-json-logger",
 //     "python-statsd",
 //     "pytz",
@@ -1222,24 +1222,51 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "c4e2c5452e54a267f5ce56092eeeed3d52d5c9319e545a796ab5ebbb5b2528ef",
-              "url": "https://files.pythonhosted.org/packages/ea/c6/9990551f52dcb9dd50ea87904e68ee61f20ec03de208d2bb0a0a5ab072a5/eventlet-0.30.3-py2.py3-none-any.whl"
+              "hash": "e818e6913f26c2a81eadef503a2741d7cca7f235d20e217274a009ecd5a74abf",
+              "url": "https://files.pythonhosted.org/packages/1b/c2/4bc8cd09b14e28ce3f406a8b05761bed0d785d1ca8c2a5c6684d884c66a2/editor-1.6.6-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "a802caa725d6eb2d45a763c33f6bb5206e8d0566d5abc03638225379cf32476d",
-              "url": "https://files.pythonhosted.org/packages/d5/93/22be27621c6b017ac630f84b94ac8ac11231f7f03a6a0aec668365f823fe/eventlet-0.30.3.tar.gz"
+              "hash": "bb6989e872638cd119db9a4fce284cd8e13c553886a1c044c6b8d8a160c871f8",
+              "url": "https://files.pythonhosted.org/packages/2a/92/734a4ab345914259cb6146fd36512608ea42be16195375c379046f33283d/editor-1.6.6.tar.gz"
+            }
+          ],
+          "project_name": "editor",
+          "requires_dists": [
+            "runs",
+            "xmod"
+          ],
+          "requires_python": ">=3.8",
+          "version": "1.6.6"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "8fc1ee60d583f1dd58d6f304bb95fd46d34865ab22f57cb99008a81d61d573db",
+              "url": "https://files.pythonhosted.org/packages/a6/5e/ea38bad6b685b0fde055b725e0a50613bfeecd572ec7606fa9449404f89a/eventlet-0.35.2-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "8d1263e20b7f816a046ac60e1d272f9e5bc503f7a34d9adc789f8a85b14fa57d",
+              "url": "https://files.pythonhosted.org/packages/5e/a1/079895f493a7c7eef5d1fb1335aba96e05527fd22dc6cead98ff38acdd3a/eventlet-0.35.2.tar.gz"
             }
           ],
           "project_name": "eventlet",
           "requires_dists": [
-            "dnspython<2.0.0,>=1.15.0",
-            "greenlet>=0.3",
+            "black; extra == \"dev\"",
+            "build; extra == \"dev\"",
+            "commitizen; extra == \"dev\"",
+            "dnspython>=1.15.0",
+            "greenlet>=1.0",
+            "isort; extra == \"dev\"",
             "monotonic>=1.4; python_version < \"3.5\"",
-            "six>=1.10.0"
+            "pip-tools; extra == \"dev\"",
+            "pre-commit; extra == \"dev\"",
+            "twine; extra == \"dev\""
           ],
-          "requires_python": null,
-          "version": "0.30.3"
+          "requires_python": ">=3.7",
+          "version": "0.35.2"
         },
         {
           "artifacts": [
@@ -2828,24 +2855,41 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "d4501d11ce955d010208019f04ebba0ce58a5f1a9033da9193cfa33e4854d74b",
-              "url": "https://files.pythonhosted.org/packages/c7/82/263fa79866098034917be0def7ab4979480e6f429732cd6cd9f4e0405ec5/oslo.config-1.12.1-py2.py3-none-any.whl"
+              "hash": "8c2049c14cade7adeeda18638531b3b3a40d3c6bcc690535939f64a3c1ec8d63",
+              "url": "https://files.pythonhosted.org/packages/9c/82/792303dce5cd50951d27a405ad8251c04dc3ad5a051b6a585a939ae39f4a/oslo.config-9.4.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "d43880e88a55b13840dfd80495837017d4da3ad96aed288345410e0b35138477",
-              "url": "https://files.pythonhosted.org/packages/90/5f/c90379a91cc41ab849eb789dd75a83533cc35caabe535f3118f42b0906b2/oslo.config-1.12.1.tar.gz"
+              "hash": "35b11a661b608edb50305dad91e4e30819d90ef794b7d7dba5bd8b2ef2eb8c0d",
+              "url": "https://files.pythonhosted.org/packages/9f/79/d75e9a6234883adc93838602263d394ffaff6b8d315127c98afd596083f6/oslo.config-9.4.0.tar.gz"
             }
           ],
           "project_name": "oslo-config",
           "requires_dists": [
-            "argparse",
-            "netaddr>=0.7.12",
-            "six>=1.9.0",
-            "stevedore>=1.3.0"
+            "PyYAML>=5.1",
+            "bandit<1.8.0,>=1.7.0; extra == \"test\"",
+            "coverage!=4.4,>=4.0; extra == \"test\"",
+            "debtcollector>=1.2.0",
+            "fixtures>=3.0.0; extra == \"test\"",
+            "hacking<6.2.0,>=6.1.0; extra == \"test\"",
+            "mypy>=0.720; extra == \"test\"",
+            "netaddr>=0.7.18",
+            "oslo.i18n>=3.15.3",
+            "oslo.log>=3.36.0; extra == \"test\"",
+            "oslotest>=3.2.0; extra == \"test\"",
+            "pre-commit>=2.6.0; extra == \"test\"",
+            "requests-mock>=1.5.0; extra == \"test\"",
+            "requests>=2.18.0",
+            "rfc3986>=1.2.0",
+            "rst2txt>=1.1.0; extra == \"rst_generator\"",
+            "sphinx!=2.1.0,>=1.8.0; extra == \"rst_generator\"",
+            "stestr>=2.1.0; extra == \"test\"",
+            "stevedore>=1.20.0",
+            "testscenarios>=0.4; extra == \"test\"",
+            "testtools>=2.2.0; extra == \"test\""
           ],
-          "requires_python": null,
-          "version": "1.12.1"
+          "requires_python": ">=3.8",
+          "version": "9.4.0"
         },
         {
           "artifacts": [
@@ -3181,22 +3225,21 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "37925b37a4af1f6448c76b7606e0285f79f434ad246dda007a27411cca730c6d",
-              "url": "https://files.pythonhosted.org/packages/64/27/5fd61a451d086ad4aa806dc72fe1383d2bc0e74323668672287f616d5d51/prompt_toolkit-1.0.18-py3-none-any.whl"
+              "hash": "a11a29cb3bf0a28a387fe5122cdb649816a957cd9261dcedf8c9f1fef33eacf6",
+              "url": "https://files.pythonhosted.org/packages/ee/fd/ca7bf3869e7caa7a037e23078539467b433a4e01eebd93f77180ab927766/prompt_toolkit-3.0.43-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "dd4fca02c8069497ad931a2d09914c6b0d1b50151ce876bc15bde4c747090126",
-              "url": "https://files.pythonhosted.org/packages/c5/64/c170e5b1913b540bf0c8ab7676b21fdd1d25b65ddeb10025c6ca43cccd4c/prompt_toolkit-1.0.18.tar.gz"
+              "hash": "3527b7af26106cbc65a040bcc84839a3566ec1b051bb0bfe953631e704b0ff7d",
+              "url": "https://files.pythonhosted.org/packages/cc/c6/25b6a3d5cd295304de1e32c9edbcf319a52e965b339629d37d42bb7126ca/prompt_toolkit-3.0.43.tar.gz"
             }
           ],
           "project_name": "prompt-toolkit",
           "requires_dists": [
-            "six>=1.9.0",
             "wcwidth"
           ],
-          "requires_python": null,
-          "version": "1.0.18"
+          "requires_python": ">=3.7.0",
+          "version": "3.0.43"
         },
         {
           "artifacts": [
@@ -3831,24 +3874,6 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "1bf6e860a8ad52a14c3ee1252d5dc25b2030618ed80c022598f00176adc8367d",
-              "url": "https://files.pythonhosted.org/packages/c6/d3/201fc3abe391bbae6606e6f1d598c15d367033332bd54352b12f35513717/python_editor-1.0.4-py3-none-any.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "51fda6bcc5ddbbb7063b2af7509e43bd84bfc32a4ff71349ec7847713882327b",
-              "url": "https://files.pythonhosted.org/packages/0a/85/78f4a216d28343a67b7397c99825cff336330893f00601443f7c7b2f2234/python-editor-1.0.4.tar.gz"
-            }
-          ],
-          "project_name": "python-editor",
-          "requires_dists": [],
-          "requires_python": null,
-          "version": "1.0.4"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
               "hash": "f380b826a991ebbe3de4d897aeec42760035ac760345e57b812938dc8b35e2bd",
               "url": "https://files.pythonhosted.org/packages/35/a6/145655273568ee78a581e734cf35beb9e33a370b29c5d3c8fee3744de29f/python_json_logger-2.0.7-py3-none-any.whl"
             },
@@ -4226,6 +4251,26 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "50b1502b60e289cb37883f3dfd34532b8873c7de9f49bb546641ce9cbd256ebd",
+              "url": "https://files.pythonhosted.org/packages/ff/9a/9afaade874b2fa6c752c36f1548f718b5b83af81ed9b76628329dab81c1b/rfc3986-2.0.0-py2.py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "97aacf9dbd4bfd829baad6e6309fa6573aaf1be3f6fa735c8ab05e46cecb261c",
+              "url": "https://files.pythonhosted.org/packages/85/40/1520d68bfa07ab5a6f065a186815fb6610c86fe957bc065754e47f7b0840/rfc3986-2.0.0.tar.gz"
+            }
+          ],
+          "project_name": "rfc3986",
+          "requires_dists": [
+            "idna; extra == \"idna2008\""
+          ],
+          "requires_python": ">=3.7",
+          "version": "2.0.0"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "10702b1e51e5658843460b189b185c0366d2cf4cff716f13111b0ea9fd2dce53",
               "url": "https://files.pythonhosted.org/packages/65/d4/f7407c3d15d5ac779c3dd34fbbc6ea2090f77bd7dd12f207ccf881551208/rfc3987-1.3.8-py2.py3-none-any.whl"
             },
@@ -4419,6 +4464,26 @@
           "requires_dists": [],
           "requires_python": ">=3.6",
           "version": "0.2.8"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "0980dcbc25aba1505f307ac4f0e9e92cbd0be2a15a1e983ee86c24c87b839dfd",
+              "url": "https://files.pythonhosted.org/packages/86/d6/17caf2e4af1dec288477a0cbbe4a96fbc9b8a28457dce3f1f452630ce216/runs-1.2.2-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "9dc1815e2895cfb3a48317b173b9f1eac9ba5549b36a847b5cc60c3bf82ecef1",
+              "url": "https://files.pythonhosted.org/packages/26/6d/b9aace390f62db5d7d2c77eafce3d42774f27f1829d24fa9b6f598b3ef71/runs-1.2.2.tar.gz"
+            }
+          ],
+          "project_name": "runs",
+          "requires_dists": [
+            "xmod"
+          ],
+          "requires_python": ">=3.8",
+          "version": "1.2.2"
         },
         {
           "artifacts": [
@@ -5802,6 +5867,24 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "a24e9458a4853489042522bdca9e50ee2eac5ab75c809a91150a8a7f40670d48",
+              "url": "https://files.pythonhosted.org/packages/33/6b/0dc75b64a764ea1cb8e4c32d1fb273c147304d4e5483cd58be482dc62e45/xmod-1.8.1-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "38c76486b9d672c546d57d8035df0beb7f4a9b088bc3fb2de5431ae821444377",
+              "url": "https://files.pythonhosted.org/packages/72/b2/e3edc608823348e628a919e1d7129e641997afadd946febdd704aecc5881/xmod-1.8.1.tar.gz"
+            }
+          ],
+          "project_name": "xmod",
+          "requires_dists": [],
+          "requires_python": ">=3.8",
+          "version": "1.8.1"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "b32daaf0617476a2ddb7636545f69fe263ded112e6360a7faa1f4b4b0ced98f4",
               "url": "https://files.pythonhosted.org/packages/a6/1d/001adc16247b0cafd7687f4ff2f8eb9365c17690d9b179d13404271b0e50/yaql-2.0.1-py3-none-any.whl"
             },
@@ -6049,7 +6132,8 @@
     "beautifulsoup4",
     "ciso8601",
     "cryptography",
-    "eventlet<0.31",
+    "editor",
+    "eventlet",
     "flask",
     "flex",
     "gitdb",
@@ -6072,13 +6156,13 @@
     "nose-timer",
     "orjson",
     "orquesta",
-    "oslo.config<1.13,>=1.12.1",
+    "oslo.config",
     "paramiko",
     "pika",
     "pip",
     "prance",
     "prettytable",
-    "prompt-toolkit<2",
+    "prompt-toolkit",
     "psutil",
     "pyinotify<=0.10,>=0.9.5; platform_system == \"Linux\"",
     "pymongo<3.13.0,>=3.11.0",
@@ -6086,7 +6170,6 @@
     "pysocks",
     "pytest",
     "python-dateutil",
-    "python-editor",
     "python-json-logger",
     "python-statsd",
     "pytz",

@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 bcrypt==3.2.0
-eventlet==0.33.3
+eventlet==0.35.2
 gunicorn==21.2.0
 oslo.config==9.4.0
 passlib==1.7.4
