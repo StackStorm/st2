@@ -517,7 +517,6 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
             # optional arguments covers both formats.
             assert isinstance(re.search("(optional arguments:|options:)", stdout), re.Match) is True
 
-
             # Verify that the actual help usage string was triggered and not the invalid
             # "too few arguments" which would indicate command doesn't actually correctly handle
             # --help flag

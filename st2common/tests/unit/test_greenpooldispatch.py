@@ -36,7 +36,7 @@ class TestGreenPoolDispatch(TestCase):
         call_args_list = [
             (args[0][0], args[0][1]) for args in mock_handler.call_args_list
         ]
-        self.assertItemsEqual(expected, call_args_list)
+        assert expected == call_args_list
 
     def test_dispatch_starved(self):
         dispatcher = BufferedDispatcher(
@@ -55,4 +55,4 @@ class TestGreenPoolDispatch(TestCase):
         call_args_list = [
             (args[0][0], args[0][1]) for args in mock_handler.call_args_list
         ]
-        self.assertItemsEqual(expected, call_args_list)
+        assert expected == call_args_list
