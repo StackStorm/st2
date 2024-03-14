@@ -38,6 +38,9 @@ class PackMetadataSourcesField(ResourcesGeneratingSourcesField):
         # "requirements*.txt",  # including this causes target conflicts
         # "README.md",
         # "HISTORY.md",
+        # exclude yaml files under tests
+        "!tests/**/*.yml",
+        "!tests/**/*.yaml",
     )
 
 

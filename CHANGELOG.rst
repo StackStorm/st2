@@ -8,6 +8,7 @@ Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 
 Fixed
 ~~~~~
+* Restore Pack integration testing (it was inadvertently skipped) and stop testing against `bionic` and `el7`. #6135
 
 Changed
 ~~~~~~~
@@ -18,8 +19,10 @@ Added
 * Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
   to pants' use of PEX lockfiles. This is not a user-facing addition.
-  #6118
+  #6118 #6141 #6133
   Contributed by @cognifloyd
+* Build of ST2 EL9 packages #6153
+  Contributed by @amanda11
 
 * Added a `get_result` method to the `ExecutionResourceManager` Class for st2client
   Contributed by @skiedude

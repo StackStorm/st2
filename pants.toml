@@ -10,6 +10,9 @@ pants_version = "2.17.1"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
+  # https://www.pantsbuild.org/2.19/docs/using-pants/validating-dependencies
+  "pants.backend.experimental.visibility",
+
   # python
   "pants.backend.python",
   "pants.backend.experimental.python", # activates twine `publish` support
@@ -145,6 +148,13 @@ twine = ["CPython>=3.8,<3.10"]
 # Our direct requirements are in requirements-pants.txt;
 # put indirect/transitive version constraints here:
 st2 = "lockfiles/st2-constraints.txt"
+
+[export]
+# When exporting the virtualenv, include editable installs of our sources
+# so that the entry_points metadata is available for stevedore's use.
+py_editable_in_resolve = ["st2"]
+# We need mutable venvs to use the editable installs of our sources.
+py_resolve_format = "mutable_virtualenv"
 
 [python-infer]
 # https://www.pantsbuild.org/docs/reference-python-infer#string_imports
