@@ -137,8 +137,7 @@ class CLIConfigParser(object):
 
         config = ConfigParser()
         with io.open(self.config_file_path, "r", encoding="utf8") as fp:
-            config.readfp(fp)
-
+            config.read_file(fp)
         for section, keys in six.iteritems(CONFIG_FILE_OPTIONS):
             for key, options in six.iteritems(keys):
                 key_type = options["type"]
