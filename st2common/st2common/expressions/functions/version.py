@@ -60,4 +60,5 @@ def version_bump_patch(value):
 
 
 def version_strip_patch(value):
-    return "{major}.{minor}".format(**semver.Version.parse(value))
+    sv = semver.Version.parse(value)
+    return f"{sv.major}.{sv.minor}"
