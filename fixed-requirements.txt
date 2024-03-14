@@ -51,6 +51,8 @@ zstandard==0.15.2
 pyOpenSSL==23.1.0
 # 202403: switch from python-editor to editor for py3.10 support
 editor==1.6.6
+# editor dependency, required here for inclusion in st2client setup.py
+Pygments==2.5.2
 python-keyczar==0.716
 pytz==2021.1
 pywinrm==0.4.1
@@ -62,8 +64,8 @@ routes==2.4.1
 semver==2.13.0
 six==1.13.0
 argparse==1.12.2
-# Note: argcomplete 1.12.3 supports importlib-metadata<5
-argcomplete==1.12.3
+# 202403: Bumped to latest for py3.10 support
+argcomplete==3.2.3
 prettytable==2.1.0
 # Note: installs importlib-metadata==4.10.1 (security fixed) under py3.8 and importlib-metadata==4.8.3 (latest available, vulnerable) under py3.6
 # TODO: Pin to 4.10.1 or higher after dropping python3.6 support

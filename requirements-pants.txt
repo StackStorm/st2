@@ -51,6 +51,7 @@ pyrabbit
 pytest
 python-dateutil
 editor
+Pygments
 # pythonjsonlogger referenced in st2actions/conf/logging.conf
 python-json-logger
 python-statsd
