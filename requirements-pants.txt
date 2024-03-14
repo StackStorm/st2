@@ -41,8 +41,7 @@ pip
 # prance needs flex, but do not use the extra as that gets an old version.
 prance
 prettytable
-# For st2client: prompt-toolkit v2+ does not have prompt_toolkit.token.Token
-prompt-toolkit<2
+prompt-toolkit
 psutil
 # pymongo 3.13 has backports of APIs from pymongo 4 to help w/ migration
 pymongo>=3.11.0,<3.13.0
@@ -50,7 +49,7 @@ pymongo>=3.11.0,<3.13.0
 pyrabbit
 pytest
 python-dateutil
-python-editor
+editor
 # pythonjsonlogger referenced in st2actions/conf/logging.conf
 python-json-logger
 python-statsd
