@@ -39,8 +39,13 @@ class FileSystemUtilsTestCase(unittest.TestCase):
             "meta/concurrency.yaml",
             "meta/__init__.py",
         ]
-        result = get_file_list(directory=directory, exclude_patterns=["*.pyc"])
-        self.assertItemsEqual(expected, result)
+        result = get_file_list(
+            directory=directory, exclude_patterns=["*.pyc", "__pycache__"]
+        )
+        # directory listings are sorted because the item order must be exact for assert
+        # to validate equivalence.  Directory item order doesn't matter in general and may
+        # even change on different platforms or locales.
+        assert sorted(expected) == sorted(result)
 
         # Custom exclude pattern
         expected = [
@@ -52,4 +57,7 @@ class FileSystemUtilsTestCase(unittest.TestCase):
         result = get_file_list(
             directory=directory, exclude_patterns=["*.pyc", "*.yaml", "*BUILD"]
         )
-        self.assertItemsEqual(expected, result)
+        # directory listings are sorted because the item order must be exact for assert
+        # to validate equivalence.  Directory item order doesn't matter in general and may
+        # even change on different platforms or locales.
+        assert sorted(expected) == sorted(result)
