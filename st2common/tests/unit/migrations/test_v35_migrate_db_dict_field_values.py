@@ -16,15 +16,11 @@ import os
 import sys
 
 import datetime
-import mongoengine as me
 
 from st2common.constants import action as action_constants
-from st2common.fields import ComplexDateTimeField
-from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.models.db import stormbase
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
-from st2common.models.db.notification import NotificationSchema
 from st2common.models.db.workflow import WorkflowExecutionDB
 from st2common.models.db.workflow import TaskExecutionDB
 from st2common.models.db.trigger import TriggerInstanceDB
@@ -35,7 +31,6 @@ from st2common.persistence.workflow import TaskExecution
 from st2common.persistence.trigger import TriggerInstance
 from st2common.constants.triggers import TRIGGER_INSTANCE_PROCESSED
 from st2common.constants.triggers import TRIGGER_INSTANCE_PENDING
-from st2common.util import date as date_utils
 
 from st2tests import DbTestCase
 
@@ -45,6 +40,7 @@ sys.path.append(
 )
 
 import st2_migrate_db_dict_field_values as migration_module
+
 
 MOCK_RESULT_1 = {
     "foo": "bar1",
@@ -83,178 +79,10 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
         LiveActionDB._meta["allow_inheritance"] = True
 
         class ActionExecutionDB_OldFieldType(ActionExecutionDB):
-            liveaction_id = me.StringField()  # not required; didn't exist
             result = stormbase.EscapedDynamicField(default={})
-            liveaction = stormbase.EscapedDictField(required=True)
-            parameters = stormbase.EscapedDynamicField(default={})
-
-            workflow_execution = me.StringField()
-            task_execution = me.StringField()
-            status = me.StringField(
-                required=True, help_text="The current status of the liveaction."
-            )
-            start_timestamp = ComplexDateTimeField(
-                default=date_utils.get_datetime_utc_now,
-                help_text="The timestamp when the liveaction was created.",
-            )
-            end_timestamp = ComplexDateTimeField(
-                help_text="The timestamp when the liveaction has finished."
-            )
-            action = stormbase.EscapedDictField(required=True)
-            context = me.DictField(
-                default={}, help_text="Contextual information on the action execution."
-            )
-            delay = me.IntField(min_value=0)
-
-            # diff from liveaction
-            runner = stormbase.EscapedDictField(required=True)
-            trigger = stormbase.EscapedDictField()
-            trigger_type = stormbase.EscapedDictField()
-            trigger_instance = stormbase.EscapedDictField()
-            rule = stormbase.EscapedDictField()
-            result_size = me.IntField(
-                default=0, help_text="Serialized result size in bytes"
-            )
-            parent = me.StringField()
-            children = me.ListField(field=me.StringField())
-            log = me.ListField(field=me.DictField())
-            # Do not use URLField for web_url. If host doesn't have FQDN set, URLField validation blows.
-            web_url = me.StringField(required=False)
 
         class LiveActionDB_OldFieldType(LiveActionDB):
             result = stormbase.EscapedDynamicField(default={})
-            workflow_execution = me.StringField()
-            task_execution = me.StringField()
-            # TODO: Can status be an enum at the Mongo layer?
-            status = me.StringField(
-                required=True, help_text="The current status of the liveaction."
-            )
-            start_timestamp = ComplexDateTimeField(
-                default=date_utils.get_datetime_utc_now,
-                help_text="The timestamp when the liveaction was created.",
-            )
-            end_timestamp = ComplexDateTimeField(
-                help_text="The timestamp when the liveaction has finished."
-            )
-            action = me.StringField(
-                required=True,
-                help_text="Reference to the action that has to be executed.",
-            )
-            parameters = JSONDictEscapedFieldCompatibilityField(
-                default={},
-                help_text="The key-value pairs passed as to the action runner & execution.",
-            )
-            context = me.DictField(
-                default={}, help_text="Contextual information on the action execution."
-            )
-            delay = me.IntField(
-                min_value=0,
-                help_text="How long (in milliseconds) to delay the execution before scheduling.",
-            )
-
-            # diff from action execution
-            action_is_workflow = me.BooleanField(
-                default=False,
-                help_text="A flag indicating whether the referenced action is a workflow.",
-            )
-            callback = me.DictField(
-                default={},
-                help_text="Callback information for the on completion of action execution.",
-            )
-            notify = me.EmbeddedDocumentField(NotificationSchema)
-            runner_info = me.DictField(
-                default={},
-                help_text="Information about the runner which executed this live action (hostname, pid).",
-            )
-
-        class LiveActionDB_NewFieldType(LiveActionDB):
-            result = JSONDictEscapedFieldCompatibilityField(
-                default={}, help_text="Action defined result."
-            )
-            workflow_execution = me.StringField()
-            task_execution = me.StringField()
-            # TODO: Can status be an enum at the Mongo layer?
-            status = me.StringField(
-                required=True, help_text="The current status of the liveaction."
-            )
-            start_timestamp = ComplexDateTimeField(
-                default=date_utils.get_datetime_utc_now,
-                help_text="The timestamp when the liveaction was created.",
-            )
-            end_timestamp = ComplexDateTimeField(
-                help_text="The timestamp when the liveaction has finished."
-            )
-            action = me.StringField(
-                required=True,
-                help_text="Reference to the action that has to be executed.",
-            )
-            parameters = JSONDictEscapedFieldCompatibilityField(
-                default={},
-                help_text="The key-value pairs passed as to the action runner & execution.",
-            )
-            context = me.DictField(
-                default={}, help_text="Contextual information on the action execution."
-            )
-            delay = me.IntField(
-                min_value=0,
-                help_text="How long (in milliseconds) to delay the execution before scheduling.",
-            )
-
-            # diff from action execution
-            action_is_workflow = me.BooleanField(
-                default=False,
-                help_text="A flag indicating whether the referenced action is a workflow.",
-            )
-            callback = me.DictField(
-                default={},
-                help_text="Callback information for the on completion of action execution.",
-            )
-            notify = me.EmbeddedDocumentField(NotificationSchema)
-            runner_info = me.DictField(
-                default={},
-                help_text="Information about the runner which executed this live action (hostname, pid).",
-            )
-
-        class ActionExecutionDB_NewFieldType(ActionExecutionDB):
-            liveaction_id = me.StringField()  # not required; didn't exist
-            liveaction = stormbase.EscapedDictField(required=True)
-            parameters = stormbase.EscapedDynamicField(default={})
-            result = JSONDictEscapedFieldCompatibilityField(
-                default={}, help_text="Action defined result."
-            )
-
-            workflow_execution = me.StringField()
-            task_execution = me.StringField()
-            status = me.StringField(
-                required=True, help_text="The current status of the liveaction."
-            )
-            start_timestamp = ComplexDateTimeField(
-                default=date_utils.get_datetime_utc_now,
-                help_text="The timestamp when the liveaction was created.",
-            )
-            end_timestamp = ComplexDateTimeField(
-                help_text="The timestamp when the liveaction has finished."
-            )
-            action = stormbase.EscapedDictField(required=True)
-            context = me.DictField(
-                default={}, help_text="Contextual information on the action execution."
-            )
-            delay = me.IntField(min_value=0)
-
-            # diff from liveaction
-            runner = stormbase.EscapedDictField(required=True)
-            trigger = stormbase.EscapedDictField()
-            trigger_type = stormbase.EscapedDictField()
-            trigger_instance = stormbase.EscapedDictField()
-            rule = stormbase.EscapedDictField()
-            result_size = me.IntField(
-                default=0, help_text="Serialized result size in bytes"
-            )
-            parent = me.StringField()
-            children = me.ListField(field=me.StringField())
-            log = me.ListField(field=me.DictField())
-            # Do not use URLField for web_url. If host doesn't have FQDN set, URLField validation blows.
-            web_url = me.StringField(required=False)
 
         execution_dbs = ActionExecution.query(
             __raw__={
@@ -396,23 +224,15 @@ class DBFieldsMigrationScriptTestCase(DbTestCase):
                     "$type": "object",
                 },
             }
-        ).update(set___cls="ActionExecutionDB.ActionExecutionDB_NewFieldType")
-        execution_dbs = ActionExecution.query(
-            __raw__={
-                "result": {
-                    "$not": {
-                        "$type": "binData",
-                    },
-                }
-            }
-        )
+        ).update(set___cls="ActionExecutionDB")
+
         LiveAction.query(
             __raw__={
                 "result": {
                     "$type": "object",
                 },
             }
-        ).update(set___cls="LiveActionDB.LiveActionDB_NewFieldType")
+        ).update(set___cls="LiveActionDB")
 
         # 2. Run migration
         start_dt = datetime.datetime.utcnow().replace(

@@ -153,7 +153,9 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         )
         self.assertEqual(len(tk_ac_ex_dbs), 1)
 
-        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_dbs[0].liveaction_id)
+        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(
+            tk_ac_ex_dbs[0].liveaction["id"]
+        )
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Pause the subworkflow.
@@ -194,7 +196,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(len(tk_ac_ex_dbs), 1)
 
         tk_ac_ex_db = tk_ac_ex_dbs[0]
-        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_db.liveaction_id)
+        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_db.liveaction["id"])
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Identify the records for the subworkflow.
@@ -261,7 +263,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[0].id)
         )[0]
-        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction_id)
+        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction["id"])
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(t1_ac_ex_db.id)
         )[0]
@@ -271,7 +273,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[1].id)
         )[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(t2_ac_ex_db.id)
         )[0]
@@ -289,7 +291,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the other subworkflow is still running.
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Manually notify action execution completion for the task in the subworkflow.
@@ -314,7 +316,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the other subworkflow is still running.
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Manually notify action execution completion for the tasks in the other subworkflow.
@@ -373,7 +375,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[0].id)
         )[0]
-        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction_id)
+        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction["id"])
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(t1_ac_ex_db.id)
         )[0]
@@ -383,7 +385,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[1].id)
         )[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(t2_ac_ex_db.id)
         )[0]
@@ -401,7 +403,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the other subworkflow is still running.
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Manually notify action execution completion for the tasks in the other subworkflow.
@@ -439,7 +441,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the target subworkflow is still pausing.
-        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction_id)
+        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction["id"])
         self.assertEqual(t1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_PAUSING)
 
         # Manually notify action execution completion for the task in the subworkflow.
@@ -489,7 +491,9 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         tk_ac_ex_dbs = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[0].id)
         )
-        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_dbs[0].liveaction_id)
+        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(
+            tk_ac_ex_dbs[0].liveaction["id"]
+        )
         self.assertEqual(tk_ac_ex_dbs[0].status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(tk_ac_ex_dbs[0])
@@ -546,7 +550,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(len(tk_ac_ex_dbs), 1)
 
         tk_ac_ex_db = tk_ac_ex_dbs[0]
-        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_db.liveaction_id)
+        tk_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk_ac_ex_db.liveaction["id"])
         self.assertEqual(tk_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Identify the records for the subworkflow.
@@ -622,7 +626,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[0].id)
         )[0]
-        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction_id)
+        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction["id"])
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(t1_ac_ex_db.id)
         )[0]
@@ -632,7 +636,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[1].id)
         )[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(t2_ac_ex_db.id)
         )[0]
@@ -650,7 +654,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the other subworkflow is still running.
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Manually notify action execution completion for the task in the subworkflow.
@@ -675,7 +679,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the other subworkflow is still running.
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Pause the other subworkflow.
@@ -769,7 +773,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[0].id)
         )[0]
-        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction_id)
+        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction["id"])
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(t1_ac_ex_db.id)
         )[0]
@@ -779,7 +783,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[1].id)
         )[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(t2_ac_ex_db.id)
         )[0]
@@ -797,7 +801,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the other subworkflow is still running.
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Manually notify action execution completion for the task in the subworkflow.
@@ -822,7 +826,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the other subworkflow is still running.
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Manually notify action execution completion for the tasks in the other subworkflow.
@@ -903,7 +907,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t3_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t3_ex_db.id)
         )[0]
-        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction_id)
+        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction["id"])
         self.assertEqual(t3_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(t3_ac_ex_db)
 
@@ -933,7 +937,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[0].id)
         )[0]
-        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction_id)
+        t1_lv_ac_db = lv_db_access.LiveAction.get_by_id(t1_ac_ex_db.liveaction["id"])
         t1_wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(t1_ac_ex_db.id)
         )[0]
@@ -943,7 +947,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk_ex_dbs[1].id)
         )[0]
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         t2_wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(t2_ac_ex_db.id)
         )[0]
@@ -961,7 +965,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the other subworkflow is still running.
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Manually notify action execution completion for the task in the subworkflow.
@@ -986,7 +990,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the other subworkflow is still running.
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Resume the subworkflow and assert it is running.
@@ -1001,7 +1005,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Assert the other subworkflow is still running.
-        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction_id)
+        t2_lv_ac_db = lv_db_access.LiveAction.get_by_id(t2_ac_ex_db.liveaction["id"])
         self.assertEqual(t2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_RUNNING)
 
         # Manually notify action execution completion for the tasks in the subworkflow.
@@ -1067,7 +1071,7 @@ class OrquestaRunnerPauseResumeTest(st2tests.ExecutionDbTestCase):
         t3_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(t3_ex_db.id)
         )[0]
-        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction_id)
+        t3_lv_ac_db = lv_db_access.LiveAction.get_by_id(t3_ac_ex_db.liveaction["id"])
         self.assertEqual(t3_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
         wf_svc.handle_action_execution_completion(t3_ac_ex_db)
 

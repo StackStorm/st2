@@ -22,16 +22,7 @@ from st2common.constants import action as ac_const
 
 
 class ErrorHandlingTest(base.TestWorkflowExecution):
-    def error_inspect(self, ex, expected_errors):
-        errors = []
-        for i in ex.result.get("errors"):
-            i.pop("traceback", None)
-            errors.append(i)
-        for index, i in enumerate(errors):
-            self.assertDictEqual(i, expected_errors[index])
-
     def test_inspection_error(self):
-        self.maxDiff = None
         expected_errors = [
             {
                 "type": "content",
@@ -75,8 +66,27 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._execute_workflow("examples.orquesta-fail-inspection")
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.error_inspect(ex, expected_errors)
-        self.assertIsNone(ex.result["output"])
+        self.assertEqual(len(ex.result["errors"]), len(expected_errors))
+        for i in range(len(ex.result["errors"])):
+            self.assertEqual(ex.result["errors"][i]["type"], expected_errors[i]["type"])
+            self.assertEqual(
+                ex.result["errors"][i]["message"], expected_errors[i]["message"]
+            )
+            self.assertEqual(
+                ex.result["errors"][i]["schema_path"], expected_errors[i]["schema_path"]
+            )
+            self.assertEqual(
+                ex.result["errors"][i]["spec_path"], expected_errors[i]["spec_path"]
+            )
+            if "language" in expected_errors[i]:
+                self.assertEqual(
+                    ex.result["errors"][i]["language"], expected_errors[i]["language"]
+                )
+            if "expression" in expected_errors[i]:
+                self.assertEqual(
+                    ex.result["errors"][i]["expression"],
+                    expected_errors[i]["expression"],
+                )
 
     def test_input_error(self):
         expected_errors = [
@@ -93,7 +103,7 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._execute_workflow("examples.orquesta-fail-input-rendering")
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.error_inspect(ex, expected_errors)
+        self.assertDictEqual(ex.result, {"errors": expected_errors, "output": None})
 
     def test_vars_error(self):
         expected_errors = [
@@ -109,8 +119,8 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
 
         ex = self._execute_workflow("examples.orquesta-fail-vars-rendering")
         ex = self._wait_for_completion(ex)
-        self.error_inspect(ex, expected_errors)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, {"errors": expected_errors, "output": None})
 
     def test_start_task_error(self):
         self.maxDiff = None
@@ -137,8 +147,8 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
 
         ex = self._execute_workflow("examples.orquesta-fail-start-task")
         ex = self._wait_for_completion(ex)
-        self.error_inspect(ex, expected_errors)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertDictEqual(ex.result, {"errors": expected_errors, "output": None})
 
     def test_task_transition_error(self):
         expected_errors = [
@@ -159,8 +169,9 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._execute_workflow("examples.orquesta-fail-task-transition")
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result["output"], expected_output)
-        self.error_inspect(ex, expected_errors)
+        self.assertDictEqual(
+            ex.result, {"errors": expected_errors, "output": expected_output}
+        )
 
     def test_task_publish_error(self):
         expected_errors = [
@@ -180,10 +191,10 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
 
         ex = self._execute_workflow("examples.orquesta-fail-task-publish")
         ex = self._wait_for_completion(ex)
-
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(ex.result["output"], expected_output)
-        self.error_inspect(ex, expected_errors)
+        self.assertDictEqual(
+            ex.result, {"errors": expected_errors, "output": expected_output}
+        )
 
     def test_output_error(self):
         expected_errors = [
@@ -200,10 +211,9 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
         ex = self._execute_workflow("examples.orquesta-fail-output-rendering")
         ex = self._wait_for_completion(ex)
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.error_inspect(ex, expected_errors)
+        self.assertDictEqual(ex.result, {"errors": expected_errors, "output": None})
 
     def test_task_content_errors(self):
-        self.maxDiff = None
         expected_errors = [
             {
                 "type": "content",
@@ -236,9 +246,19 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
 
         ex = self._execute_workflow("examples.orquesta-fail-inspection-task-contents")
         ex = self._wait_for_completion(ex)
-        self.error_inspect(ex, expected_errors)
-        self.assertIsNone(ex.result["output"])
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
+        self.assertEqual(len(ex.result["errors"]), len(expected_errors))
+        for i in range(len(ex.result["errors"])):
+            self.assertEqual(ex.result["errors"][i]["type"], expected_errors[i]["type"])
+            self.assertEqual(
+                ex.result["errors"][i]["message"], expected_errors[i]["message"]
+            )
+            self.assertEqual(
+                ex.result["errors"][i]["schema_path"], expected_errors[i]["schema_path"]
+            )
+            self.assertEqual(
+                ex.result["errors"][i]["spec_path"], expected_errors[i]["spec_path"]
+            )
 
     def test_remediate_then_fail(self):
         expected_errors = [
@@ -273,9 +293,10 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
 
         self._wait_for_task(ex, "task1", ac_const.LIVEACTION_STATUS_FAILED)
         self._wait_for_task(ex, "log", ac_const.LIVEACTION_STATUS_SUCCEEDED)
+
         # Assert workflow status and result.
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
-        self.error_inspect(ex, expected_errors)
+        self.assertDictEqual(ex.result, {"errors": expected_errors, "output": None})
 
     def test_fail_manually(self):
         expected_errors = [
@@ -342,6 +363,7 @@ class ErrorHandlingTest(base.TestWorkflowExecution):
 
         # Assert task status.
         self._wait_for_task(ex, "task1", ac_const.LIVEACTION_STATUS_FAILED)
+
         # Assert workflow status and result.
         self.assertEqual(ex.status, ac_const.LIVEACTION_STATUS_FAILED)
         self.assertDictEqual(

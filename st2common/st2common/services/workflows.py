@@ -19,8 +19,6 @@ import copy
 import datetime
 import retrying
 import six
-import sys
-import traceback
 
 from orquesta import conducting
 from orquesta import events
@@ -472,7 +470,7 @@ def request_cancellation(ac_ex_db):
         and root_ac_ex_db.status not in ac_const.LIVEACTION_CANCEL_STATES
     ):
         LOG.info("[%s] Cascading cancelation request to parent workflow.", wf_ac_ex_id)
-        root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction_id)
+        root_lv_ac_db = lv_db_access.LiveAction.get(id=root_ac_ex_db.liveaction["id"])
         ac_svc.request_cancellation(root_lv_ac_db, None)
 
     LOG.debug("[%s] %s", wf_ac_ex_id, conductor.serialize())
@@ -679,13 +677,7 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
             "task_id": task_id,
             "route": task_route,
         }
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback_in_var = traceback.format_tb(exc_traceback)
-        update_task_execution(
-            str(task_ex_db.id),
-            statuses.FAILED,
-            {"errors": [error], "traceback": traceback_in_var},
-        )
+        update_task_execution(str(task_ex_db.id), statuses.FAILED, {"errors": [error]})
         raise e
 
     return task_ex_db
@@ -915,7 +907,7 @@ def handle_action_execution_resume(ac_ex_db):
 
         if parent_ac_ex_db.status == ac_const.LIVEACTION_STATUS_PAUSED:
             action_utils.update_liveaction_status(
-                liveaction_id=parent_ac_ex_db.liveaction_id,
+                liveaction_id=parent_ac_ex_db.liveaction["id"],
                 status=ac_const.LIVEACTION_STATUS_RUNNING,
                 publish=False,
             )
@@ -1193,15 +1185,12 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
                 # Request the task execution.
                 request_task_execution(wf_ex_db, st2_ctx, task)
             except Exception as e:
-
-                exc_type, exc_value, exc_traceback = sys.exc_info()
                 msg = 'Failed task execution for task "%s", route "%s".'
                 msg = msg % (task["id"], str(task["route"]))
                 update_progress(
                     wf_ex_db, "%s %s" % (msg, str(e)), severity="error", log=False
                 )
                 LOG.exception(msg, exc_info=True)
-
                 fail_workflow_execution(str(wf_ex_db.id), e, task=task)
                 return
 
@@ -1215,9 +1204,7 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
         next_tasks = conductor.get_next_tasks()
 
         if not next_tasks:
-            update_progress(
-                wf_ex_db, "end  of while No tasks identified to execute next."
-            )
+            update_progress(wf_ex_db, "No tasks identified to execute next.")
             update_progress(wf_ex_db, "\n", log=False)
 
 
@@ -1449,7 +1436,7 @@ def update_execution_records(
 
     # Update the corresponding liveaction and action execution for the workflow.
     wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
-    wf_lv_ac_db = action_utils.get_liveaction_by_id(wf_ac_ex_db.liveaction_id)
+    wf_lv_ac_db = action_utils.get_liveaction_by_id(wf_ac_ex_db.liveaction["id"])
 
     # Gather result for liveaction and action execution.
     result = {"output": wf_ex_db.output or None}

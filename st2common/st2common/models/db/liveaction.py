@@ -38,7 +38,6 @@ PACK_SEPARATOR = "."
 
 
 class LiveActionDB(stormbase.StormFoundationDB):
-    # same as action execution
     workflow_execution = me.StringField()
     task_execution = me.StringField()
     # TODO: Can status be an enum at the Mongo layer?
@@ -69,7 +68,6 @@ class LiveActionDB(stormbase.StormFoundationDB):
         min_value=0,
         help_text="How long (in milliseconds) to delay the execution before scheduling.",
     )
-
     # diff from action execution
     action_is_workflow = me.BooleanField(
         default=False,
@@ -84,6 +82,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
         default={},
         help_text="Information about the runner which executed this live action (hostname, pid).",
     )
+
     meta = {
         "indexes": [
             {"fields": ["-start_timestamp", "action"]},

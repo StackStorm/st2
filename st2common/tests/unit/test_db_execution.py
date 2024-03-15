@@ -60,7 +60,6 @@ INQUIRY_LIVEACTION = {
             },
         },
     },
-    "id": "liveaction_inquiry",
     "action": "core.ask",
 }
 
@@ -71,7 +70,6 @@ RESPOND_LIVEACTION = {
         }
     },
     "action": "st2.inquiry.respond",
-    "id": "liveaction_respond",
 }
 
 OUTPUT_SCHEMA_RESULT = {
@@ -84,7 +82,6 @@ OUTPUT_SCHEMA_RESULT = {
 }
 
 OUTPUT_SCHEMA_LIVEACTION = {
-    "id": "output_schema",
     "action": "core.ask",
     "parameters": {},
 }
@@ -94,14 +91,14 @@ ACTIONEXECUTIONS = {
         "action": {"uid": "action:core:ask", "output_schema": {}},
         "status": "succeeded",
         "runner": {"name": "inquirer"},
-        "liveaction_id": INQUIRY_LIVEACTION["id"],
+        "liveaction": INQUIRY_LIVEACTION,
         "result": INQUIRY_RESULT,
     },
     "execution_2": {
         "action": {"uid": "action:st2:inquiry.respond", "output_schema": {}},
         "status": "succeeded",
         "runner": {"name": "python-script"},
-        "liveaction_id": RESPOND_LIVEACTION["id"],
+        "liveaction": RESPOND_LIVEACTION,
         "result": {"exit_code": 0, "result": None, "stderr": "", "stdout": ""},
     },
     "execution_3": {
@@ -122,7 +119,7 @@ ACTIONEXECUTIONS = {
         },
         "status": "succeeded",
         "runner": {"name": "inquirer", "output_key": "result"},
-        "liveaction_id": OUTPUT_SCHEMA_LIVEACTION["id"],
+        "liveaction": OUTPUT_SCHEMA_LIVEACTION,
         "result": OUTPUT_SCHEMA_RESULT,
     },
 }
@@ -140,7 +137,7 @@ class ActionExecutionModelTest(DbTestCase):
             created.action = execution["action"]
             created.status = execution["status"]
             created.runner = execution["runner"]
-            created.liveaction_id = execution["liveaction_id"]
+            created.liveaction = execution["liveaction"]
             created.result = execution["result"]
 
             saved = ActionExecutionModelTest._save_execution(created)
@@ -190,6 +187,19 @@ class ActionExecutionModelTest(DbTestCase):
             self.executions["execution_1"].result["response"]["secondfactor"],
             "supersecretvalue",
         )
+
+    def test_execution_inquiry_response_action(self):
+        """Test that the response parameters for any `st2.inquiry.respond` executions are masked
+
+        We aren't bothering to get the inquiry schema in the `st2.inquiry.respond` action,
+        so we mask all response values. This test ensures this happens.
+        """
+
+        masked = self.executions["execution_2"].mask_secrets(
+            self.executions["execution_2"].to_serializable_dict()
+        )
+        for value in masked["parameters"]["response"].values():
+            self.assertEqual(value, MASKED_ATTRIBUTE_VALUE)
 
     def test_output_schema_secret_param_masking(self):
         """Test that the output marked as secret in the output schema is masked in the output result

@@ -24,7 +24,6 @@ from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
-from st2common.persistence.liveaction import LiveAction
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
@@ -62,7 +61,6 @@ class ActionExecutionAPI(BaseAPI):
             "rule": RuleAPI.schema,
             "action": REQUIRED_ATTR_SCHEMAS["action"],
             "runner": REQUIRED_ATTR_SCHEMAS["runner"],
-            "liveaction_id": {"type": "string", "required": True},
             "liveaction": REQUIRED_ATTR_SCHEMAS["liveaction"],
             "status": {
                 "description": "The current status of the action execution.",
@@ -152,25 +150,13 @@ class ActionExecutionAPI(BaseAPI):
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
-
         doc = cls._from_model(model, mask_secrets=mask_secrets)
+
+        doc["result"] = ActionExecutionDB.result.parse_field_value(doc["result"])
 
         start_timestamp = model.start_timestamp
         start_timestamp_iso = isotime.format(start_timestamp, offset=False)
         doc["start_timestamp"] = start_timestamp_iso
-        # check to see if liveaction_id has been excluded in output filtering
-        if doc.get("liveaction_id", False):
-            live_action_model = LiveAction.get_by_id(doc["liveaction_id"])
-            if live_action_model is not None:
-                doc["liveaction"] = LiveActionAPI.from_model(
-                    live_action_model, mask_secrets=mask_secrets
-                )
-            else:
-                doc["liveaction"] = {
-                    "action": doc["action"]["name"],
-                    "id": doc["liveaction_id"],
-                    "status": doc["status"],
-                }
 
         end_timestamp = model.end_timestamp
         if end_timestamp:
@@ -189,11 +175,9 @@ class ActionExecutionAPI(BaseAPI):
         """
         override this class to
         convert any raw byte values into dict
-
         Now add the JSON string field value which shouldn't be escaped back.
         We don't JSON parse the field value here because that happens inside the model specific
         "from_model()" method where we also parse and convert all the other field values.
-
         :param doc: dict
         :param raw_values: dict[field]:bytestring
         """

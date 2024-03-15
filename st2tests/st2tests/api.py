@@ -87,6 +87,7 @@ class TestApp(webtest.TestApp):
         if req.environ["REQUEST_METHOD"] != "OPTIONS":
             # Making sure endpoint handles OPTIONS method properly
             self.options(req.environ["PATH_INFO"])
+
         res = super(TestApp, self).do_request(req, **kwargs)
 
         if res.headers.get("Warning", None):
@@ -394,7 +395,7 @@ class BaseActionExecutionControllerTestCase(object):
 
     @staticmethod
     def _get_liveaction_id(resp):
-        return resp.json["liveaction_id"]
+        return resp.json["liveaction"]["id"]
 
     def _do_get_one(self, actionexecution_id, *args, **kwargs):
         return self.app.get("/v1/executions/%s" % actionexecution_id, *args, **kwargs)

@@ -136,6 +136,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(
             user_db=requester_user, user=user
         )
+
         try:
             return self._schedule_execution(
                 liveaction=liveaction_api,
@@ -205,6 +206,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         runnertype_db = action_utils.get_runnertype_by_name(
             action_db.runner_type["name"]
         )
+
         try:
             liveaction_db.parameters = param_utils.render_live_params(
                 runnertype_db.runner_parameters,
@@ -240,6 +242,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         liveaction_db, actionexecution_db = action_service.create_request(
             liveaction=liveaction_db, action_db=action_db, runnertype_db=runnertype_db
         )
+
         _, actionexecution_db = action_service.publish_request(
             liveaction_db, actionexecution_db
         )
@@ -422,7 +425,6 @@ class ActionExecutionRawResultController(BaseActionExecutionNestedController):
         except IndexError:
             raise NotFoundException("Execution with id %s not found" % (id))
 
-        # For backward compatibility we also support old non JSON field storage format
         if pretty_format:
             response_body = orjson.dumps(result, option=orjson.OPT_INDENT_2)
         else:
@@ -829,7 +831,7 @@ class ActionExecutionsController(
         if not execution_api:
             abort(http_client.NOT_FOUND, "Execution with id %s not found." % id)
 
-        liveaction_id = execution_api.liveaction_id
+        liveaction_id = execution_api.liveaction["id"]
         if not liveaction_id:
             abort(
                 http_client.INTERNAL_SERVER_ERROR,
@@ -854,7 +856,7 @@ class ActionExecutionsController(
                 liveaction_db, status, result, set_result_size=True
             )
             actionexecution_db = ActionExecution.get(
-                liveaction_id=str(liveaction_db.id)
+                liveaction__id=str(liveaction_db.id)
             )
             return (liveaction_db, actionexecution_db)
 
@@ -958,7 +960,7 @@ class ActionExecutionsController(
         if not execution_api:
             abort(http_client.NOT_FOUND, "Execution with id %s not found." % id)
 
-        liveaction_id = execution_api.liveaction_id
+        liveaction_id = execution_api.liveaction["id"]
         if not liveaction_id:
             abort(
                 http_client.INTERNAL_SERVER_ERROR,

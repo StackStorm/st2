@@ -82,10 +82,12 @@ def _decompose_liveaction(liveaction_db):
     """
     Splits the liveaction into an ActionExecution compatible dict.
     """
-    decomposed = {"liveaction_id": str(liveaction_db.id)}
+    decomposed = {"liveaction": {}}
     liveaction_api = vars(LiveActionAPI.from_model(liveaction_db))
     for k in liveaction_api.keys():
-        if k not in LIVEACTION_ATTRIBUTES:
+        if k in LIVEACTION_ATTRIBUTES:
+            decomposed["liveaction"][k] = liveaction_api[k]
+        else:
             decomposed[k] = getattr(liveaction_db, k)
     return decomposed
 
@@ -153,7 +155,6 @@ def create_execution_object(
 
     # NOTE: User input data is already validate as part of the API request,
     # other data is set by us. Skipping validation here makes operation 10%-30% faster
-    execution.liveaction_id = str(liveaction.id)
     execution = ActionExecution.add_or_update(
         execution, publish=publish, validate=False
     )
@@ -193,7 +194,7 @@ def update_execution(liveaction_db, publish=True, set_result_size=False):
     :param set_result_size: True to calculate size of the serialized result field value and set it
                             on the "result_size" database field.
     """
-    execution = ActionExecution.get(liveaction_id=str(liveaction_db.id))
+    execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
 
     with coordination.get_coordinator().get_lock(str(liveaction_db.id).encode()):
         # Skip execution object update when action is already in completed state.

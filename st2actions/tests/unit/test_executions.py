@@ -99,7 +99,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         )
 
         execution = self._get_action_execution(
-            liveaction_id=str(liveaction.id), raise_exception=True
+            liveaction__id=str(liveaction.id), raise_exception=True
         )
 
         self.assertDictEqual(execution.trigger, {})
@@ -121,7 +121,8 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
-        self.assertEqual(execution.liveaction_id, str(liveaction.id))
+        self.assertEqual(execution.liveaction["callback"], liveaction.callback)
+        self.assertEqual(execution.liveaction["action"], liveaction.action)
 
     def test_basic_execution_history_create_failed(self):
         MOCK_FAIL_EXECUTION_CREATE = True  # noqa
@@ -135,7 +136,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         )
 
         execution = self._get_action_execution(
-            liveaction_id=str(liveaction.id), raise_exception=True
+            liveaction__id=str(liveaction.id), raise_exception=True
         )
 
         action = action_utils.get_action_by_ref("executions.chain")
@@ -153,7 +154,8 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
-        self.assertEqual(execution.liveaction_id, str(liveaction.id))
+        self.assertEqual(execution.liveaction["callback"], liveaction.callback)
+        self.assertEqual(execution.liveaction["action"], liveaction.action)
         self.assertGreater(len(execution.children), 0)
 
         for child in execution.children:
@@ -200,7 +202,7 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         )
 
         execution = self._get_action_execution(
-            liveaction_id=str(liveaction.id), raise_exception=True
+            liveaction__id=str(liveaction.id), raise_exception=True
         )
 
         self.assertDictEqual(execution.trigger, vars(TriggerAPI.from_model(trigger)))
@@ -227,7 +229,8 @@ class TestActionExecutionHistoryWorker(ExecutionDbTestCase):
         self.assertEqual(execution.result, liveaction.result)
         self.assertEqual(execution.status, liveaction.status)
         self.assertEqual(execution.context, liveaction.context)
-        self.assertEqual(execution.liveaction_id, str(liveaction.id))
+        self.assertEqual(execution.liveaction["callback"], liveaction.callback)
+        self.assertEqual(execution.liveaction["action"], liveaction.action)
 
     def _get_action_execution(self, **kwargs):
         return ActionExecution.get(**kwargs)

@@ -368,7 +368,7 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         # Manually succeed the action executions and process completion.
         for ac_ex in t1_ac_ex_dbs:
             self.set_execution_status(
-                ac_ex.liveaction_id, action_constants.LIVEACTION_STATUS_SUCCEEDED
+                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_SUCCEEDED
             )
 
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
@@ -440,7 +440,7 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         # Manually succeed the action executions and process completion.
         for ac_ex in t1_ac_ex_dbs:
             self.set_execution_status(
-                ac_ex.liveaction_id, action_constants.LIVEACTION_STATUS_SUCCEEDED
+                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_SUCCEEDED
             )
 
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
@@ -509,7 +509,7 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         # Manually succeed the action executions and process completion.
         for ac_ex in t1_ac_ex_dbs:
             self.set_execution_status(
-                ac_ex.liveaction_id, action_constants.LIVEACTION_STATUS_SUCCEEDED
+                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_SUCCEEDED
             )
 
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
@@ -599,7 +599,7 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         # Manually succeed the action executions and process completion.
         for ac_ex in t1_ac_ex_dbs:
             self.set_execution_status(
-                ac_ex.liveaction_id, action_constants.LIVEACTION_STATUS_SUCCEEDED
+                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_SUCCEEDED
             )
 
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(

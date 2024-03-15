@@ -182,6 +182,7 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
                 show_secrets=show_secrets,
                 requester_user=requester_user,
             )
+
             result = {
                 "execution": execution,
                 "actionalias": ActionAliasAPI.from_model(action_alias_db),

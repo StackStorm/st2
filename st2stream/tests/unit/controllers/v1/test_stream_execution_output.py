@@ -21,11 +21,9 @@ from six.moves import http_client
 
 from st2common.constants import action as action_constants
 from st2common.models.db.execution import ActionExecutionDB
-from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.execution import ActionExecutionOutput
-from st2common.persistence.liveaction import LiveAction
 from st2common.util import date as date_utils
 
 from st2common.stream.listener import get_listener
@@ -55,21 +53,15 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
         # Test the execution output API endpoint for execution which is running (blocking)
         status = action_constants.LIVEACTION_STATUS_RUNNING
         timestamp = date_utils.get_datetime_utc_now()
-        liveaction_id = "54c6b6d60640fd4f5354e74a"
         action_execution_db = ActionExecutionDB(
             start_timestamp=timestamp,
             end_timestamp=timestamp,
             status=status,
             action={"ref": "core.local"},
             runner={"name": "local-shell-cmd"},
-            liveaction_id=liveaction_id,
+            liveaction={"ref": "foo"},
         )
         action_execution_db = ActionExecution.add_or_update(action_execution_db)
-        liveaction_db = LiveActionDB(
-            action="core.local", runner_info={"name": "local-shell-cmd"}, status=status
-        )
-        liveaction_db.id = liveaction_id
-        LiveAction.add_or_update(liveaction_db)
 
         output_params = dict(
             execution_id=str(action_execution_db.id),
@@ -143,23 +135,15 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
             # Insert mock execution and output objects
             status = action_constants.LIVEACTION_STATUS_SUCCEEDED
             timestamp = date_utils.get_datetime_utc_now()
-            liveaction_id = "54c6b6d60640fd4f5354e74a"
             action_execution_db = ActionExecutionDB(
                 start_timestamp=timestamp,
                 end_timestamp=timestamp,
                 status=status,
                 action={"ref": "core.local"},
                 runner={"name": "local-shell-cmd"},
-                liveaction_id=liveaction_id,
+                liveaction={"ref": "foo"},
             )
             action_execution_db = ActionExecution.add_or_update(action_execution_db)
-            liveaction_db = LiveActionDB(
-                action="core.local",
-                runner_info={"name": "local-shell-cmd"},
-                status=status,
-            )
-            liveaction_db.id = liveaction_id
-            LiveAction.add_or_update(liveaction_db)
 
             for i in range(1, 6):
                 stdout_db = ActionExecutionOutputDB(

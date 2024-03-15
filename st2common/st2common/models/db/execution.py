@@ -39,7 +39,16 @@ LOG = logging.getLogger(__name__)
 class ActionExecutionDB(stormbase.StormFoundationDB):
     RESOURCE_TYPE = ResourceType.EXECUTION
     UID_FIELDS = ["id"]
-    # SAME as liveaction
+
+    trigger = stormbase.EscapedDictField()
+    trigger_type = stormbase.EscapedDictField()
+    trigger_instance = stormbase.EscapedDictField()
+    rule = stormbase.EscapedDictField()
+    action = stormbase.EscapedDictField(required=True)
+    runner = stormbase.EscapedDictField(required=True)
+    # Only the diff between the liveaction type and what is replicated
+    # in the ActionExecutionDB object.
+    liveaction = stormbase.EscapedDictField(required=True)
     workflow_execution = me.StringField()
     task_execution = me.StringField()
     status = me.StringField(
@@ -60,6 +69,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     result = JSONDictEscapedFieldCompatibilityField(
         default={}, help_text="Action defined result."
     )
+    result_size = me.IntField(default=0, help_text="Serialized result size in bytes")
     context = me.DictField(
         default={}, help_text="Contextual information on the action execution."
     )
@@ -75,17 +85,15 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
     log = me.ListField(field=me.DictField())
+    delay = me.IntField(min_value=0)
     # Do not use URLField for web_url. If host doesn't have FQDN set, URLField validation blows.
     web_url = me.StringField(required=False)
-
-    # liveaction id
-    liveaction_id = me.StringField(required=True)
 
     meta = {
         "indexes": [
             {"fields": ["rule.ref"]},
             {"fields": ["action.ref"]},
-            {"fields": ["liveaction_id"]},
+            {"fields": ["liveaction.id"]},
             {"fields": ["start_timestamp"]},
             {"fields": ["end_timestamp"]},
             {"fields": ["status"]},
@@ -119,6 +127,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         """
         result = copy.deepcopy(value)
 
+        liveaction = result["liveaction"]
         parameters = {}
         # pylint: disable=no-member
         parameters.update(value.get("action", {}).get("parameters", {}))
@@ -128,6 +137,31 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         result["parameters"] = mask_secret_parameters(
             parameters=result.get("parameters", {}), secret_parameters=secret_parameters
         )
+
+        if "parameters" in liveaction:
+            liveaction["parameters"] = mask_secret_parameters(
+                parameters=liveaction["parameters"], secret_parameters=secret_parameters
+            )
+
+            if liveaction.get("action", "") == "st2.inquiry.respond":
+                # Special case to mask parameters for `st2.inquiry.respond` action
+                # In this case, this execution is just a plain python action, not
+                # an inquiry, so we don't natively have a handle on the response
+                # schema.
+                #
+                # To prevent leakage, we can just mask all response fields.
+                #
+                # Note: The 'string' type in secret_parameters doesn't matter,
+                #       it's just a placeholder to tell mask_secret_parameters()
+                #       that this parameter is indeed a secret parameter and to
+                #       mask it.
+                result["parameters"]["response"] = mask_secret_parameters(
+                    parameters=liveaction["parameters"]["response"],
+                    secret_parameters={
+                        p: "string" for p in liveaction["parameters"]["response"]
+                    },
+                )
+
         output_value = ActionExecutionDB.result.parse_field_value(result["result"])
         masked_output_value = output_schema.mask_secret_output(result, output_value)
         result["result"] = masked_output_value

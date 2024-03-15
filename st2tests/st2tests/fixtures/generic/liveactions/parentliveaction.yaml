@@ -1,10 +1,10 @@
 ---
 action: core.someworkflow
-id: 54c6b6d60640fd4f5354e74a
 callback: {}
 context:
   user: system
 end_timestamp: '2014-09-01T00:00:05.000000Z'
+id: 54c6b6d60640fd4f5354e74a
 parameters: {}
 result: {}
 start_timestamp: '2014-09-01T00:00:01.000000Z'

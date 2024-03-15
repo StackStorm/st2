@@ -143,7 +143,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
         self.assertEqual(tk1_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Manually handle action execution completion.
@@ -161,7 +161,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         tk2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk2_ex_db.id)
         )[0]
-        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction_id)
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction["id"])
         self.assertEqual(tk2_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Manually handle action execution completion.
@@ -179,7 +179,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         tk3_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk3_ex_db.id)
         )[0]
-        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction_id)
+        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction["id"])
         self.assertEqual(tk3_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Manually handle action execution completion.
@@ -197,7 +197,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         tk4_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk4_ex_db.id)
         )[0]
-        tk4_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk4_ac_ex_db.liveaction_id)
+        tk4_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk4_ac_ex_db.liveaction["id"])
         self.assertEqual(tk4_lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Manually handle action execution completion.

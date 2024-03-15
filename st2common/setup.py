@@ -69,7 +69,6 @@ setup(
         "bin/st2-pack-download",
         "bin/st2-pack-setup-virtualenv",
         "bin/migrations/v3.5/st2-migrate-db-dict-field-values",
-        "bin/migrations/v3.9/st2-migrate-liveaction-executiondb",
     ],
     entry_points={
         "st2common.metrics.driver": [
