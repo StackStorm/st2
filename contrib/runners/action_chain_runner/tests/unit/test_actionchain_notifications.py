@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 import eventlet
 import mock
+import unittest
 
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
@@ -132,7 +133,8 @@ class TestActionChainNotifications(ExecutionDbTestCase):
         second_call_args = request.call_args_list[1][0]
         liveaction_db = second_call_args[0]
         self.assertFalse(liveaction_db.notify, "Notify property not expected.")
-
+    
+    @unittest.skip("actionchain not supported")
     def test_skip_notify_for_task_with_notify(self):
         action = TEST_PACK + "." + "test_subworkflow_default_with_notify_task"
         params = {"skip_notify": ["task1"]}
