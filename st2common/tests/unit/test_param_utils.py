@@ -519,7 +519,7 @@ class ParamsUtilsTest(DbTestCase):
         self.assertTrue(test_pass)
 
     def test_get_finalized_params_with_missing_dependency(self):
-        params = {"r1": "{{r3}}", "r2": "{{r3}}"}
+        params = {"r1": "{{r3}}", "r2": "{{r3}}{{r4}}"}
         runner_param_info = {"r1": {}, "r2": {}}
         action_param_info = {}
         result = param_utils.get_finalized_params(
