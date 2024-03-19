@@ -182,7 +182,8 @@ def _validate(G):
                 # remove template for neighbors; this isn't actually a variable
                 # it is a value
                 # remove template attr if it exists
-                g_copy.nodes[i]["value"] = g_copy.nodes[i].pop("template")
+                if "template" in g_copy.nodes[i].keys():
+                    g_copy.nodes[i]["value"] = g_copy.nodes[i].pop("template")
                 # remove edges
                 g_copy.remove_edge(name, i)
             # remove node from graph
