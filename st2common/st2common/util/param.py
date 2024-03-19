@@ -187,8 +187,8 @@ def _check_any_bad(G, nodes, check_any_bad=None, tracked_parents=None):
             check_any_bad.append(False)
         else:
             check_any_bad.append(True)
-        children = [i for i in G.predecessors(name)]
         if name not in tracked_parents:
+            children = [i for i in G.predecessors(name)]
             tracked_parents.extend(nodes)
             _check_any_bad(G, children, check_any_bad, tracked_parents)
     return check_any_bad
