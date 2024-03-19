@@ -30,4 +30,4 @@ __all__ = [
     "WorkflowTestCase",
 ]
 
-__version__ = "5.2"
+__version__ = "5.3"
