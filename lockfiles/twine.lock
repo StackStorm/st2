@@ -611,13 +611,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "f4bc4c0c070c490abf4ce96d715f68e95923320370efb66143df00199bb6c100",
-              "url": "https://files.pythonhosted.org/packages/db/62/6879ab53ad4997b627fc67241a41eabf7163299c59580c6ca4aa5ae6b677/importlib_metadata-7.0.2-py3-none-any.whl"
+              "hash": "30962b96c0c223483ed6cc7280e7f0199feb01a0e40cfae4d4450fc6fab1f570",
+              "url": "https://files.pythonhosted.org/packages/2d/0a/679461c511447ffaf176567d5c496d1de27cbe34a87df6677d7171b2fbd4/importlib_metadata-7.1.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "198f568f3230878cb1b44fbd7975f87906c22336dba2e4a7f05278c281fbd792",
-              "url": "https://files.pythonhosted.org/packages/64/dd/7467b3be0e863401438a407411f78c33376748aff39ec0b8f45f6739c86c/importlib_metadata-7.0.2.tar.gz"
+              "hash": "b78938b926ee8d5f020fc4772d487045805a55ddbad2ecf21c6d60938dc7fcd2",
+              "url": "https://files.pythonhosted.org/packages/a0/fc/c4e6078d21fc4fa56300a241b87eae76766aa380a23fc450fc85bb7bf547/importlib_metadata-7.1.0.tar.gz"
             }
           ],
           "project_name": "importlib-metadata",
@@ -627,6 +627,7 @@
             "importlib-resources>=1.3; python_version < \"3.9\" and extra == \"testing\"",
             "ipython; extra == \"perf\"",
             "jaraco.packaging>=9.3; extra == \"docs\"",
+            "jaraco.test>=5.4; extra == \"testing\"",
             "jaraco.tidelift>=1.4; extra == \"docs\"",
             "packaging; extra == \"testing\"",
             "pyfakefs; extra == \"testing\"",
@@ -644,19 +645,19 @@
             "zipp>=0.5"
           ],
           "requires_python": ">=3.8",
-          "version": "7.0.2"
+          "version": "7.1.0"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "783407aa1cd05550e3aa123e8f7cfaebee35ffa9cb0242919e2d1e4172222705",
-              "url": "https://files.pythonhosted.org/packages/de/79/7ad3b2831247db4f61e781f9164147b1ee20205c5230dcd177021caa266b/importlib_resources-6.3.0-py3-none-any.whl"
+              "hash": "f41f4098b16cd140a97d256137cfd943d958219007990b2afb00439fc623f580",
+              "url": "https://files.pythonhosted.org/packages/6e/f0/0632f7ae2d23aa34f1c5b09caf775376b9372e685c3841947dceef39919f/importlib_resources-6.3.2-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "166072a97e86917a9025876f34286f549b9caf1d10b35a1b372bffa1600c6569",
-              "url": "https://files.pythonhosted.org/packages/47/09/c02a7de10bd37af6752d1487b989342e4ae688a0082c59d3fc16274361c7/importlib_resources-6.3.0.tar.gz"
+              "hash": "963eb79649252b0160c1afcfe5a1d3fe3ad66edd0a8b114beacffb70c0674223",
+              "url": "https://files.pythonhosted.org/packages/cc/d8/9024d77b996e94c115d6b4fb7580742a012f15ecbca2e7f626445a408179/importlib_resources-6.3.2.tar.gz"
             }
           ],
           "project_name": "importlib-resources",
@@ -679,7 +680,7 @@
             "zipp>=3.17; extra == \"testing\""
           ],
           "requires_python": ">=3.8",
-          "version": "6.3.0"
+          "version": "6.3.2"
         },
         {
           "artifacts": [
@@ -1129,13 +1130,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "c1bb803ed69d2cce2373152797064f7e79bc43f0a3748eb494096a867e0ebf79",
-              "url": "https://files.pythonhosted.org/packages/39/ab/b6f4d44df331bf15f1bdae6a839563eeaad6c006a6c4e289acdd7db1ebe3/zipp-3.18.0-py3-none-any.whl"
+              "hash": "206f5a15f2af3dbaee80769fb7dc6f249695e940acca08dfb2a4769fe61e538b",
+              "url": "https://files.pythonhosted.org/packages/c2/0a/ba9d0ee9536d3ef73a3448e931776e658b36f128d344e175bc32b092a8bf/zipp-3.18.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "df8d042b02765029a09b157efd8e820451045890acc30f8e37dd2f94a060221f",
-              "url": "https://files.pythonhosted.org/packages/58/4a/caf3ac13aeada77b78ade7b74ec9cd9367e93eadcdefd8a1b4e8c4d05aed/zipp-3.18.0.tar.gz"
+              "hash": "2884ed22e7d8961de1c9a05142eb69a247f120291bc0206a00a7642f09b5b715",
+              "url": "https://files.pythonhosted.org/packages/3e/ef/65da662da6f9991e87f058bc90b91a935ae655a16ae5514660d6460d1298/zipp-3.18.1.tar.gz"
             }
           ],
           "project_name": "zipp",
@@ -1159,7 +1160,7 @@
             "sphinx>=3.5; extra == \"docs\""
           ],
           "requires_python": ">=3.8",
-          "version": "3.18.0"
+          "version": "3.18.1"
         }
       ],
       "platform_tag": null

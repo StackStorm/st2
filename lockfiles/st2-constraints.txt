@@ -22,11 +22,13 @@
 # DROPS RESOLVED VERSION: unknown
 MarkupSafe<2.1.0,>=0.23
 
+Pygments==2.5.2
+
 # REQUIRED BY: kombu
 # REASON: unknown -- this looks like a lockfile-style pin
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: 5.1.1
-amqp==5.0.6
+amqp==5.2.0
 
 # REQUIRED BY: cryptography, paramiko, passlib
 # REASON: unknown -- this looks like a lockfile-style pin
@@ -59,14 +61,14 @@ cffi<1.15.0
 # REASON: 2.0 version breaks pymongo work with hosts
 # NOTE: try to remove this later
 # DROPS RESOLVED VERSION: 1.16
-dnspython>=1.16.0,<2.0.0
+dnspython==2.6.1
 
 # REQUIRED BY: eventlet
 # REASON: unknown -- this looks like a lockfile-style pin
 # NOTE: We are having a hard time upgrading eventlet, so this pin is commented
 #       out to see if that will help. If any tests fail, uncomment this.
 # DROPS RESOLVED VERSION: 1.1.3.post0
-#greenlet==1.0.0
+greenlet==3.0.3
 
 # REQUIRED BY: argcomplete, click, debtcollector, kombu, pluggy, prettytable,
 #             pytest, virtualenv
@@ -81,7 +83,7 @@ dnspython>=1.16.0,<2.0.0
 # REASON: unknown
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: 4.13
-oslo.utils<5.0,>=4.0.0
+oslo.utils==7.1.0
 
 # REQUIRED BY: tooz
 # REASON: unknown

@@ -7,22 +7,21 @@
 # Please keep this list alphabetical, with tooz backends in a separate list.
 
 apscheduler
-argcomplete
+argcomplete==3.2.3
 ciso8601
 cryptography
-eventlet
+eventlet==0.35.2
 # flex parses the openapi 2 spec in our router
 flex
 # gitpython & gitdb are used for pack management
 gitdb
 gitpython
 # st2common/tests/integration/test_util_green.py requires greenlet (as does eventlet)
-greenlet
-gunicorn
-jinja2
+gunicorn==21.2.0
+Jinja2==3.1.3
 jsonpath-rw
 jsonschema>=3,<4
-kombu
+kombu==5.3.5
 lockfile
 mock
 # mongoengine 0.24.0 has breaking changes to support pymongo 4.0
@@ -34,7 +33,7 @@ orjson
 orquesta @ git+https://github.com/StackStorm/orquesta.git@v1.6.0
 # Historical reference: https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433
 # Relaxed pinning for py3.10 support.
-oslo.config
+oslo.config==9.4.0
 paramiko
 # we use pip at runtime
 pip
@@ -50,7 +49,7 @@ pymongo>=3.11.0,<3.13.0
 pyrabbit
 pytest
 python-dateutil
-editor
+editor==1.6.6
 Pygments
 # pythonjsonlogger referenced in st2actions/conf/logging.conf
 python-json-logger
@@ -62,7 +61,7 @@ RandomWords
 requests[security]
 retrying
 routes
-semver
+semver==3.0.2
 # setuptools provides pkg_resources (and we need it with pip at runtime)
 setuptools
 simplejson
@@ -93,15 +92,3 @@ zstandard
 # tooz backends
 redis
 zake
-
-# was in fixed-requirements.txt, but not in requirements-pants.txt
-# keyczar is used by a python2-only test.
-#python-keyczar
-
-###########
-
-# remove once we switch to pytest
-nose
-nose-timer
-nose-parallel
-rednose

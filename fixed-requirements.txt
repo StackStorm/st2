@@ -87,8 +87,6 @@ zake==0.2.2
 bcrypt==3.2.0
 jinja2==2.11.3
 mock==4.0.3
-nose-timer==1.0.1
-nose-parallel==0.4.0
 psutil==5.8.0
 python-dateutil==2.8.1
 python-statsd==2.1.0

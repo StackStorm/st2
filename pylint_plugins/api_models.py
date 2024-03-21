@@ -51,6 +51,7 @@ At this point, we have the schema, so then we:
 Now, we return because Pylint can finally understand our API model objects without
 importing them.
 """
+# pylint: disable=E1120,E1125
 
 import astroid
 
@@ -290,12 +291,14 @@ def transform(cls: nodes.ClassDef):
             node = scoped_nodes.builtin_lookup("None")[1][0]
         else:
             # Unknown type
-            node = astroid.ClassDef(property_name, None)
+            node = astroid.ClassDef(property_name)
 
         # Create a "property = node" assign node
         assign_node = nodes.Assign(parent=cls)
         assign_name_node = nodes.AssignName(property_name, parent=assign_node)
-        assign_node.postinit(targets=[assign_name_node], value=node)
+        assign_node.postinit(
+            targets=[assign_name_node], value=node, type_annotation=None
+        )
 
         # Finally, add the property node as an attribute on the class.
         cls.locals[property_name] = [assign_name_node]

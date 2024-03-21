@@ -17,7 +17,7 @@ python_tests(
 python_requirement(
     name="pylint",
     requirements=[
-        "pylint~=2.8.2",
+        "pylint>=2.8.2",
         "setuptools",  # includes pkg_resources
     ],
 )
