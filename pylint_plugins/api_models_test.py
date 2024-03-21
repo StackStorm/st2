@@ -301,7 +301,7 @@ class TestTypeChecker(pylint.testutils.CheckerTestCase):
 
         # accessing a property NOT defined in the schema
         with self.assertAddsMessages(
-            pylint.testutils.Message(
+            pylint.testutils.MessageTest(
                 msg_id="no-member",  # E1101
                 args=("Instance of", "TestAPI", "missing", ""),
                 node=assign_node_missing.value,
