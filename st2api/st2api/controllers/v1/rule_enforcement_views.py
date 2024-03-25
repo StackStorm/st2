@@ -138,9 +138,7 @@ class RuleEnforcementViewController(ResourceController):
         """
         trigger_instance_ids = set([])
         execution_ids = []
-        counter = 0
         for rule_enforcement_api in rule_enforcement_apis:
-            counter = counter + 1
             if rule_enforcement_api.get("trigger_instance_id", None):
                 trigger_instance_ids.add(
                     str(rule_enforcement_api["trigger_instance_id"])
