@@ -105,7 +105,6 @@ class RuleEnforcementViewController(ResourceController):
         input_string = input_string.replace('TriggerInstanceAPI(', '')
         input_string = input_string.replace('ActionExecutionAPI(', '')
         input_string = input_string.replace('})', '}')
-        # Konvertiere den String in ein Python-Dictionary
         data_dict = eval(input_string)
 
         rule_enforcement_api = data_dict
