@@ -26,7 +26,6 @@ from st2common.rbac.types import PermissionType
 
 from st2api.controllers.resource import ResourceController
 
-import json
 
 
 __all__ = ["RuleEnforcementViewController"]
