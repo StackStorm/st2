@@ -26,6 +26,9 @@ from st2common.rbac.types import PermissionType
 
 from st2api.controllers.resource import ResourceController
 
+import json
+
+
 __all__ = ["RuleEnforcementViewController"]
 
 
@@ -67,10 +70,24 @@ class RuleEnforcementViewController(ResourceController):
             raw_filters=raw_filters,
             requester_user=requester_user,
         )
-
         rule_enforcement_apis.json = self._append_view_properties(
             rule_enforcement_apis.json
         )
+
+        rule_enforcement_apis = eval(str(rule_enforcement_apis.json)) 
+        i = 0
+        for rule_enforcement_api in rule_enforcement_apis:
+            secret_parameter = []
+            if "parameters" in str(rule_enforcement_apis[i]):
+              for parameter in rule_enforcement_api['execution']['action']['parameters']:
+                  if "secret" in str(rule_enforcement_api['execution']['action']['parameters'][parameter]):
+                      if rule_enforcement_api['execution']['action']['parameters'][parameter]['secret']:
+                          secret_parameter.append(parameter)
+              for secret in rule_enforcement_api['execution']['parameters']:
+                  if secret in str(secret_parameter):
+                      rule_enforcement_api['execution']['parameters'][secret] = "*******"            
+              rule_enforcement_apis[i] = rule_enforcement_api
+              i = i + 1
         return rule_enforcement_apis
 
     def get_one(self, id, requester_user):
@@ -84,6 +101,23 @@ class RuleEnforcementViewController(ResourceController):
         rule_enforcement_api = self._append_view_properties(
             [rule_enforcement_api.__json__()]
         )[0]
+        input_string = str(rule_enforcement_api)
+        input_string = input_string.replace('**', '')
+        input_string = input_string.replace('TriggerInstanceAPI(', '')
+        input_string = input_string.replace('ActionExecutionAPI(', '')
+        input_string = input_string.replace('})', '}')
+        # Konvertiere den String in ein Python-Dictionary
+        data_dict = eval(input_string)
+
+        rule_enforcement_api = data_dict
+        secret_parameter = []
+        for parameter in rule_enforcement_api['execution']['action']['parameters']:
+            if "secret" in str(rule_enforcement_api['execution']['action']['parameters'][parameter]):
+                if rule_enforcement_api['execution']['action']['parameters'][parameter]['secret']:
+                    secret_parameter.append(parameter)
+        for secret in rule_enforcement_api['execution']['parameters']:
+            if secret in str(secret_parameter):
+                rule_enforcement_api['execution']['parameters'][secret] = "*******"
         return rule_enforcement_api
 
     def _append_view_properties(self, rule_enforcement_apis):
@@ -93,8 +127,9 @@ class RuleEnforcementViewController(ResourceController):
         """
         trigger_instance_ids = set([])
         execution_ids = []
-
+        counter = 0
         for rule_enforcement_api in rule_enforcement_apis:
+            counter = counter + 1
             if rule_enforcement_api.get("trigger_instance_id", None):
                 trigger_instance_ids.add(
                     str(rule_enforcement_api["trigger_instance_id"])
@@ -118,14 +153,12 @@ class RuleEnforcementViewController(ResourceController):
         execution_dbs = ActionExecution.query(
             id__in=execution_ids, only_fields=only_fields
         )
-
         execution_dbs_by_id = {}
         for execution_db in execution_dbs:
             execution_dbs_by_id[str(execution_db.id)] = execution_db
 
         # 2. Retrieve corresponding trigger instance objects
         trigger_instance_dbs = TriggerInstance.query(id__in=list(trigger_instance_ids))
-
         trigger_instance_dbs_by_id = {}
 
         for trigger_instance_db in trigger_instance_dbs:
