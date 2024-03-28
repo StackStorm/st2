@@ -46,7 +46,7 @@ class TestPurgeTaskExecutionInstances(CleanDbTestCase):
 
         self.assertEqual(len(TaskExecution.get_all()), 1)
         expected_msg = "Specify a valid timestamp"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, expected_msg, purge_task_executions, logger=LOG, timestamp=None
         )
         self.assertEqual(len(TaskExecution.get_all()), 1)

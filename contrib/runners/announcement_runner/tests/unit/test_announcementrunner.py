@@ -64,7 +64,7 @@ class AnnouncementRunnerTestCase(RunnerTestCase):
         runner.liveaction = mock.Mock(context={})
 
         expected_msg = "Experimental flag is missing for action some.thing"
-        self.assertRaisesRegexp(Exception, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(Exception, expected_msg, runner.pre_run)
 
     @mock.patch("st2common.models.api.trace.TraceContext.__new__")
     def test_announcement_with_trace(self, context, dispatch):

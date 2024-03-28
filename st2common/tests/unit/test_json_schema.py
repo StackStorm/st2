@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from unittest2 import TestCase
+from unittest import TestCase
 from jsonschema.exceptions import ValidationError
 
 from st2common.util import schema as util_schema
@@ -179,7 +179,7 @@ class JSONSchemaTestCase(TestCase):
         validator = util_schema.get_validator()
 
         expected_msg = "'arg_required_no_default' is a required property"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValidationError,
             expected_msg,
             util_schema.validate,

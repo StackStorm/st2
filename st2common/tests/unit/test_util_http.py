@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.util.http import parse_content_type_header
 from six.moves import zip
@@ -22,7 +22,7 @@ from six.moves import zip
 __all__ = ["HTTPUtilTestCase"]
 
 
-class HTTPUtilTestCase(unittest2.TestCase):
+class HTTPUtilTestCase(unittest.TestCase):
     def test_parse_content_type_header(self):
         values = [
             "application/json",

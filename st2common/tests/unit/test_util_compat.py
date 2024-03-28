@@ -15,14 +15,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.util.compat import to_ascii
 
 __all__ = ["CompatUtilsTestCase"]
 
 
-class CompatUtilsTestCase(unittest2.TestCase):
+class CompatUtilsTestCase(unittest.TestCase):
     def test_to_ascii(self):
         expected_values = [
             ("already ascii", "already ascii"),

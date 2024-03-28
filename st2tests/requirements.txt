@@ -7,11 +7,7 @@
 # update the component requirements.txt
 RandomWords
 mock==4.0.3
-nose
-nose-parallel==0.4.0
-nose-timer==1.0.1
 psutil==5.8.0
 pyrabbit
-rednose
-unittest2
+pytest
 webtest

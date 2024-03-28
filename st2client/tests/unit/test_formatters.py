@@ -21,7 +21,7 @@ import mock
 import json
 import logging
 import tempfile
-import unittest2
+import unittest
 
 from io import BytesIO
 from six.moves import StringIO
@@ -84,7 +84,7 @@ def redirect_console_for_pytest(request):
 
 
 @pytest.mark.usefixtures("redirect_console_for_pytest")
-class TestExecutionResultFormatter(unittest2.TestCase):
+class TestExecutionResultFormatter(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestExecutionResultFormatter, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()

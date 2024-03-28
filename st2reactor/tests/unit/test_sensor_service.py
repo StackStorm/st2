@@ -15,7 +15,7 @@
 
 from __future__ import absolute_import
 import mock
-import unittest2
+import unittest
 
 from oslo_config import cfg
 
@@ -51,7 +51,7 @@ class TriggerDBMock(object):
         self.type = type
 
 
-class SensorServiceTestCase(unittest2.TestCase):
+class SensorServiceTestCase(unittest.TestCase):
     def setUp(self):
         def side_effect(trigger, payload, trace_context):
             self._dispatched_count += 1

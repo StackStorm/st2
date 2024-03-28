@@ -20,7 +20,7 @@ import re
 
 import six
 import mock
-import unittest2
+import unittest
 
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from http_runner.http_runner import HTTPClient
@@ -41,7 +41,7 @@ class MockResult(object):
     close = mock.Mock()
 
 
-class HTTPClientTestCase(unittest2.TestCase):
+class HTTPClientTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         tests_config.parse_args()
@@ -287,7 +287,7 @@ class HTTPClientTestCase(unittest2.TestCase):
             client = HTTPClient(
                 url=url, method="GET", url_hosts_blacklist=url_hosts_blacklist
             )
-            self.assertRaisesRegexp(ValueError, expected_msg, client.run)
+            self.assertRaisesRegex(ValueError, expected_msg, client.run)
 
         # Non blacklisted URLs
         urls = ["https://example2.com", "http://example3.com", "http://example4.com:81"]
@@ -335,7 +335,7 @@ class HTTPClientTestCase(unittest2.TestCase):
             client = HTTPClient(
                 url=url, method="GET", url_hosts_whitelist=url_hosts_whitelist
             )
-            self.assertRaisesRegexp(ValueError, expected_msg, client.run)
+            self.assertRaisesRegex(ValueError, expected_msg, client.run)
 
         # Whitelisted URLS
         urls = [
@@ -372,7 +372,7 @@ class HTTPClientTestCase(unittest2.TestCase):
             r'"url_hosts_blacklist" and "url_hosts_whitelist" parameters are mutually '
             "exclusive."
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             HTTPClient,
@@ -383,7 +383,7 @@ class HTTPClientTestCase(unittest2.TestCase):
         )
 
 
-class HTTPRunnerTestCase(unittest2.TestCase):
+class HTTPRunnerTestCase(unittest.TestCase):
     @mock.patch("http_runner.http_runner.requests")
     def test_get_success(self, mock_requests):
         mock_result = MockResult()
@@ -423,4 +423,4 @@ class HTTPRunnerTestCase(unittest2.TestCase):
             r'"url_hosts_blacklist" and "url_hosts_whitelist" parameters are mutually '
             "exclusive."
         )
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.run, {})
+        self.assertRaisesRegex(ValueError, expected_msg, runner.run, {})

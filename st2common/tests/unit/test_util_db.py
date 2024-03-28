@@ -16,12 +16,12 @@
 from __future__ import absolute_import
 
 import mongoengine
-import unittest2
+import unittest
 
 from st2common.util import db as db_util
 
 
-class DatabaseUtilTestCase(unittest2.TestCase):
+class DatabaseUtilTestCase(unittest.TestCase):
     def test_noop_mongodb_to_python_types(self):
         data = [123, 999.99, True, [10, 20, 30], {"a": 1, "b": 2}, None]
 

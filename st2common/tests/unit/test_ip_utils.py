@@ -14,12 +14,12 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.util.ip_utils import split_host_port
 
 
-class IPUtilsTests(unittest2.TestCase):
+class IPUtilsTests(unittest.TestCase):
     def test_host_port_split(self):
 
         # Simple IPv4

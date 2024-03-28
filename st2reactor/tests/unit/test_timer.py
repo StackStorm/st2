@@ -31,8 +31,9 @@ class St2TimerTestCase(CleanDbTestCase):
         timer = St2Timer()
         timer._scheduler = mock.Mock()
 
-        # Verify there are no TriggerType in the db when we start
-        self.assertItemsEqual(TriggerType.get_all(), [])
+        # Verify there are no TriggerType objects in the db when we start
+        # and cast Mongo QuerySet iterator cast to list for evaluation.
+        assert list(TriggerType.get_all()) == []
 
         timer.start()
 
@@ -55,8 +56,8 @@ class St2TimerTestCase(CleanDbTestCase):
         timer._trigger_watcher.run = mock.Mock()
 
         # Verify there are no Trigger and TriggerType in the db wh:w
-        self.assertItemsEqual(Trigger.get_all(), [])
-        self.assertItemsEqual(TriggerType.get_all(), [])
+        assert list(Trigger.get_all()) == []
+        assert list(TriggerType.get_all()) == []
 
         # Add a dummy timer Trigger object
         type_ = list(TIMER_TRIGGER_TYPES.keys())[0]

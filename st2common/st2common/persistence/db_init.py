@@ -36,7 +36,7 @@ def _retry_if_connection_error(error):
     # start of error msg.
     is_connection_error = isinstance(error, mongoengine.connection.ConnectionFailure)
     if is_connection_error:
-        LOG.warn("Retry on ConnectionError - %s", error)
+        LOG.warning("Retry on ConnectionError - %s", error)
     return is_connection_error
 
 

@@ -518,7 +518,7 @@ class Shell(BaseCLIApp):
 
         if preferred_encoding and preferred_encoding.lower() != "utf-8":
             msg = NON_UTF8_LOCALE % (default_locale or "unknown", preferred_encoding)
-            LOGGER.warn(msg)
+            LOGGER.warning(msg)
 
 
 def setup_logging(argv):

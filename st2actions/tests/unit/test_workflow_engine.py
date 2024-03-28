@@ -240,7 +240,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
             coordination.ToozConnectionError("foobar"),
             coordination.ToozConnectionError("foobar"),
         ]
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             Exception, "Unexpected error.", workflows.get_engine().process, t1_ac_ex_db
         )
 

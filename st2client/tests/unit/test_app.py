@@ -17,7 +17,7 @@ from __future__ import absolute_import
 import os
 import getpass
 
-import unittest2
+import unittest
 import mock
 
 from st2client.base import BaseCLIApp
@@ -25,7 +25,7 @@ from st2client.base import BaseCLIApp
 USER = getpass.getuser()
 
 
-class BaseCLIAppTestCase(unittest2.TestCase):
+class BaseCLIAppTestCase(unittest.TestCase):
     @mock.patch("os.path.isfile", mock.Mock())
     def test_cli_config_file_path(self):
         app = BaseCLIApp()

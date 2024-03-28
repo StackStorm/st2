@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import os
 import json
 import logging
-import unittest2
+import unittest
 
 import six
 import mock
@@ -35,7 +35,7 @@ LOG = logging.getLogger(__name__)
 NONRESOURCES = ["workflows"]
 
 
-class TestClientEndpoints(unittest2.TestCase):
+class TestClientEndpoints(unittest.TestCase):
     def tearDown(self):
         for var in [
             "ST2_BASE_URL",
@@ -192,7 +192,7 @@ class TestClientEndpoints(unittest2.TestCase):
         # Invalid value, path to the bundle doesn't exist
         cacert = os.path.abspath(__file__)
         expected_msg = 'CA cert file "doesntexist" does not exist'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             Client,

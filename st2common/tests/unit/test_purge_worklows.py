@@ -46,7 +46,7 @@ class TestPurgeWorkflowExecutionInstances(CleanDbTestCase):
 
         self.assertEqual(len(WorkflowExecution.get_all()), 1)
         expected_msg = "Specify a valid timestamp"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             purge_workflow_executions,

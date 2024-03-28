@@ -43,8 +43,8 @@ LOG = logging.getLogger(__name__)
 class PoolPublisher(object):
     def __init__(self, urls=None):
         """
-        :param urls: Connection URLs to use. If not provided it uses a default value from th
-                     config.
+        :param urls: Connection URLs to use. If not provided it uses a default value from
+                     the config.
         :type urls: ``list``
         """
         urls = urls or transport_utils.get_messaging_urls()
@@ -67,7 +67,7 @@ class PoolPublisher(object):
                 )
 
                 def do_publish(connection, channel):
-                    # ProducerPool ends up creating it own ConnectionPool which ends up
+                    # ProducerPool ends up creating its own ConnectionPool which ends up
                     # completely invalidating this ConnectionPool. Also, a ConnectionPool for
                     # producer does not really solve any problems for us so better to create a
                     # Producer for each publish.

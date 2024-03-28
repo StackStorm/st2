@@ -43,7 +43,7 @@ class TestPurgeToken(CleanDbTestCase):
 
         self.assertEqual(len(Token.get_all()), 1)
         expected_msg = "Specify a valid timestamp"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             purge_tokens,

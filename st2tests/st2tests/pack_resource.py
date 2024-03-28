@@ -17,7 +17,7 @@ from __future__ import absolute_import
 import os
 import inspect
 
-from unittest2 import TestCase
+from unittest import TestCase
 
 __all__ = ["BasePackResourceTestCase"]
 

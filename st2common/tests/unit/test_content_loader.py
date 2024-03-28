@@ -18,7 +18,7 @@ from __future__ import absolute_import
 from oslo_config import cfg
 import os
 
-import unittest2
+import unittest
 
 import yaml
 
@@ -41,7 +41,7 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../resources"))
 
 
-class ContentLoaderTest(unittest2.TestCase):
+class ContentLoaderTest(unittest.TestCase):
     def test_get_sensors(self):
         packs_base_path = os.path.join(RESOURCES_DIR, "packs/")
         loader = ContentPackLoader()
@@ -100,7 +100,7 @@ class ContentLoaderTest(unittest2.TestCase):
         pack_path = os.path.join(RESOURCES_DIR, "packs/pack100")
 
         message_regex = "Directory .*? doesn't exist"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             message_regex,
             loader.get_content_from_pack,
@@ -216,7 +216,7 @@ class ContentLoaderTest(unittest2.TestCase):
         )
 
 
-class YamlLoaderTestCase(unittest2.TestCase):
+class YamlLoaderTestCase(unittest.TestCase):
     def test_yaml_safe_load(self):
         # Verify C version of yaml loader indeed doesn't load non-safe data
         dumped = yaml.dump(Foo)
@@ -226,14 +226,14 @@ class YamlLoaderTestCase(unittest2.TestCase):
         result = yaml.load(dumped, Loader=FullLoader)
         self.assertTrue(result)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             yaml.constructor.ConstructorError,
             "could not determine a constructor",
             yaml_safe_load,
             dumped,
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             yaml.constructor.ConstructorError,
             "could not determine a constructor",
             yaml.load,
@@ -242,7 +242,7 @@ class YamlLoaderTestCase(unittest2.TestCase):
         )
 
         if CSafeLoader:
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 yaml.constructor.ConstructorError,
                 "could not determine a constructor",
                 yaml.load,

@@ -75,7 +75,7 @@ def reopen_log_files(handlers):
                 if "cannot release" in six.text_type(e):
                     # Release failed which most likely indicates that acquire failed
                     # and lock was never acquired
-                    LOG.warn("Failed to release lock", exc_info=True)
+                    LOG.warning("Failed to release lock", exc_info=True)
                 else:
                     raise e
 

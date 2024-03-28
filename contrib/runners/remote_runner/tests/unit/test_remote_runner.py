@@ -1,5 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
-# Copyright 2019 Extreme Networks, Inc.
+# Copyright 2024 The StackStorm Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
-
-from st2auth.backends import get_available_backends
+import pytest
 
 
-class AuthenticationBackendsTestCase(unittest.TestCase):
-    def test_flat_file_backend_is_available_by_default(self):
-        available_backends = get_available_backends()
-        self.assertIn("flat_file", available_backends)
+@pytest.mark.skip(reason="TEST TO BE IMPLEMENTED.")
+def test_todo():
+    pass

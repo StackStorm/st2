@@ -55,7 +55,7 @@ class TestPurgeTriggerInstances(CleanDbTestCase):
 
         self.assertEqual(len(TriggerInstance.get_all()), 1)
         expected_msg = "Specify a valid timestamp"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             purge_trigger_instances,

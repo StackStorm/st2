@@ -19,7 +19,7 @@ import json
 import logging
 import warnings
 import mock
-import unittest2
+import unittest
 
 from tests import base
 
@@ -55,7 +55,7 @@ EXECUTION = {
 }
 
 
-class TestExecutionResourceManager(unittest2.TestCase):
+class TestExecutionResourceManager(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestExecutionResourceManager, cls).setUpClass()

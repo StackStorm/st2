@@ -37,7 +37,7 @@ class MongoDBProfilingTestCase(DbTestCase):
         result = log_query_and_profile_data_for_queryset(queryset=queryset)
         self.assertEqual(queryset, result)
         call_args_list = mock_log.debug.call_args_list
-        self.assertItemsEqual(call_args_list, [])
+        assert call_args_list == []
 
     @mock.patch("st2common.models.utils.profiling.LOG")
     def test_logging_profiling_is_enabled(self, mock_log):

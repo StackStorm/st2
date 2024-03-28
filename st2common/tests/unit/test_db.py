@@ -48,7 +48,7 @@ from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
 
-from unittest2 import TestCase
+from unittest import TestCase
 from st2tests.base import ALL_MODELS
 
 
@@ -492,7 +492,7 @@ class DbConnectionTestCase(DbTestCase):
         password = "pass_st2"
 
         expected_msg = "Failed to connect"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ConnectionFailure,
             expected_msg,
             db_setup,

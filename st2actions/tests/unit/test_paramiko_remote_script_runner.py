@@ -16,7 +16,7 @@
 from __future__ import absolute_import
 import bson
 from mock import patch, Mock, MagicMock
-import unittest2
+import unittest
 
 # XXX: There is an import dependency. Config needs to setup
 # before importing remote_script_runner classes.
@@ -47,7 +47,7 @@ MODELS = FixturesLoader().load_models(
 ACTION_1 = MODELS["actions"]["a1.yaml"]
 
 
-class ParamikoScriptRunnerTestCase(unittest2.TestCase):
+class ParamikoScriptRunnerTestCase(unittest.TestCase):
     @patch("st2common.runners.parallel_ssh.ParallelSSHClient", Mock)
     @patch.object(jsonify, "json_loads", MagicMock(return_value={}))
     @patch.object(ParallelSSHClient, "run", MagicMock(return_value={}))

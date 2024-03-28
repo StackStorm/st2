@@ -15,7 +15,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 import mock
 
@@ -24,7 +24,7 @@ from st2common.exceptions.action import ParameterRenderingFailedException
 from st2common.models.system.actionchain import Node
 
 
-class ActionChainRunnerResolveParamsTests(unittest2.TestCase):
+class ActionChainRunnerResolveParamsTests(unittest.TestCase):
     def test_render_params_action_context(self):
         runner = acr.get_runner()
         chain_context = {

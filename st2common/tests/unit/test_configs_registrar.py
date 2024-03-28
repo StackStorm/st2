@@ -126,7 +126,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
             "\"dummy_pack_6\" (.*?): 1000 is not of type 'array'"
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_from_packs,
@@ -160,7 +160,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
             "'string'"
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_from_packs,
@@ -198,7 +198,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
             "the default values in the schema."
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_from_packs,
@@ -236,7 +236,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
             "the default values in the schema."
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_from_packs,

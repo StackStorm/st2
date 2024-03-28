@@ -47,7 +47,7 @@ class TestPurgeTrace(CleanDbTestCase):
 
         self.assertEqual(len(Trace.get_all()), 1)
         expected_msg = "Specify a valid timestamp"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             purge_traces,

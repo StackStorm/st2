@@ -16,7 +16,7 @@
 from __future__ import absolute_import
 import os
 
-import unittest2
+import unittest
 import mock
 
 from st2common.runners.paramiko_ssh_runner import BaseParallelSSHRunner
@@ -38,7 +38,7 @@ class Runner(BaseParallelSSHRunner):
         pass
 
 
-class ParamikoSSHRunnerTestCase(unittest2.TestCase):
+class ParamikoSSHRunnerTestCase(unittest.TestCase):
     @mock.patch("st2common.runners.paramiko_ssh_runner.ParallelSSHClient")
     def test_pre_run(self, mock_client):
         # Test case which verifies that ParamikoSSHClient is instantiated with the correct arguments

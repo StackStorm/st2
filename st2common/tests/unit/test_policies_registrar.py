@@ -121,7 +121,7 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
         policy_path = os.path.join(DUMMY_PACK_1_PATH, "policies/policy_2.yaml")
 
         expected_msg = 'Referenced policy_type "action.mock_policy_error" doesnt exist'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar._register_policy,
@@ -135,7 +135,7 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
         policy_path = os.path.join(DUMMY_PACK_2_PATH, "policies/policy_3.yaml")
 
         expected_msg = "100 is greater than the maximum of 5"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             jsonschema.ValidationError,
             expected_msg,
             registrar._register_policy,

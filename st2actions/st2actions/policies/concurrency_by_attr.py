@@ -120,7 +120,7 @@ class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
 
         # Warn users that the coordination service is not configured.
         if not coordination.configured():
-            LOG.warn(
+            LOG.warning(
                 "Coordination service is not configured. Policy enforcement is best effort."
             )
 

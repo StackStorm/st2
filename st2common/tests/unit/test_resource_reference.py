@@ -14,13 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.models.system.common import ResourceReference
 from st2common.models.system.common import InvalidResourceReferenceError
 
 
-class ResourceReferenceTestCase(unittest2.TestCase):
+class ResourceReferenceTestCase(unittest.TestCase):
     def test_resource_reference_success(self):
         value = "pack1.name1"
         ref = ResourceReference.from_string_reference(ref=value)
@@ -53,7 +53,7 @@ class ResourceReferenceTestCase(unittest2.TestCase):
         self.assertEqual(ref, "mapack.moname")
 
         expected_msg = r'Pack name should not contain "\."'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             ResourceReference.to_string_reference,
@@ -62,7 +62,7 @@ class ResourceReferenceTestCase(unittest2.TestCase):
         )
 
         expected_msg = "Both pack and name needed for building"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             ResourceReference.to_string_reference,
@@ -71,7 +71,7 @@ class ResourceReferenceTestCase(unittest2.TestCase):
         )
 
         expected_msg = "Both pack and name needed for building"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             ResourceReference.to_string_reference,

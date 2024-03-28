@@ -29,6 +29,6 @@ class RunnersLoaderUtilsTestCase(DbTestCase):
 
     def test_get_runner_failure_not_found(self):
         expected_msg = "Failed to find runner invalid-name-not-found.*"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ActionRunnerCreateError, expected_msg, get_runner, "invalid-name-not-found"
         )

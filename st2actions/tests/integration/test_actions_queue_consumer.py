@@ -19,7 +19,7 @@ import eventlet
 
 from kombu import Exchange
 from kombu import Queue
-from unittest2 import TestCase
+from unittest import TestCase
 
 from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.transport.publishers import PoolPublisher

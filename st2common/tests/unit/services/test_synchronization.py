@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 import uuid
 
 from oslo_config import cfg
@@ -23,7 +23,7 @@ from st2common.services import coordination
 import st2tests.config as tests_config
 
 
-class SynchronizationTest(unittest2.TestCase):
+class SynchronizationTest(unittest.TestCase):
     coordinator = None
 
     @classmethod

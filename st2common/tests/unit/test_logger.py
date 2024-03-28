@@ -271,7 +271,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
 
         message = formatter.format(record=record)
         self.assertIn("test message 1", message)
-        self.assertRegexpMatches(message, expected_msg_part)
+        self.assertRegex(message, expected_msg_part)
 
     @mock.patch(
         "st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST",

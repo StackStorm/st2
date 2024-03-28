@@ -65,7 +65,7 @@ def complex_semver_match(version, version_specifier):
 
     if len(split_version_specifier) == 1:
         # No comma, we can do a simple comparision
-        return semver.match(version, version_specifier)
+        return semver.Version.parse(version).match(version_specifier)
     else:
         # Compare part by part
         for version_specifier_part in split_version_specifier:
@@ -74,7 +74,7 @@ def complex_semver_match(version, version_specifier):
             if not version_specifier_part:
                 continue
 
-            if not semver.match(version, version_specifier_part):
+            if not semver.Version.parse(version).match(version_specifier_part):
                 return False
 
         return True

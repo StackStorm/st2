@@ -28,36 +28,37 @@ __all__ = [
 
 
 def version_compare(value, pattern):
-    return semver.compare(value, pattern)
+    return semver.Version.parse(value).compare(pattern)
 
 
 def version_more_than(value, pattern):
-    return semver.compare(value, pattern) == 1
+    return version_compare(value, pattern) == 1
 
 
 def version_less_than(value, pattern):
-    return semver.compare(value, pattern) == -1
+    return version_compare(value, pattern) == -1
 
 
 def version_equal(value, pattern):
-    return semver.compare(value, pattern) == 0
+    return version_compare(value, pattern) == 0
 
 
 def version_match(value, pattern):
-    return semver.match(value, pattern)
+    return semver.Version.parse(value).match(pattern)
 
 
 def version_bump_major(value):
-    return semver.bump_major(value)
+    return str(semver.Version.parse(value).bump_major())
 
 
 def version_bump_minor(value):
-    return semver.bump_minor(value)
+    return str(semver.Version.parse(value).bump_minor())
 
 
 def version_bump_patch(value):
-    return semver.bump_patch(value)
+    return str(semver.Version.parse(value).bump_patch())
 
 
 def version_strip_patch(value):
-    return "{major}.{minor}".format(**semver.parse(value))
+    sv = semver.Version.parse(value)
+    return f"{sv.major}.{sv.minor}"
