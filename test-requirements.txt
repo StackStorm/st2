@@ -1,6 +1,7 @@
 coverage
 pep8==1.7.1
-st2flake8==0.1.0
+flake8==7.0.0
+st2-flake8 @ git+https://github.com/nzlosh/st2-flake8@master
 astroid==2.15.8
 pylint==2.17.7
 pylint-plugin-utils>=0.4
@@ -11,7 +12,8 @@ ipython<6.0.0
 isort>=4.2.5
 mock==4.0.3
 tabulate
-sphinx==1.7.9
+# 4.5.0 required for Jinja-3.1.3 support.
+sphinx==4.5.0
 sphinx-autobuild
 # pin alabaster (sphinx dependency) or pip installs one that is not compatible
 alabaster<0.7.14

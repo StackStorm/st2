@@ -47,7 +47,9 @@ psutil
 pymongo>=3.11.0,<3.13.0
 # pyrabbit used in an integration test
 pyrabbit
-pytest
+astroid==2.15.8
+pylint==2.17.7
+pytest==6.2.5
 python-dateutil
 editor==1.6.6
 Pygments
