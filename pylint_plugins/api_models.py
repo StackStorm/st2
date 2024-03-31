@@ -276,9 +276,21 @@ def transform(cls: nodes.ClassDef):
         # Now, we can construct the AST node that we'll add to the API model class.
 
         if property_type == "object":
-            node = nodes.Dict()
+            node = nodes.Dict(
+                property_data_node.lineno,
+                property_data_node.col_offset,
+                parent=property_data_node,
+                end_lineno=property_data_node.end_lineno,
+                end_col_offset=property_data_node.end_col_offset,
+            )
         elif property_type == "array":
-            node = nodes.List()
+            node = nodes.List(
+                property_data_node.lineno,
+                property_data_node.col_offset,
+                parent=property_data_node,
+                end_lineno=property_data_node.end_lineno,
+                end_col_offset=property_data_node.end_col_offset,
+            )
         elif property_type == "integer":
             node = scoped_nodes.builtin_lookup("int")[1][0]
         elif property_type == "number":
@@ -291,11 +303,27 @@ def transform(cls: nodes.ClassDef):
             node = scoped_nodes.builtin_lookup("None")[1][0]
         else:
             # Unknown type
-            node = astroid.ClassDef(property_name)
+            node = astroid.ClassDef(
+                property_name,
+                property_data_node.lineno,
+                property_data_node.col_offset,
+                parent=property_data_node,
+                end_lineno=property_data_node.end_lineno,
+                end_col_offset=property_data_node.end_col_offset,
+            )
 
         # Create a "property = node" assign node
-        assign_node = nodes.Assign(parent=cls)
-        assign_name_node = nodes.AssignName(property_name, parent=assign_node)
+        assign_node = nodes.Assign(
+            cls.lineno,
+            cls.col_offset,
+            parent=cls,
+            end_lineno=cls.end_lineno,
+            end_col_offset=cls.end_col_offset,
+        )
+        # todo: determine what line/offsets should be.
+        assign_name_node = nodes.AssignName(
+            property_name, 0, 0, parent=assign_node, end_lineno=0, end_col_offset=0
+        )
         assign_node.postinit(
             targets=[assign_name_node], value=node, type_annotation=None
         )
