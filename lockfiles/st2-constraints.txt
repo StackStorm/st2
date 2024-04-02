@@ -20,15 +20,13 @@
 # REASON: Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode >=0.23 was from jinja2
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: unknown
-MarkupSafe<2.1.0,>=0.23
-
-Pygments==2.5.2
+MarkupSafe==2.1.5
 
 # REQUIRED BY: kombu
-# REASON: unknown -- this looks like a lockfile-style pin
+# REASON: Known working version for py3.8 to py3.10
 # NOTE: try to remove constraint later.
-# DROPS RESOLVED VERSION: 5.1.1
-amqp==5.2.0
+# DROPS RESOLVED VERSION: unknown
+amqp<6.0.0,>=5.1.1
 
 # REQUIRED BY: cryptography, paramiko, passlib
 # REASON: unknown -- this looks like a lockfile-style pin
@@ -43,10 +41,10 @@ bcrypt==3.2.0
 cffi<1.15.0
 
 # REQUIRED BY: orquesta, prance, requests
-# REASON: requests 2.23 requires chardet < 3.1.0
+# REASON: Known working version for py3.8 to py3.10
 # NOTE: orquesta already constrains this, so this is just documentation.
-# DROPS RESOLVED VERSION: 3.0.4
-#chardet<3.1.0
+# DROPS RESOLVED VERSION: unknown
+chardet==5.2.0
 
 # REQUIRED BY: jsonpath-rw, networkx
 # REASON:
@@ -72,12 +70,10 @@ greenlet==3.0.3
 
 # REQUIRED BY: argcomplete, click, debtcollector, kombu, pluggy, prettytable,
 #             pytest, virtualenv
-# REASON: unknown
-# NOTE: This pinned version (3.10.1) actually conflicts with other requirements.
-#       So, it is commented out. If there are issues with newer versions,
-#       update this with a range of valid versions.
+# REASON: Known working version for py3.8 to py3.10
+# NOTE: -
 # DROPS RESOLVED VERSION: 4.8.3
-#importlib-metadata==3.10.1
+importlib-metadata>=4.10.1
 
 # REQUIRED BY: tooz
 # REASON: unknown
@@ -109,8 +105,8 @@ tenacity>=3.2.1,<7.0.0
 # DROPS RESOLVED VERSION: 3.0.7
 #pyparsing<3
 
-# REQUIRED BY: async-timeout, gitpython, importlib-metadata, redis
-# REASON: importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
+# REQUIRED BY: async-timeout, gitpython, importlib-metadata, redis, pydantic
+# REASON: typing-extension must be >4.7.1 to avoid ImportError
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: 4.1.1
-typing-extensions<4.2
+typing_extensions==4.10.0

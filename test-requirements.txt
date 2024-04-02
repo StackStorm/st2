@@ -1,4 +1,10 @@
-coverage
+# Important: Keep version constraints synchronised with the below repositories:
+# - https://github.com/StackStorm/st2docs
+# - https://github.com/StackStorm/orquesta
+# - https://github.com/StackStorm/st2-auth-ldap
+# - https://github.com/StackStorm/st2-rbac-backend
+# ----------------------------------------------------------------------
+coverage==7.2.7
 pep8==1.7.1
 flake8==7.0.0
 st2-flake8 @ git+https://github.com/nzlosh/st2-flake8@master
@@ -8,12 +14,11 @@ pylint-plugin-utils>=0.4
 black==22.3.0
 pre-commit==2.1.0
 bandit==1.7.0
-ipython<6.0.0
 isort>=4.2.5
 mock==4.0.3
 tabulate
-# 4.5.0 required for Jinja-3.1.3 support.
-sphinx==4.5.0
+# 4.5.0 required for Jinja-3.1.3 support but >5.0 required by rstcheck and lower than 7.2 which drops py3.8 support
+sphinx>=5.0.0,<7.2.0
 sphinx-autobuild
 # pin alabaster (sphinx dependency) or pip installs one that is not compatible
 alabaster<0.7.14
@@ -23,8 +28,13 @@ RandomWords
 gunicorn==21.2.0
 psutil==5.8.0
 webtest==2.0.35
-rstcheck>=3.3.1,<3.4
-tox==3.23.0
+# Bump to latest to meet sphinx requirements.
+rstcheck==6.2.1
+# Needed by rstcheck
+pydantic==2.6.4
+# 202403: typing-extension must be >4.7.1 to avoid ImportError: cannot import name 'deprecated' from 'typing_extensions' for pydantic
+typing_extensions==4.10.0
+tox==4.14.2
 pyrabbit
 # 202403: Bumped to 23.6.21.0 for py3.10 support
 prance==23.6.21.0

@@ -6,15 +6,16 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 MarkupSafe==2.1.5
+Pygments==2.5.2
 RandomWords
 amqp<6.0.0,>=5.1.1
 apscheduler==3.7.0
 argcomplete==3.2.3
 bcrypt==3.2.0
 cffi<1.15.0
-chardet<3.1.0
+chardet==5.2.0
 ciso8601
-cryptography==39.0.1
+cryptography<42
 decorator==4.4.2
 dnspython==2.6.1
 editor==1.6.6
@@ -24,7 +25,7 @@ gitdb==4.0.2
 gitpython<=3.1.37
 greenlet==3.0.3
 gunicorn==21.2.0
-importlib-metadata>=4.8.3,<=4.10.1
+importlib-metadata>=4.10.1
 jinja2==3.1.3
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
@@ -33,9 +34,9 @@ lockfile==0.12.2
 logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
 mock==4.0.3
 mongoengine>=0.21.0,<0.24.0
-networkx<3
+networkx<3.2
 orjson==3.5.2
-orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
+orquesta@ git+https://github.com/nzlosh/orquesta.git@st2v39_compat
 oslo.config==9.4.0
 oslo.utils==7.1.0
 paramiko==2.11.0
@@ -43,7 +44,7 @@ passlib==1.7.4
 prettytable==2.1.0
 prompt-toolkit==3.0.43
 psutil==5.8.0
-pyOpenSSL==23.1.0
+pyOpenSSL==24.1.0
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo>=3.11.0,<3.13.0
 pyparsing<3
@@ -57,12 +58,12 @@ pytz==2021.1
 pywinrm==0.4.1
 pyyaml==5.3.1
 redis==4.1.4
-requests[security]==2.25.1
+requests==2.31.0
 retrying==1.3.3
 routes==2.4.1
 semver==3.0.2
 simplejson
-six==1.13.0
+six~=1.15
 sseclient-py==1.7
 st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
@@ -70,7 +71,7 @@ st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 stevedore==1.30.1
 tenacity>=3.2.1,<7.0.0
 tooz==2.8.0
-typing-extensions<4.2
+typing-extensions
 webob==1.8.7
 webtest
 zake==0.2.2

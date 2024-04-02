@@ -14,7 +14,8 @@ Changed
 ~~~~~~~
 * Bumped `jsonschema` 2.6.0 -> 3.2.0 now that python3.6 is not supported. #6118
 
-* Upgrade `pymongo` and `mongoengine` for MongoDB v5/6/7 support. #6157
+* Support for Python3.8, Python3.9 and Python3.10.  Update underlying modules and
+  remove modules that weren't compatible with newer versions of Python.  #6157
 
 Added
 ~~~~~
