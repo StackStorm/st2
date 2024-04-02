@@ -1,4 +1,10 @@
-# Packages versions fixed for the whole st2 stack
+# Package versions fixed (pinned) for the whole st2 project.
+# Important: Keep version constraints synchronised with the below repositories:
+# - https://github.com/StackStorm/st2docs
+# - https://github.com/StackStorm/orquesta
+# - https://github.com/StackStorm/st2-auth-ldap
+# - https://github.com/StackStorm/st2-rbac-backend
+# ----------------------------------------------------------------------
 # Note: amqp is used by kombu
 amqp==5.2.0
 apscheduler==3.10.4
