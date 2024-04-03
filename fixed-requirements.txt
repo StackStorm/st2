@@ -48,7 +48,7 @@ zstandard==0.22.0
 # 202403: switch from python-editor to editor for py3.10 support
 editor==1.6.6
 # editor dependency, required here for inclusion in st2client setup.py
-Pygments==2.5.2
+pygments==2.5.2
 python-keyczar==0.716
 pytz==2024.1
 pywinrm==0.4.3
