@@ -13,7 +13,7 @@ requests
 six
 sseclient-py
 editor
-Pygments
+pygments
 prompt-toolkit
 # mention cffi used by cryptography so we can control version
 cffi

@@ -5,7 +5,6 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-Pygments==2.5.2
 argcomplete==3.2.3
 cffi<1.15.0
 chardet==5.2.0
@@ -18,6 +17,7 @@ orjson==3.5.2
 prettytable==2.1.0
 prompt-toolkit==3.0.43
 pyOpenSSL==24.1.0
+pygments==2.5.2
 pysocks
 python-dateutil==2.8.1
 pytz==2021.1

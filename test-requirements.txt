@@ -39,10 +39,7 @@ pyrabbit
 # 202403: Bumped to 23.6.21.0 for py3.10 support
 prance==23.6.21.0
 # pip-tools provides pip-compile: to check for version conflicts
-# pip-tools 5.3 needs pip<20.3
-# pip-tools 5.4 needs pip>=20.1
-# pip-tools 6.0 needs pip>=20.3
-pip-tools>=5.4,<6.1
+pip_tools==7.4.1
 # 202403: Use 6.2.5 for py3.10 support
 pytest==6.2.5
 pytest-cov==4.1.0

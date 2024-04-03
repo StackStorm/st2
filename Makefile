@@ -739,8 +739,8 @@ check-dependency-conflicts:
 	@echo
 	# Verify there are no conflicting dependencies
 	cat st2*/requirements.txt contrib/runners/*/requirements.txt | sort -u > req.txt && \
-	$(VIRTUALENV_DIR)/bin/pip-compile req.txt || exit 1; \
-	if [[ -e req.txt ]]; then rm req.txt; fi
+	$(VIRTUALENV_DIR)/bin/pip-compile --strip-extras --output-file req.out req.txt || exit 1; \
+	rm -f req.txt req.out
 
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure

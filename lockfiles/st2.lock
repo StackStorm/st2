@@ -9,7 +9,6 @@
 //     "CPython==3.9.*"
 //   ],
 //   "generated_with_requirements": [
-//     "Pygments==2.5.2",
 //     "RandomWords",
 //     "apscheduler==3.7.0",
 //     "argcomplete==3.2.3",
@@ -45,6 +44,7 @@
 //     "prettytable==2.1.0",
 //     "prompt-toolkit==3.0.43",
 //     "psutil==5.8.0",
+//     "pygments==2.5.2",
 //     "pyinotify<=0.10,>=0.9.5; platform_system == \"Linux\"",
 //     "pylint==3.1.0",
 //     "pymongo<3.13.0,>=3.11.0",
@@ -4228,7 +4228,6 @@
   "pip_version": "23.1.2",
   "prefer_older_binary": false,
   "requirements": [
-    "Pygments==2.5.2",
     "RandomWords",
     "apscheduler==3.7.0",
     "argcomplete==3.2.3",
@@ -4264,6 +4263,7 @@
     "prettytable==2.1.0",
     "prompt-toolkit==3.0.43",
     "psutil==5.8.0",
+    "pygments==2.5.2",
     "pyinotify<=0.10,>=0.9.5; platform_system == \"Linux\"",
     "pylint==3.1.0",
     "pymongo<3.13.0,>=3.11.0",
