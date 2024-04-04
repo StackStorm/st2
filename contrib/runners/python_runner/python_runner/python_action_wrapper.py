@@ -22,11 +22,17 @@ import warnings
 warnings.filterwarnings("ignore", message="Python 3.6 is no longer supported")
 
 import os
+import site
 import sys
 import select
 import traceback
 
 import sysconfig
+
+print(sys.executable)
+print(sys.argv)
+print(sys.path)
+print(site.getsitepackages())
 
 # NOTE: We intentionally use orjson directly here instead of json_encode - orjson.dumps relies
 # on config option which we don't parse for the action wrapper since it speeds things down - action
