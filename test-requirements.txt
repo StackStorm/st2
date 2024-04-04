@@ -25,6 +25,8 @@ nose-timer==1.0.1
 nose-parallel==0.4.0
 # Required by st2client tests
 pyyaml==6.0.1
+# Constrain pygments required by editor to align with st2 core version
+pygments==2.17.2
 RandomWords
 gunicorn==21.2.0
 psutil==5.8.0
