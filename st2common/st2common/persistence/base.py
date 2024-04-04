@@ -222,7 +222,9 @@ class Access(object):
                     cls.dispatch_create_trigger(model_object)
             except:
                 LOG.exception("Trigger dispatch failed.")
-            LOG.debug("persistence.base.Access.add_or_update :: dispatch_trigger dispatched")
+            LOG.debug(
+                "persistence.base.Access.add_or_update :: dispatch_trigger dispatched"
+            )
 
         return model_object
 

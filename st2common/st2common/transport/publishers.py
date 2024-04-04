@@ -86,7 +86,9 @@ class PoolPublisher(object):
                         "content_encoding": "utf-8",
                     }
 
-                    LOG.debug("PoolPublisher.publish :: now calling kombu.Publisher.publish inside ConnectionRetryWrapper")
+                    LOG.debug(
+                        "PoolPublisher.publish :: now calling kombu.Publisher.publish inside ConnectionRetryWrapper"
+                    )
                     retry_wrapper.ensured(
                         connection=connection,
                         obj=producer,
