@@ -830,7 +830,7 @@ unit-tests: requirements .unit-tests
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	if [ $$failed -gt 0 ]; then exit 1; done
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-unit-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
@@ -856,7 +856,7 @@ endif
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	if [ $$failed -gt 0 ]; then exit 1; done
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .combine-unit-tests-coverage
 .combine-unit-tests-coverage: .run-unit-tests-coverage
@@ -913,7 +913,7 @@ itests: requirements .itests
 		echo "Done running integration tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	if [ $$failed -gt 0 ]; then exit 1; done
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-integration-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
@@ -939,7 +939,7 @@ endif
 		echo "Done integration running tests in" $$component; \
 		echo "==========================================================="; \
 	done \
-	if [ $$failed -gt 0 ]; then exit 1; done
+	if [ $$failed -gt 0 ]; then exit 1; fi
 	@echo
 	@echo "============== runners integration tests with coverage =============="
 	@echo
@@ -954,7 +954,7 @@ endif
 			nosetests $(NOSE_OPTS) -s -v \
 			$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/integration || ((failed+=1)); \
 	done; \
-	if [ $$failed -gt 0 ]; then exit 1; done
+	if [ $$failed -gt 0 ]; then exit 1; fi
 	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
 	# ci-integration-full target
 #	@echo
@@ -1088,7 +1088,7 @@ runners-tests: requirements .runners-tests
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/unit || ((failed+=1)); \
 	done; \
-	if [ $$failed -gt 0 ]; then exit 1; done
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: runners-itests
 runners-itests: requirements .runners-itests
@@ -1106,7 +1106,7 @@ runners-itests: requirements .runners-itests
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/integration || ((failed+=1)); \
 	done; \
-	if [ $$failed -gt 0 ]; then exit 1; done
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .runners-itests-coverage-html
 .runners-itests-coverage-html:
@@ -1122,7 +1122,7 @@ runners-itests: requirements .runners-itests
 		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html $$component/tests/integration || ((failed+=1)); \
 	done; \
-	if [ $$failed -gt 0 ]; then exit 1; done
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: cli
 cli:
