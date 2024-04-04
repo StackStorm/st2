@@ -821,6 +821,7 @@ jobs:
       - name: Compress Service Logs Before upload
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         run: |
+          ./tools/launchdev.sh stop # stop st2 before collecting logs
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
         if: ${{ failure() && env.TASK == 'ci-integration' }}
