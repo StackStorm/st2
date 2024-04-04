@@ -58,7 +58,7 @@ pyOpenSSL==24.1.0
 # 202403: switch from python-editor to editor for py3.10 support
 editor==1.6.6
 # editor dependency, required here for inclusion in st2client setup.py
-pygments==2.5.2
+pygments==2.17.2
 # 202404: Use latest chardet for tox / and cross project dependency Orquesta.
 chardet==5.2.0
 python-keyczar==0.716

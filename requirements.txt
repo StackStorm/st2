@@ -44,7 +44,7 @@ prettytable==2.1.0
 prompt-toolkit==3.0.43
 psutil==5.8.0
 pyOpenSSL==24.1.0
-pygments==2.5.2
+pygments==2.17.2
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo>=3.11.0,<3.13.0
 pyparsing<3

@@ -31,8 +31,7 @@ networkx<3.2
 orjson==3.5.2
 # Temporarily use fork until PR #266 is merged.
 orquesta@ git+https://github.com/nzlosh/orquesta.git@st2v39_compat
-# Historical reference: https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433
-# Relaxed pinning for py3.10 support.
+# Bumped version for py3.10 support.  Historical ref: https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433
 oslo.config==9.4.0
 paramiko==2.11.0
 # pip is used at runtime (24.0 is available for py3.8 to py3.10)
