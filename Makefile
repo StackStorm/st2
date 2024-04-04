@@ -945,7 +945,7 @@ endif
 		echo "-----------------------------------------------------------"; \
 		echo "Done integration running tests in" $$component; \
 		echo "==========================================================="; \
-	done \
+	done; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 	@echo
 	@echo "============== runners integration tests with coverage =============="
