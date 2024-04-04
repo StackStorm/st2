@@ -72,7 +72,7 @@ jobs:
           gha-cache-key: cache0
           # This hash should include all of our lockfiles so that the pip/pex caches
           # get invalidated on any transitive dependency update.
-          named-caches-hash: ${{ hashFiles('requirements.txt') }}
+          named-caches-hash: ${{ hashFiles('lockfiles/*.lock') }}
           # enable the optional lmdb_store cache since we're not using remote caching.
           cache-lmdb-store: 'true'
           # install whatever version of python we need for our in-repo pants-plugins
