@@ -15,6 +15,12 @@
 
 from __future__ import absolute_import
 
+import sys
+
+print(sys.executable)
+print(sys.argv)
+print(sys.path)
+
 # Note: We need to perform monkey patching in the worker. If we do it in
 # the master process (gunicorn_config.py), it breaks tons of things
 # including shutdown

@@ -292,7 +292,7 @@ def install_requirements(
 
     # Normally we don't want this, even in debug logs. But it is useful to
     # investigate pip behavior changes & broken virtualenv integration tests.
-    # logger.debug(f"\npip stdout=\n{stdout}")
+    logger.debug(f"\npip stdout=\n{stdout}")
 
     if exit_code != 0:
         stdout = to_ascii(stdout)
@@ -342,7 +342,7 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=
 
     # Normally we don't want this, even in debug logs. But it is useful to
     # investigate pip behavior changes & broken virtualenv integration tests.
-    # logger.debug(f"\npip stdout=\n{stdout}")
+    logger.debug(f"\npip stdout=\n{stdout}")
 
     if exit_code != 0:
         raise Exception(

@@ -52,7 +52,7 @@ class PythonRunnerBehaviorTestCase(CleanFilesTestCase, CleanDbTestCase):
     # If you need these logs, then you probably also want to uncomment
     # extra debug log messages in st2common/st2common/util/virtualenvs.py
     # and pass --logging-level=DEBUG to nosetests
-    # DISPLAY_LOG_MESSAGES = True
+    DISPLAY_LOG_MESSAGES = True
 
     def setUp(self):
         super(PythonRunnerBehaviorTestCase, self).setUp()
