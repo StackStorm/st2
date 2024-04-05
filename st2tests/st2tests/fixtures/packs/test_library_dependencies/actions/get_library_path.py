@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 from st2actions.runners.pythonrunner import Action
 
 __all__ = ["GetLibraryPathAction"]
@@ -20,4 +22,5 @@ __all__ = ["GetLibraryPathAction"]
 
 class GetLibraryPathAction(Action):
     def run(self, module):
+        print(sys.path, file=sys.stderr)
         return __import__(module).__file__
