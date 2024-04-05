@@ -15,14 +15,6 @@
 
 from __future__ import absolute_import
 
-import site
-import sys
-
-print(sys.executable)
-print(sys.argv)
-print(sys.path)
-print(site.getsitepackages())
-
 # Note: We need to perform monkey patching in the worker. If we do it in
 # the master process (gunicorn_config.py), it breaks tons of things
 # including shutdown
