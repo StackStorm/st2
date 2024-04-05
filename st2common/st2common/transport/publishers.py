@@ -58,25 +58,20 @@ class PoolPublisher(object):
         LOG.error("Rabbitmq connection error: %s", exc.message, exc_info=False)
 
     def publish(self, payload, exchange, routing_key="", compression=None):
-        LOG.debug("PoolPublisher.publish")
         compression = compression or cfg.CONF.messaging.compression
 
         with Timer(key="amqp.pool_publisher.publish_with_retries." + exchange.name):
-            LOG.debug("PoolPublisher.publish :: timer")
             with self.pool.acquire(block=True) as connection:
-                LOG.debug("PoolPublisher.publish :: connection")
                 retry_wrapper = ConnectionRetryWrapper(
                     cluster_size=self.cluster_size, logger=LOG
                 )
 
                 def do_publish(connection, channel):
-                    LOG.debug("PoolPublisher.publish :: do_publish")
                     # ProducerPool ends up creating it own ConnectionPool which ends up
                     # completely invalidating this ConnectionPool. Also, a ConnectionPool for
                     # producer does not really solve any problems for us so better to create a
                     # Producer for each publish.
                     producer = Producer(channel)
-                    LOG.debug("PoolPublisher.publish :: producer")
                     kwargs = {
                         "body": payload,
                         "exchange": exchange,
@@ -86,9 +81,6 @@ class PoolPublisher(object):
                         "content_encoding": "utf-8",
                     }
 
-                    LOG.debug(
-                        "PoolPublisher.publish :: now calling kombu.Publisher.publish inside ConnectionRetryWrapper"
-                    )
                     retry_wrapper.ensured(
                         connection=connection,
                         obj=producer,
