@@ -197,12 +197,10 @@ class Access(object):
                 message=message, conflict_id=conflict_id, model_object=model_object
             )
 
-        LOG.debug("persistence.base.Access.add_or_update :: model_object")
         is_update = str(pre_persist_id) == str(model_object.id)
 
         # Publish internal event on the message bus
         if publish:
-            LOG.debug("persistence.base.Access.add_or_update :: publish")
             try:
                 if is_update:
                     cls.publish_update(model_object)
@@ -210,11 +208,9 @@ class Access(object):
                     cls.publish_create(model_object)
             except:
                 LOG.exception("Publish failed.")
-            LOG.debug("persistence.base.Access.add_or_update :: published")
 
         # Dispatch trigger
         if dispatch_trigger:
-            LOG.debug("persistence.base.Access.add_or_update :: dispatch_trigger")
             try:
                 if is_update:
                     cls.dispatch_update_trigger(model_object)
@@ -222,9 +218,6 @@ class Access(object):
                     cls.dispatch_create_trigger(model_object)
             except:
                 LOG.exception("Trigger dispatch failed.")
-            LOG.debug(
-                "persistence.base.Access.add_or_update :: dispatch_trigger dispatched"
-            )
 
         return model_object
 
