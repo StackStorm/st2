@@ -90,8 +90,8 @@ class SandboxingUtilsTestCase(unittest.TestCase):
             result, f"{virtualenv_path}/bin/:/home/path1:/home/path2:/home/path3"
         )
 
-    @mock.patch("st2common.util.sandboxing.get_python_lib")
-    def test_get_sandbox_python_path(self, mock_get_python_lib):
+    @mock.patch("st2common.util.sandboxing.get_site_packages_dir")
+    def test_get_sandbox_python_path(self, mock_get_site_packages_dir):
         # No inheritance
         python_path = get_sandbox_python_path(
             inherit_from_parent=False, inherit_parent_virtualenv=False
@@ -119,7 +119,7 @@ class SandboxingUtilsTestCase(unittest.TestCase):
 
         # Inherit from current process and from virtualenv (running inside virtualenv)
         sys.real_prefix = "/usr"
-        mock_get_python_lib.return_value = f"{sys.prefix}/virtualenvtest"
+        mock_get_site_packages_dir.return_value = f"{sys.prefix}/virtualenvtest"
 
         with mock.patch.dict(os.environ, {"PYTHONPATH": ":/data/test1:/data/test2"}):
             python_path = get_sandbox_python_path(
@@ -132,9 +132,9 @@ class SandboxingUtilsTestCase(unittest.TestCase):
 
     @mock.patch("os.path.isdir", mock.Mock(return_value=True))
     @mock.patch("os.listdir", mock.Mock(return_value=["python3.6"]))
-    @mock.patch("st2common.util.sandboxing.get_python_lib")
+    @mock.patch("st2common.util.sandboxing.get_site_packages_dir")
     def test_get_sandbox_python_path_for_python_action_no_inheritance(
-        self, mock_get_python_lib
+        self, mock_get_site_packages_dir
     ):
 
         # No inheritance
@@ -158,9 +158,9 @@ class SandboxingUtilsTestCase(unittest.TestCase):
 
     @mock.patch("os.path.isdir", mock.Mock(return_value=True))
     @mock.patch("os.listdir", mock.Mock(return_value=["python3.6"]))
-    @mock.patch("st2common.util.sandboxing.get_python_lib")
+    @mock.patch("st2common.util.sandboxing.get_site_packages_dir")
     def test_get_sandbox_python_path_for_python_action_inherit_from_parent_process_only(
-        self, mock_get_python_lib
+        self, mock_get_site_packages_dir
     ):
 
         # Inherit python path from current process
@@ -196,9 +196,9 @@ class SandboxingUtilsTestCase(unittest.TestCase):
 
     @mock.patch("os.path.isdir", mock.Mock(return_value=True))
     @mock.patch("os.listdir", mock.Mock(return_value=["python3.6"]))
-    @mock.patch("st2common.util.sandboxing.get_python_lib")
+    @mock.patch("st2common.util.sandboxing.get_site_packages_dir")
     def test_get_sandbox_python_path_for_python_action_inherit_from_parent_process_and_venv(
-        self, mock_get_python_lib
+        self, mock_get_site_packages_dir
     ):
 
         # Inherit from current process and from virtualenv (not running inside virtualenv)
@@ -237,7 +237,7 @@ class SandboxingUtilsTestCase(unittest.TestCase):
 
         # Inherit from current process and from virtualenv (running inside virtualenv)
         sys.real_prefix = "/usr"
-        mock_get_python_lib.return_value = f"{sys.prefix}/virtualenvtest"
+        mock_get_site_packages_dir.return_value = f"{sys.prefix}/virtualenvtest"
 
         # Inherit python path from current process
         # Mock the current process python path
