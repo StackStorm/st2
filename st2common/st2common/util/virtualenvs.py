@@ -45,7 +45,7 @@ from st2common.util.pack_management import apply_pack_owner_group
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import get_pack_directory
 
-__all__ = ["setup_pack_virtualenv"]
+__all__ = ["setup_pack_virtualenv", "inject_st2_pth_into_virtualenv"]
 
 LOG = logging.getLogger(__name__)
 
@@ -285,6 +285,7 @@ def inject_st2_pth_into_virtualenv(virtualenv_path: str, logger: Logger = None) 
     after the pack venv and before system site-packages. So, we use a .pth file that loads
     as late as possible.
     """
+    logger = logger or LOG
     if not is_in_virtualenv():
         # If this is installed in the system-packages directory, then
         # its site-packages directory should already be included.
