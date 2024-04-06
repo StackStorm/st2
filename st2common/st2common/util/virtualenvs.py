@@ -316,7 +316,6 @@ def inject_st2_pth_into_virtualenv(virtualenv_path: str, logger: Logger = None) 
         / "zzzzzzzzzz__st2__.pth"
     )
     pth_file.write_text(contents)
-    logger.debug(f"injected st2 .pth: {str(pth_file)}\n{contents}---End of .pth file---")
 
 
 def install_requirements(
