@@ -13,6 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+import sysconfig
+
+print(sysconfig.get_path("platlib"))
+print(sys.path)
+
 import json
 import mock
 
