@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 import sysconfig
 
+print(os.environ["PYTHONPATH"])
 print(sysconfig.get_path("platlib"))
 print(sys.path)
 

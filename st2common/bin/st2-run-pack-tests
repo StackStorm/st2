@@ -355,13 +355,16 @@ if [ "${ENABLE_TIMING}" = true ]; then
 fi
 
 set -x
+
+# Change to the pack's directory (required for test coverage reporting)
+pushd ${PACK_PATH} > /dev/null
+
 which python3
 which nosetests
 python3 -c "import sysconfig;print(sysconfig.get_path('platlib'))"
 python3 -c "import sys;[print(p) for p in sys.path]"
-
-# Change to the pack's directory (required for test coverage reporting)
-pushd ${PACK_PATH} > /dev/null
+echo "PYTHONPATH=${PYTHONPATH}"
+python3 -c "import os;print(os.environ['PYTHONPATH'])"
 
 # Execute the tests
 if [ "${TEST_LOCATION}" ]; then
