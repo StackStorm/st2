@@ -354,6 +354,12 @@ if [ "${ENABLE_TIMING}" = true ]; then
   NOSE_OPTS+=(--with-timer)
 fi
 
+set -x
+which python3
+which nosetests
+python3 -c "import sysconfig;print(sysconfig.get_path('platlib'))"
+python3 -c "import sys;[print(p) for p in sys.path]"
+
 # Change to the pack's directory (required for test coverage reporting)
 pushd ${PACK_PATH} > /dev/null
 
@@ -368,7 +374,7 @@ fi
 TESTS_EXIT_CODE=$?
 
 popd  > /dev/null # ${PACK_PATH}
-
+set +x
 # Clean up and unset the variables
 if [ "${VIRTUALENV_ACTIVATED}" = true ]; then
     verbose_log "Deactivating virtualenv ${VIRTUALENVS_DIR}"
