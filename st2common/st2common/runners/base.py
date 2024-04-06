@@ -342,7 +342,6 @@ class GitWorktreeActionRunner(ActionRunner):
                 "exist." % (pack_name, pack_directory)
             )
             raise ValueError(msg)
-        LOG.info("pack_directory: %s" % (str(os.listdir(pack_directory))))
 
         args = [
             "git",
@@ -355,13 +354,13 @@ class GitWorktreeActionRunner(ActionRunner):
         ]
         cmd = list2cmdline(args)
 
-        LOG.info(
+        LOG.debug(
             'Creating git worktree for pack "%s", content version "%s" and execution '
             'id "%s" in "%s"'
             % (pack_name, content_version, self.execution_id, worktree_path),
             extra=extra,
         )
-        LOG.info("Command: %s" % (cmd))
+        LOG.debug("Command: %s" % (cmd))
         exit_code, stdout, stderr, timed_out = run_command(
             cmd=cmd,
             cwd=pack_directory,
@@ -380,7 +379,7 @@ class GitWorktreeActionRunner(ActionRunner):
                 stderr=stderr,
             )
         else:
-            LOG.info('Git worktree created in "%s"' % (worktree_path), extra=extra)
+            LOG.debug('Git worktree created in "%s"' % (worktree_path), extra=extra)
 
         # Make sure system / action runner user can access that directory
         args = ["chmod", "777", worktree_path]

@@ -317,7 +317,6 @@ def inject_st2_pth_into_virtualenv(virtualenv_path: str, logger: Logger = None) 
         / "zzzzzzzzzz__st2__.pth"
     )
     pth_file.write_text(contents)
-    logger.debug(f"injected st2 .pth: {str(pth_file)}\n{contents}---End of .pth file---")
 
 
 def install_requirements(
@@ -360,7 +359,7 @@ def install_requirements(
 
     # Normally we don't want this, even in debug logs. But it is useful to
     # investigate pip behavior changes & broken virtualenv integration tests.
-    logger.debug(f"\npip stdout=\n{stdout}")
+    # logger.debug(f"\npip stdout=\n{stdout}")
 
     if exit_code != 0:
         stdout = to_ascii(stdout)
@@ -410,7 +409,7 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=
 
     # Normally we don't want this, even in debug logs. But it is useful to
     # investigate pip behavior changes & broken virtualenv integration tests.
-    logger.debug(f"\npip stdout=\n{stdout}")
+    # logger.debug(f"\npip stdout=\n{stdout}")
 
     if exit_code != 0:
         raise Exception(
