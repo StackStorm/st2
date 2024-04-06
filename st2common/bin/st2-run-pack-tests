@@ -322,7 +322,7 @@ fi
 echo "Running tests..."
 # Note: We run nosetests with "--exe" option so it also runs test files which are executable
 # (pack install command automatically makes all the files, including test files executable)
-NOSE_OPTS=(-s -v --exe --rednose --immediate -d --logging-level=DEBUG --debug=nose.importer)
+NOSE_OPTS=(-s -v --exe --rednose --immediate -d --logging-level=DEBUG --debug=nose,nose.importer,nose.inspector,nose.plugins,nose.result,nose.selector)
 # --no-path-adjustment didn't make a difference
 
 # Is test coverage reporting enabled?
