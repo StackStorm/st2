@@ -493,7 +493,7 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 pylint_plugins/
 
 # Make task which verifies st2client README will parse pypi checks
-. PHONY: .st2client-pypi-check
+.PHONY: .st2client-pypi-check
 .st2client-pypi-check:
 	@echo
 	@echo "==================== st2client pypi check ===================="
