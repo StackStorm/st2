@@ -44,7 +44,6 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    if: false
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-20.04
     strategy:
@@ -175,7 +174,6 @@ jobs:
 
   self-check:
     needs: pre_job
-    if: false
     name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-20.04
     strategy:
@@ -844,7 +842,6 @@ jobs:
 
   slack-notification:
     name: Slack notification for failed master builds
-    if: false
     needs:
       - lint-checks
       - unit-tests

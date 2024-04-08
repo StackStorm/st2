@@ -322,8 +322,7 @@ fi
 echo "Running tests..."
 # Note: We run nosetests with "--exe" option so it also runs test files which are executable
 # (pack install command automatically makes all the files, including test files executable)
-NOSE_OPTS=(-s -v --exe --rednose --immediate -d --logging-level=DEBUG --debug=nose,nose.importer,nose.inspector,nose.plugins,nose.result,nose.selector)
-# --no-path-adjustment didn't make a difference
+NOSE_OPTS=(-s -v --exe --rednose --immediate --detailed-error --logging-level=DEBUG)
 
 # Is test coverage reporting enabled?
 if [ "${ENABLE_COVERAGE}" = true ]; then
@@ -355,17 +354,8 @@ if [ "${ENABLE_TIMING}" = true ]; then
   NOSE_OPTS+=(--with-timer)
 fi
 
-set -x
-
 # Change to the pack's directory (required for test coverage reporting)
 pushd ${PACK_PATH} > /dev/null
-
-which python3
-which nosetests
-python3 -c "import sysconfig;print(sysconfig.get_path('platlib'))"
-python3 -c "import sys;[print(p) for p in sys.path]"
-echo "PYTHONPATH=${PYTHONPATH}"
-python3 -c "import os;print(os.environ['PYTHONPATH'])"
 
 # Execute the tests
 if [ "${TEST_LOCATION}" ]; then
@@ -378,7 +368,7 @@ fi
 TESTS_EXIT_CODE=$?
 
 popd  > /dev/null # ${PACK_PATH}
-set +x
+
 # Clean up and unset the variables
 if [ "${VIRTUALENV_ACTIVATED}" = true ]; then
     verbose_log "Deactivating virtualenv ${VIRTUALENVS_DIR}"
