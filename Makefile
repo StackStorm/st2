@@ -753,7 +753,7 @@ virtualenv:
 	test -f $(VIRTUALENV_DIR)/bin/activate || pants export --resolve=st2 \
 		--python-bootstrap-search-path=[] --python-bootstrap-search-path=$(PYTHON_BINARY)
 	# workaround pants+pex default of hermetic scripts so we can run nosetest with PYTHONPATH
-	sed -i -e 's/^#!\(.*\) -sE$/#!\1 -s/' $(VIRTUALENV_DIR)/bin/*
+	sed -i -e 's/^#!\(.*\) -sE$$/#!\1 -s/' $(VIRTUALENV_DIR)/bin/*
 	test -L virtualenv || (rm -rf virtualenv && ln -s $(VIRTUALENV_DIR) virtualenv)
 
 	# Setup PYTHONPATH in bash activate script...
