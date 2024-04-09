@@ -71,7 +71,7 @@
 //     "st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master",
 //     "st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master",
 //     "st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master",
-//     "stevedore<3",
+//     "stevedore",
 //     "tabulate",
 //     "tooz",
 //     "udatetime",
@@ -4111,21 +4111,21 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "c4724f8d7b8f6be42130663855d01a9c2414d6046055b5a65ab58a0e38637688",
-              "url": "https://files.pythonhosted.org/packages/45/62/aa4c77e0f0899b7697445d8126fd099473452488d70f877426812c2ce982/stevedore-2.0.1-py3-none-any.whl"
+              "hash": "1c15d95766ca0569cad14cb6272d4d31dae66b011a929d7c18219c176ea1b5c9",
+              "url": "https://files.pythonhosted.org/packages/eb/f1/c7c6205c367c764ee173537f7eaf070bba4dd0fa11bf081813c2f75285a3/stevedore-5.2.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "609912b87df5ad338ff8e44d13eaad4f4170a65b79ae9cb0aa5632598994a1b7",
-              "url": "https://files.pythonhosted.org/packages/90/da/543bcd36658264100b58f0b6a9600c29dfe0c335a8efcc41678465b3fb4d/stevedore-2.0.1.tar.gz"
+              "hash": "46b93ca40e1114cea93d738a6c1e365396981bb6bb78c27045b7587c9473544d",
+              "url": "https://files.pythonhosted.org/packages/e7/c1/b210bf1071c96ecfcd24c2eeb4c828a2a24bf74b38af13896d02203b1eec/stevedore-5.2.0.tar.gz"
             }
           ],
           "project_name": "stevedore",
           "requires_dists": [
             "pbr!=2.1.0,>=2.0.0"
           ],
-          "requires_python": ">=3.6",
-          "version": "2.0.1"
+          "requires_python": ">=3.8",
+          "version": "5.2.0"
         },
         {
           "artifacts": [
@@ -5116,7 +5116,7 @@
     "st2-auth-backend-flat-file",
     "st2-auth-ldap",
     "st2-rbac-backend",
-    "stevedore<3",
+    "stevedore",
     "tabulate",
     "tooz",
     "udatetime",
