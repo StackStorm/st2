@@ -41,6 +41,7 @@ jobs:
   # Lint checks which don't depend on any service containes, etc. to be running.
   lint-checks:
     needs: pre_job
+    if: false # generally won't work w/ pants venv
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
@@ -345,7 +346,7 @@ jobs:
         env:
           ST2_CONF: /home/runner/work/st2/st2/conf/st2.ci.conf
         run: |
-          sudo -E ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t) PATH=${PATH} st2-self-check
+          sudo -E ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t) PATH=${PATH} st2common/bin/st2-self-check
       - name: Compress Service Logs Before upload
         if: ${{ failure() }}
         run: |
