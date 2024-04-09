@@ -27,7 +27,7 @@
 //     "jinja2",
 //     "jsonpath-rw",
 //     "jsonschema<4,>=3",
-//     "kombu<5.1,>=5.0",
+//     "kombu",
 //     "lockfile",
 //     "logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system == \"Linux\"",
 //     "mail-parser==3.15.0",
@@ -1719,38 +1719,43 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "6dc509178ac4269b0e66ab4881f70a2035c33d3a622e20585f965986a5182006",
-              "url": "https://files.pythonhosted.org/packages/22/6e/69bc1061633a88aa47beaa8bbecff1c3c555a005603cfbebcec4aa37f183/kombu-5.0.2-py2.py3-none-any.whl"
+              "hash": "49f1e62b12369045de2662f62cc584e7df83481a513db83b01f87b5b9785e378",
+              "url": "https://files.pythonhosted.org/packages/78/e8/bade4ea794047c94bb267c08aad9d5270c803c18296e876b5d97bad28daf/kombu-5.3.6-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "f4965fba0a4718d47d470beeb5d6446e3357a62402b16c510b6a2f251e05ac3c",
-              "url": "https://files.pythonhosted.org/packages/3b/3a/f880f867bb2690aee3454aa31143d441fee79c5c5ce4d9537114675447b3/kombu-5.0.2.tar.gz"
+              "hash": "f3da5b570a147a5da8280180aa80b03807283d63ea5081fcdb510d18242431d9",
+              "url": "https://files.pythonhosted.org/packages/3d/d9/86edccdc0f6868936deddf5892d6687481dcf047727f73214e61d31b2515/kombu-5.3.6.tar.gz"
             }
           ],
           "project_name": "kombu",
           "requires_dists": [
             "PyYAML>=3.10; extra == \"yaml\"",
-            "amqp<6.0.0,>=5.0.0",
-            "azure-servicebus>=0.21.1; extra == \"azureservicebus\"",
-            "azure-storage-queue; extra == \"azurestoragequeues\"",
-            "boto3>=1.4.4; extra == \"sqs\"",
-            "importlib-metadata>=0.18; python_version < \"3.8\"",
-            "kazoo>=1.3.1; extra == \"zookeeper\"",
-            "librabbitmq>=1.5.2; extra == \"librabbitmq\"",
+            "amqp<6.0.0,>=5.1.1",
+            "azure-identity>=1.12.0; extra == \"azurestoragequeues\"",
+            "azure-servicebus>=7.10.0; extra == \"azureservicebus\"",
+            "azure-storage-queue>=12.6.0; extra == \"azurestoragequeues\"",
+            "backports.zoneinfo[tzdata]>=0.2.1; python_version < \"3.9\"",
+            "boto3>=1.26.143; extra == \"sqs\"",
+            "confluent-kafka>=2.2.0; extra == \"confluentkafka\"",
+            "kazoo>=2.8.0; extra == \"zookeeper\"",
+            "librabbitmq>=2.0.0; python_version < \"3.11\" and extra == \"librabbitmq\"",
             "msgpack; extra == \"msgpack\"",
-            "pycurl==7.43.0.2; extra == \"sqs\"",
-            "pymongo>=3.3.0; extra == \"mongodb\"",
+            "pycurl>=7.43.0.5; (sys_platform != \"win32\" and platform_python_implementation == \"CPython\") and extra == \"sqs\"",
+            "pymongo>=4.1.1; extra == \"mongodb\"",
             "pyro4; extra == \"pyro\"",
-            "python-consul>=0.6.0; extra == \"consul\"",
+            "python-consul2; extra == \"consul\"",
             "qpid-python>=0.26; extra == \"qpid\"",
             "qpid-tools>=0.26; extra == \"qpid\"",
-            "redis>=3.3.11; extra == \"redis\"",
+            "redis!=4.5.5,!=5.0.2,>=4.5.2; extra == \"redis\"",
             "softlayer-messaging>=1.0.3; extra == \"slmq\"",
-            "sqlalchemy; extra == \"sqlalchemy\""
+            "sqlalchemy<2.1,>=1.4.48; extra == \"sqlalchemy\"",
+            "typing-extensions; python_version < \"3.10\"",
+            "urllib3>=1.26.16; extra == \"sqs\"",
+            "vine"
           ],
-          "requires_python": ">=3.6",
-          "version": "5.0.2"
+          "requires_python": ">=3.8",
+          "version": "5.3.6"
         },
         {
           "artifacts": [
@@ -4281,6 +4286,24 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "c1f94d72897edaf4ce775bb7558d5b79d8126906a14ea5ed1635921406c0387a",
+              "url": "https://files.pythonhosted.org/packages/01/f3/936e209267d6ef7510322191003885de524fc48d1b43269810cd589ceaf5/typing_extensions-4.11.0-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "83f085bd5ca59c80295fc2a82ab5dac679cbe02b9f33f7d83af68e241bea51b0",
+              "url": "https://files.pythonhosted.org/packages/f6/f3/b827b3ab53b4e3d8513914586dcca61c355fa2ce8252dea4da56e67bf8f2/typing_extensions-4.11.0.tar.gz"
+            }
+          ],
+          "project_name": "typing-extensions",
+          "requires_dists": [],
+          "requires_python": ">=3.8",
+          "version": "4.11.0"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "9068bc196136463f5245e51efda838afa15aaeca9903f49050dfa2679db4d252",
               "url": "https://files.pythonhosted.org/packages/65/58/f9c9e6be752e9fcb8b6a0ee9fb87e6e7a1f6bcab2cdc73f02bb7ba91ada0/tzdata-2024.1-py2.py3-none-any.whl"
             },
@@ -5049,7 +5072,7 @@
     "jinja2",
     "jsonpath-rw",
     "jsonschema<4,>=3",
-    "kombu<5.1,>=5.0",
+    "kombu",
     "lockfile",
     "logshipper",
     "mail-parser==3.15.0",

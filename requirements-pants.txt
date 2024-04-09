@@ -24,9 +24,9 @@ jsonpath-rw
 jsonschema>=3,<4
 # Kombu 5.1:
 #   - dropped py2
-#   - increase pickle protocol from 2 to 4 which might require migration
+#   - increase pickle protocol from 2 to 4 (only affects serialization. deserialization detects version)
 #   - from 5.1 up to at least 5.3.5 use pickle protocol 4
-#   - switches login_method from AMQPLAIN to PLAIN
+#   - switches login_method from AMQPLAIN to PLAIN (rabbitmq supports both by default, AMQPLAIN only for backwards compat)
 #   - adds named_tuple_as_object=False to simplejson.dump kwargs
 # Kombu 5.2:
 #   - dropped py3.6
@@ -35,7 +35,8 @@ jsonschema>=3,<4
 # Kombu 5.3:
 #   - dropped py3.7
 #   - drops simplejson support
-kombu>=5.0,<5.1
+#kombu>=5.0,<5.1
+kombu
 lockfile
 mock
 # mongoengine 0.24.0 has breaking changes to support pymongo 4.0
