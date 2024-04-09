@@ -96,7 +96,7 @@ oslo.utils<5.0,>=4.0.0
 # REASON: unknown
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: 8.1
-tenacity>=3.2.1,<7.0.0
+#tenacity>=3.2.1,<7.0.0
 
 # REQUIRED BY: st2-auth-backend-flat-file
 # REASON: unknown -- this looks like a lockfile-style pin

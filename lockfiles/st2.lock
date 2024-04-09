@@ -89,8 +89,7 @@
 //     "MarkupSafe<2.1.0,>=0.23",
 //     "cffi<1.15.0",
 //     "dnspython<2.0.0,>=1.16.0",
-//     "oslo.utils<5.0,>=4.0.0",
-//     "tenacity<7.0.0,>=3.2.1"
+//     "oslo.utils<5.0,>=4.0.0"
 //   ],
 //   "only_binary": [],
 //   "no_binary": []
@@ -106,8 +105,7 @@
     "MarkupSafe<2.1.0,>=0.23",
     "cffi<1.15.0",
     "dnspython<2.0.0,>=1.16.0",
-    "oslo.utils<5.0,>=4.0.0",
-    "tenacity<7.0.0,>=3.2.1"
+    "oslo.utils<5.0,>=4.0.0"
   ],
   "locked_resolves": [
     {
@@ -4149,27 +4147,23 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "baed357d9f35ec64264d8a4bbf004c35058fad8795c5b0d8a7dc77ecdcbb8f39",
-              "url": "https://files.pythonhosted.org/packages/4e/e4/bcaf6978c0811fbb480acc9bd6e024b53390a61d153fa0be4f20a6c80d94/tenacity-6.3.1-py2.py3-none-any.whl"
+              "hash": "ce510e327a630c9e1beaf17d42e6ffacc88185044ad85cf74c0a8887c6a0f88c",
+              "url": "https://files.pythonhosted.org/packages/f4/f1/990741d5bb2487d529d20a433210ffa136a367751e454214013b441c4575/tenacity-8.2.3-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "e14d191fb0a309b563904bbc336582efe2037de437e543b38da749769b544d7f",
-              "url": "https://files.pythonhosted.org/packages/70/0c/47136795c8be87c7c30f28c9a56b59deb9550b2a1f5f3abb177daf5da1a3/tenacity-6.3.1.tar.gz"
+              "hash": "5398ef0d78e63f40007c1fb4c0bff96e1911394d2fa8d194f77619c05ff6cc8a",
+              "url": "https://files.pythonhosted.org/packages/89/3c/253e1627262373784bf9355db9d6f20d2d8831d79f91e9cca48050cddcc2/tenacity-8.2.3.tar.gz"
             }
           ],
           "project_name": "tenacity",
           "requires_dists": [
-            "futures>=3.0; python_version == \"2.7\"",
-            "monotonic>=0.6; python_version == \"2.7\"",
             "reno; extra == \"doc\"",
-            "six>=1.9.0",
             "sphinx; extra == \"doc\"",
-            "tornado>=4.5; extra == \"doc\"",
-            "typing>=3.7.4.1; python_version == \"2.7\""
+            "tornado>=4.5; extra == \"doc\""
           ],
-          "requires_python": null,
-          "version": "6.3.1"
+          "requires_python": ">=3.7",
+          "version": "8.2.3"
         },
         {
           "artifacts": [
