@@ -35,11 +35,12 @@ MarkupSafe<2.1.0,>=0.23
 
 # REQUIRED BY: cryptography, paramiko, passlib
 # REASON: unknown -- this looks like a lockfile-style pin
+#         bcrypt 4 is a rewrite in rust and swapped manylinux2010 wheels for manylinux2014
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: 4.0.1
 #bcrypt==3.2.0
 # try widening the valid versions
-bcrypt<4
+#bcrypt<4
 
 # REQUIRED BY: bcrypt, cryptography, pynacl, zstandard
 # REASON: unknown
