@@ -30,8 +30,8 @@ MarkupSafe<2.1.0,>=0.23
 #         kombu 5.3.0 requires amqp>=5.1.1,<6.0.0
 #         kombu 5.3.0 requires amqp>=5.1.1,<6.0.0
 # NOTE: try to remove constraint later.
-# DROPS RESOLVED VERSION: 5.1.1
-amqp==5.0.6
+# DROPS RESOLVED VERSION: 5.1.1 or 5.2.0
+#amqp==5.0.6
 
 # REQUIRED BY: cryptography, paramiko, passlib
 # REASON: unknown -- this looks like a lockfile-style pin
@@ -69,11 +69,11 @@ cffi<1.15.0
 dnspython>=1.16.0,<2.0.0
 
 # REQUIRED BY: eventlet
-# REASON: unknown -- this looks like a lockfile-style pin
-# NOTE: We are having a hard time upgrading eventlet, so this pin is commented
-#       out to see if that will help. If any tests fail, uncomment this.
+# REASON: Greenlet is a dependency of eventlet, which is difficult to upgrade.
+#         greenlet 2 adds py3.11 support, platform compatibility changes, and better error checking.
+#         greenlet 3 adds py3.12 support, drops support for py3.6, fixes various crash conditions
+# NOTE: Bump this constraint carefully.
 # DROPS RESOLVED VERSION: 1.1.3.post0
-#greenlet==1.0.0
 greenlet<2
 
 # REQUIRED BY: argcomplete, click, debtcollector, kombu, pluggy, prettytable,
