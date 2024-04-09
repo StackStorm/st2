@@ -60,8 +60,6 @@ prompt-toolkit<2
 psutil
 # pymongo 3.13 has backports of APIs from pymongo 4 to help w/ migration
 pymongo>=3.11.0,<3.13.0
-# TODO: if this works, then mark this as a dep of eventlet
-#pyOpenSSL
 # pyrabbit used in an integration test
 pyrabbit
 pytest
