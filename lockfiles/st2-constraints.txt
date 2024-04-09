@@ -90,7 +90,7 @@ dnspython>=1.16.0,<2.0.0
 # REASON: unknown
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: 4.13
-oslo.utils<5.0,>=4.0.0
+#oslo.utils<5.0,>=4.0.0
 
 # REQUIRED BY: tooz
 # REASON: unknown

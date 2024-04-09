@@ -88,8 +88,7 @@
 //   "requirement_constraints": [
 //     "MarkupSafe<2.1.0,>=0.23",
 //     "cffi<1.15.0",
-//     "dnspython<2.0.0,>=1.16.0",
-//     "oslo.utils<5.0,>=4.0.0"
+//     "dnspython<2.0.0,>=1.16.0"
 //   ],
 //   "only_binary": [],
 //   "no_binary": []
@@ -104,8 +103,7 @@
   "constraints": [
     "MarkupSafe<2.1.0,>=0.23",
     "cffi<1.15.0",
-    "dnspython<2.0.0,>=1.16.0",
-    "oslo.utils<5.0,>=4.0.0"
+    "dnspython<2.0.0,>=1.16.0"
   ],
   "locked_resolves": [
     {
@@ -2461,29 +2459,30 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "dab26f205980a379fe7068dd4f9010809a2ae7dddcbecde53e18cf8fa4a251d9",
-              "url": "https://files.pythonhosted.org/packages/f9/6e/ecbe1ced0f5fdb009bb13f95f3e5ad19ac5f2e8911156d86216327cda636/oslo.utils-4.13.0-py3-none-any.whl"
+              "hash": "1d6504526c33cc10ae2c72565d0446a82d2acd43eaa5e6f3fd901d78400a2da0",
+              "url": "https://files.pythonhosted.org/packages/f0/bb/d61363eae3418f7862a2d14f96b803d5c395237a929e7fe35e5a1a4b0e23/oslo.utils-7.1.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "45ba8aaa5ed056a8e8e46059ef93d5c2d7b9c99bc7480e361cf5783e47f28fba",
-              "url": "https://files.pythonhosted.org/packages/31/55/09032306dc483e05e1de6fda14a885e8814ca299a875287a253d367eb9b3/oslo.utils-4.13.0.tar.gz"
+              "hash": "5e42f3394d1f1f976e8994ac4a0918966d2f7eaf7c77380dd612c4a4148dd98e",
+              "url": "https://files.pythonhosted.org/packages/1d/82/a81644eea01b60fa3fa32e9d376dd2730da82161be8f68d8805c9f05ec23/oslo.utils-7.1.0.tar.gz"
             }
           ],
           "project_name": "oslo-utils",
           "requires_dists": [
+            "PyYAML>=3.13",
             "debtcollector>=1.2.0",
             "iso8601>=0.1.11",
             "netaddr>=0.7.18",
             "netifaces>=0.10.4",
             "oslo.i18n>=3.15.3",
             "packaging>=20.4",
-            "pbr!=2.1.0,>=2.0.0",
             "pyparsing>=2.1.0",
-            "pytz>=2013.6"
+            "pytz>=2013.6; python_version < \"3.9\"",
+            "tzdata>=2022.4; python_version >= \"3.9\""
           ],
-          "requires_python": ">=3.6",
-          "version": "4.13.0"
+          "requires_python": ">=3.8",
+          "version": "7.1.0"
         },
         {
           "artifacts": [
