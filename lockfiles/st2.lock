@@ -47,7 +47,6 @@
 //     "prettytable",
 //     "prompt-toolkit<2",
 //     "psutil",
-//     "pyOpenSSL",
 //     "pyinotify<=0.10,>=0.9.5; platform_system == \"Linux\"",
 //     "pymongo<3.13.0,>=3.11.0",
 //     "pyrabbit",
@@ -3050,31 +3049,6 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "17ed5be5936449c5418d1cd269a1a9e9081bc54c17aed272b45856a3d3dc86ad",
-              "url": "https://files.pythonhosted.org/packages/54/a7/2104f674a5a6845b04c8ff01659becc6b8978ca410b82b94287e0b1e018b/pyOpenSSL-24.1.0-py3-none-any.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "cabed4bfaa5df9f1a16c0ef64a0cb65318b5cd077a7eda7d6970131ca2f41a6f",
-              "url": "https://files.pythonhosted.org/packages/91/a8/cbeec652549e30103b9e6147ad433405fdd18807ac2d54e6dbb73184d8a1/pyOpenSSL-24.1.0.tar.gz"
-            }
-          ],
-          "project_name": "pyopenssl",
-          "requires_dists": [
-            "cryptography<43,>=41.0.5",
-            "pretend; extra == \"test\"",
-            "pytest-rerunfailures; extra == \"test\"",
-            "pytest>=3.0.1; extra == \"test\"",
-            "sphinx!=5.2.0,!=5.2.0.post0,!=7.2.5; extra == \"docs\"",
-            "sphinx-rtd-theme; extra == \"docs\""
-          ],
-          "requires_python": ">=3.7",
-          "version": "24.1.0"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
               "hash": "f9db75911801ed778fe61bb643079ff86601aca99fcae6345aa67292038fb742",
               "url": "https://files.pythonhosted.org/packages/9d/ea/6d76df31432a0e6fdf81681a895f009a4bb47b3c39036db3e1b528191d52/pyparsing-3.1.2-py3-none-any.whl"
             },
@@ -5033,7 +5007,6 @@
     "prettytable",
     "prompt-toolkit<2",
     "psutil",
-    "pyOpenSSL",
     "pyinotify<=0.10,>=0.9.5; platform_system == \"Linux\"",
     "pymongo<3.13.0,>=3.11.0",
     "pyrabbit",
