@@ -89,7 +89,6 @@
 //     "MarkupSafe<2.1.0,>=0.23",
 //     "cffi<1.15.0",
 //     "dnspython<2.0.0,>=1.16.0",
-//     "greenlet<2",
 //     "oslo.utils<5.0,>=4.0.0",
 //     "tenacity<7.0.0,>=3.2.1"
 //   ],
@@ -107,7 +106,6 @@
     "MarkupSafe<2.1.0,>=0.23",
     "cffi<1.15.0",
     "dnspython<2.0.0,>=1.16.0",
-    "greenlet<2",
     "oslo.utils<5.0,>=4.0.0",
     "tenacity<7.0.0,>=3.2.1"
   ],
@@ -1325,96 +1323,99 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "0a954002064ee919b444b19c1185e8cce307a1f20600f47d6f4b6d336972c809",
-              "url": "https://files.pythonhosted.org/packages/11/95/0f9ed79c7b4a84a9ed06a9cf35ea78ecf87bdebced3df3efa3138542665b/greenlet-1.1.3.post0-cp39-cp39-musllinux_1_1_x86_64.whl"
+              "hash": "77457465d89b8263bca14759d7c1684df840b6811b2499838cc5b040a8b5b113",
+              "url": "https://files.pythonhosted.org/packages/54/4b/965a542baf157f23912e466b50fa9c49dd66132d9495d201e6c607ea16f2/greenlet-3.0.3-cp39-cp39-musllinux_1_1_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "8415239c68b2ec9de10a5adf1130ee9cb0ebd3e19573c55ba160ff0ca809e012",
-              "url": "https://files.pythonhosted.org/packages/06/58/79d818140350ee8e7fa0bfe8c41caa1b389df505b7d465284605c3da03fb/greenlet-1.1.3.post0-cp39-cp39-manylinux1_x86_64.whl"
+              "hash": "da70d4d51c8b306bb7a031d5cff6cc25ad253affe89b70352af5f1cb68e74b53",
+              "url": "https://files.pythonhosted.org/packages/0b/8a/f5140c8713f919af0e98e6aaa40cb20edaaf3739d18c4a077581e2422ac4/greenlet-3.0.3-cp39-cp39-macosx_11_0_universal2.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "0aa1845944e62f358d63fcc911ad3b415f585612946b8edc824825929b40e59e",
-              "url": "https://files.pythonhosted.org/packages/22/3b/3dece5270095aa5b108553880a7630888f9d43e1197cc0d3b4dcd3ccfed1/greenlet-1.1.3.post0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+              "hash": "098d86f528c855ead3479afe84b49242e174ed262456c342d70fc7f972bc13c4",
+              "url": "https://files.pythonhosted.org/packages/13/af/8db0d63147c6362447eb49da60573b41aee5cf5864fe1e27bdbaf7060bd2/greenlet-3.0.3-cp38-cp38-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "3c22998bfef3fcc1b15694818fc9b1b87c6cc8398198b96b6d355a7bcb8c934e",
-              "url": "https://files.pythonhosted.org/packages/2e/af/2ea24cf3383a0b1e69c9a4565d661e1a5072563da0cf94cde7e1366f0b48/greenlet-1.1.3.post0-cp39-cp39-manylinux2010_x86_64.whl"
+              "hash": "43374442353259554ce33599da8b692d5aa96f8976d567d4badf263371fbe491",
+              "url": "https://files.pythonhosted.org/packages/17/14/3bddb1298b9a6786539ac609ba4b7c9c0842e12aa73aaa4d8d73ec8f8185/greenlet-3.0.3.tar.gz"
             },
             {
               "algorithm": "sha256",
-              "hash": "890f633dc8cb307761ec566bc0b4e350a93ddd77dc172839be122be12bae3e10",
-              "url": "https://files.pythonhosted.org/packages/56/94/0af921f0e45e74b016f40e539c0c8bcde281892710dc325b1cbbaab283d0/greenlet-1.1.3.post0-cp39-cp39-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl"
+              "hash": "1996cb9306c8595335bb157d133daf5cf9f693ef413e7673cb07e3e5871379ca",
+              "url": "https://files.pythonhosted.org/packages/3d/4a/c9590b31bfefe089d8fae72201c77761a63c1685c7f511a692a267d7f25e/greenlet-3.0.3-cp38-cp38-macosx_11_0_universal2.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "0971d37ae0eaf42344e8610d340aa0ad3d06cd2eee381891a10fe771879791f9",
-              "url": "https://files.pythonhosted.org/packages/57/b3/2d2ca1b7c4608ce38860ed1321de2ee70693f1f3706a5bb43e7de29a5ac9/greenlet-1.1.3.post0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+              "hash": "b37eef18ea55f2ffd8f00ff8fe7c8d3818abd3e25fb73fae2ca3b672e333a7a6",
+              "url": "https://files.pythonhosted.org/packages/74/82/9737e7dee4ccb9e1be2a8f17cf760458be2c36c6ff7bbaef55cbe279e729/greenlet-3.0.3-cp39-cp39-musllinux_1_1_aarch64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "d25cdedd72aa2271b984af54294e9527306966ec18963fd032cc851a725ddc1b",
-              "url": "https://files.pythonhosted.org/packages/60/46/1d91ad002b3978991ecd1c1f24af47de44123987521ec1266e86b4e54b95/greenlet-1.1.3.post0-cp38-cp38-macosx_10_15_x86_64.whl"
+              "hash": "81bb9c6d52e8321f09c3d165b2a78c680506d9af285bfccbad9fb7ad5a5da3e5",
+              "url": "https://files.pythonhosted.org/packages/74/9f/71df0154a13d77e92451891a087a4c5783375964132290fca70c7e80e5d4/greenlet-3.0.3-cp38-cp38-musllinux_1_1_aarch64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "467b73ce5dcd89e381292fb4314aede9b12906c18fab903f995b86034d96d5c8",
-              "url": "https://files.pythonhosted.org/packages/66/3e/b5d88b2a102f7a8a55a1d4c313d6fdaaa49f53c34858a86489aa009112b2/greenlet-1.1.3.post0-cp38-cp38-musllinux_1_1_x86_64.whl"
+              "hash": "6b66c9c1e7ccabad3a7d037b2bcb740122a7b17a53734b7d72a344ce39882a1b",
+              "url": "https://files.pythonhosted.org/packages/8a/74/498377804f8ebfb1efdfbe33e93cf3b29d77e207e9496f0c10912d5055b4/greenlet-3.0.3-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "d75afcbb214d429dacdf75e03a1d6d6c5bd1fa9c35e360df8ea5b6270fb2211c",
-              "url": "https://files.pythonhosted.org/packages/89/fe/6cb2ed00c96ec88ab7a8f274f45d13110619273705b0b0003c37fa43c172/greenlet-1.1.3.post0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+              "hash": "1551a8195c0d4a68fac7a4325efac0d541b48def35feb49d803674ac32582f61",
+              "url": "https://files.pythonhosted.org/packages/9d/ea/8bc7ed08ba274bdaff08f2cb546d832b8f44af267e03ca6e449840486915/greenlet-3.0.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "7cf37343e43404699d58808e51f347f57efd3010cc7cee134cdb9141bd1ad9ea",
-              "url": "https://files.pythonhosted.org/packages/8b/e2/07206a72c1660ce801d2f1635c1314a3706592d35564e4f75d27c4c426eb/greenlet-1.1.3.post0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+              "hash": "b7dcbe92cc99f08c8dd11f930de4d99ef756c3591a5377d1d9cd7dd5e896da71",
+              "url": "https://files.pythonhosted.org/packages/a2/92/f11dbbcf33809421447b24d2eefee0575c59c8569d6d03f7ca4d2b34d56f/greenlet-3.0.3-cp39-cp39-manylinux_2_17_s390x.manylinux2014_s390x.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "5edf75e7fcfa9725064ae0d8407c849456553a181ebefedb7606bac19aa1478b",
-              "url": "https://files.pythonhosted.org/packages/90/20/33fd855a718f81b931087d78248fb10a6764345ebb87e71536bcadf7852c/greenlet-1.1.3.post0-cp39-cp39-musllinux_1_1_aarch64.whl"
+              "hash": "64d7675ad83578e3fc149b617a444fab8efdafc9385471f868eb5ff83e446b8b",
+              "url": "https://files.pythonhosted.org/packages/af/05/b7e068070a6c143f34dfcd7e9144684271b8067e310f6da68269580db1d8/greenlet-3.0.3-cp39-cp39-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "ec615d2912b9ad807afd3be80bf32711c0ff9c2b00aa004a45fd5d5dde7853d9",
-              "url": "https://files.pythonhosted.org/packages/b3/90/605a085fac008276f8f515ac2241f6924ba2ffc1742677721d49d2656743/greenlet-1.1.3.post0-cp38-cp38-manylinux2010_x86_64.whl"
+              "hash": "086152f8fbc5955df88382e8a75984e2bb1c892ad2e3c80a2508954e52295257",
+              "url": "https://files.pythonhosted.org/packages/cf/5b/2de4a398840d3b4d99c4a3476cda0d82badfa349f3f89846ada2e32e9500/greenlet-3.0.3-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "924df1e7e5db27d19b1359dc7d052a917529c95ba5b8b62f4af611176da7c8ad",
-              "url": "https://files.pythonhosted.org/packages/bd/1e/e987a0ea7ee2700fe724ade6288fcf86b24d48328fff503335ba90356ae1/greenlet-1.1.3.post0-cp38-cp38-manylinux1_x86_64.whl"
+              "hash": "c9db1c18f0eaad2f804728c67d6c610778456e3e1cc4ab4bbd5eeb8e6053c6fc",
+              "url": "https://files.pythonhosted.org/packages/d9/84/3d9f0255ae3681010d9eee9f4d1bd4790e41c87dcbdad5cbf893605039b5/greenlet-3.0.3-cp38-cp38-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "c8c9301e3274276d3d20ab6335aa7c5d9e5da2009cccb01127bddb5c951f8870",
-              "url": "https://files.pythonhosted.org/packages/c6/ff/4824bda7f85046296a59570040d5c77ef7b71fcf7577844efcfc9a4a0196/greenlet-1.1.3.post0-cp39-cp39-macosx_10_15_x86_64.whl"
+              "hash": "d73a9fe764d77f87f8ec26a0c85144d6a951a6c438dfe50487df5595c6373eac",
+              "url": "https://files.pythonhosted.org/packages/dc/c3/06ca5f34b01af6d6e2fd2f97c0ad3673123a442bf4a3add548d374b1cc7c/greenlet-3.0.3-cp39-cp39-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "5c2d21c2b768d8c86ad935e404cc78c30d53dea009609c3ef3a9d49970c864b5",
-              "url": "https://files.pythonhosted.org/packages/e9/68/ede987710d638fdfa2ed3c5e1684d8e05e6893640a3b7e6712e5ece1561f/greenlet-1.1.3.post0-cp38-cp38-musllinux_1_1_aarch64.whl"
+              "hash": "3ddc0f794e6ad661e321caa8d2f0a55ce01213c74722587256fb6566049a8b04",
+              "url": "https://files.pythonhosted.org/packages/e8/47/0fd13f50da7e43e313cce276c9ec9b5f862a8fedacdc30e7ca2a43ee7fd7/greenlet-3.0.3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "f5e09dc5c6e1796969fd4b775ea1417d70e49a5df29aaa8e5d10675d9e11872c",
-              "url": "https://files.pythonhosted.org/packages/ea/37/e54ce453b298e890f59dba3db32461579328a07d5b65e3eabf80f971c099/greenlet-1.1.3.post0.tar.gz"
+              "hash": "7170375bcc99f1a2fbd9c306f5be8764eaf3ac6b5cb968862cad4c7057756506",
+              "url": "https://files.pythonhosted.org/packages/fe/1f/b5cd033b55f347008235244626bb1ee2854adf9c3cb97ff406d98d6e1ea3/greenlet-3.0.3-cp38-cp38-manylinux_2_17_s390x.manylinux2014_s390x.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "325f272eb997916b4a3fc1fea7313a8adb760934c2140ce13a2117e1b0a8095d",
-              "url": "https://files.pythonhosted.org/packages/f8/01/4b41b5a0ab34d00e4ffc4be937b2d54ba5ec72ea127942a9d0ea34cd7719/greenlet-1.1.3.post0-cp38-cp38-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl"
+              "hash": "fd096eb7ffef17c456cfa587523c5f92321ae02427ff955bebe9e3c63bc9f0da",
+              "url": "https://files.pythonhosted.org/packages/ff/76/0893f4fe7b841660a5d75116c7d755c58652a4e9e12f6a72984eaa396881/greenlet-3.0.3-cp38-cp38-musllinux_1_1_x86_64.whl"
             }
           ],
           "project_name": "greenlet",
           "requires_dists": [
-            "Sphinx; extra == \"docs\""
+            "Sphinx; extra == \"docs\"",
+            "furo; extra == \"docs\"",
+            "objgraph; extra == \"test\"",
+            "psutil; extra == \"test\""
           ],
-          "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7",
-          "version": "1.1.3.post0"
+          "requires_python": ">=3.7",
+          "version": "3.0.3"
         },
         {
           "artifacts": [
