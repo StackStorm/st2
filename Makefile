@@ -1147,7 +1147,7 @@ ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .f
 	@echo
 	@echo "==================== rst-check ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; rstcheck --report warning CHANGELOG.rst
+	. $(VIRTUALENV_DIR)/bin/activate; rstcheck --report-level WARNING CHANGELOG.rst
 
 .PHONY: .generated-files-check
 .generated-files-check:
