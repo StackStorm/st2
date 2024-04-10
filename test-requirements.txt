@@ -35,10 +35,7 @@ tox==3.23.0
 pyrabbit
 prance==23.6.21.0
 # pip-tools provides pip-compile: to check for version conflicts
-# pip-tools 5.3 needs pip<20.3
-# pip-tools 5.4 needs pip>=20.1
-# pip-tools 6.0 needs pip>=20.3
-pip-tools>=5.4,<6.1
+pip-tools==7.4.1
 pytest==6.2.3
 pytest-benchmark==3.4.1
 pytest-benchmark[histogram]==3.4.1
