@@ -57,6 +57,8 @@ MarkupSafe<2.1.0,>=0.23
 #     but the wheel on pypi does not say it supports python3.8, so pip gets
 #     confused. For now, pin decorator to work around pip's confusion.
 # NOTE: Since pants/pex use a newer version of pip, this is not an issue.
+#       Also, networkx dropped its dependency on decorator in v2.6, and we're
+#       using 2.8, so this constraint is pointless now.
 # DROPS RESOLVED VERSION: 4.4.2
 #decorator==4.4.2
 
