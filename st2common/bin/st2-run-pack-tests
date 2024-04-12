@@ -41,7 +41,7 @@ PACK_TEST_PYTHON_DEPENDENCIES_NAMES=(
     'coverage'
 )
 PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS=(
-    '>=2.0,<2.1'
+    '>=4.0.3'
     '>=1.1.0,<2.0'
     '>=1.3.7'
     '>=0.7.0'
