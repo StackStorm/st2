@@ -58,8 +58,8 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
-PIP_VERSION ?= 20.3.3
-SETUPTOOLS_VERSION ?= 51.3.3
+PIP_VERSION ?= 24.0
+SETUPTOOLS_VERSION ?= 69.2.0
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
@@ -739,8 +739,8 @@ check-dependency-conflicts:
 	@echo
 	# Verify there are no conflicting dependencies
 	cat st2*/requirements.txt contrib/runners/*/requirements.txt | sort -u > req.txt && \
-	$(VIRTUALENV_DIR)/bin/pip-compile req.txt || exit 1; \
-	if [[ -e req.txt ]]; then rm req.txt; fi
+	$(VIRTUALENV_DIR)/bin/pip-compile --strip-extras --output-file req.out req.txt || exit 1; \
+	rm -f req.txt req.out
 
 .PHONY: virtualenv
 	# Note: We always want to update virtualenv/bin/activate file to make sure
@@ -1173,7 +1173,7 @@ ci-checks: .generated-files-check .shellcheck .black-check .pre-commit-checks .f
 	@echo
 	@echo "==================== rst-check ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; rstcheck --report warning CHANGELOG.rst
+	. $(VIRTUALENV_DIR)/bin/activate; rstcheck --report-level WARNING CHANGELOG.rst
 
 .PHONY: .generated-files-check
 .generated-files-check:
