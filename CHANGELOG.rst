@@ -24,6 +24,8 @@ Added
   Contributed by @cognifloyd
 * Build of ST2 EL9 packages #6153
   Contributed by @amanda11
+* Add Secret Masking to RuleEnforcementApiView Controller. #6170
+  Contributed by @philipphomberger
 
 3.8.1 - December 13, 2023
 -------------------------
