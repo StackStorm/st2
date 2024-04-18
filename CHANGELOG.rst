@@ -9,6 +9,7 @@ Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 Fixed
 ~~~~~
 * Restore Pack integration testing (it was inadvertently skipped) and stop testing against `bionic` and `el7`. #6135
+* Fix Popen.pid typo in st2tests. #6184
 
 Changed
 ~~~~~~~
