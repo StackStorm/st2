@@ -940,22 +940,6 @@ endif
 		echo "==========================================================="; \
 	done; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
-# COMPONTENTS_RUNNERS is included in COMPONENTS_TEST, so this just duplicates running the runner integration tests!
-#	@echo
-#	@echo "============== runners integration tests with coverage =============="
-#	@echo
-#	@echo "The tests assume st2 is running on 127.0.0.1."
-#	@failed=0; \
-#	for component in $(COMPONENTS_RUNNERS); do\
-#		echo "==========================================================="; \
-#		echo "Running integration tests in" $$component; \
-#		echo "==========================================================="; \
-#		. $(VIRTUALENV_DIR)/bin/activate; \
-#		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
-#			nosetests $(NOSE_OPTS) -s -v \
-#			$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/integration || ((failed+=1)); \
-#	done; \
-#	if [ $$failed -gt 0 ]; then exit 1; fi
 	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
 	# ci-integration-full target
 #	@echo
