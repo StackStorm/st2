@@ -231,7 +231,7 @@ function st2start()
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-api using gunicorn ...'
         # Log standard out, start in daemon mode, load config st2api.conf, session name "st2-api"
-        tmux new-session -d -s st2-api "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/gunicorn st2api.wsgi:application -k eventlet -b $BINDING_ADDRESS:9100 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
+        tmux new-session -d -s st2-api "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/gunicorn st2api.wsgi:application -k eventlet -b $BINDING_ADDRESS:9101 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
     else
         echo 'Starting st2-api ...'
         tmux new-session -d -s st2-api "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2api/bin/st2api --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
