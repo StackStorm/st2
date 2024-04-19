@@ -230,7 +230,6 @@ function st2start()
     # Run the st2 API server
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-api using gunicorn ...'
-        # Log standard out, start in daemon mode, load config st2api.conf, session name "st2-api"
         tmux new-session -d -s st2-api "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/gunicorn st2api.wsgi:application -k eventlet -b $BINDING_ADDRESS:9101 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
     else
         echo 'Starting st2-api ...'
@@ -240,12 +239,14 @@ function st2start()
     # Run st2stream API server
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-stream using gunicorn ...'
-
         tmux new-session -d -s st2-stream "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/gunicorn st2stream.wsgi:application -k eventlet -b $BINDING_ADDRESS:9102 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
     else
         echo 'Starting st2-stream ...'
         tmux new-session -d -s st2-stream "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2stream/bin/st2stream --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
     fi
+
+    # give st2stream time to startup and load things into database
+    sleep 10
 
     # Run the workflow engine server
     echo 'Starting st2-workflow engine(s)'
