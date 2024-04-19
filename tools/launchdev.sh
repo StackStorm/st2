@@ -162,7 +162,7 @@ function st2start()
     echo -n "Using config base dir: "; iecho "$CONFIG_BASE_DIR"
 
     if [ ! -d "$CONFIG_BASE_DIR" ]; then
-        wecho "$CONFIG_BASE_DIR doesn't exist. Creating..."
+        wecho "$CONFIG_BASE_DIR doesn't exist. Creating ..."
         sudo mkdir -p $CONFIG_BASE_DIR
     fi
 
@@ -174,12 +174,12 @@ function st2start()
 
     # Copy and overwrite the action contents
     if [ ! -d "$ST2_BASE_DIR" ]; then
-        wecho "$ST2_BASE_DIR doesn't exist. Creating..."
+        wecho "$ST2_BASE_DIR doesn't exist. Creating ..."
         sudo mkdir -p $PACKS_BASE_DIR
     fi
 
     if [ "${use_ipv6}" = true ]; then
-        echo '  using IPv6 bindings...'
+        echo '  using IPv6 bindings ...'
         BINDING_ADDRESS="[::]"
     else
         BINDING_ADDRESS="0.0.0.0"
@@ -270,7 +270,7 @@ function st2start()
     done
 
     # Run the garbage collector service
-    echo 'Starting st2-garbagecollector'
+    echo 'Starting st2-garbagecollector ...'
     tmux new-session -d -s st2-garbagecollector "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2garbagecollector --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-garbagecollector.log"
 
     # Run the scheduler server
@@ -285,19 +285,19 @@ function st2start()
     done
 
     # Run the sensor container server
-    echo 'Starting st2-sensorcontainer'
+    echo 'Starting st2-sensorcontainer ...'
     tmux new-session -d -s st2-sensorcontainer "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2sensorcontainer --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-sensorcontainer.log"
 
     # Run the rules engine server
-    echo 'Starting st2-rulesengine...'
+    echo 'Starting st2-rulesengine ...'
     tmux new-session -d -s st2-rulesengine "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2rulesengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-rulesengine.log"
 
     # Run the timer engine server
-    echo 'Starting st2-timersengine...'
+    echo 'Starting st2-timersengine ...'
     tmux new-session -d -s st2-timersengine "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2timersengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-timersengine.log"
 
     # Run the actions notifier
-    echo 'Starting st2-notifier...'
+    echo 'Starting st2-notifier ...'
     tmux new-session -d -s st2-notifier "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2actions/bin/st2notifier --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-notifier.log"
 
     # Run the auth API server
@@ -335,7 +335,7 @@ function st2start()
 
     if [ "$load_content" = true ]; then
         # Register contents
-        echo 'Registering sensors, runners, actions, rules, aliases, and policies...'
+        echo 'Registering sensors, runners, actions, rules, aliases, and policies ...'
         ${VIRTUALENV}/bin/python ./st2common/bin/st2-register-content --config-file $ST2_CONF --register-all
     fi
 
@@ -389,7 +389,7 @@ function st2clean()
     fi
     if [ -n "$ST2_EXPORTER" ]; then
         EXPORTS_DIR=$(exportsdir)
-        echo "Removing $EXPORTS_DIR..."
+        echo "Removing $EXPORTS_DIR ..."
         rm -rf ${EXPORTS_DIR}
     fi
 }
