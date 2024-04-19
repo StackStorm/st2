@@ -61,7 +61,8 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     end_timestamp = ComplexDateTimeField(
         help_text="The timestamp when the liveaction has finished."
     )
-    parameters = stormbase.EscapedDynamicField(
+    action = stormbase.EscapedDictField(required=True)
+    parameters = JSONDictEscapedFieldCompatibilityField(
         default={},
         help_text="The key-value pairs passed as to the action runner & action.",
     )
@@ -72,6 +73,15 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     context = me.DictField(
         default={}, help_text="Contextual information on the action execution."
     )
+    delay = me.IntField(min_value=0)
+
+    # diff from liveaction
+    runner = stormbase.EscapedDictField(required=True)
+    trigger = stormbase.EscapedDictField()
+    trigger_type = stormbase.EscapedDictField()
+    trigger_instance = stormbase.EscapedDictField()
+    rule = stormbase.EscapedDictField()
+    result_size = me.IntField(default=0, help_text="Serialized result size in bytes")
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
     log = me.ListField(field=me.DictField())
@@ -115,7 +125,6 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         :return: result: action execution object with masked secret paramters in input and output schema.
         :rtype: result: ``dict``
         """
-
         result = copy.deepcopy(value)
 
         liveaction = result["liveaction"]

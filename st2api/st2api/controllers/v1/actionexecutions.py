@@ -39,6 +39,7 @@ from st2common.exceptions import actionrunner as runner_exc
 from st2common.exceptions import apivalidation as validation_exc
 from st2common.exceptions import param as param_exc
 from st2common.exceptions import trace as trace_exc
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
@@ -416,36 +417,18 @@ class ActionExecutionRawResultController(BaseActionExecutionNestedController):
 
         :rtype: ``str``
         """
-        # NOTE: Here we intentionally use as_pymongo() to avoid mongoengine layer even for old style
-        # data
+        # NOTE: we need to use to_python() to uncompress the data
         try:
             result = (
-                self.access.impl.model.objects.filter(id=id)
-                .only("result")
-                .as_pymongo()[0]
+                self.access.impl.model.objects.filter(id=id).only("result")[0].result
             )
         except IndexError:
             raise NotFoundException("Execution with id %s not found" % (id))
 
-        if isinstance(result["result"], dict):
-            # For backward compatibility we also support old non JSON field storage format
-            if pretty_format:
-                response_body = orjson.dumps(
-                    result["result"], option=orjson.OPT_INDENT_2
-                )
-            else:
-                response_body = orjson.dumps(result["result"])
+        if pretty_format:
+            response_body = orjson.dumps(result, option=orjson.OPT_INDENT_2)
         else:
-            # For new JSON storage format we just use raw value since it's already JSON serialized
-            # string
-            response_body = result["result"]
-
-            if pretty_format:
-                # Pretty format is not a default behavior since it adds quite some overhead (e.g.
-                # 10-30ms for non pretty format for 4 MB json vs ~120 ms for pretty formatted)
-                response_body = orjson.dumps(
-                    orjson.loads(result["result"]), option=orjson.OPT_INDENT_2
-                )
+            response_body = orjson.dumps(result)
 
         response = Response()
         response.headers["Content-Type"] = "text/json"
@@ -634,8 +617,14 @@ class ActionExecutionReRunController(
 
         # Merge in any parameters provided by the user
         new_parameters = {}
+        original_parameters = getattr(existing_execution, "parameters", b"{}")
+        original_params_decoded = (
+            JSONDictEscapedFieldCompatibilityField().parse_field_value(
+                original_parameters
+            )
+        )
         if not no_merge:
-            new_parameters.update(getattr(existing_execution, "parameters", {}))
+            new_parameters.update(original_params_decoded)
         new_parameters.update(spec_api.parameters)
 
         # Create object for the new execution

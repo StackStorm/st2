@@ -29,6 +29,7 @@ from st2common.models.api.rule import RuleAPI
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common import log as logging
 from st2common.util.deep_copy import fast_deepcopy_dict
+from st2common.fields import JSONDictEscapedFieldCompatibilityField
 
 __all__ = ["ActionExecutionAPI", "ActionExecutionOutputAPI"]
 
@@ -145,9 +146,7 @@ class ActionExecutionAPI(BaseAPI):
         },
         "additionalProperties": False,
     }
-    skip_unescape_field_names = [
-        "result",
-    ]
+    skip_unescape_field_names = ["result", "parameters"]
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
@@ -170,6 +169,24 @@ class ActionExecutionAPI(BaseAPI):
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)
+
+    @classmethod
+    def convert_raw(cls, doc, raw_values):
+        """
+        override this class to
+        convert any raw byte values into dict
+        Now add the JSON string field value which shouldn't be escaped back.
+        We don't JSON parse the field value here because that happens inside the model specific
+        "from_model()" method where we also parse and convert all the other field values.
+        :param doc: dict
+        :param raw_values: dict[field]:bytestring
+        """
+
+        for field_name, field_value in raw_values.items():
+            doc[
+                field_name
+            ] = JSONDictEscapedFieldCompatibilityField().parse_field_value(field_value)
+        return doc
 
     @classmethod
     def to_model(cls, instance):

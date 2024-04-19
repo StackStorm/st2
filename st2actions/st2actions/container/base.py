@@ -141,10 +141,13 @@ class RunnerContainer(object):
             ):
                 queries.setup_query(runner.liveaction.id, runner.runner_type, context)
         except:
-            LOG.exception("Failed to run action.")
             _, ex, tb = sys.exc_info()
             # mark execution as failed.
             status = action_constants.LIVEACTION_STATUS_FAILED
+            LOG.exception(
+                "Failed to run action. traceback: %s"
+                % "".join(traceback.format_tb(tb, 20))
+            )
             # include the error message and traceback to try and provide some hints.
             result = {
                 "error": str(ex),
