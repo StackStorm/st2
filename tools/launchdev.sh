@@ -259,7 +259,7 @@ function st2start()
         tmux new-session -d -s $WORKFLOW_ENGINE_NAME "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2actions/bin/st2workflowengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${WORKFLOW_ENGINE_NAME}.log"
     done
 
-    # Start a screen for every runner
+    # Start a session for every runner
     echo 'Starting st2-actionrunner(s):'
     RUNNER_SESSIONS=()
     for i in $(seq 1 $runner_count)
@@ -350,7 +350,7 @@ function st2start()
     # Display default credentials to the multiplexor session
     echo "The default credentials are testu:testp"
 
-    # List screen sessions
+    # List sessions
     tmux ls || exit 0
 }
 

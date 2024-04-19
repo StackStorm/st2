@@ -40,17 +40,15 @@ As we can see from above output port ``9101`` is not even up. To verify this let
   vagrant  32403  0.2  1.5  79228 31364 pts/3    Ss+  18:27   0:00 /home/vagrant/git/st2/virtualenv/bin/python
   ./virtualenv/bin/gunicorn st2stream.wsgi:application -k eventlet -b 0.0.0.0:9102 --workers 1
 
-- This suggests that the API process crashed, we can verify that by running ``screen -ls``.::
+- This suggests that the API process crashed, we can verify that by running ``tmux ls``.::
 
 .. code:: bash
 
-  $ screen -ls
-    There are screens on:
-	 15781.st2-auth	(04/26/2016 06:39:10 PM)	(Detached)
-	 15778.st2-notifier	(04/26/2016 06:39:10 PM)	(Detached)
-	 15767.st2-sensorcontainer	(04/26/2016 06:39:10 PM)	(Detached)
-	 15762.st2-stream	(04/26/2016 06:39:10 PM)	(Detached)
-    3 Sockets in /var/run/screen/S-vagrant.
+  $ tmux ls
+  st2-auth: 1 windows (created Fri Apr 19 00:42:58 2024)
+  st2-notifier: 1 windows (created Fri Apr 19 00:42:58 2024)
+  st2-sensorcontainer: 1 windows (created Fri Apr 19 00:42:58 2024)
+  st2-stream: 1 windows (created Fri Apr 19 00:42:58 2024)
 
 - Now let us check the logs for any errors:
 
