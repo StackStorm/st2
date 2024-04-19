@@ -249,7 +249,7 @@ function st2start()
     sleep 10
 
     # Run the workflow engine server
-    echo 'Starting st2-workflow engine(s)'
+    echo 'Starting st2-workflow engine(s):'
     WORKFLOW_ENGINE_SESSIONS=()
     for i in $(seq 1 $workflow_engine_count)
     do
@@ -260,7 +260,7 @@ function st2start()
     done
 
     # Start a screen for every runner
-    echo 'Starting st2-actionrunner(s)'
+    echo 'Starting st2-actionrunner(s):'
     RUNNER_SESSIONS=()
     for i in $(seq 1 $runner_count)
     do
@@ -275,7 +275,7 @@ function st2start()
     tmux new-session -d -s st2-garbagecollector "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2garbagecollector --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-garbagecollector.log"
 
     # Run the scheduler server
-    echo 'Starting st2-scheduler(s)'
+    echo 'Starting st2-scheduler(s):'
     SCHEDULER_SESSIONS=()
     for i in $(seq 1 $scheduler_count)
     do
@@ -330,7 +330,7 @@ function st2start()
     do
         tmux ls | grep "^${s}[[:space:]]" &> /dev/null
         if [ $? != 0 ]; then
-            echo "ERROR: terminal multiplex session for $s failed to start."
+            eecho "ERROR: terminal multiplex session for $s failed to start."
         fi
     done
 
@@ -343,7 +343,7 @@ function st2start()
     if [ "$copy_test_packs" = true ]; then
         st2 run packs.setup_virtualenv packs=fixtures
         if [ $? != 0 ]; then
-            echo "wecho: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
+            wecho "WARNING: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
         fi
     fi
 
