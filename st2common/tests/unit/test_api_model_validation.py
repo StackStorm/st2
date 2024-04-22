@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.models.api.base import BaseAPI
 
@@ -111,7 +111,7 @@ class MockAPIModel2(BaseAPI):
     }
 
 
-class APIModelValidationTestCase(unittest2.TestCase):
+class APIModelValidationTestCase(unittest.TestCase):
     def test_validate_default_values_are_set(self):
         # no "permission_grants" attribute
         mock_model_api = MockAPIModel1(name="name")

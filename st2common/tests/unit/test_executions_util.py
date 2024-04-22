@@ -214,7 +214,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
             liveaction_db.status,
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             executions_util.abandon_execution_if_incomplete,

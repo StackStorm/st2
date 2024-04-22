@@ -17,7 +17,7 @@ from __future__ import absolute_import
 import os
 import os.path
 
-import unittest2
+import unittest
 
 from st2common.util.file_system import get_file_list
 
@@ -25,7 +25,7 @@ CURRENT_DIR = os.path.dirname(__file__)
 ST2TESTS_DIR = os.path.join(CURRENT_DIR, "../../../st2tests/st2tests")
 
 
-class FileSystemUtilsTestCase(unittest2.TestCase):
+class FileSystemUtilsTestCase(unittest.TestCase):
     def test_get_file_list(self):
         # Standard exclude pattern
         directory = os.path.join(ST2TESTS_DIR, "policies")
@@ -39,8 +39,13 @@ class FileSystemUtilsTestCase(unittest2.TestCase):
             "meta/concurrency.yaml",
             "meta/__init__.py",
         ]
-        result = get_file_list(directory=directory, exclude_patterns=["*.pyc"])
-        self.assertItemsEqual(expected, result)
+        result = get_file_list(
+            directory=directory, exclude_patterns=["*.pyc", "__pycache__"]
+        )
+        # directory listings are sorted because the item order must be exact for assert
+        # to validate equivalence.  Directory item order doesn't matter in general and may
+        # even change on different platforms or locales.
+        assert sorted(expected) == sorted(result)
 
         # Custom exclude pattern
         expected = [
@@ -52,4 +57,7 @@ class FileSystemUtilsTestCase(unittest2.TestCase):
         result = get_file_list(
             directory=directory, exclude_patterns=["*.pyc", "*.yaml", "*BUILD"]
         )
-        self.assertItemsEqual(expected, result)
+        # directory listings are sorted because the item order must be exact for assert
+        # to validate equivalence.  Directory item order doesn't matter in general and may
+        # even change on different platforms or locales.
+        assert sorted(expected) == sorted(result)

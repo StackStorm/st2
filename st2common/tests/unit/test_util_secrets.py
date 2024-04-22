@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.util import secrets
@@ -444,7 +444,7 @@ TEST_SECRET_NESTED_ARRAYS_SECRET_PARAMS = {
 ################################################################################
 
 
-class SecretUtilsTestCase(unittest2.TestCase):
+class SecretUtilsTestCase(unittest.TestCase):
     def test_get_secret_parameters_flat(self):
         result = secrets.get_secret_parameters(TEST_FLAT_SCHEMA)
         self.assertEqual(TEST_FLAT_SECRET_PARAMS, result)
