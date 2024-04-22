@@ -12,7 +12,7 @@ Fixed
 Changed
 ~~~~~~~
 * Bumped `jsonschema` 2.6.0 -> 3.2.0 now that python3.6 is not supported. #6118
-* Drop Python 3.6. Support. Update Pipeline Templates. #6080
+* Drop Python 3.6 testing in CircleCI. #6080
   Contributed by (@philipphomberger Schwarz IT KG)
 
 Added
