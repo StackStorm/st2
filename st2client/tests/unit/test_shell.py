@@ -27,7 +27,7 @@ import tempfile
 import requests
 import six
 import mock
-import unittest2
+import unittest
 
 import st2client
 from st2client.shell import Shell
@@ -516,7 +516,7 @@ class ShellTestCase(base.BaseCLITestCase):
 
         return package_metadata_path
 
-    @unittest2.skipIf(True, "skipping until checks are re-enabled")
+    @unittest.skipIf(True, "skipping until checks are re-enabled")
     @mock.patch.object(
         requests, "get", mock.MagicMock(return_value=base.FakeResponse("{}", 200, "OK"))
     )
@@ -578,7 +578,7 @@ class ShellTestCase(base.BaseCLITestCase):
             )
 
 
-class CLITokenCachingTestCase(unittest2.TestCase):
+class CLITokenCachingTestCase(unittest.TestCase):
     def setUp(self):
         super(CLITokenCachingTestCase, self).setUp()
         self._mock_temp_dir_path = tempfile.mkdtemp()
@@ -644,7 +644,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
             "Unable to retrieve cached token from .*? read access to the parent "
             "directory"
         )
-        self.assertRegexpMatches(log_message, expected_msg)
+        self.assertRegex(log_message, expected_msg)
 
         # 2. Read access on the directory, but not on the cached token file
         os.chmod(self._mock_config_directory_path, 0o777)  # nosec
@@ -662,7 +662,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         expected_msg = (
             "Unable to retrieve cached token from .*? read access to this file"
         )
-        self.assertRegexpMatches(log_message, expected_msg)
+        self.assertRegex(log_message, expected_msg)
 
         # 3. Other users also have read access to the file
         os.chmod(self._mock_config_directory_path, 0o777)  # nosec
@@ -678,7 +678,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         log_message = shell.LOG.warn.call_args[0][0]
 
         expected_msg = "Permissions .*? for cached token file .*? are too permissive.*"
-        self.assertRegexpMatches(log_message, expected_msg)
+        self.assertRegex(log_message, expected_msg)
 
     def test_cache_auth_token_invalid_permissions(self):
         shell = Shell()
@@ -707,7 +707,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
             "Unable to write token to .*? doesn't have write access to the parent "
             "directory"
         )
-        self.assertRegexpMatches(log_message, expected_msg)
+        self.assertRegex(log_message, expected_msg)
 
         # 2. Current user has no write access to the cached token file
         os.chmod(self._mock_config_directory_path, 0o777)  # nosec
@@ -722,7 +722,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         expected_msg = (
             "Unable to write token to .*? doesn't have write access to this file"
         )
-        self.assertRegexpMatches(log_message, expected_msg)
+        self.assertRegex(log_message, expected_msg)
 
     def test_get_cached_auth_token_no_token_cache_file(self):
         client = Client()
@@ -746,7 +746,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
             fp.write("CORRRRRUPTED!")
 
         expected_msg = "File (.+) with cached token is corrupted or invalid"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             shell._get_cached_auth_token,

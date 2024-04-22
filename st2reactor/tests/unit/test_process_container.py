@@ -18,7 +18,7 @@ import os
 import time
 
 from mock import MagicMock, Mock, patch
-import unittest2
+import unittest
 
 from st2reactor.container.process_container import ProcessSensorContainer
 from st2common.util import concurrency
@@ -37,7 +37,7 @@ MOCK_PACK_DB = PackDB(
 )
 
 
-class ProcessContainerTests(unittest2.TestCase):
+class ProcessContainerTests(unittest.TestCase):
     def test_no_sensors_dont_quit(self):
         process_container = ProcessSensorContainer(None, poll_interval=0.1)
         process_container_thread = concurrency.spawn(process_container.run)

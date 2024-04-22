@@ -20,7 +20,7 @@ monkey_patch()
 import ssl
 import random
 
-import unittest2
+import unittest
 import eventlet
 
 from bson.objectid import ObjectId
@@ -56,7 +56,7 @@ class QueueConsumer(ConsumerMixin):
         message.ack()
 
 
-class TransportUtilsTestCase(unittest2.TestCase):
+class TransportUtilsTestCase(unittest.TestCase):
     def tearDown(self):
         super(TransportUtilsTestCase, self).tearDown()
         cfg.CONF.set_override(name="compression", group="messaging", override=None)

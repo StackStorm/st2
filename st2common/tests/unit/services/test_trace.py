@@ -19,7 +19,7 @@ import copy
 from collections import OrderedDict
 
 import bson
-from unittest2 import TestCase
+from unittest import TestCase
 
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.trace import UniqueTraceNotFoundException

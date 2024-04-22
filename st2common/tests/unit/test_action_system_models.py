@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.models.system.action import RemoteAction
 from st2common.models.system.action import RemoteScriptAction
@@ -22,7 +22,7 @@ from st2common.models.system.action import RemoteScriptAction
 __all__ = ["RemoteActionTestCase", "RemoteScriptActionTestCase"]
 
 
-class RemoteActionTestCase(unittest2.TestCase):
+class RemoteActionTestCase(unittest.TestCase):
     def test_instantiation(self):
         action = RemoteAction(
             name="name",
@@ -48,7 +48,7 @@ class RemoteActionTestCase(unittest2.TestCase):
         self.assertEqual(action.timeout, 10)
 
 
-class RemoteScriptActionTestCase(unittest2.TestCase):
+class RemoteScriptActionTestCase(unittest.TestCase):
     def test_instantiation(self):
         action = RemoteScriptAction(
             name="name",
