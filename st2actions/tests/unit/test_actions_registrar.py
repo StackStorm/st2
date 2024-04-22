@@ -134,7 +134,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         #   "'list' is not valid under any of the given schemas"
         # with jsonschema 3.2.0, the underlying enum (anyOf->enum) gets reported instead:
         expected_msg = r"'list' is not one of \['array', 'boolean', 'integer', 'null', 'number', 'object', 'string'\].*"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             jsonschema.ValidationError,
             expected_msg,
             registrar._register_action,
@@ -161,7 +161,7 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
             'Parameter name "action-name" is invalid. Valid characters for '
             "parameter name are"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             jsonschema.ValidationError,
             expected_msg,
             registrar._register_action,

@@ -20,7 +20,7 @@ import json
 import logging
 import argparse
 import tempfile
-import unittest2
+import unittest
 from collections import namedtuple
 
 from tests import base
@@ -102,7 +102,7 @@ class TestCommands(base.BaseCLITestCase):
             self._reset_output_streams()
 
 
-class TestResourceCommand(unittest2.TestCase):
+class TestResourceCommand(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestResourceCommand, self).__init__(*args, **kwargs)
         self.parser = argparse.ArgumentParser()
@@ -401,7 +401,7 @@ class TestResourceCommand(unittest2.TestCase):
         self.assertEqual(actual, expected)
 
 
-class ResourceViewCommandTestCase(unittest2.TestCase):
+class ResourceViewCommandTestCase(unittest.TestCase):
     def setUp(self):
         ResourceViewCommand.display_attributes = []
 

@@ -4,6 +4,9 @@ __defaults__(
     )
 )
 
+# tests can only be dependencies of other tests in this directory
+__dependents_rules__(("*", "/**", "!*"))
+
 python_test_utils(
     sources=["*.py"],
 )
