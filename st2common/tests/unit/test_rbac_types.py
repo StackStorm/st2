@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from unittest2 import TestCase
+from unittest import TestCase
 
 from st2common.constants.types import ResourceType as SystemType
 from st2common.rbac.types import PermissionType

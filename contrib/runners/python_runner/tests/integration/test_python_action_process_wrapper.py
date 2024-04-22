@@ -36,7 +36,7 @@ from __future__ import absolute_import
 import os
 import json
 
-import unittest2
+import unittest
 from shutil import which as shutil_which
 
 from st2common.util.shell import run_command
@@ -65,8 +65,8 @@ TIME_BINARY_PATH = shutil_which("time")
 TIME_BINARY_AVAILABLE = TIME_BINARY_PATH is not None
 
 
-@unittest2.skipIf(not TIME_BINARY_PATH, "time binary not available")
-class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
+@unittest.skipIf(not TIME_BINARY_PATH, "time binary not available")
+class PythonRunnerActionWrapperProcessTestCase(unittest.TestCase):
     def test_process_wrapper_exits_in_reasonable_timeframe(self):
         # 1. Verify wrapper script path is correct and file exists
         self.assertTrue(os.path.isfile(WRAPPER_SCRIPT_PATH))

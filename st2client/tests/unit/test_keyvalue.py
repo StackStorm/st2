@@ -130,7 +130,7 @@ class TestKeyValueSet(TestKeyValueBase):
     def test_encrypt_and_encrypted_flags_are_mutually_exclusive(self):
         args = ["key", "set", "--encrypt", "--encrypted", "kv_name", "AAABBBCCC1234"]
 
-        self.assertRaisesRegexp(SystemExit, "2", self.shell.run, args)
+        self.assertRaisesRegex(SystemExit, "2", self.shell.run, args)
 
         self.stderr.seek(0)
         stderr = self.stderr.read()

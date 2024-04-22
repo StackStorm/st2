@@ -19,7 +19,7 @@ import st2tests.config as tests_config
 
 tests_config.parse_args()
 
-from unittest2 import TestCase
+from unittest import TestCase
 
 from st2common.models.system.action import RemoteScriptAction
 

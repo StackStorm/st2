@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest2
+import unittest
 
 from st2common.util.types import OrderedSet
 
 __all__ = ["OrderedTestTypeTestCase"]
 
 
-class OrderedTestTypeTestCase(unittest2.TestCase):
+class OrderedTestTypeTestCase(unittest.TestCase):
     def test_ordered_set(self):
         set1 = OrderedSet([1, 2, 3, 3, 4, 2, 1, 5])
         self.assertEqual(set1, [1, 2, 3, 4, 5])
