@@ -79,7 +79,6 @@ tabulate
 tooz
 udatetime
 ujson
-unittest2
 virtualenv
 webob
 webtest

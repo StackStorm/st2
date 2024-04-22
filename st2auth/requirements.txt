@@ -7,7 +7,7 @@
 # update the component requirements.txt
 bcrypt==4.1.2
 eventlet==0.36.1
-gunicorn==21.2.0
+gunicorn==22.0.0
 oslo.config==1.12.1
 passlib==1.7.4
 pymongo==3.12.3

@@ -20,7 +20,7 @@ import shutil
 
 import mock
 import six
-import unittest2
+import unittest
 
 from st2client.config_parser import CLIConfigParser
 from st2client.config_parser import CONFIG_DEFAULT_VALUES
@@ -31,7 +31,7 @@ CONFIG_FILE_PATH_PARTIAL = os.path.join(BASE_DIR, "../fixtures/st2rc.partial.ini
 CONFIG_FILE_PATH_UNICODE = os.path.join(BASE_DIR, "../fixtures/test_unicode.ini")
 
 
-class CLIConfigParserTestCase(unittest2.TestCase):
+class CLIConfigParserTestCase(unittest.TestCase):
     def test_constructor(self):
         parser = CLIConfigParser(
             config_file_path="doesnotexist", validate_config_exists=False
@@ -102,7 +102,7 @@ class CLIConfigParserTestCase(unittest2.TestCase):
             self.assertEqual(config["credentials"]["password"], "\u5bc6\u7801\u0025")
 
 
-class CLIConfigPermissionsTestCase(unittest2.TestCase):
+class CLIConfigPermissionsTestCase(unittest.TestCase):
     def setUp(self):
         self.TEMP_FILE_PATH = os.path.join("st2config", ".st2", "config")
         self.TEMP_CONFIG_DIR = os.path.dirname(self.TEMP_FILE_PATH)

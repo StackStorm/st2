@@ -25,7 +25,7 @@ except ImportError:
     import json
 
 import mock
-import unittest2
+import unittest
 from six.moves import http_client
 
 from st2common.persistence.action import Action
@@ -553,7 +553,7 @@ class ActionsControllerTestCase(
         self.assertIn(b"id", post_resp.body)
         data = json.loads(post_resp.body)
         # Verify that user-provided id is discarded.
-        self.assertNotEquals(data["id"], ACTION_7["id"])
+        self.assertNotEqual(data["id"], ACTION_7["id"])
         self.__do_delete(self.__get_action_id(post_resp))
 
     @mock.patch.object(
@@ -862,14 +862,14 @@ class ActionsControllerTestCase(
     # TODO: Re-enable those tests after we ensure DB is flushed in setUp
     # and each test starts in a clean state
 
-    @unittest2.skip("Skip because of test polution")
+    @unittest.skip("Skip because of test polution")
     def test_update_action_belonging_to_system_pack(self):
         post_resp = self.__do_post(ACTION_11)
         action_id = self.__get_action_id(post_resp)
         put_resp = self.__do_put(action_id, ACTION_11, expect_errors=True)
         self.assertEqual(put_resp.status_int, 400)
 
-    @unittest2.skip("Skip because of test polution")
+    @unittest.skip("Skip because of test polution")
     def test_delete_action_belonging_to_system_pack(self):
         post_resp = self.__do_post(ACTION_11)
         action_id = self.__get_action_id(post_resp)
