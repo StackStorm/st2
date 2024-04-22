@@ -12,6 +12,8 @@ Fixed
 Changed
 ~~~~~~~
 * Bumped `jsonschema` 2.6.0 -> 3.2.0 now that python3.6 is not supported. #6118
+* Drop Python 3.6. Support. Update Pipeline Templates. #6080
+  Contributed by (@philipphomberger Schwarz IT KG)
 
 Added
 ~~~~~
@@ -100,9 +102,6 @@ Changed
 ~~~~~~~
 * Remove `distutils` dependencies across the project. #5992
   Contributed by @AndroxxTraxxon
-
-* Drop Python 3.6. Support. Update Pipeline Templates. #6080
-  Contributed by (@philipphomberger Schwarz IT KG)
 
 3.8.0 - November 18, 2022
 -------------------------
