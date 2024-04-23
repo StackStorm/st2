@@ -63,7 +63,8 @@ ENABLE_TIMING=false
 
 VIRTUALENV_ACTIVATED=false
 
-STACKSTORM_VIRTUALENV_BIN="/opt/stackstorm/st2/bin"
+STACKSTORM_VIRTUALENV="/opt/stackstorm/st2"
+STACKSTORM_VIRTUALENV_BIN="${STACKSTORM_VIRTUALENV}/bin"
 STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
 
 ####################
@@ -193,6 +194,13 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
         echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
         mkdir -p ${VIRTUALENVS_DIR}
         virtualenv --no-download --system-site-packages ${VIRTUALENV_DIR}
+
+        if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
+            # ensure any .pth files in st2 venv get loaded with the pack venv too.
+            ST2_SITE_PACKAGES=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sysconfig;print(sysconfig.get_path('platlib'))")
+            PACK_SITE_PACKAGES=$(${VIRTUALENV_DIR}/bin/python3 -c "import sysconfig;print(sysconfig.get_path('platlib'))")
+            echo "import sys; addsitedir('${ST2_SITE_PACKAGES}', known_paths)" > "${PACK_SITE_PACKAGES}/zzzzzzzzzz__st2__.pth"
+        fi
 
         # Activate the virtualenv
         activate_virtualenv
@@ -346,16 +354,26 @@ if [ "${ENABLE_TIMING}" = true ]; then
   NOSE_OPTS+=(--with-timer)
 fi
 
+NOSE=(nosetests)
+if head -n 1 $(command -v nosetests) | grep -q ' -sE$'; then
+    # workaround pants+pex default of hermetic scripts so we can run nosetests with PYTHONPATH
+    if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
+        NOSE=(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -m "nose")
+    else
+        NOSE=(python3 -m "nose")
+    fi
+fi
+
 # Change to the pack's directory (required for test coverage reporting)
 pushd ${PACK_PATH} > /dev/null
 
 # Execute the tests
 if [ "${TEST_LOCATION}" ]; then
     # Run a specific test file, class or method
-    nosetests ${NOSE_OPTS[@]} ${TEST_LOCATION}
+    ${NOSE[@]} ${NOSE_OPTS[@]} ${TEST_LOCATION}
 else
     # Run all tests inside the pack
-    nosetests ${NOSE_OPTS[@]} ${PACK_TESTS_PATH}
+    ${NOSE[@]} ${NOSE_OPTS[@]} ${PACK_TESTS_PATH}
 fi
 TESTS_EXIT_CODE=$?
 

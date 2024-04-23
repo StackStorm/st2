@@ -253,13 +253,21 @@ jobs:
         run: |
           script -e -c "make .ci-prepare-integration" && exit 0
       - name: Extend the path for upcoming tasks
+        # pants uses PEP 660 editable wheels to add our code to the virtualenv.
+        # But PEP 660 editable wheels do not include 'scripts'.
+        # https://peps.python.org/pep-0660/#limitations
+        # So, we need to include each bin dir in PATH instead of virtualenv/bin.
         run: |
-          echo ${HOME}/work/st2/st2/virtualenv/bin
-          echo ${HOME}/work/st2/st2/virtualenv/bin >> $GITHUB_PATH
+          for component_bin in ${GITHUB_WORKSPACE}/st2*/bin; do
+          echo ${component_bin} | tee -a $GITHUB_PATH
+          done
+          echo ${GITHUB_WORKSPACE}/virtualenv/bin | tee -a $GITHUB_PATH
       - name: Create symlinks to find the binaries when running st2 actions
+        # st2 is actually a console_script entry point, not just a 'script'
+        # so it IS included in the virtualenv. But, st2-run-pack-tests might not be included.
         run: |
-          ln -s ${HOME}/work/st2/st2/virtualenv/bin/st2 /usr/local/bin/st2
-          ln -s ${HOME}/work/st2/st2/virtualenv/bin/st2-run-pack-tests /usr/local/bin/st2-run-pack-tests
+          ln -s ${GITHUB_WORKSPACE}/virtualenv/bin/st2 /usr/local/bin/st2
+          ln -s ${GITHUB_WORKSPACE}/st2common/bin/st2-run-pack-tests /usr/local/bin/st2-run-pack-tests
       - name: Install st2client
         timeout-minutes: 5
         run: |
@@ -270,7 +278,7 @@ jobs:
         env:
           ST2_CONF: /home/runner/work/st2/st2/conf/st2.ci.conf
         run: |
-          sudo -E ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t) PATH=${PATH} virtualenv/bin/st2-self-check
+          sudo -E ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t) PATH=${PATH} st2common/bin/st2-self-check
       - name: Compress Service Logs Before upload
         if: ${{ failure() }}
         run: |
