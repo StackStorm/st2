@@ -282,12 +282,13 @@ jobs:
       - name: Compress Service Logs Before upload
         if: ${{ failure() }}
         run: |
+          ./tools/launchdev.sh stop # stop st2 before collecting logs
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: logs
+          name: logs-py${{ matrix.python-version }}
           path: logs.tar.gz
           retention-days: 7
       - name: Stop Redis Service Container
@@ -690,12 +691,13 @@ jobs:
       - name: Compress Service Logs Before upload
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         run: |
+          ./tools/launchdev.sh stop # stop st2 before collecting logs
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         uses: actions/upload-artifact@v2
         with:
-          name: logs
+          name: logs-py${{ matrix.python-version }}-nose-${{ matrix.nosetests_node_index }}
           path: logs.tar.gz
           retention-days: 7
       - name: Stop Redis Service Container
