@@ -27,6 +27,7 @@ from st2common.util import concurrency
 from st2common.models.db import db_setup
 from st2reactor.container.process_container import PROCESS_EXIT_TIMEOUT
 from st2common.util.green.shell import run_command
+from st2common.util.virtualenvs import inject_st2_pth_into_virtualenv
 from st2common.bootstrap.sensorsregistrar import register_sensors
 from st2tests.base import IntegrationTestCase
 
@@ -106,6 +107,7 @@ class SensorContainerTestCase(IntegrationTestCase):
             virtualenv_path,
         ]
         run_command(cmd=cmd)
+        inject_st2_pth_into_virtualenv(virtualenv_path)
 
     def test_child_processes_are_killed_on_sigint(self):
         process = self._start_sensor_container()

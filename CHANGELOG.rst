@@ -24,10 +24,12 @@ Added
 * Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
   to pants' use of PEX lockfiles. This is not a user-facing addition.
-  #6118 #6141 #6133 #6120 #6181
+  #6118 #6141 #6133 #6120 #6181 #6183
   Contributed by @cognifloyd
 * Build of ST2 EL9 packages #6153
   Contributed by @amanda11
+* Ensure `.pth` files in the st2 virtualenv get loaded by pack virtualenvs. #6183
+  Contributed by @cognifloyd
 
 3.8.1 - December 13, 2023
 -------------------------
