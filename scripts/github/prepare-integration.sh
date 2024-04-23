@@ -30,23 +30,23 @@ echo ""
 #python ./st2client/setup.py develop
 st2 --version
 
-# Clean up old screen log files
-rm -f logs/screen-*.log
+# Clean up old st2 log files
+rm -f logs/st2*.log
 
 # ::group::/::endgroup:: is helpful github actions syntax to fold this section.
 echo ::group::launchdev.sh start -x
 
-# start dev environment in screens
+# start dev environment in tmux
 ./tools/launchdev.sh start -x
 
 # Give processes some time to start and check logs to see if all the services
 # started or if there was any error / failure
-echo "Giving screen processes some time to start..."
+echo "Giving st2 processes some time to start..."
 sleep 10
 
-echo " === START: Catting screen process log files. ==="
-cat logs/screen-*.log
-echo " === END: Catting screen process log files. ==="
+echo " === START: Catting st2 process log files. ==="
+cat logs/st2-*.log
+echo " === END: Catting st2 process log files. ==="
 
 # github actions: fold for launchdev.sh start -x
 echo ::endgroup::

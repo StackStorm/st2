@@ -14,13 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.util.url import get_url_without_trailing_slash
 from six.moves import zip
 
 
-class URLUtilsTestCase(unittest2.TestCase):
+class URLUtilsTestCase(unittest.TestCase):
     def test_get_url_without_trailing_slash(self):
         values = [
             "http://localhost:1818/foo/bar/",

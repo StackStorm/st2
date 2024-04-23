@@ -15,12 +15,12 @@
 
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.util import jinja as jinja_utils
 
 
-class JinjaUtilsPathFilterTestCase(unittest2.TestCase):
+class JinjaUtilsPathFilterTestCase(unittest.TestCase):
     def test_basename(self):
         env = jinja_utils.get_jinja_environment()
 

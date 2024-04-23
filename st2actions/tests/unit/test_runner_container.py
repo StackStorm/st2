@@ -132,7 +132,7 @@ class RunnerContainerTest(DbTestCase):
         runner.runner_type.enabled = False
 
         expected_msg = 'Runner "test-runner-1" has been disabled by the administrator'
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(ValueError, expected_msg, runner.pre_run)
 
     def test_created_temporary_auth_token_is_correctly_scoped_to_user_who_ran_the_action(
         self,

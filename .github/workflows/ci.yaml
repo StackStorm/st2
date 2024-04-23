@@ -327,8 +327,7 @@ jobs:
           for component_bin in ${GITHUB_WORKSPACE}/st2*/bin; do
           echo ${component_bin} | tee -a $GITHUB_PATH
           done
-#          echo ${HOME}/work/st2/st2/virtualenv/bin
-#          echo ${HOME}/work/st2/st2/virtualenv/bin >> $GITHUB_PATH
+          echo ${GITHUB_WORKSPACE}/virtualenv/bin | tee -a $GITHUB_PATH
       - name: Create symlinks to find the binaries when running st2 actions
         # st2 is actually a console_script entry point, not just a 'script'
         # so it IS included in the virtualenv. But, st2-run-pack-tests is not.

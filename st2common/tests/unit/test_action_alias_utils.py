@@ -23,7 +23,7 @@ from sre_parse import (
     AT_END_STRING,
 )
 from mock import Mock
-from unittest2 import TestCase
+from unittest import TestCase
 from st2common.exceptions.content import ParseException
 from st2common.models.utils.action_alias_utils import (
     ActionAliasFormatParser,
@@ -215,7 +215,7 @@ class TestActionAliasParser(TestCase):
         expected_msg = (
             'Command "" doesn\'t match format string "skip {{d}} more skip {{e}}."'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ParseException, expected_msg, parser.get_extracted_param_value
         )
 
@@ -251,7 +251,7 @@ class TestActionAliasParser(TestCase):
         expected_msg = (
             'Command "foo lulz ponies" doesn\'t match format string "foo bar ponies"'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ParseException, expected_msg, parser.get_extracted_param_value
         )
 

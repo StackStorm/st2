@@ -18,7 +18,7 @@ import json
 import hashlib
 from collections import OrderedDict
 
-import unittest2
+import unittest
 
 from st2common.models.db.pack import PackDB
 from st2common.models.db.sensor import SensorTypeDB
@@ -33,7 +33,7 @@ from st2common.models.db.auth import ApiKeyDB
 __all__ = ["DBModelUIDFieldTestCase"]
 
 
-class DBModelUIDFieldTestCase(unittest2.TestCase):
+class DBModelUIDFieldTestCase(unittest.TestCase):
     def test_get_uid(self):
         pack_db = PackDB(ref="ma_pack")
         self.assertEqual(pack_db.get_uid(), "pack:ma_pack")

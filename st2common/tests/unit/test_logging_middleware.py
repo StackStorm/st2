@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import mock
-import unittest2
+import unittest
 
 from oslo_config import cfg
 
@@ -24,7 +24,7 @@ from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 __all__ = ["LoggingMiddlewareTestCase"]
 
 
-class LoggingMiddlewareTestCase(unittest2.TestCase):
+class LoggingMiddlewareTestCase(unittest.TestCase):
     @mock.patch("st2common.middleware.logging.LOG")
     @mock.patch("st2common.middleware.logging.Request")
     def test_secret_parameters_are_masked_in_log_message(self, mock_request, mock_log):
