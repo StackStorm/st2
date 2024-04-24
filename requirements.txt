@@ -59,7 +59,7 @@ python-statsd==2.1.0
 pytz==2024.1
 pywinrm==0.4.3
 pyyaml==6.0.1
-redis==5.0.3
+redis==5.0.4
 rednose
 requests==2.31.0
 retrying==1.3.4
