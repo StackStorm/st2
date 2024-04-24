@@ -10,6 +10,7 @@ apscheduler
 argcomplete
 ciso8601
 cryptography
+editor
 eventlet
 # flex parses the openapi 2 spec in our router
 flex
@@ -43,14 +44,13 @@ prance
 prettytable
 prompt-toolkit
 psutil
+pygments
 # pymongo 3.13 has backports of APIs from pymongo 4 to help w/ migration
 pymongo>=3.11.0,<3.13.0
 # pyrabbit used in an integration test
 pyrabbit
 pytest
 python-dateutil
-editor
-pygments
 # pythonjsonlogger referenced in st2actions/conf/logging.conf
 python-json-logger
 python-statsd
