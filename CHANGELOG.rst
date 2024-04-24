@@ -19,6 +19,7 @@ Changed
 * Drop Python 3.6 testing in CircleCI. #6080
   Contributed by (@philipphomberger Schwarz IT KG)
 * Refactor `tools/launchdev.sh` to use `tmux` instead of `screen`. #6186 (by @nzlosh and @cognifloyd)
+* Fic misc DeprecationWarnings to prepare for python 3.10 support. #6188 #6190 (by @nzlosh)
 
 Added
 ~~~~~
