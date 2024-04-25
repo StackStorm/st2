@@ -147,7 +147,7 @@ class CLIConfigPermissionsTestCase(unittest.TestCase):
 
         result = parser.parse()  # noqa F841
 
-        self.assertEqual(parser.LOG.warn.call_count, 0)
+        self.assertEqual(parser.LOG.warning.call_count, 0)
 
         # Make sure we left the file alone
         self.assertTrue(os.path.exists(self.TEMP_FILE_PATH))
@@ -173,7 +173,7 @@ class CLIConfigPermissionsTestCase(unittest.TestCase):
 
         result = parser.parse()  # noqa F841
 
-        self.assertEqual(parser.LOG.warn.call_count, 0)
+        self.assertEqual(parser.LOG.warning.call_count, 0)
 
         # Make sure we left the file alone
         self.assertTrue(os.path.exists(self.TEMP_FILE_PATH))
@@ -191,7 +191,7 @@ class CLIConfigPermissionsTestCase(unittest.TestCase):
 
         result = parser.parse()  # noqa F841
 
-        self.assertEqual(parser.LOG.warn.call_count, 0)
+        self.assertEqual(parser.LOG.warning.call_count, 0)
 
         # Make sure we left the file alone
         self.assertTrue(os.path.exists(self.TEMP_FILE_PATH))
@@ -226,16 +226,16 @@ class CLIConfigPermissionsTestCase(unittest.TestCase):
             parser.LOG.info.call_args_list[0][0][0],
         )
 
-        self.assertEqual(parser.LOG.warn.call_count, 2)
+        self.assertEqual(parser.LOG.warning.call_count, 2)
         self.assertEqual(
             "The StackStorm configuration directory permissions are insecure "
             "(too permissive): others have access.",
-            parser.LOG.warn.call_args_list[0][0][0],
+            parser.LOG.warning.call_args_list[0][0][0],
         )
 
         self.assertEqual(
             "The StackStorm configuration file permissions are insecure: others have access.",
-            parser.LOG.warn.call_args_list[1][0][0],
+            parser.LOG.warning.call_args_list[1][0][0],
         )
 
         # Make sure we left the file alone
@@ -266,7 +266,7 @@ class CLIConfigPermissionsTestCase(unittest.TestCase):
         result = parser.parse()  # noqa F841
 
         self.assertEqual(parser.LOG.info.call_count, 0)
-        self.assertEqual(parser.LOG.warn.call_count, 0)
+        self.assertEqual(parser.LOG.warning.call_count, 0)
 
         # Make sure we left the file alone
         self.assertTrue(os.path.exists(self.TEMP_FILE_PATH))
