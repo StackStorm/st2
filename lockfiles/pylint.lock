@@ -10,7 +10,7 @@
 //   ],
 //   "generated_with_requirements": [
 //     "astroid",
-//     "pylint>=2.8.2",
+//     "pylint~=3.1.0",
 //     "setuptools"
 //   ],
 //   "manylinux": "manylinux2014",
@@ -299,7 +299,7 @@
   "prefer_older_binary": false,
   "requirements": [
     "astroid",
-    "pylint>=2.8.2",
+    "pylint~=3.1.0",
     "setuptools"
   ],
   "requires_python": [
