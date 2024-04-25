@@ -34,7 +34,7 @@ jobs:
         include:
           - name: 'Test (pants runs: pytest)'
             python-version-short: '3.8'
-            python-version: '3.8.10'
+            python-version: '3.8.18'
           - name: 'Test (pants runs: pytest)'
             python-version-short: '3.9'
             python-version: '3.9.14'
