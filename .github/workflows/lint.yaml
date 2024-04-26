@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           # a test uses a submodule, and pants needs access to it to calculate deps.
           submodules: 'true'
