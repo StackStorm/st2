@@ -123,7 +123,7 @@ jobs:
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh

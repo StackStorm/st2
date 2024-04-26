@@ -77,7 +77,7 @@ jobs:
       PYLINT_CONCURRENCY: '6'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
@@ -176,7 +176,7 @@ jobs:
       TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
@@ -380,7 +380,7 @@ jobs:
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
@@ -600,7 +600,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
