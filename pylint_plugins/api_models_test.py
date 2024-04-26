@@ -306,12 +306,10 @@ class TestTypeChecker(pylint.testutils.CheckerTestCase):
                 msg_id="no-member",  # E1101
                 args=("Instance of", "TestAPI", "missing", ""),
                 node=assign_node_missing.value,
-                line=assign_node_missing.lineno,
-                # fixme: +10 is a workaround, need understand why coloffset
-                # is 4 but visit_attribute is coloffset 14.
-                col_offset=assign_node_missing.col_offset + 10,
-                end_line=assign_node_missing.end_lineno,
-                end_col_offset=assign_node_missing.end_col_offset,
+                line=assign_node_missing.value.lineno,
+                col_offset=assign_node_missing.value.col_offset,
+                end_line=assign_node_missing.value.end_lineno,
+                end_col_offset=assign_node_missing.value.end_col_offset,
                 confidence=Confidence(
                     name="INFERENCE", description="Warning based on inference result."
                 ),
