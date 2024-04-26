@@ -83,7 +83,7 @@ jobs:
           pants lint ::
 
       - name: Upload pants log
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: pants-log-py${{ matrix.python-version }}
           path: .pants.d/pants.log

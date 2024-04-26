@@ -286,7 +286,7 @@ jobs:
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: logs-py${{ matrix.python-version }}
           path: logs.tar.gz
@@ -695,7 +695,7 @@ jobs:
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
         if: ${{ failure() && env.TASK == 'ci-integration' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: logs-py${{ matrix.python-version }}-nose-${{ matrix.nosetests_node_index }}
           path: logs.tar.gz
