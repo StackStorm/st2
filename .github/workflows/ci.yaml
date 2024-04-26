@@ -57,11 +57,11 @@ jobs:
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
             python-version-short: '3.8'
-            python-version: '3.8.18'
+            python-version: '3.8.10'
           - name: 'Compile (pip deps, pylint, etc.)'
             task: 'ci-compile'
             python-version-short: '3.8'
-            python-version: '3.8.18'
+            python-version: '3.8.10'
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
             python-version-short: '3.9'
@@ -314,13 +314,13 @@ jobs:
             nosetests_node_total: 2
             nosetests_node_index: 0
             python-version-short: '3.8'
-            python-version: '3.8.18'
+            python-version: '3.8.10'
           - name: 'Unit Tests (chunk 2)'
             task: 'ci-unit'
             nosetests_node_total: 2
             nosetests_node_index: 1
             python-version-short: '3.8'
-            python-version: '3.8.18'
+            python-version: '3.8.10'
           - name: 'Unit Tests (chunk 1)'
             task: 'ci-unit'
             nosetests_node_total: 2
@@ -489,19 +489,19 @@ jobs:
             nosetests_node_total: 1
             nosetests_node_index: 0
             python-version-short: '3.8'
-            python-version: '3.8.18'
+            python-version: '3.8.10'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
             nosetests_node_total: 2
             nosetests_node_index: 0
             python-version-short: '3.8'
-            python-version: '3.8.18'
+            python-version: '3.8.10'
           - name: 'Integration Tests (chunk 2)'
             task: 'ci-integration'
             nosetests_node_total: 2
             nosetests_node_index: 1
             python-version-short: '3.8'
-            python-version: '3.8.18'
+            python-version: '3.8.10'
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
             nosetests_node_total: 1
