@@ -80,7 +80,7 @@ jobs:
         with:
           python-version: '${{ matrix.python-version }}'
       - name: Cache Python Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
@@ -93,7 +93,7 @@ jobs:
           #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/apt_cache
