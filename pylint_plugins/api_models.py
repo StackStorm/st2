@@ -314,15 +314,19 @@ def transform(cls: nodes.ClassDef):
 
         # Create a "property = node" assign node
         assign_node = nodes.Assign(
-            cls.lineno,
-            cls.col_offset,
+            property_name_node.lineno,
+            property_name_node.col_offset,
             parent=cls,
-            end_lineno=cls.end_lineno,
-            end_col_offset=cls.end_col_offset,
+            end_lineno=property_data_node.end_lineno,
+            end_col_offset=property_data_node.end_col_offset,
         )
-        # todo: determine what line/offsets should be.
         assign_name_node = nodes.AssignName(
-            property_name, 0, 0, parent=assign_node, end_lineno=0, end_col_offset=0
+            property_name,
+            property_name_node.lineno,
+            property_name_node.col_offset,
+            parent=assign_node,
+            end_lineno=property_name_node.end_lineno,
+            end_col_offset=property_name_node.end_col_offset,
         )
         assign_node.postinit(
             targets=[assign_name_node], value=node, type_annotation=None
