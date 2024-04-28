@@ -10,8 +10,7 @@ apscheduler
 argcomplete
 ciso8601
 cryptography
-# eventlet 0.31+ and gunicorn 20.1.0 are not compatible
-eventlet<0.31
+eventlet
 # flex parses the openapi 2 spec in our router
 flex
 # gitpython & gitdb are used for pack management
@@ -28,7 +27,6 @@ lockfile
 mock
 # mongoengine 0.24.0 has breaking changes to support pymongo 4.0
 mongoengine>=0.21.0,<0.24.0
-# Note: networkx v2.6 dropped support for Python3.6
 # networkx version is constrained in orquesta.
 networkx
 orjson
@@ -60,7 +58,7 @@ pytz
 PyYAML
 # RandomWords used in some tests
 RandomWords
-requests[security]
+requests
 retrying
 routes
 semver
@@ -71,8 +69,7 @@ six
 # NOTE: we use sseclient-py instead of sseclient because sseclient
 # has various issues which sometimes hang the connection for a long time, etc.
 sseclient-py
-# bandit doesn't work w/ stevedore 3+
-stevedore<3
+stevedore
 # For backward compatibility reasons, flat file backend is installed by default
 st2-auth-backend-flat-file @ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
 st2-auth-ldap @ git+https://github.com/StackStorm/st2-auth-ldap.git@master
@@ -82,7 +79,6 @@ tabulate
 tooz
 udatetime
 ujson
-unittest2
 virtualenv
 webob
 webtest

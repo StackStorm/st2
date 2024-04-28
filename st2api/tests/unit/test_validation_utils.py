@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest2
+import unittest
 from oslo_config import cfg
 
 from st2api.validation import validate_auth_cookie_is_correctly_configured
@@ -23,7 +23,7 @@ from st2tests import config as tests_config
 __all__ = ["ValidationUtilsTestCase"]
 
 
-class ValidationUtilsTestCase(unittest2.TestCase):
+class ValidationUtilsTestCase(unittest.TestCase):
     def setUp(self):
         super(ValidationUtilsTestCase, self).setUp()
         tests_config.parse_args()
@@ -53,7 +53,7 @@ class ValidationUtilsTestCase(unittest2.TestCase):
             )
 
             expected_msg = "Valid values are: strict, lax, none, unset"
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 ValueError, expected_msg, validate_auth_cookie_is_correctly_configured
             )
 
@@ -67,7 +67,7 @@ class ValidationUtilsTestCase(unittest2.TestCase):
             r"Failed to validate api.auth_cookie config options: Incompatible cookie attributes: "
             "when the samesite equals 'none', then the secure must be True"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, expected_msg, validate_auth_cookie_is_correctly_configured
         )
 
@@ -83,7 +83,7 @@ class ValidationUtilsTestCase(unittest2.TestCase):
             "Authentication is not enabled. RBAC only works when authentication is "
             "enabled. You can either enable authentication or disable RBAC."
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, expected_msg, validate_rbac_is_correctly_configured
         )
 
@@ -95,7 +95,7 @@ class ValidationUtilsTestCase(unittest2.TestCase):
         expected_msg = (
             'You have enabled RBAC, but RBAC backend is not set to "default".'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, expected_msg, validate_rbac_is_correctly_configured
         )
 

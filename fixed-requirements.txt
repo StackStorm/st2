@@ -1,91 +1,85 @@
 # Packages versions fixed for the whole st2 stack
 # Note: amqp is used by kombu
-amqp==5.0.6
-apscheduler==3.7.0
-# requests 2.23 requires chardet < 3.1.0
-chardet<3.1.0
-cffi<1.15.0
+amqp==5.2.0
+apscheduler==3.10.4
+chardet==3.0.4
+cffi==1.16.0
 # NOTE: 2.0 version breaks pymongo work with hosts
-dnspython>=1.16.0,<2.0.0
-cryptography==39.0.1
-# Note: 0.20.0 removed select.poll() on which some of our code and libraries we
-# depend on rely
-eventlet==0.33.3
+dnspython==1.16.0
+cryptography==42.0.5
+eventlet==0.36.1
 flex==6.14.1
 # Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
 # TODO: Pin to 3.1.37 or higher after dropping python3.6 support
-gitpython<=3.1.37
+gitpython==3.1.43
 # Needed by gitpython, old versions used to bundle it
-gitdb==4.0.2
+gitdb==4.0.11
 # Note: greenlet is used by eventlet
-greenlet==1.0.0
-gunicorn==21.2.0
+greenlet==3.0.3
+gunicorn==22.0.0
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
-kombu==5.0.2
+kombu==5.3.7
 lockfile==0.12.2
 # Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
 # >=0.23 was from jinja2
-MarkupSafe<2.1.0,>=0.23
-mongoengine==0.23.0
+MarkupSafe==2.0.1
+mongoengine==0.23.1
 # required by orquesta (networkx<2.6 for py3.6, networkx<3 for py3.8)
-networkx<3
-# networkx requires decorator>=4.3,<5 which should resolve to version 4.4.2
-# but the wheel on pypi does not say it supports python3.8, so pip gets
-# confused. For now, pin decorator to work around pip's confusion.
-decorator==4.4.2
+networkx==2.8.8
+# networkx dropped its dep on decorator in version 2.6, so the old pin is unneeded.
+# now jsonpath-rw is the only thing that depends on decorator (a transitive dep)
+decorator==5.1.1
 # NOTE: Recent version substantially affect the performance and add big import time overhead
 # See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
-oslo.config>=1.12.1,<1.13
-oslo.utils<5.0,>=4.0.0
+oslo.config==1.12.1
+oslo.utils==7.1.0
 # paramiko 2.11.0 is needed by cryptography > 37.0.0
-paramiko==2.11.0
+paramiko==3.4.0
 passlib==1.7.4
-prompt-toolkit==1.0.15
+# For st2client: prompt-toolkit v2+ does not have prompt_toolkit.token.Token
+prompt-toolkit==1.0.18
 pyinotify==0.9.6 ; platform_system=="Linux"
-pymongo==3.11.3
-pyparsing<3
-zstandard==0.15.2
+pymongo==3.12.3
+pyparsing==3.1.2
+zstandard==0.22.0
 # pyOpenSSL 23.1.0 supports cryptography up to 40.0.x
-pyOpenSSL==23.1.0
+#pyOpenSSL==23.1.0
 python-editor==1.0.4
 python-keyczar==0.716
-pytz==2021.1
-pywinrm==0.4.1
-pyyaml==5.4.1
-redis==4.1.4
-requests[security]==2.25.1
-retrying==1.3.3
-routes==2.4.1
-semver==2.13.0
-six==1.13.0
-argparse==1.12.2
-# Note: argcomplete 1.12.3 supports importlib-metadata<5
-argcomplete==1.12.3
-prettytable==2.1.0
-# Note: installs importlib-metadata==4.10.1 (security fixed) under py3.8 and importlib-metadata==4.8.3 (latest available, vulnerable) under py3.6
-# TODO: Pin to 4.10.1 or higher after dropping python3.6 support
-importlib-metadata>=4.8.3,<=4.10.1
-# importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
-typing-extensions<4.2
+pytz==2024.1
+pywinrm==0.4.3
+pyyaml==6.0.1
+redis==5.0.3
+requests==2.31.0
+retrying==1.3.4
+routes==2.5.1
+semver==3.0.2
+six==1.16.0
+argparse==1.4.0
+argcomplete==3.3.0
+prettytable==3.10.0
+importlib-metadata==7.1.0
+typing-extensions==4.11.0
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
-sseclient-py==1.7
-stevedore==1.30.1
-tenacity>=3.2.1,<7.0.0
-tooz==2.8.0
+sseclient-py==1.8.0
+stevedore==5.2.0
+tenacity==8.2.3
+tooz==6.1.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
-# virtualenv==20.4.0 (<21) has pip==20.3.3 wheel==0.36.2 setuptools==51.3.3
-virtualenv==20.4.0
+# virtualenv==20.25.1 (<21) has pip==24.0 wheel==0.42.0 setuptools==68.0.0 and 69.1.0
+# lockfiles/st2.lock has pip==24.0 wheel==0.43.0 setuptools==69.2.0
+virtualenv==20.25.3
 webob==1.8.7
 zake==0.2.2
 # test requirements below
-bcrypt==3.2.0
-jinja2==2.11.3
-mock==4.0.3
+bcrypt==4.1.2
+jinja2==3.1.3
+mock==5.1.0
 nose-timer==1.0.1
 nose-parallel==0.4.0
-psutil==5.8.0
-python-dateutil==2.8.1
+psutil==5.9.8
+python-dateutil==2.9.0
 python-statsd==2.1.0
-orjson==3.5.2
-zipp<3.16.0
+orjson==3.10.1
+zipp==3.18.1

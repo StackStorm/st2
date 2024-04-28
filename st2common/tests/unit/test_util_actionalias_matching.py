@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 import mock
 
 from st2common.models.db.actionalias import ActionAliasDB
@@ -25,7 +25,7 @@ MemoryActionAliasDB = ActionAliasDB
 
 
 @mock.patch.object(MemoryActionAliasDB, "get_uid")
-class ActionAliasTestCase(unittest2.TestCase):
+class ActionAliasTestCase(unittest.TestCase):
     """
     Test scenarios must consist of 80s movie quotes.
     """

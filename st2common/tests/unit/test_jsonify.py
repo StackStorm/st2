@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import json
 
-import unittest2
+import unittest
 from bson import ObjectId
 
 import st2tests.config as tests_config
@@ -27,7 +27,7 @@ tests_config.parse_args()
 import st2common.util.jsonify as jsonify
 
 
-class JsonifyTests(unittest2.TestCase):
+class JsonifyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         jsonify.DEFAULT_JSON_LIBRARY = "orjson"

@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest2
+import unittest
 
 from st2auth.backends import get_available_backends
 
 
-class AuthenticationBackendsTestCase(unittest2.TestCase):
+class AuthenticationBackendsTestCase(unittest.TestCase):
     def test_flat_file_backend_is_available_by_default(self):
         available_backends = get_available_backends()
         self.assertIn("flat_file", available_backends)
