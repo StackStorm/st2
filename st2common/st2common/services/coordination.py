@@ -241,7 +241,7 @@ def get_coordinator(start_heart=True, use_cache=True):
     global COORDINATOR
 
     if not configured():
-        LOG.warn(
+        LOG.warning(
             "Coordination backend is not configured. Code paths which use coordination "
             "service will use best effort approach and race conditions are possible."
         )
