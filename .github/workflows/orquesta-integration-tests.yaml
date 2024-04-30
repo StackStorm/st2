@@ -211,12 +211,6 @@ jobs:
           set -e
           echo "Failed after ${MAX_ATTEMPTS} attempts, failing the job."
           exit 1
-      - name: Upload StackStorm services Logs
-        #if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs
-          path: logs/
       - name: Compress Service Logs Before upload
         if: ${{ failure() }}
         run: |
