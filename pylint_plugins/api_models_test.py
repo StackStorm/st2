@@ -19,6 +19,7 @@ from astroid import parse, nodes
 
 import pylint.checkers.typecheck
 import pylint.testutils
+from pylint.interfaces import Confidence
 
 # merely importing this registers it in astroid
 # so parse() will use our predicate and transform functions.
@@ -301,10 +302,17 @@ class TestTypeChecker(pylint.testutils.CheckerTestCase):
 
         # accessing a property NOT defined in the schema
         with self.assertAddsMessages(
-            pylint.testutils.Message(
+            pylint.testutils.MessageTest(
                 msg_id="no-member",  # E1101
                 args=("Instance of", "TestAPI", "missing", ""),
                 node=assign_node_missing.value,
+                line=assign_node_missing.value.lineno,
+                col_offset=assign_node_missing.value.col_offset,
+                end_line=assign_node_missing.value.end_lineno,
+                end_col_offset=assign_node_missing.value.end_col_offset,
+                confidence=Confidence(
+                    name="INFERENCE", description="Warning based on inference result."
+                ),
             )
         ):
             self.checker.visit_attribute(assign_node_missing.value)
