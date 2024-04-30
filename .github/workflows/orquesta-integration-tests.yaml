@@ -225,7 +225,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs
+          name: logs-py${{ matrix.python-version }}
           path: logs.tar.gz
           retention-days: 7
       - name: Stop Redis Service Container
