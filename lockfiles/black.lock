@@ -181,13 +181,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "0614df2a2f37e1a662acbd8e2b25b92ccf8632929bc6d43467e17fe89c75e068",
-              "url": "https://files.pythonhosted.org/packages/55/72/4898c44ee9ea6f43396fbc23d9bfaf3d06e01b83698bdf2e4c919deceb7c/platformdirs-4.2.0-py3-none-any.whl"
+              "hash": "17d5a1161b3fd67b390023cb2d3b026bbd40abde6fdb052dfbd3a29c3ba22ee1",
+              "url": "https://files.pythonhosted.org/packages/b0/15/1691fa5aaddc0c4ea4901c26f6137c29d5f6673596fe960a0340e8c308e1/platformdirs-4.2.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "ef0cc731df711022c174543cb70a9b5bd22e5a9337c8624ef2c2ceb8ddad8768",
-              "url": "https://files.pythonhosted.org/packages/96/dc/c1d911bf5bb0fdc58cc05010e9f3efe3b67970cef779ba7fbc3183b987a8/platformdirs-4.2.0.tar.gz"
+              "hash": "031cd18d4ec63ec53e82dceaac0417d218a6863f7745dfcc9efe7793b7039bdf",
+              "url": "https://files.pythonhosted.org/packages/b2/e4/2856bf61e54d7e3a03dd00d0c1b5fa86e6081e8f262eb91befbe64d20937/platformdirs-4.2.1.tar.gz"
             }
           ],
           "project_name": "platformdirs",
@@ -195,6 +195,7 @@
             "appdirs==1.4.4; extra == \"test\"",
             "covdefaults>=2.3; extra == \"test\"",
             "furo>=2023.9.10; extra == \"docs\"",
+            "mypy>=1.8; extra == \"type\"",
             "proselint>=0.13; extra == \"docs\"",
             "pytest-cov>=4.1; extra == \"test\"",
             "pytest-mock>=3.12; extra == \"test\"",
@@ -203,7 +204,7 @@
             "sphinx>=7.2.6; extra == \"docs\""
           ],
           "requires_python": ">=3.8",
-          "version": "4.2.0"
+          "version": "4.2.1"
         },
         {
           "artifacts": [
@@ -227,19 +228,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "69b1a937c3a517342112fb4c6df7e72fc39a38e7891a5730ed4985b5214b5475",
-              "url": "https://files.pythonhosted.org/packages/f9/de/dc04a3ea60b22624b51c703a84bbe0184abcd1d0b9bc8074b5d6b7ab90bb/typing_extensions-4.10.0-py3-none-any.whl"
+              "hash": "c1f94d72897edaf4ce775bb7558d5b79d8126906a14ea5ed1635921406c0387a",
+              "url": "https://files.pythonhosted.org/packages/01/f3/936e209267d6ef7510322191003885de524fc48d1b43269810cd589ceaf5/typing_extensions-4.11.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "b0abd7c89e8fb96f98db18d86106ff1d90ab692004eb746cf6eda2682f91b3cb",
-              "url": "https://files.pythonhosted.org/packages/16/3a/0d26ce356c7465a19c9ea8814b960f8a36c3b0d07c323176620b7b483e44/typing_extensions-4.10.0.tar.gz"
+              "hash": "83f085bd5ca59c80295fc2a82ab5dac679cbe02b9f33f7d83af68e241bea51b0",
+              "url": "https://files.pythonhosted.org/packages/f6/f3/b827b3ab53b4e3d8513914586dcca61c355fa2ce8252dea4da56e67bf8f2/typing_extensions-4.11.0.tar.gz"
             }
           ],
           "project_name": "typing-extensions",
           "requires_dists": [],
           "requires_python": ">=3.8",
-          "version": "4.10.0"
+          "version": "4.11.0"
         }
       ],
       "platform_tag": null

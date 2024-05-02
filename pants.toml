@@ -109,9 +109,10 @@ root_patterns = [
 # resolver_version is always "pip-2020-resolver". legacy is not supported.
 enable_resolves = true
 default_resolve = "st2"
+# these are the primary constraints for st2 code
 interpreter_constraints = [
   # python_distributions needs a single constraint (vs one line per python version).
-  "CPython==3.9.*",
+  "CPython>=3.8,<3.11",
   # NB: constraints for tools defined below
 ]
 
@@ -133,10 +134,12 @@ twine = 		"lockfiles/twine.lock"
 bandit = 		["CPython>=3.8,<3.11"]
 black = 		["CPython>=3.8,<3.11"]
 flake8 = 		["CPython>=3.8,<3.11"]
-# this should match the pants interpreter_constraints:
-# https://github.com/pantsbuild/pants/blob/2.18.x/pants.toml#L144
-# See: https://www.pantsbuild.org/docs/prerequisites
-pants-plugins = ["CPython==3.9.*"]
+pants-plugins = [
+  # this should match the pants interpreter_constraints:
+  # https://github.com/pantsbuild/pants/blob/2.18.x/pants.toml#L144
+  # See: https://www.pantsbuild.org/docs/prerequisites
+  "CPython==3.9.*",
+]
 pylint = 	 	["CPython>=3.8,<3.11"]
 pytest = 	 	["CPython>=3.8,<3.11"]
 setuptools = 	["CPython>=3.8,<3.11"]
