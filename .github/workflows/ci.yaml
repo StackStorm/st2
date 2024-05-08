@@ -81,7 +81,7 @@ jobs:
       PYLINT_CONCURRENCY: '6'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           # a test uses a submodule, and pants needs access to it to calculate deps.
           submodules: 'true'
@@ -89,11 +89,11 @@ jobs:
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
       #- name: Cache Python Dependencies
-      #  uses: actions/cache@v2
+      #  uses: actions/cache@v4
       #  with:
       #    path: |
       #      ~/.cache/pip
@@ -102,20 +102,20 @@ jobs:
       #    # TODO: maybe make the virtualenv a partial cache to exclude st2*?
       #    # !virtualenv/lib/python*/site-packages/st2*
       #    # !virtualenv/bin/st2*
-      #    key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+      #    key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
       #    # Don't use alternative key as if requirements.txt has altered we
       #    # don't want to retrieve previous cache
       #    #restore-keys: |
-      #    #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
+      #    #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v7-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v7-
+            ${{ runner.os }}-v8-apt-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
@@ -216,7 +216,7 @@ jobs:
       TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           # a test uses a submodule, and pants needs access to it to calculate deps.
           submodules: 'true'
@@ -224,11 +224,11 @@ jobs:
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
       #- name: Cache Python Dependencies
-      #  uses: actions/cache@v2
+      #  uses: actions/cache@v4
       #  with:
       #    path: |
       #      ~/.cache/pip
@@ -237,18 +237,18 @@ jobs:
       #    # TODO: maybe make the virtualenv a partial cache to exclude st2*?
       #    # !virtualenv/lib/python*/site-packages/st2*
       #    # !virtualenv/bin/st2*
-      #    key: ${{ runner.os }}-v3-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+      #    key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
       #    restore-keys: |
       #      ${{ runner.os }}-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v5-
+            ${{ runner.os }}-v8-apt-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
@@ -353,7 +353,7 @@ jobs:
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: logs-py${{ matrix.python-version }}
           path: logs.tar.gz
@@ -457,7 +457,7 @@ jobs:
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           # a test uses a submodule, and pants needs access to it to calculate deps.
           submodules: 'true'
@@ -465,11 +465,11 @@ jobs:
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
       #- name: Cache Python Dependencies
-      #  uses: actions/cache@v2
+      #  uses: actions/cache@v4
       #  with:
       #    path: |
       #      ~/.cache/pip
@@ -478,20 +478,20 @@ jobs:
       #    # TODO: maybe make the virtualenv a partial cache to exclude st2*?
       #    # !virtualenv/lib/python*/site-packages/st2*
       #    # !virtualenv/bin/st2*
-      #    key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+      #    key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
       #    # Don't use alternative key as if requirements.txt has altered we
       #    # don't want to retrieve previous cache
       #    #restore-keys: |
-      #    #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
+      #    #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v5-
+            ${{ runner.os }}-v8-apt-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
@@ -712,7 +712,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           # a test uses a submodule, and pants needs access to it to calculate deps.
           submodules: 'true'
@@ -720,11 +720,11 @@ jobs:
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
       #- name: Cache Python Dependencies
-      #  uses: actions/cache@v2
+      #  uses: actions/cache@v4
       #  with:
       #    path: |
       #      ~/.cache/pip
@@ -733,20 +733,20 @@ jobs:
       #    # TODO: maybe make the virtualenv a partial cache to exclude st2*?
       #    # !virtualenv/lib/python*/site-packages/st2*
       #    # !virtualenv/bin/st2*
-      #    key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+      #    key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
       #    # Don't use alternative key as if requirements.txt has altered we
       #    # don't want to retrieve previous cache
       #    #restore-keys: |
-      #    #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
+      #    #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v7-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v7-
+            ${{ runner.os }}-v8-apt-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
@@ -832,7 +832,7 @@ jobs:
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
         if: ${{ failure() && env.TASK == 'ci-integration' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: logs-py${{ matrix.python-version }}-nose-${{ matrix.nosetests_node_index }}
           path: logs.tar.gz

@@ -483,7 +483,7 @@ class ShellTestCase(base.BaseCLITestCase):
         shell = Shell()
         shell.run(argv=["trigger", "list"])
 
-        call_args = mock_logger.warn.call_args[0][0]
+        call_args = mock_logger.warning.call_args[0][0]
         self.assertIn(
             "Locale en_US with encoding iso which is not UTF-8 is used.", call_args
         )
@@ -502,7 +502,7 @@ class ShellTestCase(base.BaseCLITestCase):
         shell = Shell()
         shell.run(argv=["trigger", "list"])
 
-        call_args = mock_logger.warn.call_args[0][0]
+        call_args = mock_logger.warning.call_args[0][0]
         self.assertTrue(
             "Locale unknown with encoding unknown which is not UTF-8 is used."
             in call_args
@@ -542,13 +542,13 @@ class ShellTestCase(base.BaseCLITestCase):
         # Test without token.
         shell.run(["--config-file", mock_config_path, "action", "list"])
 
-        self.assertEqual(shell.LOG.warn.call_count, 2)
+        self.assertEqual(shell.LOG.warning.call_count, 2)
         self.assertEqual(
-            shell.LOG.warn.call_args_list[0][0][0][:63],
+            shell.LOG.warning.call_args_list[0][0][0][:63],
             "The StackStorm configuration directory permissions are insecure",
         )
         self.assertEqual(
-            shell.LOG.warn.call_args_list[1][0][0][:58],
+            shell.LOG.warning.call_args_list[1][0][0][:58],
             "The StackStorm configuration file permissions are insecure",
         )
 
@@ -617,6 +617,7 @@ class CLITokenCachingTestCase(unittest.TestCase):
         with open(self._mock_config_path, "w") as fp:
             fp.write(MOCK_CONFIG)
 
+    @unittest.skipIf(os.getuid() == 0, reason="Test must be run as non-root user.")
     def test_get_cached_auth_token_invalid_permissions(self):
         shell = Shell()
         client = Client()
@@ -637,8 +638,8 @@ class CLITokenCachingTestCase(unittest.TestCase):
         )
 
         self.assertEqual(result, None)
-        self.assertEqual(shell.LOG.warn.call_count, 1)
-        log_message = shell.LOG.warn.call_args[0][0]
+        self.assertEqual(shell.LOG.warning.call_count, 1)
+        log_message = shell.LOG.warning.call_args[0][0]
 
         expected_msg = (
             "Unable to retrieve cached token from .*? read access to the parent "
@@ -656,8 +657,8 @@ class CLITokenCachingTestCase(unittest.TestCase):
         )
         self.assertEqual(result, None)
 
-        self.assertEqual(shell.LOG.warn.call_count, 1)
-        log_message = shell.LOG.warn.call_args[0][0]
+        self.assertEqual(shell.LOG.warning.call_count, 1)
+        log_message = shell.LOG.warning.call_args[0][0]
 
         expected_msg = (
             "Unable to retrieve cached token from .*? read access to this file"
@@ -674,12 +675,13 @@ class CLITokenCachingTestCase(unittest.TestCase):
         )
         self.assertEqual(result, "yayvalid")
 
-        self.assertEqual(shell.LOG.warn.call_count, 1)
-        log_message = shell.LOG.warn.call_args[0][0]
+        self.assertEqual(shell.LOG.warning.call_count, 1)
+        log_message = shell.LOG.warning.call_args[0][0]
 
         expected_msg = "Permissions .*? for cached token file .*? are too permissive.*"
         self.assertRegex(log_message, expected_msg)
 
+    @unittest.skipIf(os.getuid() == 0, reason="Test must be run as non-root user.")
     def test_cache_auth_token_invalid_permissions(self):
         shell = Shell()
         username = "testu"
@@ -700,8 +702,8 @@ class CLITokenCachingTestCase(unittest.TestCase):
         shell.LOG = mock.Mock()
         shell._cache_auth_token(token_obj=token_db)
 
-        self.assertEqual(shell.LOG.warn.call_count, 1)
-        log_message = shell.LOG.warn.call_args[0][0]
+        self.assertEqual(shell.LOG.warning.call_count, 1)
+        log_message = shell.LOG.warning.call_args[0][0]
 
         expected_msg = (
             "Unable to write token to .*? doesn't have write access to the parent "
@@ -716,8 +718,8 @@ class CLITokenCachingTestCase(unittest.TestCase):
         shell.LOG = mock.Mock()
         shell._cache_auth_token(token_obj=token_db)
 
-        self.assertEqual(shell.LOG.warn.call_count, 1)
-        log_message = shell.LOG.warn.call_args[0][0]
+        self.assertEqual(shell.LOG.warning.call_count, 1)
+        log_message = shell.LOG.warning.call_args[0][0]
 
         expected_msg = (
             "Unable to write token to .*? doesn't have write access to this file"
