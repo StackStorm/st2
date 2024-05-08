@@ -30,9 +30,8 @@ networkx==2.8.8
 # networkx dropped its dep on decorator in version 2.6, so the old pin is unneeded.
 # now jsonpath-rw is the only thing that depends on decorator (a transitive dep)
 decorator==5.1.1
-# NOTE: Recent version substantially affect the performance and add big import time overhead
-# See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
-oslo.config==1.12.1
+# 202403: Bump oslo.config for py3.10 support.
+oslo.config==9.4.0
 oslo.utils==7.1.0
 # paramiko 2.11.0 is needed by cryptography > 37.0.0
 paramiko==3.4.0
@@ -71,8 +70,8 @@ tenacity==8.2.3
 tooz==6.1.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
 # virtualenv==20.26.0 (<21) has pip==24.0 wheel==0.43.0 setuptools==69.5.1
-# lockfiles/st2.lock has pip==24.0 wheel==0.43.0 setuptools==69.2.0
-virtualenv==20.26.0
+# lockfiles/st2.lock has pip==24.0 wheel==0.43.0 setuptools==69.5.1
+virtualenv==20.26.1
 webob==1.8.7
 zake==0.2.2
 # test requirements below

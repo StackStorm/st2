@@ -22,6 +22,7 @@ Changed
 * Updated package build container environment to use py3.8 and mongo4.4  #6129
 * Fic misc DeprecationWarnings to prepare for python 3.10 support. #6188 (by @nzlosh)
 * Update st2client deps: editor and prompt-toolkit. #6189 (by @nzlosh)
+* Updated dependency oslo.config to prepare for python 3.10 support. #6193 (by @nzlosh)
 
 Added
 ~~~~~
