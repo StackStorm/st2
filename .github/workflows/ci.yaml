@@ -41,6 +41,7 @@ jobs:
   # Lint checks which don't depend on any service containes, etc. to be running.
   lint-checks:
     needs: pre_job
+    if: false # generally won't work w/ pants venv
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
@@ -72,12 +73,18 @@ jobs:
             python-version: '3.9.14'
 
     env:
+      # the python binary used by the Makefile
+      PYTHON_VERSION: 'python${{ matrix.python-version-short }}'
+
       TASK: '${{ matrix.task }}'
       COLUMNS: '120'
       PYLINT_CONCURRENCY: '6'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'true'
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
@@ -85,21 +92,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
-      - name: Cache Python Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            virtualenv
-            ~/virtualenv
-          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
-          # !virtualenv/lib/python*/site-packages/st2*
-          # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
-          # Don't use alternative key as if requirements.txt has altered we
-          # don't want to retrieve previous cache
-          #restore-keys: |
-          #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
+      #- name: Cache Python Dependencies
+      #  uses: actions/cache@v4
+      #  with:
+      #    path: |
+      #      ~/.cache/pip
+      #      virtualenv
+      #      ~/virtualenv
+      #    # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+      #    # !virtualenv/lib/python*/site-packages/st2*
+      #    # !virtualenv/bin/st2*
+      #    key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
+      #    # Don't use alternative key as if requirements.txt has altered we
+      #    # don't want to retrieve previous cache
+      #    #restore-keys: |
+      #    #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v4
@@ -116,6 +123,29 @@ jobs:
           # install dev dependencies for Python YAML and LDAP packages
           # https://github.com/StackStorm/st2-auth-ldap
           ./scripts/github/install-apt-packages-use-cache.sh
+
+      - name: Initialize Pants and its GHA caches
+        uses: pantsbuild/actions/init-pants@v6-scie-pants
+        # This action adds an env var to make pants use both pants.ci.toml & pants.toml.
+        # This action also creates 3 GHA caches (1 is optional).
+        # - `pants-setup` has the bootsrapped pants install
+        # - `pants-named-caches` has pip/wheel and PEX caches
+        # - `pants-lmdb-store` has the fine-grained process cache.
+        #   If we ever use a remote cache, then we can drop this.
+        #   Otherwise, we may need an additional workflow or job to delete old caches
+        #   if they are not expiring fast enough, and we hit the GHA 10GB per repo max.
+        with:
+          base-branch: master
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0
+          # This hash should include all of our lockfiles so that the pip/pex caches
+          # get invalidated on any transitive dependency update.
+          named-caches-hash: ${{ hashFiles('lockfiles/*.lock') }}
+          # enable the optional lmdb_store cache since we're not using remote caching.
+          cache-lmdb-store: 'true'
+          # install whatever version of python we need for our in-repo pants-plugins
+          setup-python-for-plugins: 'true'
+
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -135,6 +165,13 @@ jobs:
         if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
         run: |
           ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v2
+        with:
+          name: pants-log-py${{ matrix.python-version }}-nose-${{ matrix.nosetests_node_index }}
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
 
   self-check:
     needs: pre_job
@@ -163,6 +200,9 @@ jobs:
             - 15672:15672/tcp # Management: HTTP, CLI
 
     env:
+      # the python binary used by the Makefile
+      PYTHON_VERSION: 'python${{ matrix.python-version-short }}'
+
       # CI st2.conf (with ST2_CI_USER user instead of stanley)
       ST2_CONF: 'conf/st2.ci.conf'
 
@@ -177,6 +217,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'true'
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
@@ -184,19 +227,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
-      - name: Cache Python Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            virtualenv
-            ~/virtualenv
-          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
-          # !virtualenv/lib/python*/site-packages/st2*
-          # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-python-${{ matrix.python }}-
+      #- name: Cache Python Dependencies
+      #  uses: actions/cache@v4
+      #  with:
+      #    path: |
+      #      ~/.cache/pip
+      #      virtualenv
+      #      ~/virtualenv
+      #    # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+      #    # !virtualenv/lib/python*/site-packages/st2*
+      #    # !virtualenv/bin/st2*
+      #    key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
+      #    restore-keys: |
+      #      ${{ runner.os }}-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v4
@@ -214,6 +257,29 @@ jobs:
           # install dev dependencies for Python YAML and LDAP packages
           # https://github.com/StackStorm/st2-auth-ldap
           ./scripts/github/install-apt-packages-use-cache.sh
+
+      - name: Initialize Pants and its GHA caches
+        uses: pantsbuild/actions/init-pants@v6-scie-pants
+        # This action adds an env var to make pants use both pants.ci.toml & pants.toml.
+        # This action also creates 3 GHA caches (1 is optional).
+        # - `pants-setup` has the bootsrapped pants install
+        # - `pants-named-caches` has pip/wheel and PEX caches
+        # - `pants-lmdb-store` has the fine-grained process cache.
+        #   If we ever use a remote cache, then we can drop this.
+        #   Otherwise, we may need an additional workflow or job to delete old caches
+        #   if they are not expiring fast enough, and we hit the GHA 10GB per repo max.
+        with:
+          base-branch: master
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0
+          # This hash should include all of our lockfiles so that the pip/pex caches
+          # get invalidated on any transitive dependency update.
+          named-caches-hash: ${{ hashFiles('lockfiles/*.lock') }}
+          # enable the optional lmdb_store cache since we're not using remote caching.
+          cache-lmdb-store: 'true'
+          # install whatever version of python we need for our in-repo pants-plugins
+          setup-python-for-plugins: 'true'
+
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -264,16 +330,17 @@ jobs:
           echo ${GITHUB_WORKSPACE}/virtualenv/bin | tee -a $GITHUB_PATH
       - name: Create symlinks to find the binaries when running st2 actions
         # st2 is actually a console_script entry point, not just a 'script'
-        # so it IS included in the virtualenv. But, st2-run-pack-tests might not be included.
+        # so it IS included in the virtualenv. But, st2-run-pack-tests is not.
         run: |
           ln -s ${GITHUB_WORKSPACE}/virtualenv/bin/st2 /usr/local/bin/st2
           ln -s ${GITHUB_WORKSPACE}/st2common/bin/st2-run-pack-tests /usr/local/bin/st2-run-pack-tests
-      - name: Install st2client
-        timeout-minutes: 5
-        run: |
-          cd ./st2client
-          pip3 install --upgrade pip
-          python3 setup.py develop
+# st2client already installed by pants in the virtualenv.
+#      - name: Install st2client
+#        timeout-minutes: 5
+#        run: |
+#          cd ./st2client
+#          pip3 install --upgrade pip
+#          python3 setup.py develop
       - name: Run self-verification script
         env:
           ST2_CONF: /home/runner/work/st2/st2/conf/st2.ci.conf
@@ -294,6 +361,13 @@ jobs:
       - name: Stop Redis Service Container
         if: "${{ always() }}"
         run: docker rm --force redis || true
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v2
+        with:
+          name: pants-log-py${{ matrix.python-version }}-nose-${{ matrix.nosetests_node_index }}
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
 
   unit-tests:
     needs: pre_job
@@ -360,6 +434,9 @@ jobs:
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
+      # the python binary used by the Makefile
+      PYTHON_VERSION: 'python${{ matrix.python-version-short }}'
+
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
       COLUMNS: '120'
@@ -381,6 +458,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'true'
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
@@ -388,21 +468,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
-      - name: Cache Python Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            virtualenv
-            ~/virtualenv
-          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
-          # !virtualenv/lib/python*/site-packages/st2*
-          # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
-          # Don't use alternative key as if requirements.txt has altered we
-          # don't want to retrieve previous cache
-          #restore-keys: |
-          #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
+      #- name: Cache Python Dependencies
+      #  uses: actions/cache@v4
+      #  with:
+      #    path: |
+      #      ~/.cache/pip
+      #      virtualenv
+      #      ~/virtualenv
+      #    # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+      #    # !virtualenv/lib/python*/site-packages/st2*
+      #    # !virtualenv/bin/st2*
+      #    key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
+      #    # Don't use alternative key as if requirements.txt has altered we
+      #    # don't want to retrieve previous cache
+      #    #restore-keys: |
+      #    #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v4
@@ -419,6 +499,29 @@ jobs:
           # install dev dependencies for Python YAML and LDAP packages
           # https://github.com/StackStorm/st2-auth-ldap
           ./scripts/github/install-apt-packages-use-cache.sh
+
+      - name: Initialize Pants and its GHA caches
+        uses: pantsbuild/actions/init-pants@v6-scie-pants
+        # This action adds an env var to make pants use both pants.ci.toml & pants.toml.
+        # This action also creates 3 GHA caches (1 is optional).
+        # - `pants-setup` has the bootsrapped pants install
+        # - `pants-named-caches` has pip/wheel and PEX caches
+        # - `pants-lmdb-store` has the fine-grained process cache.
+        #   If we ever use a remote cache, then we can drop this.
+        #   Otherwise, we may need an additional workflow or job to delete old caches
+        #   if they are not expiring fast enough, and we hit the GHA 10GB per repo max.
+        with:
+          base-branch: master
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0
+          # This hash should include all of our lockfiles so that the pip/pex caches
+          # get invalidated on any transitive dependency update.
+          named-caches-hash: ${{ hashFiles('lockfiles/*.lock') }}
+          # enable the optional lmdb_store cache since we're not using remote caching.
+          cache-lmdb-store: 'true'
+          # install whatever version of python we need for our in-repo pants-plugins
+          setup-python-for-plugins: 'true'
+
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -468,6 +571,13 @@ jobs:
           ./scripts/ci/submit-codecov-coverage.sh
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v2
+        with:
+          name: pants-log-py${{ matrix.python-version }}-nose-${{ matrix.nosetests_node_index }}
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
 
   integration-tests:
     needs: pre_job
@@ -555,7 +665,6 @@ jobs:
           #- 15671:15671/tcp # Management: SSL port
           #- 25672:25672/tcp # inter-node or CLI
           #- 4369:4369/tcp   # epmd
-          #
 
       # Used for the coordination backend for integration tests
       # NOTE: To speed things up, we only start redis for integration tests
@@ -579,6 +688,9 @@ jobs:
       NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
       NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
+      # the python binary used by the Makefile
+      PYTHON_VERSION: 'python${{ matrix.python-version-short }}'
+
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
       COLUMNS: '120'
@@ -601,6 +713,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'true'
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
@@ -608,21 +723,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
-      - name: Cache Python Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            virtualenv
-            ~/virtualenv
-          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
-          # !virtualenv/lib/python*/site-packages/st2*
-          # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
-          # Don't use alternative key as if requirements.txt has altered we
-          # don't want to retrieve previous cache
-          #restore-keys: |
-          #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
+      #- name: Cache Python Dependencies
+      #  uses: actions/cache@v4
+      #  with:
+      #    path: |
+      #      ~/.cache/pip
+      #      virtualenv
+      #      ~/virtualenv
+      #    # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+      #    # !virtualenv/lib/python*/site-packages/st2*
+      #    # !virtualenv/bin/st2*
+      #    key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
+      #    # Don't use alternative key as if requirements.txt has altered we
+      #    # don't want to retrieve previous cache
+      #    #restore-keys: |
+      #    #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
         uses: actions/cache@v4
@@ -639,6 +754,29 @@ jobs:
           # install dev dependencies for Python YAML and LDAP packages
           # https://github.com/StackStorm/st2-auth-ldap
           ./scripts/github/install-apt-packages-use-cache.sh
+
+      - name: Initialize Pants and its GHA caches
+        uses: pantsbuild/actions/init-pants@v6-scie-pants
+        # This action adds an env var to make pants use both pants.ci.toml & pants.toml.
+        # This action also creates 3 GHA caches (1 is optional).
+        # - `pants-setup` has the bootsrapped pants install
+        # - `pants-named-caches` has pip/wheel and PEX caches
+        # - `pants-lmdb-store` has the fine-grained process cache.
+        #   If we ever use a remote cache, then we can drop this.
+        #   Otherwise, we may need an additional workflow or job to delete old caches
+        #   if they are not expiring fast enough, and we hit the GHA 10GB per repo max.
+        with:
+          base-branch: master
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0
+          # This hash should include all of our lockfiles so that the pip/pex caches
+          # get invalidated on any transitive dependency update.
+          named-caches-hash: ${{ hashFiles('lockfiles/*.lock') }}
+          # enable the optional lmdb_store cache since we're not using remote caching.
+          cache-lmdb-store: 'true'
+          # install whatever version of python we need for our in-repo pants-plugins
+          setup-python-for-plugins: 'true'
+
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -671,7 +809,6 @@ jobs:
           ./scripts/github/configure-rabbitmq.sh
       - name: Print versions
         run: |
-
           ./scripts/ci/print-versions.sh
       - name: make
         #timeout-minutes: 7
@@ -704,9 +841,16 @@ jobs:
         if: "${{ always() }}"
         run: docker rm --force redis || true
 
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v2
+        with:
+          name: pants-log-py${{ matrix.python-version }}-nose-${{ matrix.nosetests_node_index }}
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
+
   slack-notification:
     name: Slack notification for failed master builds
-    if: always()
     needs:
       - lint-checks
       - unit-tests

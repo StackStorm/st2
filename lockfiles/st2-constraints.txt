@@ -74,7 +74,7 @@ dnspython>=1.16.0,<2.0.0
 #         greenlet 3 adds py3.12 support, drops py3.6 support, fixes various crash conditions
 # NOTE: If constrained, bump carefully. Tests seem to be passing without this constraint.
 # DROPS RESOLVED VERSION: 1.1.3.post0
-#greenlet==1.0.0
+#greenlet<2
 
 # REQUIRED BY: argcomplete, click, debtcollector, kombu, pluggy, prettytable,
 #             pytest, virtualenv
