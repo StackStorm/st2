@@ -52,6 +52,7 @@ def setup_app(config={}):
             "name": "stream",
             "listen_host": cfg.CONF.stream.host,
             "listen_port": cfg.CONF.stream.port,
+            "listen_ssl": cfg.CONF.stream.use_ssl,
             "type": "active",
         }
         # This should be called in gunicorn case because we only want

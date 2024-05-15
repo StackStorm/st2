@@ -66,6 +66,17 @@ def _register_app_opts(ignore_errors=False):
             default="/etc/st2/logging.stream.conf",
             help="location of the logging.conf file",
         ),
+        cfg.BoolOpt("use_ssl", default=False, help="Specify to enable SSL / TLS mode"),
+        cfg.StrOpt(
+            "cert",
+            default="/etc/apache2/ssl/mycert.crt",
+            help='Path to the SSL certificate file. Only used when "use_ssl" is specified.',
+        ),
+        cfg.StrOpt(
+            "key",
+            default="/etc/apache2/ssl/mycert.key",
+            help='Path to the SSL private key file. Only used when "use_ssl" is specified.',
+        ),
     ]
 
     common_config.do_register_opts(

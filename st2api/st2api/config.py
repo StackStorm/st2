@@ -76,7 +76,7 @@ def _register_app_opts(ignore_errors=False):
         pecan_opts, group="api_pecan", ignore_errors=ignore_errors
     )
 
-    logging_opts = [
+    api_opts = [
         cfg.BoolOpt("debug", default=False),
         cfg.StrOpt(
             "logging",
@@ -89,8 +89,17 @@ def _register_app_opts(ignore_errors=False):
             help="Maximum limit (page size) argument which can be "
             "specified by the user in a query string.",
         ),
+        cfg.BoolOpt("use_ssl", default=False, help="Specify to enable SSL / TLS mode"),
+        cfg.StrOpt(
+            "cert",
+            default="/etc/apache2/ssl/mycert.crt",
+            help='Path to the SSL certificate file. Only used when "use_ssl" is specified.',
+        ),
+        cfg.StrOpt(
+            "key",
+            default="/etc/apache2/ssl/mycert.key",
+            help='Path to the SSL private key file. Only used when "use_ssl" is specified.',
+        ),
     ]
 
-    common_config.do_register_opts(
-        logging_opts, group="api", ignore_errors=ignore_errors
-    )
+    common_config.do_register_opts(api_opts, group="api", ignore_errors=ignore_errors)

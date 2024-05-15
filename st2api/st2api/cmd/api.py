@@ -54,6 +54,7 @@ def _setup():
         "name": "api",
         "listen_host": cfg.CONF.api.host,
         "listen_port": cfg.CONF.api.port,
+        "listen_ssl": cfg.CONF.api.use_ssl,
         "type": "active",
     }
 
@@ -76,12 +77,33 @@ def _setup():
 def _run_server():
     host = cfg.CONF.api.host
     port = cfg.CONF.api.port
+    use_ssl = cfg.CONF.api.use_ssl
 
-    LOG.info("(PID=%s) ST2 API is serving on http://%s:%s.", os.getpid(), host, port)
+    cert_file_path = os.path.realpath(cfg.CONF.api.cert)
+    key_file_path = os.path.realpath(cfg.CONF.api.key)
+
+    if use_ssl and not os.path.isfile(cert_file_path):
+        raise ValueError('Certificate file "%s" doesn\'t exist' % (cert_file_path))
+
+    if use_ssl and not os.path.isfile(key_file_path):
+        raise ValueError('Private key file "%s" doesn\'t exist' % (key_file_path))
+
+    LOG.info(
+        "(PID=%s) ST2 API is serving on %s://%s:%s.",
+        os.getpid(),
+        "https" if use_ssl else "http",
+        host,
+        port,
+    )
 
     max_pool_size = eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
     worker_pool = eventlet.GreenPool(max_pool_size)
     sock = eventlet.listen((host, port))
+
+    if use_ssl:
+        sock = eventlet.wrap_ssl(
+            sock, certfile=cert_file_path, keyfile=key_file_path, server_side=True
+        )
 
     wsgi.server(
         sock, app.setup_app(), custom_pool=worker_pool, log=LOG, log_output=False

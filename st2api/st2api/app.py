@@ -47,6 +47,7 @@ def setup_app(config=None):
             "name": "api",
             "listen_host": cfg.CONF.api.host,
             "listen_port": cfg.CONF.api.port,
+            "listen_ssl": cfg.CONF.api.use_ssl,
             "type": "active",
         }
 

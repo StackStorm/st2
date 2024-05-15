@@ -60,6 +60,7 @@ def _setup():
         "name": "stream",
         "listen_host": cfg.CONF.stream.host,
         "listen_port": cfg.CONF.stream.port,
+        "listen_ssl": cfg.CONF.stream.use_ssl,
         "type": "active",
     }
     common_setup(
@@ -78,14 +79,33 @@ def _setup():
 def _run_server():
     host = cfg.CONF.stream.host
     port = cfg.CONF.stream.port
+    use_ssl = cfg.CONF.stream.use_ssl
+
+    cert_file_path = os.path.realpath(cfg.CONF.stream.cert)
+    key_file_path = os.path.realpath(cfg.CONF.stream.key)
+
+    if use_ssl and not os.path.isfile(cert_file_path):
+        raise ValueError('Certificate file "%s" doesn\'t exist' % (cert_file_path))
+
+    if use_ssl and not os.path.isfile(key_file_path):
+        raise ValueError('Private key file "%s" doesn\'t exist' % (key_file_path))
 
     LOG.info(
-        "(PID=%s) ST2 Stream API is serving on http://%s:%s.", os.getpid(), host, port
+        "(PID=%s) ST2 Stream API is serving on %s://%s:%s.",
+        os.getpid(),
+        "https" if use_ssl else "http",
+        host,
+        port,
     )
 
     max_pool_size = eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
     worker_pool = eventlet.GreenPool(max_pool_size)
     sock = eventlet.listen((host, port))
+
+    if use_ssl:
+        sock = eventlet.wrap_ssl(
+            sock, certfile=cert_file_path, keyfile=key_file_path, server_side=True
+        )
 
     def queue_shutdown(signal_number, stack_frame):
         deregister_service(STREAM)
