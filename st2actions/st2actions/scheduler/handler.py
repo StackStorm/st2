@@ -290,7 +290,7 @@ class ActionExecutionSchedulingQueueHandler(object):
         if action_has_policies_require_lock:
             # Warn users that the coordination service is not configured.
             if not coordination_service.configured():
-                LOG.warn(
+                LOG.warning(
                     "[%s] Coordination backend is not configured. "
                     "Policy enforcement is best effort.",
                     action_execution_id,

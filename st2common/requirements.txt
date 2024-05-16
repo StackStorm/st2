@@ -28,14 +28,14 @@ mongoengine==0.23.1
 networkx==2.8.8
 orjson==3.10.1
 orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
-oslo.config==1.12.1
+oslo.config==9.4.0
 paramiko==3.4.0
 pyOpenSSL
 pymongo==3.12.3
 python-dateutil==2.9.0
 python-statsd==2.1.0
 pyyaml==6.0.1
-redis==5.0.3
+redis==5.0.4
 requests==2.31.0
 retrying==1.3.4
 routes==2.5.1

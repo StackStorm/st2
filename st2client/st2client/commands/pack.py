@@ -540,12 +540,9 @@ class PackConfigCommand(resource.ResourceCommand):
             message, {"default": "y", "description": description}
         )
         if preview_dialog.read() == "y":
-            try:
-                contents = yaml.safe_dump(config, indent=4, default_flow_style=False)
-                modified = editor.edit(contents=contents)
-                config = yaml.safe_load(modified)
-            except editor.EditorError as e:
-                print(six.text_type(e))
+            contents = yaml.safe_dump(config, indent=4, default_flow_style=False)
+            modified = editor.editor(text=contents)
+            config = yaml.safe_load(modified)
 
         message = "---\nDo you want me to save it?"
         save_dialog = interactive.Question(message, {"default": "y"})

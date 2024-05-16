@@ -1,9 +1,11 @@
 # 7.5 causing errors with orquesta integration tests (probably interaction w/ nose)
 coverage<7.5
 pep8==1.7.1
+# st2flake8 does not support flake8 v5 yet
+flake8==4.0.1
 st2flake8==0.1.0
-astroid==2.5.6
-pylint==2.8.2
+astroid==3.1.0
+pylint==3.1.0
 pylint-plugin-utils>=0.4
 black==22.3.0
 pre-commit==2.1.0
@@ -25,6 +27,8 @@ nose-timer==1.0.1
 nose-parallel==0.4.0
 # Required by st2client tests
 pyyaml==6.0.1
+# Constrain pygments required by editor to align with st2 core version
+pygments==2.17.2
 RandomWords
 gunicorn==21.2.0
 psutil==5.8.0

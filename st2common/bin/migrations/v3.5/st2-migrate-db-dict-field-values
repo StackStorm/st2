@@ -154,6 +154,7 @@ def migrate_executions(start_dt: datetime.datetime, end_dt: datetime.datetime) -
         if not liveaction_id:
             continue
 
+        liveaction_db = None
         try:
             liveaction_db = LiveAction.get_by_id(liveaction_id)
         except StackStormDBObjectNotFoundError:
@@ -262,6 +263,7 @@ def migrate_workflow_objects(
         print("Will migrate %s TaskExecutionDB objects" % (objects_count))
         print("")
 
+    task_execution_db = None
     for index, task_execution_id in enumerate(task_execution_ids, 1):
         try:
             task_execution_db = TaskExecution.get_by_id(task_execution_id)
