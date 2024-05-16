@@ -77,16 +77,16 @@ jobs:
       PYLINT_CONCURRENCY: '6'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
       - name: Cache Python Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
@@ -95,20 +95,20 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
           # Don't use alternative key as if requirements.txt has altered we
           # don't want to retrieve previous cache
           #restore-keys: |
-          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
+          #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v7-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v7-
+            ${{ runner.os }}-v8-apt-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
@@ -176,16 +176,16 @@ jobs:
       TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
       - name: Cache Python Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
@@ -194,18 +194,18 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v3-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
           restore-keys: |
             ${{ runner.os }}-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v5-
+            ${{ runner.os }}-v8-apt-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
@@ -253,13 +253,21 @@ jobs:
         run: |
           script -e -c "make .ci-prepare-integration" && exit 0
       - name: Extend the path for upcoming tasks
+        # pants uses PEP 660 editable wheels to add our code to the virtualenv.
+        # But PEP 660 editable wheels do not include 'scripts'.
+        # https://peps.python.org/pep-0660/#limitations
+        # So, we need to include each bin dir in PATH instead of virtualenv/bin.
         run: |
-          echo ${HOME}/work/st2/st2/virtualenv/bin
-          echo ${HOME}/work/st2/st2/virtualenv/bin >> $GITHUB_PATH
+          for component_bin in ${GITHUB_WORKSPACE}/st2*/bin; do
+          echo ${component_bin} | tee -a $GITHUB_PATH
+          done
+          echo ${GITHUB_WORKSPACE}/virtualenv/bin | tee -a $GITHUB_PATH
       - name: Create symlinks to find the binaries when running st2 actions
+        # st2 is actually a console_script entry point, not just a 'script'
+        # so it IS included in the virtualenv. But, st2-run-pack-tests might not be included.
         run: |
-          ln -s ${HOME}/work/st2/st2/virtualenv/bin/st2 /usr/local/bin/st2
-          ln -s ${HOME}/work/st2/st2/virtualenv/bin/st2-run-pack-tests /usr/local/bin/st2-run-pack-tests
+          ln -s ${GITHUB_WORKSPACE}/virtualenv/bin/st2 /usr/local/bin/st2
+          ln -s ${GITHUB_WORKSPACE}/st2common/bin/st2-run-pack-tests /usr/local/bin/st2-run-pack-tests
       - name: Install st2client
         timeout-minutes: 5
         run: |
@@ -270,16 +278,17 @@ jobs:
         env:
           ST2_CONF: /home/runner/work/st2/st2/conf/st2.ci.conf
         run: |
-          sudo -E ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t) PATH=${PATH} virtualenv/bin/st2-self-check
+          sudo -E ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t) PATH=${PATH} st2common/bin/st2-self-check
       - name: Compress Service Logs Before upload
         if: ${{ failure() }}
         run: |
+          ./tools/launchdev.sh stop # stop st2 before collecting logs
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: logs
+          name: logs-py${{ matrix.python-version }}
           path: logs.tar.gz
           retention-days: 7
       - name: Stop Redis Service Container
@@ -371,16 +380,16 @@ jobs:
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
       - name: Cache Python Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
@@ -389,20 +398,20 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
           # Don't use alternative key as if requirements.txt has altered we
           # don't want to retrieve previous cache
           #restore-keys: |
-          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
+          #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v5-
+            ${{ runner.os }}-v8-apt-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
@@ -591,16 +600,16 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
       - name: Cache Python Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
@@ -609,20 +618,20 @@ jobs:
           # TODO: maybe make the virtualenv a partial cache to exclude st2*?
           # !virtualenv/lib/python*/site-packages/st2*
           # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
+          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
           # Don't use alternative key as if requirements.txt has altered we
           # don't want to retrieve previous cache
           #restore-keys: |
-          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
+          #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache APT Dependencies
         id: cache-apt-deps
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/apt_cache
-          key: ${{ runner.os }}-apt-v5-${{ hashFiles('scripts/github/apt-packages.txt') }}
+          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-v5-
+            ${{ runner.os }}-v8-apt-
       - name: Install APT Depedencies
         env:
           CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
@@ -682,12 +691,13 @@ jobs:
       - name: Compress Service Logs Before upload
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         run: |
+          ./tools/launchdev.sh stop # stop st2 before collecting logs
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
         if: ${{ failure() && env.TASK == 'ci-integration' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: logs
+          name: logs-py${{ matrix.python-version }}-nose-${{ matrix.nosetests_node_index }}
           path: logs.tar.gz
           retention-days: 7
       - name: Stop Redis Service Container

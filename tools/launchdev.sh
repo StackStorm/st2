@@ -162,7 +162,7 @@ function st2start()
     echo -n "Using config base dir: "; iecho "$CONFIG_BASE_DIR"
 
     if [ ! -d "$CONFIG_BASE_DIR" ]; then
-        wecho "$CONFIG_BASE_DIR doesn't exist. Creating..."
+        wecho "$CONFIG_BASE_DIR doesn't exist. Creating ..."
         sudo mkdir -p $CONFIG_BASE_DIR
     fi
 
@@ -174,12 +174,12 @@ function st2start()
 
     # Copy and overwrite the action contents
     if [ ! -d "$ST2_BASE_DIR" ]; then
-        wecho "$ST2_BASE_DIR doesn't exist. Creating..."
+        wecho "$ST2_BASE_DIR doesn't exist. Creating ..."
         sudo mkdir -p $PACKS_BASE_DIR
     fi
 
     if [ "${use_ipv6}" = true ]; then
-        echo '  using IPv6 bindings...'
+        echo '  using IPv6 bindings ...'
         BINDING_ADDRESS="[::]"
     else
         BINDING_ADDRESS="0.0.0.0"
@@ -230,8 +230,7 @@ function st2start()
     # Run the st2 API server
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-api using gunicorn ...'
-        # Log standard out, start in daemon mode, load config st2api.conf, session name "st2-api"
-        tmux new-session -d -s st2-api "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/gunicorn st2api.wsgi:application -k eventlet -b $BINDING_ADDRESS:9100 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
+        tmux new-session -d -s st2-api "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/gunicorn st2api.wsgi:application -k eventlet -b $BINDING_ADDRESS:9101 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
     else
         echo 'Starting st2-api ...'
         tmux new-session -d -s st2-api "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2api/bin/st2api --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
@@ -240,15 +239,17 @@ function st2start()
     # Run st2stream API server
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-stream using gunicorn ...'
-
         tmux new-session -d -s st2-stream "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/gunicorn st2stream.wsgi:application -k eventlet -b $BINDING_ADDRESS:9102 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
     else
         echo 'Starting st2-stream ...'
         tmux new-session -d -s st2-stream "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2stream/bin/st2stream --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
     fi
 
+    # give st2stream time to startup and load things into database
+    sleep 10
+
     # Run the workflow engine server
-    echo 'Starting st2-workflow engine(s)'
+    echo 'Starting st2-workflow engine(s):'
     WORKFLOW_ENGINE_SESSIONS=()
     for i in $(seq 1 $workflow_engine_count)
     do
@@ -258,8 +259,8 @@ function st2start()
         tmux new-session -d -s $WORKFLOW_ENGINE_NAME "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2actions/bin/st2workflowengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${WORKFLOW_ENGINE_NAME}.log"
     done
 
-    # Start a screen for every runner
-    echo 'Starting st2-actionrunner(s)'
+    # Start a session for every runner
+    echo 'Starting st2-actionrunner(s):'
     RUNNER_SESSIONS=()
     for i in $(seq 1 $runner_count)
     do
@@ -270,11 +271,11 @@ function st2start()
     done
 
     # Run the garbage collector service
-    echo 'Starting st2-garbagecollector'
+    echo 'Starting st2-garbagecollector ...'
     tmux new-session -d -s st2-garbagecollector "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2garbagecollector --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-garbagecollector.log"
 
     # Run the scheduler server
-    echo 'Starting st2-scheduler(s)'
+    echo 'Starting st2-scheduler(s):'
     SCHEDULER_SESSIONS=()
     for i in $(seq 1 $scheduler_count)
     do
@@ -285,19 +286,19 @@ function st2start()
     done
 
     # Run the sensor container server
-    echo 'Starting st2-sensorcontainer'
+    echo 'Starting st2-sensorcontainer ...'
     tmux new-session -d -s st2-sensorcontainer "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2sensorcontainer --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-sensorcontainer.log"
 
     # Run the rules engine server
-    echo 'Starting st2-rulesengine...'
+    echo 'Starting st2-rulesengine ...'
     tmux new-session -d -s st2-rulesengine "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2rulesengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-rulesengine.log"
 
     # Run the timer engine server
-    echo 'Starting st2-timersengine...'
+    echo 'Starting st2-timersengine ...'
     tmux new-session -d -s st2-timersengine "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2timersengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-timersengine.log"
 
     # Run the actions notifier
-    echo 'Starting st2-notifier...'
+    echo 'Starting st2-notifier ...'
     tmux new-session -d -s st2-notifier "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2actions/bin/st2notifier --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-notifier.log"
 
     # Run the auth API server
@@ -329,27 +330,27 @@ function st2start()
     do
         tmux ls | grep "^${s}[[:space:]]" &> /dev/null
         if [ $? != 0 ]; then
-            echo "ERROR: terminal multiplex session for $s failed to start."
+            eecho "ERROR: terminal multiplex session for $s failed to start."
         fi
     done
 
     if [ "$load_content" = true ]; then
         # Register contents
-        echo 'Registering sensors, runners, actions, rules, aliases, and policies...'
+        echo 'Registering sensors, runners, actions, rules, aliases, and policies ...'
         ${VIRTUALENV}/bin/python ./st2common/bin/st2-register-content --config-file $ST2_CONF --register-all
     fi
 
     if [ "$copy_test_packs" = true ]; then
         st2 run packs.setup_virtualenv packs=fixtures
         if [ $? != 0 ]; then
-            echo "wecho: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
+            wecho "WARNING: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
         fi
     fi
 
     # Display default credentials to the multiplexor session
     echo "The default credentials are testu:testp"
 
-    # List screen sessions
+    # List sessions
     tmux ls || exit 0
 }
 
@@ -389,7 +390,7 @@ function st2clean()
     fi
     if [ -n "$ST2_EXPORTER" ]; then
         EXPORTS_DIR=$(exportsdir)
-        echo "Removing $EXPORTS_DIR..."
+        echo "Removing $EXPORTS_DIR ..."
         rm -rf ${EXPORTS_DIR}
     fi
 }

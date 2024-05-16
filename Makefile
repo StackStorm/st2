@@ -57,7 +57,7 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
 # 202403: Use pip 24.0 which is the highest supported version across Python 3.8 - 3.10
 PIP_VERSION ?= 24.0
-SETUPTOOLS_VERSION ?= 51.3.3
+SETUPTOOLS_VERSION ?= 69.5.1
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
@@ -822,7 +822,8 @@ unit-tests: requirements .unit-tests
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
-	@for component in $(COMPONENTS_TEST); do\
+	@failed=0; \
+	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
@@ -831,7 +832,8 @@ unit-tests: requirements .unit-tests
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
-	done
+	done; \
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-unit-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
@@ -843,6 +845,7 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
+	failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -854,7 +857,8 @@ endif
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
-	done
+	done; \
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .combine-unit-tests-coverage
 .combine-unit-tests-coverage: .run-unit-tests-coverage
@@ -899,7 +903,8 @@ itests: requirements .itests
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
-	@for component in $(COMPONENTS_TEST); do\
+	@failed=0; \
+	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
@@ -909,7 +914,8 @@ itests: requirements .itests
 		echo "-----------------------------------------------------------"; \
 		echo "Done running integration tests in" $$component; \
 		echo "==========================================================="; \
-	done
+	done; \
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-integration-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
@@ -921,7 +927,8 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
-	@for component in $(COMPONENTS_TEST); do\
+	@failed=0; \
+	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
@@ -932,19 +939,8 @@ endif
 		echo "-----------------------------------------------------------"; \
 		echo "Done integration running tests in" $$component; \
 		echo "==========================================================="; \
-	done
-	@echo
-	@echo "============== runners integration tests with coverage =============="
-	@echo
-	@echo "The tests assume st2 is running on 127.0.0.1."
-	@for component in $(COMPONENTS_RUNNERS); do\
-		echo "==========================================================="; \
-		echo "Running integration tests in" $$component; \
-		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; \
-		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
-			pytest --capture=no --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch $$component/tests/integration || exit 1; \
-	done
+	done; \
+	if [ $$failed -gt 0 ]; then exit 1; fi
 	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
 	# ci-integration-full target
 #	@echo
@@ -1070,12 +1066,14 @@ runners-tests: requirements .runners-tests
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongo st2-test --eval "db.dropDatabase();"
-	@for component in $(COMPONENTS_RUNNERS); do\
+	@failed=0; \
+	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/unit || exit 1; \
-	done
+	done; \
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: runners-itests
 runners-itests: requirements .runners-itests
@@ -1086,12 +1084,14 @@ runners-itests: requirements .runners-itests
 	@echo "==================== runners-itests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@for component in $(COMPONENTS_RUNNERS); do\
+	@failed=0; \
+	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/integration || exit 1; \
-	done
+	done; \
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .runners-itests-coverage-html
 .runners-itests-coverage-html:
@@ -1099,13 +1099,15 @@ runners-itests: requirements .runners-itests
 	@echo "============== runners-itests-coverage-html =============="
 	@echo
 	@echo "The tests assume st2 is running on 127.0.0.1."
-	@for component in $(COMPONENTS_RUNNERS); do\
+	@failed=0; \
+	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) --cov=$$component --cov-report=html \
 			$$component/tests/integration || exit 1; \
-	done
+	done; \
+	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: cli
 cli:

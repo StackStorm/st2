@@ -6,55 +6,59 @@
 # - https://github.com/StackStorm/st2-rbac-backend
 # ----------------------------------------------------------------------
 # Note: amqp is used by kombu
-amqp<6.0.0,>=5.1.1
-apscheduler==3.7.0
-cffi<1.15.0
+amqp==5.2.0
+apscheduler==3.10.4
+#chardet==5.2.0
+chardet==3.0.4
+cffi==1.16.0
 # NOTE: 2.0 version breaks pymongo work with hosts
-dnspython==2.6.1
-# 202404: Bumped to latest because py3.6 support dropped but lower than v42 for current paramiko/pyopenssl compatibility.
-cryptography<42
-eventlet==0.35.2
+#dnspython==2.6.1
+dnspython==1.16.0
+cryptography==42.0.5
+eventlet==0.36.1
 flex==6.14.1
 # Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
 # TODO: Pin to 3.1.37 or higher after dropping python3.6 support
-gitpython<=3.1.37
+gitpython==3.1.43
 # Needed by gitpython, old versions used to bundle it
-gitdb==4.0.2
+gitdb==4.0.11
 # Note: greenlet is used by eventlet (202403: 3.0.3 support for py3.10)
 greenlet==3.0.3
-gunicorn==21.2.0
+gunicorn==22.0.0
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
 # 202403: Update to 5.3.5 for py3.10 support
-kombu==5.3.5
+kombu==5.3.7
 lockfile==0.12.2
 # Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
 # 202403: Bumped Jinja2 and MarkupSafe to add py3.10 support
 jinja2==3.1.3
-MarkupSafe==2.1.5
+#MarkupSafe==2.1.5
+MarkupSafe==2.0.1
 # mongoengine 0.24.0 has breaking changes to support pymongo 4.0
-mongoengine>=0.21.0,<0.24.0
+mongoengine==0.23.1
+# required by orquesta (networkx<2.6 for py3.6, networkx<3 for py3.8)
 # 202404: networkx >3.2 doesn't support py3.8
-networkx<3.2
-# networkx requires decorator>=4.3,<5 which should resolve to version 4.4.2
-# but the wheel on pypi does not say it supports python3.8, so pip gets
-# confused. For now, pin decorator to work around pip's confusion.
-decorator==4.4.2
+#networkx<3.2
+networkx==2.8.8
+# networkx dropped its dep on decorator in version 2.6, so the old pin is unneeded.
+# now jsonpath-rw is the only thing that depends on decorator (a transitive dep)
+decorator==5.1.1
 # 202403: Bump oslo.config for py3.10 support.
 oslo.config==9.4.0
 oslo.utils==7.1.0
 # paramiko 2.11.0 is needed by cryptography > 37.0.0
-paramiko==2.11.0
+paramiko==3.4.0
 passlib==1.7.4
 # 202403: bump to 3.0.43 for py3.10 support
 prompt-toolkit==3.0.43
 pyinotify==0.9.6 ; platform_system=="Linux"
 # pymongo 3.13 has backports of APIs from pymongo 4 to help w/ migration
-pymongo>=3.11.0,<3.13.0
-pyparsing<3
-zstandard==0.15.2
+pymongo==3.12.3
+pyparsing==3.1.2
+zstandard==0.22.0
 # pyOpenSSL 23.1.0 supports cryptography up to 40.0.x
-pyOpenSSL==24.1.0
+#pyOpenSSL==23.1.0
 # 202403: switch from python-editor to editor for py3.10 support
 editor==1.6.6
 # editor dependency, required here for inclusion in st2client setup.py
@@ -62,38 +66,41 @@ pygments==2.17.2
 # 202404: Use latest chardet for tox / and cross project dependency Orquesta.
 chardet==5.2.0
 python-keyczar==0.716
-pytz==2021.1
-pywinrm==0.4.1
-pyyaml==5.3.1
-redis==4.1.4
+pytz==2024.1
+pywinrm==0.4.3
+pyyaml==6.0.1
+redis==5.0.4
 # 202404: Bumped to latest since py3.6 support has been dropped.
 requests==2.31.0
-retrying==1.3.3
-routes==2.4.1
+retrying==1.3.4
+routes==2.5.1
 semver==3.0.2
 # 202404: Bumped for compatibility prance 23.6.21.0 requires six~=1.15.
-six~=1.15
-argparse==1.12.2
+six==1.16.0
+#argparse==1.12.2
+argparse==1.4.0
 # 202403: Bumped to latest for py3.10 support
-argcomplete==3.2.3
-prettytable==2.1.0
+argcomplete==3.3.0
+prettytable==3.10.0
 # 202404: Relaxed pinning since py3.6 support is dropped.
-importlib-metadata>=4.10.1
+importlib-metadata==7.1.0
+typing-extensions==4.11.0
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
-sseclient-py==1.7
-stevedore==1.30.1
-tenacity>=3.2.1,<7.0.0
-tooz==2.8.0
+sseclient-py==1.8.0
+stevedore==5.2.0
+tenacity==8.2.3
+tooz==6.1.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
-# virtualenv==20.4.0 (<21) has pip==20.3.3 wheel==0.36.2 setuptools==51.3.3
-virtualenv==20.25.1
+# virtualenv==20.26.0 (<21) has pip==24.0 wheel==0.43.0 setuptools==69.5.1
+# lockfiles/st2.lock has pip==24.0 wheel==0.43.0 setuptools==69.5.1
+virtualenv==20.26.1
 webob==1.8.7
 zake==0.2.2
 # test requirements below
-bcrypt==3.2.0
-mock==4.0.3
-psutil==5.8.0
-python-dateutil==2.8.1
+bcrypt==4.1.2
+mock==5.1.0
+psutil==5.9.8
+python-dateutil==2.9.0
 python-statsd==2.1.0
-orjson==3.5.2
-zipp<3.16.0
+orjson==3.10.1
+zipp==3.18.1

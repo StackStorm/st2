@@ -6,8 +6,8 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 RandomWords
-mock==4.0.3
-psutil==5.8.0
+mock==5.1.0
+psutil==5.9.8
 pyrabbit
 pytest
 webtest
