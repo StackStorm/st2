@@ -5,9 +5,9 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-MarkupSafe==2.0.1
+MarkupSafe
 apscheduler==3.10.4
-chardet==3.0.4
+chardet
 eventlet==0.36.1
 gitpython==3.1.43
 jinja2==3.1.3

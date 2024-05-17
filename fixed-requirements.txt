@@ -8,8 +8,9 @@
 # Note: amqp is used by kombu
 amqp==5.2.0
 apscheduler==3.10.4
+# 202404: Use latest chardet for tox / and cross project dependency Orquesta.
+# 202405: chardet is a transtive dependency. Just accept whatever pip picks.
 #chardet==5.2.0
-chardet==3.0.4
 cffi==1.16.0
 # NOTE: 2.0 version breaks pymongo work with hosts
 #dnspython==2.6.1
@@ -33,8 +34,8 @@ lockfile==0.12.2
 # Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
 # 202403: Bumped Jinja2 and MarkupSafe to add py3.10 support
 jinja2==3.1.3
+# 202405: MarkupSafe is a transitive dependency. Just accept whatever pip picks.
 #MarkupSafe==2.1.5
-MarkupSafe==2.0.1
 # mongoengine 0.24.0 has breaking changes to support pymongo 4.0
 mongoengine==0.23.1
 # required by orquesta (networkx<2.6 for py3.6, networkx<3 for py3.8)
@@ -63,8 +64,6 @@ zstandard==0.22.0
 editor==1.6.6
 # editor dependency, required here for inclusion in st2client setup.py
 pygments==2.17.2
-# 202404: Use latest chardet for tox / and cross project dependency Orquesta.
-chardet==5.2.0
 python-keyczar==0.716
 pytz==2024.1
 pywinrm==0.4.3
