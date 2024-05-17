@@ -82,11 +82,11 @@ jobs:
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
-        uses: ./.github/actions/setup-python.yaml
+        uses: ./.github/actions/setup-python
         with:
           python-version: '${{ matrix.python-version }}'
       - name: Cache and Install APT Dependencies
-        uses: ./.github/actions/apt-packages.yaml
+        uses: ./.github/actions/apt-packages
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -152,11 +152,11 @@ jobs:
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
-        uses: ./.github/actions/setup-python.yaml
+        uses: ./.github/actions/setup-python
         with:
           python-version: '${{ matrix.python-version }}'
       - name: Cache and Install APT Dependencies
-        uses: ./.github/actions/apt-packages.yaml
+        uses: ./.github/actions/apt-packages
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -328,11 +328,11 @@ jobs:
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
-        uses: ./.github/actions/setup-python.yaml
+        uses: ./.github/actions/setup-python
         with:
           python-version: '${{ matrix.python-version }}'
       - name: Cache and Install APT Dependencies
-        uses: ./.github/actions/apt-packages.yaml
+        uses: ./.github/actions/apt-packages
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -519,11 +519,11 @@ jobs:
         run: |
           ./scripts/github/setup-environment.sh
       - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
-        uses: ./.github/actions/setup-python.yaml
+        uses: ./.github/actions/setup-python
         with:
           python-version: '${{ matrix.python-version }}'
       - name: Cache and Install APT Dependencies
-        uses: ./.github/actions/apt-packages.yaml
+        uses: ./.github/actions/apt-packages
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh

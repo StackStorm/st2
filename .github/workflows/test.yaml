@@ -84,10 +84,10 @@ jobs:
 
 
       - name: Cache and Install APT Dependencies
-        uses: ./.github/actions/apt-cache.yaml
+        uses: ./.github/actions/apt-packages
 
       - name: Initialize Pants and its GHA caches
-        uses: ./.github/actions/init-pants.yaml
+        uses: ./.github/actions/init-pants
         with:
           # To ignore a bad cache, bump the cache* integer.
           gha-cache-key: cache0-py${{ matrix.python-version }}
