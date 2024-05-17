@@ -18,6 +18,7 @@ runs:
           ${{ runner.os }}-v8-apt-
 
     - name: Install APT Depedencies
+      shell: bash
       env:
         CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
       run: |
