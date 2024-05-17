@@ -9,8 +9,8 @@
 //     "CPython==3.9.*"
 //   ],
 //   "generated_with_requirements": [
-//     "pantsbuild.pants.testutil==2.19.3",
-//     "pantsbuild.pants==2.19.3"
+//     "pantsbuild.pants.testutil==2.20.3",
+//     "pantsbuild.pants==2.20.3"
 //   ],
 //   "manylinux": "manylinux2014",
 //   "requirement_constraints": [],
@@ -50,42 +50,61 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "99b87a485a5820b23b879f04c2305b44b951b502fd64be915879d77a7e8fc6f1",
-              "url": "https://files.pythonhosted.org/packages/e0/44/827b2a91a5816512fcaf3cc4ebc465ccd5d598c45cefa6703fcf4a79018f/attrs-23.2.0-py3-none-any.whl"
+              "hash": "377b47448cb61fea38533f671fba0d0f8a96fd58facd4dc518e3dac9dbea0905",
+              "url": "https://files.pythonhosted.org/packages/9b/2b/913eda7a67f7bea7496c1a8e1666f48aa9f15520da79368e4ec1109e2690/attrs-24.1.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "935dc3b529c262f6cf76e50877d35a4bd3c1de194fd41f47a2b7ae8f19971f30",
-              "url": "https://files.pythonhosted.org/packages/e3/fc/f800d51204003fa8ae392c4e8278f256206e7a919b708eef054f5f4b650d/attrs-23.2.0.tar.gz"
+              "hash": "adbdec84af72d38be7628e353a09b6a6790d15cd71819f6e9d7b0faa8a125745",
+              "url": "https://files.pythonhosted.org/packages/39/31/ca3e2de55503d8ad75985865629f69a2c376a44428c5df1450b749d30751/attrs-24.1.0.tar.gz"
             }
           ],
           "project_name": "attrs",
           "requires_dists": [
-            "attrs[tests-mypy]; extra == \"tests-no-zope\"",
-            "attrs[tests-no-zope]; extra == \"tests\"",
-            "attrs[tests]; extra == \"cov\"",
-            "attrs[tests]; extra == \"dev\"",
-            "cloudpickle; platform_python_implementation == \"CPython\" and extra == \"tests-no-zope\"",
+            "cloudpickle; platform_python_implementation == \"CPython\" and extra == \"benchmark\"",
+            "cloudpickle; platform_python_implementation == \"CPython\" and extra == \"cov\"",
+            "cloudpickle; platform_python_implementation == \"CPython\" and extra == \"dev\"",
+            "cloudpickle; platform_python_implementation == \"CPython\" and extra == \"tests\"",
+            "cogapp; extra == \"docs\"",
             "coverage[toml]>=5.3; extra == \"cov\"",
             "furo; extra == \"docs\"",
-            "hypothesis; extra == \"tests-no-zope\"",
+            "hypothesis; extra == \"benchmark\"",
+            "hypothesis; extra == \"cov\"",
+            "hypothesis; extra == \"dev\"",
+            "hypothesis; extra == \"tests\"",
             "importlib-metadata; python_version < \"3.8\"",
-            "mypy>=1.6; (platform_python_implementation == \"CPython\" and python_version >= \"3.8\") and extra == \"tests-mypy\"",
+            "mypy>=1.11.1; (platform_python_implementation == \"CPython\" and python_version >= \"3.9\") and extra == \"benchmark\"",
+            "mypy>=1.11.1; (platform_python_implementation == \"CPython\" and python_version >= \"3.9\") and extra == \"cov\"",
+            "mypy>=1.11.1; (platform_python_implementation == \"CPython\" and python_version >= \"3.9\") and extra == \"dev\"",
+            "mypy>=1.11.1; (platform_python_implementation == \"CPython\" and python_version >= \"3.9\") and extra == \"tests\"",
+            "mypy>=1.11.1; (platform_python_implementation == \"CPython\" and python_version >= \"3.9\") and extra == \"tests-mypy\"",
             "myst-parser; extra == \"docs\"",
             "pre-commit; extra == \"dev\"",
-            "pympler; extra == \"tests-no-zope\"",
-            "pytest-mypy-plugins; (platform_python_implementation == \"CPython\" and python_version >= \"3.8\") and extra == \"tests-mypy\"",
-            "pytest-xdist[psutil]; extra == \"tests-no-zope\"",
-            "pytest>=4.3.0; extra == \"tests-no-zope\"",
+            "pympler; extra == \"benchmark\"",
+            "pympler; extra == \"cov\"",
+            "pympler; extra == \"dev\"",
+            "pympler; extra == \"tests\"",
+            "pytest-codspeed; extra == \"benchmark\"",
+            "pytest-mypy-plugins; (platform_python_implementation == \"CPython\" and python_version >= \"3.9\" and python_version < \"3.13\") and extra == \"benchmark\"",
+            "pytest-mypy-plugins; (platform_python_implementation == \"CPython\" and python_version >= \"3.9\" and python_version < \"3.13\") and extra == \"cov\"",
+            "pytest-mypy-plugins; (platform_python_implementation == \"CPython\" and python_version >= \"3.9\" and python_version < \"3.13\") and extra == \"dev\"",
+            "pytest-mypy-plugins; (platform_python_implementation == \"CPython\" and python_version >= \"3.9\" and python_version < \"3.13\") and extra == \"tests\"",
+            "pytest-mypy-plugins; (platform_python_implementation == \"CPython\" and python_version >= \"3.9\" and python_version < \"3.13\") and extra == \"tests-mypy\"",
+            "pytest-xdist[psutil]; extra == \"benchmark\"",
+            "pytest-xdist[psutil]; extra == \"cov\"",
+            "pytest-xdist[psutil]; extra == \"dev\"",
+            "pytest-xdist[psutil]; extra == \"tests\"",
+            "pytest>=4.3.0; extra == \"benchmark\"",
+            "pytest>=4.3.0; extra == \"cov\"",
+            "pytest>=4.3.0; extra == \"dev\"",
+            "pytest>=4.3.0; extra == \"tests\"",
             "sphinx-notfound-page; extra == \"docs\"",
             "sphinx; extra == \"docs\"",
             "sphinxcontrib-towncrier; extra == \"docs\"",
-            "towncrier; extra == \"docs\"",
-            "zope-interface; extra == \"docs\"",
-            "zope-interface; extra == \"tests\""
+            "towncrier<24.7; extra == \"docs\""
           ],
           "requires_python": ">=3.7",
-          "version": "23.2.0"
+          "version": "24.1.0"
         },
         {
           "artifacts": [
@@ -231,23 +250,23 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "3a5b6606af1b268b98ae43cbe991107768a9c1a241553a198049d19b07e0eb62",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.19.3/pantsbuild.pants-2.19.3-cp39-cp39-manylinux2014_x86_64.whl"
+              "hash": "9d36c23959d421af00cd4c054e38fe765a033eb5bd338342168c9c9a0a8049ef",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.3/pantsbuild.pants-2.20.3-cp39-cp39-manylinux2014_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "f837cc8f3203e707530f3add4324eaf71f640a7e5bd470f809016e839f3e866b",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.19.3/pantsbuild.pants-2.19.3-cp39-cp39-macosx_10_15_x86_64.whl"
+              "hash": "2d3935335fda072a0fd9691398dc47ca5ff8dfb2fdf6118c145f382f850ef6e6",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.3/pantsbuild.pants-2.20.3-cp39-cp39-macosx_10_15_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "b9259d2541124d2141d45fbab55de9e9005015dd246be49285fd75995acd3319",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.19.3/pantsbuild.pants-2.19.3-cp39-cp39-macosx_11_0_arm64.whl"
+              "hash": "8158be1e35ef791d4d09ceef7c780450a0b35df8acff2db59580fa9062b499c5",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.3/pantsbuild.pants-2.20.3-cp39-cp39-macosx_11_0_arm64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "9858a1e33dcc98c95d818664508c0d4381c1d5cf34d736b6c6f1b863550d115d",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.19.3/pantsbuild.pants-2.19.3-cp39-cp39-manylinux2014_aarch64.whl"
+              "hash": "3ab59f5665c91f15fe2195815472e30feeae1ea7b0079bd39862bfca12f5928e",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.3/pantsbuild.pants-2.20.3-cp39-cp39-manylinux2014_aarch64.whl"
             }
           ],
           "project_name": "pantsbuild-pants",
@@ -271,23 +290,23 @@
             "typing-extensions==4.3.0"
           ],
           "requires_python": "==3.9.*",
-          "version": "2.19.3"
+          "version": "2.20.3"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "c7482b99a1b22c71f9c1f001f29fe3df5530c7eef196053b8575492b0618c340",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.19.3/pantsbuild.pants.testutil-2.19.3-py3-none-any.whl"
+              "hash": "2d45a1518a735ecf31d91f9c86b91e6cd078210c49d01e6a50ee9cb78ccce05f",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.3/pantsbuild.pants.testutil-2.20.3-py3-none-any.whl"
             }
           ],
           "project_name": "pantsbuild-pants-testutil",
           "requires_dists": [
-            "pantsbuild.pants==2.19.3",
+            "pantsbuild.pants==2.20.3",
             "pytest<7.1.0,>=6.2.4"
           ],
           "requires_python": "==3.9.*",
-          "version": "2.19.3"
+          "version": "2.20.3"
         },
         {
           "artifacts": [
@@ -872,8 +891,8 @@
   "pip_version": "23.1.2",
   "prefer_older_binary": false,
   "requirements": [
-    "pantsbuild.pants.testutil==2.19.3",
-    "pantsbuild.pants==2.19.3"
+    "pantsbuild.pants.testutil==2.20.3",
+    "pantsbuild.pants==2.20.3"
   ],
   "requires_python": [
     "==3.9.*"
