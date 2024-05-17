@@ -127,25 +127,10 @@ jobs:
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
-      - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v5
+      - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
+        uses: ./.github/actions/setup-python.yaml
         with:
           python-version: '${{ matrix.python-version }}'
-      - name: Cache Python Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            virtualenv
-            ~/virtualenv
-          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
-          # !virtualenv/lib/python*/site-packages/st2*
-          # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
-          # Don't use alternative key as if requirements.txt has altered we
-          # don't want to retrieve previous cache
-          #restore-keys: |
-          #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-cache.yaml
       - name: Install virtualenv

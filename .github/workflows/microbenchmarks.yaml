@@ -75,22 +75,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v5
+      - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
+        uses: ./.github/actions/setup-python.yaml
         with:
           python-version: '${{ matrix.python-version }}'
-      - name: Cache Python Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            virtualenv
-            ~/virtualenv
-          key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
-          # Don't use alternative key as if requirements.txt has altered we
-          # don't want to retrieve previous cache
-          #restore-keys: |
-          #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages.yaml
       - name: Install virtualenv
