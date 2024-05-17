@@ -83,23 +83,8 @@ jobs:
           python-version: '${{ matrix.python-version }}'
 
 
-      #- name: Cache APT Dependencies
-      #  id: cache-apt-deps
-      #  uses: actions/cache@v4
-      #  with:
-      #    path: |
-      #      ~/apt_cache
-      #    key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
-      #    restore-keys: |
-      #      ${{ runner.os }}-v8-apt-
-      - name: Install APT Depedencies
-        env:
-          CACHE_HIT: 'false' # cache doesn't work
-          #CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
-        run: |
-          # install dev dependencies for Python YAML and LDAP packages
-          # https://github.com/StackStorm/st2-auth-ldap
-          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-cache.yaml
 
       - name: Initialize Pants and its GHA caches
         uses: ./.github/actions/init-pants.yaml

@@ -91,20 +91,8 @@ jobs:
           # don't want to retrieve previous cache
           #restore-keys: |
           #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
-      - name: Cache APT Dependencies
-        id: cache-apt-deps
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/apt_cache
-          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-v8-apt-
-      - name: Install APT Dependencies
-        env:
-          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
-        run: |
-          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages.yaml
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh

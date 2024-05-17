@@ -100,22 +100,8 @@ jobs:
           # don't want to retrieve previous cache
           #restore-keys: |
           #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
-      - name: Cache APT Dependencies
-        id: cache-apt-deps
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/apt_cache
-          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-v8-apt-
-      - name: Install APT Depedencies
-        env:
-          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
-        run: |
-          # install dev dependencies for Python YAML and LDAP packages
-          # https://github.com/StackStorm/st2-auth-ldap
-          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages.yaml
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -197,23 +183,8 @@ jobs:
           key: ${{ runner.os }}-v5-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
           restore-keys: |
             ${{ runner.os }}-python-${{ matrix.python }}-
-      - name: Cache APT Dependencies
-        id: cache-apt-deps
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/apt_cache
-          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-v8-apt-
-      - name: Install APT Depedencies
-        env:
-          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
-        run: |
-          cat /etc/environment
-          # install dev dependencies for Python YAML and LDAP packages
-          # https://github.com/StackStorm/st2-auth-ldap
-          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages.yaml
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -403,22 +374,8 @@ jobs:
           # don't want to retrieve previous cache
           #restore-keys: |
           #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
-      - name: Cache APT Dependencies
-        id: cache-apt-deps
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/apt_cache
-          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-v8-apt-
-      - name: Install APT Depedencies
-        env:
-          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
-        run: |
-          # install dev dependencies for Python YAML and LDAP packages
-          # https://github.com/StackStorm/st2-auth-ldap
-          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages.yaml
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -623,22 +580,8 @@ jobs:
           # don't want to retrieve previous cache
           #restore-keys: |
           #  ${{ runner.os }}-v5-python-${{ matrix.python }}-
-      - name: Cache APT Dependencies
-        id: cache-apt-deps
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/apt_cache
-          key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-v8-apt-
-      - name: Install APT Depedencies
-        env:
-          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
-        run: |
-          # install dev dependencies for Python YAML and LDAP packages
-          # https://github.com/StackStorm/st2-auth-ldap
-          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages.yaml
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
