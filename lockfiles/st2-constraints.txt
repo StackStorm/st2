@@ -20,7 +20,7 @@
 # REASON: Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode >=0.23 was from jinja2
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: unknown
-MarkupSafe==2.1.5
+#MarkupSafe==2.1.5
 
 # REQUIRED BY: kombu
 # REASON: unknown -- this looks like a lockfile-style pin
@@ -69,7 +69,7 @@ MarkupSafe==2.1.5
 # NOTE: try to remove this later
 # DROPS RESOLVED VERSION: 1.16
 #dnspython==2.6.1
-dnspython>=1.16.0,<2.0.0
+#dnspython>=1.16.0,<2.0.0
 
 # REQUIRED BY: eventlet
 # REASON: eventlet is difficult to upgrade.
