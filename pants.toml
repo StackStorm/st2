@@ -135,7 +135,7 @@ black = ["CPython>=3.8,<3.10"]
 flake8 = ["CPython>=3.8,<3.10"]
 pants-plugins = [
   # this should match the pants interpreter_constraints:
-  # https://github.com/pantsbuild/pants/blob/2.18.x/pants.toml#L144
+  # https://github.com/pantsbuild/pants/blob/2.19.x/pants.toml#L145
   # See: https://www.pantsbuild.org/docs/prerequisites
   "CPython==3.9.*",
 ]
