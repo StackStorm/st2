@@ -11,3 +11,9 @@ colors = true
 # including the number of cache hits and the total time saved thanks
 # to caching"
 log = true
+
+[test]
+# Have pants automatically retry tests that fail to help with flaky tests.
+# https://www.pantsbuild.org/2.19/docs/using-pants/using-pants-in-ci#tip-automatically-retry-failed-tests
+# https://www.pantsbuild.org/2.19/reference/goals/test#attempts_default
+attempts_default = 3
