@@ -6,6 +6,11 @@
 # doesn't attempt to use them by default.
 colors = true
 
+# GitHub Actions cache URL and token are set via environment variables
+remote_provider = "experimental-github-actions-cache"
+remote_cache_read = true
+remote_cache_write = true
+
 [stats]
 # "print metrics of your cache's performance at the end of the run,
 # including the number of cache hits and the total time saved thanks
