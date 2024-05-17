@@ -75,8 +75,6 @@ routes==2.5.1
 semver==3.0.2
 # 202404: Bumped for compatibility prance 23.6.21.0 requires six~=1.15.
 six==1.16.0
-#argparse==1.12.2
-argparse==1.4.0
 # 202403: Bumped to latest for py3.10 support
 argcomplete==3.3.0
 prettytable==3.10.0

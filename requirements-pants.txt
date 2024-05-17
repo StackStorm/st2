@@ -8,7 +8,6 @@
 
 apscheduler
 argcomplete
-argparse
 ciso8601
 cryptography
 editor

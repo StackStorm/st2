@@ -12,7 +12,6 @@
 //     "RandomWords",
 //     "apscheduler",
 //     "argcomplete",
-//     "argparse",
 //     "beautifulsoup4",
 //     "ciso8601",
 //     "cryptography",
@@ -177,24 +176,6 @@
           ],
           "requires_python": ">=3.8",
           "version": "3.3.0"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
-              "hash": "c31647edb69fd3d465a847ea3157d37bed1f95f19760b11a47aa91c04b666314",
-              "url": "https://files.pythonhosted.org/packages/f2/94/3af39d34be01a24a6e65433d19e107099374224905f1e0cc6bbe1fd22a2f/argparse-1.4.0-py2.py3-none-any.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "62b089a55be1d8949cd2bc7e0df0bddb9e028faefc8c32038cc84862aefdd6e4",
-              "url": "https://files.pythonhosted.org/packages/18/dd/e617cfc3f6210ae183374cd9f6a26b20514bbb5a792af97949c5aacddf0f/argparse-1.4.0.tar.gz"
-            }
-          ],
-          "project_name": "argparse",
-          "requires_dists": [],
-          "requires_python": null,
-          "version": "1.4.0"
         },
         {
           "artifacts": [
@@ -5646,7 +5627,6 @@
     "RandomWords",
     "apscheduler",
     "argcomplete",
-    "argparse",
     "beautifulsoup4",
     "ciso8601",
     "cryptography",
