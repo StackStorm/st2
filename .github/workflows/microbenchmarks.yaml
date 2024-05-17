@@ -98,7 +98,7 @@ jobs:
       - name: Upload Histograms
         uses: actions/upload-artifact@v4
         with:
-          name: benchmark_histograms
+          name: benchmark_histograms-py${{ matrix.python-version }}
           path: benchmark_histograms/
           retention-days: 30
 

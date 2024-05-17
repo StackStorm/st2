@@ -594,6 +594,7 @@ jobs:
     if: always()
     needs:
       - lint-checks
+      - self-check
       - unit-tests
       - integration-tests
     runs-on: ubuntu-20.04
