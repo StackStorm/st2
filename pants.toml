@@ -96,8 +96,8 @@ root_patterns = [
   "/contrib/examples/actions/ubuntu_pkg_info", # python script runs via shell expecting cwd in PYTHONPATH
   # lint plugins
   "/pylint_plugins",
-  # pants plugins - 202404 disabled because pants doesn't support >py3.9 and conflicts with other targets using >py3.9
-#  "/pants-plugins",
+  # pants plugins
+  "/pants-plugins",
   # misc
   "/scripts",
   "/tools",
