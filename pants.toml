@@ -172,7 +172,7 @@ string_imports_min_dots = 1
 # custom PYTHONPATH for packs, so actions that import other actions are still showing
 # up as unowned. Maybe we can extend pants-plugins/pack_metadata so we can use "warn".
 unowned_dependency_behavior = "ignore"
-# https://www.pantsbuild.org/v2.16/docs/reference-python-infer#ambiguity_resolution
+# https://www.pantsbuild.org/docs/reference-python-infer#ambiguity_resolution
 # When resolving ambiguous deps prefer one that is in the same source root as the
 # file that uses it. So, without manually disambiguating the dep in the BUILD file,
 # importing tests.unit.base in st2common/tests/unit will get a dep on st2common/tests/unit/base.py
