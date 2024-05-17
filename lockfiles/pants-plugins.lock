@@ -9,8 +9,8 @@
 //     "CPython==3.9.*"
 //   ],
 //   "generated_with_requirements": [
-//     "pantsbuild.pants.testutil==2.19.3rc1",
-//     "pantsbuild.pants==2.19.3rc1"
+//     "pantsbuild.pants.testutil==2.20.1",
+//     "pantsbuild.pants==2.20.1"
 //   ],
 //   "manylinux": "manylinux2014",
 //   "requirement_constraints": [],
@@ -231,23 +231,23 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "0a773978d24732e36f6721b0bd080fd4be1b77e263f7b351c47dc4252c607de2",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.19.3rc1/pantsbuild.pants-2.19.3rc1-cp39-cp39-manylinux2014_x86_64.whl"
+              "hash": "159bc2e5cae0fdbd169a87353389e70aaea4fbdb4a38fcd2373cd8aac71e7bf1",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.1/pantsbuild.pants-2.20.1-cp39-cp39-manylinux2014_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "65117cf14c62a838be902e4e35264cc6fa0e761a5dd57449771ac7693740ff80",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.19.3rc1/pantsbuild.pants-2.19.3rc1-cp39-cp39-macosx_10_15_x86_64.whl"
+              "hash": "1d76e370d31b19d9fa4a94033a6184f128d68dba685407efbe6ab3b4db8cdaec",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.1/pantsbuild.pants-2.20.1-cp39-cp39-macosx_10_15_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "32c0651d8e8313f8b3f62ea0ea2e8c11f7523f9130adffa0778c8ea785c955d2",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.19.3rc1/pantsbuild.pants-2.19.3rc1-cp39-cp39-macosx_11_0_arm64.whl"
+              "hash": "4b0361c1b277d1fbc4adb556d988908ab8bb469370c1df6d4919a7f00bf34f04",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.1/pantsbuild.pants-2.20.1-cp39-cp39-macosx_11_0_arm64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "bef2ce3e96a1f0a977ca35e66cb1ec8346f69be43a6ea1dd6cb49c93611c3d18",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.19.3rc1/pantsbuild.pants-2.19.3rc1-cp39-cp39-manylinux2014_aarch64.whl"
+              "hash": "77b8f0527c3391de43cea1f15cf8e6bfb51dfef672b87229d73cf2ab2a249b56",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.1/pantsbuild.pants-2.20.1-cp39-cp39-manylinux2014_aarch64.whl"
             }
           ],
           "project_name": "pantsbuild-pants",
@@ -271,23 +271,23 @@
             "typing-extensions==4.3.0"
           ],
           "requires_python": "==3.9.*",
-          "version": "2.19.3rc1"
+          "version": "2.20.1"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "7f86b3720d3ac7bf260ba80693be309ff69b63cbfb4ef085c00f7ea49265e38b",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.19.3rc1/pantsbuild.pants.testutil-2.19.3rc1-py3-none-any.whl"
+              "hash": "1469b85cb39b7c93bb7a3f047c72637972cba383e01e6a58bb20da92e336063c",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.1/pantsbuild.pants.testutil-2.20.1-py3-none-any.whl"
             }
           ],
           "project_name": "pantsbuild-pants-testutil",
           "requires_dists": [
-            "pantsbuild.pants==2.19.3rc1",
+            "pantsbuild.pants==2.20.1",
             "pytest<7.1.0,>=6.2.4"
           ],
           "requires_python": "==3.9.*",
-          "version": "2.19.3rc1"
+          "version": "2.20.1"
         },
         {
           "artifacts": [
@@ -872,8 +872,8 @@
   "pip_version": "23.1.2",
   "prefer_older_binary": false,
   "requirements": [
-    "pantsbuild.pants.testutil==2.19.3rc1",
-    "pantsbuild.pants==2.19.3rc1"
+    "pantsbuild.pants.testutil==2.20.1",
+    "pantsbuild.pants==2.20.1"
   ],
   "requires_python": [
     "==3.9.*"

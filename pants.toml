@@ -6,11 +6,11 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.19.3rc1"
+pants_version = "2.20.1"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
-  # https://www.pantsbuild.org/2.19/docs/using-pants/validating-dependencies
+  # https://www.pantsbuild.org/2.20/docs/using-pants/validating-dependencies
   "pants.backend.experimental.visibility",
 
   # python
@@ -135,7 +135,7 @@ black = ["CPython>=3.8,<3.10"]
 flake8 = ["CPython>=3.8,<3.10"]
 pants-plugins = [
   # this should match the pants interpreter_constraints:
-  # https://github.com/pantsbuild/pants/blob/2.19.x/pants.toml#L145
+  # https://github.com/pantsbuild/pants/blob/2.20.x/pants.toml#L147
   # See: https://www.pantsbuild.org/docs/prerequisites
   "CPython==3.9.*",
 ]
