@@ -29,7 +29,7 @@ Added
 * Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
   to pants' use of PEX lockfiles. This is not a user-facing addition.
-  #6118 #6141 #6133 #6120 #6181 #6183
+  #6118 #6141 #6133 #6120 #6181 #6183 #6200
   Contributed by @cognifloyd
 * Build of ST2 EL9 packages #6153
   Contributed by @amanda11
