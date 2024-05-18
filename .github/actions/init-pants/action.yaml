@@ -12,15 +12,8 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Configure Pants caching to GitHub Actions Cache
-      uses: actions/github-script@v6
-      with:
-        script: |
-          core.exportVariable('PANTS_REMOTE_STORE_ADDRESS', process.env.ACTIONS_CACHE_URL);
-          core.exportVariable('PANTS_REMOTE_OAUTH_BEARER_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
-
     - name: Initialize Pants and its GHA caches
-      uses: pantsbuild/actions/init-pants@v8
+      uses: pantsbuild/actions/init-pants@v9
       # This action adds an env var to make pants use both pants.ci.toml & pants.toml.
       # This action also creates 3 GHA caches (1 is optional).
       # - `pants-setup` has the bootsrapped pants install
@@ -37,7 +30,9 @@ runs:
         # get invalidated on any transitive dependency update.
         named-caches-hash: ${{ hashFiles('lockfiles/*.lock') }}
         # enable the optional lmdb_store cache since we're not using remote caching.
-        cache-lmdb-store: 'true'
+        cache-lmdb-store: 'false'
+        # Try the experimental support for using GHA cache as a pants remote cache.
+        experimental-remote-cache-via-gha: 'true'
         # install whatever version of python we need for our in-repo pants-plugins
         setup-python-for-plugins: 'true'
 
