@@ -37,6 +37,8 @@ Added
   Contributed by @cognifloyd
 * Add support for SSL/TLS to `st2api` and `st2stream` components. #6204
   Contributed by @jk464
+* Move API code for `st2api`, `st2auth` and `st2stream` components to common library `st2common.openapi`. #6204
+  Contributed by @jk464
 
 3.8.1 - December 13, 2023
 -------------------------

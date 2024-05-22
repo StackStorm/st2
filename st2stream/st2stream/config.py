@@ -24,61 +24,34 @@ import os
 from oslo_config import cfg
 
 import st2common.config as common_config
-from st2common.constants.system import VERSION_STRING
-from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
+from st2common.openapi import config
 
 CONF = cfg.CONF
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def parse_args(args=None):
-    cfg.CONF(
-        args=args,
-        version=VERSION_STRING,
-        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
-    )
+    config.parse_args(args=args)
 
 
 def register_opts(ignore_errors=False):
-    _register_common_opts(ignore_errors=ignore_errors)
-    _register_app_opts(ignore_errors=ignore_errors)
-
-
-def _register_common_opts(ignore_errors=False):
-    common_config.register_opts(ignore_errors=ignore_errors)
+    config.register_opts(_register_app_opts, ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
-    return cfg.CONF.stream.logging
+    return config.get_logging_config_path(cfg.CONF.stream)
 
 
 def _register_app_opts(ignore_errors=False):
     # Note "allow_origin", "mask_secrets", "heartbeat" options are registered as part of st2common
     # config since they are also used outside st2stream
-    api_opts = [
+    stream_opts = config.get_base_opts("stream") + [
         cfg.StrOpt(
             "host", default="127.0.0.1", help="StackStorm stream API server host"
         ),
         cfg.IntOpt("port", default=9102, help="StackStorm API stream, server port"),
-        cfg.BoolOpt("debug", default=False, help="Specify to enable debug mode."),
-        cfg.StrOpt(
-            "logging",
-            default="/etc/st2/logging.stream.conf",
-            help="location of the logging.conf file",
-        ),
-        cfg.BoolOpt("use_ssl", default=False, help="Specify to enable SSL / TLS mode"),
-        cfg.StrOpt(
-            "cert",
-            default="/etc/apache2/ssl/mycert.crt",
-            help='Path to the SSL certificate file. Only used when "use_ssl" is specified.',
-        ),
-        cfg.StrOpt(
-            "key",
-            default="/etc/apache2/ssl/mycert.key",
-            help='Path to the SSL private key file. Only used when "use_ssl" is specified.',
-        ),
     ]
 
     common_config.do_register_opts(
-        api_opts, group="stream", ignore_errors=ignore_errors
+        stream_opts, group="stream", ignore_errors=ignore_errors
     )
