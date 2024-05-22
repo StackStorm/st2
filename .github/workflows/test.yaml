@@ -103,10 +103,11 @@ jobs:
         #   pants test ::
         # Until then, we need to manually adjust this command line to test what we can.
         run: >
-          pants test
+          pants
           --python-bootstrap-search-path=[]
           --python-bootstrap-search-path=${{ steps.python.outputs.python-path }}
-          --tags=unit
+          --tag=unit
+          test
           pylint_plugins/::
           st2client/::
 
