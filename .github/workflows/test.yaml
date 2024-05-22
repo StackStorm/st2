@@ -108,6 +108,7 @@ jobs:
           --python-bootstrap-search-path=${{ steps.python.outputs.python-path }}
           --tags=unit
           pylint_plugins/::
+          st2client/::
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4
