@@ -78,6 +78,7 @@ jobs:
           submodules: 'true'
 
       - name: 'Set up Python (${{ matrix.python-version }})'
+        id: python
         uses: actions/setup-python@v5
         with:
           python-version: '${{ matrix.python-version }}'
@@ -92,16 +93,25 @@ jobs:
           # To ignore a bad cache, bump the cache* integer.
           gha-cache-key: cache0-py${{ matrix.python-version }}
 
-      - name: Test
+      - name: Test pants-plugins
+        if: ${{ matrix.python-version-short == '3.9' }}
+        run: |
+          pants test pants-plugins/::
+
+      - name: Unit Tests
         # We do not support running pytest everywhere yet. When we do it will be simply:
         #   pants test ::
         # Until then, we need to manually adjust this command line to test what we can.
-        run: |
-          pants test pylint_plugins/:: pants-plugins/::
+        run: >
+          pants test
+          --python-bootstrap-search-path=[]
+          --python-bootstrap-search-path=${{ steps.python.outputs.python-path }}
+          --tags=unit
+          pylint_plugins/::
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4
         with:
           name: pants-log-py${{ matrix.python-version }}
           path: .pants.d/pants.log
-        if: always()  # We want the log even on failures.
+        if: ${{ always() }}  # We want the log even on failures.
