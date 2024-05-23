@@ -149,6 +149,8 @@ class ContentPackLoader(object):
     def _get_packs_from_dir(self, base_dir):
         result = {}
         for pack_name in os.listdir(base_dir):
+            if pack_name == "__pycache__":
+                continue
             pack_dir = os.path.join(base_dir, pack_name)
             pack_manifest_file = os.path.join(pack_dir, MANIFEST_FILE_NAME)
 
@@ -160,6 +162,8 @@ class ContentPackLoader(object):
     def _get_content_from_dir(self, base_dir, content_type):
         content = {}
         for pack in os.listdir(base_dir):
+            if pack == "__pycache__":
+                continue
             # TODO: Use function from util which escapes the name
             pack_dir = os.path.join(base_dir, pack)
 
