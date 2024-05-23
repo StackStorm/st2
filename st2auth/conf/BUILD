@@ -8,22 +8,22 @@ file(
     source="htpasswd_dev",
 )
 
-file(
+st2_logging_conf_file(
     name="logging_console",
     source="console.conf",
 )
 
-file(
+st2_logging_conf_file(
     name="logging",
     source="logging.conf",
 )
 
-file(
+st2_logging_conf_file(
     name="logging_gunicorn",
     source="logging.gunicorn.conf",
 )
 
-file(
+st2_logging_conf_file(
     name="logging_syslog",
     source="syslog.conf",
 )
