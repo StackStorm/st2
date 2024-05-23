@@ -40,6 +40,7 @@ backend_packages = [
 pants_ignore.add = [
   # TODO: remove these once we start building wheels with pants.
   "dist_utils.py",
+  "test_dist_utils.py",
   "setup.py",
   # keep tailor from using legacy requirements files (not for pants)
   "contrib/examples/requirements.txt",
