@@ -13,7 +13,10 @@ python_tests(
     ],
     uses=["mongo", "rabbitmq"],
     overrides={
-        "test_util_file_system.py": dict(
+        (
+            "test_util_file_system.py",
+            "test_policies_registrar.py",
+        ): dict(
             dependencies=[
                 "st2tests/st2tests/policies",
                 "st2tests/st2tests/policies/meta",
