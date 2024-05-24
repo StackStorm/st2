@@ -15,12 +15,11 @@
 
 from __future__ import absolute_import
 
-import st2tests.config as tests_config
-
-tests_config.parse_args()
-
 import mock
 from kombu.message import Message
+
+# This import must be early for import-time side-effects.
+from st2tests.base import ExecutionDbTestCase
 
 from st2actions import worker
 from st2actions.scheduler import entrypoint as scheduling
@@ -35,7 +34,6 @@ from st2common.services import executions
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import action_db as action_utils
 from st2common.util import date as date_utils
-from st2tests.base import ExecutionDbTestCase
 from st2tests.fixtures.packs.core.fixture import PACK_PATH as CORE_PACK_PATH
 
 

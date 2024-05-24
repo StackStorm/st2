@@ -16,10 +16,6 @@
 import eventlet
 import mock
 
-from st2tests import config as test_config
-
-test_config.parse_args()
-
 from st2actions.cmd.scheduler import _run_scheduler
 from st2actions.scheduler.handler import ActionExecutionSchedulingQueueHandler
 from st2actions.scheduler.entrypoint import SchedulerEntrypoint
