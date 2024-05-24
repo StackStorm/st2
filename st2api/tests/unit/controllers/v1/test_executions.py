@@ -15,6 +15,7 @@
 
 import copy
 import mock
+import os
 
 try:
     import simplejson as json
@@ -60,6 +61,7 @@ __all__ = [
     "ActionExecutionOutputControllerTestCase",
 ]
 
+SYSTEM_USER = os.environ.get("ST2TESTS_SYSTEM_USER", "") or "stanley"
 
 ACTION_1 = {
     "name": "st2.dummy.action1",
@@ -686,7 +688,7 @@ class ActionExecutionControllerTestCase(
         delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
         self.assertEqual(delete_resp.status_int, 200)
         self.assertEqual(delete_resp.json["status"], "canceled")
-        expected_result = {"message": "Action canceled by user.", "user": "stanley"}
+        expected_result = {"message": "Action canceled by user.", "user": SYSTEM_USER}
         self.assertDictEqual(delete_resp.json["result"], expected_result)
 
     def test_post_delete_duplicate(self):
@@ -702,7 +704,7 @@ class ActionExecutionControllerTestCase(
             delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
             self.assertEqual(delete_resp.status_int, 200)
             self.assertEqual(delete_resp.json["status"], "canceled")
-            expected_result = {"message": "Action canceled by user.", "user": "stanley"}
+            expected_result = {"message": "Action canceled by user.", "user": SYSTEM_USER}
             self.assertDictEqual(delete_resp.json["result"], expected_result)
 
     def test_post_delete_trace(self):
@@ -976,7 +978,7 @@ class ActionExecutionControllerTestCase(
                 ),
             },
             {
-                "name": "stanley:secret",
+                "name": f"{SYSTEM_USER}:secret",
                 "secret": True,
                 "scope": FULL_USER_SCOPE,
                 "value": crypto_utils.symmetric_encrypt(
@@ -994,18 +996,18 @@ class ActionExecutionControllerTestCase(
         ]
         kvps = [KeyValuePair.add_or_update(KeyValuePairDB(**x)) for x in register_items]
 
-        # By default, encrypt_user_param will be read from stanley's scope
+        # By default, encrypt_user_param will be read from system_user's scope
         # 1. parameters are not marked as secret
         resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json["context"]["user"], "stanley")
+        self.assertEqual(resp.json["context"]["user"], SYSTEM_USER)
         self.assertEqual(resp.json["parameters"]["encrypted_param"], "foo")
         self.assertEqual(resp.json["parameters"]["encrypted_user_param"], "bar")
 
         # 2. parameters are marked as secret
         resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json["context"]["user"], "stanley")
+        self.assertEqual(resp.json["context"]["user"], SYSTEM_USER)
         self.assertEqual(
             resp.json["parameters"]["encrypted_param"], MASKED_ATTRIBUTE_VALUE
         )
@@ -1077,7 +1079,7 @@ class ActionExecutionControllerTestCase(
         )
 
         expected_context = {
-            "user": "stanley",
+            "user": SYSTEM_USER,
             "pack": "starterpack",
             "re-run": {"ref": execution_id},
             "trace_context": {"id_": str(trace.id)},
@@ -1106,7 +1108,7 @@ class ActionExecutionControllerTestCase(
 
         expected_context = {
             "pack": "starterpack",
-            "user": "stanley",
+            "user": SYSTEM_USER,
             "re-run": {"ref": execution_id, "tasks": data["tasks"]},
             "trace_context": {"id_": str(trace.id)},
         }
@@ -1134,7 +1136,7 @@ class ActionExecutionControllerTestCase(
 
         expected_context = {
             "pack": "starterpack",
-            "user": "stanley",
+            "user": SYSTEM_USER,
             "re-run": {"ref": execution_id, "tasks": data["tasks"]},
             "trace_context": {"id_": str(trace.id)},
         }
@@ -1162,7 +1164,7 @@ class ActionExecutionControllerTestCase(
 
         expected_context = {
             "pack": "starterpack",
-            "user": "stanley",
+            "user": SYSTEM_USER,
             "re-run": {
                 "ref": execution_id,
                 "tasks": data["tasks"],
