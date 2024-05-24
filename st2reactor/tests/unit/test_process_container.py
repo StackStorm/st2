@@ -27,8 +27,6 @@ from st2common.persistence.pack import Pack
 
 import st2tests.config as tests_config
 
-tests_config.parse_args()
-
 MOCK_PACK_DB = PackDB(
     ref="wolfpack",
     name="wolf pack",
@@ -38,6 +36,11 @@ MOCK_PACK_DB = PackDB(
 
 
 class ProcessContainerTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     def test_no_sensors_dont_quit(self):
         process_container = ProcessSensorContainer(None, poll_interval=0.1)
         process_container_thread = concurrency.spawn(process_container.run)
