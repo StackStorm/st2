@@ -16,9 +16,8 @@
 from __future__ import absolute_import
 import mock
 
-from st2tests import config as test_config
-
-test_config.parse_args()
+# This import must be early for import-time side-effects.
+from st2tests.base import CleanDbTestCase, DbTestCase
 
 import st2common
 from st2common.bootstrap.policiesregistrar import register_policy_types
@@ -28,8 +27,6 @@ from st2common import policies
 from st2common.services import action as action_service
 from st2common.services import policies as policy_service
 from st2common.bootstrap import runnersregistrar as runners_registrar
-from st2tests.base import DbTestCase
-from st2tests.base import CleanDbTestCase
 from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 

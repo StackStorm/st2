@@ -14,12 +14,16 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from bson.errors import InvalidStringData
 import eventlet
 import mock
 import os
 from oslo_config import cfg
 import tempfile
+
+# This import must be early for import-time side-effects.
+from st2tests.base import DbTestCase
 
 import st2actions.worker as actions_worker
 from st2common.constants import action as action_constants
@@ -33,13 +37,9 @@ from st2common.util import date as date_utils
 from st2common.bootstrap import runnersregistrar as runners_registrar
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
-from st2tests.base import DbTestCase
 from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
-import st2tests.config as tests_config
 from six.moves import range
-
-tests_config.parse_args()
 
 TEST_FIXTURES = {"actions": ["local.yaml"]}
 

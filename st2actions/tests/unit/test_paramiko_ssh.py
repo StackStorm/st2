@@ -29,12 +29,15 @@ from st2common.runners.paramiko_ssh import ParamikoSSHClient
 from st2tests.fixturesloader import get_resources_base_path
 import st2tests.config as tests_config
 
-tests_config.parse_args()
-
 __all__ = ["ParamikoSSHClientTestCase"]
 
 
 class ParamikoSSHClientTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     @patch("paramiko.SSHClient", Mock)
     def setUp(self):
         """
