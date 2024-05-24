@@ -33,8 +33,7 @@ from st2common.models.db.trigger import TriggerDB
 from st2reactor.container.sensor_wrapper import SensorWrapper
 from st2reactor.sensor.base import Sensor, PollingSensor
 
-CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
-RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../resources"))
+from tests.resources.fixture import FIXTURE_PATH as RESOURCES_DIR
 
 __all__ = ["SensorWrapperTestCase"]
 
