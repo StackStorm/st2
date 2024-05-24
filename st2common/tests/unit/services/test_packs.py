@@ -426,7 +426,6 @@ class CloneActionDBAndFilesTestCase(unittest.TestCase):
         if not os.path.isdir(workflow_files_path):
             os.mkdir(workflow_files_path)
 
-
     @classmethod
     def tearDownClass(cls):
         action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
