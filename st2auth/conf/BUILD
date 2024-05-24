@@ -16,11 +16,13 @@ st2_logging_conf_file(
 st2_logging_conf_file(
     name="logging",
     source="logging.conf",
+    dependencies=["//:logs_directory"],
 )
 
 st2_logging_conf_file(
     name="logging_gunicorn",
     source="logging.gunicorn.conf",
+    dependencies=["//:logs_directory"],
 )
 
 st2_logging_conf_file(
