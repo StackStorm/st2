@@ -117,6 +117,9 @@ jobs:
           st2common/::
           st2actions/::
           st2reactor/::
+          st2stream/::
+          st2auth/::
+          st2api/::
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4
