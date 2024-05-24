@@ -23,10 +23,6 @@ from orquesta import statuses as wf_statuses
 
 import st2tests
 
-import st2tests.config as tests_config
-
-tests_config.parse_args()
-
 from local_runner import local_shell_command_runner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
