@@ -24,7 +24,6 @@ import unittest
 import st2common.util.loader as plugin_loader
 
 
-from tests.resources.loadableplugin.fixture import FIXTURE_NAME as PLUGIN_FOLDER
 from tests.resources.loadableplugin.fixture import FIXTURE_PATH as SRC_ROOT
 
 

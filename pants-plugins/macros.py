@@ -139,7 +139,7 @@ def st2_logging_conf_files(**kwargs):
     deps = kwargs.pop("dependencies", []) or []
     deps = list(deps) + list(_st2common_logging_deps)
     kwargs["dependencies"] = tuple(deps)
-    files(**kwargs)
+    files(**kwargs)  # noqa: F821
 
 
 def st2_logging_conf_file(**kwargs):
@@ -147,7 +147,7 @@ def st2_logging_conf_file(**kwargs):
     deps = kwargs.pop("dependencies", []) or []
     deps = list(deps) + list(_st2common_logging_deps)
     kwargs["dependencies"] = tuple(deps)
-    file(**kwargs)
+    file(**kwargs)  # noqa: F821
 
 
 def st2_logging_conf_resources(**kwargs):
@@ -155,4 +155,4 @@ def st2_logging_conf_resources(**kwargs):
     deps = kwargs.pop("dependencies", []) or []
     deps = list(deps) + list(_st2common_logging_deps)
     kwargs["dependencies"] = tuple(deps)
-    resources(**kwargs)
+    resources(**kwargs)  # noqa: F821
