@@ -20,6 +20,13 @@ import st2common.bootstrap.actionsregistrar as actions_registrar
 from st2common.persistence.pack import Pack
 from st2tests.api import FunctionalTest
 
+from st2tests.fixtures.packs.dummy_pack_1.fixture import (
+    PACK_NAME as DUMMY_PACK_1,
+)
+from st2tests.fixtures.packs.dummy_pack_16.fixture import (
+    PACK_NAME as DUMMY_PACK_16,
+)
+
 
 @mock.patch("st2common.bootstrap.base.REGISTERED_PACKS_CACHE", {})
 class PacksViewsControllerTestCase(FunctionalTest):
@@ -31,7 +38,7 @@ class PacksViewsControllerTestCase(FunctionalTest):
         actions_registrar.register_actions(use_pack_cache=False)
 
     def test_get_pack_files_success(self):
-        resp = self.app.get("/v1/packs/views/files/dummy_pack_1")
+        resp = self.app.get(f"/v1/packs/views/files/{DUMMY_PACK_1}")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertTrue(len(resp.json) > 1)
         item = [_item for _item in resp.json if _item["file_path"] == "pack.yaml"][0]
@@ -53,12 +60,12 @@ class PacksViewsControllerTestCase(FunctionalTest):
             "etc/generate_new_token.png",
         ]
 
-        pack_db = Pack.get_by_ref("dummy_pack_1")
+        pack_db = Pack.get_by_ref(DUMMY_PACK_1)
 
         all_files_count = len(pack_db.files)
         non_binary_files_count = all_files_count - len(binary_files)
 
-        resp = self.app.get("/v1/packs/views/files/dummy_pack_1")
+        resp = self.app.get(f"/v1/packs/views/files/{DUMMY_PACK_1}")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), non_binary_files_count)
 
@@ -71,7 +78,7 @@ class PacksViewsControllerTestCase(FunctionalTest):
             self.assertFalse(item)
 
     def test_get_pack_file_success(self):
-        resp = self.app.get("/v1/packs/views/file/dummy_pack_1/pack.yaml")
+        resp = self.app.get(f"/v1/packs/views/file/{DUMMY_PACK_1}/pack.yaml")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertIn(b"name : dummy_pack_1", resp.body)
 
@@ -84,46 +91,46 @@ class PacksViewsControllerTestCase(FunctionalTest):
     @mock.patch("st2api.controllers.v1.pack_views.MAX_FILE_SIZE", 1)
     def test_pack_file_file_larger_then_maximum_size(self):
         resp = self.app.get(
-            "/v1/packs/views/file/dummy_pack_1/pack.yaml", expect_errors=True
+            f"/v1/packs/views/file/{DUMMY_PACK_1}/pack.yaml", expect_errors=True
         )
         self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
         self.assertIn("File pack.yaml exceeds maximum allowed file size", resp)
 
     def test_headers_get_pack_file(self):
-        resp = self.app.get("/v1/packs/views/file/dummy_pack_1/pack.yaml")
+        resp = self.app.get(f"/v1/packs/views/file/{DUMMY_PACK_1}/pack.yaml")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertIn(b"name : dummy_pack_1", resp.body)
         self.assertIsNotNone(resp.headers["ETag"])
         self.assertIsNotNone(resp.headers["Last-Modified"])
 
     def test_no_change_get_pack_file(self):
-        resp = self.app.get("/v1/packs/views/file/dummy_pack_1/pack.yaml")
+        resp = self.app.get(f"/v1/packs/views/file/{DUMMY_PACK_1}/pack.yaml")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertIn(b"name : dummy_pack_1", resp.body)
 
         # Confirm NOT_MODIFIED
         resp = self.app.get(
-            "/v1/packs/views/file/dummy_pack_1/pack.yaml",
+            f"/v1/packs/views/file/{DUMMY_PACK_1}/pack.yaml",
             headers={"If-None-Match": resp.headers["ETag"]},
         )
         self.assertEqual(resp.status_code, http_client.NOT_MODIFIED)
 
         resp = self.app.get(
-            "/v1/packs/views/file/dummy_pack_1/pack.yaml",
+            f"/v1/packs/views/file/{DUMMY_PACK_1}/pack.yaml",
             headers={"If-Modified-Since": resp.headers["Last-Modified"]},
         )
         self.assertEqual(resp.status_code, http_client.NOT_MODIFIED)
 
         # Confirm value is returned if header do not match
         resp = self.app.get(
-            "/v1/packs/views/file/dummy_pack_1/pack.yaml",
+            f"/v1/packs/views/file/{DUMMY_PACK_1}/pack.yaml",
             headers={"If-None-Match": "ETAG"},
         )
         self.assertEqual(resp.status_code, http_client.OK)
         self.assertIn(b"name : dummy_pack_1", resp.body)
 
         resp = self.app.get(
-            "/v1/packs/views/file/dummy_pack_1/pack.yaml",
+            f"/v1/packs/views/file/{DUMMY_PACK_1}/pack.yaml",
             headers={"If-Modified-Since": "Last-Modified"},
         )
         self.assertEqual(resp.status_code, http_client.OK)
@@ -131,11 +138,13 @@ class PacksViewsControllerTestCase(FunctionalTest):
 
     def test_get_pack_files_and_pack_file_ref_doesnt_equal_pack_name(self):
         # Ref is not equal to the name, controller should still work
-        resp = self.app.get("/v1/packs/views/files/dummy_pack_16")
+        resp = self.app.get(f"/v1/packs/views/files/{DUMMY_PACK_16}")
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertEqual(len(resp.json), 4)
+        # 4 if running in workspace (BUILD file present)
+        # 3 if pants is running it (no BUILD file present)
+        self.assertIn(len(resp.json), [4, 3])
         self.assertIn("pack.yaml", [f["file_path"] for f in resp.json])
 
-        resp = self.app.get("/v1/packs/views/file/dummy_pack_16/pack.yaml")
+        resp = self.app.get(f"/v1/packs/views/file/{DUMMY_PACK_16}/pack.yaml")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertIn(b"ref: dummy_pack_16", resp.body)
