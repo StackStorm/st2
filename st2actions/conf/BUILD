@@ -6,9 +6,11 @@ st2_logging_conf_file(
 st2_logging_conf_files(
     name="logging",
     sources=["logging*.conf"],
+    dependencies=["//:logs_directory"],
     overrides={
         "logging.conf": dict(
             dependencies=[
+                "//:logs_directory",
                 "//:reqs#python-json-logger",
             ],
         ),
