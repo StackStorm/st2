@@ -112,8 +112,11 @@ jobs:
           --tag=unit
           test
           pylint_plugins/::
+          st2tests/::
           st2client/::
           st2common/::
+          st2actions/::
+          st2reactor/::
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4
