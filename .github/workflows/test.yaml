@@ -93,6 +93,9 @@ jobs:
           gha-cache-key: cache0-py${{ matrix.python-version }}
 
       - name: Test
+        env:
+          # Github Actions uses the 'runner' user, so use that instead of stanley.
+          ST2TESTS_SYSTEM_USER: 'runner'
         # We do not support running pytest everywhere yet. When we do it will be simply:
         #   pants test ::
         # Until then, we need to manually adjust this command line to test what we can.

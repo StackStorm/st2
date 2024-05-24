@@ -239,6 +239,13 @@ config = "@lint-configs/regex-lint.yaml"
 [setuptools]
 install_from_resolve = "st2"
 
+[test]
+extra_env_vars = [
+  # Use this so that the test system does not require the stanley user.
+  # For example: export ST2TESTS_SYSTEM_USER=${USER}
+  "ST2TESTS_SYSTEM_USER",
+]
+
 [twine]
 install_from_resolve = "twine"
 
