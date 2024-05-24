@@ -15,6 +15,7 @@
 
 import uuid
 import datetime
+import os
 
 import bson
 import mock
@@ -29,7 +30,7 @@ from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 OBJ_ID = bson.ObjectId()
-USER = "stanley"
+USER = os.environ.get("ST2TESTS_SYSTEM_USER", "") or "stanley"
 USER_DB = UserDB(name=USER)
 TOKEN = uuid.uuid4().hex
 NOW = date_utils.get_datetime_utc_now()
