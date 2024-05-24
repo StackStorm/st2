@@ -51,3 +51,8 @@ file(
 shell_sources(
     name="root",
 )
+
+file(
+    name="logs_directory",
+    source="logs/.gitignore",
+)
