@@ -113,6 +113,7 @@ jobs:
           test
           pylint_plugins/::
           st2client/::
+          st2common/::
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4
