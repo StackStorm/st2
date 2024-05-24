@@ -24,10 +24,6 @@ from orquesta import statuses as wf_statuses
 
 import st2tests
 
-import st2tests.config as tests_config
-
-tests_config.parse_args()
-
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.exceptions import action as action_exc
