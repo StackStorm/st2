@@ -18,16 +18,12 @@ from __future__ import absolute_import
 import eventlet
 import mock
 
+# This import must be early for import-time side-effects.
 import st2tests
 
 from orquesta import statuses as wf_statuses
 from oslo_config import cfg
 from tooz import coordination
-
-# XXX: actionsensor import depends on config being setup.
-import st2tests.config as tests_config
-
-tests_config.parse_args()
 
 from st2actions.workflows import workflows
 from st2common.bootstrap import actionsregistrar

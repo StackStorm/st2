@@ -19,10 +19,9 @@ import mock
 from mock import call
 from six.moves import range
 
+# This import must be early for import-time side-effects.
 # Importing st2actions.scheduler relies on config being parsed :/
-import st2tests.config as tests_config
-
-tests_config.parse_args()
+from st2tests import DbTestCase, EventletTestCase, ExecutionDbTestCase
 
 import st2common
 from st2actions.scheduler import handler as scheduling_queue
@@ -38,8 +37,6 @@ from st2common.services import coordination
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.bootstrap import runnersregistrar as runners_registrar
-from st2tests import DbTestCase, EventletTestCase
-from st2tests import ExecutionDbTestCase
 import st2tests.config as tests_config
 from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
