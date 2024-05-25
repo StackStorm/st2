@@ -109,40 +109,41 @@ root_patterns = [
 # resolver_version is always "pip-2020-resolver". legacy is not supported.
 enable_resolves = true
 default_resolve = "st2"
+# these are the primary constraints for st2 code
 interpreter_constraints = [
   # python_distributions needs a single constraint (vs one line per python version).
-  "CPython>=3.8,<3.10",
+  "CPython>=3.8,<3.11",
   # NB: constraints for tools defined below
 ]
 
 [python.resolves]
 # st2 is the primary resolve
-st2 = "lockfiles/st2.lock"
+st2 = 			"lockfiles/st2.lock"
 # tool and misc other resolves (for most, see //BUILD.tools)
-bandit = "lockfiles/bandit.lock"
-black = "lockfiles/black.lock"
-flake8 = "lockfiles/flake8.lock"
+bandit = 		"lockfiles/bandit.lock"
+black = 		"lockfiles/black.lock"
+flake8 = 		"lockfiles/flake8.lock"
 pants-plugins = "lockfiles/pants-plugins.lock" # see //pants-plugins/BUILD
-pylint = "lockfiles/pylint.lock" # see //pylint_plugins/BUILD
-pytest = "lockfiles/pytest.lock"
-setuptools = "lockfiles/setuptools.lock"
-twine = "lockfiles/twine.lock"
+pylint = 		"lockfiles/pylint.lock" # see //pylint_plugins/BUILD
+pytest = 		"lockfiles/pytest.lock"
+setuptools = 	"lockfiles/setuptools.lock"
+twine = 		"lockfiles/twine.lock"
 
 [python.resolves_to_interpreter_constraints]
 # for tools, we have to include constraints for st2 and pants-plugins
-bandit = ["CPython>=3.8,<3.10"]
-black = ["CPython>=3.8,<3.10"]
-flake8 = ["CPython>=3.8,<3.10"]
+bandit = 		["CPython>=3.8,<3.11"]
+black = 		["CPython>=3.8,<3.11"]
+flake8 = 		["CPython>=3.8,<3.11"]
 pants-plugins = [
   # this should match the pants interpreter_constraints:
   # https://github.com/pantsbuild/pants/blob/2.18.x/pants.toml#L144
   # See: https://www.pantsbuild.org/docs/prerequisites
   "CPython==3.9.*",
 ]
-pylint = ["CPython>=3.8,<3.10"]
-pytest = ["CPython>=3.8,<3.10"]
-setuptools = ["CPython>=3.8,<3.10"]
-twine = ["CPython>=3.8,<3.10"]
+pylint = 	 	["CPython>=3.8,<3.11"]
+pytest = 	 	["CPython>=3.8,<3.11"]
+setuptools = 	["CPython>=3.8,<3.11"]
+twine = 	 	["CPython>=3.8,<3.11"]
 
 [python.resolves_to_constraints_file]
 # Our direct requirements are in requirements-pants.txt;
