@@ -129,6 +129,43 @@ class SchedulingPolicyTest(ExecutionDbTestCase):
         RaiseExceptionApplicator.apply_after.assert_called_once_with(liveaction)
 
     @mock.patch.object(
+        FakeConcurrencyApplicator,
+        "apply_before",
+        mock.MagicMock(
+            side_effect=FakeConcurrencyApplicator(None, None, threshold=3).apply_before
+        ),
+    )
+    @mock.patch.object(
+        RaiseExceptionApplicator,
+        "apply_before",
+        mock.MagicMock(side_effect=RaiseExceptionApplicator(None, None).apply_before),
+    )
+    @mock.patch.object(
+        FakeConcurrencyApplicator,
+        "apply_after",
+        mock.MagicMock(
+            side_effect=FakeConcurrencyApplicator(None, None, threshold=3).apply_after
+        ),
+    )
+    @mock.patch.object(
+        RaiseExceptionApplicator,
+        "apply_after",
+        mock.MagicMock(side_effect=RaiseExceptionApplicator(None, None).apply_after),
+    )
+    def test_apply_with_dict(self):
+        liveaction = LiveActionDB(
+            action="wolfpack.action-1", parameters={"actionstr": "dict_resp"}
+        )
+        liveaction, _ = action_service.request(liveaction)
+        liveaction = self._wait_on_status(
+            liveaction, action_constants.LIVEACTION_STATUS_SUCCEEDED
+        )
+        FakeConcurrencyApplicator.apply_before.assert_called_once_with(liveaction)
+        RaiseExceptionApplicator.apply_before.assert_called_once_with(liveaction)
+        FakeConcurrencyApplicator.apply_after.assert_called_once_with(liveaction)
+        RaiseExceptionApplicator.apply_after.assert_called_once_with(liveaction)
+
+    @mock.patch.object(
         FakeConcurrencyApplicator, "get_threshold", mock.MagicMock(return_value=0)
     )
     def test_enforce(self):
