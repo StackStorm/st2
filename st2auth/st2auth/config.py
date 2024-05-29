@@ -17,41 +17,31 @@ from __future__ import absolute_import
 
 from oslo_config import cfg
 
-from st2common import config as st2cfg
-from st2common.constants.system import VERSION_STRING
-from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
+import st2common.config as common_config
 from st2common.constants.auth import DEFAULT_MODE
 from st2common.constants.auth import DEFAULT_BACKEND
 from st2common.constants.auth import DEFAULT_SSO_BACKEND
 from st2common.constants.auth import VALID_MODES
+from st2common.openapi import config
 from st2auth import backends as auth_backends
 
 
 def parse_args(args=None):
-    cfg.CONF(
-        args=args,
-        version=VERSION_STRING,
-        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
-    )
+    config.parse_args(args=args)
 
 
 def register_opts(ignore_errors=False):
-    _register_common_opts(ignore_errors=ignore_errors)
-    _register_app_opts(ignore_errors=ignore_errors)
+    config.register_opts(_register_app_opts, ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
-    return cfg.CONF.auth.logging
-
-
-def _register_common_opts(ignore_errors=False):
-    st2cfg.register_opts(ignore_errors=ignore_errors)
+    return config.get_logging_config_path(cfg.CONF.auth)
 
 
 def _register_app_opts(ignore_errors=False):
     available_backends = auth_backends.get_available_backends()
 
-    auth_opts = [
+    auth_opts = config.get_base_opts("auth") + [
         cfg.StrOpt(
             "host",
             default="127.0.0.1",
@@ -60,23 +50,6 @@ def _register_app_opts(ignore_errors=False):
         cfg.IntOpt(
             "port", default=9100, help="Port on which the service should listen on."
         ),
-        cfg.BoolOpt("use_ssl", default=False, help="Specify to enable SSL / TLS mode"),
-        cfg.StrOpt(
-            "cert",
-            default="/etc/apache2/ssl/mycert.crt",
-            help='Path to the SSL certificate file. Only used when "use_ssl" is specified.',
-        ),
-        cfg.StrOpt(
-            "key",
-            default="/etc/apache2/ssl/mycert.key",
-            help='Path to the SSL private key file. Only used when "use_ssl" is specified.',
-        ),
-        cfg.StrOpt(
-            "logging",
-            default="/etc/st2/logging.auth.conf",
-            help="Path to the logging config.",
-        ),
-        cfg.BoolOpt("debug", default=False, help="Specify to enable debug mode."),
         cfg.StrOpt(
             "mode",
             default=DEFAULT_MODE,
@@ -110,4 +83,6 @@ def _register_app_opts(ignore_errors=False):
         ),
     ]
 
-    st2cfg.do_register_cli_opts(auth_opts, group="auth", ignore_errors=ignore_errors)
+    common_config.do_register_cli_opts(
+        auth_opts, group="auth", ignore_errors=ignore_errors
+    )

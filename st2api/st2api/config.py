@@ -24,32 +24,22 @@ import os
 from oslo_config import cfg
 
 import st2common.config as common_config
-from st2common.constants.system import VERSION_STRING
-from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
+from st2common.openapi import config
 
 CONF = cfg.CONF
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def parse_args(args=None):
-    cfg.CONF(
-        args=args,
-        version=VERSION_STRING,
-        default_config_files=[DEFAULT_CONFIG_FILE_PATH],
-    )
+    config.parse_args(args=args)
 
 
 def register_opts(ignore_errors=False):
-    _register_common_opts(ignore_errors=ignore_errors)
-    _register_app_opts(ignore_errors=ignore_errors)
-
-
-def _register_common_opts(ignore_errors=False):
-    common_config.register_opts(ignore_errors=ignore_errors)
+    config.register_opts(_register_app_opts, ignore_errors=ignore_errors)
 
 
 def get_logging_config_path():
-    return cfg.CONF.api.logging
+    return config.get_logging_config_path(cfg.CONF.api)
 
 
 def _register_app_opts(ignore_errors=False):
@@ -76,13 +66,7 @@ def _register_app_opts(ignore_errors=False):
         pecan_opts, group="api_pecan", ignore_errors=ignore_errors
     )
 
-    logging_opts = [
-        cfg.BoolOpt("debug", default=False),
-        cfg.StrOpt(
-            "logging",
-            default="/etc/st2/logging.api.conf",
-            help="location of the logging.conf file",
-        ),
+    api_opts = config.get_base_opts("api") + [
         cfg.IntOpt(
             "max_page_size",
             default=100,
@@ -91,6 +75,4 @@ def _register_app_opts(ignore_errors=False):
         ),
     ]
 
-    common_config.do_register_opts(
-        logging_opts, group="api", ignore_errors=ignore_errors
-    )
+    common_config.do_register_opts(api_opts, group="api", ignore_errors=ignore_errors)
