@@ -10,7 +10,7 @@ RandomWords
 amqp==5.2.0
 apscheduler==3.10.4
 argcomplete==3.3.0
-bcrypt==4.1.2
+bcrypt==4.0.1
 cffi==1.16.0
 chardet==3.0.4
 ciso8601
@@ -42,7 +42,7 @@ orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
 oslo.config==9.4.0
 oslo.utils==7.1.0
 paramiko==3.4.0
-passlib==1.7.4
+passlib[bcrypt]
 prettytable==3.10.0
 prompt-toolkit==3.0.43
 psutil==5.9.8
