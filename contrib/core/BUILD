@@ -8,5 +8,9 @@ python_requirements(
 )
 
 python_sources(
-    dependencies=[":metadata"],
+    dependencies=[
+        ":metadata",
+        "./actions",
+        "./actions/send_mail:send_mail_resources",
+    ],
 )

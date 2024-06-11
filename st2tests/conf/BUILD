@@ -8,12 +8,12 @@ file(
     source="st2_kvstore_tests.crypto.key.json",
 )
 
-file(
+st2_logging_conf_file(
     name="logging.conf",
     source="logging.conf",
 )
 
-files(
+st2_logging_conf_files(
     name="other_logging_conf",
     sources=["logging.*.conf"],
 )

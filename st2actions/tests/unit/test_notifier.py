@@ -19,9 +19,8 @@ import datetime
 import bson
 import mock
 
-import st2tests.config as tests_config
-
-tests_config.parse_args()
+# This import must be early for import-time side-effects.
+from st2tests.base import CleanDbTestCase
 
 from st2actions.notifier.notifier import Notifier
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
@@ -40,7 +39,6 @@ from st2common.persistence.policy import Policy
 from st2common.models.system.common import ResourceReference
 from st2common.util import date as date_utils
 from st2common.util import isotime
-from st2tests.base import CleanDbTestCase
 
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES["action"][0]
 NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES["action"][1]

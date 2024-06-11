@@ -22,14 +22,13 @@ from bson import ObjectId
 
 import st2tests.config as tests_config
 
-tests_config.parse_args()
-
 import st2common.util.jsonify as jsonify
 
 
 class JsonifyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        tests_config.parse_args()
         jsonify.DEFAULT_JSON_LIBRARY = "orjson"
 
     @classmethod
