@@ -9,8 +9,8 @@
 //     "CPython==3.9.*"
 //   ],
 //   "generated_with_requirements": [
-//     "pantsbuild.pants.testutil==2.21.1",
-//     "pantsbuild.pants==2.21.1"
+//     "pantsbuild.pants.testutil==2.22.0",
+//     "pantsbuild.pants==2.22.0"
 //   ],
 //   "manylinux": "manylinux2014",
 //   "requirement_constraints": [],
@@ -285,23 +285,23 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "329e7e6e06258101302a7b42a476781098c3ea34ae1da153bab11084c6bc5b2a",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.21.1/pantsbuild.pants-2.21.1-cp39-cp39-manylinux2014_x86_64.whl"
+              "hash": "edfcecc959eebfb0c42602b29d7301d96b92d3bbde030ba2c4ce3e775801cbd3",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.22.0/pantsbuild.pants-2.22.0-cp39-cp39-manylinux2014_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "9a9d8b4db8c3eb436a7fed86f052d6a280181d5a63d0d32a7ca3c09bdd65cec0",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.21.1/pantsbuild.pants-2.21.1-cp39-cp39-macosx_10_15_x86_64.whl"
+              "hash": "a4b2a095c0d77afa6605ed591dfa334ebbbc2858676a1397dbe1bbc7bf7a1e68",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.22.0/pantsbuild.pants-2.22.0-cp39-cp39-macosx_10_15_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "912c4a9d745c07e2369057472910e507f33ce6a0473508983ca2f23239a2656a",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.21.1/pantsbuild.pants-2.21.1-cp39-cp39-macosx_11_0_arm64.whl"
+              "hash": "72ff3f0351389688fd031c8cbb77beffd5e1234ea139da24940522e5de6c14f8",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.22.0/pantsbuild.pants-2.22.0-cp39-cp39-macosx_11_0_arm64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "3a7e200fc64f735fb0a25cf89deaeb28e4d42e124f66528b03d79eebcbfa2691",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.21.1/pantsbuild.pants-2.21.1-cp39-cp39-manylinux2014_aarch64.whl"
+              "hash": "d68791c067bc8902d2fceef8226c3ac443ec3349ab6463fcfe081d33647c4055",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.22.0/pantsbuild.pants-2.22.0-cp39-cp39-manylinux2014_aarch64.whl"
             }
           ],
           "project_name": "pantsbuild-pants",
@@ -325,23 +325,23 @@
             "typing-extensions==4.3.0"
           ],
           "requires_python": "==3.9.*",
-          "version": "2.21.1"
+          "version": "2.22.0"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "398b6d93976064e3809f623dead5235d97f6af8a37e0104bf05847083b7f8132",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.21.1/pantsbuild.pants.testutil-2.21.1-py3-none-any.whl"
+              "hash": "4c4a0319e98f4892581887a713a78a2ee37ace5cd1535e5e73164942c59e632a",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.22.0/pantsbuild.pants.testutil-2.22.0-py3-none-any.whl"
             }
           ],
           "project_name": "pantsbuild-pants-testutil",
           "requires_dists": [
-            "pantsbuild.pants==2.21.1",
+            "pantsbuild.pants==2.22.0",
             "pytest<7.1.0,>=6.2.4"
           ],
           "requires_python": "==3.9.*",
-          "version": "2.21.1"
+          "version": "2.22.0"
         },
         {
           "artifacts": [
@@ -931,8 +931,8 @@
   "pip_version": "24.0",
   "prefer_older_binary": false,
   "requirements": [
-    "pantsbuild.pants.testutil==2.21.1",
-    "pantsbuild.pants==2.21.1"
+    "pantsbuild.pants.testutil==2.22.0",
+    "pantsbuild.pants==2.22.0"
   ],
   "requires_python": [
     "==3.9.*"
