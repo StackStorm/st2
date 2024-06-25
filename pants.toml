@@ -160,6 +160,8 @@ py_resolve_format = "mutable_virtualenv"
 # By default, pex modifies script shebangs to add '-sE'.
 # This breaks nosetest and anything that needs PYTHONPATH.
 py_hermetic_scripts = false
+# If any targets generate sources/files, include them in the exported venv.
+py_generated_sources_in_resolve = ["st2"]
 
 [python-infer]
 # https://www.pantsbuild.org/stable/reference/subsystems/python-infer#string_imports
