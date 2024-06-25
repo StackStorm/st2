@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2317  # We have exit 0 to purposely skip the remainder of the file.
 set -e
 
 # Special script which supports installing apt-packages, caching installed files into a directory
