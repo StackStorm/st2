@@ -9,8 +9,8 @@
 //     "CPython==3.9.*"
 //   ],
 //   "generated_with_requirements": [
-//     "pantsbuild.pants.testutil==2.20.4",
-//     "pantsbuild.pants==2.20.4"
+//     "pantsbuild.pants.testutil==2.21.1",
+//     "pantsbuild.pants==2.21.1"
 //   ],
 //   "manylinux": "manylinux2014",
 //   "requirement_constraints": [],
@@ -149,44 +149,79 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "d17fd199f0d0a4ab6e0d541b4eec1b68b5bd5bb5d8104521e22243015b51049b",
-              "url": "https://files.pythonhosted.org/packages/aa/5e/46ce46d2b0386c42b02a640141bd9f2554137c880e1c6e0ff5abab4a2683/ijson-3.1.4-cp39-cp39-manylinux2014_aarch64.whl"
+              "hash": "db3bf1b42191b5cc9b6441552fdcb3b583594cb6b19e90d1578b7cbcf80d0fae",
+              "url": "https://files.pythonhosted.org/packages/16/63/379288ee38453166dca4a433ef5ad75525cdaa57c5df24bfcfb441400b14/ijson-3.2.3-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "297f26f27a04cd0d0a2f865d154090c48ea11b239cabe0a17a6c65f0314bd1ca",
-              "url": "https://files.pythonhosted.org/packages/19/8d/1b513b2fe104252f17ca5ba8c13e00d5815ebd48a3d10ef8cd5ba5a5e355/ijson-3.1.4-cp39-cp39-manylinux1_x86_64.whl"
+              "hash": "2ec3e5ff2515f1c40ef6a94983158e172f004cd643b9e4b5302017139b6c96e4",
+              "url": "https://files.pythonhosted.org/packages/03/f0/9b0b163a38211195a9a340252f0684f14c91c11f388c680d56ca168ea730/ijson-3.2.3-cp39-cp39-macosx_11_0_arm64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "b8ee7dbb07cec9ba29d60cfe4954b3cc70adb5f85bba1f72225364b59c1cf82b",
-              "url": "https://files.pythonhosted.org/packages/37/be/640cfe9072c9abfa53e676eaa4674063fff8f7264735778734fcc00ad84c/ijson-3.1.4-cp39-cp39-macosx_10_9_x86_64.whl"
+              "hash": "7851a341429b12d4527ca507097c959659baf5106c7074d15c17c387719ffbcd",
+              "url": "https://files.pythonhosted.org/packages/18/31/904ee13b144b5c47b1e037f4507faf7fe21184a500490d7421e467c0af58/ijson-3.2.3-pp39-pypy39_pp73-manylinux_2_17_i686.manylinux2014_i686.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "2a64c66a08f56ed45a805691c2fd2e1caef00edd6ccf4c4e5eff02cd94ad8364",
-              "url": "https://files.pythonhosted.org/packages/8d/44/c30dd1a23b80efefe6cfd1942131faba7fa1a97d932d464afade148e0613/ijson-3.1.4-cp39-cp39-manylinux2010_x86_64.whl"
+              "hash": "10294e9bf89cb713da05bc4790bdff616610432db561964827074898e174f917",
+              "url": "https://files.pythonhosted.org/packages/20/58/acdd87bd1b926fa2348a7f2ee5e1e7e2c9b808db78342317fc2474c87516/ijson-3.2.3.tar.gz"
             },
             {
               "algorithm": "sha256",
-              "hash": "1d1003ae3c6115ec9b587d29dd136860a81a23c7626b682e2b5b12c9fd30e4ea",
-              "url": "https://files.pythonhosted.org/packages/a8/da/f4b5fda308b60c6c31aa4203f20133a3b5b472e41c0907bc14b7c555cde2/ijson-3.1.4.tar.gz"
+              "hash": "e9fd906f0c38e9f0bfd5365e1bed98d649f506721f76bb1a9baa5d7374f26f19",
+              "url": "https://files.pythonhosted.org/packages/2a/39/9110eb844a941ed557784936e5c345cf83827e309f51120d02b9bd47af8a/ijson-3.2.3-cp39-cp39-musllinux_1_1_aarch64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "9239973100338a4138d09d7a4602bd289861e553d597cd67390c33bfc452253e",
-              "url": "https://files.pythonhosted.org/packages/cb/71/a3b3e9c31675b5fb806b61d1af45abb71cb0f03d581511b2f3fd03e53f7c/ijson-3.1.4-cp39-cp39-manylinux2010_i686.whl"
+              "hash": "ab4db9fee0138b60e31b3c02fff8a4c28d7b152040553b6a91b60354aebd4b02",
+              "url": "https://files.pythonhosted.org/packages/4f/b5/42abcd90002cd91424f61bbb54bf2f5a237e616b018b4d6dc702b238479f/ijson-3.2.3-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "d9e01c55d501e9c3d686b6ee3af351c9c0c8c3e45c5576bd5601bee3e1300b09",
-              "url": "https://files.pythonhosted.org/packages/d3/fc/ea957e287a07340c3e5c7c56bb32832def3e811ac5ae0399c7d4cbcaa458/ijson-3.1.4-cp39-cp39-manylinux1_i686.whl"
+              "hash": "3b14d322fec0de7af16f3ef920bf282f0dd747200b69e0b9628117f381b7775b",
+              "url": "https://files.pythonhosted.org/packages/75/c4/bf15c8aefbb6cccd40b97eba5b09d9bc16f72fb0945c7071e6723f14b2dd/ijson-3.2.3-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "2cc04fc0a22bb945cd179f614845c8b5106c0b3939ee0d84ce67c7a61ac1a936",
+              "url": "https://files.pythonhosted.org/packages/7d/6d/3c2947bbebca249b4174b1b88de984b584be58a3f30ed2076111e2ffa7ff/ijson-3.2.3-cp39-cp39-musllinux_1_1_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "1844c5b57da21466f255a0aeddf89049e730d7f3dfc4d750f0e65c36e6a61a7c",
+              "url": "https://files.pythonhosted.org/packages/91/62/f7bb45ea600755b45d5fcc5857c308f0df036b022cf8b091ca739403525e/ijson-3.2.3-cp39-cp39-macosx_10_9_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "e84d27d1acb60d9102728d06b9650e5b7e5cb0631bd6e3dfadba8fb6a80d6c2f",
+              "url": "https://files.pythonhosted.org/packages/96/88/367e332eb08dc040957ba5cefb09b865bc65242e7afed432d0effe6c3180/ijson-3.2.3-cp39-cp39-musllinux_1_1_i686.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "9c2a12dcdb6fa28f333bf10b3a0f80ec70bc45280d8435be7e19696fab2bc706",
+              "url": "https://files.pythonhosted.org/packages/ce/4f/05ee1b53f990191126c85c1a32161c1902fa106193154552ce1a65777c8f/ijson-3.2.3-cp39-cp39-macosx_10_9_universal2.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "46bafb1b9959872a1f946f8dd9c6f1a30a970fc05b7bfae8579da3f1f988e598",
+              "url": "https://files.pythonhosted.org/packages/d4/fa/17bb67264702afb0e5d8f2792a354b2b05f23b97d9485a20f9e28418b7e5/ijson-3.2.3-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "f4bc87e69d1997c6a55fff5ee2af878720801ff6ab1fb3b7f94adda050651e37",
+              "url": "https://files.pythonhosted.org/packages/d9/ae/2d754d4f0968aaf152f8fbfad0d9b564e2dbda614b6f9d4a338e49aac960/ijson-3.2.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "39f551a6fbeed4433c85269c7c8778e2aaea2501d7ebcb65b38f556030642c17",
+              "url": "https://files.pythonhosted.org/packages/e5/83/474f96ff7b76c78eec559f877589d46da72860d3da04bbf7601c4fd9b32d/ijson-3.2.3-pp39-pypy39_pp73-macosx_10_9_x86_64.whl"
             }
           ],
           "project_name": "ijson",
           "requires_dists": [],
           "requires_python": null,
-          "version": "3.1.4"
+          "version": "3.2.3"
         },
         {
           "artifacts": [
@@ -250,23 +285,23 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "ace6319432f7a7edae86b254d57a9aebbb637466d99c15ebe6fc8976ef273bc5",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.4/pantsbuild.pants-2.20.4-cp39-cp39-manylinux2014_x86_64.whl"
+              "hash": "329e7e6e06258101302a7b42a476781098c3ea34ae1da153bab11084c6bc5b2a",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.21.1/pantsbuild.pants-2.21.1-cp39-cp39-manylinux2014_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "079422e7c463b90667002b87b16d0109b96188e123a028824b12e0efd0acd958",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.4/pantsbuild.pants-2.20.4-cp39-cp39-macosx_10_15_x86_64.whl"
+              "hash": "9a9d8b4db8c3eb436a7fed86f052d6a280181d5a63d0d32a7ca3c09bdd65cec0",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.21.1/pantsbuild.pants-2.21.1-cp39-cp39-macosx_10_15_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "7c8ddded90148772efde02a19ded2d78bb01e7df8957533a3973e0f7c67bfef3",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.4/pantsbuild.pants-2.20.4-cp39-cp39-macosx_11_0_arm64.whl"
+              "hash": "912c4a9d745c07e2369057472910e507f33ce6a0473508983ca2f23239a2656a",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.21.1/pantsbuild.pants-2.21.1-cp39-cp39-macosx_11_0_arm64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "49a008ecbbe177a8e603e6a59077c41db8483a6b338ff33bb23f815ce4452410",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.4/pantsbuild.pants-2.20.4-cp39-cp39-manylinux2014_aarch64.whl"
+              "hash": "3a7e200fc64f735fb0a25cf89deaeb28e4d42e124f66528b03d79eebcbfa2691",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.21.1/pantsbuild.pants-2.21.1-cp39-cp39-manylinux2014_aarch64.whl"
             }
           ],
           "project_name": "pantsbuild-pants",
@@ -275,10 +310,10 @@
             "ansicolors==1.1.8",
             "chevron==0.14.0",
             "fasteners==0.16.3",
-            "ijson==3.1.4",
+            "ijson==3.2.3",
             "node-semver==0.9.0",
             "packaging==21.3",
-            "pex==2.2.1",
+            "pex==2.3.1",
             "psutil==5.9.8",
             "python-lsp-jsonrpc==1.0.0",
             "setproctitle==1.3.2",
@@ -290,35 +325,35 @@
             "typing-extensions==4.3.0"
           ],
           "requires_python": "==3.9.*",
-          "version": "2.20.4"
+          "version": "2.21.1"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "84de90d9e6ddb26befd342c706d7df4bc061e4892576d2929485fe235d49c0e7",
-              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.20.4/pantsbuild.pants.testutil-2.20.4-py3-none-any.whl"
+              "hash": "398b6d93976064e3809f623dead5235d97f6af8a37e0104bf05847083b7f8132",
+              "url": "https://github.com/pantsbuild/pants/releases/download/release_2.21.1/pantsbuild.pants.testutil-2.21.1-py3-none-any.whl"
             }
           ],
           "project_name": "pantsbuild-pants-testutil",
           "requires_dists": [
-            "pantsbuild.pants==2.20.4",
+            "pantsbuild.pants==2.21.1",
             "pytest<7.1.0,>=6.2.4"
           ],
           "requires_python": "==3.9.*",
-          "version": "2.20.4"
+          "version": "2.21.1"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "cde6756dc1ace8b4e0175afcd62da29f6635abe5516671717dffacb512502630",
-              "url": "https://files.pythonhosted.org/packages/05/fd/622e288459bb8ac3c294a7fefa251f0604390d65695f619b5012010aa96d/pex-2.2.1-py2.py3-none-any.whl"
+              "hash": "64692a5bf6f298403aab930d22f0d836ae4736c5bc820e262e9092fe8c56f830",
+              "url": "https://files.pythonhosted.org/packages/e7/d0/fbda2a4d41d62d86ce53f5ae4fbaaee8c34070f75bb7ca009090510ae874/pex-2.3.1-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "23adde5fd0439fd4468ad105662ba5b23118540b26632bd2362dfedad22b1aff",
-              "url": "https://files.pythonhosted.org/packages/32/81/caad3c5c9626ce1f9b8eb0d971d4c5553470aedeb04b8333a2a9c9d458f4/pex-2.2.1.tar.gz"
+              "hash": "d1264c91161c21139b454744c8053e25b8aad2d15da89232181b4f38f3f54575",
+              "url": "https://files.pythonhosted.org/packages/83/4b/1855a9cd872a5eca4cd385e0f66078845f3561d359fb976be52a2a68b9d1/pex-2.3.1.tar.gz"
             }
           ],
           "project_name": "pex",
@@ -326,7 +361,7 @@
             "subprocess32>=3.2.7; python_version < \"3\" and extra == \"subprocess\""
           ],
           "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,<3.13,>=2.7",
-          "version": "2.2.1"
+          "version": "2.3.1"
         },
         {
           "artifacts": [
@@ -892,12 +927,12 @@
   "only_builds": [],
   "only_wheels": [],
   "path_mappings": {},
-  "pex_version": "2.2.1",
-  "pip_version": "23.1.2",
+  "pex_version": "2.3.1",
+  "pip_version": "24.0",
   "prefer_older_binary": false,
   "requirements": [
-    "pantsbuild.pants.testutil==2.20.4",
-    "pantsbuild.pants==2.20.4"
+    "pantsbuild.pants.testutil==2.21.1",
+    "pantsbuild.pants==2.21.1"
   ],
   "requires_python": [
     "==3.9.*"
