@@ -157,6 +157,9 @@ st2 = "lockfiles/st2-constraints.txt"
 py_editable_in_resolve = ["st2"]
 # We need mutable venvs to use the editable installs of our sources.
 py_resolve_format = "mutable_virtualenv"
+# By default, pex modifies script shebangs to add '-sE'.
+# This breaks nosetest and anything that needs PYTHONPATH.
+py_hermetic_scripts = false
 
 [python-infer]
 # https://www.pantsbuild.org/stable/reference/subsystems/python-infer#string_imports
