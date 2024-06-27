@@ -37,6 +37,7 @@ class KeyValuePairDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     scope = me.StringField(default=FULL_SYSTEM_SCOPE, unique_with="name")
     name = me.StringField(required=True)
     value = me.StringField()
+    new_encrypted_value = me.StringField()
     secret = me.BooleanField(default=False)
     expire_timestamp = me.DateTimeField()
 
