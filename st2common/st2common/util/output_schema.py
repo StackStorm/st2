@@ -23,6 +23,7 @@ from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from st2common.util import schema
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
+from st2common.util.crypto import symmetric_encrypt
 
 
 LOG = logging.getLogger(__name__)
@@ -228,6 +229,15 @@ def mask_secret_output(ac_ex, output_value):
         output_schema, output_value[output_key]
     )
 
+    return output_value
+
+
+def encrypt_secret_output(encryption_key, output_value, output_schema):
+    for key, spec in output_schema.items():
+        if key in output_value and spec.get("secret", False):
+            output_value[key] = str(
+                symmetric_encrypt(encryption_key, output_value[key])
+            )
     return output_value
 
 
