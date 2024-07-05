@@ -368,6 +368,12 @@ def register_opts(ignore_errors=False):
             default=["http://127.0.0.1:3000"],
             help="List of origins allowed for api, auth and stream",
         ),
+        cfg.IntOpt(
+            "max_page_size",
+            default=100,
+            help="Maximum limit (page size) argument which can be specified by the "
+            "user in a query string."
+        ),
         cfg.BoolOpt(
             "mask_secrets",
             default=True,
