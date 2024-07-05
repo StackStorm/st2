@@ -8,6 +8,8 @@ Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 
 Fixed
 ~~~~~
+* Fixed #6021 and #5327 by adding max_page_size to api_opts and added limit and offset to list_values() methods of
+  both action_service and sensor_service
 * Restore Pack integration testing (it was inadvertently skipped) and stop testing against `bionic` and `el7`. #6135
 * Fix Popen.pid typo in st2tests. #6184
 
