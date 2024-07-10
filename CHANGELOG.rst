@@ -10,6 +10,7 @@ Fixed
 ~~~~~
 * Restore Pack integration testing (it was inadvertently skipped) and stop testing against `bionic` and `el7`. #6135
 * Fix Popen.pid typo in st2tests. #6184
+* Bump tooz package to `6.2.0` to fix TLS. #6220 (@jk464)
 
 Changed
 ~~~~~~~
