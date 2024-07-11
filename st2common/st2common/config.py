@@ -372,7 +372,7 @@ def register_opts(ignore_errors=False):
             "max_page_size",
             default=100,
             help="Maximum limit (page size) argument which can be specified by the "
-            "user in a query string."
+            "user in a query string.",
         ),
         cfg.BoolOpt(
             "mask_secrets",
