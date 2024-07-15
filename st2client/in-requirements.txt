@@ -1,4 +1,4 @@
-# Remember to list implicit packages here, otherwise version won't be fixated!
+# Remember to list implicit packages here, otherwise version won't be appended!
 importlib-metadata
 # importlib-metadata requires typing-extensions
 typing-extensions

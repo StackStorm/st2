@@ -20,7 +20,7 @@
 # REASON: Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode >=0.23 was from jinja2
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: unknown
-MarkupSafe<2.1.0,>=0.23
+#MarkupSafe==2.1.5
 
 # REQUIRED BY: kombu
 # REASON: unknown -- this looks like a lockfile-style pin
@@ -50,6 +50,8 @@ MarkupSafe<2.1.0,>=0.23
 # NOTE: orquesta already constrains this, so this is just documentation.
 # DROPS RESOLVED VERSION: 3.0.4
 #chardet<3.1.0
+# REASON: Known working version for py3.8 to py3.10
+#chardet==5.2.0
 
 # REQUIRED BY: jsonpath-rw, networkx
 # REASON:
@@ -66,7 +68,8 @@ MarkupSafe<2.1.0,>=0.23
 # REASON: 2.0 version breaks pymongo work with hosts
 # NOTE: try to remove this later
 # DROPS RESOLVED VERSION: 1.16
-dnspython>=1.16.0,<2.0.0
+#dnspython==2.6.1
+#dnspython>=1.16.0,<2.0.0
 
 # REQUIRED BY: eventlet
 # REASON: eventlet is difficult to upgrade.
@@ -74,16 +77,14 @@ dnspython>=1.16.0,<2.0.0
 #         greenlet 3 adds py3.12 support, drops py3.6 support, fixes various crash conditions
 # NOTE: If constrained, bump carefully. Tests seem to be passing without this constraint.
 # DROPS RESOLVED VERSION: 1.1.3.post0
-#greenlet==1.0.0
+#greenlet==3.0.3
 
 # REQUIRED BY: argcomplete, click, debtcollector, kombu, pluggy, prettytable,
 #             pytest, virtualenv
-# REASON: unknown
-# NOTE: This pinned version (3.10.1) actually conflicts with other requirements.
-#       So, it is commented out. If there are issues with newer versions,
-#       update this with a range of valid versions.
+# REASON: Known working version for py3.8 to py3.10
+# NOTE: -
 # DROPS RESOLVED VERSION: 4.8.3
-#importlib-metadata==3.10.1
+#importlib-metadata>=4.10.1
 
 # REQUIRED BY: tooz
 # REASON: unknown
@@ -115,8 +116,9 @@ dnspython>=1.16.0,<2.0.0
 # DROPS RESOLVED VERSION: 3.0.7
 #pyparsing<3
 
-# REQUIRED BY: async-timeout, gitpython, importlib-metadata, redis
-# REASON: importlib-metadata requires typing-extensions but v4.2.0 requires py3.7+
+# REQUIRED BY: async-timeout, gitpython, importlib-metadata, redis, pydantic
+# REASON: typing-extension must be >4.7.1 to avoid ImportError
 # NOTE: try to remove constraint later.
 # DROPS RESOLVED VERSION: 4.1.1
 #typing-extensions<4.2
+#typing_extensions==4.10.0
