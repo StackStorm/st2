@@ -67,7 +67,7 @@ typing-extensions==4.11.0
 sseclient-py==1.8.0
 stevedore==5.2.0
 tenacity==8.2.3
-tooz==6.1.0
+tooz==6.2.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
 # virtualenv==20.26.0 (<21) has pip==24.0 wheel==0.43.0 setuptools==69.5.1
 # lockfiles/st2.lock has pip==24.0 wheel==0.43.0 setuptools==69.5.1
