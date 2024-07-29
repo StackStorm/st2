@@ -125,7 +125,6 @@ flake8 = "lockfiles/flake8.lock"
 pants-plugins = "lockfiles/pants-plugins.lock" # see //pants-plugins/BUILD
 pylint = "lockfiles/pylint.lock" # see //pylint_plugins/BUILD
 pytest = "lockfiles/pytest.lock"
-setuptools = "lockfiles/setuptools.lock"
 twine = "lockfiles/twine.lock"
 
 [python.resolves_to_interpreter_constraints]
@@ -141,7 +140,6 @@ pants-plugins = [
 ]
 pylint = ["CPython>=3.8,<3.10"]
 pytest = ["CPython>=3.8,<3.10"]
-setuptools = ["CPython>=3.8,<3.10"]
 twine = ["CPython>=3.8,<3.10"]
 
 [python.resolves_to_constraints_file]
@@ -229,7 +227,7 @@ execution_slot_var = "ST2TESTS_PARALLEL_SLOT"
 config = "@lint-configs/regex-lint.yaml"
 
 [setuptools]
-install_from_resolve = "setuptools"
+install_from_resolve = "st2"
 
 [twine]
 install_from_resolve = "twine"
