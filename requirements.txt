@@ -73,7 +73,7 @@ st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 stevedore==5.2.0
 tenacity==8.2.3
-tooz==6.1.0
+tooz==6.2.0
 typing-extensions==4.11.0
 unittest2
 webob==1.8.7
