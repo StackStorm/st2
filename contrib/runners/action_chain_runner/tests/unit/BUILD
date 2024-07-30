@@ -12,8 +12,9 @@ python_tests(
         "st2common.runners.runner",
     ],
     uses=["mongo"],
-    # TODO: need st2common.runners.runner stevedore namespace, but only this runner!
-    #dependencies=[
-    #    "contrib/runners/action_chain_runner",
-    #],
+    # TODO: this will allow us to depend only on this runner once we upgrade to pants 2.23
+    #       https://github.com/pantsbuild/pants/pull/21062
+    #entry_point_dependencies={
+    #    "contrib/runners/action_chain_runner": ["st2common.runners.runner"],
+    #},
 )
