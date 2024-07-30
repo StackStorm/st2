@@ -23,7 +23,6 @@ import mock
 from st2common.runners import utils
 from st2common.services import executions as exe_svc
 from st2common.util import action_db as action_db_utils
-from st2tests import base
 from st2tests import fixturesloader
 from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 

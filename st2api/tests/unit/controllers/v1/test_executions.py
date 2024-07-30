@@ -704,7 +704,10 @@ class ActionExecutionControllerTestCase(
             delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
             self.assertEqual(delete_resp.status_int, 200)
             self.assertEqual(delete_resp.json["status"], "canceled")
-            expected_result = {"message": "Action canceled by user.", "user": SYSTEM_USER}
+            expected_result = {
+                "message": "Action canceled by user.",
+                "user": SYSTEM_USER,
+            }
             self.assertDictEqual(delete_resp.json["result"], expected_result)
 
     def test_post_delete_trace(self):

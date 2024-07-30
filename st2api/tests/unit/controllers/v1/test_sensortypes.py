@@ -133,7 +133,9 @@ class SensorTypeControllerTestCase(
         # Disable sensor
         data = copy.deepcopy(sensor_data)
         data["enabled"] = False
-        put_resp = self.app.put_json(f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor", data)
+        put_resp = self.app.put_json(
+            f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor", data
+        )
         self.assertEqual(put_resp.status_int, http_client.OK)
         self.assertEqual(put_resp.json["ref"], f"{DUMMY_PACK_1}.SampleSensor")
         self.assertFalse(put_resp.json["enabled"])
@@ -146,7 +148,9 @@ class SensorTypeControllerTestCase(
         # Enable sensor
         data = copy.deepcopy(sensor_data)
         data["enabled"] = True
-        put_resp = self.app.put_json(f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor", data)
+        put_resp = self.app.put_json(
+            f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor", data
+        )
         self.assertEqual(put_resp.status_int, http_client.OK)
         self.assertTrue(put_resp.json["enabled"])
 
