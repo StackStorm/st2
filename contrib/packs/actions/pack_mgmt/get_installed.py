@@ -29,10 +29,11 @@ from st2common.constants.pack import MANIFEST_FILE_NAME
 class GetInstalled(Action):
     """Get information about installed pack."""
 
-    def run(self, pack):
+    def run(self, pack, branch):
         """
         :param pack: Installed Pack Name to get info about
         :type pack: ``str``
+        :type branch: ``str``
         """
         packs_base_paths = get_packs_base_paths()
 
@@ -69,9 +70,8 @@ class GetInstalled(Action):
                 repo.git.status().split("\n")[0],
                 "\n".join([remote.url for remote in repo.remotes]),
             )
-
             ahead_behind = repo.git.rev_list(
-                "--left-right", "--count", "HEAD...origin/master"
+                "--left-right", "--count", f"HEAD...origin/{branch}"
             ).split()
             # Dear god.
             if ahead_behind != ["0", "0"]:
