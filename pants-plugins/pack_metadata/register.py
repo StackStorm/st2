@@ -13,6 +13,7 @@
 # limitations under the License.
 from pack_metadata import tailor, target_types_rules
 from pack_metadata.target_types import (
+    PackContentResourceTarget,
     PackMetadata,
     PackMetadataInGitSubmodule,
     PacksGlob,
@@ -28,6 +29,7 @@ def rules():
 
 def target_types():
     return [
+        PackContentResourceTarget,
         PackMetadata,
         PackMetadataInGitSubmodule,
         PacksGlob,
