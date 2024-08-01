@@ -8,6 +8,7 @@ __defaults__(
 
 python_tests(
     skip_pylint=True,
+    # st2_pack_dir="..",  # directory containing pack.yaml
     overrides={
         "test_action_sendmail.py": dict(
             dependencies=[
@@ -16,6 +17,7 @@ python_tests(
                 # Use contrib/core as the canonical copy.
                 "contrib/core:reqs#mail-parser",
             ],
+            uses=["mongo"],
         ),
     },
 )
