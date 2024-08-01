@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence
+from enum import Enum
+from pathlib import PurePath
+from typing import Optional, Sequence, Tuple
 
-from pants.engine.target import COMMON_TARGET_FIELDS, Dependencies
+from pants.engine.internals.native_engine import Address
+from pants.engine.target import COMMON_TARGET_FIELDS, Dependencies, StringField
 from pants.core.target_types import (
     ResourceDependenciesField,
     ResourcesGeneratingSourcesField,
@@ -27,6 +30,73 @@ from pants.core.target_types import (
 
 class UnmatchedGlobsError(Exception):
     """Error thrown when a required set of globs didn't match."""
+
+
+class PackContentResourceTypes(Enum):
+    # in root of pack
+    pack_metadata = "pack_metadata"
+    pack_config_schema = "pack_config_schema"
+    pack_config_example = "pack_config_example"
+    pack_icon = "pack_icon"
+    # in subdirectory (see _content_type_by_path_parts below
+    action_metadata = "action_metadata"
+    action_chain_workflow = "action_chain_workflow"
+    orquesta_workflow = "orquesta_workflow"
+    alias_metadata = "alias_metadata"
+    policy_metadata = "policy_metadata"
+    rule_metadata = "rule_metadata"
+    sensor_metadata = "sensor_metadata"
+    trigger_metadata = "trigger_metadata"
+    # other
+    unknown = "unknown"
+
+
+_content_type_by_path_parts: dict[Tuple[str, ...], PackContentResourceTypes] = {
+    ("actions",): PackContentResourceTypes.action_metadata,
+    ("actions", "chains"): PackContentResourceTypes.action_chain_workflow,
+    ("actions", "workflows"): PackContentResourceTypes.orquesta_workflow,
+    ("aliases",): PackContentResourceTypes.alias_metadata,
+    ("policies",): PackContentResourceTypes.policy_metadata,
+    ("rules",): PackContentResourceTypes.rule_metadata,
+    ("sensors",): PackContentResourceTypes.sensor_metadata,
+    ("triggers",): PackContentResourceTypes.trigger_metadata,
+}
+
+
+class PackContentResourceTypeField(StringField):
+    alias = "type"
+    help = (
+        "The content type of the resource."
+        "\nDo not use this field in BUILD files. It is calculated automatically"
+        "based on the conventional location of files in the st2 pack."
+    )
+    valid_choices = PackContentResourceTypes
+    value: PackContentResourceTypes
+
+    @classmethod
+    def compute_value(
+        cls, raw_value: Optional[str], address: Address
+    ) -> PackContentResourceTypes:
+        value = super().compute_value(raw_value, address)
+        if value is not None:
+            return PackContentResourceTypes(value)
+        path = PurePath(address.relative_file_path)
+        _yaml_suffixes = ("yaml", "yml")
+        if len(path.parent.parts) == 0:
+            # in the pack root
+            if path.name == "pack.yaml":
+                return PackContentResourceTypes.pack_metadata
+            if path.stem == "pack.schema" and path.suffix in _yaml_suffixes:
+                return PackContentResourceTypes.pack_config_schema
+            if path.suffix == "example" and path.suffixes[0] in _yaml_suffixes:
+                return PackContentResourceTypes.pack_config_example
+            if path.name == "icon.png":
+                return PackContentResourceTypes.pack_config_example
+            return PackContentResourceTypes.unknown
+        resource_type = _content_type_by_path_parts.get(path.parent.parts, None)
+        if resource_type is not None:
+            return resource_type
+        return PackContentResourceTypes.unknown
 
 
 class PackContentResourceSourceField(ResourceSourceField):
@@ -72,6 +142,7 @@ class PackContentResourceTarget(ResourceTarget):
         *COMMON_TARGET_FIELDS,
         ResourceDependenciesField,
         PackContentResourceSourceField,
+        PackContentResourceTypeField,
     )
     help = "A single pack content resource file (mostly for metadata files)."
 
