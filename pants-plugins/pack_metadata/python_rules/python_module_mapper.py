@@ -50,15 +50,25 @@ async def map_pack_content_to_python_modules(
         ResolveName, DefaultDict[str, list[ModuleProvider]]
     ] = defaultdict(lambda: defaultdict(list))
 
-    pack_content_python_entry_points = await Get(
-        PackContentPythonEntryPoints,
-        PackContentPythonEntryPointsRequest(),
+    pack_content_python_entry_points, pack_python_libs = await MultiGet(
+        Get(PackContentPythonEntryPoints, PackContentPythonEntryPointsRequest()),
+        Get(PackPythonLibs, PackPythonLibsRequest()),
     )
 
     for pack_content in pack_content_python_entry_points:
         resolves_to_modules_to_providers[pack_content.resolve][
             pack_content.module
         ].append(ModuleProvider(pack_content.python_address, ModuleProviderType.IMPL))
+
+    for pack_lib in pack_python_libs:
+        provider_type = (
+            ModuleProviderType.TYPE_STUB
+            if pack_lib.relative_to_lib.suffix == ".pyi"
+            else ModuleProviderType.IMPL
+        )
+        resolves_to_modules_to_providers[pack_lib.resolve][pack_lib.module].append(
+            ModuleProvider(pack_lib.python_address, provider_type)
+        )
 
     return FirstPartyPythonMappingImpl.create(resolves_to_modules_to_providers)
 
