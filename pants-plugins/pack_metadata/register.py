@@ -13,7 +13,10 @@
 # limitations under the License.
 
 from pack_metadata import tailor, target_types_rules
-from pack_metadata.python_rules import python_pack_content
+from pack_metadata.python_rules import (
+    python_module_mapper,
+    python_pack_content,
+)
 from pack_metadata.target_types import (
     PackContentResourceTarget,
     PackMetadata,
@@ -27,6 +30,7 @@ def rules():
         *tailor.rules(),
         *target_types_rules.rules(),
         *python_pack_content.rules(),
+        *python_module_mapper.rules(),
     ]
 
 
