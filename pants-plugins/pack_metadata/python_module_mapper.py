@@ -24,29 +24,33 @@ from pants.backend.python.dependency_inference.module_mapper import (
     ModuleProvider,
     ModuleProviderType,
     ResolveName,
+    module_from_stripped_path,
 )
 from pants.backend.python.subsystems.setup import PythonSetup
-from pants.backend.python.target_types import PythonResolveField
+from pants.backend.python.target_types import PythonResolveField, PythonSourceField
 from pants.base.glob_match_error_behavior import GlobMatchErrorBehavior
-from pants.base.specs import FileLiteralSpec, RawSpecs
+from pants.base.specs import FileLiteralSpec, RawSpecs, RecursiveGlobSpec
 from pants.engine.collection import Collection
 from pants.engine.fs import DigestContents
 from pants.engine.internals.native_engine import Address, Digest
 from pants.engine.rules import Get, MultiGet, collect_rules, rule
 from pants.engine.target import (
     AllTargets,
+    AllUnexpandedTargets,
     HydrateSourcesRequest,
     HydratedSources,
     Target,
     Targets,
 )
 from pants.engine.unions import UnionRule
+from pants.util.dirutil import fast_relpath
 from pants.util.logging import LogLevel
 
 from pack_metadata.target_types import (
     PackContentResourceSourceField,
     PackContentResourceTypeField,
-    PackContentResourceTypes
+    PackContentResourceTypes,
+    PackMetadataSourcesField,
 )
 
 
@@ -89,6 +93,8 @@ class PackContentPythonEntryPointsRequest:
 
 
 def get_possible_modules(path: PurePath) -> list[str]:
+    if path.name in ("__init__.py", "__init__.pyi"):
+        path = path.parent
     module = path.stem if path.suffix == ".py" else path.name
     modules = [module]
 
@@ -186,6 +192,89 @@ async def find_pack_content_python_entry_points(
     return PackContentPythonEntryPoints(pack_content_entry_points)
 
 
+@dataclass(frozen=True)
+class PackPythonLib:
+    pack_path: PurePath
+    lib_dir: str
+    relative_to_lib: PurePath
+    python_address: Address
+    resolve: str
+    module: str
+
+
+class PackPythonLibs(Collection[PackPythonLib]):
+    pass
+
+
+class PackPythonLibsRequest:
+    pass
+
+
+@rule(desc="Find all Pack lib directory python targets", level=LogLevel.DEBUG)
+async def find_python_in_pack_lib_directories(
+    python_setup: PythonSetup,
+    all_unexpanded_targets: AllUnexpandedTargets,
+    _: PackPythonLibsRequest,
+) -> PackPythonLibs:
+    pack_metadata_paths = [
+        PurePath(tgt.address.spec_path) for tgt in all_unexpanded_targets
+        if tgt.has_field(PackMetadataSourcesField)
+    ]
+    pack_lib_directory_targets = await MultiGet(
+        Get(
+            Targets,
+            RawSpecs(
+                recursive_globs=(
+                    RecursiveGlobSpec(str(path / "lib")),
+                    RecursiveGlobSpec(str(path / "actions" / "lib")),
+                ),
+                unmatched_glob_behavior=GlobMatchErrorBehavior.ignore,
+                description_of_origin="pack_metadata lib directory lookup",
+            )
+        )
+        for path in pack_metadata_paths
+    )
+
+    # Maybe this should use this to take codegen into account.
+    # Get(PythonSourceFiles, PythonSourceFilesRequest(targets=lib_directory_targets, include_resources=False)
+    # For now, just take the targets as they are.
+
+    pack_python_libs: list[PackPythonLib] = []
+
+    pack_path: PurePath
+    lib_directory_targets: Targets
+    for pack_path, lib_directory_targets in zip(pack_metadata_paths, pack_lib_directory_targets):
+        for tgt in lib_directory_targets:
+            if not tgt.has_field(PythonSourceField):
+                # only python targets matter here.
+                continue
+
+            relative_to_pack = PurePath(fast_relpath(tgt[PythonSourceField].file_path, str(pack_path)))
+            if relative_to_pack.parts[0] == "lib":
+                lib_dir = "lib"
+            elif relative_to_pack.parts[:2] == ("actions", "lib"):
+                lib_dir = "actions/lib"
+            else:
+                # This should not happen as it is not in the requested glob.
+                # Use this to tell linters that lib_dir is defined below here.
+                continue
+            relative_to_lib = relative_to_pack.relative_to(lib_dir)
+
+            resolve = tgt[PythonResolveField].normalized_value(python_setup)
+            module = module_from_stripped_path(relative_to_lib)
+
+            pack_python_libs.append(PackPythonLib(
+                pack_path=pack_path,
+                lib_dir=lib_dir,
+                relative_to_lib=relative_to_lib,
+                python_address=tgt.address,
+                resolve=resolve,
+                module=module,
+            ))
+
+    return PackPythonLibs(pack_python_libs)
+
+
 # This is only used to register our implementation with the plugin hook via unions.
 class St2PythonPackContentMappingMarker(FirstPartyPythonMappingImplMarker):
     pass
@@ -199,14 +288,22 @@ async def map_pack_content_to_python_modules(
         ResolveName, DefaultDict[str, list[ModuleProvider]]
     ] = defaultdict(lambda: defaultdict(list))
 
-    pack_content_python_entry_points = await Get(
-        PackContentPythonEntryPoints,
-        PackContentPythonEntryPointsRequest(),
+    pack_content_python_entry_points, pack_python_libs = await MultiGet(
+        Get(PackContentPythonEntryPoints, PackContentPythonEntryPointsRequest()),
+        Get(PackPythonLibs, PackPythonLibsRequest()),
     )
 
     for pack_content in pack_content_python_entry_points:
         resolves_to_modules_to_providers[pack_content.resolve][pack_content.module].append(
             ModuleProvider(pack_content.python_address, ModuleProviderType.IMPL)
+        )
+
+    for pack_lib in pack_python_libs:
+        provider_type = (
+            ModuleProviderType.TYPE_STUB if pack_lib.relative_to_lib.suffix == ".pyi" else ModuleProviderType.IMPL
+        )
+        resolves_to_modules_to_providers[pack_lib.resolve][pack_lib.module].append(
+            ModuleProvider(pack_lib.python_address, provider_type)
         )
 
     return FirstPartyPythonMappingImpl.create(resolves_to_modules_to_providers)
