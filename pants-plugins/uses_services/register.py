@@ -22,7 +22,9 @@ from uses_services.target_types import UsesServicesField
 
 def rules():
     return [
-        PythonTestsGeneratorTarget.register_plugin_field(UsesServicesField, as_moved_field=True),
+        PythonTestsGeneratorTarget.register_plugin_field(
+            UsesServicesField, as_moved_field=True
+        ),
         PythonTestTarget.register_plugin_field(UsesServicesField),
         *platform_rules.rules(),
         *mongo_rules.rules(),

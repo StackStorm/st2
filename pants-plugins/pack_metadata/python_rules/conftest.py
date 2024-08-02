@@ -15,7 +15,9 @@
 from textwrap import dedent
 
 import pytest
-from pants.backend.python.dependency_inference.module_mapper import FirstPartyPythonMappingImpl
+from pants.backend.python.dependency_inference.module_mapper import (
+    FirstPartyPythonMappingImpl,
+)
 from pants.backend.python.goals.pytest_runner import PytestPluginSetup
 from pants.backend.python.target_types import (
     PythonSourceTarget,
@@ -28,18 +30,32 @@ from pants.engine.rules import QueryRule
 from pants.testutil.python_rule_runner import PythonRuleRunner
 from pants.testutil.rule_runner import RuleRunner
 
-from pack_metadata.python_rules import python_module_mapper, python_pack_content, python_path_rules
-from pack_metadata.python_rules.python_module_mapper import St2PythonPackContentMappingMarker
+from pack_metadata.python_rules import (
+    python_module_mapper,
+    python_pack_content,
+    python_path_rules,
+)
+from pack_metadata.python_rules.python_module_mapper import (
+    St2PythonPackContentMappingMarker,
+)
 from pack_metadata.python_rules.python_pack_content import (
     PackContentPythonEntryPoints,
     PackContentPythonEntryPointsRequest,
     PackContentResourceTargetsOfType,
     PackContentResourceTargetsOfTypeRequest,
     PackPythonLibs,
-    PackPythonLibsRequest
+    PackPythonLibsRequest,
 )
-from pack_metadata.python_rules.python_path_rules import PackPythonPath, PackPythonPathRequest, PytestPackTestRequest
-from pack_metadata.target_types import InjectPackPythonPathField, PackContentResourceTarget, PackMetadata
+from pack_metadata.python_rules.python_path_rules import (
+    PackPythonPath,
+    PackPythonPathRequest,
+    PytestPackTestRequest,
+)
+from pack_metadata.target_types import (
+    InjectPackPythonPathField,
+    PackContentResourceTarget,
+    PackMetadata,
+)
 
 # some random pack names
 packs = (
@@ -60,7 +76,7 @@ def write_test_files(rule_runner: RuleRunner):
         rule_runner.write_files(
             {
                 f"packs/{pack}/BUILD": dedent(
-                    f"""
+                    """
                     __defaults__(all=dict(inject_pack_python_path=True))
                     pack_metadata(name="metadata")
                     """
@@ -134,7 +150,9 @@ def write_test_files(rule_runner: RuleRunner):
                 """
             ),
             "packs/dr_seuss/actions/BUILD": "python_sources()",
-            "packs/dr_seuss/actions/get_from_actions_lib.yaml": action_metadata_file("get_from_actions_lib"),
+            "packs/dr_seuss/actions/get_from_actions_lib.yaml": action_metadata_file(
+                "get_from_actions_lib"
+            ),
             "packs/dr_seuss/actions/get_from_actions_lib.py": dedent(
                 """
                 from seuss.things import THING1, THING2
@@ -157,7 +175,9 @@ def write_test_files(rule_runner: RuleRunner):
                 """
             ),
             "packs/shards/actions/BUILD": "python_sources()",
-            "packs/shards/actions/get_from_pack_lib.yaml": action_metadata_file("get_from_pack_lib"),
+            "packs/shards/actions/get_from_pack_lib.yaml": action_metadata_file(
+                "get_from_pack_lib"
+            ),
             "packs/shards/actions/get_from_pack_lib.py": dedent(
                 """
                 from stormlight_archive.things import STORM_LIGHT, VOID_LIGHT, LIFE_LIGHT
@@ -197,8 +217,12 @@ def write_test_files(rule_runner: RuleRunner):
             "packs/shards/tests/test_get_from_pack_lib_action.py": test_file(
                 "get_from_pack_lib", "GetFromPackLibAction"
             ),
-            "packs/shards/tests/test_horn_eater_sensor.py": test_file("horn_eater", "HornEaterSensor"),
-            "packs/metals/actions/fly.yaml": action_metadata_file("fly", "mist_born/fly.py"),
+            "packs/shards/tests/test_horn_eater_sensor.py": test_file(
+                "horn_eater", "HornEaterSensor"
+            ),
+            "packs/metals/actions/fly.yaml": action_metadata_file(
+                "fly", "mist_born/fly.py"
+            ),
             "packs/metals/actions/mist_born/BUILD": "python_sources()",
             "packs/metals/actions/mist_born/__init__.py": "",
             "packs/metals/actions/mist_born/fly.py": dedent(
@@ -209,7 +233,9 @@ def write_test_files(rule_runner: RuleRunner):
                 """
             ),
             "packs/metals/tests/BUILD": "python_tests()",
-            "packs/metals/tests/test_fly_action.py": test_file("mist_born.fly", "FlyAction"),
+            "packs/metals/tests/test_fly_action.py": test_file(
+                "mist_born.fly", "FlyAction"
+            ),
         }
     )
 
@@ -218,16 +244,25 @@ def write_test_files(rule_runner: RuleRunner):
 def rule_runner() -> RuleRunner:
     rule_runner = PythonRuleRunner(
         rules=[
-            PythonTestsGeneratorTarget.register_plugin_field(InjectPackPythonPathField, as_moved_field=True),
+            PythonTestsGeneratorTarget.register_plugin_field(
+                InjectPackPythonPathField, as_moved_field=True
+            ),
             PythonTestTarget.register_plugin_field(InjectPackPythonPathField),
             *python_target_types_rules(),
             # TODO: not sure if we need a QueryRule for every rule...
             *python_pack_content.rules(),
-            QueryRule(PackContentResourceTargetsOfType, (PackContentResourceTargetsOfTypeRequest,)),
-            QueryRule(PackContentPythonEntryPoints, (PackContentPythonEntryPointsRequest,)),
+            QueryRule(
+                PackContentResourceTargetsOfType,
+                (PackContentResourceTargetsOfTypeRequest,),
+            ),
+            QueryRule(
+                PackContentPythonEntryPoints, (PackContentPythonEntryPointsRequest,)
+            ),
             QueryRule(PackPythonLibs, (PackPythonLibsRequest,)),
             *python_module_mapper.rules(),
-            QueryRule(FirstPartyPythonMappingImpl, (St2PythonPackContentMappingMarker,)),
+            QueryRule(
+                FirstPartyPythonMappingImpl, (St2PythonPackContentMappingMarker,)
+            ),
             *python_path_rules.rules(),
             QueryRule(PackPythonPath, (PackPythonPathRequest,)),
             QueryRule(PytestPluginSetup, (PytestPackTestRequest,)),
@@ -243,7 +278,7 @@ def rule_runner() -> RuleRunner:
     )
     write_test_files(rule_runner)
     args = [
-        "--source-root-patterns=packs/*"
+        "--source-root-patterns=packs/*",
     ]
     rule_runner.set_options(args, env_inherit={"PATH", "PYENV_ROOT", "HOME"})
     return rule_runner
