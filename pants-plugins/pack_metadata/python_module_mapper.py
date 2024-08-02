@@ -52,9 +52,10 @@ async def map_pack_content_to_python_modules(
     )
 
     for pack_content in pack_content_python_entry_points:
-        resolves_to_modules_to_providers[pack_content.resolve][pack_content.module].append(
-            ModuleProvider(pack_content.python_address, ModuleProviderType.IMPL)
-        )
+        for module in pack_content.get_possible_modules():
+            resolves_to_modules_to_providers[pack_content.resolve][module].append(
+                ModuleProvider(pack_content.python_address, ModuleProviderType.IMPL)
+            )
 
     for pack_lib in pack_python_libs:
         provider_type = (
