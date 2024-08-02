@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import yaml
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import PurePath
 from typing import DefaultDict
-
-import yaml
 
 from pants.backend.python.dependency_inference.module_mapper import module_from_stripped_path
 from pants.backend.python.subsystems.setup import PythonSetup
