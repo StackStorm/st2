@@ -26,7 +26,7 @@ from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
 from pants.util.ordered_set import OrderedSet
 
-from pack_metadata.util_rules.python_pack_content import (
+from pack_metadata.python_rules.python_pack_content import (
     PackContentPythonEntryPoints,
     PackContentPythonEntryPointsRequest,
     PackPythonLibs,
