@@ -25,6 +25,7 @@ from pants.engine.rules import Get, MultiGet, collect_rules, rule
 from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
 
+from pack_metadata.target_types import PackMetadata
 from pack_metadata.util_rules.python_pack_content import (
     PackContentPythonEntryPoints,
     PackContentPythonEntryPointsRequest,
@@ -38,7 +39,7 @@ class St2PythonPackContentMappingMarker(FirstPartyPythonMappingImplMarker):
     pass
 
 
-@rule(desc="Creating map of pack_metadata targets to Python modules in pack content", level=LogLevel.DEBUG)
+@rule(desc=f"Creating map of `{PackMetadata.alias}` targets to Python modules in pack content", level=LogLevel.DEBUG)
 async def map_pack_content_to_python_modules(
     _: St2PythonPackContentMappingMarker,
 ) -> FirstPartyPythonMappingImpl:
