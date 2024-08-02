@@ -16,7 +16,12 @@ from pathlib import PurePath
 from typing import Optional, Sequence, Tuple
 
 from pants.engine.internals.native_engine import Address
-from pants.engine.target import BoolField, COMMON_TARGET_FIELDS, Dependencies, StringField
+from pants.engine.target import (
+    BoolField,
+    COMMON_TARGET_FIELDS,
+    Dependencies,
+    StringField,
+)
 from pants.core.target_types import (
     ResourceDependenciesField,
     ResourcesGeneratingSourcesField,
@@ -74,7 +79,9 @@ class PackContentResourceTypeField(StringField):
     value: PackContentResourceTypes
 
     @classmethod
-    def compute_value(cls, raw_value: Optional[str], address: Address) -> PackContentResourceTypes:
+    def compute_value(
+        cls, raw_value: Optional[str], address: Address
+    ) -> PackContentResourceTypes:
         value = super().compute_value(raw_value, address)
         if value is not None:
             return PackContentResourceTypes(value)
@@ -142,14 +149,16 @@ class PackContentResourceTarget(ResourceTarget):
         PackContentResourceSourceField,
         PackContentResourceTypeField,
     )
-    help = (
-        "A single pack content resource file (mostly for metadata files)."
-    )
+    help = "A single pack content resource file (mostly for metadata files)."
 
 
 class PackMetadata(ResourcesGeneratorTarget):
     alias = "pack_metadata"
-    core_fields = (*COMMON_TARGET_FIELDS, PackMetadataSourcesField, ResourcesOverridesField)
+    core_fields = (
+        *COMMON_TARGET_FIELDS,
+        PackMetadataSourcesField,
+        ResourcesOverridesField,
+    )
     moved_fields = (ResourceDependenciesField,)
     generated_target_cls = PackContentResourceTarget
     help = (
