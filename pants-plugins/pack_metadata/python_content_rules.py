@@ -18,14 +18,7 @@ from typing import DefaultDict
 
 import yaml
 
-from pants.backend.python.dependency_inference.module_mapper import (
-    FirstPartyPythonMappingImpl,
-    FirstPartyPythonMappingImplMarker,
-    ModuleProvider,
-    ModuleProviderType,
-    ResolveName,
-    module_from_stripped_path,
-)
+from pants.backend.python.dependency_inference.module_mapper import module_from_stripped_path
 from pants.backend.python.subsystems.setup import PythonSetup
 from pants.backend.python.target_types import PythonResolveField, PythonSourceField
 from pants.base.glob_match_error_behavior import GlobMatchErrorBehavior
@@ -42,7 +35,6 @@ from pants.engine.target import (
     Target,
     Targets,
 )
-from pants.engine.unions import UnionRule
 from pants.util.dirutil import fast_relpath
 from pants.util.logging import LogLevel
 
@@ -275,42 +267,7 @@ async def find_python_in_pack_lib_directories(
     return PackPythonLibs(pack_python_libs)
 
 
-# This is only used to register our implementation with the plugin hook via unions.
-class St2PythonPackContentMappingMarker(FirstPartyPythonMappingImplMarker):
-    pass
-
-
-@rule(desc="Creating map of pack_metadata targets to Python modules in pack content", level=LogLevel.DEBUG)
-async def map_pack_content_to_python_modules(
-    _: St2PythonPackContentMappingMarker,
-) -> FirstPartyPythonMappingImpl:
-    resolves_to_modules_to_providers: DefaultDict[
-        ResolveName, DefaultDict[str, list[ModuleProvider]]
-    ] = defaultdict(lambda: defaultdict(list))
-
-    pack_content_python_entry_points, pack_python_libs = await MultiGet(
-        Get(PackContentPythonEntryPoints, PackContentPythonEntryPointsRequest()),
-        Get(PackPythonLibs, PackPythonLibsRequest()),
-    )
-
-    for pack_content in pack_content_python_entry_points:
-        resolves_to_modules_to_providers[pack_content.resolve][pack_content.module].append(
-            ModuleProvider(pack_content.python_address, ModuleProviderType.IMPL)
-        )
-
-    for pack_lib in pack_python_libs:
-        provider_type = (
-            ModuleProviderType.TYPE_STUB if pack_lib.relative_to_lib.suffix == ".pyi" else ModuleProviderType.IMPL
-        )
-        resolves_to_modules_to_providers[pack_lib.resolve][pack_lib.module].append(
-            ModuleProvider(pack_lib.python_address, provider_type)
-        )
-
-    return FirstPartyPythonMappingImpl.create(resolves_to_modules_to_providers)
-
-
 def rules():
     return (
         *collect_rules(),
-        UnionRule(FirstPartyPythonMappingImplMarker, St2PythonPackContentMappingMarker),
     )
