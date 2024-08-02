@@ -82,7 +82,36 @@ class PackContentPythonEntryPoint:
     entry_point: str
     python_address: Address
     resolve: str
-    module: str
+
+    @property
+    def python_file_path(self) -> PurePath:
+        return PurePath(self.python_address.filename)
+
+    @staticmethod
+    def _split_pack_content_path(path: PurePath) -> tuple[PurePath, PurePath]:
+        content_types = ("actions", "sensors")  # only content_types with python content
+        pack_content_dir = path.parent
+        while pack_content_dir.name not in content_types:
+            pack_content_dir = pack_content_dir.parent
+        relative_to_pack_content_dir = path.relative_to(pack_content_dir)
+        return pack_content_dir, relative_to_pack_content_dir
+
+    def get_possible_modules(self) -> tuple[str, ...]:
+        """Get module names that could be imported. Mirrors get_possible_paths logic."""
+        path = self.python_file_path
+
+        # st2 adds the parent dir of the python file to sys.path at runtime.
+        module = path.stem if path.suffix == ".py" else path.name
+        modules = [module]
+
+        # By convention, however, just actions/ is on sys.path during tests.
+        # so, also construct the module name from actions/ to support tests.
+        _, relative_to_pack_content_dir = self._split_pack_content_path(path)
+        module = module_from_stripped_path(relative_to_pack_content_dir)
+        if module not in modules:
+            modules.append(module)
+
+        return tuple(modules)
 
 
 class PackContentPythonEntryPoints(Collection[PackContentPythonEntryPoint]):
@@ -91,25 +120,6 @@ class PackContentPythonEntryPoints(Collection[PackContentPythonEntryPoint]):
 
 class PackContentPythonEntryPointsRequest:
     pass
-
-
-def get_possible_modules(path: PurePath) -> list[str]:
-    if path.name in ("__init__.py", "__init__.pyi"):
-        path = path.parent
-    module = path.stem if path.suffix == ".py" else path.name
-    modules = [module]
-
-    try:
-        start = path.parent.parts.index("actions") + 1
-    except ValueError:
-        start = path.parent.parts.index("sensors") + 1
-
-    # st2 adds the parent dir of the python file to sys.path at runtime.
-    # by convention, however, just actions/ is on sys.path during tests.
-    # so, also construct the module name from actions/ to support tests.
-    if start < len(path.parent.parts):
-        modules.append(".".join((*path.parent.parts[start:], module)))
-    return modules
 
 
 @rule(desc="Find all Pack Content entry_points that are python", level=LogLevel.DEBUG)
@@ -190,17 +200,15 @@ async def find_pack_content_python_entry_points(
         ) in pack_content_entry_points_by_spec[tgt.address.filename]:
             resolve = tgt[PythonResolveField].normalized_value(python_setup)
 
-            for module in get_possible_modules(PurePath(tgt.address.filename)):
-                pack_content_entry_points.append(
-                    PackContentPythonEntryPoint(
-                        metadata_address=metadata_address,
-                        content_type=content_type,
-                        entry_point=entry_point,
-                        python_address=tgt.address,
-                        resolve=resolve,
-                        module=module,
-                    )
+            pack_content_entry_points.append(
+                PackContentPythonEntryPoint(
+                    metadata_address=metadata_address,
+                    content_type=content_type,
+                    entry_point=entry_point,
+                    python_address=tgt.address,
+                    resolve=resolve,
                 )
+            )
 
     return PackContentPythonEntryPoints(pack_content_entry_points)
 
@@ -212,7 +220,10 @@ class PackPythonLib:
     relative_to_lib: PurePath
     python_address: Address
     resolve: str
-    module: str
+
+    @property
+    def module(self) -> str:
+        return module_from_stripped_path(self.relative_to_lib)
 
 
 class PackPythonLibs(Collection[PackPythonLib]):
@@ -279,7 +290,6 @@ async def find_python_in_pack_lib_directories(
             relative_to_lib = relative_to_pack.relative_to(lib_dir)
 
             resolve = tgt[PythonResolveField].normalized_value(python_setup)
-            module = module_from_stripped_path(relative_to_lib)
 
             pack_python_libs.append(
                 PackPythonLib(
@@ -288,7 +298,6 @@ async def find_python_in_pack_lib_directories(
                     relative_to_lib=relative_to_lib,
                     python_address=tgt.address,
                     resolve=resolve,
-                    module=module,
                 )
             )
 
