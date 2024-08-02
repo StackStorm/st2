@@ -12,5 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def test_map_pack_content_to_python_modules() -> None:
+from pants.testutil.rule_runner import RuleRunner
+
+
+def test_map_pack_content_to_python_modules(rule_runner: RuleRunner) -> None:
     pass

@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def test_get_extra_sys_path_for_pack_dependencies() -> None:
+from pants.testutil.rule_runner import RuleRunner
+
+
+def test_get_extra_sys_path_for_pack_dependencies(rule_runner: RuleRunner) -> None:
     pass
 
 
-def test_inject_extra_sys_path_for_pack_tests() -> None:
+def test_inject_extra_sys_path_for_pack_tests(rule_runner: RuleRunner) -> None:
     pass
