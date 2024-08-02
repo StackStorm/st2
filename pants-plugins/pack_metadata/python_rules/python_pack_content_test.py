@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pants.testutil.rule_runner import RuleRunner
 
-def test_find_pack_metadata_targets_of_types() -> None:
+
+def test_find_pack_metadata_targets_of_types(rule_runner: RuleRunner) -> None:
     pass
 
 
-def test_find_pack_content_python_entry_points() -> None:
+def test_find_pack_content_python_entry_points(rule_runner: RuleRunner) -> None:
     pass
 
 
-def test_find_python_in_pack_lib_directories() -> None:
+def test_find_python_in_pack_lib_directories(rule_runner: RuleRunner) -> None:
     pass
