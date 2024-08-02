@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pack_metadata import python_module_mapper, tailor, target_types_rules
+from pants.backend.python.target_types import PythonTestTarget, PythonTestsGeneratorTarget
+
+from pack_metadata import python_module_mapper, python_path_rules, tailor, target_types_rules
 from pack_metadata.util_rules import python_pack_content
 from pack_metadata.target_types import (
+    InjectPackPythonPathField,
     PackContentResourceTarget,
     PackMetadata,
     PackMetadataInGitSubmodule,
@@ -24,10 +27,13 @@ from pack_metadata.target_types import (
 
 def rules():
     return [
+        PythonTestsGeneratorTarget.register_plugin_field(InjectPackPythonPathField, as_moved_field=True),
+        PythonTestTarget.register_plugin_field(InjectPackPythonPathField),
         *tailor.rules(),
         *target_types_rules.rules(),
         *python_pack_content.rules(),
         *python_module_mapper.rules(),
+        *python_path_rules.rules(),
     ]
 
 
