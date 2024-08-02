@@ -15,7 +15,7 @@
 from pants.backend.python.target_types import PythonTestTarget, PythonTestsGeneratorTarget
 
 from pack_metadata import python_module_mapper, python_path_rules, tailor, target_types_rules
-from pack_metadata.util_rules import python_pack_content
+from pack_metadata.python_rules import python_pack_content
 from pack_metadata.target_types import (
     InjectPackPythonPathField,
     PackContentResourceTarget,
