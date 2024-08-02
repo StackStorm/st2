@@ -39,7 +39,10 @@ class St2PythonPackContentMappingMarker(FirstPartyPythonMappingImplMarker):
     pass
 
 
-@rule(desc=f"Creating map of `{PackMetadata.alias}` targets to Python modules in pack content", level=LogLevel.DEBUG)
+@rule(
+    desc=f"Creating map of `{PackMetadata.alias}` targets to Python modules in pack content",
+    level=LogLevel.DEBUG,
+)
 async def map_pack_content_to_python_modules(
     _: St2PythonPackContentMappingMarker,
 ) -> FirstPartyPythonMappingImpl:
@@ -60,7 +63,9 @@ async def map_pack_content_to_python_modules(
 
     for pack_lib in pack_python_libs:
         provider_type = (
-            ModuleProviderType.TYPE_STUB if pack_lib.relative_to_lib.suffix == ".pyi" else ModuleProviderType.IMPL
+            ModuleProviderType.TYPE_STUB
+            if pack_lib.relative_to_lib.suffix == ".pyi"
+            else ModuleProviderType.IMPL
         )
         resolves_to_modules_to_providers[pack_lib.resolve][pack_lib.module].append(
             ModuleProvider(pack_lib.python_address, provider_type)

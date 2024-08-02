@@ -17,7 +17,9 @@ from dataclasses import dataclass
 from pathlib import PurePath
 from typing import DefaultDict
 
-from pants.backend.python.dependency_inference.module_mapper import module_from_stripped_path
+from pants.backend.python.dependency_inference.module_mapper import (
+    module_from_stripped_path,
+)
 from pants.backend.python.subsystems.setup import PythonSetup
 from pants.backend.python.target_types import PythonResolveField, PythonSourceField
 from pants.base.glob_match_error_behavior import GlobMatchErrorBehavior
@@ -92,14 +94,21 @@ class PackContentResourceTargetsOfType(Targets):
     pass
 
 
-@rule(desc=f"Find all `{PackMetadata.alias}` targets in project filtered by content type", level=LogLevel.DEBUG)
+@rule(
+    desc=f"Find all `{PackMetadata.alias}` targets in project filtered by content type",
+    level=LogLevel.DEBUG,
+)
 async def find_pack_metadata_targets_of_types(
     request: PackContentResourceTargetsOfTypeRequest, targets: AllTargets
 ) -> PackContentResourceTargetsOfType:
     return PackContentResourceTargetsOfType(
-        tgt for tgt in targets
+        tgt
+        for tgt in targets
         if tgt.has_field(PackContentResourceSourceField)
-        and (not request.types or tgt[PackContentResourceTypeField].value in request.types)
+        and (
+            not request.types
+            or tgt[PackContentResourceTypeField].value in request.types
+        )
     )
 
 
@@ -117,7 +126,7 @@ class PackContentPythonEntryPoint:
 
     @staticmethod
     def _split_pack_content_path(path: PurePath) -> tuple[PurePath, PurePath]:
-        content_types = ("actions", "sensors")  # the only content_types with python content
+        content_types = ("actions", "sensors")  # only content_types with python content
         pack_content_dir = path.parent
         while pack_content_dir.name not in content_types:
             pack_content_dir = pack_content_dir.parent
@@ -167,8 +176,7 @@ class PackContentPythonEntryPointsRequest:
 
 @rule(desc="Find all Pack Content entry_points that are python", level=LogLevel.DEBUG)
 async def find_pack_content_python_entry_points(
-    python_setup: PythonSetup,
-    _: PackContentPythonEntryPointsRequest
+    python_setup: PythonSetup, _: PackContentPythonEntryPointsRequest
 ) -> PackContentPythonEntryPoints:
     action_or_sensor = (
         PackContentResourceTypes.action_metadata,
@@ -195,7 +203,9 @@ async def find_pack_content_python_entry_points(
 
     tgt: Target
     contents: DigestContents
-    for tgt, contents in zip(action_and_sensor_metadata_targets, action_and_sensor_metadata_contents):
+    for tgt, contents in zip(
+        action_and_sensor_metadata_targets, action_and_sensor_metadata_contents
+    ):
         content_type = tgt[PackContentResourceTypeField].value
         if content_type not in action_or_sensor:
             continue
@@ -214,15 +224,20 @@ async def find_pack_content_python_entry_points(
         if entry_point:
             # address.filename is basically f"{spec_path}/{relative_file_path}"
             path = PurePath(tgt.address.filename).parent / entry_point
-            pack_content_entry_points_by_spec[str(path)].append((tgt.address, content_type, entry_point))
+            pack_content_entry_points_by_spec[str(path)].append(
+                (tgt.address, content_type, entry_point)
+            )
 
     python_targets = await Get(
         Targets,
         RawSpecs(
-            file_literals=tuple(FileLiteralSpec(spec_path) for spec_path in pack_content_entry_points_by_spec),
+            file_literals=tuple(
+                FileLiteralSpec(spec_path)
+                for spec_path in pack_content_entry_points_by_spec
+            ),
             unmatched_glob_behavior=GlobMatchErrorBehavior.ignore,
             description_of_origin="pack_metadata python module mapper",
-        )
+        ),
     )
 
     pack_content_entry_points: list[PackContentPythonEntryPoint] = []
@@ -230,16 +245,22 @@ async def find_pack_content_python_entry_points(
         if not tgt.has_field(PythonResolveField):
             # this is unexpected
             continue
-        for metadata_address, content_type, entry_point in pack_content_entry_points_by_spec[tgt.address.filename]:
+        for (
+            metadata_address,
+            content_type,
+            entry_point,
+        ) in pack_content_entry_points_by_spec[tgt.address.filename]:
             resolve = tgt[PythonResolveField].normalized_value(python_setup)
 
-            pack_content_entry_points.append(PackContentPythonEntryPoint(
-                metadata_address=metadata_address,
-                content_type=content_type,
-                entry_point=entry_point,
-                python_address=tgt.address,
-                resolve=resolve,
-            ))
+            pack_content_entry_points.append(
+                PackContentPythonEntryPoint(
+                    metadata_address=metadata_address,
+                    content_type=content_type,
+                    entry_point=entry_point,
+                    python_address=tgt.address,
+                    resolve=resolve,
+                )
+            )
 
     return PackContentPythonEntryPoints(pack_content_entry_points)
 
@@ -276,7 +297,8 @@ async def find_python_in_pack_lib_directories(
     _: PackPythonLibsRequest,
 ) -> PackPythonLibs:
     pack_metadata_paths = [
-        PurePath(tgt.address.spec_path) for tgt in all_unexpanded_targets
+        PurePath(tgt.address.spec_path)
+        for tgt in all_unexpanded_targets
         if tgt.has_field(PackMetadataSourcesField)
     ]
     pack_lib_directory_targets = await MultiGet(
@@ -289,7 +311,7 @@ async def find_python_in_pack_lib_directories(
                 ),
                 unmatched_glob_behavior=GlobMatchErrorBehavior.ignore,
                 description_of_origin="pack_metadata lib directory lookup",
-            )
+            ),
         )
         for path in pack_metadata_paths
     )
@@ -302,13 +324,17 @@ async def find_python_in_pack_lib_directories(
 
     pack_path: PurePath
     lib_directory_targets: Targets
-    for pack_path, lib_directory_targets in zip(pack_metadata_paths, pack_lib_directory_targets):
+    for pack_path, lib_directory_targets in zip(
+        pack_metadata_paths, pack_lib_directory_targets
+    ):
         for tgt in lib_directory_targets:
             if not tgt.has_field(PythonSourceField):
                 # only python targets matter here.
                 continue
 
-            relative_to_pack = PurePath(fast_relpath(tgt[PythonSourceField].file_path, str(pack_path)))
+            relative_to_pack = PurePath(
+                fast_relpath(tgt[PythonSourceField].file_path, str(pack_path))
+            )
             if relative_to_pack.parts[0] == "lib":
                 lib_dir = "lib"
             elif relative_to_pack.parts[:2] == ("actions", "lib"):
@@ -321,18 +347,18 @@ async def find_python_in_pack_lib_directories(
 
             resolve = tgt[PythonResolveField].normalized_value(python_setup)
 
-            pack_python_libs.append(PackPythonLib(
-                pack_path=pack_path,
-                lib_dir=lib_dir,
-                relative_to_lib=relative_to_lib,
-                python_address=tgt.address,
-                resolve=resolve,
-            ))
+            pack_python_libs.append(
+                PackPythonLib(
+                    pack_path=pack_path,
+                    lib_dir=lib_dir,
+                    relative_to_lib=relative_to_lib,
+                    python_address=tgt.address,
+                    resolve=resolve,
+                )
+            )
 
     return PackPythonLibs(pack_python_libs)
 
 
 def rules():
-    return (
-        *collect_rules(),
-    )
+    return (*collect_rules(),)

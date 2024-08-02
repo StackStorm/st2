@@ -47,10 +47,14 @@ class PackPythonPathRequest:
 
 @rule(
     desc="Get pack paths that should be added to PYTHONPATH/PEX_EXTRA_SYS_PATH for a target.",
-    level=LogLevel.DEBUG
+    level=LogLevel.DEBUG,
 )
-async def get_extra_sys_path_for_pack_dependencies(request: PackPythonPathRequest) -> PackPythonPath:
-    transitive_targets = await Get(TransitiveTargets, TransitiveTargetsRequest((request.address,)))
+async def get_extra_sys_path_for_pack_dependencies(
+    request: PackPythonPathRequest,
+) -> PackPythonPath:
+    transitive_targets = await Get(
+        TransitiveTargets, TransitiveTargetsRequest((request.address,))
+    )
 
     dependency_addresses: Set[Address] = {
         tgt.address for tgt in transitive_targets.closure
@@ -76,11 +80,13 @@ async def get_extra_sys_path_for_pack_dependencies(request: PackPythonPathReques
 
     # filter pack_content_python_entry_points and pack_python_libs
     pack_content_python_entry_points = (
-        pack_content for pack_content in pack_content_python_entry_points
+        pack_content
+        for pack_content in pack_content_python_entry_points
         if pack_content.python_address in pack_python_content_addresses
     )
     pack_python_libs = (
-        pack_lib for pack_lib in pack_python_libs
+        pack_lib
+        for pack_lib in pack_python_libs
         if pack_lib.python_address in pack_python_lib_addresses
     )
 
@@ -102,11 +108,16 @@ class PytestPackTestRequest(PytestPluginSetupRequest):
         return bool(target.get(InjectPackPythonPathField).value)
 
 
-@rule(desc="Inject pack paths in PYTHONPATH/PEX_EXTRA_SYS_PATH for python tests.", level=LogLevel.DEBUG)
+@rule(
+    desc="Inject pack paths in PYTHONPATH/PEX_EXTRA_SYS_PATH for python tests.",
+    level=LogLevel.DEBUG,
+)
 async def inject_extra_sys_path_for_pack_tests(
     request: PytestPackTestRequest,
 ) -> PytestPluginSetup:
-    pack_python_path = await Get(PackPythonPath, PackPythonPathRequest(request.target.address))
+    pack_python_path = await Get(
+        PackPythonPath, PackPythonPathRequest(request.target.address)
+    )
     return PytestPluginSetup(
         # digest=EMPTY_DIGEST,
         # extra_sys_path=pack_python_path,  # TODO: make pants support this
