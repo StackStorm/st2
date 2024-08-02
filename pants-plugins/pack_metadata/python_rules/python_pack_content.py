@@ -48,6 +48,44 @@ from pack_metadata.target_types import (
 )
 
 
+# Implementation Notes:
+#
+# With pants, we can rely on dependency inference for all the
+# st2 components, runners, and other venv bits (st2 venv and pack venv).
+# In StackStorm, all of that goes at the end of PYTHONPATH.
+# Pants runs things hermetically via pex, so PYTHPNPATH
+# changes happen via PEX_EXTRA_SYS_PATH instead.
+#
+# Actions:
+#   At runtime, the python_runner creates a PYTHONPATH that includes:
+#     [pack/lib:]pack_venv/lib/python3.x:pack_venv/lib/python3.x/site-packages:pack/actions/lib:st2_pythonpath
+#   python_runner runs python_action_wrapper which:
+#     - injects the action's entry_point's directory in sys.path
+#     - and then imports the action module and runs it.
+#
+# Sensors:
+#   At runtime, ProcessSensorContainer creates PYTHONPATH that includes:
+#     [pack/lib:]st2_pythonpath
+#   Then the process_container runs the sensor via sensor_wrapper which:
+#     - injects the sensor's entry_point's directory in sys.path
+#       (effectively always "sensors/" as a split("/") assumes only one dir)
+#     - and then imports the class_name from sensor module and runs it.
+#
+# For actions, this pants plugin should add this to PEX_EXTRA_SYS_PATH:
+#   pack/actions/path_to_entry_point:[pack/lib:]pack/actions/lib
+# For sensors, this pants plugin should add this to PEX_EXTRA_SYS_PATH:
+#   pack/sensors:[pack/lib:]
+#
+# The rules in this file are used by:
+#   python_module_mapper.py:
+#     Dependency inference uses pack_metadata's module_mapper to detect any
+#     python imports that require one of these PYTHONPATH modifications,
+#     resolving those imports to modules in lib/, actions/, or sensors/.
+#   python_path_rules.py:
+#     Then get the relevant python imports from dependencies and
+#     add their parent directory to a generated PEX_EXTRA_SYS_PATH.
+
+
 @dataclass(frozen=True)
 class PackContentResourceTargetsOfTypeRequest:
     types: tuple[PackContentResourceTypes, ...]
