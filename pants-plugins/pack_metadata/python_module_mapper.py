@@ -25,7 +25,7 @@ from pants.engine.rules import Get, MultiGet, collect_rules, rule
 from pants.engine.unions import UnionRule
 from pants.util.logging import LogLevel
 
-from pack_metadata.python_content_rules import (
+from pack_metadata.python_pack_content import (
     PackContentPythonEntryPoints,
     PackContentPythonEntryPointsRequest,
     PackPythonLibs,
