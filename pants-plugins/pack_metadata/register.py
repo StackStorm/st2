@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pack_metadata import python_pack_content, python_module_mapper, tailor, target_types_rules
+
+from pack_metadata import python_module_mapper, tailor, target_types_rules
+from pack_metadata.util_rules import python_pack_content
 from pack_metadata.target_types import (
     PackContentResourceTarget,
     PackMetadata,
