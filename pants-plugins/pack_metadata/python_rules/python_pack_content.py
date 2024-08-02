@@ -151,6 +151,21 @@ class PackContentPythonEntryPoint:
 
         return tuple(modules)
 
+    def get_possible_paths(self) -> tuple[str, ...]:
+        """Get paths to add to PYTHONPATH and PEX_EXTRA_SYS_PATH. Mirrors get_possible_modules logic."""
+        path = self.python_file_path
+
+        # st2 adds the parent dir of the python file to sys.path at runtime.
+        paths = [path.parent.as_posix()]
+
+        # By convention, however, just actions/ is on sys.path during tests.
+        # so, also construct the module name from actions/ to support tests.
+        pack_content_dir, _ = self._split_pack_content_path(path)
+        if path.parent != pack_content_dir:
+            paths.append(pack_content_dir.as_posix())
+
+        return tuple(paths)
+
 
 class PackContentPythonEntryPoints(Collection[PackContentPythonEntryPoint]):
     pass
@@ -262,6 +277,10 @@ class PackPythonLib:
     @property
     def module(self) -> str:
         return module_from_stripped_path(self.relative_to_lib)
+
+    @property
+    def lib_path(self) -> PurePath:
+        return self.pack_path / self.lib_dir
 
 
 class PackPythonLibs(Collection[PackPythonLib]):

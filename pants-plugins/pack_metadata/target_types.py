@@ -16,7 +16,12 @@ from pathlib import PurePath
 from typing import Optional, Sequence, Tuple
 
 from pants.engine.internals.native_engine import Address
-from pants.engine.target import COMMON_TARGET_FIELDS, Dependencies, StringField
+from pants.engine.target import (
+    BoolField,
+    COMMON_TARGET_FIELDS,
+    Dependencies,
+    StringField,
+)
 from pants.core.target_types import (
     ResourceDependenciesField,
     ResourcesGeneratingSourcesField,
@@ -193,3 +198,14 @@ class PacksGlob(GenericTarget):
         "subdirectories (packs) except those listed with ! in dependencies. "
         "This is unfortunately needed by tests that use a glob to load pack fixtures."
     )
+
+
+class InjectPackPythonPathField(BoolField):
+    alias = "inject_pack_python_path"
+    help = (
+        "For pack tests, set this to true to make sure <pack>/lib or actions/ dirs get "
+        "added to PYTHONPATH (actually PEX_EXTRA_SYS_PATH). Use `__defaults__` to enable "
+        "this in the BUILD file where you define pack_metadata, like this: "
+        "`__defaults__(all=dict(inject_pack_python_path=True))`"
+    )
+    default = False
