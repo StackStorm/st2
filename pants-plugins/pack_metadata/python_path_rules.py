@@ -34,12 +34,12 @@ from pack_metadata.util_rules.python_pack_content import (
 from pack_metadata.target_types import InjectPackPythonPathField
 
 
-@dataclass
+@dataclass(frozen=True)
 class PackPythonPath:
     entries: tuple[str, ...] = ()
 
 
-@dataclass
+@dataclass(frozen=True)
 class PackPythonPathRequest:
     address: Address
 
