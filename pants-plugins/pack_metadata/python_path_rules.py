@@ -23,6 +23,7 @@ from pants.engine.internals.native_engine import Address
 from pants.engine.rules import collect_rules, Get, MultiGet, rule
 from pants.engine.target import Target, TransitiveTargets, TransitiveTargetsRequest
 from pants.engine.unions import UnionRule
+from pants.util.logging import LogLevel
 from pants.util.ordered_set import OrderedSet
 
 from pack_metadata.util_rules.python_pack_content import (
@@ -44,7 +45,10 @@ class PackPythonPathRequest:
     address: Address
 
 
-@rule
+@rule(
+    desc="Get pack paths that should be added to PYTHONPATH/PEX_EXTRA_SYS_PATH for a target.",
+    level=LogLevel.DEBUG
+)
 async def get_extra_sys_path_for_pack_dependencies(request: PackPythonPathRequest) -> PackPythonPath:
     transitive_targets = await Get(TransitiveTargets, TransitiveTargetsRequest((request.address,)))
 
@@ -98,7 +102,7 @@ class PytestPackTestRequest(PytestPluginSetupRequest):
         return bool(target.get(InjectPackPythonPathField).value)
 
 
-@rule
+@rule(desc="Inject pack paths in PYTHONPATH/PEX_EXTRA_SYS_PATH for python tests.", level=LogLevel.DEBUG)
 async def inject_extra_sys_path_for_pack_tests(
     request: PytestPackTestRequest,
 ) -> PytestPluginSetup:

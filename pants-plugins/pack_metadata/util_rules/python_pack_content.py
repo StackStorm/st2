@@ -41,6 +41,7 @@ from pack_metadata.target_types import (
     PackContentResourceSourceField,
     PackContentResourceTypeField,
     PackContentResourceTypes,
+    PackMetadata,
     PackMetadataSourcesField,
 )
 
@@ -91,7 +92,7 @@ class PackContentResourceTargetsOfType(Targets):
     pass
 
 
-@rule(desc="Find all PackMetadata targets in project filtered by content type", level=LogLevel.DEBUG)
+@rule(desc=f"Find all `{PackMetadata.alias}` targets in project filtered by content type", level=LogLevel.DEBUG)
 async def find_pack_metadata_targets_of_types(
     request: PackContentResourceTargetsOfTypeRequest, targets: AllTargets
 ) -> PackContentResourceTargetsOfType:
