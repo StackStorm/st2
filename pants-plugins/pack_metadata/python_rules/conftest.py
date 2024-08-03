@@ -91,7 +91,7 @@ def write_test_files(rule_runner: RuleRunner):
                     """
                 ),
                 f"packs/{pack}/config.schema.yaml": "",
-                f"packs/{pack}/{pack}.yaml.example": "",
+                f"packs/{pack}/config.yaml.example": "",
                 f"packs/{pack}/icon.png": "",
                 f"packs/{pack}/README.md": f"# Pack {pack} README",
             }

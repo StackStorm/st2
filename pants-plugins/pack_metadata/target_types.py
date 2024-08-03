@@ -86,17 +86,17 @@ class PackContentResourceTypeField(StringField):
         if value is not None:
             return PackContentResourceTypes(value)
         path = PurePath(address.relative_file_path)
-        _yaml_suffixes = ("yaml", "yml")
+        _yaml_suffixes = (".yaml", ".yml")
         if len(path.parent.parts) == 0:
             # in the pack root
-            if path.name == "pack.yaml":
+            if path.stem == "pack" and path.suffix in _yaml_suffixes:
                 return PackContentResourceTypes.pack_metadata
-            if path.stem == "pack.schema" and path.suffix in _yaml_suffixes:
+            if path.stem == "config.schema" and path.suffix in _yaml_suffixes:
                 return PackContentResourceTypes.pack_config_schema
-            if path.suffix == "example" and path.suffixes[0] in _yaml_suffixes:
+            if path.stem.startswith("config.") and path.suffixes[0] in _yaml_suffixes and path.suffix == ".example":
                 return PackContentResourceTypes.pack_config_example
             if path.name == "icon.png":
-                return PackContentResourceTypes.pack_config_example
+                return PackContentResourceTypes.pack_icon
             return PackContentResourceTypes.unknown
         resource_type = _content_type_by_path_parts.get(path.parent.parts, None)
         if resource_type is not None:
