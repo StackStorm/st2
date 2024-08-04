@@ -14,11 +14,16 @@
 
 import pytest
 
+from pants.engine.addresses import Address
 from pants.testutil.rule_runner import RuleRunner
 
 from pack_metadata.python_rules.python_pack_content import (
+    PackContentPythonEntryPoints,
+    PackContentPythonEntryPointsRequest,
     PackContentResourceTargetsOfType,
     PackContentResourceTargetsOfTypeRequest,
+    PackPythonLibs,
+    PackPythonLibsRequest,
 )
 from pack_metadata.target_types import PackContentResourceTypes
 
@@ -75,8 +80,79 @@ def test_find_pack_metadata_targets_of_types(
 
 
 def test_find_pack_content_python_entry_points(rule_runner: RuleRunner) -> None:
-    pass
+    result = rule_runner.request(
+        PackContentPythonEntryPoints,
+        (PackContentPythonEntryPointsRequest(),),
+    )
+    assert len(result) == 6  # 5 actions + 1 sensor
+    assert {res.metadata_address for res in result} == {
+        Address(
+            "packs/foo",
+            relative_file_path="actions/get_bar.yaml",
+            target_name="metadata",
+        ),
+        Address(
+            "packs/foo",
+            relative_file_path="actions/get_baz.yaml",
+            target_name="metadata",
+        ),
+        Address(
+            "packs/dr_seuss",
+            relative_file_path="actions/get_from_actions_lib.yaml",
+            target_name="metadata",
+        ),
+        Address(
+            "packs/shards",
+            relative_file_path="actions/get_from_pack_lib.yaml",
+            target_name="metadata",
+        ),
+        Address(
+            "packs/shards",
+            relative_file_path="sensors/horn_eater.yaml",
+            target_name="metadata",
+        ),
+        Address(
+            "packs/metals",
+            relative_file_path="actions/fly.yaml",
+            target_name="metadata",
+        ),
+    }
+    assert {(res.content_type, res.entry_point) for res in result} == {
+        (PackContentResourceTypes.action_metadata, "get_bar.py"),
+        (PackContentResourceTypes.action_metadata, "get_baz.py"),
+        (PackContentResourceTypes.action_metadata, "get_from_actions_lib.py"),
+        (PackContentResourceTypes.action_metadata, "get_from_pack_lib.py"),
+        (PackContentResourceTypes.sensor_metadata, "horn_eater.py"),
+        (PackContentResourceTypes.action_metadata, "mist_born/fly.py"),
+    }
+    assert {res.python_address for res in result} == {
+        Address("packs/foo/actions", relative_file_path="get_bar.py"),
+        Address("packs/foo/actions", relative_file_path="get_baz.py"),
+        Address("packs/dr_seuss/actions", relative_file_path="get_from_actions_lib.py"),
+        Address("packs/shards/actions", relative_file_path="get_from_pack_lib.py"),
+        Address("packs/shards/sensors", relative_file_path="horn_eater.py"),
+        Address("packs/metals/actions/mist_born", relative_file_path="fly.py"),
+    }
 
 
 def test_find_python_in_pack_lib_directories(rule_runner: RuleRunner) -> None:
-    pass
+    result = rule_runner.request(PackPythonLibs, (PackPythonLibsRequest(),))
+    assert len(result) == 4
+    assert {(str(res.pack_path), res.lib_dir) for res in result} == {
+        ("packs/dr_seuss", "actions/lib"),
+        ("packs/shards", "lib"),
+    }
+    assert {res.python_address for res in result} == {
+        Address("packs/dr_seuss/actions/lib/seuss", relative_file_path="__init__.py"),
+        Address("packs/dr_seuss/actions/lib/seuss", relative_file_path="things.py"),
+        Address(
+            "packs/shards/lib/stormlight_archive", relative_file_path="__init__.py"
+        ),
+        Address("packs/shards/lib/stormlight_archive", relative_file_path="things.py"),
+    }
+    assert {res.module for res in result} == {
+        "seuss",
+        "seuss.things",
+        "stormlight_archive",
+        "stormlight_archive.things",
+    }
