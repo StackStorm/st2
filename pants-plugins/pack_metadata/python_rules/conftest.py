@@ -141,7 +141,7 @@ def write_test_files(rule_runner: RuleRunner):
             "packs/foo/tests/BUILD": "python_tests()",
             "packs/foo/tests/test_get_bar_action.py": test_file("get_bar", "BarAction"),
             "packs/foo/tests/test_get_baz_action.py": test_file("get_baz", "BazAction"),
-            "packs/dr_seuss/actions/lib/BUILD": "python_sources()",
+            "packs/dr_seuss/actions/lib/seuss/BUILD": "python_sources()",
             "packs/dr_seuss/actions/lib/seuss/__init__.py": "",
             "packs/dr_seuss/actions/lib/seuss/things.py": dedent(
                 """
