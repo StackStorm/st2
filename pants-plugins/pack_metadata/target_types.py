@@ -93,7 +93,11 @@ class PackContentResourceTypeField(StringField):
                 return PackContentResourceTypes.pack_metadata
             if path.stem == "config.schema" and path.suffix in _yaml_suffixes:
                 return PackContentResourceTypes.pack_config_schema
-            if path.stem.startswith("config.") and path.suffixes[0] in _yaml_suffixes and path.suffix == ".example":
+            if (
+                path.stem.startswith("config.")
+                and path.suffixes[0] in _yaml_suffixes
+                and path.suffix == ".example"
+            ):
                 return PackContentResourceTypes.pack_config_example
             if path.name == "icon.png":
                 return PackContentResourceTypes.pack_icon
