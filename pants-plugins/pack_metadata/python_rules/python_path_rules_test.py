@@ -13,12 +13,14 @@
 # limitations under the License.
 
 import pytest
-from pants.engine.internals.native_engine import Address
+from pants.backend.python.goals.pytest_runner import PytestPluginSetup
+from pants.engine.internals.native_engine import Address, EMPTY_DIGEST
 from pants.testutil.rule_runner import RuleRunner
 
 from pack_metadata.python_rules.python_path_rules import (
     PackPythonPath,
     PackPythonPathRequest,
+    PytestPackTestRequest,
 )
 
 
@@ -120,5 +122,48 @@ def test_get_extra_sys_path_for_pack_dependencies(
     assert pack_python_path.entries == expected
 
 
-def test_inject_extra_sys_path_for_pack_tests(rule_runner: RuleRunner) -> None:
-    pass
+@pytest.mark.xfail(raises=AttributeError, reason="Not implemented in pants yet.")
+@pytest.mark.parametrize(
+    "address,expected",
+    (
+        (
+            Address("packs/foo/tests", relative_file_path="test_get_bar_action.py"),
+            ("packs/foo/actions",),
+        ),
+        (
+            Address("packs/foo/tests", relative_file_path="test_get_baz_action.py"),
+            ("packs/foo/actions",),
+        ),
+        (
+            Address(
+                "packs/dr_seuss/tests",
+                relative_file_path="test_get_from_actions_lib_action.py",
+            ),
+            ("packs/dr_seuss/actions", "packs/dr_seuss/actions/lib"),
+        ),
+        (
+            Address(
+                "packs/shards/tests",
+                relative_file_path="test_get_from_pack_lib_action.py",
+            ),
+            ("packs/shards/actions", "packs/shards/lib"),
+        ),
+        (
+            Address(
+                "packs/shards/tests", relative_file_path="test_horn_eater_sensor.py"
+            ),
+            ("packs/shards/sensors", "packs/shards/lib"),
+        ),
+        (
+            Address("packs/metals/tests", relative_file_path="test_fly_action.py"),
+            ("packs/metals/actions/mist_born", "packs/metals/actions"),
+        ),
+    ),
+)
+def test_inject_extra_sys_path_for_pack_tests(
+    rule_runner: RuleRunner, address: Address, expected: tuple[str, ...]
+) -> None:
+    target = rule_runner.get_target(address)
+    result = rule_runner.request(PytestPluginSetup, (PytestPackTestRequest(target),))
+    assert result.digest == EMPTY_DIGEST
+    assert result.extra_sys_path == expected  # TODO: pants does not have this attribute yet.
