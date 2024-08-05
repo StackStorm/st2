@@ -159,7 +159,7 @@ py_editable_in_resolve = ["st2"]
 py_resolve_format = "mutable_virtualenv"
 # By default, pex modifies script shebangs to add '-sE'.
 # This breaks nosetest and anything that needs PYTHONPATH.
-py_hermetic_scripts = false
+py_non_hermetic_scripts_in_resolve = ["st2"]
 # If any targets generate sources/files, include them in the exported venv.
 py_generated_sources_in_resolve = ["st2"]
 
