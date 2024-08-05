@@ -120,7 +120,7 @@ async def inject_extra_sys_path_for_pack_tests(
     )
     return PytestPluginSetup(
         # digest=EMPTY_DIGEST,
-        # extra_sys_path=pack_python_path,  # TODO: make pants support this
+        # extra_sys_path=pack_python_path.entries,  # TODO: make pants support this
     )
 
 
