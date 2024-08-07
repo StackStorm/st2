@@ -119,6 +119,7 @@ function init()
     echo -n "Using virtualenv: "; iecho "${VIRTUALENV}"
     echo -n "Using python: "; iecho "${PY} (${PYTHON_VERSION})"
     echo -n "Log file location: "; iecho "${ST2_LOGS}"
+    echo -n "Using tmux: "; iecho "$(tmux -V)"
 
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
@@ -221,7 +222,7 @@ function st2start()
     export ST2_CONFIG_PATH=${ST2_CONF};
 
     # Kill existing st2 terminal multiplexor sessions
-    for tmux_session in $(tmux ls | awk -F: '/^st2-/ {print $1}')
+    for tmux_session in $(tmux ls 2>/dev/null | awk -F: '/^st2-/ {print $1}')
     do
         echo "Kill existing session $tmux_session"
         tmux kill-session -t $tmux_session
@@ -328,7 +329,7 @@ function st2start()
     echo
     for s in "${SESSIONS[@]}"
     do
-        tmux ls | grep "^${s}[[:space:]]" &> /dev/null
+        tmux ls | grep "^${s}:\?[[:space:]]" &> /dev/null
         if [ $? != 0 ]; then
             eecho "ERROR: terminal multiplex session for $s failed to start."
         fi
@@ -356,7 +357,7 @@ function st2start()
 
 function st2stop()
 {
-    for tmux_session in $(tmux ls | awk -F: '/^st2-/ {print $1}')
+    for tmux_session in $(tmux ls 2>/dev/null | awk -F: '/^st2-/ {print $1}')
     do
         echo "Kill existing session $tmux_session"
         tmux kill-session -t $tmux_session
