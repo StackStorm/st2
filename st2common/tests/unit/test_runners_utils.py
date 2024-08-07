@@ -15,24 +15,16 @@
 
 from __future__ import absolute_import
 
-# pytest: make sure monkey_patching happens before importing mongoengine
-from st2common.util.monkey_patch import monkey_patch
-
-monkey_patch()
+# This import must be early for import-time side-effects.
+from st2tests import base
 
 import mock
 
 from st2common.runners import utils
 from st2common.services import executions as exe_svc
 from st2common.util import action_db as action_db_utils
-from st2tests import base
 from st2tests import fixturesloader
 from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
-
-
-from st2tests import config as tests_config
-
-tests_config.parse_args()
 
 
 TEST_FIXTURES = {

@@ -24,9 +24,7 @@ import unittest
 import st2common.util.loader as plugin_loader
 
 
-PLUGIN_FOLDER = "loadableplugin"
-SRC_RELATIVE = os.path.join("../resources", PLUGIN_FOLDER)
-SRC_ROOT = os.path.join(os.path.abspath(os.path.dirname(__file__)), SRC_RELATIVE)
+from tests.resources.loadableplugin.fixture import FIXTURE_PATH as SRC_ROOT
 
 
 class LoaderTest(unittest.TestCase):

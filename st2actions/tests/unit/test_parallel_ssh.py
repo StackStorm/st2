@@ -25,8 +25,6 @@ from st2common.runners.paramiko_ssh import ParamikoSSHClient
 from st2common.runners.paramiko_ssh import SSHCommandTimeoutError
 import st2tests.config as tests_config
 
-tests_config.parse_args()
-
 MOCK_STDERR_SUDO_PASSWORD_ERROR = """
 [sudo] password for bar: Sorry, try again.\n
 [sudo] password for bar:' Sorry, try again.\n
@@ -36,6 +34,11 @@ sudo: 2 incorrect password attempts
 
 
 class ParallelSSHTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     @patch("paramiko.SSHClient", Mock)
     @patch.object(
         ParamikoSSHClient,

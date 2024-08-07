@@ -6,11 +6,11 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.18.3"
+pants_version = "2.23.0.dev5"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
-  # https://www.pantsbuild.org/2.19/docs/using-pants/validating-dependencies
+  # https://www.pantsbuild.org/2.20/docs/using-pants/validating-dependencies
   "pants.backend.experimental.visibility",
 
   # python
@@ -40,6 +40,7 @@ backend_packages = [
 pants_ignore.add = [
   # TODO: remove these once we start building wheels with pants.
   "dist_utils.py",
+  "test_dist_utils.py",
   "setup.py",
   # keep tailor from using legacy requirements files (not for pants)
   "contrib/examples/requirements.txt",
@@ -89,9 +90,6 @@ root_patterns = [
   "/contrib/packs",
   "/st2tests/testpacks/checks",
   "/st2tests/testpacks/errorcheck",
-  # pack common lib directories that ST2 adds to the PATH for actions/sensors
-  "/contrib/*/lib",
-  "/contrib/*/actions/lib",
   # other special-cased pack directories
   "/contrib/examples/actions/ubuntu_pkg_info", # python script runs via shell expecting cwd in PYTHONPATH
   # lint plugins
@@ -111,7 +109,7 @@ root_patterns = [
 st2_interpreter_constraints = "CPython>=3.8,<3.10"
 
 # This should match the pants interpreter_constraints:
-# https://github.com/pantsbuild/pants/blob/2.18.x/pants.toml#L144
+# https://github.com/pantsbuild/pants/blob/2.20.x/pants.toml#L147
 # See: https://www.pantsbuild.org/docs/prerequisites
 pants_plugins_interpreter_constraints = "CPython==3.9.*"
 
@@ -157,6 +155,11 @@ st2 = "lockfiles/st2-constraints.txt"
 py_editable_in_resolve = ["st2"]
 # We need mutable venvs to use the editable installs of our sources.
 py_resolve_format = "mutable_virtualenv"
+# By default, pex modifies script shebangs to add '-sE'.
+# This breaks nosetest and anything that needs PYTHONPATH.
+py_non_hermetic_scripts_in_resolve = ["st2"]
+# If any targets generate sources/files, include them in the exported venv.
+py_generated_sources_in_resolve = ["st2"]
 
 [python-infer]
 # https://www.pantsbuild.org/docs/reference-python-infer#string_imports
@@ -174,7 +177,7 @@ string_imports_min_dots = 1
 # custom PYTHONPATH for packs, so actions that import other actions are still showing
 # up as unowned. Maybe we can extend pants-plugins/pack_metadata so we can use "warn".
 unowned_dependency_behavior = "ignore"
-# https://www.pantsbuild.org/v2.16/docs/reference-python-infer#ambiguity_resolution
+# https://www.pantsbuild.org/docs/reference-python-infer#ambiguity_resolution
 # When resolving ambiguous deps prefer one that is in the same source root as the
 # file that uses it. So, without manually disambiguating the dep in the BUILD file,
 # importing tests.unit.base in st2common/tests/unit will get a dep on st2common/tests/unit/base.py
@@ -232,6 +235,13 @@ config = "@lint-configs/regex-lint.yaml"
 
 [setuptools]
 install_from_resolve = "st2"
+
+[test]
+extra_env_vars = [
+  # Use this so that the test system does not require the stanley user.
+  # For example: export ST2TESTS_SYSTEM_USER=${USER}
+  "ST2TESTS_SYSTEM_USER",
+]
 
 [twine]
 install_from_resolve = "twine"

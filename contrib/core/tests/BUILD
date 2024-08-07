@@ -1,8 +1,14 @@
 # tests can only be dependencies of other tests in this directory
 __dependents_rules__(("*", "/**", "!*"))
 
+__defaults__(
+    {(python_test, python_tests): dict(tags=["unit", "pack"])},
+    extend=True,
+)
+
 python_tests(
     skip_pylint=True,
+    # st2_pack_dir="..",  # directory containing pack.yaml
     overrides={
         "test_action_sendmail.py": dict(
             dependencies=[
@@ -11,6 +17,7 @@ python_tests(
                 # Use contrib/core as the canonical copy.
                 "contrib/core:reqs#mail-parser",
             ],
+            uses=["mongo"],
         ),
     },
 )

@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# NB: Pantsbuild ignores this file and any dist_utils.py files.
+# TODO: delete this file when deleting all dist_utils.py files.
+
 import os
 import sys
 
