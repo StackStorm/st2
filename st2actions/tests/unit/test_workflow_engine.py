@@ -24,6 +24,7 @@ import st2tests
 from orquesta import statuses as wf_statuses
 from oslo_config import cfg
 from tooz import coordination
+from tooz.drivers.redis import RedisDriver
 
 from st2actions.workflows import workflows
 from st2common.bootstrap import actionsregistrar
@@ -142,7 +143,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
-    @mock.patch.object(coordination_service.NoOpDriver, "get_lock")
+    @mock.patch.object(RedisDriver, "get_lock")
     def test_process_error_handling(self, mock_get_lock):
         expected_errors = [
             {
@@ -200,7 +201,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
 
     @mock.patch.object(
-        coordination_service.NoOpDriver,
+        RedisDriver,
         "get_lock",
     )
     @mock.patch.object(
@@ -263,7 +264,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
     @mock.patch.object(
-        coordination_service.NoOpDriver,
+        RedisDriver,
         "get_members",
         mock.MagicMock(return_value=coordination_service.NoOpAsyncResult("")),
     )
@@ -325,7 +326,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         )
 
     @mock.patch.object(
-        coordination_service.NoOpDriver,
+        RedisDriver,
         "get_members",
         mock.MagicMock(return_value=coordination_service.NoOpAsyncResult("member-1")),
     )
@@ -399,7 +400,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
-        coordination_service.NoOpDriver,
+        RedisDriver,
         "get_lock",
         mock.MagicMock(return_value=coordination_service.NoOpLock(name="noop")),
     )
@@ -456,7 +457,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         )
 
     @mock.patch.object(
-        coordination_service.NoOpDriver,
+        RedisDriver,
         "get_lock",
         mock.MagicMock(return_value=coordination_service.NoOpLock(name="noop")),
     )
@@ -485,7 +486,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         eventlet.spawn(workflow_engine.start, True)
         eventlet.spawn_after(1, workflow_engine.shutdown)
 
-        coordination_service.NoOpDriver.get_members = mock.MagicMock(
+        RedisDriver.get_members = mock.MagicMock(
             return_value=coordination_service.NoOpAsyncResult("member-1")
         )
 
