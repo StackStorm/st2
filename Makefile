@@ -833,7 +833,7 @@ unit-tests: requirements .unit-tests
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
 		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
-		    pytest --capture=no --verbose \
+		    pytest -rx --verbose \
 		    $$component/tests/unit || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
