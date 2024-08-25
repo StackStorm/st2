@@ -2,8 +2,8 @@
 coverage<7.5
 pep8==1.7.1
 # st2flake8 does not support flake8 v5 yet
-flake8==4.0.1
-st2flake8==0.1.0
+flake8==7.0.0
+st2-flake8 @ git+https://github.com/nzlosh/st2-flake8@master
 astroid==3.1.0
 pylint==3.1.0
 pylint-plugin-utils>=0.4
@@ -20,12 +20,8 @@ sphinx>=5.0.0,<7.2.0
 sphinx-autobuild
 # pin alabaster (sphinx dependency) or pip installs one that is not compatible
 alabaster<0.7.14
-# nosetests enhancements
-rednose
-nose-timer==1.0.1
-# splitting tests run on a separate CI machines
-nose-parallel==0.4.0
-# Required by st2client tests
+# Required by st2client tests (202403: downgrade pyyaml to 5.3.1 to avoid pyyaml AttributeError: cython_sources error.)
+#pyyaml==5.3.1 # uncomment if downgrade still required
 pyyaml==6.0.1
 # Constrain pygments required by editor to align with st2 core version
 pygments==2.18.0
@@ -35,12 +31,20 @@ psutil==6.0.0
 webtest==2.0.35
 # Bump to latest to meet sphinx requirements.
 rstcheck==6.2.1
-tox==3.23.0
+# pydantic needed by rstcheck
+pydantic==2.6.4
+# 202403: typing-extension must be >4.7.1 to avoid ImportError: cannot import name 'deprecated' from 'typing_extensions' for pydantic
+#typing_extensions==4.10.0 # uncomment if downgrade still required
+tox==4.14.2
 pyrabbit
+# 202403: Bumped to 23.6.21.0 for py3.10 support
 prance==23.6.21.0
 # pip-tools provides pip-compile: to check for version conflicts
-pip-tools==7.4.1
-pytest==6.2.3
+pip_tools==7.4.1
+# 202403: Use 6.2.5 for py3.10 support
+pytest==6.2.5
+pytest-cov==4.1.0
+pytest-xdist==3.5.0
 pytest-benchmark==3.4.1
 pytest-benchmark[histogram]==3.4.1
 # zstandard is used for micro benchmarks
