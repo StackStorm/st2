@@ -20,6 +20,7 @@ import json
 import logging
 import argparse
 import tempfile
+import re
 import unittest
 from collections import namedtuple
 
@@ -490,8 +491,15 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
 
             self.assertIn("usage:", stdout)
             self.assertIn(" ".join(command), stdout)
-            # self.assertIn('positional arguments:', stdout)
+                        # argparse on py3.8/py3.9 has a different output to py3.10 so the check for
             self.assertIn("optional arguments:", stdout)
+            # optional arguments covers both formats.
+            assert (
+                isinstance(
+                    re.search("(optional arguments:|options:)", stdout), re.Match
+                )
+                is True
+            )
 
             # Reset stdout and stderr after each iteration
             self._reset_output_streams()
@@ -510,8 +518,14 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
 
             self.assertIn("usage:", stdout)
             self.assertIn(" ".join(command), stdout)
-            # self.assertIn('positional arguments:', stdout)
-            self.assertIn("optional arguments:", stdout)
+            # argparse on py3.8/py3.9 has a different output to py3.10 so the check for
+            # optional arguments covers both formats.
+            assert (
+                isinstance(
+                    re.search("(optional arguments:|options:)", stdout), re.Match
+                )
+                is True
+            )
 
             # Verify that the actual help usage string was triggered and not the invalid
             # "too few arguments" which would indicate command doesn't actually correctly handle

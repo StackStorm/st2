@@ -8,7 +8,6 @@
 
 apscheduler
 argcomplete
-argparse
 ciso8601
 cryptography
 editor
@@ -37,7 +36,7 @@ orquesta @ git+https://github.com/StackStorm/orquesta.git@v1.6.0
 # Relaxed pinning for py3.10 support.
 oslo.config
 paramiko
-# we use pip at runtime
+# pip is used at runtime (24.0 is available for py3.8 to py3.10)
 pip
 # prance is used by st2-validate-api-spec to validate the openapi spec
 # prance needs flex, but do not use the extra as that gets an old version.
@@ -56,7 +55,7 @@ python-dateutil
 python-json-logger
 python-statsd
 pytz
-PyYAML
+pyyaml
 # RandomWords used in some tests
 RandomWords
 requests
@@ -92,15 +91,3 @@ zstandard
 # tooz backends
 redis
 zake
-
-# was in fixed-requirements.txt, but not in requirements-pants.txt
-# keyczar is used by a python2-only test.
-#python-keyczar
-
-###########
-
-# remove once we switch to pytest
-nose
-nose-timer
-nose-parallel
-rednose

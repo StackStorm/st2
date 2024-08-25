@@ -2,11 +2,12 @@
 # Note: amqp is used by kombu
 amqp==5.2.0
 apscheduler==3.10.4
-chardet==3.0.4
+# 202404: Use latest chardet for tox / and cross project dependency Orquesta.
+# 202405: chardet is a transtive dependency. Just accept whatever pip picks.
+#chardet==5.2.0
 cffi==1.16.0
-# NOTE: 2.0 version breaks pymongo work with hosts
-dnspython==1.16.0
-cryptography==42.0.5
+dnspython==2.6.1
+cryptography==43.0.0
 eventlet==0.36.1
 flex==6.14.1
 # Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
@@ -21,12 +22,14 @@ jsonpath-rw==1.4.0
 jsonschema==3.2.0
 kombu==5.3.7
 lockfile==0.12.2
-# Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
-# >=0.23 was from jinja2
-MarkupSafe==2.0.1
+# 202405: MarkupSafe is a transitive dependency. Just accept whatever pip picks.
+#MarkupSafe==2.1.5
+# mongoengine 0.24.0 has breaking changes to support pymongo 4.0
 mongoengine==0.23.1
 # required by orquesta (networkx<2.6 for py3.6, networkx<3 for py3.8)
-networkx==2.8.8
+# 202404: networkx >3.2 doesn't support py3.8
+#networkx<3.2
+networkx==3.1
 # networkx dropped its dep on decorator in version 2.6, so the old pin is unneeded.
 # now jsonpath-rw is the only thing that depends on decorator (a transitive dep)
 decorator==5.1.1
@@ -39,6 +42,7 @@ passlib==1.7.4
 # 202403: bump to 3.0.43 for py3.10 support
 prompt-toolkit==3.0.43
 pyinotify==0.9.6 ; platform_system=="Linux"
+# pymongo 3.13 has backports of APIs from pymongo 4 to help w/ migration
 pymongo==3.12.3
 pyparsing==3.1.2
 zstandard==0.23.0
@@ -58,7 +62,7 @@ retrying==1.3.4
 routes==2.5.1
 semver==3.0.2
 six==1.16.0
-argparse==1.4.0
+# 202403: Bumped to latest for py3.10 support
 argcomplete==3.4.0
 prettytable==3.10.2
 importlib-metadata==7.1.0

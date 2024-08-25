@@ -32,7 +32,7 @@ ST2_CONFIG_PATH = os.path.join(BASE_DIR, "../../../conf/st2.tests.conf")
 
 
 class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
-    @unittest.skipIf(profiling.is_enabled(), "Profiling is enabled")
+    @pytest.mark.skipif(profiling.is_enabled(), "Profiling is enabled")
     def test_st2api_wsgi_entry_point(self):
         port = random.randint(10000, 30000)
         cmd = (
@@ -51,7 +51,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         finally:
             kill_process(process)
 
-    @unittest.skipIf(profiling.is_enabled(), "Profiling is enabled")
+    @pytest.mark.skipif(profiling.is_enabled(), "Profiling is enabled")
     def test_st2auth(self):
         port = random.randint(10000, 30000)
         cmd = (

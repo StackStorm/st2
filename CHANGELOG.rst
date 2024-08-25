@@ -24,6 +24,8 @@ Changed
 * Fic misc DeprecationWarnings to prepare for python 3.10 support. #6188 (by @nzlosh)
 * Update st2client deps: editor and prompt-toolkit. #6189 (by @nzlosh)
 * Updated dependency oslo.config to prepare for python 3.10 support. #6193 (by @nzlosh)
+* Support for Python3.8, Python3.9 and Python3.10.  Update underlying modules and
+  remove modules that weren't compatible with newer versions of Python.  #6157
 
 Added
 ~~~~~

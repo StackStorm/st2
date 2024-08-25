@@ -138,13 +138,20 @@ pytest = "lockfiles/pytest.lock"
 twine = "lockfiles/twine.lock"
 
 [python.resolves_to_interpreter_constraints]
-bandit = ["%(tool_interpreter_constraints)s"]
-black = ["%(tool_interpreter_constraints)s"]
-flake8 = ["%(tool_interpreter_constraints)s"]
-pants-plugins = ["%(pants_plugins_interpreter_constraints)s"]
-pylint = ["%(tool_interpreter_constraints)s"]
-pytest = ["%(tool_interpreter_constraints)s"]
-twine = ["%(tool_interpreter_constraints)s"]
+# for tools, we have to include constraints for st2 and pants-plugins
+bandit = ["CPython>=3.8,<3.11"]
+black = ["CPython>=3.8,<3.11"]
+flake8 = ["CPython>=3.8,<3.11"]
+pants-plugins = [
+  # this should match the pants interpreter_constraints:
+  # https://github.com/pantsbuild/pants/blob/2.18.x/pants.toml#L144
+  # See: https://www.pantsbuild.org/docs/prerequisites
+  "CPython==3.9.*",
+]
+pylint = ["CPython>=3.8,<3.11"]
+pytest = ["CPython>=3.8,<3.11"]
+setuptools = ["CPython>=3.8,<3.11"]
+twine = ["CPython>=3.8,<3.11"]
 
 [python.resolves_to_constraints_file]
 # Our direct requirements are in requirements-pants.txt;

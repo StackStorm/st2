@@ -255,7 +255,7 @@ class CryptoUtilsKeyczarCompatibilityTestCase(TestCase):
 
             self.assertEqual(decrypted, plaintext)
 
-    @unittest.skipIf(six.PY3, "keyczar doesn't work under Python 3")
+    @pytest.mark.skipif(six.PY3, "keyczar doesn't work under Python 3")
     def test_symmetric_encrypt_decrypt_roundtrips_1(self):
         encrypt_keys = [
             AESKey.generate(),

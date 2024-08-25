@@ -65,7 +65,7 @@ TIME_BINARY_PATH = shutil_which("time")
 TIME_BINARY_AVAILABLE = TIME_BINARY_PATH is not None
 
 
-@unittest.skipIf(not TIME_BINARY_PATH, "time binary not available")
+@pytest.mark.skipif(not TIME_BINARY_PATH, "time binary not available")
 class PythonRunnerActionWrapperProcessTestCase(unittest.TestCase):
     def test_process_wrapper_exits_in_reasonable_timeframe(self):
         # 1. Verify wrapper script path is correct and file exists
