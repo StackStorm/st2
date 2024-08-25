@@ -37,7 +37,7 @@ SSL_LISTENER_PORT = 5671
 
 # NOTE: We only run those tests on the CI provider because at the moment, local
 #       vagrant dev VM doesn't expose RabbitMQ SSL listener by default
-@unittest.skipIf(
+@pytest.mark.skipif(
     not ST2_CI,
     'Skipping tests because ST2_CI environment variable is not set to "true"',
 )

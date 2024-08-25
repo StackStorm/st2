@@ -200,7 +200,7 @@ class CLIConfigPermissionsTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(self.TEMP_CONFIG_DIR))
         self.assertEqual(os.stat(self.TEMP_CONFIG_DIR).st_mode & 0o7777, 0o2770)
 
-    @unittest.skipIf(os.getuid() == 0, reason="Test must be run as non-root user.")
+    @pytest.mark.skipif(os.getuid() == 0, reason="Test must be run as non-root user.")
     def test_warn_on_bad_config_permissions(self):
         # Setup the config directory
         os.chmod(self.TEMP_CONFIG_DIR, 0o0755)

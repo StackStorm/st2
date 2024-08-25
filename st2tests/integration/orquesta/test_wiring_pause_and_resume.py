@@ -25,7 +25,7 @@ from st2common.constants import action as ac_const
 
 # Those tests hang and time out very often so they are disabled for the timing being until we find
 # the root cause for the race or run that test separately in isolation in retry loop
-@unittest.skipIf(
+@pytest.mark.skipif(
     os.environ.get("ST2_CI_RUN_ORQUESTA_PAUSE_RESUME_TESTS", "false").lower()
     not in ["1", "true"],
     "Skipping race prone tests",

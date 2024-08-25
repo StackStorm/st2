@@ -75,7 +75,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
             "DEBUG [-] Test debug message with unicode 1 - \u597d\u597d\u597d", stdout
         )
 
-    @unittest.skipIf(sys.version_info >= (3, 8, 0), "Skipping test under Python >= 3.8")
+    @pytest.mark.skipif(sys.version_info >= (3, 8, 0), "Skipping test under Python >= 3.8")
     def test_formatting_with_unicode_data_works_no_stdout_patching_non_valid_utf8_encoding(
         self,
     ):
