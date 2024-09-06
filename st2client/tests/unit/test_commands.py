@@ -14,11 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import os
 import mock
 import json
 import logging
 import argparse
+import re
 import tempfile
 import re
 import unittest
@@ -491,8 +493,7 @@ class CommandsHelpStringTestCase(BaseCLITestCase):
 
             self.assertIn("usage:", stdout)
             self.assertIn(" ".join(command), stdout)
-                        # argparse on py3.8/py3.9 has a different output to py3.10 so the check for
-            self.assertIn("optional arguments:", stdout)
+            # argparse on py3.8/py3.9 has a different output to py3.10 so the check for
             # optional arguments covers both formats.
             assert (
                 isinstance(

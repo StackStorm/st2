@@ -1,6 +1,6 @@
-# Remember to list implicit packages here, otherwise version won't be fixated!
+# Remember to list implicit packages here, otherwise version won't be appended!
 mock
-unittest2
+pytest
 psutil
 webtest
 RandomWords

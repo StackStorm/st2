@@ -1,0 +1,6 @@
+#orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
+<<<<<<< HEAD
+orquesta@ git+https://github.com/nzlosh/orquesta.git@st2v39_compat
+=======
+orquesta@ git+https://github.com/nzlosh/orquesta.git@st2v39_compat
+>>>>>>> python_upgrade

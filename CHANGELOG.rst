@@ -27,6 +27,9 @@ Changed
 * Support for Python3.8, Python3.9 and Python3.10.  Update underlying modules and
   remove modules that weren't compatible with newer versions of Python.  #6157
 
+* Support for Python3.8, Python3.9 and Python3.10.  Update underlying modules and
+  remove modules that weren't compatible with newer versions of Python.  #6157
+
 Added
 ~~~~~
 * Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)

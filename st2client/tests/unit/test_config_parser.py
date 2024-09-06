@@ -20,6 +20,7 @@ import shutil
 
 import mock
 import six
+import pytest
 import unittest
 
 from st2client.config_parser import CLIConfigParser

@@ -7,8 +7,8 @@
 # update the component requirements.txt
 argcomplete==3.4.0
 cffi==1.16.0
-chardet==3.0.4
-cryptography==42.0.5
+chardet
+cryptography==42.0.7
 editor==1.6.6
 importlib-metadata==7.1.0
 jsonpath-rw==1.4.0
@@ -19,7 +19,7 @@ prompt-toolkit==3.0.43
 pyOpenSSL
 pygments==2.18.0
 pysocks
-python-dateutil==2.9.0
+python-dateutil==2.9.0.post0
 pytz==2024.1
 pyyaml==6.0.1
 requests==2.32.3

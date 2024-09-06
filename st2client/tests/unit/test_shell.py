@@ -27,6 +27,7 @@ import tempfile
 import requests
 import six
 import mock
+import pytest
 import unittest
 
 import st2client
