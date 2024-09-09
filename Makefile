@@ -821,7 +821,7 @@ unit-tests: requirements .unit-tests
 	@echo "==================== tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -847,7 +847,7 @@ endif
 	@echo "==================== unit tests with coverage  ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -908,7 +908,7 @@ itests: requirements .itests
 	@echo "==================== integration tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -932,7 +932,7 @@ endif
 	@echo "================ integration tests with coverage ================"
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -1073,7 +1073,7 @@ runners-tests: requirements .runners-tests
 	@echo "==================== runners-tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
