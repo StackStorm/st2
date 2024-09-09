@@ -1,5 +1,5 @@
 # This config is for CI. It extends the config in pants.toml.
-# See https://www.pantsbuild.org/docs/using-pants-in-ci
+# See https://www.pantsbuild.org/stable/docs/using-pants/using-pants-in-ci
 
 [GLOBAL]
 # Colors often work in CI, but the shell is usually not a TTY so Pants
@@ -19,4 +19,6 @@ log = true
 
 [test]
 # Have pants automatically retry tests that fail to help with flaky tests.
+# https://www.pantsbuild.org/stable/docs/using-pants/using-pants-in-ci#tip-automatically-retry-failed-tests
+# https://www.pantsbuild.org/stable/reference/goals/test#attempts_default
 attempts_default = 3
