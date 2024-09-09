@@ -5,8 +5,4 @@ __defaults__(
 
 python_tests(
     name="tests",
-<<<<<<< HEAD
 )
-=======
-)
->>>>>>> python_upgrade
