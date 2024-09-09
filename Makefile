@@ -854,6 +854,8 @@ endif
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
+		 ST2_OVERRIDE_COORDINATOR_REDIS_HOST=$(ST2_OVERRIDE_COORDINATOR_REDIS_HOST) \
+		 ST2_OVERRIDE_COORDINATOR_REDIS_PORT=$(ST2_OVERRIDE_COORDINATOR_REDIS_PORT) \
 		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
 		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
 		    $(NOSE_COVERAGE_PACKAGES) \
