@@ -145,15 +145,13 @@ def _override_coordinator_opts(noop=False):
 
         ST2_OVERRIDE_COORDINATOR_REDIS_PORT = os.environ.get("ST2_OVERRIDE_COORDINATOR_REDIS_PORT", "6379")
         driver=f"redis://{ST2_OVERRIDE_COORDINATOR_REDIS_HOST}:{ST2_OVERRIDE_COORDINATOR_REDIS_PORT}"
-        assert False
-        print(f"Redis is being used with the following cord: {driver}")
 
     CONF.set_override(name="url", override=driver, group="coordination")
     CONF.set_override(name="lock_timeout", override=1, group="coordination")
 
 
 def _override_workflow_engine_opts():
-    cfg.CONF.set_override("retry_stop_max_msec", 500, group="workflow_engine")
+    cfg.CONF.set_override("retry_stop_max_msec", 200, group="workflow_engine")
     cfg.CONF.set_override("retry_wait_fixed_msec", 100, group="workflow_engine")
     cfg.CONF.set_override("retry_max_jitter_msec", 100, group="workflow_engine")
     cfg.CONF.set_override("gc_max_idle_sec", 1, group="workflow_engine")

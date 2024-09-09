@@ -54,8 +54,8 @@ COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 REQUIREMENTS := test-requirements.txt requirements.txt
 
 # Redis config for testing
-ST2_OVERRIDE_COORDINATOR_REDIS_HOST := ${REDIS_HOST:-"127.0.0.1"}
-ST2_OVERRIDE_COORDINATOR_REDIS_PORT := ${REDIS_PORT:-"6379"} 
+ST2_OVERRIDE_COORDINATOR_REDIS_HOST := 127.0.0.1
+ST2_OVERRIDE_COORDINATOR_REDIS_PORT := 6379
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
@@ -828,6 +828,8 @@ unit-tests: requirements .unit-tests
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
+		 ST2_OVERRIDE_COORDINATOR_REDIS_HOST=$(ST2_OVERRIDE_COORDINATOR_REDIS_HOST) \
+		 ST2_OVERRIDE_COORDINATOR_REDIS_PORT=$(ST2_OVERRIDE_COORDINATOR_REDIS_PORT) \
 		    nosetests $(NOSE_OPTS) -s -v \
 		    $$component/tests/unit || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \

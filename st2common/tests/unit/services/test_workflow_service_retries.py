@@ -197,7 +197,6 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         mock.MagicMock(
             side_effect=[
                 mongoengine.connection.ConnectionFailure(),
-                mongoengine.connection.ConnectionFailure(),
                 None,
             ]
         ),
