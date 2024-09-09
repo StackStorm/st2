@@ -149,6 +149,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
 
     @mock.patch.object(RedisDriver, "get_lock")
     def test_process_error_handling(self, mock_get_lock):
+        tests_config.parse_args()
+        cfg.CONF.set_override(
+            name="service_registry", override=True, group="coordination"
+        )
         expected_errors = [
             {
                 "message": "Execution failed. See result for details.",
@@ -162,7 +166,6 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
                 "route": 0,
             },
         ]
-
         mock_get_lock.side_effect = coordination_service.NoOpLock(name="noop")
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
@@ -183,8 +186,6 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
             task_execution=str(t1_ex_db.id)
         )[0]
         mock_get_lock.side_effect = [
-            coordination.ToozConnectionError("foobar"),
-            coordination.ToozConnectionError("foobar"),
             coordination.ToozConnectionError("foobar"),
             coordination.ToozConnectionError("foobar"),
             coordination.ToozConnectionError("foobar"),
@@ -217,6 +218,8 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         mock_get_lock.side_effect = coordination_service.NoOpLock(name="noop")
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
+
+
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
@@ -267,15 +270,20 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
-    @mock.patch.object(
-        RedisDriver,
-        "get_members",
-        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult("")),
-    )
     def test_workflow_engine_shutdown(self):
+        cfg.CONF.set_override(
+            name="graceful_shutdown", override=True, group="actionrunner"
+        )
         cfg.CONF.set_override(
             name="service_registry", override=True, group="coordination"
         )
+        cfg.CONF.set_override(
+            name="exit_still_active_check", override=4, group="workflow_engine"
+        )
+        cfg.CONF.set_override(
+            name="still_active_check_interval", override=1, group="workflow_engine"
+        )
+ 
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
@@ -288,11 +296,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         )[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflow_engine = workflows.get_engine()
-
         eventlet.spawn(workflow_engine.shutdown)
 
         # Sleep for few seconds to ensure execution transitions to pausing.
-        eventlet.sleep(5)
+        eventlet.sleep(8)
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSING)
@@ -485,14 +492,14 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflow_engine = workflows.get_engine()
 
+        RedisDriver.get_members = mock.MagicMock(
+            return_value=coordination_service.NoOpAsyncResult("member-1")
+        )
+
         workflow_engine._delay = 0
         # Initiate start first
         eventlet.spawn(workflow_engine.start, True)
         eventlet.spawn_after(1, workflow_engine.shutdown)
-
-        RedisDriver.get_members = mock.MagicMock(
-            return_value=coordination_service.NoOpAsyncResult("member-1")
-        )
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
 

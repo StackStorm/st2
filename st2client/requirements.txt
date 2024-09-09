@@ -19,7 +19,7 @@ prompt-toolkit==3.0.43
 pyOpenSSL
 pygments==2.18.0
 pysocks
-python-dateutil==2.9.0.post0
+python-dateutil==2.9.0
 pytz==2024.1
 pyyaml==6.0.1
 requests==2.32.3

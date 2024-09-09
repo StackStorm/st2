@@ -26,13 +26,13 @@ kombu==5.3.7
 lockfile==0.12.2
 mongoengine==0.23.1
 networkx==3.1
-orjson==3.10.3
+orjson==3.10.6
 orquesta@ git+https://github.com/nzlosh/orquesta.git@st2v39_compat
-oslo.config==9.4.0
+oslo.config==9.5.0
 paramiko==3.4.0
 pyOpenSSL
 pymongo==3.12.3
-python-dateutil==2.9.0.post0
+python-dateutil==2.9.0
 python-statsd==2.1.0
 pyyaml==6.0.1
 redis==5.0.7

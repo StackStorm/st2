@@ -19,6 +19,7 @@ import eventlet
 import mock
 import os
 from oslo_config import cfg
+from tooz.drivers.redis import RedisDriver
 import tempfile
 
 import st2actions.worker as actions_worker
@@ -169,13 +170,22 @@ class WorkerTestCase(DbTestCase):
         runner_thread.wait()
 
     @mock.patch.object(
-        coordination.NoOpDriver,
+        RedisDriver,
         "get_members",
         mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
     )
     def test_worker_graceful_shutdown_with_multiple_runners(self):
         cfg.CONF.set_override(
             name="graceful_shutdown", override=True, group="actionrunner"
+        )
+        cfg.CONF.set_override(
+            name="service_registry", override=True, group="coordination"
+        )
+        cfg.CONF.set_override(
+            name="exit_still_active_check", override=10, group="actionrunner"
+        )
+        cfg.CONF.set_override(
+            name="still_active_check_interval", override=1, group="actionrunner"
         )
         action_worker = actions_worker.get_worker()
         temp_file = None
@@ -237,6 +247,16 @@ class WorkerTestCase(DbTestCase):
         cfg.CONF.set_override(
             name="graceful_shutdown", override=True, group="actionrunner"
         )
+        cfg.CONF.set_override(
+            name="service_registry", override=True, group="coordination"
+        )
+        cfg.CONF.set_override(
+            name="exit_still_active_check", override=10, group="actionrunner"
+        )
+        cfg.CONF.set_override(
+            name="still_active_check_interval", override=1, group="actionrunner"
+        )
+
         action_worker = actions_worker.get_worker()
         temp_file = None
 

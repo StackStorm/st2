@@ -54,8 +54,8 @@ COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 REQUIREMENTS := test-requirements.txt requirements.txt
 
 # Redis config for testing
-ST2_OVERRIDE_COORDINATOR_REDIS_HOST := ${REDIS_HOST:-"127.0.0.1"}
-ST2_OVERRIDE_COORDINATOR_REDIS_PORT := ${REDIS_PORT:-"6379"} 
+ST2_OVERRIDE_COORDINATOR_REDIS_HOST := 127.0.0.1
+ST2_OVERRIDE_COORDINATOR_REDIS_PORT := 6379
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
@@ -824,13 +824,15 @@ unit-tests: requirements .unit-tests
 	@echo "==================== tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
+		 ST2_OVERRIDE_COORDINATOR_REDIS_HOST=$(ST2_OVERRIDE_COORDINATOR_REDIS_HOST) \
+		 ST2_OVERRIDE_COORDINATOR_REDIS_PORT=$(ST2_OVERRIDE_COORDINATOR_REDIS_PORT) \
 		    pytest -rx --verbose $$component/tests/unit || exit 1; \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
@@ -847,7 +849,7 @@ endif
 	@echo "==================== unit tests with coverage  ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -905,7 +907,7 @@ itests: requirements .itests
 	@echo "==================== integration tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -929,7 +931,7 @@ endif
 	@echo "================ integration tests with coverage ================"
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -1068,7 +1070,7 @@ runners-tests: requirements .runners-tests
 	@echo "==================== runners-tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \

@@ -7,7 +7,7 @@
 # update the component requirements.txt
 RandomWords
 mock==5.1.0
-psutil==5.9.8
+psutil==6.0.0
 pyrabbit
 pytest
 webtest
