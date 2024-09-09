@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import os
 import tempfile
 
-import six
 import mock
 from oslo_config import cfg
 
@@ -153,9 +152,10 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
                 include_wheel=False,
             )
         except Exception as e:
-            self.assertIn("Failed to install requirements from", six.text_type(e))
+            self.assertIn("Failed to install requirements from", str(e))
             self.assertTrue(
-                "No matching distribution found for someinvalidname" in six.text_type(e)
+                "No matching distribution found for someinvalidname" in str(e)
+                or "Invalid requirement:" in str(e)
             )
         else:
             self.fail("Exception not thrown")

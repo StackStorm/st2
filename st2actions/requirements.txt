@@ -10,16 +10,16 @@ apscheduler==3.10.4
 chardet==3.0.4
 eventlet==0.36.1
 gitpython==3.1.43
-jinja2==3.1.3
+jinja2==3.1.4
 kombu==5.3.7
 lockfile==0.12.2
 logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
-oslo.config==9.4.0
-oslo.utils==7.1.0
+oslo.config==9.5.0
+oslo.utils==7.2.0
 pyinotify==0.9.6 ; platform_system=="Linux"
 pyparsing==3.1.2
 python-dateutil==2.9.0
 python-json-logger
 pyyaml==6.0.1
-requests==2.31.0
+requests==2.32.3
 six==1.16.0

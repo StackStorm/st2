@@ -53,16 +53,6 @@ python_requirement(
 )
 
 python_requirement(
-    name="setuptools-reqs",
-    resolve="setuptools",
-    requirements=[
-        # setuptools 59.7 (at least) does not support python 3.6
-        "setuptools>=50.3.0,<59.0",
-        "wheel>=0.35.1,<0.38",
-    ],
-)
-
-python_requirement(
     name="twine-reqs",
     resolve="twine",
     requirements=[
