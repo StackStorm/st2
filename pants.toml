@@ -144,21 +144,10 @@ twine = 		"lockfiles/twine.lock"
 
 [python.resolves_to_interpreter_constraints]
 # for tools, we have to include constraints for st2 and pants-plugins
-bandit = ["CPython>=3.8,<3.11"]
-black = ["CPython>=3.8,<3.11"]
-flake8 = ["CPython>=3.8,<3.11"]
-=======
-pylint = 		"lockfiles/pylint.lock" # see //pylint_plugins/BUILD
-pytest = 		"lockfiles/pytest.lock"
-setuptools = 	"lockfiles/setuptools.lock"
-twine = 		"lockfiles/twine.lock"
-
-[python.resolves_to_interpreter_constraints]
-# for tools, we have to include constraints for st2 and pants-plugins
 bandit = 		["CPython>=3.8,<3.11"]
 black = 		["CPython>=3.8,<3.11"]
 flake8 = 		["CPython>=3.8,<3.11"]
->>>>>>> python_upgrade
+
 pants-plugins = [
   # this should match the pants interpreter_constraints:
   # https://github.com/pantsbuild/pants/blob/2.18.x/pants.toml#L144
