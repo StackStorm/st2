@@ -8,6 +8,7 @@ Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 
 Fixed
 ~~~~~
+* Fix `packs.get` action. Assumed `master` is primary branch on all packs. #6225
 * Restore Pack integration testing (it was inadvertently skipped) and stop testing against `bionic` and `el7`. #6135
 * Fix Popen.pid typo in st2tests. #6184
 * Bump tooz package to `6.2.0` to fix TLS. #6220 (@jk464)
