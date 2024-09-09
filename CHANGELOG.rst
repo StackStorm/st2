@@ -38,6 +38,9 @@ Added
 * Ensure `.pth` files in the st2 virtualenv get loaded by pack virtualenvs. #6183
   Contributed by @cognifloyd
 
+* Added a `get_result` method to the `ExecutionResourceManager` Class for st2client
+  Contributed by @skiedude
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed
