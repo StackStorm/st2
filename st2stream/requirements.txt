@@ -10,8 +10,8 @@ gunicorn==22.0.0
 jsonschema==3.2.0
 kombu==5.3.7
 mongoengine==0.23.1
-oslo.config==9.4.0
-oslo.utils==7.1.0
+oslo.config==9.5.0
+oslo.utils==7.2.0
 pymongo==3.12.3
 pyparsing==3.1.2
 six==1.16.0
