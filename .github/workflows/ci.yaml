@@ -487,18 +487,18 @@ jobs:
       # Used for the coordination backend for integration tests
       # NOTE: To speed things up, we only start redis for integration tests
       # where it's needed
-      redis-server:
-        # Docker Hub image
-        image: redis
-        # Set health checks to wait until redis has started
-        options: >-
-          --name "redis"
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379/tcp
+      #redis-server:
+      #  # Docker Hub image
+      #  image: redis
+      #  # Set health checks to wait until redis has started
+      #  options: >-
+      #    --name "redis"
+      #    --health-cmd "redis-cli ping"
+      #    --health-interval 10s
+      #    --health-timeout 5s
+      #    --health-retries 5
+      #  ports:
+      #    - 6379:6379/tcp
 
     env:
       TASK: '${{ matrix.task }}'
