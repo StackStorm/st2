@@ -6,24 +6,24 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 argcomplete==3.4.0
-cffi==1.16.0
+cffi==1.17.1
 chardet
-cryptography==42.0.7
+cryptography==43.0.1
 editor==1.6.6
 importlib-metadata==7.1.0
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
-orjson==3.10.6
+orjson==3.10.7
 prettytable==3.10.2
-prompt-toolkit==3.0.43
+prompt-toolkit==3.0.47
 pyOpenSSL
 pygments==2.18.0
 pysocks
-python-dateutil==2.9.0
+python-dateutil==2.9.0.post0
 pytz==2024.1
-pyyaml==6.0.1
+pyyaml==6.0.2
 requests==2.32.3
 six==1.16.0
 sseclient-py==1.8.0
-typing-extensions==4.11.0
-zipp==3.19.2
+typing-extensions==4.12.2
+zipp==3.20.1

@@ -11,10 +11,10 @@ amqp==5.2.0
 apscheduler==3.10.4
 argcomplete==3.4.0
 bcrypt==4.2.0
-cffi==1.16.0
+cffi==1.17.1
 chardet
 ciso8601
-cryptography==42.0.7
+cryptography==43.0.1
 decorator==5.1.1
 dnspython==2.6.1
 editor==1.6.6
@@ -23,41 +23,41 @@ flex==6.14.1
 gitdb==4.0.11
 gitpython==3.1.43
 greenlet==3.0.3
-gunicorn==22.0.0
+gunicorn==23.0.0
 importlib-metadata==7.1.0
 jinja2==3.1.4
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
-kombu==5.3.7
+kombu==5.4.0
 lockfile==0.12.2
 logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
 mock==5.1.0
 mongoengine==0.23.1
 networkx==3.1
-orjson==3.10.6
+orjson==3.10.7
 orquesta@ git+https://github.com/nzlosh/orquesta.git@st2v39_compat
-oslo.config==9.5.0
-oslo.utils==7.2.0
-paramiko==3.4.0
+oslo.config==9.6.0
+oslo.utils==7.3.0
+paramiko==3.4.1
 passlib==1.7.4
 prettytable==3.10.2
-prompt-toolkit==3.0.43
+prompt-toolkit==3.0.47
 psutil==6.0.0
 pyOpenSSL
 pygments==2.18.0
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==3.12.3
-pyparsing==3.1.2
+pyparsing==3.1.4
 pyrabbit
 pysocks
 pytest
-python-dateutil==2.9.0
+python-dateutil==2.9.0.post0
 python-json-logger
 python-statsd==2.1.0
 pytz==2024.1
 pywinrm==0.5.0
-pyyaml==6.0.1
-redis==5.0.7
+pyyaml==6.0.2
+redis==5.0.8
 requests==2.32.3
 retrying==1.3.4
 routes==2.5.1
@@ -68,12 +68,12 @@ sseclient-py==1.8.0
 st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
-stevedore==5.2.0
+stevedore==5.3.0
 tenacity==9.0.0
-tooz==6.2.0
-typing-extensions==4.11.0
-webob==1.8.7
+tooz==6.3.0
+typing-extensions==4.12.2
+webob==1.8.8
 webtest
 zake==0.2.2
-zipp==3.19.2
+zipp==3.20.1
 zstandard==0.23.0

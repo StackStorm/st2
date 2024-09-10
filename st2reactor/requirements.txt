@@ -9,7 +9,7 @@ apscheduler==3.10.4
 eventlet==0.36.1
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
-kombu==5.3.7
-oslo.config==9.5.0
-python-dateutil==2.9.0
+kombu==5.4.0
+oslo.config==9.6.0
+python-dateutil==2.9.0.post0
 six==1.16.0

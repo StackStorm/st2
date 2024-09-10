@@ -85,6 +85,7 @@ For information on how to contribute, our style guide, coding conventions and mo
 please visit the [Development section](https://docs.stackstorm.com/development/index.html)
 in our documentation.
 
+pants users behind a proxy must set `export SSL_CERT_FILE=`
 ## Security
 
 If you believe you found a security issue or a vulnerability, please send a description of it to
