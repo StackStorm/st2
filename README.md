@@ -85,9 +85,15 @@ For information on how to contribute, our style guide, coding conventions and mo
 please visit the [Development section](https://docs.stackstorm.com/development/index.html)
 in our documentation.
 
-pants users behind a proxy must set `export SSL_CERT_FILE=`
-## Security
+### requirements and lockfiles
+often times in merges of upstream master you will see conflicts with requirements files and lockfiles.  
+do not attempt to fix those conflicts instead:   
+pants users behind a proxy must set `export SSL_CERT_FILE=[pathtocert]`
 
+1. `make requirements` to generate requirements.txt from fixed-requirements.txt
+2. `pants generate-lockfiles --resolve=st2` to generate lockfiles
+
+## Security
 If you believe you found a security issue or a vulnerability, please send a description of it to
 our private mailing list at info [at] stackstorm [dot] com.
 
