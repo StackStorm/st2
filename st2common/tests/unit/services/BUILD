@@ -10,7 +10,9 @@ python_tests(
     overrides={
         "test_packs.py": dict(
             # use the fixture to resolve ambiguous import (ambiguous due to symlink of core pack)
-            dependencies=["st2tests/st2tests/fixtures/packs/core/actions/inject_trigger.py"],
+            dependencies=[
+                "st2tests/st2tests/fixtures/packs/core/actions/inject_trigger.py"
+            ],
         ),
-    }
+    },
 )
