@@ -86,8 +86,8 @@ please visit the [Development section](https://docs.stackstorm.com/development/i
 in our documentation.
 
 ### requirements and lockfiles
-often times in merges of upstream master you will see conflicts with requirements files and lockfiles.  
-do not attempt to fix those conflicts instead:   
+often times in merges of upstream master you will see conflicts with requirements files and lockfiles.
+do not attempt to fix those conflicts instead:
 pants users behind a proxy must set `export SSL_CERT_FILE=[pathtocert]`
 
 1. `make requirements` to generate requirements.txt from fixed-requirements.txt

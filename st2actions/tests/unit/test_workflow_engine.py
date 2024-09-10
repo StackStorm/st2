@@ -219,7 +219,6 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
 
-
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
@@ -283,7 +282,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         cfg.CONF.set_override(
             name="still_active_check_interval", override=1, group="workflow_engine"
         )
- 
+
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)

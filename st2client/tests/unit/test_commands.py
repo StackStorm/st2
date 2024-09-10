@@ -20,7 +20,6 @@ import mock
 import json
 import logging
 import argparse
-import re
 import tempfile
 import re
 import unittest
