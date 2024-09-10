@@ -79,7 +79,7 @@ endif
 NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
 # https://github.com/pytest-dev/pytest-xdist/issues/71
 #PYTEST_OPTS := -n auto --tx 2*popen//execmodel=eventlet
-PYTEST_OPTS := ""
+PYTEST_OPTS := -s
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
@@ -859,7 +859,7 @@ endif
 		 ST2_OVERRIDE_COORDINATOR_REDIS_HOST=$(ST2_OVERRIDE_COORDINATOR_REDIS_HOST) \
 		 ST2_OVERRIDE_COORDINATOR_REDIS_PORT=$(ST2_OVERRIDE_COORDINATOR_REDIS_PORT) \
 		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
-		    pytest --capture=no --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
+		    pytest --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
 		    $$component/tests/unit || exit 1; \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
