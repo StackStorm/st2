@@ -76,19 +76,10 @@ endif
 # pages and pages and pages of noise.
 # The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
 # See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
-NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
+# NOSETEST_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
 # https://github.com/pytest-dev/pytest-xdist/issues/71
 #PYTEST_OPTS := -n auto --tx 2*popen//execmodel=eventlet
-PYTEST_OPTS := -s
-
-ifndef NOSE_TIME
-	NOSE_TIME := yes
-endif
-
-ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
-	NOSE_WITH_TIMER := 1
-endif
+PYTEST_OPTS := -s --log-level=error
 
 ifndef PIP_OPTIONS
 	PIP_OPTIONS :=
@@ -97,8 +88,8 @@ endif
 # NOTE: We only run coverage on master and version branches and not on pull requests since
 # it has a big performance overhead and is very slow.
 ifeq ($(ENABLE_COVERAGE),yes)
-	NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
-	NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
+	PYTEST_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
+	PYTEST_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
 else
 	INCLUDE_TESTS_IN_COVERAGE :=
 endif
@@ -106,8 +97,8 @@ endif
 # If we aren't running test coverage, don't try to include tests in coverage
 # results
 ifdef INCLUDE_TESTS_IN_COVERAGE
-	NOSE_COVERAGE_FLAGS += --cover-tests
-	NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
+	PYTEST_COVERAGE_FLAGS += --cover-tests
+	PYTEST_COVERAGE_PACKAGES := $(PYTEST_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
 endif
 
 .PHONY: all
@@ -152,13 +143,13 @@ play:
 	@echo
 	@echo GITHUB_EVENT_NAME=$(GITHUB_EVENT_NAME)
 	@echo
-	@echo NOSE_OPTS=$(NOSE_OPTS)
+	@echo PYTEST_OPTS=$(PYTEST_OPTS)
 	@echo
 	@echo ENABLE_COVERAGE=$(ENABLE_COVERAGE)
 	@echo
-	@echo NOSE_COVERAGE_FLAGS=$(NOSE_COVERAGE_FLAGS)
+	@echo PYTEST_COVERAGE_FLAGS=$(PYTEST_COVERAGE_FLAGS)
 	@echo
-	@echo NOSE_COVERAGE_PACKAGES=$(NOSE_COVERAGE_PACKAGES)
+	@echo PYTEST_COVERAGE_PACKAGES=$(PYTEST_COVERAGE_PACKAGES)
 	@echo
 	@echo INCLUDE_TESTS_IN_COVERAGE=$(INCLUDE_TESTS_IN_COVERAGE)
 	@echo
@@ -843,7 +834,7 @@ unit-tests: requirements .unit-tests
 
 .PHONY: .run-unit-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
-.run-unit-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.unit
+.run-unit-tests-coverage: PYTEST_COVERAGE_PACKAGES := $(PYTEST_COVERAGE_PACKAGES),tests.unit
 endif
 .run-unit-tests-coverage:
 	@echo
@@ -870,7 +861,7 @@ endif
 
 .PHONY: .combine-unit-tests-coverage
 .combine-unit-tests-coverage: .run-unit-tests-coverage
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
 	        coverage combine .coverage.unit.*; \
 	fi
@@ -889,14 +880,14 @@ endif
 
 .PHONY: .report-unit-tests-coverage
 .report-unit-tests-coverage: .coverage.unit
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
 	        coverage report; \
 	fi
 
 .PHONY: .unit-tests-coverage-html
 .unit-tests-coverage-html: .coverage.unit
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
 	        coverage html; \
 	fi
@@ -927,7 +918,7 @@ itests: requirements .itests
 
 .PHONY: .run-integration-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
-.run-integration-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.integration
+.run-integration-tests-coverage: PYTEST_COVERAGE_PACKAGES := $(PYTEST_COVERAGE_PACKAGES),tests.integration
 endif
 .run-integration-tests-coverage:
 	@echo
@@ -957,12 +948,12 @@ endif
 #	@echo
 #	. $(VIRTUALENV_DIR)/bin/activate; \
 @#		COVERAGE_FILE=.coverage.integration.orquesta \
-@#		nosetests $(NOSE_OPTS) -s -v \
-@#		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
+@#		nosetests $(PYTEST_OPTS) -s -v \
+@#		$(PYTEST_COVERAGE_FLAGS) $(PYTEST_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
 	        coverage combine .coverage.integration.*; \
 	fi
@@ -981,14 +972,14 @@ endif
 
 .PHONY: .report-integration-tests-coverage
 .report-integration-tests-coverage: .coverage.integration
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
 	        coverage report; \
 	fi
 
 .PHONY: .integration-tests-coverage-html
 .integration-tests-coverage-html: .coverage.integration
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
 	        coverage html; \
 	fi
