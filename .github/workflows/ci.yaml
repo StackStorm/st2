@@ -484,9 +484,6 @@ jobs:
           #- 4369:4369/tcp   # epmd
           #
 
-      # Used for the coordination backend for integration tests
-      # NOTE: To speed things up, we only start redis for integration tests
-      # where it's needed
       #redis-server:
       #  # Docker Hub image
       #  image: redis
