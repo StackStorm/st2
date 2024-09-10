@@ -3,10 +3,10 @@
 amqp==5.2.0
 apscheduler==3.10.4
 chardet==3.0.4
-cffi==1.16.0
+cffi==1.17.1
 # NOTE: 2.0 version breaks pymongo work with hosts
 dnspython==1.16.0
-cryptography==42.0.5
+cryptography==43.0.1
 eventlet==0.36.1
 flex==6.14.1
 # Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
@@ -16,10 +16,10 @@ gitpython==3.1.43
 gitdb==4.0.11
 # Note: greenlet is used by eventlet
 greenlet==3.0.3
-gunicorn==22.0.0
+gunicorn==23.0.0
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
-kombu==5.3.7
+kombu==5.4.0
 lockfile==0.12.2
 # Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
 # >=0.23 was from jinja2
@@ -31,16 +31,16 @@ networkx==2.8.8
 # now jsonpath-rw is the only thing that depends on decorator (a transitive dep)
 decorator==5.1.1
 # 202403: Bump oslo.config for py3.10 support.
-oslo.config==9.5.0
-oslo.utils==7.2.0
+oslo.config==9.6.0
+oslo.utils==7.3.0
 # paramiko 2.11.0 is needed by cryptography > 37.0.0
-paramiko==3.4.0
+paramiko==3.4.1
 passlib==1.7.4
 # 202403: bump to 3.0.43 for py3.10 support
-prompt-toolkit==3.0.43
+prompt-toolkit==3.0.47
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==3.12.3
-pyparsing==3.1.2
+pyparsing==3.1.4
 zstandard==0.23.0
 # pyOpenSSL 23.1.0 supports cryptography up to 40.0.x
 #pyOpenSSL==23.1.0
@@ -51,8 +51,8 @@ pygments==2.18.0
 python-keyczar==0.716
 pytz==2024.1
 pywinrm==0.5.0
-pyyaml==6.0.1
-redis==5.0.7
+pyyaml==6.0.2
+redis==5.0.8
 requests==2.32.3
 retrying==1.3.4
 routes==2.5.1
@@ -62,17 +62,17 @@ argparse==1.4.0
 argcomplete==3.4.0
 prettytable==3.10.2
 importlib-metadata==7.1.0
-typing-extensions==4.11.0
+typing-extensions==4.12.2
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
 sseclient-py==1.8.0
-stevedore==5.2.0
+stevedore==5.3.0
 tenacity==9.0.0
-tooz==6.2.0
+tooz==6.3.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
 # virtualenv==20.26.3 (<21) has pip==24.1 wheel==0.43.0 setuptools==70.1.0
 # lockfiles/st2.lock has pip==24.2 wheel==0.43.0 setuptools==72.1.0
-virtualenv==20.26.3
-webob==1.8.7
+virtualenv==20.26.4
+webob==1.8.8
 zake==0.2.2
 # test requirements below
 bcrypt==4.2.0
@@ -81,7 +81,7 @@ mock==5.1.0
 nose-timer==1.0.1
 nose-parallel==0.4.0
 psutil==6.0.0
-python-dateutil==2.9.0
+python-dateutil==2.9.0.post0
 python-statsd==2.1.0
-orjson==3.10.6
-zipp==3.19.2
+orjson==3.10.7
+zipp==3.20.1
