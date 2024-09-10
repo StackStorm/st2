@@ -22,6 +22,7 @@ import socket
 import six
 import unittest
 from oslo_config import cfg
+import pytest
 
 from st2common.transport import utils as transport_utils
 

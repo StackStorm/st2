@@ -37,6 +37,7 @@ import os
 import json
 
 import unittest
+import pytest
 from shutil import which as shutil_which
 
 from st2common.util.shell import run_command

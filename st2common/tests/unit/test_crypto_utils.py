@@ -23,7 +23,7 @@ import six
 import json
 import binascii
 
-import unittest
+import pytest
 from unittest import TestCase
 from six.moves import range
 from cryptography.exceptions import InvalidSignature

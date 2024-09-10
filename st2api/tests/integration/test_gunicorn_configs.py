@@ -17,10 +17,10 @@ import os
 import random
 
 from six.moves import http_client
-import unittest
 import requests
 import eventlet
 from eventlet.green import subprocess
+import pytest
 
 import st2tests.config
 from st2common.models.utils import profiling

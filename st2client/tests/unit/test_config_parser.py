@@ -19,6 +19,7 @@ import os
 import shutil
 
 import mock
+import pytest
 import six
 import unittest
 

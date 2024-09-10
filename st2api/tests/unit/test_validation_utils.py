@@ -50,7 +50,8 @@ class ValidationUtilsTestCase(unittest.TestCase):
 
         for value in invalid_values:
             with pytest.raises(
-                ValueError, match=r"Valid values are \[strict, lax, none, unset\], but found"
+                ValueError,
+                match=r"Valid values are \[strict, lax, none, unset\], but found",
             ):
                 cfg.CONF.set_override(
                     group="api", name="auth_cookie_same_site", override=value
