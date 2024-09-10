@@ -10,6 +10,7 @@ Fixed
 ~~~~~
 * Fixed #6021 and #5327 by adding max_page_size to api_opts and added limit and offset to list_values() methods of
   both action_service and sensor_service
+* Fix `packs.get` action. Assumed `master` is primary branch on all packs. #6225
 * Restore Pack integration testing (it was inadvertently skipped) and stop testing against `bionic` and `el7`. #6135
 * Fix Popen.pid typo in st2tests. #6184
 * Bump tooz package to `6.2.0` to fix TLS. #6220 (@jk464)
@@ -23,7 +24,7 @@ Changed
   Contributed by (@philipphomberger Schwarz IT KG)
 * Refactor `tools/launchdev.sh` to use `tmux` instead of `screen`. #6186 (by @nzlosh and @cognifloyd)
 * Updated package build container environment to use py3.8 and mongo4.4  #6129
-* Fic misc DeprecationWarnings to prepare for python 3.10 support. #6188 (by @nzlosh)
+* Fix misc DeprecationWarnings to prepare for python 3.10 support. #6188 (by @nzlosh)
 * Update st2client deps: editor and prompt-toolkit. #6189 (by @nzlosh)
 * Updated dependency oslo.config to prepare for python 3.10 support. #6193 (by @nzlosh)
 
@@ -38,6 +39,9 @@ Added
   Contributed by @amanda11
 * Ensure `.pth` files in the st2 virtualenv get loaded by pack virtualenvs. #6183
   Contributed by @cognifloyd
+
+* Added a `get_result` method to the `ExecutionResourceManager` Class for st2client
+  Contributed by @skiedude
 
 3.8.1 - December 13, 2023
 -------------------------
