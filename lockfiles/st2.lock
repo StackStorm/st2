@@ -1950,13 +1950,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "c8dd99820467610b4febbc7a9e8a0d3d7da2d35116b67184418b51cc520ea6b6",
-              "url": "https://files.pythonhosted.org/packages/df/17/34f8ec5b9d46a1ddb598b7bf8f779c567421d05cd73742d09e549254c782/kombu-5.4.0-py3-none-any.whl"
+              "hash": "621d365f234e4c089596f3a2510f1ade07026efc28caca426161d8f458786cab",
+              "url": "https://files.pythonhosted.org/packages/c1/78/c556bf2954bd36f166959ac33d23cde4a8967e61cdb74678585a66edbae0/kombu-5.4.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "ad200a8dbdaaa2bbc5f26d2ee7d707d9a1fded353a0f4bd751ce8c7d9f449c60",
-              "url": "https://files.pythonhosted.org/packages/b6/f4/d3e57b1c351bb47ce25b16e1cf6ea05df4613dbe56e3cf32ea80df1a8b4d/kombu-5.4.0.tar.gz"
+              "hash": "1c05178826dab811f8cab5b0a154d42a7a33d8bcdde9fa3d7b4582e43c3c03db",
+              "url": "https://files.pythonhosted.org/packages/16/2c/079a5d59a167543205fbf54d663bbdc171e2a29f4d45fa6a8bc315e57192/kombu-5.4.1.tar.gz"
             }
           ],
           "project_name": "kombu",
@@ -1971,7 +1971,7 @@
             "confluent-kafka>=2.2.0; extra == \"confluentkafka\"",
             "kazoo>=2.8.0; extra == \"zookeeper\"",
             "librabbitmq>=2.0.0; python_version < \"3.11\" and extra == \"librabbitmq\"",
-            "msgpack==1.0.8; extra == \"msgpack\"",
+            "msgpack==1.1.0; extra == \"msgpack\"",
             "pycurl>=7.43.0.5; (sys_platform != \"win32\" and platform_python_implementation == \"CPython\") and extra == \"sqs\"",
             "pymongo>=4.1.1; extra == \"mongodb\"",
             "pyro4==4.82; extra == \"pyro\"",
@@ -1986,7 +1986,7 @@
             "vine==5.1.0"
           ],
           "requires_python": ">=3.8",
-          "version": "5.4.0"
+          "version": "5.4.1"
         },
         {
           "artifacts": [
@@ -3067,31 +3067,21 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "cca4bb0f2df5504f02f6f8a775b6e416ff9b0b3b16f7ee80b5a3153d9b804473",
-              "url": "https://files.pythonhosted.org/packages/23/7e/5f50d07d5e70a2addbccd90ac2950f81d1edd0783630651d9268d7f1db49/pyasn1-0.6.0-py2.py3-none-any.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "3a35ab2c4b5ef98e17dfdec8ab074046fbda76e281c5a706ccd82328cfc8f64c",
-              "url": "https://files.pythonhosted.org/packages/4a/a3/d2157f333900747f20984553aca98008b6dc843eb62f3a36030140ccec0d/pyasn1-0.6.0.tar.gz"
+              "hash": "6f580d2bdd84365380830acf45550f2511469f673cb4a5ae3857a3170128b034",
+              "url": "https://files.pythonhosted.org/packages/ba/e9/01f1a64245b89f039897cb0130016d79f77d52669aae6ee7b159a6c4c018/pyasn1-0.6.1.tar.gz"
             }
           ],
           "project_name": "pyasn1",
           "requires_dists": [],
           "requires_python": ">=3.8",
-          "version": "0.6.0"
+          "version": "0.6.1"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "be04f15b66c206eed667e0bb5ab27e2b1855ea54a842e5037738099e8ca4ae0b",
-              "url": "https://files.pythonhosted.org/packages/13/68/8906226b15ef38e71dc926c321d2fe99de8048e9098b5dfd38343011c886/pyasn1_modules-0.4.0-py3-none-any.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "831dbcea1b177b28c9baddf4c6d1013c24c3accd14a1873fffaa6a2e905f17b6",
-              "url": "https://files.pythonhosted.org/packages/f7/00/e7bd1dec10667e3f2be602686537969a7ac92b0a7c5165be2e5875dc3971/pyasn1_modules-0.4.0.tar.gz"
+              "hash": "c28e2dbf9c06ad61c71a075c7e0f9fd0f1b0bb2d2ad4377f240d33ac2ab60a7c",
+              "url": "https://files.pythonhosted.org/packages/1d/67/6afbf0d507f73c32d21084a79946bfcfca5fbc62a72057e9c23797a737c9/pyasn1_modules-0.4.1.tar.gz"
             }
           ],
           "project_name": "pyasn1-modules",
@@ -3099,7 +3089,7 @@
             "pyasn1<0.7.0,>=0.4.6"
           ],
           "requires_python": ">=3.8",
-          "version": "0.4.0"
+          "version": "0.4.1"
         },
         {
           "artifacts": [
@@ -3715,19 +3705,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319",
-              "url": "https://files.pythonhosted.org/packages/9c/3d/a121f284241f08268b21359bd425f7d4825cffc5ac5cd0e1b3d82ffd2b10/pytz-2024.1-py2.py3-none-any.whl"
+              "hash": "31c7c1817eb7fae7ca4b8c7ee50c72f93aa2dd863de768e1ef4245d426aa0725",
+              "url": "https://files.pythonhosted.org/packages/11/c3/005fcca25ce078d2cc29fd559379817424e94885510568bc1bc53d7d5846/pytz-2024.2-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "2a29735ea9c18baf14b448846bde5a48030ed267578472d8955cd0e7443a9812",
-              "url": "https://files.pythonhosted.org/packages/90/26/9f1f00a5d021fff16dee3de13d43e5e978f3d58928e129c3a62cf7eb9738/pytz-2024.1.tar.gz"
+              "hash": "2aa355083c50a0f93fa581709deac0c9ad65cca8a9e9beac660adcbd493c798a",
+              "url": "https://files.pythonhosted.org/packages/3a/31/3c70bf7603cc2dca0f19bdc53b4537a797747a58875b552c8c413d963a3f/pytz-2024.2.tar.gz"
             }
           ],
           "project_name": "pytz",
           "requires_dists": [],
           "requires_python": null,
-          "version": "2024.1"
+          "version": "2024.2"
         },
         {
           "artifacts": [
