@@ -15,6 +15,9 @@ python_tests(
             dependencies=[
                 "st2tests/st2tests/resources/packs/pythonactions/actions",
             ],
+            stevedore_namespaces=[
+                "st2common.metrics.driver",
+            ],
         ),
     },
 )
