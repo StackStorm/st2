@@ -34,13 +34,13 @@ function join { local IFS="$1"; shift; echo "$*"; }
 # package installation. When using StackStorm package installation, those dependencies are already
 # available (they are installed by st2tests package).
 PACK_TEST_PYTHON_DEPENDENCIES_NAMES=(
-    'pytest',
-    'mock',
+    'pytest'
+    'mock'
     'coverage'
 )
 PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS=(
-    '>6',
-    '>=4.0.3',
+    '>6'
+    '>=4.0.3'
     '>=4.4.1'
 )
 
