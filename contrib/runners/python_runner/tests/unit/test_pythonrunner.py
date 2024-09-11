@@ -44,6 +44,7 @@ from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
 from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_NAME as DUMMY_PACK_1
+from st2tests.fixtures.packs.dummy_pack_5.fixture import PACK_NAME as DUMMY_PACK_5
 from st2tests.fixtures.packs.dummy_pack_9.fixture import PACK_PATH as DUMMY_PACK_9_PATH
 from st2tests.fixtures.packs.test_content_version_fixture.fixture import (
     PACK_NAME as TEST_CONTENT_VERSION,
@@ -232,12 +233,10 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output["result"], [1, 2])
 
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
-        pack = "dummy_pack_5"
         user = "joe"
 
         # No values provided in the datastore
-        runner = self._get_mock_runner_obj_from_container(pack=pack, user=user)
-
+        runner = self._get_mock_runner_obj_from_container(pack=DUMMY_PACK_5, user=user)
         self.assertEqual(runner._config["api_key"], "some_api_key")  # static value
         self.assertEqual(runner._config["regions"], ["us-west-1"])  # static value
         self.assertEqual(runner._config["api_secret"], None)
@@ -245,19 +244,19 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         # api_secret overriden in the datastore (user scoped value)
         config_service.set_datastore_value_for_config_key(
-            pack_name="dummy_pack_5",
+            pack_name=DUMMY_PACK_5,
             key_name="api_secret",
-            user="joe",
+            user=user,
             value="foosecret",
             secret=True,
         )
 
         # private_key_path overriden in the datastore (global / non-user scoped value)
         config_service.set_datastore_value_for_config_key(
-            pack_name="dummy_pack_5", key_name="private_key_path", value="foopath"
+            pack_name=DUMMY_PACK_5, key_name="private_key_path", value="foopath"
         )
 
-        runner = self._get_mock_runner_obj_from_container(pack=pack, user=user)
+        runner = self._get_mock_runner_obj_from_container(pack=DUMMY_PACK_5, user=user)
         self.assertEqual(runner._config["api_key"], "some_api_key")  # static value
         self.assertEqual(runner._config["regions"], ["us-west-1"])  # static value
         self.assertEqual(runner._config["api_secret"], "foosecret")
@@ -717,7 +716,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_python_action_wrapper_action_script_file_doesnt_exist_friendly_error(self):
         # File in a directory which is not a Python package
         wrapper = PythonActionWrapper(
-            pack="dummy_pack_5", file_path="/tmp/doesnt.exist", user="joe"
+            pack=DUMMY_PACK_5, file_path="/tmp/doesnt.exist", user="joe"
         )
 
         expected_msg = (
@@ -727,7 +726,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         # File in a directory which is a Python package
         wrapper = PythonActionWrapper(
-            pack="dummy_pack_5", file_path=ACTION_1_PATH, user="joe"
+            pack=DUMMY_PACK_5, file_path=ACTION_1_PATH, user="joe"
         )
 
         expected_msg = (
@@ -741,7 +740,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self,
     ):
         wrapper = PythonActionWrapper(
-            pack="dummy_pack_5", file_path=ACTION_2_PATH, user="joe"
+            pack=DUMMY_PACK_5, file_path=ACTION_2_PATH, user="joe"
         )
         expected_msg = (
             r'Failed to load action class from file ".*?invalid_syntax.py" '
