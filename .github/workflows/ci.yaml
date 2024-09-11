@@ -70,7 +70,18 @@ jobs:
             task: 'ci-compile'
             python-version-short: '3.9'
             python-version: '3.9.14'
-
+          - name: 'Lint Checks (black, flake8, etc.)'
+            task: 'ci-checks'
+            python-version-short: '3.10'
+            python-version: '3.10.15'
+          - name: 'Compile (pip deps, pylint, etc.)'
+            task: 'ci-compile'
+            python-version-short: '3.11'
+            python-version: '3.11.10'
+          - name: 'Compile (pip deps, pylint, etc.)'
+            task: 'ci-compile'
+            python-version-short: '3.12'
+            python-version: '3.12.6'
     env:
       TASK: '${{ matrix.task }}'
       COLUMNS: '120'
@@ -264,6 +275,25 @@ jobs:
             nosetests_node_index: 0
             python-version-short: '3.9'
             python-version: '3.9.14'
+          - name: 'Unit Tests'
+            task: 'ci-unit'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.15'
+          - name: 'Unit Tests'
+            task: 'ci-unit'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.11'
+            python-version: '3.11.10'
+          - name: 'Unit Tests'
+            task: 'ci-unit'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.12'
+            python-version: '3.12.6'
+
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
@@ -419,8 +449,44 @@ jobs:
             task: 'ci-integration'
             nosetests_node_total: 1
             nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.15'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.15'
+          - name: 'Integration Tests'
+            task: 'ci-integration'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
             python-version-short: '3.9'
             python-version: '3.9.14'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.11'
+            python-version: '3.11.10'
+          - name: 'Integration Tests'
+            task: 'ci-integration'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.11'
+            python-version: '3.11.10'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.12'
+            python-version: '3.12.6'
+          - name: 'Integration Tests'
+            task: 'ci-integration'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.12'
+            python-version: '3.12.6'
     services:
       mongo:
         image: mongo:7.0
