@@ -19,6 +19,7 @@ import copy
 import mock
 
 from orquesta import statuses as wf_statuses
+from oslo_config import cfg
 
 import st2tests
 
@@ -125,7 +126,7 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
         expected_st2_ctx = {
             "action_execution_id": str(ac_ex_db.id),
             "api_url": "http://127.0.0.1/v1",
-            "user": "stanley",
+            "user": cfg.CONF.system_user.user,
             "pack": "orquesta_tests",
             "action": "orquesta_tests.runtime-context",
             "runner": "orquesta",
@@ -208,9 +209,10 @@ class OrquestaContextTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
         self.assertEqual(lv_ac_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
+        user = cfg.CONF.system_user.user
         # Check result.
         expected_result = {
-            "output": {"msg": "stanley, All your base are belong to us!"}
+            "output": {"msg": f"{user}, All your base are belong to us!"}
         }
 
         self.assertDictEqual(lv_ac_db.result, expected_result)
