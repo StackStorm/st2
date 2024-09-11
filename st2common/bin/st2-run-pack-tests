@@ -318,37 +318,19 @@ fi
 echo "Running tests..."
 # Note: We run pytests with "--exe" option so it also runs test files which are executable
 # (pack install command automatically makes all the files, including test files executable)
-PYTEST_OPTS=(-s -v --exe --immediate)
+PYTEST_OPTS=(-s -v )
 
 # Is test coverage reporting enabled?
 if [ "${ENABLE_COVERAGE}" = true ]; then
   verbose_log "Enabling pytests coverage"
 
-  # Base options to enable test coverage reporting
-  # --with-coverage : enables coverage reporting
-  # --cover-erase : removes old coverage reports before starting
-  PYTEST_OPTS+=(--with-coverage --cover-erase)
-
-  # Now, by default pytests reports test coverage for every module found
-  # in the $PYTHONPATH... as you can imagine this is not ideal and may contain
-  # a LOT of files.
-  # We can restrict pytest to only report on python files from certain
-  # directories by specifying those directories (absolute or relative) using
-  # the options: --cover-package=/absolte/path OR --cover-package=./relative/path
-
   # For each of the sub-directory in the pack, excluding the "tests" directory
   PACK_SUB_DIRS=$(find $PACK_PATH -mindepth 1 -maxdepth 1 -type d -and -not -name "tests")
   for pack_sub_dir in $PACK_SUB_DIRS; do
     verbose_log "Enabling pytests coverage for directory: $pack_sub_dir"
-    PYTEST_OPTS+=(--cover-package=$pack_sub_dir)
+    PYTEST_OPTS+=(--cov=$pack_sub_dir)
   done # end for each $PACK_PYTHON_DIR
 fi # end enable test coverage
-
-# Should we pass in arguments to enable test timing
-if [ "${ENABLE_TIMING}" = true ]; then
-  verbose_log "Enabling pytests timings"
-  PYTEST_OPTS+=(--with-timer)
-fi
 
 PYTEST=(pytest)
 if head -n 1 $(command -v pytests) | grep -q ' -sE$'; then
