@@ -28,7 +28,7 @@ from st2common.constants import action as ac_const
 @pytest.mark.skipif(
     os.environ.get("ST2_CI_RUN_ORQUESTA_PAUSE_RESUME_TESTS", "false").lower()
     not in ["1", "true"],
-    "Skipping race prone tests",
+    reason="Skipping race prone tests",
 )
 class PauseResumeWiringTest(
     base.TestWorkflowExecution, base.WorkflowControlTestCaseMixin
