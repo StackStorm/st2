@@ -120,7 +120,7 @@ jobs:
             python-version: '3.8.14'
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:7.0
         ports:
           - 27017:27017
 
@@ -403,7 +403,7 @@ jobs:
             nosetests_node_index: 0
             python-version-short: '3.8'
             python-version: '3.8.10'
-          - name: 'Integration Tests (chunk 1)'
+          - name: 'Integration Tests'
             task: 'ci-integration'
             nosetests_node_total: 1
             nosetests_node_index: 0
@@ -415,7 +415,7 @@ jobs:
             nosetests_node_index: 0
             python-version-short: '3.9'
             python-version: '3.9.14'
-          - name: 'Integration Tests (chunk 1)'
+          - name: 'Integration Tests'
             task: 'ci-integration'
             nosetests_node_total: 1
             nosetests_node_index: 0
@@ -423,7 +423,7 @@ jobs:
             python-version: '3.9.14'
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:7.0
         ports:
           - 27017:27017
 
