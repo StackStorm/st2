@@ -75,8 +75,6 @@ endif
 # loaded resources for every tests) which makes tests hard to troubleshoot on failure due to
 # pages and pages and pages of noise.
 # The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
-# See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
-# NOSETEST_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
 # https://github.com/pytest-dev/pytest-xdist/issues/71
 #PYTEST_OPTS := -n auto --tx 2*popen//execmodel=eventlet
 PYTEST_OPTS := -s --log-level=error
