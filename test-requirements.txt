@@ -26,13 +26,13 @@ nose-timer==1.0.1
 # splitting tests run on a separate CI machines
 nose-parallel==0.4.0
 # Required by st2client tests
-pyyaml==6.0.1
+pyyaml==6.0.2
 # Constrain pygments required by editor to align with st2 core version
 pygments==2.18.0
 RandomWords
-gunicorn==21.2.0
+gunicorn==23.0.0
 psutil==6.0.0
-webtest==2.0.35
+webtest==3.0.1
 # Bump to latest to meet sphinx requirements.
 rstcheck==6.2.1
 tox==3.23.0
@@ -48,4 +48,4 @@ zstandard==0.23.0
 # ujson is used for micro benchmarks
 ujson==5.10.0
 # needed by integration tests for coordination
-redis==5.0.7
+redis==5.0.8
