@@ -76,7 +76,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
         )
 
     @pytest.mark.skipif(
-        sys.version_info >= (3, 8, 0), "Skipping test under Python >= 3.8"
+        sys.version_info >= (3, 8, 0), reason="Skipping test under Python >= 3.8"
     )
     def test_formatting_with_unicode_data_works_no_stdout_patching_non_valid_utf8_encoding(
         self,
