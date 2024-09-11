@@ -16,7 +16,7 @@ python_tests(
         "test_policies.py": dict(
             dependencies=["st2actions/st2actions/policies/retry.py"]
         )
-    }
+    },
 )
 
 python_test_utils(
