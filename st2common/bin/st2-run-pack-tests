@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -316,25 +317,25 @@ if [ "${VERBOSE}" = true ]; then
 fi
 
 echo "Running tests..."
-# Note: We run pytests with "--exe" option so it also runs test files which are executable
+# Note: We run pytest with "--exe" option so it also runs test files which are executable
 # (pack install command automatically makes all the files, including test files executable)
 PYTEST_OPTS=(-s -v )
 
 # Is test coverage reporting enabled?
 if [ "${ENABLE_COVERAGE}" = true ]; then
-  verbose_log "Enabling pytests coverage"
+  verbose_log "Enabling pytest coverage"
 
   # For each of the sub-directory in the pack, excluding the "tests" directory
   PACK_SUB_DIRS=$(find $PACK_PATH -mindepth 1 -maxdepth 1 -type d -and -not -name "tests")
   for pack_sub_dir in $PACK_SUB_DIRS; do
-    verbose_log "Enabling pytests coverage for directory: $pack_sub_dir"
+    verbose_log "Enabling pytest coverage for directory: $pack_sub_dir"
     PYTEST_OPTS+=(--cov=$pack_sub_dir)
   done # end for each $PACK_PYTHON_DIR
 fi # end enable test coverage
 
 PYTEST=(pytest)
-if head -n 1 $(command -v pytests) | grep -q ' -sE$'; then
-    # workaround pants+pex default of hermetic scripts so we can run pytests with PYTHONPATH
+if head -n 1 $(command -v pytest) | grep -q ' -sE$'; then
+    # workaround pants+pex default of hermetic scripts so we can run pytest with PYTHONPATH
     if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
         PYTEST=(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -m "pytest")
     else
