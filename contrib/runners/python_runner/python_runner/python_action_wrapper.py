@@ -132,8 +132,10 @@ class ActionService(object):
     # Methods for datastore management
     ##################################
 
-    def list_values(self, local=True, prefix=None):
-        return self.datastore_service.list_values(local=local, prefix=prefix)
+    def list_values(self, local=True, prefix=None, limit=None, offset=None):
+        return self.datastore_service.list_values(
+            local=local, prefix=prefix, limit=limit, offset=offset
+        )
 
     def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
         return self.datastore_service.get_value(
