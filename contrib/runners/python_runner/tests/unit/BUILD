@@ -17,6 +17,7 @@ python_tests(
             ],
             stevedore_namespaces=[
                 "st2common.metrics.driver",
+                "st2common.rbac.backend",
             ],
         ),
     },
