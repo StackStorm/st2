@@ -30,4 +30,5 @@ def rules():
         *mongo_rules.rules(),
         *rabbitmq_rules.rules(),
         *redis_rules.rules(),
+        # TODO: Add check that checks that system user is present (suggest setting ST2TESTS_SYSTEM_USER env var if not, or even just default it to the current user)
     ]

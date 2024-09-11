@@ -152,6 +152,7 @@ class PackContentResourceTarget(ResourceTarget):
         ResourceDependenciesField,
         PackContentResourceSourceField,
         PackContentResourceTypeField,
+        # TODO: implicit depenedency on runner entry point. If a python action, the python file should (?) get that dep too.
     )
     help = "A single pack content resource file (mostly for metadata files)."
 
