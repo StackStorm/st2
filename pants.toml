@@ -111,7 +111,7 @@ root_patterns = [
 st2_interpreter_constraints = "CPython>=3.8,<3.10"
 
 # This should match the pants interpreter_constraints:
-# https://github.com/pantsbuild/pants/blob/2.20.x/pants.toml#L147
+# https://github.com/pantsbuild/pants/blob/2.22.x/pants.toml#L148
 # See: https://www.pantsbuild.org/stable/docs/getting-started/prerequisites
 pants_plugins_interpreter_constraints = "CPython==3.9.*"
 
