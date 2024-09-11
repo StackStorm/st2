@@ -166,4 +166,6 @@ def test_inject_extra_sys_path_for_pack_tests(
     target = rule_runner.get_target(address)
     result = rule_runner.request(PytestPluginSetup, (PytestPackTestRequest(target),))
     assert result.digest == EMPTY_DIGEST
-    assert result.extra_sys_path == expected  # TODO: pants does not have this attribute yet.
+    assert (
+        result.extra_sys_path == expected
+    )  # TODO: pants does not have this attribute yet.
