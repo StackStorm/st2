@@ -36,13 +36,14 @@ from st2common.constants.action import (
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import MAX_PARAM_LENGTH
 from st2common.constants.pack import COMMON_LIB_DIR
-from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.persistence.execution import ActionExecutionOutput
 from python_runner.python_action_wrapper import PythonActionWrapper
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
+from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_NAME as DUMMY_PACK_1
 from st2tests.fixtures.packs.dummy_pack_9.fixture import PACK_PATH as DUMMY_PACK_9_PATH
 from st2tests.fixtures.packs.test_content_version_fixture.fixture import (
     PACK_NAME as TEST_CONTENT_VERSION,
@@ -100,6 +101,8 @@ MOCK_EXECUTION = mock.Mock()
 MOCK_EXECUTION.id = "598dbf0c0640fd54bffc688b"
 
 
+# Use DUMMY_PACK_1 instead of depending on everything in the core (SYSTEM_PACK_NAME) pack.
+@mock.patch("st2common.util.sandboxing.SYSTEM_PACK_NAMES", [DUMMY_PACK_1, *SYSTEM_PACK_NAMES])
 @mock.patch("python_runner.python_runner.sys", mock_sys)
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
@@ -603,7 +606,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs["env"]
-        pack_common_lib_path = "fixtures/packs/core/lib"
+        pack_common_lib_path = f"fixtures/packs/{DUMMY_PACK_1}/lib"
         self.assertIn("PYTHONPATH", actual_env)
         self.assertIn(pack_common_lib_path, actual_env["PYTHONPATH"])
 
@@ -626,7 +629,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs["env"]
         pack_common_lib_path = (
-            "/mnt/src/storm/st2/st2tests/st2tests/fixtures/packs/core/lib"
+            f"/mnt/src/storm/st2/st2tests/st2tests/fixtures/packs/{DUMMY_PACK_1}/lib"
         )
         self.assertIn("PYTHONPATH", actual_env)
         self.assertNotIn(pack_common_lib_path, actual_env["PYTHONPATH"])
@@ -994,7 +997,7 @@ git: 'worktree' is not a git command. See 'git --help'.
         runner.runner_parameters = {"content_version": "v0.10.0"}
 
         expected_msg = (
-            r'Failed to create git worktree for pack "core": Installed git version '
+            fr'Failed to create git worktree for pack "{DUMMY_PACK_1}": Installed git version '
             "doesn't support git worktree command. To be able to utilize this "
             "functionality you need to use git >= 2.5.0."
         )
@@ -1015,7 +1018,7 @@ Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
         runner.runner_parameters = {"content_version": "v0.10.0"}
 
         expected_msg = (
-            r'Failed to create git worktree for pack "core": Pack directory '
+            fr'Failed to create git worktree for pack "{DUMMY_PACK_1}": Pack directory '
             '".*" is not a '
             "git repository. To utilize this functionality, pack directory needs to "
             "be a git repository."
@@ -1036,7 +1039,7 @@ fatal: invalid reference: vinvalid
         runner.runner_parameters = {"content_version": "vinvalid"}
 
         expected_msg = (
-            r'Failed to create git worktree for pack "core": Invalid content_version '
+            fr'Failed to create git worktree for pack "{DUMMY_PACK_1}": Invalid content_version '
             '"vinvalid" provided. Make sure that git repository is up '
             "to date and contains that revision."
         )
@@ -1052,7 +1055,7 @@ fatal: invalid reference: vinvalid
         self.assertIsNotNone(output)
         self.assertIn("{}", output["stdout"])
         self.assertIn("default_value", output["stdout"])
-        self.assertIn('Config for pack "core" is missing key "key"', output["stderr"])
+        self.assertIn(f'Config for pack "{DUMMY_PACK_1}" is missing key "key"', output["stderr"])
         self.assertIn(
             'make sure you run "st2ctl reload --register-configs"', output["stderr"]
         )
@@ -1107,7 +1110,7 @@ fatal: invalid reference: vinvalid
         """
         action = mock.Mock()
         action.ref = "dummy.action"
-        action.pack = SYSTEM_PACK_NAME
+        action.pack = DUMMY_PACK_1
         action.entry_point = "foo.py"
         action.runner_type = {"name": "python-script"}
         return action
