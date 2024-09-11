@@ -40,7 +40,7 @@ SSL_LISTENER_PORT = 5671
 #       vagrant dev VM doesn't expose RabbitMQ SSL listener by default
 @pytest.mark.skipif(
     not ST2_CI,
-    'Skipping tests because ST2_CI environment variable is not set to "true"',
+    reason='Skipping tests because ST2_CI environment variable is not set to "true"',
 )
 class RabbitMQTLSListenerTestCase(unittest.TestCase):
     def setUp(self):
