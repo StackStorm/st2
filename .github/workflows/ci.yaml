@@ -78,10 +78,6 @@ jobs:
             task: 'ci-compile'
             python-version-short: '3.11'
             python-version: '3.11.10'
-          - name: 'Compile (pip deps, pylint, etc.)'
-            task: 'ci-compile'
-            python-version-short: '3.12'
-            python-version: '3.12.6'
     env:
       TASK: '${{ matrix.task }}'
       COLUMNS: '120'
@@ -287,12 +283,6 @@ jobs:
             nosetests_node_index: 0
             python-version-short: '3.11'
             python-version: '3.11.10'
-          - name: 'Unit Tests'
-            task: 'ci-unit'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version-short: '3.12'
-            python-version: '3.12.6'
 
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
@@ -475,18 +465,6 @@ jobs:
             nosetests_node_index: 0
             python-version-short: '3.11'
             python-version: '3.11.10'
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version-short: '3.12'
-            python-version: '3.12.6'
-          - name: 'Integration Tests'
-            task: 'ci-integration'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version-short: '3.12'
-            python-version: '3.12.6'
     services:
       mongo:
         image: mongo:7.0
