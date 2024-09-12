@@ -249,5 +249,9 @@ extra_env_vars = [
 [twine]
 install_from_resolve = "twine"
 
+[environments-preview.names]
+# https://www.pantsbuild.org/stable/docs/using-pants/environments
+in_repo_workspace = "//:in_repo_workspace"
+
 [cli.alias]
 --all-changed = "--changed-since=HEAD --changed-dependents=transitive"

@@ -8,11 +8,10 @@ pack_metadata_in_git_submodule(
     sources=[
         "test_content_version/pack.yaml",
         "test_content_version/**/*.yaml",
-        "!test_content_version/.github/workflows/*.yaml",
         "test_content_version/icon.png",
         "test_content_version/requirements.txt",
-        "test_content_version/.git",  # file that is git ignored, but used by the tests
     ],
+    # NOTE: If you need the git metadata, make sure to depend on //:capture_git_modules
 )
 
 st2_shell_sources_and_resources(
