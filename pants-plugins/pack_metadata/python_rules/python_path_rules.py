@@ -120,7 +120,7 @@ async def inject_extra_sys_path_for_pack_tests(
     )
     return PytestPluginSetup(
         # digest=EMPTY_DIGEST,
-        # extra_sys_path=pack_python_path.entries,  # TODO: requires pants >2.23.0dev6
+        extra_sys_path=pack_python_path.entries,
     )
 
 
