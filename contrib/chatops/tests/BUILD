@@ -13,6 +13,9 @@ files(
 
 python_tests(
     name="tests",
-    dependencies=[":fixtures"],
+    dependencies=[
+        ":fixtures",
+        "contrib/chatops:metadata",
+    ],
     skip_pylint=True,
 )
