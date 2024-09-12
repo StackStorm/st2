@@ -98,46 +98,33 @@ jobs:
         run: |
           pants test pants-plugins/::
 
+      # We do not support running pytest everywhere yet. When we do it will be simply:
+      #   pants test ::
+      # Until then, we need to manually adjust this command line to test what we can.
+      # So far, this includes unit, pack, and pants-plugins tests.
+      # TODO: run integration tests
+
       - name: Unit Tests
         env:
           # Github Actions uses the 'runner' user, so use that instead of stanley.
           ST2TESTS_SYSTEM_USER: 'runner'
-        # We do not support running pytest everywhere yet. When we do it will be simply:
-        #   pants test ::
-        # Until then, we need to manually adjust this command line to test what we can.
         run: >
           pants
           --python-bootstrap-search-path=[]
           --python-bootstrap-search-path=${{ steps.python.outputs.python-path }}
           --tag=unit
-          test
-          pylint_plugins/::
-          st2tests/::
-          st2client/::
-          st2common/::
-          st2actions/::
-          st2reactor/::
-          st2stream/::
-          st2auth/::
-          st2api/::
-          contrib/chatops/::
-          contrib/core/::
-          contrib/debug/::
-          contrib/default/::
-          contrib/examples/::
-          contrib/hello_st2/::
-          contrib/linux/::
-          contrib/packs/::
-          contrib/runners/action_chain_runner/::
-          contrib/runners/announcement_runner/::
-          contrib/runners/http_runner/::
-          contrib/runners/inquirer_runner/::
-          contrib/runners/local_runner/::
-          contrib/runners/noop_runner/::
-          contrib/runners/orquesta_runner/::
-          contrib/runners/python_runner/::
-          contrib/runners/remote_runner/::
-          contrib/runners/winrm_runner/::
+          test '::'
+
+      - name: Pack Tests
+        env:
+          # Github Actions uses the 'runner' user, so use that instead of stanley.
+          ST2TESTS_SYSTEM_USER: 'runner'
+        run: >
+          pants
+          --python-bootstrap-search-path=[]
+          --python-bootstrap-search-path=${{ steps.python.outputs.python-path }}
+          --tag=pack
+          test '::'
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4

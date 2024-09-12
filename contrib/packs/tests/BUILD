@@ -2,7 +2,7 @@
 __dependents_rules__(("*", "/**", "!*"))
 
 __defaults__(
-    {(python_test, python_tests): dict(tags=["unit", "pack"])},
+    {python_test: dict(tags=["pack"])},
     extend=True,
 )
 
