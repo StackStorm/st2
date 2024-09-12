@@ -102,11 +102,6 @@ files(
     ],
 )
 
-run_shell_command(
-    name="git_submodules_fetch",
-    command="git submodule foreach 'git fetch --all'",
-)
-
 shell_command(
     name="capture_git_modules",
     environment="in_repo_workspace",
@@ -116,10 +111,7 @@ shell_command(
     # of this command if the .gitmodules file changes (for example:
     # if a submodule gets updated to a different commit).
     # Theoretically, nothing else should modify .git/modules/.
-    execution_dependencies=[
-        ":gitmodules",
-        ":git_submodules_fetch",
-    ],
+    execution_dependencies=[":gitmodules"],
     output_dependencies=[":gitmodules"],
     output_directories=[".git/modules"],
     workdir="/",
