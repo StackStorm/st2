@@ -297,6 +297,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             self.assertEqual(output_dbs[db_index_1].data, mock_stderr[0])
             self.assertEqual(output_dbs[db_index_2].data, mock_stderr[1])
 
+    # FIXME: This test assumes passwordless sudo (so sudo won't capture stdin)
     def test_shell_command_sudo_password_is_passed_to_sudo_binary(self):
         # Verify that sudo password is correctly passed to sudo binary via stdin
         models = self.fixtures_loader.load_models(
@@ -355,6 +356,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         self.assertEqual(index, len(sudo_passwords))
 
+    # FIXME: This test assumes passwordless sudo (so sudo won't capture stdin)
     def test_shell_command_invalid_stdout_password(self):
         # Simulate message printed to stderr by sudo when invalid sudo password is provided
         models = self.fixtures_loader.load_models(

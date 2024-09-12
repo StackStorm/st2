@@ -1,6 +1,9 @@
 __defaults__(
     all=dict(
         skip_pylint=True,
+        entry_point_dependencies={
+            "contrib/runners/inquirer_runner": ["st2common.runners.runner"],
+        },
     )
 )
 

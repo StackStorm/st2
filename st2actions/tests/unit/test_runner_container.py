@@ -16,8 +16,12 @@
 from __future__ import absolute_import
 
 import mock
+import os
 
 from oslo_config import cfg
+
+# This import must be early for import-time side-effects.
+from st2tests.base import DbTestCase
 
 from st2common.constants import action as action_constants
 from st2common.runners.base import get_runner
@@ -35,10 +39,6 @@ from st2common.services import executions
 from st2common.util import date as date_utils
 from st2common.transport.publishers import PoolPublisher
 
-from st2tests.base import DbTestCase
-import st2tests.config as tests_config
-
-tests_config.parse_args()
 from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
@@ -297,7 +297,8 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(result.get("action_params").get("actionstr") == "bar")
 
         # Assert that context is written correctly.
-        context = {"user": "stanley", "third_party_system": {"ref_id": "1234"}}
+        system_user = os.environ.get("ST2TESTS_SYSTEM_USER", "") or "stanley"
+        context = {"user": system_user, "third_party_system": {"ref_id": "1234"}}
 
         self.assertDictEqual(liveaction_db.context, context)
 

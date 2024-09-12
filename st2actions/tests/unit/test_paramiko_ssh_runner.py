@@ -30,8 +30,6 @@ from st2common.runners.paramiko_ssh_runner import RUNNER_SSH_PORT
 import st2tests.config as tests_config
 from st2tests.fixturesloader import get_resources_base_path
 
-tests_config.parse_args()
-
 
 class Runner(BaseParallelSSHRunner):
     def run(self):
@@ -39,6 +37,11 @@ class Runner(BaseParallelSSHRunner):
 
 
 class ParamikoSSHRunnerTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     @mock.patch("st2common.runners.paramiko_ssh_runner.ParallelSSHClient")
     def test_pre_run(self, mock_client):
         # Test case which verifies that ParamikoSSHClient is instantiated with the correct arguments

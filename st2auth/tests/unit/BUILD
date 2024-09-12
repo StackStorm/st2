@@ -5,4 +5,6 @@ __defaults__(
 
 python_tests(
     name="tests",
+    dependencies=["//:auth_backends"],
+    uses=["mongo"],
 )

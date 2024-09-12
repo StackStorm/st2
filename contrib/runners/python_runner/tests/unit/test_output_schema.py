@@ -66,7 +66,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         assert_submodules_are_checked_out()
 
     def test_adherence_to_output_schema(self):
-        config = self.loader(os.path.join(BASE_DIR, "../../runner.yaml"))
+        config = self.loader(os.path.join(BASE_DIR, "../../python_runner/runner.yaml"))
         runner = self._get_mock_runner_obj()
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.pre_run()

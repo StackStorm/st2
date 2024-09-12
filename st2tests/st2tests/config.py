@@ -104,6 +104,9 @@ def _override_common_opts():
     CONF.set_override(name="api_url", override="http://127.0.0.1", group="auth")
     CONF.set_override(name="mask_secrets", override=True, group="log")
     CONF.set_override(name="stream_output", override=False, group="actionrunner")
+    system_user = os.environ.get("ST2TESTS_SYSTEM_USER", "")
+    if system_user:
+        CONF.set_override(name="user", override=system_user, group="system_user")
 
 
 def _override_api_opts():

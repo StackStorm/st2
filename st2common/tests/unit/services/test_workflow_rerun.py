@@ -15,6 +15,11 @@
 
 from __future__ import absolute_import
 
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
+
 import mock
 import uuid
 
@@ -22,10 +27,6 @@ from orquesta import conducting
 from orquesta import statuses as wf_statuses
 
 import st2tests
-
-import st2tests.config as tests_config
-
-tests_config.parse_args()
 
 from local_runner import local_shell_command_runner
 from st2common.bootstrap import actionsregistrar

@@ -20,14 +20,18 @@ import unittest
 
 from oslo_config import cfg
 
+# This import must be early for import-time side-effects.
 import st2tests.config as tests_config
-
-tests_config.parse_args()
 
 from st2reactor.garbage_collector import base as garbage_collector
 
 
 class GarbageCollectorServiceTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     def tearDown(self):
         # Reset gc_max_idle_sec with a value of 1 to reenable for other tests.
         cfg.CONF.set_override("gc_max_idle_sec", 1, group="workflow_engine")

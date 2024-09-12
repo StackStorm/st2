@@ -11,6 +11,7 @@ pack_metadata_in_git_submodule(
         "test_content_version/icon.png",
         "test_content_version/requirements.txt",
     ],
+    # NOTE: If you need the git metadata, make sure to depend on //:capture_git_modules
 )
 
 st2_shell_sources_and_resources(

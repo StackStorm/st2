@@ -1,0 +1,3 @@
+resources(
+    sources=["*.j2"],
+)

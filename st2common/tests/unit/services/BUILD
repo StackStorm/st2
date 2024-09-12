@@ -7,4 +7,12 @@ python_tests(
         "st2common.metrics.driver",
     ],
     uses=["mongo", "rabbitmq"],
+    overrides={
+        "test_packs.py": dict(
+            # use the fixture to resolve ambiguous import (ambiguous due to symlink of core pack)
+            dependencies=[
+                "st2tests/st2tests/fixtures/packs/core/actions/inject_trigger.py"
+            ],
+        ),
+    },
 )
