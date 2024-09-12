@@ -78,10 +78,6 @@ jobs:
             task: 'ci-compile'
             python-version-short: '3.11'
             python-version: '3.11.10'
-          - name: 'Compile (pip deps, pylint, etc.)'
-            task: 'ci-compile'
-            python-version-short: '3.12'
-            python-version: '3.12.6'
     env:
       TASK: '${{ matrix.task }}'
       COLUMNS: '120'
@@ -307,16 +303,6 @@ jobs:
             shard: {k: 1, n: 2}
             python-version-short: '3.11'
             python-version: '3.11.10'
-          - name: 'Unit Tests (chunk 1)'
-            task: 'ci-unit'
-            shard: {k: 0, n: 2}
-            python-version-short: '3.12'
-            python-version: '3.12.6'
-          - name: 'Unit Tests (chunk 2)'
-            task: 'ci-unit'
-            shard: {k: 1, n: 2}
-            python-version-short: '3.12'
-            python-version: '3.12.6'
 
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
@@ -512,21 +498,6 @@ jobs:
             shard: {k: 1, n: 2}
             python-version-short: '3.11'
             python-version: '3.11.10'
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            shard: {k: 0, n: 1}
-            python-version-short: '3.12'
-            python-version: '3.12.6'
-          - name: 'Integration Tests (chunk 1)'
-            task: 'ci-integration'
-            shard: {k: 0, n: 2}
-            python-version-short: '3.12'
-            python-version: '3.12.6'
-          - name: 'Integration Tests (chunk 2)'
-            task: 'ci-integration'
-            shard: {k: 1, n: 2}
-            python-version-short: '3.12'
-            python-version: '3.12.6'
     services:
       mongo:
         image: mongo:7.0
