@@ -130,6 +130,7 @@ jobs:
           contrib/runners/local_runner/::
           contrib/runners/noop_runner/::
           contrib/runners/orquesta_runner/::
+          contrib/runners/python_runner/::
           contrib/runners/remote_runner/::
           contrib/runners/winrm_runner/::
           # pack tests will not work until pants >2.23.0dev6 to get the PytestPluginSetup(extra_sys_path=...) field.
@@ -138,7 +139,6 @@ jobs:
           #contrib/examples/::
           #contrib/linux/::
           #contrib/packs/::
-#          contrib/runners/python_runner/:: # TODO: figure out how to put .git metadata for test_content_version pack in sandbox
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4

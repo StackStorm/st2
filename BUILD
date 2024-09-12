@@ -93,3 +93,26 @@ file(
     name="logs_directory",
     source="logs/.gitignore",
 )
+
+files(
+    name="gitmodules",
+    sources=[
+        ".gitmodules",
+        "**/.git",
+    ],
+)
+
+shell_command(
+    name="capture_git_modules",
+    environment="in_repo_workspace",
+    command="cp -r .git/modules {chroot}/.git",
+    tools=["cp"],
+    # execution_dependencies allows pants to invalidate the output
+    # of this command if the .gitmodules file changes (for example:
+    # if a submodule gets updated to a different commit).
+    # Theoretically, nothing else should modify .git/modules/.
+    execution_dependencies=[":gitmodules"],
+    output_dependencies=[":gitmodules"],
+    output_directories=[".git/modules"],
+    workdir="/",
+)
