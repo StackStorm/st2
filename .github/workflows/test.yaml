@@ -83,8 +83,8 @@ jobs:
 
       - name: Fetch repository submodules
         run: |
-          git submodule update --init --recursive --remote
           git submodule status
+          git submodule foreach 'git fetch --all --tags'
           git submodule foreach 'git tag'
 
       - name: 'Set up Python (${{ matrix.python-version }})'
