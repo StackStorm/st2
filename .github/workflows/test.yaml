@@ -75,14 +75,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           # a test uses a submodule, and pants needs access to it to calculate deps.
-          submodules: 'true'
+          submodules: 'recursive'
           # sadly, the submodule will only have fetch-depth=1, which is what we want
           # for st2.git, but not for the submodules. We still want actions/checkout
           # to do the initial checkout, however, so that it adds auth for fetching
           # in the submodule.
 
       - name: Fetch repository submodules
-        run: git submodule update --init --recursive --remote
+        run: |
+          git submodule update --init --recursive --remote
+          git submodule status
+          git submodule foreach 'git tag'
 
       - name: 'Set up Python (${{ matrix.python-version }})'
         id: python
