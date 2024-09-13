@@ -210,6 +210,8 @@ class RunnerContainer(object):
         return runner.liveaction
 
     def _do_pause(self, runner):
+        # Initialise to avoid E0601: Use before assignment.
+        status = result = context = None
         try:
             extra = {"runner": runner}
             LOG.debug(
@@ -240,6 +242,8 @@ class RunnerContainer(object):
         return runner.liveaction
 
     def _do_resume(self, runner):
+        # Initialise to avoid E0601: Use before assignment.
+        status = result = context = None
         try:
             extra = {"runner": runner}
             LOG.debug(

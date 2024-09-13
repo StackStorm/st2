@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from unittest2 import TestCase
+from unittest import TestCase
 from mock import Mock
 
 from st2common.transport.consumers import ActionsQueueConsumer

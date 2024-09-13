@@ -152,11 +152,11 @@ class Grapher(object):
             print(rule_link._source_action_ref)
             if rule_link._source_action_ref not in nodes:
                 nodes.add(rule_link._source_action_ref)
-                dot.add_node(rule_link._source_action_ref)
+                dot.node(rule_link._source_action_ref, rule_link._source_action_ref)
             if rule_link._dest_action_ref not in nodes:
                 nodes.add(rule_link._dest_action_ref)
-                dot.add_node(rule_link._dest_action_ref)
-            dot.add_edge(
+                dot.node(rule_link._dest_action_ref, rule_link._dest_action_ref)
+            dot.edge(
                 rule_link._source_action_ref,
                 rule_link._dest_action_ref,
                 constraint="true",

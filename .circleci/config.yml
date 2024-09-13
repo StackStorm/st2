@@ -8,7 +8,7 @@ jobs:
     # 'machine' executor runs Unit tests ~x1.5 faster, comparing to 'docker' executor
     # but the fastest is still ~x1.5-2 slower, comparing to Travis
     machine: true
-    parallelism: 4
+    parallelism: 3
     working_directory: ~/st2
     steps:
       - checkout
@@ -43,8 +43,8 @@ jobs:
   # Run st2 Integration tests
   integration:
     docker:
-      - image: circleci/python:3.6
-      - image: mongo:4.0
+      - image: circleci/python:3.8
+      - image: mongo:4.4
       - image: rabbitmq:3
     working_directory: ~/st2
     steps:
@@ -57,8 +57,9 @@ jobs:
           name: Install Mongo Shell
           command: |
             set -x
-            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
-            echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/4.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
+            sudo apt-get -qq -y install gnupg curl
+            curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/mongodb-server-4.4.gpg
+            echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
             sudo apt-get -qq -y update
             sudo apt-get -qq -y install mongodb-org-shell
       - run:
@@ -79,8 +80,8 @@ jobs:
   # Run st2 Lint Checks
   lint:
     docker:
-      - image: circleci/python:3.6
-      - image: mongo:4.0
+      - image: circleci/python:3.8
+      - image: mongo:4.4
       - image: rabbitmq:3
     working_directory: ~/st2
     steps:
@@ -107,16 +108,16 @@ jobs:
 
   # Build & Test st2 packages
   packages:
-    parallelism: 4
+    parallelism: 3
     # 4CPUs & 8GB RAM CircleCI machine
     # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/python:3.6
+      - image: circleci/python:3.8
     working_directory: ~/st2
     environment:
-      - DISTROS: "bionic focal el7 el8"
+      - DISTROS: "focal el8 el9"
       - ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
       - ST2_PACKAGES: "st2"
       - ST2_CHECKOUT: 0
@@ -124,16 +125,31 @@ jobs:
       - BASH_ENV: ~/.buildenv
     steps:
       - checkout
+      - run:
+          name: Install latest Docker Compose V2
+          command: |
+            set -x
+            export CODENAME=$(source /etc/os-release && echo "$VERSION_CODENAME")
+            export DISTRO=$(source /etc/os-release && echo "$ID")
+            export ARCH=$(dpkg --print-architecture)
+            # get gpg key for download.docker
+            curl -fsSL https://download.docker.com/linux/${DISTRO}/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/download.docker.gpg
+            # set source list
+            sudo tee <<<"deb [arch=${ARCH}] https://download.docker.com/linux/${DISTRO} ${CODENAME} stable" /etc/apt/sources.list.d/download.docker.list
+            # update package list
+            sudo apt update
+            # install docker CLI and Docker Compose v2
+            sudo apt install docker-ce-cli docker-compose-plugin
       - setup_remote_docker:
           reusable: true    # default - false
           exclusive: true   # default - true
-          version: 19.03.14
+          version: docker24
       - run:
           name: Docker version
           command: |
             set -x
             docker --version
-            docker-compose --version
+            docker compose version
       - run:
           name: Download st2-packages repository
           command: |
@@ -167,7 +183,7 @@ jobs:
           name: Copy st2-packages files to build containers
           command: |
             # creating dummy container which will hold a volume with data files
-            docker create -v /root/st2-packages -v ${ST2_GITDIR} -v /root/build -v /var/log/st2 -v /root/.cache/pip -v /tmp/wheelhouse --name st2-packages-vol alpine:3.4 /bin/true
+            docker create -v /root/st2-packages -v ${ST2_GITDIR} -v /root/build -v /var/log/st2 -v /root/.cache/pip -v /tmp/wheelhouse --name st2-packages-vol alpine:3.12 /bin/true
             # copy st2-packages data files into this volume
             docker cp ~/st2-packages st2-packages-vol:/root
             # copy st2 source files into this volume
@@ -219,10 +235,10 @@ jobs:
   deploy:
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/ruby:2.4
+      - image: circleci/ruby:2.7
     working_directory: /tmp/deploy
     environment:
-      - DISTROS: "bionic focal el7 el8"
+      - DISTROS: "focal el8 el9"
     steps:
       - attach_workspace:
           at: .

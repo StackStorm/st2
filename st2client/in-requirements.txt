@@ -12,7 +12,8 @@ jsonpath-rw
 requests
 six
 sseclient-py
-python-editor
+editor
+pygments
 prompt-toolkit
 # mention cffi used by cryptography so we can control version
 cffi
@@ -23,3 +24,5 @@ chardet
 # required for SOCKS proxy support (HTTP_PROXY, HTTPS_PROXY, NO_PROXY)
 pyOpenSSL
 pysocks
+# adding so can set version
+zipp

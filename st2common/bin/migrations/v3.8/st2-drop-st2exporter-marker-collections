@@ -24,10 +24,7 @@ and the collections were not configured to be created automatically.
 import sys
 import traceback
 
-import mongoengine as me
-
 from mongoengine.connection import get_db
-from oslo_config import cfg
 
 from st2common import config
 from st2common.service_setup import db_setup
@@ -56,7 +53,7 @@ def main():
     db_setup()
 
     try:
-        delete_marker_collections(display_prompt=not cfg.CONF.yes)
+        delete_marker_collections()
         exit_code = 0
     except Exception as e:
         print("ABORTED: Collection deletion aborted on first failure: %s" % (str(e)))

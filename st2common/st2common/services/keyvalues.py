@@ -191,17 +191,17 @@ class KeyValueLookup(BaseKeyValueLookup):
         if kvp:
             LOG.debug("Got value %s from datastore.", kvp.value)
 
-        # Check that user has permission to the key value pair.
-        # If RBAC is enabled, this check will verify if user has system role with all access.
-        # If RBAC is enabled, this check guards against a user accessing another user's kvp.
-        # If RBAC is enabled, user needs to be explicitly granted permission to view a system kvp.
-        # The check is sufficient to allow decryption of the system kvp.
-        rbac_utils = get_rbac_backend().get_utils_class()
-        rbac_utils.assert_user_has_resource_db_permission(
-            user_db=UserDB(name=self._user),
-            resource_db=kvp,
-            permission_type=PermissionType.KEY_VALUE_PAIR_VIEW,
-        )
+            # Check that user has permission to the key value pair.
+            # If RBAC is enabled, this check will verify if user has system role with all access.
+            # If RBAC is enabled, this check guards against a user accessing another user's kvp.
+            # If RBAC is enabled, user needs to be explicitly granted permission to view a system kvp.
+            # The check is sufficient to allow decryption of the system kvp.
+            rbac_utils = get_rbac_backend().get_utils_class()
+            rbac_utils.assert_user_has_resource_db_permission(
+                user_db=UserDB(name=self._user),
+                resource_db=kvp,
+                permission_type=PermissionType.KEY_VALUE_PAIR_VIEW,
+            )
 
         return kvp.value if kvp else ""
 

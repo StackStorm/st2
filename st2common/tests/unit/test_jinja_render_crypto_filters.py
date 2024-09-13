@@ -82,7 +82,7 @@ class JinjaUtilsDecryptTestCase(CleanDbTestCase):
             'Referenced datastore item "st2kv.system.doesnt_exist" doesn\'t exist or '
             "it contains an empty string"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, expected_msg, self.env.from_string(template).render, context
         )
 
@@ -133,6 +133,6 @@ class JinjaUtilsDecryptTestCase(CleanDbTestCase):
             'Referenced datastore item "st2kv.user.doesnt_exist" doesn\'t exist or '
             "it contains an empty string"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError, expected_msg, self.env.from_string(template).render, context
         )

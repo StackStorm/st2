@@ -71,7 +71,7 @@ def main(metadata_path, output_path, print_source=False):
     # Add all nodes
     node = chain_holder.get_next_node()
     while node:
-        dot.add_node(node.name)
+        dot.node(node.name, node.name)
         node = chain_holder.get_next_node(curr_node_name=node.name)
 
     # Add connections
@@ -89,7 +89,7 @@ def main(metadata_path, output_path, print_source=False):
 
         # Add success node (if any)
         if success_node:
-            dot.add_edge(
+            dot.edge(
                 previous_node.name,
                 success_node.name,
                 constraint="true",
@@ -102,7 +102,7 @@ def main(metadata_path, output_path, print_source=False):
 
         # Add failure node (if any)
         if failure_node:
-            dot.add_edge(
+            dot.edge(
                 previous_node.name,
                 failure_node.name,
                 constraint="true",

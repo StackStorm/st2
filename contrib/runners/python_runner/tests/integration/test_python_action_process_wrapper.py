@@ -36,8 +36,8 @@ from __future__ import absolute_import
 import os
 import json
 
-import unittest2
-from distutils.spawn import find_executable
+import unittest
+from shutil import which as shutil_which
 
 from st2common.util.shell import run_command
 from six.moves import range
@@ -61,12 +61,12 @@ WRAPPER_SCRIPT_PATH = os.path.join(
     BASE_DIR, "../../../python_runner/python_runner/python_action_wrapper.py"
 )
 WRAPPER_SCRIPT_PATH = os.path.abspath(WRAPPER_SCRIPT_PATH)
-TIME_BINARY_PATH = find_executable("time")
+TIME_BINARY_PATH = shutil_which("time")
 TIME_BINARY_AVAILABLE = TIME_BINARY_PATH is not None
 
 
-@unittest2.skipIf(not TIME_BINARY_PATH, "time binary not available")
-class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
+@unittest.skipIf(not TIME_BINARY_PATH, "time binary not available")
+class PythonRunnerActionWrapperProcessTestCase(unittest.TestCase):
     def test_process_wrapper_exits_in_reasonable_timeframe(self):
         # 1. Verify wrapper script path is correct and file exists
         self.assertTrue(os.path.isfile(WRAPPER_SCRIPT_PATH))

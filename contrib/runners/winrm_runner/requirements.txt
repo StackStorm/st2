@@ -5,4 +5,4 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-pywinrm==0.4.1
+pywinrm==0.5.0

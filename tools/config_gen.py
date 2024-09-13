@@ -21,14 +21,14 @@ import six
 import sys
 import traceback
 
+from collections import OrderedDict
 from oslo_config import cfg
 
 
 CONFIGS = [
-    # this is duplicated in tools/BUILD
-    # TODO: replace this with a heuristic that searches for config.py
-    #       maybe with an exclude list (eg st2tests.config st2client)
-    #       grep -rl 'def register_opts(ignore_errors=False):' st2*
+    # pants uses these strings to infer dependencies. Compare this list
+    # with the output of this command to make sure everything is present:
+    #   grep -rl 'def register_opts(ignore_errors=False):' st2*
     "st2actions.config",
     "st2actions.scheduler.config",
     "st2actions.notifier.config",
@@ -189,7 +189,7 @@ def _print_options(opt_group, options):
         print(("# %s" % opt.help).strip())
 
         if isinstance(opt, cfg.StrOpt) and opt.type.choices:
-            if isinstance(opt.type.choices, list):
+            if isinstance(opt.type.choices, OrderedDict):
                 valid_values = ", ".join([str(x) for x in opt.type.choices])
             else:
                 valid_values = opt.type.choices

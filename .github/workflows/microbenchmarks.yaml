@@ -38,14 +38,14 @@ jobs:
             task: 'micro-benchmarks'
             nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version-short: '3.6'
-            python-version: '3.6.13'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
           - name: 'Microbenchmarks'
             task: 'micro-benchmarks'
             nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version-short: '3.8'
-            python-version: '3.8.10'
+            python-version-short: '3.9'
+            python-version: '3.9.14'
     services:
       mongo:
         image: mongo:4.4
@@ -74,37 +74,13 @@ jobs:
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v2
+        uses: actions/checkout@v4
+      - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
+        uses: ./.github/actions/setup-python
         with:
           python-version: '${{ matrix.python-version }}'
-      - name: Cache Python Dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cache/pip
-            virtualenv
-            ~/virtualenv
-          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
-          # Don't use alternative key as if requirements.txt has altered we
-          # don't want to retrieve previous cache
-          #restore-keys: |
-          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
-      - name: Cache APT Dependencies
-        id: cache-apt-deps
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/apt_cache
-          key: ${{ runner.os }}-apt-v7-${{ hashFiles('scripts/github/apt-packages.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-v7-
-      - name: Install APT Dependencies
-        env:
-          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
-        run: |
-          ./scripts/github/install-apt-packages-use-cache.sh
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -120,9 +96,9 @@ jobs:
         run: |
           script -e -c "make ${TASK}" && exit 0
       - name: Upload Histograms
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: benchmark_histograms
+          name: benchmark_histograms-py${{ matrix.python-version }}
           path: benchmark_histograms/
           retention-days: 30
 
