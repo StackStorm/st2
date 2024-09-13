@@ -7,11 +7,11 @@
 # update the component requirements.txt
 bcrypt==4.2.0
 eventlet==0.36.1
-gunicorn==22.0.0
-oslo.config==9.5.0
+gunicorn==23.0.0
+oslo.config==9.6.0
 passlib==1.7.4
 pymongo==3.12.3
 six==1.16.0
 st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
-stevedore==5.2.0
+stevedore==5.3.0
