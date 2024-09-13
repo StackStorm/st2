@@ -55,8 +55,8 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
-PIP_VERSION ?= 24.0
-SETUPTOOLS_VERSION ?= 69.5.1
+PIP_VERSION ?= 24.2
+SETUPTOOLS_VERSION ?= 74.1.2
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
@@ -173,7 +173,7 @@ install-runners:
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
+	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
 	#@for component in $(COMPONENTS_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing runner:" $$component; \
@@ -187,7 +187,7 @@ install-mock-runners:
 	@echo "================== INSTALL MOCK RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd {} ; python setup.py develop --no-deps"
+	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
 	#@for component in $(MOCK_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing mock runner:" $$component; \

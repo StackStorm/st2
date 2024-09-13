@@ -64,6 +64,7 @@ retrying
 routes
 semver
 # setuptools provides pkg_resources (and we need it with pip at runtime)
+# setuptools is also required for pants to build wheels.
 setuptools
 simplejson
 six
@@ -83,7 +84,7 @@ ujson
 virtualenv
 webob
 webtest
-# we use pip+wheel at runtime
+# we use pip+wheel at runtime; wheel is also required for pants to build wheels.
 wheel
 # zstandard is used for micro benchmarks
 zstandard

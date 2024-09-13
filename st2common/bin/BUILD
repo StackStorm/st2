@@ -5,6 +5,12 @@ python_sources(
     skip_pylint=True,
 )
 
+# TODO: consider adding pex_binary targets for the st2-* python scripts.
+# Normally, pex tries to import scripts that it runs, but the python import system does
+# not allow scripts to include the "-" character in their filename.
+# With pantsbuild 2.20+, we can set the pex_binary(executable=) field which makes pex
+# read the script's contents instead of attempting to import it.
+
 st2_shell_sources_and_resources(
     name="shell",
     sources=["st2ctl", "st2-self-check", "st2-run-pack-tests"],
