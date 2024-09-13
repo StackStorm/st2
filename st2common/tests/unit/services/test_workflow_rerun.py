@@ -185,7 +185,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             "because it is not in a completed state.$"
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             wf_exc.WorkflowExecutionRerunException,
             expected_error,
             workflow_service.request_rerun,
@@ -244,7 +244,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             "because it is not in a completed state.$"
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             wf_exc.WorkflowExecutionRerunException,
             expected_error,
             workflow_service.request_rerun,
@@ -274,7 +274,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             "workflow_execution_id is not provided."
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             wf_exc.WorkflowExecutionRerunException,
             expected_error,
             workflow_service.request_rerun,
@@ -304,7 +304,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             '^Unable to rerun workflow execution ".*" ' "because it does not exist.$"
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             wf_exc.WorkflowExecutionRerunException,
             expected_error,
             workflow_service.request_rerun,
@@ -339,7 +339,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             "because it is not in a completed state.$"
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             wf_exc.WorkflowExecutionRerunException,
             expected_error,
             workflow_service.request_rerun,
@@ -373,7 +373,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             "Unable to rerun workflow because it is not in a completed state."
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             wf_exc.WorkflowExecutionRerunException,
             expected_error,
             workflow_service.request_rerun,
@@ -403,7 +403,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             "^Unable to rerun workflow because one or more tasks is not found: .*$"
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             wf_exc.WorkflowExecutionRerunException,
             expected_error,
             workflow_service.request_rerun,
@@ -438,7 +438,7 @@ class WorkflowExecutionRerunTest(st2tests.WorkflowTestCase):
             "get_workflow_status",
             mock.MagicMock(return_value=wf_statuses.FAILED),
         ):
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 wf_exc.WorkflowExecutionRerunException,
                 expected_error,
                 workflow_service.request_rerun,

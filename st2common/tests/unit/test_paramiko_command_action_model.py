@@ -14,14 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.models.system.paramiko_command_action import ParamikoRemoteCommandAction
 
 __all__ = ["ParamikoRemoteCommandActionTestCase"]
 
 
-class ParamikoRemoteCommandActionTestCase(unittest2.TestCase):
+class ParamikoRemoteCommandActionTestCase(unittest.TestCase):
     def test_get_command_string_no_env_vars(self):
         cmd_action = ParamikoRemoteCommandActionTestCase._get_test_command_action(
             "echo boo bah baz"

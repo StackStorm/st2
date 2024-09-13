@@ -17,12 +17,12 @@ from __future__ import absolute_import
 import datetime
 
 import pytz
-import unittest2
+import unittest
 
 from st2common.util import date as date_utils
 
 
-class DateUtilsTestCase(unittest2.TestCase):
+class DateUtilsTestCase(unittest.TestCase):
     def test_get_datetime_utc_now(self):
         date = date_utils.get_datetime_utc_now()
         self.assertEqual(date.tzinfo.tzname(None), "UTC")

@@ -21,6 +21,7 @@ import six
 import sys
 import traceback
 
+from collections import OrderedDict
 from oslo_config import cfg
 
 
@@ -188,7 +189,7 @@ def _print_options(opt_group, options):
         print(("# %s" % opt.help).strip())
 
         if isinstance(opt, cfg.StrOpt) and opt.type.choices:
-            if isinstance(opt.type.choices, list):
+            if isinstance(opt.type.choices, OrderedDict):
                 valid_values = ", ".join([str(x) for x in opt.type.choices])
             else:
                 valid_values = opt.type.choices

@@ -17,7 +17,7 @@ from __future__ import absolute_import
 import mock
 import json
 import logging
-import unittest2
+import unittest
 
 from tests import base
 
@@ -28,7 +28,7 @@ from st2client.utils import httpclient
 LOG = logging.getLogger(__name__)
 
 
-class TestSerialization(unittest2.TestCase):
+class TestSerialization(unittest.TestCase):
     def test_resource_serialize(self):
         instance = base.FakeResource(id="123", name="abc")
         self.assertDictEqual(instance.serialize(), base.RESOURCES[0])
@@ -39,7 +39,7 @@ class TestSerialization(unittest2.TestCase):
         self.assertEqual(instance.name, "abc")
 
 
-class TestResourceManager(unittest2.TestCase):
+class TestResourceManager(unittest.TestCase):
     @mock.patch.object(
         httpclient.HTTPClient,
         "get",
@@ -473,7 +473,7 @@ class TestResourceManager(unittest2.TestCase):
         self.assertRaises(Exception, mgr.clone, source_ref, "dpack", "daction")
 
 
-class TestKeyValuePairResourceManager(unittest2.TestCase):
+class TestKeyValuePairResourceManager(unittest.TestCase):
     @mock.patch.object(
         httpclient.HTTPClient,
         "get",

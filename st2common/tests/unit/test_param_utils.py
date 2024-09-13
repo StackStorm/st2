@@ -565,7 +565,7 @@ class ParamsUtilsTest(DbTestCase):
         action_param_info = {"cmd": {}, "a2": {}}
 
         expected_msg = 'Failed to render parameter "cmd": .*'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ParamException,
             expected_msg,
             param_utils.get_finalized_params,
@@ -596,7 +596,7 @@ class ParamsUtilsTest(DbTestCase):
     def test_cast_param_referenced_action_doesnt_exist(self):
         # Make sure the function throws if the action doesnt exist
         expected_msg = 'Action with ref "foo.doesntexist" doesn\'t exist'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             action_param_utils.cast_params,
@@ -755,7 +755,7 @@ class ParamsUtilsTest(DbTestCase):
         expected_msg = (
             "Cyclic dependency found in the following variables: cyclic, morecyclic"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ParamException,
             expected_msg,
             param_utils.render_live_params,
@@ -779,7 +779,17 @@ class ParamsUtilsTest(DbTestCase):
         action_context = {"user": None}
 
         result = param_utils.render_live_params(
-            runner_param_info, action_param_info, params, action_context
+            runner_param_info, action_param_info, params, action_context)
+
+        expected_msg = 'Dependency unsatisfied in variable "variable_not_defined"'
+        self.assertRaisesRegex(
+            ParamException,
+            expected_msg,
+            param_utils.render_live_params,
+            runner_param_info,
+            action_param_info,
+            params,
+            action_context
         )
         self.assertEquals(result["r4"], params["r4"])
 

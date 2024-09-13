@@ -16,7 +16,7 @@
 from __future__ import absolute_import
 import re
 
-from unittest2 import TestCase
+from unittest import TestCase
 
 import st2common.util.queues as queue_utils
 

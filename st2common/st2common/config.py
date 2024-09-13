@@ -221,7 +221,7 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "ssl_cert_reqs",
             default=None,
-            choices="none, optional, required",
+            choices=["none", "optional", "required"],
             help="Specifies whether a certificate is required from the other side of the "
             "connection, and whether it will be validated if provided",
         ),
@@ -303,7 +303,7 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "ssl_cert_reqs",
             default=None,
-            choices="none, optional, required",
+            choices=["none", "optional", "required"],
             help="Specifies whether a certificate is required from the other side of the "
             "connection, and whether it will be validated if provided.",
         ),
@@ -367,6 +367,12 @@ def register_opts(ignore_errors=False):
             "allow_origin",
             default=["http://127.0.0.1:3000"],
             help="List of origins allowed for api, auth and stream",
+        ),
+        cfg.IntOpt(
+            "max_page_size",
+            default=100,
+            help="Maximum limit (page size) argument which can be specified by the "
+            "user in a query string.",
         ),
         cfg.BoolOpt(
             "mask_secrets",

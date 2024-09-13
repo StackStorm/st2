@@ -141,8 +141,10 @@ class SensorService(object):
     # Methods for datastore management
     ##################################
 
-    def list_values(self, local=True, prefix=None):
-        return self.datastore_service.list_values(local=local, prefix=prefix)
+    def list_values(self, local=True, prefix=None, limit=None, offset=None):
+        return self.datastore_service.list_values(
+            local=local, prefix=prefix, limit=limit, offset=offset
+        )
 
     def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
         return self.datastore_service.get_value(
@@ -289,7 +291,7 @@ class SensorWrapper(object):
                 self._class_name,
                 six.text_type(e),
             )
-            self._logger.warn(msg, exc_info=True)
+            self._logger.warning(msg, exc_info=True)
             raise Exception(msg)
 
     def stop(self):
