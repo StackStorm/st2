@@ -130,7 +130,8 @@ jobs:
         python:
           - {version-short: '3.8', version: '3.8.10'}
           - {version-short: '3.9', version: '3.9.14'}
-          - {version-short: '3.10', version: '3.10.12'}
+          - {version-short: '3.10', version: '3.10.15'}
+          - {version-short: '3.11', version: '3.11.10'}
         shard:
           # Sharding of tests is handled by pants:
           # https://www.pantsbuild.org/stable/docs/using-pants/advanced-target-selection#sharding-the-input-targets
