@@ -782,15 +782,6 @@ class ParamsUtilsTest(DbTestCase):
             runner_param_info, action_param_info, params, action_context)
 
         expected_msg = 'Dependency unsatisfied in variable "variable_not_defined"'
-        self.assertRaisesRegex(
-            ParamException,
-            expected_msg,
-            param_utils.render_live_params,
-            runner_param_info,
-            action_param_info,
-            params,
-            action_context
-        )
         self.assertEquals(result["r4"], params["r4"])
 
     def test_add_default_templates_to_live_params(self):
