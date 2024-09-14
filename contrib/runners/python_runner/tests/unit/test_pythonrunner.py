@@ -103,7 +103,9 @@ MOCK_EXECUTION.id = "598dbf0c0640fd54bffc688b"
 
 
 # Use DUMMY_PACK_1 instead of depending on everything in the core (SYSTEM_PACK_NAME) pack.
-@mock.patch("st2common.util.sandboxing.SYSTEM_PACK_NAMES", [DUMMY_PACK_1, *SYSTEM_PACK_NAMES])
+@mock.patch(
+    "st2common.util.sandboxing.SYSTEM_PACK_NAMES", [DUMMY_PACK_1, *SYSTEM_PACK_NAMES]
+)
 @mock.patch("python_runner.python_runner.sys", mock_sys)
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
@@ -996,7 +998,7 @@ git: 'worktree' is not a git command. See 'git --help'.
         runner.runner_parameters = {"content_version": "v0.10.0"}
 
         expected_msg = (
-            fr'Failed to create git worktree for pack "{DUMMY_PACK_1}": Installed git version '
+            rf'Failed to create git worktree for pack "{DUMMY_PACK_1}": Installed git version '
             "doesn't support git worktree command. To be able to utilize this "
             "functionality you need to use git >= 2.5.0."
         )
@@ -1017,7 +1019,7 @@ Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
         runner.runner_parameters = {"content_version": "v0.10.0"}
 
         expected_msg = (
-            fr'Failed to create git worktree for pack "{DUMMY_PACK_1}": Pack directory '
+            rf'Failed to create git worktree for pack "{DUMMY_PACK_1}": Pack directory '
             '".*" is not a '
             "git repository. To utilize this functionality, pack directory needs to "
             "be a git repository."
@@ -1038,7 +1040,7 @@ fatal: invalid reference: vinvalid
         runner.runner_parameters = {"content_version": "vinvalid"}
 
         expected_msg = (
-            fr'Failed to create git worktree for pack "{DUMMY_PACK_1}": Invalid content_version '
+            rf'Failed to create git worktree for pack "{DUMMY_PACK_1}": Invalid content_version '
             '"vinvalid" provided. Make sure that git repository is up '
             "to date and contains that revision."
         )
@@ -1054,7 +1056,9 @@ fatal: invalid reference: vinvalid
         self.assertIsNotNone(output)
         self.assertIn("{}", output["stdout"])
         self.assertIn("default_value", output["stdout"])
-        self.assertIn(f'Config for pack "{DUMMY_PACK_1}" is missing key "key"', output["stderr"])
+        self.assertIn(
+            f'Config for pack "{DUMMY_PACK_1}" is missing key "key"', output["stderr"]
+        )
         self.assertIn(
             'make sure you run "st2ctl reload --register-configs"', output["stderr"]
         )
