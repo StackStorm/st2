@@ -6,7 +6,7 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.20.4"
+pants_version = "2.22.0"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
@@ -111,7 +111,7 @@ root_patterns = [
 st2_interpreter_constraints = "CPython>=3.8,<3.10"
 
 # This should match the pants interpreter_constraints:
-# https://github.com/pantsbuild/pants/blob/2.20.x/pants.toml#L147
+# https://github.com/pantsbuild/pants/blob/2.22.x/pants.toml#L148
 # See: https://www.pantsbuild.org/stable/docs/getting-started/prerequisites
 pants_plugins_interpreter_constraints = "CPython==3.9.*"
 
@@ -170,6 +170,11 @@ st2 = "lockfiles/st2-constraints.txt"
 py_editable_in_resolve = ["st2"]
 # We need mutable venvs to use the editable installs of our sources.
 py_resolve_format = "mutable_virtualenv"
+# By default, pex modifies script shebangs to add '-sE'.
+# This breaks nosetest and anything that needs PYTHONPATH.
+py_hermetic_scripts = false
+# If any targets generate sources/files, include them in the exported venv.
+py_generated_sources_in_resolve = ["st2"]
 
 [python-infer]
 # https://www.pantsbuild.org/stable/reference/subsystems/python-infer#string_imports

@@ -63,7 +63,7 @@ class MockDatastoreService(BaseDatastoreService):
     # Methods for datastore management
     ##################################
 
-    def list_values(self, local=True, prefix=None):
+    def list_values(self, local=True, limit=None, prefix=None, offset=0):
         """
         Return a list of all values stored in a dictionary which is local to this class.
         """
