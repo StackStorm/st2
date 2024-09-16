@@ -22,8 +22,6 @@ import unittest
 # before importing remote_script_runner classes.
 import st2tests.config as tests_config
 
-tests_config.parse_args()
-
 from st2common.util import jsonify
 from st2common.models.db.action import ActionDB
 from st2common.runners.parallel_ssh import ParallelSSHClient
@@ -48,6 +46,11 @@ ACTION_1 = MODELS["actions"]["a1.yaml"]
 
 
 class ParamikoScriptRunnerTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     @patch("st2common.runners.parallel_ssh.ParallelSSHClient", Mock)
     @patch.object(jsonify, "json_loads", MagicMock(return_value={}))
     @patch.object(ParallelSSHClient, "run", MagicMock(return_value={}))

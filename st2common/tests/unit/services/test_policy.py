@@ -15,9 +15,8 @@
 
 from __future__ import absolute_import
 
-import st2tests.config as tests_config
-
-tests_config.parse_args()
+# This import must be early for import-time side-effects.
+import st2tests
 
 import st2common
 
@@ -29,7 +28,6 @@ from st2common.models.db import action as action_db_models
 from st2common.services import action as action_service
 from st2common.services import policies as policy_service
 
-import st2tests
 from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests import fixturesloader as fixtures
 
