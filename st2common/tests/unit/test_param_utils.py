@@ -782,7 +782,6 @@ class ParamsUtilsTest(DbTestCase):
             runner_param_info, action_param_info, params, action_context
         )
 
-        expected_msg = 'Dependency unsatisfied in variable "variable_not_defined"'
         self.assertEquals(result["r4"], params["r4"])
 
     def test_add_default_templates_to_live_params(self):
