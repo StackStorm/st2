@@ -91,7 +91,7 @@ do not attempt to fix those conflicts instead:
 pants users behind a proxy must set `export SSL_CERT_FILE=[pathtocert]`
 
 1. `make requirements` to generate requirements.txt from fixed-requirements.txt
-2. `pants generate-lockfiles --resolve=st2` to generate lockfiles
+2. `pants --ca-certs-path [path] generate-lockfiles --resolve=st2` to generate lockfiles
 
 ## Security
 If you believe you found a security issue or a vulnerability, please send a description of it to

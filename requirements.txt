@@ -35,7 +35,7 @@ mock==5.1.0
 mongoengine==0.23.1
 networkx==3.1
 orjson==3.10.7
-orquesta@ git+https://github.com/nzlosh/orquesta.git@st2v39_compat
+orquesta@ git+https://github.com/StackStorm/orquesta.git@197db78
 oslo.config==9.6.0
 oslo.utils==7.3.0
 paramiko==3.4.1
