@@ -1,0 +1,8 @@
+# See: https://www.mankier.com/5/gitattributes
+
+# lockfile merge conflicts: do not manually merge.
+# The "-merge" makes git leave the current branch's lockfile as-is, like a binary file.
+# To resolve the conflict, resolve any conflicts in requirements files,
+# and then regenerste the lockfile with (resolve names are 'st2', 'black', etc):
+#   pants generate-lockfiles --resolve=<resolve name>
+/lockfiles/*.lock -merge
