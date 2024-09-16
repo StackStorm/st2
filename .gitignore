@@ -1,6 +1,7 @@
 *.py[cod]
 *.sqlite
 *.log
+*.orig
 .stamp*
 
 # C extensions
