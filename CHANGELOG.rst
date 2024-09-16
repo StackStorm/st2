@@ -43,6 +43,11 @@ Added
 * Added a `get_result` method to the `ExecutionResourceManager` Class for st2client
   Contributed by @skiedude
 
+* Added new env var for tests: `ST2TESTS_SYSTEM_USER`. When set, this will override `system_user.user` in st2 conf
+  so that you can run tests on systems that do not have the `stanley` user. When running tests locally, use the
+  following to set system user to the current user: `export ST2TESTS_SYSTEM_USER=$(id -un)` #6242
+  Contributed by @cognifloyd
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed

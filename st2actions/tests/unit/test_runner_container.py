@@ -297,7 +297,10 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(result.get("action_params").get("actionstr") == "bar")
 
         # Assert that context is written correctly.
-        context = {"user": "stanley", "third_party_system": {"ref_id": "1234"}}
+        context = {
+            "user": cfg.CONF.system_user.user,
+            "third_party_system": {"ref_id": "1234"},
+        }
 
         self.assertDictEqual(liveaction_db.context, context)
 
