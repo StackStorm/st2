@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 
 from dataclasses import dataclass
 from textwrap import dedent
@@ -20,6 +19,7 @@ from pants.backend.python.goals.pytest_runner import (
     PytestPluginSetupRequest,
     PytestPluginSetup,
 )
+from pants.backend.python.subsystems.pytest import PyTest
 from pants.backend.python.util_rules.pex import (
     PexRequest,
     PexRequirements,
@@ -64,8 +64,11 @@ class UsesMongoRequest:
     db_host: str = "127.0.0.1"  # localhost in test_db.DbConnectionTestCase
     db_port: int = 27017
     # db_name is "st2" in test_db.DbConnectionTestCase
-    db_name: str = f"st2-test{os.environ.get('ST2TESTS_PARALLEL_SLOT', '')}"
+    db_name: str = "st2-test{}"  # {} will be replaced by test slot (a format string)
+
     db_connection_timeout: int = 3000
+
+    execution_slot_var: str = "ST2TESTS_PARALLEL_SLOT"
 
 
 @dataclass(frozen=True)
@@ -87,7 +90,7 @@ class PytestUsesMongoRequest(PytestPluginSetupRequest):
     level=LogLevel.DEBUG,
 )
 async def mongo_is_running_for_pytest(
-    request: PytestUsesMongoRequest,
+    request: PytestUsesMongoRequest, pytest: PyTest
 ) -> PytestPluginSetup:
     # TODO: delete these comments once the Makefile becomes irrelevant.
     #       the comments explore how the Makefile prepares to run and runs tests
@@ -104,7 +107,10 @@ async def mongo_is_running_for_pytest(
     #            nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/unit
 
     # this will raise an error if mongo is not running
-    _ = await Get(MongoIsRunning, UsesMongoRequest())
+    _ = await Get(
+        MongoIsRunning,
+        UsesMongoRequest(execution_slot_var=pytest.execution_slot_var or ""),
+    )
 
     return PytestPluginSetup()
 
@@ -145,8 +151,10 @@ async def mongo_is_running(
                 str(request.db_port),
                 request.db_name,
                 str(request.db_connection_timeout),
+                request.execution_slot_var,
             ),
             input_digest=script_digest,
+            execution_slot_variable=request.execution_slot_var,
             description="Checking to see if Mongo is up and accessible.",
             # this can change from run to run, so don't cache results.
             cache_scope=ProcessCacheScope.PER_SESSION,

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import sys
 
 
@@ -48,8 +49,11 @@ if __name__ == "__main__":
     args = dict((k, v) for k, v in enumerate(sys.argv))
     db_host = args.get(1, "127.0.0.1")
     db_port = args.get(2, 27017)
-    db_name = args.get(3, "st2-test")
+    db_name = args.get(3, "st2-test{}")
     connection_timeout_ms = args.get(4, 3000)
+
+    slot_var = args.get(5, "ST2TESTS_PARALLEL_SLOT")
+    db_name = db_name.format(os.environ.get(slot_var) or "")
 
     is_running = _is_mongo_running(
         db_host, int(db_port), db_name, int(connection_timeout_ms)
