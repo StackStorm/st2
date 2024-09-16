@@ -779,7 +779,8 @@ class ParamsUtilsTest(DbTestCase):
         action_context = {"user": None}
 
         result = param_utils.render_live_params(
-            runner_param_info, action_param_info, params, action_context)
+            runner_param_info, action_param_info, params, action_context
+        )
 
         expected_msg = 'Dependency unsatisfied in variable "variable_not_defined"'
         self.assertEquals(result["r4"], params["r4"])
