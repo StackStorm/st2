@@ -6,7 +6,7 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.22.0"
+pants_version = "2.23.0a0"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
@@ -40,6 +40,7 @@ backend_packages = [
 pants_ignore.add = [
   # TODO: remove these once we start building wheels with pants.
   "dist_utils.py",
+  "test_dist_utils.py",
   "setup.py",
   # keep tailor from using legacy requirements files (not for pants)
   "contrib/examples/requirements.txt",
@@ -159,7 +160,7 @@ py_editable_in_resolve = ["st2"]
 py_resolve_format = "mutable_virtualenv"
 # By default, pex modifies script shebangs to add '-sE'.
 # This breaks nosetest and anything that needs PYTHONPATH.
-py_hermetic_scripts = false
+py_non_hermetic_scripts_in_resolve = ["st2"]
 # If any targets generate sources/files, include them in the exported venv.
 py_generated_sources_in_resolve = ["st2"]
 
