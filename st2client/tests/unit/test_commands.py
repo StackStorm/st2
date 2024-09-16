@@ -22,7 +22,6 @@ import logging
 import argparse
 import re
 import tempfile
-import re
 import unittest
 from collections import namedtuple
 
