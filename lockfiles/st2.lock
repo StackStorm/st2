@@ -35,7 +35,7 @@
 //     "mongoengine<0.24.0,>=0.21.0",
 //     "networkx",
 //     "orjson",
-//     "orquesta@ git+https://github.com/nzlosh/orquesta.git@st2v39_compat",
+//     "orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975",
 //     "oslo.config",
 //     "paramiko",
 //     "pika",
@@ -1707,19 +1707,24 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "050b4e5baadcd44d760cedbd2b8e639f2ff89bbc7a5730fcc662954303377aac",
-              "url": "https://files.pythonhosted.org/packages/22/7e/d71db821f177828df9dea8c42ac46473366f191be53080e552e628aad991/idna-3.8-py3-none-any.whl"
+              "hash": "946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3",
+              "url": "https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "d838c2c0ed6fced7693d5e8ab8e734d5f8fda53a039c0164afb0b82e771e3603",
-              "url": "https://files.pythonhosted.org/packages/e8/ac/e349c5e6d4543326c6883ee9491e3921e0d07b55fdf3cce184b40d63e72a/idna-3.8.tar.gz"
+              "hash": "12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9",
+              "url": "https://files.pythonhosted.org/packages/f1/70/7703c29685631f5a7590aa73f1f1d3fa9a380e654b86af429e0934a32f7d/idna-3.10.tar.gz"
             }
           ],
           "project_name": "idna",
-          "requires_dists": [],
+          "requires_dists": [
+            "flake8>=7.1.1; extra == \"all\"",
+            "mypy>=1.11.2; extra == \"all\"",
+            "pytest>=8.3.2; extra == \"all\"",
+            "ruff>=0.6.2; extra == \"all\""
+          ],
           "requires_python": ">=3.6",
-          "version": "3.8"
+          "version": "3.10"
         },
         {
           "artifacts": [
@@ -2606,8 +2611,8 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "b4fe6da88b4f9ecfdcba1f2a94f33dee79a733f404a9b117c01482b41e225881",
-              "url": "git+https://github.com/nzlosh/orquesta.git@st2v39_compat"
+              "hash": "cc9f9827d1a062352b80a9b0c2b4b7de12987885e56990f0045f0345dc032e9d",
+              "url": "git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975"
             }
           ],
           "project_name": "orquesta",
@@ -2762,13 +2767,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "8e49fd2f82f84acf7ffd57c64311aa2b30e575370dc23bdb375b10262f7eac32",
-              "url": "https://files.pythonhosted.org/packages/96/6e/4a52a8923d840107024b844d83502dfa6a1e5399ad31cf9d1a4ddbaaa7e5/paramiko-3.4.1-py3-none-any.whl"
+              "hash": "1fedf06b085359051cd7d0d270cebe19e755a8a921cc2ddbfa647fb0cd7d68f9",
+              "url": "https://files.pythonhosted.org/packages/1f/66/14b2c030fcce69cba482d205c2d1462ca5c77303a263260dcb1192801c85/paramiko-3.5.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "8b15302870af7f6652f2e038975c1d2973f06046cb5d7d65355668b3ecbece0c",
-              "url": "https://files.pythonhosted.org/packages/0b/6a/1d85cc9f5eaf49a769c7128039074bbb8127aba70756f05dfcf4326e72a1/paramiko-3.4.1.tar.gz"
+              "hash": "ad11e540da4f55cedda52931f1a3f812a8238a7af7f62a60de538cd80bb28124",
+              "url": "https://files.pythonhosted.org/packages/1b/0f/c00296e36ff7485935b83d466c4f2cf5934b84b0ad14e81796e1d9d3609b/paramiko-3.5.0.tar.gz"
             }
           ],
           "project_name": "paramiko",
@@ -2786,7 +2791,7 @@
             "pywin32>=2.1.8; platform_system == \"Windows\" and extra == \"gssapi\""
           ],
           "requires_python": ">=3.6",
-          "version": "3.4.1"
+          "version": "3.5.0"
         },
         {
           "artifacts": [
@@ -2875,13 +2880,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "eb1c8582560b34ed4ba105009a4badf7f6f85768b30126f351328507b2beb617",
-              "url": "https://files.pythonhosted.org/packages/da/8b/d497999c4017b80678017ddce745cf675489c110681ad3c84a55eddfd3e7/platformdirs-4.3.2-py3-none-any.whl"
+              "hash": "50a5450e2e84f44539718293cbb1da0a0885c9d14adf21b77bae4e66fc99d9b5",
+              "url": "https://files.pythonhosted.org/packages/69/e6/7c8e8c326903bd97c6c0c47e0a3c5de815faaae986cab7defdeddf5fddcd/platformdirs-4.3.3-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "9e5e27a08aa095dd127b9f2e764d74254f482fef22b0970773bfba79d091ab8c",
-              "url": "https://files.pythonhosted.org/packages/75/a0/d7cab8409cdc7d39b037c85ac46d92434fb6595432e069251b38e5c8dd0e/platformdirs-4.3.2.tar.gz"
+              "hash": "d4e0b7d8ec176b341fb03cb11ca12d0276faa8c485f9cd218f613840463fc2c0",
+              "url": "https://files.pythonhosted.org/packages/f5/19/f7bee3a71decedd8d7bc4d3edb7970b8e899f3caef257b0f0d623f2f7b11/platformdirs-4.3.3.tar.gz"
             }
           ],
           "project_name": "platformdirs",
@@ -2898,7 +2903,7 @@
             "sphinx>=8.0.2; extra == \"docs\""
           ],
           "requires_python": ">=3.8",
-          "version": "4.3.2"
+          "version": "4.3.3"
         },
         {
           "artifacts": [
@@ -4222,13 +4227,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "5f4c08aa4d3ebcb57a50c33b1b07e94315d7fc7230f7115e47fc99776c8ce308",
-              "url": "https://files.pythonhosted.org/packages/cb/9c/9ad11ac06b97e55ada655f8a6bea9d1d3f06e120b178cd578d80e558191d/setuptools-74.1.2-py3-none-any.whl"
+              "hash": "35ab7fd3bcd95e6b7fd704e4a1539513edad446c097797f2985e0e4b960772f2",
+              "url": "https://files.pythonhosted.org/packages/ff/ae/f19306b5a221f6a436d8f2238d5b80925004093fa3edea59835b514d9057/setuptools-75.1.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "95b40ed940a1c67eb70fc099094bd6e99c6ee7c23aa2306f4d2697ba7916f9c6",
-              "url": "https://files.pythonhosted.org/packages/3e/2c/f0a538a2f91ce633a78daaeb34cbfb93a54bd2132a6de1f6cec028eee6ef/setuptools-74.1.2.tar.gz"
+              "hash": "d59a21b17a275fb872a9c3dae73963160ae079f1049ed956880cd7c09b120538",
+              "url": "https://files.pythonhosted.org/packages/27/b8/f21073fde99492b33ca357876430822e4800cdf522011f18041351dfa74b/setuptools-75.1.0.tar.gz"
             }
           ],
           "project_name": "setuptools",
@@ -4240,16 +4245,20 @@
             "importlib-metadata>=7.0.2; python_version < \"3.10\" and extra == \"type\"",
             "importlib-resources>=5.10.2; python_version < \"3.9\" and extra == \"core\"",
             "ini2toml[lite]>=0.14; extra == \"test\"",
+            "jaraco.collections; extra == \"core\"",
             "jaraco.develop>=7.21; (python_version >= \"3.9\" and sys_platform != \"cygwin\") and extra == \"test\"",
             "jaraco.develop>=7.21; sys_platform != \"cygwin\" and extra == \"type\"",
             "jaraco.envs>=2.2; extra == \"test\"",
+            "jaraco.functools; extra == \"core\"",
             "jaraco.packaging>=9.3; extra == \"doc\"",
             "jaraco.path>=3.2.0; extra == \"test\"",
             "jaraco.test; extra == \"test\"",
             "jaraco.text>=3.7; extra == \"core\"",
             "jaraco.tidelift>=1.4; extra == \"doc\"",
+            "more-itertools; extra == \"core\"",
             "more-itertools>=8.8; extra == \"core\"",
             "mypy==1.11.*; extra == \"type\"",
+            "packaging; extra == \"core\"",
             "packaging>=23.2; extra == \"test\"",
             "packaging>=24; extra == \"core\"",
             "pip>=19.1; extra == \"test\"",
@@ -4285,7 +4294,7 @@
             "wheel>=0.44.0; extra == \"test\""
           ],
           "requires_python": ">=3.8",
-          "version": "74.1.2"
+          "version": "75.1.0"
         },
         {
           "artifacts": [
@@ -5749,8 +5758,8 @@
   "only_builds": [],
   "only_wheels": [],
   "path_mappings": {},
-  "pex_version": "2.2.1",
-  "pip_version": "23.1.2",
+  "pex_version": "2.3.1",
+  "pip_version": "24.0",
   "prefer_older_binary": false,
   "requirements": [
     "RandomWords",

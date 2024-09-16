@@ -1,2 +1,2 @@
 #orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
-orquesta@ git+https://github.com/nzlosh/orquesta.git@st2v39_compat
+orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975

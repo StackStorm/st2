@@ -32,7 +32,7 @@ mongoengine>=0.21.0,<0.24.0
 networkx
 orjson
 # Temporarily use fork until PR #266 is merged.
-orquesta@ git+https://github.com/nzlosh/orquesta.git@st2v39_compat
+orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
 # Historical reference: https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433
 # Relaxed pinning for py3.10 support.
 oslo.config
