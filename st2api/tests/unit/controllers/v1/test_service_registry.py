@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import tooz
+
 from st2common.service_setup import register_service_in_service_registry
 from st2common.util import system_info
 from st2common.services.coordination import get_member_id
@@ -22,20 +24,26 @@ from st2tests import config as tests_config
 
 from st2tests.api import FunctionalTest
 
-__all__ = ["ServiceyRegistryControllerTestCase"]
+__all__ = ["ServiceRegistryControllerTestCase"]
 
 
-class ServiceyRegistryControllerTestCase(FunctionalTest):
+class ServiceRegistryControllerTestCase(FunctionalTest):
 
     coordinator = None
 
     @classmethod
     def setUpClass(cls):
-        super(ServiceyRegistryControllerTestCase, cls).setUpClass()
+        super(ServiceRegistryControllerTestCase, cls).setUpClass()
 
         tests_config.parse_args(coordinator_noop=True)
 
         cls.coordinator = coordination.get_coordinator(use_cache=False)
+        # make sure api group is deleted for test to pass
+        # there seems to be some dangling groups being created in the unit tests
+        try:
+            cls.coordinator.delete_group("api").get()
+        except tooz.coordination.GroupNotCreated:
+            pass
 
         # NOTE: We mock call common_setup to emulate service being registered in the service
         # registry during bootstrap phase
@@ -47,7 +55,7 @@ class ServiceyRegistryControllerTestCase(FunctionalTest):
 
     @classmethod
     def tearDownClass(cls):
-        super(ServiceyRegistryControllerTestCase, cls).tearDownClass()
+        super(ServiceRegistryControllerTestCase, cls).tearDownClass()
 
         coordination.coordinator_teardown(cls.coordinator)
 
