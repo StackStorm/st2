@@ -15,7 +15,6 @@
 
 import copy
 import mock
-import os
 
 try:
     import simplejson as json
@@ -24,6 +23,8 @@ except ImportError:
 
 from six.moves import filter
 from six.moves import http_client
+
+from oslo_config import cfg
 
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
@@ -61,7 +62,6 @@ __all__ = [
     "ActionExecutionOutputControllerTestCase",
 ]
 
-SYSTEM_USER = os.environ.get("ST2TESTS_SYSTEM_USER", "") or "stanley"
 
 ACTION_1 = {
     "name": "st2.dummy.action1",
@@ -688,7 +688,10 @@ class ActionExecutionControllerTestCase(
         delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
         self.assertEqual(delete_resp.status_int, 200)
         self.assertEqual(delete_resp.json["status"], "canceled")
-        expected_result = {"message": "Action canceled by user.", "user": SYSTEM_USER}
+        expected_result = {
+            "message": "Action canceled by user.",
+            "user": cfg.CONF.system_user.user,
+        }
         self.assertDictEqual(delete_resp.json["result"], expected_result)
 
     def test_post_delete_duplicate(self):
@@ -706,7 +709,7 @@ class ActionExecutionControllerTestCase(
             self.assertEqual(delete_resp.json["status"], "canceled")
             expected_result = {
                 "message": "Action canceled by user.",
-                "user": SYSTEM_USER,
+                "user": cfg.CONF.system_user.user,
             }
             self.assertDictEqual(delete_resp.json["result"], expected_result)
 
@@ -981,7 +984,7 @@ class ActionExecutionControllerTestCase(
                 ),
             },
             {
-                "name": f"{SYSTEM_USER}:secret",
+                "name": f"{cfg.CONF.system_user.user}:secret",
                 "secret": True,
                 "scope": FULL_USER_SCOPE,
                 "value": crypto_utils.symmetric_encrypt(
@@ -1003,14 +1006,14 @@ class ActionExecutionControllerTestCase(
         # 1. parameters are not marked as secret
         resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json["context"]["user"], SYSTEM_USER)
+        self.assertEqual(resp.json["context"]["user"], cfg.CONF.system_user.user)
         self.assertEqual(resp.json["parameters"]["encrypted_param"], "foo")
         self.assertEqual(resp.json["parameters"]["encrypted_user_param"], "bar")
 
         # 2. parameters are marked as secret
         resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json["context"]["user"], SYSTEM_USER)
+        self.assertEqual(resp.json["context"]["user"], cfg.CONF.system_user.user)
         self.assertEqual(
             resp.json["parameters"]["encrypted_param"], MASKED_ATTRIBUTE_VALUE
         )
@@ -1082,7 +1085,7 @@ class ActionExecutionControllerTestCase(
         )
 
         expected_context = {
-            "user": SYSTEM_USER,
+            "user": cfg.CONF.system_user.user,
             "pack": "starterpack",
             "re-run": {"ref": execution_id},
             "trace_context": {"id_": str(trace.id)},
@@ -1111,7 +1114,7 @@ class ActionExecutionControllerTestCase(
 
         expected_context = {
             "pack": "starterpack",
-            "user": SYSTEM_USER,
+            "user": cfg.CONF.system_user.user,
             "re-run": {"ref": execution_id, "tasks": data["tasks"]},
             "trace_context": {"id_": str(trace.id)},
         }
@@ -1139,7 +1142,7 @@ class ActionExecutionControllerTestCase(
 
         expected_context = {
             "pack": "starterpack",
-            "user": SYSTEM_USER,
+            "user": cfg.CONF.system_user.user,
             "re-run": {"ref": execution_id, "tasks": data["tasks"]},
             "trace_context": {"id_": str(trace.id)},
         }
@@ -1167,7 +1170,7 @@ class ActionExecutionControllerTestCase(
 
         expected_context = {
             "pack": "starterpack",
-            "user": SYSTEM_USER,
+            "user": cfg.CONF.system_user.user,
             "re-run": {
                 "ref": execution_id,
                 "tasks": data["tasks"],

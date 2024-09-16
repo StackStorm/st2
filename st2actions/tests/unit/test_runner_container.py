@@ -16,7 +16,6 @@
 from __future__ import absolute_import
 
 import mock
-import os
 
 from oslo_config import cfg
 
@@ -298,8 +297,10 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(result.get("action_params").get("actionstr") == "bar")
 
         # Assert that context is written correctly.
-        system_user = os.environ.get("ST2TESTS_SYSTEM_USER", "") or "stanley"
-        context = {"user": system_user, "third_party_system": {"ref_id": "1234"}}
+        context = {
+            "user": cfg.CONF.system_user.user,
+            "third_party_system": {"ref_id": "1234"},
+        }
 
         self.assertDictEqual(liveaction_db.context, context)
 
