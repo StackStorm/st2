@@ -270,7 +270,6 @@ def setup(
     register_kombu_serializers()
 
     metrics_initialize()
-
     # Register service in the service registry
     if cfg.CONF.coordination.service_registry and service_registry:
         # NOTE: It's important that we pass start_heart=True to start the hearbeat process
@@ -319,7 +318,6 @@ def register_service_in_service_registry(service, capabilities=None, start_heart
     coordinator = coordination.get_coordinator(start_heart=start_heart)
 
     member_id = coordination.get_member_id()
-
     # 1. Create a group with the name of the service
     if not isinstance(service, six.binary_type):
         group_id = service.encode("utf-8")

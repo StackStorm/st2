@@ -6,7 +6,7 @@
 // {
 //   "version": 3,
 //   "valid_for_interpreter_constraints": [
-//     "CPython<3.10,>=3.8"
+//     "CPython<3.11,>=3.8"
 //   ],
 //   "generated_with_requirements": [
 //     "astroid",
@@ -303,7 +303,7 @@
     "setuptools"
   ],
   "requires_python": [
-    "<3.10,>=3.8"
+    "<3.11,>=3.8"
   ],
   "resolver_version": "pip-2020-resolver",
   "style": "universal",

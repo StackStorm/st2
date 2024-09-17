@@ -70,7 +70,14 @@ jobs:
             task: 'ci-compile'
             python-version-short: '3.9'
             python-version: '3.9.14'
-
+          - name: 'Lint Checks (black, flake8, etc.)'
+            task: 'ci-checks'
+            python-version-short: '3.10'
+            python-version: '3.10.15'
+          - name: 'Compile (pip deps, pylint, etc.)'
+            task: 'ci-compile'
+            python-version-short: '3.11'
+            python-version: '3.11.10'
     env:
       TASK: '${{ matrix.task }}'
       COLUMNS: '120'
@@ -120,7 +127,7 @@ jobs:
             python-version: '3.8.14'
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:7.0
         ports:
           - 27017:27017
 
@@ -252,30 +259,31 @@ jobs:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         include:
-          - name: 'Unit Tests (chunk 1)'
+          - name: 'Unit Tests'
             task: 'ci-unit'
-            nosetests_node_total: 2
+            nosetests_node_total: 1
             nosetests_node_index: 0
             python-version-short: '3.8'
             python-version: '3.8.10'
-          - name: 'Unit Tests (chunk 2)'
+          - name: 'Unit Tests'
             task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Unit Tests (chunk 1)'
-            task: 'ci-unit'
-            nosetests_node_total: 2
+            nosetests_node_total: 1
             nosetests_node_index: 0
             python-version-short: '3.9'
             python-version: '3.9.14'
-          - name: 'Unit Tests (chunk 2)'
+          - name: 'Unit Tests'
             task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
-            python-version-short: '3.9'
-            python-version: '3.9.14'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.15'
+          - name: 'Unit Tests'
+            task: 'ci-unit'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.11'
+            python-version: '3.11.10'
+
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
@@ -284,9 +292,22 @@ jobs:
           #  nosetests_node_ index: 0
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:7.0
         ports:
           - 27017:27017
+      redis-server:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
+
 
       rabbitmq:
         image: rabbitmq:3.8-management
@@ -300,8 +321,6 @@ jobs:
     env:
       TASK: '${{ matrix.task }}'
       PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
-      NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
-      NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
@@ -404,16 +423,10 @@ jobs:
             nosetests_node_index: 0
             python-version-short: '3.8'
             python-version: '3.8.10'
-          - name: 'Integration Tests (chunk 1)'
+          - name: 'Integration Tests'
             task: 'ci-integration'
-            nosetests_node_total: 2
+            nosetests_node_total: 1
             nosetests_node_index: 0
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Integration Tests (chunk 2)'
-            task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Pack Tests'
@@ -422,21 +435,39 @@ jobs:
             nosetests_node_index: 0
             python-version-short: '3.9'
             python-version: '3.9.14'
-          - name: 'Integration Tests (chunk 1)'
+          - name: 'Integration Tests'
             task: 'ci-integration'
-            nosetests_node_total: 2
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.15'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.10'
+            python-version: '3.10.15'
+          - name: 'Integration Tests'
+            task: 'ci-integration'
+            nosetests_node_total: 1
             nosetests_node_index: 0
             python-version-short: '3.9'
             python-version: '3.9.14'
-          - name: 'Integration Tests (chunk 2)'
+          - name: 'Pack Tests'
+            task: 'ci-packs-tests'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.11'
+            python-version: '3.11.10'
+          - name: 'Integration Tests'
             task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
-            python-version-short: '3.9'
-            python-version: '3.9.14'
+            nosetests_node_total: 1
+            nosetests_node_index: 0
+            python-version-short: '3.11'
+            python-version: '3.11.10'
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:7.0
         ports:
           - 27017:27017
 
@@ -471,27 +502,22 @@ jobs:
           #- 4369:4369/tcp   # epmd
           #
 
-      # Used for the coordination backend for integration tests
-      # NOTE: To speed things up, we only start redis for integration tests
-      # where it's needed
-      # redis:
-      #   # Docker Hub image
-      #   image: redis
-      #   # Set health checks to wait until redis has started
-      #   options: >-
-      #     --name "redis"
-      #     --health-cmd "redis-cli ping"
-      #     --health-interval 10s
-      #     --health-timeout 5s
-      #     --health-retries 5
-      #   ports:
-      #     - 6379:6379/tcp
+      #redis-server:
+      #  # Docker Hub image
+      #  image: redis
+      #  # Set health checks to wait until redis has started
+      #  options: >-
+      #    --name "redis"
+      #    --health-cmd "redis-cli ping"
+      #    --health-interval 10s
+      #    --health-timeout 5s
+      #    --health-retries 5
+      #  ports:
+      #    - 6379:6379/tcp
 
     env:
       TASK: '${{ matrix.task }}'
       PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
-      NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
-      NODE_INDEX: '${{ matrix.nosetests_node_index }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.

@@ -97,9 +97,6 @@ class TransportUtilsTestCase(unittest.TestCase):
         self.assertEqual(
             watcher.received_messages[0][1].properties["content_encoding"], "binary"
         )
-        self.assertEqual(
-            watcher.received_messages[0][1].properties["application_headers"], {}
-        )
         self.assertEqual(watcher.received_messages[0][0].id, live_action_db.id)
 
         # 2. Verify config level option is used

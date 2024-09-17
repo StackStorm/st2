@@ -5,15 +5,15 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-MarkupSafe==2.0.1
+MarkupSafe
 amqp==5.2.0
 apscheduler==3.10.4
 cffi==1.17.1
-chardet==3.0.4
+chardet
 ciso8601
 cryptography==43.0.1
 decorator==5.1.1
-dnspython==1.16.0
+dnspython==2.6.1
 eventlet==0.36.1
 flex==6.14.1
 gitdb==4.0.11
@@ -25,9 +25,9 @@ jsonschema==3.2.0
 kombu==5.4.0
 lockfile==0.12.2
 mongoengine==0.23.1
-networkx==2.8.8
+networkx==3.1
 orjson==3.10.7
-orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
+orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
 oslo.config==9.6.0
 paramiko==3.4.1
 pyOpenSSL

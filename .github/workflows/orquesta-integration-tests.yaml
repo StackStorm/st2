@@ -69,7 +69,7 @@ jobs:
             python-version: '3.9.14'
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:7.0
         ports:
           - 27017:27017
 
