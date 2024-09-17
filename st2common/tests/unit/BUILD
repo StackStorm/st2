@@ -19,6 +19,9 @@ python_tests(
                 "st2tests/st2tests/policies/meta",
             ],
         ),
+        "test_param_utils.py": dict(
+            uses=["system_user"],
+        ),
     },
 )
 
