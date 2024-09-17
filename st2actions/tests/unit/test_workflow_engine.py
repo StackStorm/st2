@@ -145,7 +145,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
 
     @mock.patch.object(RedisDriver, "get_lock")
     def test_process_error_handling(self, mock_get_lock):
-        tests_config.parse_args()
+        # tests_config.parse_args()  # maybe call self.reset()
         cfg.CONF.set_override(
             name="service_registry", override=True, group="coordination"
         )
