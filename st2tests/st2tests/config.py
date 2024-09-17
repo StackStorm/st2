@@ -140,15 +140,10 @@ def _override_scheduler_opts():
 def _override_coordinator_opts(noop=False):
     driver = None if noop else "zake://"
 
-    ST2_OVERRIDE_COORDINATOR_REDIS_HOST = os.environ.get(
-        "ST2_OVERRIDE_COORDINATOR_REDIS_HOST", False
-    )
-    if ST2_OVERRIDE_COORDINATOR_REDIS_HOST:
-
-        ST2_OVERRIDE_COORDINATOR_REDIS_PORT = os.environ.get(
-            "ST2_OVERRIDE_COORDINATOR_REDIS_PORT", "6379"
-        )
-        driver = f"redis://{ST2_OVERRIDE_COORDINATOR_REDIS_HOST}:{ST2_OVERRIDE_COORDINATOR_REDIS_PORT}"
+    redis_host = os.environ.get("ST2TESTS_REDIS_HOST", False)
+    if redis_host:
+        redis_port = os.environ.get("ST2TESTS_REDIS_PORT", "6379")
+        driver = f"redis://{redis_host}:{redis_port}"
 
     CONF.set_override(name="url", override=driver, group="coordination")
     CONF.set_override(name="lock_timeout", override=1, group="coordination")
