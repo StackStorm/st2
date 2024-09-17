@@ -133,6 +133,18 @@ jobs:
             - 5672:5672/tcp   # AMQP standard port
             - 15672:15672/tcp # Management: HTTP, CLI
 
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
     env:
       # CI st2.conf (with ST2_CI_USER user instead of stanley)
       ST2_CONF: 'conf/st2.ci.conf'
@@ -163,11 +175,6 @@ jobs:
       - name: Install requirements
         run: |
           ./scripts/ci/install-requirements.sh
-      - name: Run Redis Service Container
-        timeout-minutes: 2
-        run: |
-          docker run --rm --detach -p 127.0.0.1:6379:6379/tcp --name redis redis:latest
-          until [ "$(docker inspect -f {{.State.Running}} redis)" == "true" ]; do sleep 0.1; done
       - name: Setup Tests
         run: |
           # prep a ci-specific dev conf file that uses runner instead of stanley
@@ -234,9 +241,6 @@ jobs:
           name: logs-py${{ matrix.python-version }}
           path: logs.tar.gz
           retention-days: 7
-      - name: Stop Redis Service Container
-        if: "${{ always() }}"
-        run: docker rm --force redis || true
 
   unit-tests:
     needs: pre_job
@@ -287,7 +291,7 @@ jobs:
         image: mongo:4.4
         ports:
           - 27017:27017
-      redis-server:
+      redis:
         # Docker Hub image
         image: redis
         # Set health checks to wait until redis has started
@@ -484,18 +488,18 @@ jobs:
           #- 4369:4369/tcp   # epmd
           #
 
-      #redis-server:
-      #  # Docker Hub image
-      #  image: redis
-      #  # Set health checks to wait until redis has started
-      #  options: >-
-      #    --name "redis"
-      #    --health-cmd "redis-cli ping"
-      #    --health-interval 10s
-      #    --health-timeout 5s
-      #    --health-retries 5
-      #  ports:
-      #    - 6379:6379/tcp
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     env:
       TASK: '${{ matrix.task }}'
@@ -548,11 +552,6 @@ jobs:
           cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
 
           sudo -E ./scripts/ci/add-itest-user-key.sh
-      - name: Run Redis Service Container
-        timeout-minutes: 2
-        run: |
-          docker run --rm --detach -p 127.0.0.1:6379:6379/tcp --name redis redis:latest
-          until [ "$(docker inspect -f {{.State.Running}} redis)" == "true" ]; do sleep 0.1; done
       - name: Permissions Workaround
         run: |
           echo "$ST2_CI_REPO_PATH"
@@ -595,9 +594,6 @@ jobs:
           name: logs-py${{ matrix.python-version }}-nose-${{ matrix.nosetests_node_index }}
           path: logs.tar.gz
           retention-days: 7
-      - name: Stop Redis Service Container
-        if: "${{ always() }}"
-        run: docker rm --force redis || true
 
   slack-notification:
     name: Slack notification for failed master builds
