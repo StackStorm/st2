@@ -69,9 +69,33 @@ class WorkerTestCase(DbTestCase):
         WorkerTestCase.local_action_db = models["actions"]["local.yaml"]
 
     @staticmethod
-    def reparse_config():
+    def reset_config(
+        graceful_shutdown=True,  # default is True (st2common.config)
+        exit_still_active_check=None,  # default is 300 (st2common.config)
+        still_active_check_interval=None,  # default is 2 (st2common.config)
+        service_registry=None,  # default is False (st2common.config)
+    ):
         tests_config.reset()
         tests_config.parse_args()
+        cfg.CONF.set_override(
+            name="graceful_shutdown", override=graceful_shutdown, group="actionrunner"
+        )
+        if exit_still_active_check is not None:
+            cfg.CONF.set_override(
+                name="exit_still_active_check",
+                override=exit_still_active_check,
+                group="actionrunner",
+            )
+        if still_active_check_interval is not None:
+            cfg.CONF.set_override(
+                name="still_active_check_interval",
+                override=still_active_check_interval,
+                group="actionrunner",
+            )
+        if service_registry is not None:
+            cfg.CONF.set_override(
+                name="service_registry", override=service_registry, group="coordination"
+            )
 
     def _get_liveaction_model(self, action_db, params):
         status = action_constants.LIVEACTION_STATUS_REQUESTED
@@ -123,10 +147,8 @@ class WorkerTestCase(DbTestCase):
             )
 
     def test_worker_shutdown(self):
-        self.reparse_config()
-        cfg.CONF.set_override(
-            name="graceful_shutdown", override=False, group="actionrunner"
-        )
+        self.reset_config(graceful_shutdown=False)
+
         action_worker = actions_worker.get_worker()
         temp_file = None
 
@@ -182,19 +204,12 @@ class WorkerTestCase(DbTestCase):
         mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
     )
     def test_worker_graceful_shutdown_with_multiple_runners(self):
-        self.reparse_config()
-        cfg.CONF.set_override(
-            name="graceful_shutdown", override=True, group="actionrunner"
+        self.reset_config(
+            exit_still_active_check=10,
+            still_active_check_interval=1,
+            service_registry=True,
         )
-        cfg.CONF.set_override(
-            name="service_registry", override=True, group="coordination"
-        )
-        cfg.CONF.set_override(
-            name="exit_still_active_check", override=10, group="actionrunner"
-        )
-        cfg.CONF.set_override(
-            name="still_active_check_interval", override=1, group="actionrunner"
-        )
+
         action_worker = actions_worker.get_worker()
         temp_file = None
 
@@ -252,18 +267,10 @@ class WorkerTestCase(DbTestCase):
         shutdown_thread.kill()
 
     def test_worker_graceful_shutdown_with_single_runner(self):
-        self.reparse_config()
-        cfg.CONF.set_override(
-            name="graceful_shutdown", override=True, group="actionrunner"
-        )
-        cfg.CONF.set_override(
-            name="service_registry", override=True, group="coordination"
-        )
-        cfg.CONF.set_override(
-            name="exit_still_active_check", override=10, group="actionrunner"
-        )
-        cfg.CONF.set_override(
-            name="still_active_check_interval", override=1, group="actionrunner"
+        self.reset_config(
+            exit_still_active_check=10,
+            still_active_check_interval=1,
+            service_registry=True,
         )
 
         action_worker = actions_worker.get_worker()
@@ -330,13 +337,8 @@ class WorkerTestCase(DbTestCase):
         mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
     )
     def test_worker_graceful_shutdown_exit_timeout(self):
-        self.reparse_config()
-        cfg.CONF.set_override(
-            name="graceful_shutdown", override=True, group="actionrunner"
-        )
-        cfg.CONF.set_override(
-            name="exit_still_active_check", override=5, group="actionrunner"
-        )
+        self.reset_config(exit_still_active_check=5)
+
         action_worker = actions_worker.get_worker()
         temp_file = None
 
