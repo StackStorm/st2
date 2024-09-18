@@ -334,7 +334,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
     @mock.patch.object(
         RedisDriver,
         "get_members",
-        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult("member-1")),
+        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult(("member-1",))),
     )
     def test_workflow_engine_shutdown_with_multiple_members(self):
         cfg.CONF.set_override(
@@ -488,7 +488,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         workflow_engine = workflows.get_engine()
 
         RedisDriver.get_members = mock.MagicMock(
-            return_value=coordination_service.NoOpAsyncResult("member-1")
+            return_value=coordination_service.NoOpAsyncResult(("member-1",))
         )
 
         workflow_engine._delay = 0
