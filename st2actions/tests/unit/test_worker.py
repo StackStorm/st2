@@ -27,6 +27,7 @@ import tempfile
 from st2tests.base import DbTestCase
 
 import st2actions.worker as actions_worker
+import st2tests.config as tests_config
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.system.common import ResourceReference
@@ -66,6 +67,11 @@ class WorkerTestCase(DbTestCase):
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES
         )
         WorkerTestCase.local_action_db = models["actions"]["local.yaml"]
+
+    @staticmethod
+    def reparse_config():
+        tests_config.reset()
+        tests_config.parse_args()
 
     def _get_liveaction_model(self, action_db, params):
         status = action_constants.LIVEACTION_STATUS_REQUESTED
@@ -117,6 +123,7 @@ class WorkerTestCase(DbTestCase):
             )
 
     def test_worker_shutdown(self):
+        self.reparse_config()
         cfg.CONF.set_override(
             name="graceful_shutdown", override=False, group="actionrunner"
         )
@@ -175,6 +182,7 @@ class WorkerTestCase(DbTestCase):
         mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
     )
     def test_worker_graceful_shutdown_with_multiple_runners(self):
+        self.reparse_config()
         cfg.CONF.set_override(
             name="graceful_shutdown", override=True, group="actionrunner"
         )
@@ -244,6 +252,7 @@ class WorkerTestCase(DbTestCase):
         shutdown_thread.kill()
 
     def test_worker_graceful_shutdown_with_single_runner(self):
+        self.reparse_config()
         cfg.CONF.set_override(
             name="graceful_shutdown", override=True, group="actionrunner"
         )
@@ -321,6 +330,7 @@ class WorkerTestCase(DbTestCase):
         mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
     )
     def test_worker_graceful_shutdown_exit_timeout(self):
+        self.reparse_config()
         cfg.CONF.set_override(
             name="graceful_shutdown", override=True, group="actionrunner"
         )
