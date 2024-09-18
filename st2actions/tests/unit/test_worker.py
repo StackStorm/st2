@@ -332,7 +332,7 @@ class WorkerTestCase(DbTestCase):
         shutdown_thread.kill()
 
     @mock.patch.object(
-        coordination.NoOpDriver,
+        RedisDriver,
         "get_members",
         mock.MagicMock(return_value=coordination.NoOpAsyncResult(("member-1",))),
     )
