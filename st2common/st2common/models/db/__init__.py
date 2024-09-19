@@ -55,7 +55,6 @@ import importlib
 import traceback
 
 import six
-from bson.binary import UuidRepresentation
 from oslo_config import cfg
 import mongoengine
 from mongoengine.queryset import visitor
@@ -198,7 +197,7 @@ def _db_connect(
     # TODO: Add uuid_representation option in st2.conf + a migration guide/script.
     # This preserves the uuid handling from pymongo 3.x, but it is not portable:
     # https://pymongo.readthedocs.io/en/stable/examples/uuid.html#handling-uuid-data-example
-    uuid_representation = UuidRepresentation.PYTHON_LEGACY
+    uuid_representation = "pythonLegacy"
 
     connection = mongoengine.connection.connect(
         # kwargs are defined by mongoengine and pymongo.MongoClient:
