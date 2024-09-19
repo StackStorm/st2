@@ -9,9 +9,9 @@ eventlet==0.37.0
 gunicorn==23.0.0
 jsonschema==3.2.0
 kombu==5.4.2
-mongoengine==0.25.0
+mongoengine==0.29.1
 oslo.config==9.6.0
 oslo.utils==7.3.0
-pymongo==3.13.0
+pymongo==4.9.1
 pyparsing==3.1.4
 six==1.16.0

@@ -32,7 +32,7 @@ kombu==5.4.2
 lockfile==0.12.2
 logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
 mock==5.1.0
-mongoengine==0.25.0
+mongoengine==0.29.1
 networkx==2.8.8
 nose
 nose-parallel==0.4.0
@@ -49,7 +49,7 @@ psutil==6.0.0
 pyOpenSSL
 pygments==2.18.0
 pyinotify==0.9.6 ; platform_system=="Linux"
-pymongo==3.13.0
+pymongo==4.9.1
 pyparsing==3.1.4
 pyrabbit
 pysocks
