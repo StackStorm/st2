@@ -6,6 +6,8 @@ in development
 
 Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 
+Newer MongoDB versions are now supported. CI uses MongoDB 7.0.
+
 Several st2.conf database options have been renamed or deprecated. Most of the options will continue to work using their old name.
 However, if you use `[database].ssl_keyfile` and/or `[database].ssl_certfile`, you MUST migrate to `[database].tls_certificate_key_file`.
 This new option expects the key and certificate in the same file. Use something like the following to create that file from your old files:
@@ -53,6 +55,9 @@ Changed
 
 * Update mongoengine to 0.29 and pymongo to 4.6.3. The pymongo bump (from 3.x to 4.x) is a major update. #6252
   Contributed by @cognifloyd
+
+* Update CI from testing with mongo 4.4 to testing with MongoDB 7.0. #6246
+  Contributed by @guzzijones
 
 Added
 ~~~~~
