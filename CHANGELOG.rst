@@ -28,6 +28,9 @@ Changed
 * Update st2client deps: editor and prompt-toolkit. #6189 (by @nzlosh)
 * Updated dependency oslo.config to prepare for python 3.10 support. #6193 (by @nzlosh)
 
+* Updated unit tests to use redis for coordination instead of the NoOp driver. This will hopefully make CI more stable. #6245
+  Contributed by @FileMagic, @guzzijones, and @cognifloyd
+
 Added
 ~~~~~
 * Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
