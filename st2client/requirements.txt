@@ -20,10 +20,10 @@ pyOpenSSL
 pygments==2.18.0
 pysocks
 python-dateutil==2.9.0.post0
-pytz==2024.1
+pytz==2024.2
 pyyaml==6.0.2
 requests==2.32.3
 six==1.16.0
 sseclient-py==1.8.0
 typing-extensions==4.12.2
-zipp==3.20.1
+zipp==3.20.2
