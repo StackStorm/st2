@@ -38,8 +38,9 @@ def _is_mongo_running(
 
     # connection.connect() is lazy. Make a command to test the connection.
     try:
-        # The ismaster command is cheap and does not require auth
-        connection.admin.command("ismaster")
+        # The ping command is cheap and does not require auth
+        # https://www.mongodb.com/community/forums/t/how-to-use-the-new-hello-interface-for-availability/116748/
+        connection.admin.command("ping")
     except (ConnectionFailure, ServerSelectionTimeoutError):
         return False
     return True
