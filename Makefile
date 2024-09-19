@@ -76,14 +76,16 @@ endif
 # pages and pages and pages of noise.
 # The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
 # See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
-NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
+NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture
+# --logging-filter=-st2.st2common.bootstrap
 
 ifndef NOSE_TIME
 	NOSE_TIME := yes
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
+	NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --with-timer --nocapture
+	# --logging-filter=-st2.st2common.bootstrap
 	NOSE_WITH_TIMER := 1
 endif
 

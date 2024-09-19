@@ -45,6 +45,11 @@ if "nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"):
 
     monkey_patch()
 
+import warnings
+
+warnings.filterwarnings("error", category=DeprecationWarning, module="mongoengine")
+warnings.filterwarnings("error", category=DeprecationWarning, module="pymongo")
+
 import copy
 import importlib
 import traceback
