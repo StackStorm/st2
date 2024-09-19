@@ -206,8 +206,12 @@ def register_opts(ignore_errors=False):
             help="Backoff multiplier (seconds).",
         ),
         cfg.BoolOpt(
-            "ssl", default=False, help="Create the connection to mongodb using SSL"
+            "ssl",  # TODO: replace with "tls"
+            default=False,
+            help="Create the connection to mongodb using SSL",
         ),
+        # TODO: replace ssl_keyfile and ssl_certfile with tlsCertificateFile
+        #       (see comment in st2common.models.db._get_ssl_kwargs)
         cfg.StrOpt(
             "ssl_keyfile",
             default=None,
@@ -219,20 +223,20 @@ def register_opts(ignore_errors=False):
             help="Certificate file used to identify the localconnection",
         ),
         cfg.StrOpt(
-            "ssl_cert_reqs",
+            "ssl_cert_reqs",  # TODO: replace with BoolOpt "tlsAllowInvalidCertificates"
             default=None,
             choices=["none", "optional", "required"],
             help="Specifies whether a certificate is required from the other side of the "
             "connection, and whether it will be validated if provided",
         ),
         cfg.StrOpt(
-            "ssl_ca_certs",
+            "ssl_ca_certs",  # TODO: replace with "tlsCAFile"
             default=None,
             help="ca_certs file contains a set of concatenated CA certificates, which are "
             "used to validate certificates passed from MongoDB.",
         ),
         cfg.BoolOpt(
-            "ssl_match_hostname",
+            "ssl_match_hostname",  # TODO: replace with "tlsAllowInvalidHostnames"
             default=True,
             help="If True and `ssl_cert_reqs` is not None, enables hostname verification",
         ),

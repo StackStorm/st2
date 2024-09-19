@@ -21,7 +21,6 @@ from st2common.util.monkey_patch import monkey_patch
 
 monkey_patch()
 
-import ssl
 import time
 
 import jsonschema
@@ -229,19 +228,19 @@ class DbConnectionTestCase(DbTestCase):
     def test_get_ssl_kwargs(self):
         # 1. No SSL kwargs provided
         ssl_kwargs = _get_ssl_kwargs()
-        self.assertEqual(ssl_kwargs, {"ssl": False})
+        self.assertEqual(ssl_kwargs, {"tls": False})
 
         # 2. ssl kwarg provided
         ssl_kwargs = _get_ssl_kwargs(ssl=True)
-        self.assertEqual(ssl_kwargs, {"ssl": True, "ssl_match_hostname": True})
+        self.assertEqual(ssl_kwargs, {"tls": True, "tlsAllowInvalidHostnames": False})
 
         # 2. authentication_mechanism kwarg provided
         ssl_kwargs = _get_ssl_kwargs(authentication_mechanism="MONGODB-X509")
         self.assertEqual(
             ssl_kwargs,
             {
-                "ssl": True,
-                "ssl_match_hostname": True,
+                "tls": True,
+                "tlsAllowInvalidHostnames": False,
                 "authentication_mechanism": "MONGODB-X509",
             },
         )
@@ -250,21 +249,33 @@ class DbConnectionTestCase(DbTestCase):
         ssl_kwargs = _get_ssl_kwargs(ssl_keyfile="/tmp/keyfile")
         self.assertEqual(
             ssl_kwargs,
-            {"ssl": True, "ssl_keyfile": "/tmp/keyfile", "ssl_match_hostname": True},
+            {
+                "tls": True,
+                "ssl_keyfile": "/tmp/keyfile",
+                "tlsAllowInvalidHostnames": False,
+            },
         )
 
         # 4. ssl_certfile provided
         ssl_kwargs = _get_ssl_kwargs(ssl_certfile="/tmp/certfile")
         self.assertEqual(
             ssl_kwargs,
-            {"ssl": True, "ssl_certfile": "/tmp/certfile", "ssl_match_hostname": True},
+            {
+                "tls": True,
+                "ssl_certfile": "/tmp/certfile",
+                "tlsAllowInvalidHostnames": False,
+            },
         )
 
         # 5. ssl_ca_certs provided
         ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs="/tmp/ca_certs")
         self.assertEqual(
             ssl_kwargs,
-            {"ssl": True, "ssl_ca_certs": "/tmp/ca_certs", "ssl_match_hostname": True},
+            {
+                "tls": True,
+                "tlsCAFile": "/tmp/ca_certs",
+                "tlsAllowInvalidHostnames": False,
+            },
         )
 
         # 6. ssl_ca_certs and ssl_cert_reqs combinations
@@ -272,10 +283,10 @@ class DbConnectionTestCase(DbTestCase):
         self.assertEqual(
             ssl_kwargs,
             {
-                "ssl": True,
-                "ssl_ca_certs": "/tmp/ca_certs",
-                "ssl_cert_reqs": ssl.CERT_NONE,
-                "ssl_match_hostname": True,
+                "tls": True,
+                "tlsCAFile": "/tmp/ca_certs",
+                "tlsAllowInvalidCertificates": True,
+                "tlsAllowInvalidHostnames": False,
             },
         )
 
@@ -285,10 +296,10 @@ class DbConnectionTestCase(DbTestCase):
         self.assertEqual(
             ssl_kwargs,
             {
-                "ssl": True,
-                "ssl_ca_certs": "/tmp/ca_certs",
-                "ssl_cert_reqs": ssl.CERT_OPTIONAL,
-                "ssl_match_hostname": True,
+                "tls": True,
+                "tlsCAFile": "/tmp/ca_certs",
+                "tlsAllowInvalidCertificates": False,
+                "tlsAllowInvalidHostnames": False,
             },
         )
 
@@ -298,10 +309,10 @@ class DbConnectionTestCase(DbTestCase):
         self.assertEqual(
             ssl_kwargs,
             {
-                "ssl": True,
-                "ssl_ca_certs": "/tmp/ca_certs",
-                "ssl_cert_reqs": ssl.CERT_REQUIRED,
-                "ssl_match_hostname": True,
+                "tls": True,
+                "tlsCAFile": "/tmp/ca_certs",
+                "tlsAllowInvalidCertificates": False,
+                "tlsAllowInvalidHostnames": False,
             },
         )
 
@@ -330,8 +341,8 @@ class DbConnectionTestCase(DbTestCase):
                 "password": "password",
                 "tz_aware": True,
                 "authentication_mechanism": "MONGODB-X509",
-                "ssl": True,
-                "ssl_match_hostname": True,
+                "tls": True,
+                "tlsAllowInvalidHostnames": False,
                 "connectTimeoutMS": 3000,
                 "serverSelectionTimeoutMS": 3000,
             },

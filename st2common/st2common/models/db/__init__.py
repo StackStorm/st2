@@ -48,7 +48,6 @@ if "nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"):
 import copy
 import importlib
 import traceback
-import ssl as ssl_lib
 
 import six
 from oslo_config import cfg
@@ -444,34 +443,37 @@ def _get_ssl_kwargs(
 ):
     # NOTE: In pymongo 3.9.0 some of the ssl related arguments have been renamed -
     # https://api.mongodb.com/python/current/changelog.html#changes-in-version-3-9-0
-    # Old names still work, but we should eventually update to new argument names.
+    # Old names stop working in pymongo 4, so we need to migrate now:
+    # https://pymongo.readthedocs.io/en/stable/migrate-to-pymongo4.html#renamed-uri-options
     ssl_kwargs = {
-        "ssl": ssl,
+        "tls": ssl,
     }
+    # TODO: replace ssl_keyfile and ssl_certfile with tlsCertificateFile per pymongo:
+    #   > Instead of using ssl_certfile and ssl_keyfile to specify the certificate
+    #   > and private key files respectively, use tlsCertificateKeyFile to pass a
+    #   > single file containing both the client certificate and the private key.
+    # The tlsCertificateFile switch will be user-facing as files must be combined.
     if ssl_keyfile:
-        ssl_kwargs["ssl"] = True
+        ssl_kwargs["tls"] = True
         ssl_kwargs["ssl_keyfile"] = ssl_keyfile
     if ssl_certfile:
-        ssl_kwargs["ssl"] = True
+        ssl_kwargs["tls"] = True
         ssl_kwargs["ssl_certfile"] = ssl_certfile
     if ssl_cert_reqs:
-        if ssl_cert_reqs == "none":
-            ssl_cert_reqs = ssl_lib.CERT_NONE
-        elif ssl_cert_reqs == "optional":
-            ssl_cert_reqs = ssl_lib.CERT_OPTIONAL
-        elif ssl_cert_reqs == "required":
-            ssl_cert_reqs = ssl_lib.CERT_REQUIRED
-        ssl_kwargs["ssl_cert_reqs"] = ssl_cert_reqs
+        # possible values: none, optional, required
+        # ssl lib docs say 'optional' is the same as 'required' for clients:
+        # https://docs.python.org/3/library/ssl.html#ssl.CERT_OPTIONAL
+        ssl_kwargs["tlsAllowInvalidCertificates"] = ssl_cert_reqs == "none"
     if ssl_ca_certs:
-        ssl_kwargs["ssl"] = True
-        ssl_kwargs["ssl_ca_certs"] = ssl_ca_certs
+        ssl_kwargs["tls"] = True
+        ssl_kwargs["tlsCAFile"] = ssl_ca_certs
     if authentication_mechanism:
-        ssl_kwargs["ssl"] = True
+        ssl_kwargs["tls"] = True
         ssl_kwargs["authentication_mechanism"] = authentication_mechanism
-    if ssl_kwargs.get("ssl", False):
-        # pass in ssl_match_hostname only if ssl is True. The right default value
-        # for ssl_match_hostname in almost all cases is True.
-        ssl_kwargs["ssl_match_hostname"] = ssl_match_hostname
+    if ssl_kwargs.get("tls", False):
+        # pass in tlsAllowInvalidHostname only if ssl is True. The right default value
+        # for tlsAllowInvalidHostname in almost all cases is False.
+        ssl_kwargs["tlsAllowInvalidHostnames"] = not ssl_match_hostname
     return ssl_kwargs
 
 
