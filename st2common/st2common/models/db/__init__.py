@@ -55,6 +55,7 @@ import importlib
 import traceback
 
 import six
+from bson.binary import UuidRepresentation
 from oslo_config import cfg
 import mongoengine
 from mongoengine.queryset import visitor
@@ -193,7 +194,16 @@ def _db_connect(
     # 30 seconds, which means it will block up to 30 seconds and fail if there are any SSL related
     # or other errors
     connection_timeout = cfg.CONF.database.connection_timeout
+
+    # TODO: Add uuid_representation option in st2.conf + a migration guide/script.
+    # This preserves the uuid handling from pymongo 3.x, but it is not portable:
+    # https://pymongo.readthedocs.io/en/stable/examples/uuid.html#handling-uuid-data-example
+    uuid_representation = UuidRepresentation.PYTHON_LEGACY
+
     connection = mongoengine.connection.connect(
+        # kwargs are defined by mongoengine and pymongo.MongoClient:
+        # https://docs.mongoengine.org/apireference.html#mongoengine.connect
+        # https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient
         db_name,
         host=db_host,
         port=db_port,
@@ -202,6 +212,7 @@ def _db_connect(
         password=password,
         connectTimeoutMS=connection_timeout,
         serverSelectionTimeoutMS=connection_timeout,
+        uuidRepresentation=uuid_representation,
         **tls_kwargs,
         **compressor_kwargs,
     )
