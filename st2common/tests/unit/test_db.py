@@ -21,6 +21,11 @@ from st2common.util.monkey_patch import monkey_patch
 
 monkey_patch()
 
+import warnings
+
+warnings.filterwarnings("error", category=DeprecationWarning, module="mongoengine")
+warnings.filterwarnings("error", category=DeprecationWarning, module="pymongo")
+
 import time
 
 import jsonschema
@@ -616,11 +621,13 @@ class DbCleanupTestCase(DbTestCase):
         """
         Tests dropping the database. Requires the db server to be running.
         """
-        self.assertIn(cfg.CONF.database.db_name, self.db_connection.database_names())
+        self.assertIn(
+            cfg.CONF.database.db_name, self.db_connection.list_database_names()
+        )
 
         connection = db_cleanup()
 
-        self.assertNotIn(cfg.CONF.database.db_name, connection.database_names())
+        self.assertNotIn(cfg.CONF.database.db_name, connection.list_database_names())
 
 
 @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())
