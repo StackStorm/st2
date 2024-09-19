@@ -139,12 +139,18 @@ def _override_scheduler_opts():
 
 def _override_coordinator_opts(noop=False):
     driver = None if noop else "zake://"
+
+    redis_host = os.environ.get("ST2TESTS_REDIS_HOST", False)
+    if redis_host:
+        redis_port = os.environ.get("ST2TESTS_REDIS_PORT", "6379")
+        driver = f"redis://{redis_host}:{redis_port}"
+
     CONF.set_override(name="url", override=driver, group="coordination")
     CONF.set_override(name="lock_timeout", override=1, group="coordination")
 
 
 def _override_workflow_engine_opts():
-    cfg.CONF.set_override("retry_stop_max_msec", 500, group="workflow_engine")
+    cfg.CONF.set_override("retry_stop_max_msec", 200, group="workflow_engine")
     cfg.CONF.set_override("retry_wait_fixed_msec", 100, group="workflow_engine")
     cfg.CONF.set_override("retry_max_jitter_msec", 100, group="workflow_engine")
     cfg.CONF.set_override("gc_max_idle_sec", 1, group="workflow_engine")
