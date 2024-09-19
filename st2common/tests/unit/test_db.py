@@ -114,6 +114,13 @@ class DbConnectionTestCase(DbTestCase):
         disconnect()
         cfg.CONF.reset()
 
+    @classmethod
+    def tearDownClass(cls):
+        # since tearDown discconnects, dropping the database in tearDownClass
+        # fails withotu establishing a new connection.
+        cls._establish_connection_and_re_create_db()
+        super().tearDownClass()
+
     def test_check_connect(self):
         """
         Tests connectivity to the db server. Requires the db server to be
