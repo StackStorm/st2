@@ -201,7 +201,9 @@ class WorkerTestCase(DbTestCase):
     @mock.patch.object(
         RedisDriver,
         "get_members",
-        mock.MagicMock(return_value=coordination.NoOpAsyncResult(("member-1", "member-2"))),
+        mock.MagicMock(
+            return_value=coordination.NoOpAsyncResult(("member-1", "member-2"))
+        ),
     )
     def test_worker_graceful_shutdown_with_multiple_runners(self):
         self.reset_config(

@@ -104,7 +104,9 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         tests_config.parse_args()
         if graceful_shutdown is not None:
             cfg.CONF.set_override(
-                name="graceful_shutdown", override=graceful_shutdown, group="actionrunner"
+                name="graceful_shutdown",
+                override=graceful_shutdown,
+                group="actionrunner",
             )
         if exit_still_active_check is not None:
             cfg.CONF.set_override(
@@ -361,7 +363,9 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
     @mock.patch.object(
         RedisDriver,
         "get_members",
-        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult(("member-1",))),
+        mock.MagicMock(
+            return_value=coordination_service.NoOpAsyncResult(("member-1",))
+        ),
     )
     def test_workflow_engine_shutdown_with_multiple_members(self):
         self.reset_config(service_registry=True)
