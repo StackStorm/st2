@@ -16,7 +16,13 @@ from pants.backend.python.target_types import (
     PythonTestsGeneratorTarget,
 )
 
-from uses_services import mongo_rules, platform_rules, rabbitmq_rules, redis_rules
+from uses_services import (
+    mongo_rules,
+    platform_rules,
+    rabbitmq_rules,
+    redis_rules,
+    system_user_rules,
+)
 from uses_services.target_types import UsesServicesField
 
 
@@ -28,4 +34,5 @@ def rules():
         *mongo_rules.rules(),
         *rabbitmq_rules.rules(),
         *redis_rules.rules(),
+        *system_user_rules.rules(),
     ]
