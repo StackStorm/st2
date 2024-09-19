@@ -37,7 +37,7 @@ DUMPER_MARKER_COLLECTION = "dumper_marker_d_b"
 
 def delete_marker_collections():
     db = get_db()
-    collections = db.collection_names()
+    collections = db.list_collection_names()
 
     if MARKER_COLLECTION in collections:
         print(f"Dropping {MARKER_COLLECTION} collection...")
