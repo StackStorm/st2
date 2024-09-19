@@ -378,6 +378,7 @@ class DbConnectionTestCase(DbTestCase):
                 "tlsAllowInvalidHostnames": False,
                 "connectTimeoutMS": 3000,
                 "serverSelectionTimeoutMS": 3000,
+                "uuidRepresentation": "pythonLegacy",
             },
         )
 
