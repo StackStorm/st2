@@ -234,7 +234,7 @@ class DbConnectionTestCase(DbTestCase):
         tls_kwargs = _get_tls_kwargs(tls=True)
         self.assertEqual(tls_kwargs, {"tls": True, "tlsAllowInvalidHostnames": False})
 
-        # 2. authentication_mechanism kwarg provided
+        # 3. authentication_mechanism kwarg provided
         tls_kwargs = _get_tls_kwargs(authentication_mechanism="MONGODB-X509")
         self.assertEqual(
             tls_kwargs,
@@ -242,16 +242,6 @@ class DbConnectionTestCase(DbTestCase):
                 "tls": True,
                 "tlsAllowInvalidHostnames": False,
                 "authentication_mechanism": "MONGODB-X509",
-            },
-        )
-
-        # 3. ssl_keyfile and ssl_certfile are ignored by pymongo so this does too.
-        tls_kwargs = _get_tls_kwargs(ssl_keyfile="/tmp/keyfile", ssl_certfile="/tmp/certfile")
-        self.assertEqual(
-            tls_kwargs,
-            {
-                "tls": True,
-                "tlsAllowInvalidHostnames": False,
             },
         )
 

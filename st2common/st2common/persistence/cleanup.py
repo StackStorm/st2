@@ -50,8 +50,6 @@ def db_cleanup_with_retry(
     tls_allow_invalid_certificates=None,
     tls_ca_file=None,
     tls_allow_invalid_hostnames=None,
-    ssl_keyfile=None,  # deprecated / unused
-    ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,  # deprecated
     authentication_mechanism=None,
     ssl_match_hostname=True,  # deprecated
@@ -72,8 +70,6 @@ def db_cleanup_with_retry(
         tls_allow_invalid_certificates=tls_allow_invalid_certificates,
         tls_ca_file=tls_ca_file,
         tls_allow_invalid_hostnames=tls_allow_invalid_hostnames,
-        ssl_keyfile=ssl_keyfile,  # deprecated / unused
-        ssl_certfile=ssl_certfile,  # deprecated / unused
         ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         authentication_mechanism=authentication_mechanism,
         ssl_match_hostname=ssl_match_hostname,  # deprecated
