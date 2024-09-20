@@ -127,8 +127,10 @@ def _db_connect(
     username=None,
     password=None,
     tls=False,
-    ssl_keyfile=None,
-    ssl_certfile=None,
+    tls_certificate_key_file=None,
+    tls_certificate_key_file_password=None,
+    ssl_keyfile=None,  # deprecated / unused
+    ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
     authentication_mechanism=None,
@@ -162,8 +164,10 @@ def _db_connect(
 
     tls_kwargs = _get_tls_kwargs(
         tls=tls,
-        ssl_keyfile=ssl_keyfile,
-        ssl_certfile=ssl_certfile,
+        tls_certificate_key_file=tls_certificate_key_file,
+        tls_certificate_key_file_password=tls_certificate_key_file_password,
+        ssl_keyfile=ssl_keyfile,  # deprecated / unused
+        ssl_certfile=ssl_certfile,  # deprecated / unused
         ssl_cert_reqs=ssl_cert_reqs,
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
@@ -231,8 +235,10 @@ def db_setup(
     password=None,
     ensure_indexes=True,
     tls=False,
-    ssl_keyfile=None,
-    ssl_certfile=None,
+    tls_certificate_key_file=None,
+    tls_certificate_key_file_password=None,
+    ssl_keyfile=None,  # deprecated / unused
+    ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
     authentication_mechanism=None,
@@ -246,8 +252,10 @@ def db_setup(
         username=username,
         password=password,
         tls=tls,
-        ssl_keyfile=ssl_keyfile,
-        ssl_certfile=ssl_certfile,
+        tls_certificate_key_file=tls_certificate_key_file,
+        tls_certificate_key_file_password=tls_certificate_key_file_password,
+        ssl_keyfile=ssl_keyfile,  # deprecated / unused
+        ssl_certfile=ssl_certfile,  # deprecated / unused
         ssl_cert_reqs=ssl_cert_reqs,
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
@@ -397,8 +405,10 @@ def db_cleanup(
     username=None,
     password=None,
     tls=False,
-    ssl_keyfile=None,
-    ssl_certfile=None,
+    tls_certificate_key_file=None,
+    tls_certificate_key_file_password=None,
+    ssl_keyfile=None,  # deprecated / unused
+    ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
     authentication_mechanism=None,
@@ -412,8 +422,10 @@ def db_cleanup(
         username=username,
         password=password,
         tls=tls,
-        ssl_keyfile=ssl_keyfile,
-        ssl_certfile=ssl_certfile,
+        tls_certificate_key_file=tls_certificate_key_file,
+        tls_certificate_key_file_password=tls_certificate_key_file_password,
+        ssl_keyfile=ssl_keyfile,  # deprecated / unused
+        ssl_certfile=ssl_certfile,  # deprecated / unused
         ssl_cert_reqs=ssl_cert_reqs,
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
@@ -434,8 +446,10 @@ def db_cleanup(
 
 def _get_tls_kwargs(
     tls=False,
-    ssl_keyfile=None,
-    ssl_certfile=None,
+    tls_certificate_key_file=None,
+    tls_certificate_key_file_password=None,
+    ssl_keyfile=None,  # deprecated / unused
+    ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
     authentication_mechanism=None,
@@ -448,17 +462,14 @@ def _get_tls_kwargs(
     tls_kwargs = {
         "tls": tls,
     }
-    # TODO: replace ssl_keyfile and ssl_certfile with tlsCertificateFile per pymongo:
-    #   > Instead of using ssl_certfile and ssl_keyfile to specify the certificate
-    #   > and private key files respectively, use tlsCertificateKeyFile to pass a
-    #   > single file containing both the client certificate and the private key.
-    # The tlsCertificateFile switch will be user-facing as files must be combined.
-    if ssl_keyfile:
+    # pymongo 4 ignores ssl_keyfile and ssl_certfile, so we do not need to pass them on.
+    if tls_certificate_key_file:
         tls_kwargs["tls"] = True
-        tls_kwargs["ssl_keyfile"] = ssl_keyfile
-    if ssl_certfile:
-        tls_kwargs["tls"] = True
-        tls_kwargs["ssl_certfile"] = ssl_certfile
+        tls_kwargs["tlsCertificateKeyFile"] = tls_certificate_key_file
+        if tls_certificate_key_file_password:
+            tls_kwargs[
+                "tlsCertificateKeyFilePassword"
+            ] = tls_certificate_key_file_password
     if ssl_cert_reqs:
         # possible values: none, optional, required
         # ssl lib docs say 'optional' is the same as 'required' for clients:

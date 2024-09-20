@@ -45,8 +45,10 @@ def db_cleanup_with_retry(
     username=None,
     password=None,
     tls=False,
-    ssl_keyfile=None,
-    ssl_certfile=None,
+    tls_certificate_key_file=None,
+    tls_certificate_key_file_password=None,
+    ssl_keyfile=None,  # deprecated / unused
+    ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,
     ssl_ca_certs=None,
     authentication_mechanism=None,
@@ -63,8 +65,10 @@ def db_cleanup_with_retry(
         username=username,
         password=password,
         tls=tls,
-        ssl_keyfile=ssl_keyfile,
-        ssl_certfile=ssl_certfile,
+        tls_certificate_key_file=tls_certificate_key_file,
+        tls_certificate_key_file_password=tls_certificate_key_file_password,
+        ssl_keyfile=ssl_keyfile,  # deprecated / unused
+        ssl_certfile=ssl_certfile,  # deprecated / unused
         ssl_cert_reqs=ssl_cert_reqs,
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,

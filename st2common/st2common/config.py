@@ -211,17 +211,49 @@ def register_opts(ignore_errors=False):
             default=False,
             help="Create the connection to mongodb using TLS.",
         ),
-        # TODO: replace ssl_keyfile and ssl_certfile with tlsCertificateFile
-        #       (see comment in st2common.models.db._get_ssl_kwargs)
+        cfg.StrOpt(
+            "tls_certificate_key_file",
+            default=None,
+            help=(
+                "Client certificate used to identify the local connection against MongoDB. "
+                "The certificate file must contain one or both of private key and certificate. "
+                "Supplying separate files for private key (ssl_keyfile) and certificate (ssl_certfile) "
+                "is no longer supported. "
+                "If encrypted, pass the password or passphrase in tls_certificate_key_file_password."
+            ),
+        ),
+        cfg.StrOpt(
+            "tls_certificate_key_file_password",
+            default=None,
+            help=(
+                "The password or passphrase to decrypt the file in tls_certificate_key_file. "
+                "Only set this if tls_certificate_key_file is encrypted."
+            ),
+            secret=True,
+        ),
         cfg.StrOpt(
             "ssl_keyfile",
             default=None,
             help="Private keyfile used to identify the local connection against MongoDB.",
+            deprecated_for_removal=True,
+            deprecated_reason=(
+                "Use tls_certificate_key_file with a path to a file containing "
+                "the concatenation of the files from ssl_keyfile and ssl_certfile. "
+                "This option is ignored by pymongo."
+            ),
+            deprecated_since="3.9.0",
         ),
         cfg.StrOpt(
             "ssl_certfile",
             default=None,
             help="Certificate file used to identify the localconnection",
+            deprecated_for_removal=True,
+            deprecated_reason=(
+                "Use tls_certificate_key_file with a path to a file containing "
+                "the concatenation of the files from ssl_keyfile and ssl_certfile. "
+                "This option is ignored by pymongo. "
+            ),
+            deprecated_since="3.9.0",
         ),
         cfg.StrOpt(
             "ssl_cert_reqs",  # TODO: replace with BoolOpt "tlsAllowInvalidCertificates"

@@ -232,8 +232,10 @@ class SensorWrapper(object):
             password=password,
             ensure_indexes=db_ensure_indexes,
             tls=cfg.CONF.database.tls,
-            ssl_keyfile=cfg.CONF.database.ssl_keyfile,
-            ssl_certfile=cfg.CONF.database.ssl_certfile,
+            tls_certificate_key_file=cfg.CONF.database.tls_certificate_key_file,
+            tls_certificate_key_file_password=cfg.CONF.database.tls_certificate_key_file_password,
+            ssl_keyfile=cfg.CONF.database.ssl_keyfile,  # deprecated / unused
+            ssl_certfile=cfg.CONF.database.ssl_certfile,  # deprecated / unused
             ssl_cert_reqs=cfg.CONF.database.ssl_cert_reqs,
             ssl_ca_certs=cfg.CONF.database.ssl_ca_certs,
             authentication_mechanism=cfg.CONF.database.authentication_mechanism,

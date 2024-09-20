@@ -245,27 +245,45 @@ class DbConnectionTestCase(DbTestCase):
             },
         )
 
-        # 3. ssl_keyfile provided
-        tls_kwargs = _get_tls_kwargs(ssl_keyfile="/tmp/keyfile")
+        # 3. ssl_keyfile and ssl_certfile are ignored by pymongo so this does too.
+        tls_kwargs = _get_tls_kwargs(ssl_keyfile="/tmp/keyfile", ssl_certfile="/tmp/certfile")
         self.assertEqual(
             tls_kwargs,
             {
                 "tls": True,
-                "ssl_keyfile": "/tmp/keyfile",
                 "tlsAllowInvalidHostnames": False,
             },
         )
 
-        # 4. ssl_certfile provided
-        tls_kwargs = _get_tls_kwargs(ssl_certfile="/tmp/certfile")
+        # 4a. tls_certificate_key_file provided
+        tls_kwargs = _get_tls_kwargs(tls_certificate_key_file="/tmp/keyfile")
         self.assertEqual(
             tls_kwargs,
             {
                 "tls": True,
-                "ssl_certfile": "/tmp/certfile",
+                "tlsCertificateKeyFile": "/tmp/keyfile",
                 "tlsAllowInvalidHostnames": False,
             },
         )
+
+        # 4b. tls_certificate_key_file_password provided with tls_certificate_key_file
+        tls_kwargs = _get_tls_kwargs(
+            tls_certificate_key_file="/tmp/keyfile",
+            tls_certificate_key_file_password="pass",
+        )
+        self.assertEqual(
+            tls_kwargs,
+            {
+                "tls": True,
+                "tlsCertificateKeyFile": "/tmp/keyfile",
+                "tlsCertificateKeyFilePassword": "pass",
+                "tlsAllowInvalidHostnames": False,
+            },
+        )
+
+        # 4c. tls_certificate_key_file_password provided without tls_certificate_key_file
+        tls_kwargs = _get_tls_kwargs(tls_certificate_key_file_password="pass")
+        self.assertEqual(tls_kwargs, {"tls": False})
 
         # 5. ssl_ca_certs provided
         tls_kwargs = _get_tls_kwargs(ssl_ca_certs="/tmp/ca_certs")
