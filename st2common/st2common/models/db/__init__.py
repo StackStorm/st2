@@ -471,7 +471,7 @@ def _get_tls_kwargs(
 ):
     # NOTE: In pymongo 3.9.0 some of the ssl related arguments have been renamed -
     # https://api.mongodb.com/python/current/changelog.html#changes-in-version-3-9-0
-    # Old names stop working in pymongo 4, so we need to migrate now:
+    # Old names stopped working in pymongo 4, so we migrated to the new names in st2 3.9.0.
     # https://pymongo.readthedocs.io/en/stable/migrate-to-pymongo4.html#renamed-uri-options
     tls_kwargs = {
         "tls": tls,
