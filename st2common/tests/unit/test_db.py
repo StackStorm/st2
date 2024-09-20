@@ -285,8 +285,8 @@ class DbConnectionTestCase(DbTestCase):
         tls_kwargs = _get_tls_kwargs(tls_certificate_key_file_password="pass")
         self.assertEqual(tls_kwargs, {"tls": False})
 
-        # 5. ssl_ca_certs provided
-        tls_kwargs = _get_tls_kwargs(ssl_ca_certs="/tmp/ca_certs")
+        # 5. tls_ca_file provided
+        tls_kwargs = _get_tls_kwargs(tls_ca_file="/tmp/ca_certs")
         self.assertEqual(
             tls_kwargs,
             {
@@ -296,8 +296,8 @@ class DbConnectionTestCase(DbTestCase):
             },
         )
 
-        # 6. ssl_ca_certs and ssl_cert_reqs combinations
-        tls_kwargs = _get_tls_kwargs(ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="none")
+        # 6. tls_ca_file and ssl_cert_reqs combinations
+        tls_kwargs = _get_tls_kwargs(tls_ca_file="/tmp/ca_certs", ssl_cert_reqs="none")
         self.assertEqual(
             tls_kwargs,
             {
@@ -309,7 +309,7 @@ class DbConnectionTestCase(DbTestCase):
         )
 
         tls_kwargs = _get_tls_kwargs(
-            ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="optional"
+            tls_ca_file="/tmp/ca_certs", ssl_cert_reqs="optional"
         )
         self.assertEqual(
             tls_kwargs,
@@ -322,7 +322,7 @@ class DbConnectionTestCase(DbTestCase):
         )
 
         tls_kwargs = _get_tls_kwargs(
-            ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="required"
+            tls_ca_file="/tmp/ca_certs", ssl_cert_reqs="required"
         )
         self.assertEqual(
             tls_kwargs,

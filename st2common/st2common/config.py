@@ -283,10 +283,13 @@ def register_opts(ignore_errors=False):
             deprecated_since="3.9.0",
         ),
         cfg.StrOpt(
-            "ssl_ca_certs",  # TODO: replace with "tlsCAFile"
+            "tls_ca_file",
+            deprecated_name="ssl_ca_certs",
             default=None,
-            help="ca_certs file contains a set of concatenated CA certificates, which are "
-            "used to validate certificates passed from MongoDB.",
+            help=(
+                "ca_certs file contains a set of concatenated CA certificates, which are "
+                "used to validate certificates passed from MongoDB."
+            ),
         ),
         cfg.BoolOpt(
             "ssl_match_hostname",  # TODO: replace with "tlsAllowInvalidHostnames"

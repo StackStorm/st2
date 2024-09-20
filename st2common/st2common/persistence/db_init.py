@@ -69,10 +69,10 @@ def db_setup_with_retry(
     tls_certificate_key_file=None,
     tls_certificate_key_file_password=None,
     tls_allow_invalid_certificates=None,
+    tls_ca_file=None,
     ssl_keyfile=None,  # deprecated / unused
     ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,  # deprecated
-    ssl_ca_certs=None,
     authentication_mechanism=None,
     ssl_match_hostname=True,
 ):
@@ -91,10 +91,10 @@ def db_setup_with_retry(
         tls_certificate_key_file=tls_certificate_key_file,
         tls_certificate_key_file_password=tls_certificate_key_file_password,
         tls_allow_invalid_certificates=tls_allow_invalid_certificates,
+        tls_ca_file=tls_ca_file,
         ssl_keyfile=ssl_keyfile,  # deprecated / unused
         ssl_certfile=ssl_certfile,  # deprecated / unused
         ssl_cert_reqs=ssl_cert_reqs,  # deprecated
-        ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
         ssl_match_hostname=ssl_match_hostname,
     )
