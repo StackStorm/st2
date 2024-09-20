@@ -206,9 +206,10 @@ def register_opts(ignore_errors=False):
             help="Backoff multiplier (seconds).",
         ),
         cfg.BoolOpt(
-            "ssl",  # TODO: replace with "tls"
+            "tls",
+            deprecated_name="ssl",
             default=False,
-            help="Create the connection to mongodb using SSL",
+            help="Create the connection to mongodb using TLS.",
         ),
         # TODO: replace ssl_keyfile and ssl_certfile with tlsCertificateFile
         #       (see comment in st2common.models.db._get_ssl_kwargs)

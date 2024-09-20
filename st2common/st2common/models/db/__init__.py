@@ -126,7 +126,7 @@ def _db_connect(
     db_port,
     username=None,
     password=None,
-    ssl=False,
+    tls=False,
     ssl_keyfile=None,
     ssl_certfile=None,
     ssl_cert_reqs=None,
@@ -161,7 +161,7 @@ def _db_connect(
     )
 
     ssl_kwargs = _get_ssl_kwargs(
-        ssl=ssl,
+        tls=tls,
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
         ssl_cert_reqs=ssl_cert_reqs,
@@ -230,7 +230,7 @@ def db_setup(
     username=None,
     password=None,
     ensure_indexes=True,
-    ssl=False,
+    tls=False,
     ssl_keyfile=None,
     ssl_certfile=None,
     ssl_cert_reqs=None,
@@ -245,7 +245,7 @@ def db_setup(
         db_port,
         username=username,
         password=password,
-        ssl=ssl,
+        tls=tls,
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
         ssl_cert_reqs=ssl_cert_reqs,
@@ -396,7 +396,7 @@ def db_cleanup(
     db_port,
     username=None,
     password=None,
-    ssl=False,
+    tls=False,
     ssl_keyfile=None,
     ssl_certfile=None,
     ssl_cert_reqs=None,
@@ -411,7 +411,7 @@ def db_cleanup(
         db_port,
         username=username,
         password=password,
-        ssl=ssl,
+        tls=tls,
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
         ssl_cert_reqs=ssl_cert_reqs,
@@ -433,7 +433,7 @@ def db_cleanup(
 
 
 def _get_ssl_kwargs(
-    ssl=False,
+    tls=False,
     ssl_keyfile=None,
     ssl_certfile=None,
     ssl_cert_reqs=None,
@@ -446,7 +446,7 @@ def _get_ssl_kwargs(
     # Old names stop working in pymongo 4, so we need to migrate now:
     # https://pymongo.readthedocs.io/en/stable/migrate-to-pymongo4.html#renamed-uri-options
     ssl_kwargs = {
-        "tls": ssl,
+        "tls": tls,
     }
     # TODO: replace ssl_keyfile and ssl_certfile with tlsCertificateFile per pymongo:
     #   > Instead of using ssl_certfile and ssl_keyfile to specify the certificate
@@ -471,7 +471,7 @@ def _get_ssl_kwargs(
         ssl_kwargs["tls"] = True
         ssl_kwargs["authentication_mechanism"] = authentication_mechanism
     if ssl_kwargs.get("tls", False):
-        # pass in tlsAllowInvalidHostname only if ssl is True. The right default value
+        # pass in tlsAllowInvalidHostname only if tls is True. The right default value
         # for tlsAllowInvalidHostname in almost all cases is False.
         ssl_kwargs["tlsAllowInvalidHostnames"] = not ssl_match_hostname
     return ssl_kwargs

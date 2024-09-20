@@ -59,7 +59,7 @@ class UnregisterPackAction(BaseAction):
             cfg.CONF.database.port,
             username=username,
             password=password,
-            ssl=cfg.CONF.database.ssl,
+            tls=cfg.CONF.database.tls,
             ssl_keyfile=cfg.CONF.database.ssl_keyfile,
             ssl_certfile=cfg.CONF.database.ssl_certfile,
             ssl_cert_reqs=cfg.CONF.database.ssl_cert_reqs,

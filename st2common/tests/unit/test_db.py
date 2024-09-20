@@ -230,8 +230,8 @@ class DbConnectionTestCase(DbTestCase):
         ssl_kwargs = _get_ssl_kwargs()
         self.assertEqual(ssl_kwargs, {"tls": False})
 
-        # 2. ssl kwarg provided
-        ssl_kwargs = _get_ssl_kwargs(ssl=True)
+        # 2. tls kwarg provided
+        ssl_kwargs = _get_ssl_kwargs(tls=True)
         self.assertEqual(ssl_kwargs, {"tls": True, "tlsAllowInvalidHostnames": False})
 
         # 2. authentication_mechanism kwarg provided
@@ -547,7 +547,7 @@ class DbConnectionTestCase(DbTestCase):
             db_name=db_name,
             db_host=db_host,
             db_port=db_port,
-            ssl=True,
+            tls=True,
             ensure_indexes=False,
         )
         end = time.time()
@@ -566,7 +566,7 @@ class DbConnectionTestCase(DbTestCase):
             db_name=db_name,
             db_host=db_host,
             db_port=db_port,
-            ssl=True,
+            tls=True,
             ensure_indexes=False,
         )
         end = time.time()
