@@ -37,7 +37,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
 from st2common.util import reference
 from st2common.models.db import db_setup
-from st2common.models.db import _get_ssl_kwargs
+from st2common.models.db import _get_tls_kwargs
 from st2common.util import date as date_utils
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
@@ -225,19 +225,19 @@ class DbConnectionTestCase(DbTestCase):
         self.assertTrue("compressors=['zlib']" in str(connection))
         self.assertTrue("zlibcompressionlevel=9" in str(connection))
 
-    def test_get_ssl_kwargs(self):
+    def test_get_tls_kwargs(self):
         # 1. No SSL kwargs provided
-        ssl_kwargs = _get_ssl_kwargs()
-        self.assertEqual(ssl_kwargs, {"tls": False})
+        tls_kwargs = _get_tls_kwargs()
+        self.assertEqual(tls_kwargs, {"tls": False})
 
         # 2. tls kwarg provided
-        ssl_kwargs = _get_ssl_kwargs(tls=True)
-        self.assertEqual(ssl_kwargs, {"tls": True, "tlsAllowInvalidHostnames": False})
+        tls_kwargs = _get_tls_kwargs(tls=True)
+        self.assertEqual(tls_kwargs, {"tls": True, "tlsAllowInvalidHostnames": False})
 
         # 2. authentication_mechanism kwarg provided
-        ssl_kwargs = _get_ssl_kwargs(authentication_mechanism="MONGODB-X509")
+        tls_kwargs = _get_tls_kwargs(authentication_mechanism="MONGODB-X509")
         self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
                 "tls": True,
                 "tlsAllowInvalidHostnames": False,
@@ -246,9 +246,9 @@ class DbConnectionTestCase(DbTestCase):
         )
 
         # 3. ssl_keyfile provided
-        ssl_kwargs = _get_ssl_kwargs(ssl_keyfile="/tmp/keyfile")
+        tls_kwargs = _get_tls_kwargs(ssl_keyfile="/tmp/keyfile")
         self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
                 "tls": True,
                 "ssl_keyfile": "/tmp/keyfile",
@@ -257,9 +257,9 @@ class DbConnectionTestCase(DbTestCase):
         )
 
         # 4. ssl_certfile provided
-        ssl_kwargs = _get_ssl_kwargs(ssl_certfile="/tmp/certfile")
+        tls_kwargs = _get_tls_kwargs(ssl_certfile="/tmp/certfile")
         self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
                 "tls": True,
                 "ssl_certfile": "/tmp/certfile",
@@ -268,9 +268,9 @@ class DbConnectionTestCase(DbTestCase):
         )
 
         # 5. ssl_ca_certs provided
-        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs="/tmp/ca_certs")
+        tls_kwargs = _get_tls_kwargs(ssl_ca_certs="/tmp/ca_certs")
         self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
                 "tls": True,
                 "tlsCAFile": "/tmp/ca_certs",
@@ -279,9 +279,9 @@ class DbConnectionTestCase(DbTestCase):
         )
 
         # 6. ssl_ca_certs and ssl_cert_reqs combinations
-        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="none")
+        tls_kwargs = _get_tls_kwargs(ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="none")
         self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
                 "tls": True,
                 "tlsCAFile": "/tmp/ca_certs",
@@ -290,11 +290,11 @@ class DbConnectionTestCase(DbTestCase):
             },
         )
 
-        ssl_kwargs = _get_ssl_kwargs(
+        tls_kwargs = _get_tls_kwargs(
             ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="optional"
         )
         self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
                 "tls": True,
                 "tlsCAFile": "/tmp/ca_certs",
@@ -303,11 +303,11 @@ class DbConnectionTestCase(DbTestCase):
             },
         )
 
-        ssl_kwargs = _get_ssl_kwargs(
+        tls_kwargs = _get_tls_kwargs(
             ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="required"
         )
         self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
                 "tls": True,
                 "tlsCAFile": "/tmp/ca_certs",

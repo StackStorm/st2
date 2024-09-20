@@ -160,7 +160,7 @@ def _db_connect(
         % (db_name, host_string, str(username_string))
     )
 
-    ssl_kwargs = _get_ssl_kwargs(
+    tls_kwargs = _get_tls_kwargs(
         tls=tls,
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
@@ -193,7 +193,7 @@ def _db_connect(
         password=password,
         connectTimeoutMS=connection_timeout,
         serverSelectionTimeoutMS=connection_timeout,
-        **ssl_kwargs,
+        **tls_kwargs,
         **compressor_kwargs,
     )
 
@@ -432,7 +432,7 @@ def db_cleanup(
     return connection
 
 
-def _get_ssl_kwargs(
+def _get_tls_kwargs(
     tls=False,
     ssl_keyfile=None,
     ssl_certfile=None,
@@ -445,7 +445,7 @@ def _get_ssl_kwargs(
     # https://api.mongodb.com/python/current/changelog.html#changes-in-version-3-9-0
     # Old names stop working in pymongo 4, so we need to migrate now:
     # https://pymongo.readthedocs.io/en/stable/migrate-to-pymongo4.html#renamed-uri-options
-    ssl_kwargs = {
+    tls_kwargs = {
         "tls": tls,
     }
     # TODO: replace ssl_keyfile and ssl_certfile with tlsCertificateFile per pymongo:
@@ -454,27 +454,27 @@ def _get_ssl_kwargs(
     #   > single file containing both the client certificate and the private key.
     # The tlsCertificateFile switch will be user-facing as files must be combined.
     if ssl_keyfile:
-        ssl_kwargs["tls"] = True
-        ssl_kwargs["ssl_keyfile"] = ssl_keyfile
+        tls_kwargs["tls"] = True
+        tls_kwargs["ssl_keyfile"] = ssl_keyfile
     if ssl_certfile:
-        ssl_kwargs["tls"] = True
-        ssl_kwargs["ssl_certfile"] = ssl_certfile
+        tls_kwargs["tls"] = True
+        tls_kwargs["ssl_certfile"] = ssl_certfile
     if ssl_cert_reqs:
         # possible values: none, optional, required
         # ssl lib docs say 'optional' is the same as 'required' for clients:
         # https://docs.python.org/3/library/ssl.html#ssl.CERT_OPTIONAL
-        ssl_kwargs["tlsAllowInvalidCertificates"] = ssl_cert_reqs == "none"
+        tls_kwargs["tlsAllowInvalidCertificates"] = ssl_cert_reqs == "none"
     if ssl_ca_certs:
-        ssl_kwargs["tls"] = True
-        ssl_kwargs["tlsCAFile"] = ssl_ca_certs
+        tls_kwargs["tls"] = True
+        tls_kwargs["tlsCAFile"] = ssl_ca_certs
     if authentication_mechanism:
-        ssl_kwargs["tls"] = True
-        ssl_kwargs["authentication_mechanism"] = authentication_mechanism
-    if ssl_kwargs.get("tls", False):
+        tls_kwargs["tls"] = True
+        tls_kwargs["authentication_mechanism"] = authentication_mechanism
+    if tls_kwargs.get("tls", False):
         # pass in tlsAllowInvalidHostname only if tls is True. The right default value
         # for tlsAllowInvalidHostname in almost all cases is False.
-        ssl_kwargs["tlsAllowInvalidHostnames"] = not ssl_match_hostname
-    return ssl_kwargs
+        tls_kwargs["tlsAllowInvalidHostnames"] = not ssl_match_hostname
+    return tls_kwargs
 
 
 class MongoDBAccess(object):
