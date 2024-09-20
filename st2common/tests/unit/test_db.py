@@ -334,6 +334,31 @@ class DbConnectionTestCase(DbTestCase):
             },
         )
 
+        # 7. tls_allow_invalid_certificates provided (does not implicitly enable tls)
+        for allow_invalid in (True, False):
+            tls_kwargs = _get_tls_kwargs(tls_allow_invalid_certificates=allow_invalid)
+            self.assertEqual(
+                tls_kwargs,
+                {
+                    "tls": False,
+                    "tlsAllowInvalidCertificates": allow_invalid,
+                },
+            )
+
+            # make sure ssl_cert_reqs is ignored if tls_allow_invalid_certificates is set
+            for ssl_cert_reqs in ("none", "optional", "required"):
+                tls_kwargs = _get_tls_kwargs(
+                    ssl_cert_reqs=ssl_cert_reqs,
+                    tls_allow_invalid_certificates=allow_invalid,
+                )
+                self.assertEqual(
+                    tls_kwargs,
+                    {
+                        "tls": False,
+                        "tlsAllowInvalidCertificates": allow_invalid,
+                    },
+                )
+
     @mock.patch("st2common.models.db.mongoengine")
     def test_db_setup(self, mock_mongoengine):
         db_setup(

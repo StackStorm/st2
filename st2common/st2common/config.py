@@ -255,12 +255,32 @@ def register_opts(ignore_errors=False):
             ),
             deprecated_since="3.9.0",
         ),
+        cfg.BoolOpt(
+            "tls_allow_invalid_certificates",
+            default=None,
+            sample_default=False,
+            help=(
+                "Specifies whether MongoDB is allowed to pass an invalid certificate. "
+                "This defaults to False to have security by default. "
+                "Only temporarily set to True if you need to debug the connection."
+            ),
+        ),
         cfg.StrOpt(
-            "ssl_cert_reqs",  # TODO: replace with BoolOpt "tlsAllowInvalidCertificates"
+            "ssl_cert_reqs",
             default=None,
             choices=["none", "optional", "required"],
-            help="Specifies whether a certificate is required from the other side of the "
-            "connection, and whether it will be validated if provided",
+            help=(
+                "Specifies whether a certificate is required from the other side of the "
+                "connection, and whether it will be validated if provided"
+            ),
+            deprecated_for_removal=True,
+            deprecated_reason=(
+                "Use tls_allow_invalid_certificates with the following: "
+                "The 'optional' and 'required' values are equivalent to tls_allow_invalid_certificates=False. "
+                "The 'none' value is equivalent to tls_allow_invalid_certificates=True. "
+                "This option is a needlessly more complex version of tls_allow_invalid_certificates."
+            ),
+            deprecated_since="3.9.0",
         ),
         cfg.StrOpt(
             "ssl_ca_certs",  # TODO: replace with "tlsCAFile"

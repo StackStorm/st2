@@ -129,9 +129,10 @@ def _db_connect(
     tls=False,
     tls_certificate_key_file=None,
     tls_certificate_key_file_password=None,
+    tls_allow_invalid_certificates=None,
     ssl_keyfile=None,  # deprecated / unused
     ssl_certfile=None,  # deprecated / unused
-    ssl_cert_reqs=None,
+    ssl_cert_reqs=None,  # deprecated
     ssl_ca_certs=None,
     authentication_mechanism=None,
     ssl_match_hostname=True,
@@ -166,9 +167,10 @@ def _db_connect(
         tls=tls,
         tls_certificate_key_file=tls_certificate_key_file,
         tls_certificate_key_file_password=tls_certificate_key_file_password,
+        tls_allow_invalid_certificates=tls_allow_invalid_certificates,
         ssl_keyfile=ssl_keyfile,  # deprecated / unused
         ssl_certfile=ssl_certfile,  # deprecated / unused
-        ssl_cert_reqs=ssl_cert_reqs,
+        ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
         ssl_match_hostname=ssl_match_hostname,
@@ -237,9 +239,10 @@ def db_setup(
     tls=False,
     tls_certificate_key_file=None,
     tls_certificate_key_file_password=None,
+    tls_allow_invalid_certificates=None,
     ssl_keyfile=None,  # deprecated / unused
     ssl_certfile=None,  # deprecated / unused
-    ssl_cert_reqs=None,
+    ssl_cert_reqs=None,  # deprecated
     ssl_ca_certs=None,
     authentication_mechanism=None,
     ssl_match_hostname=True,
@@ -254,9 +257,10 @@ def db_setup(
         tls=tls,
         tls_certificate_key_file=tls_certificate_key_file,
         tls_certificate_key_file_password=tls_certificate_key_file_password,
+        tls_allow_invalid_certificates=tls_allow_invalid_certificates,
         ssl_keyfile=ssl_keyfile,  # deprecated / unused
         ssl_certfile=ssl_certfile,  # deprecated / unused
-        ssl_cert_reqs=ssl_cert_reqs,
+        ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
         ssl_match_hostname=ssl_match_hostname,
@@ -407,9 +411,10 @@ def db_cleanup(
     tls=False,
     tls_certificate_key_file=None,
     tls_certificate_key_file_password=None,
+    tls_allow_invalid_certificates=None,
     ssl_keyfile=None,  # deprecated / unused
     ssl_certfile=None,  # deprecated / unused
-    ssl_cert_reqs=None,
+    ssl_cert_reqs=None,  # deprecated
     ssl_ca_certs=None,
     authentication_mechanism=None,
     ssl_match_hostname=True,
@@ -424,9 +429,10 @@ def db_cleanup(
         tls=tls,
         tls_certificate_key_file=tls_certificate_key_file,
         tls_certificate_key_file_password=tls_certificate_key_file_password,
+        tls_allow_invalid_certificates=tls_allow_invalid_certificates,
         ssl_keyfile=ssl_keyfile,  # deprecated / unused
         ssl_certfile=ssl_certfile,  # deprecated / unused
-        ssl_cert_reqs=ssl_cert_reqs,
+        ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         ssl_ca_certs=ssl_ca_certs,
         authentication_mechanism=authentication_mechanism,
         ssl_match_hostname=ssl_match_hostname,
@@ -448,9 +454,10 @@ def _get_tls_kwargs(
     tls=False,
     tls_certificate_key_file=None,
     tls_certificate_key_file_password=None,
+    tls_allow_invalid_certificates=None,
     ssl_keyfile=None,  # deprecated / unused
     ssl_certfile=None,  # deprecated / unused
-    ssl_cert_reqs=None,
+    ssl_cert_reqs=None,  # deprecated
     ssl_ca_certs=None,
     authentication_mechanism=None,
     ssl_match_hostname=True,
@@ -470,7 +477,9 @@ def _get_tls_kwargs(
             tls_kwargs[
                 "tlsCertificateKeyFilePassword"
             ] = tls_certificate_key_file_password
-    if ssl_cert_reqs:
+    if tls_allow_invalid_certificates is not None:
+        tls_kwargs["tlsAllowInvalidCertificates"] = tls_allow_invalid_certificates
+    elif ssl_cert_reqs:  # fall back to old option
         # possible values: none, optional, required
         # ssl lib docs say 'optional' is the same as 'required' for clients:
         # https://docs.python.org/3/library/ssl.html#ssl.CERT_OPTIONAL
