@@ -131,11 +131,12 @@ def _db_connect(
     tls_certificate_key_file_password=None,
     tls_allow_invalid_certificates=None,
     tls_ca_file=None,
+    tls_allow_invalid_hostnames=None,
     ssl_keyfile=None,  # deprecated / unused
     ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,  # deprecated
     authentication_mechanism=None,
-    ssl_match_hostname=True,
+    ssl_match_hostname=True,  # deprecated
 ):
 
     if "://" in db_host:
@@ -169,11 +170,12 @@ def _db_connect(
         tls_certificate_key_file_password=tls_certificate_key_file_password,
         tls_allow_invalid_certificates=tls_allow_invalid_certificates,
         tls_ca_file=tls_ca_file,
+        tls_allow_invalid_hostnames=tls_allow_invalid_hostnames,
         ssl_keyfile=ssl_keyfile,  # deprecated / unused
         ssl_certfile=ssl_certfile,  # deprecated / unused
         ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
+        ssl_match_hostname=ssl_match_hostname,  # deprecated
     )
 
     compressor_kwargs = {}
@@ -241,11 +243,12 @@ def db_setup(
     tls_certificate_key_file_password=None,
     tls_allow_invalid_certificates=None,
     tls_ca_file=None,
+    tls_allow_invalid_hostnames=None,
     ssl_keyfile=None,  # deprecated / unused
     ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,  # deprecated
     authentication_mechanism=None,
-    ssl_match_hostname=True,
+    ssl_match_hostname=True,  # deprecated
 ):
 
     connection = _db_connect(
@@ -259,11 +262,12 @@ def db_setup(
         tls_certificate_key_file_password=tls_certificate_key_file_password,
         tls_allow_invalid_certificates=tls_allow_invalid_certificates,
         tls_ca_file=tls_ca_file,
+        tls_allow_invalid_hostnames=tls_allow_invalid_hostnames,
         ssl_keyfile=ssl_keyfile,  # deprecated / unused
         ssl_certfile=ssl_certfile,  # deprecated / unused
         ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
+        ssl_match_hostname=ssl_match_hostname,  # deprecated
     )
 
     # Create all the indexes upfront to prevent race-conditions caused by
@@ -413,11 +417,12 @@ def db_cleanup(
     tls_certificate_key_file_password=None,
     tls_allow_invalid_certificates=None,
     tls_ca_file=None,
+    tls_allow_invalid_hostnames=None,
     ssl_keyfile=None,  # deprecated / unused
     ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,  # deprecated
     authentication_mechanism=None,
-    ssl_match_hostname=True,
+    ssl_match_hostname=True,  # deprecated
 ):
 
     connection = _db_connect(
@@ -431,11 +436,12 @@ def db_cleanup(
         tls_certificate_key_file_password=tls_certificate_key_file_password,
         tls_allow_invalid_certificates=tls_allow_invalid_certificates,
         tls_ca_file=tls_ca_file,
+        tls_allow_invalid_hostnames=tls_allow_invalid_hostnames,
         ssl_keyfile=ssl_keyfile,  # deprecated / unused
         ssl_certfile=ssl_certfile,  # deprecated / unused
         ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
+        ssl_match_hostname=ssl_match_hostname,  # deprecated
     )
 
     LOG.info(
@@ -456,11 +462,12 @@ def _get_tls_kwargs(
     tls_certificate_key_file_password=None,
     tls_allow_invalid_certificates=None,
     tls_ca_file=None,
+    tls_allow_invalid_hostnames=None,
     ssl_keyfile=None,  # deprecated / unused
     ssl_certfile=None,  # deprecated / unused
     ssl_cert_reqs=None,  # deprecated
     authentication_mechanism=None,
-    ssl_match_hostname=True,
+    ssl_match_hostname=True,  # deprecated
 ):
     # NOTE: In pymongo 3.9.0 some of the ssl related arguments have been renamed -
     # https://api.mongodb.com/python/current/changelog.html#changes-in-version-3-9-0
@@ -493,7 +500,11 @@ def _get_tls_kwargs(
     if tls_kwargs.get("tls", False):
         # pass in tlsAllowInvalidHostname only if tls is True. The right default value
         # for tlsAllowInvalidHostname in almost all cases is False.
-        tls_kwargs["tlsAllowInvalidHostnames"] = not ssl_match_hostname
+        tls_kwargs["tlsAllowInvalidHostnames"] = (
+            tls_allow_invalid_hostnames
+            if tls_allow_invalid_hostnames is not None
+            else not ssl_match_hostname
+        )
     return tls_kwargs
 
 

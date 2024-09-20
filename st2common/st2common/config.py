@@ -292,9 +292,22 @@ def register_opts(ignore_errors=False):
             ),
         ),
         cfg.BoolOpt(
-            "ssl_match_hostname",  # TODO: replace with "tlsAllowInvalidHostnames"
+            "tls_allow_invalid_hostnames",
+            default=None,
+            sample_default=False,
+            help=(
+                "If True and `tlsAllowInvalidCertificates` is True, disables hostname verification. "
+                "This defaults to False to have security by default. "
+                "Only temporarily set to True if you need to debug the connection."
+            ),
+        ),
+        cfg.BoolOpt(
+            "ssl_match_hostname",
             default=True,
             help="If True and `ssl_cert_reqs` is not None, enables hostname verification",
+            deprecated_for_removal=True,
+            deprecated_reason="Use tls_allow_invalid_hostnames with the opposite value from this option.",
+            deprecated_since="3.9.0",
         ),
         cfg.StrOpt(
             "authentication_mechanism",
