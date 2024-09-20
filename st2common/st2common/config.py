@@ -184,7 +184,7 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt("port", default=27017, help="port of db server"),
         cfg.StrOpt("db_name", default="st2", help="name of database"),
         cfg.StrOpt("username", help="username for db login"),
-        cfg.StrOpt("password", help="password for db login"),
+        cfg.StrOpt("password", help="password for db login", secret=True),
         cfg.IntOpt(
             "connection_timeout",
             default=3 * 1000,
