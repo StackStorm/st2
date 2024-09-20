@@ -22,11 +22,6 @@ Mongoengine is licensed under MIT.
 
 from __future__ import absolute_import
 
-import warnings
-
-warnings.filterwarnings("error", category=DeprecationWarning, module="mongoengine")
-warnings.filterwarnings("error", category=DeprecationWarning, module="pymongo")
-
 from typing import Optional
 from typing import Union
 

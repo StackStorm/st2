@@ -21,11 +21,6 @@ from st2common.util.monkey_patch import monkey_patch
 
 monkey_patch()
 
-import warnings
-
-warnings.filterwarnings("error", category=DeprecationWarning, module="mongoengine")
-warnings.filterwarnings("error", category=DeprecationWarning, module="pymongo")
-
 import time
 
 import jsonschema
