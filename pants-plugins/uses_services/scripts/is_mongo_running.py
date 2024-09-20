@@ -34,6 +34,7 @@ def _is_mongo_running(
         port=db_port,
         connectTimeoutMS=connection_timeout_ms,
         serverSelectionTimeoutMS=connection_timeout_ms,
+        uuidRepresentation="pythonLegacy",
     )
 
     # connection.connect() is lazy. Make a command to test the connection.
