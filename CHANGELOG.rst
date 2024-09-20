@@ -51,6 +51,9 @@ Changed
   and/or `[database].ssl_certfile`, as those options are ignored in StackStorm 3.9.0. #6250
   Contributed by @cognifloyd
 
+* Update mongoengine to 0.29 and pymongo to 4.6.3. The pymongo bump (from 3.x to 4.x) is a major update. #6252
+  Contributed by @cognifloyd
+
 Added
 ~~~~~
 * Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
