@@ -12,7 +12,7 @@ kombu==5.4.2
 mongoengine==0.29.1
 oslo.config==9.6.0
 oslo.utils==7.3.0
-pymongo==4.9.1
+pymongo==4.6.3
 pyparsing==3.1.4
 simplejson
 six==1.16.0

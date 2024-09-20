@@ -39,7 +39,7 @@ passlib==1.7.4
 # 202403: bump to 3.0.43 for py3.10 support
 prompt-toolkit==3.0.47
 pyinotify==0.9.6 ; platform_system=="Linux"
-pymongo==4.9.1
+pymongo==4.6.3
 pyparsing==3.1.4
 zstandard==0.23.0
 # pyOpenSSL 23.1.0 supports cryptography up to 40.0.x

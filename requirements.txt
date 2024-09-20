@@ -49,7 +49,7 @@ psutil==6.0.0
 pyOpenSSL
 pygments==2.18.0
 pyinotify==0.9.6 ; platform_system=="Linux"
-pymongo==4.9.1
+pymongo==4.6.3
 pyparsing==3.1.4
 pyrabbit
 pysocks
