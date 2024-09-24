@@ -192,6 +192,20 @@ def _print_options(opt_group, options):
 
         print(("# %s" % opt.help).strip())
 
+        for deprecated_opt in opt.deprecated_opts:
+            deprecated_opt: cfg.DeprecatedOpt
+            alias = (
+                deprecated_opt.name
+                if deprecated_opt.group is None
+                else f"{deprecated_opt.group}.{deprecated_opt.name}"
+            )
+            print(f"# This option has a deprecated alias: {alias}")
+
+        if opt.deprecated_for_removal:
+            print(
+                f"# DEPRECATED FOR REMOVAL since {opt.deprecated_since}: {opt.deprecated_reason}".strip()
+            )
+
         if isinstance(opt, cfg.StrOpt) and opt.type.choices:
             if isinstance(opt.type.choices, OrderedDict):
                 valid_values = ", ".join([str(x) for x in opt.type.choices])

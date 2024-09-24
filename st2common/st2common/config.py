@@ -143,8 +143,10 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "system_runners_base_path",
             default=system_runners_base_path,
-            help="Path to the directory which contains system runners. "
-            "NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0",
+            help="Path to the directory which contains system runners.",
+            deprecated_for_removal=True,
+            deprecated_reason="Option unused since StackStorm v3.0.0",
+            deprecated_since="3.0.0",
         ),
         cfg.StrOpt(
             "packs_base_paths",
@@ -154,8 +156,10 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "runners_base_paths",
             default=None,
-            help="Paths which will be searched for runners. "
-            "NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0",
+            help="Paths which will be searched for runners.",
+            deprecated_for_removal=True,
+            deprecated_reason="Option unused since StackStorm v3.0.0",
+            deprecated_since="3.0.0",
         ),
         cfg.ListOpt(
             "index_url",
