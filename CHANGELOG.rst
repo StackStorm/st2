@@ -6,6 +6,21 @@ in development
 
 Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 
+Several st2.conf database options have been renamed or deprecated. Most of the options will continue to work using their old name.
+However, if you use `[database].ssl_keyfile` and/or `[database].ssl_certfile`, you MUST migrate to `[database].tls_certificate_key_file`.
+This new option expects the key and certificate in the same file. Use something like the following to create that file from your old files:
+
+```
+cat path/to/ssl_keyfile path/to/ssl_certfile > path/to/tls_certificate_key_file
+```
+
+Other options that were renamed under `[database]` are (more details available in `st2.conf.sample`):
+
+* `ssl` -> `tls`
+* `ssl_cert_reqs` -> `tls_allow_invalid_certificates` (opt type change: string -> boolean)
+* `ssl_ca_certs` -> `tls_ca_file`
+* `ssl_match_hostnames` -> `tls_allow_invalid_hostnames` (meaning is inverted: the new option is the opposite of the old)
+
 Fixed
 ~~~~~
 * Fixed #6021 and #5327 by adding max_page_size to api_opts and added limit and offset to list_values() methods of
@@ -30,6 +45,11 @@ Changed
 
 * Updated unit tests to use redis for coordination instead of the NoOp driver. This will hopefully make CI more stable. #6245
   Contributed by @FileMagic, @guzzijones, and @cognifloyd
+
+* Renamed `[database].ssl*` options to support pymongo 4, which we have to update to support newer MongoDB servers.
+  Please see the note above about migrating to the newer options, especially if you use `[database].ssl_keyfile`
+  and/or `[database].ssl_certfile`, as those options are ignored in StackStorm 3.9.0. #6250
+  Contributed by @cognifloyd
 
 Added
 ~~~~~
