@@ -172,6 +172,7 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "webui_base_url",
             default="https://%s" % socket.getfqdn(),
+            sample_default="https://localhost",
             help="Base https URL to access st2 Web UI. This is used to construct history URLs "
             "that are sent out when chatops is used to kick off executions.",
         )
@@ -533,11 +534,13 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "python_binary",
             default=default_python_bin_path,
+            sample_default="/usr/bin/python3",
             help="Python binary which will be used by Python actions.",
         ),
         cfg.StrOpt(
             "virtualenv_binary",
             default=default_virtualenv_bin_path,
+            sample_default="/usr/bin/virtualenv",
             help="Virtualenv binary which should be used to create pack virtualenvs.",
         ),
         cfg.StrOpt(

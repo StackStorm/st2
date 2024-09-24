@@ -19,7 +19,7 @@ logging = /etc/st2/logging.actionrunner.conf
 # List of pip options to be passed to "pip install" command when installing pack dependencies into pack virtual environment.
 pip_opts =  # comma separated list allowed here.
 # Python binary which will be used by Python actions.
-python_binary = /usr/bin/python
+python_binary = /usr/bin/python3
 # Default log level to use for Python runner actions. Can be overriden on invocation basis using "log_level" runner parameter.
 python_runner_log_level = DEBUG
 # Time interval between subsequent queries to check running executions.

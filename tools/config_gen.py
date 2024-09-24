@@ -76,7 +76,7 @@ AUTH_OPTIONS = {
 STATIC_OPTION_VALUES = {
     "actionrunner": {
         "virtualenv_binary": "/usr/bin/virtualenv",
-        "python_binary": "/usr/bin/python",
+        "python_binary": "/usr/bin/python3",
     },
     "webui": {"webui_base_url": "https://localhost"},
 }
@@ -164,27 +164,31 @@ def _print_options(opt_group, options):
         if opt.name in SKIP_OPTIONS:
             continue
 
+        opt_default = opt.default if opt.sample_default is None else opt.sample_default
+
         # Special case for options which could change during this script run
         static_option_value = STATIC_OPTION_VALUES.get(opt_group.name, {}).get(
             opt.name, None
         )
         if static_option_value:
-            opt.default = static_option_value
+            assert (
+                opt_default == static_option_value
+            ), f"opt_default={opt_default} != static_option_value={static_option_value}"
 
         # Special handling for list options
         if isinstance(opt, cfg.ListOpt):
-            if opt.default:
-                value = ",".join(opt.default)
+            if opt_default:
+                value = ",".join(opt_default)
             else:
                 value = ""
 
             value += " # comma separated list allowed here."
-        elif isinstance(opt.default, dict):
+        elif isinstance(opt_default, dict):
             # this is for [sensorcontainer].partition_provider which
             # is a generic cfg.Opt(type=types.Dict(value_type=types.String())
-            value = " ".join([f"{k}:{v}" for k, v in opt.default.items()])
+            value = " ".join([f"{k}:{v}" for k, v in opt_default.items()])
         else:
-            value = opt.default
+            value = opt_default
 
         print(("# %s" % opt.help).strip())
 
