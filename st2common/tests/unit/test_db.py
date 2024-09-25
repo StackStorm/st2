@@ -109,6 +109,13 @@ class DbConnectionTestCase(DbTestCase):
         disconnect()
         cfg.CONF.reset()
 
+    @classmethod
+    def tearDownClass(cls):
+        # since tearDown discconnects, dropping the database in tearDownClass
+        # fails withotu establishing a new connection.
+        cls._establish_connection_and_re_create_db()
+        super().tearDownClass()
+
     def test_check_connect(self):
         """
         Tests connectivity to the db server. Requires the db server to be
@@ -378,6 +385,7 @@ class DbConnectionTestCase(DbTestCase):
                 "tlsAllowInvalidHostnames": False,
                 "connectTimeoutMS": 3000,
                 "serverSelectionTimeoutMS": 3000,
+                "uuidRepresentation": "pythonLegacy",
             },
         )
 
@@ -615,11 +623,13 @@ class DbCleanupTestCase(DbTestCase):
         """
         Tests dropping the database. Requires the db server to be running.
         """
-        self.assertIn(cfg.CONF.database.db_name, self.db_connection.database_names())
+        self.assertIn(
+            cfg.CONF.database.db_name, self.db_connection.list_database_names()
+        )
 
         connection = db_cleanup()
 
-        self.assertNotIn(cfg.CONF.database.db_name, connection.database_names())
+        self.assertNotIn(cfg.CONF.database.db_name, connection.list_database_names())
 
 
 @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())

@@ -28,7 +28,8 @@ kombu
 lockfile
 mock
 # mongoengine 0.24.0 has breaking changes to support pymongo 4.0
-mongoengine>=0.21.0,<0.24.0
+# mongoengine 0.29.0 is the first version to officially support mongo 7.0.
+mongoengine>=0.24.0,<0.30.0
 # networkx version is constrained in orquesta.
 networkx
 orjson
@@ -47,7 +48,9 @@ prompt-toolkit
 psutil
 pygments
 # pymongo 3.13 has backports of APIs from pymongo 4 to help w/ migration
-pymongo>=3.11.0,<3.13.0
+# pymongo 4.4 is the first version to officially support mongo 7.0.
+# pymongo 4.7 (or 4.8?) introduces support for standard python logging, which overwhelms our debug logs
+pymongo>=4.0.0,<4.7
 # pyrabbit used in an integration test
 pyrabbit
 pytest
