@@ -112,7 +112,7 @@ class DbConnectionTestCase(DbTestCase):
     @classmethod
     def tearDownClass(cls):
         # since tearDown discconnects, dropping the database in tearDownClass
-        # fails withotu establishing a new connection.
+        # fails without establishing a new connection.
         cls._establish_connection_and_re_create_db()
         super().tearDownClass()
 
