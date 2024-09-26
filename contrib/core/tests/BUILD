@@ -16,6 +16,7 @@ python_tests(
                 # Use contrib/core as the canonical copy.
                 "contrib/core:reqs#mail-parser",
             ],
+            uses=["mongo"],
         ),
     },
 )
