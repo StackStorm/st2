@@ -70,6 +70,10 @@ Added
   Contributed by @amanda11
 * Ensure `.pth` files in the st2 virtualenv get loaded by pack virtualenvs. #6183
   Contributed by @cognifloyd
+* Add support for SSL/TLS to `st2api` and `st2stream` components. #6204
+  Contributed by @jk464
+* Move API code for `st2api`, `st2auth` and `st2stream` components to common library `st2common.openapi`. #6204
+  Contributed by @jk464
 
 * Added a `get_result` method to the `ExecutionResourceManager` Class for st2client
   Contributed by @skiedude
