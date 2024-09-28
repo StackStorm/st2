@@ -149,6 +149,13 @@ def create_execution_object(
 
     # TODO: This object initialization takes 20-30or so ms
     execution = ActionExecutionDB(**attrs)
+    LOG.debug(
+        "Execution : create_execution_object : liveaction : %s", execution.liveaction
+    )
+    LOG.debug(
+        "Execution : create_execution_object : liveaction : type : %s",
+        type(execution.liveaction),
+    )
     # TODO: Do 100% research this is fully safe and unique in distributed setups
     execution.id = ObjectId()
     execution.web_url = _get_web_url_for_execution(str(execution.id))
@@ -158,7 +165,6 @@ def create_execution_object(
     execution = ActionExecution.add_or_update(
         execution, publish=publish, validate=False
     )
-
     if parent and str(execution.id) not in parent.children:
         values = {}
         values["push__children"] = str(execution.id)
@@ -195,7 +201,6 @@ def update_execution(liveaction_db, publish=True, set_result_size=False):
                             on the "result_size" database field.
     """
     execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
-
     with coordination.get_coordinator().get_lock(str(liveaction_db.id).encode()):
         # Skip execution object update when action is already in completed state.
         if execution.status in action_constants.LIVEACTION_COMPLETED_STATES:
