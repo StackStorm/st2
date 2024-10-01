@@ -166,6 +166,10 @@ class ActionAliasExecutionController(BaseRestControllerMixin):
             "source_channel": payload.source_channel,
         }
 
+        if src_ctx := getattr(payload, "source_context", None):
+            if msg_id := src_ctx.get("message", {}).get("id"):
+                context["slack_message_id"] = msg_id
+
         inject_immutable_parameters(
             action_alias_db=action_alias_db,
             multiple_execution_parameters=multiple_execution_parameters,

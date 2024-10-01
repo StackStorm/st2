@@ -84,6 +84,11 @@ class OrquestaRunner(runners.AsyncActionRunner):
                 "source_channel"
             )
 
+        if self.execution.context.get("slack_message_id"):
+            st2_ctx["st2"]["slack_message_id"] = self.execution.context.get(
+                "slack_message_id"
+            )
+
         if self.execution.context:
             st2_ctx["parent"] = self.execution.context
 
