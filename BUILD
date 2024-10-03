@@ -109,8 +109,11 @@ shell_command(
     tools=["cp"],
     # execution_dependencies allows pants to invalidate the output
     # of this command if the .gitmodules file changes (for example:
-    # if a submodule gets updated to a different commit).
-    # Theoretically, nothing else should modify .git/modules/.
+    # if a submodule gets updated to a different repo).
+    # Sadly this does not get invalidated if the submodule commit
+    # is updated. In our case, that should be rare. To work around
+    # If you update a submodule,
+    # this, kill the `pantsd` process after updating a submodule.
     execution_dependencies=[":gitmodules"],
     output_dependencies=[":gitmodules"],
     output_directories=[".git/modules"],
