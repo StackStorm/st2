@@ -21,6 +21,7 @@ from oslo_config import cfg
 from st2common import config
 from st2common import log as logging
 from st2common.config import do_register_cli_opts
+from st2common.service_setup import db_setup
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2reactor.rules.tester import RuleTester
@@ -46,13 +47,29 @@ def _register_cli_opts():
             default=None,
             help="Id of the Trigger Instance to use for validation.",
         ),
+        cfg.BoolOpt(
+            "offline",
+            default=False,
+            help="Run st2-rule-tester without DB connection - can only be used in connection with 'rule' and 'trigger-instance' options",
+        ),
     ]
     do_register_cli_opts(cli_opts)
 
 
 def main():
     _register_cli_opts()
-    common_setup(config=config, setup_db=True, register_mq_exchanges=False)
+
+    common_setup(config=config, setup_db=False, register_mq_exchanges=False)
+
+    # Setup DB if not running offline
+    if not cfg.CONF.offline:
+        db_setup()
+    # If running offline check that neither rule_ref or trigger_instance_id are provided as they require the DB.
+    elif cfg.CONF.rule_ref or cfg.CONF.trigger_instance_id:
+        LOG.critical(
+            "'rule-ref' and/or 'trigger-instance-id' cannot be used in 'offline' mode"
+        )
+        sys.exit(2)
 
     try:
         tester = RuleTester(

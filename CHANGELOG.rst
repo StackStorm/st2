@@ -70,6 +70,8 @@ Added
   Contributed by @amanda11
 * Ensure `.pth` files in the st2 virtualenv get loaded by pack virtualenvs. #6183
   Contributed by @cognifloyd
+* Allow `st2-rule-tester` to run without a mongo connection if user is testing against local `rule`/`trigger-instance` files. #6208
+  Contributed by @jk464
 
 * Added a `get_result` method to the `ExecutionResourceManager` Class for st2client
   Contributed by @skiedude
