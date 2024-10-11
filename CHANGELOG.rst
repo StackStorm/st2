@@ -44,6 +44,7 @@ Changed
 * Fix misc DeprecationWarnings to prepare for python 3.10 support. #6188 (by @nzlosh)
 * Update st2client deps: editor and prompt-toolkit. #6189 (by @nzlosh)
 * Updated dependency oslo.config to prepare for python 3.10 support. #6193 (by @nzlosh)
+* pass without exception if jinja parameter is not found. #6101 (by @guzzijones12)
 
 * Updated unit tests to use redis for coordination instead of the NoOp driver. This will hopefully make CI more stable. #6245
   Contributed by @FileMagic, @guzzijones, and @cognifloyd
