@@ -57,7 +57,7 @@ RUNNER_RESULT_RUNNING = (
 )
 RUNNER_RESULT_SUCCEEDED = (
     action_constants.LIVEACTION_STATUS_SUCCEEDED,
-    {"stdout": "foobar"},
+    {"stdout": "foobar", "succeeded": True, "failed": False, "stderr": ""},
     {},
 )
 
