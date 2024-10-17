@@ -1,19 +1,21 @@
-file(
+st2_logging_conf_file(
     name="logging_console",
     source="console.conf",
 )
 
-file(
+st2_logging_conf_file(
     name="logging",
     source="logging.conf",
+    dependencies=["//:logs_directory"],
 )
 
-file(
+st2_logging_conf_file(
     name="logging_gunicorn",
     source="logging.gunicorn.conf",
+    dependencies=["//:logs_directory"],
 )
 
-file(
+st2_logging_conf_file(
     name="logging_syslog",
     source="syslog.conf",
 )

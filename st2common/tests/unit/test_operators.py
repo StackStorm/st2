@@ -18,6 +18,7 @@ import unittest
 
 from st2common import operators
 from st2common.util import date as date_utils
+import st2tests.config as tests_config
 
 
 def list_of_dicts_strict_equal(lofd1, lofd2):
@@ -157,6 +158,11 @@ class ListOfDictsStrictEqualTest(unittest.TestCase):
 
 
 class SearchOperatorTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     # The search command extends the rules engine into being a recursive descent
     # parser. As such, its tests are much more complex than other commands, so we
     # pull its tests out into their own test case.

@@ -104,6 +104,9 @@ def _override_common_opts():
     CONF.set_override(name="api_url", override="http://127.0.0.1", group="auth")
     CONF.set_override(name="mask_secrets", override=True, group="log")
     CONF.set_override(name="stream_output", override=False, group="actionrunner")
+    system_user = os.environ.get("ST2TESTS_SYSTEM_USER", "")
+    if system_user:
+        CONF.set_override(name="user", override=system_user, group="system_user")
 
 
 def _override_api_opts():
@@ -136,12 +139,18 @@ def _override_scheduler_opts():
 
 def _override_coordinator_opts(noop=False):
     driver = None if noop else "zake://"
+
+    redis_host = os.environ.get("ST2TESTS_REDIS_HOST", False)
+    if redis_host:
+        redis_port = os.environ.get("ST2TESTS_REDIS_PORT", "6379")
+        driver = f"redis://{redis_host}:{redis_port}"
+
     CONF.set_override(name="url", override=driver, group="coordination")
     CONF.set_override(name="lock_timeout", override=1, group="coordination")
 
 
 def _override_workflow_engine_opts():
-    cfg.CONF.set_override("retry_stop_max_msec", 500, group="workflow_engine")
+    cfg.CONF.set_override("retry_stop_max_msec", 200, group="workflow_engine")
     cfg.CONF.set_override("retry_wait_fixed_msec", 100, group="workflow_engine")
     cfg.CONF.set_override("retry_max_jitter_msec", 100, group="workflow_engine")
     cfg.CONF.set_override("gc_max_idle_sec", 1, group="workflow_engine")
@@ -174,12 +183,6 @@ def _register_api_opts():
 
     api_opts = [
         cfg.BoolOpt("debug", default=True),
-        cfg.IntOpt(
-            "max_page_size",
-            default=100,
-            help="Maximum limit (page size) argument which can be specified by the user in a query "
-            "string. If a larger value is provided, it will default to this value.",
-        ),
     ]
 
     _register_opts(api_opts, group="api")

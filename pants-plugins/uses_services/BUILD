@@ -17,5 +17,6 @@ python_tests(
     #    "mongo_rules_test.py": dict(uses=["mongo"]),
     #    "rabbitmq_rules_test.py": dict(uses=["rabbitmq"]),
     #    "redis_rules_test.py": dict(uses=["redis"]),
+    #    "system_user_test.py": dict(uses=["system_user"]),
     # },
 )

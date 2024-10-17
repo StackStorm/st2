@@ -14,7 +14,7 @@
 from pants.engine.target import StringSequenceField
 
 
-supported_services = ("mongo", "rabbitmq", "redis")
+supported_services = ("mongo", "rabbitmq", "redis", "system_user")
 
 
 class UsesServicesField(StringSequenceField):

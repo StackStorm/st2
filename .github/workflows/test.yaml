@@ -41,7 +41,7 @@ jobs:
 
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:7.0
         ports:
           - 27017:27017
 
@@ -75,7 +75,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           # a test uses a submodule, and pants needs access to it to calculate deps.
-          submodules: 'true'
+          submodules: 'recursive'
+          # sadly, the submodule will only have fetch-depth=1, which is what we want
+          # for st2.git, but not for the submodules. We still want actions/checkout
+          # to do the initial checkout, however, so that it adds auth for fetching
+          # in the submodule.
+
+      - name: Fetch repository submodules
+        run: |
+          git submodule status
+          git submodule foreach 'git fetch --all --tags'
+          git submodule foreach 'git tag'
 
       - name: 'Set up Python (${{ matrix.python-version }})'
         uses: actions/setup-python@v5
@@ -93,6 +103,9 @@ jobs:
           gha-cache-key: cache0-py${{ matrix.python-version }}
 
       - name: Test
+        env:
+          # Github Actions uses the 'runner' user, so use that instead of stanley.
+          ST2TESTS_SYSTEM_USER: 'runner'
         # We do not support running pytest everywhere yet. When we do it will be simply:
         #   pants test ::
         # Until then, we need to manually adjust this command line to test what we can.

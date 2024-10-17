@@ -24,6 +24,8 @@ except ImportError:
 from six.moves import filter
 from six.moves import http_client
 
+from oslo_config import cfg
+
 from st2common.constants import action as action_constants
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.constants.keyvalue import FULL_USER_SCOPE
@@ -686,7 +688,10 @@ class ActionExecutionControllerTestCase(
         delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
         self.assertEqual(delete_resp.status_int, 200)
         self.assertEqual(delete_resp.json["status"], "canceled")
-        expected_result = {"message": "Action canceled by user.", "user": "stanley"}
+        expected_result = {
+            "message": "Action canceled by user.",
+            "user": cfg.CONF.system_user.user,
+        }
         self.assertDictEqual(delete_resp.json["result"], expected_result)
 
     def test_post_delete_duplicate(self):
@@ -702,7 +707,10 @@ class ActionExecutionControllerTestCase(
             delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
             self.assertEqual(delete_resp.status_int, 200)
             self.assertEqual(delete_resp.json["status"], "canceled")
-            expected_result = {"message": "Action canceled by user.", "user": "stanley"}
+            expected_result = {
+                "message": "Action canceled by user.",
+                "user": cfg.CONF.system_user.user,
+            }
             self.assertDictEqual(delete_resp.json["result"], expected_result)
 
     def test_post_delete_trace(self):
@@ -976,7 +984,7 @@ class ActionExecutionControllerTestCase(
                 ),
             },
             {
-                "name": "stanley:secret",
+                "name": f"{cfg.CONF.system_user.user}:secret",
                 "secret": True,
                 "scope": FULL_USER_SCOPE,
                 "value": crypto_utils.symmetric_encrypt(
@@ -994,18 +1002,18 @@ class ActionExecutionControllerTestCase(
         ]
         kvps = [KeyValuePair.add_or_update(KeyValuePairDB(**x)) for x in register_items]
 
-        # By default, encrypt_user_param will be read from stanley's scope
+        # By default, encrypt_user_param will be read from system_user's scope
         # 1. parameters are not marked as secret
         resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json["context"]["user"], "stanley")
+        self.assertEqual(resp.json["context"]["user"], cfg.CONF.system_user.user)
         self.assertEqual(resp.json["parameters"]["encrypted_param"], "foo")
         self.assertEqual(resp.json["parameters"]["encrypted_user_param"], "bar")
 
         # 2. parameters are marked as secret
         resp = self._do_post(LIVE_ACTION_DEFAULT_ENCRYPT_SECRET_PARAM)
         self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json["context"]["user"], "stanley")
+        self.assertEqual(resp.json["context"]["user"], cfg.CONF.system_user.user)
         self.assertEqual(
             resp.json["parameters"]["encrypted_param"], MASKED_ATTRIBUTE_VALUE
         )
@@ -1077,7 +1085,7 @@ class ActionExecutionControllerTestCase(
         )
 
         expected_context = {
-            "user": "stanley",
+            "user": cfg.CONF.system_user.user,
             "pack": "starterpack",
             "re-run": {"ref": execution_id},
             "trace_context": {"id_": str(trace.id)},
@@ -1106,7 +1114,7 @@ class ActionExecutionControllerTestCase(
 
         expected_context = {
             "pack": "starterpack",
-            "user": "stanley",
+            "user": cfg.CONF.system_user.user,
             "re-run": {"ref": execution_id, "tasks": data["tasks"]},
             "trace_context": {"id_": str(trace.id)},
         }
@@ -1134,7 +1142,7 @@ class ActionExecutionControllerTestCase(
 
         expected_context = {
             "pack": "starterpack",
-            "user": "stanley",
+            "user": cfg.CONF.system_user.user,
             "re-run": {"ref": execution_id, "tasks": data["tasks"]},
             "trace_context": {"id_": str(trace.id)},
         }
@@ -1162,7 +1170,7 @@ class ActionExecutionControllerTestCase(
 
         expected_context = {
             "pack": "starterpack",
-            "user": "stanley",
+            "user": cfg.CONF.system_user.user,
             "re-run": {
                 "ref": execution_id,
                 "tasks": data["tasks"],

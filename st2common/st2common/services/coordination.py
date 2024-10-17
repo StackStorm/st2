@@ -138,7 +138,10 @@ class NoOpDriver(coordination.CoordinationDriver):
 
     @classmethod
     def delete_group(cls, group_id):
-        del cls.groups[group_id]
+        try:
+            del cls.groups[group_id]
+        except KeyError:
+            raise GroupNotCreated(group_id)
         return NoOpAsyncResult()
 
     @classmethod
