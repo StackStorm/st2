@@ -13,7 +13,7 @@ chardet==3.0.4
 ciso8601
 cryptography==43.0.1
 decorator==5.1.1
-dnspython==1.16.0
+dnspython
 eventlet==0.37.0
 flex==6.14.1
 gitdb==4.0.11

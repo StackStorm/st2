@@ -4,8 +4,6 @@ amqp==5.2.0
 apscheduler==3.10.4
 chardet==3.0.4
 cffi==1.17.1
-# NOTE: 2.0 version breaks pymongo work with hosts
-dnspython==1.16.0
 cryptography==43.0.1
 eventlet==0.37.0
 flex==6.14.1

@@ -62,12 +62,6 @@ MarkupSafe<2.1.0,>=0.23
 # DROPS RESOLVED VERSION: 4.4.2
 #decorator==4.4.2
 
-# REQUIRED BY: eventlet, pymongo
-# REASON: 2.0 version breaks pymongo work with hosts
-# NOTE: try to remove this later
-# DROPS RESOLVED VERSION: 1.16
-dnspython>=1.16.0,<2.0.0
-
 # REQUIRED BY: eventlet
 # REASON: eventlet is difficult to upgrade.
 #         greenlet 2 adds py3.11 support, platform compat changes, and better error checking
