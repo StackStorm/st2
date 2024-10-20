@@ -213,12 +213,8 @@ class ActionBranch(resource.ResourceBranch):
         )
 
         # Registers extended commands
-        self.commands["enable"] = ActionEnableCommand(
-            self.resource, self.app, self.subparsers
-        )
-        self.commands["disable"] = ActionDisableCommand(
-            self.resource, self.app, self.subparsers
-        )
+        self.commands["enable"] = ActionEnableCommand(self.resource, self.app, self.subparsers)
+        self.commands["disable"] = ActionDisableCommand(self.resource, self.app, self.subparsers)
         self.commands["execute"] = ActionRunCommand(
             self.resource, self.app, self.subparsers, add_help=False
         )
@@ -523,10 +519,7 @@ class ActionRunCommandMixin(object):
             "--delay",
             type=int,
             default=None,
-            help=(
-                "How long (in milliseconds) to delay the "
-                "execution before scheduling."
-            ),
+            help=("How long (in milliseconds) to delay the " "execution before scheduling."),
         )
 
         # Other options
@@ -569,14 +562,10 @@ class ActionRunCommandMixin(object):
         attr = getattr(args, "attr", [])
 
         if show_tasks and not is_workflow_action:
-            raise ValueError(
-                "--show-tasks option can only be used with workflow actions"
-            )
+            raise ValueError("--show-tasks option can only be used with workflow actions")
 
         if not raw and not detail and (show_tasks or is_workflow_action):
-            self._run_and_print_child_task_list(
-                execution=execution, args=args, **kwargs
-            )
+            self._run_and_print_child_task_list(execution=execution, args=args, **kwargs)
         else:
             instance = execution
 
@@ -595,9 +584,7 @@ class ActionRunCommandMixin(object):
             options["json"] = args.json
             options["yaml"] = args.yaml
             options["with_schema"] = args.with_schema
-            options["attribute_transform_functions"] = (
-                self.attribute_transform_functions
-            )
+            options["attribute_transform_functions"] = self.attribute_transform_functions
             self.print_output(instance, formatter, **options)
 
     def _run_and_print_child_task_list(self, execution, args, **kwargs):
@@ -620,9 +607,7 @@ class ActionRunCommandMixin(object):
         formatter = execution_formatter.ExecutionResult
 
         kwargs["depth"] = args.depth
-        child_instances = action_exec_mgr.get_property(
-            execution.id, "children", **kwargs
-        )
+        child_instances = action_exec_mgr.get_property(execution.id, "children", **kwargs)
         child_instances = self._format_child_instances(child_instances, execution.id)
         child_instances = format_execution_statuses(child_instances)
 
@@ -639,9 +624,7 @@ class ActionRunCommandMixin(object):
 
         # On failure we also want to include error message and traceback at the top level
         if instance.status == "failed":
-            top_level_error, top_level_traceback = self._get_top_level_error(
-                live_action=instance
-            )
+            top_level_error, top_level_traceback = self._get_top_level_error(live_action=instance)
 
             if len(tasks) >= 1:
                 task_error, task_traceback = self._get_task_error(task=tasks[-1])
@@ -881,10 +864,7 @@ class ActionRunCommandMixin(object):
                 for k, v in [x.split(":") for x in result]:
                     # To parse values using the 'transformer' according to the type which is
                     # specified in the action metadata, calling 'normalize' method recursively.
-                    if (
-                        "properties" in action_params
-                        and k in action_params["properties"]
-                    ):
+                    if "properties" in action_params and k in action_params["properties"]:
                         result_dict[k] = normalize(
                             k, v, action_params["properties"], auto_dict=auto_dict
                         )
@@ -935,9 +915,7 @@ class ActionRunCommandMixin(object):
             # also leverage that to cast each array item to the correct type.
             param_type = get_param_type(name, action_params)
             if param_type == "array" and name in action_params:
-                return transformer[param_type](
-                    value, action_params[name], auto_dict=auto_dict
-                )
+                return transformer[param_type](value, action_params[name], auto_dict=auto_dict)
             elif param_type:
                 return transformer[param_type](value)
 
@@ -989,8 +967,7 @@ class ActionRunCommandMixin(object):
                     # exceptions there
                     if "malformed string" in six.text_type(e):
                         message = (
-                            "Invalid value for boolean parameter. "
-                            "Valid values are: true, false"
+                            "Invalid value for boolean parameter. " "Valid values are: true, false"
                         )
                         raise ValueError(message)
                     else:
@@ -1031,47 +1008,30 @@ class ActionRunCommandMixin(object):
                 try:
                     action = action_mgr.get_by_ref_or_id(args.ref_or_id, **kwargs)
                     if not action:
-                        raise resource.ResourceNotFoundError(
-                            "Action %s not found" % args.ref_or_id
-                        )
+                        raise resource.ResourceNotFoundError("Action %s not found" % args.ref_or_id)
                     runner_mgr = self.app.client.managers["RunnerType"]
                     runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
-                    parameters, required, optional, _ = self._get_params_types(
-                        runner, action
-                    )
+                    parameters, required, optional, _ = self._get_params_types(runner, action)
                     print("")
                     print(textwrap.fill(action.description))
                     print("")
                     if required:
-                        required = self._sort_parameters(
-                            parameters=parameters, names=required
-                        )
+                        required = self._sort_parameters(parameters=parameters, names=required)
 
                         print("Required Parameters:")
-                        [
-                            self._print_param(name, parameters.get(name))
-                            for name in required
-                        ]
+                        [self._print_param(name, parameters.get(name)) for name in required]
                     if optional:
-                        optional = self._sort_parameters(
-                            parameters=parameters, names=optional
-                        )
+                        optional = self._sort_parameters(parameters=parameters, names=optional)
 
                         print("Optional Parameters:")
-                        [
-                            self._print_param(name, parameters.get(name))
-                            for name in optional
-                        ]
+                        [self._print_param(name, parameters.get(name)) for name in optional]
                 except resource.ResourceNotFoundError:
                     print(
                         ('Action "%s" is not found. ' % args.ref_or_id)
                         + 'Use "st2 action list" to see the list of available actions.'
                     )
                 except Exception as e:
-                    print(
-                        'ERROR: Unable to print help for action "%s". %s'
-                        % (args.ref_or_id, e)
-                    )
+                    print('ERROR: Unable to print help for action "%s". %s' % (args.ref_or_id, e))
             else:
                 self.parser.print_help()
             return True
@@ -1143,9 +1103,7 @@ class ActionRunCommandMixin(object):
                 parent = None
                 for instance in children:
                     if WF_PREFIX in instance.id:
-                        instance_id = instance.id[
-                            instance.id.index(WF_PREFIX) + len(WF_PREFIX) :
-                        ]
+                        instance_id = instance.id[instance.id.index(WF_PREFIX) + len(WF_PREFIX) :]
                     else:
                         instance_id = instance.id
                     if instance_id == child.parent:
@@ -1192,9 +1150,7 @@ class ActionRunCommandMixin(object):
         """
         sorted_parameters = sorted(
             names,
-            key=lambda name: self._get_parameter_sort_value(
-                parameters=parameters, name=name
-            ),
+            key=lambda name: self._get_parameter_sort_value(parameters=parameters, name=name),
         )
 
         return sorted_parameters
@@ -1245,8 +1201,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         self.parser.add_argument(
             "parameters",
             nargs="*",
-            help="List of keyword args, positional args, "
-            "and optional args for the action.",
+            help="List of keyword args, positional args, " "and optional args for the action.",
         )
 
         self.parser.add_argument(
@@ -1310,9 +1265,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         action = self.get_resource(args.ref_or_id, **kwargs)
         if not action:
-            raise resource.ResourceNotFoundError(
-                'Action "%s" cannot be found.' % (args.ref_or_id)
-            )
+            raise resource.ResourceNotFoundError('Action "%s" cannot be found.' % (args.ref_or_id))
 
         runner_mgr = self.app.client.managers["RunnerType"]
         runner = runner_mgr.get_by_name(action.runner_type, **kwargs)
@@ -1638,9 +1591,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ResourceViewCommand):
             kwargs["params"] = {"exclude_attributes": "result"}
 
         resource_ids = getattr(args, self.pk_argument_name, None)
-        resources = self._get_multiple_resources(
-            resource_ids=resource_ids, kwargs=kwargs
-        )
+        resources = self._get_multiple_resources(resource_ids=resource_ids, kwargs=kwargs)
         return resources
 
     @add_auth_token_to_kwargs_from_cli
@@ -1723,12 +1674,9 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         self.parser.add_argument(
             "parameters",
             nargs="*",
-            help="List of keyword args, positional args, "
-            "and optional args for the action.",
+            help="List of keyword args, positional args, " "and optional args for the action.",
         )
-        self.parser.add_argument(
-            "--tasks", nargs="*", help="Name of the workflow tasks to re-run."
-        )
+        self.parser.add_argument("--tasks", nargs="*", help="Name of the workflow tasks to re-run.")
         self.parser.add_argument(
             "--no-reset",
             dest="no_reset",
@@ -1817,15 +1765,12 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ResourceViewCommand):
         super(ActionExecutionPauseCommand, self).__init__(
             resource,
             "pause",
-            "Pause %s (workflow executions only)."
-            % resource.get_plural_display_name().lower(),
+            "Pause %s (workflow executions only)." % resource.get_plural_display_name().lower(),
             *args,
             **kwargs,
         )
 
-        self.parser.add_argument(
-            "ids", nargs="+", help="ID of action execution to pause."
-        )
+        self.parser.add_argument("ids", nargs="+", help="ID of action execution to pause.")
 
         self._add_common_options()
 
@@ -1838,9 +1783,7 @@ class ActionExecutionPauseCommand(ActionRunCommandMixin, ResourceViewCommand):
                 responses.append([execution_id, response])
             except resource.ResourceNotFoundError:
                 self.print_not_found(args.ids)
-                raise ResourceNotFoundError(
-                    "Execution with id %s not found." % (execution_id)
-                )
+                raise ResourceNotFoundError("Execution with id %s not found." % (execution_id))
 
         return responses
 
@@ -1874,15 +1817,12 @@ class ActionExecutionResumeCommand(ActionRunCommandMixin, ResourceViewCommand):
         super(ActionExecutionResumeCommand, self).__init__(
             resource,
             "resume",
-            "Resume %s (workflow executions only)."
-            % resource.get_plural_display_name().lower(),
+            "Resume %s (workflow executions only)." % resource.get_plural_display_name().lower(),
             *args,
             **kwargs,
         )
 
-        self.parser.add_argument(
-            "ids", nargs="+", help="ID of action execution to resume."
-        )
+        self.parser.add_argument("ids", nargs="+", help="ID of action execution to resume.")
 
         self._add_common_options()
 
@@ -1895,9 +1835,7 @@ class ActionExecutionResumeCommand(ActionRunCommandMixin, ResourceViewCommand):
                 responses.append([execution_id, response])
             except resource.ResourceNotFoundError:
                 self.print_not_found(execution_id)
-                raise ResourceNotFoundError(
-                    "Execution with id %s not found." % (execution_id)
-                )
+                raise ResourceNotFoundError("Execution with id %s not found." % (execution_id))
 
         return responses
 
@@ -1998,9 +1936,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         has_parent_attribute = bool(getattr(execution, "parent", None))
         has_parent_execution_id = bool(context["parent_execution_id"])
 
-        is_tailing_execution_child_execution = bool(
-            has_parent_attribute or has_parent_execution_id
-        )
+        is_tailing_execution_child_execution = bool(has_parent_attribute or has_parent_execution_id)
 
         # Note: For non-workflow actions child_execution_id always matches parent_execution_id so
         # we don't need to do any other checks to determine if executions represents a workflow
@@ -2015,10 +1951,7 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                 execution_id=execution_id, output_type=output_type
             )
             print(output)
-            print(
-                "Execution %s has completed (status=%s)."
-                % (execution_id, execution.status)
-            )
+            print("Execution %s has completed (status=%s)." % (execution_id, execution.status))
             return
 
         # We keep track of all the workflow executions which could contain children.
@@ -2089,19 +2022,14 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
                 else:
                     # NOTE: In some situations execution update event with "running" status is
                     # dispatched twice so we ignore any duplicated events
-                    if status == LIVEACTION_STATUS_RUNNING and not event.get(
-                        "children", []
-                    ):
+                    if status == LIVEACTION_STATUS_RUNNING and not event.get("children", []):
                         print("Execution %s has started." % (execution_id))
                         print("")
                         continue
                     elif status in LIVEACTION_COMPLETED_STATES:
                         # Bail out once parent execution has finished
                         print("")
-                        print(
-                            "Execution %s has completed (status=%s)."
-                            % (execution_id, status)
-                        )
+                        print("Execution %s has completed (status=%s)." % (execution_id, status))
                         break
                     else:
                         # We don't care about other execution events
@@ -2114,17 +2042,12 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
 
             # Filter on output_type if provided
             event_output_type = event.get("output_type", None)
-            if (
-                output_type != "all"
-                and output_type
-                and (event_output_type != output_type)
-            ):
+            if output_type != "all" and output_type and (event_output_type != output_type):
                 continue
 
             if include_metadata:
                 sys.stdout.write(
-                    "[%s][%s] %s"
-                    % (event["timestamp"], event["output_type"], event["data"])
+                    "[%s][%s] %s" % (event["timestamp"], event["output_type"], event["data"])
                 )
             else:
                 sys.stdout.write(event["data"])
@@ -2139,18 +2062,12 @@ class ActionExecutionTailCommand(resource.ResourceCommand):
         result = {"parent_execution_id": None, "execution_id": None, "task_name": None}
 
         if "orquesta" in context:
-            result["parent_execution_id"] = context.get("parent", {}).get(
-                "execution_id", None
-            )
+            result["parent_execution_id"] = context.get("parent", {}).get("execution_id", None)
             result["execution_id"] = event["id"]
-            result["task_name"] = context.get("orquesta", {}).get(
-                "task_name", "unknown"
-            )
+            result["task_name"] = context.get("orquesta", {}).get("task_name", "unknown")
         else:
             # Action chain workflow
-            result["parent_execution_id"] = context.get("parent", {}).get(
-                "execution_id", None
-            )
+            result["parent_execution_id"] = context.get("parent", {}).get("execution_id", None)
             result["execution_id"] = event["id"]
             result["task_name"] = context.get("chain", {}).get("name", "unknown")
 
