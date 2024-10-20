@@ -1210,7 +1210,6 @@ class ActionRunCommandMixin(object):
         parameter = parameters.get(name)
         if parameter:
             position = parameter.get('position')
-             # Convert position to a string if it exists, otherwise use the name
             return str(position) if position is not None else name
         return None
 
