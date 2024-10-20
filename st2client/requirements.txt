@@ -8,14 +8,14 @@
 argcomplete==3.4.0
 cffi==1.17.1
 chardet==3.0.4
-cryptography==43.0.1
+cryptography==43.0.3
 editor==1.6.6
 importlib-metadata==7.1.0
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
 orjson==3.10.7
 prettytable==3.10.2
-prompt-toolkit==3.0.47
+prompt-toolkit==3.0.48
 pyOpenSSL
 pygments==2.18.0
 pysocks

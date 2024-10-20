@@ -60,7 +60,7 @@ ST2TESTS_REDIS_PORT := 6379
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
 PIP_VERSION ?= 24.2
-SETUPTOOLS_VERSION ?= 75.1.0
+SETUPTOOLS_VERSION ?= 75.2.0
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
