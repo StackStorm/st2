@@ -1207,13 +1207,12 @@ class ActionRunCommandMixin(object):
         If this attribute is not available, parameter is sorted based on the
         name.
         """
-        parameter = parameters.get(name, None)
-
-        if not parameter:
-            return None
-
-        sort_value = parameter.get("position", name)
-        return sort_value
+        parameter = parameters.get(name)
+        if parameter:
+            position = parameter.get('position')
+             # Convert position to a string if it exists, otherwise use the name
+            return str(position) if position is not None else name
+        return None
 
     def _get_inherited_env_vars(self):
         env_vars = os.environ.copy()
