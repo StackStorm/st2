@@ -41,7 +41,7 @@ python_requirement(
         "pytest-benchmark[histogram]==3.4.1",  # used for st2common/benchmarks
         # "pytest-timer[colorama]",  # report test timing (--with-timer ala nose-timer)
         "pytest-icdiff",  # make diff output easier to read
-        "pygments",  # highlight code in tracebacks
+        # "pygments",  # highlight code in tracebacks (already included in requirements-pants.txt)
         #
         # other possible plugins
         # "pytest-timeout",  # time limit on tests
