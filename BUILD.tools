@@ -4,9 +4,10 @@ python_requirement(
     name="bandit-reqs",
     resolve="bandit",
     requirements=[
-        "bandit==1.7.0",
+        # https://github.com/pantsbuild/pants/blob/release_2.23.0rc0/src/python/pants/backend/python/lint/bandit/subsystem.py#L44-L52
+        "bandit>=1.7.0,<1.8",
         "setuptools",
-        "GitPython==3.1.18",
+        "GitPython>=3.1.24",
     ],
 )
 
