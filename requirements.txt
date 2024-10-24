@@ -37,7 +37,7 @@ networkx==2.8.8
 nose
 nose-parallel==0.4.0
 nose-timer==1.0.1
-orjson==3.10.7
+orjson==3.10.10
 orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
 oslo.config==9.6.0
 oslo.utils==7.3.0
@@ -76,7 +76,7 @@ tenacity==9.0.0
 tooz==6.3.0
 typing-extensions==4.12.2
 unittest2
-webob==1.8.8
+webob==1.8.9
 webtest
 zake==0.2.2
 zipp==3.20.2

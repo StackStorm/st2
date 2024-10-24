@@ -70,7 +70,7 @@ tooz==6.3.0
 # virtualenv==20.26.5 (<21) has pip==24.2 wheel==0.44.0 setuptools==75.2.0
 # lockfiles/st2.lock has pip==24.2 wheel==0.44.0 setuptools==75.2.0
 virtualenv==20.27.0
-webob==1.8.8
+webob==1.8.9
 zake==0.2.2
 # test requirements below
 bcrypt==4.2.0
@@ -81,5 +81,5 @@ nose-parallel==0.4.0
 psutil==6.1.0
 python-dateutil==2.9.0.post0
 python-statsd==2.1.0
-orjson==3.10.7
+orjson==3.10.10
 zipp==3.20.2

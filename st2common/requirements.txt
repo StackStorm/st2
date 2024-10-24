@@ -26,7 +26,7 @@ kombu==5.4.2
 lockfile==0.12.2
 mongoengine==0.29.1
 networkx==2.8.8
-orjson==3.10.7
+orjson==3.10.10
 orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
 oslo.config==9.6.0
 paramiko==3.5.0
@@ -44,6 +44,6 @@ six==1.16.0
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 tenacity==9.0.0
 tooz==6.3.0
-webob==1.8.8
+webob==1.8.9
 zake==0.2.2
 zstandard==0.23.0
