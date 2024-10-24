@@ -222,3 +222,34 @@ jobs:
         if: always()  # We want the log even on failures.
 
   #integration-tests: TODO: run integration tests
+
+  set_merge_ok:
+    name: Set Merge OK (Tests)
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    needs:
+      - unit-tests
+      - pack-tests
+      #- integration-tests
+    outputs:
+      merge_ok: ${{ steps.set_merge_ok.outputs.merge_ok }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: set_merge_ok
+        run: echo 'merge_ok=true' >> ${GITHUB_OUTPUT}
+
+  merge_ok:
+    name: Merge OK (Tests)
+    if: always()
+    needs:
+      - set_merge_ok
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          merge_ok="${{ needs.set_merge_ok.outputs.merge_ok }}"
+          if [[ "${merge_ok}" == "true" ]]; then
+            echo "Merge OK"
+            exit 0
+          else
+            echo "Merge NOT OK"
+            exit 1
+          fi
