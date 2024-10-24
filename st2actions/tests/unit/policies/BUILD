@@ -4,5 +4,5 @@ python_tests(
         "st2common.runners.runner",
         "st2common.metrics.driver",
     ],
-    uses=["mongo"],
+    uses=["mongo", "rabbitmq", "redis"],
 )
