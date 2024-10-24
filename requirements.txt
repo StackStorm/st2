@@ -68,7 +68,7 @@ semver==3.0.2
 simplejson
 six==1.16.0
 sseclient-py==1.8.0
-st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
+st2-auth-backend-flat-file
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 stevedore==5.3.0
