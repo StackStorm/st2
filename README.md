@@ -13,6 +13,7 @@
 [![Code Search](https://img.shields.io/badge/code%20search-Sourcegraph-%2300B4F2?logo=sourcegraph)](https://sourcegraph.com/stackstorm)
 [![GitHub Discussions](https://img.shields.io/github/discussions/stackstorm/st2)](https://github.com/StackStorm/st2/discussions)
 [![Twitter Follow](https://img.shields.io/twitter/follow/StackStorm?style=social)](https://twitter.com/StackStorm/)
+[![](https://img.shields.io/badge/Gurubase-Ask%20StackStorm%20Guru-006BFF)](https://gurubase.io/g/stackstorm)
 
 ---
 
