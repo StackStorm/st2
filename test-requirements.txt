@@ -2,7 +2,7 @@
 coverage<7.5
 pep8==1.7.1
 flake8==7.0.0
-st2-flake8 @ git+https://github.com/nzlosh/st2-flake8@master
+st2flake8>0.1.0
 astroid==3.1.0
 pylint==3.1.0
 pylint-plugin-utils>=0.4

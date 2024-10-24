@@ -23,9 +23,9 @@ python_requirement(
     name="flake8-reqs",
     resolve="flake8",
     requirements=[
-        "flake8==4.0.1",  # st2flake8 does not support flake8 v5
+        "flake8==7.0.0",  # st2flake8 does not support flake8 v5
         # license check plugin
-        "st2flake8==0.1.0",  # TODO: remove in favor of regex-lint or preamble
+        "st2flake8>0.1.0",  # TODO: remove in favor of regex-lint or preamble
     ],
 )
 
