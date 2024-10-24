@@ -4,8 +4,7 @@
 # - https://github.com/StackStorm/st2-auth-ldap
 # - https://github.com/StackStorm/st2-rbac-backend
 # ----------------------------------------------------------------------
-# 7.5 causing errors with orquesta integration tests (probably interaction w/ nose)
-coverage<7.5
+coverage==7.4.4
 pep8==1.7.1
 flake8==7.0.0
 st2flake8>0.1.0
@@ -44,9 +43,11 @@ pyrabbit
 prance==23.6.21.0
 # pip-tools provides pip-compile: to check for version conflicts
 pip-tools==7.4.1
-pytest==6.2.3
-pytest-benchmark==3.4.1
+pytest==7.0.1
 pytest-benchmark[histogram]==3.4.1
+pytest-icdiff==0.9
+pytest-cov==3.0.0
+pytest-xdist==2.5.0
 # zstandard is used for micro benchmarks
 zstandard==0.23.0
 # ujson is used for micro benchmarks

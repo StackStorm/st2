@@ -53,7 +53,7 @@ pygments
 pymongo>=4.0.0,<4.7
 # pyrabbit used in an integration test
 pyrabbit
-pytest
+# pytest reqs in BUILD.tools file
 python-dateutil
 # pythonjsonlogger referenced in st2actions/conf/logging.conf
 python-json-logger

@@ -34,7 +34,7 @@ python_requirement(
 
 python_requirement(
     name="pytest-reqs",
-    resolve="pytest",
+    resolve="st2",
     requirements=[
         "pytest==7.0.1",  # copied from https://www.pantsbuild.org/v2.14/docs/reference-pytest#version
         "pytest-benchmark[histogram]==3.4.1",  # used for st2common/benchmarks

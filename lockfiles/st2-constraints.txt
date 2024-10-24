@@ -12,6 +12,12 @@
 # DROPS RESOLVED VERSION: <which version pip resolved without this constraint>
 #<package><version constraint>
 
+# REQUIRED BY: pytest-cov
+# REASON: 7.5 was causing errors with orquesta integration tests
+# NOTE: This was probably interaction w/ nose. Try to remove this after switch to pytest.
+# DROPS RESOLVED VERSION: 7.6.1
+coverage<7.5
+
 # ############################################ #
 # pinned transitive deps from requirements.txt #
 # ############################################ #

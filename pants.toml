@@ -133,7 +133,6 @@ black = "lockfiles/black.lock"
 flake8 = "lockfiles/flake8.lock"
 pants-plugins = "lockfiles/pants-plugins.lock" # see //pants-plugins/BUILD
 pylint = "lockfiles/pylint.lock" # see //pylint_plugins/BUILD
-pytest = "lockfiles/pytest.lock"
 twine = "lockfiles/twine.lock"
 
 [python.resolves_to_interpreter_constraints]
@@ -142,7 +141,6 @@ black = ["%(tool_interpreter_constraints)s"]
 flake8 = ["%(flake8_interpreter_constraints)s"]
 pants-plugins = ["%(pants_plugins_interpreter_constraints)s"]
 pylint = ["%(tool_interpreter_constraints)s"]
-pytest = ["%(tool_interpreter_constraints)s"]
 twine = ["%(tool_interpreter_constraints)s"]
 
 [python.resolves_to_constraints_file]
@@ -225,7 +223,7 @@ args = [
 ]
 
 [pytest]
-install_from_resolve = "pytest"
+install_from_resolve = "st2"
 args = [
   "--no-header",  # don't print pytest version for every tested file
 ]
