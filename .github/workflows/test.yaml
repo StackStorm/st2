@@ -23,8 +23,8 @@ on:
   #  - cron:  '0 0 * * *'
 
 jobs:
-  test:
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
+  unit-tests:
+    name: 'Unit Tests (pants runs: pytest) - Python ${{ matrix.python-version-short }}'
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
@@ -32,11 +32,9 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         include:
-          - name: 'Test (pants runs: pytest)'
-            python-version-short: '3.8'
+          - python-version-short: '3.8'
             python-version: '3.8.10'
-          - name: 'Test (pants runs: pytest)'
-            python-version-short: '3.9'
+          - python-version-short: '3.9'
             python-version: '3.9.14'
 
     services:
@@ -93,7 +91,6 @@ jobs:
         with:
           python-version: '${{ matrix.python-version }}'
 
-
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages
 
@@ -111,12 +108,6 @@ jobs:
         run: |
           pants test pants-plugins/::
 
-      # We do not support running pytest everywhere yet. When we do it will be simply:
-      #   pants test ::
-      # Until then, we need to manually adjust this command line to test what we can.
-      # So far, this includes unit, pack, and pants-plugins tests.
-      # TODO: run integration tests
-
       - name: Unit Tests
         env:
           # Github Actions uses the 'runner' user, so use that instead of stanley.
@@ -127,6 +118,90 @@ jobs:
           --python-bootstrap-search-path=${{ steps.python.outputs.python-path }}
           --tag=unit
           test '::'
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v4
+        with:
+          name: pants-log-py${{ matrix.python-version }}
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
+
+  pack-tests:
+    name: 'Pack Tests (pants runs: pytest) - Python ${{ matrix.python-version-short }}'
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # NOTE: We need to use full Python version as part of Python deps cache key otherwise
+        # setup virtualenv step will fail.
+        include:
+          - python-version-short: '3.8'
+            python-version: '3.8.10'
+          - python-version-short: '3.9'
+            python-version: '3.9.14'
+
+    services:
+      mongo:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+
+      rabbitmq:
+        image: rabbitmq:3.8-management
+        options: >-
+          --name rabbitmq
+        ports:
+          - 5671:5671/tcp   # AMQP SSL port
+          - 5672:5672/tcp   # AMQP standard port
+          - 15672:15672/tcp # Management: HTTP, CLI
+
+      redis:
+         # Docker Hub image
+         image: redis
+         # Set health checks to wait until redis has started
+         options: >-
+           --name "redis"
+           --health-cmd "redis-cli ping"
+           --health-interval 10s
+           --health-timeout 5s
+           --health-retries 5
+         ports:
+           - 6379:6379/tcp
+
+    env:
+      COLUMNS: '120'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'recursive'
+          # sadly, the submodule will only have fetch-depth=1, which is what we want
+          # for st2.git, but not for the submodules. We still want actions/checkout
+          # to do the initial checkout, however, so that it adds auth for fetching
+          # in the submodule.
+
+      - name: Fetch repository submodules
+        run: |
+          git submodule status
+          git submodule foreach 'git fetch --all --tags'
+          git submodule foreach 'git tag'
+
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        id: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python-version }}'
+
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages
+
+      - name: Initialize Pants and its GHA caches
+        uses: ./.github/actions/init-pants
+        with:
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0-py${{ matrix.python-version }}
 
       - name: Pack Tests
         env:
@@ -144,4 +219,6 @@ jobs:
         with:
           name: pants-log-py${{ matrix.python-version }}
           path: .pants.d/pants.log
-        if: ${{ always() }}  # We want the log even on failures.
+        if: always()  # We want the log even on failures.
+
+  #integration-tests: TODO: run integration tests
