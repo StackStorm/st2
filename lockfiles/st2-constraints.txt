@@ -16,12 +16,6 @@
 # pinned transitive deps from requirements.txt #
 # ############################################ #
 
-# REQUIRED BY: jinja2
-# REASON: Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode >=0.23 was from jinja2
-# NOTE: try to remove constraint later.
-# DROPS RESOLVED VERSION: unknown
-MarkupSafe<2.1.0,>=0.23
-
 # REQUIRED BY: kombu
 # REASON: unknown -- this looks like a lockfile-style pin
 #         kombu 5.0.2 requires amqp>=5.0.0,<6.0.0

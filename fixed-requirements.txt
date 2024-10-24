@@ -25,9 +25,6 @@ jsonpath-rw==1.4.0
 jsonschema==3.2.0
 kombu==5.4.2
 lockfile==0.12.2
-# Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode
-# >=0.23 was from jinja2
-MarkupSafe==2.0.1
 mongoengine==0.29.1
 networkx==3.1
 # jsonpath-rw is the only thing that depends on decorator (a transitive dep)
