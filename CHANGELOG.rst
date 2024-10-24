@@ -60,6 +60,9 @@ Changed
 * Update CI from testing with mongo 4.4 to testing with MongoDB 7.0. #6246
   Contributed by @guzzijones
 
+* Relaxed `dnspython` pinning for compatibility with python 3.10 and greater. #6265
+  Contributed by @nzlosh
+
 Added
 ~~~~~
 * Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
