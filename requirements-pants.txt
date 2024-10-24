@@ -33,7 +33,7 @@ mongoengine>=0.24.0,<0.30.0
 # networkx version is constrained in orquesta.
 networkx
 orjson
-orquesta @ git+https://github.com/StackStorm/orquesta.git@v1.6.0
+orquesta @ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
 # Historical reference: https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433
 # Relaxed pinning for py3.10 support.
 oslo.config

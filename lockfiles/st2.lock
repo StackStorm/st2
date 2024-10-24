@@ -40,7 +40,7 @@
 //     "nose-parallel",
 //     "nose-timer",
 //     "orjson",
-//     "orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0",
+//     "orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975",
 //     "oslo.config",
 //     "paramiko",
 //     "pika",
@@ -592,19 +592,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691",
-              "url": "https://files.pythonhosted.org/packages/bc/a9/01ffebfb562e4274b6487b4bb1ddec7ca55ec7510b22e4c51f14098443b8/chardet-3.0.4-py2.py3-none-any.whl"
+              "hash": "e1cf59446890a00105fe7b7912492ea04b6e6f06d4b742b2c788469e34c82970",
+              "url": "https://files.pythonhosted.org/packages/38/6f/f5fbc992a329ee4e0f288c1fe0e2ad9485ed064cac731ed2fe47dcc38cbf/chardet-5.2.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae",
-              "url": "https://files.pythonhosted.org/packages/fc/bb/a5768c230f9ddb03acc9ef3f0d4a3cf93462473795d18e9535498c8f929d/chardet-3.0.4.tar.gz"
+              "hash": "1b3b6ff479a8c414bc3fa2c0852995695c4a026dcd6d0633b2dd092ca39c1cf7",
+              "url": "https://files.pythonhosted.org/packages/f3/0d/f7b6ab21ec75897ed80c17d79b15951a719226b9fababf1e40ea74d69079/chardet-5.2.0.tar.gz"
             }
           ],
           "project_name": "chardet",
           "requires_dists": [],
-          "requires_python": null,
-          "version": "3.0.4"
+          "requires_python": ">=3.7",
+          "version": "5.2.0"
         },
         {
           "artifacts": [
@@ -2222,13 +2222,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "e435dfa75b1d7195c7b8378c3859f0445cd88c6b0375c181ed66823a9ceb7524",
-              "url": "https://files.pythonhosted.org/packages/42/31/d2f89f1ae42718f8c8a9e440ebe38d7d5fe1e0d9eb9178ce779e365b3ab0/networkx-2.8.8-py3-none-any.whl"
+              "hash": "4f33f68cb2afcf86f28a45f43efc27a9386b535d567d2127f8f61d51dec58d36",
+              "url": "https://files.pythonhosted.org/packages/a8/05/9d4f9b78ead6b2661d6e8ea772e111fc4a9fbd866ad0c81906c11206b55e/networkx-3.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "230d388117af870fce5647a3c52401fcf753e94720e6ea6b4197a5355648885e",
-              "url": "https://files.pythonhosted.org/packages/cd/16/c44e8550012735b8f21b3df7f39e8ba5a987fb764ac017ad5f3589735889/networkx-2.8.8.tar.gz"
+              "hash": "de346335408f84de0eada6ff9fafafff9bcda11f0a0dfaa931133debb146ab61",
+              "url": "https://files.pythonhosted.org/packages/fd/a1/47b974da1a73f063c158a1f4cc33ed0abf7c04f98a19050e80c533c31f0c/networkx-3.1.tar.gz"
             }
           ],
           "project_name": "networkx",
@@ -2236,26 +2236,26 @@
             "codecov>=2.1; extra == \"test\"",
             "lxml>=4.6; extra == \"extra\"",
             "matplotlib>=3.4; extra == \"default\"",
-            "mypy>=0.982; extra == \"developer\"",
+            "mypy>=1.1; extra == \"developer\"",
             "nb2plots>=0.6; extra == \"doc\"",
-            "numpy>=1.19; extra == \"default\"",
+            "numpy>=1.20; extra == \"default\"",
             "numpydoc>=1.5; extra == \"doc\"",
             "pandas>=1.3; extra == \"default\"",
-            "pillow>=9.2; extra == \"doc\"",
-            "pre-commit>=2.20; extra == \"developer\"",
-            "pydata-sphinx-theme>=0.11; extra == \"doc\"",
+            "pillow>=9.4; extra == \"doc\"",
+            "pre-commit>=3.2; extra == \"developer\"",
+            "pydata-sphinx-theme>=0.13; extra == \"doc\"",
             "pydot>=1.4.2; extra == \"extra\"",
-            "pygraphviz>=1.9; extra == \"extra\"",
+            "pygraphviz>=1.10; extra == \"extra\"",
             "pytest-cov>=4.0; extra == \"test\"",
             "pytest>=7.2; extra == \"test\"",
             "scipy>=1.8; extra == \"default\"",
-            "sphinx-gallery>=0.11; extra == \"doc\"",
-            "sphinx>=5.2; extra == \"doc\"",
+            "sphinx-gallery>=0.12; extra == \"doc\"",
+            "sphinx>=6.1; extra == \"doc\"",
             "sympy>=1.10; extra == \"extra\"",
-            "texext>=0.6.6; extra == \"doc\""
+            "texext>=0.6.7; extra == \"doc\""
           ],
           "requires_python": ">=3.8",
-          "version": "2.8.8"
+          "version": "3.1"
         },
         {
           "artifacts": [
@@ -2405,21 +2405,20 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "4857472090b6a48dcc8ff3f8f3d0ec5145270ecb253d84aec3f98e2fd14bc9dc",
-              "url": "git+https://github.com/StackStorm/orquesta.git@v1.6.0"
+              "hash": "cc9f9827d1a062352b80a9b0c2b4b7de12987885e56990f0045f0345dc032e9d",
+              "url": "git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975"
             }
           ],
           "project_name": "orquesta",
           "requires_dists": [
-            "Jinja2>=2.11",
-            "PyYAML>=3.1.0",
-            "chardet<4.0.0,>=3.0.2",
+            "chardet>=3.0.2",
             "eventlet",
-            "jsonschema!=2.5.0,<=3.2,>=2.0.0",
-            "networkx<2.6,>=2.5.1; python_version < \"3.7\"",
-            "networkx<3,>=2.6; python_version >= \"3.7\"",
+            "jinja2>=2.11",
+            "jsonschema<4,>=3",
+            "networkx<3.2,>=2.6",
             "python-dateutil",
-            "six>=1.9.0",
+            "pyyaml>=5.3.1",
+            "six>=1.14.0",
             "stevedore>=1.3.0",
             "ujson>=1.35",
             "yaql>=1.1.0"
@@ -3582,13 +3581,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "f8ea06b7482a668c6475ae202ed8d9bcaa409f6e87fb77ed1043d912afd62e24",
-              "url": "https://files.pythonhosted.org/packages/15/f1/feeeaaaac0f589bcbc12c02da357cf635ee383c9128b77230a1e99118885/redis-5.1.1-py3-none-any.whl"
+              "hash": "ae174f2bb3b1bf2b09d54bf3e51fbc1469cf6c10aa03e21141f51969801a7897",
+              "url": "https://files.pythonhosted.org/packages/12/f5/ffa560ecc4bafbf25f7961c3d6f50d627a90186352e27e7d0ba5b1f6d87d/redis-5.2.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "f6c997521fedbae53387307c5d0bf784d9acc28d9f1d058abeac566ec4dbed72",
-              "url": "https://files.pythonhosted.org/packages/e0/58/dcf97c3c09d429c3bb830d6075322256da3dba42df25359bd1c82b442d20/redis-5.1.1.tar.gz"
+              "hash": "0b1087665a771b1ff2e003aa5bdd354f15a70c9e25d5a7dbf9c722c16528a7b0",
+              "url": "https://files.pythonhosted.org/packages/53/17/2f4a87ffa4cd93714cf52edfa3ea94589e9de65f71e9f99cbcfa84347a53/redis-5.2.0.tar.gz"
             }
           ],
           "project_name": "redis",
@@ -3600,7 +3599,7 @@
             "requests>=2.31.0; extra == \"ocsp\""
           ],
           "requires_python": ">=3.8",
-          "version": "5.1.1"
+          "version": "5.2.0"
         },
         {
           "artifacts": [

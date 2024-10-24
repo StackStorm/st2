@@ -2,7 +2,7 @@
 # Note: amqp is used by kombu
 amqp==5.2.0
 apscheduler==3.10.4
-chardet==3.0.4
+chardet==5.2.0
 cffi==1.17.1
 cryptography==43.0.3
 eventlet==0.37.0
@@ -23,10 +23,8 @@ lockfile==0.12.2
 # >=0.23 was from jinja2
 MarkupSafe==2.0.1
 mongoengine==0.29.1
-# required by orquesta (networkx<2.6 for py3.6, networkx<3 for py3.8)
-networkx==2.8.8
-# networkx dropped its dep on decorator in version 2.6, so the old pin is unneeded.
-# now jsonpath-rw is the only thing that depends on decorator (a transitive dep)
+networkx==3.1
+# jsonpath-rw is the only thing that depends on decorator (a transitive dep)
 decorator==5.1.1
 # 202403: Bump oslo.config for py3.10 support.
 oslo.config==9.6.0
@@ -50,7 +48,7 @@ python-keyczar==0.716
 pytz==2024.2
 pywinrm==0.5.0
 pyyaml==6.0.2
-redis==5.1.1
+redis==5.2.0
 requests==2.32.3
 retrying==1.3.4
 routes==2.5.1
