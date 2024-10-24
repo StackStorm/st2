@@ -69,7 +69,7 @@ Added
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
   to pants' use of PEX lockfiles. This is not a user-facing addition.
   #6118 #6141 #6133 #6120 #6181 #6183 #6200 #6237 #6229 #6240 #6241 #6244 #6251 #6253
-  #6254 #6258 #6259
+  #6254 #6258 #6259 #6260
   Contributed by @cognifloyd
 * Build of ST2 EL9 packages #6153
   Contributed by @amanda11
