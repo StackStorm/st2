@@ -102,6 +102,8 @@ jobs:
         env:
           # Github Actions uses the 'runner' user, so use that instead of stanley.
           ST2TESTS_SYSTEM_USER: 'runner'
+          ST2TESTS_REDIS_HOST: '127.0.0.1'
+          ST2TESTS_REDIS_PORT: '6379'
         run: |
           pants test pants-plugins/::
 
@@ -198,6 +200,8 @@ jobs:
         env:
           # Github Actions uses the 'runner' user, so use that instead of stanley.
           ST2TESTS_SYSTEM_USER: 'runner'
+          ST2TESTS_REDIS_HOST: '127.0.0.1'
+          ST2TESTS_REDIS_PORT: '6379'
         run: >
           pants
           --python-bootstrap-search-path=[]
@@ -292,6 +296,8 @@ jobs:
         env:
           # Github Actions uses the 'runner' user, so use that instead of stanley.
           ST2TESTS_SYSTEM_USER: 'runner'
+          ST2TESTS_REDIS_HOST: '127.0.0.1'
+          ST2TESTS_REDIS_PORT: '6379'
         run: >
           pants
           --python-bootstrap-search-path=[]
