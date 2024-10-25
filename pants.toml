@@ -240,6 +240,9 @@ extra_env_vars = [
   # Use this so that the test system does not require the stanley user.
   # For example: export ST2TESTS_SYSTEM_USER=${USER}
   "ST2TESTS_SYSTEM_USER",
+  # Use these to override the redis host and port
+  "ST2TESTS_REDIS_HOST",
+  "ST2TESTS_REDIS_PORT",
 ]
 
 [twine]
