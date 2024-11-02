@@ -25,10 +25,13 @@ CONF = cfg.CONF
 
 
 def parse_args(args=None):
+    # Override oslo_config's 'OS_' env var prefix with 'ST2_'.
+    cfg.CONF._env_driver = common_config.St2EnvironmentConfigurationSource()
     cfg.CONF(
         args=args,
         version=VERSION_STRING,
         default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+        use_env=True,  # Make our env var support explicit (default is True)
     )
 
 
