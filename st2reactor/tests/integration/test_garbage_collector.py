@@ -20,6 +20,8 @@ import sys
 import signal
 import datetime
 
+from oslo_config import cfg
+
 from st2common.util import concurrency
 from st2common.constants import action as action_constants
 from st2common.util import date as date_utils
@@ -274,12 +276,15 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
     def _start_garbage_collector(self):
         subprocess = concurrency.get_subprocess_module()
+        env=os.environ.copy()
+        env["ST2_DATABASE__DB_NAME"] = cfg.CONF.database.db_name
         process = subprocess.Popen(
             CMD_INQUIRY,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             shell=False,
             preexec_fn=os.setsid,
+            env=env,
         )
         self.add_process(process=process)
         return process

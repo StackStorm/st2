@@ -19,6 +19,7 @@ import socket
 import sys
 
 from oslo_config import cfg
+from oslo_config.sources._environment import EnvironmentConfigurationSource
 
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
@@ -900,10 +901,20 @@ def register_opts(ignore_errors=False):
     )
 
 
+class St2EnvironmentConfigurationSource(EnvironmentConfigurationSource):
+    @staticmethod
+    def get_name(group_name, option_name):
+        group_name = group_name or "DEFAULT"
+        return "ST2_{}__{}".format(group_name.upper(), option_name.upper())
+
+
 def parse_args(args=None, ignore_errors=False):
+    # Override oslo_config's 'OS_' env var prefix with 'ST2_'.
+    cfg.CONF._env_driver = St2EnvironmentConfigurationSource()
     register_opts(ignore_errors=ignore_errors)
     cfg.CONF(
         args=args,
         version=VERSION_STRING,
         default_config_files=[DEFAULT_CONFIG_FILE_PATH],
+        use_env=True,  # Make our env var support explicit (default is True)
     )
