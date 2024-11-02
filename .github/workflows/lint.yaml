@@ -57,3 +57,32 @@ jobs:
           name: pants-log-py${{ matrix.python-version }}
           path: .pants.d/pants.log
         if: always()  # We want the log even on failures.
+
+  set_merge_ok:
+    name: Set Merge OK (Lint)
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    needs:
+      - lint-checks
+    outputs:
+      merge_ok: ${{ steps.set_merge_ok.outputs.merge_ok }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: set_merge_ok
+        run: echo 'merge_ok=true' >> ${GITHUB_OUTPUT}
+
+  merge_ok:
+    name: Merge OK (Lint)
+    if: always()
+    needs:
+      - set_merge_ok
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          merge_ok="${{ needs.set_merge_ok.outputs.merge_ok }}"
+          if [[ "${merge_ok}" == "true" ]]; then
+            echo "Merge OK"
+            exit 0
+          else
+            echo "Merge NOT OK"
+            exit 1
+          fi
