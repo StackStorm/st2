@@ -276,7 +276,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
     def _start_garbage_collector(self):
         subprocess = concurrency.get_subprocess_module()
-        env=os.environ.copy()
+        env = os.environ.copy()
         env["ST2_DATABASE__DB_NAME"] = cfg.CONF.database.db_name
         process = subprocess.Popen(
             CMD_INQUIRY,
