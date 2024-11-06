@@ -110,10 +110,17 @@ function init()
     else
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
+    ST2_REPO=$(readlink -f ${ST2_REPO})
     ST2_LOGS="${ST2_REPO}/logs"
+    # ST2_REPO/virtualenv is the Makefile managed dir.
+    # The workflow should set this to use a pants exported or other venv instead.
     VIRTUALENV=${VIRTUALENV_DIR:-${ST2_REPO}/virtualenv}
     VIRTUALENV=$(readlink -f ${VIRTUALENV})
     PY=${VIRTUALENV}/bin/python
+    if [ ! -f "${PY}" ]; then
+        eecho "${PY} does not exist"
+        exit 1
+    fi
     PYTHON_VERSION=$(${PY} --version 2>&1)
 
     echo -n "Using virtualenv: "; iecho "${VIRTUALENV}"
@@ -218,9 +225,9 @@ function st2start()
     fi
 
     # activate virtualenv to set PYTHONPATH
-    source ${VIRTUALENV}/bin/activate
+    source "${VIRTUALENV}/bin/activate"
     # set configuration file location.
-    export ST2_CONFIG_PATH=${ST2_CONF};
+    export ST2_CONFIG_PATH="${ST2_CONF}"
 
     # Kill existing st2 terminal multiplexor sessions
     for tmux_session in $(tmux ls 2>/dev/null | awk -F: '/^st2-/ {print $1}')
