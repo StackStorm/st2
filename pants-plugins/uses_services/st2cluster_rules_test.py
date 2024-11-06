@@ -13,6 +13,10 @@
 # limitations under the License.
 from __future__ import annotations
 
+import socket
+
+from contextlib import closing
+
 import pytest
 
 from pants.engine.internals.scheduler import ExecutionError
@@ -60,9 +64,33 @@ def run_st2cluster_is_running(
     return result
 
 
+@pytest.fixture
+def mock_st2cluster() -> tuple[int, int, int]:
+    sock1: socket.socket
+    sock2: socket.socket
+    sock3: socket.socket
+    with (
+        closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock1,
+        closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock2,
+        closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock3,
+    ):
+        socks = (sock1, sock2, sock3)
+        for sock in socks:
+            sock.bind(("127.0.0.1", 0))
+            sock.listen(1)
+        ports = tuple(sock.getsockname()[1] for sock in socks)
+        yield ports
+
+
 # Warning this requires that st2cluster be running
-def test_st2cluster_is_running(rule_runner: RuleRunner) -> None:
-    request = UsesSt2ClusterRequest()
+def test_st2cluster_is_running(
+    rule_runner: RuleRunner, mock_st2cluster: tuple[int, int, int]
+) -> None:
+    request = UsesSt2ClusterRequest(
+        auth_port=mock_st2cluster[0],
+        api_port=mock_st2cluster[1],
+        stream_port=mock_st2cluster[2],
+    )
     mock_platform = platform(os="TestMock")
 
     # we are asserting that this does not raise an exception
