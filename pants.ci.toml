@@ -11,6 +11,13 @@ remote_provider = "experimental-github-actions-cache"
 remote_cache_read = true
 remote_cache_write = true
 
+# https://www.pantsbuild.org/stable/reference/global-options#ignore_warnings
+ignore_warnings = [
+    # remote cache errors caused by GitHub rate-limits are not helpful
+    "Failed to read from remote cache",
+    "Failed to write to remote cache",
+]
+
 [stats]
 # "print metrics of your cache's performance at the end of the run,
 # including the number of cache hits and the total time saved thanks
