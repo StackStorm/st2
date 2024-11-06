@@ -201,19 +201,20 @@ function st2start()
     if [ "$copy_test_packs" = true ]; then
         echo -n "Copying test packs examples and fixtures to "; iecho "$PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
-        # Clone st2tests in /tmp directory.
-        pushd /tmp
+        # Clone st2tests in a tmp directory.
+        CLONE_TMP_DIR=$(mktemp -d)
+        pushd "${CLONE_TMP_DIR}"
         echo Cloning https://github.com/StackStorm/st2tests.git
         # -q = no progress reporting (better for CI). Errors will still print.
         git clone -q https://github.com/StackStorm/st2tests.git
         ret=$?
         if [ ${ret} -eq 0 ]; then
             cp -Rp ./st2tests/packs/fixtures $PACKS_BASE_DIR
-            rm -R st2tests/
         else
             eecho "Failed to clone st2tests repo"
         fi
         popd
+        rm -Rf "${CLONE_TMP_DIR}"
     fi
 
     # activate virtualenv to set PYTHONPATH
