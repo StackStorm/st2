@@ -97,6 +97,9 @@ function eecho()
 function init()
 {
     heading "Initialising system variables ..."
+    # Capture list of exported vars before adding any others
+    ST2VARS=(${!ST2_@})
+
     ST2_BASE_DIR="/opt/stackstorm"
     COMMAND_PATH=${0%/*}
     CURRENT_DIR=$(pwd)
@@ -130,6 +133,15 @@ function init()
 
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
+    fi
+    # The ST2TESTS_* vars are only for tests. ST2_* overrides the conf var directly.
+    if [ -n "${ST2TESTS_SYSTEM_USER}" ]; then
+        export ST2_SYSTEM_USER__USER="${ST2_SYSTEM_USER__USER:-${ST2TESTS_SYSTEM_USER}}"
+        ST2VARS+=("ST2_SYSTEM_USER__USER")
+    fi
+    if [ -n "${ST2TESTS_REDIS_HOST}" ] && [ -n "${ST2TESTS_REDIS_PORT}"]; then
+        export ST2_COORDINATION__URL="${ST2_COORDINATION__URL:-redis://${ST2TESTS_REDIS_HOST}:${ST2TESTS_REDIS_PORT}}"
+        ST2VARS+=("ST2_COORDINATION__URL")
     fi
 
     ST2_CONF=$(readlink -f ${ST2_CONF})
@@ -237,6 +249,9 @@ function st2start()
     done
 
     local PRE_SCRIPT_VARS=()
+    for var_name in "${ST2VARS[@]}"; do
+      PRE_SCRIPT_VARS+=("${var_name}=${!var_name}")
+    done
     PRE_SCRIPT_VARS+=("ST2_CONFIG_PATH=${ST2_CONF}")
 
     # PRE_SCRIPT should not end with ';' so that using it is clear.
