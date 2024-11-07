@@ -25,6 +25,9 @@ on:
 env:
   COLUMNS: '120'
 
+  # Tell StackStorm that we are indeed in CI mode, using our CI-provider agnostic var.
+  ST2_CI: 'true'
+
   # GitHub Actions uses the 'runner' user, so use that instead of stanley.
   ST2TESTS_SYSTEM_USER: 'runner'
 
