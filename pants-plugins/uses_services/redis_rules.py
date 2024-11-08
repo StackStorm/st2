@@ -143,13 +143,6 @@ async def redis_is_running(
     if is_running:
         return RedisIsRunning()
 
-    env_vars_hint = dedent(
-        """
-        You can also export the ST2TESTS_REDIS_HOST and ST2TESTS_REDIS_PORT
-        env vars to automatically use any redis host, local or remote,
-        while running unit and integration tests.
-        """
-    )
     # redis is not running, so raise an error with instructions.
     raise ServiceMissingError.generate(
         platform=platform,
@@ -162,21 +155,24 @@ async def redis_is_running(
                 """\
                 sudo yum -y install redis
                 # Don't forget to start redis.
-
                 """
-            )
-            + env_vars_hint,
+            ),
             service_start_cmd_deb="systemctl start redis",
             not_installed_clause_deb="this is one way to install it:",
             install_instructions_deb=dedent(
                 """\
                 sudo apt-get install -y mongodb redis
                 # Don't forget to start redis.
-
                 """
-            )
-            + env_vars_hint,
+            ),
             service_start_cmd_generic="systemctl start redis",
+            env_vars_hint=dedent(
+                """\
+                You can also export the ST2TESTS_REDIS_HOST and ST2TESTS_REDIS_PORT
+                env vars to automatically use any redis host, local or remote,
+                while running unit and integration tests.
+                """
+            ),
         ),
     )
 
