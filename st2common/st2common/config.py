@@ -908,13 +908,16 @@ class St2EnvironmentConfigurationSource(EnvironmentConfigurationSource):
         return "ST2_{}__{}".format(group_name.upper(), option_name.upper())
 
 
-def parse_args(args=None, ignore_errors=False):
+def use_st2_env_vars(conf: cfg.ConfigOpts) -> None:
     # Override oslo_config's 'OS_' env var prefix with 'ST2_'.
-    cfg.CONF._env_driver = St2EnvironmentConfigurationSource()
+    conf._env_driver = St2EnvironmentConfigurationSource()
+
+
+def parse_args(args=None, ignore_errors=False):
+    use_st2_env_vars(cfg.CONF)
     register_opts(ignore_errors=ignore_errors)
     cfg.CONF(
         args=args,
         version=VERSION_STRING,
         default_config_files=[DEFAULT_CONFIG_FILE_PATH],
-        use_env=True,  # Make our env var support explicit (default is True)
     )

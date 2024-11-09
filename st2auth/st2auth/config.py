@@ -28,13 +28,11 @@ from st2auth import backends as auth_backends
 
 
 def parse_args(args=None):
-    # Override oslo_config's 'OS_' env var prefix with 'ST2_'.
-    cfg.CONF._env_driver = st2cfg.St2EnvironmentConfigurationSource()
+    st2cfg.use_st2_env_vars(cfg.CONF)
     cfg.CONF(
         args=args,
         version=VERSION_STRING,
         default_config_files=[DEFAULT_CONFIG_FILE_PATH],
-        use_env=True,  # Make our env var support explicit (default is True)
     )
 
 

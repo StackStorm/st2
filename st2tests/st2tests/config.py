@@ -39,11 +39,10 @@ def reset():
 
 
 def parse_args(args=None, coordinator_noop=True):
-    # Override oslo_config's 'OS_' env var prefix with 'ST2_'.
-    cfg.CONF._env_driver = common_config.St2EnvironmentConfigurationSource()
+    common_config.use_st2_env_vars(cfg.CONF)
     _setup_config_opts(coordinator_noop=coordinator_noop)
 
-    kwargs = {"use_env": True}
+    kwargs = {}
     if USE_DEFAULT_CONFIG_FILES:
         kwargs["default_config_files"] = [DEFAULT_CONFIG_FILE_PATH]
 

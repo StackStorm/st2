@@ -48,8 +48,7 @@ def _parse_config():
     CONF.register_cli_opts(cli_opts)
     st2cfg.register_opts(ignore_errors=False)
 
-    # Override oslo_config's 'OS_' env var prefix with 'ST2_'.
-    CONF._env_driver = st2cfg.St2EnvironmentConfigurationSource()
+    st2cfg.use_st2_env_vars(CONF)
     CONF(args=sys.argv[1:])
 
 
