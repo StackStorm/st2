@@ -245,7 +245,7 @@ class SensorContainerTestCase(IntegrationTestCase):
     def _start_sensor_container(self, cmd=DEFAULT_CMD):
         subprocess = concurrency.get_subprocess_module()
         env = os.environ.copy()
-        env["ST2_DATABASE__DB_NAME"] = cfg.CONF.database.db_name
+        env.update(st2tests.config.db_opts_as_env_vars())
         print("Using command: %s" % (" ".join(cmd)))
         process = subprocess.Popen(
             cmd,

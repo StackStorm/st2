@@ -22,6 +22,7 @@ import requests
 import eventlet
 from eventlet.green import subprocess
 
+import st2tests.config
 from st2common.models.utils import profiling
 from st2common.util.shell import kill_process
 from st2tests.base import IntegrationTestCase
@@ -41,6 +42,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         )
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH
+        env.update(st2tests.config.db_opts_as_env_vars())
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
         try:
             self.add_process(process=process)
@@ -60,6 +62,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         )
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH
+        env.update(st2tests.config.db_opts_as_env_vars())
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
         try:
             self.add_process(process=process)
