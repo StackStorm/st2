@@ -43,6 +43,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH
         env.update(st2tests.config.db_opts_as_env_vars())
+        env.update(st2tests.config.coord_opts_as_env_vars())
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
         try:
             self.add_process(process=process)
@@ -63,6 +64,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH
         env.update(st2tests.config.db_opts_as_env_vars())
+        env.update(st2tests.config.coord_opts_as_env_vars())
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
         try:
             self.add_process(process=process)

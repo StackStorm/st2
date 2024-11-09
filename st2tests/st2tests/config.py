@@ -165,6 +165,13 @@ def _override_coordinator_opts(noop=False):
     CONF.set_override(name="lock_timeout", override=1, group="coordination")
 
 
+def coord_opts_as_env_vars() -> Dict[str, str]:
+    env = {}
+    if CONF.coordination.url is not None:
+        env["ST2_COORDINATION__URL"] = CONF.coordination.url
+    return env
+
+
 def _override_workflow_engine_opts():
     cfg.CONF.set_override("retry_stop_max_msec", 200, group="workflow_engine")
     cfg.CONF.set_override("retry_wait_fixed_msec", 100, group="workflow_engine")

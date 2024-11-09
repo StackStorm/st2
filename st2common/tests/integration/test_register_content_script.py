@@ -212,4 +212,5 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
     def _run_command(cmd):
         env = os.environ.copy()
         env.update(st2tests.config.db_opts_as_env_vars())
+        env.update(st2tests.config.coord_opts_as_env_vars())
         return run_command(cmd=cmd, env=env)
