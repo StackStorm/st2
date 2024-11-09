@@ -230,6 +230,8 @@ connection_retries = 10
 connection_retry_wait = 10000
 # Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).
 login_method = None
+# Prefix for all exchange and queue names.
+prefix = st2
 # Use SSL / TLS to connect to the messaging server. Same as appending "?ssl=true" at the end of the connection URL string.
 ssl = False
 # ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from RabbitMQ.
