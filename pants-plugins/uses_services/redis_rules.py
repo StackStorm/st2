@@ -63,7 +63,7 @@ class UsesRedisRequest:
 
     @property
     def coord_url(self) -> str:
-        return f"redis://{self.host}:{self.port}"
+        return f"redis://{self.host}:{self.port}?namespace=_st2_test"
 
 
 @dataclass(frozen=True)

@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # unit tests do not use redis, they use use an in-memory coordinator: "zake://"
     # integration tests use this url with a conf file derived from conf/st2.dev.conf
-    coord_url = args.get(1, "redis://127.0.0.1:6379")
+    coord_url = args.get(1, "redis://127.0.0.1:6379?namespace=_st2_test")
 
     is_running = _is_redis_running(coord_url)
     exit_code = 0 if is_running else 1
