@@ -10,11 +10,6 @@ fi
 # shellcheck disable=SC1091
 source ./virtualenv/bin/activate
 
-# Enable coordination backend to avoid race conditions with orquesta tests due
-# to the lack of the coordination backend
-sed -i "s#\#url = redis://localhost#url = redis://127.0.0.1#g" ./conf/st2.dev.conf
-sed -i "s#\#url = redis://localhost#url = redis://127.0.0.1#g" ./conf/st2.ci.conf || true
-
 echo "Used config for the tests"
 echo ""
 echo "st2.dev.conf"
