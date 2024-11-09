@@ -277,6 +277,7 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
         subprocess = concurrency.get_subprocess_module()
         env = os.environ.copy()
         env.update(st2tests.config.db_opts_as_env_vars())
+        env.update(st2tests.config.mq_opts_as_env_vars())
         env.update(st2tests.config.coord_opts_as_env_vars())
         process = subprocess.Popen(
             CMD_INQUIRY,

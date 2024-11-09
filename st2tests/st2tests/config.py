@@ -107,6 +107,10 @@ def db_opts_as_env_vars() -> Dict[str, str]:
     return env
 
 
+def mq_opts_as_env_vars() -> Dict[str, str]:
+    return {"ST2_MESSAGING__URL": CONF.messaging.url}
+
+
 def _override_common_opts():
     packs_base_path = get_fixtures_packs_base_path()
     CONF.set_override(name="base_path", override=packs_base_path, group="system")
