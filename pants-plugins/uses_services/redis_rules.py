@@ -28,6 +28,7 @@ from pants.backend.python.util_rules.pex import (
     rules as pex_rules,
 )
 from pants.core.goals.test import TestExtraEnv
+from pants.engine.env_vars import EnvironmentVars
 from pants.engine.fs import CreateDigest, Digest, FileContent
 from pants.engine.rules import collect_rules, Get, MultiGet, rule
 from pants.engine.process import FallibleProcessResult, ProcessCacheScope
@@ -54,16 +55,29 @@ class UsesRedisRequest:
 
     # These config opts for integration tests are in:
     #   conf/st2.dev.conf (copied to conf/st2.ci.conf)
-    # TODO: for int tests: set url by either modifying st2.{dev,ci}.conf on the fly or via env vars.
-
-    #   with our version of oslo.config (newer are slower) we can't directly override opts w/ environment variables.
+    # These can also be updated via the ST2TESTS_REDIS_* env vars.
+    # Integration tests should pass these changes onto subprocesses using the
+    # ST2_COORDINATION__* env vars (which oslo_config reads).
 
     host: str = "127.0.0.1"
-    port: str = "6379"
+    port: int = 6379
 
     @property
     def coord_url(self) -> str:
         return f"redis://{self.host}:{self.port}?namespace=_st2_test"
+
+    @classmethod
+    def from_env(cls, env: EnvironmentVars) -> UsesRedisRequest:
+        default = cls()
+        host = env.get("ST2TESTS_REDIS_HOST", default.host)
+        port_raw = env.get("ST2TESTS_REDIS_PORT", str(default.port))
+
+        try:
+            port = int(port_raw)
+        except (TypeError, ValueError):
+            port = default.port
+
+        return cls(host=host, port=port)
 
 
 @dataclass(frozen=True)
@@ -88,11 +102,8 @@ async def redis_is_running_for_pytest(
     request: PytestUsesRedisRequest,
     test_extra_env: TestExtraEnv,
 ) -> PytestPluginSetup:
-    redis_host = test_extra_env.env.get("ST2TESTS_REDIS_HOST", "127.0.0.1")
-    redis_port = test_extra_env.env.get("ST2TESTS_REDIS_PORT", "6379")
-
     # this will raise an error if redis is not running
-    _ = await Get(RedisIsRunning, UsesRedisRequest(host=redis_host, port=redis_port))
+    _ = await Get(RedisIsRunning, UsesRedisRequest.from_env(env=test_extra_env.env))
 
     return PytestPluginSetup()
 
@@ -161,7 +172,7 @@ async def redis_is_running(
             not_installed_clause_deb="this is one way to install it:",
             install_instructions_deb=dedent(
                 """\
-                sudo apt-get install -y mongodb redis
+                sudo apt-get install -y redis
                 # Don't forget to start redis.
                 """
             ),
@@ -170,7 +181,8 @@ async def redis_is_running(
                 """\
                 You can also export the ST2TESTS_REDIS_HOST and ST2TESTS_REDIS_PORT
                 env vars to automatically use any redis host, local or remote,
-                while running unit and integration tests.
+                while running unit and integration tests. Tests do not use any
+                ST2_COORDINATION__* vars at this point.
                 """
             ),
         ),
