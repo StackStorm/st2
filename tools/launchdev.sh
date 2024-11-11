@@ -134,13 +134,14 @@ function init()
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
-    # The ST2TESTS_* vars are only for tests. ST2_* overrides the conf var directly.
+    # ST2_* vars directly override conf vars using oslo_config's env var feature.
+    # The ST2TESTS_* vars are only for tests, and take precedence over ST2_* vars.
     if [ -n "${ST2TESTS_SYSTEM_USER}" ]; then
-        export ST2_SYSTEM_USER__USER="${ST2_SYSTEM_USER__USER:-${ST2TESTS_SYSTEM_USER}}"
+        export ST2_SYSTEM_USER__USER="${ST2TESTS_SYSTEM_USER}"
         ST2VARS+=("ST2_SYSTEM_USER__USER")
     fi
     if [ -n "${ST2TESTS_REDIS_HOST}" ] && [ -n "${ST2TESTS_REDIS_PORT}"]; then
-        export ST2_COORDINATION__URL="${ST2_COORDINATION__URL:-redis://${ST2TESTS_REDIS_HOST}:${ST2TESTS_REDIS_PORT}}?namespace=_st2_dev"
+        export ST2_COORDINATION__URL="redis://${ST2TESTS_REDIS_HOST}:${ST2TESTS_REDIS_PORT}?namespace=_st2_dev"
         ST2VARS+=("ST2_COORDINATION__URL")
     fi
 
