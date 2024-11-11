@@ -22,6 +22,16 @@ on:
   #  # run every night at midnight
   #  - cron:  '0 0 * * *'
 
+env:
+  COLUMNS: '120'
+
+  # GitHub Actions uses the 'runner' user, so use that instead of stanley.
+  ST2TESTS_SYSTEM_USER: 'runner'
+
+  # This is the host:port provided by services.redis
+  ST2TESTS_REDIS_HOST: '127.0.0.1'
+  ST2TESTS_REDIS_PORT: '6379'
+
 jobs:
   pants-plugins-tests:
     name: 'Pants Plugins Tests (pants runs: pytest) - Python ${{ matrix.python.version-short }}'
@@ -63,9 +73,6 @@ jobs:
          ports:
            - 6379:6379/tcp
 
-    env:
-      COLUMNS: '120'
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -99,11 +106,6 @@ jobs:
           gha-cache-key: cache0-py${{ matrix.python.version }}
 
       - name: Test pants-plugins
-        env:
-          # Github Actions uses the 'runner' user, so use that instead of stanley.
-          ST2TESTS_SYSTEM_USER: 'runner'
-          ST2TESTS_REDIS_HOST: '127.0.0.1'
-          ST2TESTS_REDIS_PORT: '6379'
         run: |
           pants test pants-plugins/::
 
@@ -161,9 +163,6 @@ jobs:
          ports:
            - 6379:6379/tcp
 
-    env:
-      COLUMNS: '120'
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -197,11 +196,6 @@ jobs:
           gha-cache-key: cache0-py${{ matrix.python.version }}
 
       - name: Unit Tests
-        env:
-          # Github Actions uses the 'runner' user, so use that instead of stanley.
-          ST2TESTS_SYSTEM_USER: 'runner'
-          ST2TESTS_REDIS_HOST: '127.0.0.1'
-          ST2TESTS_REDIS_PORT: '6379'
         run: >
           pants
           --python-bootstrap-search-path=[]
@@ -257,9 +251,6 @@ jobs:
          ports:
            - 6379:6379/tcp
 
-    env:
-      COLUMNS: '120'
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -293,11 +284,6 @@ jobs:
           gha-cache-key: cache0-py${{ matrix.python.version }}
 
       - name: Pack Tests
-        env:
-          # Github Actions uses the 'runner' user, so use that instead of stanley.
-          ST2TESTS_SYSTEM_USER: 'runner'
-          ST2TESTS_REDIS_HOST: '127.0.0.1'
-          ST2TESTS_REDIS_PORT: '6379'
         run: >
           pants
           --python-bootstrap-search-path=[]
