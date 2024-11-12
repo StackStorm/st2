@@ -335,6 +335,8 @@ jobs:
           RABBITMQ_USERNAME: guest
           RABBITMQ_PASSWORD: guest
           RABBITMQ_LOGS: '-'
+          # bitnami's default relative limit was too high
+          RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
 
         # These are strictly docker options, not entrypoint args (GHA restriction)
         options: >-
