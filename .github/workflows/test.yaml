@@ -334,6 +334,7 @@ jobs:
           RABBITMQ_PLUGINS: rabbitmq_management
           RABBITMQ_USERNAME: guest
           RABBITMQ_PASSWORD: guest
+          RABBITMQ_LOGS: '-'
 
         # These are strictly docker options, not entrypoint args (GHA restriction)
         options: >-
