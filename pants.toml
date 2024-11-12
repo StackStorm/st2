@@ -244,6 +244,8 @@ extra_env_vars = [
   "ST2TESTS_REDIS_HOST",
   "ST2TESTS_REDIS_PORT",
 ]
+# 10 min should be more than enough even for integration tests.
+timeout_default = 600 # seconds
 
 [twine]
 install_from_resolve = "twine"
