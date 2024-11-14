@@ -110,10 +110,17 @@ function init()
     else
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
+    ST2_REPO=$(readlink -f ${ST2_REPO})
     ST2_LOGS="${ST2_REPO}/logs"
+    # ST2_REPO/virtualenv is the Makefile managed dir.
+    # The workflow should set this to use a pants exported or other venv instead.
     VIRTUALENV=${VIRTUALENV_DIR:-${ST2_REPO}/virtualenv}
     VIRTUALENV=$(readlink -f ${VIRTUALENV})
     PY=${VIRTUALENV}/bin/python
+    if [ ! -f "${PY}" ]; then
+        eecho "${PY} does not exist"
+        exit 1
+    fi
     PYTHON_VERSION=$(${PY} --version 2>&1)
 
     echo -n "Using virtualenv: "; iecho "${VIRTUALENV}"
@@ -201,25 +208,26 @@ function st2start()
     if [ "$copy_test_packs" = true ]; then
         echo -n "Copying test packs examples and fixtures to "; iecho "$PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
-        # Clone st2tests in /tmp directory.
-        pushd /tmp
+        # Clone st2tests in a tmp directory.
+        CLONE_TMP_DIR=$(mktemp -d)
+        pushd "${CLONE_TMP_DIR}"
         echo Cloning https://github.com/StackStorm/st2tests.git
         # -q = no progress reporting (better for CI). Errors will still print.
         git clone -q https://github.com/StackStorm/st2tests.git
         ret=$?
         if [ ${ret} -eq 0 ]; then
             cp -Rp ./st2tests/packs/fixtures $PACKS_BASE_DIR
-            rm -R st2tests/
         else
             eecho "Failed to clone st2tests repo"
         fi
         popd
+        rm -Rf "${CLONE_TMP_DIR}"
     fi
 
     # activate virtualenv to set PYTHONPATH
-    source ${VIRTUALENV}/bin/activate
+    source "${VIRTUALENV}/bin/activate"
     # set configuration file location.
-    export ST2_CONFIG_PATH=${ST2_CONF};
+    export ST2_CONFIG_PATH="${ST2_CONF}"
 
     # Kill existing st2 terminal multiplexor sessions
     for tmux_session in $(tmux ls 2>/dev/null | awk -F: '/^st2-/ {print $1}')
@@ -228,22 +236,28 @@ function st2start()
         tmux kill-session -t $tmux_session
     done
 
+    local PRE_SCRIPT_VARS=()
+    PRE_SCRIPT_VARS+=("ST2_CONFIG_PATH=${ST2_CONF}")
+
+    # PRE_SCRIPT should not end with ';' so that using it is clear.
+    local PRE_SCRIPT="export ${PRE_SCRIPT_VARS[@]}; source ${VIRTUALENV}/bin/activate"
+
     # Run the st2 API server
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-api using gunicorn ...'
-        tmux new-session -d -s st2-api "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/gunicorn st2api.wsgi:application -k eventlet -b $BINDING_ADDRESS:9101 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
+        tmux new-session -d -s st2-api "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2api.wsgi:application -k eventlet -b $BINDING_ADDRESS:9101 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
     else
         echo 'Starting st2-api ...'
-        tmux new-session -d -s st2-api "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2api/bin/st2api --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
+        tmux new-session -d -s st2-api "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2api/bin/st2api --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
     fi
 
     # Run st2stream API server
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-stream using gunicorn ...'
-        tmux new-session -d -s st2-stream "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/gunicorn st2stream.wsgi:application -k eventlet -b $BINDING_ADDRESS:9102 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
+        tmux new-session -d -s st2-stream "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2stream.wsgi:application -k eventlet -b $BINDING_ADDRESS:9102 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
     else
         echo 'Starting st2-stream ...'
-        tmux new-session -d -s st2-stream "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2stream/bin/st2stream --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
+        tmux new-session -d -s st2-stream "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2stream/bin/st2stream --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
     fi
 
     # give st2stream time to startup and load things into database
@@ -257,7 +271,7 @@ function st2start()
         WORKFLOW_ENGINE_NAME=st2-workflow-$i
         WORKFLOW_ENGINE_SESSIONS+=($WORKFLOW_ENGINE_NAME)
         echo "   $WORKFLOW_ENGINE_NAME ..."
-        tmux new-session -d -s $WORKFLOW_ENGINE_NAME "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2actions/bin/st2workflowengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${WORKFLOW_ENGINE_NAME}.log"
+        tmux new-session -d -s $WORKFLOW_ENGINE_NAME "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2actions/bin/st2workflowengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${WORKFLOW_ENGINE_NAME}.log"
     done
 
     # Start a session for every runner
@@ -268,12 +282,12 @@ function st2start()
         RUNNER_NAME=st2-actionrunner-$i
         RUNNER_SESSIONS+=($RUNNER_NAME)
         echo "   $RUNNER_NAME ..."
-        tmux new-session -d -s $RUNNER_NAME "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2actions/bin/st2actionrunner --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${RUNNER_NAME}.log"
+        tmux new-session -d -s $RUNNER_NAME "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2actions/bin/st2actionrunner --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${RUNNER_NAME}.log"
     done
 
     # Run the garbage collector service
     echo 'Starting st2-garbagecollector ...'
-    tmux new-session -d -s st2-garbagecollector "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2garbagecollector --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-garbagecollector.log"
+    tmux new-session -d -s st2-garbagecollector "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2garbagecollector --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-garbagecollector.log"
 
     # Run the scheduler server
     echo 'Starting st2-scheduler(s):'
@@ -283,33 +297,32 @@ function st2start()
         SCHEDULER_NAME=st2-scheduler-$i
         SCHEDULER_SESSIONS+=($SCHEDULER_NAME)
         echo "   $SCHEDULER_NAME ..."
-        tmux new-session -d -s $SCHEDULER_NAME "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2actions/bin/st2scheduler --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${SCHEDULER_NAME}.log"
+        tmux new-session -d -s $SCHEDULER_NAME "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2actions/bin/st2scheduler --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${SCHEDULER_NAME}.log"
     done
 
     # Run the sensor container server
     echo 'Starting st2-sensorcontainer ...'
-    tmux new-session -d -s st2-sensorcontainer "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2sensorcontainer --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-sensorcontainer.log"
+    tmux new-session -d -s st2-sensorcontainer "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2sensorcontainer --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-sensorcontainer.log"
 
     # Run the rules engine server
     echo 'Starting st2-rulesengine ...'
-    tmux new-session -d -s st2-rulesengine "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2rulesengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-rulesengine.log"
+    tmux new-session -d -s st2-rulesengine "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2rulesengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-rulesengine.log"
 
     # Run the timer engine server
     echo 'Starting st2-timersengine ...'
-    tmux new-session -d -s st2-timersengine "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2timersengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-timersengine.log"
+    tmux new-session -d -s st2-timersengine "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2timersengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-timersengine.log"
 
     # Run the actions notifier
     echo 'Starting st2-notifier ...'
-    tmux new-session -d -s st2-notifier "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2actions/bin/st2notifier --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-notifier.log"
+    tmux new-session -d -s st2-notifier "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2actions/bin/st2notifier --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-notifier.log"
 
     # Run the auth API server
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-auth using gunicorn ...'
-        export ST2_CONFIG_PATH=${ST2_CONF}
-        tmux new-session -d -s st2-auth "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/gunicorn st2auth.wsgi:application -k eventlet -b $BINDING_ADDRESS:9100 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-auth.log"
+        tmux new-session -d -s st2-auth "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2auth.wsgi:application -k eventlet -b $BINDING_ADDRESS:9100 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-auth.log"
     else
         echo 'Starting st2-auth ...'
-        tmux new-session -d -s st2-auth "export ST2_CONFIG_PATH=${ST2_CONF}; source ${VIRTUALENV}/bin/activate; ${VIRTUALENV}/bin/python ./st2auth/bin/st2auth --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-auth.log"
+        tmux new-session -d -s st2-auth "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2auth/bin/st2auth --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-auth.log"
     fi
 
     # Check whether tmux sessions are started
