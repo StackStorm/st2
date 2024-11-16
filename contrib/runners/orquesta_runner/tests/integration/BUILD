@@ -5,5 +5,5 @@ __defaults__(
 
 python_tests(
     name="tests",
-    uses=["redis"],
+    uses=["mongo", "rabbitmq", "redis", "system_user"],
 )
