@@ -565,6 +565,11 @@ class IntegrationTestCase(TestCase):
 
     processes = {}
 
+    @classmethod
+    def setUpClass(cls):
+        # this prepares the vars for use in configuring the subprocesses via env var
+        tests_config.parse_args()
+
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
         self._stop_running_processes()

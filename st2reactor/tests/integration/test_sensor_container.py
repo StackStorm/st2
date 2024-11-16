@@ -244,6 +244,10 @@ class SensorContainerTestCase(IntegrationTestCase):
 
     def _start_sensor_container(self, cmd=DEFAULT_CMD):
         subprocess = concurrency.get_subprocess_module()
+        env = os.environ.copy()
+        env.update(st2tests.config.db_opts_as_env_vars())
+        env.update(st2tests.config.mq_opts_as_env_vars())
+        env.update(st2tests.config.coord_opts_as_env_vars())
         print("Using command: %s" % (" ".join(cmd)))
         process = subprocess.Popen(
             cmd,
@@ -251,6 +255,7 @@ class SensorContainerTestCase(IntegrationTestCase):
             stderr=subprocess.PIPE,
             shell=False,
             preexec_fn=os.setsid,
+            env=env,
         )
         self.add_process(process=process)
         return process

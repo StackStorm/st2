@@ -86,6 +86,13 @@ Added
   following to set system user to the current user: `export ST2TESTS_SYSTEM_USER=$(id -un)` #6242
   Contributed by @cognifloyd
 
+* Added experimental support for setting conf vars via environment variables. All settings in `st2.conf` can be
+  overriden via enviornment vars in the format: `ST2_<conf section>__<option name>` (env vars are upper cased)
+  For example, the `[database].password` setting in `st2.conf` could be overriden using `ST2_DATABASE__PASSWORD`.
+  This new feature is based on oslo_config's environment support, but patches it to use the `ST2_` prefix.
+  If you experience any issues when using this experimental feature, please file an issue. #6277
+  Contributed by @cognifloyd
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed
