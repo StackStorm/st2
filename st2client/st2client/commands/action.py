@@ -1210,7 +1210,7 @@ class ActionRunCommandMixin(object):
         parameter = parameters.get(name)
         if parameter:
             position = parameter.get("position")
-            return str(position) if position is not None else name
+            return position if position is not None else name
         return None
 
     def _get_inherited_env_vars(self):
