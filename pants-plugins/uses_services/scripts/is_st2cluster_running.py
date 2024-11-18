@@ -19,14 +19,14 @@ import sys
 from contextlib import closing
 
 
-def _is_st2cluster_running(host: str, ports: list[str]) -> bool:
+def _is_st2cluster_running(endpoints: list[tuple[str, str]]) -> bool:
     """Check for listening ports of st2auth, st2api, and st2stream services.
 
     This should not import the st2 code as it should be self-contained.
     """
     # TODO: Once each service gains a reliable health check endpoint, use that.
     # https://github.com/StackStorm/st2/issues/4020
-    for port in ports:
+    for host, port in endpoints:
         # based on https://stackoverflow.com/a/35370008/1134951
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             # errno=0 means the connection succeeded
@@ -37,12 +37,16 @@ def _is_st2cluster_running(host: str, ports: list[str]) -> bool:
 
 
 if __name__ == "__main__":
-    hostname = "127.0.0.1"
-    service_ports = list(sys.argv[1:])
-    if not service_ports:
-        # st2.tests*.conf ends in /, but the default ends in //
-        service_ports = ["9100", "9101", "9102"]
+    args_iter = iter(sys.argv[1:])
+    # Turn the list into 2 tuples (zip with query the same iterator twice for each entry)
+    endpoints = list(zip(args_iter, args_iter))
+    if not endpoints:
+        endpoints = [
+            ("127.0.0.1", "9100"),
+            ("127.0.0.1", "9101"),
+            ("127.0.0.1", "9102"),
+        ]
 
-    is_running = _is_st2cluster_running(hostname, service_ports)
+    is_running = _is_st2cluster_running(endpoints)
     exit_code = 0 if is_running else 1
     sys.exit(exit_code)

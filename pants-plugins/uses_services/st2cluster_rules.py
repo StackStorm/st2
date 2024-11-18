@@ -46,13 +46,36 @@ from uses_services.target_types import UsesServicesField
 class UsesSt2ClusterRequest:
     """One or more targets need a running st2 cluster with all st2* services."""
 
+    auth_host: str = "127.0.0.1"
     auth_port: int = 9100
+    api_host: str = "127.0.0.1"
     api_port: int = 9101
+    stream_host: str = "127.0.0.1"
     stream_port: int = 9102
 
     @property
-    def ports(self) -> tuple[str, ...]:
-        return str(self.auth_port), str(self.api_port), str(self.stream_port)
+    def endpoints(self) -> tuple[tuple[str, str], ...]:
+        return (
+            (self.auth_host, str(self.auth_port)),
+            (self.api_host, str(self.api_port)),
+            (self.stream_host, str(self.stream_port)),
+        )
+
+    # @classmethod
+    # def from_env(cls, env: EnvironmentVars) -> UsesSt2ClusterRequest:
+    #    return cls()
+    # TODO: consider adding a from_env method using one or both of client => server vars:
+    #   ST2_CONFIG_FILE => ST2_CONFIG_PATH (used by many tests, so not safe) or
+    #                      ST2_CONF (only in launchdev.sh and st2ctl)
+    #   ST2_BASE_URL    => ST2_WEBUI__WEBUI_BASE_URL
+    #   ST2_API_URL     => ST2_AUTH__API_URL or
+    #                      http{'s' if ST2_API__USE_SSL else ''}://{ST2_API__HOST}:{ST2_API__PORT}
+    #   ST2_AUTH_URL    => http://{ST2_AUTH__HOST}:{ST2_AUTH__PORT}
+    #   ST2_STREAM_URL  => http://{ST2_STREAM__HOST}:{ST2_STREAM__PORT}
+    #   ST2_CACERT (might be needed if using a self-signed cert) => n/a
+    # These st2client env vars are irrelevant for the connectivity check:
+    #   ST2_AUTH_TOKEN or ST2_API_KEY
+    #   ST2_API_VERSION (always "v1" since we don't have anything else)
 
 
 @dataclass(frozen=True)
@@ -113,7 +136,11 @@ async def st2cluster_is_running(
         FallibleProcessResult,
         VenvPexProcess(
             script_pex,
-            argv=request.ports,
+            argv=[
+                host_or_port
+                for endpoint in request.endpoints
+                for host_or_port in endpoint
+            ],
             input_digest=script_digest,
             description="Checking to see if ST2 Cluster is up and accessible.",
             # this can change from run to run, so don't cache results.
