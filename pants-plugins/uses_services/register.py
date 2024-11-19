@@ -21,6 +21,7 @@ from uses_services import (
     platform_rules,
     rabbitmq_rules,
     redis_rules,
+    st2cluster_rules,
     system_user_rules,
 )
 from uses_services.target_types import UsesServicesField
@@ -36,5 +37,6 @@ def rules():
         *mongo_rules.rules(),
         *rabbitmq_rules.rules(),
         *redis_rules.rules(),
+        *st2cluster_rules.rules(),
         *system_user_rules.rules(),
     ]
