@@ -5,5 +5,6 @@ __defaults__(
 
 python_tests(
     name="tests",
-    uses=["mongo", "rabbitmq", "redis", "system_user"],
+    uses=["mongo", "rabbitmq", "redis", "st2cluster", "system_user"],
+    tags=["integration", "st2cluster"],
 )
