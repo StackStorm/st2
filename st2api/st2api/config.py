@@ -32,6 +32,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def parse_args(args=None):
+    common_config.use_st2_env_vars(cfg.CONF)
     cfg.CONF(
         args=args,
         version=VERSION_STRING,

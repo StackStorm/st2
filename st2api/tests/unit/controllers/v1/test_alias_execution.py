@@ -14,8 +14,9 @@
 # limitations under the License.
 
 import copy
-
 import mock
+
+from oslo_config import cfg
 
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.models.db.execution import ActionExecutionDB
@@ -241,7 +242,7 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertIn("source_channel", mock_request.call_args[0][0].context.keys())
         self.assertEqual(actual_context["source_channel"], "chat-channel")
         self.assertEqual(actual_context["api_user"], "chat-user")
-        self.assertEqual(actual_context["user"], "stanley")
+        self.assertEqual(actual_context["user"], cfg.CONF.system_user.user)
 
     @mock.patch.object(action_service, "request", return_value=(None, EXECUTION))
     def test_match_and_execute_matches_one_multiple_match(self, mock_request):
@@ -398,7 +399,7 @@ class AliasExecutionTestCase(FunctionalTest):
             "name": alias_execution.name,
             "format": format_str,
             "command": command,
-            "user": "stanley",
+            "user": cfg.CONF.system_user.user,
             "source_channel": "test",
             "notification_route": "test",
         }

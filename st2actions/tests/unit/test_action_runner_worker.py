@@ -20,14 +20,17 @@ from mock import Mock
 from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.models.db.liveaction import LiveActionDB
 
-from st2tests import config as test_config
-
-test_config.parse_args()
+from st2tests import config as tests_config
 
 __all__ = ["ActionsQueueConsumerTestCase"]
 
 
 class ActionsQueueConsumerTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     def test_process_right_dispatcher_is_used(self):
         handler = Mock()
         handler.message_type = LiveActionDB

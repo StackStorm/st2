@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import unittest
 
 from st2common.util.payload import PayloadLookup
+import st2tests.config as tests_config
 
 __all__ = ["PayloadLookupTestCase"]
 
@@ -32,6 +33,7 @@ class PayloadLookupTestCase(unittest.TestCase):
             }
         )
         super(PayloadLookupTestCase, cls).setUpClass()
+        tests_config.parse_args()
 
     def test_get_key(self):
         self.assertEqual(self.payload.get_value("trigger.pikachu"), ["Has no ears"])

@@ -53,10 +53,14 @@ COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 
 REQUIREMENTS := test-requirements.txt requirements.txt
 
+# Redis config for testing
+ST2TESTS_REDIS_HOST := 127.0.0.1
+ST2TESTS_REDIS_PORT := 6379
+
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
 PIP_VERSION ?= 24.2
-SETUPTOOLS_VERSION ?= 74.1.2
+SETUPTOOLS_VERSION ?= 75.2.0
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
@@ -817,13 +821,15 @@ unit-tests: requirements .unit-tests
 	@echo "==================== tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
+		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
+		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
 		    nosetests $(NOSE_OPTS) -s -v \
 		    $$component/tests/unit || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
@@ -841,13 +847,15 @@ endif
 	@echo "==================== unit tests with coverage  ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
+		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
+		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
 		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
 		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
 		    $(NOSE_COVERAGE_PACKAGES) \
@@ -900,7 +908,7 @@ itests: requirements .itests
 	@echo "==================== integration tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -924,7 +932,7 @@ endif
 	@echo "================ integration tests with coverage ================"
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -1065,7 +1073,7 @@ runners-tests: requirements .runners-tests
 	@echo "==================== runners-tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongo st2-test --eval "db.dropDatabase();"
+	@mongosh st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \

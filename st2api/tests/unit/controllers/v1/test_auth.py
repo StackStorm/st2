@@ -29,7 +29,7 @@ from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
 OBJ_ID = bson.ObjectId()
-USER = "stanley"
+USER = cfg.CONF.system_user.user
 USER_DB = UserDB(name=USER)
 TOKEN = uuid.uuid4().hex
 NOW = date_utils.get_datetime_utc_now()

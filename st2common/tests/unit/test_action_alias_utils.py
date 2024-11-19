@@ -30,6 +30,7 @@ from st2common.models.utils.action_alias_utils import (
     search_regex_tokens,
     inject_immutable_parameters,
 )
+import st2tests.config as tests_config
 
 
 class TestActionAliasParser(TestCase):
@@ -357,6 +358,11 @@ class TestSearchRegexTokens(TestCase):
 
 
 class TestInjectImmutableParameters(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     def test_immutable_parameters_are_injected(self):
         action_alias_db = Mock()
         action_alias_db.immutable_parameters = {"env": "dev"}

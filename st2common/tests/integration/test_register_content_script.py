@@ -19,6 +19,7 @@ import os
 import sys
 import glob
 
+import st2tests.config
 from st2tests.base import IntegrationTestCase
 from st2common.util.shell import run_command
 from st2tests import config as test_config
@@ -56,7 +57,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             "--register-runner-dir=%s" % (runner_dirs),
         ]
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
-        exit_code, _, stderr = run_command(cmd=cmd)
+        exit_code, _, stderr = self._run_command(cmd=cmd)
         self.assertIn("Registered 3 actions.", stderr)
         self.assertEqual(exit_code, 0)
 
@@ -71,7 +72,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             "--register-no-fail-on-failure",
         ]
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
-        exit_code, _, _ = run_command(cmd=cmd)
+        exit_code, _, _ = self._run_command(cmd=cmd)
         self.assertEqual(exit_code, 0)
 
         # Fail on failure, should fail
@@ -81,7 +82,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             "--register-fail-on-failure",
         ]
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
-        exit_code, _, stderr = run_command(cmd=cmd)
+        exit_code, _, stderr = self._run_command(cmd=cmd)
         self.assertIn('Directory "doesntexistblah" doesn\'t exist', stderr)
         self.assertEqual(exit_code, 1)
 
@@ -97,7 +98,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         ]
 
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
-        exit_code, _, stderr = run_command(cmd=cmd)
+        exit_code, _, stderr = self._run_command(cmd=cmd)
         self.assertIn("Registered 0 actions.", stderr)
         self.assertEqual(exit_code, 0)
 
@@ -109,7 +110,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             "--register-runner-dir=%s" % (runner_dirs),
         ]
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
-        exit_code, _, stderr = run_command(cmd=cmd)
+        exit_code, _, stderr = self._run_command(cmd=cmd)
         self.assertIn("object has no attribute 'get'", stderr)
         self.assertEqual(exit_code, 1)
 
@@ -127,7 +128,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             "-v",
             "--register-sensors",
         ]
-        exit_code, _, stderr = run_command(cmd=cmd)
+        exit_code, _, stderr = self._run_command(cmd=cmd)
         self.assertIn("Registered 0 sensors.", stderr, "Actual stderr: %s" % (stderr))
         self.assertEqual(exit_code, 0)
 
@@ -139,7 +140,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             "--register-all",
             "--register-no-fail-on-failure",
         ]
-        exit_code, _, stderr = run_command(cmd=cmd)
+        exit_code, _, stderr = self._run_command(cmd=cmd)
         self.assertIn("Registered 0 actions.", stderr)
         self.assertIn("Registered 0 sensors.", stderr)
         self.assertIn("Registered 0 rules.", stderr)
@@ -155,7 +156,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             "--register-setup-virtualenvs",
             "--register-no-fail-on-failure",
         ]
-        exit_code, stdout, stderr = run_command(cmd=cmd)
+        exit_code, stdout, stderr = self._run_command(cmd=cmd)
         self.assertIn("Registering actions", stderr, "Actual stderr: %s" % (stderr))
         self.assertIn("Registering rules", stderr)
         self.assertIn("Setup virtualenv for %s pack(s)" % ("1"), stderr)
@@ -170,7 +171,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             "--register-setup-virtualenvs",
             "--register-no-fail-on-failure",
         ]
-        exit_code, stdout, stderr = run_command(cmd=cmd)
+        exit_code, stdout, stderr = self._run_command(cmd=cmd)
 
         self.assertIn('Setting up virtualenv for pack "dummy_pack_1"', stderr)
         self.assertIn("Setup virtualenv for 1 pack(s)", stderr)
@@ -186,7 +187,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             "--register-setup-virtualenvs",
             "--register-no-fail-on-failure",
         ]
-        exit_code, stdout, stderr = run_command(cmd=cmd)
+        exit_code, stdout, stderr = self._run_command(cmd=cmd)
 
         self.assertIn('Setting up virtualenv for pack "dummy_pack_1"', stderr)
         self.assertIn("Setup virtualenv for 1 pack(s)", stderr)
@@ -200,9 +201,17 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
             "--register-recreate-virtualenvs",
             "--register-no-fail-on-failure",
         ]
-        exit_code, stdout, stderr = run_command(cmd=cmd)
+        exit_code, stdout, stderr = self._run_command(cmd=cmd)
 
         self.assertIn('Setting up virtualenv for pack "dummy_pack_1"', stderr)
         self.assertIn("Virtualenv successfully removed.", stderr)
         self.assertIn("Setup virtualenv for 1 pack(s)", stderr)
         self.assertEqual(exit_code, 0)
+
+    @staticmethod
+    def _run_command(cmd):
+        env = os.environ.copy()
+        env.update(st2tests.config.db_opts_as_env_vars())
+        env.update(st2tests.config.mq_opts_as_env_vars())
+        env.update(st2tests.config.coord_opts_as_env_vars())
+        return run_command(cmd=cmd, env=env)

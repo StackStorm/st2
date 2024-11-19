@@ -90,9 +90,6 @@ root_patterns = [
   "/contrib/packs",
   "/st2tests/testpacks/checks",
   "/st2tests/testpacks/errorcheck",
-  # pack common lib directories that ST2 adds to the PATH for actions/sensors
-  "/contrib/*/lib",
-  "/contrib/*/actions/lib",
   # other special-cased pack directories
   "/contrib/examples/actions/ubuntu_pkg_info", # python script runs via shell expecting cwd in PYTHONPATH
   # lint plugins
@@ -118,6 +115,7 @@ pants_plugins_interpreter_constraints = "CPython==3.9.*"
 
 # For tools, we have to include python versions for BOTH st2 and pants-plugins
 tool_interpreter_constraints = "CPython>=3.8,<3.10"
+flake8_interpreter_constraints = "CPython>=3.8.1,<3.10"
 
 [python]
 # resolver_version is always "pip-2020-resolver". legacy is not supported.
@@ -135,16 +133,14 @@ black = "lockfiles/black.lock"
 flake8 = "lockfiles/flake8.lock"
 pants-plugins = "lockfiles/pants-plugins.lock" # see //pants-plugins/BUILD
 pylint = "lockfiles/pylint.lock" # see //pylint_plugins/BUILD
-pytest = "lockfiles/pytest.lock"
 twine = "lockfiles/twine.lock"
 
 [python.resolves_to_interpreter_constraints]
 bandit = ["%(tool_interpreter_constraints)s"]
 black = ["%(tool_interpreter_constraints)s"]
-flake8 = ["%(tool_interpreter_constraints)s"]
+flake8 = ["%(flake8_interpreter_constraints)s"]
 pants-plugins = ["%(pants_plugins_interpreter_constraints)s"]
 pylint = ["%(tool_interpreter_constraints)s"]
-pytest = ["%(tool_interpreter_constraints)s"]
 twine = ["%(tool_interpreter_constraints)s"]
 
 [python.resolves_to_constraints_file]
@@ -227,7 +223,7 @@ args = [
 ]
 
 [pytest]
-install_from_resolve = "pytest"
+install_from_resolve = "st2"
 args = [
   "--no-header",  # don't print pytest version for every tested file
 ]
@@ -239,8 +235,24 @@ config = "@lint-configs/regex-lint.yaml"
 [setuptools]
 install_from_resolve = "st2"
 
+[test]
+extra_env_vars = [
+  # Use this so that the test system does not require the stanley user.
+  # For example: export ST2TESTS_SYSTEM_USER=${USER}
+  "ST2TESTS_SYSTEM_USER",
+  # Use these to override the redis host and port
+  "ST2TESTS_REDIS_HOST",
+  "ST2TESTS_REDIS_PORT",
+]
+# 10 min should be more than enough even for integration tests.
+timeout_default = 600 # seconds
+
 [twine]
 install_from_resolve = "twine"
+
+[environments-preview.names]
+# https://www.pantsbuild.org/stable/docs/using-pants/environments
+in_repo_workspace = "//:in_repo_workspace"
 
 [cli.alias]
 --all-changed = "--changed-since=HEAD --changed-dependents=transitive"

@@ -12,15 +12,15 @@
 # DROPS RESOLVED VERSION: <which version pip resolved without this constraint>
 #<package><version constraint>
 
+# REQUIRED BY: pytest-cov
+# REASON: 7.5 was causing errors with orquesta integration tests
+# NOTE: This was probably interaction w/ nose. Try to remove this after switch to pytest.
+# DROPS RESOLVED VERSION: 7.6.1
+coverage<7.5
+
 # ############################################ #
 # pinned transitive deps from requirements.txt #
 # ############################################ #
-
-# REQUIRED BY: jinja2
-# REASON: Fix MarkupSafe to < 2.1.0 as 2.1.0 removes soft_unicode >=0.23 was from jinja2
-# NOTE: try to remove constraint later.
-# DROPS RESOLVED VERSION: unknown
-MarkupSafe<2.1.0,>=0.23
 
 # REQUIRED BY: kombu
 # REASON: unknown -- this looks like a lockfile-style pin
@@ -61,12 +61,6 @@ MarkupSafe<2.1.0,>=0.23
 #       using 2.8, so this constraint is pointless now.
 # DROPS RESOLVED VERSION: 4.4.2
 #decorator==4.4.2
-
-# REQUIRED BY: eventlet, pymongo
-# REASON: 2.0 version breaks pymongo work with hosts
-# NOTE: try to remove this later
-# DROPS RESOLVED VERSION: 1.16
-dnspython>=1.16.0,<2.0.0
 
 # REQUIRED BY: eventlet
 # REASON: eventlet is difficult to upgrade.

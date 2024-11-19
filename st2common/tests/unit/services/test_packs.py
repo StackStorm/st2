@@ -43,6 +43,7 @@ from st2tests.fixtures.packs.dummy_pack_23.fixture import (
 from st2tests.fixtures.packs.orquesta_tests.fixture import (
     PACK_NAME as TEST_SOURCE_WORKFLOW_PACK,
 )
+import st2tests.config as tests_config
 
 SOURCE_ACTION_WITH_PYTHON_SCRIPT_RUNNER = {
     "description": "Action which injects a new trigger in the system.",
@@ -416,6 +417,8 @@ class DeleteActionMetadataFilesErrorTest(unittest.TestCase):
 class CloneActionDBAndFilesTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
         action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
         workflow_files_path = os.path.join(action_files_path, "workflows")
         if not os.path.isdir(action_files_path):
@@ -588,6 +591,11 @@ class CloneActionDBAndFilesTestCase(unittest.TestCase):
 
 
 class CloneActionFilesBackupTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     @classmethod
     def tearDownClass(cls):
         action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")

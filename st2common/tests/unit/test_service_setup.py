@@ -217,6 +217,7 @@ class ServiceSetupTestCase(CleanFilesTestCase):
         members = coordinator.get_members(service.encode("utf-8"))
         self.assertEqual(len(list(members.get())), 1)
         service_setup.deregister_service(service)
+        members = coordinator.get_members(service.encode("utf-8"))
         self.assertEqual(len(list(members.get())), 0)
 
     def test_deregister_service_when_service_registry_disables(self):
