@@ -173,7 +173,7 @@ def _process_defaults(G, schemas):
 def _check_any_bad(G, nodes, check_any_bad=None, tracked_parents=None):
     """
     :param G: nx.DiGraph
-    :param nodes: list[dict]
+    :param nodes: list[str]
     :param check_any_bad: list[boolean]
     :param tracked_parents: list[str]
     """
@@ -189,16 +189,16 @@ def _check_any_bad(G, nodes, check_any_bad=None, tracked_parents=None):
             check_any_bad.append(True)
         if name not in tracked_parents:
             children = [i for i in G.predecessors(name)]
-            tracked_parents.extend(nodes)
+            tracked_parents.append(name)
             _check_any_bad(G, children, check_any_bad, tracked_parents)
     return check_any_bad
 
 
 def _remove_bad(g_copy, parent, nodes, tracked_parents=None):
     """
-    :param G: nx.DiGraph
-    :param nodes: str
-    :param check_any_bad: list[str]
+    :param g_copy: nx.DiGraph
+    :param parent: str
+    :param nodes: list[str]
     :param tracked_parents: list[str]
     """
 
@@ -206,21 +206,21 @@ def _remove_bad(g_copy, parent, nodes, tracked_parents=None):
         tracked_parents = [parent]
     else:
         tracked_parents.append(parent)
-    for i in nodes:
+    for name in nodes:
         if "template" in g_copy.nodes[parent].keys():
             g_copy.nodes[parent]["value"] = g_copy.nodes[parent].pop("template")
-        if i in g_copy.nodes:
-            children = [i for i in g_copy.predecessors(i)]
+        if name in g_copy.nodes:
+            children = [i for i in g_copy.predecessors(name)]
             if children:
-                if i not in tracked_parents:
-                    _remove_bad(g_copy, i, children)
+                if name not in tracked_parents:
+                    _remove_bad(g_copy, name, children, tracked_parents)
             # remove template for neighbors; this isn't actually a variable
             # it is a value
             # remove template attr if it exists on parent
             # remove edges
-            g_copy.remove_edge(i, parent)
+            g_copy.remove_edge(name, parent)
             # remove node from graph
-            g_copy.remove_node(i)
+            g_copy.remove_node(name)
 
 
 def _validate(G):
