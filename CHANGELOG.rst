@@ -69,7 +69,7 @@ Added
   working on StackStorm, improve our security posture, and improve CI reliability thanks in part
   to pants' use of PEX lockfiles. This is not a user-facing addition.
   #6118 #6141 #6133 #6120 #6181 #6183 #6200 #6237 #6229 #6240 #6241 #6244 #6251 #6253
-  #6254 #6258 #6259 #6260 #6269 #6275 #6279 #6278
+  #6254 #6258 #6259 #6260 #6269 #6275 #6279 #6278 #6282
   Contributed by @cognifloyd
 * Build of ST2 EL9 packages #6153
   Contributed by @amanda11
@@ -91,6 +91,12 @@ Added
   For example, the `[database].password` setting in `st2.conf` could be overriden using `ST2_DATABASE__PASSWORD`.
   This new feature is based on oslo_config's environment support, but patches it to use the `ST2_` prefix.
   If you experience any issues when using this experimental feature, please file an issue. #6277
+  Contributed by @cognifloyd
+
+* Add new option `[messaging].prefix` to configure the prefix used in RabbitMQ exchanges and queues.
+  The default is `st2` (resulting in exchange names like `st2.execution` and `st2.sensor`).
+  This is primarily designed to support safely running tests in parallel where creating a vhost for
+  each parallel test run would be a maintenance burden. #6282
   Contributed by @cognifloyd
 
 3.8.1 - December 13, 2023
