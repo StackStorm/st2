@@ -66,6 +66,7 @@ def _setup_config_opts(coordinator_noop=True):
 
 def _override_config_opts(coordinator_noop=False):
     _override_db_opts()
+    _override_mq_opts()
     _override_common_opts()
     _override_api_opts()
     _override_keyvalue_opts()
@@ -107,8 +108,18 @@ def db_opts_as_env_vars() -> Dict[str, str]:
     return env
 
 
+def _override_mq_opts():
+    mq_prefix = CONF.messaging.prefix
+    mq_prefix = "st2test" if mq_prefix == "st2" else mq_prefix
+    mq_prefix = mq_prefix + os.environ.get("ST2TESTS_PARALLEL_SLOT", "")
+    CONF.set_override(name="prefix", override=mq_prefix, group="messaging")
+
+
 def mq_opts_as_env_vars() -> Dict[str, str]:
-    return {"ST2_MESSAGING__URL": CONF.messaging.url}
+    return {
+        "ST2_MESSAGING__URL": CONF.messaging.url,
+        "ST2_MESSAGING__PREFIX": CONF.messaging.prefix,
+    }
 
 
 def _override_common_opts():
@@ -270,6 +281,11 @@ def _register_api_opts():
             "login_method",
             default=None,
             help="Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).",
+        ),
+        cfg.StrOpt(
+            "prefix",
+            default="st2",
+            help="Prefix for all exchange and queue names.",
         ),
     ]
 

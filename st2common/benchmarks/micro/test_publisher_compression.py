@@ -16,7 +16,6 @@ from st2common.util.monkey_patch import monkey_patch
 
 monkey_patch()
 
-from kombu import Exchange
 from kombu.serialization import pickle
 
 import os
@@ -27,6 +26,7 @@ import zstandard as zstd
 
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.transport import publishers
+from st2common.transport.kombu import Exchange
 
 from common import FIXTURES_DIR
 from common import PYTEST_FIXTURE_FILE_PARAM_DECORATOR

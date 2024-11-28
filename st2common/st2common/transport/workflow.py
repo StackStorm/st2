@@ -17,16 +17,13 @@
 
 from __future__ import absolute_import
 
-import kombu
-
 from st2common.transport import publishers
+from st2common.transport.kombu import Exchange, Queue
 
 __all__ = ["WorkflowExecutionPublisher", "get_queue", "get_status_management_queue"]
 
-WORKFLOW_EXECUTION_XCHG = kombu.Exchange("st2.workflow", type="topic")
-WORKFLOW_EXECUTION_STATUS_MGMT_XCHG = kombu.Exchange(
-    "st2.workflow.status", type="topic"
-)
+WORKFLOW_EXECUTION_XCHG = Exchange("st2.workflow", type="topic")
+WORKFLOW_EXECUTION_STATUS_MGMT_XCHG = Exchange("st2.workflow.status", type="topic")
 
 
 class WorkflowExecutionPublisher(
@@ -40,10 +37,8 @@ class WorkflowExecutionPublisher(
 
 
 def get_queue(name, routing_key):
-    return kombu.Queue(name, WORKFLOW_EXECUTION_XCHG, routing_key=routing_key)
+    return Queue(name, WORKFLOW_EXECUTION_XCHG, routing_key=routing_key)
 
 
 def get_status_management_queue(name, routing_key):
-    return kombu.Queue(
-        name, WORKFLOW_EXECUTION_STATUS_MGMT_XCHG, routing_key=routing_key
-    )
+    return Queue(name, WORKFLOW_EXECUTION_STATUS_MGMT_XCHG, routing_key=routing_key)

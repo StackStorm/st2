@@ -404,6 +404,11 @@ def register_opts(ignore_errors=False):
             help="Compression algorithm to use for compressing the payloads which are sent over "
             "the message bus. Defaults to no compression.",
         ),
+        cfg.StrOpt(
+            "prefix",
+            default="st2",
+            help="Prefix for all exchange and queue names.",
+        ),
     ]
 
     do_register_opts(messaging_opts, "messaging", ignore_errors)
