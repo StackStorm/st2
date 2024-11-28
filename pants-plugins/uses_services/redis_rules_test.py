@@ -73,7 +73,8 @@ def test_redis_is_running(rule_runner: RuleRunner) -> None:
 @pytest.mark.parametrize("mock_platform", platform_samples)
 def test_redis_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
     request = UsesRedisRequest(
-        coord_url="redis://127.100.20.7:10",  # 10 is an unassigned port, unlikely to be used
+        host="127.100.20.7",
+        port="10",  # 10 is an unassigned port, unlikely to be used
     )
 
     with pytest.raises(ExecutionError) as exception_info:

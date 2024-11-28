@@ -27,6 +27,7 @@ from pants.backend.python.util_rules.pex import (
     VenvPexProcess,
     rules as pex_rules,
 )
+from pants.core.goals.test import TestExtraEnv
 from pants.engine.fs import CreateDigest, Digest, FileContent
 from pants.engine.rules import collect_rules, Get, MultiGet, rule
 from pants.engine.process import FallibleProcessResult, ProcessCacheScope
@@ -57,7 +58,12 @@ class UsesRedisRequest:
 
     #   with our version of oslo.config (newer are slower) we can't directly override opts w/ environment variables.
 
-    coord_url: str = "redis://127.0.0.1:6379"
+    host: str = "127.0.0.1"
+    port: str = "6379"
+
+    @property
+    def coord_url(self) -> str:
+        return f"redis://{self.host}:{self.port}"
 
 
 @dataclass(frozen=True)
@@ -80,9 +86,13 @@ class PytestUsesRedisRequest(PytestPluginSetupRequest):
 )
 async def redis_is_running_for_pytest(
     request: PytestUsesRedisRequest,
+    test_extra_env: TestExtraEnv,
 ) -> PytestPluginSetup:
+    redis_host = test_extra_env.env.get("ST2TESTS_REDIS_HOST", "127.0.0.1")
+    redis_port = test_extra_env.env.get("ST2TESTS_REDIS_PORT", "6379")
+
     # this will raise an error if redis is not running
-    _ = await Get(RedisIsRunning, UsesRedisRequest())
+    _ = await Get(RedisIsRunning, UsesRedisRequest(host=redis_host, port=redis_port))
 
     return PytestPluginSetup()
 
@@ -156,6 +166,13 @@ async def redis_is_running(
                 """
             ),
             service_start_cmd_generic="systemctl start redis",
+            env_vars_hint=dedent(
+                """\
+                You can also export the ST2TESTS_REDIS_HOST and ST2TESTS_REDIS_PORT
+                env vars to automatically use any redis host, local or remote,
+                while running unit and integration tests.
+                """
+            ),
         ),
     )
 

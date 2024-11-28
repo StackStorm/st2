@@ -8,6 +8,7 @@ python_sources()
 
 python_tests(
     name="tests",
+    tags=["unit"],
     dependencies=[
         "./fixtures",
         "!//conftest.py:test_utils",

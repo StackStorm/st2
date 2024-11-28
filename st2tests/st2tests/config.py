@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import os
+from typing import Dict
 
 from oslo_config import cfg, types
 
@@ -39,6 +40,7 @@ def reset():
 
 
 def parse_args(args=None, coordinator_noop=True):
+    common_config.use_st2_env_vars(cfg.CONF)
     _setup_config_opts(coordinator_noop=coordinator_noop)
 
     kwargs = {}
@@ -89,6 +91,24 @@ def _override_db_opts():
     db_name = f"st2-test{os.environ.get('ST2TESTS_PARALLEL_SLOT', '')}"
     CONF.set_override(name="db_name", override=db_name, group="database")
     CONF.set_override(name="host", override="127.0.0.1", group="database")
+
+
+def db_opts_as_env_vars() -> Dict[str, str]:
+    env = {
+        "ST2_DATABASE__HOST": CONF.database.host,
+        "ST2_DATABASE__PORT": str(CONF.database.port),
+        "ST2_DATABASE__DB_NAME": CONF.database.db_name,
+        "ST2_DATABASE__CONNECTION_TIMEOUT": str(CONF.database.connection_timeout),
+    }
+    if CONF.database.username is not None:
+        env["ST2_DATABASE__USERNAME"] = CONF.database.username
+    if CONF.database.password is not None:
+        env["ST2_DATABASE__PASSWORD"] = CONF.database.password
+    return env
+
+
+def mq_opts_as_env_vars() -> Dict[str, str]:
+    return {"ST2_MESSAGING__URL": CONF.messaging.url}
 
 
 def _override_common_opts():
@@ -147,6 +167,13 @@ def _override_coordinator_opts(noop=False):
 
     CONF.set_override(name="url", override=driver, group="coordination")
     CONF.set_override(name="lock_timeout", override=1, group="coordination")
+
+
+def coord_opts_as_env_vars() -> Dict[str, str]:
+    env = {}
+    if CONF.coordination.url is not None:
+        env["ST2_COORDINATION__URL"] = CONF.coordination.url
+    return env
 
 
 def _override_workflow_engine_opts():

@@ -8,10 +8,17 @@ python_tests(
     uses=["mongo"],
     overrides={
         (
-            "test_execution_cancellation.py",
-            "test_runner_container.py",
-            "test_worker.py",
+            "test_executions.py",
+            "test_policies.py",
+            "test_scheduler.py",
+            "test_workflow_engine.py",
         ): dict(
+            uses=["mongo", "rabbitmq", "redis"],
+        ),
+        ("test_execution_cancellation.py", "test_worker.py"): dict(
+            uses=["mongo", "rabbitmq", "redis", "system_user"],
+        ),
+        "test_runner_container.py": dict(
             uses=["mongo", "system_user"],
         ),
         (

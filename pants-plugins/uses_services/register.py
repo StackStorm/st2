@@ -21,6 +21,7 @@ from uses_services import (
     platform_rules,
     rabbitmq_rules,
     redis_rules,
+    st2cluster_rules,
     system_user_rules,
 )
 from uses_services.target_types import UsesServicesField
@@ -28,11 +29,14 @@ from uses_services.target_types import UsesServicesField
 
 def rules():
     return [
-        PythonTestsGeneratorTarget.register_plugin_field(UsesServicesField),
+        PythonTestsGeneratorTarget.register_plugin_field(
+            UsesServicesField, as_moved_field=True
+        ),
         PythonTestTarget.register_plugin_field(UsesServicesField),
         *platform_rules.rules(),
         *mongo_rules.rules(),
         *rabbitmq_rules.rules(),
         *redis_rules.rules(),
+        *st2cluster_rules.rules(),
         *system_user_rules.rules(),
     ]

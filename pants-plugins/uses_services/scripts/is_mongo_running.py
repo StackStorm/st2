@@ -54,7 +54,9 @@ if __name__ == "__main__":
     db_name = args.get(3, "st2-test{}")
     connection_timeout_ms = args.get(4, 3000)
 
-    slot_var = args.get(5, "ST2TESTS_PARALLEL_SLOT")
+    slot_var = os.environ.get(
+        "PANTS_PYTEST_EXECUTION_SLOT_VAR", "ST2TESTS_PARALLEL_SLOT"
+    )
     db_name = db_name.format(os.environ.get(slot_var) or "")
 
     is_running = _is_mongo_running(

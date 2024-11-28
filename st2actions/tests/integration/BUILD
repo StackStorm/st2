@@ -5,4 +5,8 @@ __defaults__(
 
 python_tests(
     name="tests",
+    uses=["rabbitmq"],
+    stevedore_namespaces=[
+        "st2common.metrics.driver",
+    ],
 )
