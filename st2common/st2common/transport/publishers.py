@@ -71,10 +71,11 @@ class PoolPublisher(object):
                     # completely invalidating this ConnectionPool. Also, a ConnectionPool for
                     # producer does not really solve any problems for us so better to create a
                     # Producer for each publish.
-                    producer = Producer(channel)
+                    # passing exchange to Producer __init__ allows auto_declare to declare
+                    # anything that's missing (especially useful for tests).
+                    producer = Producer(channel, exchange=exchange)
                     kwargs = {
                         "body": payload,
-                        "exchange": exchange,
                         "routing_key": routing_key,
                         "serializer": "pickle",
                         "compression": compression,
