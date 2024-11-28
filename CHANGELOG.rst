@@ -93,6 +93,9 @@ Added
   If you experience any issues when using this experimental feature, please file an issue. #6277
   Contributed by @cognifloyd
 
+* StackStorm Gure badge added to README.md. StackStorm Guru is avalilabe at https://gurubase.io/g/stackstorm. 
+  It uses data from the documentation to answer questions by leveraging the LLM.
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed
