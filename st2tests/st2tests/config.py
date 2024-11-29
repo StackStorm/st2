@@ -174,7 +174,9 @@ def _override_coordinator_opts(noop=False):
     redis_host = os.environ.get("ST2TESTS_REDIS_HOST", False)
     if redis_host:
         redis_port = os.environ.get("ST2TESTS_REDIS_PORT", "6379")
-        driver = f"redis://{redis_host}:{redis_port}"
+        # namespace= is the tooz redis driver's key prefix (default is "_tooz")
+        namespace = f"_st2_test{os.environ.get('ST2TESTS_PARALLEL_SLOT', '')}"
+        driver = f"redis://{redis_host}:{redis_port}?namespace={namespace}"
 
     CONF.set_override(name="url", override=driver, group="coordination")
     CONF.set_override(name="lock_timeout", override=1, group="coordination")

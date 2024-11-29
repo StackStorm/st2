@@ -14,4 +14,4 @@ psutil==6.1.0
 pyrabbit
 rednose
 unittest2
-webtest
+webtest==3.0.1

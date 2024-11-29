@@ -72,6 +72,7 @@ tooz==6.3.0
 # lockfiles/st2.lock has pip==24.2 wheel==0.44.0 setuptools==75.2.0
 virtualenv==20.27.0
 webob==1.8.9
+webtest==3.0.1
 zake==0.2.2
 # test requirements below
 bcrypt==4.2.0
