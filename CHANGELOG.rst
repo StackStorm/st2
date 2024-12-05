@@ -25,6 +25,8 @@ Other options that were renamed under `[database]` are (more details available i
 
 Fixed
 ~~~~~
+* Fixed #5130 by ensuring consistent sorting of action parameters in the `st2 run <action> -h` command.
+  Converted the `position` attribute to a string for sorting, preventing the `TypeError: '<' not supported between instances of 'str' and 'int'` error in Python 3.
 * Fixed #6021 and #5327 by adding max_page_size to api_opts and added limit and offset to list_values() methods of
   both action_service and sensor_service
 * Fix `packs.get` action. Assumed `master` is primary branch on all packs. #6225
