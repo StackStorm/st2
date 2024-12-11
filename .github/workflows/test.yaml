@@ -519,13 +519,13 @@ jobs:
           test '::'
 
       - name: Compress Service Logs Before upload
-        if: ${{ failure() }}
+        if: failure()
         run: |
           ./tools/launchdev.sh stop # stop st2 before collecting logs
           tar cvzpf logs.tar.gz logs/*
 
       - name: Upload StackStorm services Logs
-        if: ${{ failure() }}
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: logs-py${{ matrix.python-version }}-st2cluster-integration-tests
