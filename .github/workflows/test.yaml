@@ -629,6 +629,7 @@ jobs:
 
       - name: Launch Dev ST2 Cluster
         env:
+          # NOTE: ST2_CONF defaults to ${GITHUB_WORKSPACE}/conf/st2.dev.conf
           VIRTUALENV_DIR: ./dist/export/python/virtualenvs/st2/${{ steps.python.outputs.python-version }}
           ST2_SYSTEM_USER__USER: ${{ env.ST2TESTS_SYSTEM_USER }}
           ST2_SYSTEM_USER__SSH_KEY_FILE: /home/${{ env.ST2TESTS_SYSTEM_USER }}/.ssh/stanley_rsa
@@ -667,6 +668,7 @@ jobs:
           sudo
           -E
           ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t)
+          ST2_CONF=${GITHUB_WORKSPACE}/conf/st2.dev.conf
           PATH=${PATH}
           st2common/bin/st2-self-check
 
