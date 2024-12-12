@@ -113,15 +113,18 @@ fi
 cp -R --preserve st2tests/packs/* /opt/stackstorm/packs/
 
 echo "Installing asserts, fixtures, tests and examples packs."
-st2 run packs.setup_virtualenv packs=examples,tests,asserts,fixtures,webui
-st2ctl reload --register-all
+st2 run packs.setup_virtualenv packs=examples,tests,asserts,fixtures,webui || ((ERRORS++))
+st2ctl reload --register-all || ((ERRORS++))
 
 echo "Deleting 'st2tests' directory from `pwd`."
 rm -R st2tests/
 popd
 
-# Retrieve test action list
-TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref" | grep tests.test_`
+TEST_ACTION_LIST=""
+if [ $ERRORS -eq 0 ]; then
+  # Retrieve test action list
+  TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref" | grep tests.test_`
+fi
 
 # Run all the tests
 for TEST in $TEST_ACTION_LIST
