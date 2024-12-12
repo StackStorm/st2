@@ -406,8 +406,6 @@ jobs:
           ./scripts/github/configure-rabbitmq.sh
 
       - name: Integration Tests
-        env:
-          PANTS_TEST_ATTEMPTS_DEFAULT: 1
         run: >
           pants
           --python-bootstrap-search-path=[]
