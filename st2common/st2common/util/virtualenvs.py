@@ -356,7 +356,8 @@ def install_requirements(
     cmd.append("install")
     cmd.extend(pip_opts)
     cmd.extend(["-U", "-r", requirements_file_path])
-    cmd.extend(["-i", index_url])
+    if index_url:
+        cmd.extend(["-i", index_url])
 
     env = get_env_for_subprocess_command()
 
@@ -417,7 +418,8 @@ def install_requirement(
     cmd.append("install")
     cmd.extend(pip_opts)
     cmd.extend([requirement])
-    cmd.extend(["-i", index_url])
+    if index_url:
+        cmd.extend(["-i", index_url])
 
     env = get_env_for_subprocess_command()
     logger.debug(
