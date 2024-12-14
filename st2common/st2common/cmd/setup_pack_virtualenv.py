@@ -47,6 +47,11 @@ def _register_cli_opts():
                 "exist, it will create it.."
             ),
         ),
+        cfg.StrOpt(
+            "index_url",
+            default=False,
+            help="Package Index options",
+        ),
     ]
     do_register_cli_opts(cli_opts)
 
@@ -64,6 +69,7 @@ def main(argv):
 
     packs = cfg.CONF.pack
     update = cfg.CONF.update
+    index_url = cfg.CONF.index_url
 
     proxy_config = get_and_set_proxy_config()
 
@@ -76,6 +82,7 @@ def main(argv):
             logger=LOG,
             proxy_config=proxy_config,
             no_download=True,
+            index_url=index_url,
         )
         LOG.info('Successfully set up virtualenv for pack "%s"' % (pack))
 

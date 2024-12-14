@@ -61,6 +61,7 @@ def setup_pack_virtualenv(
     no_download=True,
     force_owner_group=True,
     inject_parent_virtualenv_sites=True,
+    index_url=None,
 ):
 
     """
@@ -78,6 +79,9 @@ def setup_pack_virtualenv(
     :param no_download: Do not download and install latest version of pre-installed packages such
                         as pip and setuptools.
     :type no_download: ``bool``
+
+    :param index_url: Package index options.
+    :type index_url: ``str``
     """
     logger = logger or LOG
 
@@ -137,6 +141,7 @@ def setup_pack_virtualenv(
             requirement=requirement,
             proxy_config=proxy_config,
             logger=logger,
+            index_url=index_url,
         )
 
     # 4. Install pack-specific requirements
@@ -152,6 +157,7 @@ def setup_pack_virtualenv(
             requirements_file_path=requirements_file_path,
             proxy_config=proxy_config,
             logger=logger,
+            index_url=index_url,
         )
     else:
         logger.debug("No pack specific requirements found")
@@ -319,7 +325,7 @@ def inject_st2_pth_into_virtualenv(virtualenv_path: str, logger: Logger = None) 
 
 
 def install_requirements(
-    virtualenv_path, requirements_file_path, proxy_config=None, logger=None
+    virtualenv_path, requirements_file_path, proxy_config=None, logger=None, index_url=None,
 ):
     """
     Install requirements from a file.
@@ -346,6 +352,7 @@ def install_requirements(
     cmd.append("install")
     cmd.extend(pip_opts)
     cmd.extend(["-U", "-r", requirements_file_path])
+    cmd.extend(["-i", index_url])
 
     env = get_env_for_subprocess_command()
 
@@ -372,7 +379,7 @@ def install_requirements(
     return True
 
 
-def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=None):
+def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=None, index_url=None,):
     """
     Install a single requirement.
 
@@ -400,6 +407,8 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=
     cmd.append("install")
     cmd.extend(pip_opts)
     cmd.extend([requirement])
+    cmd.extend(["-i", index_url])
+
     env = get_env_for_subprocess_command()
     logger.debug(
         "Installing requirement %s with command %s.", requirement, " ".join(cmd)

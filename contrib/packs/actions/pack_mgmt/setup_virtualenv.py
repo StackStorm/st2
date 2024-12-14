@@ -80,13 +80,16 @@ class SetupVirtualEnvironmentAction(Action):
         ):
             os.environ["no_proxy"] = self.no_proxy
 
-    def run(self, packs, update=False, no_download=True):
+    def run(self, packs, index_url, update=False, no_download=True):
         """
         :param packs: A list of packs to create the environment for.
         :type: packs: ``list``
 
         :param update: True to update dependencies inside the virtual environment.
         :type update: ``bool``
+
+        :param index_url: Package index options.
+        :type index_url: ``str``
         """
 
         for pack_name in packs:
@@ -96,6 +99,7 @@ class SetupVirtualEnvironmentAction(Action):
                 logger=self.logger,
                 proxy_config=self.proxy_config,
                 no_download=no_download,
+                index_url=index_url,
             )
 
         message = "Successfully set up virtualenv for the following packs: %s" % (
