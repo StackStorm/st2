@@ -99,6 +99,9 @@ Added
   each parallel test run would be a maintenance burden. #6282
   Contributed by @cognifloyd
 
+* Add new option `index_url` to allow user manually configure python package download url. 
+  Contributed by @yhkl-dev
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed
