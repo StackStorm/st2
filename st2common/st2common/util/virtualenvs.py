@@ -325,7 +325,11 @@ def inject_st2_pth_into_virtualenv(virtualenv_path: str, logger: Logger = None) 
 
 
 def install_requirements(
-    virtualenv_path, requirements_file_path, proxy_config=None, logger=None, index_url=None,
+    virtualenv_path,
+    requirements_file_path,
+    proxy_config=None,
+    logger=None,
+    index_url=None,
 ):
     """
     Install requirements from a file.
@@ -379,7 +383,13 @@ def install_requirements(
     return True
 
 
-def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=None, index_url=None,):
+def install_requirement(
+    virtualenv_path,
+    requirement,
+    proxy_config=None,
+    logger=None,
+    index_url=None,
+):
     """
     Install a single requirement.
 
