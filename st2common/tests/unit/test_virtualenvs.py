@@ -186,6 +186,31 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
     @mock.patch.object(
         virtualenvs, "get_env_for_subprocess_command", mock.MagicMock(return_value={})
     )
+    def test_install_requirement_with_index_url(self):
+        pack_virtualenv_dir = "/opt/stackstorm/virtualenvs/dummy_pack_tests/"
+        requirement = "six>=1.9.0"
+        index_url = "https://test.com/sample"
+        install_requirement(
+            pack_virtualenv_dir, requirement, proxy_config=None, index_url=index_url
+        )
+        expected_args = {
+            "cmd": [
+                "/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip",
+                "install",
+                "six>=1.9.0",
+                "-i",
+                index_url,
+            ],
+            "env": {},
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
+
+    @mock.patch.object(
+        virtualenvs, "run_command", mock.MagicMock(return_value=(0, "", ""))
+    )
+    @mock.patch.object(
+        virtualenvs, "get_env_for_subprocess_command", mock.MagicMock(return_value={})
+    )
     def test_install_requirement_with_http_proxy(self):
         pack_virtualenv_dir = "/opt/stackstorm/virtualenvs/dummy_pack_tests/"
         requirement = "six>=1.9.0"
