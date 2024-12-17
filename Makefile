@@ -82,7 +82,7 @@ ifndef NOSE_TIME
 endif
 
 ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
+	NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
 	NOSE_WITH_TIMER := 1
 endif
 
@@ -823,7 +823,7 @@ unit-tests: requirements .unit-tests
 	@mongo mymongo/st2-test --eval "db.dropDatabase();"
 #	. $(VIRTUALENV_DIR)/bin/activate; \
 #		    nosetests $(NOSE_OPTS) -s -v \
-#		    st2actions/tests/unit/test_worker.py:WorkerTestCase.test_worker_graceful_shutdown_with_multiple_runners || exit 1;
+#		    st2actions/tests/unit/test_worker.py:WorkerTestCase.test_worker_graceful_shutdown_with_multiple_runners || exit 1; 
 #
 	@for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -1147,7 +1147,7 @@ ci: ci-checks ci-unit ci-integration ci-packs-tests
 # NOTE: pylint is moved to ci-compile so we more evenly spread the load across
 # various different jobs to make the whole workflow complete faster
 .PHONY: ci-checks
-ci-checks: .generated-files-check .shellcheck .black-check .flake8 check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check check-python-packages
+ci-checks: .generated-files-check .shellcheck .black-check .flake8 check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check check-python-packages 
 
 .PHONY: .rst-check
 .rst-check:
