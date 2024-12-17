@@ -5,6 +5,16 @@ name: Micro Benchmarks
 on:
   schedule:
     - cron:  '30 3 * * *'
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      # Only for PRs targeting those branches
+      - master
+      - v[0-9]+.[0-9]+
+    paths:
+      # Only for PRs that touch the benchmarks
+      - .github/workflows/microbenchmarks.yaml
+      - st2common/benchmarks/**
 
 jobs:
   # Special job which automatically cancels old runs for the same branch, prevents runs for the
