@@ -1,6 +1,6 @@
 checks:
   tags:
-    - st2 
+    - el8 
   stage: checks 
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
@@ -15,7 +15,7 @@ checks:
 
 unittests:
   tags:
-    - st2 
+    - el8
   stage: unittests 
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
