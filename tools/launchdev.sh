@@ -140,7 +140,7 @@ function init()
         export ST2_SYSTEM_USER__USER="${ST2TESTS_SYSTEM_USER}"
         ST2VARS+=("ST2_SYSTEM_USER__USER")
     fi
-    if [ -n "${ST2TESTS_REDIS_HOST}" ] && [ -n "${ST2TESTS_REDIS_PORT}"]; then
+    if [ -n "${ST2TESTS_REDIS_HOST}" ] && [ -n "${ST2TESTS_REDIS_PORT}" ]; then
         export ST2_COORDINATION__URL="redis://${ST2TESTS_REDIS_HOST}:${ST2TESTS_REDIS_PORT}?namespace=_st2_dev"
         ST2VARS+=("ST2_COORDINATION__URL")
     fi
