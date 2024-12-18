@@ -517,7 +517,7 @@ class ShellTestCase(base.BaseCLITestCase):
 
         return package_metadata_path
 
-    @pytest.mark.skipif(True, "skipping until checks are re-enabled")
+    @pytest.mark.skipif(True, reason="skipping until checks are re-enabled")
     @mock.patch.object(
         requests, "get", mock.MagicMock(return_value=base.FakeResponse("{}", 200, "OK"))
     )
