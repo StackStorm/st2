@@ -40,7 +40,7 @@ PACK_TEST_PYTHON_DEPENDENCIES_NAMES=(
     'coverage'
 )
 PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS=(
-    '>6'
+    '>7'
     '>=4.0.3'
     '>=4.4.1'
 )
