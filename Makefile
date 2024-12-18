@@ -916,6 +916,7 @@ itests: requirements .itests
 		echo "Done running integration tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
+	echo failed=$$failed; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-integration-tests-coverage
@@ -941,6 +942,7 @@ endif
 		echo "Done integration running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
+	echo failed=$$failed; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
 	# ci-integration-full target
@@ -1092,6 +1094,7 @@ runners-itests: requirements .runners-itests
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/integration || ((failed+=1)); \
 	done; \
+	echo failed=$$failed; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .runners-itests-coverage-html
@@ -1108,6 +1111,7 @@ runners-itests: requirements .runners-itests
 		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS)
 			--cov=$$component --cov-report=html $$component/tests/integration || ((failed+=1)); \
 	done; \
+	echo failed=$$failed; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: cli
