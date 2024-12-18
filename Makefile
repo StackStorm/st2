@@ -84,7 +84,8 @@ endif
 # The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
 # https://github.com/pytest-dev/pytest-xdist/issues/71
 #PYTEST_OPTS := -n auto --tx 2*popen//execmodel=eventlet
-PYTEST_OPTS := --shard-id=$(NODE_INDEX) --num-shards=$(NODE_TOTAL) -s --log-level=error
+# --suppress-no-test-exit-code is part of the pytest-custom_exit_code plugin
+PYTEST_OPTS := --shard-id=$(NODE_INDEX) --num-shards=$(NODE_TOTAL) -s --log-level=error --suppress-no-test-exit-code
 
 ifndef PIP_OPTIONS
 	PIP_OPTIONS :=
@@ -1108,7 +1109,7 @@ runners-itests: requirements .runners-itests
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS)
+		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) \
 			--cov=$$component --cov-report=html $$component/tests/integration || ((failed+=1)); \
 	done; \
 	echo failed=$$failed; \
