@@ -49,7 +49,7 @@ pymongo==4.6.3
 pyparsing==3.1.4
 pyrabbit
 pysocks
-pytest
+pytest==7.0.1
 python-dateutil==2.9.0.post0
 python-json-logger
 python-statsd==2.1.0

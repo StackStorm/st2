@@ -38,8 +38,6 @@ prance==23.6.21.0
 # pip-tools provides pip-compile: to check for version conflicts
 pip-tools==7.4.1
 pytest==7.0.1
-pytest-cov==3.0.0
-pytest-xdist==2.5.0
 pytest-benchmark[histogram]==3.4.1
 pytest-icdiff==0.9
 pytest-cov==3.0.0
