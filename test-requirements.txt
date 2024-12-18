@@ -42,6 +42,8 @@ pytest-benchmark[histogram]==3.4.1
 pytest-icdiff==0.9
 pytest-cov==3.0.0
 pytest-xdist==2.5.0
+# for Makefile-based pytest runs
+pytest-shard
 # zstandard is used for micro benchmarks
 zstandard==0.23.0
 # ujson is used for micro benchmarks

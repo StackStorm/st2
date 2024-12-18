@@ -57,14 +57,12 @@ jobs:
         include:
           - name: 'Integration Tests (Orquesta)'
             task: 'ci-orquesta'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
+            shard: {k: 0, n: 1}
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Integration Tests (Orquesta)'
             task: 'ci-orquesta'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
+            shard: {k: 0, n: 1}
             python-version-short: '3.9'
             python-version: '3.9.14'
     services:
@@ -97,8 +95,8 @@ jobs:
 
     env:
       TASK: '${{ matrix.task }}'
-      NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
-      NODE_INDEX: '${{ matrix.nosetests_node_index }}'
+      NODE_TOTAL: '${{ matrix.shard.n }}'
+      NODE_INDEX: '${{ matrix.shard.k }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.

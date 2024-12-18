@@ -71,13 +71,20 @@ ifndef XARGS_CONCURRENCY
 	XARGS_CONCURRENCY := 8
 endif
 
+ifndef NODE_INDEX
+	NODE_INDEX := 0
+endif
+ifndef NODE_TOTAL
+	NODE_TOTAL := 1
+endif
+
 # NOTE: We exclude resourceregistrar DEBUG level log messages since those are very noisy (we
 # loaded resources for every tests) which makes tests hard to troubleshoot on failure due to
 # pages and pages and pages of noise.
 # The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
 # https://github.com/pytest-dev/pytest-xdist/issues/71
 #PYTEST_OPTS := -n auto --tx 2*popen//execmodel=eventlet
-PYTEST_OPTS := -s --log-level=error
+PYTEST_OPTS := --shard-id=$(NODE_INDEX) --num-shards=$(NODE_TOTAL) -s --log-level=error
 
 ifndef PIP_OPTIONS
 	PIP_OPTIONS :=
@@ -151,10 +158,7 @@ play:
 	@echo
 	@echo INCLUDE_TESTS_IN_COVERAGE=$(INCLUDE_TESTS_IN_COVERAGE)
 	@echo
-	@echo NODE_TOTAL=$(NODE_TOTAL)
-	@echo
-	@echo
-	@echo NODE_INDEX=$(NODE_INDEX)
+	@echo shard: NODE_INDEX/NODE_TOTAL=$(NODE_INDEX)/$(NODE_TOTAL)
 	@echo
 
 .PHONY: check
@@ -946,7 +950,7 @@ endif
 #	@echo
 #	. $(VIRTUALENV_DIR)/bin/activate; \
 @#		COVERAGE_FILE=.coverage.integration.orquesta \
-@#		nosetests $(PYTEST_OPTS) -s -v \
+@#		pytest --capture=no --verbose $(PYTEST_OPTS) \
 @#		$(PYTEST_COVERAGE_FLAGS) $(PYTEST_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
 
 .PHONY: .combine-integration-tests-coverage
