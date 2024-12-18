@@ -6,12 +6,12 @@
 # - https://github.com/StackStorm/st2-rbac-backend
 # ----------------------------------------------------------------------
 # Note: amqp is used by kombu
-amqp==5.2.0
-apscheduler==3.10.4
+amqp==5.3.1
+apscheduler==3.11.0
 chardet==5.2.0
 cffi==1.17.1
 cryptography==43.0.3
-eventlet==0.37.0
+eventlet==0.38.2
 flex==6.14.1
 # Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
 # TODO: Pin to 3.1.37 or higher after dropping python3.6 support
@@ -51,14 +51,14 @@ python-keyczar==0.716
 pytz==2024.2
 pywinrm==0.5.0
 pyyaml==6.0.2
-redis==5.2.0
+redis==5.2.1
 requests==2.32.3
 retrying==1.3.4
 routes==2.5.1
 semver==3.0.2
-six==1.16.0
+six==1.17.0
 argparse==1.4.0
-argcomplete==3.4.0
+argcomplete==3.5.2
 prettytable==3.10.2
 importlib-metadata==7.1.0
 typing-extensions==4.12.2
@@ -68,19 +68,19 @@ stevedore==5.3.0
 tenacity==9.0.0
 tooz==6.3.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
-# virtualenv==20.26.5 (<21) has pip==24.2 wheel==0.44.0 setuptools==75.2.0
-# lockfiles/st2.lock has pip==24.2 wheel==0.44.0 setuptools==75.2.0
-virtualenv==20.27.0
+# virtualenv==20.27.2 (<21) has pip==24.3.1 wheel==0.45.1 setuptools==75.3.0
+# lockfiles/st2.lock has pip==24.3.1 wheel==0.45.1 setuptools==75.3.0
+virtualenv==20.28.0
 webob==1.8.9
 webtest==3.0.1
 zake==0.2.2
 # test requirements below
-bcrypt==4.2.0
+bcrypt==4.2.1
 jinja2==3.1.4
 mock==5.1.0
 pytest==7.0.1
 psutil==6.1.0
 python-dateutil==2.9.0.post0
 python-statsd==2.1.0
-orjson==3.10.10
+orjson==3.10.12
 zipp==3.20.2
