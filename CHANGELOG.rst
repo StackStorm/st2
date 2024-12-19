@@ -5,6 +5,7 @@ in development
 --------------
 
 Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
+This release adds support for Python 3.10 and 3.11, so StackStorm supports python 3.8 - 3.11.
 
 Newer MongoDB versions are now supported. CI uses MongoDB 7.0.
 
@@ -102,6 +103,9 @@ Added
   This is primarily designed to support safely running tests in parallel where creating a vhost for
   each parallel test run would be a maintenance burden. #6282
   Contributed by @cognifloyd
+
+* Add python 3.10 and 3.11 to the GitHub Actions test matrix.
+  Contributed by @nzlosh, @guzzijones12, and @cognifloyd
 
 3.8.1 - December 13, 2023
 -------------------------

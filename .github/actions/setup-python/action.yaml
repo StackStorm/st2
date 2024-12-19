@@ -4,7 +4,7 @@ description:
   Light wrapper around the actions/setup-python and actions/cache actions
   to maintain the input vars in only one place for all workflows.
 
-input:
+inputs:
   python-version:
     description: Which version of python to install.
     required: true
