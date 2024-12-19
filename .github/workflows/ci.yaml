@@ -44,7 +44,7 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
+    name: '${{ matrix.make.name }} - Python ${{ matrix.python.version-short }}'
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
@@ -53,33 +53,18 @@ jobs:
         # each job runs subset of tests.
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
-        include:
+        python:
+          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.9', version: '3.9.14'}
+          - {version-short: '3.10', version: '3.10.15'}
+          - {version-short: '3.11', version: '3.11.10'}
+        make:
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
-            python-version-short: '3.8'
-            python-version: '3.8.10'
           - name: 'Compile (pip deps, pylint, etc.)'
             task: 'ci-compile'
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Lint Checks (black, flake8, etc.)'
-            task: 'ci-checks'
-            python-version-short: '3.9'
-            python-version: '3.9.14'
-          - name: 'Compile (pip deps, pylint, etc.)'
-            task: 'ci-compile'
-            python-version-short: '3.9'
-            python-version: '3.9.14'
-          - name: 'Lint Checks (black, flake8, etc.)'
-            task: 'ci-checks'
-            python-version-short: '3.10'
-            python-version: '3.10.15'
-          - name: 'Compile (pip deps, pylint, etc.)'
-            task: 'ci-compile'
-            python-version-short: '3.11'
-            python-version: '3.11.10'
     env:
-      TASK: '${{ matrix.task }}'
+      TASK: '${{ matrix.make.task }}'
       COLUMNS: '120'
       PYLINT_CONCURRENCY: '6'
     steps:
@@ -88,10 +73,10 @@ jobs:
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
-      - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
+      - name: 'Set up Python (${{ matrix.python.version }}) and Cache Deps'
         uses: ./.github/actions/setup-python
         with:
-          python-version: '${{ matrix.python-version }}'
+          python-version: '${{ matrix.python.version }}'
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages
       - name: Install virtualenv
@@ -116,15 +101,14 @@ jobs:
 
   self-check:
     needs: pre_job
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
+    # FIXME: dropping the repetition in this name requires changing required checks on GitHub
+    name: 'Self-check on Python ${{ matrix.python.version-short }} - Python ${{ matrix.python.version-short }}'
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: 'Self-check on Python 3.8'
-            python-version-short: '3.8'
-            python-version: '3.8.14'
+        python:
+          - {version-short: '3.8', version: '3.8.10'}
     services:
       mongo:
         image: mongo:7.0
@@ -170,10 +154,10 @@ jobs:
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
-      - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
+      - name: 'Set up Python (${{ matrix.python.version }}) and Cache Deps'
         uses: ./.github/actions/setup-python
         with:
-          python-version: '${{ matrix.python-version }}'
+          python-version: '${{ matrix.python.version }}'
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages
       - name: Install virtualenv
@@ -245,7 +229,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-py${{ matrix.python-version }}
+          name: logs-py${{ matrix.python.version }}
           path: logs.tar.gz
           retention-days: 7
 
@@ -255,59 +239,29 @@ jobs:
     # coverage, etc)
     # NB: disabled. See TODO above pre_job
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
+    name: '${{ matrix.name }} - Python ${{ matrix.python.version-short }}'
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
-        include:
+        python:
+          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.9', version: '3.9.14'}
+          - {version-short: '3.10', version: '3.10.15'}
+          - {version-short: '3.11', version: '3.11.10'}
+        make:
           - name: 'Unit Tests (chunk 1)'
             task: 'ci-unit'
             shard: {k: 0, n: 2}
-            python-version-short: '3.8'
-            python-version: '3.8.10'
           - name: 'Unit Tests (chunk 2)'
             task: 'ci-unit'
             shard: {k: 1, n: 2}
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Unit Tests (chunk 1)'
-            task: 'ci-unit'
-            shard: {k: 0, n: 2}
-            python-version-short: '3.9'
-            python-version: '3.9.14'
-          - name: 'Unit Tests (chunk 2)'
-            task: 'ci-unit'
-            shard: {k: 1, n: 2}
-            python-version-short: '3.9'
-            python-version: '3.9.14'
-          - name: 'Unit Tests (chunk 1)'
-            task: 'ci-unit'
-            shard: {k: 0, n: 2}
-            python-version-short: '3.10'
-            python-version: '3.10.15'
-          - name: 'Unit Tests (chunk 2)'
-            task: 'ci-unit'
-            shard: {k: 1, n: 2}
-            python-version-short: '3.10'
-            python-version: '3.10.15'
-          - name: 'Unit Tests (chunk 1)'
-            task: 'ci-unit'
-            shard: {k: 0, n: 2}
-            python-version-short: '3.11'
-            python-version: '3.11.10'
-          - name: 'Unit Tests (chunk 2)'
-            task: 'ci-unit'
-            shard: {k: 1, n: 2}
-            python-version-short: '3.11'
-            python-version: '3.11.10'
 
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
-          #   python-version: '3.6.13'
           #   shard: {k: 0, n: 1}
     services:
       mongo:
@@ -338,10 +292,10 @@ jobs:
           - 15672:15672/tcp # Management: HTTP, CLI
 
     env:
-      TASK: '${{ matrix.task }}'
-      PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
-      NODE_TOTAL: '${{ matrix.shard.n }}'
-      NODE_INDEX: '${{ matrix.shard.k }}'
+      TASK: '${{ matrix.make.task }}'
+      PYTHON_VERSION_SHORT: '${{ matrix.python.version-short }}'
+      NODE_TOTAL: '${{ matrix.make.shard.n }}'
+      NODE_INDEX: '${{ matrix.make.shard.k }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
@@ -367,10 +321,10 @@ jobs:
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
-      - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
+      - name: 'Set up Python (${{ matrix.python.version }}) and Cache Deps'
         uses: ./.github/actions/setup-python
         with:
-          python-version: '${{ matrix.python-version }}'
+          python-version: '${{ matrix.python.version }}'
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages
       - name: Install virtualenv
@@ -428,76 +382,30 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
+    name: '${{ matrix.make.name }} - Python ${{ matrix.python.version-short }}'
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
-        include:
+        python:
+          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.9', version: '3.9.14'}
+          - {version-short: '3.10', version: '3.10.15'}
+          - {version-short: '3.11', version: '3.11.10'}
+        make:
           # We run pack tests here since they rely on some integration tests set
           # up (aka stanley user being present, etc.)
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
             shard: {k: 0, n: 1}
-            python-version-short: '3.8'
-            python-version: '3.8.10'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
             shard: {k: 0, n: 2}
-            python-version-short: '3.8'
-            python-version: '3.8.10'
           - name: 'Integration Tests (chunk 2)'
             task: 'ci-integration'
             shard: {k: 1, n: 2}
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            shard: {k: 0, n: 1}
-            python-version-short: '3.9'
-            python-version: '3.9.14'
-          - name: 'Integration Tests (chunk 1)'
-            task: 'ci-integration'
-            shard: {k: 0, n: 2}
-            python-version-short: '3.9'
-            python-version: '3.9.14'
-          - name: 'Integration Tests (chunk 2)'
-            task: 'ci-integration'
-            shard: {k: 1, n: 2}
-            python-version-short: '3.9'
-            python-version: '3.9.14'
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            shard: {k: 0, n: 1}
-            python-version-short: '3.10'
-            python-version: '3.10.15'
-          - name: 'Integration Tests (chunk 1)'
-            task: 'ci-integration'
-            shard: {k: 0, n: 2}
-            python-version-short: '3.10'
-            python-version: '3.10.15'
-          - name: 'Integration Tests (chunk 2)'
-            task: 'ci-integration'
-            shard: {k: 1, n: 2}
-            python-version-short: '3.10'
-            python-version: '3.10.15'
-          - name: 'Pack Tests'
-            task: 'ci-packs-tests'
-            shard: {k: 0, n: 1}
-            python-version-short: '3.11'
-            python-version: '3.11.10'
-          - name: 'Integration Tests (chunk 1)'
-            task: 'ci-integration'
-            shard: {k: 0, n: 2}
-            python-version-short: '3.11'
-            python-version: '3.11.10'
-          - name: 'Integration Tests (chunk 2)'
-            task: 'ci-integration'
-            shard: {k: 1, n: 2}
-            python-version-short: '3.11'
-            python-version: '3.11.10'
     services:
       mongo:
         image: mongo:7.0
@@ -549,10 +457,10 @@ jobs:
           - 6379:6379/tcp
 
     env:
-      TASK: '${{ matrix.task }}'
-      PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
-      NODE_TOTAL: '${{ matrix.shard.n }}'
-      NODE_INDEX: '${{ matrix.shard.k }}'
+      TASK: '${{ matrix.make.task }}'
+      PYTHON_VERSION_SHORT: '${{ matrix.python.version-short }}'
+      NODE_TOTAL: '${{ matrix.make.shard.n }}'
+      NODE_INDEX: '${{ matrix.make.shard.k }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
@@ -579,10 +487,10 @@ jobs:
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
-      - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
+      - name: 'Set up Python (${{ matrix.python.version }}) and Cache Deps'
         uses: ./.github/actions/setup-python
         with:
-          python-version: '${{ matrix.python-version }}'
+          python-version: '${{ matrix.python.version }}'
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages
       - name: Install virtualenv
@@ -638,7 +546,7 @@ jobs:
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-py${{ matrix.python-version }}-pytest-${{ matrix.shard.k }}
+          name: logs-py${{ matrix.python.version }}-pytest-${{ matrix.make.shard.k }}
           path: logs.tar.gz
           retention-days: 7
 
