@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import unittest
 from oslo_config import cfg
 
@@ -48,8 +49,9 @@ class ValidationUtilsTestCase(unittest.TestCase):
         invalid_values = ["strictx", "laxx", "nonex", "invalid"]
 
         for value in invalid_values:
-            with self.assertRaisesRegex(
-                ValueError, r"Valid values are \[strict, lax, none, unset\], but found"
+            with pytest.raises(
+                ValueError,
+                match=r"Valid values are \[strict, lax, none, unset\], but found",
             ):
                 cfg.CONF.set_override(
                     group="api", name="auth_cookie_same_site", override=value
