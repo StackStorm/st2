@@ -77,7 +77,6 @@ endif
 ifndef NODE_TOTAL
 	NODE_TOTAL := 1
 endif
-NODE_INDEX_1 = $(shell echo $$(( $(NODE_INDEX) + 1 )))
 
 # NOTE: We exclude resourceregistrar DEBUG level log messages since those are very noisy (we
 # loaded resources for every tests) which makes tests hard to troubleshoot on failure due to
@@ -86,7 +85,7 @@ NODE_INDEX_1 = $(shell echo $$(( $(NODE_INDEX) + 1 )))
 # https://github.com/pytest-dev/pytest-xdist/issues/71
 #PYTEST_OPTS := -n auto --tx 2*popen//execmodel=eventlet
 # --suppress-no-test-exit-code is part of the pytest-custom_exit_code plugin
-PYTEST_OPTS := --test-group=$(NODE_INDEX_1) --test-group-count=$(NODE_TOTAL) -s --log-level=error --suppress-no-test-exit-code
+PYTEST_OPTS := --test-group=$(NODE_INDEX) --test-group-count=$(NODE_TOTAL) -s --log-level=error --suppress-no-test-exit-code
 
 ifndef PIP_OPTIONS
 	PIP_OPTIONS :=
