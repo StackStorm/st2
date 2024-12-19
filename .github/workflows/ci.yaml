@@ -239,7 +239,7 @@ jobs:
     # coverage, etc)
     # NB: disabled. See TODO above pre_job
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python.version-short }}'
+    name: '${{ matrix.make.name }} - Python ${{ matrix.python.version-short }}'
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
