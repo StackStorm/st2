@@ -11,7 +11,7 @@ on:
       # also version tags, which include bugfix releases (eg: v3.4.0)
       - v[0-9]+.[0-9]+.[0-9]+
   pull_request:
-    type: [opened, reopened, edited]
+    types: [opened, reopened, synchronize]
     branches:
       # Only for PRs targeting those branches
       - master
