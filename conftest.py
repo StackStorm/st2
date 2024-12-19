@@ -60,12 +60,14 @@ def pytest_addoption(parser):
         "--test-group-count",
         dest="test-group-count",
         type=int,
+        default=-1,
         help="The number of groups to split the tests into",
     )
     group.addoption(
         "--test-group",
         dest="test-group",
         type=int,
+        default=-1,
         help="The group of tests that should be executed",
     )
 
@@ -74,7 +76,7 @@ def pytest_collection_modifyitems(session, config, items: List[nodes.Node]):
     group_count = config.getoption("test-group-count")
     group_id = config.getoption("test-group")
 
-    if not group_count or not group_id:
+    if group_count < 1 or group_id < 0:
         return
 
     items[:] = get_group(items, group_count, group_id)
