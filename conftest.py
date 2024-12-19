@@ -37,7 +37,9 @@ def pytest_unconfigure(config):
 # https://github.com/AdamGleave/pytest-shard/blob/64610a08dac6b0511b6d51cf895d0e1040d162ad/pytest_shard/pytest_shard.py
 
 
-def get_group(items: Iterable[nodes.Node], group_count: int, group_id: int) -> Sequence[nodes.Node]:
+def get_group(
+    items: Iterable[nodes.Node], group_count: int, group_id: int
+) -> Sequence[nodes.Node]:
     """Get the items from the passed in group based on group count."""
     if not (0 <= group_id < group_count):
         raise ValueError("Invalid test-group argument")
@@ -53,29 +55,34 @@ def get_group(items: Iterable[nodes.Node], group_count: int, group_id: int) -> S
 
 
 def pytest_addoption(parser):
-    group = parser.getgroup('split your tests into evenly sized groups and run them')
-    group.addoption('--test-group-count', dest='test-group-count', type=int,
-                    help='The number of groups to split the tests into')
-    group.addoption('--test-group', dest='test-group', type=int,
-                    help='The group of tests that should be executed')
+    group = parser.getgroup("split your tests into evenly sized groups and run them")
+    group.addoption(
+        "--test-group-count",
+        dest="test-group-count",
+        type=int,
+        help="The number of groups to split the tests into",
+    )
+    group.addoption(
+        "--test-group",
+        dest="test-group",
+        type=int,
+        help="The group of tests that should be executed",
+    )
 
 
 def pytest_collection_modifyitems(session, config, items: List[nodes.Node]):
-    group_count = config.getoption('test-group-count')
-    group_id = config.getoption('test-group')
+    group_count = config.getoption("test-group-count")
+    group_id = config.getoption("test-group")
 
     if not group_count or not group_id:
         return
 
     items[:] = get_group(items, group_count, group_id)
 
-    terminal_reporter = config.pluginmanager.get_plugin('terminalreporter')
+    terminal_reporter = config.pluginmanager.get_plugin("terminalreporter")
     terminal_writer = create_terminal_writer(config)
     message = terminal_writer.markup(
-        'Running test group #{0} ({1} tests)\n'.format(
-            group_id,
-            len(items)
-        ),
-        yellow=True
+        "Running test group #{0} ({1} tests)\n".format(group_id, len(items)),
+        yellow=True,
     )
     terminal_reporter.write(message)
