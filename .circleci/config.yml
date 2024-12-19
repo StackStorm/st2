@@ -154,9 +154,11 @@ jobs:
           name: Download st2-packages repository
           command: |
             set -x
+            PIP_VERSION=$(grep ^PIP_VERSION Makefile)
             git clone ${ST2_PACKAGES_REPO} ~/st2-packages
             cd ~/st2-packages
             git checkout ${CIRCLE_BRANCH} || true
+            sed -i -e "s/^PIP_VERSION .*$/${PIP_VERSION}/" packages/st2/debian/rules
       - run:
           name: Initialize packages Build Environment
           command: |

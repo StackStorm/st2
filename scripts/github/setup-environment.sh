@@ -16,12 +16,6 @@ ENABLE_COVERAGE=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTL
 # shellcheck disable=SC2086
 echo "ENABLE_COVERAGE=${ENABLE_COVERAGE}" >> ${GITHUB_ENV}
 
-# We only run tests with "--with-timer" flag on master and not for PRs since it adds 1-2
-# minutes of overhead to each build.
-NOSE_TIME=$([ "${GITHUB_EVENT_NAME}" != "pull_request" ] && [ "${IS_NIGHTLY_BUILD}" = "no" ] && echo "yes" || echo "no")
-# shellcheck disable=SC2086
-echo "NOSE_TIME=${NOSE_TIME}" >> $GITHUB_ENV
-
 # Setup the path to the st2 repo in the CI build system
 # shellcheck disable=SC2086
 echo "ST2_CI_REPO_PATH=${GITHUB_WORKSPACE}" >> ${GITHUB_ENV}

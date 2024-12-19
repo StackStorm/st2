@@ -23,7 +23,7 @@ import six
 import json
 import binascii
 
-import unittest
+import pytest
 from unittest import TestCase
 from six.moves import range
 from cryptography.exceptions import InvalidSignature
@@ -255,7 +255,7 @@ class CryptoUtilsKeyczarCompatibilityTestCase(TestCase):
 
             self.assertEqual(decrypted, plaintext)
 
-    @unittest.skipIf(six.PY3, "keyczar doesn't work under Python 3")
+    @pytest.mark.skipif(six.PY3, reason="keyczar doesn't work under Python 3")
     def test_symmetric_encrypt_decrypt_roundtrips_1(self):
         encrypt_keys = [
             AESKey.generate(),

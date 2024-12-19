@@ -51,3 +51,5 @@ gitdb
 lockfile
 # needed by requests
 chardet
+# needed by kombu (dh_virtualenv on ubuntu focal is failing to put tzdata in the wheelhouse)
+backports.zoneinfo[tzdata]; python_version<"3.9"

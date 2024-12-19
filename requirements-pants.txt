@@ -99,11 +99,3 @@ zake
 # was in fixed-requirements.txt, but not in requirements-pants.txt
 # keyczar is used by a python2-only test.
 #python-keyczar
-
-###########
-
-# remove once we switch to pytest
-nose
-nose-timer
-nose-parallel
-rednose

@@ -27,6 +27,7 @@ import tempfile
 import requests
 import six
 import mock
+import pytest
 import unittest
 
 import st2client
@@ -516,7 +517,7 @@ class ShellTestCase(base.BaseCLITestCase):
 
         return package_metadata_path
 
-    @unittest.skipIf(True, "skipping until checks are re-enabled")
+    @pytest.mark.skipif(True, reason="skipping until checks are re-enabled")
     @mock.patch.object(
         requests, "get", mock.MagicMock(return_value=base.FakeResponse("{}", 200, "OK"))
     )
@@ -617,7 +618,7 @@ class CLITokenCachingTestCase(unittest.TestCase):
         with open(self._mock_config_path, "w") as fp:
             fp.write(MOCK_CONFIG)
 
-    @unittest.skipIf(os.getuid() == 0, reason="Test must be run as non-root user.")
+    @pytest.mark.skipif(os.getuid() == 0, reason="Test must be run as non-root user.")
     def test_get_cached_auth_token_invalid_permissions(self):
         shell = Shell()
         client = Client()
@@ -681,7 +682,7 @@ class CLITokenCachingTestCase(unittest.TestCase):
         expected_msg = "Permissions .*? for cached token file .*? are too permissive.*"
         self.assertRegex(log_message, expected_msg)
 
-    @unittest.skipIf(os.getuid() == 0, reason="Test must be run as non-root user.")
+    @pytest.mark.skipif(os.getuid() == 0, reason="Test must be run as non-root user.")
     def test_cache_auth_token_invalid_permissions(self):
         shell = Shell()
         username = "testu"

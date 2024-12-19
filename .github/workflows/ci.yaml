@@ -258,34 +258,29 @@ jobs:
         include:
           - name: 'Unit Tests (chunk 1)'
             task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
+            shard: {k: 0, n: 2}
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Unit Tests (chunk 2)'
             task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
+            shard: {k: 1, n: 2}
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Unit Tests (chunk 1)'
             task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
+            shard: {k: 0, n: 2}
             python-version-short: '3.9'
             python-version: '3.9.14'
           - name: 'Unit Tests (chunk 2)'
             task: 'ci-unit'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
+            shard: {k: 1, n: 2}
             python-version-short: '3.9'
             python-version: '3.9.14'
           # This job is slow so we only run in on a daily basis
           # - name: 'Micro Benchmarks'
           #   task: 'micro-benchmarks'
           #   python-version: '3.6.13'
-          #   nosetests_node_total: 1
-          #  nosetests_node_ index: 0
+          #   shard: {k: 0, n: 1}
     services:
       mongo:
         image: mongo:7.0
@@ -317,8 +312,8 @@ jobs:
     env:
       TASK: '${{ matrix.task }}'
       PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
-      NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
-      NODE_INDEX: '${{ matrix.nosetests_node_index }}'
+      NODE_TOTAL: '${{ matrix.shard.n }}'
+      NODE_INDEX: '${{ matrix.shard.k }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
@@ -417,38 +412,32 @@ jobs:
           # up (aka stanley user being present, etc.)
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
+            shard: {k: 0, n: 1}
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
+            shard: {k: 0, n: 2}
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Integration Tests (chunk 2)'
             task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
+            shard: {k: 1, n: 2}
             python-version-short: '3.8'
             python-version: '3.8.10'
           - name: 'Pack Tests'
             task: 'ci-packs-tests'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
+            shard: {k: 0, n: 1}
             python-version-short: '3.9'
             python-version: '3.9.14'
           - name: 'Integration Tests (chunk 1)'
             task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 0
+            shard: {k: 0, n: 2}
             python-version-short: '3.9'
             python-version: '3.9.14'
           - name: 'Integration Tests (chunk 2)'
             task: 'ci-integration'
-            nosetests_node_total: 2
-            nosetests_node_index: 1
+            shard: {k: 1, n: 2}
             python-version-short: '3.9'
             python-version: '3.9.14'
     services:
@@ -504,8 +493,8 @@ jobs:
     env:
       TASK: '${{ matrix.task }}'
       PYTHON_VERSION_SHORT: '${{ matrix.python-version-short }}'
-      NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
-      NODE_INDEX: '${{ matrix.nosetests_node_index }}'
+      NODE_TOTAL: '${{ matrix.shard.n }}'
+      NODE_INDEX: '${{ matrix.shard.k }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
@@ -591,7 +580,7 @@ jobs:
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-py${{ matrix.python-version }}-nose-${{ matrix.nosetests_node_index }}
+          name: logs-py${{ matrix.python-version }}-pytest-${{ matrix.shard.k }}
           path: logs.tar.gz
           retention-days: 7
 

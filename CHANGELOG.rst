@@ -63,6 +63,10 @@ Changed
 * Relaxed `dnspython` pinning for compatibility with python 3.10 and greater. #6265
   Contributed by @nzlosh
 
+* Switched tests from `nosetest` to `pytest`. `st2-run-pack-tests` also uses pytest.
+  So, all pack tests must be runnable by `pytest`, which may require migration. #6291
+  Contributed by @nzlosh, @FileMagic, @guzzijones, and @cognifloyd.
+
 Added
 ~~~~~
 * Continue introducing `pants <https://www.pantsbuild.org/docs>`_ to improve DX (Developer Experience)
