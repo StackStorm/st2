@@ -28,7 +28,7 @@ pyyaml==6.0.2
 pygments==2.18.0
 RandomWords
 gunicorn==23.0.0
-psutil==6.0.0
+psutil==6.1.1
 webtest==3.0.1
 # Bump to latest to meet sphinx requirements.
 rstcheck==6.2.1
