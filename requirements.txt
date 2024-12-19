@@ -9,6 +9,7 @@ RandomWords
 amqp==5.3.1
 apscheduler==3.11.0
 argcomplete==3.5.2
+backports.zoneinfo[tzdata]; python_version<"3.9"
 bcrypt==4.2.1
 cffi==1.17.1
 chardet==5.2.0
