@@ -83,6 +83,41 @@ nfpm_deb_package(
     },
     section="python",
     priority="optional",
+    # package relationships
+    predepends=[
+        "dpkg (>= 1.16.16)",
+        # "${pre:Depends}",
+        "python3 (>= 3.8)"
+        # "${misc:Pre-Depends}",
+        "adduser",
+    ],
+    depends=[
+        "sudo",
+        "adduser",
+        "libssl-dev",
+        "libffi-dev",
+        "git",
+        "libpam0g",
+        "openssh-server",
+        "openssh-client",
+        "bash",
+        "netbase",
+        # "${Depends}",
+        "python3-distutils",
+        "python3-dev",
+        # We use nFPM, not debhelpers, so these do not make sense:
+        # "${shlibs:Depends}",  # We explicitly disabled the analogous RPM feature
+        "libc6 (>= 2.29)",
+        "libexpat1 (>= 2.1~beta3)",
+        "libgcc-s1 (>= 4.2)",
+        "libldap-2.4-2 (>= 2.4.11)",
+        "libstdc++6 (>= 5.2)",
+        "zlib1g (>= 1:1.2.0)",
+        # "${misc:Depends}",
+    ],
+    conflicts=[
+        "st2common",
+    ],
     **_common_pkg_metadata,
 )
 
@@ -93,5 +128,77 @@ nfpm_rpm_package(
     # group="System/Management",  # was only useful for EL 5 and earlier
     compression="zstd:default",  # EL 9
     # compression="xz",  # EL 8
+    # package relationships
+    depends=[  # aka Requires
+        "openssl-devel",
+        "libffi-devel",
+        "git",
+        "pam",
+        "openssh-server",
+        "openssh-clients",
+        "bash",
+        "setup",
+        # TODO: parametrize
+        "python3-devel",  # EL 8
+        "python38-devel",  # EL 9
+        # These are in the native built rpms (this list is deduplicated)
+        # "/bin/bash",
+        # "/bin/sh",
+        # "/opt/stackstorm/st2/bin/python",
+        # "/usr/bin/env",
+        # "config(st2) = 3.9dev-80",  # provided by this package
+        # "ld-linux-x86-64.so.2()(64bit)",
+        # "ld-linux-x86-64.so.2(GLIBC_2.3)(64bit)",
+        # "libc.so.6()(64bit)",
+        # "libc.so.6(GLIBC_2.12)(64bit)",
+        # "libc.so.6(GLIBC_2.14)(64bit)",
+        # "libc.so.6(GLIBC_2.17)(64bit)",
+        # "libc.so.6(GLIBC_2.18)(64bit)",
+        # "libc.so.6(GLIBC_2.2.5)(64bit)",
+        # "libc.so.6(GLIBC_2.25)(64bit)",
+        # "libc.so.6(GLIBC_2.28)(64bit)",
+        # "libc.so.6(GLIBC_2.3)(64bit)",
+        # "libc.so.6(GLIBC_2.3.4)(64bit)",
+        # "libc.so.6(GLIBC_2.4)(64bit)",
+        # "libc.so.6(GLIBC_2.6)(64bit)",
+        # "libc.so.6(GLIBC_2.7)(64bit)",
+        # "libdl.so.2()(64bit)",
+        # "libdl.so.2(GLIBC_2.2.5)(64bit)",
+        # "libffi-devel",
+        # "libgcc_s.so.1()(64bit)",
+        # "libgcc_s.so.1(GCC_3.0)(64bit)",
+        # "libgcc_s.so.1(GCC_3.3)(64bit)",
+        # "libgcc_s.so.1(GCC_4.2.0)(64bit)",
+        # "liblber.so.2()(64bit)",
+        # "liblber.so.2(OPENLDAP_2.200)(64bit)",
+        # "libldap.so.2()(64bit)",
+        # "libldap.so.2(OPENLDAP_2.200)(64bit)",
+        # "libm.so.6()(64bit)",
+        # "libpthread.so.0()(64bit)",
+        # "libpthread.so.0(GLIBC_2.2.5)(64bit)",
+        # "libpthread.so.0(GLIBC_2.3.2)(64bit)",
+        # "libstdc++.so.6()(64bit)",
+        # "libstdc++.so.6(CXXABI_1.3)(64bit)",
+        # "libstdc++.so.6(CXXABI_1.3.7)(64bit)",
+        # "libstdc++.so.6(CXXABI_1.3.9)(64bit)",
+        # "libstdc++.so.6(GLIBCXX_3.4)(64bit)",
+        # "libstdc++.so.6(GLIBCXX_3.4.11)(64bit)",
+        # "libstdc++.so.6(GLIBCXX_3.4.21)(64bit)",
+        # "rpmlib(CompressedFileNames) = 3.0.4-1",
+        # "rpmlib(FileDigests) = 4.6.0-1",
+        # "rpmlib(PayloadFilesHavePrefix) = 4.0-1",
+        # "rpmlib(PayloadIsZstd) = 5.4.18-1",
+        # "rtld(GNU_HASH)",
+    ],
+    conflicts=[
+        "st2common",
+    ],
+    # TODO: Does nFPM auto generate any provides entries?
+    # provides=[
+    #     # These are in the native built rpms
+    #     "config(st2)",
+    #     "st2",
+    #     "st2(x86-64)",
+    # ],
     **_common_pkg_metadata,
 )
