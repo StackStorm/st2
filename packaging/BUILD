@@ -74,9 +74,19 @@ _maintainer = "StackStorm Engineering <opsadmin@stackstorm.com>"  # TODO: update
 nfpm_deb_package(
     name="st2.deb",
     dependencies=[
+        "./deb/scripts",
         "./deb/systemd:services",
         "./common/systemd:generators",
     ],
+    scripts=dict(
+        preinstall="deb/scripts/pre-install.sh",
+        postinstall="deb/scripts/post-install.sh",
+        preremove="deb/scripts/pre-remove.sh",
+        postremove="deb/scripts/post-remove.sh",
+        # config="",
+        # templates="",
+        # rules="",
+    ),
     maintainer=_maintainer,
     fields={
         # https://www.debian.org/doc/debian-policy/ch-controlfields.html#source
@@ -128,9 +138,19 @@ nfpm_deb_package(
 nfpm_rpm_package(
     name="st2.rpm",
     dependencies=[
+        "./rpm/scripts",
         "./rpm/systemd:services",
         "./common/systemd:generators",
     ],
+    scripts=dict(
+        preinstall="rpm/scripts/pre-install.sh",
+        postinstall="rpm/scripts/post-install.sh",
+        preremove="rpm/scripts/pre-remove.sh",
+        postremove="rpm/scripts/post-remove.sh",
+        # pretrans="",
+        # posttrans="",
+        # verify="",
+    ),
     vendor="The StackStorm Project",
     packager=_maintainer,
     # group="System/Management",  # was only useful for EL 5 and earlier
