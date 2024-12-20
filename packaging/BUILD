@@ -34,6 +34,8 @@ nfpm_deb_package(
     name="st2.deb",
     dependencies=[
         "./deb/scripts",
+        "./deb/systemd:services",
+        "./common/systemd:generators",
     ],
     scripts=dict(
         preinstall="deb/scripts/pre-install.sh",
@@ -62,6 +64,8 @@ nfpm_rpm_package(
     name="st2.rpm",
     dependencies=[
         "./rpm/scripts",
+        "./rpm/systemd:services",
+        "./common/systemd:generators",
     ],
     scripts=dict(
         preinstall="rpm/scripts/pre-install.sh",
