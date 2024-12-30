@@ -27,6 +27,9 @@ backend_packages = [
   "pants.backend.shell",
   "pants.backend.shell.lint.shellcheck",
 
+  # packaging
+  "pants.backend.experimental.nfpm",
+
   # internal plugins in pants-plugins/
   "pants.backend.plugin_development",
   "api_spec",
