@@ -106,7 +106,7 @@ root_patterns = [
 # DEFAULT has values that we can reuse/interpolate below
 [DEFAULT]
 # This is the range of python versions that we support.
-# On update, make sure to also update parametrizations in packaging/BUILD.
+# On update, make sure to also update parametrizations in packaging/BUILD*.
 st2_interpreter_constraints = "CPython>=3.8.1,<3.12"
 
 # This should match the pants interpreter_constraints:
