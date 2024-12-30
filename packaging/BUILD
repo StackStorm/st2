@@ -73,7 +73,8 @@ _common_pkg_metadata = dict(
     package_name="st2",
     description=_pkg_description,
     homepage="https://stackstorm.com",
-    license="Apache-2.0",
+    # https://jfearn.fedorapeople.org/en-US/RPM/4/html-single/RPM_Guide/index.html#idp3030720
+    license="Apache-2.0",  # TODO: nFPM is putting this under Copyright tag instead of License
     version="",  # TODO: where does version come from?
     # arch used to be "any", but that was not correct as the venv has compiled packages.
     arch="amd64",  # TODO: parametrize this?
@@ -111,7 +112,7 @@ nfpm_deb_package(
     predepends=[
         "dpkg (>= 1.16.16)",
         # "${pre:Depends}",
-        "python3 (>= 3.8)"
+        "python3 (>= 3.8)",
         # "${misc:Pre-Depends}",
         "adduser",
     ],
@@ -131,12 +132,12 @@ nfpm_deb_package(
         "python3-dev",
         # We use nFPM, not debhelpers, so these do not make sense:
         # "${shlibs:Depends}",  # We explicitly disabled the analogous RPM feature
-        "libc6 (>= 2.29)",
-        "libexpat1 (>= 2.1~beta3)",
-        "libgcc-s1 (>= 4.2)",
-        "libldap-2.4-2 (>= 2.4.11)",
-        "libstdc++6 (>= 5.2)",
-        "zlib1g (>= 1:1.2.0)",
+        # "libc6 (>= 2.29)",
+        # "libexpat1 (>= 2.1~beta3)",
+        # "libgcc-s1 (>= 4.2)",
+        # "libldap-2.4-2 (>= 2.4.11)",
+        # "libstdc++6 (>= 5.2)",
+        # "zlib1g (>= 1:1.2.0)",
         # "${misc:Depends}",
     ],
     conflicts=[
