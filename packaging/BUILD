@@ -1,8 +1,15 @@
+python_sources()
+
 # We use st2-py*.pex to quickly build a venv (like /opt/stackstorm/st2)
 # that includes all requirements and our wheels.
 pex_binary(
     name="st2.pex",
+    extra_build_args=[
+        "--preamble-file",
+        f"source_files/{build_file_dir()}/pex_preamble.py",  # preamble gets executed before the pex bootstrap
+    ],
     dependencies=[
+        "./pex_preamble.py",
         # this should depend on all python_distribution targets
         "//st2actions",
         "//st2api",
@@ -23,8 +30,11 @@ pex_binary(
         "//contrib/runners/remote_runner",
         "//contrib/runners/winrm_runner",
     ],
+    execution_mode="venv",
+    layout="zipapp",  # zipapp creates a single file, loose and packed create directories
+    sh_boot=True,  # faster startup time (only relevant for unpacking the pex)
     include_tools=True,  # include pex.tools to populate a venv from the pex
-    include_sources=False,  # always includes generated wheels, so transitive sources not needed
+    include_sources=True,  # include pex_preamble.py (already includes generated wheels, skipping wheel-owned sources)
     venv_hermetic_scripts=False,  # do not add -sE to script shebangs
     # 1 parametrize group per python minor version in [DEFAULT].st2_interpreter_constraints in pants.toml
     **parametrize(
