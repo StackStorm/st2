@@ -3,35 +3,6 @@
 # - https://www.pantsbuild.org/stable/reference/targets/nfpm_rpm_package
 # - arch: https://nfpm.goreleaser.com/goarch-to-pkg/
 
-nfpm_content_file(
-    name="st2_venv",
-    description="Pex file that system packages can use to generate /opt/stackstorm/st2",
-    file_owner="root",
-    file_group="root",
-    file_mode="rwxr-x---",
-    dst="/opt/stackstorm/install/st2.pex",  # or st2-py3*.pex
-    **parametrize(
-        "py38",
-        dependencies=[":st2.pex@parametrize=py38"],
-        src="st2-py38.pex",
-    ),
-    **parametrize(
-        "py39",
-        dependencies=[":st2.pex@parametrize=py39"],
-        src="st2-py39.pex",
-    ),
-    **parametrize(
-        "py310",
-        dependencies=[":st2.pex@parametrize=py310"],
-        src="st2-py310.pex",
-    ),
-    **parametrize(
-        "py311",
-        dependencies=[":st2.pex@parametrize=py311"],
-        src="st2-py311.pex",
-    ),
-)
-
 _pkg_description = """
 StackStorm Event-driven automation
 Package is full standalone st2 installation including all components
