@@ -5,15 +5,12 @@ WORKERS="${WORKERS:-10}"
 
 # Choose init system to perform actions with a service.
 choose_sysinit() {
-  local service="$1" svinit="sysv"
+  local service="$1" svinit="unknown"
   if [ -d /run/systemd/system ]; then
     svinit=systemd
   else
-    if [ ! -x /etc/init.d/${service} ]; then
-      >&2 echo "Supported init systems: systemd and sysv"
-      >&2 echo "/etc/init.d/${service} not found or disabled"
-      exit 99
-    fi
+    >&2 echo "Supported init systems: ONLY systemd"
+    exit 99
   fi
   echo $svinit
 }
@@ -31,10 +28,6 @@ spawn_workers() {
     systemd)
       echo "$seq" | xargs -I{} /bin/systemctl $action \
           st2actionrunner@{}
-      ;;
-    sysv)
-      echo "$seq" | xargs -I{} /bin/sh -c \
-          "WORKERID={} /etc/init.d/st2actionrunner-worker $action"
       ;;
   esac
   # return 1 in case if xargs failed any invoked commands.
