@@ -227,3 +227,29 @@ def st2_logging_conf_resources(**kwargs):
     deps = list(deps) + list(_st2common_logging_deps)
     kwargs["dependencies"] = tuple(deps)
     resources(**kwargs)  # noqa: F821
+
+
+def st2_logging_conf_for_nfpm(**kwargs):
+    deps = kwargs.pop("dependencies") or []
+
+    shell_command(
+        name="package_logging_conf",
+        execution_dependencies=deps,
+        # TODO: this will fail if using MacOS.
+        command="""sed -i -r "/args\\s*=\\s*/s%logs%/var/log/st2%g" logging.*conf;
+        sed -i "/\\[logger_root\\]/,/\\[.*\\]\\|\\s*$$/ {s/level=DEBUG/level=INFO/}" logging.*conf;
+        sed -i "/\\[logger_root\\]/,/\\[.*\\]\\|\\s*$$/ {s/level=DEBUG/level=INFO/}" syslog.*conf;
+        """,
+        tools=["sed"],
+        output_files=["*.conf"],
+    )
+
+    nfpm_content_files(
+        name="packaged_conf_files",
+        dependencies=[":package_logging_conf"],
+        file_owner="root",
+        file_group="root",
+        file_mode="rw-r--r--",
+        content_type="config|noreplace"
+        **kwargs,
+    )
