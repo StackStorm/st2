@@ -57,3 +57,19 @@ file(
     name="st2_package_conf",
     source="st2.package.conf",
 )
+
+nfpm_content_files(
+    name="packaged_conf_files",
+    dependencies=[
+        ":st2_package_conf",
+        ":logrotate",
+    ],
+    files=[
+        ("st2.package.conf", "/etc/st2/st2.conf"),
+        ("logrotate.conf", "/etc/logrotate.d/st2"),
+    ],
+    content_type="config|noreplace",
+    file_owner="root",
+    file_group="root",
+    file_mode="rw-r--r--",
+)
