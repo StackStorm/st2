@@ -1,0 +1,18 @@
+nfpm_content_dirs(
+	name="dirs",
+	dirs=[
+		"/etc/st2",
+		"/opt/stackstorm/configs",
+		"/opt/stackstorm/exports",
+		"/opt/stackstorm/overrides",
+		"/opt/stackstorm/packs",
+		"/opt/stackstorm/st2",
+		"/opt/stackstorm/virtualenvs",
+		"/usr/share/doc/st2",
+		"/var/log/st2",
+		"/var/run/st2",
+	],
+	file_owner="root",
+    file_group="root",
+    file_mode="rwxr-xr-x",
+)

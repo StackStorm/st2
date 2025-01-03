@@ -36,6 +36,7 @@ nfpm_deb_package(
         "./deb/scripts",
         "./deb/systemd:services",
         "./common/systemd:generators",
+        "./common:dirs",
     ],
     scripts=dict(
         preinstall="deb/scripts/pre-install.sh",
@@ -66,6 +67,7 @@ nfpm_rpm_package(
         "./rpm/scripts",
         "./rpm/systemd:services",
         "./common/systemd:generators",
+        "./common:dirs",
     ],
     scripts=dict(
         preinstall="rpm/scripts/pre-install.sh",
