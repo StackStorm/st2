@@ -36,6 +36,7 @@ from pack_metadata.target_types import PackContentResourceTypes
         ((PackContentResourceTypes.pack_config_schema,), 4, "config.schema.yaml"),
         ((PackContentResourceTypes.pack_config_example,), 4, "config.yaml.example"),
         ((PackContentResourceTypes.pack_icon,), 4, "icon.png"),
+        ((PackContentResourceTypes.pack_doc,), 1, ".md"),
         ((PackContentResourceTypes.action_metadata,), 5, ".yaml"),
         ((PackContentResourceTypes.sensor_metadata,), 1, ".yaml"),
         ((PackContentResourceTypes.rule_metadata,), 0, ""),
