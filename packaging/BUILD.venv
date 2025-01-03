@@ -2,6 +2,16 @@ python_sources()
 
 # We use st2-py*.pex to quickly build a venv (like /opt/stackstorm/st2)
 # that includes all requirements and our wheels.
+
+
+def _pex_py3(minor: str):
+    return parametrize(
+        f"py3{minor}",
+        output_path=f"${{spec_path_normalized}}/st2-py3{minor}.pex",
+        interpreter_constraints=[f"CPython==3.{minor}.*"],
+    )
+
+
 pex_binary(
     name="st2.pex",
     extra_build_args=[
@@ -37,24 +47,8 @@ pex_binary(
     include_sources=True,  # include pex_preamble.py (already includes generated wheels, skipping wheel-owned sources)
     venv_hermetic_scripts=False,  # do not add -sE to script shebangs
     # 1 parametrize group per python minor version in [DEFAULT].st2_interpreter_constraints in pants.toml
-    **parametrize(
-        "py38",
-        output_path="st2-py38.pex",
-        interpreter_constraints=["CPython==3.8.*"],
-    ),
-    **parametrize(
-        "py39",
-        output_path="st2-py39.pex",
-        interpreter_constraints=["CPython==3.9.*"],
-    ),
-    **parametrize(
-        "py310",
-        output_path="st2-py310.pex",
-        interpreter_constraints=["CPython==3.10.*"],
-    ),
-    **parametrize(
-        "py311",
-        output_path="st2-py311.pex",
-        interpreter_constraints=["CPython==3.11.*"],
-    ),
+    **_pex_py3("8"),
+    **_pex_py3("9"),
+    **_pex_py3("10"),
+    **_pex_py3("11"),
 )
