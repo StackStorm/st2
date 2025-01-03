@@ -58,17 +58,32 @@ file(
     source="st2.package.conf",
 )
 
+shell_command(
+    name="htpasswd",
+    description="An empty htpasswd file for st2-auth-backend-flat-file",
+    command="touch htpasswd",
+    tools=["touch"],
+    output_files=["htpasswd"]
+)
+
 nfpm_content_files(
     name="packaged_conf_files",
     dependencies=[
         ":st2_package_conf",
         ":logrotate",
+        ":htpasswd",
     ],
     files=[
         ("st2.package.conf", "/etc/st2/st2.conf"),
         ("logrotate.conf", "/etc/logrotate.d/st2"),
+        ("htpasswd", "/etc/st2/htpasswd"),
     ],
     file_owner="root",
     file_group="root",
     file_mode="rw-r--r--",
+    overrides={
+        "/etc/st2/htpasswd": dict(
+            file_mode="rw-r-----"
+        ),
+    },
 )
