@@ -28,6 +28,7 @@ backend_packages = [
   "pants.backend.shell.lint.shellcheck",
 
   # packaging
+  "pants.backend.experimental.makeself",
   "pants.backend.experimental.nfpm",
 
   # internal plugins in pants-plugins/
@@ -46,8 +47,6 @@ pants_ignore.add = [
   "test_dist_utils.py",
   "setup.py",
   # keep tailor from using legacy requirements files (not for pants)
-  "contrib/examples/requirements.txt",
-  "contrib/hello_st2/requirements.txt",
   "contrib/runners/*/in-requirements.txt",
   "contrib/runners/*/requirements.txt",
   "st2*/in-requirements.txt",

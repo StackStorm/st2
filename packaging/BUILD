@@ -30,6 +30,8 @@ nfpm_deb_package(
         "./deb/systemd:services",
         "./common/systemd:generators",
         ":st2_venv@parametrize=py38",
+        ":default_packs",
+        ":extra_packs",  # TODO: Should we include these even though they won't be installed?
     ],
     scripts=dict(
         preinstall="deb/scripts/pre-install.sh",
@@ -95,6 +97,8 @@ nfpm_rpm_package(
         "./rpm/systemd:services",
         "./common/systemd:generators",
         ":st2_venv@parametrize=py38",
+        ":default_packs",
+        ":extra_packs",  # TODO: Should we include these even though they won't be installed?
     ],
     scripts=dict(
         preinstall="rpm/scripts/pre-install.sh",
