@@ -100,14 +100,12 @@ nfpm_content_files(
         #     file_mode="rw-r-----"
         # ),
         "/etc/st2/htpasswd": dict(
-            # file_owner=_svc_user,
-            # file_group=_svc_user,
+            file_owner=ST2_SVC_USER,
+            file_group=ST2_SVC_USER,
             file_mode="rw-------"
         ),
         "/usr/share/doc/st2/conf/nginx/st2.conf": dict(
             content_type="",
-            # file_owner=_svc_user,
-            # file_group=_svc_user,
         ),
     },
 )

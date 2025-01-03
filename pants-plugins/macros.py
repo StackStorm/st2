@@ -116,6 +116,10 @@ def st2_component_python_distribution(**kwargs):
 # https://github.com/pex-tool/pex/blob/v2.1.137/pex/common.py#L39-L45
 MTIME = "1980-01-01T00:00:00Z"
 
+# These are used for system packages (rpm/deb)
+ST2_PACKS_GROUP = "st2packs"
+ST2_SVC_USER = "st2"
+
 
 def st2_pack_archive(**kwargs):
     """Create a makeself_archive using files from the given dependencies.
@@ -158,7 +162,7 @@ def st2_pack_archive(**kwargs):
             f"/opt/stackstorm/packs/{pack_name}",
             # reproducibility flags:
             "--tar-extra",  # extra tar args: '--arg=value' (equals delimited) space separated
-            f"--owner=root:0 --group=root:0 --mtime={MTIME} --exclude=LICENSE",  # TODO: include LICENSE file?
+            f"--owner=root --group={ST2_PACKS_GROUP} --mtime={MTIME} --exclude=LICENSE",  # TODO: include LICENSE file?
             "--packaging-date",
             MTIME,  # TODO: maybe use release date instead of an epoch date?
             # compression/encryption flags:
@@ -178,7 +182,7 @@ def st2_pack_archive(**kwargs):
         src=f"packaging/packs/{pack_name}.tgz.run",
         dst=f"/opt/stackstorm/install/packs/{pack_name}.tgz.run",
         file_owner="root",
-        file_group="root",
+        file_group=ST2_PACKS_GROUP,
         file_mode="rwxr-x---",
     )
 
