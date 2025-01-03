@@ -112,6 +112,67 @@ def st2_component_python_distribution(**kwargs):
     python_distribution(**kwargs)  # noqa: F821
 
 
+# Default copied from PEX (which uses zipfile standard MS-DOS epoch).
+# https://github.com/pex-tool/pex/blob/v2.1.137/pex/common.py#L39-L45
+MTIME = "1980-01-01T00:00:00Z"
+
+
+def st2_pack_archive(**kwargs):
+    """Create a makeself_archive using files from the given dependencies.
+
+    This macro should be used in the same BUILD file as the pack_metadata target.
+    """
+    build_file_path = build_file_dir()  # noqa: F821
+    if "st2tests" == build_file_path.parts[0]:
+        # avoid creating duplicate archive for the core pack
+        # which is also located under st2tests/st2tests/fixtures/packs
+        return
+    pack_name = build_file_path.name  # noqa: F821
+
+    dependencies = kwargs.pop("dependencies", [])
+    if ":metadata" not in dependencies:
+        dependencies = [":metadata", *dependencies]
+
+    # This is basically a "wrap_as_files" target (which does not exist yet)
+    shell_command(  # noqa: F821
+        name="files",
+        execution_dependencies=dependencies,
+        command="true",
+        output_directories=["."],
+        root_output_directory=".",
+    )
+
+    makeself_archive(  # noqa: F821
+        name="archive",
+        label=f"{pack_name} StackStorm pack",
+        files=[
+            ":files",  # archive contents
+            "//:license",  # LICENSE file included in archive header, excluded from contents
+        ],
+        # startup_script=["echo", "pack-archive"],
+        args=(
+            # Makeself expects '--arg value' (space) not '--arg=value' (equals) for cmdline
+            "--license",
+            "__archive/LICENSE",
+            "--target",
+            f"/opt/stackstorm/packs/{pack_name}",
+            # reproducibility flags:
+            "--tar-extra",  # extra tar args: '--arg=value' (equals delimited) space separated
+            f"--owner=root:0 --group=root:0 --mtime={MTIME} --exclude=LICENSE",  # TODO: include LICENSE file?
+            "--packaging-date",
+            MTIME,  # TODO: maybe use release date instead of an epoch date?
+            # compression/encryption flags:
+            # "--gzip",  # gzip is the default compressor
+            # "--complevel", "9",  # 9 is the default compression level
+            # "--gpg-encrypt",  # gpg (encrypt only) handles compression if selected
+            # "--gpg-asymmetric-encrypt-sign",  # gpg (encrypt and sign) handles compression if selected
+            # "--gpg-extra", "...",  # if using gpg, pass extra gpg args here
+            # "--nocomp",  # maybe use no compression to use rpm/deb's compression instead of gzip (default)?
+        ),
+        output_path=f"packaging/packs/{pack_name}.tgz.run",
+    )
+
+
 def st2_shell_sources_and_resources(**kwargs):
     """This creates a shell_sources and a resources target.
 
