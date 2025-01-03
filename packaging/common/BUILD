@@ -1,6 +1,3 @@
-_packs_group = "st2packs"
-_st2_user = "st2"
-
 nfpm_content_dirs(
     name="root_dirs",
     dirs=[
@@ -10,8 +7,6 @@ nfpm_content_dirs(
         "/opt/stackstorm",
         "/opt/stackstorm/st2",
         "/usr/share/doc/st2",
-        "/var/log/st2",
-        "/var/run/st2",
     ],
     file_owner="root",
     file_group="root",
@@ -26,7 +21,7 @@ nfpm_content_dirs(
         "/usr/share/doc/st2/examples",
     ],
     file_owner="root",
-    file_group=_packs_group,
+    file_group=ST2_PACKS_GROUP,
     file_mode="rwxrwxr-x",
 )
 
@@ -36,8 +31,10 @@ nfpm_content_dirs(
         "/opt/stackstorm/configs",
         "/opt/stackstorm/exports",
         "/opt/stackstorm/overrides",
+        "/var/log/st2",
+        "/var/run/st2",
     ],
-    file_owner=_st2_user,
+    file_owner=ST2_SVC_USER,
     file_group="root",
     file_mode="rwxr-xr-x",
 )
