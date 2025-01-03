@@ -50,3 +50,27 @@ target(
         ":st2_user_dirs",
     ],
 )
+
+nfpm_content_symlinks(
+    name="symlinks",
+    symlinks=[
+        # the symlink src will be made available during post-install script
+        (f"/opt/stackstorm/st2/bin/{cmd}", f"/usr/bin/{cmd}")
+        for cmd in (
+            "st2",
+            "st2-trigger-refire",
+            "st2-rule-tester",
+            "st2-run-pack-tests",
+            "st2-register-content",
+            "st2-apply-rbac-definitions",
+            "st2-bootstrap-rmq",
+            "st2-generate-symmetric-crypto-key",
+            "st2-self-check",
+            "st2-track-result",
+            "st2-validate-pack-config",
+            "st2ctl",
+        )
+    ],
+    file_owner="root",
+    file_group="root",
+)
