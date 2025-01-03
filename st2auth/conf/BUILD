@@ -29,3 +29,20 @@ st2_logging_conf_file(
     name="logging_syslog",
     source="syslog.conf",
 )
+
+nfpm_content_files(
+    name="packaged_conf_files",
+    dependencies=[
+        ":logging",
+        ":logging_gunicorn",
+        ":logging_syslog",
+    ],
+    files=[
+        ("logging.conf", "/etc/st2/logging.auth.conf"),
+        ("logging.gunicorn.conf", "/etc/st2/logging.auth.gunicorn.conf"),
+        ("syslog.conf", "/etc/st2/syslog.auth.conf"),
+    ],
+    file_owner="root",
+    file_group="root",
+    file_mode="rw-r--r--",
+)
