@@ -80,12 +80,20 @@ nfpm_content_files(
         ("nginx/st2.conf", "/usr/share/doc/st2/conf/nginx/st2.conf"),
         ("htpasswd", "/etc/st2/htpasswd"),
     ],
+    content_type="config|noreplace",
     file_owner="root",
     file_group="root",
     file_mode="rw-r--r--",
     overrides={
         "/etc/st2/htpasswd": dict(
-            file_mode="rw-r-----"
+            # file_owner=_svc_user,
+            # file_group=_svc_user,
+            file_mode="rw-------"
+        ),
+        "/usr/share/doc/st2/conf/nginx/st2.conf": dict(
+            content_type="",
+            # file_owner=_svc_user,
+            # file_group=_svc_user,
         ),
     },
 )
