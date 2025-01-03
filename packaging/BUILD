@@ -29,6 +29,7 @@ nfpm_deb_package(
         "./deb/scripts",
         "./deb/systemd:services",
         "./common/systemd:generators",
+        "./common:dirs",
         ":st2_venv@parametrize=py38",
         ":default_packs",
         ":extra_packs",  # TODO: Should we include these even though they won't be installed?
@@ -96,6 +97,7 @@ nfpm_rpm_package(
         "./rpm/scripts",
         "./rpm/systemd:services",
         "./common/systemd:generators",
+        "./common:dirs",
         ":st2_venv@parametrize=py38",
         ":default_packs",
         ":extra_packs",  # TODO: Should we include these even though they won't be installed?
