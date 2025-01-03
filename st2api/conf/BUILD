@@ -20,8 +20,7 @@ st2_logging_conf_file(
     source="syslog.conf",
 )
 
-nfpm_content_files(
-    name="packaged_conf_files",
+st2_logging_conf_for_nfpm(
     dependencies=[
         ":logging",
         ":logging_gunicorn",
@@ -32,7 +31,4 @@ nfpm_content_files(
         ("logging.gunicorn.conf", "/etc/st2/logging.api.gunicorn.conf"),
         ("syslog.conf", "/etc/st2/syslog.api.conf"),
     ],
-    file_owner="root",
-    file_group="root",
-    file_mode="rw-r--r--",
 )

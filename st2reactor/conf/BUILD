@@ -14,8 +14,7 @@ st2_logging_conf_files(
     sources=["syslog*.conf"],
 )
 
-nfpm_content_files(
-    name="packaged_conf_files",
+st2_logging_conf_for_nfpm(
     dependencies=[
         ":logging",
         ":logging_syslog",
@@ -30,7 +29,4 @@ nfpm_content_files(
         ("logging.timersengine.conf", "/etc/st2/logging.timersengine.conf"),
         ("syslog.timersengine.conf", "/etc/st2/syslog.timersengine.conf"),
     ],
-    file_owner="root",
-    file_group="root",
-    file_mode="rw-r--r--",
 )
