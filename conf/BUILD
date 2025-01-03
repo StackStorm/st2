@@ -71,11 +71,13 @@ nfpm_content_files(
     dependencies=[
         ":st2_package_conf",
         ":logrotate",
+        ":nginx_sample_config",
         ":htpasswd",
     ],
     files=[
         ("st2.package.conf", "/etc/st2/st2.conf"),
         ("logrotate.conf", "/etc/logrotate.d/st2"),
+        ("nginx/st2.conf", "/usr/share/doc/st2/conf/nginx/st2.conf"),
         ("htpasswd", "/etc/st2/htpasswd"),
     ],
     file_owner="root",
