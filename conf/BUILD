@@ -94,6 +94,10 @@ nfpm_content_files(
     file_group="root",
     file_mode="rw-r--r--",
     overrides={
+        # TODO: should st2.conf really be readable for all users?
+        # "/etc/st2/st2.conf": dict(
+        #     file_mode="rw-r-----"
+        # ),
         "/etc/st2/htpasswd": dict(
             file_owner=ST2_SVC_USER,
             file_group=ST2_SVC_USER,
