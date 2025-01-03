@@ -66,10 +66,20 @@ shell_command(
     output_files=["htpasswd"]
 )
 
+shell_command(
+    name="packaged_st2_conf",
+    execution_dependencies=[":st2_package_conf"],
+    # TODO: how to add the if statement
+    # if REDHAT && [[ `$(PYTHON_ALT_BINARY) /root/scripts/platform_major_version.py` = 8 ]]
+    command="""sed -i -r 's/virtualenv_opts\\s*=.*/virtualenv_opts =/' st2.package.conf""",
+    tools=["sed"],
+    output_files=["st2.package.conf"]
+)
+
 nfpm_content_files(
     name="packaged_conf_files",
     dependencies=[
-        ":st2_package_conf",
+        ":packaged_st2_conf",
         ":logrotate",
         ":nginx_sample_config",
         ":htpasswd",
