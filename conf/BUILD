@@ -94,6 +94,11 @@ nfpm_content_files(
     file_group="root",
     file_mode="rw-r--r--",
     overrides={
+        "/etc/st2/st2.conf": dict(
+            # st2.conf typically contains secrets, so it is not world readable.
+            file_mode="rw-r-----",  # NOTE: Packaging used to install this world readable.
+            # TODO: Maybe set file_group=ST2_SVC_USER if a non-root process needs access.
+        ),
         "/etc/st2/htpasswd": dict(
             file_owner=ST2_SVC_USER,
             file_group=ST2_SVC_USER,
