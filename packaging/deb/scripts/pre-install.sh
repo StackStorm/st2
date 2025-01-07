@@ -16,7 +16,6 @@ set -e
 PACKS_GROUP=st2packs
 SYS_USER=stanley
 ST2_USER=st2
-ST2_CONFPATH="/etc/st2/st2.conf"
 ST2_UPGRADESTAMP="/tmp/.stamp-stackstorm-st2-deb-package"
 
 ## Permissions of directories which has to be reset on upgrade
@@ -46,18 +45,6 @@ create_users() {
     adduser --group $SYS_USER
     adduser --disabled-password --gecos "" --ingroup $SYS_USER $SYS_USER
   fi
-}
-
-## [NOT USED!] Get current system user from the st2.conf
-config_sysuser() {
-  # exit hooked
-  return 0
-  local sysuser=
-  if [ -f $ST2_CONFPATH ]; then
-    sysuser=$(cat $ST2_CONFPATH |
-      sed -n -e '/\[system_user\]/,/\[.*\]\|\$/ { /\[.*\]/d; /user\s*=/ { s/\s*user\s*=\s*//; p } }')
-  fi
-  echo $sysuser
 }
 
 ## Update logrotate configuration
