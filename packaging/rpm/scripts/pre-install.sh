@@ -4,17 +4,6 @@ PACKS_GROUP=st2packs
 SYS_USER=stanley
 ST2_USER=st2
 
-## Permissions of directories which has to be reset on upgrade
-RESET_PERMS=$(cat <<EHD | sed 's/\s\+/ /g'
-ug+rw       root:_packsgroup /opt/stackstorm/packs
-ug+rw       root:_packsgroup /usr/share/doc/st2/examples
-ug+rw       root:_packsgroup /opt/stackstorm/virtualenvs
-u=rwX,go=rX _st2user:root    /opt/stackstorm/configs
-u=rwX,go=rX _st2user:root    /opt/stackstorm/exports
-u=rwX,go=rX _st2user:root    /opt/stackstorm/overrides
-EHD
-)
-
 ## Create stackstorm users and groups (differs from debian)
 create_users() {
   # create st2 user (services user)
@@ -31,30 +20,4 @@ create_users() {
     adduser --user-group $SYS_USER
 }
 
-## Fix directories permissions on upgrade (different across maint scripts!)
-#  NB! USED FOR COMPATIBILITY ON UPGRADE FROM PREVIOUS VERSIONS OF PACKAGES.
-#  NB! In future package releases reseting permissions SHOULD BE REMOVED.
-#
-set_permissions() {
-  local fileperms="$1" mode= ownership= path= current_ownership= user= group=
-
-  echo "$fileperms" | sed -e "s/_packsgroup/$PACKS_GROUP/g" -e "s/_st2user/$ST2_USER/g" |
-  while read mode ownership path; do
-    user=$(echo $ownership | cut -f1 -d:)
-    group=$(echo $ownership | cut -f2 -d:)
-    # set top level permissions whether it's a file or directory
-    [ -e $path ] || continue
-    chown $ownership $path && chmod $mode $path
-
-    # recursively change permissions of children (since those are directories)
-    find $path -mindepth 1 -maxdepth 1 -not \( -user $user -group $group \) |
-      xargs -I {} sh -c "chown -R $ownership {} && chmod -R $mode {}"
-  done
-}
-
 create_users
-
-# We perform upgrade (when install count > 1)
-if [ "$1" -gt 1 ]; then
-  set_permissions "$RESET_PERMS"
-fi
