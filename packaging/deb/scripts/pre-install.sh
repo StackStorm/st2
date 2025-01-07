@@ -47,12 +47,6 @@ create_users() {
   fi
 }
 
-## Update logrotate configuration
-enable_logrotate() {
-  [ -f /etc/logrotate.d/st2-pkgsaved.disabled ] &&
-    mv -f /etc/logrotate.d/st2-pkgsaved.disabled /etc/logrotate.d/st2 || :
-}
-
 ## Fix directories permissions on upgrade (different across maint scripts!)
 #  NB! USED FOR COMPATIBILITY ON UPGRADE FROM PREVIOUS VERSIONS OF PACKAGES.
 #  NB! In future package releases reseting permissions SHOULD BE REMOVED.
@@ -77,11 +71,9 @@ set_permissions() {
 case "$1" in
     install)
       create_users
-      enable_logrotate
     ;;
     upgrade)
       create_users
-      enable_logrotate
       set_permissions "$RESET_PERMS"
       touch $ST2_UPGRADESTAMP
     ;;
