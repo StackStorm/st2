@@ -24,19 +24,46 @@ set -e
 #         on upgrade failed (after <new-preinst> or <old-postrm> failed)
 # https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
 
+# This must include ".service" to satisfy deb-systemd-helper
 _ST2_SERVICES="
-st2actionrunner
-st2api
-st2auth
-st2garbagecollector
-st2notifier
-st2rulesengine
-st2scheduler
-st2sensorcontainer
-st2stream
-st2timersengine
-st2workflowengine
+st2actionrunner.service
+st2api.service
+st2auth.service
+st2garbagecollector.service
+st2notifier.service
+st2rulesengine.service
+st2scheduler.service
+st2sensorcontainer.service
+st2stream.service
+st2timersengine.service
+st2workflowengine.service
 "
+
+# Native .deb maintainer scripts are injected with debhelper snippets.
+# We are using nfpm, so we inline those snippets here.
+# https://github.com/Debian/debhelper/blob/debian/12.10/dh_systemd_start
+# https://github.com/Debian/debhelper/blob/debian/12.10/dh_systemd_enable
+# https://github.com/Debian/debhelper/blob/debian/12.10/autoscripts/postrm-systemd
+# https://github.com/Debian/debhelper/blob/debian/12.10/autoscripts/postrm-systemd-reload-only
+
+systemd_remove() {
+    if [ -x "/usr/bin/deb-systemd-helper" ]; then
+        deb-systemd-helper mask ${@} >/dev/null || true
+    fi
+}
+
+systemd_purge() {
+    if [ -x "/usr/bin/deb-systemd-helper" ]; then
+        deb-systemd-helper purge ${@} >/dev/null || true
+        deb-systemd-helper unmask ${@} >/dev/null || true
+    fi
+}
+
+systemd_reload() {
+    if [ -d "/run/systemd/system" ]; then
+        systemctl --system daemon-reload >/dev/null || true
+    fi
+}
 
 purge_files() {
     # This -pkgsaved.disabled file might be left over from old (buggy) deb packages
@@ -50,36 +77,21 @@ purge_files() {
 }
 
 case "$1" in
+    remove)
+        systemd_remove ${_ST2_SERVICES}
+        systemd_reload
+    ;;
     purge)
+        systemd_purge ${_ST2_SERVICES}
+        systemd_reload
         purge_files
     ;;
-    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;
     *)
         # echo "postrm called with unknown argument \`$1'" >&2
         # exit 1
     ;;
 esac
-
-# based on dh_systemd_start/12.10ubuntu1
-if [ -d /run/systemd/system ]; then
-    systemctl --system daemon-reload >/dev/null || true
-fi
-
-for service in ${_ST2_SERVICES}; do
-    # based on dh_systemd_enable/12.10ubuntu1 and dh_systemd_start/12.10ubuntu1
-    if [ "$1" = "remove" ]; then
-        if [ -x "/usr/bin/deb-systemd-helper" ]; then
-            deb-systemd-helper mask "${service}" >/dev/null || true
-        fi
-    fi
-
-    if [ "$1" = "purge" ]; then
-        if [ -x "/usr/bin/deb-systemd-helper" ]; then
-            deb-systemd-helper purge "${service}" >/dev/null || true
-            deb-systemd-helper unmask "${service}" >/dev/null || true
-        fi
-    fi
-done
 
 exit 0

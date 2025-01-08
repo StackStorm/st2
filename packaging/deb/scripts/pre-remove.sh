@@ -18,21 +18,42 @@ set -e
 #         on upgrade failed (after <old-prerm> failed)
 # https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
 
+# This must include ".service" to satisfy deb-systemd-invoke
 _ST2_SERVICES="
-st2actionrunner
-st2api
-st2auth
-st2garbagecollector
-st2notifier
-st2rulesengine
-st2scheduler
-st2sensorcontainer
-st2stream
-st2timersengine
-st2workflowengine
+st2actionrunner.service
+st2api.service
+st2auth.service
+st2garbagecollector.service
+st2notifier.service
+st2rulesengine.service
+st2scheduler.service
+st2sensorcontainer.service
+st2stream.service
+st2timersengine.service
+st2workflowengine.service
 "
 
-# based on dh_systemd_start/12.10ubuntu1
-if [ -d /run/systemd/system ] && [ "$1" = remove ]; then
-    systemctl stop ${_ST2_SERVICES} >/dev/null || true
-fi
+# Native .deb maintainer scripts are injected with debhelper snippets.
+# We are using nfpm, so we inline those snippets here.
+# https://github.com/Debian/debhelper/blob/debian/12.10/dh_systemd_start
+# https://github.com/Debian/debhelper/blob/debian/12.10/autoscripts/prerm-systemd-restart
+
+systemd_stop() {
+    if [ -d "/run/systemd/system" ]; then
+        deb-systemd-invoke stop ${@} >/dev/null || true
+    fi
+}
+
+case "$1" in
+    remove)
+        systemd_stop ${_ST2_SERVICES}
+    ;;
+    upgrade|deconfigure|failed-upgrade)
+    ;;
+    *)
+        # echo "prerm called with unknown argument \`$1'" >&2
+        # exit 1
+    ;;
+esac
+
+exit 0
