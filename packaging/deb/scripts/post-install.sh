@@ -29,6 +29,15 @@ set -e
 # https://www.mankier.com/5/deb-triggers
 # https://stackoverflow.com/questions/15276535/dpkg-how-to-use-trigger
 
+# The default set of packs installed with st2.
+_ST2_PACKS="
+chatops
+core
+default
+linux
+packs
+"
+
 # This must include ".service" to satisfy deb-systemd-{helper,invoke}
 _ST2_SERVICES="
 st2actionrunner.service
@@ -87,10 +96,21 @@ rebuild_st2_venv() {
     /opt/stackstorm/install/st2.pex
 }
 
+extract_st2_pack() {
+    pack=${1}
+    shift
+    # shellcheck disable=SC2209
+    PAGER=cat /opt/stackstorm/install/packs/"${pack}".tgz.run --quiet --accept "${@}"
+}
+
 case "$1" in
     configure)
-        # Fail install if venv build fails
+        # Fail install if venv build or pack extraction fails
         rebuild_st2_venv || exit $?
+        for pack in ${_ST2_PACKS}; do
+            extract_st2_pack "${pack}" || exit $?
+        done
+        extract_st2_pack examples --target /usr/share/doc/st2/examples || :
 
         # shellcheck disable=SC2086
         systemd_enable_and_restart ${_ST2_SERVICES}
