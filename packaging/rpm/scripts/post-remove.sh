@@ -21,15 +21,19 @@ st2timersengine
 st2workflowengine
 "
 
-# EL 8: %service_postun
+# Native .rpm specs use macros that get expanded into shell snippets.
+# We are using nfpm, so we inline the macro expansion here.
+# %systemd_postun_with_restart
+#   EL8: https://github.com/systemd/systemd/blob/v239/src/core/macros.systemd.in
+#   EL9: https://github.com/systemd/systemd/blob/v252/src/rpm/macros.systemd.in
+
 if [ $1 -ge 1 ] ; then
     # Package upgrade, not uninstall
-    systemctl try-restart ${_ST2_SERVICES} &>/dev/null || :
-fi
-# EL 9: %service_postun
-if [ $1 -ge 1 ] && [ -x "/usr/lib/systemd/systemd-update-helper" ]; then
-    # Package upgrade, not uninstall
-    /usr/lib/systemd/systemd-update-helper mark-restart-system-units ${_ST2_SERVICES} || :
+    if [ -x "/usr/lib/systemd/systemd-update-helper" ]; then # EL 9
+        /usr/lib/systemd/systemd-update-helper mark-restart-system-units ${_ST2_SERVICES} || :
+    else # EL 8
+        systemctl try-restart ${_ST2_SERVICES} &>/dev/null || :
+    fi
 fi
 
 # Remove st2 logrotate config, since there's no analog of apt-get purge available

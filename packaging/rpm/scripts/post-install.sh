@@ -20,18 +20,22 @@ st2timersengine
 st2workflowengine
 "
 
-# EL 8: %service_post
+# Native .rpm specs use macros that get expanded into shell snippets.
+# We are using nfpm, so we inline the macro expansion here.
+# %systemd_post
+#   EL8: https://github.com/systemd/systemd/blob/v239/src/core/macros.systemd.in
+#   EL9: https://github.com/systemd/systemd/blob/v252/src/rpm/macros.systemd.in
+
 if [ $1 -eq 1 ] ; then
     # Initial installation
-    systemctl --no-reload preset ${_ST2_SERVICES} &>/dev/null || :
-fi
-# EL 9: %service_post
-if [ $1 -eq 1 ] && [ -x "/usr/lib/systemd/systemd-update-helper" ]; then
-    # Initial installation
-    /usr/lib/systemd/systemd-update-helper install-system-units ${_ST2_SERVICES} || :
+    if [ -x "/usr/lib/systemd/systemd-update-helper" ]; then # EL 9
+        /usr/lib/systemd/systemd-update-helper install-system-units ${_ST2_SERVICES} || :
+    else # EL 8
+        systemctl --no-reload preset ${_ST2_SERVICES} &>/dev/null || :
+    fi
 fi
 
 systemctl --no-reload enable ${_ST2_SERVICES} &>/dev/null || :
 
-# make sure that our socket generators run
+# make sure that our socket/unit generators run
 systemctl daemon-reload &>/dev/null || :
