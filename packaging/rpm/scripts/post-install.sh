@@ -6,6 +6,15 @@ set -e
 #   * on upgrade: $1 > 1
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Scriptlets/#_syntax
 
+# The default set of packs installed with st2.
+_ST2_PACKS="
+chatops
+core
+default
+linux
+packs
+"
+
 _ST2_SERVICES="
 st2actionrunner
 st2api
@@ -24,8 +33,18 @@ rebuild_st2_venv() {
     /opt/stackstorm/install/st2.pex
 }
 
-# Fail install if venv build fails
+extract_st2_pack() {
+    pack=${1}
+    shift
+    PAGER=cat /opt/stackstorm/install/packs/${pack}.tgz.run --quiet --accept ${@}
+}
+
+# Fail install if venv build or pack extraction fails
 rebuild_st2_venv || exit $?
+for pack in ${_ST2_PACKS}; do
+    extract_st2_pack ${pack} || exit $?
+done
+extract_st2_pack examples --target /usr/share/doc/st2/examples || :
 
 # Native .rpm specs use macros that get expanded into shell snippets.
 # We are using nfpm, so we inline the macro expansion here.
