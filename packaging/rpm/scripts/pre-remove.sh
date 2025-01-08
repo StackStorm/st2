@@ -22,13 +22,17 @@ st2timersengine
 st2workflowengine
 "
 
-# EL 8: %service_preun
+# Native .rpm specs use macros that get expanded into shell snippets.
+# We are using nfpm, so we inline the macro expansion here.
+# %systemd_preun
+#   EL8: https://github.com/systemd/systemd/blob/v239/src/core/macros.systemd.in
+#   EL9: https://github.com/systemd/systemd/blob/v252/src/rpm/macros.systemd.in
+
 if [ $1 -eq 0 ]; then
     # Package removal, not upgrade
-    systemctl --no-reload disable --now ${_ST2_SERVICES} &>/dev/null || :
-fi
-# EL 9: %service_preun
-if [ $1 -eq 0 ] && [ -x "/usr/lib/systemd/systemd-update-helper" ]; then
-    # Package removal, not upgrade
-    /usr/lib/systemd/systemd-update-helper remove-system-units ${_ST2_SERVICES} || :
+    if [ -x "/usr/lib/systemd/systemd-update-helper" ]; then # EL 9
+        /usr/lib/systemd/systemd-update-helper remove-system-units ${_ST2_SERVICES} || :
+    else # EL 8
+        systemctl --no-reload disable --now ${_ST2_SERVICES} &>/dev/null || :
+    fi
 fi
