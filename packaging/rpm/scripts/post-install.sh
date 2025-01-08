@@ -35,7 +35,12 @@ if [ $1 -eq 1 ] ; then
     fi
 fi
 
+# TODO: Maybe remove this as 'preset' (on install above) enables units by default
 systemctl --no-reload enable ${_ST2_SERVICES} &>/dev/null || :
 
 # make sure that our socket/unit generators run
-systemctl daemon-reload &>/dev/null || :
+if [ -x "/usr/lib/systemd/systemd-update-helper" ]; then # EL 9
+    /usr/lib/systemd/systemd-update-helper system-reload || :
+else # EL 8
+    systemctl daemon-reload &>/dev/null || :
+fi
