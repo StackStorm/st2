@@ -21,6 +21,13 @@ st2timersengine
 st2workflowengine
 "
 
+rebuild_st2_venv() {
+    /opt/stackstorm/install/st2.pex
+}
+
+# Fail install if venv build fails
+rebuild_st2_venv || exit $?
+
 # Native .rpm specs use macros that get expanded into shell snippets.
 # We are using nfpm, so we inline the macro expansion here.
 # %systemd_post

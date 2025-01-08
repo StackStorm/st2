@@ -83,8 +83,15 @@ systemd_enable_and_restart() {
     fi
 }
 
+rebuild_st2_venv() {
+    /opt/stackstorm/install/st2.pex
+}
+
 case "$1" in
     configure)
+        # Fail install if venv build fails
+        rebuild_st2_venv || exit $?
+
         # shellcheck disable=SC2086
         systemd_enable_and_restart ${_ST2_SERVICES}
         ;;
