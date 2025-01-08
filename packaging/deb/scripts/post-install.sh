@@ -29,6 +29,7 @@ set -e
 # https://www.mankier.com/5/deb-triggers
 # https://stackoverflow.com/questions/15276535/dpkg-how-to-use-trigger
 
+# This must include ".service" to satisfy deb-systemd-{helper,invoke}
 _ST2_SERVICES="
 st2actionrunner.service
 st2api.service
@@ -43,43 +44,57 @@ st2timersengine.service
 st2workflowengine.service
 "
 
+# Native .deb maintainer scripts are injected with debhelper snippets.
+# We are using nfpm, so we inline those snippets here.
+# https://github.com/Debian/debhelper/blob/debian/12.10/dh_systemd_start
+# https://github.com/Debian/debhelper/blob/debian/12.10/dh_systemd_enable
+# https://github.com/Debian/debhelper/blob/debian/12.10/autoscripts/postinst-systemd-enable
+# https://github.com/Debian/debhelper/blob/debian/12.10/autoscripts/postinst-systemd-restart
+
+systemd_enable() {
+    # This will only remove masks created by d-s-h on package removal.
+    deb-systemd-helper unmask "${1}" >/dev/null || true
+
+    # was-enabled defaults to true, so new installations run enable.
+    if deb-systemd-helper --quiet was-enabled "${1}"; then
+        # Enables the unit on first installation, creates new
+        # symlinks on upgrades if the unit file has changed.
+        deb-systemd-helper enable "${1}" >/dev/null || true
+    else
+        # Update the statefile to add new symlinks (if any), which need to be
+        # cleaned up on purge. Also remove old symlinks.
+        deb-systemd-helper update-state "${1}" >/dev/null || true
+    fi
+}
+
+if [ -n "$2" ]; then
+    _dh_action=restart
+else
+    _dh_action=start
+fi
+
+systemd_enable_and_restart() {
+    for service in ${@}; do
+        systmd_enable "${service}"
+    done
+    if [ -d /run/systemd/system ]; then
+        systemctl --system daemon-reload >/dev/null || true
+        deb-systemd-invoke $_dh_action ${@} >/dev/null || true
+		fi
+}
+
 case "$1" in
     configure)
-        # make sure that our socket generators run
-        systemctl daemon-reload >/dev/null 2>&1 || true
+        systemd_enable_and_restart ${_ST2_SERVICES}
     ;;
     abort-upgrade|abort-remove|abort-deconfigure)
+        # dh_systemd_* runs this for all actions, not just configure
+        systemd_enable_and_restart ${_ST2_SERVICES}
     ;;
     *)
         # echo "postinst called with unknown argument \`$1'" >&2
         # exit 1
     ;;
 esac
-
-# based on dh_systemd_enable/12.10ubuntu1 and dh_systemd_start/12.10ubuntu1
-if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
-    for service in ${_ST2_SERVICES}; do
-        # This will only remove masks created by d-s-h on package removal.
-        deb-systemd-helper unmask "${service}" >/dev/null || true
-
-        # was-enabled defaults to true, so new installations run enable.
-        if deb-systemd-helper --quiet was-enabled "${service}"; then
-            # Enables the unit on first installation, creates new
-            # symlinks on upgrades if the unit file has changed.
-            deb-systemd-helper enable "${service}" >/dev/null || true
-        else
-            # Update the statefile to add new symlinks (if any), which need to be
-            # cleaned up on purge. Also remove old symlinks.
-            deb-systemd-helper update-state "${service}" >/dev/null || true
-        fi
-    done
-    systemctl --system daemon-reload >/dev/null || true
-		if [ -n "$2" ]; then
-        _dh_action=restart
-		else
-        _dh_action=start
-		fi
-		deb-systemd-invoke $_dh_action ${_ST2_SERVICES} >/dev/null || true
-fi
 
 exit 0
