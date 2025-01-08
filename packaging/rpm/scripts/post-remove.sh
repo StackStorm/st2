@@ -1,5 +1,11 @@
 set -e
 
+# This %postun scriptlet gets one argument, $1, the number of packages of
+# this name that will be left on the system when this script completes. So:
+#   * on upgrade:   $1 > 0
+#   * on uninstall: $1 = 0
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/Scriptlets/#_syntax
+
 _ST2_SERVICES="
 st2actionrunner
 st2actionrunner@

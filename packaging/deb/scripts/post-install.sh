@@ -6,16 +6,28 @@
 set -e
 
 # summary of how this script can be called:
-#        * <postinst> `configure' <most-recently-configured-version>
-#        * <old-postinst> `abort-upgrade' <new version>
-#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
-#          <new-version>
-#        * <postinst> `abort-remove'
-#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
-#          <failed-install-package> <version> `removing'
-#          <conflicting-package> <version>
-# for details, see http://www.debian.org/doc/debian-policy/ or
-# the debian-policy package
+#     <new-postinst> configure
+#         on fresh install
+#     <new-postinst> configure <most-recently-configured-version>
+#         on upgrade OR on install after pkg removal without purging conf files
+#     <old-postinst> abort-upgrade <new version>
+#         on upgrade failed (after failure of prerm, preinst, postrm)
+#     <conflictor's-postinst> abort-remove in-favour <package> <new-version>
+#         on removal due to conflict with other package
+#     <postinst> abort-remove
+#         on removal (after failure of prerm)
+#     <deconfigured's-postinst> abort-deconfigure in-favour
+#             <failed-install-package> <version>
+#             [ removing <conflicting-package> <version> ]
+#         on removal due to breaks/conflict with other package (if --auto-deconfigure)
+#     <postinst> triggered <trigger-name> [<trigger-name> ...]
+#         when a trigger we've registered interest in fires,
+#         such as when /usr/bin/python3.9 (or similar) gets updated,
+#         allowing this script to rebuild the venv.
+# https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
+# https://www.mankier.com/5/deb-postinst
+# https://www.mankier.com/5/deb-triggers
+# https://stackoverflow.com/questions/15276535/dpkg-how-to-use-trigger
 
 _ST2_SERVICES="
 st2actionrunner.service

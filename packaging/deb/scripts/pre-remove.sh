@@ -3,6 +3,21 @@
 
 set -e
 
+# summary of how this script can be called:
+#     <new-prerm> remove
+#         on remove or remove+purge
+#     <old-prerm> upgrade <new-version>
+#         on upgrade
+#     <conflictor's-prerm> remove in-favour <package> <new-version>
+#         on removal due to conflict with other package
+#     <deconfigured's-prerm> deconfigure in-favour
+#             <package-being-installed> <version>
+#             [ removing <conflicting-package> <version> ]
+#         on removal due to breaks/conflict with other package (if --auto-deconfigure)
+#     <new-prerm> failed-upgrade <old-version> <new-version>
+#         on upgrade failed (after <old-prerm> failed)
+# https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
+
 _ST2_SERVICES="
 st2actionrunner
 st2api
