@@ -1,0 +1,10 @@
+# This file should be extremely light-weight.
+# Pants sources this file with something like:
+#    /usr/bin/env bash -c 'set -eou pipefail; source .pants.bootstrap; exec pants'
+# Relevant docs:
+# https://www.pantsbuild.org/blog/2024/04/27/simple-versioning-with-git-tags
+# https://www.pantsbuild.org/stable/docs/using-pants/key-concepts/options#pantsbootstrap-file
+# https://github.com/pantsbuild/scie-pants/blob/main/src/main.rs
+
+# This uses " as the cut delimiter because fmt with black uses " for strings.
+export ST2PKG_VERSION="$(grep __version__ st2common/st2common/__init__.py | cut -d'"' -f2)"
