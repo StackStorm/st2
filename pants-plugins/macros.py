@@ -177,7 +177,7 @@ def st2_pack_archive(**kwargs):
     )
 
     nfpm_content_file(  # noqa: F821
-        name=f"archive_for_nfpm",
+        name="archive_for_nfpm",
         dependencies=[":archive"],
         src=f"packaging/packs/{pack_name}.tgz.run",
         dst=f"/opt/stackstorm/install/packs/{pack_name}.tgz.run",
@@ -236,7 +236,7 @@ def st2_logging_conf_resources(**kwargs):
 def st2_logging_conf_for_nfpm(**kwargs):
     deps = kwargs.pop("dependencies") or []
 
-    shell_command(
+    shell_command(  # noqa: F821
         name="package_logging_conf",
         execution_dependencies=deps,
         # TODO: this will fail if using MacOS.
@@ -248,7 +248,7 @@ def st2_logging_conf_for_nfpm(**kwargs):
         output_files=["*.conf"],
     )
 
-    nfpm_content_files(
+    nfpm_content_files(  # noqa: F821
         name="packaged_conf_files",
         dependencies=[":package_logging_conf"],
         file_owner="root",
