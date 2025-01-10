@@ -9,10 +9,10 @@ pep8==1.7.1
 flake8==7.0.0
 st2flake8>0.1.0
 astroid==3.1.0
-pylint==3.1.0
+pylint==3.1.1
 pylint-plugin-utils>=0.4
 black==22.3.0
-pre-commit==2.1.0
+pre-commit==3.5.0
 bandit==1.7.10
 isort>=4.2.5
 mock==5.1.0
@@ -28,7 +28,7 @@ pyyaml==6.0.2
 pygments==2.18.0
 RandomWords
 gunicorn==23.0.0
-psutil==6.0.0
+psutil==6.1.1
 webtest==3.0.1
 # Bump to latest to meet sphinx requirements.
 rstcheck==6.2.1

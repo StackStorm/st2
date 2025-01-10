@@ -15,7 +15,7 @@ on:
       # also version tags, which include bugfix releases (eg: v3.4.0)
       - v[0-9]+.[0-9]+.[0-9]+
   pull_request:
-    type: [opened, reopened, edited]
+    types: [opened, reopened, synchronize]
     branches:
       # Only for PRs targeting those branches
       - master
@@ -47,24 +47,22 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
+    name: '${{ matrix.make.name }} - Python ${{ matrix.python.version-short }}'
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
-        include:
+        python:
+          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.9', version: '3.9.14'}
+          - {version-short: '3.10', version: '3.10.15'}
+          - {version-short: '3.11', version: '3.11.10'}
+        make:
           - name: 'Integration Tests (Orquesta)'
             task: 'ci-orquesta'
             shard: {k: 0, n: 1}
-            python-version-short: '3.8'
-            python-version: '3.8.10'
-          - name: 'Integration Tests (Orquesta)'
-            task: 'ci-orquesta'
-            shard: {k: 0, n: 1}
-            python-version-short: '3.9'
-            python-version: '3.9.14'
     services:
       mongo:
         image: mongo:7.0
@@ -94,9 +92,9 @@ jobs:
           - 6379:6379/tcp
 
     env:
-      TASK: '${{ matrix.task }}'
-      NODE_TOTAL: '${{ matrix.shard.n }}'
-      NODE_INDEX: '${{ matrix.shard.k }}'
+      TASK: '${{ matrix.make.task }}'
+      NODE_TOTAL: '${{ matrix.make.shard.n }}'
+      NODE_INDEX: '${{ matrix.make.shard.k }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
@@ -122,10 +120,10 @@ jobs:
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
-      - name: 'Set up Python (${{ matrix.python-version }}) and Cache Deps'
+      - name: 'Set up Python (${{ matrix.python.version }}) and Cache Deps'
         uses: ./.github/actions/setup-python
         with:
-          python-version: '${{ matrix.python-version }}'
+          python-version: '${{ matrix.python.version }}'
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages
       - name: Install virtualenv
@@ -181,7 +179,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-py${{ matrix.python-version }}
+          name: logs-py${{ matrix.python.version }}
           path: logs.tar.gz
           retention-days: 7
 

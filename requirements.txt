@@ -42,7 +42,7 @@ paramiko==3.5.0
 passlib==1.7.4
 prettytable==3.10.2
 prompt-toolkit==3.0.48
-psutil==6.1.0
+psutil==6.1.1
 pyOpenSSL
 pygments==2.18.0
 pyinotify==0.9.6 ; platform_system=="Linux"
