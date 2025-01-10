@@ -254,6 +254,6 @@ def st2_logging_conf_for_nfpm(**kwargs):
         file_owner="root",
         file_group="root",
         file_mode="rw-r--r--",
-        content_type="config|noreplace"
+        content_type="config|noreplace",
         **kwargs,
     )
