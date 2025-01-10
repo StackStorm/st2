@@ -23,11 +23,17 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from pants.backend.nfpm.fields.version import NfpmVersionField, NfpmVersionSchemaField
+from pants.backend.nfpm.util_rules.inject_config import (
+    InjectedNfpmPackageFields,
+    InjectNfpmPackageFieldsRequest,
+)
 from pants.backend.python.util_rules.package_dists import (
     SetupKwargs,
     SetupKwargsRequest,
 )
 from pants.engine.fs import DigestContents, GlobMatchErrorBehavior, PathGlobs
+from pants.engine.internals.native_engine import Field
 from pants.engine.target import Target
 from pants.engine.rules import collect_rules, Get, MultiGet, rule, UnionRule
 from pants.util.frozendict import FrozenDict
@@ -187,8 +193,43 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
     return SetupKwargs(kwargs, address=request.target.address)
 
 
+class StackStormNfpmPackageFieldsRequest(InjectNfpmPackageFieldsRequest):
+    @classmethod
+    def is_applicable(cls, _: Target) -> bool:
+        return True
+
+
+@rule
+async def inject_package_fields(
+    request: StackStormNfpmPackageFieldsRequest,
+) -> InjectedNfpmPackageFields:
+    address = request.target.address
+
+    version_file = "st2common/st2common/__init__.py"
+    extracted_version = await Get(
+        StackStormVersion,
+        StackStormVersionRequest(
+            version_file=version_file,
+            description_of_origin=f"StackStorm version file: {version_file}",
+        ),
+    )
+
+    version: str = extracted_version.value
+    if version.endswith("dev") and version[-4] != "-":
+        # nfpm parses this into version[-version_prerelease][+version_metadata]
+        # that dash is required to be a valid semver version.
+        version = version.replace("dev", "-dev")
+
+    fields: list[Field] = [
+        NfpmVersionSchemaField("semver", address=address),
+        NfpmVersionField(version, address=address),
+    ]
+    return InjectedNfpmPackageFields(fields, address=address)
+
+
 def rules():
     return [
         *collect_rules(),
         UnionRule(SetupKwargsRequest, StackStormSetupKwargsRequest),
+        UnionRule(InjectNfpmPackageFieldsRequest, StackStormNfpmPackageFieldsRequest),
     ]
