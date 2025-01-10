@@ -21,6 +21,7 @@ https://github.com/pantsbuild/pants/blob/master/pants-plugins/internal_plugins/r
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 
 from pants.backend.python.util_rules.package_dists import (
     SetupKwargs,
@@ -88,6 +89,40 @@ class StackStormSetupKwargsRequest(SetupKwargsRequest):
         # return target.address.spec.startswith("st2")
 
 
+@dataclass(frozen=True)
+class StackStormVersionRequest:
+    version_file: str
+    description_of_origin: str
+
+
+@dataclass(frozen=True)
+class StackStormVersion:
+    value: str
+
+
+@rule
+async def extract_version(request: StackStormVersionRequest) -> StackStormVersion:
+    version_digest_contents = await Get(
+        DigestContents,
+        PathGlobs(
+            [request.version_file],
+            description_of_origin=request.description_of_origin,
+            glob_match_error_behavior=GlobMatchErrorBehavior.error,
+        ),
+    )
+
+    version_file_contents = version_digest_contents[0].content.decode()
+    version_match = re.search(
+        r"^__version__ = ['\"]([^'\"]*)['\"]", version_file_contents, re.M
+    )
+    if not version_match:
+        raise ValueError(
+            f"Could not find the __version__ in {request.version_file}\n{version_file_contents}"
+        )
+
+    return StackStormVersion(version_match.group(1))
+
+
 @rule
 async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwargs:
     kwargs = request.explicit_kwargs.copy()
@@ -100,13 +135,12 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
 
     version_file = kwargs.pop("version_file")
 
-    version_digest_contents, readme_digest_contents = await MultiGet(
+    version, readme_digest_contents = await MultiGet(
         Get(
-            DigestContents,
-            PathGlobs(
-                [f"{request.target.address.spec_path}/{version_file}"],
+            StackStormVersion,
+            StackStormVersionRequest(
+                version_file=f"{request.target.address.spec_path}/{version_file}",
                 description_of_origin=f"StackStorm version file: {version_file}",
-                glob_match_error_behavior=GlobMatchErrorBehavior.error,
             ),
         ),
         Get(
@@ -118,19 +152,10 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
         ),
     )
 
-    version_file_contents = version_digest_contents[0].content.decode()
-    version_match = re.search(
-        r"^__version__ = ['\"]([^'\"]*)['\"]", version_file_contents, re.M
-    )
-    if not version_match:
-        raise ValueError(
-            f"Could not find the __version__ in {request.target.address.spec_path}/{version_file}\n{version_file_contents}"
-        )
-
     # Hardcode certain kwargs and validate that they weren't already set.
     hardcoded_kwargs = PROJECT_METADATA.copy()
     hardcoded_kwargs["project_urls"] = FrozenDict(PROJECT_URLS)
-    hardcoded_kwargs["version"] = version_match.group(1)
+    hardcoded_kwargs["version"] = version.value
 
     long_description = (
         readme_digest_contents[0].content.decode() if readme_digest_contents else ""
