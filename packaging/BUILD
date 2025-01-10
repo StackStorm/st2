@@ -5,10 +5,6 @@ python_sources()
 # - https://www.pantsbuild.org/stable/reference/targets/nfpm_rpm_package
 # - arch: https://nfpm.goreleaser.com/goarch-to-pkg/
 
-_st2_version = env("ST2PKG_VERSION") or ""  # from .pants.bootstrap
-# semver needs a dash before prerelease, so convert: 3.9dev => 3.9-dev
-_st2_version = _st2_version.replace("dev", "-dev")
-
 _pkg_description = """
 StackStorm Event-driven automation
 Package is full standalone st2 installation including all components
@@ -20,9 +16,7 @@ _common_pkg_metadata = dict(
     homepage="https://stackstorm.com",
     # https://jfearn.fedorapeople.org/en-US/RPM/4/html-single/RPM_Guide/index.html#idp3030720
     license="Apache-2.0",  # TODO: nFPM is putting this under Copyright tag instead of License
-    version_schema="semver",
-    version=_st2_version,  # parsed into version[-version_prerelease][+version_metadata]
-    # TODO: version_release
+    version="",  # injected by pants-plugins/release
     # arch used to be "any", but that was not correct as the venv has compiled packages.
     arch="amd64",  # TODO: parametrize this?
     platform="linux",
