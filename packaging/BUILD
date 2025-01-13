@@ -23,6 +23,7 @@ _maintainer = "StackStorm Engineering <opsadmin@stackstorm.com>"  # TODO: update
 
 nfpm_deb_package(
     name="st2.deb",
+    distro_id=parametrize("focal"),
     maintainer=_maintainer,
     fields={
         # https://www.debian.org/doc/debian-policy/ch-controlfields.html#source
@@ -38,6 +39,7 @@ nfpm_deb_package(
 
 nfpm_rpm_package(
     name="st2.rpm",
+    distro_id=parametrize("el8", "el9"),
     vendor="The StackStorm Project",
     packager=_maintainer,
     # group="System/Management",  # was only useful for EL 5 and earlier
