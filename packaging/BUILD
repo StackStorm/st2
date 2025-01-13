@@ -25,6 +25,7 @@ _maintainer = "StackStorm Engineering <opsadmin@stackstorm.com>"  # TODO: update
 
 nfpm_deb_package(
     name="st2.deb",
+    distro_id=parametrize("focal"),
     dependencies=[
         "./deb/scripts",
         "./deb/systemd:services",
@@ -95,6 +96,7 @@ nfpm_deb_package(
 
 nfpm_rpm_package(
     name="st2.rpm",
+    distro_id=parametrize("el8", "el9"),
     dependencies=[
         "./rpm/scripts",
         "./rpm/systemd:services",
