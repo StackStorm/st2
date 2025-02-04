@@ -72,6 +72,7 @@ stevedore==5.3.0
 tenacity==9.0.0
 tooz==6.3.0
 typing-extensions==4.12.2
+urllib3==2.2.3
 webob==1.8.9
 webtest==3.0.1
 zake==0.2.2

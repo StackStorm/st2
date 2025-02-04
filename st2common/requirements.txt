@@ -44,6 +44,7 @@ six==1.17.0
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 tenacity==9.0.0
 tooz==6.3.0
+urllib3==2.2.3
 webob==1.8.9
 zake==0.2.2
 zstandard==0.23.0
