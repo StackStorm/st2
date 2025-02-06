@@ -26,4 +26,5 @@ requests==2.32.3
 six==1.17.0
 sseclient-py==1.8.0
 typing-extensions==4.12.2
+urllib3==2.2.3
 zipp==3.20.2

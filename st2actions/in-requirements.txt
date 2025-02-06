@@ -8,6 +8,8 @@ oslo.config
 oslo.utils
 pyparsing
 requests
+# urllib3 is a transitive dep
+urllib3
 six
 pyyaml
 python-json-logger
