@@ -24,6 +24,8 @@ zstandard
 cffi
 cryptography
 requests
+# urllib3 is a transitive dep
+urllib3
 retrying
 semver
 six
