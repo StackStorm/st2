@@ -38,7 +38,7 @@ import os
 import binascii
 import base64
 
-from hashlib import sha1
+from hashlib import sha256
 
 import six
 
@@ -70,7 +70,7 @@ __all__ = [
 # Keyczar related constants
 KEYCZAR_HEADER_SIZE = 5
 KEYCZAR_AES_BLOCK_SIZE = 16
-KEYCZAR_HLEN = sha1().digest_size
+KEYCZAR_HLEN = sha256().digest_size
 
 # Minimum key size which can be used for symmetric crypto
 MINIMUM_AES_KEY_SIZE = 128
@@ -268,7 +268,7 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     msg_bytes = header_bytes + iv_bytes + ciphertext_bytes
 
     # Generate HMAC signature for the message (header + IV + ciphertext)
-    h = hmac.HMAC(hmac_key_bytes, hashes.SHA1(), backend=backend)
+    h = hmac.HMAC(hmac_key_bytes, hashes.SHA256(), backend=backend)
     h.update(msg_bytes)
     sig_bytes = h.finalize()
 
@@ -326,7 +326,7 @@ def cryptography_symmetric_decrypt(decrypt_key, ciphertext):
 
     # Verify HMAC signature
     backend = default_backend()
-    h = hmac.HMAC(hmac_key_bytes, hashes.SHA1(), backend=backend)
+    h = hmac.HMAC(hmac_key_bytes, hashes.SHA256(), backend=backend)
     h.update(ciphertext[:-KEYCZAR_HLEN])
     h.verify(signature_bytes)
 
