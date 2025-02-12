@@ -38,7 +38,7 @@ env:
 jobs:
   pants-plugins-tests:
     name: 'Pants Plugins Tests (pants runs: pytest) - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -121,7 +121,7 @@ jobs:
 
   unit-tests:
     name: 'Unit Tests Shard ${{ matrix.shard.k }}/${{ matrix.shard.n }} (pants runs: pytest) - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -218,7 +218,7 @@ jobs:
 
   pack-tests:
     name: 'Pack Tests (pants runs: pytest) - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -307,7 +307,7 @@ jobs:
 
   integration-tests:
     name: 'Integration Tests (pants runs: pytest) - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -429,7 +429,7 @@ jobs:
 
   integration-st2cluster-tests:
     name: 'Integration Tests (Full Cluster)- Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -549,7 +549,7 @@ jobs:
 
   self-check:
     name: 'Self-Check - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
