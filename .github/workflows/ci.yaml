@@ -54,7 +54,7 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.8', version: '3.8.12'}
           - {version-short: '3.9', version: '3.9.14'}
           - {version-short: '3.10', version: '3.10.15'}
           - {version-short: '3.11', version: '3.11.10'}
@@ -108,7 +108,7 @@ jobs:
       fail-fast: false
       matrix:
         python:
-          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.8', version: '3.8.12'}
     services:
       mongo:
         image: mongo:7.0
@@ -247,7 +247,7 @@ jobs:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
-          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.8', version: '3.8.12'}
           - {version-short: '3.9', version: '3.9.14'}
           - {version-short: '3.10', version: '3.10.15'}
           - {version-short: '3.11', version: '3.11.10'}
@@ -390,7 +390,7 @@ jobs:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
-          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.8', version: '3.8.12'}
           - {version-short: '3.9', version: '3.9.14'}
           - {version-short: '3.10', version: '3.10.15'}
           - {version-short: '3.11', version: '3.11.10'}
