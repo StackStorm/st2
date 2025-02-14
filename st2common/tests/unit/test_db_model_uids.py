@@ -17,6 +17,10 @@ from __future__ import absolute_import
 import json
 import hashlib
 from collections import OrderedDict
+import sys
+
+# TODO: Move keywords directly to hashlib.md5 call as part of dropping py3.8.
+hashlib_kwargs = {} if sys.version_info[0:2] < (3, 9) else {"usedforsecurity": False}
 
 import unittest
 
@@ -61,7 +65,9 @@ class DBModelUIDFieldTestCase(unittest.TestCase):
         # Verify that same set of parameters always results in the same hash
         parameters = {"a": 1, "b": "unicode", "c": [1, 2, 3], "d": {"g": 1, "h": 2}}
         paramers_hash = json.dumps(parameters, sort_keys=True)
-        paramers_hash = hashlib.md5(paramers_hash.encode()).hexdigest()
+        paramers_hash = hashlib.md5(
+            paramers_hash.encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         parameters = {"a": 1, "b": "unicode", "c": [1, 2, 3], "d": {"g": 1, "h": 2}}
         trigger_db = TriggerDB(name="tname", pack="tpack", parameters=parameters)
