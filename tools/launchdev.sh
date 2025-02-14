@@ -2,6 +2,11 @@
 
 set +x
 
+# Default TERM to "ansi" when it is empty.
+export TERM="${TERM:-ansi}"
+# TERM is 'unknown' when run in github actions which causes tmux to fail, so force it to "ansi".
+test "$TERM" = "unknown" && export TERM="ansi"
+
 function usage() {
     cat<<EOF >&2
     Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-s scheduler_count] [-w workflow_engine_count] [-g] [-x] [-c] [-6]
