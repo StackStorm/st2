@@ -5646,7 +5646,7 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "87762aca30bfff91b56e1992f9943213c666cbdc1dc1427f8a8e2bf8afd6064a",
+              "hash": "2a967d69f9972401ca652d7881b33c8d71141195fa963e5122226879eebdc05a",
               "url": "git+https://github.com/StackStorm/st2-auth-ldap.git@master"
             }
           ],
