@@ -51,7 +51,14 @@ def run_redis_is_running(
             "--backend-packages=uses_services",
             *(extra_args or ()),
         ],
-        env_inherit={"PATH", "PYENV_ROOT", "HOME"},
+        env_inherit={
+            "PATH",
+            "PYENV_ROOT",
+            "HOME",
+            "ST2TESTS_REDIS_HOST",
+            "ST2TESTS_REDIS_PORT",
+            "ST2TESTS_PARALLEL_SLOT",
+        },
     )
     result = rule_runner.request(
         RedisIsRunning,
@@ -62,7 +69,7 @@ def run_redis_is_running(
 
 # Warning this requires that redis be running
 def test_redis_is_running(rule_runner: RuleRunner) -> None:
-    request = UsesRedisRequest()
+    request = UsesRedisRequest.from_env(env=rule_runner.environment)
     mock_platform = platform(os="TestMock")
 
     # we are asserting that this does not raise an exception
@@ -73,7 +80,8 @@ def test_redis_is_running(rule_runner: RuleRunner) -> None:
 @pytest.mark.parametrize("mock_platform", platform_samples)
 def test_redis_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
     request = UsesRedisRequest(
-        coord_url="redis://127.100.20.7:10",  # 10 is an unassigned port, unlikely to be used
+        host="127.100.20.7",
+        port=10,  # 10 is an unassigned port, unlikely to be used
     )
 
     with pytest.raises(ExecutionError) as exception_info:

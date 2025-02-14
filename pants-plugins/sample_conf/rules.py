@@ -27,7 +27,7 @@ from pants.engine.fs import (
     FileContent,
     Snapshot,
 )
-from pants.engine.process import FallibleProcessResult
+from pants.engine.process import ProcessResult
 from pants.engine.rules import Get, collect_rules, rule
 from pants.engine.target import FieldSet
 from pants.util.logging import LogLevel
@@ -64,7 +64,7 @@ async def generate_sample_conf_via_fmt(
     pex = await Get(VenvPex, PexFromTargetsRequest, subsystem.pex_request())
 
     result = await Get(
-        FallibleProcessResult,
+        ProcessResult,
         VenvPexProcess(
             pex,
             description="Regenerating st2.conf.sample",

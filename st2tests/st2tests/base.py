@@ -40,8 +40,8 @@ import eventlet
 import psutil
 import mock
 from oslo_config import cfg
-from unittest2 import TestCase
-import unittest2
+from unittest import TestCase
+import unittest
 
 from orquesta import conducting
 from orquesta import events
@@ -139,7 +139,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_CONFIG_PATH = os.path.join(BASE_DIR, "../conf/st2.conf")
 
 
-class RunnerTestCase(unittest2.TestCase):
+class RunnerTestCase(unittest.TestCase):
     meta_loader = MetaLoader()
 
     def assertCommonSt2EnvVarsAvailableInEnv(self, env):
@@ -565,6 +565,11 @@ class IntegrationTestCase(TestCase):
 
     processes = {}
 
+    @classmethod
+    def setUpClass(cls):
+        # this prepares the vars for use in configuring the subprocesses via env var
+        tests_config.parse_args()
+
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
         self._stop_running_processes()
@@ -599,7 +604,7 @@ class IntegrationTestCase(TestCase):
                 except:
                     stderr = None
 
-                print("Stopping process with pid %s" % (process.id))
+                print("Stopping process with pid %s" % (process.pid))
                 print('Process "%s"' % (process.pid))
                 print("Stdout: %s" % (stdout))
                 print("Stderr: %s" % (stderr))

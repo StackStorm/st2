@@ -345,7 +345,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
             "<class 'jinja2.exceptions.UndefinedError'> "
             "'st2kvXX' is undefined"
         )
-        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
+        self.assertRaisesRegex(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
         # Renders fails on fist level item
@@ -359,7 +359,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
             " for pack \".*?\" config: <class 'jinja2.exceptions.UndefinedError'>"
             " 'st2kvXX' is undefined"
         )
-        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
+        self.assertRaisesRegex(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
         # Renders fails on second level item
@@ -375,7 +375,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
             " for pack \".*?\" config: <class 'jinja2.exceptions.UndefinedError'>"
             " 'st2kvXX' is undefined"
         )
-        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
+        self.assertRaisesRegex(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
         # Renders fails on list item
@@ -389,7 +389,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
             " for pack \".*?\" config: <class 'jinja2.exceptions.UndefinedError'>"
             " 'st2kvXX' is undefined"
         )
-        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
+        self.assertRaisesRegex(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
         # Renders fails on nested object in list item
@@ -403,7 +403,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
             " for pack \".*?\" config: <class 'jinja2.exceptions.UndefinedError'>"
             " 'st2kvXX' is undefined"
         )
-        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
+        self.assertRaisesRegex(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
         # Renders fails on invalid syntax
@@ -417,7 +417,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
             " for pack \".*?\" config: <class 'jinja2.exceptions.TemplateSyntaxError'>"
             " expected token 'end of print statement', got 'Jinja'"
         )
-        self.assertRaisesRegexp(RuntimeError, expected_msg, loader.get_config)
+        self.assertRaisesRegex(RuntimeError, expected_msg, loader.get_config)
         config_db.delete()
 
     def test_get_config_dynamic_config_item(self):

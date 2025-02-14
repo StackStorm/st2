@@ -28,6 +28,7 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2tests import ExecutionDbTestCase
+from st2tests import config as tests_config
 from st2tests.fixtures.generic.fixture import PACK_NAME as PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.runners import runner
@@ -36,6 +37,8 @@ from st2tests.mocks.liveaction import MockLiveActionPublisher
 from st2tests.policies.concurrency import FakeConcurrencyApplicator
 from st2tests.policies.mock_exception import RaiseExceptionApplicator
 
+# This needs to run before creating FakeConcurrencyApplicator below.
+tests_config.parse_args()
 
 TEST_FIXTURES = {
     "actions": ["action1.yaml"],

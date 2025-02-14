@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import os
 import mock
 import shutil
-import unittest2
+import unittest
 import uuid
 
 from st2common.models.db.stormbase import UIDFieldMixin
@@ -43,6 +43,7 @@ from st2tests.fixtures.packs.dummy_pack_23.fixture import (
 from st2tests.fixtures.packs.orquesta_tests.fixture import (
     PACK_NAME as TEST_SOURCE_WORKFLOW_PACK,
 )
+import st2tests.config as tests_config
 
 SOURCE_ACTION_WITH_PYTHON_SCRIPT_RUNNER = {
     "description": "Action which injects a new trigger in the system.",
@@ -201,7 +202,7 @@ SOURCE_WORKFLOW = {
 }
 
 
-class DeleteActionFilesTest(unittest2.TestCase):
+class DeleteActionFilesTest(unittest.TestCase):
     def test_delete_action_files_from_pack(self):
         """
         Test that the action files present in the pack and removed
@@ -280,7 +281,7 @@ class DeleteActionFilesTest(unittest2.TestCase):
         self.assertFalse(os.path.exists(metadata_file))
 
 
-class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
+class DeleteActionEntryPointFilesErrorTest(unittest.TestCase):
     """
     Testing that exceptions are thrown by delete_action_files_from_pack function
     for entry point file. Here only entry point file is created and metadata
@@ -318,7 +319,7 @@ class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
 
         # asserting PermissionError with message on call of delete_action_files_from_pack
         # to delete entry_point file
-        with self.assertRaisesRegexp(PermissionError, expected_msg):
+        with self.assertRaisesRegex(PermissionError, expected_msg):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
     @mock.patch.object(os, "remove")
@@ -343,11 +344,11 @@ class DeleteActionEntryPointFilesErrorTest(unittest2.TestCase):
 
         # asserting exception with message on call of delete_action_files_from_pack
         # to delete entry_point file
-        with self.assertRaisesRegexp(Exception, expected_msg):
+        with self.assertRaisesRegex(Exception, expected_msg):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
 
-class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
+class DeleteActionMetadataFilesErrorTest(unittest.TestCase):
     """
     Testing that exceptions are thrown by delete_action_files_from_pack function for
     metadata file. Here only metadata file is created and metadata file doesn't exist.
@@ -384,7 +385,7 @@ class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
 
         # asserting PermissionError with message on call of delete_action_files_from_pack
         # to delete metadata file
-        with self.assertRaisesRegexp(PermissionError, expected_msg):
+        with self.assertRaisesRegex(PermissionError, expected_msg):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
     @mock.patch.object(os, "remove")
@@ -409,13 +410,15 @@ class DeleteActionMetadataFilesErrorTest(unittest2.TestCase):
 
         # asserting exception with message on call of delete_action_files_from_pack
         # to delete metadata file
-        with self.assertRaisesRegexp(Exception, expected_msg):
+        with self.assertRaisesRegex(Exception, expected_msg):
             delete_action_files_from_pack(TEST_PACK, entry_point, metadata_file)
 
 
-class CloneActionDBAndFilesTestCase(unittest2.TestCase):
+class CloneActionDBAndFilesTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
         action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
         workflow_files_path = os.path.join(action_files_path, "workflows")
         if not os.path.isdir(action_files_path):
@@ -523,7 +526,7 @@ class CloneActionDBAndFilesTestCase(unittest2.TestCase):
         CLONE_ACTION_4 = clone_action_db(
             SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER, TEST_DEST_PACK, "clone_action_4"
         )
-        with self.assertRaisesRegexp(PermissionError, expected_msg):
+        with self.assertRaisesRegex(PermissionError, expected_msg):
             clone_action_files(
                 SOURCE_ACTION_WITH_SHELL_SCRIPT_RUNNER,
                 CLONE_ACTION_4,
@@ -546,7 +549,7 @@ class CloneActionDBAndFilesTestCase(unittest2.TestCase):
             "administrator to clone the files manually."
             % cloned_action_metadata_file_path
         )
-        with self.assertRaisesRegexp(Exception, expected_msg):
+        with self.assertRaisesRegex(Exception, expected_msg):
             clone_action_files(
                 SOURCE_ACTION_WITH_LOCAL_SHELL_CMD_RUNNER,
                 CLONE_ACTION_5,
@@ -587,7 +590,12 @@ class CloneActionDBAndFilesTestCase(unittest2.TestCase):
         self.assertTrue(os.path.exists(workflows_dir_path))
 
 
-class CloneActionFilesBackupTestCase(unittest2.TestCase):
+class CloneActionFilesBackupTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     @classmethod
     def tearDownClass(cls):
         action_files_path = os.path.join(TEST_DEST_PACK_PATH, "actions")
@@ -689,7 +697,7 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         )
         with mock.patch("shutil.rmtree") as mock_rmdir:
             mock_rmdir.side_effect = Exception
-            with self.assertRaisesRegexp(Exception, expected_msg):
+            with self.assertRaisesRegex(Exception, expected_msg):
                 remove_temp_action_files(temp_sub_dir)
 
         remove_temp_action_files(temp_sub_dir)
@@ -715,7 +723,7 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         expected_msg = 'No permission to delete the "%s" directory' % temp_dir_path
         with mock.patch("shutil.rmtree") as mock_rmdir:
             mock_rmdir.side_effect = PermissionError
-            with self.assertRaisesRegexp(PermissionError, expected_msg):
+            with self.assertRaisesRegex(PermissionError, expected_msg):
                 remove_temp_action_files(temp_sub_dir)
 
         remove_temp_action_files(temp_sub_dir)
@@ -740,7 +748,7 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         )
         with mock.patch("shutil.copy") as mock_copy:
             mock_copy.side_effect = Exception
-            with self.assertRaisesRegexp(Exception, expected_msg):
+            with self.assertRaisesRegex(Exception, expected_msg):
                 temp_backup_action_files(
                     TEST_DEST_PACK_PATH,
                     dest_action_metadata_file,
@@ -767,7 +775,7 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         expected_msg = 'Unable to copy file to "%s".' % tmp_action_metadata_file_path
         with mock.patch("shutil.copy") as mock_copy:
             mock_copy.side_effect = PermissionError
-            with self.assertRaisesRegexp(PermissionError, expected_msg):
+            with self.assertRaisesRegex(PermissionError, expected_msg):
                 temp_backup_action_files(
                     TEST_DEST_PACK_PATH,
                     dest_action_metadata_file,
@@ -801,7 +809,7 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         )
         with mock.patch("shutil.copy") as mock_copy:
             mock_copy.side_effect = Exception
-            with self.assertRaisesRegexp(Exception, expected_msg):
+            with self.assertRaisesRegex(Exception, expected_msg):
                 restore_temp_action_files(
                     TEST_DEST_PACK_PATH,
                     dest_action_metadata_file,
@@ -831,7 +839,7 @@ class CloneActionFilesBackupTestCase(unittest2.TestCase):
         expected_msg = 'Unable to copy file to "%s".' % dest_action_metadata_file_path
         with mock.patch("shutil.copy") as mock_copy:
             mock_copy.side_effect = PermissionError
-            with self.assertRaisesRegexp(PermissionError, expected_msg):
+            with self.assertRaisesRegex(PermissionError, expected_msg):
                 restore_temp_action_files(
                     TEST_DEST_PACK_PATH,
                     dest_action_metadata_file,

@@ -5,13 +5,13 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-bcrypt==3.2.0
-eventlet==0.33.3
-gunicorn==21.2.0
-oslo.config>=1.12.1,<1.13
+bcrypt==4.2.1
+eventlet==0.38.2
+gunicorn==23.0.0
+oslo.config==9.6.0
 passlib==1.7.4
-pymongo==3.11.3
-six==1.13.0
-st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
+pymongo==4.6.3
+six==1.17.0
+st2-auth-backend-flat-file
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
-stevedore==1.30.1
+stevedore==5.3.0

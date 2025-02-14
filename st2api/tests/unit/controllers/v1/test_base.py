@@ -110,6 +110,6 @@ class TestBase(FunctionalTest):
         request = Request(environ={"PATH_INFO": "/v1/rules/好的".encode("utf-8")})
 
         expected_msg = "URL likely contains invalid or incorrectly URL encoded values"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             webob.exc.HTTPBadRequest, expected_msg, router.match, request
         )

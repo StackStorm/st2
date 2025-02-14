@@ -10,9 +10,12 @@ pyyaml
 jsonschema
 jsonpath-rw
 requests
+# urllib3 is a transitive dep
+urllib3
 six
 sseclient-py
-python-editor
+editor
+pygments
 prompt-toolkit
 # mention cffi used by cryptography so we can control version
 cffi

@@ -8,13 +8,11 @@ greenlet
 jinja2
 jsonschema
 kombu
-#Used by jinja2
-MarkupSafe
 mongoengine
 networkx
 # used by networkx
 decorator
-orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.6.0
+orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 oslo.config
 paramiko
@@ -26,6 +24,8 @@ zstandard
 cffi
 cryptography
 requests
+# urllib3 is a transitive dep
+urllib3
 retrying
 semver
 six
@@ -53,3 +53,5 @@ gitdb
 lockfile
 # needed by requests
 chardet
+# needed by kombu (dh_virtualenv on ubuntu focal is failing to put tzdata in the wheelhouse)
+backports.zoneinfo[tzdata]; python_version<"3.9"

@@ -6,11 +6,11 @@ enabled = false
 repo_id = "de0dea7a-9f6a-4c6e-aa20-6ba5ad969b8a"
 
 [GLOBAL]
-pants_version = "2.17.1"
+pants_version = "2.23.0a0"
 pythonpath = ["%(buildroot)s/pants-plugins"]
 build_file_prelude_globs = ["pants-plugins/macros.py"]
 backend_packages = [
-  # https://www.pantsbuild.org/2.19/docs/using-pants/validating-dependencies
+  # https://www.pantsbuild.org/stable/docs/using-pants/validating-dependencies
   "pants.backend.experimental.visibility",
 
   # python
@@ -40,6 +40,7 @@ backend_packages = [
 pants_ignore.add = [
   # TODO: remove these once we start building wheels with pants.
   "dist_utils.py",
+  "test_dist_utils.py",
   "setup.py",
   # keep tailor from using legacy requirements files (not for pants)
   "contrib/examples/requirements.txt",
@@ -89,9 +90,6 @@ root_patterns = [
   "/contrib/packs",
   "/st2tests/testpacks/checks",
   "/st2tests/testpacks/errorcheck",
-  # pack common lib directories that ST2 adds to the PATH for actions/sensors
-  "/contrib/*/lib",
-  "/contrib/*/actions/lib",
   # other special-cased pack directories
   "/contrib/examples/actions/ubuntu_pkg_info", # python script runs via shell expecting cwd in PYTHONPATH
   # lint plugins
@@ -105,15 +103,25 @@ root_patterns = [
   "/st2common/benchmarks/micro",
 ]
 
+# DEFAULT has values that we can reuse/interpolate below
+[DEFAULT]
+# This is the range of python versions that we support.
+st2_interpreter_constraints = "CPython>=3.8.1,<3.12"
+
+# This should match the pants interpreter_constraints:
+# https://github.com/pantsbuild/pants/blob/2.22.x/pants.toml#L148
+# See: https://www.pantsbuild.org/stable/docs/getting-started/prerequisites
+pants_plugins_interpreter_constraints = "CPython==3.9.*"
+
+# For tools, we have to include python versions for BOTH st2 and pants-plugins
+tool_interpreter_constraints = "CPython>=3.8.1,<3.12"
+
 [python]
 # resolver_version is always "pip-2020-resolver". legacy is not supported.
 enable_resolves = true
 default_resolve = "st2"
-interpreter_constraints = [
-  # python_distributions needs a single constraint (vs one line per python version).
-  "CPython>=3.8,<3.10",
-  # NB: constraints for tools defined below
-]
+# python_distributions needs a single constraint (vs one line per python version).
+interpreter_constraints = ["%(st2_interpreter_constraints)s"]
 
 [python.resolves]
 # st2 is the primary resolve
@@ -124,25 +132,15 @@ black = "lockfiles/black.lock"
 flake8 = "lockfiles/flake8.lock"
 pants-plugins = "lockfiles/pants-plugins.lock" # see //pants-plugins/BUILD
 pylint = "lockfiles/pylint.lock" # see //pylint_plugins/BUILD
-pytest = "lockfiles/pytest.lock"
-setuptools = "lockfiles/setuptools.lock"
 twine = "lockfiles/twine.lock"
 
 [python.resolves_to_interpreter_constraints]
-# for tools, we have to include constraints for st2 and pants-plugins
-bandit = ["CPython>=3.8,<3.10"]
-black = ["CPython>=3.8,<3.10"]
-flake8 = ["CPython>=3.8,<3.10"]
-pants-plugins = [
-  # this should match the pants interpreter_constraints:
-  # https://github.com/pantsbuild/pants/blob/2.18.x/pants.toml#L144
-  # See: https://www.pantsbuild.org/docs/prerequisites
-  "CPython==3.9.*",
-]
-pylint = ["CPython>=3.8,<3.10"]
-pytest = ["CPython>=3.8,<3.10"]
-setuptools = ["CPython>=3.8,<3.10"]
-twine = ["CPython>=3.8,<3.10"]
+bandit = ["%(tool_interpreter_constraints)s"]
+black = ["%(tool_interpreter_constraints)s"]
+flake8 = ["%(tool_interpreter_constraints)s"]
+pants-plugins = ["%(pants_plugins_interpreter_constraints)s"]
+pylint = ["%(tool_interpreter_constraints)s"]
+twine = ["%(tool_interpreter_constraints)s"]
 
 [python.resolves_to_constraints_file]
 # Our direct requirements are in requirements-pants.txt;
@@ -155,16 +153,21 @@ st2 = "lockfiles/st2-constraints.txt"
 py_editable_in_resolve = ["st2"]
 # We need mutable venvs to use the editable installs of our sources.
 py_resolve_format = "mutable_virtualenv"
+# By default, pex modifies script shebangs to add '-sE'.
+# This breaks nosetest and anything that needs PYTHONPATH.
+py_non_hermetic_scripts_in_resolve = ["st2"]
+# If any targets generate sources/files, include them in the exported venv.
+py_generated_sources_in_resolve = ["st2"]
 
 [python-infer]
-# https://www.pantsbuild.org/docs/reference-python-infer#string_imports
-# https://www.pantsbuild.org/docs/reference-python-infer#string_imports_min_dots
+# https://www.pantsbuild.org/stable/reference/subsystems/python-infer#string_imports
+# https://www.pantsbuild.org/stable/reference/subsystems/python-infer#string_imports_min_dots
 # Infer a target's dependencies based on strings that look like dynamic deps with >=1 dots.
 # To debug the imports and see if a string is used in dep inference or if it is ignored, use:
 #   pants python-dump-source-analysis --analysis-flavor=raw_dependency_inference <path(s) to file(s)> | jq '.[].resolved'
 string_imports = true
 string_imports_min_dots = 1
-# https://www.pantsbuild.org/docs/reference-python-infer#unowned_dependency_behavior
+# https://www.pantsbuild.org/stable/reference/subsystems/python-infer#unowned_dependency_behavior
 # The default changed from "ignore" to "warning" in pants 2.14.
 # The ambiguity_resolution setting/feature (below) added in 2.16 resolves most of
 # our ambiguous dependency inference issues, which allowed us to remove the explicit
@@ -172,14 +175,11 @@ string_imports_min_dots = 1
 # custom PYTHONPATH for packs, so actions that import other actions are still showing
 # up as unowned. Maybe we can extend pants-plugins/pack_metadata so we can use "warn".
 unowned_dependency_behavior = "ignore"
-# https://www.pantsbuild.org/v2.16/docs/reference-python-infer#ambiguity_resolution
+# https://www.pantsbuild.org/stable/reference/subsystems/python-infer#ambiguity_resolution
 # When resolving ambiguous deps prefer one that is in the same source root as the
 # file that uses it. So, without manually disambiguating the dep in the BUILD file,
 # importing tests.unit.base in st2common/tests/unit will get a dep on st2common/tests/unit/base.py
 ambiguity_resolution = "by_source_root"
-# https://www.pantsbuild.org/v2.17/docs/reference-python-infer#use_rust_parser
-# This should be much faster, but is giving a lot of "more than one target owns this module" warnings.
-use_rust_parser = false
 
 [setup-py-generation]
 # when building the package (with `pants package ::`), pants will,
@@ -222,7 +222,7 @@ args = [
 ]
 
 [pytest]
-install_from_resolve = "pytest"
+install_from_resolve = "st2"
 args = [
   "--no-header",  # don't print pytest version for every tested file
 ]
@@ -232,7 +232,43 @@ execution_slot_var = "ST2TESTS_PARALLEL_SLOT"
 config = "@lint-configs/regex-lint.yaml"
 
 [setuptools]
-install_from_resolve = "setuptools"
+install_from_resolve = "st2"
+
+[test]
+extra_env_vars = [
+  # Use this so that the test system does not require the stanley user.
+  # For example: export ST2TESTS_SYSTEM_USER=${USER}
+  "ST2TESTS_SYSTEM_USER",
+  "ST2_SYSTEM_USER__USER",
+  # Use these to override MongoDB connection details
+  # "ST2_DATABASE__HOST", # Tests override this with "127.0.0.1"
+  "ST2_DATABASE__PORT",
+  # "ST2_DATABASE__DB_NAME", # Tests override this with: "st2-test{ST2TESTS_PARALLEL_SLOT}"
+  "ST2_DATABASE__CONNECTION_TIMEOUT",
+  "ST2_DATABASE__USERNAME",
+  "ST2_DATABASE__PASSWORD",
+  # Use these to override RabbitMQ connection details
+  "ST2_MESSAGING__URL",
+  "ST2_MESSAGING__PREFIX", # Tests will modify this to be "{prefix}{ST2TESTS_PARALLEL_SLOT}"
+  # Use these to override Redis connection details
+  "ST2TESTS_REDIS_HOST",
+  "ST2TESTS_REDIS_PORT",
+  # "ST2_COORDINATION__URL", # Tests will override this with one of:
+  #         "redis://{ST2TESTS_REDIS_HOST}:{ST2TESTS_REDIS_PORT}?namespace=_st2_test{ST2TESTS_PARALLEL_SLOT}
+  #         "zake://"
+  # CI-specific vars
+  "ST2_CI",
+  "ST2_CI_RUN_ORQUESTA_PAUSE_RESUME_TESTS",
+]
+# 10 min should be more than enough even for integration tests.
+timeout_default = 600 # seconds
 
 [twine]
 install_from_resolve = "twine"
+
+[environments-preview.names]
+# https://www.pantsbuild.org/stable/docs/using-pants/environments
+in_repo_workspace = "//:in_repo_workspace"
+
+[cli.alias]
+--all-changed = "--changed-since=HEAD --changed-dependents=transitive"

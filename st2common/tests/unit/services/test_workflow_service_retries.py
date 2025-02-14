@@ -27,13 +27,9 @@ import tempfile
 
 from orquesta import statuses as wf_statuses
 from tooz import coordination
+from tooz.drivers.redis import RedisDriver
 
 import st2tests
-
-# XXX: actionsensor import depends on config being setup.
-import st2tests.config as tests_config
-
-tests_config.parse_args()
 
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
@@ -128,7 +124,7 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
-    @mock.patch.object(coord_svc.NoOpDriver, "get_lock")
+    @mock.patch.object(RedisDriver, "get_lock")
     def test_recover_from_coordinator_connection_error(self, mock_get_lock):
         mock_get_lock.side_effect = coord_svc.NoOpLock(name="noop")
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
@@ -162,7 +158,7 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
         self.assertEqual(tk1_ex_db.status, wf_statuses.SUCCEEDED)
 
-    @mock.patch.object(coord_svc.NoOpDriver, "get_lock")
+    @mock.patch.object(RedisDriver, "get_lock")
     def test_retries_exhausted_from_coordinator_connection_error(self, mock_get_lock):
         mock_get_lock.side_effect = coord_svc.NoOpLock(name="noop")
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
@@ -200,7 +196,6 @@ class OrquestaServiceRetryTest(st2tests.WorkflowTestCase):
         "update_task_state",
         mock.MagicMock(
             side_effect=[
-                mongoengine.connection.ConnectionFailure(),
                 mongoengine.connection.ConnectionFailure(),
                 None,
             ]

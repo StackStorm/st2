@@ -22,8 +22,6 @@ encountering cylic import issues.
 
 from __future__ import absolute_import
 
-from kombu import Queue
-
 from st2common.constants import action as action_constants
 from st2common.transport import actionalias
 from st2common.transport import actionexecutionstate
@@ -33,6 +31,7 @@ from st2common.transport import liveaction
 from st2common.transport import publishers
 from st2common.transport import reactor
 from st2common.transport import workflow
+from st2common.transport.kombu import Queue
 
 __all__ = [
     "ACTIONSCHEDULER_REQUEST_QUEUE",

@@ -24,7 +24,7 @@ echo enabled RabbitMQ plugins:
 # print plugins list to: (1) ease debugging, (2) pause till rabbitmq is really running
 docker exec rabbitmq rabbitmq-plugins list -e
 echo
-sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
+sudo wget --no-verbose http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
 sudo chmod +x /usr/local/bin/rabbitmqadmin
 # print logs from stdout (RABBITMQ_LOGS=-)
 docker logs --tail=100 rabbitmq

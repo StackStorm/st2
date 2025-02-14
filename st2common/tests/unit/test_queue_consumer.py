@@ -23,6 +23,7 @@ from st2tests.base import DbTestCase
 from tests.unit.base import FakeModelDB
 
 
+# AMQP connection is mocked, so these do not need messaging.prefix
 FAKE_XCHG = Exchange("st2.tests", type="topic")
 FAKE_WORK_Q = Queue("st2.tests.unit", FAKE_XCHG)
 

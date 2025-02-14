@@ -141,7 +141,7 @@ function service_manager() {
 function reopen_component_log_files() {
   COM=${1}
 
-  PID=`ps ax | grep -v grep | grep -v st2ctl | grep -E "(${COM}\.wsgi)|(bin/${COM})|(hubot .*${COM})" | awk '{print $1}'`
+  PID=`ps axww | grep -v grep | grep -v st2ctl | grep -E "(${COM}\.wsgi)|(bin/${COM})|(hubot .*${COM})" | awk '{print $1}'`
   if [[ ! -z ${PID} ]]; then
     for p in ${PID}; do
       echo "Sending SIGUSR1 to ${COM} PID: ${p}"
@@ -201,7 +201,7 @@ function getpids() {
   COMPONENTS=${COMPONENTS}
 
   for COM in ${COMPONENTS}; do
-    PID=`ps ax | grep -v grep | grep -v st2ctl | grep -E "(${COM}\.wsgi)|(bin/${COM})|(hubot .*${COM})" | awk '{print $1}'`
+    PID=`ps axww | grep -v grep | grep -v st2ctl | grep -E "(${COM}\.wsgi)|(bin/${COM})|(hubot .*${COM})" | awk '{print $1}'`
 
     if [[ ! -z ${PID} ]]; then
       for p in ${PID}; do

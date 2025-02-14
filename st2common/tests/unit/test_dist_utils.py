@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# NB: Pantsbuild ignores this file and any dist_utils.py files.
+# TODO: delete this file when deleting all dist_utils.py files.
+
 import os
 import sys
 
 import mock
-import unittest2
+import unittest
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_PATH = os.path.join(BASE_DIR, "../../../scripts/")
@@ -38,7 +41,7 @@ REQUIREMENTS_PATH_2 = os.path.join(BASE_DIR, "../../../requirements.txt")
 VERSION_FILE_PATH = os.path.join(BASE_DIR, "../fixtures/version_file.py")
 
 
-class DistUtilsTestCase(unittest2.TestCase):
+class DistUtilsTestCase(unittest.TestCase):
     def setUp(self):
         super(DistUtilsTestCase, self).setUp()
 

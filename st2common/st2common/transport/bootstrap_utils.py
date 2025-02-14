@@ -31,7 +31,7 @@ from st2common.transport.actionalias import ACTIONALIAS_XCHG
 from st2common.transport.actionexecutionstate import ACTIONEXECUTIONSTATE_XCHG
 from st2common.transport.announcement import ANNOUNCEMENT_XCHG
 from st2common.transport.connection_retry_wrapper import ConnectionRetryWrapper
-from st2common.transport.execution import EXECUTION_XCHG
+from st2common.transport.execution import EXECUTION_XCHG, EXECUTION_OUTPUT_XCHG
 from st2common.transport.liveaction import LIVEACTION_XCHG, LIVEACTION_STATUS_MGMT_XCHG
 from st2common.transport.reactor import SENSOR_CUD_XCHG
 from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
@@ -67,6 +67,7 @@ EXCHANGES = [
     ACTIONEXECUTIONSTATE_XCHG,
     ANNOUNCEMENT_XCHG,
     EXECUTION_XCHG,
+    EXECUTION_OUTPUT_XCHG,
     LIVEACTION_XCHG,
     LIVEACTION_STATUS_MGMT_XCHG,
     TRIGGER_CUD_XCHG,
