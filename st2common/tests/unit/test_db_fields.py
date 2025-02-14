@@ -479,7 +479,7 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         self.assertEqual(retrieved_model_db.result, expected_result)
 
 
-class ComplexDateTimeFieldTestCase(unittest.TestCase):
+class ComplexDateTimeFieldTestCase(unittest2.TestCase):
     def test_what_comes_in_goes_out(self):
         field = ComplexDateTimeField()
 
