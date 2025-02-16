@@ -108,6 +108,9 @@ Added
 * Add python 3.10 and 3.11 to the GitHub Actions test matrix.
   Contributed by @nzlosh, @guzzijones12, and @cognifloyd
 
+* Copy systemd files from st2-packages.git for future packaging via pants. #6303
+  Cherry-picked by @cognifloyd
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed
