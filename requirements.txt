@@ -41,7 +41,7 @@ oslo.utils==7.3.0
 paramiko==3.5.1
 passlib==1.7.4
 prettytable==3.10.2
-prompt-toolkit==3.0.48
+prompt-toolkit==3.0.50
 psutil==6.1.1
 pyOpenSSL
 pygments==2.19.1
