@@ -141,8 +141,10 @@ class SensorService(object):
     # Methods for datastore management
     ##################################
 
-    def list_values(self, local=True, prefix=None):
-        return self.datastore_service.list_values(local=local, prefix=prefix)
+    def list_values(self, local=True, prefix=None, limit=None, offset=None):
+        return self.datastore_service.list_values(
+            local=local, prefix=prefix, limit=limit, offset=offset
+        )
 
     def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
         return self.datastore_service.get_value(
@@ -229,11 +231,12 @@ class SensorWrapper(object):
             username=username,
             password=password,
             ensure_indexes=db_ensure_indexes,
-            ssl=cfg.CONF.database.ssl,
-            ssl_keyfile=cfg.CONF.database.ssl_keyfile,
-            ssl_certfile=cfg.CONF.database.ssl_certfile,
-            ssl_cert_reqs=cfg.CONF.database.ssl_cert_reqs,
-            ssl_ca_certs=cfg.CONF.database.ssl_ca_certs,
+            tls=cfg.CONF.database.tls,
+            tls_certificate_key_file=cfg.CONF.database.tls_certificate_key_file,
+            tls_certificate_key_file_password=cfg.CONF.database.tls_certificate_key_file_password,
+            tls_allow_invalid_certificates=cfg.CONF.database.tls_allow_invalid_certificates,
+            tls_ca_file=cfg.CONF.database.tls_ca_file,
+            ssl_cert_reqs=cfg.CONF.database.ssl_cert_reqs,  # deprecated
             authentication_mechanism=cfg.CONF.database.authentication_mechanism,
             ssl_match_hostname=cfg.CONF.database.ssl_match_hostname,
         )
@@ -289,7 +292,7 @@ class SensorWrapper(object):
                 self._class_name,
                 six.text_type(e),
             )
-            self._logger.warn(msg, exc_info=True)
+            self._logger.warning(msg, exc_info=True)
             raise Exception(msg)
 
     def stop(self):

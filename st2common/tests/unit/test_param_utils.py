@@ -374,15 +374,7 @@ class ParamsUtilsTest(DbTestCase):
             rendered=rendered, parameter_schemas=parameter_schemas
         )
 
-        if six.PY3:
-            expected = {"a1": ("unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2")}
-        else:
-            expected = {
-                "a1": (
-                    "unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc"
-                    "\x83\xcc\xbe\xe2\x80\xa2\xcc\x83\xcc\xbe)\xdb\xb6 unicode2"
-                )
-            }
+        expected = {"a1": ("unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2")}
 
         self.assertEqual(result, expected)
 
@@ -398,15 +390,7 @@ class ParamsUtilsTest(DbTestCase):
             runner_param_info, action_param_info, params, action_context
         )
 
-        if six.PY3:
-            expected_action_params = {"a1": ("unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2")}
-        else:
-            expected_action_params = {
-                "a1": (
-                    "unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc"
-                    "\x83\xcc\xbe\xe2\x80\xa2\xcc\x83\xcc\xbe)\xdb\xb6 unicode2"
-                )
-            }
+        expected_action_params = {"a1": ("unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2")}
 
         self.assertEqual(r_runner_params, {})
         self.assertEqual(r_action_params, expected_action_params)
@@ -591,7 +575,7 @@ class ParamsUtilsTest(DbTestCase):
         action_param_info = {"cmd": {}, "a2": {}}
 
         expected_msg = 'Failed to render parameter "cmd": .*'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ParamException,
             expected_msg,
             param_utils.get_finalized_params,
@@ -622,7 +606,7 @@ class ParamsUtilsTest(DbTestCase):
     def test_cast_param_referenced_action_doesnt_exist(self):
         # Make sure the function throws if the action doesnt exist
         expected_msg = 'Action with ref "foo.doesntexist" doesn\'t exist'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             action_param_utils.cast_params,
@@ -781,7 +765,7 @@ class ParamsUtilsTest(DbTestCase):
         expected_msg = (
             "Cyclic dependency found in the following variables: cyclic, morecyclic"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ParamException,
             expected_msg,
             param_utils.render_live_params,
@@ -805,7 +789,7 @@ class ParamsUtilsTest(DbTestCase):
         action_context = {"user": None}
 
         expected_msg = 'Dependency unsatisfied in variable "variable_not_defined"'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ParamException,
             expected_msg,
             param_utils.render_live_params,

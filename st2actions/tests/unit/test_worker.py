@@ -14,14 +14,20 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 from bson.errors import InvalidStringData
 import eventlet
 import mock
 import os
 from oslo_config import cfg
+from tooz.drivers.redis import RedisDriver
 import tempfile
 
+# This import must be early for import-time side-effects.
+from st2tests.base import DbTestCase
+
 import st2actions.worker as actions_worker
+import st2tests.config as tests_config
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.system.common import ResourceReference
@@ -33,13 +39,9 @@ from st2common.util import date as date_utils
 from st2common.bootstrap import runnersregistrar as runners_registrar
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
-from st2tests.base import DbTestCase
 from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
-import st2tests.config as tests_config
 from six.moves import range
-
-tests_config.parse_args()
 
 TEST_FIXTURES = {"actions": ["local.yaml"]}
 
@@ -65,6 +67,35 @@ class WorkerTestCase(DbTestCase):
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES
         )
         WorkerTestCase.local_action_db = models["actions"]["local.yaml"]
+
+    @staticmethod
+    def reset_config(
+        graceful_shutdown=True,  # default is True (st2common.config)
+        exit_still_active_check=None,  # default is 300 (st2common.config)
+        still_active_check_interval=None,  # default is 2 (st2common.config)
+        service_registry=None,  # default is False (st2common.config)
+    ):
+        tests_config.reset()
+        tests_config.parse_args()
+        cfg.CONF.set_override(
+            name="graceful_shutdown", override=graceful_shutdown, group="actionrunner"
+        )
+        if exit_still_active_check is not None:
+            cfg.CONF.set_override(
+                name="exit_still_active_check",
+                override=exit_still_active_check,
+                group="actionrunner",
+            )
+        if still_active_check_interval is not None:
+            cfg.CONF.set_override(
+                name="still_active_check_interval",
+                override=still_active_check_interval,
+                group="actionrunner",
+            )
+        if service_registry is not None:
+            cfg.CONF.set_override(
+                name="service_registry", override=service_registry, group="coordination"
+            )
 
     def _get_liveaction_model(self, action_db, params):
         status = action_constants.LIVEACTION_STATUS_REQUESTED
@@ -116,9 +147,8 @@ class WorkerTestCase(DbTestCase):
             )
 
     def test_worker_shutdown(self):
-        cfg.CONF.set_override(
-            name="graceful_shutdown", override=False, group="actionrunner"
-        )
+        self.reset_config(graceful_shutdown=False)
+
         action_worker = actions_worker.get_worker()
         temp_file = None
 
@@ -169,14 +199,19 @@ class WorkerTestCase(DbTestCase):
         runner_thread.wait()
 
     @mock.patch.object(
-        coordination.NoOpDriver,
+        RedisDriver,
         "get_members",
-        mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
+        mock.MagicMock(
+            return_value=coordination.NoOpAsyncResult(("member-1", "member-2"))
+        ),
     )
     def test_worker_graceful_shutdown_with_multiple_runners(self):
-        cfg.CONF.set_override(
-            name="graceful_shutdown", override=True, group="actionrunner"
+        self.reset_config(
+            exit_still_active_check=10,
+            still_active_check_interval=1,
+            service_registry=True,
         )
+
         action_worker = actions_worker.get_worker()
         temp_file = None
 
@@ -234,9 +269,12 @@ class WorkerTestCase(DbTestCase):
         shutdown_thread.kill()
 
     def test_worker_graceful_shutdown_with_single_runner(self):
-        cfg.CONF.set_override(
-            name="graceful_shutdown", override=True, group="actionrunner"
+        self.reset_config(
+            exit_still_active_check=10,
+            still_active_check_interval=1,
+            service_registry=True,
         )
+
         action_worker = actions_worker.get_worker()
         temp_file = None
 
@@ -296,17 +334,13 @@ class WorkerTestCase(DbTestCase):
         shutdown_thread.kill()
 
     @mock.patch.object(
-        coordination.NoOpDriver,
+        RedisDriver,
         "get_members",
-        mock.MagicMock(return_value=coordination.NoOpAsyncResult("member-1")),
+        mock.MagicMock(return_value=coordination.NoOpAsyncResult(("member-1",))),
     )
     def test_worker_graceful_shutdown_exit_timeout(self):
-        cfg.CONF.set_override(
-            name="graceful_shutdown", override=True, group="actionrunner"
-        )
-        cfg.CONF.set_override(
-            name="exit_still_active_check", override=5, group="actionrunner"
-        )
+        self.reset_config(exit_still_active_check=5)
+
         action_worker = actions_worker.get_worker()
         temp_file = None
 

@@ -5,45 +5,46 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-MarkupSafe<2.1.0,>=0.23
-amqp==5.0.6
-apscheduler==3.7.0
-cffi<1.15.0
-chardet<3.1.0
+amqp==5.3.1
+apscheduler==3.11.0
+backports.zoneinfo[tzdata]; python_version<"3.9"
+cffi==1.17.1
+chardet==5.2.0
 ciso8601
-cryptography==3.4.7
-decorator==4.4.2
-dnspython>=1.16.0,<2.0.0
-eventlet==0.30.2
+cryptography==43.0.3
+decorator==5.1.1
+dnspython
+eventlet==0.38.2
 flex==6.14.1
-gitdb==4.0.2
-gitpython==3.1.15
-greenlet==1.0.0
-jinja2==2.11.3
+gitdb==4.0.11
+gitpython==3.1.43
+greenlet==3.1.1
+jinja2==3.1.4
 jsonpath-rw==1.4.0
-jsonschema==2.6.0
-kombu==5.0.2
+jsonschema==3.2.0
+kombu==5.4.2
 lockfile==0.12.2
-mongoengine==0.23.0
-networkx>=2.5.1,<2.6
-orjson==3.5.2
-orquesta@ git+https://github.com/StackStorm/orquesta.git@v1.5.0
-oslo.config>=1.12.1,<1.13
-paramiko==2.10.1
-pyOpenSSL<=21.0.0
-pymongo==3.11.3
-python-dateutil==2.8.1
+mongoengine==0.29.1
+networkx==3.1
+orjson==3.10.12
+orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
+oslo.config==9.6.0
+paramiko==3.5.0
+pyOpenSSL
+pymongo==4.6.3
+python-dateutil==2.9.0.post0
 python-statsd==2.1.0
-pyyaml==5.4.1
-redis==4.1.4
-requests[security]==2.25.1
-retrying==1.3.3
-routes==2.4.1
-semver==2.13.0
-six==1.13.0
+pyyaml==6.0.2
+redis==5.2.1
+requests==2.32.3
+retrying==1.3.4
+routes==2.5.1
+semver==3.0.2
+six==1.17.0
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
-tenacity>=3.2.1,<7.0.0
-tooz==2.8.0
-webob==1.8.7
+tenacity==9.0.0
+tooz==6.3.0
+urllib3==2.2.3
+webob==1.8.9
 zake==0.2.2
-zstandard==0.15.2
+zstandard==0.23.0

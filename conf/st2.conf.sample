@@ -19,7 +19,7 @@ logging = /etc/st2/logging.actionrunner.conf
 # List of pip options to be passed to "pip install" command when installing pack dependencies into pack virtual environment.
 pip_opts =  # comma separated list allowed here.
 # Python binary which will be used by Python actions.
-python_binary = /usr/bin/python
+python_binary = /usr/bin/python3
 # Default log level to use for Python runner actions. Can be overriden on invocation basis using "log_level" runner parameter.
 python_runner_log_level = DEBUG
 # Time interval between subsequent queries to check running executions.
@@ -84,7 +84,7 @@ token_ttl = 86400
 # Standalone mode options - options below only apply when auth service is running in the standalone
 # mode.
 
-# Authentication backend to use in a standalone mode. Available backends: ldap, flat_file.
+# Authentication backend to use in a standalone mode. Available backends: flat_file, ldap.
 backend = flat_file
 # JSON serialized arguments which are passed to the authentication backend in a standalone mode.
 backend_kwargs = None
@@ -106,11 +106,13 @@ index_url = https://index.stackstorm.org/v1/index.json # comma separated list al
 pack_group = st2packs
 # Paths which will be searched for integration packs.
 packs_base_paths = None
-# Paths which will be searched for runners. NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0
+# Paths which will be searched for runners.
+# DEPRECATED FOR REMOVAL since 3.0.0: Option unused since StackStorm v3.0.0
 runners_base_paths = None
 # Path to the directory which contains system packs.
 system_packs_base_path = /opt/stackstorm/packs
-# Path to the directory which contains system runners. NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0
+# Path to the directory which contains system runners.
+# DEPRECATED FOR REMOVAL since 3.0.0: Option unused since StackStorm v3.0.0
 system_runners_base_path = /opt/stackstorm/runners
 
 [coordination]
@@ -142,19 +144,33 @@ host = 127.0.0.1
 password = None
 # port of db server
 port = 27017
-# Create the connection to mongodb using SSL
-ssl = False
-# ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from MongoDB.
-ssl_ca_certs = None
 # Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided
+# DEPRECATED FOR REMOVAL since 3.9.0: Use tls_allow_invalid_certificates with the following: The 'optional' and 'required' values are equivalent to tls_allow_invalid_certificates=False. The 'none' value is equivalent to tls_allow_invalid_certificates=True. This option is a needlessly more complex version of tls_allow_invalid_certificates.
 # Valid values: none, optional, required
 ssl_cert_reqs = None
 # Certificate file used to identify the localconnection
+# DEPRECATED FOR REMOVAL since 3.9.0: Use tls_certificate_key_file with a path to a file containing the concatenation of the files from ssl_keyfile and ssl_certfile. This option is ignored by pymongo.
 ssl_certfile = None
 # Private keyfile used to identify the local connection against MongoDB.
+# DEPRECATED FOR REMOVAL since 3.9.0: Use tls_certificate_key_file with a path to a file containing the concatenation of the files from ssl_keyfile and ssl_certfile. This option is ignored by pymongo.
 ssl_keyfile = None
 # If True and `ssl_cert_reqs` is not None, enables hostname verification
+# DEPRECATED FOR REMOVAL since 3.9.0: Use tls_allow_invalid_hostnames with the opposite value from this option.
 ssl_match_hostname = True
+# Create the connection to mongodb using TLS.
+# This option has a deprecated alias: ssl
+tls = False
+# Specifies whether MongoDB is allowed to pass an invalid certificate. This defaults to False to have security by default. Only temporarily set to True if you need to debug the connection.
+tls_allow_invalid_certificates = False
+# If True and `tlsAllowInvalidCertificates` is True, disables hostname verification. This defaults to False to have security by default. Only temporarily set to True if you need to debug the connection.
+tls_allow_invalid_hostnames = False
+# ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from MongoDB.
+# This option has a deprecated alias: ssl_ca_certs
+tls_ca_file = None
+# Client certificate used to identify the local connection against MongoDB. The certificate file must contain one or both of private key and certificate. Supplying separate files for private key (ssl_keyfile) and certificate (ssl_certfile) is no longer supported. If encrypted, pass the password or passphrase in tls_certificate_key_file_password.
+tls_certificate_key_file = None
+# The password or passphrase to decrypt the file in tls_certificate_key_file. Only set this if tls_certificate_key_file is encrypted.
+tls_certificate_key_file_password = None
 # username for db login
 username = None
 # Compression level when compressors is set to zlib. Valid values are -1 to 9. Defaults to 6.
@@ -214,6 +230,8 @@ connection_retries = 10
 connection_retry_wait = 10000
 # Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).
 login_method = None
+# Prefix for all exchange and queue names.
+prefix = st2
 # Use SSL / TLS to connect to the messaging server. Same as appending "?ssl=true" at the end of the connection URL string.
 ssl = False
 # ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from RabbitMQ.

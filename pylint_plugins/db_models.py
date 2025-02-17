@@ -16,6 +16,7 @@
 """
 Plugin which tells Pylint how to handle mongoengine document classes.
 """
+# pylint: disable=E1120,E1125
 
 import astroid
 
@@ -37,12 +38,27 @@ def transform(cls):
     if cls.name == "StormFoundationDB":
         # _fields get added automagically by mongoengine
         if "_fields" not in cls.locals:
-            cls.locals["_fields"] = [nodes.Dict()]
+            cls.locals["_fields"] = [
+                nodes.Dict(
+                    cls.lineno,
+                    cls.col_offset,
+                    parent=cls,
+                    end_lineno=cls.end_lineno,
+                    end_col_offset=cls.end_col_offset,
+                )
+            ]
 
     if cls.name.endswith("DB"):
         # mongoengine explicitly declared "id" field on each class so we teach pylint about that
         property_name = "id"
-        node = astroid.ClassDef(property_name, None)
+        node = astroid.ClassDef(
+            property_name,
+            cls.lineno,
+            cls.col_offset,
+            parent=cls,
+            end_lineno=cls.end_lineno,
+            end_col_offset=cls.end_col_offset,
+        )
         cls.locals[property_name] = [node]
 
 

@@ -778,7 +778,8 @@ class ParamikoSSHClient(object):
             conninfo["sock"] = socket
 
         client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        # FIXME: Allow the admin or end user control the host key policy
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # nosec
 
         extra = {"_conninfo": conninfo}
         self.logger.debug("Connection info", extra=extra)

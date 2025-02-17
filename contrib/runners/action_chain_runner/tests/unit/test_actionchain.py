@@ -364,7 +364,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
         expected_msg = (
             'Unable to find node with name "bad_default" referenced in "default".'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             runnerexceptions.ActionRunnerPreRunError, expected_msg, chain_runner.pre_run
         )
 
@@ -434,7 +434,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
             'Unable to find node with name "c5" referenced in "on-success" '
             'in task "c2"'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             runnerexceptions.ActionRunnerPreRunError, expected_msg, chain_runner.pre_run
         )
 
@@ -453,7 +453,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
             'Unable to find node with name "c6" referenced in "on-failure" '
             'in task "c2"'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             runnerexceptions.ActionRunnerPreRunError, expected_msg, chain_runner.pre_run
         )
 
@@ -896,7 +896,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
             r'Failed to cast value "stringnotanarray" \(type: str\) for parameter '
             r'"arrtype" of type "array"'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             chain_runner.run,
@@ -944,7 +944,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
             'Either "params" or "parameters" attribute needs to be provided, but '
             "not both"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             runnerexceptions.ActionRunnerPreRunError, expected_msg, chain_runner.pre_run
         )
 

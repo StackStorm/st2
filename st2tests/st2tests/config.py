@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import os
+from typing import Dict
 
 from oslo_config import cfg, types
 
@@ -39,6 +40,7 @@ def reset():
 
 
 def parse_args(args=None, coordinator_noop=True):
+    common_config.use_st2_env_vars(cfg.CONF)
     _setup_config_opts(coordinator_noop=coordinator_noop)
 
     kwargs = {}
@@ -64,6 +66,7 @@ def _setup_config_opts(coordinator_noop=True):
 
 def _override_config_opts(coordinator_noop=False):
     _override_db_opts()
+    _override_mq_opts()
     _override_common_opts()
     _override_api_opts()
     _override_keyvalue_opts()
@@ -91,6 +94,34 @@ def _override_db_opts():
     CONF.set_override(name="host", override="127.0.0.1", group="database")
 
 
+def db_opts_as_env_vars() -> Dict[str, str]:
+    env = {
+        "ST2_DATABASE__HOST": CONF.database.host,
+        "ST2_DATABASE__PORT": str(CONF.database.port),
+        "ST2_DATABASE__DB_NAME": CONF.database.db_name,
+        "ST2_DATABASE__CONNECTION_TIMEOUT": str(CONF.database.connection_timeout),
+    }
+    if CONF.database.username is not None:
+        env["ST2_DATABASE__USERNAME"] = CONF.database.username
+    if CONF.database.password is not None:
+        env["ST2_DATABASE__PASSWORD"] = CONF.database.password
+    return env
+
+
+def _override_mq_opts():
+    mq_prefix = CONF.messaging.prefix
+    mq_prefix = "st2test" if mq_prefix == "st2" else mq_prefix
+    mq_prefix = mq_prefix + os.environ.get("ST2TESTS_PARALLEL_SLOT", "")
+    CONF.set_override(name="prefix", override=mq_prefix, group="messaging")
+
+
+def mq_opts_as_env_vars() -> Dict[str, str]:
+    return {
+        "ST2_MESSAGING__URL": CONF.messaging.url,
+        "ST2_MESSAGING__PREFIX": CONF.messaging.prefix,
+    }
+
+
 def _override_common_opts():
     packs_base_path = get_fixtures_packs_base_path()
     CONF.set_override(name="base_path", override=packs_base_path, group="system")
@@ -104,6 +135,9 @@ def _override_common_opts():
     CONF.set_override(name="api_url", override="http://127.0.0.1", group="auth")
     CONF.set_override(name="mask_secrets", override=True, group="log")
     CONF.set_override(name="stream_output", override=False, group="actionrunner")
+    system_user = os.environ.get("ST2TESTS_SYSTEM_USER", "")
+    if system_user:
+        CONF.set_override(name="user", override=system_user, group="system_user")
 
 
 def _override_api_opts():
@@ -136,12 +170,27 @@ def _override_scheduler_opts():
 
 def _override_coordinator_opts(noop=False):
     driver = None if noop else "zake://"
+
+    redis_host = os.environ.get("ST2TESTS_REDIS_HOST", False)
+    if redis_host:
+        redis_port = os.environ.get("ST2TESTS_REDIS_PORT", "6379")
+        # namespace= is the tooz redis driver's key prefix (default is "_tooz")
+        namespace = f"_st2_test{os.environ.get('ST2TESTS_PARALLEL_SLOT', '')}"
+        driver = f"redis://{redis_host}:{redis_port}?namespace={namespace}"
+
     CONF.set_override(name="url", override=driver, group="coordination")
     CONF.set_override(name="lock_timeout", override=1, group="coordination")
 
 
+def coord_opts_as_env_vars() -> Dict[str, str]:
+    env = {}
+    if CONF.coordination.url is not None:
+        env["ST2_COORDINATION__URL"] = CONF.coordination.url
+    return env
+
+
 def _override_workflow_engine_opts():
-    cfg.CONF.set_override("retry_stop_max_msec", 500, group="workflow_engine")
+    cfg.CONF.set_override("retry_stop_max_msec", 200, group="workflow_engine")
     cfg.CONF.set_override("retry_wait_fixed_msec", 100, group="workflow_engine")
     cfg.CONF.set_override("retry_max_jitter_msec", 100, group="workflow_engine")
     cfg.CONF.set_override("gc_max_idle_sec", 1, group="workflow_engine")
@@ -174,12 +223,6 @@ def _register_api_opts():
 
     api_opts = [
         cfg.BoolOpt("debug", default=True),
-        cfg.IntOpt(
-            "max_page_size",
-            default=100,
-            help="Maximum limit (page size) argument which can be specified by the user in a query "
-            "string. If a larger value is provided, it will default to this value.",
-        ),
     ]
 
     _register_opts(api_opts, group="api")
@@ -224,7 +267,7 @@ def _register_api_opts():
         cfg.StrOpt(
             "ssl_cert_reqs",
             default=None,
-            choices="none, optional, required",
+            choices=["none", "optional", "required"],
             help="Specifies whether a certificate is required from the other side of the "
             "connection, and whether it will be validated if provided.",
         ),
@@ -238,6 +281,11 @@ def _register_api_opts():
             "login_method",
             default=None,
             help="Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).",
+        ),
+        cfg.StrOpt(
+            "prefix",
+            default="st2",
+            help="Prefix for all exchange and queue names.",
         ),
     ]
 

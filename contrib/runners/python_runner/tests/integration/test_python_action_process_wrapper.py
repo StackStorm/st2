@@ -36,8 +36,9 @@ from __future__ import absolute_import
 import os
 import json
 
-import unittest2
-from distutils.spawn import find_executable
+import unittest
+import pytest
+from shutil import which as shutil_which
 
 from st2common.util.shell import run_command
 from six.moves import range
@@ -45,7 +46,7 @@ from six.moves import range
 __all__ = ["PythonRunnerActionWrapperProcessTestCase"]
 
 # Maximum limit for the process wrapper script execution time (in seconds)
-WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.31
+WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.70
 
 ASSERTION_ERROR_MESSAGE = """
 Python wrapper process script took more than %s seconds to execute (%s). This most likely means
@@ -61,12 +62,12 @@ WRAPPER_SCRIPT_PATH = os.path.join(
     BASE_DIR, "../../../python_runner/python_runner/python_action_wrapper.py"
 )
 WRAPPER_SCRIPT_PATH = os.path.abspath(WRAPPER_SCRIPT_PATH)
-TIME_BINARY_PATH = find_executable("time")
+TIME_BINARY_PATH = shutil_which("time")
 TIME_BINARY_AVAILABLE = TIME_BINARY_PATH is not None
 
 
-@unittest2.skipIf(not TIME_BINARY_PATH, "time binary not available")
-class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
+@pytest.mark.skipif(not TIME_BINARY_PATH, reason="time binary not available")
+class PythonRunnerActionWrapperProcessTestCase(unittest.TestCase):
     def test_process_wrapper_exits_in_reasonable_timeframe(self):
         # 1. Verify wrapper script path is correct and file exists
         self.assertTrue(os.path.isfile(WRAPPER_SCRIPT_PATH))

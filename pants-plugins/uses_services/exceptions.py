@@ -34,6 +34,8 @@ class ServiceSpecificMessages:
 
     service_start_cmd_generic: str
 
+    env_vars_hint: str = ""
+
 
 class ServiceMissingError(Exception):
     """Error raised when a test uses a service but that service is missing."""
@@ -161,6 +163,9 @@ class ServiceMissingError(Exception):
                 Detected OS: {platform.os}
                 """
             )
+
+        if messages.env_vars_hint:
+            instructions += f"\n\n{messages.env_vars_hint}"
 
         return cls(
             service=service,

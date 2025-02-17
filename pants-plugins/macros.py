@@ -16,7 +16,7 @@
 def st2_publish_repos():
     """Return the list of repos twine should publish to.
 
-    Twine will publish to ALL of these repos when running `./pants publish`.
+    Twine will publish to ALL of these repos when running `pants publish`.
 
     We use ST2_PUBLISH_REPO, an env var, To facilitate switching between
     @testpypi and @pypi. That also means someone could publish to their own
@@ -124,4 +124,35 @@ def st2_shell_sources_and_resources(**kwargs):
     kwargs.pop("skip_shellcheck", None)
 
     kwargs["name"] += "_resources"
+    resources(**kwargs)  # noqa: F821
+
+
+# these are referenced by the logging.*.conf files.
+_st2common_logging_deps = (
+    "//st2common/st2common/log.py",
+    "//st2common/st2common/logging/formatters.py",
+)
+
+
+def st2_logging_conf_files(**kwargs):
+    """This creates a files target with logging dependencies."""
+    deps = kwargs.pop("dependencies", []) or []
+    deps = list(deps) + list(_st2common_logging_deps)
+    kwargs["dependencies"] = tuple(deps)
+    files(**kwargs)  # noqa: F821
+
+
+def st2_logging_conf_file(**kwargs):
+    """This creates a file target with logging dependencies."""
+    deps = kwargs.pop("dependencies", []) or []
+    deps = list(deps) + list(_st2common_logging_deps)
+    kwargs["dependencies"] = tuple(deps)
+    file(**kwargs)  # noqa: F821
+
+
+def st2_logging_conf_resources(**kwargs):
+    """This creates a resources target with logging dependencies."""
+    deps = kwargs.pop("dependencies", []) or []
+    deps = list(deps) + list(_st2common_logging_deps)
+    kwargs["dependencies"] = tuple(deps)
     resources(**kwargs)  # noqa: F821

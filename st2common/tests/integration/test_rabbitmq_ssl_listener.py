@@ -20,8 +20,9 @@ import ssl
 import socket
 
 import six
-import unittest2
+import unittest
 from oslo_config import cfg
+import pytest
 
 from st2common.transport import utils as transport_utils
 
@@ -37,11 +38,11 @@ SSL_LISTENER_PORT = 5671
 
 # NOTE: We only run those tests on the CI provider because at the moment, local
 #       vagrant dev VM doesn't expose RabbitMQ SSL listener by default
-@unittest2.skipIf(
+@pytest.mark.skipif(
     not ST2_CI,
-    'Skipping tests because ST2_CI environment variable is not set to "true"',
+    reason='Skipping tests because ST2_CI environment variable is not set to "true"',
 )
-class RabbitMQTLSListenerTestCase(unittest2.TestCase):
+class RabbitMQTLSListenerTestCase(unittest.TestCase):
     def setUp(self):
         # Set default values
         cfg.CONF.set_override(name="ssl", override=False, group="messaging")
@@ -135,7 +136,7 @@ class RabbitMQTLSListenerTestCase(unittest2.TestCase):
         )
 
         expected_msg = r"\[SSL: CERTIFICATE_VERIFY_FAILED\] certificate verify failed"
-        self.assertRaisesRegexp(ssl.SSLError, expected_msg, connection.connect)
+        self.assertRaisesRegex(ssl.SSLError, expected_msg, connection.connect)
 
         # 3. Validate server cert against other CA bundle (failure)
         ca_cert_path = os.path.join("/etc/ssl/certs/SecureTrust_CA.pem")
@@ -152,7 +153,7 @@ class RabbitMQTLSListenerTestCase(unittest2.TestCase):
         )
 
         expected_msg = r"\[SSL: CERTIFICATE_VERIFY_FAILED\] certificate verify failed"
-        self.assertRaisesRegexp(ssl.SSLError, expected_msg, connection.connect)
+        self.assertRaisesRegex(ssl.SSLError, expected_msg, connection.connect)
 
         # 4. Validate server cert against other CA bundle (failure)
         # We use invalid bundle but cert_reqs is none
@@ -231,4 +232,4 @@ class RabbitMQTLSListenerTestCase(unittest2.TestCase):
         )
 
         expected_msg = r"\[X509: KEY_VALUES_MISMATCH\] key values mismatch"
-        self.assertRaisesRegexp(ssl.SSLError, expected_msg, connection.connect)
+        self.assertRaisesRegex(ssl.SSLError, expected_msg, connection.connect)

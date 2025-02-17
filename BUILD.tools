@@ -4,12 +4,10 @@ python_requirement(
     name="bandit-reqs",
     resolve="bandit",
     requirements=[
-        "bandit==1.7.0",
+        # https://github.com/pantsbuild/pants/blob/release_2.23.0rc0/src/python/pants/backend/python/lint/bandit/subsystem.py#L44-L52
+        "bandit>=1.7.0,<1.8",
         "setuptools",
-        "GitPython==3.1.18",
-        # bandit needs stevedore which needs importlib-metadata<5
-        # see: https://github.com/PyCQA/bandit/pull/952
-        "importlib-metadata<5;python_version<'3.8'",
+        "GitPython>=3.1.24",
     ],
 )
 
@@ -26,9 +24,9 @@ python_requirement(
     name="flake8-reqs",
     resolve="flake8",
     requirements=[
-        "flake8==4.0.1",  # st2flake8 does not support flake8 v5
+        "flake8==7.0.0",  # st2flake8 does not support flake8 v5
         # license check plugin
-        "st2flake8==0.1.0",  # TODO: remove in favor of regex-lint or preamble
+        "st2flake8>0.1.0",  # TODO: remove in favor of regex-lint or preamble
     ],
 )
 
@@ -37,27 +35,21 @@ python_requirement(
 
 python_requirement(
     name="pytest-reqs",
-    resolve="pytest",
+    resolve="st2",
     requirements=[
         "pytest==7.0.1",  # copied from https://www.pantsbuild.org/v2.14/docs/reference-pytest#version
-        "pytest-benchmark[histogram]==3.4.1",
-        # "pytest-timer[colorama]",
-        "pytest-icdiff",
-        "pygments",
-        # "pytest-timeout",
-        # "pytest-mock",
-        "pytest-cov>=2.12,!=2.12.1,<3.1",
-        "pytest-xdist>=2.5,<3",
-    ],
-)
-
-python_requirement(
-    name="setuptools-reqs",
-    resolve="setuptools",
-    requirements=[
-        # setuptools 59.7 (at least) does not support python 3.6
-        "setuptools>=50.3.0,<59.0",
-        "wheel>=0.35.1,<0.38",
+        "pytest-benchmark[histogram]==3.4.1",  # used for st2common/benchmarks
+        # "pytest-timer[colorama]",  # report test timing (--with-timer ala nose-timer)
+        "pytest-icdiff",  # make diff output easier to read
+        # "pygments",  # highlight code in tracebacks (already included in requirements-pants.txt)
+        #
+        # other possible plugins
+        # "pytest-timeout",  # time limit on tests
+        # "pytest-mock",  # more convenient mocking
+        #
+        # needed by pants
+        "pytest-cov>=2.12,!=2.12.1,<3.1",  # coverage
+        "pytest-xdist>=2.5,<3",  # parallel test runs (pants uses this if [pytest].xdist_enabled)
     ],
 )
 

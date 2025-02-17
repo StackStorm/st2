@@ -58,9 +58,15 @@ class BaseListener(ConsumerMixin):
         raise NotImplementedError("get_consumers() is not implemented")
 
     def processor(self, model=None):
+        exchange_prefix = cfg.CONF.messaging.prefix
+
         def process(body, message):
             meta = message.delivery_info
-            event_name = "%s__%s" % (meta.get("exchange"), meta.get("routing_key"))
+            event_prefix = meta.get("exchange", "")
+            if exchange_prefix != "st2" and event_prefix.startswith(exchange_prefix):
+                # use well-known event names over configurable exchange names
+                event_prefix = event_prefix.replace(f"{exchange_prefix}.", "st2.", 1)
+            event_name = f"{event_prefix}__{meta.get('routing_key')}"
 
             try:
                 if model:

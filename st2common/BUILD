@@ -96,8 +96,8 @@ st2_component_python_distribution(
     ],
     # commands helpful in inspecting the dependencies (the "=(...)" is zsh syntax)
     #   python files under st2common that will not be included in the wheel
-    #     comm -13 =(./pants dependencies --transitive st2common:st2common | grep -v -e : -e __init__.py | grep st2common/st2common | sort) =(find st2common/st2common -name '*.py' -and -not -name '__init__.py' | sort)
+    #     comm -13 =(pants dependencies --transitive st2common:st2common | grep -v -e : -e __init__.py | grep st2common/st2common | sort) =(find st2common/st2common -name '*.py' -and -not -name '__init__.py' | sort)
     #
     #   python files required by other wheels that are missing from st2common
-    #     comm -13 =(./pants dependencies --transitive st2common:st2common | grep st2common/st2common | sort) =(./pants list --filter-target-type=python_distribution --filter-address-regex=-st2common:st2common :: | xargs ./pants dependencies --transitive | grep st2common/st2common | sort)
+    #     comm -13 =(pants dependencies --transitive st2common:st2common | grep st2common/st2common | sort) =(pants list --filter-target-type=python_distribution --filter-address-regex=-st2common:st2common :: | xargs pants dependencies --transitive | grep st2common/st2common | sort)
 )

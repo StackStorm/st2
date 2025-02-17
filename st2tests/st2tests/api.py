@@ -222,7 +222,7 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
             "exclude.*? and include.*? arguments are mutually exclusive. "
             "You need to provide either one or another, but not both."
         )
-        self.assertRegexpMatches(resp.json["faultstring"], expected_msg)
+        self.assertRegex(resp.json["faultstring"], expected_msg)
 
     def test_get_all_invalid_exclude_and_include_parameter(self):
         if self.rbac_enabled:
@@ -236,7 +236,7 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
             "Invalid or unsupported exclude attribute specified: .*invalid_field.*"
         )
         self.assertEqual(resp.status_int, 400)
-        self.assertRegexpMatches(resp.json["faultstring"], expected_msg)
+        self.assertRegex(resp.json["faultstring"], expected_msg)
 
         # 2. Invalid include_attributes field
         url = self.get_all_path + "?include_attributes=invalid_field"
@@ -246,7 +246,7 @@ class APIControllerWithIncludeAndExcludeFilterTestCase(object):
             "Invalid or unsupported include attribute specified: .*invalid_field.*"
         )
         self.assertEqual(resp.status_int, 400)
-        self.assertRegexpMatches(resp.json["faultstring"], expected_msg)
+        self.assertRegex(resp.json["faultstring"], expected_msg)
 
     def test_get_all_include_attributes_filter(self):
         if self.rbac_enabled:

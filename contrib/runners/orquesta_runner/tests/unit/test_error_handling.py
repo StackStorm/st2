@@ -16,9 +16,9 @@
 from __future__ import absolute_import
 
 import mock
-import six
 
 from orquesta import statuses as wf_statuses
+from oslo_config import cfg
 
 import st2tests
 
@@ -333,10 +333,7 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         self.assertDictEqual(ac_ex_db.result, expected_result)
 
     def test_fail_start_task_input_value_type(self):
-        if six.PY3:
-            msg = "Value \"{'x': 'foobar'}\" must either be a string or None. Got \"dict\"."
-        else:
-            msg = "Value \"{u'x': u'foobar'}\" must either be a string or None. Got \"dict\"."
+        msg = "Value \"{'x': 'foobar'}\" must either be a string or None. Got \"dict\"."
 
         msg = "ValueError: " + msg
 
@@ -488,10 +485,7 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         self.assertDictEqual(ac_ex_db.result, expected_result)
 
     def test_fail_next_task_input_value_type(self):
-        if six.PY3:
-            msg = "Value \"{'x': 'foobar'}\" must either be a string or None. Got \"dict\"."
-        else:
-            msg = "Value \"{u'x': u'foobar'}\" must either be a string or None. Got \"dict\"."
+        msg = "Value \"{'x': 'foobar'}\" must either be a string or None. Got \"dict\"."
 
         msg = "ValueError: " + msg
 
@@ -961,7 +955,7 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         mock.MagicMock(side_effect=[RUNNER_RESULT_FAILED]),
     )
     def test_include_result_to_error_log(self):
-        username = "stanley"
+        username = cfg.CONF.system_user.user
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         wf_input = {"who": "Thanos"}
         lv_ac_db = lv_db_models.LiveActionDB(

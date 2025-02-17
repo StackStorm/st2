@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 
+set +x
+
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-s scheduler_count] [-w workflow_engine_count] [-g] [-x] [-c] [-6] [-m]" >&2
+    cat<<EOF >&2
+    Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-s scheduler_count] [-w workflow_engine_count] [-g] [-x] [-c] [-6]
+     -r : the number of st2runner instances start
+     -s : the numer of st2scheduler instances to start
+     -w : the numer of st2workflow-engine instances to start
+     -g : disable gunicorn
+     -x : enable copy test packs
+     -c : disable load content
+     -6 : enable use of ipv6
+EOF
 }
 
 subcommand=$1; shift
@@ -49,13 +60,52 @@ while getopts ":r:s:w:gxcu6" o; do
     esac
 done
 
-function init(){
+# Colour echo
+function cecho()
+{
+    if [[ "$1" == "-n" ]]; then
+        # No carrage return
+        NCR="$1"; shift
+    else
+        NCR=""
+    fi
+    C="$1"; shift
+    MSG="$1"
+    echo $NCR -e "\e[${C}m${MSG}\e[0m"
+}
+
+function heading()
+{
+    MSG="$1"
+    cecho "34;7" "$MSG"
+}
+function iecho()
+{
+    MSG="$1"
+    cecho "37;1" "$MSG"
+}
+function wecho()
+{
+    MSG="$1"
+    cecho "33;1" "$MSG"
+}
+function eecho()
+{
+    MSG="$1"
+    cecho "31;1" "$MSG"
+}
+function init()
+{
+    heading "Initialising system variables ..."
+    # Capture list of exported vars before adding any others
+    ST2VARS=(${!ST2_@})
+
     ST2_BASE_DIR="/opt/stackstorm"
     COMMAND_PATH=${0%/*}
-    CURRENT_DIR=`pwd`
-    CURRENT_USER=`whoami`
-    CURRENT_USER_GROUP=`id -gn`
-    echo "Current user:group = ${CURRENT_USER}:${CURRENT_USER_GROUP}"
+    CURRENT_DIR=$(pwd)
+    CURRENT_USER=$(whoami)
+    CURRENT_USER_GROUP=$(id -gn)
+    echo -n "Current user:group = "; iecho "${CURRENT_USER}:${CURRENT_USER_GROUP}"
 
     if [[ (${COMMAND_PATH} == /*) ]] ;
     then
@@ -63,75 +113,94 @@ function init(){
     else
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
-
+    ST2_REPO=$(readlink -f ${ST2_REPO})
+    ST2_LOGS="${ST2_REPO}/logs"
+    # ST2_REPO/virtualenv is the Makefile managed dir.
+    # The workflow should set this to use a pants exported or other venv instead.
     VIRTUALENV=${VIRTUALENV_DIR:-${ST2_REPO}/virtualenv}
     VIRTUALENV=$(readlink -f ${VIRTUALENV})
     PY=${VIRTUALENV}/bin/python
+    if [ ! -f "${PY}" ]; then
+        eecho "${PY} does not exist"
+        exit 1
+    fi
     PYTHON_VERSION=$(${PY} --version 2>&1)
 
-    echo "Using virtualenv: ${VIRTUALENV}"
-    echo "Using python: ${PY} (${PYTHON_VERSION})"
+    echo -n "Using virtualenv: "; iecho "${VIRTUALENV}"
+    echo -n "Using python: "; iecho "${PY} (${PYTHON_VERSION})"
+    echo -n "Log file location: "; iecho "${ST2_LOGS}"
+    echo -n "Using tmux: "; iecho "$(tmux -V)"
 
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
+    # ST2_* vars directly override conf vars using oslo_config's env var feature.
+    # The ST2TESTS_* vars are only for tests, and take precedence over ST2_* vars.
+    if [ -n "${ST2TESTS_SYSTEM_USER}" ]; then
+        export ST2_SYSTEM_USER__USER="${ST2TESTS_SYSTEM_USER}"
+        ST2VARS+=("ST2_SYSTEM_USER__USER")
+    fi
+    if [ -n "${ST2TESTS_REDIS_HOST}" ] && [ -n "${ST2TESTS_REDIS_PORT}" ]; then
+        export ST2_COORDINATION__URL="redis://${ST2TESTS_REDIS_HOST}:${ST2TESTS_REDIS_PORT}?namespace=_st2_dev"
+        ST2VARS+=("ST2_COORDINATION__URL")
+    fi
 
     ST2_CONF=$(readlink -f ${ST2_CONF})
-    echo "Using st2 config file: $ST2_CONF"
+    echo -n "Using st2 config file: "; iecho "$ST2_CONF"
 
     if [ ! -f "$ST2_CONF" ]; then
-        echo "Config file $ST2_CONF does not exist."
+        eecho "Config file $ST2_CONF does not exist."
         exit 1
     fi
 
 }
 
-function exportsdir(){
+function exportsdir()
+{
     local EXPORTS_DIR=$(grep 'dump_dir' ${ST2_CONF} | sed -e "s~^dump_dir[ ]*=[ ]*\(.*\)~\1~g")
     if [ -z $EXPORTS_DIR ]; then
         EXPORTS_DIR="/opt/stackstorm/exports"
     fi
-    echo "$EXPORTS_DIR"
+    echo -n "Export directories: "; iecho "$EXPORTS_DIR"
 }
 
-function st2start(){
-    echo "Starting all st2 servers..."
+function st2start()
+{
+    heading "Starting all st2 servers ..."
 
     # Determine where the st2 repo is located. Some assumption is made here
     # that this script is located under st2/tools.
 
     # Change working directory to the root of the repo.
-    echo "Changing working directory to ${ST2_REPO}"
+    echo -n "Changing working directory to "; iecho "${ST2_REPO}"
     cd ${ST2_REPO}
 
-    BASE_DIR=$(grep 'base_path' ${ST2_CONF} \
-        | awk 'BEGIN {FS=" = "}; {print $2}')
+    BASE_DIR=$(grep 'base_path' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
     if [ -z BASE_DIR ]; then
         BASE_DIR="/opt/stackstorm"
     fi
     CONFIG_BASE_DIR="${BASE_DIR}/configs"
-    echo "Using config base dir: $CONFIG_BASE_DIR"
+    echo -n "Using config base dir: "; iecho "$CONFIG_BASE_DIR"
 
     if [ ! -d "$CONFIG_BASE_DIR" ]; then
-        echo "$CONFIG_BASE_DIR doesn't exist. Creating..."
+        wecho "$CONFIG_BASE_DIR doesn't exist. Creating ..."
         sudo mkdir -p $CONFIG_BASE_DIR
     fi
 
-    PACKS_BASE_DIR=$(grep 'packs_base_path' ${ST2_CONF} \
-        | awk 'BEGIN {FS=" = "}; {print $2}')
+    PACKS_BASE_DIR=$(grep 'packs_base_path' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
     if [ -z $PACKS_BASE_DIR ]; then
         PACKS_BASE_DIR="/opt/stackstorm/packs"
     fi
-    echo "Using content packs base dir: $PACKS_BASE_DIR"
+    echo -n "Using content packs base dir: "; iecho "$PACKS_BASE_DIR"
 
     # Copy and overwrite the action contents
     if [ ! -d "$ST2_BASE_DIR" ]; then
-        echo "$ST2_BASE_DIR doesn't exist. Creating..."
+        wecho "$ST2_BASE_DIR doesn't exist. Creating ..."
         sudo mkdir -p $PACKS_BASE_DIR
     fi
 
     if [ "${use_ipv6}" = true ]; then
-        echo '  using IPv6 bindings...'
+        echo '  using IPv6 bindings ...'
         BINDING_ADDRESS="[::]"
     else
         BINDING_ADDRESS="0.0.0.0"
@@ -150,150 +219,134 @@ function st2start(){
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
 
     if [ "$copy_test_packs" = true ]; then
-        echo "Copying test packs examples and fixtures to $PACKS_BASE_DIR"
+        echo -n "Copying test packs examples and fixtures to "; iecho "$PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
-        # Clone st2tests in /tmp directory.
-        pushd /tmp
+        # Clone st2tests in a tmp directory.
+        CLONE_TMP_DIR=$(mktemp -d)
+        pushd "${CLONE_TMP_DIR}"
         echo Cloning https://github.com/StackStorm/st2tests.git
         # -q = no progress reporting (better for CI). Errors will still print.
         git clone -q https://github.com/StackStorm/st2tests.git
         ret=$?
         if [ ${ret} -eq 0 ]; then
             cp -Rp ./st2tests/packs/fixtures $PACKS_BASE_DIR
-            rm -R st2tests/
         else
-            echo "Failed to clone st2tests repo"
+            eecho "Failed to clone st2tests repo"
         fi
         popd
+        rm -Rf "${CLONE_TMP_DIR}"
     fi
 
     # activate virtualenv to set PYTHONPATH
-    source ${VIRTUALENV}/bin/activate
+    source "${VIRTUALENV}/bin/activate"
+    # set configuration file location.
+    export ST2_CONFIG_PATH="${ST2_CONF}"
 
-    # Kill existing st2 screens
-    screen -wipe
-    screen -ls | grep st2 &> /dev/null
-    if [ $? == 0 ]; then
-        echo 'Killing existing st2 screen sessions...'
-        screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
-    fi
+    # Kill existing st2 terminal multiplexor sessions
+    for tmux_session in $(tmux ls 2>/dev/null | awk -F: '/^st2-/ {print $1}')
+    do
+        echo "Kill existing session $tmux_session"
+        tmux kill-session -t $tmux_session
+    done
 
-    # NOTE: We can't rely on latest version of screen with "-Logfile path"
-    # option so we need to use screen config file per screen window
+    local PRE_SCRIPT_VARS=()
+    for var_name in "${ST2VARS[@]}"; do
+      PRE_SCRIPT_VARS+=("${var_name}=${!var_name}")
+    done
+    PRE_SCRIPT_VARS+=("ST2_CONFIG_PATH=${ST2_CONF}")
+
+    # PRE_SCRIPT should not end with ';' so that using it is clear.
+    local PRE_SCRIPT="export ${PRE_SCRIPT_VARS[@]}; source ${VIRTUALENV}/bin/activate"
 
     # Run the st2 API server
-    echo 'Starting screen session st2-api...'
     if [ "${use_gunicorn}" = true ]; then
-        echo '  using gunicorn to run st2-api...'
-        export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -L -c tools/screen-configs/st2api.conf -d -m -S st2-api ${VIRTUALENV}/bin/gunicorn \
-            st2api.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
+        echo 'Starting st2-api using gunicorn ...'
+        tmux new-session -d -s st2-api "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2api.wsgi:application -k eventlet -b $BINDING_ADDRESS:9101 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
     else
-        screen -L -c tools/screen-configs/st2api.conf -d -m -S st2-api ${VIRTUALENV}/bin/python \
-            ./st2api/bin/st2api \
-            --config-file $ST2_CONF
+        echo 'Starting st2-api ...'
+        tmux new-session -d -s st2-api "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2api/bin/st2api --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
     fi
 
     # Run st2stream API server
     if [ "${use_gunicorn}" = true ]; then
-        echo '  using gunicorn to run st2-stream'
-        export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -L -c tools/screen-configs/st2stream.conf -d -m -S st2-stream ${VIRTUALENV}/bin/gunicorn \
-            st2stream.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
+        echo 'Starting st2-stream using gunicorn ...'
+        tmux new-session -d -s st2-stream "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2stream.wsgi:application -k eventlet -b $BINDING_ADDRESS:9102 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
     else
-        screen -L -c tools/screen-configs/st2stream.conf -d -m -S st2-stream ${VIRTUALENV}/bin/python \
-            ./st2stream/bin/st2stream \
-            --config-file $ST2_CONF
+        echo 'Starting st2-stream ...'
+        tmux new-session -d -s st2-stream "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2stream/bin/st2stream --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
     fi
 
+    # give st2stream time to startup and load things into database
+    sleep 10
+
     # Run the workflow engine server
-    echo 'Starting screen session st2-workflow(s)'
-    WORKFLOW_ENGINE_SCREENS=()
+    echo 'Starting st2-workflow engine(s):'
+    WORKFLOW_ENGINE_SESSIONS=()
     for i in $(seq 1 $workflow_engine_count)
     do
         WORKFLOW_ENGINE_NAME=st2-workflow-$i
-        WORKFLOW_ENGINE_SCREENS+=($WORKFLOW_ENGINE_NAME)
-        echo '  starting '$WORKFLOW_ENGINE_NAME'...'
-        screen -L -c tools/screen-configs/st2workflowengine.conf -d -m -S $WORKFLOW_ENGINE_NAME ${VIRTUALENV}/bin/python \
-            ./st2actions/bin/st2workflowengine \
-            --config-file $ST2_CONF
+        WORKFLOW_ENGINE_SESSIONS+=($WORKFLOW_ENGINE_NAME)
+        echo "   $WORKFLOW_ENGINE_NAME ..."
+        tmux new-session -d -s $WORKFLOW_ENGINE_NAME "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2actions/bin/st2workflowengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${WORKFLOW_ENGINE_NAME}.log"
     done
 
-    # Start a screen for every runner
-    echo 'Starting screen sessions for st2-actionrunner(s)'
-    RUNNER_SCREENS=()
+    # Start a session for every runner
+    echo 'Starting st2-actionrunner(s):'
+    RUNNER_SESSIONS=()
     for i in $(seq 1 $runner_count)
     do
         RUNNER_NAME=st2-actionrunner-$i
-        RUNNER_SCREENS+=($RUNNER_NAME)
-        echo '  starting '$RUNNER_NAME'...'
-        screen -L -c tools/screen-configs/st2actionrunner.conf -d -m -S $RUNNER_NAME ${VIRTUALENV}/bin/python \
-            ./st2actions/bin/st2actionrunner \
-            --config-file $ST2_CONF
+        RUNNER_SESSIONS+=($RUNNER_NAME)
+        echo "   $RUNNER_NAME ..."
+        tmux new-session -d -s $RUNNER_NAME "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2actions/bin/st2actionrunner --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${RUNNER_NAME}.log"
     done
 
     # Run the garbage collector service
-    echo 'Starting screen session st2-garbagecollector'
-    screen -L -c tools/screen-configs/st2garbagecollector.conf -d -m -S st2-garbagecollector ${VIRTUALENV}/bin/python \
-        ./st2reactor/bin/st2garbagecollector \
-        --config-file $ST2_CONF
+    echo 'Starting st2-garbagecollector ...'
+    tmux new-session -d -s st2-garbagecollector "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2garbagecollector --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-garbagecollector.log"
 
     # Run the scheduler server
-    echo 'Starting screen session st2-scheduler(s)'
-    SCHEDULER_SCREENS=()
+    echo 'Starting st2-scheduler(s):'
+    SCHEDULER_SESSIONS=()
     for i in $(seq 1 $scheduler_count)
     do
         SCHEDULER_NAME=st2-scheduler-$i
-        SCHEDULER_SCREENS+=($SCHEDULER_NAME)
-        echo '  starting '$SCHEDULER_NAME'...'
-        screen -L -c tools/screen-configs/st2scheduler.conf -d -m -S $SCHEDULER_NAME ${VIRTUALENV}/bin/python \
-            ./st2actions/bin/st2scheduler \
-            --config-file $ST2_CONF
+        SCHEDULER_SESSIONS+=($SCHEDULER_NAME)
+        echo "   $SCHEDULER_NAME ..."
+        tmux new-session -d -s $SCHEDULER_NAME "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2actions/bin/st2scheduler --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/${SCHEDULER_NAME}.log"
     done
 
     # Run the sensor container server
-    echo 'Starting screen session st2-sensorcontainer'
-    screen -L -c tools/screen-configs/st2sensorcontainer.conf -d -m -S st2-sensorcontainer ${VIRTUALENV}/bin/python \
-        ./st2reactor/bin/st2sensorcontainer \
-        --config-file $ST2_CONF
+    echo 'Starting st2-sensorcontainer ...'
+    tmux new-session -d -s st2-sensorcontainer "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2sensorcontainer --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-sensorcontainer.log"
 
     # Run the rules engine server
-    echo 'Starting screen session st2-rulesengine...'
-    screen -L -c tools/screen-configs/st2rulesengine.conf -d -m -S st2-rulesengine ${VIRTUALENV}/bin/python \
-        ./st2reactor/bin/st2rulesengine \
-        --config-file $ST2_CONF
+    echo 'Starting st2-rulesengine ...'
+    tmux new-session -d -s st2-rulesengine "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2rulesengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-rulesengine.log"
 
     # Run the timer engine server
-    echo 'Starting screen session st2-timersengine...'
-    screen -L -c tools/screen-configs/st2timersengine.conf -d -m -S st2-timersengine ${VIRTUALENV}/bin/python \
-        ./st2reactor/bin/st2timersengine \
-        --config-file $ST2_CONF
+    echo 'Starting st2-timersengine ...'
+    tmux new-session -d -s st2-timersengine "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2reactor/bin/st2timersengine --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-timersengine.log"
 
     # Run the actions notifier
-    echo 'Starting screen session st2-notifier...'
-    screen -L -c tools/screen-configs/st2notifier.conf -d -m -S st2-notifier ${VIRTUALENV}/bin/python \
-        ./st2actions/bin/st2notifier \
-        --config-file $ST2_CONF
+    echo 'Starting st2-notifier ...'
+    tmux new-session -d -s st2-notifier "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2actions/bin/st2notifier --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-notifier.log"
 
     # Run the auth API server
-    echo 'Starting screen session st2-auth...'
     if [ "${use_gunicorn}" = true ]; then
-        echo '  using gunicorn to run st2-auth...'
-        export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -L -c tools/screen-configs/st2auth.conf -d -m -S st2-auth ${VIRTUALENV}/bin/gunicorn \
-            st2auth.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
+        echo 'Starting st2-auth using gunicorn ...'
+        tmux new-session -d -s st2-auth "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2auth.wsgi:application -k eventlet -b $BINDING_ADDRESS:9100 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-auth.log"
     else
-        screen -L -c tools/screen-configs/st2auth.conf -d -m -S st2-auth ${VIRTUALENV}/bin/python \
-            ./st2auth/bin/st2auth \
-            --config-file $ST2_CONF
+        echo 'Starting st2-auth ...'
+        tmux new-session -d -s st2-auth "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2auth/bin/st2auth --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-auth.log"
     fi
 
-    # Check whether screen sessions are started
-    SCREENS=(
+    # Check whether tmux sessions are started
+    SESSIONS=(
         "st2-api"
-        "${WORKFLOW_ENGINE_SCREENS[@]}"
-        "${SCHEDULER_SCREENS[@]}"
-        "${RUNNER_SCREENS[@]}"
+        "${WORKFLOW_ENGINE_SESSIONS[@]}"
+        "${SCHEDULER_SESSIONS[@]}"
+        "${RUNNER_SESSIONS[@]}"
         "st2-sensorcontainer"
         "st2-rulesengine"
         "st2-notifier"
@@ -303,45 +356,44 @@ function st2start(){
     )
 
     echo
-    for s in "${SCREENS[@]}"
+    for s in "${SESSIONS[@]}"
     do
-        screen -ls | grep "${s}[[:space:]]" &> /dev/null
+        tmux ls | grep "^${s}:\?[[:space:]]" &> /dev/null
         if [ $? != 0 ]; then
-            echo "ERROR: Unable to start screen session for $s."
+            eecho "ERROR: terminal multiplex session for $s failed to start."
         fi
     done
 
     if [ "$load_content" = true ]; then
         # Register contents
-        echo 'Registering sensors, runners, actions, rules, aliases, and policies...'
-        ${VIRTUALENV}/bin/python \
-            ./st2common/bin/st2-register-content \
-            --config-file $ST2_CONF --register-all
+        echo 'Registering sensors, runners, actions, rules, aliases, and policies ...'
+        ${VIRTUALENV}/bin/python ./st2common/bin/st2-register-content --config-file $ST2_CONF --register-all
     fi
 
     if [ "$copy_test_packs" = true ]; then
         st2 run packs.setup_virtualenv packs=fixtures
         if [ $? != 0 ]; then
-            echo "Warning: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
+            wecho "WARNING: Unable to setup virtualenv for the \"tests\" pack. Please setup virtualenv for the \"tests\" pack before running integration tests"
         fi
     fi
 
-    # Print default creds to the screen
-    echo "The default creds are testu:testp"
+    # Display default credentials to the multiplexor session
+    echo "The default credentials are testu:testp"
 
-    # List screen sessions
-    screen -ls || exit 0
+    # List sessions
+    tmux ls || exit 0
 }
 
-function st2stop(){
-    screen -ls | grep st2 &> /dev/null
-    if [ $? == 0 ]; then
-        echo 'Killing existing st2 screen sessions...'
-        screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
-    fi
+function st2stop()
+{
+    for tmux_session in $(tmux ls 2>/dev/null | awk -F: '/^st2-/ {print $1}')
+    do
+        echo "Kill existing session $tmux_session"
+        tmux kill-session -t $tmux_session
+    done
 
     if [ "${use_gunicorn}" = true ]; then
-        pids=`ps -ef | grep "wsgi:application" | grep -v "grep" | awk '{print $2}'`
+        pids=$(ps -ef | grep "wsgi:application" | grep -v "grep" | awk '{print $2}')
         if [ -n "$pids" ]; then
             echo "Killing gunicorn processes"
             # true ensures that any failure to kill a process which does not exist will not lead
@@ -354,7 +406,8 @@ function st2stop(){
     fi
 }
 
-function st2clean(){
+function st2clean()
+{
     # clean mongo
     . ${VIRTUALENV}/bin/activate
     python ${ST2_REPO}/st2common/bin/st2-cleanup-db --config-file $ST2_CONF
@@ -367,33 +420,32 @@ function st2clean(){
     fi
     if [ -n "$ST2_EXPORTER" ]; then
         EXPORTS_DIR=$(exportsdir)
-        echo "Removing $EXPORTS_DIR..."
+        echo "Removing $EXPORTS_DIR ..."
         rm -rf ${EXPORTS_DIR}
     fi
-
 }
 
 
 case ${subcommand} in
-start)
-    init
-    st2start
-    ;;
-startclean)
-    init
-    st2clean
-    st2start
-    ;;
-stop)
-    st2stop
-    ;;
-restart)
-    st2stop
-    sleep 1
-    init
-    st2start
-    ;;
-*)
-    usage
-    ;;
+    start)
+        init
+        st2start
+        ;;
+    startclean)
+        init
+        st2clean
+        st2start
+        ;;
+    stop)
+        st2stop
+        ;;
+    restart)
+        st2stop
+        sleep 1
+        init
+        st2start
+        ;;
+    *)
+        usage
+        ;;
 esac

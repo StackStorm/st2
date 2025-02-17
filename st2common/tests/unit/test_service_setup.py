@@ -17,7 +17,6 @@ from __future__ import absolute_import
 
 import tempfile
 
-import six
 import mock
 
 from oslo_config.cfg import ConfigFilesNotFoundError
@@ -104,12 +103,9 @@ class ServiceSetupTestCase(CleanFilesTestCase):
     def test_no_logging_config_found(self):
         config.get_logging_config_path = mock_get_logging_config_path
 
-        if six.PY3:
-            expected_msg = ".*KeyError:.*"
-        else:
-            expected_msg = "No section: .*"
+        expected_msg = ".*KeyError:.*"
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             Exception,
             expected_msg,
             service_setup.setup,
@@ -134,16 +130,10 @@ class ServiceSetupTestCase(CleanFilesTestCase):
 
         config.get_logging_config_path = mock_get_logging_config_path
 
-        if six.PY3:
-            expected_msg = "ValueError: Unknown level: 'invalid_log_level'"
-            exc_type = ValueError
-        else:
-            expected_msg = (
-                "Invalid log level selected. Log level names need to be all uppercase"
-            )
-            exc_type = KeyError
+        expected_msg = "ValueError: Unknown level: 'invalid_log_level'"
+        exc_type = ValueError
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exc_type,
             expected_msg,
             service_setup.setup,
@@ -185,7 +175,7 @@ class ServiceSetupTestCase(CleanFilesTestCase):
         expected_msg = "Failed to find some config files: %s" % (
             MOCK_DEFAULT_CONFIG_FILE_PATH
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ConfigFilesNotFoundError,
             expected_msg,
             service_setup.setup,
@@ -203,7 +193,7 @@ class ServiceSetupTestCase(CleanFilesTestCase):
         # 2. --config-file should still override default config file path option
         config_file_path = "/etc/st2/config.override.test"
         expected_msg = "Failed to find some config files: %s" % (config_file_path)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ConfigFilesNotFoundError,
             expected_msg,
             service_setup.setup,
@@ -227,6 +217,7 @@ class ServiceSetupTestCase(CleanFilesTestCase):
         members = coordinator.get_members(service.encode("utf-8"))
         self.assertEqual(len(list(members.get())), 1)
         service_setup.deregister_service(service)
+        members = coordinator.get_members(service.encode("utf-8"))
         self.assertEqual(len(list(members.get())), 0)
 
     def test_deregister_service_when_service_registry_disables(self):

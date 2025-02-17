@@ -13,18 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# XXX: FabricRunner import depends on config being setup.
-from __future__ import absolute_import
+from unittest import TestCase
+
+# This import must be early for import-time side-effects.
 import st2tests.config as tests_config
-
-tests_config.parse_args()
-
-from unittest2 import TestCase
 
 from st2common.models.system.action import RemoteScriptAction
 
 
 class RemoteScriptActionTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     def test_parameter_formatting(self):
         # Only named args
         named_args = {

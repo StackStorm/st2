@@ -1,0 +1,38 @@
+---
+name: Initialize Pants and its GHA caches
+description:
+  Light wrapper around the pantsbuild/actions/init-pants action
+  to maintain the input vars in only one place for all workflows.
+
+inputs:
+  gha-cache-key:
+    description: Qualify all cache keys with this string. Useful for invalidating everything.
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Initialize Pants and its GHA caches
+      uses: pantsbuild/actions/init-pants@v9
+      # This action adds an env var to make pants use both pants.ci.toml & pants.toml.
+      # This action also creates 3 GHA caches (1 is optional).
+      # - `pants-setup` has the bootsrapped pants install
+      # - `pants-named-caches` has pip/wheel and PEX caches
+      # - `pants-lmdb-store` has the fine-grained process cache.
+      #   If we ever use a remote cache, then we can drop this.
+      #   Otherwise, we may need an additional workflow or job to delete old caches
+      #   if they are not expiring fast enough, and we hit the GHA 10GB per repo max.
+      with:
+        base-branch: master
+        # To ignore a bad cache, bump the cache* integer.
+        gha-cache-key: ${{ inputs.gha-cache-key }}
+        # This hash should include all of our lockfiles so that the pip/pex caches
+        # get invalidated on any transitive dependency update.
+        named-caches-hash: ${{ hashFiles('lockfiles/*.lock') }}
+        # enable the optional lmdb_store cache since we can't rely on remote caching yet.
+        cache-lmdb-store: 'true'
+        # Try the experimental support for using GHA cache as a pants remote cache.
+        experimental-remote-cache-via-gha: 'true'
+        # install whatever version of python we need for our in-repo pants-plugins
+        setup-python-for-plugins: 'true'
+

@@ -8,10 +8,11 @@
 
 apscheduler
 argcomplete
+argparse
 ciso8601
 cryptography
-# eventlet 0.31+ and gunicorn 20.1.0 are not compatible
-eventlet<0.31
+editor
+eventlet
 # flex parses the openapi 2 spec in our router
 flex
 # gitpython & gitdb are used for pack management
@@ -22,19 +23,20 @@ greenlet
 gunicorn
 jinja2
 jsonpath-rw
-jsonschema
+jsonschema>=3,<4
 kombu
 lockfile
 mock
-mongoengine
-# Note: networkx v2.6 dropped support for Python3.6
+# mongoengine 0.24.0 has breaking changes to support pymongo 4.0
+# mongoengine 0.29.0 is the first version to officially support mongo 7.0.
+mongoengine>=0.24.0,<0.30.0
 # networkx version is constrained in orquesta.
 networkx
 orjson
-orquesta @ git+https://github.com/StackStorm/orquesta.git@v1.5.0
-# NOTE: Recent version substantially affect the performance and add big import time overhead
-# See https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433 for details
-oslo.config>=1.12.1,<1.13
+orquesta @ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
+# Historical reference: https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433
+# Relaxed pinning for py3.10 support.
+oslo.config
 paramiko
 # we use pip at runtime
 pip
@@ -42,15 +44,17 @@ pip
 # prance needs flex, but do not use the extra as that gets an old version.
 prance
 prettytable
-# For st2client: prompt-toolkit v2+ does not have prompt_toolkit.token.Token
-prompt-toolkit<2
+prompt-toolkit
 psutil
-pymongo
+pygments
+# pymongo 3.13 has backports of APIs from pymongo 4 to help w/ migration
+# pymongo 4.4 is the first version to officially support mongo 7.0.
+# pymongo 4.7 (or 4.8?) introduces support for standard python logging, which overwhelms our debug logs
+pymongo>=4.0.0,<4.7
 # pyrabbit used in an integration test
 pyrabbit
-pytest
+# pytest reqs in BUILD.tools file
 python-dateutil
-python-editor
 # pythonjsonlogger referenced in st2actions/conf/logging.conf
 python-json-logger
 python-statsd
@@ -58,21 +62,21 @@ pytz
 PyYAML
 # RandomWords used in some tests
 RandomWords
-requests[security]
+requests
 retrying
 routes
 semver
 # setuptools provides pkg_resources (and we need it with pip at runtime)
+# setuptools is also required for pants to build wheels.
 setuptools
 simplejson
 six
 # NOTE: we use sseclient-py instead of sseclient because sseclient
 # has various issues which sometimes hang the connection for a long time, etc.
 sseclient-py
-# bandit doesn't work w/ stevedore 3+
-stevedore<3
+stevedore
 # For backward compatibility reasons, flat file backend is installed by default
-st2-auth-backend-flat-file @ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
+st2-auth-backend-flat-file
 st2-auth-ldap @ git+https://github.com/StackStorm/st2-auth-ldap.git@master
 st2-rbac-backend @ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 # tabulate used by tools/log_watcher.py
@@ -80,11 +84,10 @@ tabulate
 tooz
 udatetime
 ujson
-unittest2
 virtualenv
 webob
 webtest
-# we use pip+wheel at runtime
+# we use pip+wheel at runtime; wheel is also required for pants to build wheels.
 wheel
 # zstandard is used for micro benchmarks
 zstandard
@@ -96,11 +99,3 @@ zake
 # was in fixed-requirements.txt, but not in requirements-pants.txt
 # keyczar is used by a python2-only test.
 #python-keyczar
-
-###########
-
-# not needed with switch to pytest
-#nose
-#nose-timer
-#nose-parallel
-#rednose

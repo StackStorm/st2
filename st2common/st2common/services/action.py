@@ -631,6 +631,6 @@ def is_action_execution_under_action_chain_context(liveaction):
 
 
 def get_requester(requester):
-    if type(requester) == UserDB:
+    if isinstance(requester, UserDB):
         return requester["name"]
     return requester

@@ -19,17 +19,15 @@ import copy
 import os
 import six
 import sys
-import unittest2
+import unittest
 
 import st2common.util.loader as plugin_loader
 
 
-PLUGIN_FOLDER = "loadableplugin"
-SRC_RELATIVE = os.path.join("../resources", PLUGIN_FOLDER)
-SRC_ROOT = os.path.join(os.path.abspath(os.path.dirname(__file__)), SRC_RELATIVE)
+from tests.resources.loadableplugin.fixture import FIXTURE_PATH as SRC_ROOT
 
 
-class LoaderTest(unittest2.TestCase):
+class LoaderTest(unittest.TestCase):
     sys_path = None
 
     @six.add_metaclass(abc.ABCMeta)
@@ -96,7 +94,7 @@ class LoaderTest(unittest2.TestCase):
         file_path = os.path.join(SRC_ROOT, "plugin/sampleplugin3.py")
 
         expected_msg = 'doesn\'t expose class named "SamplePluginNotExists"'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             Exception,
             expected_msg,
             plugin_loader.register_plugin_class,
@@ -111,7 +109,7 @@ class LoaderTest(unittest2.TestCase):
         expected_msg = (
             'doesn\'t implement required "do_work" method from the base class'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             plugin_loader.IncompatiblePluginException,
             expected_msg,
             plugin_loader.register_plugin_class,

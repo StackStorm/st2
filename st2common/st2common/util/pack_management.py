@@ -35,7 +35,7 @@ import six
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
-from distutils.spawn import find_executable
+from shutil import which as shutil_which
 
 from st2common import log as logging
 from st2common.content import utils
@@ -67,7 +67,7 @@ CONFIG_FILE = "config.yaml"
 CURRENT_STACKSTORM_VERSION = get_stackstorm_version()
 CURRENT_PYTHON_VERSION = get_python_version()
 
-SUDO_BINARY = find_executable("sudo")
+SUDO_BINARY = shutil_which("sudo")
 
 
 def download_pack(

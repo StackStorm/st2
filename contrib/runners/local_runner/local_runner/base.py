@@ -116,7 +116,10 @@ class BaseLocalShellRunner(ActionRunner, ShellRunnerMixin):
         sanitized_args = action.get_sanitized_full_command_string()
 
         # For consistency with the old Fabric based runner, make sure the file is executable
-        if script_action:
+        # Also check to ensure not Read-only file system
+        if script_action and not bool(
+            os.statvfs(self.entry_point).f_flag & os.ST_RDONLY
+        ):
             script_local_path_abs = self.entry_point
             args = "chmod +x %s ; %s" % (script_local_path_abs, args)
             sanitized_args = "chmod +x %s ; %s" % (
