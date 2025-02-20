@@ -20,6 +20,10 @@ import mock
 import shutil
 import tempfile
 import hashlib
+import sys
+
+# TODO: Move keywords directly to hashlib.md5 call as part of dropping py3.8.
+hashlib_kwargs = {} if sys.version_info[0:2] < (3, 9) else {"usedforsecurity": False}
 
 from st2common.util.monkey_patch import use_select_poll_workaround
 
@@ -154,7 +158,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_download(self):
         action = self.get_action_instance()
         result = action.run(packs=["test"], abs_repo_base=self.repo_base)
-        temp_dir = hashlib.md5(PACK_INDEX["test"]["repo_url"].encode()).hexdigest()
+        temp_dir = hashlib.md5(
+            PACK_INDEX["test"]["repo_url"].encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         self.assertEqual(result, {"test": "Success."})
         self.clone_from.assert_called_once_with(
@@ -175,8 +181,12 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             abs_repo_base=self.repo_base,
         )
         temp_dirs = [
-            hashlib.md5(PACK_INDEX["test2"]["repo_url"].encode()).hexdigest(),
-            hashlib.md5(PACK_INDEX["test4"]["repo_url"].encode()).hexdigest(),
+            hashlib.md5(
+                PACK_INDEX["test2"]["repo_url"].encode(), **hashlib_kwargs
+            ).hexdigest(),  # nosec. remove nosec after py3.8 drop
+            hashlib.md5(
+                PACK_INDEX["test4"]["repo_url"].encode(), **hashlib_kwargs
+            ).hexdigest(),  # nosec. remove nosec after py3.8 drop
         ]
 
         self.assertEqual(result, {"test2": "Success.", "test4": "Success."})
@@ -205,8 +215,12 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
         result = action.run(packs=["test", "test2"], abs_repo_base=self.repo_base)
         temp_dirs = [
-            hashlib.md5(PACK_INDEX["test"]["repo_url"].encode()).hexdigest(),
-            hashlib.md5(PACK_INDEX["test2"]["repo_url"].encode()).hexdigest(),
+            hashlib.md5(
+                PACK_INDEX["test"]["repo_url"].encode(), **hashlib_kwargs
+            ).hexdigest(),  # nosec. remove nosec after py3.8 drop
+            hashlib.md5(
+                PACK_INDEX["test2"]["repo_url"].encode(), **hashlib_kwargs
+            ).hexdigest(),  # nosec. remove nosec after py3.8 drop
         ]
 
         self.assertEqual(result, {"test": "Success.", "test2": "Success."})
@@ -243,7 +257,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
     def test_run_pack_lock_is_already_acquired(self):
         action = self.get_action_instance()
-        temp_dir = hashlib.md5(PACK_INDEX["test"]["repo_url"].encode()).hexdigest()
+        temp_dir = hashlib.md5(
+            PACK_INDEX["test"]["repo_url"].encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         original_acquire = LockFile.acquire
 
@@ -274,7 +290,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_lock_is_already_acquired_force_flag(self):
         # Lock is already acquired but force is true so it should be deleted and released
         action = self.get_action_instance()
-        temp_dir = hashlib.md5(PACK_INDEX["test"]["repo_url"].encode()).hexdigest()
+        temp_dir = hashlib.md5(
+            PACK_INDEX["test"]["repo_url"].encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         original_acquire = LockFile.acquire
 
@@ -682,7 +700,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_download_with_tag(self):
         action = self.get_action_instance()
         result = action.run(packs=["test"], abs_repo_base=self.repo_base)
-        temp_dir = hashlib.md5(PACK_INDEX["test"]["repo_url"].encode()).hexdigest()
+        temp_dir = hashlib.md5(
+            PACK_INDEX["test"]["repo_url"].encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         self.assertEqual(result, {"test": "Success."})
         self.clone_from.assert_called_once_with(

@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 backports.zoneinfo[tzdata]; python_version<"3.9"
-eventlet==0.38.2
+eventlet==0.39.0
 gunicorn==23.0.0
 jsonschema==3.2.0
 kombu==5.4.2
