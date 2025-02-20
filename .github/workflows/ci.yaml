@@ -28,7 +28,7 @@ jobs:
   # same file set which has already passed, etc.
   pre_job:
     name: Skip Duplicate Jobs Pre Job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -45,7 +45,7 @@ jobs:
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.make.name }} - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -54,7 +54,7 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.8', version: '3.8.12'}
           - {version-short: '3.9', version: '3.9.14'}
           - {version-short: '3.10', version: '3.10.15'}
           - {version-short: '3.11', version: '3.11.10'}
@@ -103,12 +103,12 @@ jobs:
     needs: pre_job
     # FIXME: dropping the repetition in this name requires changing required checks on GitHub
     name: 'Self-check on Python ${{ matrix.python.version-short }} - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         python:
-          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.8', version: '3.8.12'}
     services:
       mongo:
         image: mongo:7.0
@@ -240,14 +240,14 @@ jobs:
     # NB: disabled. See TODO above pre_job
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.make.name }} - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
-          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.8', version: '3.8.12'}
           - {version-short: '3.9', version: '3.9.14'}
           - {version-short: '3.10', version: '3.10.15'}
           - {version-short: '3.11', version: '3.11.10'}
@@ -383,14 +383,14 @@ jobs:
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
     name: '${{ matrix.make.name }} - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
-          - {version-short: '3.8', version: '3.8.10'}
+          - {version-short: '3.8', version: '3.8.12'}
           - {version-short: '3.9', version: '3.9.14'}
           - {version-short: '3.10', version: '3.10.15'}
           - {version-short: '3.11', version: '3.11.10'}
@@ -558,7 +558,7 @@ jobs:
       - self-check
       - unit-tests
       - integration-tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Workflow conclusion
         # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs

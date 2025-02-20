@@ -25,7 +25,7 @@ alabaster<0.7.14
 # Required by st2client tests
 pyyaml==6.0.2
 # Constrain pygments required by editor to align with st2 core version
-pygments==2.18.0
+pygments==2.19.1
 RandomWords
 gunicorn==23.0.0
 psutil==6.1.1
