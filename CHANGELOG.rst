@@ -111,6 +111,9 @@ Added
 * Add python 3.10 and 3.11 to the GitHub Actions test matrix.
   Contributed by @nzlosh, @guzzijones12, and @cognifloyd
 
+* Copy systemd files from st2-packages.git for future packaging via pants. #6303
+  Cherry-picked by @cognifloyd
+
 * Cherry-pick changes to runners.sh from st2-packages git repo. #6302
   Cherry-picked by @cognifloyd
 
