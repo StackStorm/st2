@@ -114,6 +114,9 @@ Added
 * Copy systemd files from st2-packages.git for future packaging via pants. #6303
   Cherry-picked by @cognifloyd
 
+* Cherry-pick changes to runners.sh from st2-packages git repo. #6302
+  Cherry-picked by @cognifloyd
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed
