@@ -22,6 +22,7 @@ from oslo_config import cfg
 
 from st2common.util import mongoescape as util_mongodb
 from st2common import log as logging
+from st2common.models.db.stormbase import EscapedDynamicField, EscapedDictField
 
 __all__ = ["BaseAPI", "APIUIDMixin"]
 
@@ -86,6 +87,12 @@ class BaseAPI(object):
 
     @classmethod
     def _from_model(cls, model, mask_secrets=False):
+        unescape_fields = [
+            k
+            for k, v in model._fields.items()
+            if type(v) in [EscapedDynamicField, EscapedDictField]
+        ]
+        unescape_fields = set(unescape_fields) - set(cls.skip_unescape_field_names)
         doc = model.to_mongo()
 
         if "_id" in doc:
@@ -94,30 +101,33 @@ class BaseAPI(object):
         # Special case for models which utilize JSONDictField - there is no need to escape those
         # fields since it contains a JSON string and not a dictionary which doesn't need to be
         # mongo escaped. Skipping this step here substantially speeds things up for that field.
-
-        # Right now we do this here manually for all those fields types but eventually we should
-        # refactor the code to just call unescape chars on escaped fields - more generic and
-        # faster.
         raw_values = {}
-
         for field_name in cls.skip_unescape_field_names:
             if isinstance(doc.get(field_name, None), bytes):
                 raw_values[field_name] = doc.pop(field_name)
-
-        # TODO (Tomaz): In general we really shouldn't need to call unescape chars on the whole doc,
-        # but just on the EscapedDict and EscapedDynamicField fields - doing it on the whole doc
-        # level is slow and not necessary!
-        doc = util_mongodb.unescape_chars(doc)
-
-        # Now add the JSON string field value which shouldn't be escaped back.
-        # We don't JSON parse the field value here because that happens inside the model specific
-        # "from_model()" method where we also parse and convert all the other field values.
-        for field_name, field_value in raw_values.items():
-            doc[field_name] = field_value
+        for key in unescape_fields:
+            if key in doc.keys():
+                doc[key] = util_mongodb.unescape_chars(doc[key])
+        # convert raw fields and add back ; no need to unescape
+        doc = cls.convert_raw(doc, raw_values)
 
         if mask_secrets and cfg.CONF.log.mask_secrets:
             doc = model.mask_secrets(value=doc)
 
+        return doc
+
+    @classmethod
+    def convert_raw(cls, doc, raw_values):
+        """
+        override this class to
+        convert any raw byte values into dict
+        you can also use this to fix any other fields that need 'fixing'
+
+        :param doc: dict
+        :param raw_values: dict[field]:bytestring
+        """
+        for field_name, field_value in raw_values.items():
+            doc[field_name] = field_value
         return doc
 
     @classmethod

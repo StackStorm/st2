@@ -54,11 +54,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
     action = me.StringField(
         required=True, help_text="Reference to the action that has to be executed."
     )
-    action_is_workflow = me.BooleanField(
-        default=False,
-        help_text="A flag indicating whether the referenced action is a workflow.",
-    )
-    parameters = stormbase.EscapedDynamicField(
+    parameters = JSONDictEscapedFieldCompatibilityField(
         default={},
         help_text="The key-value pairs passed as to the action runner & execution.",
     )
@@ -68,18 +64,23 @@ class LiveActionDB(stormbase.StormFoundationDB):
     context = me.DictField(
         default={}, help_text="Contextual information on the action execution."
     )
+    delay = me.IntField(
+        min_value=0,
+        help_text="How long (in milliseconds) to delay the execution before scheduling.",
+    )
+    # diff from action execution
+    action_is_workflow = me.BooleanField(
+        default=False,
+        help_text="A flag indicating whether the referenced action is a workflow.",
+    )
     callback = me.DictField(
         default={},
         help_text="Callback information for the on completion of action execution.",
     )
+    notify = me.EmbeddedDocumentField(NotificationSchema)
     runner_info = me.DictField(
         default={},
         help_text="Information about the runner which executed this live action (hostname, pid).",
-    )
-    notify = me.EmbeddedDocumentField(NotificationSchema)
-    delay = me.IntField(
-        min_value=0,
-        help_text="How long (in milliseconds) to delay the execution before scheduling.",
     )
 
     meta = {
@@ -114,6 +115,23 @@ class LiveActionDB(stormbase.StormFoundationDB):
         result["parameters"] = mask_secret_parameters(
             parameters=execution_parameters, secret_parameters=secret_parameters
         )
+        if result.get("action", "") == "st2.inquiry.respond":
+            # In this case, this execution is just a plain python action, not
+            # an inquiry, so we don't natively have a handle on the response
+            # schema.
+            #
+            # To prevent leakage, we can just mask all response fields.
+            #
+            # Note: The 'string' type in secret_parameters doesn't matter,
+            #       it's just a placeholder to tell mask_secret_parameters()
+            #       that this parameter is indeed a secret parameter and to
+            #       mask it.
+            result["parameters"]["response"] = mask_secret_parameters(
+                parameters=result["parameters"]["response"],
+                secret_parameters={
+                    p: "string" for p in result["parameters"]["response"]
+                },
+            )
         return result
 
     def get_masked_parameters(self):

@@ -24,6 +24,9 @@ Other options that were renamed under `[database]` are (more details available i
 * `ssl_ca_certs` -> `tls_ca_file`
 * `ssl_match_hostnames` -> `tls_allow_invalid_hostnames` (meaning is inverted: the new option is the opposite of the old)
 
+* implemented zstandard compression for parameters and results. #5995
+  contributed by @guzzijones12
+
 Fixed
 ~~~~~
 * Fixed #6021 and #5327 by adding max_page_size to api_opts and added limit and offset to list_values() methods of

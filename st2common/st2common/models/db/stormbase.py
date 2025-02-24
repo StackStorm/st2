@@ -110,10 +110,8 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
                 v = json_decode(v.to_json(json_options=LEGACY_JSON_OPTIONS))
 
             serializable_dict[k] = v
-
         if mask_secrets and cfg.CONF.log.mask_secrets:
             serializable_dict = self.mask_secrets(value=serializable_dict)
-
         return serializable_dict
 
 
