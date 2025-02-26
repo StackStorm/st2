@@ -42,6 +42,9 @@ pex_binary(
     layout="zipapp",  # zipapp creates a single file, loose and packed create directories
     sh_boot=True,  # faster startup time (only relevant for unpacking the pex)
     include_tools=True,  # include pex.tools to populate a venv from the pex
+    # TODO: To improve docker layer caching, we could break this into 2 pexes
+    #       one w/ include_requirements=False and the other w/ include_requirements=True.
+    include_requirements=True,  # include third party requirements
     include_sources=False,  # already includes our wheels, skipping wheel-owned sources
     venv_hermetic_scripts=False,  # do not add -sE to script shebangs
     # 1 parametrize group per python minor version in [DEFAULT].st2_interpreter_constraints in pants.toml
