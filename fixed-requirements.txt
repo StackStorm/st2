@@ -28,7 +28,7 @@ lockfile==0.12.2
 mongoengine==0.29.1
 networkx==3.1
 # jsonpath-rw is the only thing that depends on decorator (a transitive dep)
-decorator==5.1.1
+decorator==5.2.1
 # 202403: Bump oslo.config for py3.10 support.
 oslo.config==9.6.0
 oslo.utils==7.3.0
@@ -80,7 +80,7 @@ bcrypt==4.2.1
 jinja2==3.1.5
 mock==5.1.0
 pytest==7.0.1
-psutil==6.1.1
+psutil==7.0.0
 python-dateutil==2.9.0.post0
 python-statsd==2.1.0
 orjson==3.10.15

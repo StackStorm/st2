@@ -12,7 +12,7 @@ cffi==1.17.1
 chardet==5.2.0
 ciso8601
 cryptography==43.0.3
-decorator==5.1.1
+decorator==5.2.1
 dnspython
 eventlet==0.39.0
 flex==6.14.1
