@@ -15,7 +15,7 @@ cffi==1.17.1
 chardet==5.2.0
 ciso8601
 cryptography==43.0.3
-decorator==5.1.1
+decorator==5.2.1
 dnspython
 editor==1.6.6
 eventlet==0.39.0
@@ -42,7 +42,7 @@ paramiko==3.5.1
 passlib==1.7.4
 prettytable==3.10.2
 prompt-toolkit==3.0.50
-psutil==6.1.1
+psutil==7.0.0
 pyOpenSSL
 pygments==2.19.1
 pyinotify==0.9.6 ; platform_system=="Linux"
@@ -66,6 +66,7 @@ simplejson
 six==1.17.0
 sseclient-py==1.8.0
 st2-auth-backend-flat-file
+st2-auth-backend-pam@ git+https://github.com/StackStorm/st2-auth-backend-pam.git@master
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 stevedore==5.3.0
