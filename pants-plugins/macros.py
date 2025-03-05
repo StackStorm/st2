@@ -142,6 +142,8 @@ def st2_pack_archive(**kwargs):
         root_output_directory=".",
     )
 
+    # https://www.pantsbuild.org/stable/docs/shell/self-extractable-archives
+    # https://www.pantsbuild.org/stable/reference/targets/makeself_archive
     makeself_archive(  # noqa: F821
         name="archive",
         label=f"{pack_name} StackStorm pack",
@@ -149,8 +151,7 @@ def st2_pack_archive(**kwargs):
             ":files",  # archive contents
             "//:license",  # LICENSE file included in archive header, excluded from contents
         ],
-        # startup_script=["echo", "pack-archive"],
-        args=(
+        args=(  # see: https://makeself.io/#usage
             # Makeself expects '--arg value' (space) not '--arg=value' (equals) for cmdline
             "--license",
             "__archive/LICENSE",
@@ -158,16 +159,9 @@ def st2_pack_archive(**kwargs):
             f"/opt/stackstorm/packs/{pack_name}",
             # reproducibility flags:
             "--tar-extra",  # extra tar args: '--arg=value' (equals delimited) space separated
-            f"--owner=root:0 --group=root:0 --mtime={MTIME} --exclude=LICENSE",  # TODO: include LICENSE file?
+            f"--owner=root:0 --group=root:0 --mtime={MTIME} --exclude=LICENSE",
             "--packaging-date",
-            MTIME,  # TODO: maybe use release date instead of an epoch date?
-            # compression/encryption flags:
-            # "--gzip",  # gzip is the default compressor
-            # "--complevel", "9",  # 9 is the default compression level
-            # "--gpg-encrypt",  # gpg (encrypt only) handles compression if selected
-            # "--gpg-asymmetric-encrypt-sign",  # gpg (encrypt and sign) handles compression if selected
-            # "--gpg-extra", "...",  # if using gpg, pass extra gpg args here
-            # "--nocomp",  # maybe use no compression to use rpm/deb's compression instead of gzip (default)?
+            MTIME,
         ),
         output_path=f"packaging/packs/{pack_name}.tgz.run",
     )
