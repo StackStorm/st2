@@ -45,8 +45,8 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          # Pants itself uses only 3.9
-          - {version-short: '3.9', version: '3.9.14'}
+          # Pants itself uses only 3.11
+          - {version-short: '3.11', version: '3.11.11'}
 
     services:
       mongo:
