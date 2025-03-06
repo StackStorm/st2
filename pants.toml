@@ -246,9 +246,12 @@ args = [
 
 [test]
 extra_env_vars = [
+  # General var prefixes (not ST2_* to avoid confusion when tests do not respect some vars)
+  "ST2TESTS_*", # vars to override settings but only for tests.
+  # For example: ST2TESTS_SYSTEM_USER, ST2TESTS_REDIS_HOST, ST2TESTS_REDIS_PORT
+  "ST2_CI*", # CI-specific vars
   # Use this so that the test system does not require the stanley user.
   # For example: export ST2TESTS_SYSTEM_USER=${USER}
-  "ST2TESTS_SYSTEM_USER",
   "ST2_SYSTEM_USER__USER",
   # Use these to override MongoDB connection details
   # "ST2_DATABASE__HOST", # Tests override this with "127.0.0.1"
@@ -260,15 +263,10 @@ extra_env_vars = [
   # Use these to override RabbitMQ connection details
   "ST2_MESSAGING__URL",
   "ST2_MESSAGING__PREFIX", # Tests will modify this to be "{prefix}{ST2TESTS_PARALLEL_SLOT}"
-  # Use these to override Redis connection details
-  "ST2TESTS_REDIS_HOST",
-  "ST2TESTS_REDIS_PORT",
+  # Use ST2TESTS_REDIS_* to override Redis connection details
   # "ST2_COORDINATION__URL", # Tests will override this with one of:
   #         "redis://{ST2TESTS_REDIS_HOST}:{ST2TESTS_REDIS_PORT}?namespace=_st2_test{ST2TESTS_PARALLEL_SLOT}
   #         "zake://"
-  # CI-specific vars
-  "ST2_CI",
-  "ST2_CI_RUN_ORQUESTA_PAUSE_RESUME_TESTS",
 ]
 # 10 min should be more than enough even for integration tests.
 timeout_default = 600 # seconds
