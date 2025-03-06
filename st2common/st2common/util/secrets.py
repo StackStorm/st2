@@ -22,6 +22,7 @@ from __future__ import absolute_import
 import six
 
 from st2common.util.deep_copy import fast_deepcopy_dict
+from st2common.util.crypto import symmetric_encrypt, symmetric_decrypt
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 
 
@@ -134,6 +135,113 @@ def get_secret_parameters(parameters):
                     return sub_params
 
     return secret_parameters
+
+
+def decrypt_secret_parameters(
+    parameters, secret_parameters, encryption_key, result=None
+):
+    iterator = None
+    is_dict = isinstance(secret_parameters, dict)
+    is_list = isinstance(secret_parameters, list)
+    if is_dict:
+        iterator = six.iteritems(secret_parameters)
+    elif is_list:
+        iterator = enumerate(secret_parameters)
+    else:
+        return str(symmetric_decrypt(encryption_key, parameters))
+
+    # only create a deep copy of parameters on the first call
+    # all other recursive calls pass back referneces to this result object
+    # so we can reuse it, saving memory and CPU cycles
+    if result is None:
+        result = fast_deepcopy_dict(parameters)
+
+    # iterate over the secret parameters
+    for secret_param, secret_sub_params in iterator:
+        if is_dict:
+            if secret_param in result:
+                result[secret_param] = decrypt_secret_parameters(
+                    parameters[secret_param],
+                    secret_sub_params,
+                    encryption_key,
+                    result=result[secret_param],
+                )
+        elif is_list:
+            # we're assuming lists contain the same data type for every element
+            for idx, value in enumerate(result):
+                result[idx] = decrypt_secret_parameters(
+                    parameters[idx],
+                    secret_sub_params,
+                    encryption_key,
+                    result=result[idx],
+                )
+        else:
+            result[secret_param] = symmetric_decrypt(encryption_key, parameters)
+
+    return result
+
+
+def encrypt_secret_parameters(
+    parameters, secret_parameters, encryption_key, result=None
+):
+    """
+    Introspect the parameters dict and return a new dict with encyrpted secret
+    parameters.
+    :param parameters: Parameters to process.
+    :type parameters: ``dict`` or ``list`` or ``string``
+
+    :param secret_parameters: Dict of parameter names which are secret.
+                              The type must be the same type as ``parameters``
+                              (or at least behave in the same way),
+                              so that they can be traversed in the same way as
+                              recurse down into the structure.
+    :type secret_parameters: ``dict``
+
+    :param result: Deep copy of parameters so that parameters is not modified
+                   in place. Default = None, meaning this function will make a
+                   deep copy before starting.
+    :type result: ``dict`` or ``list`` or ``string``
+    """
+    # how we iterate depends on what data type was passed in
+    iterator = None
+    is_dict = isinstance(secret_parameters, dict)
+    is_list = isinstance(secret_parameters, list)
+    if is_dict:
+        iterator = six.iteritems(secret_parameters)
+    elif is_list:
+        iterator = enumerate(secret_parameters)
+    else:
+        return symmetric_encrypt(encryption_key, parameters)
+
+    # only create a deep copy of parameters on the first call
+    # all other recursive calls pass back referneces to this result object
+    # so we can reuse it, saving memory and CPU cycles
+    if result is None:
+        result = fast_deepcopy_dict(parameters)
+
+    # iterate over the secret parameters
+    for secret_param, secret_sub_params in iterator:
+        if is_dict:
+            if secret_param in result:
+                result[secret_param] = encrypt_secret_parameters(
+                    parameters[secret_param],
+                    secret_sub_params,
+                    encryption_key,
+                    result=result[secret_param],
+                )
+        elif is_list:
+            # we're assuming lists contain the same data type for every element
+            for idx, value in enumerate(result):
+                result[idx] = encrypt_secret_parameters(
+                    parameters[idx],
+                    secret_sub_params,
+                    encryption_key,
+                    result=result[idx],
+                )
+        else:
+            result[secret_param] = symmetric_encrypt(encryption_key, parameters)
+
+    return result
 
 
 def mask_secret_parameters(parameters, secret_parameters, result=None):
