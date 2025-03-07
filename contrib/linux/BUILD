@@ -7,3 +7,15 @@ pack_metadata(
 python_requirements(
     name="reqs",
 )
+
+st2_pack_archive(
+    dependencies=[
+        ":metadata",
+        ":reqs",
+        "./actions",
+        "./actions/checks",
+        # "./actions/lib",  # nothing in dir
+        "./sensors",
+        "./tests",
+    ],
+)
