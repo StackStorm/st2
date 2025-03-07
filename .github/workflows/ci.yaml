@@ -54,10 +54,10 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.12'}
-          - {version-short: '3.9', version: '3.9.14'}
-          - {version-short: '3.10', version: '3.10.15'}
-          - {version-short: '3.11', version: '3.11.10'}
+          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.9', version: '3.9.21'}
+          - {version-short: '3.10', version: '3.10.16'}
+          - {version-short: '3.11', version: '3.11.11'}
         make:
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
@@ -108,7 +108,7 @@ jobs:
       fail-fast: false
       matrix:
         python:
-          - {version-short: '3.8', version: '3.8.12'}
+          - {version-short: '3.8', version: '3.8.18'}
     services:
       mongo:
         image: mongo:7.0
@@ -247,10 +247,10 @@ jobs:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
-          - {version-short: '3.8', version: '3.8.12'}
-          - {version-short: '3.9', version: '3.9.14'}
-          - {version-short: '3.10', version: '3.10.15'}
-          - {version-short: '3.11', version: '3.11.10'}
+          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.9', version: '3.9.21'}
+          - {version-short: '3.10', version: '3.10.16'}
+          - {version-short: '3.11', version: '3.11.11'}
         make:
           - name: 'Unit Tests (chunk 1)'
             task: 'ci-unit'
@@ -390,10 +390,10 @@ jobs:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
-          - {version-short: '3.8', version: '3.8.12'}
-          - {version-short: '3.9', version: '3.9.14'}
-          - {version-short: '3.10', version: '3.10.15'}
-          - {version-short: '3.11', version: '3.11.10'}
+          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.9', version: '3.9.21'}
+          - {version-short: '3.10', version: '3.10.16'}
+          - {version-short: '3.11', version: '3.11.11'}
         make:
           # We run pack tests here since they rely on some integration tests set
           # up (aka stanley user being present, etc.)
