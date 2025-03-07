@@ -18,11 +18,8 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-## Save st2 logrotate config on remove, but wipe it out on purge.
-preserve_logrotate() {
-  if [ "$1" = remove ]; then
-    [ -f /etc/logrotate.d/st2 ] && mv /etc/logrotate.d/st2-pkgsaved.disabled 1>/dev/null 2>&1 || :
-  elif [ "$1" = purge ]; then
+purge_files() {
+    # This -pkgsaved.disabled file might be left over from old (buggy) deb packages
     rm -f /etc/logrotate.d/st2-pkgsaved.disabled 1>/dev/null 2>&1 || :
     # Clean up other StackStorm related configs and directories
     rm -rf /etc/st2 1>/dev/null 2>&1 || :
@@ -30,14 +27,13 @@ preserve_logrotate() {
     rm -rf /root/.st2 1>/dev/null 2>&1 || :
     rm -rf /var/log/st2 1>/dev/null 2>&1 || :
     rm -f /etc/sudoers.d/st2 1>/dev/null 2>&1 || :
-  fi
 }
 
 case "$1" in
-    remove|purge)
-      preserve_logrotate "$1"
+    purge)
+        purge_files
     ;;
-    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;
     *)
         echo "postrm called with unknown argument \`$1'" >&2
