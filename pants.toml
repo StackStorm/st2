@@ -240,10 +240,8 @@ install_from_resolve = "st2"
 [shfmt]
 args = [
   # https://github.com/mvdan/sh/blob/master/cmd/shfmt/shfmt.1.scd#printer-flags
-  "--indent",
-  "4",  # default is 0 (use tabs)
+  "--indent=4", # default is 0 (use tabs)
   "--case-indent",
-  "--simplify",
 ]
 
 [test]

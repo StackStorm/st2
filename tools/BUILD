@@ -48,14 +48,8 @@ shell_sources(
         "st2-setup-*",
     ],
     skip_shellcheck=True,
+    skip_shfmt=True,
     dependencies=[
         "conf:st2_dev_conf",
     ],
-    overrides={
-        (
-            "db_cleanup.sh",
-            "launchdev.sh",
-            "st2-setup-tests",
-        ): dict(skip_shfmt=True),
-    },
 )
