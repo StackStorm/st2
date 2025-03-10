@@ -6,12 +6,15 @@
 set -e
 
 # summary of how this script can be called:
-#        * <new-preinst> `install'
-#        * <new-preinst> `install' <old-version>
-#        * <new-preinst> `upgrade' <old-version>
-#        * <old-preinst> `abort-upgrade' <new-version>
-# for details, see http://www.debian.org/doc/debian-policy/ or
-# the debian-policy package
+#     <new-preinst> install
+#         on fresh install
+#     <new-preinst> install <old-version> <new-version>
+#         on install after pkg removal without conf purge
+#     <new-preinst> upgrade <old-version> <new-version>
+#         on upgrade
+#     <old-preinst> abort-upgrade <new-version>
+#         on upgrade failed (after failure of postrm)
+# https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
 
 PACKS_GROUP=st2packs
 SYS_USER=stanley

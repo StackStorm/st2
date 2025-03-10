@@ -6,17 +6,23 @@
 set -e
 
 # summary of how this script can be called:
-#        * <postrm> `remove'
-#        * <postrm> `purge'
-#        * <old-postrm> `upgrade' <new-version>
-#        * <new-postrm> `failed-upgrade' <old-version>
-#        * <new-postrm> `abort-install'
-#        * <new-postrm> `abort-install' <old-version>
-#        * <new-postrm> `abort-upgrade' <old-version>
-#        * <disappearer's-postrm> `disappear' <overwriter>
-#          <overwriter-version>
-# for details, see http://www.debian.org/doc/debian-policy/ or
-# the debian-policy package
+#     <postrm> remove
+#         on remove or remove+purge
+#     <postrm> purge
+#         on purge or remove+purge
+#     <old-postrm> upgrade <new-version>
+#         on upgrade
+#     <disappearer's-postrm> disappear <overwriter> <overwriter-version>
+#         on implicit removal (all package files replaced by another package)
+#     <new-postrm> abort-install
+#         on failed fresh install (after <preinst> failed)
+#     <new-postrm> abort-install <old-version> <new-version>
+#         on failed install after pkg removal w/o conf purge (and <preinst> failed)
+#     <new-postrm> failed-upgrade <old-version> <new-version>
+#         on upgrade failed (after <old-postrm> failed)
+#     <new-postrm> abort-upgrade <old-version> <new-version>
+#         on upgrade failed (after <new-preinst> or <old-postrm> failed)
+# https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
 
 purge_files() {
     # This -pkgsaved.disabled file might be left over from old (buggy) deb packages
