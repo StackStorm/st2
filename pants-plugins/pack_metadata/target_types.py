@@ -43,6 +43,7 @@ class PackContentResourceTypes(Enum):
     pack_config_schema = "pack_config_schema"
     pack_config_example = "pack_config_example"
     pack_icon = "pack_icon"
+    pack_doc = "pack_doc"
     # in subdirectory (see _content_type_by_path_parts below
     action_metadata = "action_metadata"
     action_chain_workflow = "action_chain_workflow"
@@ -86,6 +87,8 @@ class PackContentResourceTypeField(StringField):
         if value is not None:
             return PackContentResourceTypes(value)
         path = PurePath(address.relative_file_path)
+        if path.suffix == ".md":
+            return PackContentResourceTypes.pack_doc
         _yaml_suffixes = (".yaml", ".yml")
         if len(path.parent.parts) == 0:
             # in the pack root
@@ -123,8 +126,7 @@ class PackMetadataSourcesField(ResourcesGeneratingSourcesField):
         "**/*.yml",
         "icon.png",  # used in st2web ui
         # "requirements*.txt",  # including this causes target conflicts
-        # "README.md",
-        # "HISTORY.md",
+        "**/*.md",  # including README.md, HISTORY.md
         # exclude yaml files under tests
         "!tests/**/*.yml",
         "!tests/**/*.yaml",
