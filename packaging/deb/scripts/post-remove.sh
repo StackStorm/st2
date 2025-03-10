@@ -38,13 +38,12 @@ purge_files() {
 case "$1" in
     purge)
         purge_files
-    ;;
-    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-    ;;
+        ;;
+    remove | upgrade | failed-upgrade | abort-install | abort-upgrade | disappear) ;;
     *)
         echo "postrm called with unknown argument \`$1'" >&2
         exit 1
-    ;;
+        ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically

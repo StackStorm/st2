@@ -31,16 +31,15 @@ set -e
 
 case "$1" in
     configure)
-      # make sure that our socket generators run
-      systemctl daemon-reload >/dev/null 2>&1 || true
-    ;;
-    abort-upgrade|abort-remove|abort-deconfigure)
-    ;;
+        # make sure that our socket generators run
+        systemctl daemon-reload >/dev/null 2>&1 || true
+        ;;
+    abort-upgrade | abort-remove | abort-deconfigure) ;;
 
     *)
         echo "postinst called with unknown argument \`$1'" >&2
         exit 1
-    ;;
+        ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically

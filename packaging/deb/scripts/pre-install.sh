@@ -22,35 +22,34 @@ ST2_USER=st2
 
 ## Create stackstorm users and groups
 create_users() {
-  # create st2 user (services user)
-  (id $ST2_USER 1>/dev/null 2>&1) ||
-    adduser --group --disabled-password --no-create-home --system $ST2_USER
+    # create st2 user (services user)
+    (id $ST2_USER 1>/dev/null 2>&1) ||
+        adduser --group --disabled-password --no-create-home --system $ST2_USER
 
-  # make st2 member of st2packs group
-  (getent group $PACKS_GROUP 1>/dev/null 2>&1) || groupadd -r $PACKS_GROUP
-  (groups $ST2_USER 2>/dev/null | grep -q "\b${PACKS_GROUP}\b") ||
-    usermod -a -G $PACKS_GROUP $ST2_USER
+    # make st2 member of st2packs group
+    (getent group $PACKS_GROUP 1>/dev/null 2>&1) || groupadd -r $PACKS_GROUP
+    (groups $ST2_USER 2>/dev/null | grep -q "\b${PACKS_GROUP}\b") ||
+        usermod -a -G $PACKS_GROUP $ST2_USER
 
-  # create stanley user (for actionrunner service)
-  if (! id $SYS_USER 1>/dev/null 2>&1); then
-    adduser --group $SYS_USER
-    adduser --disabled-password --gecos "" --ingroup $SYS_USER $SYS_USER
-  fi
+    # create stanley user (for actionrunner service)
+    if (! id $SYS_USER 1>/dev/null 2>&1); then
+        adduser --group $SYS_USER
+        adduser --disabled-password --gecos "" --ingroup $SYS_USER $SYS_USER
+    fi
 }
 
 case "$1" in
     install)
-      create_users
-    ;;
+        create_users
+        ;;
     upgrade)
-      create_users
-    ;;
-    abort-upgrade)
-    ;;
+        create_users
+        ;;
+    abort-upgrade) ;;
     *)
         echo "preinst called with unknown argument \`$1'" >&2
         exit 1
-    ;;
+        ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically
