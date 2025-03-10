@@ -28,3 +28,8 @@
       items:
         type: "string"
       required: false
+    checkout_submodules:
+      type: "boolean"
+      description: "Set to True to checkout git submodules present in the pack"
+      required: false
+      default: false
