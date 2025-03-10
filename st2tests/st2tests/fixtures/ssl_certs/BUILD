@@ -17,4 +17,5 @@ python_sources(
 
 shell_sources(
     name="util",
+    skip_shfmt=True,
 )
