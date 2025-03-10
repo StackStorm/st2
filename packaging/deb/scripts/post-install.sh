@@ -17,43 +17,8 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-ST2_USER=st2
-PACKS_GROUP=st2packs
-ST2_UPGRADESTAMP="/tmp/.stamp-stackstorm-st2-deb-package"
-upgrading=0
-
-## Permissions of files which should be set on install
-SET_PERMS=$(cat <<EHD | sed 's/\s\+/ /g'
--R ug+rw root:_packsgroup /opt/stackstorm/packs
--R ug+rw root:_packsgroup /usr/share/doc/st2/examples
-   ug+rw root:_packsgroup /opt/stackstorm/virtualenvs
-   755 _st2user:root      /opt/stackstorm/configs
-   755 _st2user:root      /opt/stackstorm/exports
-   755 _st2user:root      /var/log/st2
-   755 _st2user:root      /var/run/st2
-   600 _st2user:_st2user  /etc/st2/htpasswd
-EHD
-)
-
-## Fix directories permissions on install (different across maint scripts!)
-set_permissions() {
-  local fileperms="$1"
-  fileperms=$(echo "$fileperms" | sed -e "s/_st2user/$ST2_USER/g" -e "s/_packsgroup/$PACKS_GROUP/g")
-  # Reqursively chown given destinations!
-  echo "$fileperms" | cut -f1,3,4 -d' ' | xargs -L1 chown
-  # Set directories mode
-  echo "$fileperms" | cut -f1,2,4 -d' ' | xargs -L1 chmod
-}
-
-# Choose first install or upgrade
-[ -f $ST2_UPGRADESTAMP ] && upgrading=1 || :
-
 case "$1" in
     configure)
-      # Initially set destination files owenership (only on the first install)
-      [ "$upgrading" = 1 ] || set_permissions "$SET_PERMS"
-      rm -f $ST2_UPGRADESTAMP
-
       # make sure that our socket generators run
       systemctl daemon-reload >/dev/null 2>&1 || true
     ;;
