@@ -103,6 +103,9 @@ class PackInstallController(ActionExecutionsControllerMixin):
         if pack_install_request.skip_dependencies:
             parameters["skip_dependencies"] = True
 
+        if pack_install_request.checkout_submodules:
+            parameters["checkout_submodules"] = True
+
         if not requester_user:
             requester_user = UserDB(name=cfg.CONF.system_user.user)
 
