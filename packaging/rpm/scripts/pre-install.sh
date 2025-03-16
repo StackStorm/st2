@@ -1,5 +1,11 @@
 set -e
 
+# This %pre scriptlet gets one argument, $1, the number of packages of
+# this name that will be left on the system when this script completes. So:
+#   * on install: $1 = 1
+#   * on upgrade: $1 > 1
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/Scriptlets/#_syntax
+
 PACKS_GROUP=%{packs_group}
 SYS_USER=%{stanley_user}
 ST2_USER=%{svc_user}
