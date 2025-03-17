@@ -20,7 +20,7 @@ PACKS_GROUP=st2packs
 SYS_USER=stanley
 ST2_USER=st2
 
-## Create stackstorm users and groups
+## Create stackstorm users and groups (adduser differs from EL)
 create_users() {
     # create st2 user (services user)
     (id $ST2_USER 1>/dev/null 2>&1) ||

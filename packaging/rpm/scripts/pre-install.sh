@@ -11,7 +11,7 @@ PACKS_GROUP=%{packs_group}
 SYS_USER=%{stanley_user}
 ST2_USER=%{svc_user}
 
-## Create stackstorm users and groups (differs from debian)
+## Create stackstorm users and groups (adduser differs from debian)
 create_users() {
     # create st2 user (services user)
     (id $ST2_USER 1>/dev/null 2>&1) ||
