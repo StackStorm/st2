@@ -7,10 +7,31 @@ set -e
 #   * on uninstall: $1 = 0
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Scriptlets/#_syntax
 
-# from %postun in st2-packages.git/packages/st2/rpm/st2.spec
-%service_postun st2actionrunner %{worker_name} st2api st2stream st2auth st2notifier st2workflowengine
-%service_postun st2rulesengine st2timersengine st2sensorcontainer st2garbagecollector
-%service_postun st2scheduler
+_ST2_SERVICES="
+st2actionrunner
+st2actionrunner@
+st2api
+st2auth
+st2garbagecollector
+st2notifier
+st2rulesengine
+st2scheduler
+st2sensorcontainer
+st2stream
+st2timersengine
+st2workflowengine
+"
+
+# EL 8: %service_postun
+if [ $1 -ge 1 ]; then
+    # Package upgrade, not uninstall
+    systemctl try-restart ${_ST2_SERVICES} &>/dev/null || :
+fi
+# EL 9: %service_postun
+if [ $1 -ge 1 ] && [ -x "/usr/lib/systemd/systemd-update-helper" ]; then
+    # Package upgrade, not uninstall
+    /usr/lib/systemd/systemd-update-helper mark-restart-system-units ${_ST2_SERVICES} || :
+fi
 
 # Remove st2 logrotate config, since there's no analog of apt-get purge available
 if [ $1 -eq 0 ]; then
