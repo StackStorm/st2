@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e
 
 # This %preun scriptlet gets one argument, $1, the number of packages of
