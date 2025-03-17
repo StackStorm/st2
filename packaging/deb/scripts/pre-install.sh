@@ -39,10 +39,7 @@ create_users() {
 }
 
 case "$1" in
-    install)
-        create_users
-        ;;
-    upgrade)
+    install | upgrade)
         create_users
         ;;
     abort-upgrade) ;;
