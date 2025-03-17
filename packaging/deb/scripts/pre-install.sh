@@ -44,8 +44,8 @@ case "$1" in
         ;;
     abort-upgrade) ;;
     *)
-        echo "preinst called with unknown argument \`$1'" >&2
-        exit 1
+        # echo "preinst called with unknown argument \`$1'" >&2
+        # exit 1
         ;;
 esac
 

@@ -56,8 +56,8 @@ case "$1" in
         ;;
     remove | upgrade | failed-upgrade | abort-install | abort-upgrade | disappear) ;;
     *)
-        echo "postrm called with unknown argument \`$1'" >&2
-        exit 1
+        # echo "postrm called with unknown argument \`$1'" >&2
+        # exit 1
         ;;
 esac
 
