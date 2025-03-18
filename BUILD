@@ -88,6 +88,7 @@ file(
 
 shell_sources(
     name="root",
+    skip_shfmt=True,
 )
 
 file(

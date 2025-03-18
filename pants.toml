@@ -26,6 +26,7 @@ backend_packages = [
   # shell
   "pants.backend.shell",
   "pants.backend.shell.lint.shellcheck",
+  "pants.backend.shell.lint.shfmt",
 
   # packaging
   "pants.backend.experimental.makeself",
@@ -235,6 +236,13 @@ config = "@lint-configs/regex-lint.yaml"
 
 [setuptools]
 install_from_resolve = "st2"
+
+[shfmt]
+args = [
+  # https://github.com/mvdan/sh/blob/master/cmd/shfmt/shfmt.1.scd#printer-flags
+  "--indent=4", # default is 0 (use tabs)
+  "--case-indent",
+]
 
 [test]
 extra_env_vars = [

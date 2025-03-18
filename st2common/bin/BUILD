@@ -15,6 +15,7 @@ st2_shell_sources_and_resources(
     name="shell",
     sources=["st2ctl", "st2-self-check", "st2-run-pack-tests"],
     skip_shellcheck=True,
+    skip_shfmt=True,
     overrides={
         "st2ctl": dict(
             dependencies=[
