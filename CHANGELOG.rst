@@ -79,7 +79,7 @@ Added
   to pants' use of PEX lockfiles. This is not a user-facing addition.
   #6118 #6141 #6133 #6120 #6181 #6183 #6200 #6237 #6229 #6240 #6241 #6244 #6251 #6253
   #6254 #6258 #6259 #6260 #6269 #6275 #6279 #6278 #6282 #6283 #6273 #6287 #6306 #6307
-  #6311 #6314 #6315 #6317 #6312
+  #6311 #6314 #6315 #6317 #6319 #6312
   Contributed by @cognifloyd
 * Build of ST2 EL9 packages #6153
   Contributed by @amanda11
