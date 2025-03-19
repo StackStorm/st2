@@ -40,12 +40,13 @@ st2workflowengine.service
 
 systemd_stop() {
     if [ -d "/run/systemd/system" ]; then
-        deb-systemd-invoke stop ${@} >/dev/null || true
+        deb-systemd-invoke stop "${@}" >/dev/null || true
     fi
 }
 
 case "$1" in
     remove)
+        # shellcheck disable=SC2086
         systemd_stop ${_ST2_SERVICES}
         ;;
     upgrade | deconfigure | failed-upgrade) ;;

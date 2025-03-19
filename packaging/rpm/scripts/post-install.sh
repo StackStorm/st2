@@ -27,15 +27,18 @@ st2workflowengine
 #   EL8: https://github.com/systemd/systemd/blob/v239/src/core/macros.systemd.in
 #   EL9: https://github.com/systemd/systemd/blob/v252/src/rpm/macros.systemd.in
 
-if [ $1 -eq 1 ]; then
+if [ "$1" -eq 1 ]; then
     # Initial installation
     if [ -x "/usr/lib/systemd/systemd-update-helper" ]; then # EL 9
+        # shellcheck disable=SC2086
         /usr/lib/systemd/systemd-update-helper install-system-units ${_ST2_SERVICES} || :
     else # EL 8
+        # shellcheck disable=SC2086
         systemctl --no-reload preset ${_ST2_SERVICES} &>/dev/null || :
     fi
 fi
 
+# shellcheck disable=SC2086
 # TODO: Maybe remove this as 'preset' (on install above) enables units by default
 systemctl --no-reload enable ${_ST2_SERVICES} &>/dev/null || :
 

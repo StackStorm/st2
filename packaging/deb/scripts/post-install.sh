@@ -74,21 +74,23 @@ else
 fi
 
 systemd_enable_and_restart() {
-    for service in ${@}; do
-        systmd_enable "${service}"
+    for service in "${@}"; do
+        systemd_enable "${service}"
     done
     if [ -d /run/systemd/system ]; then
         systemctl --system daemon-reload >/dev/null || true
-        deb-systemd-invoke $_dh_action ${@} >/dev/null || true
+        deb-systemd-invoke $_dh_action "${@}" >/dev/null || true
     fi
 }
 
 case "$1" in
     configure)
+        # shellcheck disable=SC2086
         systemd_enable_and_restart ${_ST2_SERVICES}
         ;;
     abort-upgrade | abort-remove | abort-deconfigure)
         # dh_systemd_* runs this for all actions, not just configure
+        # shellcheck disable=SC2086
         systemd_enable_and_restart ${_ST2_SERVICES}
         ;;
     *)

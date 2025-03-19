@@ -28,11 +28,13 @@ st2workflowengine
 #   EL8: https://github.com/systemd/systemd/blob/v239/src/core/macros.systemd.in
 #   EL9: https://github.com/systemd/systemd/blob/v252/src/rpm/macros.systemd.in
 
-if [ $1 -eq 0 ]; then
+if [ "$1" -eq 0 ]; then
     # Package removal, not upgrade
     if [ -x "/usr/lib/systemd/systemd-update-helper" ]; then # EL 9
+        # shellcheck disable=SC2086
         /usr/lib/systemd/systemd-update-helper remove-system-units ${_ST2_SERVICES} || :
     else # EL 8
+        # shellcheck disable=SC2086
         systemctl --no-reload disable --now ${_ST2_SERVICES} &>/dev/null || :
     fi
 fi

@@ -48,14 +48,14 @@ st2workflowengine.service
 
 systemd_remove() {
     if [ -x "/usr/bin/deb-systemd-helper" ]; then
-        deb-systemd-helper mask ${@} >/dev/null || true
+        deb-systemd-helper mask "${@}" >/dev/null || true
     fi
 }
 
 systemd_purge() {
     if [ -x "/usr/bin/deb-systemd-helper" ]; then
-        deb-systemd-helper purge ${@} >/dev/null || true
-        deb-systemd-helper unmask ${@} >/dev/null || true
+        deb-systemd-helper purge "${@}" >/dev/null || true
+        deb-systemd-helper unmask "${@}" >/dev/null || true
     fi
 }
 
@@ -78,10 +78,12 @@ purge_files() {
 
 case "$1" in
     remove)
+        # shellcheck disable=SC2086
         systemd_remove ${_ST2_SERVICES}
         systemd_reload
         ;;
     purge)
+        # shellcheck disable=SC2086
         systemd_purge ${_ST2_SERVICES}
         systemd_reload
         purge_files
