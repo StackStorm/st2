@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e
 
 # This %pre scriptlet gets one argument, $1, the number of packages of
@@ -6,11 +7,11 @@ set -e
 #   * on upgrade: $1 > 1
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/Scriptlets/#_syntax
 
-PACKS_GROUP=%{packs_group}
-SYS_USER=%{stanley_user}
-ST2_USER=%{svc_user}
+PACKS_GROUP=st2packs
+SYS_USER=stanley
+ST2_USER=st2
 
-## Create stackstorm users and groups (differs from debian)
+## Create stackstorm users and groups (adduser differs from debian)
 create_users() {
     # create st2 user (services user)
     (id $ST2_USER 1>/dev/null 2>&1) ||
