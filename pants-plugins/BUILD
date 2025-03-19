@@ -2,7 +2,7 @@ __defaults__(
     all=dict(
         resolve="pants-plugins",
         skip_pylint=True,
-        interpreter_constraints=["CPython==3.9.*"],
+        interpreter_constraints=["CPython==3.11.*"],
     )
 )
 
