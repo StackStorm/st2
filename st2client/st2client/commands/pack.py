@@ -193,8 +193,8 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
 
 class PackListCommand(resource.ResourceListCommand):
-    display_attributes = ["ref", "name", "description", "version", "author"]
-    attribute_display_order = ["ref", "name", "description", "version", "author"]
+    display_attributes = ["ref", "name", "description", "version", "author", "pack_enforcement"]
+    attribute_display_order = ["ref", "name", "description", "version", "author", "pack_enforcement"]
 
 
 class PackGetCommand(resource.ResourceGetCommand):
@@ -206,6 +206,7 @@ class PackGetCommand(resource.ResourceGetCommand):
         "email",
         "keywords",
         "description",
+        "pack_enforcement",
     ]
     attribute_display_order = [
         "name",
@@ -214,6 +215,7 @@ class PackGetCommand(resource.ResourceGetCommand):
         "email",
         "keywords",
         "description",
+        "pack_enforcement",
     ]
     help_string = "Get information about an installed pack."
 
@@ -238,6 +240,8 @@ class PackShowCommand(PackResourceCommand):
 
 
 class PackInstallCommand(PackAsyncCommand):
+    display_attributes = ["ref", "name", "description", "version", "author", "pack_enforcement"]
+    attribute_display_order = [ "ref", "name", "description", "version", "author", "pack_enforcement"]
     def __init__(self, resource, *args, **kwargs):
         super(PackInstallCommand, self).__init__(
             resource,
@@ -352,11 +356,12 @@ class PackInstallCommand(PackAsyncCommand):
             self.print_output(
                 pack_instance,
                 table.PropertyValueTable,
-                attributes=args.attr,
+                attributes=self.display_attributes,
                 json=args.json,
                 yaml=args.yaml,
                 attribute_display_order=self.attribute_display_order,
             )
+            self.print_pack_enforcement_active_output(pack_instance)
         else:
             all_pack_instances = self.app.client.managers["Pack"].get_all(**kwargs)
             pack_instances = []
@@ -368,11 +373,13 @@ class PackInstallCommand(PackAsyncCommand):
             self.print_output(
                 pack_instances,
                 table.MultiColumnTable,
-                attributes=args.attr,
+                attributes=self.display_attributes,
                 widths=args.width,
                 json=args.json,
                 yaml=args.yaml,
+                attribute_display_order=self.attribute_display_order,
             )
+            self.print_pack_enforcement_active_output(pack_instances)
 
         warnings = instance.result["output"]["warning_list"]
         for warning in warnings:

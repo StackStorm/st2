@@ -14,8 +14,12 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+import json
 import os
 import os.path
+import requests
+from six.moves import http_client
+from st2common.constants.system import LICENSE_FILE_PATH
 
 from oslo_config import cfg
 
@@ -45,7 +49,9 @@ For example "my_%s.py".
 
 # Cache which stores pack name -> pack base path mappings
 PACK_NAME_TO_BASE_PATH_CACHE = {}
+DEFAULT_AUTH_PORT = 9100
 
+DEFAULT_BASE_URL = "http://127.0.0.1"
 
 def get_pack_group():
     """
@@ -422,3 +428,27 @@ def get_aliases_base_paths():
     result = [path for path in result if path]
     result = list(OrderedSet(result))
     return result
+
+def get_license_info():
+    """
+    Returns information of license from license api 
+    :rtype: ``dict``
+    """
+    LICENSE_URL = "%s:%s/licenses/validate" % (DEFAULT_BASE_URL, DEFAULT_AUTH_PORT)
+
+    if not os.path.exists(LICENSE_FILE_PATH):
+        raise ValueError('License file "%s" doesn\'t exist' % (LICENSE_FILE_PATH))
+
+    with open(os.path.join(LICENSE_FILE_PATH), "r") as fp:
+        license_value = fp.read()
+
+    LICENSE_KEY = {
+        "key" : license_value
+    }
+    # Send POST request with JSON data
+    response = requests.post(LICENSE_URL, data=json.dumps(LICENSE_KEY))
+    if response.status_code != http_client.OK:
+        raise Exception("Could not request url: {}".format(LICENSE_URL))
+    # Parse the JSON response
+    license_info = response.json()  # Parse the response into a Python dictionary
+    return license_info

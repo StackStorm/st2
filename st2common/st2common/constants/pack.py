@@ -75,6 +75,7 @@ SYSTEM_PACK_NAMES = [
     SYSTEM_PACK_NAME,
     PACKS_PACK_NAME,
     LINUX_PACK_NAME,
+    DEFAULT_PACK_NAME,
 ]
 
 # A list of pack names which can't be used by user-supplied packs

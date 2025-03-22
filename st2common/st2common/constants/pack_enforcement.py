@@ -13,14 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
+__all__ = [
+    "PACK_ENFORCEMENT_STATUS_ACTIVE",
+    "PACK_ENFORCEMENT_STATUS_INACTIVE",
+    "PACK_ENFORCEMENT_STATUSES",
+]
 
-from st2client.models import core
+PACK_ENFORCEMENT_STATUS_ACTIVE = "Active"
+PACK_ENFORCEMENT_STATUS_INACTIVE = "Inactive"
 
-
-class Pack(core.Resource):
-    _display_name = "Pack"
-    _plural = "Packs"
-    _plural_display_name = "Packs"
-    _url_path = "packs"
-    _repr_attributes = ["name", "description", "version", "author", "status"]
+PACK_ENFORCEMENT_STATUSES = [
+    PACK_ENFORCEMENT_STATUS_ACTIVE,
+    PACK_ENFORCEMENT_STATUS_INACTIVE,
+]

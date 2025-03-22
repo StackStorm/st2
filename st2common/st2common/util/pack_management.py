@@ -43,10 +43,14 @@ from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_RESERVED_CHARACTERS
 from st2common.constants.pack import PACK_VERSION_SEPARATOR
 from st2common.constants.pack import PACK_VERSION_REGEX
+from st2common.constants.pack import SYSTEM_PACK_NAMES
+from st2common.constants.pack_enforcement import PACK_ENFORCEMENT_STATUS_ACTIVE
+from st2common.constants.pack_enforcement import PACK_ENFORCEMENT_STATUS_INACTIVE
 from st2common.services.packs import get_pack_from_index
 from st2common.util.pack import get_pack_metadata
 from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.util.pack import get_pack_warnings
+from st2common.util.pack import get_all_packs_with_inactive_pack_enforcement_status_from_db
 from st2common.util.green import shell
 from st2common.util.versioning import complex_semver_match
 from st2common.util.versioning import get_stackstorm_version
@@ -395,6 +399,52 @@ def cleanup_repo(abs_local_path):
     if os.path.isdir(abs_local_path):
         shutil.rmtree(abs_local_path)
 
+def check_license_and_get_pack_enforcement_status(pack_name):
+    """
+    checks license on packs and returns Active/Inactive pack enforcement status.
+    :rtype: ``str``
+    """
+    if pack_name in SYSTEM_PACK_NAMES:
+        return PACK_ENFORCEMENT_STATUS_INACTIVE
+    else:
+        packs_with_inactive_pack_enforcement = get_all_packs_with_inactive_pack_enforcement_status_from_db()
+        packs_with_inactive_pack_enforcement_excluding_system_packs = list(set(packs_with_inactive_pack_enforcement) - set(SYSTEM_PACK_NAMES))
+        try:
+            LOG.debug("Checking license on pack registeration for pack name: %s", pack_name)
+            license_info = utils.get_license_info()
+            pack_enforcement_status = _get_pack_enforcement_status(license_info, packs_with_inactive_pack_enforcement_excluding_system_packs, pack_name)
+            return pack_enforcement_status
+        except Exception as e:
+            # Issue in retreiving packs from license API for pack enforcement
+            LOG.error(
+                    'Issue fetching license for pack "%s" in getting pack enforcement. Exception was "%s"',
+                    pack_name,
+                    e,
+                )
+            msg = (
+                'License for pack %s could not be found, please check the logs'
+                " or ask StackStorm administrator further" % (pack_name)
+            )
+            raise Exception(msg)
+
+
+def _get_pack_enforcement_status(license_info, packs_with_inactive_pack_enforcement, pack_name):
+    """
+    get pack enforcement status Active/Inactive based on license validation on packs
+    :rtype: ``str``
+    """
+    license = license_info.get('license', {})
+    capabilities = license.get('capabilities', [])
+    if license and 'packs' in capabilities:
+        license_packs_count = license.get("description",{}).get("packs",{}).get("count", 0)
+        if len(packs_with_inactive_pack_enforcement) >= license_packs_count and pack_name not in packs_with_inactive_pack_enforcement:
+            return PACK_ENFORCEMENT_STATUS_ACTIVE
+        return PACK_ENFORCEMENT_STATUS_INACTIVE
+    else:
+        raise ValueError(
+            "License not found or capabilities to install packs does not exists"
+            " for license %s" % (license_info)
+        )
 
 # Utility functions
 def get_repo_url(pack, proxy_config=None):

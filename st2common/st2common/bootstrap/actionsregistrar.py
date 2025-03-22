@@ -29,6 +29,7 @@ from st2common.models.system.common import ResourceReference
 import st2common.content.utils as content_utils
 import st2common.util.action_db as action_utils
 import st2common.validators.api.action as action_validator
+from st2common.services import packs as packs_service
 
 __all__ = ["ActionsRegistrar", "register_actions"]
 
@@ -60,6 +61,14 @@ class ActionsRegistrar(ResourceRegistrar):
                 LOG.debug("Pack %s does not contain actions.", pack)
                 continue
             try:
+                # Check if pack has enforcement active then do not register actions
+                if packs_service.is_pack_enforcement_active(pack):
+                    LOG.error(
+                        'Actions for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register actions for the pack',
+                        pack,
+                    )
+                    continue
                 LOG.debug(
                     "Registering actions from pack %s:, dir: %s", pack, actions_dir
                 )
@@ -98,6 +107,15 @@ class ActionsRegistrar(ResourceRegistrar):
         registered_count = 0
         overridden_count = 0
         if not actions_dir:
+            return registered_count
+
+        # Check if pack has enforcement active then do not register actions
+        if packs_service.is_pack_enforcement_active(pack):
+            LOG.error(
+                        'Actions for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register actions for the pack',
+                        pack,
+                        )
             return registered_count
 
         LOG.debug("Registering actions from pack %s:, dir: %s", pack, actions_dir)

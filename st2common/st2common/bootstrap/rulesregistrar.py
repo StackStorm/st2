@@ -31,6 +31,7 @@ from st2common.services.triggers import (
 )
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 import st2common.content.utils as content_utils
+from st2common.services import packs as packs_service
 
 __all__ = ["RulesRegistrar", "register_rules"]
 
@@ -58,6 +59,14 @@ class RulesRegistrar(ResourceRegistrar):
                 LOG.debug("Pack %s does not contain rules.", pack)
                 continue
             try:
+                # Check if pack has enforcement active then do not register rules
+                if packs_service.is_pack_enforcement_active(pack):
+                    LOG.error(
+                        'Rules for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register rules for the pack',
+                        pack,
+                    )
+                    continue
                 LOG.debug("Registering rules from pack: %s", pack)
                 rules = self._get_rules_from_pack(rules_dir)
                 count, override = self._register_rules_from_pack(pack, rules)
@@ -91,6 +100,15 @@ class RulesRegistrar(ResourceRegistrar):
         overridden_count = 0
         if not rules_dir:
             return registered_count, overridden_count
+
+        # Check if pack has enforcement active then do not register rules
+        if packs_service.is_pack_enforcement_active(pack):
+            LOG.error(
+                        'Rules for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register rules for the pack',
+                        pack,
+                        )
+            return registered_count
 
         LOG.debug("Registering rules from pack %s:, dir: %s", pack, rules_dir)
 

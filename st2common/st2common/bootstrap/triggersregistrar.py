@@ -23,6 +23,7 @@ from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 import st2common.content.utils as content_utils
 from st2common.models.utils import sensor_type_utils
+from st2common.services import packs as packs_service
 
 __all__ = ["TriggersRegistrar", "register_triggers"]
 
@@ -53,6 +54,14 @@ class TriggersRegistrar(ResourceRegistrar):
                 LOG.debug("Pack %s does not contain triggers.", pack)
                 continue
             try:
+                # Check if pack has enforcement active then do not register triggers
+                if packs_service.is_pack_enforcement_active(pack):
+                    LOG.error(
+                        'Triggers for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register triggers for the pack',
+                        pack,
+                    )
+                    continue
                 LOG.debug(
                     "Registering triggers from pack %s:, dir: %s", pack, triggers_dir
                 )
@@ -89,6 +98,15 @@ class TriggersRegistrar(ResourceRegistrar):
 
         registered_count = 0
         if not triggers_dir:
+            return registered_count
+
+        # Check if pack has enforcement active then do not register triggers
+        if packs_service.is_pack_enforcement_active(pack):
+            LOG.error(
+                        'Triggers for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register triggers for the pack',
+                        pack,
+                        )
             return registered_count
 
         LOG.debug("Registering triggers from pack %s:, dir: %s", pack, triggers_dir)

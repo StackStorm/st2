@@ -32,6 +32,8 @@ from st2common.content.utils import get_pack_base_path
 from st2common.exceptions.content import ResourceDiskFilesRemovalError
 from st2common.models.db.stormbase import UIDFieldMixin
 from st2common.persistence.pack import Pack
+from st2common.constants.pack import SYSTEM_PACK_NAMES
+from st2common.constants.pack_enforcement import PACK_ENFORCEMENT_STATUS_ACTIVE
 from st2common.util.misc import lowercase_value
 from st2common.util.jsonify import json_encode
 
@@ -488,3 +490,11 @@ def remove_temp_action_files(temp_sub_dir):
                 "and delete the temporary directory manually" % (temp_dir_path)
             )
             raise Exception(msg)
+        
+
+def is_pack_enforcement_active(pack_name):
+    if pack_name not in SYSTEM_PACK_NAMES:
+       pack_db = get_pack_by_ref(pack_ref=pack_name)
+       if pack_db.pack_enforcement.strip()==PACK_ENFORCEMENT_STATUS_ACTIVE:
+           return True
+    return False

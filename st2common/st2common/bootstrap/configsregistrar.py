@@ -27,6 +27,7 @@ from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.pack import ConfigAPI
 from st2common.persistence.pack import Config
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.services import packs as packs_service
 
 __all__ = ["ConfigsRegistrar"]
 
@@ -81,6 +82,14 @@ class ConfigsRegistrar(ResourceRegistrar):
                 continue
 
             try:
+                # Check if pack has enforcement active then do not register configs
+                if packs_service.is_pack_enforcement_active(pack_name):
+                    LOG.error(
+                        'Configs for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register configs for the pack',
+                        pack_name,
+                    )
+                    continue
                 self._register_config_for_pack(pack=pack_name, config_path=config_path)
             except Exception as e:
                 if self._fail_on_failure:
@@ -115,6 +124,17 @@ class ConfigsRegistrar(ResourceRegistrar):
         if not os.path.isfile(config_path):
             return 0
 
+        # Check if pack has enforcement active then do not register configs
+        if packs_service.is_pack_enforcement_active(pack_name):
+            LOG.error(
+                        'Configs for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register configs for the pack',
+                        pack_name,
+                        )
+            return 0
+
+        LOG.debug("Registering configs from pack %s, dir: %s", pack_name, config_path)
+        
         self._register_config_for_pack(pack=pack_name, config_path=config_path)
         return 1
 

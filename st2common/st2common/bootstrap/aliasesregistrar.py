@@ -26,6 +26,7 @@ from st2common.models.api.action import ActionAliasAPI
 from st2common.persistence.action import Action
 from st2common.persistence.actionalias import ActionAlias
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.services import packs as packs_service
 
 __all__ = ["AliasesRegistrar", "register_aliases"]
 
@@ -57,6 +58,14 @@ class AliasesRegistrar(ResourceRegistrar):
                 LOG.debug("Pack %s does not contain aliases.", pack)
                 continue
             try:
+                # Check if pack has enforcement active then do not register aliases
+                if packs_service.is_pack_enforcement_active(pack):
+                    LOG.error(
+                        'Aliases for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register aliases for the pack',
+                        pack,
+                    )
+                    continue
                 LOG.debug(
                     "Registering aliases from pack %s:, dir: %s", pack, aliases_dir
                 )
@@ -96,6 +105,15 @@ class AliasesRegistrar(ResourceRegistrar):
         overridden_count = 0
         if not aliases_dir:
             return registered_count, overridden_count
+
+        # Check if pack has enforcement active then do not register aliases
+        if packs_service.is_pack_enforcement_active(pack):
+            LOG.error(
+                        'Aliases for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register aliases for the pack',
+                        pack,
+                        )
+            return registered_count
 
         LOG.debug("Registering aliases from pack %s:, dir: %s", pack, aliases_dir)
 

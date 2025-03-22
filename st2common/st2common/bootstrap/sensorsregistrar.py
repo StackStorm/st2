@@ -25,6 +25,7 @@ from st2common.bootstrap.base import ResourceRegistrar
 import st2common.content.utils as content_utils
 from st2common.models.api.sensor import SensorTypeAPI
 from st2common.persistence.sensor import SensorType
+from st2common.services import packs as packs_service
 
 __all__ = ["SensorsRegistrar", "register_sensors"]
 
@@ -58,6 +59,14 @@ class SensorsRegistrar(ResourceRegistrar):
                 LOG.debug("Pack %s does not contain sensors.", pack)
                 continue
             try:
+                # Check if pack has enforcement active then do not register sensors
+                if packs_service.is_pack_enforcement_active(pack):
+                    LOG.error(
+                        'Sensors for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register sensors for the pack',
+                        pack,
+                    )
+                    continue
                 LOG.debug(
                     "Registering sensors from pack %s:, dir: %s", pack, sensors_dir
                 )
@@ -99,6 +108,15 @@ class SensorsRegistrar(ResourceRegistrar):
         overridden_count = 0
         if not sensors_dir:
             return registered_count, overridden_count
+
+        # Check if pack has enforcement active then do not register sensors
+        if packs_service.is_pack_enforcement_active(pack):
+            LOG.error(
+                        'Sensors for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register sensors for the pack',
+                        pack,
+                        )
+            return registered_count
 
         LOG.debug("Registering sensors from pack %s:, dir: %s", pack, sensors_dir)
 

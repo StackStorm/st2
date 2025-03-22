@@ -28,6 +28,7 @@ from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.util import loader
+from st2common.services import packs as packs_service
 
 
 __all__ = ["PolicyRegistrar", "register_policy_types", "register_policies"]
@@ -60,6 +61,14 @@ class PolicyRegistrar(ResourceRegistrar):
                 LOG.debug("Pack %s does not contain policies.", pack)
                 continue
             try:
+                # Check if pack has enforcement active then do not register policies
+                if packs_service.is_pack_enforcement_active(pack):
+                    LOG.error(
+                        'Policies for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register policies for the pack',
+                        pack,
+                    )
+                    continue
                 LOG.debug(
                     "Registering policies from pack %s:, dir: %s", pack, policies_dir
                 )
@@ -95,6 +104,15 @@ class PolicyRegistrar(ResourceRegistrar):
 
         registered_count = 0
         if not policies_dir:
+            return registered_count
+
+        # Check if pack has enforcement active then do not register policies
+        if packs_service.is_pack_enforcement_active(pack):
+            LOG.error(
+                        'Policies for the pack "%s" could not be registered due to license provision'
+                        ', please upgrade license to register policies for the pack',
+                        pack,
+                        )
             return registered_count
 
         LOG.debug("Registering policies from pack %s, dir: %s", pack, policies_dir)
