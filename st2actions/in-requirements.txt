@@ -19,6 +19,9 @@ lockfile
 # needed by core "linux" pack - TODO: create virtualenv for linux pack on postinst
 pyinotify
 logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
+# logshipper has metadata in setup.cfg that is not supported by setuptools 78, so we need
+# an explicit dep (from fixed-requirements.txt) to prevent CircleCI from pulling that in.
+setuptools
 # required by pack_mgmt/setup_virtualenv.py#L135
 virtualenv
 # needed by requests

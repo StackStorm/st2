@@ -22,5 +22,6 @@ python-dateutil==2.9.0.post0
 python-json-logger
 pyyaml==6.0.2
 requests==2.32.3
+setuptools<78
 six==1.17.0
 urllib3==2.2.3
