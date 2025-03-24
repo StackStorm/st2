@@ -30,8 +30,6 @@ backend_packages = [
 
   # packaging
   "pants.backend.experimental.makeself",
-
-  # packaging
   "pants.backend.experimental.nfpm",
 
   # internal plugins in pants-plugins/
