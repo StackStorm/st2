@@ -6,3 +6,4 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
+setuptools<78

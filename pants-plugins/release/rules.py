@@ -21,12 +21,19 @@ https://github.com/pantsbuild/pants/blob/master/pants-plugins/internal_plugins/r
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 
+from pants.backend.nfpm.fields.version import NfpmVersionField, NfpmVersionSchemaField
+from pants.backend.nfpm.util_rules.inject_config import (
+    InjectedNfpmPackageFields,
+    InjectNfpmPackageFieldsRequest,
+)
 from pants.backend.python.util_rules.package_dists import (
     SetupKwargs,
     SetupKwargsRequest,
 )
 from pants.engine.fs import DigestContents, GlobMatchErrorBehavior, PathGlobs
+from pants.engine.internals.native_engine import Field
 from pants.engine.target import Target
 from pants.engine.rules import collect_rules, Get, MultiGet, rule, UnionRule
 from pants.util.frozendict import FrozenDict
@@ -88,6 +95,40 @@ class StackStormSetupKwargsRequest(SetupKwargsRequest):
         # return target.address.spec.startswith("st2")
 
 
+@dataclass(frozen=True)
+class StackStormVersionRequest:
+    version_file: str
+    description_of_origin: str
+
+
+@dataclass(frozen=True)
+class StackStormVersion:
+    value: str
+
+
+@rule
+async def extract_version(request: StackStormVersionRequest) -> StackStormVersion:
+    version_digest_contents = await Get(
+        DigestContents,
+        PathGlobs(
+            [request.version_file],
+            description_of_origin=request.description_of_origin,
+            glob_match_error_behavior=GlobMatchErrorBehavior.error,
+        ),
+    )
+
+    version_file_contents = version_digest_contents[0].content.decode()
+    version_match = re.search(
+        r"^__version__ = ['\"]([^'\"]*)['\"]", version_file_contents, re.M
+    )
+    if not version_match:
+        raise ValueError(
+            f"Could not find the __version__ in {request.version_file}\n{version_file_contents}"
+        )
+
+    return StackStormVersion(version_match.group(1))
+
+
 @rule
 async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwargs:
     kwargs = request.explicit_kwargs.copy()
@@ -100,13 +141,12 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
 
     version_file = kwargs.pop("version_file")
 
-    version_digest_contents, readme_digest_contents = await MultiGet(
+    version, readme_digest_contents = await MultiGet(
         Get(
-            DigestContents,
-            PathGlobs(
-                [f"{request.target.address.spec_path}/{version_file}"],
+            StackStormVersion,
+            StackStormVersionRequest(
+                version_file=f"{request.target.address.spec_path}/{version_file}",
                 description_of_origin=f"StackStorm version file: {version_file}",
-                glob_match_error_behavior=GlobMatchErrorBehavior.error,
             ),
         ),
         Get(
@@ -118,19 +158,10 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
         ),
     )
 
-    version_file_contents = version_digest_contents[0].content.decode()
-    version_match = re.search(
-        r"^__version__ = ['\"]([^'\"]*)['\"]", version_file_contents, re.M
-    )
-    if not version_match:
-        raise ValueError(
-            f"Could not find the __version__ in {request.target.address.spec_path}/{version_file}\n{version_file_contents}"
-        )
-
     # Hardcode certain kwargs and validate that they weren't already set.
     hardcoded_kwargs = PROJECT_METADATA.copy()
     hardcoded_kwargs["project_urls"] = FrozenDict(PROJECT_URLS)
-    hardcoded_kwargs["version"] = version_match.group(1)
+    hardcoded_kwargs["version"] = version.value
 
     long_description = (
         readme_digest_contents[0].content.decode() if readme_digest_contents else ""
@@ -162,8 +193,43 @@ async def setup_kwargs_plugin(request: StackStormSetupKwargsRequest) -> SetupKwa
     return SetupKwargs(kwargs, address=request.target.address)
 
 
+class StackStormNfpmPackageFieldsRequest(InjectNfpmPackageFieldsRequest):
+    @classmethod
+    def is_applicable(cls, _: Target) -> bool:
+        return True
+
+
+@rule
+async def inject_package_fields(
+    request: StackStormNfpmPackageFieldsRequest,
+) -> InjectedNfpmPackageFields:
+    address = request.target.address
+
+    version_file = "st2common/st2common/__init__.py"
+    extracted_version = await Get(
+        StackStormVersion,
+        StackStormVersionRequest(
+            version_file=version_file,
+            description_of_origin=f"StackStorm version file: {version_file}",
+        ),
+    )
+
+    version: str = extracted_version.value
+    if version.endswith("dev") and version[-4] != "-":
+        # nfpm parses this into version[-version_prerelease][+version_metadata]
+        # that dash is required to be a valid semver version.
+        version = version.replace("dev", "-dev")
+
+    fields: list[Field] = [
+        NfpmVersionSchemaField("semver", address=address),
+        NfpmVersionField(version, address=address),
+    ]
+    return InjectedNfpmPackageFields(fields, address=address)
+
+
 def rules():
     return [
         *collect_rules(),
         UnionRule(SetupKwargsRequest, StackStormSetupKwargsRequest),
+        UnionRule(InjectNfpmPackageFieldsRequest, StackStormNfpmPackageFieldsRequest),
     ]
