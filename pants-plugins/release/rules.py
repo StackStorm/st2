@@ -23,7 +23,15 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from pants.backend.nfpm.fields.version import NfpmVersionField, NfpmVersionSchemaField
+from pants.backend.nfpm.fields.all import (
+    NfpmArchField,
+    NfpmPackageNameField,
+)
+from pants.backend.nfpm.fields.version import (
+    NfpmVersionField,
+    NfpmVersionReleaseField,
+    NfpmVersionSchemaField,
+)
 from pants.backend.nfpm.util_rules.inject_config import (
     InjectedNfpmPackageFields,
     InjectNfpmPackageFieldsRequest,
@@ -37,6 +45,12 @@ from pants.engine.internals.native_engine import Field
 from pants.engine.target import Target
 from pants.engine.rules import collect_rules, Get, MultiGet, rule, UnionRule
 from pants.util.frozendict import FrozenDict
+
+from .packagecloud_rules import (
+    PackageCloudNextReleaseRequest,
+    packagecloud_get_next_release,
+)
+from .packagecloud_rules import rules as packagecloud_rules
 
 
 REQUIRED_KWARGS = (
@@ -203,7 +217,8 @@ class StackStormNfpmPackageFieldsRequest(InjectNfpmPackageFieldsRequest):
 async def inject_package_fields(
     request: StackStormNfpmPackageFieldsRequest,
 ) -> InjectedNfpmPackageFields:
-    address = request.target.address
+    target = request.target
+    address = target.address
 
     version_file = "st2common/st2common/__init__.py"
     extracted_version = await Get(
@@ -215,20 +230,35 @@ async def inject_package_fields(
     )
 
     version: str = extracted_version.value
-    if version.endswith("dev") and version[-4] != "-":
+    is_dev = "dev" in version
+    if is_dev and "-dev" not in version:
         # nfpm parses this into version[-version_prerelease][+version_metadata]
-        # that dash is required to be a valid semver version.
+        # that dash is required to be a valid semver version (3.9dev => 3.9-dev).
         version = version.replace("dev", "-dev")
+
+    # this is specific to distro-version (EL8, EL9, Ubuntu Focal, Ubuntu Jammy, ...)
+    next_release = await packagecloud_get_next_release(
+        PackageCloudNextReleaseRequest(
+            nfpm_arch=target[NfpmArchField].value,
+            distro_id="",  # TODO: add field for distro ID
+            package_name=target[NfpmPackageNameField].value,
+            package_version=version,
+            production=not is_dev,
+        )
+    )
+    release = 1 if next_release.value is None else next_release.value
 
     fields: list[Field] = [
         NfpmVersionSchemaField("semver", address=address),
         NfpmVersionField(version, address=address),
+        NfpmVersionReleaseField(release, address=address),
     ]
     return InjectedNfpmPackageFields(fields, address=address)
 
 
 def rules():
     return [
+        *packagecloud_rules(),
         *collect_rules(),
         UnionRule(SetupKwargsRequest, StackStormSetupKwargsRequest),
         UnionRule(InjectNfpmPackageFieldsRequest, StackStormNfpmPackageFieldsRequest),
