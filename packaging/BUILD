@@ -21,9 +21,17 @@ _common_pkg_metadata = dict(
 )
 _maintainer = "StackStorm Engineering <opsadmin@stackstorm.com>"  # TODO: update this
 
+
+def _distro(distro_id: str, **kwargs):
+    return parametrize(
+        distro_id,
+        distro_id=distro_id,
+        **kwargs,
+    )
+
+
 nfpm_deb_package(
     name="st2.deb",
-    distro_id=parametrize("focal"),
     maintainer=_maintainer,
     fields={
         # https://www.debian.org/doc/debian-policy/ch-controlfields.html#source
@@ -35,15 +43,15 @@ nfpm_deb_package(
     section="python",
     priority="optional",
     **_common_pkg_metadata,
+    **_distro("focal"),
 )
 
 nfpm_rpm_package(
     name="st2.rpm",
-    distro_id=parametrize("el8", "el9"),
     vendor="The StackStorm Project",
     packager=_maintainer,
     # group="System/Management",  # was only useful for EL 5 and earlier
-    compression="zstd:default",  # EL 9
-    # compression="xz",  # EL 8
     **_common_pkg_metadata,
+    **_distro("el8", compression="xz"),
+    **_distro("el9", compression="zstd:default"),
 )
