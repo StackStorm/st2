@@ -3,6 +3,11 @@ Changelog
 
 in development
 --------------
+* implemented zstandard compression for parameters and results. #5995
+  contributed by @guzzijones12
+
+* removed embedded liveaction in action execution database table #5995
+  contributed by @guzzijones12
 
 Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 This release adds support for Python 3.10 and 3.11, so StackStorm supports python 3.8 - 3.11.
