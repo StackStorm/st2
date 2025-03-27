@@ -17,7 +17,11 @@ Please see https://www.pantsbuild.org/docs/plugins-setup-py
 """
 
 from release.rules import rules as release_rules
+from release.target_types import rules as release_target_types_rules
 
 
 def rules():
-    return release_rules()
+    return [
+        *release_target_types_rules(),
+        *release_rules(),
+    ]

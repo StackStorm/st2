@@ -51,6 +51,7 @@ from .packagecloud_rules import (
     packagecloud_get_next_release,
 )
 from .packagecloud_rules import rules as packagecloud_rules
+from .target_types import DistroIDField
 
 
 REQUIRED_KWARGS = (
@@ -240,7 +241,7 @@ async def inject_package_fields(
     next_release = await packagecloud_get_next_release(
         PackageCloudNextReleaseRequest(
             nfpm_arch=target[NfpmArchField].value,
-            distro_id="",  # TODO: add field for distro ID
+            distro_id=target[DistroIDField].value,
             package_name=target[NfpmPackageNameField].value,
             package_version=version,
             production=not is_dev,
