@@ -22,6 +22,15 @@ _common_pkg_metadata = dict(
 _maintainer = "StackStorm Engineering <opsadmin@stackstorm.com>"  # TODO: update this
 
 
+def _st2_venv_deps() -> list[str]:
+    """Return a list of deps required to build the st2 venv.
+
+    The :st2_venv parametrizations depend on parametrizations of :st2.pex,
+    so, make sure to keep these 3 lists of parametrizations in sync.
+    """
+    return [f":st2_venv@parametrize=py3{m}" for m in ("8", "9", "10", "11")]
+
+
 def _distro(distro_id: str, **kwargs):
     return parametrize(
         distro_id,
@@ -38,6 +47,9 @@ nfpm_deb_package(
         "./common/systemd:generators",
         "./common:dirs",
         "./common:symlinks",
+        *_st2_venv_deps(),
+        ":default_packs",
+        ":extra_packs",
     ],
     scripts=dict(
         preinstall="deb/scripts/pre-install.sh",
@@ -70,6 +82,12 @@ nfpm_rpm_package(
         "./common/systemd:generators",
         "./common:dirs",
         "./common:symlinks",
+        *_st2_venv_deps(),
+        ":default_packs",
+        ":extra_packs",
+    ],
+    ghost_contents=[
+        "/opt/stackstorm/install/st2.pex",  # a symlink (default in post-install; users may modify)
     ],
     scripts=dict(
         preinstall="rpm/scripts/pre-install.sh",
@@ -83,7 +101,8 @@ nfpm_rpm_package(
     vendor="The StackStorm Project",
     packager=_maintainer,
     # group="System/Management",  # was only useful for EL 5 and earlier
+    compression="zstd:best",  # xz and lzma are ~3x slower than gzip or zstd
     **_common_pkg_metadata,
-    **_distro("el8", compression="xz"),
-    **_distro("el9", compression="zstd:default"),
+    **_distro("el8"),
+    **_distro("el9"),
 )

@@ -170,6 +170,16 @@ def st2_pack_archive(**kwargs):
         output_path=f"packaging/packs/{pack_name}.tgz.run",
     )
 
+    nfpm_content_file(  # noqa: F821
+        name="archive_for_nfpm",
+        dependencies=[":archive"],
+        src=f"packaging/packs/{pack_name}.tgz.run",
+        dst=f"/opt/stackstorm/install/packs/{pack_name}.tgz.run",
+        file_owner="root",
+        file_group=ST2_PACKS_GROUP,
+        file_mode="rwxr-x---",
+    )
+
 
 def st2_shell_sources_and_resources(**kwargs):
     """This creates a shell_sources and a resources target.

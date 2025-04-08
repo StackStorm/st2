@@ -74,7 +74,7 @@ DISTRO_INFO = {
 }
 
 
-@dataclass
+@dataclass(frozen=True)
 class PackageCloudNextReleaseRequest:
     nfpm_arch: str
     distro_id: str
@@ -83,7 +83,7 @@ class PackageCloudNextReleaseRequest:
     production: bool
 
 
-@dataclass
+@dataclass(frozen=True)
 class PackageCloudNextRelease:
     value: Optional[int] = None
 

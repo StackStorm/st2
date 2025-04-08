@@ -23,6 +23,7 @@ python_sources()
 
 
 def _pex_py3(minor: str, constraint: str = ""):
+    """Parametrize :st2.pex for a given python minor version."""
     if not constraint:
         constraint = f"CPython==3.{minor}.*"
     return parametrize(
@@ -70,4 +71,27 @@ pex_binary(
     **_pex_py3("9"),
     **_pex_py3("10"),
     **_pex_py3("11"),
+)
+
+
+def _venv_py3(minor: str):
+    """Parametrize :st2_venv for a given python minor version."""
+    return parametrize(
+        f"py3{minor}",
+        dependencies=[f":st2.pex@parametrize=py3{minor}"],
+        src=f"st2-py3{minor}.pex",  # relative to this BUILD file
+        dst=f"/opt/stackstorm/install/st2-py3{minor}.pex",
+    )
+
+
+nfpm_content_file(
+    name="st2_venv",
+    description="Pex file that system packages can use to generate /opt/stackstorm/st2",
+    file_owner="root",
+    file_group="root",
+    file_mode="rwxr-x---",
+    **_venv_py3("8"),
+    **_venv_py3("9"),
+    **_venv_py3("10"),
+    **_venv_py3("11"),
 )
