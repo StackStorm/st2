@@ -29,6 +29,9 @@ set -e
 # https://www.mankier.com/5/deb-triggers
 # https://stackoverflow.com/questions/15276535/dpkg-how-to-use-trigger
 
+# The supported minor versions of python3 (python3.{minor}) in reverse order.
+_ST2_PY3_MINOR="11 10 9 8"
+
 # The default set of packs installed with st2.
 _ST2_PACKS="
 chatops
@@ -93,7 +96,24 @@ systemd_enable_and_restart() {
 }
 
 rebuild_st2_venv() {
-    /opt/stackstorm/install/st2.pex
+    _pex="/opt/stackstorm/install/st2.pex"
+    if [ ! -e "${_pex}" ]; then
+        # symlink does not exist or does not point to a valid file
+        # (the symlink target might not exist any more if upgrading
+        # to an st2 version that drops support for an older python)
+        rm -f "${_pex}"
+        for minor in ${_ST2_PY3_MINOR}; do
+            if [ -x "/usr/bin/python3.${minor}" ]; then
+                ln -s "st2-py3${minor}.pex" "${_pex}"
+                break
+            fi
+        done
+        if [ ! -e "${_pex}" ]; then
+            # symlink creation failed; the python dep is somehow missing
+            return 42
+        fi
+    fi
+    "${_pex}"
 }
 
 extract_st2_pack() {
