@@ -101,7 +101,8 @@ nfpm_rpm_package(
     vendor="The StackStorm Project",
     packager=_maintainer,
     # group="System/Management",  # was only useful for EL 5 and earlier
+    compression="zstd:best",  # xz and lzma are ~3x slower than gzip or zstd
     **_common_pkg_metadata,
-    **_distro("el8", compression="xz"),
-    **_distro("el9", compression="zstd:default"),
+    **_distro("el8"),
+    **_distro("el9"),
 )
