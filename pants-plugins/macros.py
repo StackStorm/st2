@@ -234,11 +234,14 @@ def st2_logging_conf_for_nfpm(**kwargs):
     shell_command(  # noqa: F821
         name="package_logging_conf",
         execution_dependencies=deps,
-        # TODO: this will fail if using MacOS.
-        command="""sed -i -r "/args\\s*=\\s*/s%logs%/var/log/st2%g" logging.*conf;
-        sed -i "/\\[logger_root\\]/,/\\[.*\\]\\|\\s*$$/ {s/level=DEBUG/level=INFO/}" logging.*conf;
-        sed -i "/\\[logger_root\\]/,/\\[.*\\]\\|\\s*$$/ {s/level=DEBUG/level=INFO/}" syslog.*conf;
+        # Using "-E" and specifying the ".bak" suffix makes this portable
+        command="""
+        sed -E -i.bak "/args[[:space:]]*=[[:space:]]*/s:logs/:/var/log/st2/:g" logging.*conf;
+        for conf_file in logging.*conf syslog.*conf; do
+            crudini --verbose --set "${conf_file}" logger_root level INFO;
+        done
         """,
+        runnable_dependencies=["//:crudini"],
         tools=["sed"],
         output_files=["*.conf"],
     )
