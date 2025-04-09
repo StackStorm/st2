@@ -69,10 +69,9 @@ shell_command(
 shell_command(
     name="packaged_st2_conf",
     execution_dependencies=[":st2_package_conf"],
-    # TODO: how to add the if statement
-    # if REDHAT && [[ `$(PYTHON_ALT_BINARY) /root/scripts/platform_major_version.py` = 8 ]]
-    command="""sed -i -r 's/virtualenv_opts\\s*=.*/virtualenv_opts =/' st2.package.conf""",
-    tools=["sed"],
+    # virtualenv_opts is no longer needed for most OSes. We used to do this only for EL 8.
+    command="""crudini --verbose --set st2.package.conf actionrunner virtualenv_opts ''""",
+    runnable_dependencies=["//:crudini"],
     output_files=["st2.package.conf"],
 )
 
