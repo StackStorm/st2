@@ -11,7 +11,7 @@ apscheduler==3.11.0
 chardet==5.2.0
 cffi==1.17.1
 cryptography==43.0.3
-eventlet==0.39.0
+eventlet==0.39.1
 flex==6.14.1
 # Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
 # TODO: Pin to 3.1.37 or higher after dropping python3.6 support
@@ -23,7 +23,7 @@ greenlet==3.1.1
 gunicorn==23.0.0
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
-kombu==5.4.2
+kombu==5.5.2
 lockfile==0.12.2
 mongoengine==0.29.1
 networkx==3.1
@@ -47,7 +47,7 @@ editor==1.6.6
 # editor dependency, required here for inclusion in st2client setup.py
 pygments==2.19.1
 python-keyczar==0.716
-pytz==2025.1
+pytz==2025.2
 pywinrm==0.5.0
 pyyaml==6.0.2
 redis==5.2.1
@@ -59,7 +59,7 @@ routes==2.5.1
 semver==3.0.4
 six==1.17.0
 argparse==1.4.0
-argcomplete==3.5.3
+argcomplete==3.6.2
 prettytable==3.10.2
 importlib-metadata==7.1.0
 typing-extensions==4.12.2
@@ -69,9 +69,9 @@ stevedore==5.3.0
 tenacity==9.0.0
 tooz==6.3.0
 # Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
-# virtualenv==20.29.2 (<21) has pip==25.0.1 wheel==0.45.1 setuptools==75.3.0
-# lockfiles/st2.lock has pip==25.0.1 wheel==0.45.1 setuptools==75.3.0
-virtualenv==20.29.2
+# virtualenv==20.30.0 (<21) has pip==25.0.1 wheel==0.45.1 setuptools==75.3.2
+# lockfiles/st2.lock has pip==25.0.1 wheel==0.45.1 setuptools==75.3.2
+virtualenv==20.30.0
 # This setuptools version number is in the Makefile, but CircleCI builds are pulling a version
 # that is incompatible with our logshipper fork.
 setuptools<78
@@ -79,9 +79,9 @@ webob==1.8.9
 webtest==3.0.1
 zake==0.2.2
 # test requirements below
-bcrypt==4.2.1
-jinja2==3.1.5
-mock==5.1.0
+bcrypt==4.3.0
+jinja2==3.1.6
+mock==5.2.0
 pytest==7.0.1
 psutil==7.0.0
 python-dateutil==2.9.0.post0
