@@ -55,6 +55,8 @@ pex_binary(
         "//contrib/runners/python_runner",
         "//contrib/runners/remote_runner",
         "//contrib/runners/winrm_runner",
+        "//:auth_backends",
+        "//:rbac_backends",
     ],
     executable="build_st2_venv.py",  # included by dependency inferrence
     execution_mode="venv",
