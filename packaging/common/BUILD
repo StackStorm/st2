@@ -1,8 +1,6 @@
 nfpm_content_dirs(
     name="root_dirs",
     dirs=[
-        # "/etc/bash_completion.d",
-        # "/etc/logrotate.d",
         "/etc/st2",
         "/opt/stackstorm",
         "/opt/stackstorm/st2",
@@ -70,4 +68,17 @@ nfpm_content_symlinks(
     ],
     file_owner="root",
     file_group="root",
+)
+
+target(
+    name="conf_files",
+    dependencies=[
+        "//conf:packaged_conf_files",
+        "//st2actions/conf:packaged_conf_files",
+        "//st2api/conf:packaged_conf_files",
+        "//st2auth/conf:packaged_conf_files",
+        "//st2client/conf:packaged_bash_completion",
+        "//st2reactor/conf:packaged_conf_files",
+        "//st2stream/conf:packaged_conf_files",
+    ],
 )

@@ -226,3 +226,32 @@ def st2_logging_conf_resources(**kwargs):
     deps = list(deps) + list(_st2common_logging_deps)
     kwargs["dependencies"] = tuple(deps)
     resources(**kwargs)  # noqa: F821
+
+
+def st2_logging_conf_for_nfpm(**kwargs):
+    deps = kwargs.pop("dependencies") or []
+
+    shell_command(  # noqa: F821
+        name="package_logging_conf",
+        execution_dependencies=deps,
+        # Using "-E" and specifying the ".bak" suffix makes this portable
+        command="""
+        sed -E -i.bak "/args[[:space:]]*=[[:space:]]*/s:logs/:/var/log/st2/:g" logging.*conf;
+        for conf_file in logging.*conf syslog.*conf; do
+            crudini --verbose --set "${conf_file}" logger_root level INFO;
+        done
+        """,
+        runnable_dependencies=["//:crudini"],
+        tools=["sed"],
+        output_files=["*.conf"],
+    )
+
+    nfpm_content_files(  # noqa: F821
+        name="packaged_conf_files",
+        dependencies=[":package_logging_conf"],
+        file_owner="root",
+        file_group="root",
+        file_mode="rw-r--r--",
+        content_type="config|noreplace",
+        **kwargs,
+    )
