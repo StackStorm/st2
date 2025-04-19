@@ -17,9 +17,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Optional
 
-import requests
+import aiohttp
 from pants.engine.env_vars import EnvironmentVars, EnvironmentVarsRequest
-from requests.auth import HTTPBasicAuth
 
 from pants.engine.internals.selectors import Get
 from pants.engine.rules import _uncacheable_rule, collect_rules
@@ -99,20 +98,7 @@ async def packagecloud_get_next_release(
     if not package_cloud_token:
         return PackageCloudNextRelease()
 
-    client = requests.session()
-    client.auth = HTTPBasicAuth(package_cloud_token, "")
-
-    def get(url_path: str) -> list[dict[str, Any]]:
-        response = client.get(f"https://packagecloud.io{url_path}")
-        response.raise_for_status()
-        ret: list[dict[str, Any]] = response.json()
-        next_url = response.links.get("next", {}).get("url")
-        while next_url:
-            response = client.get(f"https://packagecloud.io{next_url}")
-            response.raise_for_status()
-            ret.extend(response.json())
-            next_url = response.links.get("next", {}).get("url")
-        return ret
+    http_auth = aiohttp.HTTPBasicAuth(package_cloud_token, "")
 
     distro_id = request.distro_id
     distro_info = DISTRO_INFO[distro_id]
@@ -130,12 +116,15 @@ async def packagecloud_get_next_release(
     # https://packagecloud.io/docs/api#resource_packages_method_index (api doc incorrectly drops /:package)
     # /api/v1/repos/:user_id/:repo/packages/:type/:distro/:version/:package/:arch.json
     index_url = f"/api/v1/repos/{org}/{repo}/packages/{pkg_type}/{distro}/{distro_version}/{pkg_name}/{arch}.json"
-    package_index: list[dict[str, Any]] = get(index_url)
-    if not package_index:
-        return PackageCloudNextRelease()
 
-    versions_url: str = package_index[0]["versions_url"]
-    versions: list[dict[str, Any]] = get(versions_url)
+    with aiohttp.ClientSession(auth=http_auth) as client:
+        package_index: list[dict[str, Any]] = await get(client, index_url)
+        if not package_index:
+            return PackageCloudNextRelease()
+
+        versions_url: str = package_index[0]["versions_url"]
+        versions: list[dict[str, Any]] = await get(client, versions_url)
+
     releases = [
         version_info["release"]
         for version_info in versions
@@ -147,6 +136,22 @@ async def packagecloud_get_next_release(
     max_release = max(int(release) for release in releases)
     next_release = max_release + 1
     return PackageCloudNextRelease(next_release)
+
+
+async def get(client: aiohttp.ClientSession, url_path: str) -> list[dict[str, Any]]:
+    """Get packagecloud URL, handling any results paging."""
+    with client.get(
+        f"https://packagecloud.io{url_path}", raise_for_status=True
+    ) as response:
+        ret: list[dict[str, Any]] = response.json()
+        next_url = response.links.get("next", {}).get("url")
+    while next_url:
+        with client.get(
+            f"https://packagecloud.io{next_url}", raise_for_status=True
+        ) as response:
+            ret.extend(response.json())
+            next_url = response.links.get("next", {}).get("url")
+    return ret
 
 
 def rules():
